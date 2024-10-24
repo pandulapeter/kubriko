@@ -32,14 +32,13 @@ kotlin {
     
     sourceSets {
         commonMain.dependencies {
+            implementation(projects.gameplay)
+            implementation(projects.ui)
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material)
             implementation(compose.ui)
             implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
-            implementation(libs.androidx.lifecycle.viewmodel)
-            implementation(libs.androidx.lifecycle.runtime.compose)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
@@ -55,18 +54,12 @@ kotlin {
 android {
     namespace = "com.pandulapeter.gameTemplate"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
-
     defaultConfig {
         applicationId = "com.pandulapeter.gameTemplate"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
-    }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
     }
     buildTypes {
         release {
@@ -82,19 +75,13 @@ android {
     }
 }
 
-dependencies {
-    debugImplementation(compose.uiTooling)
-}
-
 compose.desktop {
     application {
         mainClass = "com.pandulapeter.gameTemplate.GameKt"
-
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.pandulapeter.gameTemplate"
             packageVersion = "1.0.0"
-
             buildTypes.release.proguard {
                 configurationFiles.from(project.file("proguard-rules.pro"))
                 isEnabled.set(true)
