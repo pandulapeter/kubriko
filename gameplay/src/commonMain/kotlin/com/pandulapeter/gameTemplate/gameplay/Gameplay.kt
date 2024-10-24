@@ -1,6 +1,7 @@
 package com.pandulapeter.gameTemplate.gameplay
 
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -34,11 +35,14 @@ fun GameplayCanvas(
     exit: () -> Unit,
 ) {
     Box(
-        modifier = Modifier
+        modifier = Modifier.getGameplayCanvasModifier()
             .pointerInput(Unit) {
-                detectDragGestures { change, dragAmount ->
-                    change.consume()
+                detectDragGestures { _, dragAmount ->
                     getEngine().addToCameraOffset(-dragAmount)
+                }
+                detectTransformGestures { _, pan, _, _ ->
+                    // TODO: Doesn't work
+                    getEngine().addToCameraScaleFactor(-pan.getDistance() * 0.001f)
                 }
             }
     ) {
