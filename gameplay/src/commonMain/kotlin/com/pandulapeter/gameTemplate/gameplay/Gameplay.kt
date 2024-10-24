@@ -14,10 +14,10 @@ import com.pandulapeter.gameTemplate.engine.getEngine
 
 private const val RECTANGLE_SIZE = 100f
 private const val RECTANGLE_DISTANCE = 140f
-private const val RECTANGLE_COUNT_ROOT = 15
+private const val RECTANGLE_COUNT = 15
 
-private val rectangles = (0..RECTANGLE_COUNT_ROOT).flatMap { x ->
-    (0..RECTANGLE_COUNT_ROOT).map { y ->
+private val rectangles = (-RECTANGLE_COUNT..RECTANGLE_COUNT).flatMap { x ->
+    (-RECTANGLE_COUNT..RECTANGLE_COUNT).map { y ->
         Rectangle(
             color = Color.hsv((0..360).random().toFloat(), 0.1f, 0.9f),
             size = Size(RECTANGLE_SIZE, RECTANGLE_SIZE),

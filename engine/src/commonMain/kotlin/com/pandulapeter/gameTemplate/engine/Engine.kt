@@ -104,8 +104,8 @@ fun EngineCanvas(
                         withTransform(
                             transformBlock = {
                                 translate(
-                                    left = gameObject.position.x - gameObject.pivot.x - cameraOffset.x,
-                                    top = gameObject.position.y - gameObject.pivot.y - cameraOffset.y,
+                                    left = gameObject.position.x - gameObject.pivot.x - cameraOffset.x + size.width / 2f,
+                                    top = gameObject.position.y - gameObject.pivot.y - cameraOffset.y + size.height / 2f,
                                 )
                                 rotate(
                                     degrees = gameObject.rotationDegrees,
@@ -136,10 +136,10 @@ private fun GameObject.isVisible(
     cameraOffset: Offset,
 ) = (size.width * scale.scaleX).let { scaledWidth ->
     (size.height * scale.scaleY).let { scaledHeight ->
-        position.x - pivot.x + scaledWidth >= cameraOffset.x &&
-                position.x - pivot.x - scaledWidth <= cameraOffset.x + screenSize.width &&
-                position.y - pivot.y + scaledHeight >= cameraOffset.y &&
-                position.y - pivot.y - scaledHeight <= cameraOffset.y + screenSize.height
+        position.x - pivot.x + scaledWidth >= cameraOffset.x - screenSize.width / 2f &&
+                position.x - pivot.x - scaledWidth <= cameraOffset.x + screenSize.width - screenSize.width / 2f &&
+                position.y - pivot.y + scaledHeight >= cameraOffset.y - screenSize.height / 2f &&
+                position.y - pivot.y - scaledHeight <= cameraOffset.y + screenSize.height - screenSize.height / 2f
     }
 }
 
