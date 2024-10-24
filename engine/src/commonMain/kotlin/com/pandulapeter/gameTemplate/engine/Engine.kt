@@ -39,7 +39,7 @@ interface Engine {
 @Composable
 fun EngineCanvas(
     gameObjects: List<GameObject>,
-    onKey: (key: Key) -> Unit = {},
+    onKeys: (keys: Set<Key>) -> Unit = {},
     onKeyRelease: (key: Key) -> Unit = {},
 ) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -64,7 +64,9 @@ fun EngineCanvas(
                     gameTimeNanos = gameTimeNanos,
                     deltaTimeMillis = deltaTimeMillis,
                 )
-                activeKeys.forEach(onKey)
+                if (activeKeys.isNotEmpty()) {
+                    onKeys(activeKeys.toSet())
+                }
                 if (EngineImpl.isFocused.value) {
                     gameObjects.forEach { it.update(deltaTimeMillis) }
                 }

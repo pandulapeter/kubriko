@@ -26,7 +26,8 @@ private val rectangles = (-RECTANGLE_COUNT..RECTANGLE_COUNT).flatMap { x ->
     }
 }
 
-private const val KEYBOARD_CAMERA_CONTROL_SPEED = 10f
+private const val CAMERA_SPEED = 10f
+private const val CAMERA_SPEED_DIAGONAL = 7.07f
 
 @Composable
 fun GameplayCanvas(
@@ -43,13 +44,20 @@ fun GameplayCanvas(
     ) {
         EngineCanvas(
             gameObjects = rectangles,
-            onKey = { key ->
-                when (key) {
-                    Key.DirectionLeft, Key.A -> getEngine().addToCameraOffset(Offset(-KEYBOARD_CAMERA_CONTROL_SPEED, 0f))
-                    Key.DirectionUp, Key.W -> getEngine().addToCameraOffset(Offset(0f, -KEYBOARD_CAMERA_CONTROL_SPEED))
-                    Key.DirectionRight, Key.D -> getEngine().addToCameraOffset(Offset(KEYBOARD_CAMERA_CONTROL_SPEED, 0f))
-                    Key.DirectionDown, Key.S -> getEngine().addToCameraOffset(Offset(0f, KEYBOARD_CAMERA_CONTROL_SPEED))
-                }
+            onKeys = { keys ->
+                getEngine().addToCameraOffset(
+                    when (keys.direction) {
+                        KeyboardDirection.NONE -> Offset.Zero
+                        KeyboardDirection.LEFT -> Offset(-CAMERA_SPEED, 0f)
+                        KeyboardDirection.UP_LEFT -> Offset(-CAMERA_SPEED_DIAGONAL, -CAMERA_SPEED_DIAGONAL)
+                        KeyboardDirection.UP -> Offset(0f, -CAMERA_SPEED)
+                        KeyboardDirection.UP_RIGHT -> Offset(CAMERA_SPEED_DIAGONAL, -CAMERA_SPEED_DIAGONAL)
+                        KeyboardDirection.RIGHT -> Offset(CAMERA_SPEED, 0f)
+                        KeyboardDirection.DOWN_RIGHT -> Offset(CAMERA_SPEED_DIAGONAL, CAMERA_SPEED_DIAGONAL)
+                        KeyboardDirection.DOWN -> Offset(0f, CAMERA_SPEED)
+                        KeyboardDirection.DOWN_LEFT -> Offset(-CAMERA_SPEED_DIAGONAL, CAMERA_SPEED_DIAGONAL)
+                    }
+                )
             },
             onKeyRelease = { key ->
                 when (key) {
