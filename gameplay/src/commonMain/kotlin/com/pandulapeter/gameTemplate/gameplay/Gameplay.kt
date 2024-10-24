@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.pointer.pointerInput
 import com.pandulapeter.gameTemplate.engine.EngineCanvas
 import com.pandulapeter.gameTemplate.engine.getEngine
@@ -25,16 +26,36 @@ private val rectangles = (0..RECTANGLE_COUNT_ROOT).flatMap { x ->
     }
 }
 
+private const val KEYBOARD_CAMERA_CONTROL_SPEED = 10f
+
 @Composable
-fun GameplayCanvas() = Box(
-    modifier = Modifier.pointerInput(Unit) {
-        detectDragGestures { change, dragAmount ->
-            change.consume()
-            getEngine().updateCameraOffset(getEngine().cameraOffset.value - dragAmount)
-        }
-    }
+fun GameplayCanvas(
+    exit: () -> Unit,
 ) {
-    EngineCanvas(
-        gameObjects = rectangles
-    )
+    Box(
+        modifier = Modifier
+            .pointerInput(Unit) {
+                detectDragGestures { change, dragAmount ->
+                    change.consume()
+                    getEngine().addToCameraOffset(-dragAmount)
+                }
+            }
+    ) {
+        EngineCanvas(
+            gameObjects = rectangles,
+            onKey = { key ->
+                when (key) {
+                    Key.DirectionLeft, Key.A -> getEngine().addToCameraOffset(Offset(-KEYBOARD_CAMERA_CONTROL_SPEED, 0f))
+                    Key.DirectionUp, Key.W -> getEngine().addToCameraOffset(Offset(0f, -KEYBOARD_CAMERA_CONTROL_SPEED))
+                    Key.DirectionRight, Key.D -> getEngine().addToCameraOffset(Offset(KEYBOARD_CAMERA_CONTROL_SPEED, 0f))
+                    Key.DirectionDown, Key.S -> getEngine().addToCameraOffset(Offset(0f, KEYBOARD_CAMERA_CONTROL_SPEED))
+                }
+            },
+            onKeyRelease = { key ->
+                when (key) {
+                    Key.Escape, Key.Back, Key.Backspace -> exit()
+                }
+            }
+        )
+    }
 }

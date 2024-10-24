@@ -10,11 +10,14 @@ import game.app.generated.resources.logo
 @Composable
 fun App(
     modifier: Modifier = Modifier,
+    exit: () -> Unit,
 ) {
-    GameplayCanvas()
+    GameplayCanvas(
+        exit = exit,
+    )
     UserInterface(
         modifier = modifier,
         logo = Res.drawable.logo,
-        platformGreeting = Greeting().greet(),
+        platformName = getPlatform().name,
     )
 }

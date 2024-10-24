@@ -8,12 +8,14 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.ui.Modifier
 
 class GameActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             App(
                 modifier = Modifier.systemBarsPadding(),
+                exit = ::finish,
             )
         }
     }

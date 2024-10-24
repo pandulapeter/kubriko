@@ -1,6 +1,7 @@
 package com.pandulapeter.gameTemplate.engine
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -8,9 +9,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,27 +33,38 @@ interface Engine {
     val drawnObjectCount: StateFlow<Int>
     val cameraOffset: StateFlow<Offset>
 
-    fun updateCameraOffset(newCameraOffset: Offset)
+    fun addToCameraOffset(offset: Offset)
 }
 
 @Composable
 fun EngineCanvas(
     gameObjects: List<GameObject>,
+    onKey: (key: Key) -> Unit = {},
+    onKeyRelease: (key: Key) -> Unit = {},
 ) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val gameTime = remember { mutableStateOf(0L) }
+    val focusRequester = remember { FocusRequester() }
+    val activeKeys = mutableSetOf<Key>()
 
     LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
         while (isActive) {
             withFrameNanos { gameTimeNanos ->
                 val deltaTimeMillis = (gameTimeNanos - gameTime.value) / 1000000f
-                EngineImpl.updateFocus(
-                    isFocused = lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED),
-                )
+                lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED).let { isFocused ->
+                    if (!isFocused) {
+                        activeKeys.clear()
+                    }
+                    EngineImpl.updateFocus(
+                        isFocused = isFocused,
+                    )
+                }
                 EngineImpl.updateFps(
                     gameTimeNanos = gameTimeNanos,
                     deltaTimeMillis = deltaTimeMillis,
                 )
+                activeKeys.forEach(onKey)
                 if (EngineImpl.isFocused.value) {
                     gameObjects.forEach { it.update(deltaTimeMillis) }
                 }
@@ -56,7 +75,20 @@ fun EngineCanvas(
 
     var objectCount: Int
     Canvas(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
+            .onKeyEvent {
+                consume {
+                    if (it.type == KeyEventType.KeyDown) {
+                        activeKeys.add(it.key)
+                    }
+                    if (it.type == KeyEventType.KeyUp) {
+                        activeKeys.remove(it.key)
+                        onKeyRelease(it.key)
+                    }
+                }
+            }
+            .focusRequester(focusRequester)
+            .focusable(),
         onDraw = {
             gameTime.value
             objectCount = 0
@@ -122,9 +154,9 @@ internal object EngineImpl : Engine {
     override val cameraOffset = _cameraOffset.asStateFlow()
     private var lastFpsUpdateTimestamp = 0L
 
-    override fun updateCameraOffset(
-        newCameraOffset: Offset,
-    ) = _cameraOffset.update { newCameraOffset }
+    override fun addToCameraOffset(
+        offset: Offset,
+    ) = _cameraOffset.update { currentValue -> currentValue + offset }
 
     fun updateFocus(
         isFocused: Boolean,

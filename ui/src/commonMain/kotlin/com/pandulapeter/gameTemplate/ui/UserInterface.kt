@@ -28,7 +28,7 @@ private val showContent = MutableStateFlow(false)
 fun UserInterface(
     modifier: Modifier = Modifier,
     logo: DrawableResource,
-    platformGreeting: String,
+    platformName: String,
 ) = MaterialTheme {
     Column(
         modifier = modifier.fillMaxSize().padding(vertical = 16.dp),
@@ -61,7 +61,7 @@ fun UserInterface(
                     contentDescription = null,
                 )
                 Text(
-                    text = "Compose: $platformGreeting",
+                    text = "Compose: $platformName",
                 )
             }
         }

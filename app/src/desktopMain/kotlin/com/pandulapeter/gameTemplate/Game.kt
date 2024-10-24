@@ -10,6 +10,8 @@ fun main() = application {
         title = "Game",
     ) {
         window.minimumSize = Dimension(400, 400)
-        App()
+        App(
+            exit = ::exitApplication,
+        )
     }
 }
