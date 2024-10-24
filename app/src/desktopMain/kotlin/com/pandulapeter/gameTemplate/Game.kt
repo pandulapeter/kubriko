@@ -9,7 +9,7 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         title = "Game",
     ) {
-        window.minimumSize = Dimension(200, 200)
+        window.minimumSize = Dimension(400, 400)
         App()
     }
 }

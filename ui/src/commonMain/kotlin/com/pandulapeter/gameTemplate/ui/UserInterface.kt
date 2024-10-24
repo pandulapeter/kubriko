@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -34,14 +35,20 @@ fun UserInterface(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Button(
-            onClick = { showContent.update { currentValue -> !currentValue } },
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(text = if (getEngine().isFocused.collectAsState().value) "Click me!" else "Paused")
+            DebugInfo(
+                fps = getEngine().fps.collectAsState().value,
+                drawnObjectCount = getEngine().drawnObjectCount.collectAsState().value,
+            )
+            Button(
+                onClick = { showContent.update { currentValue -> !currentValue } },
+            ) {
+                Text(text = if (getEngine().isFocused.collectAsState().value) "Click me!" else "Paused")
+            }
         }
-        FPSCounter(
-            fps = getEngine().fps.collectAsState().value,
-        )
         AnimatedVisibility(
             visible = showContent.collectAsState().value,
         ) {
@@ -62,8 +69,9 @@ fun UserInterface(
 }
 
 @Composable
-private fun FPSCounter(
-    fps: Float
+private fun DebugInfo(
+    fps: Float,
+    drawnObjectCount: Int,
 ) = Text(
-    text = "FPS: ${fps.toString().subSequence(0, fps.toString().indexOf('.'))}",
+    text = "FPS: ${fps.toString().subSequence(0, fps.toString().indexOf('.'))}\nObject count: $drawnObjectCount",
 )
