@@ -15,6 +15,9 @@ internal data class Rectangle(
 ) {
     override fun update(deltaTimeMillis: Float) {
         rotationDegrees += 0.1f * deltaTimeMillis
+        while (rotationDegrees > 360f) {
+            rotationDegrees -= 360f
+        }
     }
 
     override fun draw(scope: DrawScope) = scope.drawRect(

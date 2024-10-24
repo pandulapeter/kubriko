@@ -1,6 +1,5 @@
 package com.pandulapeter.gameTemplate.gameplay
 
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
@@ -20,7 +19,7 @@ private const val RECTANGLE_COUNT = 15
 private val rectangles = (-RECTANGLE_COUNT..RECTANGLE_COUNT).flatMap { x ->
     (-RECTANGLE_COUNT..RECTANGLE_COUNT).map { y ->
         Rectangle(
-            color = Color.hsv((0..360).random().toFloat(), 0.1f, 0.9f),
+            color = Color.hsv((0..360).random().toFloat(), 0.2f, 0.9f),
             size = Size(RECTANGLE_SIZE, RECTANGLE_SIZE),
             position = Offset(x * RECTANGLE_DISTANCE, y * RECTANGLE_DISTANCE)
         )
@@ -37,12 +36,9 @@ fun GameplayCanvas(
     Box(
         modifier = Modifier.getGameplayCanvasModifier()
             .pointerInput(Unit) {
-                detectDragGestures { _, dragAmount ->
-                    getEngine().addToCameraOffset(-dragAmount)
-                }
-                detectTransformGestures { _, pan, _, _ ->
-                    // TODO: Doesn't work
-                    getEngine().addToCameraScaleFactor(-pan.getDistance() * 0.001f)
+                detectTransformGestures { _, pan, zoom, _ ->
+                    getEngine().addToCameraOffset(-pan)
+                    getEngine().multiplyCameraScaleFactor(zoom)
                 }
             }
     ) {

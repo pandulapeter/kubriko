@@ -9,5 +9,5 @@ import com.pandulapeter.gameTemplate.engine.getEngine
 @OptIn(ExperimentalComposeUiApi::class)
 actual fun Modifier.getGameplayCanvasModifier(): Modifier = this
     .onPointerEvent(PointerEventType.Scroll) {
-        getEngine().addToCameraScaleFactor(-it.changes.first().scrollDelta.y * 0.02f)
+        getEngine().multiplyCameraScaleFactor(1f - it.changes.first().scrollDelta.y * 0.05f)
     }

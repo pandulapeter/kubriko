@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.gameTemplate.engine.getEngine
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,7 +47,9 @@ fun UserInterface(
             Button(
                 onClick = { showContent.update { currentValue -> !currentValue } },
             ) {
-                Text(text = if (getEngine().isFocused.collectAsState().value) "Click me!" else "Paused")
+                Text(
+                    text = if (getEngine().isFocused.collectAsState().value) "Click me!" else "Paused"
+                )
             }
         }
         AnimatedVisibility(
@@ -61,6 +64,7 @@ fun UserInterface(
                     contentDescription = null,
                 )
                 Text(
+                    color = Color.White,
                     text = "Compose: $platformName",
                 )
             }
@@ -73,6 +77,7 @@ private fun DebugInfo(
     fps: Float,
     drawnObjectCount: Int,
 ) = Text(
+    color = Color.White,
     text = "FPS: ${fps.toString().subSequence(0, fps.toString().indexOf('.'))}\n" +
             "Object count: $drawnObjectCount"
 )

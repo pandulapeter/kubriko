@@ -1,6 +1,7 @@
 package com.pandulapeter.gameTemplate.engine
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -13,6 +14,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -38,7 +40,7 @@ interface Engine {
 
     fun addToCameraOffset(offset: Offset)
 
-    fun addToCameraScaleFactor(scaleFactor: Float)
+    fun multiplyCameraScaleFactor(scaleFactor: Float)
 }
 
 @Composable
@@ -81,6 +83,7 @@ fun EngineCanvas(
     }
     Canvas(
         modifier = Modifier.fillMaxSize()
+            .background(Color.Black)
             .onKeyEvent {
                 consume {
                     if (it.type == KeyEventType.KeyDown) {
@@ -191,9 +194,9 @@ internal object EngineImpl : Engine {
         offset: Offset,
     ) = _cameraOffset.update { currentValue -> currentValue + (offset / _cameraScaleFactor.value) }
 
-    override fun addToCameraScaleFactor(
+    override fun multiplyCameraScaleFactor(
         scaleFactor: Float
-    ) = _cameraScaleFactor.update { currentValue -> max(SCALE_MIN, min(currentValue + (currentValue * scaleFactor), SCALE_MAX)) }
+    ) = _cameraScaleFactor.update { currentValue -> max(SCALE_MIN, min(currentValue * scaleFactor, SCALE_MAX)) }
 
     fun updateFocus(
         isFocused: Boolean,
