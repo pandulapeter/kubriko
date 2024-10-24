@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -22,6 +23,9 @@ interface Engine {
     val isFocused: StateFlow<Boolean>
     val fps: StateFlow<Float>
     val drawnObjectCount: StateFlow<Int>
+    val cameraOffset: StateFlow<Offset>
+
+    fun updateCameraOffset(newCameraOffset: Offset)
 }
 
 @Composable
@@ -56,46 +60,54 @@ fun EngineCanvas(
         onDraw = {
             gameTime.value
             objectCount = 0
-            gameObjects.forEach { gameObject ->
-                if (gameObject.isVisible(size)) {
-                    objectCount++
-                    withTransform(
-                        transformBlock = {
-                            translate(
-                                left = gameObject.position.x - gameObject.pivot.x,
-                                top = gameObject.position.y - gameObject.pivot.y,
-                            )
-                            rotate(
-                                degrees = gameObject.rotationDegrees,
-                                pivot = gameObject.pivot,
-                            )
-                            scale(
-                                scaleX = gameObject.scale.scaleX,
-                                scaleY = gameObject.scale.scaleY,
-                                pivot = gameObject.pivot,
-                            )
-                        },
-                        drawBlock = {
-                            gameObject.draw(this)
-                        }
-                    )
+            EngineImpl.cameraOffset.value.let { cameraOffset ->
+                gameObjects.forEach { gameObject ->
+                    if (
+                        gameObject.isVisible(
+                            screenSize = size,
+                            cameraOffset = cameraOffset,
+                        )
+                    ) {
+                        objectCount++
+                        withTransform(
+                            transformBlock = {
+                                translate(
+                                    left = gameObject.position.x - gameObject.pivot.x - cameraOffset.x,
+                                    top = gameObject.position.y - gameObject.pivot.y - cameraOffset.y,
+                                )
+                                rotate(
+                                    degrees = gameObject.rotationDegrees,
+                                    pivot = gameObject.pivot,
+                                )
+                                scale(
+                                    scaleX = gameObject.scale.scaleX,
+                                    scaleY = gameObject.scale.scaleY,
+                                    pivot = gameObject.pivot,
+                                )
+                            },
+                            drawBlock = {
+                                gameObject.draw(this)
+                            }
+                        )
+                    }
                 }
+                EngineImpl.updateDrawnObjectCount(objectCount)
             }
-            EngineImpl.updateDrawnObjectCount(objectCount)
-        },
+        }
     )
 }
 
 fun getEngine(): Engine = EngineImpl
 
 private fun GameObject.isVisible(
-    screenSize: Size
+    screenSize: Size,
+    cameraOffset: Offset,
 ) = (size.width * scale.scaleX).let { scaledWidth ->
     (size.height * scale.scaleY).let { scaledHeight ->
-        position.x - pivot.x + scaledWidth >= 0 &&
-        position.x - pivot.x - scaledWidth <= screenSize.width &&
-        position.y - pivot.y + scaledHeight >= 0 &&
-        position.y - pivot.y - scaledHeight <= screenSize.height
+        position.x - pivot.x + scaledWidth >= cameraOffset.x &&
+                position.x - pivot.x - scaledWidth <= cameraOffset.x + screenSize.width &&
+                position.y - pivot.y + scaledHeight >= cameraOffset.y &&
+                position.y - pivot.y - scaledHeight <= cameraOffset.y + screenSize.height
     }
 }
 
@@ -106,7 +118,13 @@ internal object EngineImpl : Engine {
     override val fps = _fps.asStateFlow()
     private val _drawnObjectCount = MutableStateFlow(0)
     override val drawnObjectCount = _drawnObjectCount.asStateFlow()
+    private val _cameraOffset = MutableStateFlow(Offset.Zero)
+    override val cameraOffset = _cameraOffset.asStateFlow()
     private var lastFpsUpdateTimestamp = 0L
+
+    override fun updateCameraOffset(
+        newCameraOffset: Offset,
+    ) = _cameraOffset.update { newCameraOffset }
 
     fun updateFocus(
         isFocused: Boolean,

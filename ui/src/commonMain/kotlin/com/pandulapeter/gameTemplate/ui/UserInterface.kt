@@ -73,5 +73,6 @@ private fun DebugInfo(
     fps: Float,
     drawnObjectCount: Int,
 ) = Text(
-    text = "FPS: ${fps.toString().subSequence(0, fps.toString().indexOf('.'))}\nObject count: $drawnObjectCount",
+    text = "FPS: ${fps.toString().subSequence(0, fps.toString().indexOf('.'))}\n" +
+            "Object count: $drawnObjectCount"
 )
