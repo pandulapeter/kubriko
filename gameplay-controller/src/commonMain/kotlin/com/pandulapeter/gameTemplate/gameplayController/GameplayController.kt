@@ -9,8 +9,6 @@ interface GameplayController {
     val isRunning: StateFlow<Boolean>
     val metadata: StateFlow<Metadata>
 
-    fun start()
-
     fun updateIsRunning(isRunning: Boolean)
 
     companion object {

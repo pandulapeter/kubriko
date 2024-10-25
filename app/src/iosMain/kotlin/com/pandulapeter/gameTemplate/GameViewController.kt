@@ -5,7 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.ComposeUIViewController
 
 fun GameViewController() = ComposeUIViewController {
-    App(
+    GameApp(
         modifier = Modifier.systemBarsPadding(),
     )
 }

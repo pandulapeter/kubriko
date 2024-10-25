@@ -8,7 +8,7 @@ import com.pandulapeter.gameTemplate.gameplayController.GameplayController
 
 internal expect fun Modifier.handleMouseZoom(): Modifier
 
-internal fun Modifier.handleTouchGestures() = pointerInput(Unit) {
+internal fun Modifier.handleDragAndPan() = pointerInput(Unit) {
     detectTransformGestures { _, pan, zoom, _ ->
         if (GameplayController.get().isRunning.value) {
             Engine.get().viewportManager.addToOffset(-pan)

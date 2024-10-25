@@ -25,13 +25,14 @@ internal object EditorController : CoroutineScope {
         Engine.get().inputManager.onKeyReleased
             .onEach(::handleKeyReleased)
             .launchIn(this)
+        start()
     }
 
     private const val RECTANGLE_SIZE = 100f
     private const val RECTANGLE_DISTANCE = 100f
     private const val RECTANGLE_COUNT = 50
 
-    fun start() {
+    private fun start() {
         Engine.get().gameObjectManager.register(
             listOf(true, false).let { booleanRange ->
                 (0..360).let { angleRange ->

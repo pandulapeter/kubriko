@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.ui.Modifier
+import androidx.core.view.WindowCompat
 
 class GameActivity : ComponentActivity() {
 
@@ -13,9 +14,17 @@ class GameActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            App(
+            GameApp(
                 modifier = Modifier.systemBarsPadding(),
             )
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        WindowCompat.getInsetsController(window, window.decorView).run {
+            isAppearanceLightStatusBars = true
+            isAppearanceLightNavigationBars = true
         }
     }
 }
