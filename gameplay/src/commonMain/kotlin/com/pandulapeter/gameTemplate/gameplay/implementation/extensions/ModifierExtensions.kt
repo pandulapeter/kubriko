@@ -4,12 +4,15 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import com.pandulapeter.gameTemplate.engine.Engine
+import com.pandulapeter.gameTemplate.gameplay.GameplayController
 
 internal expect fun Modifier.handleMouseZoom(): Modifier
 
 internal fun Modifier.handleTouchGestures() = pointerInput(Unit) {
     detectTransformGestures { _, pan, zoom, _ ->
-        Engine.get().viewportManager.addToOffset(-pan)
-        Engine.get().viewportManager.multiplyScaleFactor(zoom)
+        if (GameplayController.get().isRunning.value) {
+            Engine.get().viewportManager.addToOffset(-pan)
+            Engine.get().viewportManager.multiplyScaleFactor(zoom)
+        }
     }
 }

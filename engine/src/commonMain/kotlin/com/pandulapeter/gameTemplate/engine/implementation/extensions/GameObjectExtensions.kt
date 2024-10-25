@@ -8,18 +8,22 @@ import com.pandulapeter.gameTemplate.engine.gameObject.properties.Scalable
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 
 internal fun Visible.isVisible(
-    viewportSize: Size,
+    scaledViewportSize: Size,
     viewportOffset: Offset,
     viewportScaleFactor: Float,
-) = (size.width * ((this as? Scalable)?.scaleFactor ?: 1f)).let { scaledWidth ->
-    (size.height * ((this as? Scalable)?.scaleFactor ?: 1f)).let { scaledHeight ->
+) = if (this is Scalable) (size.width * scaleFactor).let { scaledWidth ->
+    (size.height * scaleFactor).let { scaledHeight ->
         scaledWidth * viewportScaleFactor >= 1f && scaledHeight * viewportScaleFactor >= 1f &&
-                position.x - pivot.x + scaledWidth >= viewportOffset.x - viewportSize.width / 2f &&
-                position.x - pivot.x - scaledWidth <= viewportOffset.x + viewportSize.width - viewportSize.width / 2f &&
-                position.y - pivot.y + scaledHeight >= viewportOffset.y - viewportSize.height / 2f &&
-                position.y - pivot.y - scaledHeight <= viewportOffset.y + viewportSize.height - viewportSize.height / 2f
+                position.x - pivot.x + scaledWidth >= viewportOffset.x - scaledViewportSize.width / 2f &&
+                position.x - pivot.x - scaledWidth <= viewportOffset.x + scaledViewportSize.width / 2f &&
+                position.y - pivot.y + scaledHeight >= viewportOffset.y - scaledViewportSize.height / 2f &&
+                position.y - pivot.y - scaledHeight <= viewportOffset.y + scaledViewportSize.height / 2f
     }
-}
+} else size.width * viewportScaleFactor >= 1f && size.height * viewportScaleFactor >= 1f &&
+        position.x - pivot.x + size.width >= viewportOffset.x - scaledViewportSize.width / 2f &&
+        position.x - pivot.x - size.width <= viewportOffset.x + scaledViewportSize.width / 2f &&
+        position.y - pivot.y + size.height >= viewportOffset.y - scaledViewportSize.height / 2f &&
+        position.y - pivot.y - size.height <= viewportOffset.y + scaledViewportSize.height / 2f
 
 
 internal fun Visible.transform(drawTransform: DrawTransform) {

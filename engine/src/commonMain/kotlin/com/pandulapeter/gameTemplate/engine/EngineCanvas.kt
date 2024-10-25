@@ -75,18 +75,18 @@ fun EngineCanvas(
             .focusable(),
         onDraw = {
             gameTime.value
-            EngineImpl.updateViewportSize(size = size)
+            EngineImpl.updateSize(size = size)
             EngineImpl.offset.value.let { viewportOffset ->
                 withTransform(
                     transformBlock = {
                         transformViewport(
                             viewportOffset = viewportOffset,
-                            shiftedViewportOffset = ((size / 2f) - viewportOffset),
+                            shiftedViewportOffset = (size / 2f) - viewportOffset,
                             viewportScaleFactor = EngineImpl.scaleFactor.value,
                         )
                     },
                     drawBlock = {
-                        EngineImpl.visibleGameObjects.value.forEach { gameObject ->
+                        EngineImpl.visibleGameObjectsInViewport.value.forEach { gameObject ->
                             withTransform(
                                 transformBlock = { gameObject.transform(this) },
                                 drawBlock = { gameObject.draw(this) }

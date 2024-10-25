@@ -7,10 +7,10 @@ import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.isVisible
-import com.pandulapeter.gameTemplate.engine.managers.ViewportManager
 import com.pandulapeter.gameTemplate.engine.managers.GameObjectManager
 import com.pandulapeter.gameTemplate.engine.managers.MetadataManager
 import com.pandulapeter.gameTemplate.engine.managers.StateManager
+import com.pandulapeter.gameTemplate.engine.managers.ViewportManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -57,7 +57,7 @@ internal object EngineImpl : Engine,
         scaleFactor: Float
     ) = _scaleFactor.update { currentValue -> max(SCALE_MIN, min(currentValue * scaleFactor, SCALE_MAX)) }
 
-    fun updateViewportSize(size: Size) = _size.update { size }
+    fun updateSize(size: Size) = _size.update { size }
 
     // State management
     private val _isFocused = MutableStateFlow(false)
@@ -81,18 +81,20 @@ internal object EngineImpl : Engine,
     // GameObject management
     private val gameObjects = MutableStateFlow(emptySet<GameObject>())
     internal val dynamicGameObjects = gameObjects.map { it.filterIsInstance<Dynamic>() }.stateIn(this, SharingStarted.Eagerly, emptyList())
-    internal val visibleGameObjects = combine(
+    internal val visibleGameObjectsInViewport = combine(
         gameObjects.map { it.filterIsInstance<Visible>() }.stateIn(this, SharingStarted.Eagerly, emptyList()),
         size,
         offset,
         scaleFactor,
-    ) { allVisibleGameObjects, viewportSize, viewportOffset, viewportScaleFactor,  ->
-        allVisibleGameObjects.filter {
-            it.isVisible(
-                viewportSize = viewportSize,
-                viewportOffset = viewportOffset,
-                viewportScaleFactor = viewportScaleFactor,
-            )
+    ) { allVisibleGameObjects, viewportSize, viewportOffset, viewportScaleFactor ->
+        (viewportSize / viewportScaleFactor).let { scaledViewportSize ->
+            allVisibleGameObjects.filter {
+                it.isVisible(
+                    scaledViewportSize = scaledViewportSize,
+                    viewportOffset = viewportOffset,
+                    viewportScaleFactor = viewportScaleFactor,
+                )
+            }
         }
     }.stateIn(this, SharingStarted.Eagerly, emptyList())
 
@@ -117,7 +119,7 @@ internal object EngineImpl : Engine,
     // Metadata management
     private val _fps = MutableStateFlow(0f)
     override val fps = _fps.asStateFlow()
-    override val visibleGameObjectCount = visibleGameObjects.map { it.count() }.stateIn(this, SharingStarted.Eagerly, 0)
+    override val visibleGameObjectCount = visibleGameObjectsInViewport.map { it.count() }.stateIn(this, SharingStarted.Eagerly, 0)
     override val totalGameObjectCount = gameObjects.map { it.count() }.stateIn(this, SharingStarted.Eagerly, 0)
     private var lastFpsUpdateTimestamp = 0L
 

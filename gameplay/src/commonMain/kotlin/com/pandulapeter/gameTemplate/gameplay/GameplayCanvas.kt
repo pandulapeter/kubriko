@@ -24,7 +24,7 @@ fun GameplayCanvas(
     handleKeyReleased = { key ->
         handleKeyReleased(
             key = key,
-            onExitRequested = exit,
+            onBackReleased = exit,
         )
     }
 )
