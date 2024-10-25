@@ -15,7 +15,6 @@ class GameActivity : ComponentActivity() {
         setContent {
             App(
                 modifier = Modifier.systemBarsPadding(),
-                exit = ::finish,
             )
         }
     }

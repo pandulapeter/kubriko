@@ -1,8 +1,8 @@
-package com.pandulapeter.gameTemplate
+package com.pandulapeter.gameTemplate.ui
 
 import platform.UIKit.UIDevice
 
-actual fun getPlatform() = object : Platform {
+internal actual fun getPlatform() = object : Platform {
 
     override val name: String = UIDevice.currentDevice.systemName() + " " + UIDevice.currentDevice.systemVersion
 }

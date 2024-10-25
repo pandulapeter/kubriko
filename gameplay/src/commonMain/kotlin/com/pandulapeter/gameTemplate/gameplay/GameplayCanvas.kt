@@ -14,17 +14,11 @@ import com.pandulapeter.gameTemplate.gameplay.implementation.handleKeys
 @Composable
 fun GameplayCanvas(
     modifier: Modifier = Modifier,
-    exit: () -> Unit,
 ) = EngineCanvas(
     modifier = modifier
         .handleMouseZoom()
         .handleTouchGestures()
         .background(Color.White),
     handleKeys = ::handleKeys,
-    handleKeyReleased = { key ->
-        handleKeyReleased(
-            key = key,
-            onBackReleased = exit,
-        )
-    }
+    handleKeyReleased = ::handleKeyReleased,
 )

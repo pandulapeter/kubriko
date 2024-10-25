@@ -18,14 +18,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.gameTemplate.gameplay.GameplayController
 import com.pandulapeter.gameTemplate.gameplay.models.Metadata
-import org.jetbrains.compose.resources.DrawableResource
+import game.ui.generated.resources.Res
+import game.ui.generated.resources.logo
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun UserInterface(
     modifier: Modifier = Modifier,
-    logo: DrawableResource,
-    platformName: String,
 ) = MaterialTheme {
     Column(
         modifier = modifier.fillMaxSize().padding(vertical = 16.dp),
@@ -56,11 +55,11 @@ fun UserInterface(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Image(
-                    painter = painterResource(logo),
+                    painter = painterResource(Res.drawable.logo),
                     contentDescription = null,
                 )
                 Text(
-                    text = "Compose: $platformName",
+                    text = "Compose: ${getPlatform().name}",
                 )
             }
         }

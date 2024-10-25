@@ -39,11 +39,8 @@ internal fun handleKeys(keys: Set<Key>) {
     }
 }
 
-internal fun handleKeyReleased(
-    key: Key,
-    onBackReleased: () -> Unit,
-) {
+internal fun handleKeyReleased(key: Key) {
     when (key) {
-        Key.Escape, Key.Back, Key.Backspace -> onBackReleased()
+        Key.Escape, Key.Back, Key.Backspace -> Engine.get().stateManager.updateIsRunning(!Engine.get().stateManager.isRunning.value)
     }
 }
