@@ -6,7 +6,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
-import com.pandulapeter.gameTemplate.engine.implementation.utilities.consume
+import com.pandulapeter.gameTemplate.engine.implementation.helpers.consume
 import com.pandulapeter.gameTemplate.engine.managers.InputManager
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow

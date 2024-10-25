@@ -1,5 +1,6 @@
 package com.pandulapeter.gameTemplate.engine.implementation.managers
 
+import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
@@ -53,4 +54,6 @@ internal class GameObjectManagerImpl : GameObjectManager {
     }
 
     override fun removeAll() = gameObjects.update { emptySet() }
+
+    override fun findGameObjectsOnScreenCoordinates(screenCoordinates: Offset) = visibleGameObjectsInViewport.value.filterIsInstance<GameObject>()
 }

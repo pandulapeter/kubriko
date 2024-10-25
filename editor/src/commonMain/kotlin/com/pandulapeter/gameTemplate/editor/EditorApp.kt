@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.pandulapeter.gameTemplate.editor.implementation.EditorUserInterface
+import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleClick
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseZoom
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleDragAndPan
 import com.pandulapeter.gameTemplate.engine.EngineCanvas
@@ -17,6 +18,7 @@ fun EditorApp(
         modifier = modifier
             .handleMouseZoom()
             .handleDragAndPan()
+            .handleClick()
             .background(Color.White),
     )
     EditorUserInterface(modifier)

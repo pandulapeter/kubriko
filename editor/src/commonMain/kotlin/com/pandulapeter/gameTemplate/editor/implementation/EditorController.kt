@@ -2,7 +2,10 @@ package com.pandulapeter.gameTemplate.editor.implementation
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import com.pandulapeter.gameTemplate.editor.implementation.helpers.handleKeyReleased
+import com.pandulapeter.gameTemplate.editor.implementation.helpers.handleKeys
 import com.pandulapeter.gameTemplate.engine.Engine
+import com.pandulapeter.gameTemplate.gameplayObjects.Clickable
 import com.pandulapeter.gameTemplate.gameplayObjects.DynamicBox
 import com.pandulapeter.gameTemplate.gameplayObjects.StaticBox
 import kotlinx.coroutines.CoroutineScope
@@ -61,5 +64,12 @@ internal object EditorController : CoroutineScope {
                 }
             }
         )
+        Engine.get().stateManager.updateIsRunning(true)
+    }
+
+    fun handleClick(screenCoordinates: Offset) {
+        Engine.get().gameObjectManager.findGameObjectsOnScreenCoordinates(screenCoordinates).forEach {
+            (it as? Clickable)?.onClicked()
+        }
     }
 }

@@ -1,4 +1,4 @@
-package com.pandulapeter.gameTemplate.editor.implementation
+package com.pandulapeter.gameTemplate.editor.implementation.helpers
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
@@ -36,4 +36,8 @@ internal fun handleKeys(keys: Set<Key>) {
     )
 }
 
-internal fun handleKeyReleased(key: Key) = Unit
+internal fun handleKeyReleased(key: Key) {
+    when (key) {
+        Key.Escape, Key.Back -> exitApp()
+    }
+}

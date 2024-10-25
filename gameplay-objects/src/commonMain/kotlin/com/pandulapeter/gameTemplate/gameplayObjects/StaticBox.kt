@@ -13,13 +13,18 @@ data class StaticBox(
     val edgeSize: Float,
     override var position: Offset,
     override var rotationDegrees: Float,
-) : GameObject(), Visible, Rotatable {
+) : GameObject(), Visible, Rotatable, Clickable {
 
     override val size = Size(edgeSize, edgeSize)
+    private var isClicked = false
 
     override fun draw(scope: DrawScope) = scope.drawRect(
-        color = color,
+        color = if (isClicked) Color.Black else color,
         topLeft = Offset.Zero,
         size = size,
     )
+
+    override fun onClicked() {
+        isClicked = !isClicked
+    }
 }

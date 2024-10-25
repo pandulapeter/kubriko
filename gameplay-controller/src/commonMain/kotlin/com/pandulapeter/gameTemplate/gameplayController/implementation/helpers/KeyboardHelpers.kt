@@ -1,4 +1,4 @@
-package com.pandulapeter.gameTemplate.gameplayController.implementation
+package com.pandulapeter.gameTemplate.gameplayController.implementation.helpers
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key

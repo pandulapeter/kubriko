@@ -19,10 +19,11 @@ data class DynamicBox(
     override var position: Offset,
     override var rotationDegrees: Float,
     override var scaleFactor: Float
-) : GameObject(), Visible, Dynamic, Rotatable, Scalable {
+) : GameObject(), Visible, Dynamic, Rotatable, Scalable, Clickable {
 
     override val size = Size(edgeSize, edgeSize)
     private var isGrowing = true
+    private var isClicked = false
 
     override fun update(deltaTimeMillis: Float) {
         rotationDegrees += 0.1f * deltaTimeMillis
@@ -47,8 +48,12 @@ data class DynamicBox(
     }
 
     override fun draw(scope: DrawScope) = scope.drawRect(
-        color = color,
+        color = if (isClicked) Color.Black else color,
         topLeft = Offset.Zero,
         size = size,
     )
+
+    override fun onClicked() {
+        isClicked = !isClicked
+    }
 }

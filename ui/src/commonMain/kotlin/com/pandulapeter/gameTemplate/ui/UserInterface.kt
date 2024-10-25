@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.gameTemplate.gameplayController.GameplayController
 import com.pandulapeter.gameTemplate.gameplayController.models.Metadata
+import com.pandulapeter.gameTemplate.ui.implementation.helpers.platformName
 import game.ui.generated.resources.Res
 import game.ui.generated.resources.logo
 import org.jetbrains.compose.resources.painterResource
@@ -59,7 +60,7 @@ fun UserInterface(
                     contentDescription = null,
                 )
                 Text(
-                    text = "Compose: ${getPlatform().name}",
+                    text = "Compose: $platformName",
                 )
             }
         }
