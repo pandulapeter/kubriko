@@ -16,8 +16,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.gameTemplate.engine.getEngine
-import kotlinx.coroutines.flow.update
+import com.pandulapeter.gameTemplate.gameplay.GameplayController
+import com.pandulapeter.gameTemplate.gameplay.models.Metadata
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -32,17 +32,16 @@ fun UserInterface(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        val isRunning = getEngine().isRunning.collectAsState()
+        val isRunning = GameplayController.get().isRunning.collectAsState()
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             DebugInfo(
-                fps = getEngine().fps.collectAsState().value,
-                drawnObjectCount = getEngine().drawnObjectCount.collectAsState().value,
+                metadata = GameplayController.get().metadata.collectAsState().value,
             )
             Button(
-                onClick = { getEngine().updateIsRunning(!isRunning.value) },
+                onClick = { GameplayController.get().updateIsRunning(!isRunning.value) },
             ) {
                 Text(
                     text = if (isRunning.value) "Pause" else "Resume"
@@ -69,10 +68,8 @@ fun UserInterface(
 }
 
 @Composable
-private fun DebugInfo(
-    fps: Float,
-    drawnObjectCount: Int,
-) = Text(
-    text = "FPS: ${fps.toString().subSequence(0, fps.toString().indexOf('.'))}\n" +
-            "Object count: $drawnObjectCount"
+private fun DebugInfo(metadata: Metadata) = Text(
+    text = "FPS: ${metadata.fps.toString().subSequence(0, metadata.fps.toString().indexOf('.'))}\n" +
+            "Total object count: ${metadata.totalGameObjectCount}\n" +
+            "Visible object count: ${metadata.visibleGameObjectCount}"
 )

@@ -43,7 +43,6 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.engine)
             implementation(projects.gameplay)
             implementation(compose.runtime)
             implementation(compose.foundation)

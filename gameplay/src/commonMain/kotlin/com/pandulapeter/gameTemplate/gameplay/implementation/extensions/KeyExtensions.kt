@@ -1,33 +1,33 @@
-package com.pandulapeter.gameTemplate.gameplay
+package com.pandulapeter.gameTemplate.gameplay.implementation.extensions
 
 import androidx.compose.ui.input.key.Key
 
-internal enum class KeyboardDirection {
+internal enum class KeyboardDirectionState {
     NONE, LEFT, UP_LEFT, UP, UP_RIGHT, RIGHT, DOWN_RIGHT, DOWN, DOWN_LEFT,
 }
 
-internal enum class KeyboardZoom {
+internal val Set<Key>.directionState
+    get() = when {
+        hasLeft && !hasRight && !hasUp && !hasDown -> KeyboardDirectionState.LEFT
+        hasUpLeft && !hasDown && !hasRight -> KeyboardDirectionState.UP_LEFT
+        hasUp && !hasDown && !hasLeft && !hasRight -> KeyboardDirectionState.UP
+        hasUpRight && !hasDown && !hasLeft -> KeyboardDirectionState.UP_RIGHT
+        hasRight && !hasLeft && !hasUp && !hasDown -> KeyboardDirectionState.RIGHT
+        hasDownRight && !hasUp && !hasLeft -> KeyboardDirectionState.DOWN_RIGHT
+        hasDown && !hasUp && !hasLeft && !hasRight -> KeyboardDirectionState.DOWN
+        hasDownLeft && !hasUp && !hasRight -> KeyboardDirectionState.DOWN_LEFT
+        else -> KeyboardDirectionState.NONE
+    }
+
+internal enum class KeyboardZoomState {
     NONE, ZOOM_IN, ZOOM_OUT,
 }
 
-internal val Set<Key>.direction
+internal val Set<Key>.zoomState
     get() = when {
-        hasLeft && !hasRight && !hasUp && !hasDown -> KeyboardDirection.LEFT
-        hasUpLeft && !hasDown && !hasRight -> KeyboardDirection.UP_LEFT
-        hasUp && !hasDown && !hasLeft && !hasRight -> KeyboardDirection.UP
-        hasUpRight && !hasDown && !hasLeft -> KeyboardDirection.UP_RIGHT
-        hasRight && !hasLeft && !hasUp && !hasDown -> KeyboardDirection.RIGHT
-        hasDownRight && !hasUp && !hasLeft -> KeyboardDirection.DOWN_RIGHT
-        hasDown && !hasUp && !hasLeft && !hasRight -> KeyboardDirection.DOWN
-        hasDownLeft && !hasUp && !hasRight -> KeyboardDirection.DOWN_LEFT
-        else -> KeyboardDirection.NONE
-    }
-
-internal val Set<Key>.zoom
-    get() = when {
-        hasZoomIn && !hasZoomOut -> KeyboardZoom.ZOOM_IN
-        hasZoomOut && !hasZoomIn -> KeyboardZoom.ZOOM_OUT
-        else -> KeyboardZoom.NONE
+        hasZoomIn && !hasZoomOut -> KeyboardZoomState.ZOOM_IN
+        hasZoomOut && !hasZoomIn -> KeyboardZoomState.ZOOM_OUT
+        else -> KeyboardZoomState.NONE
     }
 
 private val Set<Key>.hasLeft get() = contains(Key.DirectionLeft) || contains(Key.A)
