@@ -1,12 +1,12 @@
-package com.pandulapeter.gameTemplate.gameplayController.implementation.extensions
+package com.pandulapeter.gameTemplate.engine.implementation.extensions
 
 import androidx.compose.ui.input.key.Key
 
-internal enum class KeyboardDirectionState {
+enum class KeyboardDirectionState {
     NONE, LEFT, UP_LEFT, UP, UP_RIGHT, RIGHT, DOWN_RIGHT, DOWN, DOWN_LEFT,
 }
 
-internal val Set<Key>.directionState
+val Set<Key>.directionState
     get() = when {
         hasLeft && !hasRight && !hasUp && !hasDown -> KeyboardDirectionState.LEFT
         hasUpLeft && !hasDown && !hasRight -> KeyboardDirectionState.UP_LEFT
@@ -19,11 +19,11 @@ internal val Set<Key>.directionState
         else -> KeyboardDirectionState.NONE
     }
 
-internal enum class KeyboardZoomState {
+enum class KeyboardZoomState {
     NONE, ZOOM_IN, ZOOM_OUT,
 }
 
-internal val Set<Key>.zoomState
+val Set<Key>.zoomState
     get() = when {
         hasZoomIn && !hasZoomOut -> KeyboardZoomState.ZOOM_IN
         hasZoomOut && !hasZoomIn -> KeyboardZoomState.ZOOM_OUT

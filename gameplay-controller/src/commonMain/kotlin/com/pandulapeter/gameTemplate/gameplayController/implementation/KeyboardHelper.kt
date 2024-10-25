@@ -4,10 +4,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.gameplayController.GameplayController
-import com.pandulapeter.gameTemplate.gameplayController.implementation.extensions.KeyboardDirectionState
-import com.pandulapeter.gameTemplate.gameplayController.implementation.extensions.KeyboardZoomState
-import com.pandulapeter.gameTemplate.gameplayController.implementation.extensions.directionState
-import com.pandulapeter.gameTemplate.gameplayController.implementation.extensions.zoomState
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardDirectionState
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardZoomState
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.directionState
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.zoomState
 import kotlin.math.PI
 import kotlin.math.sin
 
