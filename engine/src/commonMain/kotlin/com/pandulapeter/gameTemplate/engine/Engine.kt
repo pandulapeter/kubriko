@@ -25,9 +25,17 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import com.pandulapeter.gameTemplate.engine.models.Dynamic
 import com.pandulapeter.gameTemplate.engine.models.GameObject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlin.math.max
@@ -35,6 +43,7 @@ import kotlin.math.min
 
 interface Engine {
     val isFocused: StateFlow<Boolean>
+    val isRunning: StateFlow<Boolean>
     val fps: StateFlow<Float>
     val drawnObjectCount: StateFlow<Int>
     val cameraOffset: StateFlow<Offset>
@@ -43,6 +52,8 @@ interface Engine {
     fun addToCameraOffset(offset: Offset)
 
     fun multiplyCameraScaleFactor(scaleFactor: Float)
+
+    fun updateIsRunning(isRunning: Boolean)
 }
 
 @Composable
@@ -76,7 +87,7 @@ fun EngineCanvas(
                 if (activeKeys.isNotEmpty()) {
                     onKeys(activeKeys.toSet())
                 }
-                if (EngineImpl.isFocused.value) {
+                if (EngineImpl.isRunning.value) {
                     gameObjects.filterIsInstance<Dynamic>().forEach { it.update(deltaTimeMillis) }
                 }
                 gameTime.value = gameTimeNanos
@@ -176,9 +187,17 @@ private fun GameObject.isVisible(
     }
 }
 
-internal object EngineImpl : Engine {
+internal object EngineImpl : Engine, CoroutineScope {
+    override val coroutineContext = SupervisorJob() + Dispatchers.Default
     private val _isFocused = MutableStateFlow(false)
     override val isFocused = _isFocused.asStateFlow()
+    private val _isRunning = MutableStateFlow(false)
+    override val isRunning = combine(
+        isFocused,
+        _isRunning
+    ) { isFocused, isRunning ->
+        isFocused && isRunning
+    }.stateIn(this, SharingStarted.Eagerly, false)
     private val _fps = MutableStateFlow(0f)
     override val fps = _fps.asStateFlow()
     private val _drawnObjectCount = MutableStateFlow(0)
@@ -192,6 +211,14 @@ internal object EngineImpl : Engine {
     private const val SCALE_MIN = 0.2f
     private const val SCALE_MAX = 10f
 
+    init {
+        isFocused.onEach { isFocused ->
+            if (!isFocused) {
+                updateIsRunning(false)
+            }
+        }.launchIn(this)
+    }
+
     override fun addToCameraOffset(
         offset: Offset,
     ) = _cameraOffset.update { currentValue -> currentValue + (offset / _cameraScaleFactor.value) }
@@ -203,6 +230,10 @@ internal object EngineImpl : Engine {
     fun updateFocus(
         isFocused: Boolean,
     ) = _isFocused.update { isFocused }
+
+    override fun updateIsRunning(
+        isRunning: Boolean,
+    ) = _isRunning.update { isRunning }
 
     fun updateFps(
         gameTimeNanos: Long,

@@ -15,15 +15,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.gameTemplate.engine.getEngine
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
-
-private val showContent = MutableStateFlow(false)
 
 @Composable
 fun UserInterface(
@@ -36,6 +32,7 @@ fun UserInterface(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        val isRunning = getEngine().isRunning.collectAsState()
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -45,15 +42,15 @@ fun UserInterface(
                 drawnObjectCount = getEngine().drawnObjectCount.collectAsState().value,
             )
             Button(
-                onClick = { showContent.update { currentValue -> !currentValue } },
+                onClick = { getEngine().updateIsRunning(!isRunning.value) },
             ) {
                 Text(
-                    text = if (getEngine().isFocused.collectAsState().value) "Click me!" else "Paused"
+                    text = if (isRunning.value) "Pause" else "Resume"
                 )
             }
         }
         AnimatedVisibility(
-            visible = showContent.collectAsState().value,
+            visible = !isRunning.value,
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
