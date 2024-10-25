@@ -64,7 +64,6 @@ fun UserInterface(
                     contentDescription = null,
                 )
                 Text(
-                    color = Color.White,
                     text = "Compose: $platformName",
                 )
             }
@@ -77,7 +76,6 @@ private fun DebugInfo(
     fps: Float,
     drawnObjectCount: Int,
 ) = Text(
-    color = Color.White,
     text = "FPS: ${fps.toString().subSequence(0, fps.toString().indexOf('.'))}\n" +
             "Object count: $drawnObjectCount"
 )

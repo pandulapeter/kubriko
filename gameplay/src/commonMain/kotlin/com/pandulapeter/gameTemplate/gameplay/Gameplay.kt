@@ -13,15 +13,16 @@ import com.pandulapeter.gameTemplate.engine.EngineCanvas
 import com.pandulapeter.gameTemplate.engine.getEngine
 
 private const val RECTANGLE_SIZE = 100f
-private const val RECTANGLE_DISTANCE = 140f
-private const val RECTANGLE_COUNT = 15
+private const val RECTANGLE_DISTANCE = 180f
+private const val RECTANGLE_COUNT = 300
 
 private val rectangles = (-RECTANGLE_COUNT..RECTANGLE_COUNT).flatMap { x ->
     (-RECTANGLE_COUNT..RECTANGLE_COUNT).map { y ->
         Rectangle(
             color = Color.hsv((0..360).random().toFloat(), 0.2f, 0.9f),
-            size = Size(RECTANGLE_SIZE, RECTANGLE_SIZE),
-            position = Offset(x * RECTANGLE_DISTANCE, y * RECTANGLE_DISTANCE)
+            size = Size(RECTANGLE_SIZE, RECTANGLE_SIZE) * ((50..150).random() / 100f),
+            position = Offset(x * RECTANGLE_DISTANCE + (-50..50).random(), y * RECTANGLE_DISTANCE + (-50..50).random()),
+            rotationDegrees = (0..360).random().toFloat(),
         )
     }
 }

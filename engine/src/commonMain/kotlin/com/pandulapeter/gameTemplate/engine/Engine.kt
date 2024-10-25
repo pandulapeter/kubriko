@@ -83,7 +83,7 @@ fun EngineCanvas(
     }
     Canvas(
         modifier = Modifier.fillMaxSize()
-            .background(Color.Black)
+            .background(Color.White)
             .onKeyEvent {
                 consume {
                     if (it.type == KeyEventType.KeyDown) {
@@ -187,7 +187,7 @@ internal object EngineImpl : Engine {
     override val cameraScaleFactor = _cameraScaleFactor.asStateFlow()
     private var lastFpsUpdateTimestamp = 0L
 
-    private const val SCALE_MIN = 0.01f
+    private const val SCALE_MIN = 0.2f
     private const val SCALE_MAX = 10f
 
     override fun addToCameraOffset(

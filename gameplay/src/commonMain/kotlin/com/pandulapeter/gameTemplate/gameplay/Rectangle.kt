@@ -10,6 +10,7 @@ internal data class Rectangle(
     val color: Color,
     override val size: Size,
     override var position: Offset,
+    override var rotationDegrees: Float,
 ) : GameObject(
     size = size,
 ) {
