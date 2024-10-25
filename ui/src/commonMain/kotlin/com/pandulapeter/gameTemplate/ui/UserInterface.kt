@@ -16,8 +16,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.gameTemplate.gameplay.GameplayController
-import com.pandulapeter.gameTemplate.gameplay.models.Metadata
+import com.pandulapeter.gameTemplate.gameplayController.GameplayController
+import com.pandulapeter.gameTemplate.gameplayController.models.Metadata
 import game.ui.generated.resources.Res
 import game.ui.generated.resources.logo
 import org.jetbrains.compose.resources.painterResource

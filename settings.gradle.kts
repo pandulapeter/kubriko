@@ -2,7 +2,8 @@ rootProject.name = "Game"
 include(
     ":app",
     ":engine",
-    ":gameplay",
+    ":gameplay-controller",
+    ":gameplay-objects",
     ":ui",
 )
 

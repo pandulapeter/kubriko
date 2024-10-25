@@ -44,7 +44,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(compose.runtime)
-            implementation(compose.foundation)
+            api(compose.foundation)
             implementation(libs.androidx.lifecycle.runtime.compose)
         }
     }

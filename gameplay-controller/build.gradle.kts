@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.pandulapeter.gameTemplate.ui"
+    namespace = "com.pandulapeter.gameTemplate.gameplayController"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
@@ -43,12 +43,10 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.gameplayController)
+            implementation(projects.engine)
+            implementation(projects.gameplayObjects)
             implementation(compose.runtime)
             implementation(compose.foundation)
-            implementation(compose.material)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
         }
     }
 }

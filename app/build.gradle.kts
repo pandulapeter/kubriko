@@ -32,7 +32,7 @@ kotlin {
     
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.gameplay)
+            implementation(projects.gameplayController)
             implementation(projects.ui)
             implementation(compose.runtime)
             implementation(compose.foundation)
