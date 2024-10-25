@@ -21,6 +21,6 @@ data class Marker(
     )
 
     companion object {
-        private const val RADIUS = 1f
+        private const val RADIUS = 3f
     }
 }

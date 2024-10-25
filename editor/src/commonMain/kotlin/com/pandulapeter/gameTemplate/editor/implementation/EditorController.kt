@@ -36,7 +36,7 @@ internal object EditorController : CoroutineScope {
     private const val RECTANGLE_DISTANCE = 100f
     private const val RECTANGLE_COUNT = 50
     private const val COORDINATE_SYSTEM_SIZE = 100
-    private const val COORDINATE_GRID_SIZE = 10f
+    private const val COORDINATE_GRID_SIZE = 100f
 
     private fun start() {
         Engine.get().gameObjectManager.register(
@@ -74,7 +74,6 @@ internal object EditorController : CoroutineScope {
                 }
             }
         )
-        Engine.get().stateManager.updateIsRunning(true)
     }
 
     fun handleClick(screenCoordinates: Offset) {

@@ -10,8 +10,9 @@ internal operator fun Size.minus(offset: Offset) = Offset(
 
 internal fun Offset.toWorldCoordinates(
     viewportOffset: Offset,
+    scaledHalfViewportSize: Size,
     viewportScaleFactor: Float,
 ) = Offset(
-    x = viewportOffset.x + (x * viewportScaleFactor),
-    y = viewportOffset.y + (y * viewportScaleFactor),
+    x = viewportOffset.x + (x - scaledHalfViewportSize.width) / viewportScaleFactor,
+    y = viewportOffset.y + (y - scaledHalfViewportSize.height) / viewportScaleFactor,
 )

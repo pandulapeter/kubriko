@@ -57,6 +57,7 @@ internal class GameObjectManagerImpl : GameObjectManager {
 
     override fun findGameObjectsOnScreenCoordinates(screenCoordinates: Offset) = screenCoordinates.toWorldCoordinates(
         viewportOffset = EngineImpl.viewportManager.offset.value,
+        scaledHalfViewportSize = EngineImpl.viewportManager.size.value / 2f,
         viewportScaleFactor = EngineImpl.viewportManager.scaleFactor.value,
     ).let { worldCoordinates ->
         visibleGameObjectsInViewport.value
