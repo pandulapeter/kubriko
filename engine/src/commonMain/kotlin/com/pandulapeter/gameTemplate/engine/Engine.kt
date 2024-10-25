@@ -23,6 +23,8 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
+import com.pandulapeter.gameTemplate.engine.models.Dynamic
+import com.pandulapeter.gameTemplate.engine.models.GameObject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -75,7 +77,7 @@ fun EngineCanvas(
                     onKeys(activeKeys.toSet())
                 }
                 if (EngineImpl.isFocused.value) {
-                    gameObjects.forEach { it.update(deltaTimeMillis) }
+                    gameObjects.filterIsInstance<Dynamic>().forEach { it.update(deltaTimeMillis) }
                 }
                 gameTime.value = gameTimeNanos
             }

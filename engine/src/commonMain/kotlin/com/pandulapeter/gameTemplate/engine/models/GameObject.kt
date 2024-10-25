@@ -1,4 +1,4 @@
-package com.pandulapeter.gameTemplate.engine
+package com.pandulapeter.gameTemplate.engine.models
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -11,8 +11,6 @@ abstract class GameObject(
     open var position: Offset = Offset.Zero
     open var rotationDegrees: Float = 0f
     open var scaleFactor: Float = 1f
-
-    open fun update(deltaTimeMillis: Float) = Unit
 
     open fun draw(scope: DrawScope) = Unit
 }
