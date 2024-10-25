@@ -7,6 +7,8 @@ import com.pandulapeter.gameTemplate.engine.gameObject.properties.Rotatable
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Scalable
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 
+private const val VIEWPORT_SIZE_BUFFER = 100
+
 internal fun Visible.isVisible(
     scaledViewportSize: Size,
     viewportOffset: Offset,
@@ -14,16 +16,16 @@ internal fun Visible.isVisible(
 ) = if (this is Scalable) (size.width * scaleFactor).let { scaledWidth ->
     (size.height * scaleFactor).let { scaledHeight ->
         scaledWidth * viewportScaleFactor >= 1f && scaledHeight * viewportScaleFactor >= 1f &&
-                position.x - pivot.x + scaledWidth >= viewportOffset.x - scaledViewportSize.width / 2f &&
-                position.x - pivot.x - scaledWidth <= viewportOffset.x + scaledViewportSize.width / 2f &&
-                position.y - pivot.y + scaledHeight >= viewportOffset.y - scaledViewportSize.height / 2f &&
-                position.y - pivot.y - scaledHeight <= viewportOffset.y + scaledViewportSize.height / 2f
+                position.x - pivot.x + scaledWidth >= viewportOffset.x - scaledViewportSize.width / 2f - VIEWPORT_SIZE_BUFFER &&
+                position.x - pivot.x - scaledWidth <= viewportOffset.x + scaledViewportSize.width / 2f + VIEWPORT_SIZE_BUFFER &&
+                position.y - pivot.y + scaledHeight >= viewportOffset.y - scaledViewportSize.height / 2f - VIEWPORT_SIZE_BUFFER &&
+                position.y - pivot.y - scaledHeight <= viewportOffset.y + scaledViewportSize.height / 2f + VIEWPORT_SIZE_BUFFER
     }
 } else size.width * viewportScaleFactor >= 1f && size.height * viewportScaleFactor >= 1f &&
-        position.x - pivot.x + size.width >= viewportOffset.x - scaledViewportSize.width / 2f &&
-        position.x - pivot.x - size.width <= viewportOffset.x + scaledViewportSize.width / 2f &&
-        position.y - pivot.y + size.height >= viewportOffset.y - scaledViewportSize.height / 2f &&
-        position.y - pivot.y - size.height <= viewportOffset.y + scaledViewportSize.height / 2f
+        position.x - pivot.x + size.width >= viewportOffset.x - scaledViewportSize.width / 2f - VIEWPORT_SIZE_BUFFER &&
+        position.x - pivot.x - size.width <= viewportOffset.x + scaledViewportSize.width / 2f + VIEWPORT_SIZE_BUFFER &&
+        position.y - pivot.y + size.height >= viewportOffset.y - scaledViewportSize.height / 2f - VIEWPORT_SIZE_BUFFER &&
+        position.y - pivot.y - size.height <= viewportOffset.y + scaledViewportSize.height / 2f + VIEWPORT_SIZE_BUFFER
 
 
 internal fun Visible.transform(drawTransform: DrawTransform) {

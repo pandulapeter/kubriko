@@ -9,6 +9,9 @@ import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Rotatable
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Scalable
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
 internal data class DynamicBox(
     val color: Color,
@@ -37,6 +40,10 @@ internal data class DynamicBox(
         } else {
             scaleFactor -= 0.001f * deltaTimeMillis
         }
+        position = Offset(
+            x = position.x + cos(rotationDegrees * (PI / 180f)).toFloat() * 2f,
+            y = position.y - sin(rotationDegrees* (PI / 180f)).toFloat() * 2f,
+        )
     }
 
     override fun draw(scope: DrawScope) = scope.drawRect(

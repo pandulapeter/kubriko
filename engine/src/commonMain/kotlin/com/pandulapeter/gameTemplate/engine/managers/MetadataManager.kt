@@ -6,4 +6,5 @@ interface MetadataManager {
     val fps: StateFlow<Float>
     val visibleGameObjectCount: StateFlow<Int>
     val totalGameObjectCount: StateFlow<Int>
+    val runtimeInMilliseconds: StateFlow<Long>
 }

@@ -26,11 +26,13 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
         Engine.get().metadataManager.fps,
         Engine.get().metadataManager.totalGameObjectCount,
         Engine.get().metadataManager.visibleGameObjectCount,
-    ) { fps, totalGameObjectCount, visibleGameObjectCount ->
+        Engine.get().metadataManager.runtimeInMilliseconds,
+    ) { fps, totalGameObjectCount, visibleGameObjectCount, runtimeInMilliseconds ->
         Metadata(
             fps = fps,
             totalGameObjectCount = totalGameObjectCount,
             visibleGameObjectCount = visibleGameObjectCount,
+            playTimeInSeconds = runtimeInMilliseconds / 1000,
         )
     }.stateIn(this, SharingStarted.Eagerly, Metadata())
 

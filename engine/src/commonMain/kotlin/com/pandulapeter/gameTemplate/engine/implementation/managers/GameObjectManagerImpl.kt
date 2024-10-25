@@ -9,6 +9,7 @@ import com.pandulapeter.gameTemplate.engine.managers.GameObjectManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -18,11 +19,12 @@ internal class GameObjectManagerImpl : GameObjectManager {
     val gameObjects = MutableStateFlow(emptySet<GameObject>())
     val dynamicGameObjects = gameObjects.map { it.filterIsInstance<Dynamic>() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
     val visibleGameObjectsInViewport = combine(
+        EngineImpl.metadataManager.runtimeInMilliseconds.map { it / 100 }.distinctUntilChanged(),
         gameObjects.map { it.filterIsInstance<Visible>() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList()),
         EngineImpl.viewportManager.size,
         EngineImpl.viewportManager.offset,
         EngineImpl.viewportManager.scaleFactor,
-    ) { allVisibleGameObjects, viewportSize, viewportOffset, viewportScaleFactor ->
+    ) { _, allVisibleGameObjects, viewportSize, viewportOffset, viewportScaleFactor ->
         (viewportSize / viewportScaleFactor).let { scaledViewportSize ->
             allVisibleGameObjects.filter {
                 it.isVisible(

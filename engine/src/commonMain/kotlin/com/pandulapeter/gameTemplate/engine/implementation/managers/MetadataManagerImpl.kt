@@ -12,15 +12,22 @@ import kotlinx.coroutines.flow.update
 internal class MetadataManagerImpl : MetadataManager {
 
     private val _fps = MutableStateFlow(0f)
-    override val fps = _fps.asStateFlow()
-    override val visibleGameObjectCount = EngineImpl.gameObjectManager.visibleGameObjectsInViewport.map { it.count() }.stateIn(EngineImpl, SharingStarted.Eagerly, 0)
-    override val totalGameObjectCount = EngineImpl.gameObjectManager.gameObjects.map { it.count() }.stateIn(EngineImpl, SharingStarted.Eagerly, 0)
+    override val fps by lazy { _fps.asStateFlow() }
+    override val visibleGameObjectCount by lazy { EngineImpl.gameObjectManager.visibleGameObjectsInViewport.map { it.count() }.stateIn(EngineImpl, SharingStarted.Eagerly, 0) }
+    override val totalGameObjectCount by lazy { EngineImpl.gameObjectManager.gameObjects.map { it.count() }.stateIn(EngineImpl, SharingStarted.Eagerly, 0) }
+    private val _runtimeInMilliseconds = MutableStateFlow(0L)
+    override val runtimeInMilliseconds by lazy { _runtimeInMilliseconds.asStateFlow() }
     private var lastFpsUpdateTimestamp = 0L
 
     fun updateFps(
         gameTimeNanos: Long,
         deltaTimeMillis: Float,
     ) {
+        if (EngineImpl.stateManager.isRunning.value) {
+            _runtimeInMilliseconds.update { currentValue ->
+                (currentValue + deltaTimeMillis).toLong()
+            }
+        }
         if (gameTimeNanos - lastFpsUpdateTimestamp >= 1000000000L) {
             _fps.update { currentValue ->
                 if (deltaTimeMillis == 0f) currentValue else 1000f / deltaTimeMillis

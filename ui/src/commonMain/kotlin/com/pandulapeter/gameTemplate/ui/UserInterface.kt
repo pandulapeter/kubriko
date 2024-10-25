@@ -70,5 +70,6 @@ fun UserInterface(
 private fun DebugInfo(metadata: Metadata) = Text(
     text = "FPS: ${metadata.fps.toString().subSequence(0, metadata.fps.toString().indexOf('.'))}\n" +
             "Total object count: ${metadata.totalGameObjectCount}\n" +
-            "Visible object count: ${metadata.visibleGameObjectCount}"
+            "Visible object count: ${metadata.visibleGameObjectCount}\n" +
+            "Play time in seconds: ${metadata.playTimeInSeconds}"
 )
