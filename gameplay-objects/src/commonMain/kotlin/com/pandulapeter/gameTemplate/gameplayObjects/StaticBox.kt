@@ -11,8 +11,8 @@ import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 data class StaticBox(
     val color: Color,
     val edgeSize: Float,
-    override var position: Offset,
-    override var rotationDegrees: Float,
+    override val position: Offset,
+    override val rotationDegrees: Float,
 ) : GameObject(), Visible, Rotatable, Clickable {
 
     override val size = Size(edgeSize, edgeSize)

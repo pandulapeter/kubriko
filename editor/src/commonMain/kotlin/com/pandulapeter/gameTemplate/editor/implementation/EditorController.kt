@@ -7,6 +7,7 @@ import com.pandulapeter.gameTemplate.editor.implementation.helpers.handleKeys
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.gameplayObjects.Clickable
 import com.pandulapeter.gameTemplate.gameplayObjects.DynamicBox
+import com.pandulapeter.gameTemplate.gameplayObjects.Marker
 import com.pandulapeter.gameTemplate.gameplayObjects.StaticBox
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +35,8 @@ internal object EditorController : CoroutineScope {
     private const val RECTANGLE_SIZE = 100f
     private const val RECTANGLE_DISTANCE = 100f
     private const val RECTANGLE_COUNT = 50
+    private const val COORDINATE_SYSTEM_SIZE = 100
+    private const val COORDINATE_GRID_SIZE = 10f
 
     private fun start() {
         Engine.get().gameObjectManager.register(
@@ -61,6 +64,13 @@ internal object EditorController : CoroutineScope {
                             }
                         }
                     }
+                }
+            } + (-COORDINATE_SYSTEM_SIZE..COORDINATE_SYSTEM_SIZE).flatMap { x ->
+                (-COORDINATE_SYSTEM_SIZE..COORDINATE_SYSTEM_SIZE).map { y ->
+                    Marker(
+                        position = Offset(x * COORDINATE_GRID_SIZE, y * COORDINATE_GRID_SIZE),
+                        isOrigin = x == 0 && y == 0,
+                    )
                 }
             }
         )

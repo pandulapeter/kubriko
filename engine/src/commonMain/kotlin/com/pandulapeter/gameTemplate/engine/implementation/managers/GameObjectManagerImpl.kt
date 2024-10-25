@@ -6,6 +6,8 @@ import com.pandulapeter.gameTemplate.engine.gameObject.properties.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.isVisible
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.occupiesPosition
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.toWorldCoordinates
 import com.pandulapeter.gameTemplate.engine.managers.GameObjectManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,14 +28,12 @@ internal class GameObjectManagerImpl : GameObjectManager {
         EngineImpl.viewportManager.offset,
         EngineImpl.viewportManager.scaleFactor,
     ) { _, allVisibleGameObjects, viewportSize, viewportOffset, viewportScaleFactor ->
-        (viewportSize / viewportScaleFactor).let { scaledViewportSize ->
-            allVisibleGameObjects.filter {
-                it.isVisible(
-                    scaledViewportSize = scaledViewportSize,
-                    viewportOffset = viewportOffset,
-                    viewportScaleFactor = viewportScaleFactor,
-                )
-            }
+        allVisibleGameObjects.filter {
+            it.isVisible(
+                scaledHalfViewportSize = viewportSize / (viewportScaleFactor * 2),
+                viewportOffset = viewportOffset,
+                viewportScaleFactor = viewportScaleFactor,
+            )
         }
     }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
 
@@ -55,5 +55,12 @@ internal class GameObjectManagerImpl : GameObjectManager {
 
     override fun removeAll() = gameObjects.update { emptySet() }
 
-    override fun findGameObjectsOnScreenCoordinates(screenCoordinates: Offset) = visibleGameObjectsInViewport.value.filterIsInstance<GameObject>()
+    override fun findGameObjectsOnScreenCoordinates(screenCoordinates: Offset) = screenCoordinates.toWorldCoordinates(
+        viewportOffset = EngineImpl.viewportManager.offset.value,
+        viewportScaleFactor = EngineImpl.viewportManager.scaleFactor.value,
+    ).let { worldCoordinates ->
+        visibleGameObjectsInViewport.value
+            .filter { it.occupiesPosition(worldCoordinates) }
+            .filterIsInstance<GameObject>()
+    }
 }
