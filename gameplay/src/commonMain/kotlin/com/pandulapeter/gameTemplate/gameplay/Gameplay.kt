@@ -11,10 +11,12 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.pointer.pointerInput
 import com.pandulapeter.gameTemplate.engine.EngineCanvas
 import com.pandulapeter.gameTemplate.engine.getEngine
+import kotlin.math.PI
+import kotlin.math.sin
 
 private const val RECTANGLE_SIZE = 100f
-private const val RECTANGLE_DISTANCE = 180f
-private const val RECTANGLE_COUNT = 300
+private const val RECTANGLE_DISTANCE = 200f
+private const val RECTANGLE_COUNT = 200
 
 private val rectangles = (-RECTANGLE_COUNT..RECTANGLE_COUNT).flatMap { x ->
     (-RECTANGLE_COUNT..RECTANGLE_COUNT).map { y ->
@@ -27,8 +29,8 @@ private val rectangles = (-RECTANGLE_COUNT..RECTANGLE_COUNT).flatMap { x ->
     }
 }
 
-private const val CAMERA_SPEED = 10f
-private const val CAMERA_SPEED_DIAGONAL = 7.07f
+private const val CAMERA_SPEED = 15f
+private val CAMERA_SPEED_DIAGONAL = (sin(PI / 4)* CAMERA_SPEED).toFloat()
 
 @Composable
 fun GameplayCanvas(
@@ -57,6 +59,13 @@ fun GameplayCanvas(
                         KeyboardDirection.DOWN_RIGHT -> Offset(CAMERA_SPEED_DIAGONAL, CAMERA_SPEED_DIAGONAL)
                         KeyboardDirection.DOWN -> Offset(0f, CAMERA_SPEED)
                         KeyboardDirection.DOWN_LEFT -> Offset(-CAMERA_SPEED_DIAGONAL, CAMERA_SPEED_DIAGONAL)
+                    }
+                )
+                getEngine().multiplyCameraScaleFactor(
+                    when (keys.zoom) {
+                        KeyboardZoom.NONE -> 1f
+                        KeyboardZoom.ZOOM_IN -> 1.02f
+                        KeyboardZoom.ZOOM_OUT -> 0.98f
                     }
                 )
             },

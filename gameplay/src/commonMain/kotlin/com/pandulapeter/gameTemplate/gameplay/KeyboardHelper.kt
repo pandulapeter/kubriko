@@ -6,6 +6,10 @@ internal enum class KeyboardDirection {
     NONE, LEFT, UP_LEFT, UP, UP_RIGHT, RIGHT, DOWN_RIGHT, DOWN, DOWN_LEFT,
 }
 
+internal enum class KeyboardZoom {
+    NONE, ZOOM_IN, ZOOM_OUT,
+}
+
 internal val Set<Key>.direction
     get() = when {
         hasLeft && !hasRight && !hasUp && !hasDown -> KeyboardDirection.LEFT
@@ -17,6 +21,13 @@ internal val Set<Key>.direction
         hasDown && !hasUp && !hasLeft && !hasRight -> KeyboardDirection.DOWN
         hasDownLeft && !hasUp && !hasRight -> KeyboardDirection.DOWN_LEFT
         else -> KeyboardDirection.NONE
+    }
+
+internal val Set<Key>.zoom
+    get() = when {
+        hasZoomIn && !hasZoomOut -> KeyboardZoom.ZOOM_IN
+        hasZoomOut && !hasZoomIn -> KeyboardZoom.ZOOM_OUT
+        else -> KeyboardZoom.NONE
     }
 
 private val Set<Key>.hasLeft get() = contains(Key.DirectionLeft) || contains(Key.A)
@@ -34,3 +45,7 @@ private val Set<Key>.hasDownRight get() = contains(Key.DirectionDownRight) || (c
 private val Set<Key>.hasDown get() = contains(Key.DirectionDown) || contains(Key.S)
 
 private val Set<Key>.hasDownLeft get() = contains(Key.DirectionDownLeft) || (contains(Key.DirectionDown) && contains(Key.DirectionLeft)) || ((contains(Key.S) && contains(Key.A)))
+
+private val Set<Key>.hasZoomIn get() = contains(Key.Plus) || contains(Key.Equals) || contains(Key.NumPadAdd) || contains(Key.ZoomIn)
+
+private val Set<Key>.hasZoomOut get() = contains(Key.Minus) || contains(Key.NumPadSubtract) || contains(Key.ZoomOut)
