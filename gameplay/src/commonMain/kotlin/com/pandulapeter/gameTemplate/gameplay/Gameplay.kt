@@ -18,19 +18,25 @@ private const val RECTANGLE_SIZE = 100f
 private const val RECTANGLE_DISTANCE = 200f
 private const val RECTANGLE_COUNT = 200
 
-private val rectangles = (-RECTANGLE_COUNT..RECTANGLE_COUNT).flatMap { x ->
-    (-RECTANGLE_COUNT..RECTANGLE_COUNT).map { y ->
-        Rectangle(
-            color = Color.hsv((0..360).random().toFloat(), 0.2f, 0.9f),
-            size = Size(RECTANGLE_SIZE, RECTANGLE_SIZE) * ((50..150).random() / 100f),
-            position = Offset(x * RECTANGLE_DISTANCE + (-50..50).random(), y * RECTANGLE_DISTANCE + (-50..50).random()),
-            rotationDegrees = (0..360).random().toFloat(),
-        )
+private val rectangles = (0..360).let { angleRange ->
+    (50..150).let { sizeRange ->
+        (-50..50).let { offsetRange ->
+            (-RECTANGLE_COUNT..RECTANGLE_COUNT).flatMap { x ->
+                (-RECTANGLE_COUNT..RECTANGLE_COUNT).map { y ->
+                    Rectangle(
+                        color = Color.hsv(angleRange.random().toFloat(), 0.2f, 0.9f),
+                        size = Size(RECTANGLE_SIZE, RECTANGLE_SIZE) * (sizeRange.random() / 100f),
+                        position = Offset(x * RECTANGLE_DISTANCE + offsetRange.random(), y * RECTANGLE_DISTANCE + offsetRange.random()),
+                        rotationDegrees = angleRange.random().toFloat(),
+                    )
+                }
+            }
+        }
     }
 }
 
 private const val CAMERA_SPEED = 15f
-private val CAMERA_SPEED_DIAGONAL = (sin(PI / 4)* CAMERA_SPEED).toFloat()
+private val CAMERA_SPEED_DIAGONAL = (sin(PI / 4) * CAMERA_SPEED).toFloat()
 
 @Composable
 fun GameplayCanvas(
