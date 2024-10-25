@@ -14,26 +14,21 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawTransform
 import androidx.compose.ui.graphics.drawscope.withTransform
-import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.minus
-import com.pandulapeter.gameTemplate.engine.implementation.extensions.proccess
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.transform
 import kotlinx.coroutines.isActive
 
 @Composable
 fun EngineCanvas(
     modifier: Modifier = Modifier,
-    handleKeys: (keys: Set<Key>) -> Unit,
-    handleKeyReleased: (key: Key) -> Unit,
 ) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val gameTime = remember { mutableStateOf(0L) }
     val focusRequester = remember { FocusRequester() }
-    val activeKeys = mutableSetOf<Key>()
 
     LaunchedEffect(Unit) {
         while (isActive) {
@@ -41,22 +36,17 @@ fun EngineCanvas(
             withFrameNanos { gameTimeNanos ->
                 val deltaTimeMillis = (gameTimeNanos - gameTime.value) / 1000000f
                 lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED).let { isFocused ->
-                    if (!isFocused) {
-                        activeKeys.clear()
-                    }
-                    EngineImpl.updateFocus(
+                    EngineImpl.stateManager.updateFocus(
                         isFocused = isFocused,
                     )
                 }
-                EngineImpl.updateFps(
+                EngineImpl.metadataManager.updateFps(
                     gameTimeNanos = gameTimeNanos,
                     deltaTimeMillis = deltaTimeMillis,
                 )
-                if (activeKeys.isNotEmpty()) {
-                    handleKeys(activeKeys.toSet())
-                }
-                if (EngineImpl.isRunning.value) {
-                    EngineImpl.dynamicGameObjects.value.forEach { it.update(deltaTimeMillis) }
+                EngineImpl.inputManager.emit()
+                if (EngineImpl.stateManager.isRunning.value) {
+                    EngineImpl.gameObjectManager.dynamicGameObjects.value.forEach { it.update(deltaTimeMillis) }
                 }
                 gameTime.value = gameTimeNanos
             }
@@ -64,29 +54,23 @@ fun EngineCanvas(
     }
     Canvas(
         modifier = modifier.fillMaxSize()
-            .onKeyEvent {
-                it.proccess(
-                    addToActiveKeys = activeKeys::add,
-                    removeFromActiveKeys = activeKeys::remove,
-                    onKeyRelease = handleKeyReleased
-                )
-            }
+            .onKeyEvent(EngineImpl.inputManager::onKeyEvent)
             .focusRequester(focusRequester)
             .focusable(),
         onDraw = {
             gameTime.value
-            EngineImpl.updateSize(size = size)
-            EngineImpl.offset.value.let { viewportOffset ->
+            EngineImpl.viewportManager.updateSize(size = size)
+            EngineImpl.viewportManager.offset.value.let { viewportOffset ->
                 withTransform(
                     transformBlock = {
                         transformViewport(
                             viewportOffset = viewportOffset,
                             shiftedViewportOffset = (size / 2f) - viewportOffset,
-                            viewportScaleFactor = EngineImpl.scaleFactor.value,
+                            viewportScaleFactor = EngineImpl.viewportManager.scaleFactor.value,
                         )
                     },
                     drawBlock = {
-                        EngineImpl.visibleGameObjectsInViewport.value.forEach { gameObject ->
+                        EngineImpl.gameObjectManager.visibleGameObjectsInViewport.value.forEach { gameObject ->
                             withTransform(
                                 transformBlock = { gameObject.transform(this) },
                                 drawBlock = { gameObject.draw(this) }

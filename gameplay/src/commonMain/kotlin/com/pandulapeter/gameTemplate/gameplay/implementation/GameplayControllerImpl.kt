@@ -12,6 +12,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -33,11 +35,17 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
     }.stateIn(this, SharingStarted.Eagerly, Metadata())
 
     init {
-        Engine.get().stateManager.isFocused.onEach { isFocused ->
-            if (!isFocused) {
-                Engine.get().stateManager.updateIsRunning(false)
-            }
-        }.launchIn(this)
+        Engine.get().stateManager.isFocused
+            .filterNot { it }
+            .onEach { Engine.get().stateManager.updateIsRunning(false) }
+            .launchIn(this)
+        Engine.get().inputManager.activeKeys
+            .filter { it.isNotEmpty() }
+            .onEach(::handleKeys)
+            .launchIn(this)
+        Engine.get().inputManager.onKeyReleased
+            .onEach(::handleKeyReleased)
+            .launchIn(this)
     }
 
     private const val RECTANGLE_SIZE = 100f
