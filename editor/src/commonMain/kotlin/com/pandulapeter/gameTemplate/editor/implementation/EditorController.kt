@@ -12,18 +12,28 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
 internal object EditorController : CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
     val totalGameObjectCount = Engine.get().metadataManager.totalGameObjectCount
-    private val _mouseWorldPosition = MutableStateFlow(Offset.Zero)
-    val mouseWorldPosition = _mouseWorldPosition.asStateFlow()
+    private val mouseScreenCoordinates = MutableStateFlow(Offset.Zero)
+    val mouseWorldPosition = combine(
+        mouseScreenCoordinates,
+        Engine.get().viewportManager.offset,
+        Engine.get().viewportManager.size,
+        Engine.get().viewportManager.scaleFactor,
+    ) { mouseScreenCoordinates, _, _, _ ->
+        mouseScreenCoordinates.toPositionInWorld()
+    }.stateIn(this, SharingStarted.Eagerly, Offset.Zero)
     private val _selectedGameObject = MutableStateFlow<GameObject?>(null)
     val selectedGameObject = _selectedGameObject.asStateFlow()
 
@@ -53,7 +63,7 @@ internal object EditorController : CoroutineScope {
         }
     }
 
-    fun handleMouseMove(screenCoordinates: Offset) = _mouseWorldPosition.update { screenCoordinates.toPositionInWorld() }
+    fun handleMouseMove(screenCoordinates: Offset) = mouseScreenCoordinates.update { screenCoordinates }
 
     fun unselectGameObject() = _selectedGameObject.update { null }
 
