@@ -27,6 +27,12 @@ internal fun Visible.occupiesPosition(
     worldCoordinates: Offset,
 ) = worldCoordinates.x in left..right && worldCoordinates.y in top..bottom
 
+// Note: Rotation is not taken into consideration
+internal fun Visible.isAroundPosition(
+    position: Offset,
+    range: Float,
+) = (this.position - position).getDistance() < range
+
 private val Visible.left get() = scaleFactor.let { position.x + pivot.x * it - size.width * it }
 
 private val Visible.top get() = scaleFactor.let { position.y + pivot.y * it - size.height * it }

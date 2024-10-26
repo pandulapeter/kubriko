@@ -5,6 +5,7 @@ import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.isAroundPosition
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.isVisible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.occupiesPosition
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toWorldCoordinates
@@ -21,9 +22,10 @@ internal class GameObjectManagerImpl : GameObjectManager {
 
     val gameObjects = MutableStateFlow(emptyList<GameObject>())
     val dynamicGameObjects = gameObjects.map { it.filterIsInstance<Dynamic>() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
+    val visibleGameObjects = gameObjects.map { it.filterIsInstance<Visible>() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
     val visibleGameObjectsInViewport = combine(
         EngineImpl.metadataManager.runtimeInMilliseconds.map { it / 100 }.distinctUntilChanged(),
-        gameObjects.map { it.filterIsInstance<Visible>() },
+        visibleGameObjects,
         EngineImpl.viewportManager.size,
         EngineImpl.viewportManager.offset,
         EngineImpl.viewportManager.scaleFactor,
@@ -65,4 +67,12 @@ internal class GameObjectManagerImpl : GameObjectManager {
         visibleGameObjectsInViewport.value
             .filter { it.occupiesPosition(worldCoordinates) }
     }
+
+    override fun findGameObjectsAroundPosition(position: Offset, range: Float) = visibleGameObjects.value
+        .filter {
+            it.isAroundPosition(
+                position = position,
+                range = range,
+            )
+        }
 }

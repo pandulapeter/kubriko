@@ -8,13 +8,13 @@ enum class KeyboardDirectionState {
 
 val Set<Key>.directionState
     get() = when {
-        hasLeft && !hasRight && !hasUp && !hasDown -> KeyboardDirectionState.LEFT
+        (hasLeft && !hasRight && !hasUp && !hasDown) || (hasLeft && !hasRight && hasUp && hasDown) -> KeyboardDirectionState.LEFT
         hasUpLeft && !hasDown && !hasRight -> KeyboardDirectionState.UP_LEFT
-        hasUp && !hasDown && !hasLeft && !hasRight -> KeyboardDirectionState.UP
+        (hasUp && !hasDown && !hasLeft && !hasRight) || (hasUp && !hasDown && hasLeft && hasRight) -> KeyboardDirectionState.UP
         hasUpRight && !hasDown && !hasLeft -> KeyboardDirectionState.UP_RIGHT
-        hasRight && !hasLeft && !hasUp && !hasDown -> KeyboardDirectionState.RIGHT
+        (hasRight && !hasLeft && !hasUp && !hasDown) || (hasRight && !hasLeft && hasUp && hasDown) -> KeyboardDirectionState.RIGHT
         hasDownRight && !hasUp && !hasLeft -> KeyboardDirectionState.DOWN_RIGHT
-        hasDown && !hasUp && !hasLeft && !hasRight -> KeyboardDirectionState.DOWN
+        (hasDown && !hasUp && !hasLeft && !hasRight) || (hasDown && !hasUp && hasLeft && hasRight) -> KeyboardDirectionState.DOWN
         hasDownLeft && !hasUp && !hasRight -> KeyboardDirectionState.DOWN_LEFT
         else -> KeyboardDirectionState.NONE
     }

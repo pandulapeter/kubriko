@@ -5,6 +5,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Dynamic
@@ -20,10 +21,16 @@ data class Character(
     override val size = Size(RADIUS * 2, RADIUS * 2)
     override val pivot = size.center
     override var depth = -position.y - pivot.y
+    private var fightMultiplier = 1f
 
     override fun update(deltaTimeMillis: Float) {
         depth = -position.y - pivot.y - 100f
         Engine.get().viewportManager.addToOffset(calculateViewportOffsetDelta())
+        if (fightMultiplier > 1f) {
+            fightMultiplier -= 0.01f * deltaTimeMillis
+        } else {
+            fightMultiplier = 1f
+        }
     }
 
     private fun calculateViewportOffsetDelta() = Engine.get().viewportManager.offset.value.let { viewportOffset ->
@@ -33,8 +40,8 @@ data class Character(
     }
 
     override fun draw(scope: DrawScope) = scope.drawCircle(
-        color = Color.Green,
-        radius = RADIUS,
+        color = lerp(Color.Red, Color.Green, ((1f + MAX_FIGHT_MULTIPLIER) - fightMultiplier) / MAX_FIGHT_MULTIPLIER),
+        radius = RADIUS * fightMultiplier,
         center = pivot,
     )
 
@@ -52,10 +59,19 @@ data class Character(
         }
     }
 
+    fun fight() {
+        fightMultiplier = MAX_FIGHT_MULTIPLIER
+        Engine.get().gameObjectManager.findGameObjectsAroundPosition(
+            position = position,
+            range = RADIUS * 5f
+        ).filterIsInstance<Clickable>().forEach { it.onClicked() }
+    }
+
     companion object {
-        private const val VIEWPORT_FOLLOWING_SPEED_MULTIPLIER = 0.02f
+        private const val VIEWPORT_FOLLOWING_SPEED_MULTIPLIER = 0.03f
+        private const val MAX_FIGHT_MULTIPLIER = 3f
         private const val RADIUS = 50f
-        private const val SPEED = 5f
+        private const val SPEED = 6f
         private val SPEED_DIAGONAL = (sin(PI / 4) * SPEED).toFloat()
     }
 }

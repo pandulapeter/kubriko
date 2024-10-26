@@ -4,7 +4,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.gameTemplate.engine.Engine
-import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardDirectionState
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardZoomState
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.directionState
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.zoomState
@@ -24,8 +23,6 @@ import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlin.math.PI
-import kotlin.math.sin
 
 internal object GameplayControllerImpl : GameplayController, CoroutineScope {
 
@@ -54,6 +51,9 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
         Engine.get().inputManager.activeKeys
             .filter { it.isNotEmpty() }
             .onEach(::handleKeys)
+            .launchIn(this)
+        Engine.get().inputManager.onKeyPressed
+            .onEach(::handleKeyPressed)
             .launchIn(this)
         Engine.get().inputManager.onKeyReleased
             .onEach(::handleKeyReleased)
@@ -108,6 +108,14 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
                     KeyboardZoomState.ZOOM_OUT -> 0.98f
                 }
             )
+        }
+    }
+
+    private fun handleKeyPressed(key: Key) {
+        if (isRunning.value) {
+            when (key) {
+                Key.Spacebar -> character.fight()
+            }
         }
     }
 

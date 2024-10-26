@@ -17,4 +17,6 @@ interface GameObjectManager {
     fun removeAll()
 
     fun findGameObjectsOnScreenCoordinates(screenCoordinates: Offset): List<Visible>
+
+    fun findGameObjectsAroundPosition(position: Offset, range: Float): List<Visible>
 }
