@@ -97,7 +97,7 @@ internal fun ScalablePropertyEditors(
                 scalable.scaleFactor = it
                 EditorController.notifyGameObjectUpdate()
             },
-            valueRange = 0f..1f
+            valueRange = 0f..10f
         )
     }
 }
@@ -114,7 +114,7 @@ internal fun VisiblePropertyEditors(
                 visible.bounds = Size(it, visible.bounds.height)
                 EditorController.notifyGameObjectUpdate()
             },
-            valueRange = 50f..250f
+            valueRange = 0f..250f
         )
         SliderWithTitle(
             title = "bounds.height",
@@ -123,7 +123,7 @@ internal fun VisiblePropertyEditors(
                 visible.bounds = Size(visible.bounds.width, it)
                 EditorController.notifyGameObjectUpdate()
             },
-            valueRange = 50f..250f
+            valueRange = 0f..250f
         )
     }
 }

@@ -6,11 +6,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.scaleFactor
 
 private const val HIGHLIGHT_SIZE = 4f
 
 internal fun DrawScope.selectedGameObjectHighlight(visible: Visible) {
-    Engine.get().viewportManager.scaleFactor.value.let { scale ->
+    (Engine.get().viewportManager.scaleFactor.value * visible.scaleFactor).let { scale ->
         drawRect(
             color = Color.Black,
             topLeft = Offset(-HIGHLIGHT_SIZE, -HIGHLIGHT_SIZE) / scale,

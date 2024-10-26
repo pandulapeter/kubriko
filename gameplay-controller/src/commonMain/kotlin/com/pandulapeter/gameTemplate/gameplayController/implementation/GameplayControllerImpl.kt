@@ -92,7 +92,7 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
                         }
                     }
                 }
-            } + character + Marker(Offset.Zero, true)
+            } + character + Marker(Offset.Zero)
         )
     }
 

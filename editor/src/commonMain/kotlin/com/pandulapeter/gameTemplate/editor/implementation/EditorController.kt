@@ -9,6 +9,7 @@ import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toPositionInWorld
 import com.pandulapeter.gameTemplate.gameplayObjects.DynamicBox
+import com.pandulapeter.gameTemplate.gameplayObjects.Marker
 import com.pandulapeter.gameTemplate.gameplayObjects.StaticBox
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,7 +43,12 @@ internal object EditorController : CoroutineScope {
                 rotationDegrees = 0f,
                 scaleFactor = 1f,
             )
-        }
+        },
+        Marker::class.java to {
+            Marker(
+                position = it,
+            )
+        },
     )
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
