@@ -2,10 +2,13 @@ package com.pandulapeter.gameTemplate.gameplayController.implementation
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
 import com.pandulapeter.gameTemplate.engine.Engine
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardDirectionState
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardZoomState
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.directionState
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.zoomState
 import com.pandulapeter.gameTemplate.gameplayController.GameplayController
-import com.pandulapeter.gameTemplate.gameplayController.implementation.helpers.handleKeyReleased
-import com.pandulapeter.gameTemplate.gameplayController.implementation.helpers.handleKeys
 import com.pandulapeter.gameTemplate.gameplayController.models.Metadata
 import com.pandulapeter.gameTemplate.gameplayObjects.Character
 import com.pandulapeter.gameTemplate.gameplayObjects.DynamicBox
@@ -21,6 +24,8 @@ import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlin.math.PI
+import kotlin.math.sin
 
 internal object GameplayControllerImpl : GameplayController, CoroutineScope {
 
@@ -92,4 +97,23 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
     }
 
     override fun updateIsRunning(isRunning: Boolean) = Engine.get().stateManager.updateIsRunning(isRunning)
+
+    private fun handleKeys(keys: Set<Key>) {
+        if (isRunning.value) {
+            character.move(keys.directionState)
+            Engine.get().viewportManager.multiplyScaleFactor(
+                when (keys.zoomState) {
+                    KeyboardZoomState.NONE -> 1f
+                    KeyboardZoomState.ZOOM_IN -> 1.02f
+                    KeyboardZoomState.ZOOM_OUT -> 0.98f
+                }
+            )
+        }
+    }
+
+    private fun handleKeyReleased(key: Key) {
+        when (key) {
+            Key.Escape, Key.Back, Key.Backspace -> Engine.get().stateManager.updateIsRunning(!isRunning.value)
+        }
+    }
 }
