@@ -19,22 +19,24 @@ import kotlinx.coroutines.flow.update
 
 internal class GameObjectManagerImpl : GameObjectManager {
 
-    val gameObjects = MutableStateFlow(emptySet<GameObject>())
+    val gameObjects = MutableStateFlow(emptyList<GameObject>())
     val dynamicGameObjects = gameObjects.map { it.filterIsInstance<Dynamic>() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
     val visibleGameObjectsInViewport = combine(
         EngineImpl.metadataManager.runtimeInMilliseconds.map { it / 100 }.distinctUntilChanged(),
-        gameObjects.map { it.filterIsInstance<Visible>() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList()),
+        gameObjects.map { it.filterIsInstance<Visible>() },
         EngineImpl.viewportManager.size,
         EngineImpl.viewportManager.offset,
         EngineImpl.viewportManager.scaleFactor,
     ) { _, allVisibleGameObjects, viewportSize, viewportOffset, viewportScaleFactor ->
-        allVisibleGameObjects.filter {
-            it.isVisible(
-                scaledHalfViewportSize = viewportSize / (viewportScaleFactor * 2),
-                viewportOffset = viewportOffset,
-                viewportScaleFactor = viewportScaleFactor,
-            )
-        }
+        allVisibleGameObjects
+            .filter {
+                it.isVisible(
+                    scaledHalfViewportSize = viewportSize / (viewportScaleFactor * 2),
+                    viewportOffset = viewportOffset,
+                    viewportScaleFactor = viewportScaleFactor,
+                )
+            }
+            .sortedByDescending { it.depth }
     }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
 
     override fun register(gameObject: GameObject) = gameObjects.update { currentValue ->
@@ -46,14 +48,14 @@ internal class GameObjectManagerImpl : GameObjectManager {
     }
 
     override fun remove(gameObject: GameObject) = gameObjects.update { currentValue ->
-        currentValue.filterNot { it == gameObject }.toSet()
+        currentValue.filterNot { it == gameObject }
     }
 
     override fun remove(gameObjects: Collection<GameObject>) = EngineImpl.gameObjectManager.gameObjects.update { currentValue ->
-        currentValue.filterNot { it in gameObjects }.toSet()
+        currentValue.filterNot { it in gameObjects }
     }
 
-    override fun removeAll() = gameObjects.update { emptySet() }
+    override fun removeAll() = gameObjects.update { emptyList() }
 
     override fun findGameObjectsOnScreenCoordinates(screenCoordinates: Offset) = screenCoordinates.toWorldCoordinates(
         viewportOffset = EngineImpl.viewportManager.offset.value,

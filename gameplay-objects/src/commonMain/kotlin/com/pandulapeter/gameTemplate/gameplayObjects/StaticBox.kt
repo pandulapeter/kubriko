@@ -2,6 +2,7 @@ package com.pandulapeter.gameTemplate.gameplayObjects
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
@@ -16,6 +17,8 @@ data class StaticBox(
 ) : GameObject(), Visible, Rotatable, Clickable {
 
     override val size = Size(edgeSize, edgeSize)
+    override val pivot = size.center
+    override val depth = -position.y - pivot.y
     private var isClicked = false
 
     override fun draw(scope: DrawScope) = scope.drawRect(

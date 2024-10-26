@@ -6,8 +6,9 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 
 interface Visible {
     val size: Size
-    val pivot: Offset get() = Offset(size.width / 2f, size.height / 2f)
+    val pivot: Offset
     val position: Offset
+    val depth: Float
 
     fun draw(scope: DrawScope) = Unit
 }

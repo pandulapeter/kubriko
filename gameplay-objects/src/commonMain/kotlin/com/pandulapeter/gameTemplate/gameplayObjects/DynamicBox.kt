@@ -2,10 +2,11 @@ package com.pandulapeter.gameTemplate.gameplayObjects
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.properties.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Rotatable
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Scalable
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
@@ -22,6 +23,8 @@ data class DynamicBox(
 ) : GameObject(), Visible, Dynamic, Rotatable, Scalable, Clickable {
 
     override val size = Size(edgeSize, edgeSize)
+    override val pivot = size.center
+    override var depth = -position.y - pivot.y
     private var isGrowing = true
     private var isClicked = false
 
@@ -43,8 +46,9 @@ data class DynamicBox(
         }
         position = Offset(
             x = position.x + cos(rotationDegrees * (PI / 180f)).toFloat() * 2f,
-            y = position.y - sin(rotationDegrees* (PI / 180f)).toFloat() * 2f,
+            y = position.y - sin(rotationDegrees * (PI / 180f)).toFloat() * 2f,
         )
+        depth = -position.y - pivot.y
     }
 
     override fun draw(scope: DrawScope) = scope.drawRect(

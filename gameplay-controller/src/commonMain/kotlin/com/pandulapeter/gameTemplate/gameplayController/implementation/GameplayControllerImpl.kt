@@ -7,7 +7,9 @@ import com.pandulapeter.gameTemplate.gameplayController.GameplayController
 import com.pandulapeter.gameTemplate.gameplayController.implementation.helpers.handleKeyReleased
 import com.pandulapeter.gameTemplate.gameplayController.implementation.helpers.handleKeys
 import com.pandulapeter.gameTemplate.gameplayController.models.Metadata
+import com.pandulapeter.gameTemplate.gameplayObjects.Character
 import com.pandulapeter.gameTemplate.gameplayObjects.DynamicBox
+import com.pandulapeter.gameTemplate.gameplayObjects.Marker
 import com.pandulapeter.gameTemplate.gameplayObjects.StaticBox
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +39,7 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
             playTimeInSeconds = runtimeInMilliseconds / 1000,
         )
     }.stateIn(this, SharingStarted.Eagerly, Metadata())
+    private val character = Character(Offset.Zero)
 
     init {
         Engine.get().stateManager.isFocused
@@ -84,7 +87,7 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
                         }
                     }
                 }
-            }
+            } + character + Marker(Offset.Zero, true)
         )
     }
 
