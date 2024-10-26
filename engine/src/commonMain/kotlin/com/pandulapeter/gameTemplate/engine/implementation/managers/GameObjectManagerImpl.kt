@@ -64,6 +64,5 @@ internal class GameObjectManagerImpl : GameObjectManager {
     ).let { worldCoordinates ->
         visibleGameObjectsInViewport.value
             .filter { it.occupiesPosition(worldCoordinates) }
-            .filterIsInstance<GameObject>()
     }
 }

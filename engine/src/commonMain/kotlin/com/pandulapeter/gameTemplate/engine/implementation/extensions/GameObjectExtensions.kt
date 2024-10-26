@@ -9,6 +9,7 @@ import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 
 private const val VIEWPORT_EDGE_BUFFER = 50
 
+// Note: Rotation is not taken into consideration
 internal fun Visible.isVisible(
     scaledHalfViewportSize: Size,
     viewportOffset: Offset,
@@ -21,17 +22,20 @@ internal fun Visible.isVisible(
             bottom >= viewportOffset.y - scaledHalfViewportSize.height - viewportEdgeBuffer
 }
 
+// Note: Rotation is not taken into consideration
 internal fun Visible.occupiesPosition(
     worldCoordinates: Offset,
-) = worldCoordinates.x > left && worldCoordinates.x < right && worldCoordinates.y > top && worldCoordinates.y < bottom
+) = worldCoordinates.x in left..right && worldCoordinates.y in top..bottom
 
-private val Visible.left get() = position.x + pivot.x - size.width * (if (this is Scalable) scaleFactor else 1f)
+private val Visible.left get() = scaleFactor.let { position.x + pivot.x * it - size.width * it }
 
-private val Visible.top get() = position.y + pivot.y - size.height * (if (this is Scalable) scaleFactor else 1f)
+private val Visible.top get() = scaleFactor.let { position.y + pivot.y * it - size.height * it }
 
-private val Visible.right get() = position.x - pivot.x + size.width * (if (this is Scalable) scaleFactor else 1f)
+private val Visible.right get() = scaleFactor.let { position.x - pivot.x * it + size.width * it }
 
-private val Visible.bottom get() = position.y - pivot.y + size.height * (if (this is Scalable) scaleFactor else 1f)
+private val Visible.bottom get() = scaleFactor.let { position.y - pivot.y * it + size.height * it }
+
+private val Visible.scaleFactor get() = (if (this is Scalable) scaleFactor else 1f)
 
 internal fun Visible.transform(drawTransform: DrawTransform) {
     drawTransform.translate(

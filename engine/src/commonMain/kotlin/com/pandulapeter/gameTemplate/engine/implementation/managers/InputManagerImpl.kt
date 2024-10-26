@@ -23,6 +23,11 @@ internal class InputManagerImpl : InputManager {
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
     override val activeKeys = _activeKeys.asSharedFlow()
+    private val _onKeyPressed = MutableSharedFlow<Key>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+    override val onKeyPressed = _onKeyPressed.asSharedFlow()
     private val _onKeyReleased = MutableSharedFlow<Key>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
@@ -45,6 +50,7 @@ internal class InputManagerImpl : InputManager {
     fun onKeyEvent(keyEvent: KeyEvent) = consume {
         if (keyEvent.type == KeyEventType.KeyDown) {
             cache.add(keyEvent.key)
+            _onKeyPressed.tryEmit(keyEvent.key)
         }
         if (keyEvent.type == KeyEventType.KeyUp) {
             cache.remove(keyEvent.key)

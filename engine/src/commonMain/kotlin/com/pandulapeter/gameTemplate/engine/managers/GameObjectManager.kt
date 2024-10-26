@@ -2,6 +2,7 @@ package com.pandulapeter.gameTemplate.engine.managers
 
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 
 interface GameObjectManager {
 
@@ -15,5 +16,5 @@ interface GameObjectManager {
 
     fun removeAll()
 
-    fun findGameObjectsOnScreenCoordinates(screenCoordinates: Offset): List<GameObject>
+    fun findGameObjectsOnScreenCoordinates(screenCoordinates: Offset): List<Visible>
 }

@@ -77,8 +77,6 @@ internal object EditorController : CoroutineScope {
     }
 
     fun handleClick(screenCoordinates: Offset) {
-        Engine.get().gameObjectManager.findGameObjectsOnScreenCoordinates(screenCoordinates).forEach {
-            (it as? Clickable)?.onClicked()
-        }
+        Engine.get().gameObjectManager.findGameObjectsOnScreenCoordinates(screenCoordinates).minByOrNull { it.depth }?.let { (it as? Clickable)?.onClicked()  }
     }
 }

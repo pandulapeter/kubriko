@@ -5,5 +5,6 @@ import kotlinx.coroutines.flow.SharedFlow
 
 interface InputManager {
     val activeKeys: SharedFlow<Set<Key>>
+    val onKeyPressed: SharedFlow<Key>
     val onKeyReleased: SharedFlow<Key>
 }
