@@ -79,7 +79,7 @@ data class Character(
         Engine.get().gameObjectManager.findGameObjectsWithPivotsAroundPosition(
             position = position + pivot,
             range = RADIUS * 5f
-        ).forEach { (it as? StaticBox)?.onAttacked(this) ?: (it as? DynamicBox)?.onAttacked(this) }
+        ).filterIsInstance<Box>().forEach { it.destroy(this) }
     }
 
     companion object {
