@@ -25,13 +25,16 @@ import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMous
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseZoom
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.ClickableText
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.ColorfulPropertyEditors
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.GameObjectTypeRadioButton
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.RotatablePropertyEditors
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.ScalablePropertyEditors
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.VisiblePropertyEditors
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.selectedGameObjectHighlight
 import com.pandulapeter.gameTemplate.engine.EngineCanvas
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Colorful
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Rotatable
+import com.pandulapeter.gameTemplate.engine.gameObject.properties.Scalable
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 import kotlin.math.roundToInt
 
@@ -76,17 +79,29 @@ private fun GameObjectPanel(
         .width(200.dp),
     horizontalAlignment = Alignment.CenterHorizontally,
 ) {
+    val selectedGameObjectType = EditorController.selectedGameObjectType.collectAsState()
     data.first.let { gameObject ->
-        if (gameObject is Colorful) {
-            ColorfulPropertyEditors(gameObject to data.second)
-        }
-        if (gameObject is Rotatable) {
-            RotatablePropertyEditors(gameObject to data.second)
-        }
-        if (gameObject is Visible) {
-            VisiblePropertyEditors(gameObject to data.second)
-        }
-        if (gameObject != null) {
+        if (gameObject == null) {
+            EditorController.supportedGameObjectTypes.keys.forEach { gameObjectType ->
+                GameObjectTypeRadioButton(
+                    gameObjectType = gameObjectType,
+                    selectedGameObjectType = selectedGameObjectType.value,
+                    onSelected = { EditorController.selectGameObjectType(gameObjectType) }
+                )
+            }
+        } else {
+            if (gameObject is Colorful) {
+                ColorfulPropertyEditors(gameObject to data.second)
+            }
+            if (gameObject is Rotatable) {
+                RotatablePropertyEditors(gameObject to data.second)
+            }
+            if (gameObject is Scalable) {
+                ScalablePropertyEditors(gameObject to data.second)
+            }
+            if (gameObject is Visible) {
+                VisiblePropertyEditors(gameObject to data.second)
+            }
             ClickableText(
                 onClick = EditorController::locateGameObject,
                 text = "Locate",

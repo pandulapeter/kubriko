@@ -12,7 +12,7 @@ class DynamicBox(
     edgeSize: Float,
     position: Offset,
     rotationDegrees: Float,
-    override var scaleFactor: Float
+    override var scaleFactor: Float,
 ) : Box(
     color = color,
     edgeSize = edgeSize,

@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.gameTemplate.editor.implementation.EditorController
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Colorful
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Rotatable
+import com.pandulapeter.gameTemplate.engine.gameObject.properties.Scalable
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toHSV
 
@@ -80,6 +81,23 @@ internal fun RotatablePropertyEditors(
                 EditorController.notifyGameObjectUpdate()
             },
             valueRange = 0f..360f
+        )
+    }
+}
+
+@Composable
+internal fun ScalablePropertyEditors(
+    data: Pair<Scalable, Boolean>,
+) = data.first.let { scalable ->
+    PropertyEditorSection("Scalable") {
+        SliderWithTitle(
+            title = "scaleFactor",
+            value = scalable.scaleFactor,
+            onValueChange = {
+                scalable.scaleFactor = it
+                EditorController.notifyGameObjectUpdate()
+            },
+            valueRange = 0f..1f
         )
     }
 }
