@@ -15,24 +15,55 @@ import com.pandulapeter.gameTemplate.editor.implementation.EditorController
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Colorful
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Rotatable
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.toHSV
 
 @Composable
 internal fun ColorfulPropertyEditors(
     data: Pair<Colorful, Boolean>,
-) = data.first.let { rotatable ->
+) = data.first.let { colorful ->
     PropertyEditorSection("Colorful") {
         PropertyTitle("color")
         Spacer(modifier = Modifier.height(8.dp))
         Box(
             modifier = Modifier
                 .size(48.dp)
-                .background(color = rotatable.color)
+                .background(color = colorful.color)
                 .clickable {
-                    rotatable.color = Color.hsv((0..360).random().toFloat(), 0.5f, 0.9f)
+                    colorful.color = Color.hsv((0..360).random().toFloat(), 0.5f, 0.9f)
                     EditorController.notifyGameObjectUpdate()
                 }
         )
         Spacer(modifier = Modifier.height(8.dp))
+        val (hue, saturation, value) = colorful.color.toHSV()
+        SliderWithTitle(
+            title = "color.hue",
+            value = hue,
+            onValueChange = {
+                colorful.color = Color.hsv(it, saturation, value)
+                EditorController.notifyGameObjectUpdate()
+            },
+            valueRange = 0f..359.5f,
+            enabled = value > 0,
+        )
+        SliderWithTitle(
+            title = "color.saturation",
+            value = saturation,
+            onValueChange = {
+                colorful.color = Color.hsv(hue, it, value)
+                EditorController.notifyGameObjectUpdate()
+            },
+            valueRange = 0f..1f,
+            enabled = value > 0,
+        )
+        SliderWithTitle(
+            title = "color.value",
+            value = value,
+            onValueChange = {
+                colorful.color = Color.hsv(hue, saturation, it)
+                EditorController.notifyGameObjectUpdate()
+            },
+            valueRange = 0f..1f
+        )
     }
 }
 

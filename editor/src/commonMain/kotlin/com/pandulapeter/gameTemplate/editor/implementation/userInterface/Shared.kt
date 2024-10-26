@@ -45,14 +45,16 @@ internal fun SliderWithTitle(
     value: Float,
     onValueChange: (Float) -> Unit,
     valueRange: ClosedFloatingPointRange<Float>,
+    enabled: Boolean = true,
 ) {
     PropertyTitle(
-        text = "$title: ${value.roundToInt()}",
+        text = "$title: ${"%.2f".format(value)}",
     )
     Slider(
         value = value,
         onValueChange = onValueChange,
         valueRange = valueRange,
+        enabled = enabled,
     )
 }
 
