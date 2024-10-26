@@ -9,13 +9,13 @@ import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 
 data class Marker(
-    override val position: Offset,
+    override var position: Offset,
     private val isOrigin: Boolean,
 ) : GameObject(), Visible {
 
-    override val bounds = Size(RADIUS * 2, RADIUS * 2)
-    override val pivot = bounds.center
-    override val depth = -9999999f
+    override var bounds = Size(RADIUS * 2, RADIUS * 2)
+    override var pivot = bounds.center
+    override var depth = -9999999f
 
     override fun draw(scope: DrawScope) = scope.drawCircle(
         color = if (isOrigin) Color.Red else Color.Black,

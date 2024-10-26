@@ -7,9 +7,8 @@ import kotlin.math.sin
 
 interface Movable : Dynamic, Visible {
 
-    val speed: Float
-    val directionDegrees: Float
-    override var position: Offset
+    var speed: Float
+    var directionDegrees: Float
 
     override fun update(deltaTimeMillis: Float) {
         if (speed > 0) {

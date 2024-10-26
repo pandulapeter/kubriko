@@ -16,8 +16,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawTransform
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.minus
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.transform

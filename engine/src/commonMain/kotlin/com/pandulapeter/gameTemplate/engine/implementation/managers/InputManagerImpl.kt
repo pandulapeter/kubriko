@@ -53,8 +53,7 @@ internal class InputManagerImpl : InputManager {
                 _onKeyPressed.tryEmit(keyEvent.key)
                 cache.add(keyEvent.key)
             }
-        }
-        if (keyEvent.type == KeyEventType.KeyUp) {
+        } else if (keyEvent.type == KeyEventType.KeyUp) {
             cache.remove(keyEvent.key)
             _onKeyReleased.tryEmit(keyEvent.key)
         }

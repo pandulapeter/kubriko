@@ -7,20 +7,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.properties.Colorful
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Movable
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Rotatable
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.angleTowards
 
 abstract class Box(
-    private val color: Color,
+    override var color: Color,
     edgeSize: Float,
     final override var position: Offset,
     final override var rotationDegrees: Float,
-) : GameObject(), Rotatable, Movable {
+) : GameObject(), Rotatable, Movable, Colorful {
 
-    final override val bounds = Size(edgeSize, edgeSize)
-    final override val pivot = bounds.center
+    final override var bounds = Size(edgeSize, edgeSize)
+        set(value) {
+            field = value
+            pivot = bounds.center
+        }
+    final override var pivot = bounds.center
     final override var depth = -position.y - pivot.y
     final override var directionDegrees = 0f
     final override var speed = 0f

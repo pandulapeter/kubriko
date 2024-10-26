@@ -11,7 +11,7 @@ internal expect fun Modifier.handleMouseZoom(): Modifier
 internal fun Modifier.handleDragAndPan() = pointerInput("dragAndPan") {
     detectTransformGestures { _, pan, zoom, _ ->
         if (GameplayController.get().isRunning.value) {
-            Engine.get().viewportManager.addToOffset(-pan)
+            Engine.get().viewportManager.addToOffset(pan)
             Engine.get().viewportManager.multiplyScaleFactor(zoom)
         }
     }

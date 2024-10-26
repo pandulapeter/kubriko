@@ -13,7 +13,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
@@ -34,8 +33,14 @@ internal object EditorController : CoroutineScope {
     ) { mouseScreenCoordinates, _, _, _ ->
         mouseScreenCoordinates.toPositionInWorld()
     }.stateIn(this, SharingStarted.Eagerly, Offset.Zero)
+    private val triggerGameObjectUpdate = MutableStateFlow(false)
     private val _selectedGameObject = MutableStateFlow<GameObject?>(null)
-    val selectedGameObject = _selectedGameObject.asStateFlow()
+    val selectedGameObject = combine(
+        _selectedGameObject,
+        triggerGameObjectUpdate,
+    ) { selectedGameObject, triggerGameObjectUpdate ->
+        selectedGameObject to triggerGameObjectUpdate
+    }.stateIn(this, SharingStarted.Eagerly, null to false)
 
     init {
         Engine.get().inputManager.activeKeys
@@ -50,7 +55,7 @@ internal object EditorController : CoroutineScope {
     fun handleClick(screenCoordinates: Offset) = Engine.get().gameObjectManager.run {
         val gameObjectAtPosition = findGameObjectsWithBoundsInPosition(screenCoordinates.toPositionInWorld()).minByOrNull { it.depth } as? GameObject
         if (gameObjectAtPosition == null) {
-            register(
+            add(
                 StaticBox(
                     color = Color.Red,
                     edgeSize = 100f,
@@ -67,18 +72,12 @@ internal object EditorController : CoroutineScope {
 
     fun unselectGameObject() = _selectedGameObject.update { null }
 
-    fun updateSelectedGameObject(updatedGameObject: GameObject) {
-        _selectedGameObject.value?.let { selectedGameObject ->
-            Engine.get().gameObjectManager.remove(selectedGameObject)
-            Engine.get().gameObjectManager.register(updatedGameObject)
-            _selectedGameObject.update { updatedGameObject }
-        }
-    }
-
     fun deleteGameObject() {
         _selectedGameObject.value?.let { selectedGameObject ->
             unselectGameObject()
             Engine.get().gameObjectManager.remove(selectedGameObject)
         }
     }
+
+    fun notifyGameObjectUpdate() = triggerGameObjectUpdate.update { !it }
 }

@@ -1,1 +1,0 @@
--keep class androidx.compose.ui.platform.** { *; }

@@ -5,10 +5,10 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
 
 interface Visible {
-    val bounds: Size
-    val pivot: Offset
-    val position: Offset
-    val depth: Float
+    var bounds: Size
+    var pivot: Offset
+    var position: Offset
+    var depth: Float
 
     fun draw(scope: DrawScope) = Unit
 }

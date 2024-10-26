@@ -66,7 +66,7 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
     private const val RECTANGLE_COUNT = 50
 
     private fun start() {
-        Engine.get().gameObjectManager.register(
+        Engine.get().gameObjectManager.add(
             listOf(true, false).let { booleanRange ->
                 (0..360).let { angleRange ->
                     (50..100).let { sizeRange ->
@@ -114,7 +114,7 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
     private fun handleKeyPressed(key: Key) {
         if (isRunning.value) {
             when (key) {
-                Key.Spacebar -> character.fight()
+                Key.Spacebar -> character.triggerExplosion()
             }
         }
     }

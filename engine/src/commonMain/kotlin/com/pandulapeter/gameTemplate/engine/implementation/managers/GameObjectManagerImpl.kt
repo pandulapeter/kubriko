@@ -41,11 +41,11 @@ internal class GameObjectManagerImpl : GameObjectManager {
             .sortedByDescending { it.depth }
     }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
 
-    override fun register(gameObject: GameObject) = gameObjects.update { currentValue ->
+    override fun add(gameObject: GameObject) = gameObjects.update { currentValue ->
         currentValue + gameObject
     }
 
-    override fun register(gameObjects: Collection<GameObject>) = EngineImpl.gameObjectManager.gameObjects.update { currentValue ->
+    override fun add(gameObjects: Collection<GameObject>) = EngineImpl.gameObjectManager.gameObjects.update { currentValue ->
         currentValue + gameObjects
     }
 

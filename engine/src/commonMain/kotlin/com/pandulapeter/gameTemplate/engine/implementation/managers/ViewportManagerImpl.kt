@@ -20,7 +20,7 @@ internal class ViewportManagerImpl : ViewportManager {
 
     override fun addToOffset(
         offset: Offset,
-    ) = _offset.update { currentValue -> currentValue + (offset / _scaleFactor.value) }
+    ) = _offset.update { currentValue -> currentValue - (offset / _scaleFactor.value) }
 
     override fun multiplyScaleFactor(
         scaleFactor: Float

@@ -6,9 +6,9 @@ import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 
 interface GameObjectManager {
 
-    fun register(gameObject: GameObject)
+    fun add(gameObject: GameObject)
 
-    fun register(gameObjects: Collection<GameObject>)
+    fun add(gameObjects: Collection<GameObject>)
 
     fun remove(gameObject: GameObject)
 
