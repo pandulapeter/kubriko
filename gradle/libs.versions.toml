@@ -1,22 +1,22 @@
 [versions]
-agp = "8.6.1"
 android-compileSdk = "35"
 android-minSdk = "29"
 android-targetSdk = "35"
-androidx-activityCompose = "1.9.3"
-androidx-lifecycle = "2.8.2"
-compose-plugin = "1.6.11"
-kotlin = "2.0.20"
-kotlinx-coroutines = "1.9.0"
+androidx-activity = "1.9.3" # https://developer.android.com/jetpack/androidx/releases/activity
+androidx-lifecycle = "2.8.3" # https://developer.android.com/jetpack/androidx/releases/lifecycle
+compose-plugin = "1.7.0" # https://github.com/JetBrains/compose-multiplatform/releases
+kotlin = "2.0.21" # https://kotlinlang.org/docs/releases.html
+kotlinx-coroutines = "1.9.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
+gradle = "8.6.1" # https://developer.android.com/build/releases/gradle-plugin
 
 [libraries]
-androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
 androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 kotlinx-coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp" }
-androidLibrary = { id = "com.android.library", version.ref = "agp" }
+androidApplication = { id = "com.android.application", version.ref = "gradle" }
+androidLibrary = { id = "com.android.library", version.ref = "gradle" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

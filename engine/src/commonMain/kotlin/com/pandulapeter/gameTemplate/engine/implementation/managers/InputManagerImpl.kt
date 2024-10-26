@@ -49,8 +49,10 @@ internal class InputManagerImpl : InputManager {
 
     fun onKeyEvent(keyEvent: KeyEvent) = consume {
         if (keyEvent.type == KeyEventType.KeyDown) {
-            cache.add(keyEvent.key)
-            _onKeyPressed.tryEmit(keyEvent.key)
+            if (!cache.contains(keyEvent.key)) {
+                _onKeyPressed.tryEmit(keyEvent.key)
+                cache.add(keyEvent.key)
+            }
         }
         if (keyEvent.type == KeyEventType.KeyUp) {
             cache.remove(keyEvent.key)
