@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +27,7 @@ import com.pandulapeter.gameTemplate.editor.implementation.userInterface.Clickab
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.ColorfulPropertyEditors
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.RotatablePropertyEditors
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.VisiblePropertyEditors
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.selectedGameObjectHighlight
 import com.pandulapeter.gameTemplate.engine.EngineCanvas
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Colorful
@@ -53,6 +53,7 @@ internal fun EditorUserInterface(
                     .handleMouseDrag()
                     .handleClick()
                     .background(Color.White),
+                editorSelectedGameObjectHighlight = { selectedGameObjectHighlight(it) },
             )
             GameObjectPanel(
                 data = EditorController.selectedGameObject.collectAsState().value,
@@ -76,17 +77,6 @@ private fun GameObjectPanel(
     horizontalAlignment = Alignment.CenterHorizontally,
 ) {
     data.first.let { gameObject ->
-        if (gameObject != null) {
-            ClickableText(
-                onClick = EditorController::unselectGameObject,
-                text = "Unselect",
-            )
-            ClickableText(
-                onClick = EditorController::deleteGameObject,
-                text = "Delete",
-            )
-            Divider()
-        }
         if (gameObject is Colorful) {
             ColorfulPropertyEditors(gameObject to data.second)
         }
@@ -95,6 +85,16 @@ private fun GameObjectPanel(
         }
         if (gameObject is Visible) {
             VisiblePropertyEditors(gameObject to data.second)
+        }
+        if (gameObject != null) {
+            ClickableText(
+                onClick = EditorController::locateGameObject,
+                text = "Locate",
+            )
+            ClickableText(
+                onClick = EditorController::deleteGameObject,
+                text = "Delete",
+            )
         }
     }
 }

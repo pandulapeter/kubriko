@@ -6,6 +6,7 @@ import com.pandulapeter.gameTemplate.editor.implementation.helpers.handleKeyRele
 import com.pandulapeter.gameTemplate.editor.implementation.helpers.handleKeys
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toPositionInWorld
 import com.pandulapeter.gameTemplate.gameplayObjects.StaticBox
 import kotlinx.coroutines.CoroutineScope
@@ -55,26 +56,40 @@ internal object EditorController : CoroutineScope {
     fun handleClick(screenCoordinates: Offset) = Engine.get().gameObjectManager.run {
         val gameObjectAtPosition = findGameObjectsWithBoundsInPosition(screenCoordinates.toPositionInWorld()).minByOrNull { it.depth } as? GameObject
         if (gameObjectAtPosition == null) {
-            add(
-                StaticBox(
-                    color = Color.Red,
-                    edgeSize = 100f,
-                    position = screenCoordinates.toPositionInWorld(),
-                    rotationDegrees = 0f,
-                )
-            )
+            selectedGameObject.value.first.let { currentSelectedGameObject ->
+                if (currentSelectedGameObject == null) {
+                    add(
+                        StaticBox(
+                            color = Color.Red,
+                            edgeSize = 100f,
+                            position = screenCoordinates.toPositionInWorld(),
+                            rotationDegrees = 0f,
+                        )
+                    )
+                } else {
+                    currentSelectedGameObject.isSelectedInEditor = false
+                    _selectedGameObject.update { null }
+                }
+            }
         } else {
-            _selectedGameObject.update { gameObjectAtPosition }
+            _selectedGameObject.update { currentSelectedGameObject ->
+                currentSelectedGameObject?.isSelectedInEditor = false
+                gameObjectAtPosition.also { it.isSelectedInEditor = true }
+            }
         }
     }
 
     fun handleMouseMove(screenCoordinates: Offset) = mouseScreenCoordinates.update { screenCoordinates }
 
-    fun unselectGameObject() = _selectedGameObject.update { null }
+    fun locateGameObject() {
+        (_selectedGameObject.value as? Visible)?.let { selectedGameObject ->
+            Engine.get().viewportManager.setOffset(selectedGameObject.position)
+        }
+    }
 
     fun deleteGameObject() {
         _selectedGameObject.value?.let { selectedGameObject ->
-            unselectGameObject()
+            _selectedGameObject.update { null }
             Engine.get().gameObjectManager.remove(selectedGameObject)
         }
     }

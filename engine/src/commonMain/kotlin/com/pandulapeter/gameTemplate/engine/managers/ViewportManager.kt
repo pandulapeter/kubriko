@@ -11,5 +11,7 @@ interface ViewportManager {
 
     fun addToOffset(offset: Offset)
 
+    fun setOffset(offset: Offset)
+
     fun multiplyScaleFactor(scaleFactor: Float)
 }

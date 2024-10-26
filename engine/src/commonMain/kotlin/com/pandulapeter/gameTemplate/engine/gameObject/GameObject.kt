@@ -1,3 +1,5 @@
 package com.pandulapeter.gameTemplate.engine.gameObject
 
-abstract class GameObject
+abstract class GameObject {
+    var isSelectedInEditor = false
+}

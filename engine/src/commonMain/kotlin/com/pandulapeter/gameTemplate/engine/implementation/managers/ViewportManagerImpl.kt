@@ -22,6 +22,10 @@ internal class ViewportManagerImpl : ViewportManager {
         offset: Offset,
     ) = _offset.update { currentValue -> currentValue - (offset / _scaleFactor.value) }
 
+    override fun setOffset(
+        offset: Offset,
+    ) = _offset.update { offset }
+
     override fun multiplyScaleFactor(
         scaleFactor: Float
     ) = _scaleFactor.update { currentValue -> max(SCALE_MIN, min(currentValue * scaleFactor, SCALE_MAX)) }

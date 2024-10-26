@@ -13,11 +13,14 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawTransform
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.minus
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.transform
@@ -26,6 +29,7 @@ import kotlinx.coroutines.isActive
 @Composable
 fun EngineCanvas(
     modifier: Modifier = Modifier,
+    editorSelectedGameObjectHighlight: DrawScope.(Visible) -> Unit = {},
 ) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val gameTime = remember { mutableStateOf(0L) }
@@ -76,7 +80,12 @@ fun EngineCanvas(
                         EngineImpl.gameObjectManager.visibleGameObjectsInViewport.value.forEach { gameObject ->
                             withTransform(
                                 transformBlock = { gameObject.transform(this) },
-                                drawBlock = { gameObject.draw(this) }
+                                drawBlock = {
+                                    if ((gameObject as GameObject).isSelectedInEditor) {
+                                        editorSelectedGameObjectHighlight(gameObject)
+                                    }
+                                    gameObject.draw(this)
+                                }
                             )
                         }
                     }

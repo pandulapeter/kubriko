@@ -18,7 +18,7 @@ internal fun ClickableText(
     text: String,
     onClick: () -> Unit
 ) = Text(
-    style = MaterialTheme.typography.caption,
+    style = MaterialTheme.typography.subtitle1,
     modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(8.dp),
     text = text
 )
