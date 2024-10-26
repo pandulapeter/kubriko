@@ -30,6 +30,6 @@ internal class ViewportManagerImpl : ViewportManager {
 
     companion object {
         private const val SCALE_MIN = 0.2f
-        private const val SCALE_MAX = 10f
+        private const val SCALE_MAX = 5f
     }
 }

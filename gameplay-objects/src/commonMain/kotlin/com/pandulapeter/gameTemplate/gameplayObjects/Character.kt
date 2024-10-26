@@ -5,6 +5,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
@@ -22,6 +23,13 @@ data class Character(
 
     override fun update(deltaTimeMillis: Float) {
         depth = -position.y - pivot.y - 100f
+        Engine.get().viewportManager.addToOffset(calculateViewportOffsetDelta())
+    }
+
+    private fun calculateViewportOffsetDelta() = Engine.get().viewportManager.offset.value.let { viewportOffset ->
+        Engine.get().viewportManager.scaleFactor.value.let { scaleFactor ->
+            (position - viewportOffset) * VIEWPORT_FOLLOWING_SPEED_MULTIPLIER * scaleFactor * scaleFactor
+        }
     }
 
     override fun draw(scope: DrawScope) = scope.drawCircle(
@@ -45,8 +53,9 @@ data class Character(
     }
 
     companion object {
+        private const val VIEWPORT_FOLLOWING_SPEED_MULTIPLIER = 0.02f
         private const val RADIUS = 50f
-        private const val SPEED = 15f
+        private const val SPEED = 5f
         private val SPEED_DIAGONAL = (sin(PI / 4) * SPEED).toFloat()
     }
 }

@@ -18,8 +18,12 @@ data class StaticBox(
 
     override val size = Size(edgeSize, edgeSize)
     override val pivot = size.center
-    override val depth = -position.y - pivot.y
+    override var depth = -position.y - pivot.y
     private var isClicked = false
+        set(value) {
+            field = value
+            depth = -position.y - pivot.y - (if (isClicked) 100f else 0f)
+        }
 
     override fun draw(scope: DrawScope) = scope.drawRect(
         color = if (isClicked) Color.Black else color,

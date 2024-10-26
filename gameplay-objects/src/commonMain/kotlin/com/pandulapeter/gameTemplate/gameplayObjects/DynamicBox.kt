@@ -48,7 +48,7 @@ data class DynamicBox(
             x = position.x + cos(rotationDegrees * (PI / 180f)).toFloat() * 2f,
             y = position.y - sin(rotationDegrees * (PI / 180f)).toFloat() * 2f,
         )
-        depth = -position.y - pivot.y
+        depth = -position.y - pivot.y - (if (isClicked) 100f else 0f)
     }
 
     override fun draw(scope: DrawScope) = scope.drawRect(
