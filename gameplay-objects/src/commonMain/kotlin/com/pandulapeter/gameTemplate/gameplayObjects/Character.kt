@@ -11,6 +11,7 @@ import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardDirectionState
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.scaleFactor
 import kotlin.math.PI
 import kotlin.math.sin
 
@@ -22,6 +23,7 @@ data class Character(
     override val pivot = size.center
     override var depth = -position.y - pivot.y
     private var fightMultiplier = 1f
+    private var nearbyGameObjectPositions = emptyList<Offset>()
 
     override fun update(deltaTimeMillis: Float) {
         depth = -position.y - pivot.y - 100f
@@ -31,6 +33,10 @@ data class Character(
         } else {
             fightMultiplier = 1f
         }
+        nearbyGameObjectPositions = Engine.get().gameObjectManager.findGameObjectsAroundPosition(
+            position = position + pivot,
+            range = RADIUS * 5f
+        ).map { it.position }
     }
 
     private fun calculateViewportOffsetDelta() = Engine.get().viewportManager.offset.value.let { viewportOffset ->
@@ -39,11 +45,21 @@ data class Character(
         }
     }
 
-    override fun draw(scope: DrawScope) = scope.drawCircle(
-        color = lerp(Color.Red, Color.Green, ((1f + MAX_FIGHT_MULTIPLIER) - fightMultiplier) / MAX_FIGHT_MULTIPLIER),
-        radius = RADIUS * fightMultiplier,
-        center = pivot,
-    )
+    override fun draw(scope: DrawScope) {
+        nearbyGameObjectPositions.forEach { nearbyObjectPosition ->
+            scope.drawLine(
+                color = Color.Red,
+                start = pivot,
+                end = nearbyObjectPosition - position + pivot,
+                strokeWidth = 2f,
+            )
+        }
+        scope.drawCircle(
+            color = lerp(Color.Red, Color.Green, ((1f + MAX_FIGHT_MULTIPLIER) - fightMultiplier) / MAX_FIGHT_MULTIPLIER),
+            radius = RADIUS * fightMultiplier,
+            center = pivot,
+        )
+    }
 
     fun move(directionState: KeyboardDirectionState) {
         position += when (directionState) {
@@ -62,9 +78,9 @@ data class Character(
     fun fight() {
         fightMultiplier = MAX_FIGHT_MULTIPLIER
         Engine.get().gameObjectManager.findGameObjectsAroundPosition(
-            position = position,
+            position = position + pivot,
             range = RADIUS * 5f
-        ).filterIsInstance<Clickable>().forEach { it.onClicked() }
+        ).forEach { (it as? StaticBox)?.onAttacked(this) ?: (it as? DynamicBox)?.onAttacked(this) }
     }
 
     companion object {

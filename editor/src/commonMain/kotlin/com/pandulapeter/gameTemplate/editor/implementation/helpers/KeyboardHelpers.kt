@@ -7,11 +7,9 @@ import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardDi
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardZoomState
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.directionState
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.zoomState
-import kotlin.math.PI
-import kotlin.math.sin
 
 private const val CAMERA_SPEED = 15f
-private val CAMERA_SPEED_DIAGONAL = (sin(PI / 4) * CAMERA_SPEED).toFloat()
+private const val CAMERA_SPEED_DIAGONAL = 0.7071f * CAMERA_SPEED
 
 internal fun handleKeys(keys: Set<Key>) {
     Engine.get().viewportManager.addToOffset(

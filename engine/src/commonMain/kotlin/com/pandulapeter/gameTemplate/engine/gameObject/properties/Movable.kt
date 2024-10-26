@@ -1,0 +1,24 @@
+package com.pandulapeter.gameTemplate.engine.gameObject.properties
+
+import androidx.compose.ui.geometry.Offset
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.toRadians
+import kotlin.math.cos
+import kotlin.math.sin
+
+interface Movable : Dynamic, Visible {
+
+    val speed: Float
+    val directionDegrees: Float
+    override var position: Offset
+
+    override fun update(deltaTimeMillis: Float) {
+        if (speed > 0) {
+            directionDegrees.toRadians().let { directionRadians ->
+                position += Offset(
+                    x = cos(directionRadians),
+                    y = -sin(directionRadians)
+                ) * speed
+            }
+        }
+    }
+}

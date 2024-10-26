@@ -22,26 +22,26 @@ internal fun Visible.isVisible(
             bottom >= viewportOffset.y - scaledHalfViewportSize.height - viewportEdgeBuffer
 }
 
-// Note: Rotation is not taken into consideration
+fun Visible.angleTowards(other: Visible) = (position + pivot).angleTowards(other.position + other.pivot)
+
 internal fun Visible.occupiesPosition(
     worldCoordinates: Offset,
 ) = worldCoordinates.x in left..right && worldCoordinates.y in top..bottom
 
-// Note: Rotation is not taken into consideration
 internal fun Visible.isAroundPosition(
     position: Offset,
     range: Float,
 ) = (this.position - position).getDistance() < range
 
-private val Visible.left get() = scaleFactor.let { position.x + pivot.x * it - size.width * it }
+val Visible.left get() = scaleFactor.let { position.x + pivot.x * it - size.width * it }
 
-private val Visible.top get() = scaleFactor.let { position.y + pivot.y * it - size.height * it }
+val Visible.top get() = scaleFactor.let { position.y + pivot.y * it - size.height * it }
 
-private val Visible.right get() = scaleFactor.let { position.x - pivot.x * it + size.width * it }
+val Visible.right get() = scaleFactor.let { position.x - pivot.x * it + size.width * it }
 
-private val Visible.bottom get() = scaleFactor.let { position.y - pivot.y * it + size.height * it }
+val Visible.bottom get() = scaleFactor.let { position.y - pivot.y * it + size.height * it }
 
-private val Visible.scaleFactor get() = (if (this is Scalable) scaleFactor else 1f)
+val Visible.scaleFactor get() = (if (this is Scalable) scaleFactor else 1f)
 
 internal fun Visible.transform(drawTransform: DrawTransform) {
     drawTransform.translate(
