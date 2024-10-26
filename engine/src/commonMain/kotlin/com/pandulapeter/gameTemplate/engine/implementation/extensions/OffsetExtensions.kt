@@ -2,9 +2,16 @@ package com.pandulapeter.gameTemplate.engine.implementation.extensions
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
 import kotlin.math.atan2
 
-internal fun Offset.toWorldCoordinates(
+fun Offset.toPositionInWorld() = toPositionInWorld(
+    viewportOffset = EngineImpl.viewportManager.offset.value,
+    scaledHalfViewportSize = EngineImpl.viewportManager.size.value / 2f,
+    viewportScaleFactor = EngineImpl.viewportManager.scaleFactor.value,
+)
+
+internal fun Offset.toPositionInWorld(
     viewportOffset: Offset,
     scaledHalfViewportSize: Size,
     viewportScaleFactor: Float,

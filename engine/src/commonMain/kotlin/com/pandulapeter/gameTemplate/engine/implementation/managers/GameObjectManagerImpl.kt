@@ -8,7 +8,7 @@ import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.isAroundPosition
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.isVisible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.occupiesPosition
-import com.pandulapeter.gameTemplate.engine.implementation.extensions.toWorldCoordinates
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.toPositionInWorld
 import com.pandulapeter.gameTemplate.engine.managers.GameObjectManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -59,16 +59,10 @@ internal class GameObjectManagerImpl : GameObjectManager {
 
     override fun removeAll() = gameObjects.update { emptyList() }
 
-    override fun findGameObjectsOnScreenCoordinates(screenCoordinates: Offset) = screenCoordinates.toWorldCoordinates(
-        viewportOffset = EngineImpl.viewportManager.offset.value,
-        scaledHalfViewportSize = EngineImpl.viewportManager.size.value / 2f,
-        viewportScaleFactor = EngineImpl.viewportManager.scaleFactor.value,
-    ).let { worldCoordinates ->
-        visibleGameObjectsInViewport.value
-            .filter { it.occupiesPosition(worldCoordinates) }
-    }
+    override fun findGameObjectsWithBoundsInPosition(position: Offset) = visibleGameObjectsInViewport.value
+        .filter { it.occupiesPosition(position) }
 
-    override fun findGameObjectsAroundPosition(position: Offset, range: Float) = visibleGameObjects.value
+    override fun findGameObjectsWithPivotsAroundPosition(position: Offset, range: Float) = visibleGameObjects.value
         .filter {
             it.isAroundPosition(
                 position = position,

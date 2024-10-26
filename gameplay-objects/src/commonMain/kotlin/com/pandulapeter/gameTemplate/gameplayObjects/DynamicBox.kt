@@ -23,8 +23,8 @@ data class DynamicBox(
     override var scaleFactor: Float
 ) : GameObject(), Rotatable, Scalable, Clickable, Movable {
 
-    override val size = Size(edgeSize, edgeSize)
-    override val pivot = size.center
+    override val bounds = Size(edgeSize, edgeSize)
+    override val pivot = bounds.center
     override var depth = -position.y - pivot.y
     override var directionDegrees = 0f
     override var speed = 0f
@@ -63,7 +63,7 @@ data class DynamicBox(
     override fun draw(scope: DrawScope) = scope.drawRect(
         color = if (isClicked) Color.Black else color,
         topLeft = Offset.Zero,
-        size = size,
+        size = bounds,
     )
 
     override fun onClicked() {

@@ -18,8 +18,8 @@ data class StaticBox(
     override val rotationDegrees: Float,
 ) : GameObject(), Rotatable, Clickable, Movable {
 
-    override val size = Size(edgeSize, edgeSize)
-    override val pivot = size.center
+    override val bounds = Size(edgeSize, edgeSize)
+    override val pivot = bounds.center
     override var depth = -position.y - pivot.y
     override var directionDegrees = 0f
     override var speed = 0f
@@ -32,7 +32,7 @@ data class StaticBox(
     override fun draw(scope: DrawScope) = scope.drawRect(
         color = if (isClicked) Color.Black else color,
         topLeft = Offset.Zero,
-        size = size,
+        size = bounds,
     )
 
     override fun update(deltaTimeMillis: Float) {

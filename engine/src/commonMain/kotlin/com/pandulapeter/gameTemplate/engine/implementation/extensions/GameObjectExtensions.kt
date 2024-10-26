@@ -15,7 +15,7 @@ internal fun Visible.isVisible(
     viewportOffset: Offset,
     viewportScaleFactor: Float,
 ) = (VIEWPORT_EDGE_BUFFER / viewportScaleFactor).let { viewportEdgeBuffer ->
-    size.width * viewportScaleFactor >= 1f && size.height * viewportScaleFactor >= 1f &&
+    bounds.width * viewportScaleFactor >= 1f && bounds.height * viewportScaleFactor >= 1f &&
             left <= viewportOffset.x + scaledHalfViewportSize.width + viewportEdgeBuffer &&
             top <= viewportOffset.y + scaledHalfViewportSize.height + viewportEdgeBuffer &&
             right >= viewportOffset.x - scaledHalfViewportSize.width - viewportEdgeBuffer &&
@@ -33,13 +33,13 @@ internal fun Visible.isAroundPosition(
     range: Float,
 ) = (this.position - position).getDistance() < range
 
-val Visible.left get() = scaleFactor.let { position.x + pivot.x * it - size.width * it }
+val Visible.left get() = scaleFactor.let { position.x + pivot.x * it - bounds.width * it }
 
-val Visible.top get() = scaleFactor.let { position.y + pivot.y * it - size.height * it }
+val Visible.top get() = scaleFactor.let { position.y + pivot.y * it - bounds.height * it }
 
-val Visible.right get() = scaleFactor.let { position.x - pivot.x * it + size.width * it }
+val Visible.right get() = scaleFactor.let { position.x - pivot.x * it + bounds.width * it }
 
-val Visible.bottom get() = scaleFactor.let { position.y - pivot.y * it + size.height * it }
+val Visible.bottom get() = scaleFactor.let { position.y - pivot.y * it + bounds.height * it }
 
 val Visible.scaleFactor get() = (if (this is Scalable) scaleFactor else 1f)
 

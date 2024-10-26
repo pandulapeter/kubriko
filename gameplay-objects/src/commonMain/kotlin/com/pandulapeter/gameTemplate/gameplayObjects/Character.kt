@@ -11,7 +11,6 @@ import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardDirectionState
-import com.pandulapeter.gameTemplate.engine.implementation.extensions.scaleFactor
 import kotlin.math.PI
 import kotlin.math.sin
 
@@ -19,8 +18,8 @@ data class Character(
     override var position: Offset,
 ) : GameObject(), Visible, Dynamic {
 
-    override val size = Size(RADIUS * 2, RADIUS * 2)
-    override val pivot = size.center
+    override val bounds = Size(RADIUS * 2, RADIUS * 2)
+    override val pivot = bounds.center
     override var depth = -position.y - pivot.y
     private var fightMultiplier = 1f
     private var nearbyGameObjectPositions = emptyList<Offset>()
@@ -33,7 +32,7 @@ data class Character(
         } else {
             fightMultiplier = 1f
         }
-        nearbyGameObjectPositions = Engine.get().gameObjectManager.findGameObjectsAroundPosition(
+        nearbyGameObjectPositions = Engine.get().gameObjectManager.findGameObjectsWithPivotsAroundPosition(
             position = position + pivot,
             range = RADIUS * 5f
         ).map { it.position }
@@ -77,7 +76,7 @@ data class Character(
 
     fun fight() {
         fightMultiplier = MAX_FIGHT_MULTIPLIER
-        Engine.get().gameObjectManager.findGameObjectsAroundPosition(
+        Engine.get().gameObjectManager.findGameObjectsWithPivotsAroundPosition(
             position = position + pivot,
             range = RADIUS * 5f
         ).forEach { (it as? StaticBox)?.onAttacked(this) ?: (it as? DynamicBox)?.onAttacked(this) }

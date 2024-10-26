@@ -7,15 +7,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
-import com.pandulapeter.gameTemplate.gameplayObjects.Character.Companion
 
 data class Marker(
     override val position: Offset,
     private val isOrigin: Boolean,
 ) : GameObject(), Visible {
 
-    override val size = Size(RADIUS * 2, RADIUS * 2)
-    override val pivot = size.center
+    override val bounds = Size(RADIUS * 2, RADIUS * 2)
+    override val pivot = bounds.center
     override val depth = -9999999f
 
     override fun draw(scope: DrawScope) = scope.drawCircle(

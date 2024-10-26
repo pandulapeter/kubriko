@@ -5,7 +5,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
 
 interface Visible {
-    val size: Size
+    val bounds: Size
     val pivot: Offset
     val position: Offset
     val depth: Float

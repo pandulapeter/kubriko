@@ -9,6 +9,8 @@ import com.pandulapeter.gameTemplate.engine.Engine
 
 internal expect fun Modifier.handleMouseZoom(): Modifier
 
+internal expect fun Modifier.handleMouseMove(): Modifier
+
 internal fun Modifier.handleDragAndPan() = pointerInput("dragAndPan") {
     detectTransformGestures { _, pan, zoom, _ ->
         Engine.get().viewportManager.addToOffset(-pan)
@@ -17,5 +19,7 @@ internal fun Modifier.handleDragAndPan() = pointerInput("dragAndPan") {
 }
 
 internal fun Modifier.handleClick() = pointerInput("click") {
-    detectTapGestures(onTap = EditorController::handleClick)
+    detectTapGestures(
+        onTap = EditorController::handleClick,
+    )
 }
