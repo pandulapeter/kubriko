@@ -45,7 +45,7 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
             playTimeInSeconds = runtimeInMilliseconds / 1000,
         )
     }.stateIn(this, SharingStarted.Eagerly, Metadata())
-    private val character = Character(Offset.Zero)
+    private val character = Character.Creator(Offset.Zero).create()
 
     init {
         Engine.get().stateManager.isFocused
@@ -89,25 +89,25 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
                                 (-80..80).let { offsetRange ->
                                     (-RECTANGLE_COUNT..RECTANGLE_COUNT).flatMap { x ->
                                         (-RECTANGLE_COUNT..RECTANGLE_COUNT).map { y ->
-                                            if (booleanRange.random()) StaticBox(
+                                            if (booleanRange.random()) StaticBox.Creator(
                                                 color = Color.hsv(angleRange.random().toFloat(), 0.2f, 0.9f),
                                                 edgeSize = RECTANGLE_SIZE * (sizeRange.random() / 100f),
                                                 position = Offset(x * RECTANGLE_DISTANCE + offsetRange.random(), y * RECTANGLE_DISTANCE + offsetRange.random()),
                                                 rotationDegrees = angleRange.random().toFloat(),
-                                            ) else DynamicBox(
+                                            ).create() else DynamicBox.Creator(
                                                 color = Color.hsv(angleRange.random().toFloat(), 0.2f, 0.9f),
                                                 edgeSize = RECTANGLE_SIZE * (sizeRange.random() / 100f),
                                                 position = Offset(x * RECTANGLE_DISTANCE + offsetRange.random(), y * RECTANGLE_DISTANCE + offsetRange.random()),
                                                 rotationDegrees = angleRange.random().toFloat(),
                                                 scaleFactor = scaleRange.random() / 100f,
-                                            )
+                                            ).create()
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                } + character + Marker(Offset.Zero)
+                } + character + Marker.Creator(Offset.Zero).create()
             )
         }
     }

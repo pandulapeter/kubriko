@@ -8,16 +8,34 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.GameObjectCreator
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardDirectionState
+import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableOffset
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlin.math.PI
 import kotlin.math.sin
 
-data class Character(
-    override var position: Offset,
-) : GameObject(), Visible, Dynamic {
+class Character private constructor(
+    creator: Creator,
+) : GameObject(
+    typeId = "character",
+    isUnique = true,
+), Visible, Dynamic {
 
+    @Serializable
+    data class Creator(
+        val position: SerializableOffset
+    ) : GameObjectCreator<Character> {
+        override fun instantiate() = Character(this)
+    }
+
+    override fun saveState() = Json.encodeToString(Creator(position = position))
+
+    override var position: Offset = creator.position
     override var bounds = Size(RADIUS * 2, RADIUS * 2)
     override var pivot = bounds.center
     override var depth = -position.y - pivot.y

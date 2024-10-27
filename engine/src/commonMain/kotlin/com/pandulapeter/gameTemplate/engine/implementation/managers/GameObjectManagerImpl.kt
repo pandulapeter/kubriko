@@ -2,6 +2,7 @@ package com.pandulapeter.gameTemplate.engine.implementation.managers
 
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.GameObjectStateWrapper
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
@@ -16,6 +17,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 internal class GameObjectManagerImpl : GameObjectManager {
 
@@ -49,7 +52,13 @@ internal class GameObjectManagerImpl : GameObjectManager {
     }
 
     override suspend fun addFromJson(json: String) {
+        removeAll()
+        val wrappers = Json.decodeFromString<List<GameObjectStateWrapper>>(json)
+        println("Decoding ${wrappers.size} items.")
         // TODO
+        wrappers.forEach {
+
+        }
     }
 
     override fun remove(gameObject: GameObject) = gameObjects.update { currentValue ->
@@ -62,10 +71,14 @@ internal class GameObjectManagerImpl : GameObjectManager {
 
     override fun removeAll() = gameObjects.update { emptyList() }
 
-    override suspend fun saveToJson(): String {
-        // TODO
-        return "Test"
-    }
+    override suspend fun saveToJson() = Json.encodeToString(
+        gameObjects.value.map { gameObject ->
+            GameObjectStateWrapper(
+                typeId = gameObject.typeId,
+                state = gameObject.saveState(),
+            )
+        }
+    )
 
     override fun findGameObjectsWithBoundsInPosition(position: Offset) = visibleGameObjectsInViewport.value
         .filter { it.occupiesPosition(position) }

@@ -69,7 +69,7 @@ internal object EditorController : CoroutineScope {
         selectedGameObject.value.first.let { currentSelectedGameObject ->
             if (gameObjectAtPosition == null) {
                 if (currentSelectedGameObject == null) {
-                    GameObjects.supportedGameObjectTypes[selectedGameObjectType.value]?.invoke(positionInWorld)?.let { add(it) }
+                    GameObjects.supportedGameObjectTypes[selectedGameObjectType.value]?.invoke(positionInWorld)?.let { add(it.instantiate()) }
                 } else {
                     unselectGameObject()
                 }
@@ -117,7 +117,8 @@ internal object EditorController : CoroutineScope {
 
     fun loadMap(path: String) {
         launch {
-            loadFile(path)?.let {
+            loadFile(path)?.let { json ->
+                Engine.get().gameObjectManager.addFromJson(json)
                 _currentFileName.update { path.split('/').last() }
             }
         }
