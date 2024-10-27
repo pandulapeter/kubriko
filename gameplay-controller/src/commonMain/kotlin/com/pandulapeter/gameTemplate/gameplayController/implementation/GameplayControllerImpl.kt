@@ -1,7 +1,6 @@
 package com.pandulapeter.gameTemplate.gameplayController.implementation
 
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardZoomState
@@ -10,9 +9,7 @@ import com.pandulapeter.gameTemplate.engine.implementation.extensions.zoomState
 import com.pandulapeter.gameTemplate.gameplayController.GameplayController
 import com.pandulapeter.gameTemplate.gameplayController.models.Metadata
 import com.pandulapeter.gameTemplate.gameplayObjects.Character
-import com.pandulapeter.gameTemplate.gameplayObjects.DynamicBox
-import com.pandulapeter.gameTemplate.gameplayObjects.Marker
-import com.pandulapeter.gameTemplate.gameplayObjects.StaticBox
+import com.pandulapeter.gameTemplate.gameplayObjects.Manifest
 import game.gameplay_controller.generated.resources.Res
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -45,7 +42,7 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
             playTimeInSeconds = runtimeInMilliseconds / 1000,
         )
     }.stateIn(this, SharingStarted.Eagerly, Metadata())
-    private val character = Character.Creator(Offset.Zero).create()
+    private val character = Character.Creator(Offset.Zero).instantiate()
 
     init {
         Engine.get().stateManager.isFocused
@@ -65,14 +62,10 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
         start()
     }
 
-    private const val RECTANGLE_SIZE = 100f
-    private const val RECTANGLE_DISTANCE = 100f
-    private const val RECTANGLE_COUNT = 50
-
     @OptIn(ExperimentalResourceApi::class)
     private suspend fun loadMap(mapName: String) {
         try {
-            Engine.get().gameObjectManager.addFromJson(Res.readBytes("files/maps/$mapName.json").decodeToString())
+            Engine.get().gameObjectManager.addFromJson(Res.readBytes("files/maps/$mapName.json").decodeToString(), Manifest)
         } catch (_: MissingResourceException) {
         }
     }
@@ -80,35 +73,7 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
     private fun start() {
         launch {
             loadMap("map_demo")
-            // TODO: Temporary auto-generated map
-            Engine.get().gameObjectManager.add(
-                listOf(true, false).let { booleanRange ->
-                    (0..360).let { angleRange ->
-                        (50..100).let { sizeRange ->
-                            (50..150).let { scaleRange ->
-                                (-80..80).let { offsetRange ->
-                                    (-RECTANGLE_COUNT..RECTANGLE_COUNT).flatMap { x ->
-                                        (-RECTANGLE_COUNT..RECTANGLE_COUNT).map { y ->
-                                            if (booleanRange.random()) StaticBox.Creator(
-                                                color = Color.hsv(angleRange.random().toFloat(), 0.2f, 0.9f),
-                                                edgeSize = RECTANGLE_SIZE * (sizeRange.random() / 100f),
-                                                position = Offset(x * RECTANGLE_DISTANCE + offsetRange.random(), y * RECTANGLE_DISTANCE + offsetRange.random()),
-                                                rotationDegrees = angleRange.random().toFloat(),
-                                            ).create() else DynamicBox.Creator(
-                                                color = Color.hsv(angleRange.random().toFloat(), 0.2f, 0.9f),
-                                                edgeSize = RECTANGLE_SIZE * (sizeRange.random() / 100f),
-                                                position = Offset(x * RECTANGLE_DISTANCE + offsetRange.random(), y * RECTANGLE_DISTANCE + offsetRange.random()),
-                                                rotationDegrees = angleRange.random().toFloat(),
-                                                scaleFactor = scaleRange.random() / 100f,
-                                            ).create()
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } + character + Marker.Creator(Offset.Zero).create()
-            )
+            Engine.get().gameObjectManager.add(character) // TODO: Should come from map.
         }
     }
 

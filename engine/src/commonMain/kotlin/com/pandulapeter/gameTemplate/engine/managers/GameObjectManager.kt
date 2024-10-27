@@ -2,6 +2,7 @@ package com.pandulapeter.gameTemplate.engine.managers
 
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.GameObjectManifest
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 
 interface GameObjectManager {
@@ -10,7 +11,7 @@ interface GameObjectManager {
 
     fun add(gameObjects: Collection<GameObject>)
 
-    suspend fun addFromJson(json: String)
+    suspend fun addFromJson(json: String, manifest: GameObjectManifest)
 
     fun remove(gameObject: GameObject)
 

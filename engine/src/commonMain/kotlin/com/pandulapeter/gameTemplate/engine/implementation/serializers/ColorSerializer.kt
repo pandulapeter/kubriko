@@ -14,13 +14,13 @@ typealias SerializableColor = @Serializable(with = ColorSerializer::class) Color
 
 @Serializer(forClass = Color::class)
 object ColorSerializer : KSerializer<Color> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Color", PrimitiveKind.INT)
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Color", PrimitiveKind.LONG)
 
     override fun serialize(encoder: Encoder, value: Color) {
-        encoder.encodeInt(value.value.toInt())
+        encoder.encodeLong(value.value.toLong())
     }
 
     override fun deserialize(decoder: Decoder): Color {
-        return Color(decoder.decodeInt())
+        return Color(decoder.decodeLong().toULong())
     }
 }

@@ -11,6 +11,7 @@ import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toPositionInWorld
+import com.pandulapeter.gameTemplate.gameplayObjects.Manifest
 import com.pandulapeter.gameTemplate.gameplayObjects.StaticBox
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -118,7 +119,7 @@ internal object EditorController : CoroutineScope {
     fun loadMap(path: String) {
         launch {
             loadFile(path)?.let { json ->
-                Engine.get().gameObjectManager.addFromJson(json)
+                Engine.get().gameObjectManager.addFromJson(json, Manifest)
                 _currentFileName.update { path.split('/').last() }
             }
         }

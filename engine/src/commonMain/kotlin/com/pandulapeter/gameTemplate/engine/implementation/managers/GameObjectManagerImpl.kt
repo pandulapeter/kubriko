@@ -2,6 +2,7 @@ package com.pandulapeter.gameTemplate.engine.implementation.managers
 
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.GameObjectManifest
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObjectStateWrapper
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
@@ -51,14 +52,13 @@ internal class GameObjectManagerImpl : GameObjectManager {
         currentValue + gameObjects
     }
 
-    override suspend fun addFromJson(json: String) {
+    override suspend fun addFromJson(json: String, manifest: GameObjectManifest) {
         removeAll()
-        val wrappers = Json.decodeFromString<List<GameObjectStateWrapper>>(json)
-        println("Decoding ${wrappers.size} items.")
-        // TODO
-        wrappers.forEach {
-
-        }
+        add(
+            Json.decodeFromString<List<GameObjectStateWrapper>>(json).map { wrapper ->
+                manifest.getCreator(wrapper).instantiate()
+            }
+        )
     }
 
     override fun remove(gameObject: GameObject) = gameObjects.update { currentValue ->
