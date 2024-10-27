@@ -51,11 +51,7 @@ internal fun LazyItemScope.ColorfulPropertyEditors(
         Box(
             modifier = Modifier
                 .size(48.dp)
-                .background(color = colorful.color)
-                .clickable {
-                    colorful.color = Color.hsv((0..360).random().toFloat(), 0.5f, 0.9f)
-                    EditorController.notifyGameObjectUpdate()
-                }
+                .background(color = colorful.color),
         )
         Spacer(modifier = Modifier.height(8.dp))
         val (hue, saturation, value) = colorful.color.toHSV()
@@ -67,7 +63,7 @@ internal fun LazyItemScope.ColorfulPropertyEditors(
                 EditorController.notifyGameObjectUpdate()
             },
             valueRange = 0f..359.5f,
-            enabled = value > 0,
+            enabled = saturation >0 && value > 0,
         )
         EditorSlider(
             title = "color.saturation",

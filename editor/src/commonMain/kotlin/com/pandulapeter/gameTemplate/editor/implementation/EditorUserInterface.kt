@@ -1,9 +1,12 @@
 package com.pandulapeter.gameTemplate.editor.implementation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.darkColors
+import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -21,7 +24,12 @@ import com.pandulapeter.gameTemplate.engine.EngineCanvas
 @Composable
 internal fun EditorUserInterface(
     modifier: Modifier = Modifier,
-) = MaterialTheme {
+) = MaterialTheme(
+    colors = lightColors(
+        primary = Color.DarkGray,
+        secondary = Color.DarkGray,
+    ),
+) {
     Column(
         modifier = modifier,
     ) {
@@ -31,7 +39,10 @@ internal fun EditorUserInterface(
             Column(
                 modifier = Modifier.weight(1f),
             ) {
-                FileManagerPanel()
+                FileManagerPanel(
+                    onOpenIconClicked = {},
+                    onSaveIconClicked = {},
+                )
                 EngineCanvas(
                     modifier = Modifier
                         .handleMouseMove()
