@@ -1,5 +1,6 @@
 package com.pandulapeter.gameTemplate.editor.implementation.userInterface
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -7,8 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Divider
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
 import androidx.compose.material.RadioButton
 import androidx.compose.material.Slider
 import androidx.compose.material.Text
@@ -19,6 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import game.editor.generated.resources.Res
+import game.editor.generated.resources.ic_collapse
+import game.editor.generated.resources.ic_expand
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 internal fun GameObjectTypeRadioButton(
@@ -40,34 +45,32 @@ internal fun GameObjectTypeRadioButton(
 }
 
 @Composable
-internal fun ClickableText(
-    text: String,
-    onClick: () -> Unit
-) = OutlinedButton(
-    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-    onClick = onClick,
-) {
-    Text(
-        text = text
-    )
-}
-
-@Composable
 internal fun PropertyEditorSection(
+    modifier: Modifier = Modifier,
     title: String,
     controls: @Composable () -> Unit,
 ) = Column(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = modifier.fillMaxWidth(),
 ) {
     val isExpanded = remember { mutableStateOf(false) }
-    Text(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
+            .background(MaterialTheme.colors.surface)
             .clickable { isExpanded.value = !isExpanded.value }
-            .padding(8.dp),
-        style = MaterialTheme.typography.subtitle1,
-        text = title,
-    )
+            .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.subtitle1,
+            text = title,
+        )
+        Icon(
+            painter = painterResource(if (isExpanded.value) Res.drawable.ic_collapse else Res.drawable.ic_expand),
+            contentDescription = if (isExpanded.value) "Collapse" else "Expand"
+        )
+    }
     if (isExpanded.value) {
         Column(
             modifier = Modifier

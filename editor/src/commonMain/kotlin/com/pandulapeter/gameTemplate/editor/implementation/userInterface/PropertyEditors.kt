@@ -20,9 +20,10 @@ import com.pandulapeter.gameTemplate.engine.implementation.extensions.toHSV
 
 @Composable
 internal fun ColorfulPropertyEditors(
+    modifier: Modifier = Modifier,
     data: Pair<Colorful, Boolean>,
 ) = data.first.let { colorful ->
-    PropertyEditorSection("Colorful") {
+    PropertyEditorSection(modifier, "Colorful") {
         PropertyTitle("color")
         Spacer(modifier = Modifier.height(8.dp))
         Box(
@@ -70,9 +71,10 @@ internal fun ColorfulPropertyEditors(
 
 @Composable
 internal fun RotatablePropertyEditors(
+    modifier: Modifier = Modifier,
     data: Pair<Rotatable, Boolean>,
 ) = data.first.let { rotatable ->
-    PropertyEditorSection("Rotatable") {
+    PropertyEditorSection(modifier, "Rotatable") {
         SliderWithTitle(
             title = "rotationDegrees",
             value = rotatable.rotationDegrees,
@@ -87,9 +89,10 @@ internal fun RotatablePropertyEditors(
 
 @Composable
 internal fun ScalablePropertyEditors(
+    modifier: Modifier = Modifier,
     data: Pair<Scalable, Boolean>,
 ) = data.first.let { scalable ->
-    PropertyEditorSection("Scalable") {
+    PropertyEditorSection(modifier, "Scalable") {
         SliderWithTitle(
             title = "scaleFactor",
             value = scalable.scaleFactor,
@@ -104,9 +107,10 @@ internal fun ScalablePropertyEditors(
 
 @Composable
 internal fun VisiblePropertyEditors(
+    modifier: Modifier = Modifier,
     data: Pair<Visible, Boolean>,
 ) = data.first.let { visible ->
-    PropertyEditorSection("Visible") {
+    PropertyEditorSection(modifier, "Visible") {
         SliderWithTitle(
             title = "bounds.width",
             value = visible.bounds.width,
