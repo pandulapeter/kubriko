@@ -12,7 +12,8 @@ import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleClic
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseDrag
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseMove
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseZoom
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.GameObjectPanel
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.FileManagerPanel
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.GameObjectManagerPanel
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.MetadataIndicatorPanel
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.selectedGameObjectHighlight
 import com.pandulapeter.gameTemplate.engine.EngineCanvas
@@ -27,17 +28,21 @@ internal fun EditorUserInterface(
         Row(
             modifier = Modifier.weight(1f),
         ) {
-            EngineCanvas(
-                modifier = Modifier
-                    .weight(1f)
-                    .handleMouseMove()
-                    .handleMouseZoom()
-                    .handleMouseDrag()
-                    .handleClick()
-                    .background(Color.White),
-                editorSelectedGameObjectHighlight = { selectedGameObjectHighlight(it) },
-            )
-            GameObjectPanel(
+            Column(
+                modifier = Modifier.weight(1f),
+            ) {
+                FileManagerPanel()
+                EngineCanvas(
+                    modifier = Modifier
+                        .handleMouseMove()
+                        .handleMouseZoom()
+                        .handleMouseDrag()
+                        .handleClick()
+                        .background(Color.White),
+                    editorSelectedGameObjectHighlight = { selectedGameObjectHighlight(it) },
+                )
+            }
+            GameObjectManagerPanel(
                 data = EditorController.selectedGameObject.collectAsState().value,
                 selectedGameObjectType = EditorController.selectedGameObjectType.collectAsState().value,
             )

@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -40,8 +38,14 @@ import game.editor.generated.resources.ic_expand
 @Composable
 internal fun LazyItemScope.ColorfulPropertyEditors(
     data: Pair<Colorful, Boolean>,
+    isExpanded: Boolean,
+    onExpandedChanged: () -> Unit,
 ) = data.first.let { colorful ->
-    PropertyEditorSection("Colorful") {
+    PropertyEditorSection(
+        title = "Colorful",
+        isExpanded = isExpanded,
+        onExpandedChanged = onExpandedChanged,
+    ) {
         EditorTextLabel(text = "color")
         Spacer(modifier = Modifier.height(8.dp))
         Box(
@@ -90,8 +94,14 @@ internal fun LazyItemScope.ColorfulPropertyEditors(
 @Composable
 internal fun LazyItemScope.RotatablePropertyEditors(
     data: Pair<Rotatable, Boolean>,
+    isExpanded: Boolean,
+    onExpandedChanged: () -> Unit,
 ) = data.first.let { rotatable ->
-    PropertyEditorSection("Rotatable") {
+    PropertyEditorSection(
+        title = "Rotatable",
+        isExpanded = isExpanded,
+        onExpandedChanged = onExpandedChanged,
+    ) {
         EditorSlider(
             title = "rotationDegrees",
             value = rotatable.rotationDegrees,
@@ -107,8 +117,14 @@ internal fun LazyItemScope.RotatablePropertyEditors(
 @Composable
 internal fun LazyItemScope.ScalablePropertyEditors(
     data: Pair<Scalable, Boolean>,
+    isExpanded: Boolean,
+    onExpandedChanged: () -> Unit,
 ) = data.first.let { scalable ->
-    PropertyEditorSection("Scalable") {
+    PropertyEditorSection(
+        title = "Scalable",
+        isExpanded = isExpanded,
+        onExpandedChanged = onExpandedChanged,
+    ) {
         EditorSlider(
             title = "scaleFactor",
             value = scalable.scaleFactor,
@@ -124,8 +140,14 @@ internal fun LazyItemScope.ScalablePropertyEditors(
 @Composable
 internal fun LazyItemScope.VisiblePropertyEditors(
     data: Pair<Visible, Boolean>,
+    isExpanded: Boolean,
+    onExpandedChanged: () -> Unit,
 ) = data.first.let { visible ->
-    PropertyEditorSection("Visible") {
+    PropertyEditorSection(
+        title = "Visible",
+        isExpanded = isExpanded,
+        onExpandedChanged = onExpandedChanged,
+    ) {
         EditorTextLabel(
             text = "x: ${visible.position.x}",
         )
@@ -176,15 +198,16 @@ internal fun LazyItemScope.VisiblePropertyEditors(
 @Composable
 private fun LazyItemScope.PropertyEditorSection(
     title: String,
+    isExpanded: Boolean,
+    onExpandedChanged: () -> Unit,
     controls: @Composable () -> Unit,
 ) = Column(
     modifier = Modifier.animateItem().fillMaxWidth(),
 ) {
-    val isExpanded = remember { mutableStateOf(false) }
     Row(
         modifier = Modifier
             .background(MaterialTheme.colors.surface)
-            .clickable { isExpanded.value = !isExpanded.value }
+            .clickable(onClick = onExpandedChanged)
             .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -193,12 +216,12 @@ private fun LazyItemScope.PropertyEditorSection(
             text = title,
         )
         EditorIcon(
-            drawableResource = if (isExpanded.value) Res.drawable.ic_collapse else Res.drawable.ic_expand,
-            contentDescription = if (isExpanded.value) "Collapse" else "Expand"
+            drawableResource = if (isExpanded) Res.drawable.ic_collapse else Res.drawable.ic_expand,
+            contentDescription = if (isExpanded) "Collapse" else "Expand"
         )
     }
     AnimatedVisibility(
-        visible = isExpanded.value
+        visible = isExpanded
     ) {
         Column(
             modifier = Modifier
