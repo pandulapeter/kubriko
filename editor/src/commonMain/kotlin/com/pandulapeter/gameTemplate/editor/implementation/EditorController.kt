@@ -84,11 +84,12 @@ internal object EditorController : CoroutineScope {
     }
 
     fun handleClick(screenCoordinates: Offset) = Engine.get().gameObjectManager.run {
-        val gameObjectAtPosition = findGameObjectsWithBoundsInPosition(screenCoordinates.toPositionInWorld()).minByOrNull { it.depth } as? GameObject
+        val positionInWorld = screenCoordinates.toPositionInWorld()
+        val gameObjectAtPosition = findGameObjectsWithBoundsInPosition(positionInWorld).minByOrNull { it.depth } as? GameObject
         selectedGameObject.value.first.let { currentSelectedGameObject ->
             if (gameObjectAtPosition == null) {
                 if (currentSelectedGameObject == null) {
-                    supportedGameObjectTypes[selectedGameObjectType.value]?.invoke(screenCoordinates.toPositionInWorld())?.let { add(it) }
+                    supportedGameObjectTypes[selectedGameObjectType.value]?.invoke(positionInWorld)?.let { add(it) }
                 } else {
                     currentSelectedGameObject.isSelectedInEditor = false
                     _selectedGameObject.update { null }

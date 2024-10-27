@@ -11,6 +11,7 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import com.pandulapeter.gameTemplate.editor.implementation.EditorController
 import com.pandulapeter.gameTemplate.engine.Engine
+import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 
 @OptIn(ExperimentalComposeUiApi::class)
 internal actual fun Modifier.handleMouseMove(): Modifier = onPointerEvent(PointerEventType.Move) {
@@ -27,12 +28,17 @@ internal actual fun Modifier.handleMouseZoom(): Modifier = onPointerEvent(Pointe
 @OptIn(ExperimentalFoundationApi::class)
 internal actual fun Modifier.handleMouseDrag(): Modifier = onDrag(
     matcher = PointerMatcher.mouse(PointerButton.Tertiary),
-) {
-    Engine.get().viewportManager.addToOffset(it)
+) { screenCoordinates ->
+    Engine.get().viewportManager.addToOffset(screenCoordinates)
 }.onDrag(
     matcher = PointerMatcher.mouse(PointerButton.Primary),
-) {
+) { screenCoordinates ->
     if (Engine.get().inputManager.run { isKeyPressed(Key.ShiftLeft) || isKeyPressed(Key.ShiftRight) }) {
-        Engine.get().viewportManager.addToOffset(it)
+        Engine.get().viewportManager.addToOffset(screenCoordinates)
+    } else {
+        (EditorController.selectedGameObject.value.first as? Visible)?.let { visible ->
+            visible.position = EditorController.mouseWorldPosition.value
+            EditorController.notifyGameObjectUpdate()
+        }
     }
 }
