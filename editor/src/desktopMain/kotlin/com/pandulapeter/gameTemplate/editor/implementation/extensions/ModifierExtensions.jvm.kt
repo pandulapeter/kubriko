@@ -5,6 +5,7 @@ import androidx.compose.foundation.PointerMatcher
 import androidx.compose.foundation.gestures.onDrag
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
@@ -28,4 +29,10 @@ internal actual fun Modifier.handleMouseDrag(): Modifier = onDrag(
     matcher = PointerMatcher.mouse(PointerButton.Tertiary),
 ) {
     Engine.get().viewportManager.addToOffset(it)
+}.onDrag(
+    matcher = PointerMatcher.mouse(PointerButton.Primary),
+) {
+    if (Engine.get().inputManager.run { isKeyPressed(Key.ShiftLeft) || isKeyPressed(Key.ShiftRight) }) {
+        Engine.get().viewportManager.addToOffset(it)
+    }
 }

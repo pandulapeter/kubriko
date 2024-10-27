@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.onEach
 
 internal class InputManagerImpl : InputManager {
 
-    private var cache = mutableSetOf<Key>()
+    private var activeKeysCache = mutableSetOf<Key>()
     private val _activeKeys = MutableSharedFlow<Set<Key>>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
@@ -41,20 +41,22 @@ internal class InputManagerImpl : InputManager {
             .launchIn(EngineImpl)
     }
 
+    override fun isKeyPressed(key: Key) = activeKeysCache.contains(key)
+
     fun emit() {
-        if (cache.isNotEmpty()) {
-            _activeKeys.tryEmit(cache.toSet())
+        if (activeKeysCache.isNotEmpty()) {
+            _activeKeys.tryEmit(activeKeysCache.toSet())
         }
     }
 
     fun onKeyEvent(keyEvent: KeyEvent) = consume {
         if (keyEvent.type == KeyEventType.KeyDown) {
-            if (!cache.contains(keyEvent.key)) {
+            if (!activeKeysCache.contains(keyEvent.key)) {
                 _onKeyPressed.tryEmit(keyEvent.key)
-                cache.add(keyEvent.key)
+                activeKeysCache.add(keyEvent.key)
             }
         } else if (keyEvent.type == KeyEventType.KeyUp) {
-            cache.remove(keyEvent.key)
+            activeKeysCache.remove(keyEvent.key)
             _onKeyReleased.tryEmit(keyEvent.key)
         }
     }
