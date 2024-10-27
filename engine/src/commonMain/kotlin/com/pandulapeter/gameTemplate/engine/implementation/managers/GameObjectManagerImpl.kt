@@ -48,6 +48,10 @@ internal class GameObjectManagerImpl : GameObjectManager {
         currentValue + gameObjects
     }
 
+    override suspend fun addFromJson(json: String) {
+        // TODO
+    }
+
     override fun remove(gameObject: GameObject) = gameObjects.update { currentValue ->
         currentValue.filterNot { it == gameObject }
     }
@@ -57,6 +61,11 @@ internal class GameObjectManagerImpl : GameObjectManager {
     }
 
     override fun removeAll() = gameObjects.update { emptyList() }
+
+    override suspend fun saveToJson(): String {
+        // TODO
+        return "Test"
+    }
 
     override fun findGameObjectsWithBoundsInPosition(position: Offset) = visibleGameObjectsInViewport.value
         .filter { it.occupiesPosition(position) }

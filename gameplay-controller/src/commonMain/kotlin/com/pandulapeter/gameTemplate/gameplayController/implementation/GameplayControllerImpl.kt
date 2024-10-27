@@ -70,48 +70,46 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
     private const val RECTANGLE_COUNT = 50
 
     @OptIn(ExperimentalResourceApi::class)
-    private fun loadMap(mapName: String) {
-        launch {
-            try {
-                val bytes = Res.readBytes("files/maps/$mapName.json")
-                println("Map: ${bytes.decodeToString()}")
-            } catch (_: MissingResourceException) {
-                println("No map file named $mapName")
-            }
+    private suspend fun loadMap(mapName: String) {
+        try {
+            Engine.get().gameObjectManager.addFromJson(Res.readBytes("files/maps/$mapName.json").decodeToString())
+        } catch (_: MissingResourceException) {
         }
     }
 
     private fun start() {
-        loadMap("map_demo")
-        // TODO: Temporary auto-generated map
-        Engine.get().gameObjectManager.add(
-            listOf(true, false).let { booleanRange ->
-                (0..360).let { angleRange ->
-                    (50..100).let { sizeRange ->
-                        (50..150).let { scaleRange ->
-                            (-80..80).let { offsetRange ->
-                                (-RECTANGLE_COUNT..RECTANGLE_COUNT).flatMap { x ->
-                                    (-RECTANGLE_COUNT..RECTANGLE_COUNT).map { y ->
-                                        if (booleanRange.random()) StaticBox(
-                                            color = Color.hsv(angleRange.random().toFloat(), 0.2f, 0.9f),
-                                            edgeSize = RECTANGLE_SIZE * (sizeRange.random() / 100f),
-                                            position = Offset(x * RECTANGLE_DISTANCE + offsetRange.random(), y * RECTANGLE_DISTANCE + offsetRange.random()),
-                                            rotationDegrees = angleRange.random().toFloat(),
-                                        ) else DynamicBox(
-                                            color = Color.hsv(angleRange.random().toFloat(), 0.2f, 0.9f),
-                                            edgeSize = RECTANGLE_SIZE * (sizeRange.random() / 100f),
-                                            position = Offset(x * RECTANGLE_DISTANCE + offsetRange.random(), y * RECTANGLE_DISTANCE + offsetRange.random()),
-                                            rotationDegrees = angleRange.random().toFloat(),
-                                            scaleFactor = scaleRange.random() / 100f,
-                                        )
+        launch {
+            loadMap("map_demo")
+            // TODO: Temporary auto-generated map
+            Engine.get().gameObjectManager.add(
+                listOf(true, false).let { booleanRange ->
+                    (0..360).let { angleRange ->
+                        (50..100).let { sizeRange ->
+                            (50..150).let { scaleRange ->
+                                (-80..80).let { offsetRange ->
+                                    (-RECTANGLE_COUNT..RECTANGLE_COUNT).flatMap { x ->
+                                        (-RECTANGLE_COUNT..RECTANGLE_COUNT).map { y ->
+                                            if (booleanRange.random()) StaticBox(
+                                                color = Color.hsv(angleRange.random().toFloat(), 0.2f, 0.9f),
+                                                edgeSize = RECTANGLE_SIZE * (sizeRange.random() / 100f),
+                                                position = Offset(x * RECTANGLE_DISTANCE + offsetRange.random(), y * RECTANGLE_DISTANCE + offsetRange.random()),
+                                                rotationDegrees = angleRange.random().toFloat(),
+                                            ) else DynamicBox(
+                                                color = Color.hsv(angleRange.random().toFloat(), 0.2f, 0.9f),
+                                                edgeSize = RECTANGLE_SIZE * (sizeRange.random() / 100f),
+                                                position = Offset(x * RECTANGLE_DISTANCE + offsetRange.random(), y * RECTANGLE_DISTANCE + offsetRange.random()),
+                                                rotationDegrees = angleRange.random().toFloat(),
+                                                scaleFactor = scaleRange.random() / 100f,
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
-            } + character + Marker(Offset.Zero)
-        )
+                } + character + Marker(Offset.Zero)
+            )
+        }
     }
 
     override fun updateIsRunning(isRunning: Boolean) = Engine.get().stateManager.updateIsRunning(isRunning)

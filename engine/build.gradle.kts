@@ -2,10 +2,11 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.jetbrainsCompose)
+    alias(libs.plugins.compose)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -46,6 +47,7 @@ kotlin {
             implementation(compose.runtime)
             api(compose.foundation)
             implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation(libs.kotlinx.serialization)
         }
     }
 }

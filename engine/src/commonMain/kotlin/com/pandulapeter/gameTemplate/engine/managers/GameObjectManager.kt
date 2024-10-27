@@ -10,11 +10,15 @@ interface GameObjectManager {
 
     fun add(gameObjects: Collection<GameObject>)
 
+    suspend fun addFromJson(json: String)
+
     fun remove(gameObject: GameObject)
 
     fun remove(gameObjects: Collection<GameObject>)
 
     fun removeAll()
+
+    suspend fun saveToJson(): String
 
     fun findGameObjectsWithBoundsInPosition(position: Offset): List<Visible>
 

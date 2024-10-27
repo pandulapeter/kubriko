@@ -125,7 +125,10 @@ internal object EditorController : CoroutineScope {
 
     fun saveMap(path: String) {
         launch {
-            saveFile(path = path, content = "Hello")
+            saveFile(
+                path = path,
+                content = Engine.get().gameObjectManager.saveToJson(),
+            )
         }
     }
 
