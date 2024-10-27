@@ -24,7 +24,7 @@ internal fun Visible.isVisible(
 
 fun Visible.angleTowards(other: Visible) = (position + pivot).angleTowards(other.position + other.pivot)
 
-internal fun Visible.occupiesPosition(
+fun Visible.occupiesPosition(
     worldCoordinates: Offset,
 ) = worldCoordinates.x in left..right && worldCoordinates.y in top..bottom
 

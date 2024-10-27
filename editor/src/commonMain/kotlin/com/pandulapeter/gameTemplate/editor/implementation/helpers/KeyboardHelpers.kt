@@ -2,6 +2,7 @@ package com.pandulapeter.gameTemplate.editor.implementation.helpers
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
+import com.pandulapeter.gameTemplate.editor.implementation.EditorController
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardDirectionState
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardZoomState
@@ -36,6 +37,6 @@ internal fun handleKeys(keys: Set<Key>) {
 
 internal fun handleKeyReleased(key: Key) {
     when (key) {
-        Key.Escape, Key.Back -> exitApp()
+        Key.Escape, Key.Back -> EditorController.navigateBack()
     }
 }

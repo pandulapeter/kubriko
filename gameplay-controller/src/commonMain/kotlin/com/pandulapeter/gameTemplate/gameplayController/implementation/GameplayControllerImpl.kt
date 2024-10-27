@@ -73,8 +73,8 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
     private fun loadMap(mapName: String) {
         launch {
             try {
-                val bytes = Res.readBytes("files/$mapName.json")
-                println("Maps: ${bytes.decodeToString()}")
+                val bytes = Res.readBytes("files/maps/$mapName.json")
+                println("Map: ${bytes.decodeToString()}")
             } catch (_: MissingResourceException) {
                 println("No map file named $mapName")
             }

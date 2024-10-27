@@ -13,6 +13,29 @@ import androidx.compose.ui.input.pointer.onPointerEvent
 import com.pandulapeter.gameTemplate.editor.implementation.EditorController
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.occupiesPosition
+
+private var startOffset: Offset? = null
+private var isDragging = false
+
+@OptIn(ExperimentalComposeUiApi::class)
+internal actual fun Modifier.handleMouseClick(): Modifier = onPointerEvent(PointerEventType.Press) { event ->
+    if (event.button == PointerButton.Primary) {
+        (EditorController.selectedGameObject.value.first as? Visible)?.let { visible ->
+            if (visible.occupiesPosition(EditorController.mouseWorldPosition.value)) {
+                startOffset = EditorController.mouseWorldPosition.value - visible.position
+            }
+        }
+    }
+}.onPointerEvent(PointerEventType.Release) { event ->
+    if (event.button == PointerButton.Primary) {
+        startOffset = null
+        if (!isDragging) {
+            event.changes.first().position.let(EditorController::handleClick)
+        }
+        isDragging = false
+    }
+}
 
 @OptIn(ExperimentalComposeUiApi::class)
 internal actual fun Modifier.handleMouseMove(): Modifier = onPointerEvent(PointerEventType.Move) {
@@ -26,22 +49,15 @@ internal actual fun Modifier.handleMouseZoom(): Modifier = onPointerEvent(Pointe
     )
 }
 
-private var startOffset: Offset? = null
-
-@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 internal actual fun Modifier.handleMouseDrag(): Modifier = onDrag(
     matcher = PointerMatcher.mouse(PointerButton.Tertiary),
 ) { screenCoordinates ->
     Engine.get().viewportManager.addToOffset(screenCoordinates)
-}.onPointerEvent(PointerEventType.Press) {
-    (EditorController.selectedGameObject.value.first as? Visible)?.let { visible ->
-        startOffset = EditorController.mouseWorldPosition.value - visible.position
-    }
-}.onPointerEvent(PointerEventType.Release) {
-    startOffset = null
 }.onDrag(
     matcher = PointerMatcher.mouse(PointerButton.Primary),
 ) { screenCoordinates ->
+    isDragging = true
     if (Engine.get().inputManager.run { isKeyPressed(Key.ShiftLeft) || isKeyPressed(Key.ShiftRight) }) {
         Engine.get().viewportManager.addToOffset(screenCoordinates)
     } else {

@@ -2,6 +2,7 @@ package com.pandulapeter.gameTemplate.editor.implementation
 
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.gameTemplate.editor.GameObjects
+import com.pandulapeter.gameTemplate.editor.implementation.helpers.exitApp
 import com.pandulapeter.gameTemplate.editor.implementation.helpers.handleKeyReleased
 import com.pandulapeter.gameTemplate.editor.implementation.helpers.handleKeys
 import com.pandulapeter.gameTemplate.editor.implementation.helpers.loadFile
@@ -27,7 +28,7 @@ import kotlinx.coroutines.launch
 
 internal object EditorController : CoroutineScope {
 
-    const val MAPS_DIRECTORY = "../gameplay-controller/src/commonMain/composeResources/files"
+    const val MAPS_DIRECTORY = "../gameplay-controller/src/commonMain/composeResources/files/maps"
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
     val totalGameObjectCount = Engine.get().metadataManager.totalGameObjectCount
     private val mouseScreenCoordinates = MutableStateFlow(Offset.Zero)
@@ -70,8 +71,7 @@ internal object EditorController : CoroutineScope {
                 if (currentSelectedGameObject == null) {
                     GameObjects.supportedGameObjectTypes[selectedGameObjectType.value]?.invoke(positionInWorld)?.let { add(it) }
                 } else {
-                    currentSelectedGameObject.isSelectedInEditor = false
-                    _selectedGameObject.update { null }
+                    unselectGameObject()
                 }
             } else {
                 currentSelectedGameObject?.isSelectedInEditor = false
@@ -84,6 +84,11 @@ internal object EditorController : CoroutineScope {
                 }
             }
         }
+    }
+
+    private fun unselectGameObject() {
+        _selectedGameObject.value?.isSelectedInEditor = false
+        _selectedGameObject.update { null }
     }
 
     fun handleMouseMove(screenCoordinates: Offset) = mouseScreenCoordinates.update { screenCoordinates }
@@ -121,6 +126,14 @@ internal object EditorController : CoroutineScope {
     fun saveMap(path: String) {
         launch {
             saveFile(path = path, content = "Hello")
+        }
+    }
+
+    fun navigateBack() {
+        if (selectedGameObject.value.first == null) {
+            exitApp()
+        } else {
+            unselectGameObject()
         }
     }
 }

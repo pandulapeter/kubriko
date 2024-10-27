@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleClick
+import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseClick
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseDrag
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseMove
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseZoom
@@ -46,10 +46,10 @@ internal fun EditorUserInterface(
                 )
                 EngineCanvas(
                     modifier = Modifier
+                        .handleMouseClick()
                         .handleMouseMove()
                         .handleMouseZoom()
                         .handleMouseDrag()
-                        .handleClick()
                         .background(Color.White),
                     editorSelectedGameObjectHighlight = { selectedGameObjectHighlight(it) },
                 )
