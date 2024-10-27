@@ -1,5 +1,6 @@
 package com.pandulapeter.gameTemplate.editor.implementation.userInterface
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -7,7 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Divider
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.RadioButton
@@ -45,17 +46,15 @@ internal fun GameObjectTypeRadioButton(
 }
 
 @Composable
-internal fun PropertyEditorSection(
-    modifier: Modifier = Modifier,
+internal fun LazyItemScope.PropertyEditorSection(
     title: String,
     controls: @Composable () -> Unit,
 ) = Column(
-    modifier = modifier.fillMaxWidth(),
+    modifier = Modifier.animateItem().fillMaxWidth(),
 ) {
     val isExpanded = remember { mutableStateOf(false) }
     Row(
         modifier = Modifier
-            .fillMaxWidth()
             .background(MaterialTheme.colors.surface)
             .clickable { isExpanded.value = !isExpanded.value }
             .padding(horizontal = 8.dp),
@@ -71,7 +70,9 @@ internal fun PropertyEditorSection(
             contentDescription = if (isExpanded.value) "Collapse" else "Expand"
         )
     }
-    if (isExpanded.value) {
+    AnimatedVisibility(
+        visible = isExpanded.value
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -80,7 +81,6 @@ internal fun PropertyEditorSection(
             controls()
         }
     }
-    Divider()
 }
 
 @Composable

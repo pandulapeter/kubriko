@@ -29,7 +29,6 @@ import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleClic
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseDrag
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseMove
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseZoom
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.ClickableText
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.ColorfulPropertyEditors
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.GameObjectTypeRadioButton
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.RotatablePropertyEditors
@@ -128,22 +127,22 @@ private fun GameObjectPanel(
             }
             if (gameObject is Colorful) {
                 item(key = "propertyColorful") {
-                    ColorfulPropertyEditors(Modifier.animateItem(), gameObject to data.second)
+                    ColorfulPropertyEditors(gameObject to data.second)
                 }
             }
             if (gameObject is Rotatable) {
                 item(key = "propertyRotatable") {
-                    RotatablePropertyEditors(Modifier.animateItem(), gameObject to data.second)
+                    RotatablePropertyEditors(gameObject to data.second)
                 }
             }
             if (gameObject is Scalable) {
                 item(key = "propertyScalable") {
-                    ScalablePropertyEditors(Modifier.animateItem(), gameObject to data.second)
+                    ScalablePropertyEditors(gameObject to data.second)
                 }
             }
             if (gameObject is Visible) {
                 item(key = "propertyVisible") {
-                    VisiblePropertyEditors(Modifier.animateItem(), gameObject to data.second)
+                    VisiblePropertyEditors(gameObject to data.second)
                 }
             }
         }

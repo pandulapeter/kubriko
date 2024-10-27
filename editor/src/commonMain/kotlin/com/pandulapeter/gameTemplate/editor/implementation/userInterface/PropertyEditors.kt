@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
@@ -19,11 +20,10 @@ import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toHSV
 
 @Composable
-internal fun ColorfulPropertyEditors(
-    modifier: Modifier = Modifier,
+internal fun LazyItemScope.ColorfulPropertyEditors(
     data: Pair<Colorful, Boolean>,
 ) = data.first.let { colorful ->
-    PropertyEditorSection(modifier, "Colorful") {
+    PropertyEditorSection("Colorful") {
         PropertyTitle("color")
         Spacer(modifier = Modifier.height(8.dp))
         Box(
@@ -70,11 +70,10 @@ internal fun ColorfulPropertyEditors(
 }
 
 @Composable
-internal fun RotatablePropertyEditors(
-    modifier: Modifier = Modifier,
+internal fun LazyItemScope.RotatablePropertyEditors(
     data: Pair<Rotatable, Boolean>,
 ) = data.first.let { rotatable ->
-    PropertyEditorSection(modifier, "Rotatable") {
+    PropertyEditorSection("Rotatable") {
         SliderWithTitle(
             title = "rotationDegrees",
             value = rotatable.rotationDegrees,
@@ -88,11 +87,10 @@ internal fun RotatablePropertyEditors(
 }
 
 @Composable
-internal fun ScalablePropertyEditors(
-    modifier: Modifier = Modifier,
+internal fun LazyItemScope.ScalablePropertyEditors(
     data: Pair<Scalable, Boolean>,
 ) = data.first.let { scalable ->
-    PropertyEditorSection(modifier, "Scalable") {
+    PropertyEditorSection("Scalable") {
         SliderWithTitle(
             title = "scaleFactor",
             value = scalable.scaleFactor,
@@ -106,11 +104,10 @@ internal fun ScalablePropertyEditors(
 }
 
 @Composable
-internal fun VisiblePropertyEditors(
-    modifier: Modifier = Modifier,
+internal fun LazyItemScope.VisiblePropertyEditors(
     data: Pair<Visible, Boolean>,
 ) = data.first.let { visible ->
-    PropertyEditorSection(modifier, "Visible") {
+    PropertyEditorSection("Visible") {
         SliderWithTitle(
             title = "bounds.width",
             value = visible.bounds.width,
