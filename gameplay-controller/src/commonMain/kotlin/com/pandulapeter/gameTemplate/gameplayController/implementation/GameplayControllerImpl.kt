@@ -13,6 +13,7 @@ import com.pandulapeter.gameTemplate.gameplayObjects.Character
 import com.pandulapeter.gameTemplate.gameplayObjects.DynamicBox
 import com.pandulapeter.gameTemplate.gameplayObjects.Marker
 import com.pandulapeter.gameTemplate.gameplayObjects.StaticBox
+import game.gameplay_controller.generated.resources.Res
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,6 +24,9 @@ import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.MissingResourceException
 
 internal object GameplayControllerImpl : GameplayController, CoroutineScope {
 
@@ -65,7 +69,21 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
     private const val RECTANGLE_DISTANCE = 100f
     private const val RECTANGLE_COUNT = 50
 
+    @OptIn(ExperimentalResourceApi::class)
+    private fun loadMap(mapName: String) {
+        launch {
+            try {
+                val bytes = Res.readBytes("files/$mapName.json")
+                println("Maps: ${bytes.decodeToString()}")
+            } catch (_: MissingResourceException) {
+                println("No map file named $mapName")
+            }
+        }
+    }
+
     private fun start() {
+        loadMap("map_demo")
+        // TODO: Temporary auto-generated map
         Engine.get().gameObjectManager.add(
             listOf(true, false).let { booleanRange ->
                 (0..360).let { angleRange ->

@@ -8,7 +8,6 @@ import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.isAroundPosition
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.isVisible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.occupiesPosition
-import com.pandulapeter.gameTemplate.engine.implementation.extensions.toPositionInWorld
 import com.pandulapeter.gameTemplate.engine.managers.GameObjectManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,7 +21,7 @@ internal class GameObjectManagerImpl : GameObjectManager {
 
     val gameObjects = MutableStateFlow(emptyList<GameObject>())
     val dynamicGameObjects = gameObjects.map { it.filterIsInstance<Dynamic>() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
-    val visibleGameObjects = gameObjects.map { it.filterIsInstance<Visible>() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
+    private val visibleGameObjects = gameObjects.map { it.filterIsInstance<Visible>() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
     val visibleGameObjectsInViewport = combine(
         EngineImpl.metadataManager.runtimeInMilliseconds.map { it / 100 }.distinctUntilChanged(),
         visibleGameObjects,

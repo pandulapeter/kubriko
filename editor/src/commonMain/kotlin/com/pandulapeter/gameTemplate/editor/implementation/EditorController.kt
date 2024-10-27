@@ -1,16 +1,15 @@
 package com.pandulapeter.gameTemplate.editor.implementation
 
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import com.pandulapeter.gameTemplate.editor.GameObjects
 import com.pandulapeter.gameTemplate.editor.implementation.helpers.handleKeyReleased
 import com.pandulapeter.gameTemplate.editor.implementation.helpers.handleKeys
+import com.pandulapeter.gameTemplate.editor.implementation.helpers.loadFile
+import com.pandulapeter.gameTemplate.editor.implementation.helpers.saveFile
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toPositionInWorld
-import com.pandulapeter.gameTemplate.gameplayObjects.DynamicBox
-import com.pandulapeter.gameTemplate.gameplayObjects.Marker
 import com.pandulapeter.gameTemplate.gameplayObjects.StaticBox
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,10 +23,11 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import java.io.File
+import kotlinx.coroutines.launch
 
 internal object EditorController : CoroutineScope {
 
+    const val MAPS_DIRECTORY = "../gameplay-controller/src/commonMain/composeResources/files"
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
     val totalGameObjectCount = Engine.get().metadataManager.totalGameObjectCount
     private val mouseScreenCoordinates = MutableStateFlow(Offset.Zero)
@@ -49,6 +49,8 @@ internal object EditorController : CoroutineScope {
     }.stateIn(this, SharingStarted.Eagerly, null to false)
     private val _selectedGameObjectType = MutableStateFlow<Class<out GameObject>>(StaticBox::class.java)
     val selectedGameObjectType = _selectedGameObjectType.asStateFlow()
+    private val _currentFileName = MutableStateFlow("map_untitled.json")
+    val currentFileName = _currentFileName.asStateFlow()
 
     init {
         Engine.get().inputManager.activeKeys
@@ -108,10 +110,17 @@ internal object EditorController : CoroutineScope {
         Engine.get().gameObjectManager.removeAll()
     }
 
-    fun getExistingMapNames() = File("../${Engine.MAPS_LOCATION}").let { currentDirectory ->
-        if (!currentDirectory.exists()) {
-            currentDirectory.mkdir()
+    fun loadMap(path: String) {
+        launch {
+            loadFile(path)?.let {
+                _currentFileName.update { path.split('/').last() }
+            }
         }
-        currentDirectory.listFiles().orEmpty().map { it.nameWithoutExtension }
+    }
+
+    fun saveMap(path: String) {
+        launch {
+            saveFile(path = path, content = "Hello")
+        }
     }
 }

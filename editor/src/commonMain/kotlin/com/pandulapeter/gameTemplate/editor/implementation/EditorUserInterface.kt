@@ -18,11 +18,12 @@ import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.MetadataIndicatorPanel
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.selectedGameObjectHighlight
 import com.pandulapeter.gameTemplate.engine.EngineCanvas
-import java.io.File
 
 @Composable
 internal fun EditorUserInterface(
     modifier: Modifier = Modifier,
+    openFilePickerForLoading: () -> Unit,
+    openFilePickerForSaving: () -> Unit,
 ) = MaterialTheme(
     colors = lightColors(
         primary = Color.DarkGray,
@@ -40,10 +41,8 @@ internal fun EditorUserInterface(
             ) {
                 FileManagerPanel(
                     onNewIconClicked = EditorController::reset,
-                    onOpenIconClicked = {
-                        EditorController.getExistingMapNames()
-                    },
-                    onSaveIconClicked = {},
+                    onOpenIconClicked = openFilePickerForLoading,
+                    onSaveIconClicked = openFilePickerForSaving,
                 )
                 EngineCanvas(
                     modifier = Modifier

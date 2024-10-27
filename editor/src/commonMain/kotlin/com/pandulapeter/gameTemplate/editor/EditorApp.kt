@@ -7,4 +7,10 @@ import com.pandulapeter.gameTemplate.editor.implementation.EditorUserInterface
 @Composable
 fun EditorApp(
     modifier: Modifier = Modifier,
-) = EditorUserInterface(modifier)
+    openFilePickerForLoading: () -> Unit,
+    openFilePickerForSaving: () -> Unit,
+) = EditorUserInterface(
+    modifier = modifier,
+    openFilePickerForLoading = openFilePickerForLoading,
+    openFilePickerForSaving = openFilePickerForSaving,
+)
