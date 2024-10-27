@@ -12,12 +12,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorIcon
 import game.editor.generated.resources.Res
+import game.editor.generated.resources.ic_new
 import game.editor.generated.resources.ic_open
 import game.editor.generated.resources.ic_save
 
 
 @Composable
 internal fun FileManagerPanel(
+    onNewIconClicked: () -> Unit,
     onOpenIconClicked: () -> Unit,
     onSaveIconClicked: () -> Unit,
 ) = Column(
@@ -31,6 +33,11 @@ internal fun FileManagerPanel(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
+        EditorIcon(
+            drawableResource = Res.drawable.ic_new,
+            contentDescription = "New",
+            onClick = onNewIconClicked,
+        )
         EditorIcon(
             drawableResource = Res.drawable.ic_open,
             contentDescription = "Open",

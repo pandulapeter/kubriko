@@ -1,11 +1,9 @@
 package com.pandulapeter.gameTemplate.editor.implementation
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -20,6 +18,7 @@ import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.MetadataIndicatorPanel
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.selectedGameObjectHighlight
 import com.pandulapeter.gameTemplate.engine.EngineCanvas
+import java.io.File
 
 @Composable
 internal fun EditorUserInterface(
@@ -40,7 +39,10 @@ internal fun EditorUserInterface(
                 modifier = Modifier.weight(1f),
             ) {
                 FileManagerPanel(
-                    onOpenIconClicked = {},
+                    onNewIconClicked = EditorController::reset,
+                    onOpenIconClicked = {
+                        EditorController.getExistingMapNames()
+                    },
                     onSaveIconClicked = {},
                 )
                 EngineCanvas(

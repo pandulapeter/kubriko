@@ -2,6 +2,7 @@ package com.pandulapeter.gameTemplate.editor.implementation
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import com.pandulapeter.gameTemplate.editor.GameObjects
 import com.pandulapeter.gameTemplate.editor.implementation.helpers.handleKeyReleased
 import com.pandulapeter.gameTemplate.editor.implementation.helpers.handleKeys
 import com.pandulapeter.gameTemplate.engine.Engine
@@ -23,33 +24,9 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import java.io.File
 
 internal object EditorController : CoroutineScope {
-
-    val supportedGameObjectTypes = mapOf<Class<out GameObject>, (Offset) -> GameObject>(
-        StaticBox::class.java to {
-            StaticBox(
-                color = Color.Red,
-                edgeSize = 100f,
-                position = it,
-                rotationDegrees = 0f,
-            )
-        },
-        DynamicBox::class.java to {
-            DynamicBox(
-                color = Color.Red,
-                edgeSize = 100f,
-                position = it,
-                rotationDegrees = 0f,
-                scaleFactor = 1f,
-            )
-        },
-        Marker::class.java to {
-            Marker(
-                position = it,
-            )
-        },
-    )
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
     val totalGameObjectCount = Engine.get().metadataManager.totalGameObjectCount
@@ -89,7 +66,7 @@ internal object EditorController : CoroutineScope {
         selectedGameObject.value.first.let { currentSelectedGameObject ->
             if (gameObjectAtPosition == null) {
                 if (currentSelectedGameObject == null) {
-                    supportedGameObjectTypes[selectedGameObjectType.value]?.invoke(positionInWorld)?.let { add(it) }
+                    GameObjects.supportedGameObjectTypes[selectedGameObjectType.value]?.invoke(positionInWorld)?.let { add(it) }
                 } else {
                     currentSelectedGameObject.isSelectedInEditor = false
                     _selectedGameObject.update { null }
@@ -125,4 +102,16 @@ internal object EditorController : CoroutineScope {
     fun notifyGameObjectUpdate() = triggerGameObjectUpdate.update { !it }
 
     fun selectGameObjectType(gameObjectType: Class<out GameObject>) = _selectedGameObjectType.update { gameObjectType }
+
+    fun reset() {
+        _selectedGameObject.update { null }
+        Engine.get().gameObjectManager.removeAll()
+    }
+
+    fun getExistingMapNames() = File("../${Engine.MAPS_LOCATION}").let { currentDirectory ->
+        if (!currentDirectory.exists()) {
+            currentDirectory.mkdir()
+        }
+        currentDirectory.listFiles().orEmpty().map { it.nameWithoutExtension }
+    }
 }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.PointerMatcher
 import androidx.compose.foundation.gestures.onDrag
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.PointerEventType
@@ -25,20 +26,30 @@ internal actual fun Modifier.handleMouseZoom(): Modifier = onPointerEvent(Pointe
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+private var startOffset: Offset? = null
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 internal actual fun Modifier.handleMouseDrag(): Modifier = onDrag(
     matcher = PointerMatcher.mouse(PointerButton.Tertiary),
 ) { screenCoordinates ->
     Engine.get().viewportManager.addToOffset(screenCoordinates)
+}.onPointerEvent(PointerEventType.Press) {
+    (EditorController.selectedGameObject.value.first as? Visible)?.let { visible ->
+        startOffset = EditorController.mouseWorldPosition.value - visible.position
+    }
+}.onPointerEvent(PointerEventType.Release) {
+    startOffset = null
 }.onDrag(
     matcher = PointerMatcher.mouse(PointerButton.Primary),
 ) { screenCoordinates ->
     if (Engine.get().inputManager.run { isKeyPressed(Key.ShiftLeft) || isKeyPressed(Key.ShiftRight) }) {
         Engine.get().viewportManager.addToOffset(screenCoordinates)
     } else {
-        (EditorController.selectedGameObject.value.first as? Visible)?.let { visible ->
-            visible.position = EditorController.mouseWorldPosition.value
-            EditorController.notifyGameObjectUpdate()
+        startOffset?.let { startOffset ->
+            (EditorController.selectedGameObject.value.first as? Visible)?.let { visible ->
+                visible.position = EditorController.mouseWorldPosition.value - startOffset
+                EditorController.notifyGameObjectUpdate()
+            }
         }
     }
 }

@@ -15,6 +15,8 @@ interface Engine {
     val viewportManager: ViewportManager
 
     companion object {
+        const val MAPS_LOCATION = "gameplay-controller/src/commonMain/maps"
+
         fun get(): Engine = EngineImpl
     }
 }

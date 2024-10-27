@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.gameTemplate.editor.GameObjects
 import com.pandulapeter.gameTemplate.editor.implementation.EditorController
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.ColorfulPropertyEditors
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.RotatablePropertyEditors
@@ -54,7 +55,7 @@ internal fun GameObjectManagerPanel(
             data.first.let { gameObject ->
                 if (gameObject == null) {
                     items(
-                        items = EditorController.supportedGameObjectTypes.keys.toList(),
+                        items = GameObjects.supportedGameObjectTypes.keys.toList(),
                         key = { "typeRadioButton_${it.name}" },
                     ) { gameObjectType ->
                         EditorRadioButton(

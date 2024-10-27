@@ -20,12 +20,14 @@ internal fun EditorRadioButton(
     isSelected: Boolean,
     onSelectionChanged: () -> Unit,
 ) = Row(
-    modifier = modifier.fillMaxWidth().clickable(onClick = onSelectionChanged).padding(
-        horizontal = 8.dp,
-        vertical = 2.dp,
-    ),
+    modifier = modifier
+        .fillMaxWidth()
+        .clickable(onClick = onSelectionChanged).padding(
+            horizontal = 8.dp,
+            vertical = 2.dp,
+        ),
     verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.spacedBy(16.dp)
+    horizontalArrangement = Arrangement.spacedBy(8.dp)
 ) {
     RadioButton(
         modifier = Modifier.size(16.dp),
