@@ -81,7 +81,7 @@ fun EngineCanvas(
                             withTransform(
                                 transformBlock = { gameObject.transform(this) },
                                 drawBlock = {
-                                    if ((gameObject as GameObject).isSelectedInEditor) {
+                                    if ((gameObject as GameObject<*>).isSelectedInEditor) {
                                         editorSelectedGameObjectHighlight(gameObject)
                                     }
                                     gameObject.draw(this)

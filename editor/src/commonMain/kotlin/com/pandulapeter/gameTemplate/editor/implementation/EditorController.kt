@@ -42,14 +42,14 @@ internal object EditorController : CoroutineScope {
         mouseScreenCoordinates.toPositionInWorld()
     }.stateIn(this, SharingStarted.Eagerly, Offset.Zero)
     private val triggerGameObjectUpdate = MutableStateFlow(false)
-    private val _selectedGameObject = MutableStateFlow<GameObject?>(null)
+    private val _selectedGameObject = MutableStateFlow<GameObject<*>?>(null)
     val selectedGameObject = combine(
         _selectedGameObject,
         triggerGameObjectUpdate,
     ) { selectedGameObject, triggerGameObjectUpdate ->
         selectedGameObject to triggerGameObjectUpdate
     }.stateIn(this, SharingStarted.Eagerly, null to false)
-    private val _selectedGameObjectType = MutableStateFlow<Class<out GameObject>>(StaticBox::class.java)
+    private val _selectedGameObjectType = MutableStateFlow<Class<out GameObject<*>>>(StaticBox::class.java)
     val selectedGameObjectType = _selectedGameObjectType.asStateFlow()
     private val _currentFileName = MutableStateFlow("map_untitled.json")
     val currentFileName = _currentFileName.asStateFlow()
@@ -66,7 +66,7 @@ internal object EditorController : CoroutineScope {
 
     fun handleClick(screenCoordinates: Offset) = Engine.get().gameObjectManager.run {
         val positionInWorld = screenCoordinates.toPositionInWorld()
-        val gameObjectAtPosition = findGameObjectsWithBoundsInPosition(positionInWorld).minByOrNull { it.depth } as? GameObject
+        val gameObjectAtPosition = findGameObjectsWithBoundsInPosition(positionInWorld).minByOrNull { it.depth } as? GameObject<*>
         selectedGameObject.value.first.let { currentSelectedGameObject ->
             if (gameObjectAtPosition == null) {
                 if (currentSelectedGameObject == null) {
@@ -109,7 +109,7 @@ internal object EditorController : CoroutineScope {
 
     fun notifyGameObjectUpdate() = triggerGameObjectUpdate.update { !it }
 
-    fun selectGameObjectType(gameObjectType: Class<out GameObject>) = _selectedGameObjectType.update { gameObjectType }
+    fun selectGameObjectType(gameObjectType: Class<out GameObject<*>>) = _selectedGameObjectType.update { gameObjectType }
 
     fun reset() {
         _selectedGameObject.update { null }

@@ -36,12 +36,12 @@ import game.editor.generated.resources.ic_collapse
 import game.editor.generated.resources.ic_expand
 
 @Composable
-internal fun LazyItemScope.ColorfulPropertyEditors(
+internal fun LazyItemScope.ColorfulTraitEditor(
     data: Pair<Colorful, Boolean>,
     isExpanded: Boolean,
     onExpandedChanged: () -> Unit,
 ) = data.first.let { colorful ->
-    PropertyEditorSection(
+    TraitEditorSection(
         title = "Colorful",
         isExpanded = isExpanded,
         onExpandedChanged = onExpandedChanged,
@@ -88,12 +88,12 @@ internal fun LazyItemScope.ColorfulPropertyEditors(
 }
 
 @Composable
-internal fun LazyItemScope.RotatablePropertyEditors(
+internal fun LazyItemScope.RotatableTraitEditor(
     data: Pair<Rotatable, Boolean>,
     isExpanded: Boolean,
     onExpandedChanged: () -> Unit,
 ) = data.first.let { rotatable ->
-    PropertyEditorSection(
+    TraitEditorSection(
         title = "Rotatable",
         isExpanded = isExpanded,
         onExpandedChanged = onExpandedChanged,
@@ -111,12 +111,12 @@ internal fun LazyItemScope.RotatablePropertyEditors(
 }
 
 @Composable
-internal fun LazyItemScope.ScalablePropertyEditors(
+internal fun LazyItemScope.ScalableTraitEditor(
     data: Pair<Scalable, Boolean>,
     isExpanded: Boolean,
     onExpandedChanged: () -> Unit,
 ) = data.first.let { scalable ->
-    PropertyEditorSection(
+    TraitEditorSection(
         title = "Scalable",
         isExpanded = isExpanded,
         onExpandedChanged = onExpandedChanged,
@@ -134,12 +134,12 @@ internal fun LazyItemScope.ScalablePropertyEditors(
 }
 
 @Composable
-internal fun LazyItemScope.VisiblePropertyEditors(
+internal fun LazyItemScope.VisibleTraitEditor(
     data: Pair<Visible, Boolean>,
     isExpanded: Boolean,
     onExpandedChanged: () -> Unit,
 ) = data.first.let { visible ->
-    PropertyEditorSection(
+    TraitEditorSection(
         title = "Visible",
         isExpanded = isExpanded,
         onExpandedChanged = onExpandedChanged,
@@ -192,7 +192,7 @@ internal fun LazyItemScope.VisiblePropertyEditors(
 }
 
 @Composable
-private fun LazyItemScope.PropertyEditorSection(
+private fun LazyItemScope.TraitEditorSection(
     title: String,
     isExpanded: Boolean,
     onExpandedChanged: () -> Unit,

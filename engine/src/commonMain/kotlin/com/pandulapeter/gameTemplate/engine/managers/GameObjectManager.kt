@@ -7,15 +7,15 @@ import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 
 interface GameObjectManager {
 
-    fun add(gameObject: GameObject)
+    fun add(gameObject: GameObject<*>)
 
-    fun add(gameObjects: Collection<GameObject>)
+    fun add(gameObjects: Collection<GameObject<*>>)
 
     suspend fun addFromJson(json: String, manifest: GameObjectManifest)
 
-    fun remove(gameObject: GameObject)
+    fun remove(gameObject: GameObject<*>)
 
-    fun remove(gameObjects: Collection<GameObject>)
+    fun remove(gameObjects: Collection<GameObject<*>>)
 
     fun removeAll()
 

@@ -1,7 +1,6 @@
 package com.pandulapeter.gameTemplate.gameplayObjects
 
 import androidx.compose.ui.geometry.Offset
-import com.pandulapeter.gameTemplate.engine.gameObject.GameObjectCreator
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Scalable
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toRadians
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableColor
@@ -13,38 +12,38 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 class DynamicBox private constructor(
-    creator: Creator,
-) : Box(
+    stateHolder: StateHolder,
+) : Box<DynamicBox>(
     typeId = "dynamicBox",
-    color = creator.color,
-    edgeSize = creator.edgeSize,
-    position = creator.position,
-    rotationDegrees = creator.rotationDegrees,
+    color = stateHolder.color,
+    edgeSize = stateHolder.edgeSize,
+    position = stateHolder.position,
+    rotationDegrees = stateHolder.rotationDegrees,
 ), Scalable {
 
     @Serializable
-    data class Creator(
+    data class StateHolder(
         val color: SerializableColor,
         val edgeSize: Float,
         val position: SerializableOffset,
         val rotationDegrees: Float,
         val scaleFactor: Float,
-    ) : GameObjectCreator<DynamicBox> {
+    ) : State<DynamicBox> {
 
         override fun instantiate() = DynamicBox(this)
+
+        override fun serialize() = Json.encodeToString(this)
     }
 
-    override fun saveState() = Json.encodeToString(
-        Creator(
-            color = color,
-            edgeSize = bounds.width,
-            position = position,
-            rotationDegrees = rotationDegrees,
-            scaleFactor = scaleFactor,
-        )
+    override fun getState() = StateHolder(
+        color = color,
+        edgeSize = bounds.width,
+        position = position,
+        rotationDegrees = rotationDegrees,
+        scaleFactor = scaleFactor,
     )
 
-    override var scaleFactor: Float = creator.scaleFactor
+    override var scaleFactor: Float = stateHolder.scaleFactor
     private var isGrowing = true
 
     override fun update(deltaTimeMillis: Float) {

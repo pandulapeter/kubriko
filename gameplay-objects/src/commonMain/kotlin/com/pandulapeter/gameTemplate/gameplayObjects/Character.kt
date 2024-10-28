@@ -8,7 +8,6 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
-import com.pandulapeter.gameTemplate.engine.gameObject.GameObjectCreator
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardDirectionState
@@ -20,22 +19,24 @@ import kotlin.math.PI
 import kotlin.math.sin
 
 class Character private constructor(
-    creator: Creator,
-) : GameObject(
+    state: StateHolder,
+) : GameObject<Character>(
     typeId = "character",
     isUnique = true,
 ), Visible, Dynamic {
 
     @Serializable
-    data class Creator(
+    data class StateHolder(
         val position: SerializableOffset
-    ) : GameObjectCreator<Character> {
+    ) : State<Character> {
         override fun instantiate() = Character(this)
+
+        override fun serialize() = Json.encodeToString(this)
     }
 
-    override fun saveState() = Json.encodeToString(Creator(position = position))
+    override fun getState() = StateHolder(position = position)
 
-    override var position: Offset = creator.position
+    override var position: Offset = state.position
     override var bounds = Size(RADIUS * 2, RADIUS * 2)
     override var pivot = bounds.center
     override var depth = -position.y - pivot.y
@@ -97,7 +98,7 @@ class Character private constructor(
         Engine.get().gameObjectManager.findGameObjectsWithPivotsAroundPosition(
             position = position + pivot,
             range = RADIUS * 5f
-        ).filterIsInstance<Box>().forEach { it.destroy(this) }
+        ).filterIsInstance<Box<*>>().forEach { it.destroy(this) }
     }
 
     companion object {

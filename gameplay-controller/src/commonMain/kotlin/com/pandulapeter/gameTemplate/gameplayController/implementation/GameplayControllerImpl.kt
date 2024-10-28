@@ -42,7 +42,7 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
             playTimeInSeconds = runtimeInMilliseconds / 1000,
         )
     }.stateIn(this, SharingStarted.Eagerly, Metadata())
-    private val character = Character.Creator(Offset.Zero).instantiate()
+    private val character = Character.StateHolder(Offset.Zero).instantiate()
 
     init {
         Engine.get().stateManager.isFocused

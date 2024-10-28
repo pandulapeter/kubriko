@@ -1,9 +1,10 @@
 package com.pandulapeter.gameTemplate.engine.gameObject
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class GameObjectStateWrapper(
-    val typeId: String,
-    val state: String,
+    @SerialName("typeId") val typeId: String,
+    @SerialName("state") val serializedState: String,
 )

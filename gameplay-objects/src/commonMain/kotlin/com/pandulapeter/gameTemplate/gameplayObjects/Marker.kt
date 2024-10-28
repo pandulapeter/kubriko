@@ -6,7 +6,6 @@ import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
-import com.pandulapeter.gameTemplate.engine.gameObject.GameObjectCreator
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableOffset
 import kotlinx.serialization.Serializable
@@ -14,23 +13,23 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class Marker private constructor(
-    creator: Creator
-) : GameObject("marker"), Visible {
+    state: StateHolder
+) : GameObject<Marker>("marker"), Visible {
 
-    override var position: Offset = creator.position
+    override var position: Offset = state.position
 
     @Serializable
-    data class Creator(
+    data class StateHolder(
         val position: SerializableOffset
-    ) : GameObjectCreator<Marker> {
+    ) : State<Marker> {
 
         override fun instantiate() = Marker(this)
+
+        override fun serialize() = Json.encodeToString(this)
     }
 
-    override fun saveState() = Json.encodeToString(
-        Creator(
-            position = position,
-        )
+    override fun getState() = StateHolder(
+        position = position,
     )
 
     override var bounds = Size(RADIUS * 2, RADIUS * 2)

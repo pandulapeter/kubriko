@@ -23,7 +23,7 @@ import kotlinx.serialization.json.Json
 
 internal class GameObjectManagerImpl : GameObjectManager {
 
-    val gameObjects = MutableStateFlow(emptyList<GameObject>())
+    val gameObjects = MutableStateFlow(emptyList<GameObject<*>>())
     val dynamicGameObjects = gameObjects.map { it.filterIsInstance<Dynamic>() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
     private val visibleGameObjects = gameObjects.map { it.filterIsInstance<Visible>() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
     val visibleGameObjectsInViewport = combine(
@@ -44,11 +44,11 @@ internal class GameObjectManagerImpl : GameObjectManager {
             .sortedByDescending { it.depth }
     }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
 
-    override fun add(gameObject: GameObject) = gameObjects.update { currentValue ->
+    override fun add(gameObject: GameObject<*>) = gameObjects.update { currentValue ->
         currentValue + gameObject
     }
 
-    override fun add(gameObjects: Collection<GameObject>) = EngineImpl.gameObjectManager.gameObjects.update { currentValue ->
+    override fun add(gameObjects: Collection<GameObject<*>>) = EngineImpl.gameObjectManager.gameObjects.update { currentValue ->
         currentValue + gameObjects
     }
 
@@ -56,16 +56,16 @@ internal class GameObjectManagerImpl : GameObjectManager {
         removeAll()
         add(
             Json.decodeFromString<List<GameObjectStateWrapper>>(json).map { wrapper ->
-                manifest.getCreator(wrapper).instantiate()
+                manifest.deserializeState(wrapper).instantiate()
             }
         )
     }
 
-    override fun remove(gameObject: GameObject) = gameObjects.update { currentValue ->
+    override fun remove(gameObject: GameObject<*>) = gameObjects.update { currentValue ->
         currentValue.filterNot { it == gameObject }
     }
 
-    override fun remove(gameObjects: Collection<GameObject>) = EngineImpl.gameObjectManager.gameObjects.update { currentValue ->
+    override fun remove(gameObjects: Collection<GameObject<*>>) = EngineImpl.gameObjectManager.gameObjects.update { currentValue ->
         currentValue.filterNot { it in gameObjects }
     }
 
@@ -75,7 +75,7 @@ internal class GameObjectManagerImpl : GameObjectManager {
         gameObjects.value.map { gameObject ->
             GameObjectStateWrapper(
                 typeId = gameObject.typeId,
-                state = gameObject.saveState(),
+                serializedState = gameObject.getState().serialize(),
             )
         }
     )

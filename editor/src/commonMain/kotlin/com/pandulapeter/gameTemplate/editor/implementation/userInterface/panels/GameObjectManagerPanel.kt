@@ -17,10 +17,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.gameTemplate.editor.GameObjects
 import com.pandulapeter.gameTemplate.editor.implementation.EditorController
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.ColorfulPropertyEditors
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.RotatablePropertyEditors
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.ScalablePropertyEditors
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.VisiblePropertyEditors
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.ColorfulTraitEditor
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.RotatableTraitEditor
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.ScalableTraitEditor
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.VisibleTraitEditor
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorRadioButton
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorTextTitle
@@ -35,8 +35,8 @@ import game.editor.generated.resources.ic_locate
 
 @Composable
 internal fun GameObjectManagerPanel(
-    data: Pair<GameObject?, Boolean>,
-    selectedGameObjectType: Class<out GameObject>
+    data: Pair<GameObject<*>?, Boolean>,
+    selectedGameObjectType: Class<out GameObject<*>>
 ) {
     Row(
         modifier = Modifier
@@ -94,7 +94,7 @@ internal fun GameObjectManagerPanel(
                     }
                     if (gameObject is Colorful) {
                         item(key = "propertyColorful") {
-                            ColorfulPropertyEditors(
+                            ColorfulTraitEditor(
                                 data = gameObject to data.second,
                                 isExpanded = isColorfulExpanded.value,
                                 onExpandedChanged = { isColorfulExpanded.value = !isColorfulExpanded.value }
@@ -103,7 +103,7 @@ internal fun GameObjectManagerPanel(
                     }
                     if (gameObject is Rotatable) {
                         item(key = "propertyRotatable") {
-                            RotatablePropertyEditors(
+                            RotatableTraitEditor(
                                 data = gameObject to data.second,
                                 isExpanded = isRotatableExpanded.value,
                                 onExpandedChanged = { isRotatableExpanded.value = !isRotatableExpanded.value }
@@ -112,7 +112,7 @@ internal fun GameObjectManagerPanel(
                     }
                     if (gameObject is Scalable) {
                         item(key = "propertyScalable") {
-                            ScalablePropertyEditors(
+                            ScalableTraitEditor(
                                 data = gameObject to data.second,
                                 isExpanded = isScalableExpanded.value,
                                 onExpandedChanged = { isScalableExpanded.value = !isScalableExpanded.value }
@@ -121,7 +121,7 @@ internal fun GameObjectManagerPanel(
                     }
                     if (gameObject is Visible) {
                         item(key = "propertyVisible") {
-                            VisiblePropertyEditors(
+                            VisibleTraitEditor(
                                 data = gameObject to data.second,
                                 isExpanded = isVisibleExpanded.value,
                                 onExpandedChanged = { isVisibleExpanded.value = !isVisibleExpanded.value }
