@@ -3,7 +3,7 @@ package com.pandulapeter.gameTemplate.engine.managers
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObjectManifest
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 
 interface GameObjectManager {
 

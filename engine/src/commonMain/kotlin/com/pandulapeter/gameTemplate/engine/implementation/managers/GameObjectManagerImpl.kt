@@ -4,8 +4,8 @@ import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObjectManifest
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObjectStateWrapper
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Dynamic
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.isAroundPosition
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.isVisible

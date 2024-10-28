@@ -1,4 +1,4 @@
-package com.pandulapeter.gameTemplate.engine.gameObject.properties
+package com.pandulapeter.gameTemplate.engine.gameObject.traits
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size

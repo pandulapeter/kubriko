@@ -7,10 +7,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Colorful
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Movable
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Rotatable
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Colorful
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Movable
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Rotatable
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.angleTowards
 
 abstract class Box(

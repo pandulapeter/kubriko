@@ -9,7 +9,7 @@ import com.pandulapeter.gameTemplate.editor.implementation.helpers.loadFile
 import com.pandulapeter.gameTemplate.editor.implementation.helpers.saveFile
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toPositionInWorld
 import com.pandulapeter.gameTemplate.gameplayObjects.Manifest
 import com.pandulapeter.gameTemplate.gameplayObjects.StaticBox

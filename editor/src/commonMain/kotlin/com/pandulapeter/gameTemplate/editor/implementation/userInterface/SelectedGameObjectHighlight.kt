@@ -5,7 +5,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.gameTemplate.engine.Engine
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.scaleFactor
 
 private const val HIGHLIGHT_SIZE = 4f

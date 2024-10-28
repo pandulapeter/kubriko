@@ -3,9 +3,9 @@ package com.pandulapeter.gameTemplate.engine.implementation.extensions
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawTransform
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Rotatable
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Scalable
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Rotatable
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Scalable
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 
 private const val VIEWPORT_EDGE_BUFFER = 50
 

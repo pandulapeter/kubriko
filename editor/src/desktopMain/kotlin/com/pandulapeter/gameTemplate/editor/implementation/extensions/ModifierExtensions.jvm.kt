@@ -12,7 +12,7 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import com.pandulapeter.gameTemplate.editor.implementation.EditorController
 import com.pandulapeter.gameTemplate.engine.Engine
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.occupiesPosition
 
 private var startOffset: Offset? = null

@@ -20,7 +20,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.minus
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.transform

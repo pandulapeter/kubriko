@@ -1,13 +1,11 @@
 package com.pandulapeter.gameTemplate.gameplayObjects
 
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObjectCreator
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Scalable
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Scalable
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toRadians
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableColor
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableOffset
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

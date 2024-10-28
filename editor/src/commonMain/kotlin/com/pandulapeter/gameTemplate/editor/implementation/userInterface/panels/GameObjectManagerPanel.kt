@@ -25,10 +25,10 @@ import com.pandulapeter.gameTemplate.editor.implementation.userInterface.compone
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorRadioButton
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorTextTitle
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Colorful
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Rotatable
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Scalable
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Colorful
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Rotatable
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Scalable
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import game.editor.generated.resources.Res
 import game.editor.generated.resources.ic_delete
 import game.editor.generated.resources.ic_locate

@@ -9,8 +9,8 @@ import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObjectCreator
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Dynamic
-import com.pandulapeter.gameTemplate.engine.gameObject.properties.Visible
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardDirectionState
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableOffset
 import kotlinx.serialization.Serializable
