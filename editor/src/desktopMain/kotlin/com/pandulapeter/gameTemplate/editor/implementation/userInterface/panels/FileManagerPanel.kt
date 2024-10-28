@@ -7,10 +7,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.gameTemplate.editor.implementation.EditorController
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorIcon
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorText
 import game.editor.generated.resources.Res
 import game.editor.generated.resources.ic_new
 import game.editor.generated.resources.ic_open
@@ -47,6 +50,9 @@ internal fun FileManagerPanel(
             drawableResource = Res.drawable.ic_save,
             contentDescription = "Save",
             onClick = onSaveIconClicked,
+        )
+        EditorText(
+            text = EditorController.currentFileName.collectAsState().value,
         )
     }
     Divider()

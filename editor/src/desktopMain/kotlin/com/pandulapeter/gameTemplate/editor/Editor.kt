@@ -17,9 +17,15 @@ import java.io.File
 import java.io.FilenameFilter
 
 fun openEditor(
+    defaultMapFilename: String? = null,
     vararg supportedGameObjectSerializers: Pair<String, (String) -> GameObject.State<*>>
 ) = application {
     Engine.get().gameObjectManager.register(entries = supportedGameObjectSerializers)
+    defaultMapFilename?.let {
+        EditorController.loadMap(
+            path = "${EditorController.MAPS_DIRECTORY}/$it.json"
+        )
+    }
     Window(
         onCloseRequest = ::exitApplication,
         title = "Editor",

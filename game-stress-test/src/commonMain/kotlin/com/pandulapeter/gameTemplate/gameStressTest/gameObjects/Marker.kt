@@ -42,7 +42,7 @@ class Marker private constructor(
     override fun draw(scope: DrawScope) = scope.drawCircle(
         color = if (position == Offset.Zero) Color.Red else Color.Black,
         radius = RADIUS,
-        center = pivot,
+        center = bounds.center,
     )
 
     companion object {

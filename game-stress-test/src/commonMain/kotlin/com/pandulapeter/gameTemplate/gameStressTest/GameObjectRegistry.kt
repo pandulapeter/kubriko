@@ -8,6 +8,7 @@ import com.pandulapeter.gameTemplate.gameStressTest.gameObjects.StaticBox
 import kotlinx.serialization.json.Json
 
 object GameObjectRegistry {
+
     private val json by lazy {
         Json {
             ignoreUnknownKeys = true

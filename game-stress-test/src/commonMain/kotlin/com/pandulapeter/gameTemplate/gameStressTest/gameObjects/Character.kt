@@ -101,7 +101,7 @@ class Character private constructor(
         scope.drawCircle(
             color = lerp(Color.Red, Color.Green, ((1f + MAX_SIZE_MULTIPLIER) - sizeMultiplier) / MAX_SIZE_MULTIPLIER),
             radius = RADIUS * sizeMultiplier,
-            center = pivot,
+            center = bounds.center,
         )
     }
 

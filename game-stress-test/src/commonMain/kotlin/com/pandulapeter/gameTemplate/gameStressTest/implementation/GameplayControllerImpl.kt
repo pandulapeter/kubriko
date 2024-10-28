@@ -24,6 +24,8 @@ import org.jetbrains.compose.resources.MissingResourceException
 
 internal object GameplayControllerImpl : GameplayController, CoroutineScope {
 
+    const val MAP_NAME = "map_demo"
+
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
     override val metadata = combine(
         Engine.get().metadataManager.fps,
@@ -59,7 +61,7 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
             Engine.get().gameObjectManager.register(
                 entries = GameObjectRegistry.entries,
             )
-            loadMap("map_demo")
+            loadMap(MAP_NAME)
         }
     }
 

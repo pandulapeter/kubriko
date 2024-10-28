@@ -49,7 +49,6 @@ abstract class Box<T: Box<T>>(
 
     final override fun draw(scope: DrawScope) = scope.drawRect(
         color = lerp(color, Color.Black, isDestroyed),
-        topLeft = Offset.Zero,
         size = bounds,
     )
 

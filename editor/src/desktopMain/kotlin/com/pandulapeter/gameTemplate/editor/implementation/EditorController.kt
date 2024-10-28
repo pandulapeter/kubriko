@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 internal object EditorController : CoroutineScope {
 
     const val MAPS_DIRECTORY = "./src/commonMain/composeResources/files/maps"
+    private const val DEFAULT_MAP_FILE_NAME = "map_untitled.json"
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
     val totalGameObjectCount = Engine.get().metadataManager.totalGameObjectCount
     private val mouseScreenCoordinates = MutableStateFlow(Offset.Zero)
@@ -48,7 +49,7 @@ internal object EditorController : CoroutineScope {
     }.stateIn(this, SharingStarted.Eagerly, null to false)
     private val _selectedGameObjectType = MutableStateFlow<String?>(null)
     val selectedGameObjectTypeId = _selectedGameObjectType.asStateFlow()
-    private val _currentFileName = MutableStateFlow("map_untitled.json")
+    private val _currentFileName = MutableStateFlow(DEFAULT_MAP_FILE_NAME)
     val currentFileName = _currentFileName.asStateFlow()
 
     init {
@@ -116,6 +117,7 @@ internal object EditorController : CoroutineScope {
     fun selectGameObjectType(gameObjectTypeId: String) = _selectedGameObjectType.update { gameObjectTypeId }
 
     fun reset() {
+        _currentFileName.update { DEFAULT_MAP_FILE_NAME }
         _selectedGameObject.update { null }
         Engine.get().gameObjectManager.removeAll()
     }
