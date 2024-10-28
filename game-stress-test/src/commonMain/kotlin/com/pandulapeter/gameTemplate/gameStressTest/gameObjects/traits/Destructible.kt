@@ -6,25 +6,24 @@ import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Movable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.angleTowards
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-data class Destroyable(
+class Destructible(
     var destructionState: Float = 0f,
-    private val dynamic: Dynamic? = null,
-    private val visible: Visible? = null,
-    private val movable: Movable? = null,
-) : Trait<Destroyable> {
+) : Trait<Destructible>() {
+    private val movable by lazy { gameObject.getTrait<Movable>() }
+    private val visible by lazy { gameObject.getTrait<Visible>() }
 
     private constructor(state: State) : this(
         destructionState = state.destructionState,
     )
 
-    init {
-        dynamic?.registerUpdater { deltaTimeMillis ->
+    override fun initialize() {
+        gameObject.getTrait<Dynamic>()?.registerUpdater { deltaTimeMillis ->
             if (destructionState > 0) {
                 if (destructionState < 1f) {
                     destructionState += 0.001f * deltaTimeMillis
@@ -43,21 +42,21 @@ data class Destroyable(
         }
     }
 
-    override fun getSerializer(): Serializer<Destroyable> = State(
-        destroyable = this,
+    override fun getSerializer(): Serializer<Destructible> = State(
+        destructible = this,
     )
 
     @Serializable
     private data class State(
         @SerialName("destructionState") val destructionState: Float = 0f,
-    ) : Serializer<Destroyable> {
-        constructor(destroyable: Destroyable) : this(
-            destructionState =destroyable.destructionState,
+    ) : Serializer<Destructible> {
+        constructor(destructible: Destructible) : this(
+            destructionState = destructible.destructionState,
         )
 
         override val typeId = "destroyable"
 
-        override fun instantiate() = Destroyable(
+        override fun instantiate() = Destructible(
             state = this,
         )
 

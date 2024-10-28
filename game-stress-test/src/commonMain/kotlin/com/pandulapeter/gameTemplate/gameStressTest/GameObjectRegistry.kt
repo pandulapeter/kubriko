@@ -15,8 +15,8 @@ object GameObjectRegistry {
     }
 
     val entries = arrayOf<Pair<String, (String) -> Serializer<*>>>(
-        Character.TYPE_ID to { serializedState -> json.decodeFromString<Character.SerializerHolder>(serializedState) },
-        DynamicBox.TYPE_ID to { serializedState -> json.decodeFromString<DynamicBox.SerializerHolder>(serializedState) },
-        StaticBox.TYPE_ID to { serializedState -> json.decodeFromString<StaticBox.SerializerHolder>(serializedState) },
+        Character.TYPE_ID to { serializedState -> json.decodeFromString<Character.State>(serializedState) },
+        DynamicBox.TYPE_ID to { serializedState -> json.decodeFromString<DynamicBox.State>(serializedState) },
+        StaticBox.TYPE_ID to { serializedState -> json.decodeFromString<StaticBox.State>(serializedState) },
     )
 }

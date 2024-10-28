@@ -9,9 +9,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-data class Colorful(
+class Colorful(
     var color: SerializableColor = Color.Gray,
-) : Trait<Colorful> {
+) : Trait<Colorful>() {
 
     private constructor(state: State) : this(
         color = state.color,

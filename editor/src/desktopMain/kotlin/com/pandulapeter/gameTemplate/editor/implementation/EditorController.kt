@@ -8,6 +8,7 @@ import com.pandulapeter.gameTemplate.editor.implementation.helpers.loadFile
 import com.pandulapeter.gameTemplate.editor.implementation.helpers.saveFile
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toPositionInWorld
@@ -71,6 +72,7 @@ internal object EditorController : CoroutineScope {
                 if (currentSelectedGameObject == null) {
                     launch {
                         val typeId = selectedGameObjectTypeId.value
+                        // TODO: Use AvailableInEditor trait instead
                         Engine.get().serializationManager.deserializeGameObjectStates(
                             serializedStates = "[{\"typeId\":\"$typeId\",\"state\":\"{\\\"position\\\":{\\\"x\\\":${positionInWorld.x},\\\"y\\\":${positionInWorld.y}}}\"}]"
                         ).firstOrNull()?.instantiate()?.let { gameObject ->
@@ -81,12 +83,14 @@ internal object EditorController : CoroutineScope {
                     unselectGameObject()
                 }
             } else {
-                currentSelectedGameObject?.isSelectedInEditor = false
-                _selectedGameObject.update {
-                    if (currentSelectedGameObject == gameObjectAtPosition) {
-                        null
-                    } else {
-                        gameObjectAtPosition.also { it.isSelectedInEditor = true }
+                gameObjectAtPosition.getTrait<AvailableInEditor>()?.let { availableInEditor ->
+                    currentSelectedGameObject?.getTrait<AvailableInEditor>()?.isSelectedInEditor = false
+                    _selectedGameObject.update {
+                        if (currentSelectedGameObject == gameObjectAtPosition) {
+                            null
+                        } else {
+                            gameObjectAtPosition.also { availableInEditor.isSelectedInEditor = true }
+                        }
                     }
                 }
             }
@@ -106,7 +110,7 @@ internal object EditorController : CoroutineScope {
     }
 
     private fun unselectGameObject() {
-        _selectedGameObject.value?.isSelectedInEditor = false
+        _selectedGameObject.value?.getTrait<AvailableInEditor>()?.isSelectedInEditor = false
         _selectedGameObject.update { null }
     }
 

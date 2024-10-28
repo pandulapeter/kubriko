@@ -1,6 +1,10 @@
 package com.pandulapeter.gameTemplate.engine.gameObject
 
-interface Trait<T: Trait<T>> {
+abstract class Trait<T : Trait<T>> {
+    lateinit var gameObject: GameObject<*>
+        internal set
 
-    fun getSerializer(): Serializer<T>
+    open fun initialize() = Unit
+
+    abstract fun getSerializer(): Serializer<T>
 }

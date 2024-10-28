@@ -8,9 +8,9 @@ import com.pandulapeter.gameTemplate.engine.gameObject.Trait
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 
 
-inline fun <reified T : Trait<T>> GameObject<*>.getTrait() = traits.firstOrNull { it is T } as? T
+inline fun <reified T : Trait<T>> GameObject<*>.getTrait() = traits[T::class] as? T
 
-inline fun <reified T : Trait<T>> GameObject<*>.hasTrait() = traits.any { it is T }
+inline fun <reified T : Trait<T>> GameObject<*>.hasTrait() = traits[T::class] != null
 
 private const val VIEWPORT_EDGE_BUFFER = 50
 

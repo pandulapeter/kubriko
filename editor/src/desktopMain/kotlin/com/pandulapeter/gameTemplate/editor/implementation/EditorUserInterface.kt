@@ -16,7 +16,6 @@ import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMous
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.FileManagerPanel
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.GameObjectManagerPanel
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.MetadataIndicatorPanel
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.selectedGameObjectHighlight
 import com.pandulapeter.gameTemplate.engine.EngineCanvas
 
 @Composable
@@ -51,7 +50,6 @@ internal fun EditorUserInterface(
                         .handleMouseZoom()
                         .handleMouseDrag()
                         .background(Color.White),
-                    editorSelectedGameObjectHighlight = { selectedGameObjectHighlight(it) },
                 )
             }
             GameObjectManagerPanel(

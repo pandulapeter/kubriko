@@ -4,11 +4,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Unique
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
@@ -16,7 +18,7 @@ import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardDi
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.directionState
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableOffset
-import com.pandulapeter.gameTemplate.gameStressTest.gameObjects.traits.Destroyable
+import com.pandulapeter.gameTemplate.gameStressTest.gameObjects.traits.Destructible
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -31,45 +33,43 @@ import kotlin.math.PI
 import kotlin.math.sin
 
 class Character private constructor(
-    state: SerializerHolder,
+    state: State,
 ) : GameObject<Character>(), CoroutineScope {
 
     private var sizeMultiplier = 1f
     private var nearbyGameObjectPositions = emptyList<Offset>()
 
-    private val visible: Visible by lazy {
-        Visible(
-            bounds = Size(RADIUS * 2, RADIUS * 2),
-            position = state.position,
-            depth = -state.position.y,
-            draw = { scope ->
-                nearbyGameObjectPositions.forEach { nearbyObjectPosition ->
-                    scope.drawLine(
-                        color = Color.Red,
-                        start = pivot,
-                        end = nearbyObjectPosition - position + pivot,
-                        strokeWidth = 2f,
-                    )
-                }
-                scope.drawCircle(
-                    color = lerp(Color.Red, Color.Green, ((1f + MAX_SIZE_MULTIPLIER) - sizeMultiplier) / MAX_SIZE_MULTIPLIER),
-                    radius = RADIUS * sizeMultiplier,
-                    center = bounds.center,
+    private val availableInEditor: AvailableInEditor = AvailableInEditor(
+        createEditorInstance = { position ->
+            Character(
+                state = State(
+                    position = position,
                 )
-            },
-        )
-    }
-    private val dynamic: Dynamic by lazy {
-        Dynamic()
-    }
-    override val traits = setOf(
-        Unique,
-        visible,
-        dynamic,
+            )
+        }
+    )
+    private val unique: Unique = Unique()
+    private val visible: Visible = Visible(
+        bounds = Size(RADIUS * 2, RADIUS * 2),
+        position = state.position,
+        depth = -state.position.y,
+        drawer = ::draw,
+    )
+    private val dynamic: Dynamic = Dynamic(
+        updater = ::update,
     )
 
+    init {
+        registerTraits(
+            availableInEditor,
+            unique,
+            visible,
+            dynamic,
+        )
+    }
+
     @Serializable
-    data class SerializerHolder(
+    data class State(
         @SerialName("position") val position: SerializableOffset = Offset.Zero
     ) : Serializer<Character> {
         override val typeId = TYPE_ID
@@ -79,11 +79,12 @@ class Character private constructor(
         override fun serialize() = Json.encodeToString(this)
     }
 
-    override fun getSerializer() = SerializerHolder(position = visible.position)
+    override fun getSerializer() = State(position = visible.position)
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
 
     init {
+        // TODO: Should be traits instead
         Engine.get().inputManager.activeKeys
             .filter { it.isNotEmpty() }
             .onEach { move(it.directionState) }
@@ -95,20 +96,36 @@ class Character private constructor(
                 }
             }
             .launchIn(this)
-        dynamic.registerUpdater { deltaTimeMillis ->
-            visible.depth = -visible.position.y - visible.pivot.y - 100f
-            Engine.get().viewportManager.addToOffset(calculateViewportOffsetDelta())
-            if (sizeMultiplier > 1f) {
-                sizeMultiplier -= 0.01f * deltaTimeMillis
-            } else {
-                sizeMultiplier = 1f
-            }
-            nearbyGameObjectPositions = Engine.get().gameObjectManager.findGameObjectsWithPivotsAroundPosition(
-                position = visible.position + visible.pivot,
-                range = RADIUS * 5f
-            ).mapNotNull { it.getTrait<Visible>()?.position }
+    }
 
+    private fun update(deltaTimeMillis: Float) {
+        visible.depth = -visible.position.y - visible.pivot.y - 100f
+        Engine.get().viewportManager.addToOffset(calculateViewportOffsetDelta())
+        if (sizeMultiplier > 1f) {
+            sizeMultiplier -= 0.01f * deltaTimeMillis
+        } else {
+            sizeMultiplier = 1f
         }
+        nearbyGameObjectPositions = Engine.get().gameObjectManager.findGameObjectsWithPivotsAroundPosition(
+            position = visible.position + visible.pivot,
+            range = RADIUS * 5f
+        ).mapNotNull { it.getTrait<Visible>()?.position }
+    }
+
+    private fun draw(scope: DrawScope) {
+        nearbyGameObjectPositions.forEach { nearbyObjectPosition ->
+            scope.drawLine(
+                color = Color.Red,
+                start = visible.pivot,
+                end = nearbyObjectPosition - visible.position + visible.pivot,
+                strokeWidth = 2f,
+            )
+        }
+        scope.drawCircle(
+            color = lerp(Color.Red, Color.Green, ((1f + MAX_SIZE_MULTIPLIER) - sizeMultiplier) / MAX_SIZE_MULTIPLIER),
+            radius = RADIUS * sizeMultiplier,
+            center = visible.bounds.center,
+        )
     }
 
     private fun calculateViewportOffsetDelta() = Engine.get().viewportManager.offset.value.let { viewportOffset ->
@@ -140,7 +157,7 @@ class Character private constructor(
                 position = visible.position + visible.pivot,
                 range = RADIUS * 5f
             )
-                .mapNotNull { it.getTrait<Destroyable>() }
+                .mapNotNull { it.getTrait<Destructible>() }
                 .forEach { it.destroy(visible) }
         }
     }

@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -26,7 +27,10 @@ internal class GameObjectManagerImpl : GameObjectManager {
 
     private val _gameObjectSerializerRegistry = MutableStateFlow(mapOf<String, (String) -> Serializer<*>>())
     val gameObjectStateRegistry = _gameObjectSerializerRegistry.asStateFlow()
-    override val registeredTypeIds = _gameObjectSerializerRegistry.map { it.keys.toList() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
+    override val registeredTypeIdsForEditor = _gameObjectSerializerRegistry
+        // TODO: Filter for AvailableInEditor trait
+        .map { it.keys.toList() }
+        .stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
     private val _gameObjects = MutableStateFlow(emptyList<GameObject<*>>())
     val gameObjects = _gameObjects.asStateFlow()
     val dynamicTraits = _gameObjects.map { gameObjects -> gameObjects.mapNotNull { it.getTrait<Dynamic>() } }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())

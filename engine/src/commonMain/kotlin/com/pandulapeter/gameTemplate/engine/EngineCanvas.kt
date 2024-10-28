@@ -13,13 +13,11 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawTransform
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
@@ -30,7 +28,6 @@ import kotlinx.coroutines.isActive
 @Composable
 fun EngineCanvas(
     modifier: Modifier = Modifier,
-    editorSelectedGameObjectHighlight: DrawScope.(Visible) -> Unit = {},
 ) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val gameTime = remember { mutableStateOf(0L) }
@@ -82,15 +79,11 @@ fun EngineCanvas(
                     drawBlock = {
                         EngineImpl.gameObjectManager.visibleGameObjectsInViewport.value
                             .mapNotNull { it.getTrait<Visible>() }
-                            .forEach { gameObject ->
+                            .forEach { visible ->
                                 withTransform(
-                                    transformBlock = { gameObject.transform(this) },
+                                    transformBlock = { visible.transform(this) },
                                     drawBlock = {
-                                        // TODO: Highlight
-//                                        if (gameObject.isSelectedInEditor) {
-//                                            editorSelectedGameObjectHighlight(gameObject)
-//                                        }
-                                        gameObject.draw(gameObject, this)
+                                        visible.draw(this)
                                     }
                                 )
                             }

@@ -4,8 +4,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Colorful
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableColor
@@ -20,29 +22,38 @@ class Box private constructor(
     state: State,
 ) : GameObject<Box>() {
 
-    private val colorful: Colorful by lazy {
-        Colorful(
-            color = state.color,
-        )
-    }
-    private val visible: Visible by lazy {
-        Visible(
-            bounds = state.bounds,
-            position = state.position,
-            scale = state.scale,
-            rotationDegrees = state.rotationDegrees,
-            depth = -state.position.y,
-            draw = { scope ->
-                scope.drawRect(
-                    color = colorful.color,
-                    size = bounds,
+    private val availableInEditor: AvailableInEditor = AvailableInEditor(
+        createEditorInstance = { position ->
+            Box(
+                state = State(
+                    position = position
                 )
-            }
+            )
+        }
+    )
+    private val colorful: Colorful = Colorful(
+        color = state.color,
+    )
+    private val visible: Visible = Visible(
+        bounds = state.bounds,
+        position = state.position,
+        scale = state.scale,
+        rotationDegrees = state.rotationDegrees,
+        depth = state.depth,
+        drawer = ::draw,
+    )
+
+    init {
+        registerTraits(
+            availableInEditor,
+            visible,
+            colorful,
         )
     }
-    override val traits = setOf(
-        visible,
-        colorful,
+
+    private fun draw(scope: DrawScope) = scope.drawRect(
+        color = colorful.color,
+        size = visible.bounds,
     )
 
     @Serializable

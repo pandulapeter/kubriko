@@ -44,7 +44,7 @@ internal fun GameObjectManagerPanel(
             .fillMaxHeight()
             .width(200.dp),
     ) {
-        val registeredTypeIds = Engine.get().gameObjectManager.registeredTypeIds.collectAsState()
+        val registeredTypeIds = Engine.get().gameObjectManager.registeredTypeIdsForEditor.collectAsState()
         Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
         val isColorfulExpanded = remember { mutableStateOf(false) }
         val isVisibleExpanded = remember { mutableStateOf(false) }

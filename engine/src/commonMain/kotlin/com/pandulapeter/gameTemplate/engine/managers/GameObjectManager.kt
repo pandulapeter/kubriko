@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface GameObjectManager {
 
-    val registeredTypeIds: StateFlow<List<String>>
+    val registeredTypeIdsForEditor: StateFlow<List<String>>
 
     fun register(vararg entries: Pair<String, (String) -> Serializer<*>>)
 

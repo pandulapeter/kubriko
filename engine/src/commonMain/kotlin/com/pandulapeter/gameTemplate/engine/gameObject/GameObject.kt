@@ -1,9 +1,17 @@
 package com.pandulapeter.gameTemplate.engine.gameObject
 
-// TODO: Interface
+import kotlin.reflect.KClass
+
 abstract class GameObject<T : GameObject<T>> {
-    abstract val traits: Set<Trait<*>> // TODO: Should not be a Set
-    var isSelectedInEditor = false
+
+    lateinit var traits: Map<KClass<out Trait<*>>, Trait<*>>
+        private set
+
+    protected fun registerTraits(vararg traits: Trait<*>) {
+        this.traits = traits.associateBy { it::class }
+        traits.forEach { it.gameObject = this }
+        traits.forEach { it.initialize() }
+    }
 
     abstract fun getSerializer(): Serializer<T>
 

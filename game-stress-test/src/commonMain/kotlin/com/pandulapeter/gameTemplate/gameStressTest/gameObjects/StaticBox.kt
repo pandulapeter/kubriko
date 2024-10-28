@@ -4,9 +4,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Colorful
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Movable
@@ -14,65 +16,62 @@ import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableColor
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableOffset
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableSize
-import com.pandulapeter.gameTemplate.gameStressTest.gameObjects.traits.Destroyable
+import com.pandulapeter.gameTemplate.gameStressTest.gameObjects.traits.Destructible
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class StaticBox private constructor(
-    state: SerializerHolder,
+    state: State,
 ) : GameObject<StaticBox>() {
 
-    private val colorful: Colorful by lazy {
-        Colorful(
-            color = state.color,
-        )
-    }
-    private val visible: Visible by lazy {
-        Visible(
-            bounds = state.bounds,
-            position = state.position,
-            scale = state.scale,
-            rotationDegrees = state.rotationDegrees,
-            depth = -state.position.y,
-            draw = { scope ->
-                scope.drawRect(
-                    color = lerp(colorful.color, Color.Black, destroyable.destructionState),
-                    size = bounds,
+    private val availableInEditor: AvailableInEditor = AvailableInEditor(
+        createEditorInstance = { position ->
+            StaticBox(
+                state = State(
+                    position = position,
                 )
-            }
+            )
+        }
+    )
+    private val colorful: Colorful = Colorful(
+        color = state.color,
+    )
+    private val visible: Visible = Visible(
+        bounds = state.bounds,
+        position = state.position,
+        scale = state.scale,
+        rotationDegrees = state.rotationDegrees,
+        depth = state.depth,
+        drawer = ::draw,
+    )
+    private val movable: Movable = Movable(
+        directionDegrees = state.directionDegrees,
+        speed = state.speed,
+        friction = state.friction,
+    )
+    private val dynamic: Dynamic= Dynamic()
+    private val destructible: Destructible = Destructible()
+
+    init {
+        registerTraits(
+            availableInEditor,
+            visible,
+            colorful,
+            destructible,
+            dynamic,
+            movable,
         )
     }
-    private val movable: Movable by lazy {
-        Movable(
-            directionDegrees = state.directionDegrees,
-            speed = state.speed,
-            friction = state.friction,
-            dynamic = dynamic,
-            visible = visible,
-        )
-    }
-    private val dynamic: Dynamic by lazy {
-        Dynamic()
-    }
-    private val destroyable: Destroyable by lazy {
-        Destroyable(
-            dynamic = dynamic,
-            visible = visible,
-            movable = movable,
-        )
-    }
-    override val traits = setOf(
-        visible,
-        colorful,
-        destroyable,
-        dynamic,
-        movable,
+
+    private fun draw(scope: DrawScope) = scope.drawRect(
+        color = lerp(colorful.color, Color.Black, destructible.destructionState),
+        size = visible.bounds,
     )
 
     @Serializable
-    data class SerializerHolder(
+    data class State(
         @SerialName("color") val color: SerializableColor = Color.Gray,
         @SerialName("bounds") val bounds: SerializableSize = Size(100f, 100f),
         @SerialName("pivot") val pivot: SerializableOffset = bounds.center,
@@ -92,7 +91,7 @@ class StaticBox private constructor(
         override fun serialize() = Json.encodeToString(this)
     }
 
-    override fun getSerializer() = SerializerHolder(
+    override fun getSerializer() = State(
         color = colorful.color,
         bounds = visible.bounds,
         pivot = visible.pivot,

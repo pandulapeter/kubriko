@@ -13,15 +13,15 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-data class Visible(
+class Visible(
     var bounds: SerializableSize = Size.Zero,
     var pivot: SerializableOffset = bounds.center,
     var position: SerializableOffset = Offset.Zero,
     var scale: SerializableSize = Size(1f, 1f),
     var rotationDegrees: Float = 1f,
     var depth: Float = 0f,
-    val draw: Visible.(DrawScope) -> Unit = {},
-) : Trait<Visible> {
+    drawer: ((DrawScope) -> Unit)? = null,
+) : Trait<Visible>() {
 
     private constructor(state: State) : this(
         bounds = state.bounds,
@@ -31,6 +31,16 @@ data class Visible(
         rotationDegrees = state.rotationDegrees,
         depth = state.depth,
     )
+
+    private val allDrawers = mutableListOf<(DrawScope) -> Unit>().apply {
+        drawer?.let(::add)
+    }
+
+    fun registerDrawer(drawer: (DrawScope) -> Unit) {
+        allDrawers.add(drawer)
+    }
+
+    fun draw(scope: DrawScope) = allDrawers.forEach { it(scope) }
 
     override fun getSerializer(): Serializer<Visible> = State(
         visible = this,
