@@ -4,6 +4,7 @@ import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
 import com.pandulapeter.gameTemplate.engine.managers.GameObjectManager
 import com.pandulapeter.gameTemplate.engine.managers.InputManager
 import com.pandulapeter.gameTemplate.engine.managers.MetadataManager
+import com.pandulapeter.gameTemplate.engine.managers.SerializationManager
 import com.pandulapeter.gameTemplate.engine.managers.StateManager
 import com.pandulapeter.gameTemplate.engine.managers.ViewportManager
 
@@ -11,6 +12,7 @@ interface Engine {
     val gameObjectManager: GameObjectManager
     val inputManager: InputManager
     val metadataManager: MetadataManager
+    val serializationManager: SerializationManager
     val stateManager: StateManager
     val viewportManager: ViewportManager
 

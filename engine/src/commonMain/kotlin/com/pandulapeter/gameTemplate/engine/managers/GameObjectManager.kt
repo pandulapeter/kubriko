@@ -2,24 +2,24 @@ package com.pandulapeter.gameTemplate.engine.managers
 
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
-import com.pandulapeter.gameTemplate.engine.gameObject.GameObjectManifest
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
+import kotlinx.coroutines.flow.StateFlow
 
 interface GameObjectManager {
 
-    fun add(gameObject: GameObject<*>)
+    val registeredTypeIds: StateFlow<List<String>>
 
-    fun add(gameObjects: Collection<GameObject<*>>)
+    fun register(vararg entries: Pair<String, (String) -> GameObject.State<*>>)
 
-    suspend fun addFromJson(json: String, manifest: GameObjectManifest)
+    fun add(vararg gameObjects: GameObject<*>)
 
-    fun remove(gameObject: GameObject<*>)
-
-    fun remove(gameObjects: Collection<GameObject<*>>)
+    fun remove(vararg gameObjects: GameObject<*>)
 
     fun removeAll()
 
-    suspend fun saveToJson(): String
+    suspend fun serializeState(): String
+
+    suspend fun deserializeState(json: String)
 
     fun findGameObjectsWithBoundsInPosition(position: Offset): List<Visible>
 

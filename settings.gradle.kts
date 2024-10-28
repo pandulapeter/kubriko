@@ -1,11 +1,8 @@
 rootProject.name = "Game"
 include(
-    ":app",
     ":editor",
     ":engine",
-    ":gameplay-controller",
-    ":gameplay-objects",
-    ":ui",
+    ":game-stress-test",
 )
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

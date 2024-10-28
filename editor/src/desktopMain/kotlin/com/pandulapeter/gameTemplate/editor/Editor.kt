@@ -6,14 +6,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.window.AwtWindow
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import com.pandulapeter.gameTemplate.editor.implementation.EditorApp
 import com.pandulapeter.gameTemplate.editor.implementation.EditorController
+import com.pandulapeter.gameTemplate.engine.Engine
+import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
 import java.io.FilenameFilter
 
-fun main() = application {
+fun openEditor(
+    vararg supportedGameObjectSerializers: Pair<String, (String) -> GameObject.State<*>>
+) = application {
+    Engine.get().gameObjectManager.register(entries = supportedGameObjectSerializers)
     Window(
         onCloseRequest = ::exitApplication,
         title = "Editor",

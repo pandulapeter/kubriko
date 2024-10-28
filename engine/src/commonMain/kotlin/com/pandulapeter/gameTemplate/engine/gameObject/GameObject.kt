@@ -1,15 +1,13 @@
 package com.pandulapeter.gameTemplate.engine.gameObject
 
-abstract class GameObject<T : GameObject<T>>(
-    val isUnique: Boolean = false, // TODO: Should be a trait instead
-) {
+abstract class GameObject<T : GameObject<T>> {
     var isSelectedInEditor = false
 
     abstract fun getState(): State<T>
 
     interface State<T : GameObject<T>> {
 
-        val typeId: String get() = this::class.qualifiedName.orEmpty()
+        val typeId: String
 
         fun instantiate(): T
 
