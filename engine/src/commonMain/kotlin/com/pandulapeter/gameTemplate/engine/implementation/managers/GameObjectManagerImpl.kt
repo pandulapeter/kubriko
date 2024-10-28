@@ -2,6 +2,7 @@ package com.pandulapeter.gameTemplate.engine.implementation.managers
 
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Unique
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
@@ -23,7 +24,7 @@ import kotlinx.coroutines.flow.update
 
 internal class GameObjectManagerImpl : GameObjectManager {
 
-    private val _gameObjectSerializerRegistry = MutableStateFlow(mapOf<String, (String) -> GameObject.Serializer<*>>())
+    private val _gameObjectSerializerRegistry = MutableStateFlow(mapOf<String, (String) -> Serializer<*>>())
     val gameObjectStateRegistry = _gameObjectSerializerRegistry.asStateFlow()
     override val registeredTypeIds = _gameObjectSerializerRegistry.map { it.keys.toList() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
     private val _gameObjects = MutableStateFlow(emptyList<GameObject<*>>())
@@ -49,7 +50,7 @@ internal class GameObjectManagerImpl : GameObjectManager {
     }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
 
 
-    override fun register(vararg entries: Pair<String, (String) -> GameObject.Serializer<*>>) = _gameObjectSerializerRegistry.update { currentValue ->
+    override fun register(vararg entries: Pair<String, (String) -> Serializer<*>>) = _gameObjectSerializerRegistry.update { currentValue ->
         currentValue.toMutableMap().also { mutableMap ->
             entries.forEach { (typeId, deserializer) ->
                 mutableMap[typeId] = deserializer
@@ -58,7 +59,7 @@ internal class GameObjectManagerImpl : GameObjectManager {
     }
 
     override fun add(vararg gameObjects: GameObject<*>) = _gameObjects.update { currentValue ->
-        val uniqueGameObjects = gameObjects.filter { it.traits.contains(Unique) }
+        val uniqueGameObjects = gameObjects.filter { it.hasTrait<Unique>() }
         if (uniqueGameObjects.isEmpty()) {
             currentValue
         } else {
@@ -70,11 +71,11 @@ internal class GameObjectManagerImpl : GameObjectManager {
         } + gameObjects
     }
 
-    override suspend fun serializeState() = EngineImpl.serializationManager.serializeGameObjectStates(gameObjects.value.map { it.getState() })
+    override suspend fun serializeState() = EngineImpl.serializationManager.serializeGameObjectStates(gameObjects.value.map { it.getSerializer() })
 
     override suspend fun deserializeState(json: String) {
         removeAll()
-        add(gameObjects = EngineImpl.serializationManager.deserializeGameObjectStates(json).map { it.instantiate() }.toTypedArray())
+        add(gameObjects = EngineImpl.serializationManager.deserializeGameObjectStates(json).map { it.instantiate() }.filterIsInstance<GameObject<*>>().toTypedArray())
     }
 
     override fun remove(vararg gameObjects: GameObject<*>) = _gameObjects.update { currentValue ->

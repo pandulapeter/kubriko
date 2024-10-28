@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Unique
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
@@ -59,22 +60,7 @@ class Character private constructor(
         )
     }
     private val dynamic: Dynamic by lazy {
-        Dynamic(
-            updater = { deltaTimeMillis ->
-                visible.depth = -visible.position.y - visible.pivot.y - 100f
-                Engine.get().viewportManager.addToOffset(calculateViewportOffsetDelta())
-                if (sizeMultiplier > 1f) {
-                    sizeMultiplier -= 0.01f * deltaTimeMillis
-                } else {
-                    sizeMultiplier = 1f
-                }
-                nearbyGameObjectPositions = Engine.get().gameObjectManager.findGameObjectsWithPivotsAroundPosition(
-                    position = visible.position + visible.pivot,
-                    range = RADIUS * 5f
-                ).mapNotNull { it.getTrait<Visible>()?.position }
-
-            }
-        )
+        Dynamic()
     }
     override val traits = setOf(
         Unique,
@@ -93,7 +79,7 @@ class Character private constructor(
         override fun serialize() = Json.encodeToString(this)
     }
 
-    override fun getState() = SerializerHolder(position = visible.position)
+    override fun getSerializer() = SerializerHolder(position = visible.position)
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
 
@@ -109,6 +95,20 @@ class Character private constructor(
                 }
             }
             .launchIn(this)
+        dynamic.registerUpdater { deltaTimeMillis ->
+            visible.depth = -visible.position.y - visible.pivot.y - 100f
+            Engine.get().viewportManager.addToOffset(calculateViewportOffsetDelta())
+            if (sizeMultiplier > 1f) {
+                sizeMultiplier -= 0.01f * deltaTimeMillis
+            } else {
+                sizeMultiplier = 1f
+            }
+            nearbyGameObjectPositions = Engine.get().gameObjectManager.findGameObjectsWithPivotsAroundPosition(
+                position = visible.position + visible.pivot,
+                range = RADIUS * 5f
+            ).mapNotNull { it.getTrait<Visible>()?.position }
+
+        }
     }
 
     private fun calculateViewportOffsetDelta() = Engine.get().viewportManager.offset.value.let { viewportOffset ->

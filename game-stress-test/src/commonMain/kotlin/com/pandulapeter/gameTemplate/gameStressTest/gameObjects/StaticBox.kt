@@ -6,6 +6,7 @@ import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Colorful
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Movable
@@ -47,6 +48,7 @@ class StaticBox private constructor(
         Movable(
             directionDegrees = state.directionDegrees,
             speed = state.speed,
+            friction = state.friction,
             dynamic = dynamic,
             visible = visible,
         )
@@ -80,6 +82,7 @@ class StaticBox private constructor(
         @SerialName("rotationDegrees") val rotationDegrees: Float = 0f,
         @SerialName("directionDegrees") val directionDegrees: Float = 0f,
         @SerialName("speed") val speed: Float = 0f,
+        @SerialName("friction") val friction: Float = 0.015f,
     ) : Serializer<StaticBox> {
 
         override val typeId = TYPE_ID
@@ -89,7 +92,7 @@ class StaticBox private constructor(
         override fun serialize() = Json.encodeToString(this)
     }
 
-    override fun getState() = SerializerHolder(
+    override fun getSerializer() = SerializerHolder(
         color = colorful.color,
         bounds = visible.bounds,
         pivot = visible.pivot,

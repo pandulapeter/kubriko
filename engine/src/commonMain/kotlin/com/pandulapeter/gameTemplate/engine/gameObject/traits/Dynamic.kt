@@ -1,24 +1,22 @@
 package com.pandulapeter.gameTemplate.engine.gameObject.traits
 
+import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
 import com.pandulapeter.gameTemplate.engine.gameObject.Trait
 
-data class Dynamic(
-    private val updater: Dynamic.(Float) -> Unit = {},
-) : Trait<Dynamic> {
-
-    private var allUpdaters = listOf(updater)
-
-    fun registerUpdater(updater: Dynamic.(Float) -> Unit) {
-        allUpdaters = allUpdaters + updater
-    }
-
-    fun update(deltaTimeInMillis: Float) {
-        allUpdaters.forEach { it(deltaTimeInMillis) }
-    }
+class Dynamic : Trait<Dynamic>, Serializer<Dynamic> {
 
     override val typeId = "dynamic"
+    private val allUpdaters = mutableListOf<(Float) -> Unit>()
 
-    override fun deserialize(json: String) = Dynamic()
+    fun registerUpdater(updater: (Float) -> Unit) {
+        allUpdaters.add(updater)
+    }
+
+    fun update(deltaTimeInMillis: Float) = allUpdaters.forEach { it(deltaTimeInMillis) }
+
+    override fun instantiate() = Dynamic()
 
     override fun serialize() = ""
+
+    override fun getSerializer(): Serializer<Dynamic> = this
 }

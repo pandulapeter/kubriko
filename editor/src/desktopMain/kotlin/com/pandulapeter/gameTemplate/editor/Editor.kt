@@ -9,7 +9,7 @@ import androidx.compose.ui.window.application
 import com.pandulapeter.gameTemplate.editor.implementation.EditorApp
 import com.pandulapeter.gameTemplate.editor.implementation.EditorController
 import com.pandulapeter.gameTemplate.engine.Engine
-import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
 import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame
@@ -18,7 +18,7 @@ import java.io.FilenameFilter
 
 fun openEditor(
     defaultMapFilename: String? = null,
-    vararg supportedGameObjectSerializers: Pair<String, (String) -> GameObject.Serializer<*>>
+    vararg supportedGameObjectSerializers: Pair<String, (String) -> Serializer<*>>
 ) = application {
     Engine.get().gameObjectManager.register(entries = supportedGameObjectSerializers)
     defaultMapFilename?.let {

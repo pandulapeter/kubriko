@@ -1,5 +1,6 @@
 package com.pandulapeter.gameTemplate.gameStressTest.gameObjects.traits
 
+import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
 import com.pandulapeter.gameTemplate.engine.gameObject.Trait
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Movable
@@ -11,14 +12,16 @@ import kotlinx.serialization.Transient
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-@Serializable
 data class Destroyable(
-    @SerialName("destructionState") var destructionState: Float = 0f,
-    @Transient private val dynamic: Dynamic? = null,
-    @Transient private val visible: Visible? = null,
-    @Transient private val movable: Movable? = null,
+    var destructionState: Float = 0f,
+    private val dynamic: Dynamic? = null,
+    private val visible: Visible? = null,
+    private val movable: Movable? = null,
 ) : Trait<Destroyable> {
-    override val typeId = "destroyable"
+
+    private constructor(state: State) : this(
+        destructionState = state.destructionState,
+    )
 
     init {
         dynamic?.registerUpdater { deltaTimeMillis ->
@@ -27,13 +30,6 @@ data class Destroyable(
                     destructionState += 0.001f * deltaTimeMillis
                 } else {
                     destructionState = 1f
-                }
-            }
-            movable?.run {
-                if (speed > 0) {
-                    speed -= 0.015f * deltaTimeMillis
-                } else {
-                    speed = 0f
                 }
             }
         }
@@ -47,7 +43,24 @@ data class Destroyable(
         }
     }
 
-    override fun serialize() = Json.encodeToString(this)
+    override fun getSerializer(): Serializer<Destroyable> = State(
+        destroyable = this,
+    )
 
-    override fun deserialize(json: String) = Json.decodeFromString<Destroyable>(json)
+    @Serializable
+    private data class State(
+        @SerialName("destructionState") val destructionState: Float = 0f,
+    ) : Serializer<Destroyable> {
+        constructor(destroyable: Destroyable) : this(
+            destructionState =destroyable.destructionState,
+        )
+
+        override val typeId = "destroyable"
+
+        override fun instantiate() = Destroyable(
+            state = this,
+        )
+
+        override fun serialize() = Json.encodeToString(this)
+    }
 }

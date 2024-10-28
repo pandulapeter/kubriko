@@ -74,7 +74,7 @@ internal object EditorController : CoroutineScope {
                         Engine.get().serializationManager.deserializeGameObjectStates(
                             serializedStates = "[{\"typeId\":\"$typeId\",\"state\":\"{\\\"position\\\":{\\\"x\\\":${positionInWorld.x},\\\"y\\\":${positionInWorld.y}}}\"}]"
                         ).firstOrNull()?.instantiate()?.let { gameObject ->
-                            Engine.get().gameObjectManager.add(gameObject)
+                            Engine.get().gameObjectManager.add(gameObject as GameObject<*>)
                         }
                     }
                 } else {

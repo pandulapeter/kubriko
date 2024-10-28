@@ -5,6 +5,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Colorful
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableColor
@@ -16,7 +17,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class Box private constructor(
-    state: SerializerHolder,
+    state: State,
 ) : GameObject<Box>() {
 
     private val colorful: Colorful by lazy {
@@ -45,7 +46,7 @@ class Box private constructor(
     )
 
     @Serializable
-    data class SerializerHolder(
+    data class State(
         @SerialName("color") val color: SerializableColor = Color.Gray,
         @SerialName("bounds") val bounds: SerializableSize = Size(100f, 100f),
         @SerialName("pivot") val pivot: SerializableOffset = bounds.center,
@@ -62,7 +63,7 @@ class Box private constructor(
         override fun serialize() = Json.encodeToString(this)
     }
 
-    override fun getState() = SerializerHolder(
+    override fun getSerializer() = State(
         color = colorful.color,
         bounds = visible.bounds,
         pivot = visible.pivot,

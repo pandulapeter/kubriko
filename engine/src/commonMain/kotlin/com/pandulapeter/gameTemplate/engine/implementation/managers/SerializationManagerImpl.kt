@@ -1,6 +1,6 @@
 package com.pandulapeter.gameTemplate.engine.implementation.managers
 
-import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
 import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
 import com.pandulapeter.gameTemplate.engine.managers.SerializationManager
 import kotlinx.serialization.SerialName
@@ -15,7 +15,7 @@ internal class SerializationManagerImpl : SerializationManager {
     }
 
     override suspend fun serializeGameObjectStates(
-        gameObjectSerializers: List<GameObject.Serializer<*>>,
+        gameObjectSerializers: List<Serializer<*>>,
     ) = json.encodeToString(
         gameObjectSerializers.map { state ->
             GameObjectStateWrapper(

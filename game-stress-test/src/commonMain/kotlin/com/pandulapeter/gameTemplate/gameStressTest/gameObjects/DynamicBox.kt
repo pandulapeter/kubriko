@@ -6,11 +6,11 @@ import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Colorful
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Movable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
-import com.pandulapeter.gameTemplate.engine.implementation.extensions.angleTowards
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toRadians
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableColor
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableOffset
@@ -33,6 +33,7 @@ class DynamicBox private constructor(
         Movable(
             directionDegrees = state.directionDegrees,
             speed = state.speed,
+            friction = state.friction,
             dynamic = dynamic,
             visible = visible,
         )
@@ -58,35 +59,7 @@ class DynamicBox private constructor(
         )
     }
     private val dynamic: Dynamic by lazy {
-        Dynamic(
-            updater = { deltaTimeMillis ->
-                visible.rotationDegrees += 0.1f * deltaTimeMillis
-                while (visible.rotationDegrees > 360f) {
-                    visible.rotationDegrees -= 360f
-                }
-                if (visible.scale.width >= 1.6f) {
-                    isGrowing = false
-                }
-                if (visible.scale.width <= 0.5f) {
-                    isGrowing = true
-                }
-                if (isGrowing) {
-                    visible.scale = Size(
-                        width = visible.scale.width + 0.001f * deltaTimeMillis,
-                        height = visible.scale.height + 0.001f * deltaTimeMillis,
-                    )
-                } else {
-                    visible.scale = Size(
-                        width = visible.scale.width - 0.001f * deltaTimeMillis,
-                        height = visible.scale.height - 0.001f * deltaTimeMillis,
-                    )
-                }
-                visible.position += Offset(
-                    x = cos(visible.rotationDegrees.toRadians()),
-                    y = -sin(visible.rotationDegrees.toRadians()),
-                )
-            }
-        )
+        Dynamic()
     }
     private val destroyable: Destroyable by lazy {
         Destroyable(
@@ -103,6 +76,36 @@ class DynamicBox private constructor(
         destroyable,
     )
 
+    init {
+        dynamic.registerUpdater { deltaTimeMillis ->
+            visible.rotationDegrees += 0.1f * deltaTimeMillis
+            while (visible.rotationDegrees > 360f) {
+                visible.rotationDegrees -= 360f
+            }
+            if (visible.scale.width >= 1.6f) {
+                isGrowing = false
+            }
+            if (visible.scale.width <= 0.5f) {
+                isGrowing = true
+            }
+            if (isGrowing) {
+                visible.scale = Size(
+                    width = visible.scale.width + 0.001f * deltaTimeMillis,
+                    height = visible.scale.height + 0.001f * deltaTimeMillis,
+                )
+            } else {
+                visible.scale = Size(
+                    width = visible.scale.width - 0.001f * deltaTimeMillis,
+                    height = visible.scale.height - 0.001f * deltaTimeMillis,
+                )
+            }
+            visible.position += Offset(
+                x = cos(visible.rotationDegrees.toRadians()),
+                y = -sin(visible.rotationDegrees.toRadians()),
+            )
+        }
+    }
+
     @Serializable
     data class SerializerHolder(
         @SerialName("color") val color: SerializableColor = Color.Gray,
@@ -114,6 +117,7 @@ class DynamicBox private constructor(
         @SerialName("depth") val depth: Float = 0f,
         @SerialName("directionDegrees") val directionDegrees: Float = 0f,
         @SerialName("speed") val speed: Float = 0f,
+        @SerialName("friction") val friction: Float = 0.015f,
     ) : Serializer<DynamicBox> {
 
         override val typeId = TYPE_ID
@@ -123,7 +127,7 @@ class DynamicBox private constructor(
         override fun serialize() = Json.encodeToString(this)
     }
 
-    override fun getState() = SerializerHolder(
+    override fun getSerializer() = SerializerHolder(
         color = colorful.color,
         bounds = visible.bounds,
         pivot = visible.pivot,
