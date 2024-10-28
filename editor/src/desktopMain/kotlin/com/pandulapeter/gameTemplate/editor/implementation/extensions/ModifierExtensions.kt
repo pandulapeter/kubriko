@@ -20,20 +20,28 @@ private var isDragging = false
 
 @OptIn(ExperimentalComposeUiApi::class)
 internal fun Modifier.handleMouseClick(): Modifier = onPointerEvent(PointerEventType.Press) { event ->
-    if (event.button == PointerButton.Primary) {
-        (EditorController.selectedGameObject.value.first as? Visible)?.let { visible ->
+    when (event.button) {
+        PointerButton.Primary -> (EditorController.selectedGameObject.value.first as? Visible)?.let { visible ->
             if (visible.occupiesPosition(EditorController.mouseWorldPosition.value)) {
                 startOffset = EditorController.mouseWorldPosition.value - visible.position
             }
         }
     }
 }.onPointerEvent(PointerEventType.Release) { event ->
-    if (event.button == PointerButton.Primary) {
-        startOffset = null
-        if (!isDragging) {
-            event.changes.first().position.let(EditorController::handleClick)
+    when (event.button) {
+        PointerButton.Primary -> {
+            startOffset = null
+            if (!isDragging) {
+                event.changes.first().position.let(EditorController::handleLeftClick)
+            }
+            isDragging = false
         }
-        isDragging = false
+
+        PointerButton.Secondary -> {
+            if (!isDragging) {
+                event.changes.first().position.let(EditorController::handleRightClick)
+            }
+        }
     }
 }
 

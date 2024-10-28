@@ -91,7 +91,7 @@ internal fun GameObjectManagerPanel(
                             EditorIcon(
                                 drawableResource = Res.drawable.ic_delete,
                                 contentDescription = "Delete",
-                                onClick = EditorController::deleteGameObject,
+                                onClick = EditorController::deleteSelectedGameObject,
                             )
                         }
                         Divider()

@@ -2,6 +2,7 @@ rootProject.name = "Game"
 include(
     ":editor",
     ":engine",
+    ":game-pong",
     ":game-stress-test",
 )
 

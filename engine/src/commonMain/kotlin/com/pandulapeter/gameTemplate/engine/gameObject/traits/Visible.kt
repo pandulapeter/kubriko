@@ -10,5 +10,5 @@ interface Visible {
     var position: Offset
     var depth: Float
 
-    fun draw(scope: DrawScope) = Unit
+    fun draw(scope: DrawScope)
 }

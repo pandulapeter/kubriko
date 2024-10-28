@@ -62,7 +62,7 @@ internal object EditorController : CoroutineScope {
             .launchIn(this)
     }
 
-    fun handleClick(screenCoordinates: Offset) = Engine.get().gameObjectManager.run {
+    fun handleLeftClick(screenCoordinates: Offset) = Engine.get().gameObjectManager.run {
         val positionInWorld = screenCoordinates.toPositionInWorld()
         val gameObjectAtPosition = findGameObjectsWithBoundsInPosition(positionInWorld).minByOrNull { it.depth } as? GameObject<*>
         selectedGameObject.value.first.let { currentSelectedGameObject ->
@@ -92,6 +92,18 @@ internal object EditorController : CoroutineScope {
         }
     }
 
+    fun handleRightClick(screenCoordinates: Offset) = Engine.get().gameObjectManager.run {
+        val positionInWorld = screenCoordinates.toPositionInWorld()
+        val gameObjectAtPosition = findGameObjectsWithBoundsInPosition(positionInWorld).minByOrNull { it.depth } as? GameObject<*>
+        if (gameObjectAtPosition != null) {
+            if (gameObjectAtPosition == _selectedGameObject.value) {
+                deleteSelectedGameObject()
+            } else {
+                Engine.get().gameObjectManager.remove(gameObjectAtPosition)
+            }
+        }
+    }
+
     private fun unselectGameObject() {
         _selectedGameObject.value?.isSelectedInEditor = false
         _selectedGameObject.update { null }
@@ -105,7 +117,7 @@ internal object EditorController : CoroutineScope {
         }
     }
 
-    fun deleteGameObject() {
+    fun deleteSelectedGameObject() {
         _selectedGameObject.value?.let { selectedGameObject ->
             _selectedGameObject.update { null }
             Engine.get().gameObjectManager.remove(selectedGameObject)
