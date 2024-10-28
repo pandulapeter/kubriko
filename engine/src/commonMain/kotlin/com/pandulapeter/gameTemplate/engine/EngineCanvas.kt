@@ -19,9 +19,10 @@ import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.minus
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.transform
 import kotlinx.coroutines.isActive
@@ -51,7 +52,9 @@ fun EngineCanvas(
                 )
                 EngineImpl.inputManager.emit()
                 if (EngineImpl.stateManager.isRunning.value) {
-                    EngineImpl.gameObjectManager.dynamicGameObjects.value.forEach { it.update(deltaTimeMillis) }
+                    EngineImpl.gameObjectManager.dynamicTraits.value.forEach { dynamic ->
+                        dynamic.update(deltaTimeMillis)
+                    }
                 }
                 gameTime.value = gameTimeNanos
             }
@@ -77,17 +80,20 @@ fun EngineCanvas(
                         )
                     },
                     drawBlock = {
-                        EngineImpl.gameObjectManager.visibleGameObjectsInViewport.value.forEach { gameObject ->
-                            withTransform(
-                                transformBlock = { gameObject.transform(this) },
-                                drawBlock = {
-                                    if ((gameObject as GameObject<*>).isSelectedInEditor) {
-                                        editorSelectedGameObjectHighlight(gameObject)
+                        EngineImpl.gameObjectManager.visibleGameObjectsInViewport.value
+                            .mapNotNull { it.getTrait<Visible>() }
+                            .forEach { gameObject ->
+                                withTransform(
+                                    transformBlock = { gameObject.transform(this) },
+                                    drawBlock = {
+                                        // TODO: Highlight
+//                                        if (gameObject.isSelectedInEditor) {
+//                                            editorSelectedGameObjectHighlight(gameObject)
+//                                        }
+                                        gameObject.draw(gameObject, this)
                                     }
-                                    gameObject.draw(this)
-                                }
-                            )
-                        }
+                                )
+                            }
                     }
                 )
             }

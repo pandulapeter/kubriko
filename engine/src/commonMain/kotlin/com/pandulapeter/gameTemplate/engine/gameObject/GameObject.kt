@@ -1,11 +1,13 @@
 package com.pandulapeter.gameTemplate.engine.gameObject
 
+// TODO: Interface
 abstract class GameObject<T : GameObject<T>> {
+    abstract val traits: Set<Trait<*>>
     var isSelectedInEditor = false
 
-    abstract fun getState(): State<T>
+    abstract fun getState(): Serializer<T>
 
-    interface State<T : GameObject<T>> {
+    interface Serializer<T : GameObject<T>> {
 
         val typeId: String
 

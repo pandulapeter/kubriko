@@ -3,9 +3,14 @@ package com.pandulapeter.gameTemplate.engine.implementation.extensions
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawTransform
-import com.pandulapeter.gameTemplate.engine.gameObject.traits.Rotatable
-import com.pandulapeter.gameTemplate.engine.gameObject.traits.Scalable
+import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.Trait
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
+
+
+inline fun <reified T : Trait<T>> GameObject<*>.getTrait() = traits.firstOrNull { it is T } as? T
+
+inline fun <reified T : Trait<T>> GameObject<*>.hasTrait() = traits.any { it is T }
 
 private const val VIEWPORT_EDGE_BUFFER = 50
 
@@ -33,31 +38,29 @@ internal fun Visible.isAroundPosition(
     range: Float,
 ) = (this.position - position).getDistance() < range
 
-val Visible.left get() = scaleFactor.let { position.x + pivot.x * it - bounds.width * it }
+val Visible.left get() = scale.width.let { position.x + pivot.x * it - bounds.width * it }
 
-val Visible.top get() = scaleFactor.let { position.y + pivot.y * it - bounds.height * it }
+val Visible.top get() = scale.height.let { position.y + pivot.y * it - bounds.height * it }
 
-val Visible.right get() = scaleFactor.let { position.x - pivot.x * it + bounds.width * it }
+val Visible.right get() = scale.width.let { position.x - pivot.x * it + bounds.width * it }
 
-val Visible.bottom get() = scaleFactor.let { position.y - pivot.y * it + bounds.height * it }
-
-val Visible.scaleFactor get() = (if (this is Scalable) scaleFactor else 1f)
+val Visible.bottom get() = scale.height.let { position.y - pivot.y * it + bounds.height * it }
 
 internal fun Visible.transform(drawTransform: DrawTransform) {
     drawTransform.translate(
         left = position.x - pivot.x,
         top = position.y - pivot.y,
     )
-    if (this is Rotatable) {
+    if (rotationDegrees != 0f) {
         drawTransform.rotate(
             degrees = rotationDegrees,
             pivot = pivot,
         )
     }
-    if (this is Scalable) {
+    if (scale.width != 1f || scale.height != 1f) {
         drawTransform.scale(
-            scaleX = scaleFactor,
-            scaleY = scaleFactor,
+            scaleX = scale.width,
+            scaleY = scale.height,
             pivot = pivot,
         )
     }

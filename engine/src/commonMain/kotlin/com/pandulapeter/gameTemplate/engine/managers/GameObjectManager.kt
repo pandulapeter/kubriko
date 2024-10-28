@@ -2,14 +2,13 @@ package com.pandulapeter.gameTemplate.engine.managers
 
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
-import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import kotlinx.coroutines.flow.StateFlow
 
 interface GameObjectManager {
 
     val registeredTypeIds: StateFlow<List<String>>
 
-    fun register(vararg entries: Pair<String, (String) -> GameObject.State<*>>)
+    fun register(vararg entries: Pair<String, (String) -> GameObject.Serializer<*>>)
 
     fun add(vararg gameObjects: GameObject<*>)
 
@@ -21,7 +20,7 @@ interface GameObjectManager {
 
     suspend fun deserializeState(json: String)
 
-    fun findGameObjectsWithBoundsInPosition(position: Offset): List<Visible>
+    fun findGameObjectsWithBoundsInPosition(position: Offset): List<GameObject<*>>
 
-    fun findGameObjectsWithPivotsAroundPosition(position: Offset, range: Float): List<Visible>
+    fun findGameObjectsWithPivotsAroundPosition(position: Offset, range: Float): List<GameObject<*>>
 }

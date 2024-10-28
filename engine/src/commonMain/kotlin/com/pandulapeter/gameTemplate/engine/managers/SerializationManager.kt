@@ -4,7 +4,7 @@ import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 
 interface SerializationManager {
 
-    suspend fun serializeGameObjectStates(gameObjectStates: List<GameObject.State<*>>): String
+    suspend fun serializeGameObjectStates(gameObjectSerializers: List<GameObject.Serializer<*>>): String
 
-    suspend fun deserializeGameObjectStates(serializedStates: String): List<GameObject.State<*>>
+    suspend fun deserializeGameObjectStates(serializedStates: String): List<GameObject.Serializer<*>>
 }

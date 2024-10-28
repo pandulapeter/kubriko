@@ -15,9 +15,9 @@ internal class SerializationManagerImpl : SerializationManager {
     }
 
     override suspend fun serializeGameObjectStates(
-        gameObjectStates: List<GameObject.State<*>>,
+        gameObjectSerializers: List<GameObject.Serializer<*>>,
     ) = json.encodeToString(
-        gameObjectStates.map { state ->
+        gameObjectSerializers.map { state ->
             GameObjectStateWrapper(
                 typeId = state.typeId,
                 serializedState = state.serialize(),

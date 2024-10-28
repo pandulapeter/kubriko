@@ -18,7 +18,7 @@ import java.io.FilenameFilter
 
 fun openEditor(
     defaultMapFilename: String? = null,
-    vararg supportedGameObjectSerializers: Pair<String, (String) -> GameObject.State<*>>
+    vararg supportedGameObjectSerializers: Pair<String, (String) -> GameObject.Serializer<*>>
 ) = application {
     Engine.get().gameObjectManager.register(entries = supportedGameObjectSerializers)
     defaultMapFilename?.let {

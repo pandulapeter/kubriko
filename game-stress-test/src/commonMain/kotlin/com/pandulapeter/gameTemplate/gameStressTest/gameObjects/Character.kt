@@ -4,7 +4,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.gameTemplate.engine.Engine
@@ -14,8 +13,9 @@ import com.pandulapeter.gameTemplate.engine.gameObject.traits.Unique
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardDirectionState
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.directionState
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableOffset
-import com.pandulapeter.gameTemplate.gameStressTest.implementation.GameplayControllerImpl
+import com.pandulapeter.gameTemplate.gameStressTest.gameObjects.traits.Destroyable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -30,13 +30,62 @@ import kotlin.math.PI
 import kotlin.math.sin
 
 class Character private constructor(
-    state: StateHolder,
-) : GameObject<Character>(), Visible, Dynamic, Unique, CoroutineScope {
+    state: SerializerHolder,
+) : GameObject<Character>(), CoroutineScope {
+
+    private var sizeMultiplier = 1f
+    private var nearbyGameObjectPositions = emptyList<Offset>()
+
+    private val visible: Visible by lazy {
+        Visible(
+            bounds = Size(RADIUS * 2, RADIUS * 2),
+            position = state.position,
+            depth = -state.position.y,
+            draw = { scope ->
+                nearbyGameObjectPositions.forEach { nearbyObjectPosition ->
+                    scope.drawLine(
+                        color = Color.Red,
+                        start = pivot,
+                        end = nearbyObjectPosition - position + pivot,
+                        strokeWidth = 2f,
+                    )
+                }
+                scope.drawCircle(
+                    color = lerp(Color.Red, Color.Green, ((1f + MAX_SIZE_MULTIPLIER) - sizeMultiplier) / MAX_SIZE_MULTIPLIER),
+                    radius = RADIUS * sizeMultiplier,
+                    center = bounds.center,
+                )
+            },
+        )
+    }
+    private val dynamic: Dynamic by lazy {
+        Dynamic(
+            updater = { deltaTimeMillis ->
+                visible.depth = -visible.position.y - visible.pivot.y - 100f
+                Engine.get().viewportManager.addToOffset(calculateViewportOffsetDelta())
+                if (sizeMultiplier > 1f) {
+                    sizeMultiplier -= 0.01f * deltaTimeMillis
+                } else {
+                    sizeMultiplier = 1f
+                }
+                nearbyGameObjectPositions = Engine.get().gameObjectManager.findGameObjectsWithPivotsAroundPosition(
+                    position = visible.position + visible.pivot,
+                    range = RADIUS * 5f
+                ).mapNotNull { it.getTrait<Visible>()?.position }
+
+            }
+        )
+    }
+    override val traits = setOf(
+        Unique,
+        visible,
+        dynamic,
+    )
 
     @Serializable
-    data class StateHolder(
+    data class SerializerHolder(
         @SerialName("position") val position: SerializableOffset = Offset.Zero
-    ) : State<Character> {
+    ) : Serializer<Character> {
         override val typeId = TYPE_ID
 
         override fun instantiate() = Character(this)
@@ -44,7 +93,7 @@ class Character private constructor(
         override fun serialize() = Json.encodeToString(this)
     }
 
-    override fun getState() = StateHolder(position = position)
+    override fun getState() = SerializerHolder(position = visible.position)
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
 
@@ -62,52 +111,15 @@ class Character private constructor(
             .launchIn(this)
     }
 
-    override var position: Offset = state.position
-    override var bounds = Size(RADIUS * 2, RADIUS * 2)
-    override var pivot = bounds.center
-    override var depth = -position.y - pivot.y
-    private var sizeMultiplier = 1f
-    private var nearbyGameObjectPositions = emptyList<Offset>()
-
-    override fun update(deltaTimeMillis: Float) {
-        depth = -position.y - pivot.y - 100f
-        Engine.get().viewportManager.addToOffset(calculateViewportOffsetDelta())
-        if (sizeMultiplier > 1f) {
-            sizeMultiplier -= 0.01f * deltaTimeMillis
-        } else {
-            sizeMultiplier = 1f
-        }
-        nearbyGameObjectPositions = Engine.get().gameObjectManager.findGameObjectsWithPivotsAroundPosition(
-            position = position + pivot,
-            range = RADIUS * 5f
-        ).map { it.position }
-    }
-
     private fun calculateViewportOffsetDelta() = Engine.get().viewportManager.offset.value.let { viewportOffset ->
         Engine.get().viewportManager.scaleFactor.value.let { scaleFactor ->
-            (viewportOffset - position) * VIEWPORT_FOLLOWING_SPEED_MULTIPLIER * scaleFactor * scaleFactor
+            (viewportOffset - visible.position) * VIEWPORT_FOLLOWING_SPEED_MULTIPLIER * scaleFactor * scaleFactor
         }
-    }
-
-    override fun draw(scope: DrawScope) {
-        nearbyGameObjectPositions.forEach { nearbyObjectPosition ->
-            scope.drawLine(
-                color = Color.Red,
-                start = pivot,
-                end = nearbyObjectPosition - position + pivot,
-                strokeWidth = 2f,
-            )
-        }
-        scope.drawCircle(
-            color = lerp(Color.Red, Color.Green, ((1f + MAX_SIZE_MULTIPLIER) - sizeMultiplier) / MAX_SIZE_MULTIPLIER),
-            radius = RADIUS * sizeMultiplier,
-            center = bounds.center,
-        )
     }
 
     private fun move(directionState: KeyboardDirectionState) {
         if (Engine.get().stateManager.isRunning.value) {
-            position += when (directionState) {
+            visible.position += when (directionState) {
                 KeyboardDirectionState.NONE -> Offset.Zero
                 KeyboardDirectionState.LEFT -> Offset(-SPEED, 0f)
                 KeyboardDirectionState.UP_LEFT -> Offset(-SPEED_DIAGONAL, -SPEED_DIAGONAL)
@@ -125,9 +137,11 @@ class Character private constructor(
         if (Engine.get().stateManager.isRunning.value) {
             sizeMultiplier = MAX_SIZE_MULTIPLIER
             Engine.get().gameObjectManager.findGameObjectsWithPivotsAroundPosition(
-                position = position + pivot,
+                position = visible.position + visible.pivot,
                 range = RADIUS * 5f
-            ).filterIsInstance<Box<*>>().forEach { it.destroy(this) }
+            )
+                .mapNotNull { it.getTrait<Destroyable>() }
+                .forEach { it.destroy(visible) }
         }
     }
 

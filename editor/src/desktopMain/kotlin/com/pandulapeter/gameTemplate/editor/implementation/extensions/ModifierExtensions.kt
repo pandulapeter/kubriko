@@ -13,6 +13,7 @@ import androidx.compose.ui.input.pointer.onPointerEvent
 import com.pandulapeter.gameTemplate.editor.implementation.EditorController
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.occupiesPosition
 
 private var startOffset: Offset? = null
@@ -21,7 +22,7 @@ private var isDragging = false
 @OptIn(ExperimentalComposeUiApi::class)
 internal fun Modifier.handleMouseClick(): Modifier = onPointerEvent(PointerEventType.Press) { event ->
     when (event.button) {
-        PointerButton.Primary -> (EditorController.selectedGameObject.value.first as? Visible)?.let { visible ->
+        PointerButton.Primary -> EditorController.selectedGameObject.value.first?.getTrait<Visible>()?.let { visible ->
             if (visible.occupiesPosition(EditorController.mouseWorldPosition.value)) {
                 startOffset = EditorController.mouseWorldPosition.value - visible.position
             }
@@ -70,7 +71,7 @@ internal fun Modifier.handleMouseDrag(): Modifier = onDrag(
         Engine.get().viewportManager.addToOffset(screenCoordinates)
     } else {
         startOffset?.let { startOffset ->
-            (EditorController.selectedGameObject.value.first as? Visible)?.let { visible ->
+            EditorController.selectedGameObject.value.first?.getTrait<Visible>()?.let { visible ->
                 visible.position = EditorController.mouseWorldPosition.value - startOffset
                 EditorController.notifyGameObjectUpdate()
             }

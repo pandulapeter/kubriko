@@ -27,8 +27,6 @@ import com.pandulapeter.gameTemplate.editor.implementation.userInterface.compone
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorTextLabel
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorTextTitle
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Colorful
-import com.pandulapeter.gameTemplate.engine.gameObject.traits.Rotatable
-import com.pandulapeter.gameTemplate.engine.gameObject.traits.Scalable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toHSV
 import game.editor.generated.resources.Res
@@ -88,52 +86,6 @@ internal fun LazyItemScope.ColorfulTraitEditor(
 }
 
 @Composable
-internal fun LazyItemScope.RotatableTraitEditor(
-    data: Pair<Rotatable, Boolean>,
-    isExpanded: Boolean,
-    onExpandedChanged: () -> Unit,
-) = data.first.let { rotatable ->
-    TraitEditorSection(
-        title = "Rotatable",
-        isExpanded = isExpanded,
-        onExpandedChanged = onExpandedChanged,
-    ) {
-        EditorSlider(
-            title = "rotationDegrees",
-            value = rotatable.rotationDegrees,
-            onValueChange = {
-                rotatable.rotationDegrees = it
-                EditorController.notifyGameObjectUpdate()
-            },
-            valueRange = 0f..360f
-        )
-    }
-}
-
-@Composable
-internal fun LazyItemScope.ScalableTraitEditor(
-    data: Pair<Scalable, Boolean>,
-    isExpanded: Boolean,
-    onExpandedChanged: () -> Unit,
-) = data.first.let { scalable ->
-    TraitEditorSection(
-        title = "Scalable",
-        isExpanded = isExpanded,
-        onExpandedChanged = onExpandedChanged,
-    ) {
-        EditorSlider(
-            title = "scaleFactor",
-            value = scalable.scaleFactor,
-            onValueChange = {
-                scalable.scaleFactor = it
-                EditorController.notifyGameObjectUpdate()
-            },
-            valueRange = 0f..10f
-        )
-    }
-}
-
-@Composable
 internal fun LazyItemScope.UniqueTraitEditor() = TraitEditorSection(
     title = "Unique",
 )
@@ -150,10 +102,10 @@ internal fun LazyItemScope.VisibleTraitEditor(
         onExpandedChanged = onExpandedChanged,
     ) {
         EditorTextLabel(
-            text = "x: ${visible.position.x}",
+            text = "position.x: ${visible.position.x}",
         )
         EditorTextLabel(
-            text = "y: ${visible.position.y}",
+            text = "position.y: ${visible.position.y}",
         )
         EditorSlider(
             title = "pivot.x",
@@ -193,12 +145,39 @@ internal fun LazyItemScope.VisibleTraitEditor(
             },
             valueRange = 0f..250f
         )
+        EditorSlider(
+            title = "scale.width",
+            value = visible.scale.width,
+            onValueChange = {
+                visible.scale = Size(it, visible.scale.height)
+                EditorController.notifyGameObjectUpdate()
+            },
+            valueRange = 0f..10f
+        )
+        EditorSlider(
+            title = "scale.height",
+            value = visible.scale.height,
+            onValueChange = {
+                visible.scale = Size(visible.scale.width, it)
+                EditorController.notifyGameObjectUpdate()
+            },
+            valueRange = 0f..10f
+        )
+        EditorSlider(
+            title = "rotationDegrees",
+            value = visible.rotationDegrees,
+            onValueChange = {
+                visible.rotationDegrees = it
+                EditorController.notifyGameObjectUpdate()
+            },
+            valueRange = 0f..360f
+        )
     }
 }
 
 @Composable
 private fun LazyItemScope.TraitEditorSection(
-    title: String,
+    title: String, // TODO: Auto-generate from Trait
     isExpanded: Boolean = false,
     onExpandedChanged: () -> Unit = {},
     controls: (@Composable () -> Unit)? = null,

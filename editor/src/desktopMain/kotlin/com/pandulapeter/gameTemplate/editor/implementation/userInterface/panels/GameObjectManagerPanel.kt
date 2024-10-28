@@ -18,8 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.gameTemplate.editor.implementation.EditorController
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.ColorfulTraitEditor
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.RotatableTraitEditor
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.ScalableTraitEditor
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.UniqueTraitEditor
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.VisibleTraitEditor
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorIcon
@@ -28,10 +26,10 @@ import com.pandulapeter.gameTemplate.editor.implementation.userInterface.compone
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Colorful
-import com.pandulapeter.gameTemplate.engine.gameObject.traits.Rotatable
-import com.pandulapeter.gameTemplate.engine.gameObject.traits.Scalable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Unique
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.hasTrait
 import game.editor.generated.resources.Res
 import game.editor.generated.resources.ic_delete
 import game.editor.generated.resources.ic_locate
@@ -49,8 +47,6 @@ internal fun GameObjectManagerPanel(
         val registeredTypeIds = Engine.get().gameObjectManager.registeredTypeIds.collectAsState()
         Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
         val isColorfulExpanded = remember { mutableStateOf(false) }
-        val isRotatableExpanded = remember { mutableStateOf(false) }
-        val isScalableExpanded = remember { mutableStateOf(false) }
         val isVisibleExpanded = remember { mutableStateOf(false) }
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -96,42 +92,24 @@ internal fun GameObjectManagerPanel(
                         }
                         Divider()
                     }
-                    if (gameObject is Colorful) {
+                    gameObject.getTrait<Colorful>()?.let { colorful ->
                         item(key = "traitColorful") {
                             ColorfulTraitEditor(
-                                data = gameObject to data.second,
+                                data = colorful to data.second,
                                 isExpanded = isColorfulExpanded.value,
                                 onExpandedChanged = { isColorfulExpanded.value = !isColorfulExpanded.value }
                             )
                         }
                     }
-                    if (gameObject is Rotatable) {
-                        item(key = "traitRotatable") {
-                            RotatableTraitEditor(
-                                data = gameObject to data.second,
-                                isExpanded = isRotatableExpanded.value,
-                                onExpandedChanged = { isRotatableExpanded.value = !isRotatableExpanded.value }
-                            )
-                        }
-                    }
-                    if (gameObject is Scalable) {
-                        item(key = "traitScalable") {
-                            ScalableTraitEditor(
-                                data = gameObject to data.second,
-                                isExpanded = isScalableExpanded.value,
-                                onExpandedChanged = { isScalableExpanded.value = !isScalableExpanded.value }
-                            )
-                        }
-                    }
-                    if (gameObject is Unique) {
+                    if (gameObject.hasTrait<Unique>()) {
                         item(key = "traitUnique") {
                             UniqueTraitEditor()
                         }
                     }
-                    if (gameObject is Visible) {
+                    gameObject.getTrait<Visible>()?.let { visible ->
                         item(key = "traitVisible") {
                             VisibleTraitEditor(
-                                data = gameObject to data.second,
+                                data = visible to data.second,
                                 isExpanded = isVisibleExpanded.value,
                                 onExpandedChanged = { isVisibleExpanded.value = !isVisibleExpanded.value }
                             )

@@ -1,6 +1,7 @@
 package com.pandulapeter.gameTemplate.engine.implementation.serializers
 
 import androidx.compose.ui.geometry.Size
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
@@ -16,6 +17,8 @@ import kotlinx.serialization.encoding.encodeStructure
 
 typealias SerializableSize = @Serializable(with = SizeSerializer::class) Size
 
+@Suppress("EXTERNAL_SERIALIZER_USELESS")
+@OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = Size::class)
 object SizeSerializer : KSerializer<Size> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Size") {

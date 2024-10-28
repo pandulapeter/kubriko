@@ -6,6 +6,8 @@ import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Unique
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.hasTrait
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.isAroundPosition
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.isVisible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.occupiesPosition
@@ -21,13 +23,13 @@ import kotlinx.coroutines.flow.update
 
 internal class GameObjectManagerImpl : GameObjectManager {
 
-    private val _gameObjectStateRegistry = MutableStateFlow(mapOf<String, (String) -> GameObject.State<*>>())
-    val gameObjectStateRegistry = _gameObjectStateRegistry.asStateFlow()
-    override val registeredTypeIds = _gameObjectStateRegistry.map { it.keys.toList() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
+    private val _gameObjectSerializerRegistry = MutableStateFlow(mapOf<String, (String) -> GameObject.Serializer<*>>())
+    val gameObjectStateRegistry = _gameObjectSerializerRegistry.asStateFlow()
+    override val registeredTypeIds = _gameObjectSerializerRegistry.map { it.keys.toList() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
     private val _gameObjects = MutableStateFlow(emptyList<GameObject<*>>())
     val gameObjects = _gameObjects.asStateFlow()
-    val dynamicGameObjects = _gameObjects.map { it.filterIsInstance<Dynamic>() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
-    private val visibleGameObjects = _gameObjects.map { it.filterIsInstance<Visible>() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
+    val dynamicTraits = _gameObjects.map { gameObjects -> gameObjects.mapNotNull { it.getTrait<Dynamic>() } }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
+    private val visibleGameObjects = _gameObjects.map { gameObjects -> gameObjects.filter { it.hasTrait<Visible>() } }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
     val visibleGameObjectsInViewport = combine(
         EngineImpl.metadataManager.runtimeInMilliseconds.map { it / 100 }.distinctUntilChanged(),
         visibleGameObjects,
@@ -37,17 +39,17 @@ internal class GameObjectManagerImpl : GameObjectManager {
     ) { _, allVisibleGameObjects, viewportSize, viewportOffset, viewportScaleFactor ->
         allVisibleGameObjects
             .filter {
-                it.isVisible(
+                it.getTrait<Visible>()?.isVisible(
                     scaledHalfViewportSize = viewportSize / (viewportScaleFactor * 2),
                     viewportOffset = viewportOffset,
                     viewportScaleFactor = viewportScaleFactor,
-                )
+                ) == true
             }
-            .sortedByDescending { it.depth }
+            .sortedByDescending { it.getTrait<Visible>()?.depth }
     }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
 
 
-    override fun register(vararg entries: Pair<String, (String) -> GameObject.State<*>>) = _gameObjectStateRegistry.update { currentValue ->
+    override fun register(vararg entries: Pair<String, (String) -> GameObject.Serializer<*>>) = _gameObjectSerializerRegistry.update { currentValue ->
         currentValue.toMutableMap().also { mutableMap ->
             entries.forEach { (typeId, deserializer) ->
                 mutableMap[typeId] = deserializer
@@ -56,7 +58,7 @@ internal class GameObjectManagerImpl : GameObjectManager {
     }
 
     override fun add(vararg gameObjects: GameObject<*>) = _gameObjects.update { currentValue ->
-        val uniqueGameObjects = gameObjects.filterIsInstance<Unique>()
+        val uniqueGameObjects = gameObjects.filter { it.traits.contains(Unique) }
         if (uniqueGameObjects.isEmpty()) {
             currentValue
         } else {
@@ -82,13 +84,13 @@ internal class GameObjectManagerImpl : GameObjectManager {
     override fun removeAll() = _gameObjects.update { emptyList() }
 
     override fun findGameObjectsWithBoundsInPosition(position: Offset) = visibleGameObjectsInViewport.value
-        .filter { it.occupiesPosition(position) }
+        .filter { it.getTrait<Visible>()?.occupiesPosition(position) == true }
 
     override fun findGameObjectsWithPivotsAroundPosition(position: Offset, range: Float) = visibleGameObjects.value
         .filter {
-            it.isAroundPosition(
+            it.getTrait<Visible>()?.isAroundPosition(
                 position = position,
                 range = range,
-            )
+            ) == true
         }
 }

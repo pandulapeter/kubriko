@@ -1,6 +1,7 @@
 package com.pandulapeter.gameTemplate.engine.implementation.serializers
 
 import androidx.compose.ui.geometry.Offset
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
@@ -16,6 +17,8 @@ import kotlinx.serialization.encoding.encodeStructure
 
 typealias SerializableOffset = @Serializable(with = OffsetSerializer::class) Offset
 
+@Suppress("EXTERNAL_SERIALIZER_USELESS")
+@OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = Offset::class)
 object OffsetSerializer : KSerializer<Offset> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Offset") {

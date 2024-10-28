@@ -9,6 +9,7 @@ import com.pandulapeter.gameTemplate.editor.implementation.helpers.saveFile
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toPositionInWorld
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -64,7 +65,7 @@ internal object EditorController : CoroutineScope {
 
     fun handleLeftClick(screenCoordinates: Offset) = Engine.get().gameObjectManager.run {
         val positionInWorld = screenCoordinates.toPositionInWorld()
-        val gameObjectAtPosition = findGameObjectsWithBoundsInPosition(positionInWorld).minByOrNull { it.depth } as? GameObject<*>
+        val gameObjectAtPosition = findGameObjectsWithBoundsInPosition(positionInWorld).minByOrNull { it.getTrait<Visible>()?.depth ?: 0f } as? GameObject<*>
         selectedGameObject.value.first.let { currentSelectedGameObject ->
             if (gameObjectAtPosition == null) {
                 if (currentSelectedGameObject == null) {
@@ -94,7 +95,7 @@ internal object EditorController : CoroutineScope {
 
     fun handleRightClick(screenCoordinates: Offset) = Engine.get().gameObjectManager.run {
         val positionInWorld = screenCoordinates.toPositionInWorld()
-        val gameObjectAtPosition = findGameObjectsWithBoundsInPosition(positionInWorld).minByOrNull { it.depth } as? GameObject<*>
+        val gameObjectAtPosition = findGameObjectsWithBoundsInPosition(positionInWorld).minByOrNull { it.getTrait<Visible>()?.depth ?: 0f }
         if (gameObjectAtPosition != null) {
             if (gameObjectAtPosition == _selectedGameObject.value) {
                 deleteSelectedGameObject()
@@ -112,8 +113,8 @@ internal object EditorController : CoroutineScope {
     fun handleMouseMove(screenCoordinates: Offset) = mouseScreenCoordinates.update { screenCoordinates }
 
     fun locateGameObject() {
-        (_selectedGameObject.value as? Visible)?.let { selectedGameObject ->
-            Engine.get().viewportManager.setOffset(selectedGameObject.position)
+        _selectedGameObject.value?.getTrait<Visible>()?.let { visibleTrait ->
+            Engine.get().viewportManager.setOffset(visibleTrait.position)
         }
     }
 
