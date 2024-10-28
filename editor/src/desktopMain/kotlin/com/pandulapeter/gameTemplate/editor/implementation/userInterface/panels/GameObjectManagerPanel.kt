@@ -20,6 +20,7 @@ import com.pandulapeter.gameTemplate.editor.implementation.EditorController
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.ColorfulTraitEditor
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.RotatableTraitEditor
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.ScalableTraitEditor
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.UniqueTraitEditor
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.VisibleTraitEditor
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorRadioButton
@@ -29,6 +30,7 @@ import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Colorful
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Rotatable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Scalable
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Unique
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import game.editor.generated.resources.Res
 import game.editor.generated.resources.ic_delete
@@ -95,7 +97,7 @@ internal fun GameObjectManagerPanel(
                         Divider()
                     }
                     if (gameObject is Colorful) {
-                        item(key = "propertyColorful") {
+                        item(key = "traitColorful") {
                             ColorfulTraitEditor(
                                 data = gameObject to data.second,
                                 isExpanded = isColorfulExpanded.value,
@@ -104,7 +106,7 @@ internal fun GameObjectManagerPanel(
                         }
                     }
                     if (gameObject is Rotatable) {
-                        item(key = "propertyRotatable") {
+                        item(key = "traitRotatable") {
                             RotatableTraitEditor(
                                 data = gameObject to data.second,
                                 isExpanded = isRotatableExpanded.value,
@@ -113,7 +115,7 @@ internal fun GameObjectManagerPanel(
                         }
                     }
                     if (gameObject is Scalable) {
-                        item(key = "propertyScalable") {
+                        item(key = "traitScalable") {
                             ScalableTraitEditor(
                                 data = gameObject to data.second,
                                 isExpanded = isScalableExpanded.value,
@@ -121,8 +123,13 @@ internal fun GameObjectManagerPanel(
                             )
                         }
                     }
+                    if (gameObject is Unique) {
+                        item(key = "traitUnique") {
+                            UniqueTraitEditor()
+                        }
+                    }
                     if (gameObject is Visible) {
-                        item(key = "propertyVisible") {
+                        item(key = "traitVisible") {
                             VisibleTraitEditor(
                                 data = gameObject to data.second,
                                 isExpanded = isVisibleExpanded.value,

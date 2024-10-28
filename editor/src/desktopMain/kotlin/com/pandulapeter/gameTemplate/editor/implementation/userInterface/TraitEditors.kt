@@ -63,7 +63,7 @@ internal fun LazyItemScope.ColorfulTraitEditor(
                 EditorController.notifyGameObjectUpdate()
             },
             valueRange = 0f..359.5f,
-            enabled = saturation >0 && value > 0,
+            enabled = saturation > 0 && value > 0,
         )
         EditorSlider(
             title = "color.saturation",
@@ -134,6 +134,11 @@ internal fun LazyItemScope.ScalableTraitEditor(
 }
 
 @Composable
+internal fun LazyItemScope.UniqueTraitEditor() = TraitEditorSection(
+    title = "Unique",
+)
+
+@Composable
 internal fun LazyItemScope.VisibleTraitEditor(
     data: Pair<Visible, Boolean>,
     isExpanded: Boolean,
@@ -194,16 +199,19 @@ internal fun LazyItemScope.VisibleTraitEditor(
 @Composable
 private fun LazyItemScope.TraitEditorSection(
     title: String,
-    isExpanded: Boolean,
-    onExpandedChanged: () -> Unit,
-    controls: @Composable () -> Unit,
+    isExpanded: Boolean = false,
+    onExpandedChanged: () -> Unit = {},
+    controls: (@Composable () -> Unit)? = null,
 ) = Column(
     modifier = Modifier.animateItem().fillMaxWidth(),
 ) {
     Row(
         modifier = Modifier
             .background(MaterialTheme.colors.surface)
-            .clickable(onClick = onExpandedChanged)
+            .clickable(
+                enabled = controls != null,
+                onClick = onExpandedChanged,
+            )
             .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -211,24 +219,28 @@ private fun LazyItemScope.TraitEditorSection(
             modifier = Modifier.weight(1f),
             text = title,
         )
-        EditorIcon(
-            drawableResource = if (isExpanded) Res.drawable.ic_collapse else Res.drawable.ic_expand,
-            contentDescription = if (isExpanded) "Collapse" else "Expand"
-        )
+        if (controls != null) {
+            EditorIcon(
+                drawableResource = if (isExpanded) Res.drawable.ic_collapse else Res.drawable.ic_expand,
+                contentDescription = if (isExpanded) "Collapse" else "Expand"
+            )
+        }
     }
-    AnimatedVisibility(
-        visible = isExpanded
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = 8.dp,
-                    vertical = 4.dp,
-                ),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+    if (controls != null) {
+        AnimatedVisibility(
+            visible = isExpanded
         ) {
-            controls()
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = 8.dp,
+                        vertical = 4.dp,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                controls()
+            }
         }
     }
 }

@@ -3,6 +3,7 @@ package com.pandulapeter.gameTemplate.engine.implementation.managers
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Unique
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.isAroundPosition
@@ -55,7 +56,16 @@ internal class GameObjectManagerImpl : GameObjectManager {
     }
 
     override fun add(vararg gameObjects: GameObject<*>) = _gameObjects.update { currentValue ->
-        currentValue + gameObjects
+        val uniqueGameObjects = gameObjects.filterIsInstance<Unique>()
+        if (uniqueGameObjects.isEmpty()) {
+            currentValue
+        } else {
+            val filteredCurrentValue = currentValue.toMutableList()
+            uniqueGameObjects.forEach { unique ->
+                filteredCurrentValue.removeAll { it::class == unique::class }
+            }
+            filteredCurrentValue
+        } + gameObjects
     }
 
     override suspend fun serializeState() = EngineImpl.serializationManager.serializeGameObjectStates(gameObjects.value.map { it.getState() })
