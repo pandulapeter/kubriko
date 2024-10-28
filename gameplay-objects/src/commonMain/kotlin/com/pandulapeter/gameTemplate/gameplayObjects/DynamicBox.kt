@@ -14,7 +14,6 @@ import kotlin.math.sin
 class DynamicBox private constructor(
     stateHolder: StateHolder,
 ) : Box<DynamicBox>(
-    typeId = "dynamicBox",
     color = stateHolder.color,
     edgeSize = stateHolder.edgeSize,
     position = stateHolder.position,

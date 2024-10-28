@@ -14,7 +14,7 @@ import kotlinx.serialization.json.Json
 
 class Marker private constructor(
     state: StateHolder
-) : GameObject<Marker>("marker"), Visible {
+) : GameObject<Marker>(), Visible {
 
     override var position: Offset = state.position
 

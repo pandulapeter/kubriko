@@ -73,10 +73,12 @@ internal class GameObjectManagerImpl : GameObjectManager {
 
     override suspend fun saveToJson() = Json.encodeToString(
         gameObjects.value.map { gameObject ->
-            GameObjectStateWrapper(
-                typeId = gameObject.typeId,
-                serializedState = gameObject.getState().serialize(),
-            )
+            gameObject.getState().let { state ->
+                GameObjectStateWrapper(
+                    typeId = state.typeId,
+                    serializedState = state.serialize(),
+                )
+            }
         }
     )
 

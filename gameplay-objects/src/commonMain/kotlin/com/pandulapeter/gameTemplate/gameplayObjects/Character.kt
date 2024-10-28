@@ -21,7 +21,6 @@ import kotlin.math.sin
 class Character private constructor(
     state: StateHolder,
 ) : GameObject<Character>(
-    typeId = "character",
     isUnique = true,
 ), Visible, Dynamic {
 

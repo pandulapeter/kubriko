@@ -9,7 +9,6 @@ import kotlinx.serialization.json.Json
 class StaticBox private constructor(
     stateHolder: StateHolder,
 ) : Box<StaticBox>(
-    typeId = "staticBox",
     color = stateHolder.color,
     edgeSize = stateHolder.edgeSize,
     position = stateHolder.position,

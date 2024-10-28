@@ -8,10 +8,10 @@ import kotlinx.serialization.json.Json
 object Manifest : GameObjectManifest {
 
     override fun deserializeState(wrapper: GameObjectStateWrapper): GameObject.State<*> = when (wrapper.typeId) {
-        "character" -> Json.decodeFromString<Character.StateHolder>(wrapper.serializedState)
-        "dynamicBox" -> Json.decodeFromString<DynamicBox.StateHolder>(wrapper.serializedState)
-        "staticBox" -> Json.decodeFromString<StaticBox.StateHolder>(wrapper.serializedState)
-        "marker" -> Json.decodeFromString<Marker.StateHolder>(wrapper.serializedState)
+        Character.StateHolder::class.qualifiedName -> Json.decodeFromString<Character.StateHolder>(wrapper.serializedState)
+        DynamicBox.StateHolder::class.qualifiedName -> Json.decodeFromString<DynamicBox.StateHolder>(wrapper.serializedState)
+        StaticBox.StateHolder::class.qualifiedName -> Json.decodeFromString<StaticBox.StateHolder>(wrapper.serializedState)
+        Marker.StateHolder::class.qualifiedName -> Json.decodeFromString<Marker.StateHolder>(wrapper.serializedState)
         else -> throw IllegalArgumentException("Unsupported type")
     }
 }

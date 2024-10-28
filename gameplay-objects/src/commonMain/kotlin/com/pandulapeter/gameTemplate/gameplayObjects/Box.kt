@@ -14,12 +14,11 @@ import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.angleTowards
 
 abstract class Box<T: Box<T>>(
-    typeId: String,
     override var color: Color,
     edgeSize: Float,
     final override var position: Offset,
     final override var rotationDegrees: Float,
-) : GameObject<T>(typeId), Rotatable, Movable, Colorful {
+) : GameObject<T>(), Rotatable, Movable, Colorful {
 
     final override var bounds = Size(edgeSize, edgeSize)
         set(value) {
