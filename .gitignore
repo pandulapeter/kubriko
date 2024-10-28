@@ -7,5 +7,5 @@
 build
 /captures
 .externalNativeBuild
-iosApp/iosApp.xcodeproj/xcuserdata/
-iosApp/iosApp.xcodeproj/project.xcworkspace/xcuserdata/
+*/iosApp/iosApp.xcodeproj/xcuserdata/
+*/iosApp/iosApp.xcodeproj/project.xcworkspace/xcuserdata/
