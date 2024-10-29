@@ -13,6 +13,7 @@ import com.pandulapeter.gameTemplate.engine.gameObject.traits.Colorful
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Movable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.trait
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableColor
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableOffset
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableSize
@@ -24,45 +25,21 @@ import kotlinx.serialization.json.Json
 
 class StaticBox private constructor(
     state: State,
-) : GameObject<StaticBox>() {
+) : GameObject<StaticBox>(
+    { AvailableInEditor(createEditorInstance = { position -> StaticBox(state = State(position = position)) }) },
+    { Colorful(color = state.color) },
+    { Visible(bounds = state.bounds, position = state.position, scale = state.scale, rotationDegrees = state.rotationDegrees, drawer = ::draw) },
+    { Movable(directionDegrees = state.directionDegrees, speed = state.speed, friction = state.friction) },
+    { Dynamic(updater = ::update) },
+    { Destructible() },
+) {
+    private val visible by lazy { trait<Visible>() }
+    private val colorful by lazy { trait<Colorful>() }
+    private val destructible by lazy { trait<Destructible>() }
+    private val movable by lazy { trait<Movable>() }
 
-    private val availableInEditor: AvailableInEditor = AvailableInEditor(
-        createEditorInstance = { position ->
-            StaticBox(
-                state = State(
-                    position = position,
-                )
-            )
-        }
-    )
-    private val colorful: Colorful = Colorful(
-        color = state.color,
-    )
-    private val visible: Visible = Visible(
-        bounds = state.bounds,
-        position = state.position,
-        scale = state.scale,
-        rotationDegrees = state.rotationDegrees,
-        depth = state.depth,
-        drawer = ::draw,
-    )
-    private val movable: Movable = Movable(
-        directionDegrees = state.directionDegrees,
-        speed = state.speed,
-        friction = state.friction,
-    )
-    private val dynamic: Dynamic= Dynamic()
-    private val destructible: Destructible = Destructible()
-
-    init {
-        registerTraits(
-            availableInEditor,
-            visible,
-            colorful,
-            destructible,
-            dynamic,
-            movable,
-        )
+    private fun update(deltaTimeMillis: Float) {
+        visible.depth = -visible.position.y - visible.pivot.y
     }
 
     private fun draw(scope: DrawScope) = scope.drawRect(
@@ -76,7 +53,6 @@ class StaticBox private constructor(
         @SerialName("bounds") val bounds: SerializableSize = Size(100f, 100f),
         @SerialName("pivot") val pivot: SerializableOffset = bounds.center,
         @SerialName("position") val position: SerializableOffset = Offset.Zero,
-        @SerialName("depth") val depth: Float = 0f,
         @SerialName("scale") val scale: SerializableSize = Size(1f, 1f),
         @SerialName("rotationDegrees") val rotationDegrees: Float = 0f,
         @SerialName("directionDegrees") val directionDegrees: Float = 0f,
@@ -96,7 +72,6 @@ class StaticBox private constructor(
         bounds = visible.bounds,
         pivot = visible.pivot,
         position = visible.position,
-        depth = visible.depth,
         scale = visible.scale,
         rotationDegrees = visible.rotationDegrees,
         directionDegrees = movable.directionDegrees,

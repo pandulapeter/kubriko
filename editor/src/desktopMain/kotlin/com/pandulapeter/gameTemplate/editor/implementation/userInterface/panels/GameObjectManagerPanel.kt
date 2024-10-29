@@ -87,7 +87,7 @@ internal fun GameObjectManagerPanel(
                         }
                         Divider()
                     }
-                    gameObject.traits
+                    gameObject.allTraits
                         .forEach { entry ->
                             (entry.value::class.annotations
                                 .firstOrNull { it.annotationClass == VisibleInEditor::class } as? VisibleInEditor)

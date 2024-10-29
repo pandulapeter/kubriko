@@ -12,6 +12,7 @@ import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toPositionInWorld
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.trait
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -64,32 +65,33 @@ internal object EditorController : CoroutineScope {
             .launchIn(this)
     }
 
-    fun handleLeftClick(screenCoordinates: Offset) = Engine.get().gameObjectManager.run {
+    fun handleLeftClick(screenCoordinates: Offset) {
         val positionInWorld = screenCoordinates.toPositionInWorld()
-        val gameObjectAtPosition = findGameObjectsWithBoundsInPosition(positionInWorld).minByOrNull { it.getTrait<Visible>()?.depth ?: 0f } as? GameObject<*>
-        selectedGameObject.value.first.let { currentSelectedGameObject ->
-            if (gameObjectAtPosition == null) {
-                if (currentSelectedGameObject == null) {
-                    launch {
-                        val typeId = selectedGameObjectTypeId.value
-                        // TODO: Use AvailableInEditor trait instead
-                        Engine.get().serializationManager.deserializeGameObjectStates(
-                            serializedStates = "[{\"typeId\":\"$typeId\",\"state\":\"{\\\"position\\\":{\\\"x\\\":${positionInWorld.x},\\\"y\\\":${positionInWorld.y}}}\"}]"
-                        ).firstOrNull()?.instantiate()?.let { gameObject ->
-                            Engine.get().gameObjectManager.add(gameObject as GameObject<*>)
+        findGameObjectBelowClick(positionInWorld).let { gameObjectAtPosition ->
+            selectedGameObject.value.first.let { currentSelectedGameObject ->
+                if (gameObjectAtPosition == null) {
+                    if (currentSelectedGameObject == null) {
+                        launch {
+                            val typeId = selectedGameObjectTypeId.value
+                            // TODO: Use AvailableInEditor trait instead
+                            Engine.get().serializationManager.deserializeGameObjectStates(
+                                serializedStates = "[{\"typeId\":\"$typeId\",\"state\":\"{\\\"position\\\":{\\\"x\\\":${positionInWorld.x},\\\"y\\\":${positionInWorld.y}}}\"}]"
+                            ).firstOrNull()?.instantiate()?.let { gameObject ->
+                                Engine.get().gameObjectManager.add(gameObject as GameObject<*>)
+                            }
                         }
+                    } else {
+                        unselectGameObject()
                     }
                 } else {
-                    unselectGameObject()
-                }
-            } else {
-                gameObjectAtPosition.getTrait<AvailableInEditor>()?.let { availableInEditor ->
-                    currentSelectedGameObject?.getTrait<AvailableInEditor>()?.isSelectedInEditor = false
-                    _selectedGameObject.update {
-                        if (currentSelectedGameObject == gameObjectAtPosition) {
-                            null
-                        } else {
-                            gameObjectAtPosition.also { availableInEditor.isSelectedInEditor = true }
+                    gameObjectAtPosition.getTrait<AvailableInEditor>()?.let { availableInEditor ->
+                        currentSelectedGameObject?.getTrait<AvailableInEditor>()?.isSelectedInEditor = false
+                        _selectedGameObject.update {
+                            if (currentSelectedGameObject == gameObjectAtPosition) {
+                                null
+                            } else {
+                                gameObjectAtPosition.also { availableInEditor.isSelectedInEditor = true }
+                            }
                         }
                     }
                 }
@@ -97,17 +99,21 @@ internal object EditorController : CoroutineScope {
         }
     }
 
-    fun handleRightClick(screenCoordinates: Offset) = Engine.get().gameObjectManager.run {
-        val positionInWorld = screenCoordinates.toPositionInWorld()
-        val gameObjectAtPosition = findGameObjectsWithBoundsInPosition(positionInWorld).minByOrNull { it.getTrait<Visible>()?.depth ?: 0f }
-        if (gameObjectAtPosition != null) {
-            if (gameObjectAtPosition == _selectedGameObject.value) {
-                deleteSelectedGameObject()
-            } else {
-                Engine.get().gameObjectManager.remove(gameObjectAtPosition)
+    fun handleRightClick(screenCoordinates: Offset) {
+        findGameObjectBelowClick(screenCoordinates.toPositionInWorld()).let { gameObjectAtPosition ->
+            if (gameObjectAtPosition != null) {
+                if (gameObjectAtPosition == _selectedGameObject.value) {
+                    deleteSelectedGameObject()
+                } else {
+                    Engine.get().gameObjectManager.remove(gameObjectAtPosition)
+                }
             }
         }
     }
+
+    private fun findGameObjectBelowClick(positionInWorld: Offset) = Engine.get().gameObjectManager
+        .findGameObjectsWithBoundsInPosition(positionInWorld)
+        .minByOrNull { it.trait<Visible>().depth }
 
     private fun unselectGameObject() {
         _selectedGameObject.value?.getTrait<AvailableInEditor>()?.isSelectedInEditor = false

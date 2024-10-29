@@ -10,6 +10,7 @@ import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Colorful
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.trait
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableColor
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableOffset
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableSize
@@ -20,38 +21,15 @@ import kotlinx.serialization.json.Json
 
 class Box private constructor(
     state: State,
-) : GameObject<Box>() {
+) : GameObject<Box>(
+    { AvailableInEditor(createEditorInstance = { position -> Box(state = State(position = position)) }) },
+    { Colorful(color = state.color) },
+    { Visible(bounds = state.bounds, position = state.position, drawer = ::draw) },
+) {
+    private val colorful = trait<Colorful>()
+    private val visible = trait<Visible>()
 
-    private val availableInEditor: AvailableInEditor = AvailableInEditor(
-        createEditorInstance = { position ->
-            Box(
-                state = State(
-                    position = position
-                )
-            )
-        }
-    )
-    private val colorful: Colorful = Colorful(
-        color = state.color,
-    )
-    private val visible: Visible = Visible(
-        bounds = state.bounds,
-        position = state.position,
-        scale = state.scale,
-        rotationDegrees = state.rotationDegrees,
-        depth = state.depth,
-        drawer = ::draw,
-    )
-
-    init {
-        registerTraits(
-            availableInEditor,
-            visible,
-            colorful,
-        )
-    }
-
-    private fun draw(scope: DrawScope) = scope.drawRect(
+    fun draw(scope: DrawScope) = scope.drawRect(
         color = colorful.color,
         size = visible.bounds,
     )

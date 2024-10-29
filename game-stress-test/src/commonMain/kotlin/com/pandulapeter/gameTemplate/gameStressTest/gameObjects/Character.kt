@@ -17,6 +17,7 @@ import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardDirectionState
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.directionState
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.trait
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableOffset
 import com.pandulapeter.gameTemplate.gameStressTest.gameObjects.traits.Destructible
 import kotlinx.coroutines.CoroutineScope
@@ -34,39 +35,17 @@ import kotlin.math.sin
 
 class Character private constructor(
     state: State,
-) : GameObject<Character>(), CoroutineScope {
+) : GameObject<Character>(
+    { AvailableInEditor(createEditorInstance = { position -> Character(state = State(position = position)) }) },
+    { Unique() },
+    { Visible(bounds = Size(RADIUS * 2, RADIUS * 2), position = state.position, drawer = ::draw) },
+    { Dynamic(updater = ::update) },
+), CoroutineScope {
+
+    private val visible = trait<Visible>()
 
     private var sizeMultiplier = 1f
     private var nearbyGameObjectPositions = emptyList<Offset>()
-
-    private val availableInEditor: AvailableInEditor = AvailableInEditor(
-        createEditorInstance = { position ->
-            Character(
-                state = State(
-                    position = position,
-                )
-            )
-        }
-    )
-    private val unique: Unique = Unique()
-    private val visible: Visible = Visible(
-        bounds = Size(RADIUS * 2, RADIUS * 2),
-        position = state.position,
-        depth = -state.position.y,
-        drawer = ::draw,
-    )
-    private val dynamic: Dynamic = Dynamic(
-        updater = ::update,
-    )
-
-    init {
-        registerTraits(
-            availableInEditor,
-            unique,
-            visible,
-            dynamic,
-        )
-    }
 
     @Serializable
     data class State(

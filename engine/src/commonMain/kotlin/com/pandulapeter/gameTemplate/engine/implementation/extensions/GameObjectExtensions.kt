@@ -8,9 +8,11 @@ import com.pandulapeter.gameTemplate.engine.gameObject.Trait
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 
 
-inline fun <reified T : Trait<T>> GameObject<*>.getTrait() = traits[T::class] as? T
+inline fun <reified T : Trait<T>> GameObject<*>.getTrait() = allTraits[T::class] as? T
 
-inline fun <reified T : Trait<T>> GameObject<*>.hasTrait() = traits[T::class] != null
+inline fun <reified T : Trait<T>> GameObject<*>.hasTrait() = allTraits[T::class] != null
+
+inline fun <reified T : Trait<T>> GameObject<*>.trait() = allTraits[T::class] as? T ?: throw IllegalStateException("Unregistered trait ${T::class.simpleName}")
 
 private const val VIEWPORT_EDGE_BUFFER = 50
 

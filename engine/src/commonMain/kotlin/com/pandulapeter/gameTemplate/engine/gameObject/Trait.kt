@@ -1,8 +1,12 @@
 package com.pandulapeter.gameTemplate.engine.gameObject
 
 abstract class Trait<T : Trait<T>> {
-    lateinit var gameObject: GameObject<*>
-        internal set
+    protected lateinit var gameObject: GameObject<*>
+        private set
+
+    internal fun initialize(gameObject: GameObject<*>) {
+        this.gameObject = gameObject
+    }
 
     open fun initialize() = Unit
 
