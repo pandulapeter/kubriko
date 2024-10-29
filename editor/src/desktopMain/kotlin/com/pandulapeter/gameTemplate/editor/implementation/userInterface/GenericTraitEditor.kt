@@ -43,7 +43,6 @@ internal fun <T : Any> KMutableProperty<*>.toEditorControl(instance: T): (@Compo
     when (returnType) {
         Color::class.createType() -> {
             {
-                EditorTextLabel(text = editableProperty.typeId)
                 Spacer(modifier = Modifier.height(8.dp))
                 val color = getter.call(instance) as Color
                 Box(

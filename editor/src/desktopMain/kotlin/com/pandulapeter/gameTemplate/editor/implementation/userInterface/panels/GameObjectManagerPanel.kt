@@ -23,11 +23,13 @@ import com.pandulapeter.gameTemplate.editor.implementation.userInterface.compone
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.toEditorControl
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.editor.Editable
 import game.editor.generated.resources.Res
 import game.editor.generated.resources.ic_close
 import game.editor.generated.resources.ic_delete
 import game.editor.generated.resources.ic_locate
 import kotlin.reflect.KMutableProperty
+import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
 
 @Composable
@@ -95,6 +97,7 @@ internal fun GameObjectManagerPanel(
                     // TODO: Sort into categories using expandedCategories.value
                     gameObject::class.memberProperties
                         .filterIsInstance<KMutableProperty<*>>()
+                        .sortedBy { it.name }
                         .mapNotNull { property -> property.toEditorControl(gameObject) }
                         .let { controls ->
                             if (controls.isNotEmpty()) {
@@ -108,7 +111,10 @@ internal fun GameObjectManagerPanel(
                                             ),
                                         verticalArrangement = Arrangement.spacedBy(4.dp)
                                     ) {
-                                        controls.forEach { it.invoke() }
+                                        controls.forEach {
+                                            it.invoke()
+                                            Divider()
+                                        }
                                     }
                                 }
                             }
