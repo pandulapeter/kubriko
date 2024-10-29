@@ -59,7 +59,7 @@ internal fun EditorUserInterface(
         }
         MetadataIndicatorPanel(
             gameObjectCount = EditorController.totalGameObjectCount.collectAsState().value,
-            mouseWorldPosition = EditorController.mouseWorldPosition.collectAsState().value,
+            mouseMapCoordinates = EditorController.mouseMapCoordinates.collectAsState().value,
         )
     }
 }

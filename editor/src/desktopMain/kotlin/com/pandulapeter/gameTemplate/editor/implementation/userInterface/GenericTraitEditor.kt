@@ -38,16 +38,14 @@ internal fun <T : Trait<out T>> LazyItemScope.GenericTraitEditor(
     visibleInEditor: VisibleInEditor,
     isExpanded: Boolean,
     onExpandedChanged: () -> Unit,
-) {
-    TraitEditorSection(
-        title = visibleInEditor.typeId,
-        isExpanded = isExpanded,
-        onExpandedChanged = onExpandedChanged,
-        controls = data.first::class.memberProperties
-            .filterIsInstance<KMutableProperty<*>>()
-            .mapNotNull { property -> property.toEditorControl(data.first) }
-    )
-}
+) = TraitEditorSection(
+    title = visibleInEditor.typeId,
+    isExpanded = isExpanded,
+    onExpandedChanged = onExpandedChanged,
+    controls = data.first::class.memberProperties
+        .filterIsInstance<KMutableProperty<*>>()
+        .mapNotNull { property -> property.toEditorControl(data.first) }
+)
 
 internal fun <T : Any> KMutableProperty<*>.toEditorControl(instance: T): (@Composable () -> Unit)? = setter.findAnnotation<VisibleInEditor>()?.let { editableProperty ->
     when (returnType) {

@@ -3,21 +3,19 @@ package com.pandulapeter.gameTemplate.engine.implementation.extensions
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
-import kotlin.math.atan2
+import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
 
-fun Offset.toPositionInWorld() = toPositionInWorld(
-    viewportOffset = EngineImpl.viewportManager.offset.value,
+fun Offset.toMapCoordinates(): MapCoordinates = toMapCoordinates(
+    viewportCenter = EngineImpl.viewportManager.center.value,
     scaledHalfViewportSize = EngineImpl.viewportManager.size.value / 2f,
     viewportScaleFactor = EngineImpl.viewportManager.scaleFactor.value,
 )
 
-internal fun Offset.toPositionInWorld(
-    viewportOffset: Offset,
+internal fun Offset.toMapCoordinates(
+    viewportCenter: MapCoordinates,
     scaledHalfViewportSize: Size,
     viewportScaleFactor: Float,
-) = viewportOffset + Offset(
+): MapCoordinates = viewportCenter + MapCoordinates(
     x = x - scaledHalfViewportSize.width,
     y = y - scaledHalfViewportSize.height,
 ) / viewportScaleFactor
-
-fun Offset.angleTowards(position: Offset) = atan2(position.y - y, position.x - x).toDegrees()

@@ -1,6 +1,5 @@
 package com.pandulapeter.gameTemplate.engine.implementation.managers
 
-import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
@@ -13,12 +12,12 @@ import com.pandulapeter.gameTemplate.engine.implementation.extensions.isAroundPo
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.isVisible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.occupiesPosition
 import com.pandulapeter.gameTemplate.engine.managers.GameObjectManager
+import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -39,14 +38,14 @@ internal class GameObjectManagerImpl : GameObjectManager {
         EngineImpl.metadataManager.runtimeInMilliseconds.map { it / 100 }.distinctUntilChanged(),
         visibleGameObjects,
         EngineImpl.viewportManager.size,
-        EngineImpl.viewportManager.offset,
+        EngineImpl.viewportManager.center,
         EngineImpl.viewportManager.scaleFactor,
-    ) { _, allVisibleGameObjects, viewportSize, viewportOffset, viewportScaleFactor ->
+    ) { _, allVisibleGameObjects, viewportSize, viewportCenter, viewportScaleFactor ->
         allVisibleGameObjects
             .filter {
                 it.getTrait<Visible>()?.isVisible(
                     scaledHalfViewportSize = viewportSize / (viewportScaleFactor * 2),
-                    viewportOffset = viewportOffset,
+                    viewportCenter = viewportCenter,
                     viewportScaleFactor = viewportScaleFactor,
                 ) == true
             }
@@ -88,10 +87,10 @@ internal class GameObjectManagerImpl : GameObjectManager {
 
     override fun removeAll() = _gameObjects.update { emptyList() }
 
-    override fun findGameObjectsWithBoundsInPosition(position: Offset) = visibleGameObjectsInViewport.value
+    override fun findGameObjectsWithBoundsInPosition(position: MapCoordinates) = visibleGameObjectsInViewport.value
         .filter { it.getTrait<Visible>()?.occupiesPosition(position) == true }
 
-    override fun findGameObjectsWithPivotsAroundPosition(position: Offset, range: Float) = visibleGameObjects.value
+    override fun findGameObjectsWithPivotsAroundPosition(position: MapCoordinates, range: Float) = visibleGameObjects.value
         .filter {
             it.getTrait<Visible>()?.isAroundPosition(
                 position = position,

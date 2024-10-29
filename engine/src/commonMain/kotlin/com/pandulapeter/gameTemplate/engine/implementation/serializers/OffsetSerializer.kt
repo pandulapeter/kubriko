@@ -21,7 +21,7 @@ typealias SerializableOffset = @Serializable(with = OffsetSerializer::class) Off
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = Offset::class)
 object OffsetSerializer : KSerializer<Offset> {
-    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Offset") {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("offset") {
         element<Float>("x")
         element<Float>("y")
     }

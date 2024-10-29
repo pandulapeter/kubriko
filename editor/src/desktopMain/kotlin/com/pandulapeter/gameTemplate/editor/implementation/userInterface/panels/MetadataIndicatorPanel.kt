@@ -9,16 +9,16 @@ import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorText
+import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
 import kotlin.math.roundToInt
 
 
 @Composable
 internal fun MetadataIndicatorPanel(
     gameObjectCount: Int,
-    mouseWorldPosition: Offset,
+    mouseMapCoordinates: MapCoordinates,
 ) = Column(
     modifier = Modifier.fillMaxWidth(),
 ) {
@@ -37,7 +37,7 @@ internal fun MetadataIndicatorPanel(
             text = "Object count: $gameObjectCount",
         )
         EditorText(
-            text = "${mouseWorldPosition.x.roundToInt()}:${mouseWorldPosition.y.roundToInt()}",
+            text = "${mouseMapCoordinates.x.roundToInt()}:${mouseMapCoordinates.y.roundToInt()}",
         )
     }
 }

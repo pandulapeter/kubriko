@@ -17,7 +17,7 @@ typealias SerializableColor = @Serializable(with = ColorSerializer::class) Color
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = Color::class)
 object ColorSerializer : KSerializer<Color> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Color", PrimitiveKind.LONG)
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("color", PrimitiveKind.LONG)
 
     override fun serialize(encoder: Encoder, value: Color) {
         encoder.encodeLong(value.value.toLong())

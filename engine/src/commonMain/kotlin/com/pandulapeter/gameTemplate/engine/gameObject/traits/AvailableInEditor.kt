@@ -8,14 +8,16 @@ import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
 import com.pandulapeter.gameTemplate.engine.gameObject.Trait
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
+import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+// TODO: Get rid of this, all GameObjects should be available in the editor
 class AvailableInEditor(
     var isSelectedInEditor: Boolean = false,
-    val createEditorInstance: (Offset) -> GameObject<*>? = { null },
+    val createEditorInstance: (MapCoordinates) -> GameObject<*>? = { null },
 ) : Trait<AvailableInEditor>() {
 
     private constructor(state: State) : this(
@@ -30,8 +32,14 @@ class AvailableInEditor(
                     (visible.scale * Engine.get().viewportManager.scaleFactor.value).let { scale ->
                         scope.drawRect(
                             color = Color.Black.copy(alpha = 0.5f),
-                            topLeft = Offset(-HIGHLIGHT_SIZE / scale.width, -HIGHLIGHT_SIZE / scale.height),
-                            size = Size(visible.bounds.width + HIGHLIGHT_SIZE * 2 / scale.width, visible.bounds.height + HIGHLIGHT_SIZE * 2 / scale.height),
+                            topLeft = Offset(
+                                x = -HIGHLIGHT_SIZE / scale.horizontal,
+                                y = -HIGHLIGHT_SIZE / scale.vertical
+                            ),
+                            size = Size(
+                                width = visible.boundingBox.width + HIGHLIGHT_SIZE * 2 / scale.horizontal,
+                                height = visible.boundingBox.height + HIGHLIGHT_SIZE * 2 / scale.vertical,
+                            ),
                         )
                     }
                 }

@@ -1,8 +1,5 @@
 package com.pandulapeter.gameTemplate.gameStressTest.gameObjects
 
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
@@ -18,7 +15,9 @@ import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardDi
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.directionState
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.trait
-import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableOffset
+import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableMapCoordinates
+import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
+import com.pandulapeter.gameTemplate.engine.types.MapSize
 import com.pandulapeter.gameTemplate.gameStressTest.gameObjects.traits.Destructible
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,18 +37,18 @@ class Character private constructor(
 ) : GameObject<Character>(
     { AvailableInEditor(createEditorInstance = { position -> Character(state = State(position = position)) }) },
     { Unique() },
-    { Visible(bounds = Size(RADIUS * 2, RADIUS * 2), position = state.position, drawer = ::draw) },
+    { Visible(boundingBox = MapSize(RADIUS * 2, RADIUS * 2), position = state.position, drawer = ::draw) },
     { Dynamic(updater = ::update) },
 ), CoroutineScope {
 
     private val visible = trait<Visible>()
 
     private var sizeMultiplier = 1f
-    private var nearbyGameObjectPositions = emptyList<Offset>()
+    private var nearbyGameObjectPositions = emptyList<MapCoordinates>()
 
     @Serializable
     data class State(
-        @SerialName("position") val position: SerializableOffset = Offset.Zero
+        @SerialName("position") val position: SerializableMapCoordinates = MapCoordinates.Zero
     ) : Serializer<Character> {
         override val typeId = TYPE_ID
 
@@ -78,15 +77,15 @@ class Character private constructor(
     }
 
     private fun update(deltaTimeMillis: Float) {
-        visible.depth = -visible.position.y - visible.pivot.y - 100f
-        Engine.get().viewportManager.addToOffset(calculateViewportOffsetDelta())
+        visible.depth = -visible.position.y - visible.pivotOffset.y - 100f
+        Engine.get().viewportManager.addToCenter(calculateViewportOffsetDelta().rawOffset)
         if (sizeMultiplier > 1f) {
             sizeMultiplier -= 0.01f * deltaTimeMillis
         } else {
             sizeMultiplier = 1f
         }
         nearbyGameObjectPositions = Engine.get().gameObjectManager.findGameObjectsWithPivotsAroundPosition(
-            position = visible.position + visible.pivot,
+            position = visible.position + visible.pivotOffset,
             range = RADIUS * 5f
         ).mapNotNull { it.getTrait<Visible>()?.position }
     }
@@ -95,19 +94,19 @@ class Character private constructor(
         nearbyGameObjectPositions.forEach { nearbyObjectPosition ->
             scope.drawLine(
                 color = Color.Red,
-                start = visible.pivot,
-                end = nearbyObjectPosition - visible.position + visible.pivot,
+                start = visible.pivotOffset.rawOffset,
+                end = (nearbyObjectPosition - visible.position + visible.pivotOffset).rawOffset,
                 strokeWidth = 2f,
             )
         }
         scope.drawCircle(
             color = lerp(Color.Red, Color.Green, ((1f + MAX_SIZE_MULTIPLIER) - sizeMultiplier) / MAX_SIZE_MULTIPLIER),
             radius = RADIUS * sizeMultiplier,
-            center = visible.bounds.center,
+            center = visible.boundingBox.center.rawOffset,
         )
     }
 
-    private fun calculateViewportOffsetDelta() = Engine.get().viewportManager.offset.value.let { viewportOffset ->
+    private fun calculateViewportOffsetDelta() = Engine.get().viewportManager.center.value.let { viewportOffset ->
         Engine.get().viewportManager.scaleFactor.value.let { scaleFactor ->
             (viewportOffset - visible.position) * VIEWPORT_FOLLOWING_SPEED_MULTIPLIER * scaleFactor * scaleFactor
         }
@@ -116,15 +115,15 @@ class Character private constructor(
     private fun move(directionState: KeyboardDirectionState) {
         if (Engine.get().stateManager.isRunning.value) {
             visible.position += when (directionState) {
-                KeyboardDirectionState.NONE -> Offset.Zero
-                KeyboardDirectionState.LEFT -> Offset(-SPEED, 0f)
-                KeyboardDirectionState.UP_LEFT -> Offset(-SPEED_DIAGONAL, -SPEED_DIAGONAL)
-                KeyboardDirectionState.UP -> Offset(0f, -SPEED)
-                KeyboardDirectionState.UP_RIGHT -> Offset(SPEED_DIAGONAL, -SPEED_DIAGONAL)
-                KeyboardDirectionState.RIGHT -> Offset(SPEED, 0f)
-                KeyboardDirectionState.DOWN_RIGHT -> Offset(SPEED_DIAGONAL, SPEED_DIAGONAL)
-                KeyboardDirectionState.DOWN -> Offset(0f, SPEED)
-                KeyboardDirectionState.DOWN_LEFT -> Offset(-SPEED_DIAGONAL, SPEED_DIAGONAL)
+                KeyboardDirectionState.NONE -> MapCoordinates.Zero
+                KeyboardDirectionState.LEFT -> MapCoordinates(-SPEED, 0f)
+                KeyboardDirectionState.UP_LEFT -> MapCoordinates(-SPEED_DIAGONAL, -SPEED_DIAGONAL)
+                KeyboardDirectionState.UP -> MapCoordinates(0f, -SPEED)
+                KeyboardDirectionState.UP_RIGHT -> MapCoordinates(SPEED_DIAGONAL, -SPEED_DIAGONAL)
+                KeyboardDirectionState.RIGHT -> MapCoordinates(SPEED, 0f)
+                KeyboardDirectionState.DOWN_RIGHT -> MapCoordinates(SPEED_DIAGONAL, SPEED_DIAGONAL)
+                KeyboardDirectionState.DOWN -> MapCoordinates(0f, SPEED)
+                KeyboardDirectionState.DOWN_LEFT -> MapCoordinates(-SPEED_DIAGONAL, SPEED_DIAGONAL)
             }
         }
     }
@@ -133,7 +132,7 @@ class Character private constructor(
         if (Engine.get().stateManager.isRunning.value) {
             sizeMultiplier = MAX_SIZE_MULTIPLIER
             Engine.get().gameObjectManager.findGameObjectsWithPivotsAroundPosition(
-                position = visible.position + visible.pivot,
+                position = visible.position + visible.pivotOffset,
                 range = RADIUS * 5f
             )
                 .mapNotNull { it.getTrait<Destructible>() }

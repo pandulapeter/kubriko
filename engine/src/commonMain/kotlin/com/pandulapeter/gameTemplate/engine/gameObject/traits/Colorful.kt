@@ -12,7 +12,7 @@ import kotlinx.serialization.json.Json
 
 @VisibleInEditor(typeId = "colorful")
 class Colorful(
-    @set:VisibleInEditor(typeId = "color") var color: SerializableColor = Color.Gray,
+    @set:VisibleInEditor(typeId = "color") var color: Color = Color.Gray,
 ) : Trait<Colorful>() {
 
     private constructor(state: State) : this(

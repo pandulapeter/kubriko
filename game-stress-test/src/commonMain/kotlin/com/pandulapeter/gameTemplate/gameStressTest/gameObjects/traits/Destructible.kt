@@ -7,6 +7,7 @@ import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Movable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.angleTowards
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.deg
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -39,7 +40,7 @@ class Destructible(
     fun destroy(characterPosition: Visible) {
         destructionState = 0.01f
         movable?.run {
-            directionDegrees = 180f - (visible?.angleTowards(characterPosition) ?: 0f)
+            directionDegrees = 180f.deg - (visible?.angleTowards(characterPosition) ?: 0f.deg)
             speed = 3f
         }
     }

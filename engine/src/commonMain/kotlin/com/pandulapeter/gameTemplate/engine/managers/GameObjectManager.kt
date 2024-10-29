@@ -3,6 +3,7 @@ package com.pandulapeter.gameTemplate.engine.managers
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
+import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
 import kotlinx.coroutines.flow.StateFlow
 
 interface GameObjectManager {
@@ -21,7 +22,7 @@ interface GameObjectManager {
 
     suspend fun deserializeState(json: String)
 
-    fun findGameObjectsWithBoundsInPosition(position: Offset): List<GameObject<*>>
+    fun findGameObjectsWithBoundsInPosition(position: MapCoordinates): List<GameObject<*>>
 
-    fun findGameObjectsWithPivotsAroundPosition(position: Offset, range: Float): List<GameObject<*>>
+    fun findGameObjectsWithPivotsAroundPosition(position: MapCoordinates, range: Float): List<GameObject<*>>
 }

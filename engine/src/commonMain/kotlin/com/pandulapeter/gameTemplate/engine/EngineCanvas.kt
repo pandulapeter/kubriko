@@ -23,6 +23,7 @@ import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.minus
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.transform
+import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
 import kotlinx.coroutines.isActive
 
 @Composable
@@ -67,12 +68,12 @@ fun EngineCanvas(
         onDraw = {
             gameTime.value
             EngineImpl.viewportManager.updateSize(size = size)
-            EngineImpl.viewportManager.offset.value.let { viewportOffset ->
+            EngineImpl.viewportManager.center.value.let { viewportCenter ->
                 withTransform(
                     transformBlock = {
                         transformViewport(
-                            viewportOffset = viewportOffset,
-                            shiftedViewportOffset = (size / 2f) - viewportOffset,
+                            viewportCenter = viewportCenter,
+                            shiftedViewportOffset = (size / 2f) - viewportCenter,
                             viewportScaleFactor = EngineImpl.viewportManager.scaleFactor.value,
                         )
                     },
@@ -95,8 +96,8 @@ fun EngineCanvas(
 }
 
 private fun DrawTransform.transformViewport(
-    viewportOffset: Offset,
-    shiftedViewportOffset: Offset,
+    viewportCenter: MapCoordinates,
+    shiftedViewportOffset: MapCoordinates,
     viewportScaleFactor: Float,
 ) {
     translate(
@@ -106,6 +107,6 @@ private fun DrawTransform.transformViewport(
     scale(
         scaleX = viewportScaleFactor,
         scaleY = viewportScaleFactor,
-        pivot = viewportOffset,
+        pivot = Offset(viewportCenter.x, viewportCenter.y),
     )
 }

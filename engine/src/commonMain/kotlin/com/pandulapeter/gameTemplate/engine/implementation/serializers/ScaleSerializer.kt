@@ -1,6 +1,6 @@
 package com.pandulapeter.gameTemplate.engine.implementation.serializers
 
-import androidx.compose.ui.geometry.Size
+import com.pandulapeter.gameTemplate.engine.types.Scale
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -15,37 +15,37 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 
-typealias SerializableSize = @Serializable(with = SizeSerializer::class) Size
+typealias SerializableScale = @Serializable(with = ScaleSerializer::class) Scale
 
 @Suppress("EXTERNAL_SERIALIZER_USELESS")
 @OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = Size::class)
-object SizeSerializer : KSerializer<Size> {
-    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("size") {
-        element<Float>("width")
-        element<Float>("height")
+@Serializer(forClass = Scale::class)
+object ScaleSerializer : KSerializer<Scale> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("scale") {
+        element<Float>("horizontal")
+        element<Float>("vertical")
     }
 
-    override fun serialize(encoder: Encoder, value: Size) {
+    override fun serialize(encoder: Encoder, value: Scale) {
         encoder.encodeStructure(descriptor) {
-            encodeFloatElement(descriptor, 0, value.width)
-            encodeFloatElement(descriptor, 1, value.height)
+            encodeFloatElement(descriptor, 0, value.horizontal)
+            encodeFloatElement(descriptor, 1, value.vertical)
         }
     }
 
-    override fun deserialize(decoder: Decoder): Size {
+    override fun deserialize(decoder: Decoder): Scale {
         return decoder.decodeStructure(descriptor) {
-            var width = 0f
-            var height = 0f
+            var horizontal = 0f
+            var vertical = 0f
             while (true) {
                 when (val index = decodeElementIndex(descriptor)) {
-                    0 -> width = decodeFloatElement(descriptor, 0)
-                    1 -> height = decodeFloatElement(descriptor, 1)
+                    0 -> horizontal = decodeFloatElement(descriptor, 0)
+                    1 -> vertical = decodeFloatElement(descriptor, 1)
                     CompositeDecoder.DECODE_DONE -> break
                     else -> throw SerializationException("Unexpected index $index")
                 }
             }
-            Size(width, height)
+            Scale(horizontal, vertical)
         }
     }
 }

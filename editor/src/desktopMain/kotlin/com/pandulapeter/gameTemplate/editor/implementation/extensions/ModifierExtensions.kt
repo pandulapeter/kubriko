@@ -5,7 +5,6 @@ import androidx.compose.foundation.PointerMatcher
 import androidx.compose.foundation.gestures.onDrag
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.PointerEventType
@@ -15,16 +14,17 @@ import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.occupiesPosition
+import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
 
-private var startOffset: Offset? = null
+private var startOffset: MapCoordinates? = null
 private var isDragging = false
 
 @OptIn(ExperimentalComposeUiApi::class)
 internal fun Modifier.handleMouseClick(): Modifier = onPointerEvent(PointerEventType.Press) { event ->
     when (event.button) {
         PointerButton.Primary -> EditorController.selectedGameObject.value.first?.getTrait<Visible>()?.let { visible ->
-            if (visible.occupiesPosition(EditorController.mouseWorldPosition.value)) {
-                startOffset = EditorController.mouseWorldPosition.value - visible.position
+            if (visible.occupiesPosition(EditorController.mouseMapCoordinates.value)) {
+                startOffset = EditorController.mouseMapCoordinates.value - visible.position
             }
         }
     }
@@ -62,17 +62,17 @@ internal fun Modifier.handleMouseZoom(): Modifier = onPointerEvent(PointerEventT
 internal fun Modifier.handleMouseDrag(): Modifier = onDrag(
     matcher = PointerMatcher.mouse(PointerButton.Tertiary),
 ) { screenCoordinates ->
-    Engine.get().viewportManager.addToOffset(screenCoordinates)
+    Engine.get().viewportManager.addToCenter(screenCoordinates)
 }.onDrag(
     matcher = PointerMatcher.mouse(PointerButton.Primary),
 ) { screenCoordinates ->
     isDragging = true
     if (Engine.get().inputManager.run { isKeyPressed(Key.ShiftLeft) || isKeyPressed(Key.ShiftRight) }) {
-        Engine.get().viewportManager.addToOffset(screenCoordinates)
+        Engine.get().viewportManager.addToCenter(screenCoordinates)
     } else {
         startOffset?.let { startOffset ->
             EditorController.selectedGameObject.value.first?.getTrait<Visible>()?.let { visible ->
-                visible.position = EditorController.mouseWorldPosition.value - startOffset
+                visible.position = EditorController.mouseMapCoordinates.value - startOffset
                 EditorController.notifyGameObjectUpdate()
             }
         }

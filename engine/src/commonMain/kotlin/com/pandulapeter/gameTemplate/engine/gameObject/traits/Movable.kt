@@ -1,11 +1,14 @@
 package com.pandulapeter.gameTemplate.engine.gameObject.traits
 
-import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
 import com.pandulapeter.gameTemplate.engine.gameObject.Trait
 import com.pandulapeter.gameTemplate.engine.gameObject.editor.VisibleInEditor
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.deg
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toRadians
+import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableRotationDegrees
+import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
+import com.pandulapeter.gameTemplate.engine.types.RotationDegrees
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -17,7 +20,7 @@ import kotlin.math.sin
 class Movable(
     @set:VisibleInEditor(typeId = "speed") var speed: Float = 0f,
     @set:VisibleInEditor(typeId = "friction") var friction: Float = 0f,
-    @set:VisibleInEditor(typeId = "directionDegrees") var directionDegrees: Float = 0f,
+    @set:VisibleInEditor(typeId = "directionDegrees") var directionDegrees: RotationDegrees = 0f.deg,
 ) : Trait<Movable>() {
 
     private constructor(state: State) : this(
@@ -35,7 +38,7 @@ class Movable(
                         speed = 0f
                     }
                     directionDegrees.toRadians().let { directionRadians ->
-                        visible.position += Offset(
+                        visible.position += MapCoordinates(
                             x = cos(directionRadians),
                             y = -sin(directionRadians)
                         ) * speed * deltaTimeInMillis
@@ -53,7 +56,7 @@ class Movable(
     private data class State(
         @SerialName("speed") val speed: Float = 0f,
         @SerialName("friction") val friction: Float = 0f,
-        @SerialName("directionDegrees") val directionDegrees: Float = 0f,
+        @SerialName("directionDegrees") val directionDegrees: SerializableRotationDegrees = 0f.deg,
     ) : Serializer<Movable> {
 
         constructor(movable: Movable) : this(

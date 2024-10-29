@@ -1,8 +1,5 @@
 package com.pandulapeter.gameTemplate.gamePong.gameObjects
 
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
@@ -10,10 +7,16 @@ import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Colorful
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.deg
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.trait
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableColor
-import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableOffset
-import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableSize
+import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableMapCoordinates
+import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableMapSize
+import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableRotationDegrees
+import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableScale
+import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
+import com.pandulapeter.gameTemplate.engine.types.MapSize
+import com.pandulapeter.gameTemplate.engine.types.Scale
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -24,24 +27,24 @@ class Box private constructor(
 ) : GameObject<Box>(
     { AvailableInEditor(createEditorInstance = { position -> Box(state = State(position = position)) }) },
     { Colorful(color = state.color) },
-    { Visible(bounds = state.bounds, position = state.position, drawer = ::draw) },
+    { Visible(boundingBox = state.boundingBox, position = state.position, drawer = ::draw) },
 ) {
     private val colorful = trait<Colorful>()
     private val visible = trait<Visible>()
 
     fun draw(scope: DrawScope) = scope.drawRect(
         color = colorful.color,
-        size = visible.bounds,
+        size = visible.boundingBox.rawSize,
     )
 
     @Serializable
     data class State(
         @SerialName("color") val color: SerializableColor = Color.Gray,
-        @SerialName("bounds") val bounds: SerializableSize = Size(100f, 100f),
-        @SerialName("pivot") val pivot: SerializableOffset = bounds.center,
-        @SerialName("position") val position: SerializableOffset = Offset.Zero,
-        @SerialName("scale") val scale: SerializableSize = Size(1f, 1f),
-        @SerialName("rotationDegrees") val rotationDegrees: Float = 1f,
+        @SerialName("boundingBox") val boundingBox: SerializableMapSize = MapSize(100f, 100f),
+        @SerialName("pivotOffset") val pivotOffset: SerializableMapCoordinates = boundingBox.center,
+        @SerialName("position") val position: SerializableMapCoordinates = MapCoordinates.Zero,
+        @SerialName("scale") val scale: SerializableScale = Scale.Unit,
+        @SerialName("rotationDegrees") val rotationDegrees: SerializableRotationDegrees = 0f.deg,
         @SerialName("depth") val depth: Float = 0f,
     ) : Serializer<Box> {
 
@@ -54,8 +57,8 @@ class Box private constructor(
 
     override fun getSerializer() = State(
         color = colorful.color,
-        bounds = visible.bounds,
-        pivot = visible.pivot,
+        boundingBox = visible.boundingBox,
+        pivotOffset = visible.pivotOffset,
         position = visible.position,
         scale = visible.scale,
         rotationDegrees = visible.rotationDegrees,

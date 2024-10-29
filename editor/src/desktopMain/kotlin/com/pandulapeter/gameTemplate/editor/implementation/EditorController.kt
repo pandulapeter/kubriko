@@ -11,8 +11,9 @@ import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
-import com.pandulapeter.gameTemplate.engine.implementation.extensions.toPositionInWorld
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.toMapCoordinates
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.trait
+import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -34,14 +35,14 @@ internal object EditorController : CoroutineScope {
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
     val totalGameObjectCount = Engine.get().metadataManager.totalGameObjectCount
     private val mouseScreenCoordinates = MutableStateFlow(Offset.Zero)
-    val mouseWorldPosition = combine(
+    val mouseMapCoordinates = combine(
         mouseScreenCoordinates,
-        Engine.get().viewportManager.offset,
+        Engine.get().viewportManager.center,
         Engine.get().viewportManager.size,
         Engine.get().viewportManager.scaleFactor,
     ) { mouseScreenCoordinates, _, _, _ ->
-        mouseScreenCoordinates.toPositionInWorld()
-    }.stateIn(this, SharingStarted.Eagerly, Offset.Zero)
+        mouseScreenCoordinates.toMapCoordinates()
+    }.stateIn(this, SharingStarted.Eagerly, MapCoordinates.Zero)
     private val triggerGameObjectUpdate = MutableStateFlow(false)
     private val _selectedGameObject = MutableStateFlow<GameObject<*>?>(null)
     val selectedGameObject = combine(
@@ -66,8 +67,8 @@ internal object EditorController : CoroutineScope {
     }
 
     fun handleLeftClick(screenCoordinates: Offset) {
-        val positionInWorld = screenCoordinates.toPositionInWorld()
-        findGameObjectBelowClick(positionInWorld).let { gameObjectAtPosition ->
+        val positionInWorld = screenCoordinates.toMapCoordinates()
+        findGameObjectOnPosition(positionInWorld).let { gameObjectAtPosition ->
             selectedGameObject.value.first.let { currentSelectedGameObject ->
                 if (gameObjectAtPosition == null) {
                     if (currentSelectedGameObject == null) {
@@ -100,7 +101,7 @@ internal object EditorController : CoroutineScope {
     }
 
     fun handleRightClick(screenCoordinates: Offset) {
-        findGameObjectBelowClick(screenCoordinates.toPositionInWorld()).let { gameObjectAtPosition ->
+        findGameObjectOnPosition(screenCoordinates.toMapCoordinates()).let { gameObjectAtPosition ->
             if (gameObjectAtPosition != null) {
                 if (gameObjectAtPosition == _selectedGameObject.value) {
                     deleteSelectedGameObject()
@@ -111,7 +112,7 @@ internal object EditorController : CoroutineScope {
         }
     }
 
-    private fun findGameObjectBelowClick(positionInWorld: Offset) = Engine.get().gameObjectManager
+    private fun findGameObjectOnPosition(positionInWorld: MapCoordinates) = Engine.get().gameObjectManager
         .findGameObjectsWithBoundsInPosition(positionInWorld)
         .minByOrNull { it.trait<Visible>().depth }
 
@@ -124,7 +125,7 @@ internal object EditorController : CoroutineScope {
 
     fun locateGameObject() {
         _selectedGameObject.value?.getTrait<Visible>()?.let { visibleTrait ->
-            Engine.get().viewportManager.setOffset(visibleTrait.position)
+            Engine.get().viewportManager.setCenter(visibleTrait.position)
         }
     }
 
