@@ -63,7 +63,7 @@ class MovingBox private constructor(state: MovingBoxState) : GameObject<MovingBo
     override fun update(deltaTimeInMillis: Float) {
         super.update(deltaTimeInMillis)
         drawingOrder = -position.y - pivotOffset.y
-        rotation += (0.1f * deltaTimeInMillis).deg
+        rotation += (0.1f * deltaTimeInMillis * (1f - destructionState)).deg
         if (scale.horizontal >= 1.6f) {
             isGrowing = false
         }
@@ -72,13 +72,13 @@ class MovingBox private constructor(state: MovingBoxState) : GameObject<MovingBo
         }
         if (isGrowing) {
             scale = Scale(
-                horizontal = scale.horizontal + 0.001f * deltaTimeInMillis,
-                vertical = scale.vertical + 0.001f * deltaTimeInMillis,
+                horizontal = scale.horizontal + 0.001f * deltaTimeInMillis * (1f - destructionState),
+                vertical = scale.vertical + 0.001f * deltaTimeInMillis * (1f - destructionState),
             )
         } else {
             scale = Scale(
-                horizontal = scale.horizontal - 0.001f * deltaTimeInMillis,
-                vertical = scale.vertical - 0.001f * deltaTimeInMillis,
+                horizontal = scale.horizontal - 0.001f * deltaTimeInMillis * (1f - destructionState),
+                vertical = scale.vertical - 0.001f * deltaTimeInMillis * (1f - destructionState),
             )
         }
         position += WorldCoordinates(

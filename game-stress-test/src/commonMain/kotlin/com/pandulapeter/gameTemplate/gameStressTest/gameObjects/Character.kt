@@ -74,7 +74,7 @@ class Character private constructor(
         }
         nearbyGameObjectPositions = Engine.get().gameObjectManager.findGameObjectsWithPivotsAroundPosition(
             position = position + pivotOffset,
-            range = RADIUS * 5f
+            range = EXPLOSION_RANGE,
         ).mapNotNull { (it as? Visible)?.position }
     }
 
@@ -124,10 +124,8 @@ class Character private constructor(
             sizeMultiplier = MAX_SIZE_MULTIPLIER
             Engine.get().gameObjectManager.findGameObjectsWithPivotsAroundPosition(
                 position = position + pivotOffset,
-                range = RADIUS * 5f
-            )
-                .filterIsInstance<Destructible>()
-                .forEach { it.destroy(this) }
+                range = EXPLOSION_RANGE,
+            ).filterIsInstance<Destructible>().forEach { it.destroy(this) }
         }
     }
 
@@ -146,6 +144,7 @@ class Character private constructor(
         const val TYPE_ID = "character"
         private const val VIEWPORT_FOLLOWING_SPEED_MULTIPLIER = 0.03f
         private const val MAX_SIZE_MULTIPLIER = 3f
+        private const val EXPLOSION_RANGE = 500f
         private const val RADIUS = 50f
         private const val SPEED = 6f
         private val SPEED_DIAGONAL = (sin(PI / 4) * SPEED).toFloat()

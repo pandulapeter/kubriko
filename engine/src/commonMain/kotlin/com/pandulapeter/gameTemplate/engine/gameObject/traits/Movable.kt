@@ -15,7 +15,7 @@ interface Movable : Dynamic, Visible {
     override fun update(deltaTimeInMillis: Float) {
         if (speed != 0f) {
             speed -= friction * deltaTimeInMillis
-            if (speed < 0.00001f) {
+            if (speed < 0.01f) {
                 speed = 0f
             }
             direction.toRadians().let { angleRadians ->
