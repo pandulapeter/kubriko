@@ -101,6 +101,6 @@ class BoxWithCircle private constructor(
     )
 
     companion object {
-        const val TYPE_ID = "staticBox"
+        const val TYPE_ID = "boxWithCircle"
     }
 }

@@ -28,7 +28,9 @@ import com.pandulapeter.gameTemplate.editor.implementation.userInterface.compone
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorTextTitle
 import com.pandulapeter.gameTemplate.engine.gameObject.Trait
 import com.pandulapeter.gameTemplate.engine.gameObject.editor.VisibleInEditor
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.deg
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toHSV
+import com.pandulapeter.gameTemplate.engine.types.RotationDegrees
 import game.editor.generated.resources.Res
 import game.editor.generated.resources.ic_collapse
 import game.editor.generated.resources.ic_expand
@@ -94,6 +96,20 @@ internal fun <T : Any> KMutableProperty<*>.toEditorControl(instance: T): (@Compo
                         EditorController.notifyGameObjectUpdate()
                     },
                     valueRange = 0f..1f,
+                )
+            }
+        }
+
+        RotationDegrees::class.createType() -> {
+            {
+                EditorSlider(
+                    title = editableProperty.typeId,
+                    value = (getter.call(instance) as RotationDegrees).normalized,
+                    onValueChange = {
+                        setter.call(instance, it.deg)
+                        EditorController.notifyGameObjectUpdate()
+                    },
+                    valueRange = 0f..359.99f
                 )
             }
         }

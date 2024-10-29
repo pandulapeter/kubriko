@@ -110,6 +110,6 @@ class MovingBox private constructor(
     )
 
     companion object {
-        const val TYPE_ID = "dynamicBox"
+        const val TYPE_ID = "movingBox"
     }
 }
