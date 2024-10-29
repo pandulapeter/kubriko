@@ -7,7 +7,6 @@ import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
 import com.pandulapeter.gameTemplate.engine.gameObject.editor.VisibleInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
-import com.pandulapeter.gameTemplate.engine.gameObject.traits.Colorful
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Movable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
@@ -31,20 +30,21 @@ class BoxWithCircle private constructor(
     state: State,
 ) : GameObject<BoxWithCircle>(
     { AvailableInEditor(createEditorInstance = { position -> BoxWithCircle(state = State(position = position)) }) },
-    { Colorful(color = state.color) },
     { Visible(boundingBox = state.boundingBox, position = state.position, scale = state.scale, rotationDegrees = state.rotationDegrees, drawer = ::draw) },
     { Movable(directionDegrees = state.directionDegrees, speed = state.speed, friction = state.friction) },
     { Dynamic(updater = ::update) },
     { Destructible() },
 ) {
+    @set:VisibleInEditor(typeId = "boxColor")
+    var boxColor: Color = state.boxColor
+
     @set:VisibleInEditor(typeId = "circleColor")
-    var circleColor: Color = state.dotColor
+    var circleColor: Color = state.circleColor
 
     @set:VisibleInEditor(typeId = "circleRadius")
     var circleRadius: Float = state.circleRadius
 
     private val visible by lazy { trait<Visible>() }
-    private val colorful by lazy { trait<Colorful>() }
     private val destructible by lazy { trait<Destructible>() }
     private val movable by lazy { trait<Movable>() }
 
@@ -54,7 +54,7 @@ class BoxWithCircle private constructor(
 
     private fun draw(scope: DrawScope) {
         scope.drawRect(
-            color = lerp(colorful.color, Color.Black, destructible.destructionState),
+            color = lerp(boxColor, Color.Black, destructible.destructionState),
             size = visible.boundingBox.rawSize,
         )
         scope.drawCircle(
@@ -66,7 +66,6 @@ class BoxWithCircle private constructor(
 
     @Serializable
     data class State(
-        @SerialName("color") val color: SerializableColor = Color.Gray,
         @SerialName("boundingBox") val boundingBox: SerializableMapSize = MapSize(100f, 100f),
         @SerialName("pivotOffset") val pivotOffset: SerializableMapCoordinates = boundingBox.center,
         @SerialName("position") val position: SerializableMapCoordinates = MapCoordinates.Zero,
@@ -75,7 +74,8 @@ class BoxWithCircle private constructor(
         @SerialName("directionDegrees") val directionDegrees: SerializableRotationDegrees = 0f.deg,
         @SerialName("speed") val speed: Float = 0f,
         @SerialName("friction") val friction: Float = 0.015f,
-        @SerialName("dotColor") val dotColor: SerializableColor = Color.White,
+        @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,
+        @SerialName("circleColor") val circleColor: SerializableColor = Color.White,
         @SerialName("circleRadius") val circleRadius: Float = (boundingBox.width + boundingBox.height) / 4f,
     ) : Serializer<BoxWithCircle> {
 
@@ -87,7 +87,6 @@ class BoxWithCircle private constructor(
     }
 
     override fun getSerializer() = State(
-        color = colorful.color,
         boundingBox = visible.boundingBox,
         pivotOffset = visible.pivotOffset,
         position = visible.position,
@@ -95,6 +94,10 @@ class BoxWithCircle private constructor(
         rotationDegrees = visible.rotationDegrees,
         directionDegrees = movable.directionDegrees,
         speed = movable.speed,
+        friction = movable.friction,
+        boxColor = boxColor,
+        circleColor = circleColor,
+        circleRadius = circleRadius,
     )
 
     companion object {

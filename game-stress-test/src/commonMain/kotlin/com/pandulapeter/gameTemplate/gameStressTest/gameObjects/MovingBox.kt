@@ -5,8 +5,8 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
+import com.pandulapeter.gameTemplate.engine.gameObject.editor.VisibleInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
-import com.pandulapeter.gameTemplate.engine.gameObject.traits.Colorful
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Movable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
@@ -34,14 +34,15 @@ class MovingBox private constructor(
 ) : GameObject<MovingBox>(
     { AvailableInEditor(createEditorInstance = { position -> MovingBox(state = State(position = position)) }) },
     { Movable(directionDegrees = state.directionDegrees, speed = state.speed, friction = state.friction) },
-    { Colorful(color = state.color) },
     { Dynamic(updater = ::update) },
     { Visible(boundingBox = state.boundingBox, position = state.position, scale = state.scale, rotationDegrees = state.rotationDegrees, drawer = ::draw) },
     { Destructible() },
 ) {
+    @set:VisibleInEditor(typeId = "boxColor")
+    var boxColor: Color = state.boxColor
+
     private var isGrowing = true
     private val visible by lazy { trait<Visible>() }
-    private val colorful by lazy { trait<Colorful>() }
     private val destructible by lazy { trait<Destructible>() }
     private val movable by lazy { trait<Movable>() }
 
@@ -72,13 +73,12 @@ class MovingBox private constructor(
     }
 
     private fun draw(scope: DrawScope) = scope.drawRect(
-        color = lerp(colorful.color, Color.Black, destructible.destructionState),
+        color = lerp(boxColor, Color.Black, destructible.destructionState),
         size = visible.boundingBox.rawSize,
     )
 
     @Serializable
     data class State(
-        @SerialName("color") val color: SerializableColor = Color.Gray,
         @SerialName("boundingBox") val boundingBox: SerializableMapSize = MapSize(100f, 100f),
         @SerialName("pivotOffset") val pivotOffset: SerializableMapCoordinates = boundingBox.center,
         @SerialName("position") val position: SerializableMapCoordinates = MapCoordinates.Zero,
@@ -87,6 +87,7 @@ class MovingBox private constructor(
         @SerialName("directionDegrees") val directionDegrees: SerializableRotationDegrees = 0f.deg,
         @SerialName("speed") val speed: Float = 0f,
         @SerialName("friction") val friction: Float = 0.015f,
+        @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,
     ) : Serializer<MovingBox> {
 
         override val typeId = TYPE_ID
@@ -97,7 +98,6 @@ class MovingBox private constructor(
     }
 
     override fun getSerializer() = State(
-        color = colorful.color,
         boundingBox = visible.boundingBox,
         pivotOffset = visible.pivotOffset,
         position = visible.position,
@@ -105,6 +105,8 @@ class MovingBox private constructor(
         scale = visible.scale,
         directionDegrees = movable.directionDegrees,
         speed = movable.speed,
+        friction = movable.friction,
+        boxColor = boxColor,
     )
 
     companion object {

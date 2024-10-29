@@ -4,8 +4,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
+import com.pandulapeter.gameTemplate.engine.gameObject.editor.VisibleInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
-import com.pandulapeter.gameTemplate.engine.gameObject.traits.Colorful
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.deg
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.trait
@@ -26,26 +26,27 @@ class Box private constructor(
     state: State,
 ) : GameObject<Box>(
     { AvailableInEditor(createEditorInstance = { position -> Box(state = State(position = position)) }) },
-    { Colorful(color = state.color) },
     { Visible(boundingBox = state.boundingBox, position = state.position, drawer = ::draw) },
 ) {
-    private val colorful = trait<Colorful>()
+    @set:VisibleInEditor(typeId = "boxColor")
+    var boxColor: Color = state.boxColor
+
     private val visible = trait<Visible>()
 
     fun draw(scope: DrawScope) = scope.drawRect(
-        color = colorful.color,
+        color = boxColor,
         size = visible.boundingBox.rawSize,
     )
 
     @Serializable
     data class State(
-        @SerialName("color") val color: SerializableColor = Color.Gray,
         @SerialName("boundingBox") val boundingBox: SerializableMapSize = MapSize(100f, 100f),
         @SerialName("pivotOffset") val pivotOffset: SerializableMapCoordinates = boundingBox.center,
         @SerialName("position") val position: SerializableMapCoordinates = MapCoordinates.Zero,
         @SerialName("scale") val scale: SerializableScale = Scale.Unit,
         @SerialName("rotationDegrees") val rotationDegrees: SerializableRotationDegrees = 0f.deg,
         @SerialName("depth") val depth: Float = 0f,
+        @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,
     ) : Serializer<Box> {
 
         override val typeId = TYPE_ID
@@ -56,13 +57,13 @@ class Box private constructor(
     }
 
     override fun getSerializer() = State(
-        color = colorful.color,
         boundingBox = visible.boundingBox,
         pivotOffset = visible.pivotOffset,
         position = visible.position,
         scale = visible.scale,
         rotationDegrees = visible.rotationDegrees,
         depth = visible.depth,
+        boxColor = boxColor,
     )
 
     companion object {

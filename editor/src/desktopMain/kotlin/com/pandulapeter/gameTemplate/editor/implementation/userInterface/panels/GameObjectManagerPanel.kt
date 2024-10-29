@@ -29,6 +29,7 @@ import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.Trait
 import com.pandulapeter.gameTemplate.engine.gameObject.editor.VisibleInEditor
 import game.editor.generated.resources.Res
+import game.editor.generated.resources.ic_close
 import game.editor.generated.resources.ic_delete
 import game.editor.generated.resources.ic_locate
 import kotlin.reflect.KClass
@@ -78,6 +79,11 @@ internal fun GameObjectManagerPanel(
                             EditorTextTitle(
                                 modifier = Modifier.weight(1f),
                                 text = gameObject::class.java.simpleName,
+                            )
+                            EditorIcon(
+                                drawableResource = Res.drawable.ic_close,
+                                contentDescription = "Unselect",
+                                onClick = EditorController::unselectGameObject,
                             )
                             EditorIcon(
                                 drawableResource = Res.drawable.ic_locate,

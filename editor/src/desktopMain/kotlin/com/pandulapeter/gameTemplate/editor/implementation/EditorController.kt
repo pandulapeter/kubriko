@@ -116,7 +116,7 @@ internal object EditorController : CoroutineScope {
         .findGameObjectsWithBoundsInPosition(positionInWorld)
         .minByOrNull { it.trait<Visible>().depth }
 
-    private fun unselectGameObject() {
+    fun unselectGameObject() {
         _selectedGameObject.value?.getTrait<AvailableInEditor>()?.isSelectedInEditor = false
         _selectedGameObject.update { null }
     }
