@@ -1,10 +1,10 @@
 package com.pandulapeter.gameTemplate.engine.gameObject
 
-interface Serializer<T> {
+interface State<T> {
 
     val typeId: String
 
-    fun instantiate(): T
+    fun restore(): T
 
     fun serialize(): String
 }

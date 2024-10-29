@@ -21,16 +21,16 @@ internal class MetadataManagerImpl : MetadataManager {
 
     fun updateFps(
         gameTimeNanos: Long,
-        deltaTimeMillis: Float,
+        deltaTimeInMillis: Float,
     ) {
         if (EngineImpl.stateManager.isRunning.value) {
             _runtimeInMilliseconds.update { currentValue ->
-                (currentValue + deltaTimeMillis).toLong()
+                (currentValue + deltaTimeInMillis).toLong()
             }
         }
         if (gameTimeNanos - lastFpsUpdateTimestamp >= 1000000000L) {
             _fps.update { currentValue ->
-                if (deltaTimeMillis == 0f) currentValue else 1000f / deltaTimeMillis
+                if (deltaTimeInMillis == 0f) currentValue else 1000f / deltaTimeInMillis
             }
             lastFpsUpdateTimestamp = gameTimeNanos
         }

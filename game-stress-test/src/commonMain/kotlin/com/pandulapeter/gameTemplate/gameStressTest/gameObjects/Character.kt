@@ -6,18 +6,17 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
-import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
+import com.pandulapeter.gameTemplate.engine.gameObject.State
+import com.pandulapeter.gameTemplate.engine.gameObject.editor.Editable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Unique
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardDirectionState
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.directionState
-import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
-import com.pandulapeter.gameTemplate.engine.implementation.extensions.trait
-import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableMapCoordinates
-import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
-import com.pandulapeter.gameTemplate.engine.types.MapSize
+import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableWorldCoordinates
+import com.pandulapeter.gameTemplate.engine.types.WorldCoordinates
+import com.pandulapeter.gameTemplate.engine.types.WorldSize
 import com.pandulapeter.gameTemplate.gameStressTest.gameObjects.traits.Destructible
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,31 +32,20 @@ import kotlin.math.PI
 import kotlin.math.sin
 
 class Character private constructor(
-    state: State,
-) : GameObject<Character>(
-    { AvailableInEditor(createEditorInstance = { position -> Character(state = State(position = position)) }) },
-    { Unique() },
-    { Visible(boundingBox = MapSize(RADIUS * 2, RADIUS * 2), position = state.position, drawer = ::draw) },
-    { Dynamic(updater = ::update) },
-), CoroutineScope {
+    state: CharacterState,
+) : GameObject<Character>, AvailableInEditor, Unique, Visible, Dynamic, CoroutineScope {
 
-    private val visible = trait<Visible>()
+    @set:Editable(typeId = "position")
+    override var position: WorldCoordinates = state.position
 
+    override var isSelectedInEditor = false
+    override val boundingBox = WorldSize(
+        width = RADIUS * 2f,
+        height = RADIUS * 2f,
+    )
+    override var drawingOrder = 0f
     private var sizeMultiplier = 1f
-    private var nearbyGameObjectPositions = emptyList<MapCoordinates>()
-
-    @Serializable
-    data class State(
-        @SerialName("position") val position: SerializableMapCoordinates = MapCoordinates.Zero
-    ) : Serializer<Character> {
-        override val typeId = TYPE_ID
-
-        override fun instantiate() = Character(this)
-
-        override fun serialize() = Json.encodeToString(this)
-    }
-
-    override fun getSerializer() = State(position = visible.position)
+    private var nearbyGameObjectPositions = emptyList<WorldCoordinates>()
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
 
@@ -76,54 +64,63 @@ class Character private constructor(
             .launchIn(this)
     }
 
-    private fun update(deltaTimeMillis: Float) {
-        visible.depth = -visible.position.y - visible.pivotOffset.y - 100f
+    override fun update(deltaTimeInMillis: Float) {
+        drawingOrder = -position.y - pivotOffset.y - 100f
         Engine.get().viewportManager.addToCenter(calculateViewportOffsetDelta().rawOffset)
         if (sizeMultiplier > 1f) {
-            sizeMultiplier -= 0.01f * deltaTimeMillis
+            sizeMultiplier -= 0.01f * deltaTimeInMillis
         } else {
             sizeMultiplier = 1f
         }
         nearbyGameObjectPositions = Engine.get().gameObjectManager.findGameObjectsWithPivotsAroundPosition(
-            position = visible.position + visible.pivotOffset,
+            position = position + pivotOffset,
             range = RADIUS * 5f
-        ).mapNotNull { it.getTrait<Visible>()?.position }
+        ).mapNotNull { (it as? Visible)?.position }
     }
 
-    private fun draw(scope: DrawScope) {
+
+    override fun createEditorInstance(position: WorldCoordinates) = Character(
+        state = CharacterState(
+            position = position,
+        )
+    )
+
+    override fun draw(scope: DrawScope) {
         nearbyGameObjectPositions.forEach { nearbyObjectPosition ->
             scope.drawLine(
                 color = Color.Red,
-                start = visible.pivotOffset.rawOffset,
-                end = (nearbyObjectPosition - visible.position + visible.pivotOffset).rawOffset,
+                start = pivotOffset.rawOffset,
+                end = (nearbyObjectPosition - position + pivotOffset).rawOffset,
                 strokeWidth = 2f,
             )
         }
         scope.drawCircle(
             color = lerp(Color.Red, Color.Green, ((1f + MAX_SIZE_MULTIPLIER) - sizeMultiplier) / MAX_SIZE_MULTIPLIER),
             radius = RADIUS * sizeMultiplier,
-            center = visible.boundingBox.center.rawOffset,
+            center = boundingBox.center.rawOffset,
         )
     }
 
+    override fun saveState() = CharacterState(position = position)
+
     private fun calculateViewportOffsetDelta() = Engine.get().viewportManager.center.value.let { viewportOffset ->
         Engine.get().viewportManager.scaleFactor.value.let { scaleFactor ->
-            (viewportOffset - visible.position) * VIEWPORT_FOLLOWING_SPEED_MULTIPLIER * scaleFactor * scaleFactor
+            (viewportOffset - position) * VIEWPORT_FOLLOWING_SPEED_MULTIPLIER * scaleFactor * scaleFactor
         }
     }
 
     private fun move(directionState: KeyboardDirectionState) {
         if (Engine.get().stateManager.isRunning.value) {
-            visible.position += when (directionState) {
-                KeyboardDirectionState.NONE -> MapCoordinates.Zero
-                KeyboardDirectionState.LEFT -> MapCoordinates(-SPEED, 0f)
-                KeyboardDirectionState.UP_LEFT -> MapCoordinates(-SPEED_DIAGONAL, -SPEED_DIAGONAL)
-                KeyboardDirectionState.UP -> MapCoordinates(0f, -SPEED)
-                KeyboardDirectionState.UP_RIGHT -> MapCoordinates(SPEED_DIAGONAL, -SPEED_DIAGONAL)
-                KeyboardDirectionState.RIGHT -> MapCoordinates(SPEED, 0f)
-                KeyboardDirectionState.DOWN_RIGHT -> MapCoordinates(SPEED_DIAGONAL, SPEED_DIAGONAL)
-                KeyboardDirectionState.DOWN -> MapCoordinates(0f, SPEED)
-                KeyboardDirectionState.DOWN_LEFT -> MapCoordinates(-SPEED_DIAGONAL, SPEED_DIAGONAL)
+            position += when (directionState) {
+                KeyboardDirectionState.NONE -> WorldCoordinates.Zero
+                KeyboardDirectionState.LEFT -> WorldCoordinates(-SPEED, 0f)
+                KeyboardDirectionState.UP_LEFT -> WorldCoordinates(-SPEED_DIAGONAL, -SPEED_DIAGONAL)
+                KeyboardDirectionState.UP -> WorldCoordinates(0f, -SPEED)
+                KeyboardDirectionState.UP_RIGHT -> WorldCoordinates(SPEED_DIAGONAL, -SPEED_DIAGONAL)
+                KeyboardDirectionState.RIGHT -> WorldCoordinates(SPEED, 0f)
+                KeyboardDirectionState.DOWN_RIGHT -> WorldCoordinates(SPEED_DIAGONAL, SPEED_DIAGONAL)
+                KeyboardDirectionState.DOWN -> WorldCoordinates(0f, SPEED)
+                KeyboardDirectionState.DOWN_LEFT -> WorldCoordinates(-SPEED_DIAGONAL, SPEED_DIAGONAL)
             }
         }
     }
@@ -132,12 +129,23 @@ class Character private constructor(
         if (Engine.get().stateManager.isRunning.value) {
             sizeMultiplier = MAX_SIZE_MULTIPLIER
             Engine.get().gameObjectManager.findGameObjectsWithPivotsAroundPosition(
-                position = visible.position + visible.pivotOffset,
+                position = position + pivotOffset,
                 range = RADIUS * 5f
             )
-                .mapNotNull { it.getTrait<Destructible>() }
-                .forEach { it.destroy(visible) }
+                .filterIsInstance<Destructible>()
+                .forEach { it.destroy(this) }
         }
+    }
+
+    @Serializable
+    data class CharacterState(
+        @SerialName("position") val position: SerializableWorldCoordinates = WorldCoordinates.Zero
+    ) : State<Character> {
+        override val typeId = TYPE_ID
+
+        override fun restore() = Character(this)
+
+        override fun serialize() = Json.encodeToString(this)
     }
 
     companion object {

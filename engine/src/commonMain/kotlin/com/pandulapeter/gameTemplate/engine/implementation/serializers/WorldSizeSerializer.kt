@@ -1,6 +1,6 @@
 package com.pandulapeter.gameTemplate.engine.implementation.serializers
 
-import com.pandulapeter.gameTemplate.engine.types.MapSize
+import com.pandulapeter.gameTemplate.engine.types.WorldSize
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -15,25 +15,25 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 
-typealias SerializableMapSize = @Serializable(with = MapSizeSerializer::class) MapSize
+typealias SerializableWorldSize = @Serializable(with = WorldSizeSerializer::class) WorldSize
 
 @Suppress("EXTERNAL_SERIALIZER_USELESS")
 @OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = MapSize::class)
-object MapSizeSerializer : KSerializer<MapSize> {
+@Serializer(forClass = WorldSize::class)
+object WorldSizeSerializer : KSerializer<WorldSize> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("mapSize") {
         element<Float>("width")
         element<Float>("height")
     }
 
-    override fun serialize(encoder: Encoder, value: MapSize) {
+    override fun serialize(encoder: Encoder, value: WorldSize) {
         encoder.encodeStructure(descriptor) {
             encodeFloatElement(descriptor, 0, value.width)
             encodeFloatElement(descriptor, 1, value.height)
         }
     }
 
-    override fun deserialize(decoder: Decoder): MapSize {
+    override fun deserialize(decoder: Decoder): WorldSize {
         return decoder.decodeStructure(descriptor) {
             var width = 0f
             var height = 0f
@@ -45,7 +45,7 @@ object MapSizeSerializer : KSerializer<MapSize> {
                     else -> throw SerializationException("Unexpected index $index")
                 }
             }
-            MapSize(width, height)
+            WorldSize(width, height)
         }
     }
 }

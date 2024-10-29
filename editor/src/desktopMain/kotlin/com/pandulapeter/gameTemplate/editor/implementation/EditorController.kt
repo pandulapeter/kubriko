@@ -10,10 +10,8 @@ import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
-import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toMapCoordinates
-import com.pandulapeter.gameTemplate.engine.implementation.extensions.trait
-import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
+import com.pandulapeter.gameTemplate.engine.types.WorldCoordinates
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -35,14 +33,14 @@ internal object EditorController : CoroutineScope {
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
     val totalGameObjectCount = Engine.get().metadataManager.totalGameObjectCount
     private val mouseScreenCoordinates = MutableStateFlow(Offset.Zero)
-    val mouseMapCoordinates = combine(
+    val mouseWorldCoordinates = combine(
         mouseScreenCoordinates,
         Engine.get().viewportManager.center,
         Engine.get().viewportManager.size,
         Engine.get().viewportManager.scaleFactor,
     ) { mouseScreenCoordinates, _, _, _ ->
         mouseScreenCoordinates.toMapCoordinates()
-    }.stateIn(this, SharingStarted.Eagerly, MapCoordinates.Zero)
+    }.stateIn(this, SharingStarted.Eagerly, WorldCoordinates.Zero)
     private val triggerGameObjectUpdate = MutableStateFlow(false)
     private val _selectedGameObject = MutableStateFlow<GameObject<*>?>(null)
     val selectedGameObject = combine(
@@ -55,6 +53,8 @@ internal object EditorController : CoroutineScope {
     val selectedGameObjectTypeId = _selectedGameObjectType.asStateFlow()
     private val _currentFileName = MutableStateFlow(DEFAULT_MAP_FILE_NAME)
     val currentFileName = _currentFileName.asStateFlow()
+    private val _expandedCategories = MutableStateFlow(emptySet<String>())
+    val expandedCategories = _expandedCategories.asStateFlow()
 
     init {
         Engine.get().inputManager.activeKeys
@@ -63,6 +63,9 @@ internal object EditorController : CoroutineScope {
             .launchIn(this)
         Engine.get().inputManager.onKeyReleased
             .onEach(::handleKeyReleased)
+            .launchIn(this)
+        _selectedGameObject
+            .onEach { _expandedCategories.update { emptySet() } }
             .launchIn(this)
     }
 
@@ -77,7 +80,7 @@ internal object EditorController : CoroutineScope {
                             // TODO: Use AvailableInEditor trait instead
                             Engine.get().serializationManager.deserializeGameObjectStates(
                                 serializedStates = "[{\"typeId\":\"$typeId\",\"state\":\"{\\\"position\\\":{\\\"x\\\":${positionInWorld.x},\\\"y\\\":${positionInWorld.y}}}\"}]"
-                            ).firstOrNull()?.instantiate()?.let { gameObject ->
+                            ).firstOrNull()?.restore()?.let { gameObject ->
                                 Engine.get().gameObjectManager.add(gameObject as GameObject<*>)
                             }
                         }
@@ -85,8 +88,8 @@ internal object EditorController : CoroutineScope {
                         unselectGameObject()
                     }
                 } else {
-                    gameObjectAtPosition.getTrait<AvailableInEditor>()?.let { availableInEditor ->
-                        currentSelectedGameObject?.getTrait<AvailableInEditor>()?.isSelectedInEditor = false
+                    (gameObjectAtPosition as? AvailableInEditor)?.let { availableInEditor ->
+                        (currentSelectedGameObject as? AvailableInEditor)?.isSelectedInEditor = false
                         _selectedGameObject.update {
                             if (currentSelectedGameObject == gameObjectAtPosition) {
                                 null
@@ -112,19 +115,19 @@ internal object EditorController : CoroutineScope {
         }
     }
 
-    private fun findGameObjectOnPosition(positionInWorld: MapCoordinates) = Engine.get().gameObjectManager
+    private fun findGameObjectOnPosition(positionInWorld: WorldCoordinates) = Engine.get().gameObjectManager
         .findGameObjectsWithBoundsInPosition(positionInWorld)
-        .minByOrNull { it.trait<Visible>().depth }
+        .minByOrNull { (it as? Visible)?.drawingOrder ?: 0f }
 
     fun unselectGameObject() {
-        _selectedGameObject.value?.getTrait<AvailableInEditor>()?.isSelectedInEditor = false
+        (_selectedGameObject.value as? AvailableInEditor)?.isSelectedInEditor = false
         _selectedGameObject.update { null }
     }
 
     fun handleMouseMove(screenCoordinates: Offset) = mouseScreenCoordinates.update { screenCoordinates }
 
     fun locateGameObject() {
-        _selectedGameObject.value?.getTrait<Visible>()?.let { visibleTrait ->
+        (_selectedGameObject.value as? Visible)?.let { visibleTrait ->
             Engine.get().viewportManager.setCenter(visibleTrait.position)
         }
     }

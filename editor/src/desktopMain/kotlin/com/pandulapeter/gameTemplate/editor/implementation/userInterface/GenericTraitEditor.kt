@@ -26,35 +26,20 @@ import com.pandulapeter.gameTemplate.editor.implementation.userInterface.compone
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorSlider
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorTextLabel
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorTextTitle
-import com.pandulapeter.gameTemplate.engine.gameObject.Trait
-import com.pandulapeter.gameTemplate.engine.gameObject.editor.VisibleInEditor
+import com.pandulapeter.gameTemplate.engine.gameObject.editor.Editable
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.deg
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toHSV
-import com.pandulapeter.gameTemplate.engine.types.RotationDegrees
+import com.pandulapeter.gameTemplate.engine.types.AngleDegrees
+import com.pandulapeter.gameTemplate.engine.types.WorldCoordinates
 import game.editor.generated.resources.Res
 import game.editor.generated.resources.ic_collapse
 import game.editor.generated.resources.ic_expand
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.memberProperties
 
-@Composable
-internal fun <T : Trait<out T>> LazyItemScope.GenericTraitEditor(
-    data: Pair<T, Boolean>,
-    visibleInEditor: VisibleInEditor,
-    isExpanded: Boolean,
-    onExpandedChanged: () -> Unit,
-) = TraitEditorSection(
-    title = visibleInEditor.typeId,
-    isExpanded = isExpanded,
-    onExpandedChanged = onExpandedChanged,
-    controls = data.first::class.memberProperties
-        .filterIsInstance<KMutableProperty<*>>()
-        .mapNotNull { property -> property.toEditorControl(data.first) }
-)
 
-internal fun <T : Any> KMutableProperty<*>.toEditorControl(instance: T): (@Composable () -> Unit)? = setter.findAnnotation<VisibleInEditor>()?.let { editableProperty ->
+internal fun <T : Any> KMutableProperty<*>.toEditorControl(instance: T): (@Composable () -> Unit)? = setter.findAnnotation<Editable>()?.let { editableProperty ->
     when (returnType) {
         Color::class.createType() -> {
             {
@@ -100,16 +85,28 @@ internal fun <T : Any> KMutableProperty<*>.toEditorControl(instance: T): (@Compo
             }
         }
 
-        RotationDegrees::class.createType() -> {
+        AngleDegrees::class.createType() -> {
             {
                 EditorSlider(
                     title = editableProperty.typeId,
-                    value = (getter.call(instance) as RotationDegrees).normalized,
+                    value = (getter.call(instance) as AngleDegrees).normalized,
                     onValueChange = {
                         setter.call(instance, it.deg)
                         EditorController.notifyGameObjectUpdate()
                     },
                     valueRange = 0f..359.99f
+                )
+            }
+        }
+
+        WorldCoordinates::class.createType() -> {
+            {
+                val currentValue = (getter.call(instance) as WorldCoordinates)
+                EditorTextLabel(
+                    text = "${editableProperty.typeId}.x: ${currentValue.x}",
+                )
+                EditorTextLabel(
+                    text = "${editableProperty.typeId}.y: ${currentValue.y}",
                 )
             }
         }
@@ -140,26 +137,7 @@ internal fun <T : Any> KMutableProperty<*>.toEditorControl(instance: T): (@Compo
     }
 }
 
-//@Composable
-//internal fun LazyItemScope.ColorfulTraitEditor(
-//    data: Pair<Colorful, Boolean>,
-//    isExpanded: Boolean,
-//    onExpandedChanged: () -> Unit,
-//) = data.first.let { colorful ->
-//    TraitEditorSection(
-//        title = "Colorful",
-//        isExpanded = isExpanded,
-//        onExpandedChanged = onExpandedChanged,
-//    ) {
 
-//    }
-//}
-//
-//@Composable
-//internal fun LazyItemScope.UniqueTraitEditor() = TraitEditorSection(
-//    title = "Unique",
-//)
-//
 //@Composable
 //internal fun LazyItemScope.VisibleTraitEditor(
 //    data: Pair<Visible, Boolean>,
@@ -246,7 +224,7 @@ internal fun <T : Any> KMutableProperty<*>.toEditorControl(instance: T): (@Compo
 //}
 
 @Composable
-private fun LazyItemScope.TraitEditorSection(
+private fun LazyItemScope.EditorCategory(
     title: String,
     isExpanded: Boolean = false,
     onExpandedChanged: () -> Unit = {},

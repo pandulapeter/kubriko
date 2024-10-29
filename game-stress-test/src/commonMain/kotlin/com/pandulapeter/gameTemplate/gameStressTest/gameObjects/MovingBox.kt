@@ -4,23 +4,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
-import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
-import com.pandulapeter.gameTemplate.engine.gameObject.editor.VisibleInEditor
+import com.pandulapeter.gameTemplate.engine.gameObject.State
+import com.pandulapeter.gameTemplate.engine.gameObject.editor.Editable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
-import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
-import com.pandulapeter.gameTemplate.engine.gameObject.traits.Movable
-import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.deg
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toRadians
-import com.pandulapeter.gameTemplate.engine.implementation.extensions.trait
+import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableAngleDegrees
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableColor
-import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableMapCoordinates
-import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableMapSize
-import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableRotationDegrees
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableScale
-import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
-import com.pandulapeter.gameTemplate.engine.types.MapSize
+import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableWorldCoordinates
+import com.pandulapeter.gameTemplate.engine.types.AngleDegrees
 import com.pandulapeter.gameTemplate.engine.types.Scale
+import com.pandulapeter.gameTemplate.engine.types.WorldCoordinates
+import com.pandulapeter.gameTemplate.engine.types.WorldSize
 import com.pandulapeter.gameTemplate.gameStressTest.gameObjects.traits.Destructible
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -29,85 +25,102 @@ import kotlinx.serialization.json.Json
 import kotlin.math.cos
 import kotlin.math.sin
 
-class MovingBox private constructor(
-    state: State,
-) : GameObject<MovingBox>(
-    { AvailableInEditor(createEditorInstance = { position -> MovingBox(state = State(position = position)) }) },
-    { Movable(directionDegrees = state.directionDegrees, speed = state.speed, friction = state.friction) },
-    { Dynamic(updater = ::update) },
-    { Visible(boundingBox = state.boundingBox, position = state.position, scale = state.scale, rotationDegrees = state.rotationDegrees, drawer = ::draw) },
-    { Destructible() },
-) {
-    @set:VisibleInEditor(typeId = "boxColor")
+class MovingBox private constructor(state: MovingBoxState) : GameObject<MovingBox>, AvailableInEditor, Destructible {
+
+    @set:Editable(typeId = "edgeSize")
+    var edgeSize: Float = state.edgeSize
+        set(value) {
+            field = value
+            boundingBox = WorldSize(
+                width = value,
+                height = value
+            )
+        }
+
+    @set:Editable(typeId = "position")
+    override var position: WorldCoordinates = state.position
+
+    @set:Editable(typeId = "boxColor")
     var boxColor: Color = state.boxColor
 
-    private var isGrowing = true
-    private val visible by lazy { trait<Visible>() }
-    private val destructible by lazy { trait<Destructible>() }
-    private val movable by lazy { trait<Movable>() }
+    @set:Editable(typeId = "rotation")
+    override var rotation: AngleDegrees = state.rotation
 
-    private fun update(deltaTimeMillis: Float) {
-        visible.depth = -visible.position.y - visible.pivotOffset.y
-        visible.rotationDegrees += (0.1f * deltaTimeMillis).deg
-        if (visible.scale.horizontal >= 1.6f) {
+    @set:Editable(typeId = "scale")
+    override var scale: Scale = state.scale
+
+    override var drawingOrder = 0f
+    override var boundingBox = WorldSize(
+        width = state.edgeSize,
+        height = state.edgeSize
+    )
+    override var destructionState = 0f
+    override var direction = 0f.deg
+    override var speed = 0f
+    override var isSelectedInEditor = false
+    private var isGrowing = true
+
+    override fun createEditorInstance(position: WorldCoordinates) = MovingBox(
+        state = MovingBoxState(
+            position = position,
+        )
+    )
+
+    override fun update(deltaTimeInMillis: Float) {
+        super.update(deltaTimeInMillis)
+        drawingOrder = -position.y - pivotOffset.y
+        rotation += (0.1f * deltaTimeInMillis).deg
+        if (scale.horizontal >= 1.6f) {
             isGrowing = false
         }
-        if (visible.scale.vertical <= 0.5f) {
+        if (scale.vertical <= 0.5f) {
             isGrowing = true
         }
         if (isGrowing) {
-            visible.scale = Scale(
-                horizontal = visible.scale.horizontal + 0.001f * deltaTimeMillis,
-                vertical = visible.scale.vertical + 0.001f * deltaTimeMillis,
+            scale = Scale(
+                horizontal = scale.horizontal + 0.001f * deltaTimeInMillis,
+                vertical = scale.vertical + 0.001f * deltaTimeInMillis,
             )
         } else {
-            visible.scale = Scale(
-                horizontal = visible.scale.horizontal - 0.001f * deltaTimeMillis,
-                vertical = visible.scale.vertical - 0.001f * deltaTimeMillis,
+            scale = Scale(
+                horizontal = scale.horizontal - 0.001f * deltaTimeInMillis,
+                vertical = scale.vertical - 0.001f * deltaTimeInMillis,
             )
         }
-        visible.position += MapCoordinates(
-            x = cos(visible.rotationDegrees.toRadians()),
-            y = -sin(visible.rotationDegrees.toRadians()),
+        position += WorldCoordinates(
+            x = cos(rotation.toRadians()),
+            y = -sin(rotation.toRadians()),
         )
     }
 
-    private fun draw(scope: DrawScope) = scope.drawRect(
-        color = lerp(boxColor, Color.Black, destructible.destructionState),
-        size = visible.boundingBox.rawSize,
+    override fun draw(scope: DrawScope) = scope.drawRect(
+        color = lerp(boxColor, Color.Black, destructionState),
+        size = boundingBox.rawSize,
+    )
+
+    override fun saveState() = MovingBoxState(
+        edgeSize = edgeSize,
+        position = position,
+        boxColor = boxColor,
+        rotation = rotation,
+        scale = scale,
     )
 
     @Serializable
-    data class State(
-        @SerialName("boundingBox") val boundingBox: SerializableMapSize = MapSize(100f, 100f),
-        @SerialName("pivotOffset") val pivotOffset: SerializableMapCoordinates = boundingBox.center,
-        @SerialName("position") val position: SerializableMapCoordinates = MapCoordinates.Zero,
-        @SerialName("scale") val scale: SerializableScale = Scale.Unit,
-        @SerialName("rotationDegrees") val rotationDegrees: SerializableRotationDegrees = 0f.deg,
-        @SerialName("directionDegrees") val directionDegrees: SerializableRotationDegrees = 0f.deg,
-        @SerialName("speed") val speed: Float = 0f,
-        @SerialName("friction") val friction: Float = 0.015f,
+    data class MovingBoxState(
+        @SerialName("edgeSize") val edgeSize: Float = 100f,
+        @SerialName("position") val position: SerializableWorldCoordinates = WorldCoordinates.Zero,
         @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,
-    ) : Serializer<MovingBox> {
+        @SerialName("rotation") val rotation: SerializableAngleDegrees = 0f.deg,
+        @SerialName("scale") val scale: SerializableScale = Scale.Unit,
+    ) : State<MovingBox> {
 
         override val typeId = TYPE_ID
 
-        override fun instantiate() = MovingBox(this)
+        override fun restore() = MovingBox(this)
 
         override fun serialize() = Json.encodeToString(this)
     }
-
-    override fun getSerializer() = State(
-        boundingBox = visible.boundingBox,
-        pivotOffset = visible.pivotOffset,
-        position = visible.position,
-        rotationDegrees = visible.rotationDegrees,
-        scale = visible.scale,
-        directionDegrees = movable.directionDegrees,
-        speed = movable.speed,
-        friction = movable.friction,
-        boxColor = boxColor,
-    )
 
     companion object {
         const val TYPE_ID = "movingBox"

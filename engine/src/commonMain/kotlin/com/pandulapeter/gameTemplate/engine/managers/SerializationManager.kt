@@ -1,10 +1,10 @@
 package com.pandulapeter.gameTemplate.engine.managers
 
-import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
+import com.pandulapeter.gameTemplate.engine.gameObject.State
 
 interface SerializationManager {
 
-    suspend fun serializeGameObjectStates(gameObjectSerializers: List<Serializer<*>>): String
+    suspend fun serializeGameObjectStates(gameObjectStates: List<State<*>>): String
 
-    suspend fun deserializeGameObjectStates(serializedStates: String): List<Serializer<*>>
+    suspend fun deserializeGameObjectStates(serializedStates: String): List<State<*>>
 }

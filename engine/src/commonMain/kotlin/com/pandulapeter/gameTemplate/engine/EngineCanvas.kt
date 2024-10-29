@@ -18,12 +18,10 @@ import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
-import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.minus
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.transform
-import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
+import com.pandulapeter.gameTemplate.engine.types.WorldCoordinates
 import kotlinx.coroutines.isActive
 
 @Composable
@@ -38,7 +36,7 @@ fun EngineCanvas(
         while (isActive) {
             focusRequester.requestFocus()
             withFrameNanos { gameTimeNanos ->
-                val deltaTimeMillis = (gameTimeNanos - gameTime.value) / 1000000f
+                val deltaTimeInMillis = (gameTimeNanos - gameTime.value) / 1000000f
                 lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED).let { isFocused ->
                     EngineImpl.stateManager.updateFocus(
                         isFocused = isFocused,
@@ -46,12 +44,12 @@ fun EngineCanvas(
                 }
                 EngineImpl.metadataManager.updateFps(
                     gameTimeNanos = gameTimeNanos,
-                    deltaTimeMillis = deltaTimeMillis,
+                    deltaTimeInMillis = deltaTimeInMillis,
                 )
                 EngineImpl.inputManager.emit()
                 if (EngineImpl.stateManager.isRunning.value) {
-                    EngineImpl.gameObjectManager.dynamicTraits.value.forEach { dynamic ->
-                        dynamic.update(deltaTimeMillis)
+                    EngineImpl.gameObjectManager.dynamicGameObjects.value.forEach { dynamic ->
+                        dynamic.update(deltaTimeInMillis)
                     }
                 }
                 gameTime.value = gameTimeNanos
@@ -79,13 +77,10 @@ fun EngineCanvas(
                     },
                     drawBlock = {
                         EngineImpl.gameObjectManager.visibleGameObjectsInViewport.value
-                            .mapNotNull { it.getTrait<Visible>() }
                             .forEach { visible ->
                                 withTransform(
                                     transformBlock = { visible.transform(this) },
-                                    drawBlock = {
-                                        visible.draw(this)
-                                    }
+                                    drawBlock = { visible.draw(this) }
                                 )
                             }
                     }
@@ -96,8 +91,8 @@ fun EngineCanvas(
 }
 
 private fun DrawTransform.transformViewport(
-    viewportCenter: MapCoordinates,
-    shiftedViewportOffset: MapCoordinates,
+    viewportCenter: WorldCoordinates,
+    shiftedViewportOffset: WorldCoordinates,
     viewportScaleFactor: Float,
 ) {
     translate(

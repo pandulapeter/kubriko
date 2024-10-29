@@ -1,10 +1,12 @@
 package com.pandulapeter.gameTemplate.gameStressTest
 
-import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
+import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.State
+import com.pandulapeter.gameTemplate.gameStressTest.gameObjects.BoxWithCircle
 import com.pandulapeter.gameTemplate.gameStressTest.gameObjects.Character
 import com.pandulapeter.gameTemplate.gameStressTest.gameObjects.MovingBox
-import com.pandulapeter.gameTemplate.gameStressTest.gameObjects.BoxWithCircle
 import kotlinx.serialization.json.Json
+import kotlin.reflect.KClass
 
 object GameObjectRegistry {
 
@@ -14,9 +16,9 @@ object GameObjectRegistry {
         }
     }
 
-    val entries = arrayOf<Pair<String, (String) -> Serializer<*>>>(
-        Character.TYPE_ID to { serializedState -> json.decodeFromString<Character.State>(serializedState) },
-        MovingBox.TYPE_ID to { serializedState -> json.decodeFromString<MovingBox.State>(serializedState) },
-        BoxWithCircle.TYPE_ID to { serializedState -> json.decodeFromString<BoxWithCircle.State>(serializedState) },
+    val entries = arrayOf<Triple<String, KClass<out GameObject<*>>, (String) -> State<*>>>(
+        Triple(Character.TYPE_ID, Character::class) { serializedState -> json.decodeFromString<Character.CharacterState>(serializedState) },
+        Triple(MovingBox.TYPE_ID, MovingBox::class) { serializedState -> json.decodeFromString<MovingBox.MovingBoxState>(serializedState) },
+        Triple(BoxWithCircle.TYPE_ID, BoxWithCircle::class) { serializedState -> json.decodeFromString<BoxWithCircle.BoxWithCircleState>(serializedState) },
     )
 }

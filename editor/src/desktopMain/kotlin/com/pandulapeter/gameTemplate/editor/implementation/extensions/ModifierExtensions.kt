@@ -12,19 +12,18 @@ import androidx.compose.ui.input.pointer.onPointerEvent
 import com.pandulapeter.gameTemplate.editor.implementation.EditorController
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
-import com.pandulapeter.gameTemplate.engine.implementation.extensions.getTrait
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.occupiesPosition
-import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
+import com.pandulapeter.gameTemplate.engine.types.WorldCoordinates
 
-private var startOffset: MapCoordinates? = null
+private var startOffset: WorldCoordinates? = null
 private var isDragging = false
 
 @OptIn(ExperimentalComposeUiApi::class)
 internal fun Modifier.handleMouseClick(): Modifier = onPointerEvent(PointerEventType.Press) { event ->
     when (event.button) {
-        PointerButton.Primary -> EditorController.selectedGameObject.value.first?.getTrait<Visible>()?.let { visible ->
-            if (visible.occupiesPosition(EditorController.mouseMapCoordinates.value)) {
-                startOffset = EditorController.mouseMapCoordinates.value - visible.position
+        PointerButton.Primary -> (EditorController.selectedGameObject.value.first as? Visible)?.let { visible ->
+            if (visible.occupiesPosition(EditorController.mouseWorldCoordinates.value)) {
+                startOffset = EditorController.mouseWorldCoordinates.value - visible.position
             }
         }
     }
@@ -71,8 +70,8 @@ internal fun Modifier.handleMouseDrag(): Modifier = onDrag(
         Engine.get().viewportManager.addToCenter(screenCoordinates)
     } else {
         startOffset?.let { startOffset ->
-            EditorController.selectedGameObject.value.first?.getTrait<Visible>()?.let { visible ->
-                visible.position = EditorController.mouseMapCoordinates.value - startOffset
+            (EditorController.selectedGameObject.value.first as? Visible)?.let { visible ->
+                visible.position = EditorController.mouseWorldCoordinates.value - startOffset
                 EditorController.notifyGameObjectUpdate()
             }
         }

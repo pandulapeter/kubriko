@@ -1,27 +1,17 @@
 package com.pandulapeter.gameTemplate.engine.implementation.extensions
 
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawTransform
-import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
-import com.pandulapeter.gameTemplate.engine.gameObject.Trait
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
-import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
 import com.pandulapeter.gameTemplate.engine.types.Scale
-
-
-inline fun <reified T : Trait<T>> GameObject<*>.getTrait() = allTraits[T::class] as? T
-
-inline fun <reified T : Trait<T>> GameObject<*>.hasTrait() = allTraits[T::class] != null
-
-inline fun <reified T : Trait<T>> GameObject<*>.trait() = allTraits[T::class] as? T ?: throw IllegalStateException("Unregistered trait ${T::class.simpleName}")
+import com.pandulapeter.gameTemplate.engine.types.WorldCoordinates
 
 private const val VIEWPORT_EDGE_BUFFER = 50
 
 // Note: Rotation is not taken into consideration
 internal fun Visible.isVisible(
     scaledHalfViewportSize: Size,
-    viewportCenter: MapCoordinates,
+    viewportCenter: WorldCoordinates,
     viewportScaleFactor: Float,
 ) = (VIEWPORT_EDGE_BUFFER / viewportScaleFactor).let { viewportEdgeBuffer ->
     boundingBox.width * viewportScaleFactor >= 1f && boundingBox.height * viewportScaleFactor >= 1f &&
@@ -34,11 +24,11 @@ internal fun Visible.isVisible(
 fun Visible.angleTowards(other: Visible) = (position + pivotOffset).angleTowards(other.position + other.pivotOffset)
 
 fun Visible.occupiesPosition(
-    worldCoordinates: MapCoordinates,
+    worldCoordinates: WorldCoordinates,
 ) = worldCoordinates.x in left..right && worldCoordinates.y in top..bottom
 
 internal fun Visible.isAroundPosition(
-    position: MapCoordinates,
+    position: WorldCoordinates,
     range: Float,
 ) = (this.position - position).rawOffset.getDistance() < range
 
@@ -55,9 +45,9 @@ internal fun Visible.transform(drawTransform: DrawTransform) {
         left = position.x - pivotOffset.x,
         top = position.y - pivotOffset.y,
     )
-    if (rotationDegrees.normalized != 0f) {
+    if (rotation.normalized != 0f) {
         drawTransform.rotate(
-            degrees = rotationDegrees.normalized,
+            degrees = rotation.normalized,
             pivot = pivotOffset.rawOffset,
         )
     }

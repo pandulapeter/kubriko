@@ -1,6 +1,6 @@
 package com.pandulapeter.gameTemplate.engine.implementation.serializers
 
-import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
+import com.pandulapeter.gameTemplate.engine.types.WorldCoordinates
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -15,25 +15,25 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 
-typealias SerializableMapCoordinates = @Serializable(with = MapCoordinatesSerializer::class) MapCoordinates
+typealias SerializableWorldCoordinates = @Serializable(with = WorldCoordinatesSerializer::class) WorldCoordinates
 
 @Suppress("EXTERNAL_SERIALIZER_USELESS")
 @OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = MapCoordinates::class)
-object MapCoordinatesSerializer : KSerializer<MapCoordinates> {
-    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("mapCoordinates") {
+@Serializer(forClass = WorldCoordinates::class)
+object WorldCoordinatesSerializer : KSerializer<WorldCoordinates> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("worldCoordinates") {
         element<Float>("x")
         element<Float>("y")
     }
 
-    override fun serialize(encoder: Encoder, value: MapCoordinates) {
+    override fun serialize(encoder: Encoder, value: WorldCoordinates) {
         encoder.encodeStructure(descriptor) {
             encodeFloatElement(descriptor, 0, value.x)
             encodeFloatElement(descriptor, 1, value.y)
         }
     }
 
-    override fun deserialize(decoder: Decoder): MapCoordinates {
+    override fun deserialize(decoder: Decoder): WorldCoordinates {
         return decoder.decodeStructure(descriptor) {
             var x = 0f
             var y = 0f
@@ -45,7 +45,7 @@ object MapCoordinatesSerializer : KSerializer<MapCoordinates> {
                     else -> throw SerializationException("Unexpected index $index")
                 }
             }
-            MapCoordinates(x, y)
+            WorldCoordinates(x, y)
         }
     }
 }

@@ -8,7 +8,7 @@ import kotlin.jvm.JvmInline
 value class Scale(private val size: Size) {
     val horizontal: Float get() = size.width
     val vertical: Float get() = size.height
-    val center get() = MapCoordinates(size.center)
+    val center get() = WorldCoordinates(size.center)
 
     constructor(horizontal: Float, vertical: Float) : this(Size(horizontal, vertical))
 

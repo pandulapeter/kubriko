@@ -1,16 +1,18 @@
 package com.pandulapeter.gameTemplate.engine.managers
 
-import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
-import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
-import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
+import com.pandulapeter.gameTemplate.engine.gameObject.State
+import com.pandulapeter.gameTemplate.engine.types.WorldCoordinates
 import kotlinx.coroutines.flow.StateFlow
+import kotlin.reflect.KClass
 
 interface GameObjectManager {
 
     val registeredTypeIdsForEditor: StateFlow<List<String>>
 
-    fun register(vararg entries: Pair<String, (String) -> Serializer<*>>)
+    fun getTypeId(type: KClass<out GameObject<*>>): String
+
+    fun register(vararg entries: Triple<String, KClass<out GameObject<*>>, (String) -> State<*>>)
 
     fun add(vararg gameObjects: GameObject<*>)
 
@@ -22,7 +24,7 @@ interface GameObjectManager {
 
     suspend fun deserializeState(json: String)
 
-    fun findGameObjectsWithBoundsInPosition(position: MapCoordinates): List<GameObject<*>>
+    fun findGameObjectsWithBoundsInPosition(position: WorldCoordinates): List<GameObject<*>>
 
-    fun findGameObjectsWithPivotsAroundPosition(position: MapCoordinates, range: Float): List<GameObject<*>>
+    fun findGameObjectsWithPivotsAroundPosition(position: WorldCoordinates, range: Float): List<GameObject<*>>
 }

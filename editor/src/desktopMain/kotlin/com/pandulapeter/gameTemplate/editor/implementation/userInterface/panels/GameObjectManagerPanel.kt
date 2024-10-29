@@ -13,26 +13,20 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.gameTemplate.editor.implementation.EditorController
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.GenericTraitEditor
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorRadioButton
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorTextTitle
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.toEditorControl
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
-import com.pandulapeter.gameTemplate.engine.gameObject.Trait
-import com.pandulapeter.gameTemplate.engine.gameObject.editor.VisibleInEditor
 import game.editor.generated.resources.Res
 import game.editor.generated.resources.ic_close
 import game.editor.generated.resources.ic_delete
 import game.editor.generated.resources.ic_locate
-import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.memberProperties
 
@@ -48,7 +42,7 @@ internal fun GameObjectManagerPanel(
     ) {
         val registeredTypeIds = Engine.get().gameObjectManager.registeredTypeIdsForEditor.collectAsState()
         Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
-        val expandedTraitTypes = remember { mutableStateOf(emptySet<KClass<out Trait<*>>>()) }
+        val expandedCategories = EditorController.expandedCategories.collectAsState()
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -78,7 +72,7 @@ internal fun GameObjectManagerPanel(
                         ) {
                             EditorTextTitle(
                                 modifier = Modifier.weight(1f),
-                                text = gameObject::class.java.simpleName,
+                                text = Engine.get().gameObjectManager.getTypeId(gameObject::class),
                             )
                             EditorIcon(
                                 drawableResource = Res.drawable.ic_close,
@@ -98,6 +92,7 @@ internal fun GameObjectManagerPanel(
                         }
                         Divider()
                     }
+                    // TODO: Sort into categories using expandedCategories.value
                     gameObject::class.memberProperties
                         .filterIsInstance<KMutableProperty<*>>()
                         .mapNotNull { property -> property.toEditorControl(gameObject) }
@@ -118,29 +113,30 @@ internal fun GameObjectManagerPanel(
                                 }
                             }
                         }
-                    gameObject.allTraits
-                        .forEach { entry ->
-                            (entry.value::class.annotations
-                                .firstOrNull { it.annotationClass == VisibleInEditor::class } as? VisibleInEditor)
-                                ?.let { editableTrait ->
-                                    val isExpanded = expandedTraitTypes.value.contains(entry.key)
-                                    val onExpandedChanged = {
-                                        expandedTraitTypes.value = if (isExpanded) {
-                                            expandedTraitTypes.value.filterNot { it == entry.key }
-                                        } else {
-                                            (expandedTraitTypes.value + entry.key)
-                                        }.toSet()
-                                    }
-                                    item(key = "traitEditor_${editableTrait.typeId}") {
-                                        GenericTraitEditor(
-                                            data = entry.value to data.second,
-                                            visibleInEditor = editableTrait,
-                                            isExpanded = isExpanded,
-                                            onExpandedChanged = onExpandedChanged
-                                        )
-                                    }
-                                }
-                        }
+
+//                    gameObject.allTraits
+//                        .forEach { entry ->
+//                            (entry.value::class.annotations
+//                                .firstOrNull { it.annotationClass == VisibleInEditor::class } as? VisibleInEditor)
+//                                ?.let { editableTrait ->
+//                                    val isExpanded = expandedCategories.value.contains(entry.key)
+//                                    val onExpandedChanged = {
+//                                        expandedCategories.value = if (isExpanded) {
+//                                            expandedCategories.value.filterNot { it == entry.key }
+//                                        } else {
+//                                            (expandedCategories.value + entry.key)
+//                                        }.toSet()
+//                                    }
+//                                    item(key = "traitEditor_${editableTrait.typeId}") {
+//                                        GenericTraitEditor(
+//                                            data = entry.value to data.second,
+//                                            visibleInEditor = editableTrait,
+//                                            isExpanded = isExpanded,
+//                                            onExpandedChanged = onExpandedChanged
+//                                        )
+//                                    }
+//                                }
+//                        }
                 }
             }
         }

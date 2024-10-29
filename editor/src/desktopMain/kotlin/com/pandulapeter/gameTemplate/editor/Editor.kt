@@ -9,16 +9,18 @@ import androidx.compose.ui.window.application
 import com.pandulapeter.gameTemplate.editor.implementation.EditorApp
 import com.pandulapeter.gameTemplate.editor.implementation.EditorController
 import com.pandulapeter.gameTemplate.engine.Engine
-import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
+import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
+import com.pandulapeter.gameTemplate.engine.gameObject.State
 import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
 import java.io.FilenameFilter
+import kotlin.reflect.KClass
 
 fun openEditor(
     defaultMapFilename: String? = null,
-    vararg supportedGameObjectSerializers: Pair<String, (String) -> Serializer<*>>
+    vararg supportedGameObjectSerializers: Triple<String,KClass<out GameObject<*>>, (String) -> State<*>>
 ) = application {
     Engine.get().gameObjectManager.register(entries = supportedGameObjectSerializers)
     defaultMapFilename?.let {

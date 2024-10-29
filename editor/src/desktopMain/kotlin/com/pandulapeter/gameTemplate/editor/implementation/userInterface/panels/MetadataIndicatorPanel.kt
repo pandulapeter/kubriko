@@ -11,14 +11,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorText
-import com.pandulapeter.gameTemplate.engine.types.MapCoordinates
+import com.pandulapeter.gameTemplate.engine.types.WorldCoordinates
 import kotlin.math.roundToInt
 
 
 @Composable
 internal fun MetadataIndicatorPanel(
     gameObjectCount: Int,
-    mouseMapCoordinates: MapCoordinates,
+    mouseWorldCoordinates: WorldCoordinates,
 ) = Column(
     modifier = Modifier.fillMaxWidth(),
 ) {
@@ -37,7 +37,7 @@ internal fun MetadataIndicatorPanel(
             text = "Object count: $gameObjectCount",
         )
         EditorText(
-            text = "${mouseMapCoordinates.x.roundToInt()}:${mouseMapCoordinates.y.roundToInt()}",
+            text = "${mouseWorldCoordinates.x.roundToInt()}:${mouseWorldCoordinates.y.roundToInt()}",
         )
     }
 }
