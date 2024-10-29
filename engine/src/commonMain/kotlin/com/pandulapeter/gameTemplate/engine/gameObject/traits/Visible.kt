@@ -16,12 +16,12 @@ import kotlinx.serialization.json.Json
 
 @VisibleInEditor(typeId = "visible")
 class Visible(
-    @VisibleInEditor(typeId = "bounds") var bounds: SerializableSize,
-    @VisibleInEditor(typeId = "pivot") var pivot: SerializableOffset = bounds.center,
-    @VisibleInEditor(typeId = "position") var position: SerializableOffset,
-    @VisibleInEditor(typeId = "scale") var scale: SerializableSize = Size(1f, 1f),
-    @VisibleInEditor(typeId = "rotationDegrees") var rotationDegrees: Float = 0f,
-    @VisibleInEditor(typeId = "depth") var depth: Float = 0f,
+    @set:VisibleInEditor(typeId = "bounds") var bounds: Size,
+    @set:VisibleInEditor(typeId = "pivot") var pivot: Offset = bounds.center,
+    @set:VisibleInEditor(typeId = "position") var position: Offset,
+    @set:VisibleInEditor(typeId = "scale") var scale: Size = Size(1f, 1f),
+    @set:VisibleInEditor(typeId = "rotationDegrees") var rotationDegrees: Float = 0f,
+    @set:VisibleInEditor(typeId = "depth") var depth: Float = 0f,
     drawer: ((DrawScope) -> Unit)? = null,
 ) : Trait<Visible>() {
 

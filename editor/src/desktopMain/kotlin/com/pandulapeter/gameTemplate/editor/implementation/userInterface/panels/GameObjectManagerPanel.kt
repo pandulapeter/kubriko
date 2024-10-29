@@ -1,5 +1,7 @@
 package com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +23,7 @@ import com.pandulapeter.gameTemplate.editor.implementation.userInterface.Generic
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorRadioButton
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorTextTitle
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.toEditorControl
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.Trait
@@ -29,6 +32,8 @@ import game.editor.generated.resources.Res
 import game.editor.generated.resources.ic_delete
 import game.editor.generated.resources.ic_locate
 import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.full.memberProperties
 
 @Composable
 internal fun GameObjectManagerPanel(
@@ -87,6 +92,26 @@ internal fun GameObjectManagerPanel(
                         }
                         Divider()
                     }
+                    gameObject::class.memberProperties
+                        .filterIsInstance<KMutableProperty<*>>()
+                        .mapNotNull { property -> property.toEditorControl(gameObject) }
+                        .let { controls ->
+                            if (controls.isNotEmpty()) {
+                                item(key = "gameObjectEditor") {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(
+                                                horizontal = 8.dp,
+                                                vertical = 4.dp,
+                                            ),
+                                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        controls.forEach { it.invoke() }
+                                    }
+                                }
+                            }
+                        }
                     gameObject.allTraits
                         .forEach { entry ->
                             (entry.value::class.annotations

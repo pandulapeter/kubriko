@@ -15,9 +15,9 @@ import kotlin.math.sin
 
 @VisibleInEditor(typeId = "movable")
 class Movable(
-    @VisibleInEditor(typeId = "speed") var speed: Float = 0f,
-    @VisibleInEditor(typeId = "friction") var friction: Float = 0f,
-    @VisibleInEditor(typeId = "directionDegrees") var directionDegrees: Float = 0f,
+    @set:VisibleInEditor(typeId = "speed") var speed: Float = 0f,
+    @set:VisibleInEditor(typeId = "friction") var friction: Float = 0f,
+    @set:VisibleInEditor(typeId = "directionDegrees") var directionDegrees: Float = 0f,
 ) : Trait<Movable>() {
 
     private constructor(state: State) : this(

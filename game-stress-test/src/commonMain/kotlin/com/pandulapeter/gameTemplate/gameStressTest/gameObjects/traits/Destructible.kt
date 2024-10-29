@@ -15,7 +15,7 @@ import kotlinx.serialization.json.Json
 
 @VisibleInEditor(typeId = "destructible")
 class Destructible(
-    @VisibleInEditor(typeId = "destructionState") var destructionState: Float = 0f,
+    @set:VisibleInEditor(typeId = "destructionState") var destructionState: Float = 0f,
 ) : Trait<Destructible>() {
     private val movable by lazy { gameObject.getTrait<Movable>() }
     private val visible by lazy { gameObject.getTrait<Visible>() }

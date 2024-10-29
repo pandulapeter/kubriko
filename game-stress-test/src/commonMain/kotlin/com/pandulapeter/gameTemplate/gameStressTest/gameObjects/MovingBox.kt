@@ -14,6 +14,7 @@ import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Movable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.trait
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.toRadians
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableColor
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableOffset
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableSize
@@ -22,17 +23,20 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.math.cos
+import kotlin.math.sin
 
-class StaticBox private constructor(
+class MovingBox private constructor(
     state: State,
-) : GameObject<StaticBox>(
-    { AvailableInEditor(createEditorInstance = { position -> StaticBox(state = State(position = position)) }) },
-    { Colorful(color = state.color) },
-    { Visible(bounds = state.bounds, position = state.position, scale = state.scale, rotationDegrees = state.rotationDegrees, drawer = ::draw) },
+) : GameObject<MovingBox>(
+    { AvailableInEditor(createEditorInstance = { position -> MovingBox(state = State(position = position)) }) },
     { Movable(directionDegrees = state.directionDegrees, speed = state.speed, friction = state.friction) },
+    { Colorful(color = state.color) },
     { Dynamic(updater = ::update) },
+    { Visible(bounds = state.bounds, position = state.position, scale = state.scale, rotationDegrees = state.rotationDegrees, drawer = ::draw) },
     { Destructible() },
 ) {
+    private var isGrowing = true
     private val visible by lazy { trait<Visible>() }
     private val colorful by lazy { trait<Colorful>() }
     private val destructible by lazy { trait<Destructible>() }
@@ -40,6 +44,31 @@ class StaticBox private constructor(
 
     private fun update(deltaTimeMillis: Float) {
         visible.depth = -visible.position.y - visible.pivot.y
+        visible.rotationDegrees += 0.1f * deltaTimeMillis
+        while (visible.rotationDegrees > 360f) {
+            visible.rotationDegrees -= 360f
+        }
+        if (visible.scale.width >= 1.6f) {
+            isGrowing = false
+        }
+        if (visible.scale.width <= 0.5f) {
+            isGrowing = true
+        }
+        if (isGrowing) {
+            visible.scale = Size(
+                width = visible.scale.width + 0.001f * deltaTimeMillis,
+                height = visible.scale.height + 0.001f * deltaTimeMillis,
+            )
+        } else {
+            visible.scale = Size(
+                width = visible.scale.width - 0.001f * deltaTimeMillis,
+                height = visible.scale.height - 0.001f * deltaTimeMillis,
+            )
+        }
+        visible.position += Offset(
+            x = cos(visible.rotationDegrees.toRadians()),
+            y = -sin(visible.rotationDegrees.toRadians()),
+        )
     }
 
     private fun draw(scope: DrawScope) = scope.drawRect(
@@ -58,11 +87,11 @@ class StaticBox private constructor(
         @SerialName("directionDegrees") val directionDegrees: Float = 0f,
         @SerialName("speed") val speed: Float = 0f,
         @SerialName("friction") val friction: Float = 0.015f,
-    ) : Serializer<StaticBox> {
+    ) : Serializer<MovingBox> {
 
         override val typeId = TYPE_ID
 
-        override fun instantiate() = StaticBox(this)
+        override fun instantiate() = MovingBox(this)
 
         override fun serialize() = Json.encodeToString(this)
     }
@@ -72,13 +101,13 @@ class StaticBox private constructor(
         bounds = visible.bounds,
         pivot = visible.pivot,
         position = visible.position,
-        scale = visible.scale,
         rotationDegrees = visible.rotationDegrees,
+        scale = visible.scale,
         directionDegrees = movable.directionDegrees,
         speed = movable.speed,
     )
 
     companion object {
-        const val TYPE_ID = "staticBox"
+        const val TYPE_ID = "dynamicBox"
     }
 }

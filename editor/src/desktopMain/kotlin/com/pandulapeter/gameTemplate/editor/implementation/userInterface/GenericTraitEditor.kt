@@ -29,8 +29,8 @@ import game.editor.generated.resources.ic_collapse
 import game.editor.generated.resources.ic_expand
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.createType
-import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.memberProperties
 
 @Composable
 internal fun <T : Trait<out T>> LazyItemScope.GenericTraitEditor(
@@ -43,42 +43,42 @@ internal fun <T : Trait<out T>> LazyItemScope.GenericTraitEditor(
         title = visibleInEditor.typeId,
         isExpanded = isExpanded,
         onExpandedChanged = onExpandedChanged,
-        controls = data.first::class.declaredMemberProperties
-            .filter { it.findAnnotation<VisibleInEditor>() != null && it is KMutableProperty<*> }
-            .mapNotNull { property ->
-                property.findAnnotation<VisibleInEditor>()!!.let { editableProperty ->
-                    when (property.returnType) {
-                        Color::class.createType() -> {
-                            { EditorTextLabel(text = "colorType: ${editableProperty.typeId}") }
-                        }
-
-                        Float::class.createType() -> {
-                            {
-                                EditorSlider(
-                                    title = editableProperty.typeId,
-                                    value = property.getter.call(data.first) as Float,
-                                    onValueChange = {
-                                        (property as KMutableProperty<*>).setter.call(data.first, it)
-                                        EditorController.notifyGameObjectUpdate()
-                                    },
-                                    valueRange = 0f..1f
-                                )
-                                 }
-                        }
-
-                        Size::class.createType() -> {
-                            { EditorTextLabel(text = "sizeType: ${editableProperty.typeId}") }
-                        }
-
-                        Offset::class.createType() -> {
-                            { EditorTextLabel(text = "offsetType: ${editableProperty.typeId}") }
-                        }
-
-                        else -> null
-                    }
-                }
-            }
+        controls = data.first::class.memberProperties
+            .filterIsInstance<KMutableProperty<*>>()
+            .mapNotNull { property -> property.toEditorControl(data.first) }
     )
+}
+
+internal fun <T : Any> KMutableProperty<*>.toEditorControl(instance: T): (@Composable () -> Unit)? = setter.findAnnotation<VisibleInEditor>()?.let { editableProperty ->
+    when (returnType) {
+        Color::class.createType() -> {
+            { EditorTextLabel(text = "colorType: ${editableProperty.typeId}") }
+        }
+
+        Float::class.createType() -> {
+            {
+                EditorSlider(
+                    title = editableProperty.typeId,
+                    value = getter.call(instance) as Float,
+                    onValueChange = {
+                        setter.call(instance, it)
+                        EditorController.notifyGameObjectUpdate()
+                    },
+                    valueRange = 0f..1f
+                )
+            }
+        }
+
+        Size::class.createType() -> {
+            { EditorTextLabel(text = "sizeType: ${editableProperty.typeId}") }
+        }
+
+        Offset::class.createType() -> {
+            { EditorTextLabel(text = "offsetType: ${editableProperty.typeId}") }
+        }
+
+        else -> null
+    }
 }
 
 //@Composable

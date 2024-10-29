@@ -8,13 +8,13 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
+import com.pandulapeter.gameTemplate.engine.gameObject.editor.VisibleInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Colorful
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Movable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.trait
-import com.pandulapeter.gameTemplate.engine.implementation.extensions.toRadians
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableColor
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableOffset
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableSize
@@ -23,20 +23,23 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlin.math.cos
-import kotlin.math.sin
 
-class DynamicBox private constructor(
+class BoxWithCircle private constructor(
     state: State,
-) : GameObject<DynamicBox>(
-    { AvailableInEditor(createEditorInstance = { position -> DynamicBox(state = State(position = position)) }) },
-    { Movable(directionDegrees = state.directionDegrees, speed = state.speed, friction = state.friction) },
+) : GameObject<BoxWithCircle>(
+    { AvailableInEditor(createEditorInstance = { position -> BoxWithCircle(state = State(position = position)) }) },
     { Colorful(color = state.color) },
-    { Dynamic(updater = ::update) },
     { Visible(bounds = state.bounds, position = state.position, scale = state.scale, rotationDegrees = state.rotationDegrees, drawer = ::draw) },
+    { Movable(directionDegrees = state.directionDegrees, speed = state.speed, friction = state.friction) },
+    { Dynamic(updater = ::update) },
     { Destructible() },
 ) {
-    private var isGrowing = true
+    @set:VisibleInEditor(typeId = "circleColor")
+    var circleColor: Color = state.dotColor
+
+    @set:VisibleInEditor(typeId = "circleRadius")
+    var circleRadius: Float = state.circleRadius
+
     private val visible by lazy { trait<Visible>() }
     private val colorful by lazy { trait<Colorful>() }
     private val destructible by lazy { trait<Destructible>() }
@@ -44,37 +47,19 @@ class DynamicBox private constructor(
 
     private fun update(deltaTimeMillis: Float) {
         visible.depth = -visible.position.y - visible.pivot.y
-        visible.rotationDegrees += 0.1f * deltaTimeMillis
-        while (visible.rotationDegrees > 360f) {
-            visible.rotationDegrees -= 360f
-        }
-        if (visible.scale.width >= 1.6f) {
-            isGrowing = false
-        }
-        if (visible.scale.width <= 0.5f) {
-            isGrowing = true
-        }
-        if (isGrowing) {
-            visible.scale = Size(
-                width = visible.scale.width + 0.001f * deltaTimeMillis,
-                height = visible.scale.height + 0.001f * deltaTimeMillis,
-            )
-        } else {
-            visible.scale = Size(
-                width = visible.scale.width - 0.001f * deltaTimeMillis,
-                height = visible.scale.height - 0.001f * deltaTimeMillis,
-            )
-        }
-        visible.position += Offset(
-            x = cos(visible.rotationDegrees.toRadians()),
-            y = -sin(visible.rotationDegrees.toRadians()),
-        )
     }
 
-    private fun draw(scope: DrawScope) = scope.drawRect(
-        color = lerp(colorful.color, Color.Black, destructible.destructionState),
-        size = visible.bounds,
-    )
+    private fun draw(scope: DrawScope) {
+        scope.drawRect(
+            color = lerp(colorful.color, Color.Black, destructible.destructionState),
+            size = visible.bounds,
+        )
+        scope.drawCircle(
+            color = lerp(circleColor, Color.Black, destructible.destructionState),
+            radius = circleRadius,
+            center = visible.bounds.center,
+        )
+    }
 
     @Serializable
     data class State(
@@ -87,11 +72,13 @@ class DynamicBox private constructor(
         @SerialName("directionDegrees") val directionDegrees: Float = 0f,
         @SerialName("speed") val speed: Float = 0f,
         @SerialName("friction") val friction: Float = 0.015f,
-    ) : Serializer<DynamicBox> {
+        @SerialName("dotColor") val dotColor: SerializableColor = Color.White,
+        @SerialName("circleRadius") val circleRadius: Float = (bounds.width + bounds.height) / 4f,
+    ) : Serializer<BoxWithCircle> {
 
         override val typeId = TYPE_ID
 
-        override fun instantiate() = DynamicBox(this)
+        override fun instantiate() = BoxWithCircle(this)
 
         override fun serialize() = Json.encodeToString(this)
     }
@@ -101,13 +88,13 @@ class DynamicBox private constructor(
         bounds = visible.bounds,
         pivot = visible.pivot,
         position = visible.position,
-        rotationDegrees = visible.rotationDegrees,
         scale = visible.scale,
+        rotationDegrees = visible.rotationDegrees,
         directionDegrees = movable.directionDegrees,
         speed = movable.speed,
     )
 
     companion object {
-        const val TYPE_ID = "dynamicBox"
+        const val TYPE_ID = "staticBox"
     }
 }
