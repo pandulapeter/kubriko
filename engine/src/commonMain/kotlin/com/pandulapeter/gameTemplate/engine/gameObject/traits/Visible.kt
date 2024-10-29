@@ -6,6 +6,7 @@ import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
 import com.pandulapeter.gameTemplate.engine.gameObject.Trait
+import com.pandulapeter.gameTemplate.engine.gameObject.editor.VisibleInEditor
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableOffset
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableSize
 import kotlinx.serialization.SerialName
@@ -13,13 +14,14 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+@VisibleInEditor(typeId = "visible")
 class Visible(
-    var bounds: SerializableSize = Size.Zero,
-    var pivot: SerializableOffset = bounds.center,
-    var position: SerializableOffset = Offset.Zero,
-    var scale: SerializableSize = Size(1f, 1f),
-    var rotationDegrees: Float = 1f,
-    var depth: Float = 0f,
+    @VisibleInEditor(typeId = "bounds") var bounds: SerializableSize = Size.Zero,
+    @VisibleInEditor(typeId = "pivot") var pivot: SerializableOffset = bounds.center,
+    @VisibleInEditor(typeId = "position") var position: SerializableOffset = Offset.Zero,
+    @VisibleInEditor(typeId = "scale") var scale: SerializableSize = Size(1f, 1f),
+    @VisibleInEditor(typeId = "rotationDegrees") var rotationDegrees: Float = 1f,
+    @VisibleInEditor(typeId = "depth") var depth: Float = 0f,
     drawer: ((DrawScope) -> Unit)? = null,
 ) : Trait<Visible>() {
 

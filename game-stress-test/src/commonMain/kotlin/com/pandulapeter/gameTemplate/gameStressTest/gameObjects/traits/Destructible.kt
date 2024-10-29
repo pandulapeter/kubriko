@@ -2,6 +2,7 @@ package com.pandulapeter.gameTemplate.gameStressTest.gameObjects.traits
 
 import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
 import com.pandulapeter.gameTemplate.engine.gameObject.Trait
+import com.pandulapeter.gameTemplate.engine.gameObject.editor.VisibleInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Movable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
@@ -12,8 +13,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+@VisibleInEditor(typeId = "destructible")
 class Destructible(
-    var destructionState: Float = 0f,
+    @VisibleInEditor(typeId = "destructionState") var destructionState: Float = 0f,
 ) : Trait<Destructible>() {
     private val movable by lazy { gameObject.getTrait<Movable>() }
     private val visible by lazy { gameObject.getTrait<Visible>() }

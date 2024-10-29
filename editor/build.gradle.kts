@@ -11,16 +11,18 @@ kotlin {
         commonMain.dependencies {
             implementation(compose.components.resources)
         }
-        val desktopMain by getting
-        desktopMain.dependencies {
-            implementation(projects.engine)
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material)
-            implementation(compose.ui)
-            implementation(libs.kotlinx.serialization)
-            implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutines.swing)
+        val desktopMain by getting {
+            dependencies {
+                implementation(projects.engine)
+                implementation(compose.runtime)
+                implementation(compose.foundation)
+                implementation(compose.material)
+                implementation(compose.ui)
+                implementation(libs.kotlinx.serialization)
+                implementation(compose.desktop.currentOs)
+                implementation(libs.kotlin.reflect)
+                implementation(libs.kotlinx.coroutines.swing)
+            }
         }
     }
 }

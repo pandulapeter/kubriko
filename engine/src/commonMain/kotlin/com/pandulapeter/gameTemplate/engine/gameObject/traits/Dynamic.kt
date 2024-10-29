@@ -2,7 +2,9 @@ package com.pandulapeter.gameTemplate.engine.gameObject.traits
 
 import com.pandulapeter.gameTemplate.engine.gameObject.Serializer
 import com.pandulapeter.gameTemplate.engine.gameObject.Trait
+import com.pandulapeter.gameTemplate.engine.gameObject.editor.VisibleInEditor
 
+@VisibleInEditor(typeId = "dynamic")
 class Dynamic(
     updater: ((Float) -> Unit)? = null,
 ) : Trait<Dynamic>(), Serializer<Dynamic> {

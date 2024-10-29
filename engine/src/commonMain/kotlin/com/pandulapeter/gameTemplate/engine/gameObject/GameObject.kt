@@ -8,7 +8,7 @@ abstract class GameObject<T : GameObject<T>> {
         private set
 
     protected fun registerTraits(vararg traits: Trait<*>) {
-        this.traits = traits.associateBy { it::class }
+        this.traits = traits.sortedBy { it::class.simpleName }.associateBy { it::class }
         traits.forEach { it.gameObject = this }
         traits.forEach { it.initialize() }
     }
