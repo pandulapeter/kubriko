@@ -4,10 +4,14 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -24,6 +28,7 @@ import com.pandulapeter.gameTemplate.editor.implementation.userInterface.compone
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorTextTitle
 import com.pandulapeter.gameTemplate.engine.gameObject.Trait
 import com.pandulapeter.gameTemplate.engine.gameObject.editor.VisibleInEditor
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.toHSV
 import game.editor.generated.resources.Res
 import game.editor.generated.resources.ic_collapse
 import game.editor.generated.resources.ic_expand
@@ -50,7 +55,47 @@ internal fun <T : Trait<out T>> LazyItemScope.GenericTraitEditor(
 internal fun <T : Any> KMutableProperty<*>.toEditorControl(instance: T): (@Composable () -> Unit)? = setter.findAnnotation<VisibleInEditor>()?.let { editableProperty ->
     when (returnType) {
         Color::class.createType() -> {
-            { EditorTextLabel(text = "colorType: ${editableProperty.typeId}") }
+            {
+                EditorTextLabel(text = editableProperty.typeId)
+                Spacer(modifier = Modifier.height(8.dp))
+                val color = getter.call(instance) as Color
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(color = color),
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                val (hue, saturation, value) = color.toHSV()
+                EditorSlider(
+                    title = "${editableProperty.typeId}.hue",
+                    value = hue,
+                    onValueChange = {
+                        setter.call(instance, Color.hsv(it, saturation, value))
+                        EditorController.notifyGameObjectUpdate()
+                    },
+                    valueRange = 0f..359.5f,
+                    enabled = saturation > 0 && value > 0,
+                )
+                EditorSlider(
+                    title = "${editableProperty.typeId}.saturation",
+                    value = saturation,
+                    onValueChange = {
+                        setter.call(instance, Color.hsv(hue, it, value))
+                        EditorController.notifyGameObjectUpdate()
+                    },
+                    valueRange = 0f..1f,
+                    enabled = value > 0,
+                )
+                EditorSlider(
+                    title = "${editableProperty.typeId}.value",
+                    value = value,
+                    onValueChange = {
+                        setter.call(instance, Color.hsv(hue, saturation, it))
+                        EditorController.notifyGameObjectUpdate()
+                    },
+                    valueRange = 0f..1f,
+                )
+            }
         }
 
         Float::class.createType() -> {
@@ -90,35 +135,7 @@ internal fun <T : Any> KMutableProperty<*>.toEditorControl(instance: T): (@Compo
 //        isExpanded = isExpanded,
 //        onExpandedChanged = onExpandedChanged,
 //    ) {
-//        EditorTextLabel(text = "color")
-//        Spacer(modifier = Modifier.height(8.dp))
-//        Box(
-//            modifier = Modifier
-//                .size(48.dp)
-//                .background(color = colorful.color),
-//        )
-//        Spacer(modifier = Modifier.height(8.dp))
-//        val (hue, saturation, value) = colorful.color.toHSV()
-//        EditorSlider(
-//            title = "color.hue",
-//            value = hue,
-//            onValueChange = {
-//                colorful.color = Color.hsv(it, saturation, value)
-//                EditorController.notifyGameObjectUpdate()
-//            },
-//            valueRange = 0f..359.5f,
-//            enabled = saturation > 0 && value > 0,
-//        )
-//        EditorSlider(
-//            title = "color.saturation",
-//            value = saturation,
-//            onValueChange = {
-//                colorful.color = Color.hsv(hue, it, value)
-//                EditorController.notifyGameObjectUpdate()
-//            },
-//            valueRange = 0f..1f,
-//            enabled = value > 0,
-//        )
+
 //    }
 //}
 //
