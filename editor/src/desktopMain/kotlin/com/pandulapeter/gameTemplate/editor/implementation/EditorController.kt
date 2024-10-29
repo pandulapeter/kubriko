@@ -77,7 +77,6 @@ internal object EditorController : CoroutineScope {
                     if (currentSelectedGameObject == null) {
                         launch {
                             val typeId = selectedGameObjectTypeId.value
-                            // TODO: Use AvailableInEditor trait instead
                             Engine.get().serializationManager.deserializeGameObjectStates(
                                 serializedStates = "[{\"typeId\":\"$typeId\",\"state\":\"{\\\"position\\\":{\\\"x\\\":${positionInWorld.x},\\\"y\\\":${positionInWorld.y}}}\"}]"
                             ).firstOrNull()?.restore()?.let { gameObject ->

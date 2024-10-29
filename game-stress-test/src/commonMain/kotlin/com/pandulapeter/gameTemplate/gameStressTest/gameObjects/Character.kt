@@ -78,14 +78,8 @@ class Character private constructor(
         ).mapNotNull { (it as? Visible)?.position }
     }
 
-
-    override fun createEditorInstance(position: WorldCoordinates) = Character(
-        state = CharacterState(
-            position = position,
-        )
-    )
-
     override fun draw(scope: DrawScope) {
+        super.draw(scope)
         nearbyGameObjectPositions.forEach { nearbyObjectPosition ->
             scope.drawLine(
                 color = Color.Red,

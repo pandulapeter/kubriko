@@ -57,12 +57,6 @@ class BoxWithCircle private constructor(state: BoxWithCircleState) : GameObject<
     override var speed = 0f
     override var isSelectedInEditor = false
 
-    override fun createEditorInstance(position: WorldCoordinates) = BoxWithCircle(
-        state = BoxWithCircleState(
-            position = position,
-        )
-    )
-
     override fun update(deltaTimeInMillis: Float) {
         super.update(deltaTimeInMillis)
         drawingOrder = -position.y - pivotOffset.y

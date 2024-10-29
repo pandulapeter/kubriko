@@ -60,12 +60,6 @@ class MovingBox private constructor(state: MovingBoxState) : GameObject<MovingBo
     override var isSelectedInEditor = false
     private var isGrowing = true
 
-    override fun createEditorInstance(position: WorldCoordinates) = MovingBox(
-        state = MovingBoxState(
-            position = position,
-        )
-    )
-
     override fun update(deltaTimeInMillis: Float) {
         super.update(deltaTimeInMillis)
         drawingOrder = -position.y - pivotOffset.y
@@ -93,10 +87,13 @@ class MovingBox private constructor(state: MovingBoxState) : GameObject<MovingBo
         )
     }
 
-    override fun draw(scope: DrawScope) = scope.drawRect(
-        color = lerp(boxColor, Color.Black, destructionState),
-        size = boundingBox.rawSize,
-    )
+    override fun draw(scope: DrawScope) {
+        super.draw(scope)
+        scope.drawRect(
+            color = lerp(boxColor, Color.Black, destructionState),
+            size = boundingBox.rawSize,
+        )
+    }
 
     override fun saveState() = MovingBoxState(
         edgeSize = edgeSize,

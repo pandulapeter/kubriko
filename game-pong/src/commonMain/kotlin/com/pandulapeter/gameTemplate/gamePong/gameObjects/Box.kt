@@ -30,12 +30,6 @@ class Box private constructor(state: BoxState) : GameObject<Box>, AvailableInEdi
 
     override var isSelectedInEditor = false
 
-    override fun createEditorInstance(position: WorldCoordinates) = Box(
-        state = BoxState(
-            position = position,
-        )
-    )
-
     override fun draw(scope: DrawScope) {
         super.draw(scope)
         scope.drawRect(
