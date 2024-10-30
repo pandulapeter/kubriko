@@ -1,4 +1,4 @@
-package com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels
+package com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.instanceManagerColumn
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorRadioButton
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorTextTitle
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.toPropertyEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import game.editor.generated.resources.Res
 import game.editor.generated.resources.ic_close

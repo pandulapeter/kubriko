@@ -23,7 +23,9 @@ interface Destructible : Movable {
     }
 
     fun destroy(character: Visible) {
-        destructionState = 0.01f
+        if (destructionState == 0f) {
+            destructionState = 0.01f
+        }
         direction = 180f.deg - angleTowards(character)
         speed = 3f
     }

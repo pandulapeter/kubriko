@@ -1,4 +1,4 @@
-package com.pandulapeter.gameTemplate.editor.implementation.userInterface.propertyEditors
+package com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

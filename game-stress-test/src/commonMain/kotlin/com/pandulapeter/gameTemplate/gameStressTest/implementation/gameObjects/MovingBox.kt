@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.gameTemplate.engine.gameObject.editor.Editable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.deg
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toRadians
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableAngleDegrees
@@ -57,6 +58,7 @@ class MovingBox private constructor(state: MovingBoxState) : AvailableInEditor<M
     override var speed = 0f
     override var isSelectedInEditor = false
     private var isGrowing = true
+    private var isMoving = true
 
     override fun update(deltaTimeInMillis: Float) {
         super.update(deltaTimeInMillis)
@@ -79,10 +81,12 @@ class MovingBox private constructor(state: MovingBoxState) : AvailableInEditor<M
                 vertical = scale.vertical - 0.001f * deltaTimeInMillis * (1f - destructionState),
             )
         }
-        position += WorldCoordinates(
-            x = cos(rotation.toRadians()),
-            y = -sin(rotation.toRadians()),
-        )
+        if (isMoving) {
+            position += WorldCoordinates(
+                x = cos(rotation.toRadians()),
+                y = -sin(rotation.toRadians()),
+            )
+        }
     }
 
     override fun draw(scope: DrawScope) {
@@ -91,6 +95,11 @@ class MovingBox private constructor(state: MovingBoxState) : AvailableInEditor<M
             color = lerp(boxColor, Color.Black, destructionState),
             size = boundingBox.rawSize,
         )
+    }
+
+    override fun destroy(character: Visible) {
+        super.destroy(character)
+        isMoving = false
     }
 
     override fun saveState() = MovingBoxState(

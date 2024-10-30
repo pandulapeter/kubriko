@@ -18,6 +18,7 @@ internal fun EditorNumberInput(
     EditorTextLabel(
         text = "$title: ${"%.2f".format(value)}",
     )
+    // TODO: Focusing this fields should take focus away from the EngineCanvas to avoid navigation using the arrow keys.
     OutlinedTextField(
         value = "%.2f".format(value),
         enabled = enabled,

@@ -1,4 +1,4 @@
-package com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels
+package com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.metadataRow
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

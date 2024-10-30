@@ -19,6 +19,7 @@ import com.pandulapeter.gameTemplate.engine.types.WorldCoordinates
 private var startOffset: WorldCoordinates? = null
 private var isDragging = false
 
+// TODO: Fix some clicks registering as drag
 @OptIn(ExperimentalComposeUiApi::class)
 internal fun Modifier.handleMouseClick(
     getSelectedInstance: () -> AvailableInEditor<*>?,

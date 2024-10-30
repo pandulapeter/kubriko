@@ -1,4 +1,4 @@
-package com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels
+package com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.instanceBrowserColumn
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

@@ -1,4 +1,4 @@
-package com.pandulapeter.gameTemplate.editor.implementation.userInterface
+package com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.instanceManagerColumn
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -17,12 +17,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorTextTitle
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.propertyEditors.AngleDegreesPropertyEditor
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.propertyEditors.ColorPropertyEditor
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.propertyEditors.FloatPropertyEditor
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.propertyEditors.WorldCoordinatesPropertyEditor
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.AngleDegreesPropertyEditor
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ColorPropertyEditor
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.FloatPropertyEditor
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ScalePropertyEditor
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.WorldCoordinatesPropertyEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.editor.Editable
 import com.pandulapeter.gameTemplate.engine.types.AngleDegrees
+import com.pandulapeter.gameTemplate.engine.types.Scale
 import com.pandulapeter.gameTemplate.engine.types.WorldCoordinates
 import game.editor.generated.resources.Res
 import game.editor.generated.resources.ic_collapse
@@ -69,6 +71,19 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                     WorldCoordinatesPropertyEditor(
                         name = name,
                         value = getter.call(instance) as WorldCoordinates,
+                        onValueChanged = {
+                            setter.call(instance, it)
+                            notifySelectedInstanceUpdate()
+                        }
+                    )
+                }
+            }
+
+            Scale::class.createType() -> {
+                {
+                    ScalePropertyEditor(
+                        name = name,
+                        value = getter.call(instance) as Scale,
                         onValueChanged = {
                             setter.call(instance, it)
                             notifySelectedInstanceUpdate()

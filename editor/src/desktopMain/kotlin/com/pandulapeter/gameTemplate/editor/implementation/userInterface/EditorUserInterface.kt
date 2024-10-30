@@ -1,4 +1,4 @@
-package com.pandulapeter.gameTemplate.editor.implementation
+package com.pandulapeter.gameTemplate.editor.implementation.userInterface
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -9,14 +9,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.pandulapeter.gameTemplate.editor.implementation.EditorController
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseClick
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseDrag
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseMove
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseZoom
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.FileManagerRow
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.InstanceBrowserColumn
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.InstanceManagerColumn
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.MetadataRow
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.fileManagerRow.FileManagerRow
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.instanceBrowserColumn.InstanceBrowserColumn
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.instanceManagerColumn.InstanceManagerColumn
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.metadataRow.MetadataRow
 import com.pandulapeter.gameTemplate.engine.EngineCanvas
 
 @Composable
@@ -52,6 +53,7 @@ internal fun EditorUserInterface(
                 selectInstance = editorController::selectInstance,
                 resolveTypeId = editorController.engine.instanceManager::resolveTypeId,
             )
+            // TODO: Draw a grid in the background
             EngineCanvas(
                 modifier = Modifier
                     .weight(1f)

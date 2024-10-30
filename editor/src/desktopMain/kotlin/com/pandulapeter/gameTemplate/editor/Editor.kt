@@ -7,8 +7,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.window.AwtWindow
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import com.pandulapeter.gameTemplate.editor.implementation.EditorApp
 import com.pandulapeter.gameTemplate.editor.implementation.EditorController
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.EditorUserInterface
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import java.awt.Dimension
@@ -33,7 +33,7 @@ fun openEditor(
         val isLoadFileChooserOpen = remember { mutableStateOf(false) }
         val isSaveFileChooserOpen = remember { mutableStateOf(false) }
         window.minimumSize = Dimension(600, 400)
-        EditorApp(
+        EditorUserInterface(
             editorController = editorController,
             openFilePickerForLoading = { isLoadFileChooserOpen.value = true },
             openFilePickerForSaving = { isSaveFileChooserOpen.value = true },
