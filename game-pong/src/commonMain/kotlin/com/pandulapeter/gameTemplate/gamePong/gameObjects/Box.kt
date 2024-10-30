@@ -2,8 +2,7 @@ package com.pandulapeter.gameTemplate.gamePong.gameObjects
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
-import com.pandulapeter.gameTemplate.engine.gameObject.State
+import com.pandulapeter.gameTemplate.engine.gameObject.EditorState
 import com.pandulapeter.gameTemplate.engine.gameObject.editor.Editable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
@@ -17,7 +16,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class Box private constructor(state: BoxState) : GameObject<Box>, AvailableInEditor, Visible {
+class Box private constructor(state: BoxState) : AvailableInEditor<Box>, Visible {
 
     @set:Editable(typeId = "boundingBox")
     override var boundingBox: WorldSize = state.boundingBox
@@ -49,7 +48,7 @@ class Box private constructor(state: BoxState) : GameObject<Box>, AvailableInEdi
         @SerialName("boundingBox") val boundingBox: SerializableWorldSize = WorldSize(100f, 100f),
         @SerialName("position") val position: SerializableWorldCoordinates = WorldCoordinates.Zero,
         @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,
-    ) : State<Box> {
+    ) : EditorState<Box> {
 
         override val typeId = TYPE_ID
 

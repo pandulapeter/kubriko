@@ -5,8 +5,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.gameTemplate.engine.Engine
-import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
-import com.pandulapeter.gameTemplate.engine.gameObject.State
+import com.pandulapeter.gameTemplate.engine.gameObject.EditorState
 import com.pandulapeter.gameTemplate.engine.gameObject.editor.Editable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
@@ -33,7 +32,7 @@ import kotlin.math.sin
 
 class Character private constructor(
     state: CharacterState,
-) : GameObject<Character>, AvailableInEditor, Unique, Visible, Dynamic, CoroutineScope {
+) : AvailableInEditor<Character>, Unique, Visible, Dynamic, CoroutineScope {
 
     @set:Editable(typeId = "position")
     override var position: WorldCoordinates = state.position
@@ -132,7 +131,7 @@ class Character private constructor(
     @Serializable
     data class CharacterState(
         @SerialName("position") val position: SerializableWorldCoordinates = WorldCoordinates.Zero
-    ) : State<Character> {
+    ) : EditorState<Character> {
         override val typeId = TYPE_ID
 
         override fun restore() = Character(this)

@@ -3,8 +3,7 @@ package com.pandulapeter.gameTemplate.gameStressTest.gameObjects
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
-import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
-import com.pandulapeter.gameTemplate.engine.gameObject.State
+import com.pandulapeter.gameTemplate.engine.gameObject.EditorState
 import com.pandulapeter.gameTemplate.engine.gameObject.editor.Editable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.deg
@@ -20,7 +19,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class BoxWithCircle private constructor(state: BoxWithCircleState) : GameObject<BoxWithCircle>, AvailableInEditor, Destructible {
+class BoxWithCircle private constructor(state: BoxWithCircleState) : AvailableInEditor<BoxWithCircle>, Destructible {
 
     @set:Editable(typeId = "edgeSize")
     var edgeSize: Float = state.edgeSize
@@ -92,7 +91,7 @@ class BoxWithCircle private constructor(state: BoxWithCircleState) : GameObject<
         @SerialName("circleColor") val circleColor: SerializableColor = Color.White,
         @SerialName("circleRadius") val circleRadius: Float = edgeSize / 3f,
         @SerialName("rotation") val rotation: SerializableAngleDegrees = 0f.deg,
-    ) : State<BoxWithCircle> {
+    ) : EditorState<BoxWithCircle> {
 
         override val typeId = TYPE_ID
 

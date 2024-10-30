@@ -1,7 +1,7 @@
 package com.pandulapeter.gameTemplate.engine.implementation.managers
 
-import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
-import com.pandulapeter.gameTemplate.engine.gameObject.State
+import com.pandulapeter.gameTemplate.engine.gameObject.EditorState
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Unique
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
@@ -23,13 +23,13 @@ import kotlin.reflect.KClass
 
 internal class GameObjectManagerImpl : GameObjectManager {
 
-    private val _gameObjectStateRegistry = MutableStateFlow(mapOf<String, (String) -> State<*>>())
+    private val _gameObjectStateRegistry = MutableStateFlow(mapOf<String, (String) -> EditorState<*>>())
     val gameObjectStateRegistry = _gameObjectStateRegistry.asStateFlow()
-    private var gameObjectTypeIds = emptyMap<KClass<out GameObject<*>>, String>()
+    private var gameObjectTypeIds = emptyMap<KClass<*>, String>()
     override val registeredTypeIdsForEditor = _gameObjectStateRegistry
         .map { it.keys.toList() }
         .stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
-    private val _gameObjects = MutableStateFlow(emptyList<GameObject<*>>())
+    private val _gameObjects = MutableStateFlow(emptyList<Any>())
     val gameObjects = _gameObjects.asStateFlow()
     val dynamicGameObjects = _gameObjects.map { gameObjects -> gameObjects.filterIsInstance<Dynamic>() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
     private val visibleGameObjects = _gameObjects.map { gameObjects -> gameObjects.filterIsInstance<Visible>() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
@@ -51,9 +51,9 @@ internal class GameObjectManagerImpl : GameObjectManager {
             .sortedByDescending { it.drawingOrder }
     }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
 
-    override fun getTypeId(type: KClass<out GameObject<*>>) = gameObjectTypeIds[type].orEmpty()
+    override fun getTypeId(type: KClass<*>) = gameObjectTypeIds[type].orEmpty()
 
-    override fun register(vararg entries: Triple<String, KClass<out GameObject<*>>, (String) -> State<*>>) = _gameObjectStateRegistry.update { currentValue ->
+    override fun register(vararg entries: Triple<String, KClass<*>, (String) -> EditorState<*>>) = _gameObjectStateRegistry.update { currentValue ->
         gameObjectTypeIds = entries.associate { (typeId, type, _) -> type to typeId }
         currentValue.toMutableMap().also { mutableMap ->
             entries.forEach { (typeId, _, deserializer) ->
@@ -62,7 +62,7 @@ internal class GameObjectManagerImpl : GameObjectManager {
         }.toMap()
     }
 
-    override fun add(vararg gameObjects: GameObject<*>) = _gameObjects.update { currentValue ->
+    override fun add(vararg gameObjects: Any) = _gameObjects.update { currentValue ->
         val uniqueGameObjects = gameObjects.filterIsInstance<Unique>()
         if (uniqueGameObjects.isEmpty()) {
             currentValue
@@ -75,14 +75,15 @@ internal class GameObjectManagerImpl : GameObjectManager {
         } + gameObjects
     }
 
-    override suspend fun serializeState() = EngineImpl.serializationManager.serializeGameObjectStates(gameObjects.value.map { it.saveState() })
+    override suspend fun serializeState() =
+        EngineImpl.serializationManager.serializeGameObjectStates(gameObjects.value.filterIsInstance<AvailableInEditor<*>>().map { it.saveState() })
 
     override suspend fun deserializeState(json: String) {
         removeAll()
-        add(gameObjects = EngineImpl.serializationManager.deserializeGameObjectStates(json).map { it.restore() }.filterIsInstance<GameObject<*>>().toTypedArray())
+        add(gameObjects = EngineImpl.serializationManager.deserializeGameObjectStates(json).mapNotNull { it.restore() }.toTypedArray())
     }
 
-    override fun remove(vararg gameObjects: GameObject<*>) = _gameObjects.update { currentValue ->
+    override fun remove(vararg gameObjects: Any) = _gameObjects.update { currentValue ->
         currentValue.filterNot { it in gameObjects }
     }
 
@@ -90,7 +91,6 @@ internal class GameObjectManagerImpl : GameObjectManager {
 
     override fun findGameObjectsWithBoundsInPosition(position: WorldCoordinates) = visibleGameObjectsInViewport.value
         .filter { it.occupiesPosition(position) }
-        .map { it as GameObject<*> }
 
     override fun findGameObjectsWithPivotsAroundPosition(position: WorldCoordinates, range: Float) = visibleGameObjects.value
         .filter {
@@ -99,5 +99,4 @@ internal class GameObjectManagerImpl : GameObjectManager {
                 range = range,
             )
         }
-        .map { it as GameObject<*> }
 }

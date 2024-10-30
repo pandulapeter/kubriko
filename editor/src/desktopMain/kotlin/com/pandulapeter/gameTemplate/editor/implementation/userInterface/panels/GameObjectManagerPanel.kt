@@ -22,8 +22,8 @@ import com.pandulapeter.gameTemplate.editor.implementation.userInterface.compone
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorTextTitle
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.toEditorControl
 import com.pandulapeter.gameTemplate.engine.Engine
-import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.editor.Editable
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import game.editor.generated.resources.Res
 import game.editor.generated.resources.ic_close
 import game.editor.generated.resources.ic_delete
@@ -34,7 +34,7 @@ import kotlin.reflect.full.memberProperties
 
 @Composable
 internal fun GameObjectManagerPanel(
-    data: Pair<GameObject<*>?, Boolean>,
+    data: Pair<AvailableInEditor<*>?, Boolean>,
     selectedGameObjectTypeId: String?
 ) {
     Row(

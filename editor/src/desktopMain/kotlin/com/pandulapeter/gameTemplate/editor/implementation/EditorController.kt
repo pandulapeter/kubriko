@@ -7,7 +7,6 @@ import com.pandulapeter.gameTemplate.editor.implementation.helpers.handleKeys
 import com.pandulapeter.gameTemplate.editor.implementation.helpers.loadFile
 import com.pandulapeter.gameTemplate.editor.implementation.helpers.saveFile
 import com.pandulapeter.gameTemplate.engine.Engine
-import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.toMapCoordinates
@@ -42,7 +41,7 @@ internal object EditorController : CoroutineScope {
         mouseScreenCoordinates.toMapCoordinates()
     }.stateIn(this, SharingStarted.Eagerly, WorldCoordinates.Zero)
     private val triggerGameObjectUpdate = MutableStateFlow(false)
-    private val _selectedGameObject = MutableStateFlow<GameObject<*>?>(null)
+    private val _selectedGameObject = MutableStateFlow<AvailableInEditor<*>?>(null)
     val selectedGameObject = combine(
         _selectedGameObject,
         triggerGameObjectUpdate,
@@ -80,15 +79,15 @@ internal object EditorController : CoroutineScope {
                             Engine.get().serializationManager.deserializeGameObjectStates(
                                 serializedStates = "[{\"typeId\":\"$typeId\",\"state\":\"{\\\"position\\\":{\\\"x\\\":${positionInWorld.x},\\\"y\\\":${positionInWorld.y}}}\"}]"
                             ).firstOrNull()?.restore()?.let { gameObject ->
-                                Engine.get().gameObjectManager.add(gameObject as GameObject<*>)
+                                Engine.get().gameObjectManager.add(gameObject)
                             }
                         }
                     } else {
                         unselectGameObject()
                     }
                 } else {
-                    (gameObjectAtPosition as? AvailableInEditor)?.let { availableInEditor ->
-                        (currentSelectedGameObject as? AvailableInEditor)?.isSelectedInEditor = false
+                    (gameObjectAtPosition as? AvailableInEditor<*>)?.let { availableInEditor ->
+                        currentSelectedGameObject?.isSelectedInEditor = false
                         _selectedGameObject.update {
                             if (currentSelectedGameObject == gameObjectAtPosition) {
                                 null

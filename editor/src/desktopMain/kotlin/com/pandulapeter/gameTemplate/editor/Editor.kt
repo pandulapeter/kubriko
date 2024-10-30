@@ -9,8 +9,7 @@ import androidx.compose.ui.window.application
 import com.pandulapeter.gameTemplate.editor.implementation.EditorApp
 import com.pandulapeter.gameTemplate.editor.implementation.EditorController
 import com.pandulapeter.gameTemplate.engine.Engine
-import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
-import com.pandulapeter.gameTemplate.engine.gameObject.State
+import com.pandulapeter.gameTemplate.engine.gameObject.EditorState
 import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame
@@ -20,7 +19,7 @@ import kotlin.reflect.KClass
 
 fun openEditor(
     defaultMapFilename: String? = null,
-    vararg supportedGameObjectSerializers: Triple<String, KClass<out GameObject<*>>, (String) -> State<*>>
+    vararg supportedGameObjectSerializers: Triple<String, KClass<*>, (String) -> EditorState<*>>
 ) = application {
     Engine.get().gameObjectManager.register(entries = supportedGameObjectSerializers)
     defaultMapFilename?.let {

@@ -5,11 +5,11 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.gameTemplate.engine.Engine
+import com.pandulapeter.gameTemplate.engine.gameObject.EditorState
 
-// TODO: Move GameObject's fun saveState(): State<O> into this interface
-interface AvailableInEditor : Visible {
+interface AvailableInEditor<O : AvailableInEditor<O>> : Visible {
 
-    // TODO: val instanceId: String
+    // TODO: Use instance ID-s instead
     var isSelectedInEditor: Boolean
 
     override fun draw(scope: DrawScope) {
@@ -29,6 +29,8 @@ interface AvailableInEditor : Visible {
             }
         }
     }
+
+    fun saveState(): EditorState<O>
 
     companion object {
         private const val HIGHLIGHT_SIZE = 4f

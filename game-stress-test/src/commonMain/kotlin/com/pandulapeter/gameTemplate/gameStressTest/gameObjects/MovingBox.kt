@@ -3,8 +3,7 @@ package com.pandulapeter.gameTemplate.gameStressTest.gameObjects
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
-import com.pandulapeter.gameTemplate.engine.gameObject.GameObject
-import com.pandulapeter.gameTemplate.engine.gameObject.State
+import com.pandulapeter.gameTemplate.engine.gameObject.EditorState
 import com.pandulapeter.gameTemplate.engine.gameObject.editor.Editable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.deg
@@ -25,7 +24,7 @@ import kotlinx.serialization.json.Json
 import kotlin.math.cos
 import kotlin.math.sin
 
-class MovingBox private constructor(state: MovingBoxState) : GameObject<MovingBox>, AvailableInEditor, Destructible {
+class MovingBox private constructor(state: MovingBoxState) : AvailableInEditor<MovingBox>, Destructible {
 
     @set:Editable(typeId = "edgeSize")
     var edgeSize: Float = state.edgeSize
@@ -110,7 +109,7 @@ class MovingBox private constructor(state: MovingBoxState) : GameObject<MovingBo
         @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,
         @SerialName("rotation") val rotation: SerializableAngleDegrees = 0f.deg,
         @SerialName("scale") val scale: SerializableScale = Scale.Unit,
-    ) : State<MovingBox> {
+    ) : EditorState<MovingBox> {
 
         override val typeId = TYPE_ID
 

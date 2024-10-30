@@ -1,6 +1,6 @@
 package com.pandulapeter.gameTemplate.engine.gameObject
 
-interface State<T> {
+interface EditorState<T> {
 
     val typeId: String
 
