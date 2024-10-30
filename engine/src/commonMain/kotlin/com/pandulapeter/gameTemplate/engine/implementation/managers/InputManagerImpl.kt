@@ -1,12 +1,7 @@
 package com.pandulapeter.gameTemplate.engine.implementation.managers
 
 import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEvent
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.type
 import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
-import com.pandulapeter.gameTemplate.engine.implementation.helpers.consume
 import com.pandulapeter.gameTemplate.engine.managers.InputManager
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -49,15 +44,15 @@ internal class InputManagerImpl : InputManager {
         }
     }
 
-    fun onKeyEvent(keyEvent: KeyEvent) = consume {
-        if (keyEvent.type == KeyEventType.KeyDown) {
-            if (!activeKeysCache.contains(keyEvent.key)) {
-                _onKeyPressed.tryEmit(keyEvent.key)
-                activeKeysCache.add(keyEvent.key)
-            }
-        } else if (keyEvent.type == KeyEventType.KeyUp) {
-            activeKeysCache.remove(keyEvent.key)
-            _onKeyReleased.tryEmit(keyEvent.key)
+    override fun onKeyPressed(key: Key) {
+        if (!activeKeysCache.contains(key)) {
+            _onKeyPressed.tryEmit(key)
+            activeKeysCache.add(key)
         }
+    }
+
+    override fun onKeyReleased(key: Key) {
+        activeKeysCache.remove(key)
+        _onKeyReleased.tryEmit(key)
     }
 }

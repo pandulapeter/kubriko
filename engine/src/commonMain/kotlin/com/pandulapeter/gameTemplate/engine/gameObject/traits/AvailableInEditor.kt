@@ -6,9 +6,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.gameTemplate.engine.Engine
 
-// TODO: Get rid of this, all GameObjects should be available in the editor
+// TODO: Move GameObject's fun saveState(): State<O> into this interface
 interface AvailableInEditor : Visible {
 
+    // TODO: val instanceId: String
     var isSelectedInEditor: Boolean
 
     override fun draw(scope: DrawScope) {

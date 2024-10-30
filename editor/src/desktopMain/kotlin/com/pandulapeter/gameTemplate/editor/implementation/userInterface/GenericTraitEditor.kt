@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.gameTemplate.editor.implementation.EditorController
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorIcon
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorNumberInput
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorSlider
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorTextLabel
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorTextTitle
@@ -112,14 +113,13 @@ internal fun <T : Any> KMutableProperty<*>.toEditorControl(instance: T): (@Compo
 
         Float::class.createType() -> {
             {
-                EditorSlider(
+                EditorNumberInput(
                     title = editableProperty.typeId,
                     value = getter.call(instance) as Float,
                     onValueChange = {
                         setter.call(instance, it)
                         EditorController.notifyGameObjectUpdate()
                     },
-                    valueRange = 0f..1f
                 )
             }
         }

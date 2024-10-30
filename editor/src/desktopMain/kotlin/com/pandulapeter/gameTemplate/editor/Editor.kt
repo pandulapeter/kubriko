@@ -20,7 +20,7 @@ import kotlin.reflect.KClass
 
 fun openEditor(
     defaultMapFilename: String? = null,
-    vararg supportedGameObjectSerializers: Triple<String,KClass<out GameObject<*>>, (String) -> State<*>>
+    vararg supportedGameObjectSerializers: Triple<String, KClass<out GameObject<*>>, (String) -> State<*>>
 ) = application {
     Engine.get().gameObjectManager.register(entries = supportedGameObjectSerializers)
     defaultMapFilename?.let {

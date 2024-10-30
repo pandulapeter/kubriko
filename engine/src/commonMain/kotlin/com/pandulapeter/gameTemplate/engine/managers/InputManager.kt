@@ -9,4 +9,8 @@ interface InputManager {
     val onKeyReleased: SharedFlow<Key>
 
     fun isKeyPressed(key: Key) : Boolean
+
+    fun onKeyPressed(key: Key)
+
+    fun onKeyReleased(key: Key)
 }
