@@ -58,7 +58,7 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
 
     private fun start() {
         launch {
-            Engine.get().gameObjectManager.register(
+            Engine.get().instanceManager.register(
                 entries = GameObjectRegistry.entries,
             )
             loadMap(MAP_NAME)
@@ -68,7 +68,7 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
     @OptIn(ExperimentalResourceApi::class)
     private suspend fun loadMap(mapName: String) {
         try {
-            Engine.get().gameObjectManager.deserializeState(Res.readBytes("files/maps/$mapName.json").decodeToString())
+            Engine.get().instanceManager.deserializeState(Res.readBytes("files/maps/$mapName.json").decodeToString())
         } catch (_: MissingResourceException) {
         }
     }

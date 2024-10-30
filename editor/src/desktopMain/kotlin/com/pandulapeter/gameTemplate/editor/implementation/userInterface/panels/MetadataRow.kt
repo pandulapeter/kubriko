@@ -16,7 +16,7 @@ import kotlin.math.roundToInt
 
 
 @Composable
-internal fun MetadataIndicatorPanel(
+internal fun MetadataRow(
     gameObjectCount: Int,
     mouseWorldCoordinates: WorldCoordinates,
 ) = Column(
@@ -34,7 +34,7 @@ internal fun MetadataIndicatorPanel(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         EditorText(
-            text = "Object count: $gameObjectCount",
+            text = "Instances: $gameObjectCount",
         )
         EditorText(
             text = "${mouseWorldCoordinates.x.roundToInt()}:${mouseWorldCoordinates.y.roundToInt()}",

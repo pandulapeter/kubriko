@@ -5,16 +5,19 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
 internal fun EditorText(
     modifier: Modifier = Modifier,
     text: String,
+    isBold: Boolean = false,
 ) = Text(
     modifier = modifier,
     style = MaterialTheme.typography.caption,
     text = text,
+    fontWeight = if (isBold) FontWeight.Bold else null,
 )
 
 @Composable

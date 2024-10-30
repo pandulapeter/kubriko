@@ -13,7 +13,7 @@ object GameObjectRegistry {
         }
     }
 
-    val entries = arrayOf<Triple<String, KClass<out GameObject<*>>, (String) -> EditorState<*>>>(
+    val entries = arrayOf<Triple<String, KClass<*>, (String) -> EditorState<*>>>(
         Triple(Box.TYPE_ID, Box::class) { serializedState -> json.decodeFromString<Box.BoxState>(serializedState) },
     )
 }

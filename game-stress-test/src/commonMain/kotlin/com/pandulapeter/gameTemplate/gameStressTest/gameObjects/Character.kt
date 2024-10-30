@@ -71,7 +71,7 @@ class Character private constructor(
         } else {
             sizeMultiplier = 1f
         }
-        nearbyGameObjectPositions = Engine.get().gameObjectManager.findGameObjectsWithPivotsAroundPosition(
+        nearbyGameObjectPositions = Engine.get().instanceManager.findGameObjectsWithPivotsAroundPosition(
             position = position + pivotOffset,
             range = EXPLOSION_RANGE,
         ).mapNotNull { (it as? Visible)?.position }
@@ -121,7 +121,7 @@ class Character private constructor(
     private fun triggerExplosion() {
         if (Engine.get().stateManager.isRunning.value) {
             sizeMultiplier = MAX_SIZE_MULTIPLIER
-            Engine.get().gameObjectManager.findGameObjectsWithPivotsAroundPosition(
+            Engine.get().instanceManager.findGameObjectsWithPivotsAroundPosition(
                 position = position + pivotOffset,
                 range = EXPLOSION_RANGE,
             ).filterIsInstance<Destructible>().forEach { it.destroy(this) }

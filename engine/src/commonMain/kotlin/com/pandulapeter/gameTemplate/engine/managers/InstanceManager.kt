@@ -5,9 +5,11 @@ import com.pandulapeter.gameTemplate.engine.types.WorldCoordinates
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.reflect.KClass
 
-interface GameObjectManager {
+interface InstanceManager {
 
     val registeredTypeIdsForEditor: StateFlow<List<String>>
+    val gameObjects: StateFlow<List<Any>>
+    val visibleGameObjectsWithinViewport: StateFlow<List<Any>>
 
     fun getTypeId(type: KClass<*>): String
 

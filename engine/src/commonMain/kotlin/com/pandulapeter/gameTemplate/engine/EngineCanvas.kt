@@ -55,7 +55,7 @@ fun EngineCanvas(
                 )
                 EngineImpl.inputManager.emit()
                 if (EngineImpl.stateManager.isRunning.value) {
-                    EngineImpl.gameObjectManager.dynamicGameObjects.value.forEach { dynamic ->
+                    EngineImpl.instanceManager.dynamicGameObjects.value.forEach { dynamic ->
                         dynamic.update(deltaTimeInMillis)
                     }
                 }
@@ -81,7 +81,7 @@ fun EngineCanvas(
                         )
                     },
                     drawBlock = {
-                        EngineImpl.gameObjectManager.visibleGameObjectsInViewport.value
+                        EngineImpl.instanceManager.visibleGameObjectsWithinViewport.value
                             .forEach { visible ->
                                 withTransform(
                                     transformBlock = { visible.transform(this) },

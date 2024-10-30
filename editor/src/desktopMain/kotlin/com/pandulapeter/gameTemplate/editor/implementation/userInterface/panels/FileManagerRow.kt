@@ -21,7 +21,7 @@ import game.editor.generated.resources.ic_save
 
 
 @Composable
-internal fun FileManagerPanel(
+internal fun FileManagerRow(
     onNewIconClicked: () -> Unit,
     onOpenIconClicked: () -> Unit,
     onSaveIconClicked: () -> Unit,

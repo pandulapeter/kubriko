@@ -13,10 +13,13 @@ import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMous
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseDrag
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseMove
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseZoom
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.FileManagerPanel
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.GameObjectManagerPanel
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.MetadataIndicatorPanel
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.FileManagerRow
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.InstanceManagerColumn
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.InstanceBrowserColumn
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.MetadataRow
+import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.EngineCanvas
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 
 @Composable
 internal fun EditorUserInterface(
@@ -32,32 +35,33 @@ internal fun EditorUserInterface(
     Column(
         modifier = modifier,
     ) {
+        FileManagerRow(
+            onNewIconClicked = EditorController::reset,
+            onOpenIconClicked = openFilePickerForLoading,
+            onSaveIconClicked = openFilePickerForSaving,
+        )
         Row(
             modifier = Modifier.weight(1f),
         ) {
-            Column(
-                modifier = Modifier.weight(1f),
-            ) {
-                FileManagerPanel(
-                    onNewIconClicked = EditorController::reset,
-                    onOpenIconClicked = openFilePickerForLoading,
-                    onSaveIconClicked = openFilePickerForSaving,
-                )
-                EngineCanvas(
-                    modifier = Modifier
-                        .handleMouseClick()
-                        .handleMouseMove()
-                        .handleMouseZoom()
-                        .handleMouseDrag()
-                        .background(Color.White),
-                )
-            }
-            GameObjectManagerPanel(
+            InstanceBrowserColumn(
+                allGameObjects = Engine.get().instanceManager.gameObjects.collectAsState().value.filterIsInstance<AvailableInEditor<*>>(),
+                visibleGameObjects = Engine.get().instanceManager.visibleGameObjectsWithinViewport.collectAsState().value.filterIsInstance<AvailableInEditor<*>>(),
+            )
+            EngineCanvas(
+                modifier = Modifier
+                    .weight(1f)
+                    .handleMouseClick()
+                    .handleMouseMove()
+                    .handleMouseZoom()
+                    .handleMouseDrag()
+                    .background(Color.White),
+            )
+            InstanceManagerColumn(
                 data = EditorController.selectedGameObject.collectAsState().value,
                 selectedGameObjectTypeId = EditorController.selectedGameObjectTypeId.collectAsState().value,
             )
         }
-        MetadataIndicatorPanel(
+        MetadataRow(
             gameObjectCount = EditorController.totalGameObjectCount.collectAsState().value,
             mouseWorldCoordinates = EditorController.mouseWorldCoordinates.collectAsState().value,
         )

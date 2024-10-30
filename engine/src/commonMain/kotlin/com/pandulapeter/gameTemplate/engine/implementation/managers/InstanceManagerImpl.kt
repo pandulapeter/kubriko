@@ -9,7 +9,7 @@ import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.isAroundPosition
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.isVisible
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.occupiesPosition
-import com.pandulapeter.gameTemplate.engine.managers.GameObjectManager
+import com.pandulapeter.gameTemplate.engine.managers.InstanceManager
 import com.pandulapeter.gameTemplate.engine.types.WorldCoordinates
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,19 +21,19 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlin.reflect.KClass
 
-internal class GameObjectManagerImpl : GameObjectManager {
+internal class InstanceManagerImpl : InstanceManager {
 
-    private val _gameObjectStateRegistry = MutableStateFlow(mapOf<String, (String) -> EditorState<*>>())
-    val gameObjectStateRegistry = _gameObjectStateRegistry.asStateFlow()
+    private val _typeIdsForEditorRegistry = MutableStateFlow(mapOf<String, (String) -> EditorState<*>>())
+    val typeIdsForEditorRegistry = _typeIdsForEditorRegistry.asStateFlow()
     private var gameObjectTypeIds = emptyMap<KClass<*>, String>()
-    override val registeredTypeIdsForEditor = _gameObjectStateRegistry
+    override val registeredTypeIdsForEditor = _typeIdsForEditorRegistry
         .map { it.keys.toList() }
         .stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
     private val _gameObjects = MutableStateFlow(emptyList<Any>())
-    val gameObjects = _gameObjects.asStateFlow()
+    override val gameObjects = _gameObjects.asStateFlow()
     val dynamicGameObjects = _gameObjects.map { gameObjects -> gameObjects.filterIsInstance<Dynamic>() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
     private val visibleGameObjects = _gameObjects.map { gameObjects -> gameObjects.filterIsInstance<Visible>() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
-    val visibleGameObjectsInViewport = combine(
+    override val visibleGameObjectsWithinViewport = combine(
         EngineImpl.metadataManager.runtimeInMilliseconds.map { it / 100 }.distinctUntilChanged(),
         visibleGameObjects,
         EngineImpl.viewportManager.size,
@@ -53,7 +53,7 @@ internal class GameObjectManagerImpl : GameObjectManager {
 
     override fun getTypeId(type: KClass<*>) = gameObjectTypeIds[type].orEmpty()
 
-    override fun register(vararg entries: Triple<String, KClass<*>, (String) -> EditorState<*>>) = _gameObjectStateRegistry.update { currentValue ->
+    override fun register(vararg entries: Triple<String, KClass<*>, (String) -> EditorState<*>>) = _typeIdsForEditorRegistry.update { currentValue ->
         gameObjectTypeIds = entries.associate { (typeId, type, _) -> type to typeId }
         currentValue.toMutableMap().also { mutableMap ->
             entries.forEach { (typeId, _, deserializer) ->
@@ -89,7 +89,7 @@ internal class GameObjectManagerImpl : GameObjectManager {
 
     override fun removeAll() = _gameObjects.update { emptyList() }
 
-    override fun findGameObjectsWithBoundsInPosition(position: WorldCoordinates) = visibleGameObjectsInViewport.value
+    override fun findGameObjectsWithBoundsInPosition(position: WorldCoordinates) = visibleGameObjectsWithinViewport.value
         .filter { it.occupiesPosition(position) }
 
     override fun findGameObjectsWithPivotsAroundPosition(position: WorldCoordinates, range: Float) = visibleGameObjects.value

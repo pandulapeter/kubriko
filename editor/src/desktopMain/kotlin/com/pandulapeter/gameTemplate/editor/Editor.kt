@@ -21,7 +21,7 @@ fun openEditor(
     defaultMapFilename: String? = null,
     vararg supportedGameObjectSerializers: Triple<String, KClass<*>, (String) -> EditorState<*>>
 ) = application {
-    Engine.get().gameObjectManager.register(entries = supportedGameObjectSerializers)
+    Engine.get().instanceManager.register(entries = supportedGameObjectSerializers)
     defaultMapFilename?.let {
         EditorController.loadMap(
             path = "${EditorController.MAPS_DIRECTORY}/$it.json"

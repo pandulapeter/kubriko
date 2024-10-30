@@ -22,18 +22,16 @@ import com.pandulapeter.gameTemplate.editor.implementation.userInterface.compone
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorTextTitle
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.toEditorControl
 import com.pandulapeter.gameTemplate.engine.Engine
-import com.pandulapeter.gameTemplate.engine.gameObject.editor.Editable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import game.editor.generated.resources.Res
 import game.editor.generated.resources.ic_close
 import game.editor.generated.resources.ic_delete
 import game.editor.generated.resources.ic_locate
 import kotlin.reflect.KMutableProperty
-import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
 
 @Composable
-internal fun GameObjectManagerPanel(
+internal fun InstanceManagerColumn(
     data: Pair<AvailableInEditor<*>?, Boolean>,
     selectedGameObjectTypeId: String?
 ) {
@@ -42,8 +40,8 @@ internal fun GameObjectManagerPanel(
             .fillMaxHeight()
             .width(200.dp),
     ) {
-        val registeredTypeIds = Engine.get().gameObjectManager.registeredTypeIdsForEditor.collectAsState()
         Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
+        val registeredTypeIds = Engine.get().instanceManager.registeredTypeIdsForEditor.collectAsState()
         val expandedCategories = EditorController.expandedCategories.collectAsState()
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -62,37 +60,13 @@ internal fun GameObjectManagerPanel(
                         )
                     }
                 } else {
-                    item(key = "selectedTypeTitle") {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(
-                                    horizontal = 8.dp,
-                                    vertical = 2.dp,
-                                ),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            EditorTextTitle(
-                                modifier = Modifier.weight(1f),
-                                text = Engine.get().gameObjectManager.getTypeId(gameObject::class),
-                            )
-                            EditorIcon(
-                                drawableResource = Res.drawable.ic_close,
-                                contentDescription = "Unselect",
-                                onClick = EditorController::unselectGameObject,
-                            )
-                            EditorIcon(
-                                drawableResource = Res.drawable.ic_locate,
-                                contentDescription = "Locate",
-                                onClick = EditorController::locateGameObject,
-                            )
-                            EditorIcon(
-                                drawableResource = Res.drawable.ic_delete,
-                                contentDescription = "Delete",
-                                onClick = EditorController::deleteSelectedGameObject,
-                            )
-                        }
-                        Divider()
+                    item(key = "selectedTypeHeader") {
+                      SelectedInstanceHeader(
+                          instanceTypeName = Engine.get().instanceManager.getTypeId(gameObject::class),
+                          onUnselectClicked = EditorController::unselectGameObject,
+                          onLocateClicked = EditorController::locateGameObject,
+                          EditorController::deleteSelectedGameObject,
+                      )
                     }
                     // TODO: Sort into categories using expandedCategories.value
                     gameObject::class.memberProperties
@@ -147,4 +121,48 @@ internal fun GameObjectManagerPanel(
             }
         }
     }
+}
+
+@Composable
+private fun SelectedInstanceHeader(
+    instanceTypeName: String,
+    onUnselectClicked: () -> Unit,
+    onLocateClicked: () -> Unit,
+    onDeleteClicked: () -> Unit,
+) = Column(
+    modifier = Modifier.fillMaxWidth()
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                vertical = 2.dp,
+            )
+            .padding(
+                start = 8.dp,
+                end = 4.dp,
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        EditorTextTitle(
+            modifier = Modifier.weight(1f),
+            text = instanceTypeName,
+        )
+        EditorIcon(
+            drawableResource = Res.drawable.ic_close,
+            contentDescription = "Unselect",
+            onClick = onUnselectClicked,
+        )
+        EditorIcon(
+            drawableResource = Res.drawable.ic_locate,
+            contentDescription = "Locate",
+            onClick = onLocateClicked,
+        )
+        EditorIcon(
+            drawableResource = Res.drawable.ic_delete,
+            contentDescription = "Delete",
+            onClick = onDeleteClicked,
+        )
+    }
+    Divider()
 }

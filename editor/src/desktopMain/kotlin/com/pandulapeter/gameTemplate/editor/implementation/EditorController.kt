@@ -52,6 +52,8 @@ internal object EditorController : CoroutineScope {
     val selectedGameObjectTypeId = _selectedGameObjectType.asStateFlow()
     private val _currentFileName = MutableStateFlow(DEFAULT_MAP_FILE_NAME)
     val currentFileName = _currentFileName.asStateFlow()
+    private val _shouldShowVisibleOnly = MutableStateFlow(false)
+    val shouldShowVisibleOnly = _shouldShowVisibleOnly.asStateFlow()
     private val _expandedCategories = MutableStateFlow(emptySet<String>())
     val expandedCategories = _expandedCategories.asStateFlow()
 
@@ -68,6 +70,10 @@ internal object EditorController : CoroutineScope {
             .launchIn(this)
     }
 
+    fun onShouldShowVisibleOnlyToggled() = _shouldShowVisibleOnly.update { currentValue ->
+        !currentValue
+    }
+
     fun handleLeftClick(screenCoordinates: Offset) {
         val positionInWorld = screenCoordinates.toMapCoordinates()
         findGameObjectOnPosition(positionInWorld).let { gameObjectAtPosition ->
@@ -79,7 +85,7 @@ internal object EditorController : CoroutineScope {
                             Engine.get().serializationManager.deserializeGameObjectStates(
                                 serializedStates = "[{\"typeId\":\"$typeId\",\"state\":\"{\\\"position\\\":{\\\"x\\\":${positionInWorld.x},\\\"y\\\":${positionInWorld.y}}}\"}]"
                             ).firstOrNull()?.restore()?.let { gameObject ->
-                                Engine.get().gameObjectManager.add(gameObject)
+                                Engine.get().instanceManager.add(gameObject)
                             }
                         }
                     } else {
@@ -87,14 +93,7 @@ internal object EditorController : CoroutineScope {
                     }
                 } else {
                     (gameObjectAtPosition as? AvailableInEditor<*>)?.let { availableInEditor ->
-                        currentSelectedGameObject?.isSelectedInEditor = false
-                        _selectedGameObject.update {
-                            if (currentSelectedGameObject == gameObjectAtPosition) {
-                                null
-                            } else {
-                                gameObjectAtPosition.also { availableInEditor.isSelectedInEditor = true }
-                            }
-                        }
+                        selectGameObject(gameObjectAtPosition)
                     }
                 }
             }
@@ -107,18 +106,30 @@ internal object EditorController : CoroutineScope {
                 if (gameObjectAtPosition == _selectedGameObject.value) {
                     deleteSelectedGameObject()
                 } else {
-                    Engine.get().gameObjectManager.remove(gameObjectAtPosition)
+                    Engine.get().instanceManager.remove(gameObjectAtPosition)
                 }
             }
         }
     }
 
-    private fun findGameObjectOnPosition(positionInWorld: WorldCoordinates) = Engine.get().gameObjectManager
+    private fun findGameObjectOnPosition(positionInWorld: WorldCoordinates) = Engine.get().instanceManager
         .findGameObjectsWithBoundsInPosition(positionInWorld)
         .minByOrNull { (it as? Visible)?.drawingOrder ?: 0f }
 
+    fun selectGameObject(gameObject: AvailableInEditor<*>) {
+        val currentSelectedGameObject = selectedGameObject.value.first
+        currentSelectedGameObject?.isSelectedInEditor = false
+        _selectedGameObject.update {
+            if (currentSelectedGameObject == gameObject) {
+                null
+            } else {
+                gameObject.also { it.isSelectedInEditor = true }
+            }
+        }
+    }
+
     fun unselectGameObject() {
-        (_selectedGameObject.value as? AvailableInEditor)?.isSelectedInEditor = false
+        _selectedGameObject.value?.isSelectedInEditor = false
         _selectedGameObject.update { null }
     }
 
@@ -133,7 +144,7 @@ internal object EditorController : CoroutineScope {
     fun deleteSelectedGameObject() {
         _selectedGameObject.value?.let { selectedGameObject ->
             _selectedGameObject.update { null }
-            Engine.get().gameObjectManager.remove(selectedGameObject)
+            Engine.get().instanceManager.remove(selectedGameObject)
         }
     }
 
@@ -144,13 +155,13 @@ internal object EditorController : CoroutineScope {
     fun reset() {
         _currentFileName.update { DEFAULT_MAP_FILE_NAME }
         _selectedGameObject.update { null }
-        Engine.get().gameObjectManager.removeAll()
+        Engine.get().instanceManager.removeAll()
     }
 
     fun loadMap(path: String) {
         launch {
             loadFile(path)?.let { json ->
-                Engine.get().gameObjectManager.deserializeState(json)
+                Engine.get().instanceManager.deserializeState(json)
                 _currentFileName.update { path.split('/').last() }
             }
         }
@@ -160,7 +171,7 @@ internal object EditorController : CoroutineScope {
         launch {
             saveFile(
                 path = path,
-                content = Engine.get().gameObjectManager.serializeState(),
+                content = Engine.get().instanceManager.serializeState(),
             )
         }
     }

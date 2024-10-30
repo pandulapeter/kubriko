@@ -28,7 +28,7 @@ internal class SerializationManagerImpl : SerializationManager {
     override suspend fun deserializeGameObjectStates(
         serializedStates: String,
     ) = json.decodeFromString<List<GameObjectStateWrapper>>(serializedStates).mapNotNull { wrapper ->
-        EngineImpl.gameObjectManager.gameObjectStateRegistry.value[wrapper.typeId]?.invoke(wrapper.serializedState)
+        EngineImpl.instanceManager.typeIdsForEditorRegistry.value[wrapper.typeId]?.invoke(wrapper.serializedState)
     }
 
     @Serializable
