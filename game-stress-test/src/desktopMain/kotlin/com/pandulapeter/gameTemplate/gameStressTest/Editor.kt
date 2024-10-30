@@ -6,5 +6,5 @@ import com.pandulapeter.gameTemplate.gameStressTest.implementation.GameplayContr
 
 fun main() = openEditor(
     defaultMapFilename = GameplayController.MAP_NAME,
-    supportedGameObjectSerializers = GameObjectRegistry.entries
+    typesAvailableInEditor = GameObjectRegistry.typesAvailableInEditor,
 )

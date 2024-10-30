@@ -8,7 +8,7 @@ import kotlin.reflect.KClass
 object GameObjectRegistry {
     private val json by lazy { Json { ignoreUnknownKeys = true } }
 
-    val entries = arrayOf<Triple<String, KClass<*>, (String) -> AvailableInEditor.State<*>>>(
+    val typesAvailableInEditor = arrayOf<Triple<String, KClass<*>, (String) -> AvailableInEditor.State<*>>>(
         Triple(Box.TYPE_ID, Box::class) { serializedState -> json.decodeFromString<Box.BoxState>(serializedState) },
     )
 }

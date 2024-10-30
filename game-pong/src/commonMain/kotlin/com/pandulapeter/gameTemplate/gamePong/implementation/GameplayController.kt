@@ -44,20 +44,11 @@ internal class GameplayController(
         engine.inputManager.onKeyReleased
             .onEach(::handleKeyReleased)
             .launchIn(this)
-        start()
-    }
-
-    private fun start() {
-        launch {
-            engine.instanceManager.register(
-                entries = GameObjectRegistry.entries,
-            )
-            loadMap(MAP_NAME)
-        }
+        loadMap(MAP_NAME)
     }
 
     @OptIn(ExperimentalResourceApi::class)
-    private suspend fun loadMap(mapName: String) {
+    private fun loadMap(mapName: String) = launch {
         try {
             engine.instanceManager.deserializeState(Res.readBytes("files/maps/$mapName.json").decodeToString())
         } catch (_: MissingResourceException) {

@@ -22,8 +22,10 @@ import org.jetbrains.compose.resources.MissingResourceException
 
 internal object GameplayController : CoroutineScope {
 
+    const val MAP_NAME = "map_demo"
+
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
-    val engine = Engine.newInstance()
+    val engine = Engine.newInstance(typesAvailableInEditor = GameObjectRegistry.typesAvailableInEditor)
     val metadata = combine(
         engine.metadataManager.fps,
         engine.metadataManager.totalGameObjectCount,
@@ -50,20 +52,11 @@ internal object GameplayController : CoroutineScope {
         engine.inputManager.onKeyReleased
             .onEach(::handleKeyReleased)
             .launchIn(this)
-        start()
-    }
-
-    private fun start() {
-        launch {
-            engine.instanceManager.register(
-                entries = GameObjectRegistry.entries,
-            )
-            loadMap(MAP_NAME)
-        }
+        loadMap(MAP_NAME)
     }
 
     @OptIn(ExperimentalResourceApi::class)
-    private suspend fun loadMap(mapName: String) {
+    private fun loadMap(mapName: String) = launch {
         try {
             engine.instanceManager.deserializeState(Res.readBytes("files/maps/$mapName.json").decodeToString())
         } catch (_: MissingResourceException) {
@@ -87,6 +80,4 @@ internal object GameplayController : CoroutineScope {
             Key.Escape, Key.Back, Key.Backspace -> engine.stateManager.updateIsRunning(!engine.stateManager.isRunning.value)
         }
     }
-
-    const val MAP_NAME = "map_demo"
 }

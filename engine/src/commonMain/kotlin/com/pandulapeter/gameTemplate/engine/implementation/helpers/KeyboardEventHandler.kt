@@ -10,7 +10,6 @@ internal interface KeyboardEventHandler {
     fun stopListening()
 }
 
-// TODO: iOS
 @Composable
 internal expect fun rememberKeyboardEventHandler(
     onKeyPressed: (Key) -> Unit,

@@ -20,11 +20,10 @@ import kotlin.reflect.KClass
 
 fun openEditor(
     defaultMapFilename: String? = null,
-    vararg supportedGameObjectSerializers: Triple<String, KClass<*>, (String) -> AvailableInEditor.State<*>>
+    vararg typesAvailableInEditor: Triple<String, KClass<*>, (String) -> AvailableInEditor.State<*>>
 ) = application {
-    val editorController = remember { EditorController(Engine.newInstance()) }
+    val editorController = remember { EditorController(Engine.newInstance(typesAvailableInEditor = typesAvailableInEditor)) }
     LaunchedEffect(Unit) {
-        editorController.engine.instanceManager.register(entries = supportedGameObjectSerializers)
         defaultMapFilename?.let { editorController.loadMap("${EditorController.MAPS_DIRECTORY}/$it.json") }
     }
     Window(

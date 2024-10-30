@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.EngineCanvas
+import com.pandulapeter.gameTemplate.gamePong.implementation.GameObjectRegistry
 import com.pandulapeter.gameTemplate.gamePong.implementation.GameplayController
 import com.pandulapeter.gameTemplate.gamePong.implementation.UserInterface
 
@@ -15,7 +16,7 @@ import com.pandulapeter.gameTemplate.gamePong.implementation.UserInterface
 fun GamePong(
     modifier: Modifier = Modifier,
 ) {
-    val engine = remember { Engine.newInstance() }
+    val engine = remember { Engine.newInstance(typesAvailableInEditor = GameObjectRegistry.typesAvailableInEditor) }
     val gameplayController = remember { GameplayController(engine) }
     EngineCanvas(
         modifier = Modifier.background(Color.White),

@@ -20,14 +20,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlin.reflect.KClass
 
-internal class InstanceManagerImpl(private val engineImpl: EngineImpl) : InstanceManager {
+internal class InstanceManagerImpl(
+    private val engineImpl: EngineImpl,
+    vararg typesAvailableInEditor: Triple<String, KClass<*>, (String) -> AvailableInEditor.State<*>>
+) : InstanceManager {
 
-    private val _typeIdsForEditorRegistry = MutableStateFlow(mapOf<String, (String) -> AvailableInEditor.State<*>>())
-    val typeIdsForEditorRegistry = _typeIdsForEditorRegistry.asStateFlow()
-    private var gameObjectTypeIds = emptyMap<KClass<*>, String>()
-    override val registeredTypeIdsForEditor = _typeIdsForEditorRegistry
-        .map { it.keys.toList() }
-        .stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
+    val typeIdsForEditorRegistry = typesAvailableInEditor.associate { (typeId, _, deserializer) -> typeId to deserializer }
+    private val typeResolvers = typesAvailableInEditor.associate { (typeId, type, _) -> type to typeId }
+    override val typeIdsForEditor = typeIdsForEditorRegistry.keys
     private val _gameObjects = MutableStateFlow(emptyList<Any>())
     override val allInstances = _gameObjects.asStateFlow()
     val dynamicGameObjects = _gameObjects.map { gameObjects -> gameObjects.filterIsInstance<Dynamic>() }.stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
@@ -50,16 +50,7 @@ internal class InstanceManagerImpl(private val engineImpl: EngineImpl) : Instanc
             .sortedByDescending { it.drawingOrder }
     }.stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
 
-    override fun resolveTypeId(type: KClass<*>) = gameObjectTypeIds[type].orEmpty()
-
-    override fun register(vararg entries: Triple<String, KClass<*>, (String) -> AvailableInEditor.State<*>>) = _typeIdsForEditorRegistry.update { currentValue ->
-        gameObjectTypeIds = entries.associate { (typeId, type, _) -> type to typeId }
-        currentValue.toMutableMap().also { mutableMap ->
-            entries.forEach { (typeId, _, deserializer) ->
-                mutableMap[typeId] = deserializer
-            }
-        }.toMap()
-    }
+    override fun resolveTypeId(type: KClass<*>) = typeResolvers[type].orEmpty()
 
     override fun add(vararg gameObjects: Any) = _gameObjects.update { currentValue ->
         val uniqueGameObjects = gameObjects.filterIsInstance<Unique>()

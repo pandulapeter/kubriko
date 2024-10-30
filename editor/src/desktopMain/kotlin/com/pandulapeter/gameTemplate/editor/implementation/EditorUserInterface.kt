@@ -78,7 +78,7 @@ internal fun EditorUserInterface(
                 engine = editorController.engine,
             )
             InstanceManagerColumn(
-                registeredTypeIds = editorController.engine.instanceManager.registeredTypeIdsForEditor.collectAsState().value,
+                registeredTypeIds = editorController.engine.instanceManager.typeIdsForEditor.toList(),
                 selectedTypeId = editorController.selectedTypeId.collectAsState().value,
                 selectedUpdatableInstance = editorController.selectedUpdatableInstance.collectAsState().value,
                 selectTypeId = editorController::selectInstance,
