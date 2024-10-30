@@ -2,8 +2,7 @@ package com.pandulapeter.gameTemplate.gamePong.implementation
 
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.gameTemplate.engine.Engine
-import com.pandulapeter.gameTemplate.gamePong.GameObjectRegistry
-import com.pandulapeter.gameTemplate.gamePong.models.Metadata
+import com.pandulapeter.gameTemplate.gamePong.implementation.models.Metadata
 import game.game_pong.generated.resources.Res
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,16 +17,16 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.MissingResourceException
 
-internal object GameplayController : CoroutineScope {
-
-    const val MAP_NAME = "map_demo"
+internal class GameplayController(
+    private val engine: Engine,
+) : CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
     val metadata = combine(
-        Engine.get().metadataManager.fps,
-        Engine.get().metadataManager.totalGameObjectCount,
-        Engine.get().metadataManager.visibleGameObjectCount,
-        Engine.get().metadataManager.runtimeInMilliseconds,
+        engine.metadataManager.fps,
+        engine.metadataManager.totalGameObjectCount,
+        engine.metadataManager.visibleGameObjectCount,
+        engine.metadataManager.runtimeInMilliseconds,
     ) { fps, totalGameObjectCount, visibleGameObjectCount, runtimeInMilliseconds ->
         Metadata(
             fps = fps,
@@ -38,19 +37,19 @@ internal object GameplayController : CoroutineScope {
     }.stateIn(this, SharingStarted.Eagerly, Metadata())
 
     init {
-        Engine.get().stateManager.isFocused
+        engine.stateManager.isFocused
             .filterNot { it }
-            .onEach { Engine.get().stateManager.updateIsRunning(false) }
+            .onEach { engine.stateManager.updateIsRunning(false) }
             .launchIn(this)
-        Engine.get().inputManager.onKeyReleased
-            .onEach(GameplayController::handleKeyReleased)
+        engine.inputManager.onKeyReleased
+            .onEach(::handleKeyReleased)
             .launchIn(this)
         start()
     }
 
     private fun start() {
         launch {
-            Engine.get().instanceManager.register(
+            engine.instanceManager.register(
                 entries = GameObjectRegistry.entries,
             )
             loadMap(MAP_NAME)
@@ -60,14 +59,18 @@ internal object GameplayController : CoroutineScope {
     @OptIn(ExperimentalResourceApi::class)
     private suspend fun loadMap(mapName: String) {
         try {
-            Engine.get().instanceManager.deserializeState(Res.readBytes("files/maps/$mapName.json").decodeToString())
+            engine.instanceManager.deserializeState(Res.readBytes("files/maps/$mapName.json").decodeToString())
         } catch (_: MissingResourceException) {
         }
     }
 
     private fun handleKeyReleased(key: Key) {
         when (key) {
-            Key.Escape, Key.Back, Key.Backspace -> Engine.get().stateManager.updateIsRunning(!Engine.get().stateManager.isRunning.value)
+            Key.Escape, Key.Back, Key.Backspace -> engine.stateManager.updateIsRunning(!engine.stateManager.isRunning.value)
         }
+    }
+
+    companion object {
+        const val MAP_NAME = "map_demo"
     }
 }

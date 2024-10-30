@@ -1,6 +1,5 @@
 package com.pandulapeter.gameTemplate.engine.implementation.managers
 
-import com.pandulapeter.gameTemplate.engine.gameObject.EditorState
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Unique
@@ -21,24 +20,24 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlin.reflect.KClass
 
-internal class InstanceManagerImpl : InstanceManager {
+internal class InstanceManagerImpl(private val engineImpl: EngineImpl) : InstanceManager {
 
-    private val _typeIdsForEditorRegistry = MutableStateFlow(mapOf<String, (String) -> EditorState<*>>())
+    private val _typeIdsForEditorRegistry = MutableStateFlow(mapOf<String, (String) -> AvailableInEditor.State<*>>())
     val typeIdsForEditorRegistry = _typeIdsForEditorRegistry.asStateFlow()
     private var gameObjectTypeIds = emptyMap<KClass<*>, String>()
     override val registeredTypeIdsForEditor = _typeIdsForEditorRegistry
         .map { it.keys.toList() }
-        .stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
+        .stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
     private val _gameObjects = MutableStateFlow(emptyList<Any>())
-    override val gameObjects = _gameObjects.asStateFlow()
-    val dynamicGameObjects = _gameObjects.map { gameObjects -> gameObjects.filterIsInstance<Dynamic>() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
-    private val visibleGameObjects = _gameObjects.map { gameObjects -> gameObjects.filterIsInstance<Visible>() }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
-    override val visibleGameObjectsWithinViewport = combine(
-        EngineImpl.metadataManager.runtimeInMilliseconds.map { it / 100 }.distinctUntilChanged(),
+    override val allInstances = _gameObjects.asStateFlow()
+    val dynamicGameObjects = _gameObjects.map { gameObjects -> gameObjects.filterIsInstance<Dynamic>() }.stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
+    private val visibleGameObjects = _gameObjects.map { gameObjects -> gameObjects.filterIsInstance<Visible>() }.stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
+    override val visibleInstancesWithinViewport = combine(
+        engineImpl.metadataManager.runtimeInMilliseconds.map { it / 100 }.distinctUntilChanged(),
         visibleGameObjects,
-        EngineImpl.viewportManager.size,
-        EngineImpl.viewportManager.center,
-        EngineImpl.viewportManager.scaleFactor,
+        engineImpl.viewportManager.size,
+        engineImpl.viewportManager.center,
+        engineImpl.viewportManager.scaleFactor,
     ) { _, allVisibleGameObjects, viewportSize, viewportCenter, viewportScaleFactor ->
         allVisibleGameObjects
             .filter {
@@ -49,11 +48,11 @@ internal class InstanceManagerImpl : InstanceManager {
                 )
             }
             .sortedByDescending { it.drawingOrder }
-    }.stateIn(EngineImpl, SharingStarted.Eagerly, emptyList())
+    }.stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
 
-    override fun getTypeId(type: KClass<*>) = gameObjectTypeIds[type].orEmpty()
+    override fun resolveTypeId(type: KClass<*>) = gameObjectTypeIds[type].orEmpty()
 
-    override fun register(vararg entries: Triple<String, KClass<*>, (String) -> EditorState<*>>) = _typeIdsForEditorRegistry.update { currentValue ->
+    override fun register(vararg entries: Triple<String, KClass<*>, (String) -> AvailableInEditor.State<*>>) = _typeIdsForEditorRegistry.update { currentValue ->
         gameObjectTypeIds = entries.associate { (typeId, type, _) -> type to typeId }
         currentValue.toMutableMap().also { mutableMap ->
             entries.forEach { (typeId, _, deserializer) ->
@@ -76,11 +75,11 @@ internal class InstanceManagerImpl : InstanceManager {
     }
 
     override suspend fun serializeState() =
-        EngineImpl.serializationManager.serializeGameObjectStates(gameObjects.value.filterIsInstance<AvailableInEditor<*>>().map { it.saveState() })
+        engineImpl.serializationManager.serializeGameObjectStates(allInstances.value.filterIsInstance<AvailableInEditor<*>>().map { it.saveState() })
 
     override suspend fun deserializeState(json: String) {
         removeAll()
-        add(gameObjects = EngineImpl.serializationManager.deserializeGameObjectStates(json).mapNotNull { it.restore() }.toTypedArray())
+        add(gameObjects = engineImpl.serializationManager.deserializeGameObjectStates(json).mapNotNull { it.restore() }.toTypedArray())
     }
 
     override fun remove(vararg gameObjects: Any) = _gameObjects.update { currentValue ->
@@ -89,7 +88,7 @@ internal class InstanceManagerImpl : InstanceManager {
 
     override fun removeAll() = _gameObjects.update { emptyList() }
 
-    override fun findGameObjectsWithBoundsInPosition(position: WorldCoordinates) = visibleGameObjectsWithinViewport.value
+    override fun findGameObjectsWithBoundsInPosition(position: WorldCoordinates) = visibleInstancesWithinViewport.value
         .filter { it.occupiesPosition(position) }
 
     override fun findGameObjectsWithPivotsAroundPosition(position: WorldCoordinates, range: Float) = visibleGameObjects.value

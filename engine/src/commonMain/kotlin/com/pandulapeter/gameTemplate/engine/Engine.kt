@@ -1,8 +1,8 @@
 package com.pandulapeter.gameTemplate.engine
 
 import com.pandulapeter.gameTemplate.engine.implementation.EngineImpl
-import com.pandulapeter.gameTemplate.engine.managers.InstanceManager
 import com.pandulapeter.gameTemplate.engine.managers.InputManager
+import com.pandulapeter.gameTemplate.engine.managers.InstanceManager
 import com.pandulapeter.gameTemplate.engine.managers.MetadataManager
 import com.pandulapeter.gameTemplate.engine.managers.SerializationManager
 import com.pandulapeter.gameTemplate.engine.managers.StateManager
@@ -17,6 +17,6 @@ interface Engine {
     val viewportManager: ViewportManager
 
     companion object {
-        fun get(): Engine = EngineImpl
+        fun newInstance(): Engine = EngineImpl()
     }
 }

@@ -4,15 +4,15 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
-import com.pandulapeter.gameTemplate.engine.Engine
-import com.pandulapeter.gameTemplate.gameStressTest.GameplayController
+import com.pandulapeter.gameTemplate.engine.managers.StateManager
+import com.pandulapeter.gameTemplate.engine.managers.ViewportManager
 
 @OptIn(ExperimentalComposeUiApi::class)
-internal actual fun Modifier.handleMouseZoom(): Modifier = this
-    .onPointerEvent(PointerEventType.Scroll) {
-        if (Engine.get().stateManager.isRunning.value) {
-            Engine.get().viewportManager.multiplyScaleFactor(
-                scaleFactor = 1f - it.changes.first().scrollDelta.y * 0.05f
-            )
-        }
+internal actual fun Modifier.handleMouseZoom(
+    stateManager: StateManager,
+    viewportManager: ViewportManager,
+): Modifier = onPointerEvent(PointerEventType.Scroll) {
+    if (stateManager.isRunning.value) {
+        viewportManager.multiplyScaleFactor(1f - it.changes.first().scrollDelta.y * 0.05f)
     }
+}

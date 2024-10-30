@@ -4,9 +4,7 @@ import androidx.compose.ui.input.key.Key
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.KeyboardZoomState
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.zoomState
-import com.pandulapeter.gameTemplate.gameStressTest.GameObjectRegistry
-import com.pandulapeter.gameTemplate.gameStressTest.GameplayController
-import com.pandulapeter.gameTemplate.gameStressTest.models.Metadata
+import com.pandulapeter.gameTemplate.gameStressTest.implementation.models.Metadata
 import game.game_stress_test.generated.resources.Res
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,16 +20,15 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.MissingResourceException
 
-internal object GameplayControllerImpl : GameplayController, CoroutineScope {
-
-    const val MAP_NAME = "map_demo"
+internal object GameplayController : CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
-    override val metadata = combine(
-        Engine.get().metadataManager.fps,
-        Engine.get().metadataManager.totalGameObjectCount,
-        Engine.get().metadataManager.visibleGameObjectCount,
-        Engine.get().metadataManager.runtimeInMilliseconds,
+    val engine = Engine.newInstance()
+    val metadata = combine(
+        engine.metadataManager.fps,
+        engine.metadataManager.totalGameObjectCount,
+        engine.metadataManager.visibleGameObjectCount,
+        engine.metadataManager.runtimeInMilliseconds,
     ) { fps, totalGameObjectCount, visibleGameObjectCount, runtimeInMilliseconds ->
         Metadata(
             fps = fps,
@@ -42,23 +39,23 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
     }.stateIn(this, SharingStarted.Eagerly, Metadata())
 
     init {
-        Engine.get().stateManager.isFocused
+        engine.stateManager.isFocused
             .filterNot { it }
-            .onEach { Engine.get().stateManager.updateIsRunning(false) }
+            .onEach { engine.stateManager.updateIsRunning(false) }
             .launchIn(this)
-        Engine.get().inputManager.activeKeys
+        engine.inputManager.activeKeys
             .filter { it.isNotEmpty() }
-            .onEach(GameplayControllerImpl::handleKeys)
+            .onEach(::handleKeys)
             .launchIn(this)
-        Engine.get().inputManager.onKeyReleased
-            .onEach(GameplayControllerImpl::handleKeyReleased)
+        engine.inputManager.onKeyReleased
+            .onEach(::handleKeyReleased)
             .launchIn(this)
         start()
     }
 
     private fun start() {
         launch {
-            Engine.get().instanceManager.register(
+            engine.instanceManager.register(
                 entries = GameObjectRegistry.entries,
             )
             loadMap(MAP_NAME)
@@ -68,14 +65,14 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
     @OptIn(ExperimentalResourceApi::class)
     private suspend fun loadMap(mapName: String) {
         try {
-            Engine.get().instanceManager.deserializeState(Res.readBytes("files/maps/$mapName.json").decodeToString())
+            engine.instanceManager.deserializeState(Res.readBytes("files/maps/$mapName.json").decodeToString())
         } catch (_: MissingResourceException) {
         }
     }
 
     private fun handleKeys(keys: Set<Key>) {
-        if (Engine.get().stateManager.isRunning.value) {
-            Engine.get().viewportManager.multiplyScaleFactor(
+        if (engine.stateManager.isRunning.value) {
+            engine.viewportManager.multiplyScaleFactor(
                 when (keys.zoomState) {
                     KeyboardZoomState.NONE -> 1f
                     KeyboardZoomState.ZOOM_IN -> 1.02f
@@ -87,7 +84,9 @@ internal object GameplayControllerImpl : GameplayController, CoroutineScope {
 
     private fun handleKeyReleased(key: Key) {
         when (key) {
-            Key.Escape, Key.Back, Key.Backspace -> Engine.get().stateManager.updateIsRunning(!Engine.get().stateManager.isRunning.value)
+            Key.Escape, Key.Back, Key.Backspace -> engine.stateManager.updateIsRunning(!engine.stateManager.isRunning.value)
         }
     }
+
+    const val MAP_NAME = "map_demo"
 }

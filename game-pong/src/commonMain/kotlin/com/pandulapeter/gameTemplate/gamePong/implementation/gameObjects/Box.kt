@@ -1,11 +1,9 @@
-package com.pandulapeter.gameTemplate.gamePong.gameObjects
+package com.pandulapeter.gameTemplate.gamePong.implementation.gameObjects
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import com.pandulapeter.gameTemplate.engine.gameObject.EditorState
 import com.pandulapeter.gameTemplate.engine.gameObject.editor.Editable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
-import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableColor
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableWorldCoordinates
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableWorldSize
@@ -16,15 +14,15 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class Box private constructor(state: BoxState) : AvailableInEditor<Box>, Visible {
+class Box private constructor(state: BoxState) : AvailableInEditor<Box> {
 
-    @set:Editable(typeId = "boundingBox")
+    @set:Editable(name = "boundingBox")
     override var boundingBox: WorldSize = state.boundingBox
 
-    @set:Editable(typeId = "position")
+    @set:Editable(name = "position")
     override var position: WorldCoordinates = state.position
 
-    @set:Editable(typeId = "boxColor")
+    @set:Editable(name = "boxColor")
     var boxColor: Color = state.boxColor
 
     override var isSelectedInEditor = false
@@ -48,7 +46,7 @@ class Box private constructor(state: BoxState) : AvailableInEditor<Box>, Visible
         @SerialName("boundingBox") val boundingBox: SerializableWorldSize = WorldSize(100f, 100f),
         @SerialName("position") val position: SerializableWorldCoordinates = WorldCoordinates.Zero,
         @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,
-    ) : EditorState<Box> {
+    ) : AvailableInEditor.State<Box> {
 
         override val typeId = TYPE_ID
 

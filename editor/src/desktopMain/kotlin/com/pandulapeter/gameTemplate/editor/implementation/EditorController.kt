@@ -9,7 +9,7 @@ import com.pandulapeter.gameTemplate.editor.implementation.helpers.saveFile
 import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
-import com.pandulapeter.gameTemplate.engine.implementation.extensions.toMapCoordinates
+import com.pandulapeter.gameTemplate.engine.implementation.extensions.toWorldCoordinates
 import com.pandulapeter.gameTemplate.engine.types.WorldCoordinates
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,53 +20,62 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-internal object EditorController : CoroutineScope {
+internal class EditorController(val engine: Engine) : CoroutineScope {
 
-    const val MAPS_DIRECTORY = "./src/commonMain/composeResources/files/maps"
-    private const val DEFAULT_MAP_FILE_NAME = "map_untitled.json"
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
-    val totalGameObjectCount = Engine.get().metadataManager.totalGameObjectCount
+    val allInstances = engine.instanceManager.allInstances
+        .map { it.filterIsInstance<AvailableInEditor<*>>() }
+        .stateIn(this, SharingStarted.Eagerly, emptyList())
+    val visibleInstancesWithinViewport = engine.instanceManager.visibleInstancesWithinViewport
+        .map { it.filterIsInstance<AvailableInEditor<*>>() }
+        .stateIn(this, SharingStarted.Eagerly, emptyList())
+    val totalGameObjectCount = engine.metadataManager.totalGameObjectCount
     private val mouseScreenCoordinates = MutableStateFlow(Offset.Zero)
     val mouseWorldCoordinates = combine(
         mouseScreenCoordinates,
-        Engine.get().viewportManager.center,
-        Engine.get().viewportManager.size,
-        Engine.get().viewportManager.scaleFactor,
-    ) { mouseScreenCoordinates, _, _, _ ->
-        mouseScreenCoordinates.toMapCoordinates()
+        engine.viewportManager.center,
+        engine.viewportManager.size,
+        engine.viewportManager.scaleFactor,
+    ) { mouseScreenCoordinates, viewportCenter, viewportSize, viewportScaleFactor ->
+        mouseScreenCoordinates.toWorldCoordinates(
+            viewportCenter = viewportCenter,
+            viewportSize = viewportSize,
+            viewportScaleFactor = viewportScaleFactor,
+        )
     }.stateIn(this, SharingStarted.Eagerly, WorldCoordinates.Zero)
-    private val triggerGameObjectUpdate = MutableStateFlow(false)
-    private val _selectedGameObject = MutableStateFlow<AvailableInEditor<*>?>(null)
-    val selectedGameObject = combine(
-        _selectedGameObject,
-        triggerGameObjectUpdate,
+    private val instanceUpdateTrigger = MutableStateFlow(false)
+    private val _selectedInstance = MutableStateFlow<AvailableInEditor<*>?>(null)
+    val selectedUpdatableInstance = combine(
+        _selectedInstance,
+        instanceUpdateTrigger,
     ) { selectedGameObject, triggerGameObjectUpdate ->
         selectedGameObject to triggerGameObjectUpdate
     }.stateIn(this, SharingStarted.Eagerly, null to false)
-    private val _selectedGameObjectType = MutableStateFlow<String?>(null)
-    val selectedGameObjectTypeId = _selectedGameObjectType.asStateFlow()
+    private val _selectedTypeId = MutableStateFlow<String?>(null)
+    val selectedTypeId = _selectedTypeId.asStateFlow()
     private val _currentFileName = MutableStateFlow(DEFAULT_MAP_FILE_NAME)
     val currentFileName = _currentFileName.asStateFlow()
     private val _shouldShowVisibleOnly = MutableStateFlow(false)
     val shouldShowVisibleOnly = _shouldShowVisibleOnly.asStateFlow()
-    private val _expandedCategories = MutableStateFlow(emptySet<String>())
-    val expandedCategories = _expandedCategories.asStateFlow()
 
     init {
-        Engine.get().inputManager.activeKeys
+        engine.inputManager.activeKeys
             .filter { it.isNotEmpty() }
-            .onEach(::handleKeys)
+            .onEach(engine.viewportManager::handleKeys)
             .launchIn(this)
-        Engine.get().inputManager.onKeyReleased
-            .onEach(::handleKeyReleased)
-            .launchIn(this)
-        _selectedGameObject
-            .onEach { _expandedCategories.update { emptySet() } }
+        engine.inputManager.onKeyReleased
+            .onEach { key ->
+                handleKeyReleased(
+                    key = key,
+                    onNavigateBackRequested = ::navigateBack,
+                )
+            }
             .launchIn(this)
     }
 
@@ -74,52 +83,56 @@ internal object EditorController : CoroutineScope {
         !currentValue
     }
 
-    fun handleLeftClick(screenCoordinates: Offset) {
-        val positionInWorld = screenCoordinates.toMapCoordinates()
-        findGameObjectOnPosition(positionInWorld).let { gameObjectAtPosition ->
-            selectedGameObject.value.first.let { currentSelectedGameObject ->
+    fun getSelectedInstance() = selectedUpdatableInstance.value.first
+
+    fun getMouseWorldCoordinates() = mouseWorldCoordinates.value
+
+    fun onLeftClick(screenCoordinates: Offset) {
+        val positionInWorld = screenCoordinates.toWorldCoordinates(engine.viewportManager)
+        findInstanceOnPosition(positionInWorld).let { gameObjectAtPosition ->
+            selectedUpdatableInstance.value.first.let { currentSelectedGameObject ->
                 if (gameObjectAtPosition == null) {
                     if (currentSelectedGameObject == null) {
                         launch {
-                            val typeId = selectedGameObjectTypeId.value
-                            Engine.get().serializationManager.deserializeGameObjectStates(
+                            val typeId = selectedTypeId.value
+                            engine.serializationManager.deserializeGameObjectStates(
                                 serializedStates = "[{\"typeId\":\"$typeId\",\"state\":\"{\\\"position\\\":{\\\"x\\\":${positionInWorld.x},\\\"y\\\":${positionInWorld.y}}}\"}]"
                             ).firstOrNull()?.restore()?.let { gameObject ->
-                                Engine.get().instanceManager.add(gameObject)
+                                engine.instanceManager.add(gameObject)
                             }
                         }
                     } else {
-                        unselectGameObject()
+                        deselectSelectedInstance()
                     }
                 } else {
                     (gameObjectAtPosition as? AvailableInEditor<*>)?.let { availableInEditor ->
-                        selectGameObject(gameObjectAtPosition)
+                        selectInstance(gameObjectAtPosition)
                     }
                 }
             }
         }
     }
 
-    fun handleRightClick(screenCoordinates: Offset) {
-        findGameObjectOnPosition(screenCoordinates.toMapCoordinates()).let { gameObjectAtPosition ->
+    fun onRightClick(screenCoordinates: Offset) {
+        findInstanceOnPosition(screenCoordinates.toWorldCoordinates(engine.viewportManager)).let { gameObjectAtPosition ->
             if (gameObjectAtPosition != null) {
-                if (gameObjectAtPosition == _selectedGameObject.value) {
-                    deleteSelectedGameObject()
+                if (gameObjectAtPosition == _selectedInstance.value) {
+                    deleteSelectedInstance()
                 } else {
-                    Engine.get().instanceManager.remove(gameObjectAtPosition)
+                    engine.instanceManager.remove(gameObjectAtPosition)
                 }
             }
         }
     }
 
-    private fun findGameObjectOnPosition(positionInWorld: WorldCoordinates) = Engine.get().instanceManager
+    private fun findInstanceOnPosition(positionInWorld: WorldCoordinates) = engine.instanceManager
         .findGameObjectsWithBoundsInPosition(positionInWorld)
         .minByOrNull { (it as? Visible)?.drawingOrder ?: 0f }
 
-    fun selectGameObject(gameObject: AvailableInEditor<*>) {
-        val currentSelectedGameObject = selectedGameObject.value.first
+    fun selectInstance(gameObject: AvailableInEditor<*>) {
+        val currentSelectedGameObject = selectedUpdatableInstance.value.first
         currentSelectedGameObject?.isSelectedInEditor = false
-        _selectedGameObject.update {
+        _selectedInstance.update {
             if (currentSelectedGameObject == gameObject) {
                 null
             } else {
@@ -128,40 +141,40 @@ internal object EditorController : CoroutineScope {
         }
     }
 
-    fun unselectGameObject() {
-        _selectedGameObject.value?.isSelectedInEditor = false
-        _selectedGameObject.update { null }
-    }
-
-    fun handleMouseMove(screenCoordinates: Offset) = mouseScreenCoordinates.update { screenCoordinates }
-
-    fun locateGameObject() {
-        (_selectedGameObject.value as? Visible)?.let { visibleTrait ->
-            Engine.get().viewportManager.setCenter(visibleTrait.position)
+    fun deleteSelectedInstance() {
+        _selectedInstance.value?.let { selectedGameObject ->
+            _selectedInstance.update { null }
+            engine.instanceManager.remove(selectedGameObject)
         }
     }
 
-    fun deleteSelectedGameObject() {
-        _selectedGameObject.value?.let { selectedGameObject ->
-            _selectedGameObject.update { null }
-            Engine.get().instanceManager.remove(selectedGameObject)
+    fun onMouseMove(screenCoordinates: Offset) = mouseScreenCoordinates.update { screenCoordinates }
+
+    fun locateSelectedInstance() {
+        (_selectedInstance.value as? Visible)?.let { visibleTrait ->
+            engine.viewportManager.setCenter(visibleTrait.position)
         }
     }
 
-    fun notifyGameObjectUpdate() = triggerGameObjectUpdate.update { !it }
+    fun notifySelectedInstanceUpdate() = instanceUpdateTrigger.update { !it }
 
-    fun selectGameObjectType(gameObjectTypeId: String) = _selectedGameObjectType.update { gameObjectTypeId }
+    fun selectInstance(typeId: String) = _selectedTypeId.update { typeId }
+
+    fun deselectSelectedInstance() {
+        _selectedInstance.value?.isSelectedInEditor = false
+        _selectedInstance.update { null }
+    }
 
     fun reset() {
         _currentFileName.update { DEFAULT_MAP_FILE_NAME }
-        _selectedGameObject.update { null }
-        Engine.get().instanceManager.removeAll()
+        _selectedInstance.update { null }
+        engine.instanceManager.removeAll()
     }
 
     fun loadMap(path: String) {
         launch {
             loadFile(path)?.let { json ->
-                Engine.get().instanceManager.deserializeState(json)
+                engine.instanceManager.deserializeState(json)
                 _currentFileName.update { path.split('/').last() }
             }
         }
@@ -171,16 +184,21 @@ internal object EditorController : CoroutineScope {
         launch {
             saveFile(
                 path = path,
-                content = Engine.get().instanceManager.serializeState(),
+                content = engine.instanceManager.serializeState(),
             )
         }
     }
 
-    fun navigateBack() {
-        if (selectedGameObject.value.first == null) {
+    private fun navigateBack() {
+        if (selectedUpdatableInstance.value.first == null) {
             exitApp()
         } else {
-            unselectGameObject()
+            deselectSelectedInstance()
         }
+    }
+
+    companion object {
+        const val MAPS_DIRECTORY = "./src/commonMain/composeResources/files/maps"
+        private const val DEFAULT_MAP_FILE_NAME = "map_untitled.json"
     }
 }

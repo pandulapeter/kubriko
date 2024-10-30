@@ -1,4 +1,4 @@
-package com.pandulapeter.gameTemplate.gamePong
+package com.pandulapeter.gameTemplate.gameStressTest.implementation
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
@@ -12,45 +12,44 @@ import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.gameTemplate.engine.Engine
-import com.pandulapeter.gameTemplate.gamePong.implementation.GameplayController
-import com.pandulapeter.gameTemplate.gamePong.implementation.helpers.platformName
-import com.pandulapeter.gameTemplate.gamePong.models.Metadata
-import game.game_pong.generated.resources.Res
-import game.game_pong.generated.resources.logo
+import com.pandulapeter.gameTemplate.gameStressTest.implementation.helpers.platformName
+import com.pandulapeter.gameTemplate.gameStressTest.implementation.models.Metadata
+import game.game_stress_test.generated.resources.Res
+import game.game_stress_test.generated.resources.logo
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun UserInterface(
     modifier: Modifier = Modifier,
+    metadata: Metadata,
+    isRunning: Boolean,
+    updateIsRunning: (Boolean) -> Unit,
 ) = MaterialTheme {
     Column(
         modifier = modifier.fillMaxSize().padding(vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        val isRunning = Engine.get().stateManager.isRunning.collectAsState()
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             DebugInfo(
-                metadata = GameplayController.metadata.collectAsState().value,
+                metadata = metadata,
             )
             Button(
-                onClick = { Engine.get().stateManager.updateIsRunning(!isRunning.value) },
+                onClick = { updateIsRunning(!isRunning) },
             ) {
                 Text(
-                    text = if (isRunning.value) "Pause" else "Resume"
+                    text = if (isRunning) "Pause" else "Play"
                 )
             }
         }
         AnimatedVisibility(
-            visible = !isRunning.value,
+            visible = !isRunning,
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),

@@ -1,4 +1,4 @@
-package com.pandulapeter.gameTemplate.gameStressTest.models
+package com.pandulapeter.gameTemplate.gamePong.implementation.models
 
 data class Metadata(
     val fps: Float = 0f,

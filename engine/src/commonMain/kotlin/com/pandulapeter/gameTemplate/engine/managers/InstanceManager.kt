@@ -1,19 +1,22 @@
 package com.pandulapeter.gameTemplate.engine.managers
 
-import com.pandulapeter.gameTemplate.engine.gameObject.EditorState
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.types.WorldCoordinates
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.reflect.KClass
 
 interface InstanceManager {
 
+    // TODO: Should be moved to constructor
     val registeredTypeIdsForEditor: StateFlow<List<String>>
-    val gameObjects: StateFlow<List<Any>>
-    val visibleGameObjectsWithinViewport: StateFlow<List<Any>>
+    val allInstances: StateFlow<List<Any>>
+    val visibleInstancesWithinViewport: StateFlow<List<Visible>>
 
-    fun getTypeId(type: KClass<*>): String
+    fun resolveTypeId(type: KClass<*>): String
 
-    fun register(vararg entries: Triple<String, KClass<*>, (String) -> EditorState<*>>)
+    // TODO: Should be moved to constructor
+    fun register(vararg entries: Triple<String, KClass<*>, (String) -> AvailableInEditor.State<*>>)
 
     fun add(vararg gameObjects: Any)
 

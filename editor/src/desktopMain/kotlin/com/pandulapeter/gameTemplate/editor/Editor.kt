@@ -1,6 +1,7 @@
 package com.pandulapeter.gameTemplate.editor
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.window.AwtWindow
@@ -9,7 +10,7 @@ import androidx.compose.ui.window.application
 import com.pandulapeter.gameTemplate.editor.implementation.EditorApp
 import com.pandulapeter.gameTemplate.editor.implementation.EditorController
 import com.pandulapeter.gameTemplate.engine.Engine
-import com.pandulapeter.gameTemplate.engine.gameObject.EditorState
+import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame
@@ -19,13 +20,12 @@ import kotlin.reflect.KClass
 
 fun openEditor(
     defaultMapFilename: String? = null,
-    vararg supportedGameObjectSerializers: Triple<String, KClass<*>, (String) -> EditorState<*>>
+    vararg supportedGameObjectSerializers: Triple<String, KClass<*>, (String) -> AvailableInEditor.State<*>>
 ) = application {
-    Engine.get().instanceManager.register(entries = supportedGameObjectSerializers)
-    defaultMapFilename?.let {
-        EditorController.loadMap(
-            path = "${EditorController.MAPS_DIRECTORY}/$it.json"
-        )
+    val editorController = remember { EditorController(Engine.newInstance()) }
+    LaunchedEffect(Unit) {
+        editorController.engine.instanceManager.register(entries = supportedGameObjectSerializers)
+        defaultMapFilename?.let { editorController.loadMap("${EditorController.MAPS_DIRECTORY}/$it.json") }
     }
     Window(
         onCloseRequest = ::exitApplication,
@@ -33,19 +33,21 @@ fun openEditor(
     ) {
         val isLoadFileChooserOpen = remember { mutableStateOf(false) }
         val isSaveFileChooserOpen = remember { mutableStateOf(false) }
-        window.minimumSize = Dimension(400, 400)
+        window.minimumSize = Dimension(600, 400)
         EditorApp(
+            editorController = editorController,
             openFilePickerForLoading = { isLoadFileChooserOpen.value = true },
             openFilePickerForSaving = { isSaveFileChooserOpen.value = true },
         )
         if (isLoadFileChooserOpen.value) {
             FileDialog(
                 parent = window,
+                currentFileName = editorController.currentFileName.value,
                 isForLoading = true,
                 onCloseRequest = { directory, fileName ->
                     isLoadFileChooserOpen.value = false
                     if (fileName != null) {
-                        EditorController.loadMap("$directory/$fileName")
+                        editorController.loadMap("$directory/$fileName")
                     }
                 }
             )
@@ -53,11 +55,12 @@ fun openEditor(
         if (isSaveFileChooserOpen.value) {
             FileDialog(
                 parent = window,
+                currentFileName = editorController.currentFileName.value,
                 isForLoading = false,
                 onCloseRequest = { directory, fileName ->
                     isSaveFileChooserOpen.value = false
                     if (fileName != null) {
-                        EditorController.saveMap("$directory/$fileName")
+                        editorController.saveMap("$directory/$fileName")
                     }
                 }
             )
@@ -68,6 +71,7 @@ fun openEditor(
 @Composable
 private fun FileDialog(
     parent: Frame? = null,
+    currentFileName: String?,
     isForLoading: Boolean,
     onCloseRequest: (directory: String?, fileName: String?) -> Unit
 ) = AwtWindow(
@@ -84,7 +88,7 @@ private fun FileDialog(
                 }
                 directory = EditorController.MAPS_DIRECTORY
                 if (!isForLoading) {
-                    file = EditorController.currentFileName.value
+                    file = currentFileName
                 }
             }
 

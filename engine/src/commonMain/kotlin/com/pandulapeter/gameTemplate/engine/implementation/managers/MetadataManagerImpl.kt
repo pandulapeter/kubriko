@@ -9,12 +9,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
-internal class MetadataManagerImpl : MetadataManager {
+internal class MetadataManagerImpl(private val engineImpl: EngineImpl) : MetadataManager {
 
     private val _fps = MutableStateFlow(0f)
     override val fps by lazy { _fps.asStateFlow() }
-    override val visibleGameObjectCount by lazy { EngineImpl.instanceManager.visibleGameObjectsWithinViewport.map { it.count() }.stateIn(EngineImpl, SharingStarted.Eagerly, 0) }
-    override val totalGameObjectCount by lazy { EngineImpl.instanceManager.gameObjects.map { it.count() }.stateIn(EngineImpl, SharingStarted.Eagerly, 0) }
+    // TODO: Test without lazy
+    override val visibleGameObjectCount by lazy { engineImpl.instanceManager.visibleInstancesWithinViewport.map { it.count() }.stateIn(engineImpl, SharingStarted.Eagerly, 0) }
+    override val totalGameObjectCount by lazy { engineImpl.instanceManager.allInstances.map { it.count() }.stateIn(engineImpl, SharingStarted.Eagerly, 0) }
     private val _runtimeInMilliseconds = MutableStateFlow(0L)
     override val runtimeInMilliseconds by lazy { _runtimeInMilliseconds.asStateFlow() }
     private var lastFpsUpdateTimestamp = 0L
@@ -23,7 +24,7 @@ internal class MetadataManagerImpl : MetadataManager {
         gameTimeNanos: Long,
         deltaTimeInMillis: Float,
     ) {
-        if (EngineImpl.stateManager.isRunning.value) {
+        if (engineImpl.stateManager.isRunning.value) {
             _runtimeInMilliseconds.update { currentValue ->
                 (currentValue + deltaTimeInMillis).toLong()
             }

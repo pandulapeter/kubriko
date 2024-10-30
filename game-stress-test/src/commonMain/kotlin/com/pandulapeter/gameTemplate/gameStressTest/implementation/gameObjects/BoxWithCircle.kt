@@ -1,32 +1,26 @@
-package com.pandulapeter.gameTemplate.gameStressTest.gameObjects
+package com.pandulapeter.gameTemplate.gameStressTest.implementation.gameObjects
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
-import com.pandulapeter.gameTemplate.engine.gameObject.EditorState
 import com.pandulapeter.gameTemplate.engine.gameObject.editor.Editable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.implementation.extensions.deg
-import com.pandulapeter.gameTemplate.engine.implementation.extensions.toRadians
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableAngleDegrees
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableColor
-import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableScale
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableWorldCoordinates
 import com.pandulapeter.gameTemplate.engine.types.AngleDegrees
-import com.pandulapeter.gameTemplate.engine.types.Scale
 import com.pandulapeter.gameTemplate.engine.types.WorldCoordinates
 import com.pandulapeter.gameTemplate.engine.types.WorldSize
-import com.pandulapeter.gameTemplate.gameStressTest.gameObjects.traits.Destructible
+import com.pandulapeter.gameTemplate.gameStressTest.implementation.gameObjects.traits.Destructible
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlin.math.cos
-import kotlin.math.sin
 
-class MovingBox private constructor(state: MovingBoxState) : AvailableInEditor<MovingBox>, Destructible {
+class BoxWithCircle private constructor(state: BoxWithCircleState) : AvailableInEditor<BoxWithCircle>, Destructible {
 
-    @set:Editable(typeId = "edgeSize")
+    @set:Editable(name = "edgeSize")
     var edgeSize: Float = state.edgeSize
         set(value) {
             field = value
@@ -36,17 +30,20 @@ class MovingBox private constructor(state: MovingBoxState) : AvailableInEditor<M
             )
         }
 
-    @set:Editable(typeId = "position")
+    @set:Editable(name = "position")
     override var position: WorldCoordinates = state.position
 
-    @set:Editable(typeId = "boxColor")
+    @set:Editable(name = "boxColor")
     var boxColor: Color = state.boxColor
 
-    @set:Editable(typeId = "rotation")
-    override var rotation: AngleDegrees = state.rotation
+    @set:Editable(name = "circleColor")
+    var circleColor: Color = state.circleColor
 
-    @set:Editable(typeId = "scale")
-    override var scale: Scale = state.scale
+    @set:Editable(name = "circleRadius")
+    var circleRadius: Float = state.circleRadius
+
+    @set:Editable(name = "rotation")
+    override var rotation: AngleDegrees = state.rotation
 
     override var drawingOrder = 0f
     override var boundingBox = WorldSize(
@@ -57,33 +54,10 @@ class MovingBox private constructor(state: MovingBoxState) : AvailableInEditor<M
     override var direction = 0f.deg
     override var speed = 0f
     override var isSelectedInEditor = false
-    private var isGrowing = true
 
     override fun update(deltaTimeInMillis: Float) {
         super.update(deltaTimeInMillis)
         drawingOrder = -position.y - pivotOffset.y
-        rotation += (0.1f * deltaTimeInMillis * (1f - destructionState)).deg
-        if (scale.horizontal >= 1.6f) {
-            isGrowing = false
-        }
-        if (scale.vertical <= 0.5f) {
-            isGrowing = true
-        }
-        if (isGrowing) {
-            scale = Scale(
-                horizontal = scale.horizontal + 0.001f * deltaTimeInMillis * (1f - destructionState),
-                vertical = scale.vertical + 0.001f * deltaTimeInMillis * (1f - destructionState),
-            )
-        } else {
-            scale = Scale(
-                horizontal = scale.horizontal - 0.001f * deltaTimeInMillis * (1f - destructionState),
-                vertical = scale.vertical - 0.001f * deltaTimeInMillis * (1f - destructionState),
-            )
-        }
-        position += WorldCoordinates(
-            x = cos(rotation.toRadians()),
-            y = -sin(rotation.toRadians()),
-        )
     }
 
     override fun draw(scope: DrawScope) {
@@ -92,33 +66,40 @@ class MovingBox private constructor(state: MovingBoxState) : AvailableInEditor<M
             color = lerp(boxColor, Color.Black, destructionState),
             size = boundingBox.rawSize,
         )
+        scope.drawCircle(
+            color = lerp(circleColor, Color.Black, destructionState),
+            radius = circleRadius,
+            center = boundingBox.center.rawOffset,
+        )
     }
 
-    override fun saveState() = MovingBoxState(
+    override fun saveState() = BoxWithCircleState(
         edgeSize = edgeSize,
         position = position,
         boxColor = boxColor,
+        circleColor = circleColor,
+        circleRadius = circleRadius,
         rotation = rotation,
-        scale = scale,
     )
 
     @Serializable
-    data class MovingBoxState(
+    data class BoxWithCircleState(
         @SerialName("edgeSize") val edgeSize: Float = 100f,
         @SerialName("position") val position: SerializableWorldCoordinates = WorldCoordinates.Zero,
         @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,
+        @SerialName("circleColor") val circleColor: SerializableColor = Color.White,
+        @SerialName("circleRadius") val circleRadius: Float = edgeSize / 3f,
         @SerialName("rotation") val rotation: SerializableAngleDegrees = 0f.deg,
-        @SerialName("scale") val scale: SerializableScale = Scale.Unit,
-    ) : EditorState<MovingBox> {
+    ) : AvailableInEditor.State<BoxWithCircle> {
 
         override val typeId = TYPE_ID
 
-        override fun restore() = MovingBox(this)
+        override fun restore() = BoxWithCircle(this)
 
         override fun serialize() = Json.encodeToString(this)
     }
 
     companion object {
-        const val TYPE_ID = "movingBox"
+        const val TYPE_ID = "boxWithCircle"
     }
 }

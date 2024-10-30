@@ -14,16 +14,15 @@ import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMous
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseMove
 import com.pandulapeter.gameTemplate.editor.implementation.extensions.handleMouseZoom
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.FileManagerRow
-import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.InstanceManagerColumn
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.InstanceBrowserColumn
+import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.InstanceManagerColumn
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.panels.MetadataRow
-import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.EngineCanvas
-import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 
 @Composable
 internal fun EditorUserInterface(
     modifier: Modifier = Modifier,
+    editorController: EditorController,
     openFilePickerForLoading: () -> Unit,
     openFilePickerForSaving: () -> Unit,
 ) = MaterialTheme(
@@ -36,7 +35,8 @@ internal fun EditorUserInterface(
         modifier = modifier,
     ) {
         FileManagerRow(
-            onNewIconClicked = EditorController::reset,
+            currentFileName = editorController.currentFileName.collectAsState().value,
+            onNewIconClicked = editorController::reset,
             onOpenIconClicked = openFilePickerForLoading,
             onSaveIconClicked = openFilePickerForSaving,
         )
@@ -44,26 +44,54 @@ internal fun EditorUserInterface(
             modifier = Modifier.weight(1f),
         ) {
             InstanceBrowserColumn(
-                allGameObjects = Engine.get().instanceManager.gameObjects.collectAsState().value.filterIsInstance<AvailableInEditor<*>>(),
-                visibleGameObjects = Engine.get().instanceManager.visibleGameObjectsWithinViewport.collectAsState().value.filterIsInstance<AvailableInEditor<*>>(),
+                shouldShowVisibleOnly = editorController.shouldShowVisibleOnly.collectAsState().value,
+                allInstances = editorController.allInstances.collectAsState().value,
+                visibleInstances = editorController.visibleInstancesWithinViewport.collectAsState().value,
+                selectedUpdatableInstance = editorController.selectedUpdatableInstance.collectAsState().value,
+                onShouldShowVisibleOnlyToggled = editorController::onShouldShowVisibleOnlyToggled,
+                selectInstance = editorController::selectInstance,
+                resolveTypeId = editorController.engine.instanceManager::resolveTypeId,
             )
             EngineCanvas(
                 modifier = Modifier
                     .weight(1f)
-                    .handleMouseClick()
-                    .handleMouseMove()
-                    .handleMouseZoom()
-                    .handleMouseDrag()
+                    .handleMouseClick(
+                        getSelectedInstance = editorController::getSelectedInstance,
+                        getMouseWorldCoordinates = editorController::getMouseWorldCoordinates,
+                        onLeftClick = editorController::onLeftClick,
+                        onRightClick = editorController::onRightClick,
+                    )
+                    .handleMouseMove(
+                        onMouseMove = editorController::onMouseMove,
+                    )
+                    .handleMouseZoom(
+                        viewportManager = editorController.engine.viewportManager,
+                    )
+                    .handleMouseDrag(
+                        inputManager = editorController.engine.inputManager,
+                        viewportManager = editorController.engine.viewportManager,
+                        getSelectedInstance = editorController::getSelectedInstance,
+                        getMouseWorldCoordinates = editorController::getMouseWorldCoordinates,
+                        notifySelectedInstanceUpdate = editorController::notifySelectedInstanceUpdate,
+                    )
                     .background(Color.White),
+                engine = editorController.engine,
             )
             InstanceManagerColumn(
-                data = EditorController.selectedGameObject.collectAsState().value,
-                selectedGameObjectTypeId = EditorController.selectedGameObjectTypeId.collectAsState().value,
+                registeredTypeIds = editorController.engine.instanceManager.registeredTypeIdsForEditor.collectAsState().value,
+                selectedTypeId = editorController.selectedTypeId.collectAsState().value,
+                selectedUpdatableInstance = editorController.selectedUpdatableInstance.collectAsState().value,
+                selectTypeId = editorController::selectInstance,
+                resolveTypeId = editorController.engine.instanceManager::resolveTypeId,
+                deselectSelectedInstance = editorController::deselectSelectedInstance,
+                locateSelectedInstance = editorController::locateSelectedInstance,
+                deleteSelectedInstance = editorController::deleteSelectedInstance,
+                notifySelectedInstanceUpdate = editorController::notifySelectedInstanceUpdate,
             )
         }
         MetadataRow(
-            gameObjectCount = EditorController.totalGameObjectCount.collectAsState().value,
-            mouseWorldCoordinates = EditorController.mouseWorldCoordinates.collectAsState().value,
+            gameObjectCount = editorController.totalGameObjectCount.collectAsState().value,
+            mouseWorldCoordinates = editorController.mouseWorldCoordinates.collectAsState().value,
         )
     }
 }

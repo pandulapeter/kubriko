@@ -3,15 +3,22 @@ package com.pandulapeter.gameTemplate.gameStressTest.implementation.extensions
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import com.pandulapeter.gameTemplate.engine.Engine
+import com.pandulapeter.gameTemplate.engine.managers.StateManager
+import com.pandulapeter.gameTemplate.engine.managers.ViewportManager
 
-internal expect fun Modifier.handleMouseZoom(): Modifier
+internal expect fun Modifier.handleMouseZoom(
+    stateManager: StateManager,
+    viewportManager: ViewportManager,
+): Modifier
 
-internal fun Modifier.handleDragAndPan() = pointerInput("dragAndPan") {
+internal fun Modifier.handleDragAndPan(
+    stateManager: StateManager,
+    viewportManager: ViewportManager,
+) = pointerInput("dragAndPan") {
     detectTransformGestures { _, pan, zoom, _ ->
-        if (Engine.get().stateManager.isRunning.value) {
-            Engine.get().viewportManager.addToCenter(pan)
-            Engine.get().viewportManager.multiplyScaleFactor(zoom)
+        if (stateManager.isRunning.value) {
+            viewportManager.addToCenter(pan)
+            viewportManager.multiplyScaleFactor(zoom)
         }
     }
 }

@@ -13,23 +13,26 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.gameTemplate.editor.implementation.EditorController
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.gameTemplate.editor.implementation.userInterface.components.EditorText
-import com.pandulapeter.gameTemplate.engine.Engine
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import game.editor.generated.resources.Res
 import game.editor.generated.resources.ic_visible_only_off
 import game.editor.generated.resources.ic_visible_only_on
+import kotlin.reflect.KClass
 
 @Composable
 internal fun InstanceBrowserColumn(
-    allGameObjects: List<AvailableInEditor<*>>,
-    visibleGameObjects: List<AvailableInEditor<*>>,
+    shouldShowVisibleOnly: Boolean,
+    allInstances: List<AvailableInEditor<*>>,
+    visibleInstances: List<AvailableInEditor<*>>,
+    selectedUpdatableInstance: Pair<AvailableInEditor<*>?, Boolean>,
+    onShouldShowVisibleOnlyToggled: () -> Unit,
+    selectInstance: (AvailableInEditor<*>) -> Unit,
+    resolveTypeId: (KClass<out AvailableInEditor<*>>) -> String,
 ) = Row(
     modifier = Modifier
         .fillMaxHeight()
@@ -38,22 +41,21 @@ internal fun InstanceBrowserColumn(
     Column(
         modifier = Modifier.weight(1f),
     ) {
-        val shouldShowVisibleOnly = EditorController.shouldShowVisibleOnly.collectAsState()
         HeaderRow(
-            shouldShowVisibleOnly = shouldShowVisibleOnly.value,
-            onShouldShowVisibleOnlyToggled = EditorController::onShouldShowVisibleOnlyToggled,
+            shouldShowVisibleOnly = shouldShowVisibleOnly,
+            onShouldShowVisibleOnlyToggled = onShouldShowVisibleOnlyToggled,
         )
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
-            items(if (shouldShowVisibleOnly.value) visibleGameObjects else allGameObjects) { gameObject ->
+            items(if (shouldShowVisibleOnly) visibleInstances else allInstances) { instance ->
                 EditorText(
-                    modifier = Modifier.fillMaxWidth().clickable { EditorController.selectGameObject(gameObject) }.padding(
+                    modifier = Modifier.fillMaxWidth().clickable { selectInstance(instance) }.padding(
                         horizontal = 8.dp,
                         vertical = 2.dp,
                     ),
-                    text = Engine.get().instanceManager.getTypeId(gameObject::class),
-                    isBold = gameObject.isSelectedInEditor,
+                    text = resolveTypeId(instance::class),
+                    isBold = instance == selectedUpdatableInstance.first,
                 )
             }
         }

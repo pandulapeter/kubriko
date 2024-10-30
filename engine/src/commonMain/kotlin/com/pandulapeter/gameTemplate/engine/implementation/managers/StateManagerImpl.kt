@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
-internal class StateManagerImpl : StateManager {
+internal class StateManagerImpl(engineImpl: EngineImpl) : StateManager {
 
     private val _isFocused = MutableStateFlow(false)
     override val isFocused = _isFocused.asStateFlow()
@@ -19,7 +19,7 @@ internal class StateManagerImpl : StateManager {
         _isRunning
     ) { isFocused, isRunning ->
         isFocused && isRunning
-    }.stateIn(EngineImpl, SharingStarted.Eagerly, false)
+    }.stateIn(engineImpl, SharingStarted.Eagerly, false)
 
     fun updateFocus(
         isFocused: Boolean,

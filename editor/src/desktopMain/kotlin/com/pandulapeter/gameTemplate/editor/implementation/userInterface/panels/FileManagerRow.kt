@@ -22,6 +22,7 @@ import game.editor.generated.resources.ic_save
 
 @Composable
 internal fun FileManagerRow(
+    currentFileName: String,
     onNewIconClicked: () -> Unit,
     onOpenIconClicked: () -> Unit,
     onSaveIconClicked: () -> Unit,
@@ -52,7 +53,7 @@ internal fun FileManagerRow(
             onClick = onSaveIconClicked,
         )
         EditorText(
-            text = EditorController.currentFileName.collectAsState().value,
+            text = currentFileName,
         )
     }
     Divider()

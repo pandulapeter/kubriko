@@ -10,7 +10,7 @@ internal fun EditorNumberInput(
     modifier: Modifier = Modifier,
     title: String,
     value: Float,
-    onValueChange: (Float) -> Unit,
+    onValueChanged: (Float) -> Unit,
     enabled: Boolean = true,
 ) = Column(
     modifier = modifier,
@@ -21,6 +21,6 @@ internal fun EditorNumberInput(
     OutlinedTextField(
         value = "%.2f".format(value),
         enabled = enabled,
-        onValueChange = { it.toFloatOrNull()?.let(onValueChange) }
+        onValueChange = { it.toFloatOrNull()?.let(onValueChanged) }
     )
 }

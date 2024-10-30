@@ -1,11 +1,9 @@
-package com.pandulapeter.gameTemplate.gameStressTest.gameObjects
+package com.pandulapeter.gameTemplate.gameStressTest.implementation.gameObjects
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.key.Key
-import com.pandulapeter.gameTemplate.engine.Engine
-import com.pandulapeter.gameTemplate.engine.gameObject.EditorState
 import com.pandulapeter.gameTemplate.engine.gameObject.editor.Editable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Dynamic
@@ -16,7 +14,8 @@ import com.pandulapeter.gameTemplate.engine.implementation.extensions.directionS
 import com.pandulapeter.gameTemplate.engine.implementation.serializers.SerializableWorldCoordinates
 import com.pandulapeter.gameTemplate.engine.types.WorldCoordinates
 import com.pandulapeter.gameTemplate.engine.types.WorldSize
-import com.pandulapeter.gameTemplate.gameStressTest.gameObjects.traits.Destructible
+import com.pandulapeter.gameTemplate.gameStressTest.implementation.GameplayController
+import com.pandulapeter.gameTemplate.gameStressTest.implementation.gameObjects.traits.Destructible
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -32,9 +31,9 @@ import kotlin.math.sin
 
 class Character private constructor(
     state: CharacterState,
-) : AvailableInEditor<Character>, Unique, Visible, Dynamic, CoroutineScope {
+) : AvailableInEditor<Character>, Unique, Dynamic, CoroutineScope {
 
-    @set:Editable(typeId = "position")
+    @set:Editable(name = "position")
     override var position: WorldCoordinates = state.position
 
     override var isSelectedInEditor = false
@@ -50,11 +49,11 @@ class Character private constructor(
 
     init {
         // TODO: Should be traits instead
-        Engine.get().inputManager.activeKeys
+        GameplayController.engine.inputManager.activeKeys
             .filter { it.isNotEmpty() }
             .onEach { move(it.directionState) }
             .launchIn(this)
-        Engine.get().inputManager.onKeyPressed
+        GameplayController.engine.inputManager.onKeyPressed
             .onEach { key ->
                 when (key) {
                     Key.Spacebar -> triggerExplosion()
@@ -65,13 +64,13 @@ class Character private constructor(
 
     override fun update(deltaTimeInMillis: Float) {
         drawingOrder = -position.y - pivotOffset.y - 100f
-        Engine.get().viewportManager.addToCenter(calculateViewportOffsetDelta().rawOffset)
+        GameplayController.engine.viewportManager.addToCenter(calculateViewportOffsetDelta().rawOffset)
         if (sizeMultiplier > 1f) {
             sizeMultiplier -= 0.01f * deltaTimeInMillis
         } else {
             sizeMultiplier = 1f
         }
-        nearbyGameObjectPositions = Engine.get().instanceManager.findGameObjectsWithPivotsAroundPosition(
+        nearbyGameObjectPositions = GameplayController.engine.instanceManager.findGameObjectsWithPivotsAroundPosition(
             position = position + pivotOffset,
             range = EXPLOSION_RANGE,
         ).mapNotNull { (it as? Visible)?.position }
@@ -96,14 +95,14 @@ class Character private constructor(
 
     override fun saveState() = CharacterState(position = position)
 
-    private fun calculateViewportOffsetDelta() = Engine.get().viewportManager.center.value.let { viewportOffset ->
-        Engine.get().viewportManager.scaleFactor.value.let { scaleFactor ->
+    private fun calculateViewportOffsetDelta() = GameplayController.engine.viewportManager.center.value.let { viewportOffset ->
+        GameplayController.engine.viewportManager.scaleFactor.value.let { scaleFactor ->
             (viewportOffset - position) * VIEWPORT_FOLLOWING_SPEED_MULTIPLIER * scaleFactor * scaleFactor
         }
     }
 
     private fun move(directionState: KeyboardDirectionState) {
-        if (Engine.get().stateManager.isRunning.value) {
+        if (GameplayController.engine.stateManager.isRunning.value) {
             position += when (directionState) {
                 KeyboardDirectionState.NONE -> WorldCoordinates.Zero
                 KeyboardDirectionState.LEFT -> WorldCoordinates(-SPEED, 0f)
@@ -119,9 +118,9 @@ class Character private constructor(
     }
 
     private fun triggerExplosion() {
-        if (Engine.get().stateManager.isRunning.value) {
+        if (GameplayController.engine.stateManager.isRunning.value) {
             sizeMultiplier = MAX_SIZE_MULTIPLIER
-            Engine.get().instanceManager.findGameObjectsWithPivotsAroundPosition(
+            GameplayController.engine.instanceManager.findGameObjectsWithPivotsAroundPosition(
                 position = position + pivotOffset,
                 range = EXPLOSION_RANGE,
             ).filterIsInstance<Destructible>().forEach { it.destroy(this) }
@@ -131,7 +130,7 @@ class Character private constructor(
     @Serializable
     data class CharacterState(
         @SerialName("position") val position: SerializableWorldCoordinates = WorldCoordinates.Zero
-    ) : EditorState<Character> {
+    ) : AvailableInEditor.State<Character> {
         override val typeId = TYPE_ID
 
         override fun restore() = Character(this)

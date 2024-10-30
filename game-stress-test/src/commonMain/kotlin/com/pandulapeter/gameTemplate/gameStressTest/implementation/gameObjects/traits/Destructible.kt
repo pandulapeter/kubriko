@@ -1,4 +1,4 @@
-package com.pandulapeter.gameTemplate.gameStressTest.gameObjects.traits
+package com.pandulapeter.gameTemplate.gameStressTest.implementation.gameObjects.traits
 
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Movable
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
