@@ -23,21 +23,21 @@ internal actual fun rememberKeyboardEventHandler(
         override fun pressesBegan(presses: Set<*>, withEvent: UIPressesEvent?) {
             super.pressesBegan(presses, withEvent)
             presses.filterIsInstance<UIPress>().forEach { press ->
-                press.key?.keyCode?.let { onKeyPressed(Key(it)) }
+                press.toKey()?.let(onKeyPressed)
             }
         }
 
         override fun pressesEnded(presses: Set<*>, withEvent: UIPressesEvent?) {
             super.pressesEnded(presses, withEvent)
             presses.filterIsInstance<UIPress>().forEach { press ->
-                press.key?.keyCode?.let { onKeyReleased(Key(it)) }
+                press.toKey()?.let(onKeyReleased)
             }
         }
 
         override fun pressesCancelled(presses: Set<*>, withEvent: UIPressesEvent?) {
             super.pressesCancelled(presses, withEvent)
             presses.filterIsInstance<UIPress>().forEach { press ->
-                press.key?.keyCode?.let { onKeyReleased(Key(it)) }
+                press.toKey()?.let(onKeyReleased)
             }
         }
     }
@@ -52,3 +52,5 @@ internal actual fun rememberKeyboardEventHandler(
 
     override fun stopListening() = inputView.removeFromSuperview()
 }
+
+private fun UIPress.toKey() = key?.keyCode()?.run { Key(this) }
