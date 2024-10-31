@@ -3,19 +3,15 @@ package com.pandulapeter.gameTemplate.engine.managers
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.Visible
 import com.pandulapeter.gameTemplate.engine.types.WorldCoordinates
 import kotlinx.coroutines.flow.StateFlow
-import kotlin.reflect.KClass
 
 interface InstanceManager {
 
-    val typeIdsForEditor: Set<String>
     val allInstances: StateFlow<List<Any>>
     val visibleInstancesWithinViewport: StateFlow<List<Visible>>
 
-    fun resolveTypeId(type: KClass<*>): String
+    fun add(vararg instances: Any)
 
-    fun add(vararg gameObjects: Any)
-
-    fun remove(vararg gameObjects: Any)
+    fun remove(vararg instances: Any)
 
     fun removeAll()
 
@@ -23,7 +19,7 @@ interface InstanceManager {
 
     suspend fun deserializeState(json: String)
 
-    fun findGameObjectsWithBoundsInPosition(position: WorldCoordinates): List<Any>
+    fun findVisibleInstancesWithBoundsInPosition(position: WorldCoordinates): List<Any>
 
-    fun findGameObjectsWithPivotsAroundPosition(position: WorldCoordinates, range: Float): List<Any>
+    fun findVisibleInstancesWithPivotsAroundPosition(position: WorldCoordinates, range: Float): List<Any>
 }

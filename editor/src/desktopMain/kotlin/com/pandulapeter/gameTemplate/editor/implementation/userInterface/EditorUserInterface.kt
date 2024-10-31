@@ -51,7 +51,7 @@ internal fun EditorUserInterface(
                 selectedUpdatableInstance = editorController.selectedUpdatableInstance.collectAsState().value,
                 onShouldShowVisibleOnlyToggled = editorController::onShouldShowVisibleOnlyToggled,
                 selectInstance = editorController::selectInstance,
-                resolveTypeId = editorController.engine.instanceManager::resolveTypeId,
+                resolveTypeId = editorController.engine.serializationManager::resolveTypeId,
             )
             // TODO: Draw a grid in the background
             EngineCanvas(
@@ -80,11 +80,11 @@ internal fun EditorUserInterface(
                 engine = editorController.engine,
             )
             InstanceManagerColumn(
-                registeredTypeIds = editorController.engine.instanceManager.typeIdsForEditor.toList(),
+                registeredTypeIds = editorController.engine.serializationManager.typeIdsForEditor.toList(),
                 selectedTypeId = editorController.selectedTypeId.collectAsState().value,
                 selectedUpdatableInstance = editorController.selectedUpdatableInstance.collectAsState().value,
                 selectTypeId = editorController::selectInstance,
-                resolveTypeId = editorController.engine.instanceManager::resolveTypeId,
+                resolveTypeId = editorController.engine.serializationManager::resolveTypeId,
                 deselectSelectedInstance = editorController::deselectSelectedInstance,
                 locateSelectedInstance = editorController::locateSelectedInstance,
                 deleteSelectedInstance = editorController::deleteSelectedInstance,

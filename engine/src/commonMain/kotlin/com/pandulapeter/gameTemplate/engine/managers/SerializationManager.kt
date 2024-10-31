@@ -1,10 +1,15 @@
 package com.pandulapeter.gameTemplate.engine.managers
 
 import com.pandulapeter.gameTemplate.engine.gameObject.traits.AvailableInEditor
+import kotlin.reflect.KClass
 
 interface SerializationManager {
 
-    suspend fun serializeGameObjectStates(gameObjectStates: List<AvailableInEditor.State<*>>): String
+    val typeIdsForEditor: Set<String>
 
-    suspend fun deserializeGameObjectStates(serializedStates: String): List<AvailableInEditor.State<*>>
+    fun resolveTypeId(type: KClass<*>): String
+
+    suspend fun serializeInstanceStates(instanceStates: List<AvailableInEditor.State<*>>): String
+
+    suspend fun deserializeInstanceStates(serializedStates: String): List<AvailableInEditor.State<*>>
 }

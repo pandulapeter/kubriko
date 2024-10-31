@@ -70,7 +70,7 @@ class Character private constructor(
         } else {
             sizeMultiplier = 1f
         }
-        nearbyGameObjectPositions = GameplayController.engine.instanceManager.findGameObjectsWithPivotsAroundPosition(
+        nearbyGameObjectPositions = GameplayController.engine.instanceManager.findVisibleInstancesWithPivotsAroundPosition(
             position = position + pivotOffset,
             range = EXPLOSION_RANGE,
         ).mapNotNull { (it as? Visible)?.position }
@@ -120,7 +120,7 @@ class Character private constructor(
     private fun triggerExplosion() {
         if (GameplayController.engine.stateManager.isRunning.value) {
             sizeMultiplier = MAX_SIZE_MULTIPLIER
-            GameplayController.engine.instanceManager.findGameObjectsWithPivotsAroundPosition(
+            GameplayController.engine.instanceManager.findVisibleInstancesWithPivotsAroundPosition(
                 position = position + pivotOffset,
                 range = EXPLOSION_RANGE,
             ).filterIsInstance<Destructible>().forEach { it.destroy(this) }

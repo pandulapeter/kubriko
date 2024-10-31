@@ -51,9 +51,7 @@ fun EngineCanvas(
                 )
                 inputManager.emit()
                 if (stateManager.isRunning.value) {
-                    instanceManager.dynamicGameObjects.value.forEach { dynamic ->
-                        dynamic.update(deltaTimeInMillis)
-                    }
+                    instanceManager.dynamicInstances.value.forEach { it.update(deltaTimeInMillis) }
                 }
                 gameTime.value = gameTimeNanos
             }
@@ -61,12 +59,10 @@ fun EngineCanvas(
     }
 
     // Keyboard event handling
-    val keyboardEventHandler = (engine.inputManager as InputManagerImpl).let { inputManager ->
-        rememberKeyboardEventHandler(
-            onKeyPressed = inputManager::onKeyPressed,
-            onKeyReleased = inputManager::onKeyReleased,
-        )
-    }
+    val keyboardEventHandler = rememberKeyboardEventHandler(
+        onKeyPressed = inputManager::onKeyPressed,
+        onKeyReleased = inputManager::onKeyReleased,
+    )
     DisposableEffect(Unit) {
         keyboardEventHandler.startListening()
         onDispose { keyboardEventHandler.stopListening() }

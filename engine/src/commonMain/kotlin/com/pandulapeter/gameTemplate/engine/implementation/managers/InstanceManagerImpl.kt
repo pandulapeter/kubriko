@@ -18,23 +18,22 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlin.reflect.KClass
 
 internal class InstanceManagerImpl(
     private val engineImpl: EngineImpl,
-    vararg typesAvailableInEditor: Triple<String, KClass<*>, (String) -> AvailableInEditor.State<*>>
 ) : InstanceManager {
 
-    val typeIdsForEditorRegistry = typesAvailableInEditor.associate { (typeId, _, deserializer) -> typeId to deserializer }
-    private val typeResolvers = typesAvailableInEditor.associate { (typeId, type, _) -> type to typeId }
-    override val typeIdsForEditor = typeIdsForEditorRegistry.keys
-    private val _gameObjects = MutableStateFlow(emptyList<Any>())
-    override val allInstances = _gameObjects.asStateFlow()
-    val dynamicGameObjects = _gameObjects.map { gameObjects -> gameObjects.filterIsInstance<Dynamic>() }.stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
-    private val visibleGameObjects = _gameObjects.map { gameObjects -> gameObjects.filterIsInstance<Visible>() }.stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
+    private val _allInstances = MutableStateFlow(emptyList<Any>())
+    override val allInstances = _allInstances.asStateFlow()
+    val dynamicInstances = _allInstances
+        .map { gameObjects -> gameObjects.filterIsInstance<Dynamic>() }
+        .stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
+    private val visibleInstances = _allInstances
+        .map { gameObjects -> gameObjects.filterIsInstance<Visible>() }
+        .stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
     override val visibleInstancesWithinViewport = combine(
         engineImpl.metadataManager.runtimeInMilliseconds.map { it / 100 }.distinctUntilChanged(),
-        visibleGameObjects,
+        visibleInstances,
         engineImpl.viewportManager.size,
         engineImpl.viewportManager.center,
         engineImpl.viewportManager.scaleFactor,
@@ -50,10 +49,8 @@ internal class InstanceManagerImpl(
             .sortedByDescending { it.drawingOrder }
     }.stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
 
-    override fun resolveTypeId(type: KClass<*>) = typeResolvers[type].orEmpty()
-
-    override fun add(vararg gameObjects: Any) = _gameObjects.update { currentValue ->
-        val uniqueGameObjects = gameObjects.filterIsInstance<Unique>()
+    override fun add(vararg instances: Any) = _allInstances.update { currentValue ->
+        val uniqueGameObjects = instances.filterIsInstance<Unique>()
         if (uniqueGameObjects.isEmpty()) {
             currentValue
         } else {
@@ -62,27 +59,27 @@ internal class InstanceManagerImpl(
                 filteredCurrentValue.removeAll { it::class == unique::class }
             }
             filteredCurrentValue
-        } + gameObjects
+        } + instances
     }
 
     override suspend fun serializeState() =
-        engineImpl.serializationManager.serializeGameObjectStates(allInstances.value.filterIsInstance<AvailableInEditor<*>>().map { it.saveState() })
+        engineImpl.serializationManager.serializeInstanceStates(allInstances.value.filterIsInstance<AvailableInEditor<*>>().map { it.saveState() })
 
     override suspend fun deserializeState(json: String) {
         removeAll()
-        add(gameObjects = engineImpl.serializationManager.deserializeGameObjectStates(json).mapNotNull { it.restore() }.toTypedArray())
+        add(instances = engineImpl.serializationManager.deserializeInstanceStates(json).mapNotNull { it.restore() }.toTypedArray())
     }
 
-    override fun remove(vararg gameObjects: Any) = _gameObjects.update { currentValue ->
-        currentValue.filterNot { it in gameObjects }
+    override fun remove(vararg instances: Any) = _allInstances.update { currentValue ->
+        currentValue.filterNot { it in instances }
     }
 
-    override fun removeAll() = _gameObjects.update { emptyList() }
+    override fun removeAll() = _allInstances.update { emptyList() }
 
-    override fun findGameObjectsWithBoundsInPosition(position: WorldCoordinates) = visibleInstancesWithinViewport.value
+    override fun findVisibleInstancesWithBoundsInPosition(position: WorldCoordinates) = visibleInstancesWithinViewport.value
         .filter { it.occupiesPosition(position) }
 
-    override fun findGameObjectsWithPivotsAroundPosition(position: WorldCoordinates, range: Float) = visibleGameObjects.value
+    override fun findVisibleInstancesWithPivotsAroundPosition(position: WorldCoordinates, range: Float) = visibleInstances.value
         .filter {
             it.isAroundPosition(
                 position = position,

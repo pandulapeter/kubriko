@@ -95,7 +95,7 @@ internal class EditorController(val engine: Engine) : CoroutineScope {
                     if (currentSelectedGameObject == null) {
                         launch {
                             val typeId = selectedTypeId.value
-                            engine.serializationManager.deserializeGameObjectStates(
+                            engine.serializationManager.deserializeInstanceStates(
                                 serializedStates = "[{\"typeId\":\"$typeId\",\"state\":\"{\\\"position\\\":{\\\"x\\\":${positionInWorld.x},\\\"y\\\":${positionInWorld.y}}}\"}]"
                             ).firstOrNull()?.restore()?.let { gameObject ->
                                 engine.instanceManager.add(gameObject)
@@ -126,7 +126,7 @@ internal class EditorController(val engine: Engine) : CoroutineScope {
     }
 
     private fun findInstanceOnPosition(positionInWorld: WorldCoordinates) = engine.instanceManager
-        .findGameObjectsWithBoundsInPosition(positionInWorld)
+        .findVisibleInstancesWithBoundsInPosition(positionInWorld)
         .minByOrNull { (it as? Visible)?.drawingOrder ?: 0f }
 
     fun selectInstance(gameObject: AvailableInEditor<*>) {
