@@ -55,10 +55,10 @@ kotlin {
 }
 
 android {
-    namespace = "com.pandulapeter.gameTemplate.gameStressTest"
+    namespace = "com.pandulapeter.kubrikoStressTest"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
-        applicationId = "com.pandulapeter.gameTemplate.gameStressTest"
+        applicationId = "com.pandulapeter.kubrikoStressTest"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
@@ -80,10 +80,10 @@ android {
 
 compose.desktop {
     application {
-        mainClass = "com.pandulapeter.gameTemplate.gameStressTest.GameKt"
+        mainClass = "com.pandulapeter.kubrikoStressTest.GameKt"
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.pandulapeter.gameTemplate.gameStressTest"
+            packageName = "com.pandulapeter.kubrikoStressTest"
             packageVersion = "1.0.0"
             buildTypes.release.proguard {
                 configurationFiles.from(project.file("proguard-rules.pro"))

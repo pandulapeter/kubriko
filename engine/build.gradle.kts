@@ -10,7 +10,7 @@ plugins {
 }
 
 android {
-    namespace = "com.pandulapeter.gameTemplate.engine"
+    namespace = "com.pandulapeter.kubriko.engine"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()

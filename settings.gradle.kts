@@ -1,4 +1,4 @@
-rootProject.name = "Game"
+rootProject.name = "Kubriko"
 include(
     ":editor",
     ":engine",
