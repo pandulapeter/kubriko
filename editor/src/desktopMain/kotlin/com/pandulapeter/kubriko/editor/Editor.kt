@@ -10,19 +10,18 @@ import androidx.compose.ui.window.application
 import com.pandulapeter.kubriko.editor.implementation.EditorController
 import com.pandulapeter.kubriko.editor.implementation.userInterface.EditorUserInterface
 import com.pandulapeter.kubriko.engine.Kubriko
-import com.pandulapeter.kubriko.engine.gameObject.traits.AvailableInEditor
+import com.pandulapeter.kubriko.engine.actor.ActorRegistrationForEditor
 import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
 import java.io.FilenameFilter
-import kotlin.reflect.KClass
 
 fun openEditor(
     defaultMapFilename: String? = null,
-    vararg typesAvailableInEditor: Triple<String, KClass<*>, (String) -> AvailableInEditor.State<*>>
+    vararg actorTypesAvailableInEditor: ActorRegistrationForEditor<*>,
 ) = application {
-    val editorController = remember { EditorController(Kubriko.newInstance(typesAvailableInEditor = typesAvailableInEditor)) }
+    val editorController = remember { EditorController(Kubriko.newInstance(actorTypesAvailableInEditor = actorTypesAvailableInEditor)) }
     LaunchedEffect(Unit) {
         defaultMapFilename?.let { editorController.loadMap("${EditorController.MAPS_DIRECTORY}/$it.json") }
     }

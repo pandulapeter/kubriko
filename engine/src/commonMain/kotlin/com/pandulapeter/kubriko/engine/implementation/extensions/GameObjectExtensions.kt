@@ -2,7 +2,7 @@ package com.pandulapeter.kubriko.engine.implementation.extensions
 
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawTransform
-import com.pandulapeter.kubriko.engine.gameObject.traits.Visible
+import com.pandulapeter.kubriko.engine.actor.traits.Visible
 import com.pandulapeter.kubriko.engine.types.Scale
 import com.pandulapeter.kubriko.engine.types.WorldCoordinates
 

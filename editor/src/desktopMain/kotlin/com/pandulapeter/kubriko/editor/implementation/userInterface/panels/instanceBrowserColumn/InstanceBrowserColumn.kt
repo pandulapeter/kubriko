@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.editor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.kubriko.editor.implementation.userInterface.components.EditorText
-import com.pandulapeter.kubriko.engine.gameObject.traits.AvailableInEditor
+import com.pandulapeter.kubriko.engine.actor.traits.AvailableInEditor
 import kubriko.editor.generated.resources.Res
 import kubriko.editor.generated.resources.ic_visible_only_off
 import kubriko.editor.generated.resources.ic_visible_only_on

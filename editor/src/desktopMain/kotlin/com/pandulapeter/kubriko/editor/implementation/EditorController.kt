@@ -7,8 +7,9 @@ import com.pandulapeter.kubriko.editor.implementation.helpers.handleKeys
 import com.pandulapeter.kubriko.editor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.editor.implementation.helpers.saveFile
 import com.pandulapeter.kubriko.engine.Kubriko
-import com.pandulapeter.kubriko.engine.gameObject.traits.AvailableInEditor
-import com.pandulapeter.kubriko.engine.gameObject.traits.Visible
+import com.pandulapeter.kubriko.engine.actor.Actor
+import com.pandulapeter.kubriko.engine.actor.traits.AvailableInEditor
+import com.pandulapeter.kubriko.engine.actor.traits.Visible
 import com.pandulapeter.kubriko.engine.implementation.extensions.toWorldCoordinates
 import com.pandulapeter.kubriko.engine.types.WorldCoordinates
 import kotlinx.coroutines.CoroutineScope
@@ -29,10 +30,10 @@ import kotlinx.coroutines.launch
 internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
-    val allInstances = kubriko.instanceManager.allInstances
+    val allInstances = kubriko.instanceManager.allActors
         .map { it.filterIsInstance<AvailableInEditor<*>>() }
         .stateIn(this, SharingStarted.Eagerly, emptyList())
-    val visibleInstancesWithinViewport = kubriko.instanceManager.visibleInstancesWithinViewport
+    val visibleInstancesWithinViewport = kubriko.instanceManager.visibleActorsWithinViewport
         .map { it.filterIsInstance<AvailableInEditor<*>>() }
         .stateIn(this, SharingStarted.Eagerly, emptyList())
     val totalGameObjectCount = kubriko.metadataManager.totalGameObjectCount
@@ -114,12 +115,12 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
     }
 
     fun onRightClick(screenCoordinates: Offset) {
-        findInstanceOnPosition(screenCoordinates.toWorldCoordinates(kubriko.viewportManager)).let { gameObjectAtPosition ->
-            if (gameObjectAtPosition != null) {
-                if (gameObjectAtPosition == _selectedInstance.value) {
+        findInstanceOnPosition(screenCoordinates.toWorldCoordinates(kubriko.viewportManager)).let { actorAtPosition ->
+            if (actorAtPosition != null) {
+                if (actorAtPosition == _selectedInstance.value) {
                     deleteSelectedInstance()
                 } else {
-                    kubriko.instanceManager.remove(gameObjectAtPosition)
+                    kubriko.instanceManager.remove(actorAtPosition)
                 }
             }
         }
@@ -144,7 +145,7 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
     fun deleteSelectedInstance() {
         _selectedInstance.value?.let { selectedGameObject ->
             _selectedInstance.update { null }
-            kubriko.instanceManager.remove(selectedGameObject)
+            kubriko.instanceManager.remove(selectedGameObject as Actor)
         }
     }
 

@@ -4,11 +4,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.key.Key
-import com.pandulapeter.kubriko.engine.gameObject.editor.Editable
-import com.pandulapeter.kubriko.engine.gameObject.traits.AvailableInEditor
-import com.pandulapeter.kubriko.engine.gameObject.traits.Dynamic
-import com.pandulapeter.kubriko.engine.gameObject.traits.Unique
-import com.pandulapeter.kubriko.engine.gameObject.traits.Visible
+import com.pandulapeter.kubriko.engine.actor.Actor
+import com.pandulapeter.kubriko.engine.actor.editor.Editable
+import com.pandulapeter.kubriko.engine.actor.traits.AvailableInEditor
+import com.pandulapeter.kubriko.engine.actor.traits.Dynamic
+import com.pandulapeter.kubriko.engine.actor.traits.Unique
+import com.pandulapeter.kubriko.engine.actor.traits.Visible
 import com.pandulapeter.kubriko.engine.implementation.extensions.KeyboardDirectionState
 import com.pandulapeter.kubriko.engine.implementation.extensions.directionState
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableWorldCoordinates
@@ -31,7 +32,7 @@ import kotlin.math.sin
 
 class Character private constructor(
     state: CharacterState,
-) : AvailableInEditor<Character>, Unique, Dynamic, CoroutineScope {
+) : Actor(), AvailableInEditor<Character>, Unique, Dynamic, CoroutineScope {
 
     @set:Editable(name = "position")
     override var position: WorldCoordinates = state.position

@@ -25,7 +25,7 @@ internal object GameplayController : CoroutineScope {
     const val MAP_NAME = "map_demo"
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
-    val kubriko = Kubriko.newInstance(typesAvailableInEditor = GameObjectRegistry.typesAvailableInEditor)
+    val kubriko = Kubriko.newInstance(actorTypesAvailableInEditor = GameObjectRegistry.typesAvailableInEditor)
     val metadata = combine(
         kubriko.metadataManager.fps,
         kubriko.metadataManager.totalGameObjectCount,

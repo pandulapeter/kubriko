@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.engine.gameObject.traits
+package com.pandulapeter.kubriko.engine.actor.traits
 
 
 interface Dynamic {

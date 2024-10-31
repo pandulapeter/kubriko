@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.engine.gameObject.editor
+package com.pandulapeter.kubriko.engine.actor.editor
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.PROPERTY_SETTER)

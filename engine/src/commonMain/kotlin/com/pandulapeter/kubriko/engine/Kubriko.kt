@@ -1,6 +1,6 @@
 package com.pandulapeter.kubriko.engine
 
-import com.pandulapeter.kubriko.engine.gameObject.traits.AvailableInEditor
+import com.pandulapeter.kubriko.engine.actor.ActorRegistrationForEditor
 import com.pandulapeter.kubriko.engine.implementation.KubrikoImpl
 import com.pandulapeter.kubriko.engine.managers.InputManager
 import com.pandulapeter.kubriko.engine.managers.InstanceManager
@@ -8,7 +8,6 @@ import com.pandulapeter.kubriko.engine.managers.MetadataManager
 import com.pandulapeter.kubriko.engine.managers.SerializationManager
 import com.pandulapeter.kubriko.engine.managers.StateManager
 import com.pandulapeter.kubriko.engine.managers.ViewportManager
-import kotlin.reflect.KClass
 
 interface Kubriko {
     val inputManager: InputManager
@@ -20,9 +19,9 @@ interface Kubriko {
 
     companion object {
         fun newInstance(
-            vararg typesAvailableInEditor: Triple<String, KClass<*>, (String) -> AvailableInEditor.State<*>>
+            vararg actorTypesAvailableInEditor: ActorRegistrationForEditor<*>,
         ): Kubriko = KubrikoImpl(
-            typesAvailableInEditor = typesAvailableInEditor,
+            actorTypesAvailableInEditor = actorTypesAvailableInEditor,
         )
     }
 }

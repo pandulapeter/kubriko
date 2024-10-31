@@ -1,6 +1,8 @@
 package com.pandulapeter.kubriko.engine.implementation.managers
 
-import com.pandulapeter.kubriko.engine.gameObject.traits.AvailableInEditor
+import com.pandulapeter.kubriko.engine.actor.Actor
+import com.pandulapeter.kubriko.engine.actor.ActorRegistrationForEditor
+import com.pandulapeter.kubriko.engine.actor.traits.AvailableInEditor
 import com.pandulapeter.kubriko.engine.managers.SerializationManager
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -9,11 +11,11 @@ import kotlinx.serialization.json.Json
 import kotlin.reflect.KClass
 
 internal class SerializationManagerImpl(
-    vararg serializableTypes: Triple<String, KClass<*>, (String) -> AvailableInEditor.State<*>>,
+    vararg actorTypesAvailableInEditor: ActorRegistrationForEditor<out Actor>,
 ) : SerializationManager {
 
-    private val typeIdsToDeserializers = serializableTypes.associate { (typeId, _, deserializer) -> typeId to deserializer }
-    private val typeResolvers = serializableTypes.associate { (typeId, type, _) -> type to typeId }
+    private val typeIdsToDeserializers = actorTypesAvailableInEditor.associate { registration -> registration.typeId to registration.deserializeState }
+    private val typeResolvers = actorTypesAvailableInEditor.associate { registration -> registration.type to registration.typeId }
     override val typeIdsForEditor = typeIdsToDeserializers.keys
     private val json = Json { ignoreUnknownKeys = true }
 

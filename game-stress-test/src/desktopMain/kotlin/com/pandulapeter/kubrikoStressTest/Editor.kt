@@ -6,5 +6,5 @@ import com.pandulapeter.kubrikoStressTest.implementation.GameplayController
 
 fun main() = openEditor(
     defaultMapFilename = GameplayController.MAP_NAME,
-    typesAvailableInEditor = GameObjectRegistry.typesAvailableInEditor,
+    actorTypesAvailableInEditor = GameObjectRegistry.typesAvailableInEditor,
 )

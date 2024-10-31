@@ -3,8 +3,9 @@ package com.pandulapeter.kubrikoStressTest.implementation.gameObjects
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
-import com.pandulapeter.kubriko.engine.gameObject.editor.Editable
-import com.pandulapeter.kubriko.engine.gameObject.traits.AvailableInEditor
+import com.pandulapeter.kubriko.engine.actor.Actor
+import com.pandulapeter.kubriko.engine.actor.editor.Editable
+import com.pandulapeter.kubriko.engine.actor.traits.AvailableInEditor
 import com.pandulapeter.kubriko.engine.implementation.extensions.deg
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableAngleDegrees
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableColor
@@ -18,7 +19,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class BoxWithCircle private constructor(state: BoxWithCircleState) : AvailableInEditor<BoxWithCircle>, Destructible {
+class BoxWithCircle private constructor(state: BoxWithCircleState) : Actor(), AvailableInEditor<BoxWithCircle>, Destructible {
 
     @set:Editable(name = "edgeSize")
     var edgeSize: Float = state.edgeSize

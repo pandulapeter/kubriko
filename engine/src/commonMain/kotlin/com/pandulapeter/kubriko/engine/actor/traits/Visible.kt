@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.engine.gameObject.traits
+package com.pandulapeter.kubriko.engine.actor.traits
 
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.engine.implementation.extensions.deg

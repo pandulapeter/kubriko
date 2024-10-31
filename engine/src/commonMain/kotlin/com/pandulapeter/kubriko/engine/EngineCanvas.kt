@@ -84,7 +84,7 @@ fun EngineCanvas(
                         )
                     },
                     drawBlock = {
-                        instanceManager.visibleInstancesWithinViewport.value.forEach { visible ->
+                        instanceManager.visibleActorsWithinViewport.value.forEach { visible ->
                             withTransform(
                                 transformBlock = { visible.transform(this) },
                                 drawBlock = { visible.draw(this) }

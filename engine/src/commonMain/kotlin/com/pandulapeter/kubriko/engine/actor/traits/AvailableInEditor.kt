@@ -1,11 +1,12 @@
-package com.pandulapeter.kubriko.engine.gameObject.traits
+package com.pandulapeter.kubriko.engine.actor.traits
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import com.pandulapeter.kubriko.engine.actor.Actor
 
-interface AvailableInEditor<O : AvailableInEditor<O>> : Visible {
+interface AvailableInEditor<T : Actor> : Visible {
 
     // TODO: Use instance ID-s instead
     var isSelectedInEditor: Boolean
@@ -26,9 +27,9 @@ interface AvailableInEditor<O : AvailableInEditor<O>> : Visible {
         }
     }
 
-    fun saveState(): State<O>
+    fun saveState(): State<T>
 
-    interface State<T> {
+    interface State<T : Actor> {
 
         val typeId: String
 
