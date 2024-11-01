@@ -24,7 +24,11 @@ value class WorldSize(val rawSize: Size) {
 
     operator fun times(scale: Float): WorldSize = WorldSize(rawSize * scale)
 
+    operator fun times(scale: Int): WorldSize = WorldSize(rawSize * scale.toFloat())
+
     operator fun div(scale: Float): WorldSize = WorldSize(rawSize / scale)
+
+    operator fun div(scale: Int): WorldSize = WorldSize(rawSize / scale.toFloat())
 
     override fun toString(): String = "MapSize(width=$width, height=$height)"
 

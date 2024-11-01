@@ -16,7 +16,11 @@ value class WorldCoordinates(val rawOffset: Offset) {
 
     operator fun times(scale: Float): WorldCoordinates = WorldCoordinates(rawOffset * scale)
 
+    operator fun times(scale: Int): WorldCoordinates = WorldCoordinates(rawOffset * scale.toFloat())
+
     operator fun div(scale: Float): WorldCoordinates = WorldCoordinates(rawOffset / scale)
+
+    operator fun div(scale: Int): WorldCoordinates = WorldCoordinates(rawOffset / scale.toFloat())
 
     override fun toString(): String = "MapCoordinates(x=$x, y=$y)"
 

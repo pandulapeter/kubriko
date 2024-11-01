@@ -2,6 +2,7 @@ package com.pandulapeter.kubriko.engine.implementation.extensions
 
 import androidx.compose.ui.graphics.drawscope.DrawTransform
 import com.pandulapeter.kubriko.engine.traits.Visible
+import com.pandulapeter.kubriko.engine.types.AngleRadians
 import com.pandulapeter.kubriko.engine.types.Scale
 
 internal fun Visible.transform(drawTransform: DrawTransform) {
@@ -9,9 +10,9 @@ internal fun Visible.transform(drawTransform: DrawTransform) {
         left = position.x - pivotOffset.x,
         top = position.y - pivotOffset.y,
     )
-    if (rotation.normalized != 0f) {
+    if (rotation != AngleRadians.Zero) {
         drawTransform.rotate(
-            degrees = rotation.normalized,
+            degrees = rotation.deg,
             pivot = pivotOffset.rawOffset,
         )
     }

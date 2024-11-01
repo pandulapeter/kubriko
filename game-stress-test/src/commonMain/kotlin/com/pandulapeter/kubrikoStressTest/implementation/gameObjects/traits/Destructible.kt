@@ -3,12 +3,11 @@ package com.pandulapeter.kubrikoStressTest.implementation.gameObjects.traits
 import com.pandulapeter.kubriko.engine.traits.Movable
 import com.pandulapeter.kubriko.engine.traits.Visible
 import com.pandulapeter.kubriko.engine.implementation.extensions.angleTowards
-import com.pandulapeter.kubriko.engine.implementation.extensions.deg
-import com.pandulapeter.kubriko.engine.types.AngleDegrees
+import com.pandulapeter.kubriko.engine.types.AngleRadians
 
 interface Destructible : Movable {
     var destructionState: Float
-    override var direction: AngleDegrees
+    override var direction: AngleRadians
     override val friction: Float get() = 0.015f
 
     override fun update(deltaTimeInMillis: Float) {
@@ -26,7 +25,7 @@ interface Destructible : Movable {
         if (destructionState == 0f) {
             destructionState = 0.01f
         }
-        direction = 180f.deg - angleTowards(character)
+        direction = AngleRadians.Pi - angleTowards(character)
         speed = 3f
     }
 }

@@ -5,19 +5,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.editor.implementation.userInterface.components.EditorSlider
-import com.pandulapeter.kubriko.engine.implementation.extensions.deg
-import com.pandulapeter.kubriko.engine.types.AngleDegrees
+import com.pandulapeter.kubriko.engine.implementation.extensions.rad
+import com.pandulapeter.kubriko.engine.types.AngleRadians
 
 @Composable
-internal fun AngleDegreesPropertyEditor(
+internal fun AngleRadiansPropertyEditor(
     name: String,
-    value: AngleDegrees,
-    onValueChanged: (AngleDegrees) -> Unit,
+    value: AngleRadians,
+    onValueChanged: (AngleRadians) -> Unit,
 ) = EditorSlider(
     modifier = Modifier.padding(horizontal = 8.dp),
     title = name,
-    suffix = "°",
     value = value.normalized,
-    onValueChange = { onValueChanged(it.deg) },
-    valueRange = 0f..359.99f
+    onValueChange = { onValueChanged(it.rad) },
+    valueRange = 0f..6.27f
 )

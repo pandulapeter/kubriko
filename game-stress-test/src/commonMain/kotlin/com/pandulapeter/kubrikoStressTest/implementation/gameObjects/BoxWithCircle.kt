@@ -4,12 +4,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.kubriko.engine.editorIntegration.EditableProperty
-import com.pandulapeter.kubriko.engine.implementation.extensions.deg
-import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableAngleDegrees
+import com.pandulapeter.kubriko.engine.implementation.extensions.rad
+import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableAngleRadians
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableColor
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableWorldCoordinates
 import com.pandulapeter.kubriko.engine.traits.Editable
-import com.pandulapeter.kubriko.engine.types.AngleDegrees
+import com.pandulapeter.kubriko.engine.types.AngleRadians
 import com.pandulapeter.kubriko.engine.types.WorldCoordinates
 import com.pandulapeter.kubriko.engine.types.WorldSize
 import com.pandulapeter.kubrikoStressTest.implementation.gameObjects.traits.Destructible
@@ -43,7 +43,7 @@ class BoxWithCircle private constructor(state: BoxWithCircleState) : Editable<Bo
     var circleRadius: Float = state.circleRadius
 
     @set:EditableProperty(name = "rotation")
-    override var rotation: AngleDegrees = state.rotation
+    override var rotation: AngleRadians = state.rotation
 
     override var drawingOrder = 0f
     override var boundingBox = WorldSize(
@@ -51,7 +51,7 @@ class BoxWithCircle private constructor(state: BoxWithCircleState) : Editable<Bo
         height = state.edgeSize
     )
     override var destructionState = 0f
-    override var direction = 0f.deg
+    override var direction = AngleRadians.Zero
     override var speed = 0f
 
     override fun update(deltaTimeInMillis: Float) {
@@ -87,7 +87,7 @@ class BoxWithCircle private constructor(state: BoxWithCircleState) : Editable<Bo
         @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,
         @SerialName("circleColor") val circleColor: SerializableColor = Color.White,
         @SerialName("circleRadius") val circleRadius: Float = edgeSize / 3f,
-        @SerialName("rotation") val rotation: SerializableAngleDegrees = 0f.deg,
+        @SerialName("rotation") val rotation: SerializableAngleRadians = 0f.rad,
     ) : Editable.State<BoxWithCircle> {
 
         override fun restore() = BoxWithCircle(this)

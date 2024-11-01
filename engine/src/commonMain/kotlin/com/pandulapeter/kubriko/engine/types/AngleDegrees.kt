@@ -3,15 +3,27 @@ package com.pandulapeter.kubriko.engine.types
 import kotlin.jvm.JvmInline
 
 @JvmInline
-value class AngleDegrees(private val degrees: Float) {
+value class AngleDegrees(val raw: Float) {
     val normalized: Float
-        get() = (degrees % 360 + 360) % 360
+        get() = (raw % 360 + 360) % 360
 
     operator fun plus(other: AngleDegrees): AngleDegrees =
-        AngleDegrees(normalized + other.normalized)
+        AngleDegrees(raw + other.raw)
 
     operator fun minus(other: AngleDegrees): AngleDegrees =
-        AngleDegrees(normalized - other.normalized)
+        AngleDegrees(raw - other.raw)
 
-    override fun toString(): String = "rotationDegrees=$normalized°"
+    operator fun times(scale: Float): AngleDegrees =
+        AngleDegrees(raw * scale)
+
+    operator fun times(scale: Int): AngleDegrees =
+        AngleDegrees(raw * scale)
+
+    operator fun div(scale: Float): AngleDegrees =
+        AngleDegrees(raw / scale)
+
+    operator fun div(scale: Int): AngleDegrees =
+        AngleDegrees(raw / scale)
+
+    override fun toString(): String = "angleDegrees=$raw°"
 }

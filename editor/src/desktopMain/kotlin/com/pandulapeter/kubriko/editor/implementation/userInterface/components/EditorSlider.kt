@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 internal fun EditorSlider(
     modifier: Modifier = Modifier,
     title: String,
+    suffix: String = "",
     value: Float,
     onValueChange: (Float) -> Unit,
     valueRange: ClosedFloatingPointRange<Float>,
@@ -19,7 +20,7 @@ internal fun EditorSlider(
     modifier = modifier,
 ) {
     EditorTextLabel(
-        text = "$title: ${"%.2f".format(value)}",
+        text = "$title: ${"%.2f".format(value)}$suffix",
     )
     Slider(
         modifier = Modifier.height(24.dp),

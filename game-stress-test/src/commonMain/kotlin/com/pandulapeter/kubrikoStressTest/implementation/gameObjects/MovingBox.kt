@@ -4,15 +4,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.kubriko.engine.editorIntegration.EditableProperty
-import com.pandulapeter.kubriko.engine.implementation.extensions.deg
-import com.pandulapeter.kubriko.engine.implementation.extensions.toRadians
-import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableAngleDegrees
+import com.pandulapeter.kubriko.engine.implementation.extensions.rad
+import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableAngleRadians
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableColor
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableScale
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableWorldCoordinates
 import com.pandulapeter.kubriko.engine.traits.Editable
 import com.pandulapeter.kubriko.engine.traits.Visible
-import com.pandulapeter.kubriko.engine.types.AngleDegrees
+import com.pandulapeter.kubriko.engine.types.AngleRadians
 import com.pandulapeter.kubriko.engine.types.Scale
 import com.pandulapeter.kubriko.engine.types.WorldCoordinates
 import com.pandulapeter.kubriko.engine.types.WorldSize
@@ -43,7 +42,7 @@ class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>
     var boxColor: Color = state.boxColor
 
     @set:EditableProperty(name = "rotation")
-    override var rotation: AngleDegrees = state.rotation
+    override var rotation: AngleRadians = state.rotation
 
     @set:EditableProperty(name = "scale")
     override var scale: Scale = state.scale
@@ -54,7 +53,7 @@ class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>
         height = state.edgeSize
     )
     override var destructionState = 0f
-    override var direction = 0f.deg
+    override var direction = AngleRadians.Zero
     override var speed = 0f
     private var isGrowing = true
     private var isMoving = true
@@ -62,7 +61,7 @@ class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>
     override fun update(deltaTimeInMillis: Float) {
         super.update(deltaTimeInMillis)
         drawingOrder = -position.y - pivotOffset.y
-        rotation += (0.1f * deltaTimeInMillis * (1f - destructionState)).deg
+        rotation += (0.1f * deltaTimeInMillis * (1f - destructionState)).rad
         if (scale.horizontal >= 1.6f) {
             isGrowing = false
         }
@@ -82,8 +81,8 @@ class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>
         }
         if (isMoving) {
             position += WorldCoordinates(
-                x = cos(rotation.toRadians()),
-                y = -sin(rotation.toRadians()),
+                x = cos(rotation.normalized),
+                y = -sin(rotation.normalized),
             )
         }
     }
@@ -111,7 +110,7 @@ class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>
         @SerialName("edgeSize") val edgeSize: Float = 100f,
         @SerialName("position") val position: SerializableWorldCoordinates = WorldCoordinates.Zero,
         @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,
-        @SerialName("rotation") val rotation: SerializableAngleDegrees = 0f.deg,
+        @SerialName("rotation") val rotation: SerializableAngleRadians = 0f.rad,
         @SerialName("scale") val scale: SerializableScale = Scale.Unit,
     ) : Editable.State<MovingBox> {
 

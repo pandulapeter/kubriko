@@ -28,7 +28,11 @@ value class Scale(private val size: Size) {
 
     operator fun times(scale: Float): Scale = Scale(size * scale)
 
+    operator fun times(scale: Int): Scale = Scale(size * scale.toFloat())
+
     operator fun div(scale: Float): Scale = Scale(size / scale)
+
+    operator fun div(scale: Int): Scale = Scale(size / scale.toFloat())
 
     override fun toString(): String = "Scale(horizontal=$horizontal, vertical=$vertical)"
 

@@ -18,12 +18,14 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.editor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.kubriko.editor.implementation.userInterface.components.EditorTextTitle
 import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.AngleDegreesPropertyEditor
+import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.AngleRadiansPropertyEditor
 import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ColorPropertyEditor
 import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.FloatPropertyEditor
 import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ScalePropertyEditor
 import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.WorldCoordinatesPropertyEditor
 import com.pandulapeter.kubriko.engine.editorIntegration.EditableProperty
 import com.pandulapeter.kubriko.engine.types.AngleDegrees
+import com.pandulapeter.kubriko.engine.types.AngleRadians
 import com.pandulapeter.kubriko.engine.types.Scale
 import com.pandulapeter.kubriko.engine.types.WorldCoordinates
 import kubriko.editor.generated.resources.Res
@@ -58,6 +60,19 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                     AngleDegreesPropertyEditor(
                         name = name,
                         value = getter.call(instance) as AngleDegrees,
+                        onValueChanged = {
+                            setter.call(instance, it)
+                            notifySelectedInstanceUpdate()
+                        }
+                    )
+                }
+            }
+
+            AngleRadians::class.createType() -> {
+                {
+                    AngleRadiansPropertyEditor(
+                        name = name,
+                        value = getter.call(instance) as AngleRadians,
                         onValueChanged = {
                             setter.call(instance, it)
                             notifySelectedInstanceUpdate()
