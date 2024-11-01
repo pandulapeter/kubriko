@@ -5,8 +5,8 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.engine.actor.Actor
-import com.pandulapeter.kubriko.engine.actor.editor.Editable
-import com.pandulapeter.kubriko.engine.actor.traits.AvailableInEditor
+import com.pandulapeter.kubriko.engine.actor.editor.EditableProperty
+import com.pandulapeter.kubriko.engine.actor.traits.Editable
 import com.pandulapeter.kubriko.engine.actor.traits.Dynamic
 import com.pandulapeter.kubriko.engine.actor.traits.Unique
 import com.pandulapeter.kubriko.engine.actor.traits.Visible
@@ -32,9 +32,9 @@ import kotlin.math.sin
 
 class Character private constructor(
     state: CharacterState,
-) : Actor(), AvailableInEditor<Character>, Unique, Dynamic, CoroutineScope {
+) : Actor(), Editable<Character>, Unique, Dynamic, CoroutineScope {
 
-    @set:Editable(name = "position")
+    @set:EditableProperty(name = "position")
     override var position: WorldCoordinates = state.position
 
     override var isSelectedInEditor = false
@@ -131,7 +131,7 @@ class Character private constructor(
     @Serializable
     data class CharacterState(
         @SerialName("position") val position: SerializableWorldCoordinates = WorldCoordinates.Zero
-    ) : AvailableInEditor.State<Character> {
+    ) : Editable.State<Character> {
         override val typeId = TYPE_ID
 
         override fun restore() = Character(this)

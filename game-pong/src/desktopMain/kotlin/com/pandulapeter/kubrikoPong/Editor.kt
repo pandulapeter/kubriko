@@ -6,5 +6,5 @@ import com.pandulapeter.kubrikoPong.implementation.GameplayController
 
 fun main() = openEditor(
     defaultMapFilename = GameplayController.MAP_NAME,
-    actorTypesAvailableInEditor = GameObjectRegistry.typesAvailableInEditor
+    editableMetadata = GameObjectRegistry.typesAvailableInEditor
 )

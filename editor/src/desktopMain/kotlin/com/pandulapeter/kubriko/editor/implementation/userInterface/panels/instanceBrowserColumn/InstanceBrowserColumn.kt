@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.editor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.kubriko.editor.implementation.userInterface.components.EditorText
-import com.pandulapeter.kubriko.engine.actor.traits.AvailableInEditor
+import com.pandulapeter.kubriko.engine.actor.traits.Editable
 import kubriko.editor.generated.resources.Res
 import kubriko.editor.generated.resources.ic_visible_only_off
 import kubriko.editor.generated.resources.ic_visible_only_on
@@ -27,12 +27,12 @@ import kotlin.reflect.KClass
 @Composable
 internal fun InstanceBrowserColumn(
     shouldShowVisibleOnly: Boolean,
-    allInstances: List<AvailableInEditor<*>>,
-    visibleInstances: List<AvailableInEditor<*>>,
-    selectedUpdatableInstance: Pair<AvailableInEditor<*>?, Boolean>,
+    allInstances: List<Editable<*>>,
+    visibleInstances: List<Editable<*>>,
+    selectedUpdatableInstance: Pair<Editable<*>?, Boolean>,
     onShouldShowVisibleOnlyToggled: () -> Unit,
-    selectInstance: (AvailableInEditor<*>) -> Unit,
-    resolveTypeId: (KClass<out AvailableInEditor<*>>) -> String,
+    selectInstance: (Editable<*>) -> Unit,
+    resolveTypeId: (KClass<out Editable<*>>) -> String,
 ) = Row(
     modifier = Modifier
         .fillMaxHeight()

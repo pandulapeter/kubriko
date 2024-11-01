@@ -1,6 +1,6 @@
 package com.pandulapeter.kubriko.engine
 
-import com.pandulapeter.kubriko.engine.actor.ActorRegistrationForEditor
+import com.pandulapeter.kubriko.engine.actor.EditableMetadata
 import com.pandulapeter.kubriko.engine.implementation.KubrikoImpl
 import com.pandulapeter.kubriko.engine.managers.InputManager
 import com.pandulapeter.kubriko.engine.managers.InstanceManager
@@ -19,9 +19,9 @@ interface Kubriko {
 
     companion object {
         fun newInstance(
-            vararg actorTypesAvailableInEditor: ActorRegistrationForEditor<*>,
+            vararg editableMetadata: EditableMetadata<*>,
         ): Kubriko = KubrikoImpl(
-            actorTypesAvailableInEditor = actorTypesAvailableInEditor,
+            editableMetadata = editableMetadata,
         )
     }
 }

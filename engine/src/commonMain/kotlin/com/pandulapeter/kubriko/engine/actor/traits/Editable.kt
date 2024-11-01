@@ -6,7 +6,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.engine.actor.Actor
 
-interface AvailableInEditor<T : Actor> : Visible {
+interface Editable<T : Actor> : Visible {
 
     // TODO: Use instance ID-s instead
     var isSelectedInEditor: Boolean

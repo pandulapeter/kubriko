@@ -4,8 +4,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.kubriko.engine.actor.Actor
-import com.pandulapeter.kubriko.engine.actor.editor.Editable
-import com.pandulapeter.kubriko.engine.actor.traits.AvailableInEditor
+import com.pandulapeter.kubriko.engine.actor.editor.EditableProperty
+import com.pandulapeter.kubriko.engine.actor.traits.Editable
 import com.pandulapeter.kubriko.engine.implementation.extensions.deg
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableAngleDegrees
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableColor
@@ -19,9 +19,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class BoxWithCircle private constructor(state: BoxWithCircleState) : Actor(), AvailableInEditor<BoxWithCircle>, Destructible {
+class BoxWithCircle private constructor(state: BoxWithCircleState) : Actor(), Editable<BoxWithCircle>, Destructible {
 
-    @set:Editable(name = "edgeSize")
+    @set:EditableProperty(name = "edgeSize")
     var edgeSize: Float = state.edgeSize
         set(value) {
             field = value
@@ -31,19 +31,19 @@ class BoxWithCircle private constructor(state: BoxWithCircleState) : Actor(), Av
             )
         }
 
-    @set:Editable(name = "position")
+    @set:EditableProperty(name = "position")
     override var position: WorldCoordinates = state.position
 
-    @set:Editable(name = "boxColor")
+    @set:EditableProperty(name = "boxColor")
     var boxColor: Color = state.boxColor
 
-    @set:Editable(name = "circleColor")
+    @set:EditableProperty(name = "circleColor")
     var circleColor: Color = state.circleColor
 
-    @set:Editable(name = "circleRadius")
+    @set:EditableProperty(name = "circleRadius")
     var circleRadius: Float = state.circleRadius
 
-    @set:Editable(name = "rotation")
+    @set:EditableProperty(name = "rotation")
     override var rotation: AngleDegrees = state.rotation
 
     override var drawingOrder = 0f
@@ -91,7 +91,7 @@ class BoxWithCircle private constructor(state: BoxWithCircleState) : Actor(), Av
         @SerialName("circleColor") val circleColor: SerializableColor = Color.White,
         @SerialName("circleRadius") val circleRadius: Float = edgeSize / 3f,
         @SerialName("rotation") val rotation: SerializableAngleDegrees = 0f.deg,
-    ) : AvailableInEditor.State<BoxWithCircle> {
+    ) : Editable.State<BoxWithCircle> {
 
         override val typeId = TYPE_ID
 

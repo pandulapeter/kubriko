@@ -3,8 +3,8 @@ package com.pandulapeter.kubrikoPong.implementation.gameObjects
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.engine.actor.Actor
-import com.pandulapeter.kubriko.engine.actor.editor.Editable
-import com.pandulapeter.kubriko.engine.actor.traits.AvailableInEditor
+import com.pandulapeter.kubriko.engine.actor.editor.EditableProperty
+import com.pandulapeter.kubriko.engine.actor.traits.Editable
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableColor
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableWorldCoordinates
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableWorldSize
@@ -15,15 +15,15 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class Box private constructor(state: BoxState) : Actor(), AvailableInEditor<Box> {
+class Box private constructor(state: BoxState) : Actor(), Editable<Box> {
 
-    @set:Editable(name = "boundingBox")
+    @set:EditableProperty(name = "boundingBox")
     override var boundingBox: WorldSize = state.boundingBox
 
-    @set:Editable(name = "position")
+    @set:EditableProperty(name = "position")
     override var position: WorldCoordinates = state.position
 
-    @set:Editable(name = "boxColor")
+    @set:EditableProperty(name = "boxColor")
     var boxColor: Color = state.boxColor
 
     override var isSelectedInEditor = false
@@ -47,7 +47,7 @@ class Box private constructor(state: BoxState) : Actor(), AvailableInEditor<Box>
         @SerialName("boundingBox") val boundingBox: SerializableWorldSize = WorldSize(100f, 100f),
         @SerialName("position") val position: SerializableWorldCoordinates = WorldCoordinates.Zero,
         @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,
-    ) : AvailableInEditor.State<Box> {
+    ) : Editable.State<Box> {
 
         override val typeId = TYPE_ID
 

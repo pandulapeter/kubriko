@@ -10,7 +10,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
-import com.pandulapeter.kubriko.engine.actor.traits.AvailableInEditor
+import com.pandulapeter.kubriko.engine.actor.traits.Editable
 import com.pandulapeter.kubriko.engine.implementation.extensions.occupiesPosition
 import com.pandulapeter.kubriko.engine.managers.InputManager
 import com.pandulapeter.kubriko.engine.managers.ViewportManager
@@ -22,7 +22,7 @@ private var isDragging = false
 // TODO: Fix some clicks registering as drag
 @OptIn(ExperimentalComposeUiApi::class)
 internal fun Modifier.handleMouseClick(
-    getSelectedInstance: () -> AvailableInEditor<*>?,
+    getSelectedInstance: () -> Editable<*>?,
     getMouseWorldCoordinates: () -> WorldCoordinates,
     onLeftClick: (Offset) -> Unit,
     onRightClick: (Offset) -> Unit,
@@ -74,7 +74,7 @@ internal fun Modifier.handleMouseZoom(
 internal fun Modifier.handleMouseDrag(
     inputManager: InputManager,
     viewportManager: ViewportManager,
-    getSelectedInstance: () -> AvailableInEditor<*>?,
+    getSelectedInstance: () -> Editable<*>?,
     getMouseWorldCoordinates: () -> WorldCoordinates,
     notifySelectedInstanceUpdate: () -> Unit,
 ): Modifier = onDrag(

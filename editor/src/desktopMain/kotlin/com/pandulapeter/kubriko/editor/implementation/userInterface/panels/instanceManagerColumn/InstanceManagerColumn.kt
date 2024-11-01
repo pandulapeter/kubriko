@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.editor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.kubriko.editor.implementation.userInterface.components.EditorRadioButton
 import com.pandulapeter.kubriko.editor.implementation.userInterface.components.EditorTextTitle
-import com.pandulapeter.kubriko.engine.actor.traits.AvailableInEditor
+import com.pandulapeter.kubriko.engine.actor.traits.Editable
 import kubriko.editor.generated.resources.Res
 import kubriko.editor.generated.resources.ic_close
 import kubriko.editor.generated.resources.ic_delete
@@ -31,8 +31,8 @@ import kotlin.reflect.full.memberProperties
 internal fun InstanceManagerColumn(
     registeredTypeIds: List<String>,
     selectedTypeId: String?,
-    selectedUpdatableInstance: Pair<AvailableInEditor<*>?, Boolean>,
-    resolveTypeId: (KClass<out AvailableInEditor<*>>) -> String,
+    selectedUpdatableInstance: Pair<Editable<*>?, Boolean>,
+    resolveTypeId: (KClass<out Editable<*>>) -> String,
     selectTypeId: (String) -> Unit,
     deselectSelectedInstance: () -> Unit,
     locateSelectedInstance: () -> Unit,

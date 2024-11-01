@@ -4,8 +4,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.kubriko.engine.actor.Actor
-import com.pandulapeter.kubriko.engine.actor.editor.Editable
-import com.pandulapeter.kubriko.engine.actor.traits.AvailableInEditor
+import com.pandulapeter.kubriko.engine.actor.editor.EditableProperty
+import com.pandulapeter.kubriko.engine.actor.traits.Editable
 import com.pandulapeter.kubriko.engine.actor.traits.Visible
 import com.pandulapeter.kubriko.engine.implementation.extensions.deg
 import com.pandulapeter.kubriko.engine.implementation.extensions.toRadians
@@ -25,9 +25,9 @@ import kotlinx.serialization.json.Json
 import kotlin.math.cos
 import kotlin.math.sin
 
-class MovingBox private constructor(state: MovingBoxState) : Actor(), AvailableInEditor<MovingBox>, Destructible {
+class MovingBox private constructor(state: MovingBoxState) : Actor(), Editable<MovingBox>, Destructible {
 
-    @set:Editable(name = "edgeSize")
+    @set:EditableProperty(name = "edgeSize")
     var edgeSize: Float = state.edgeSize
         set(value) {
             field = value
@@ -37,16 +37,16 @@ class MovingBox private constructor(state: MovingBoxState) : Actor(), AvailableI
             )
         }
 
-    @set:Editable(name = "position")
+    @set:EditableProperty(name = "position")
     override var position: WorldCoordinates = state.position
 
-    @set:Editable(name = "boxColor")
+    @set:EditableProperty(name = "boxColor")
     var boxColor: Color = state.boxColor
 
-    @set:Editable(name = "rotation")
+    @set:EditableProperty(name = "rotation")
     override var rotation: AngleDegrees = state.rotation
 
-    @set:Editable(name = "scale")
+    @set:EditableProperty(name = "scale")
     override var scale: Scale = state.scale
 
     override var drawingOrder = 0f
@@ -118,7 +118,7 @@ class MovingBox private constructor(state: MovingBoxState) : Actor(), AvailableI
         @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,
         @SerialName("rotation") val rotation: SerializableAngleDegrees = 0f.deg,
         @SerialName("scale") val scale: SerializableScale = Scale.Unit,
-    ) : AvailableInEditor.State<MovingBox> {
+    ) : Editable.State<MovingBox> {
 
         override val typeId = TYPE_ID
 

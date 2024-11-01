@@ -8,7 +8,7 @@ import com.pandulapeter.kubriko.editor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.editor.implementation.helpers.saveFile
 import com.pandulapeter.kubriko.engine.Kubriko
 import com.pandulapeter.kubriko.engine.actor.Actor
-import com.pandulapeter.kubriko.engine.actor.traits.AvailableInEditor
+import com.pandulapeter.kubriko.engine.actor.traits.Editable
 import com.pandulapeter.kubriko.engine.actor.traits.Visible
 import com.pandulapeter.kubriko.engine.implementation.extensions.toWorldCoordinates
 import com.pandulapeter.kubriko.engine.types.WorldCoordinates
@@ -31,10 +31,10 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
     val allInstances = kubriko.instanceManager.allActors
-        .map { it.filterIsInstance<AvailableInEditor<*>>() }
+        .map { it.filterIsInstance<Editable<*>>() }
         .stateIn(this, SharingStarted.Eagerly, emptyList())
     val visibleInstancesWithinViewport = kubriko.instanceManager.visibleActorsWithinViewport
-        .map { it.filterIsInstance<AvailableInEditor<*>>() }
+        .map { it.filterIsInstance<Editable<*>>() }
         .stateIn(this, SharingStarted.Eagerly, emptyList())
     val totalGameObjectCount = kubriko.metadataManager.totalGameObjectCount
     private val mouseScreenCoordinates = MutableStateFlow(Offset.Zero)
@@ -51,7 +51,7 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
         )
     }.stateIn(this, SharingStarted.Eagerly, WorldCoordinates.Zero)
     private val instanceUpdateTrigger = MutableStateFlow(false)
-    private val _selectedInstance = MutableStateFlow<AvailableInEditor<*>?>(null)
+    private val _selectedInstance = MutableStateFlow<Editable<*>?>(null)
     val selectedUpdatableInstance = combine(
         _selectedInstance,
         instanceUpdateTrigger,
@@ -106,7 +106,7 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
                         deselectSelectedInstance()
                     }
                 } else {
-                    (gameObjectAtPosition as? AvailableInEditor<*>)?.let { availableInEditor ->
+                    (gameObjectAtPosition as? Editable<*>)?.let { availableInEditor ->
                         selectInstance(gameObjectAtPosition)
                     }
                 }
@@ -130,7 +130,7 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
         .findVisibleInstancesWithBoundsInPosition(positionInWorld)
         .minByOrNull { (it as? Visible)?.drawingOrder ?: 0f }
 
-    fun selectInstance(gameObject: AvailableInEditor<*>) {
+    fun selectInstance(gameObject: Editable<*>) {
         val currentSelectedGameObject = selectedUpdatableInstance.value.first
         currentSelectedGameObject?.isSelectedInEditor = false
         _selectedInstance.update {

@@ -10,7 +10,7 @@ import androidx.compose.ui.window.application
 import com.pandulapeter.kubriko.editor.implementation.EditorController
 import com.pandulapeter.kubriko.editor.implementation.userInterface.EditorUserInterface
 import com.pandulapeter.kubriko.engine.Kubriko
-import com.pandulapeter.kubriko.engine.actor.ActorRegistrationForEditor
+import com.pandulapeter.kubriko.engine.actor.EditableMetadata
 import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame
@@ -19,9 +19,9 @@ import java.io.FilenameFilter
 
 fun openEditor(
     defaultMapFilename: String? = null,
-    vararg actorTypesAvailableInEditor: ActorRegistrationForEditor<*>,
+    vararg editableMetadata: EditableMetadata<*>,
 ) = application {
-    val editorController = remember { EditorController(Kubriko.newInstance(actorTypesAvailableInEditor = actorTypesAvailableInEditor)) }
+    val editorController = remember { EditorController(Kubriko.newInstance(editableMetadata = editableMetadata)) }
     LaunchedEffect(Unit) {
         defaultMapFilename?.let { editorController.loadMap("${EditorController.MAPS_DIRECTORY}/$it.json") }
     }

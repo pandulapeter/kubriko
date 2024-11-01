@@ -1,7 +1,7 @@
 package com.pandulapeter.kubriko.engine.implementation.managers
 
 import com.pandulapeter.kubriko.engine.actor.Actor
-import com.pandulapeter.kubriko.engine.actor.traits.AvailableInEditor
+import com.pandulapeter.kubriko.engine.actor.traits.Editable
 import com.pandulapeter.kubriko.engine.actor.traits.Dynamic
 import com.pandulapeter.kubriko.engine.actor.traits.Unique
 import com.pandulapeter.kubriko.engine.actor.traits.Visible
@@ -75,7 +75,7 @@ internal class InstanceManagerImpl(
     override fun removeAll() = _allInstances.update { emptyList() }
 
     override suspend fun serializeState() =
-        engineImpl.serializationManager.serializeInstanceStates(allActors.value.filterIsInstance<AvailableInEditor<*>>().map { it.saveState() })
+        engineImpl.serializationManager.serializeInstanceStates(allActors.value.filterIsInstance<Editable<*>>().map { it.saveState() })
 
     override suspend fun deserializeState(json: String) {
         removeAll()
