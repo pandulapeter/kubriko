@@ -1,12 +1,12 @@
 package com.pandulapeter.kubrikoPong.implementation
 
-import com.pandulapeter.kubriko.engine.editorIntegration.EditableMetadata
+import com.pandulapeter.kubriko.engine.editorIntegration.EditableActorMetadata
 import com.pandulapeter.kubrikoPong.implementation.gameObjects.Box
 import kotlinx.serialization.json.Json
 
 object GameObjectRegistry {
     private val json by lazy { Json { ignoreUnknownKeys = true } }
     val typesAvailableInEditor = arrayOf(
-        EditableMetadata(Box.TYPE_ID) { serializedState -> json.decodeFromString<Box.BoxState>(serializedState) },
+        EditableActorMetadata(typeId = "box") { serializedState -> json.decodeFromString<Box.BoxState>(serializedState) },
     )
 }

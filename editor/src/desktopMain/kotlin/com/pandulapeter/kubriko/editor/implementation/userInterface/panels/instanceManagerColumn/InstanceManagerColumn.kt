@@ -32,7 +32,7 @@ internal fun InstanceManagerColumn(
     registeredTypeIds: List<String>,
     selectedTypeId: String?,
     selectedUpdatableInstance: Pair<Editable<*>?, Boolean>,
-    resolveTypeId: (KClass<out Editable<*>>) -> String,
+    resolveTypeId: (KClass<out Editable<*>>) -> String?,
     selectTypeId: (String) -> Unit,
     deselectSelectedInstance: () -> Unit,
     locateSelectedInstance: () -> Unit,
@@ -63,7 +63,7 @@ internal fun InstanceManagerColumn(
             } else {
                 item(key = "selectedTypeHeader") {
                     SelectedInstanceHeader(
-                        instanceTypeName = resolveTypeId(selectedInstance::class),
+                        instanceTypeName = resolveTypeId(selectedInstance::class) ?: "Unknown Actor type",
                         onDeselectClicked = deselectSelectedInstance,
                         onLocateClicked = locateSelectedInstance,
                         onDeleteClicked = deleteSelectedInstance,

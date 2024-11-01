@@ -31,7 +31,7 @@ internal fun Modifier.handleMouseClick(
         PointerButton.Primary -> getSelectedInstance()?.let { selectedInstance ->
             getMouseWorldCoordinates().let { mouseWorldCoordinates ->
                 if (selectedInstance.occupiesPosition(mouseWorldCoordinates)) {
-                    startOffset = mouseWorldCoordinates - selectedInstance.position
+                    startOffset = mouseWorldCoordinates - selectedInstance.editorPreview.position
                 }
             }
         }

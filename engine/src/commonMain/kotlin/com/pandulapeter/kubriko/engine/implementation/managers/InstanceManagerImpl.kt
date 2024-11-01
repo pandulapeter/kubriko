@@ -1,14 +1,14 @@
 package com.pandulapeter.kubriko.engine.implementation.managers
 
-import com.pandulapeter.kubriko.engine.traits.Editable
-import com.pandulapeter.kubriko.engine.traits.Dynamic
-import com.pandulapeter.kubriko.engine.traits.Unique
-import com.pandulapeter.kubriko.engine.traits.Visible
 import com.pandulapeter.kubriko.engine.implementation.KubrikoImpl
 import com.pandulapeter.kubriko.engine.implementation.extensions.isAroundPosition
 import com.pandulapeter.kubriko.engine.implementation.extensions.isVisible
 import com.pandulapeter.kubriko.engine.implementation.extensions.occupiesPosition
 import com.pandulapeter.kubriko.engine.managers.InstanceManager
+import com.pandulapeter.kubriko.engine.traits.Dynamic
+import com.pandulapeter.kubriko.engine.traits.Editable
+import com.pandulapeter.kubriko.engine.traits.Unique
+import com.pandulapeter.kubriko.engine.traits.Visible
 import com.pandulapeter.kubriko.engine.types.WorldCoordinates
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,8 +18,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 internal class InstanceManagerImpl(
     private val engineImpl: KubrikoImpl,
@@ -51,7 +49,6 @@ internal class InstanceManagerImpl(
             .sortedByDescending { it.drawingOrder }
     }.stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
 
-    @OptIn(ExperimentalUuidApi::class)
     override fun add(vararg actors: Any) = _allActors.update { currentValue ->
         val uniqueGameObjects = actors.filterIsInstance<Unique>()
         if (uniqueGameObjects.isEmpty()) {
@@ -72,12 +69,12 @@ internal class InstanceManagerImpl(
     override fun removeAll() = _allActors.update { emptyList() }
 
     override suspend fun serializeState() =
-        engineImpl.serializationManager.serializeInstanceStates(allActors.value.filterIsInstance<Editable<*>>().map { it.saveState() })
+        engineImpl.serializationManager.serializeActors(allActors.value.filterIsInstance<Editable<*>>())
 
     override suspend fun deserializeState(json: String) {
         removeAll()
         // TODO: Weird things happen at this point once we try to restore more than 20000 Actors. Singletons constructors get invoked again.
-        add(actors = engineImpl.serializationManager.deserializeInstanceStates(json).map { it.restore() }.toTypedArray())
+        add(actors = engineImpl.serializationManager.deserializeActors(json).toTypedArray())
     }
 
     override fun findVisibleInstancesWithBoundsInPosition(position: WorldCoordinates) = visibleActorsWithinViewport.value

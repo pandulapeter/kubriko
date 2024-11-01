@@ -32,7 +32,7 @@ internal fun InstanceBrowserColumn(
     selectedUpdatableInstance: Pair<Editable<*>?, Boolean>,
     onShouldShowVisibleOnlyToggled: () -> Unit,
     selectInstance: (Editable<*>) -> Unit,
-    resolveTypeId: (KClass<out Editable<*>>) -> String,
+    resolveTypeId: (KClass<out Editable<*>>) -> String?,
 ) = Row(
     modifier = Modifier
         .fillMaxHeight()
@@ -54,7 +54,7 @@ internal fun InstanceBrowserColumn(
                         horizontal = 8.dp,
                         vertical = 2.dp,
                     ),
-                    text = resolveTypeId(instance::class),
+                    text = resolveTypeId(instance::class) ?: "Unknown Actor type",
                     isBold = instance == selectedUpdatableInstance.first,
                 )
             }

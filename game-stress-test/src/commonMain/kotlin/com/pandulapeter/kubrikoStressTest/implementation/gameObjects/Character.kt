@@ -29,12 +29,11 @@ import kotlinx.serialization.json.Json
 import kotlin.math.PI
 import kotlin.math.sin
 
-class Character private constructor(state: CharacterState) : Editable<Character>, Unique, Dynamic, CoroutineScope {
+class Character private constructor(state: CharacterState) : Editable<Character>, Unique, Dynamic, Visible, CoroutineScope {
 
     @set:EditableProperty(name = "position")
     override var position: WorldCoordinates = state.position
 
-    override var isSelectedInEditor = false
     override val boundingBox = WorldSize(
         width = RADIUS * 2f,
         height = RADIUS * 2f,
@@ -46,7 +45,7 @@ class Character private constructor(state: CharacterState) : Editable<Character>
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
 
     init {
-        // TODO: Should be traits instead
+        // TODO: Should be traits instead (InputAware maybe)
         GameplayController.kubriko.inputManager.activeKeys
             .filter { it.isNotEmpty() }
             .onEach { move(it.directionState) }
@@ -75,7 +74,6 @@ class Character private constructor(state: CharacterState) : Editable<Character>
     }
 
     override fun draw(scope: DrawScope) {
-        super.draw(scope)
         nearbyGameObjectPositions.forEach { nearbyObjectPosition ->
             scope.drawLine(
                 color = Color.Red,
@@ -91,7 +89,7 @@ class Character private constructor(state: CharacterState) : Editable<Character>
         )
     }
 
-    override fun saveState() = CharacterState(position = position)
+    override fun save() = CharacterState(position = position)
 
     private fun calculateViewportOffsetDelta() = GameplayController.kubriko.viewportManager.center.value.let { viewportOffset ->
         GameplayController.kubriko.viewportManager.scaleFactor.value.let { scaleFactor ->
@@ -129,7 +127,6 @@ class Character private constructor(state: CharacterState) : Editable<Character>
     data class CharacterState(
         @SerialName("position") val position: SerializableWorldCoordinates = WorldCoordinates.Zero
     ) : Editable.State<Character> {
-        override val typeId = TYPE_ID
 
         override fun restore() = Character(this)
 
@@ -137,7 +134,6 @@ class Character private constructor(state: CharacterState) : Editable<Character>
     }
 
     companion object {
-        const val TYPE_ID = "character"
         private const val VIEWPORT_FOLLOWING_SPEED_MULTIPLIER = 0.03f
         private const val MAX_SIZE_MULTIPLIER = 3f
         private const val EXPLOSION_RANGE = 500f

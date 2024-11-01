@@ -95,10 +95,10 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
                     if (currentSelectedGameObject == null) {
                         launch {
                             val typeId = selectedTypeId.value
-                            kubriko.serializationManager.deserializeInstanceStates(
+                            kubriko.serializationManager.deserializeActors(
                                 serializedStates = "[{\"typeId\":\"$typeId\",\"state\":\"{\\\"position\\\":{\\\"x\\\":${positionInWorld.x},\\\"y\\\":${positionInWorld.y}}}\"}]"
-                            ).firstOrNull()?.restore()?.let { gameObject ->
-                                kubriko.instanceManager.add(gameObject)
+                            ).firstOrNull()?.let { actor ->
+                                kubriko.instanceManager.add(actor)
                             }
                         }
                     } else {
@@ -131,12 +131,12 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
 
     fun selectInstance(gameObject: Editable<*>) {
         val currentSelectedGameObject = selectedUpdatableInstance.value.first
-        currentSelectedGameObject?.isSelectedInEditor = false
+        // TODO currentSelectedGameObject?.isSelectedInEditor = false
         _selectedInstance.update {
             if (currentSelectedGameObject == gameObject) {
                 null
             } else {
-                gameObject.also { it.isSelectedInEditor = true }
+                gameObject// TODO .also { it.isSelectedInEditor = true }
             }
         }
     }
@@ -161,7 +161,7 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
     fun selectInstance(typeId: String) = _selectedTypeId.update { typeId }
 
     fun deselectSelectedInstance() {
-        _selectedInstance.value?.isSelectedInEditor = false
+        // TODO _selectedInstance.value?.isSelectedInEditor = false
         _selectedInstance.update { null }
     }
 

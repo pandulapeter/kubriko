@@ -1,7 +1,7 @@
 package com.pandulapeter.kubriko.engine.implementation
 
 import com.pandulapeter.kubriko.engine.Kubriko
-import com.pandulapeter.kubriko.engine.editorIntegration.EditableMetadata
+import com.pandulapeter.kubriko.engine.editorIntegration.EditableActorMetadata
 import com.pandulapeter.kubriko.engine.implementation.managers.InputManagerImpl
 import com.pandulapeter.kubriko.engine.implementation.managers.InstanceManagerImpl
 import com.pandulapeter.kubriko.engine.implementation.managers.MetadataManagerImpl
@@ -13,13 +13,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 
 internal class KubrikoImpl(
-    vararg editableMetadata: EditableMetadata<*>,
+    vararg editableActorMetadata: EditableActorMetadata<*>,
 ) : Kubriko, CoroutineScope {
-    override val coroutineContext = SupervisorJob() + Dispatchers.Default
+
     override val inputManager by lazy { InputManagerImpl(this) }
     override val instanceManager by lazy { InstanceManagerImpl(this) }
     override val metadataManager by lazy { MetadataManagerImpl(this) }
-    override val serializationManager by lazy { SerializationManagerImpl(editableMetadata = editableMetadata) }
+    override val serializationManager by lazy { SerializationManagerImpl(editableActorMetadata = editableActorMetadata) }
     override val stateManager by lazy { StateManagerImpl(this) }
     override val viewportManager by lazy { ViewportManagerImpl() }
+
+    override val coroutineContext = SupervisorJob() + Dispatchers.Default
+    override var isEditor = false
 }

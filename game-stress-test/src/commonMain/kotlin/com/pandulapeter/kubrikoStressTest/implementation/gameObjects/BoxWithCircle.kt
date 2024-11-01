@@ -53,7 +53,6 @@ class BoxWithCircle private constructor(state: BoxWithCircleState) : Editable<Bo
     override var destructionState = 0f
     override var direction = 0f.deg
     override var speed = 0f
-    override var isSelectedInEditor = false
 
     override fun update(deltaTimeInMillis: Float) {
         super.update(deltaTimeInMillis)
@@ -61,7 +60,6 @@ class BoxWithCircle private constructor(state: BoxWithCircleState) : Editable<Bo
     }
 
     override fun draw(scope: DrawScope) {
-        super.draw(scope)
         scope.drawRect(
             color = lerp(boxColor, Color.Black, destructionState),
             size = boundingBox.rawSize,
@@ -73,7 +71,7 @@ class BoxWithCircle private constructor(state: BoxWithCircleState) : Editable<Bo
         )
     }
 
-    override fun saveState() = BoxWithCircleState(
+    override fun save() = BoxWithCircleState(
         edgeSize = edgeSize,
         position = position,
         boxColor = boxColor,
@@ -92,14 +90,8 @@ class BoxWithCircle private constructor(state: BoxWithCircleState) : Editable<Bo
         @SerialName("rotation") val rotation: SerializableAngleDegrees = 0f.deg,
     ) : Editable.State<BoxWithCircle> {
 
-        override val typeId = TYPE_ID
-
         override fun restore() = BoxWithCircle(this)
 
         override fun serialize() = Json.encodeToString(this)
-    }
-
-    companion object {
-        const val TYPE_ID = "boxWithCircle"
     }
 }

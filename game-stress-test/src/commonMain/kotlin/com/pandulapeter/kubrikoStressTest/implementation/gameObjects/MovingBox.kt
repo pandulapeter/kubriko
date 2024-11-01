@@ -56,7 +56,6 @@ class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>
     override var destructionState = 0f
     override var direction = 0f.deg
     override var speed = 0f
-    override var isSelectedInEditor = false
     private var isGrowing = true
     private var isMoving = true
 
@@ -89,20 +88,17 @@ class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>
         }
     }
 
-    override fun draw(scope: DrawScope) {
-        super.draw(scope)
-        scope.drawRect(
-            color = lerp(boxColor, Color.Black, destructionState),
-            size = boundingBox.rawSize,
-        )
-    }
+    override fun draw(scope: DrawScope) = scope.drawRect(
+        color = lerp(boxColor, Color.Black, destructionState),
+        size = boundingBox.rawSize,
+    )
 
     override fun destroy(character: Visible) {
         super.destroy(character)
         isMoving = false
     }
 
-    override fun saveState() = MovingBoxState(
+    override fun save() = MovingBoxState(
         edgeSize = edgeSize,
         position = position,
         boxColor = boxColor,
@@ -119,14 +115,8 @@ class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>
         @SerialName("scale") val scale: SerializableScale = Scale.Unit,
     ) : Editable.State<MovingBox> {
 
-        override val typeId = TYPE_ID
-
         override fun restore() = MovingBox(this)
 
         override fun serialize() = Json.encodeToString(this)
-    }
-
-    companion object {
-        const val TYPE_ID = "movingBox"
     }
 }

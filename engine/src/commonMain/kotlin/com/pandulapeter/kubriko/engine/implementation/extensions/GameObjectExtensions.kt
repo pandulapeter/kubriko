@@ -2,6 +2,7 @@ package com.pandulapeter.kubriko.engine.implementation.extensions
 
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawTransform
+import com.pandulapeter.kubriko.engine.traits.Positionable
 import com.pandulapeter.kubriko.engine.traits.Visible
 import com.pandulapeter.kubriko.engine.types.Scale
 import com.pandulapeter.kubriko.engine.types.WorldCoordinates
@@ -23,7 +24,7 @@ internal fun Visible.isVisible(
 
 fun Visible.angleTowards(other: Visible) = (position + pivotOffset).angleTowards(other.position + other.pivotOffset)
 
-fun Visible.occupiesPosition(
+fun Positionable.occupiesPosition(
     worldCoordinates: WorldCoordinates,
 ) = worldCoordinates.x in left..right && worldCoordinates.y in top..bottom
 
@@ -32,13 +33,13 @@ internal fun Visible.isAroundPosition(
     range: Float,
 ) = (this.position - position).rawOffset.getDistance() < range
 
-val Visible.left get() = scale.horizontal.let { position.x + pivotOffset.x * it - boundingBox.width * it }
+val Positionable.left get() = scale.horizontal.let { position.x + pivotOffset.x * it - boundingBox.width * it }
 
-val Visible.top get() = scale.vertical.let { position.y + pivotOffset.y * it - boundingBox.height * it }
+val Positionable.top get() = scale.vertical.let { position.y + pivotOffset.y * it - boundingBox.height * it }
 
-val Visible.right get() = scale.horizontal.let { position.x - pivotOffset.x * it + boundingBox.width * it }
+val Positionable.right get() = scale.horizontal.let { position.x - pivotOffset.x * it + boundingBox.width * it }
 
-val Visible.bottom get() = scale.vertical.let { position.y - pivotOffset.y * it + boundingBox.height * it }
+val Positionable.bottom get() = scale.vertical.let { position.y - pivotOffset.y * it + boundingBox.height * it }
 
 internal fun Visible.transform(drawTransform: DrawTransform) {
     drawTransform.translate(
