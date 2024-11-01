@@ -3,16 +3,15 @@ package com.pandulapeter.kubrikoStressTest.implementation.gameObjects
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
-import com.pandulapeter.kubriko.engine.actor.Actor
-import com.pandulapeter.kubriko.engine.actor.editor.EditableProperty
-import com.pandulapeter.kubriko.engine.actor.traits.Editable
-import com.pandulapeter.kubriko.engine.actor.traits.Visible
+import com.pandulapeter.kubriko.engine.editorIntegration.EditableProperty
 import com.pandulapeter.kubriko.engine.implementation.extensions.deg
 import com.pandulapeter.kubriko.engine.implementation.extensions.toRadians
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableAngleDegrees
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableColor
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableScale
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableWorldCoordinates
+import com.pandulapeter.kubriko.engine.traits.Editable
+import com.pandulapeter.kubriko.engine.traits.Visible
 import com.pandulapeter.kubriko.engine.types.AngleDegrees
 import com.pandulapeter.kubriko.engine.types.Scale
 import com.pandulapeter.kubriko.engine.types.WorldCoordinates
@@ -25,7 +24,7 @@ import kotlinx.serialization.json.Json
 import kotlin.math.cos
 import kotlin.math.sin
 
-class MovingBox private constructor(state: MovingBoxState) : Actor(), Editable<MovingBox>, Destructible {
+class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>, Destructible {
 
     @set:EditableProperty(name = "edgeSize")
     var edgeSize: Float = state.edgeSize

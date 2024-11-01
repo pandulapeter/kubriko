@@ -51,7 +51,7 @@ fun EngineCanvas(
                 )
                 inputManager.emit()
                 if (stateManager.isRunning.value) {
-                    instanceManager.dynamicInstances.value.forEach { it.update(deltaTimeInMillis) }
+                    instanceManager.dynamicActors.value.forEach { it.update(deltaTimeInMillis) }
                 }
                 gameTime.value = gameTimeNanos
             }

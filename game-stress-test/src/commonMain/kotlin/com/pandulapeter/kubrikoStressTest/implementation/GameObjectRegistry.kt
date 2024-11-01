@@ -1,6 +1,6 @@
 package com.pandulapeter.kubrikoStressTest.implementation
 
-import com.pandulapeter.kubriko.engine.actor.EditableMetadata
+import com.pandulapeter.kubriko.engine.editorIntegration.EditableMetadata
 import com.pandulapeter.kubrikoStressTest.implementation.gameObjects.BoxWithCircle
 import com.pandulapeter.kubrikoStressTest.implementation.gameObjects.Character
 import com.pandulapeter.kubrikoStressTest.implementation.gameObjects.MovingBox

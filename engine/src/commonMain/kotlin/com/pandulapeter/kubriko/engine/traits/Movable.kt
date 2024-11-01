@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.engine.actor.traits
+package com.pandulapeter.kubriko.engine.traits
 
 import com.pandulapeter.kubriko.engine.implementation.extensions.deg
 import com.pandulapeter.kubriko.engine.implementation.extensions.toRadians

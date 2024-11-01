@@ -1,12 +1,11 @@
-package com.pandulapeter.kubriko.engine.actor.traits
+package com.pandulapeter.kubriko.engine.traits
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import com.pandulapeter.kubriko.engine.actor.Actor
 
-interface Editable<T : Actor> : Visible {
+interface Editable<T : Editable<T>> : Visible {
 
     // TODO: Use instance ID-s instead
     var isSelectedInEditor: Boolean
@@ -29,7 +28,7 @@ interface Editable<T : Actor> : Visible {
 
     fun saveState(): State<T>
 
-    interface State<T : Actor> {
+    interface State<T> {
 
         val typeId: String
 

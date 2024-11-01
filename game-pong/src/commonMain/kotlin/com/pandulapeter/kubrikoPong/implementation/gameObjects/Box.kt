@@ -2,12 +2,11 @@ package com.pandulapeter.kubrikoPong.implementation.gameObjects
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import com.pandulapeter.kubriko.engine.actor.Actor
-import com.pandulapeter.kubriko.engine.actor.editor.EditableProperty
-import com.pandulapeter.kubriko.engine.actor.traits.Editable
+import com.pandulapeter.kubriko.engine.editorIntegration.EditableProperty
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableColor
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableWorldCoordinates
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableWorldSize
+import com.pandulapeter.kubriko.engine.traits.Editable
 import com.pandulapeter.kubriko.engine.types.WorldCoordinates
 import com.pandulapeter.kubriko.engine.types.WorldSize
 import kotlinx.serialization.SerialName
@@ -15,7 +14,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class Box private constructor(state: BoxState) : Actor(), Editable<Box> {
+class Box private constructor(state: BoxState) : Editable<Box> {
 
     @set:EditableProperty(name = "boundingBox")
     override var boundingBox: WorldSize = state.boundingBox

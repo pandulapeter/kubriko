@@ -1,7 +1,7 @@
 package com.pandulapeter.kubriko.engine.implementation
 
 import com.pandulapeter.kubriko.engine.Kubriko
-import com.pandulapeter.kubriko.engine.actor.EditableMetadata
+import com.pandulapeter.kubriko.engine.editorIntegration.EditableMetadata
 import com.pandulapeter.kubriko.engine.implementation.managers.InputManagerImpl
 import com.pandulapeter.kubriko.engine.implementation.managers.InstanceManagerImpl
 import com.pandulapeter.kubriko.engine.implementation.managers.MetadataManagerImpl

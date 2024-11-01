@@ -22,7 +22,7 @@ import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.insta
 import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.FloatPropertyEditor
 import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ScalePropertyEditor
 import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.WorldCoordinatesPropertyEditor
-import com.pandulapeter.kubriko.engine.actor.editor.EditableProperty
+import com.pandulapeter.kubriko.engine.editorIntegration.EditableProperty
 import com.pandulapeter.kubriko.engine.types.AngleDegrees
 import com.pandulapeter.kubriko.engine.types.Scale
 import com.pandulapeter.kubriko.engine.types.WorldCoordinates

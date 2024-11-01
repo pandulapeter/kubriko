@@ -7,9 +7,8 @@ import com.pandulapeter.kubriko.editor.implementation.helpers.handleKeys
 import com.pandulapeter.kubriko.editor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.editor.implementation.helpers.saveFile
 import com.pandulapeter.kubriko.engine.Kubriko
-import com.pandulapeter.kubriko.engine.actor.Actor
-import com.pandulapeter.kubriko.engine.actor.traits.Editable
-import com.pandulapeter.kubriko.engine.actor.traits.Visible
+import com.pandulapeter.kubriko.engine.traits.Editable
+import com.pandulapeter.kubriko.engine.traits.Visible
 import com.pandulapeter.kubriko.engine.implementation.extensions.toWorldCoordinates
 import com.pandulapeter.kubriko.engine.types.WorldCoordinates
 import kotlinx.coroutines.CoroutineScope
@@ -145,7 +144,7 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
     fun deleteSelectedInstance() {
         _selectedInstance.value?.let { selectedGameObject ->
             _selectedInstance.update { null }
-            kubriko.instanceManager.remove(selectedGameObject as Actor)
+            kubriko.instanceManager.remove(selectedGameObject)
         }
     }
 

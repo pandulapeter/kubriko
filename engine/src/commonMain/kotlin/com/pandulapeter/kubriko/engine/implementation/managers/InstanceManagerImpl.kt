@@ -1,10 +1,9 @@
 package com.pandulapeter.kubriko.engine.implementation.managers
 
-import com.pandulapeter.kubriko.engine.actor.Actor
-import com.pandulapeter.kubriko.engine.actor.traits.Editable
-import com.pandulapeter.kubriko.engine.actor.traits.Dynamic
-import com.pandulapeter.kubriko.engine.actor.traits.Unique
-import com.pandulapeter.kubriko.engine.actor.traits.Visible
+import com.pandulapeter.kubriko.engine.traits.Editable
+import com.pandulapeter.kubriko.engine.traits.Dynamic
+import com.pandulapeter.kubriko.engine.traits.Unique
+import com.pandulapeter.kubriko.engine.traits.Visible
 import com.pandulapeter.kubriko.engine.implementation.KubrikoImpl
 import com.pandulapeter.kubriko.engine.implementation.extensions.isAroundPosition
 import com.pandulapeter.kubriko.engine.implementation.extensions.isVisible
@@ -26,17 +25,17 @@ internal class InstanceManagerImpl(
     private val engineImpl: KubrikoImpl,
 ) : InstanceManager {
 
-    private val _allInstances = MutableStateFlow(emptyList<Actor>())
-    override val allActors = _allInstances.asStateFlow()
-    val dynamicInstances = _allInstances
+    private val _allActors = MutableStateFlow(emptyList<Any>())
+    override val allActors = _allActors.asStateFlow()
+    val dynamicActors = _allActors
         .map { gameObjects -> gameObjects.filterIsInstance<Dynamic>() }
         .stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
-    private val visibleInstances = _allInstances
+    private val visibleActors = _allActors
         .map { gameObjects -> gameObjects.filterIsInstance<Visible>() }
         .stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
     override val visibleActorsWithinViewport = combine(
         engineImpl.metadataManager.runtimeInMilliseconds.map { it / 100 }.distinctUntilChanged(),
-        visibleInstances,
+        visibleActors,
         engineImpl.viewportManager.size,
         engineImpl.viewportManager.center,
         engineImpl.viewportManager.scaleFactor,
@@ -53,7 +52,7 @@ internal class InstanceManagerImpl(
     }.stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
 
     @OptIn(ExperimentalUuidApi::class)
-    override fun add(vararg actors: Actor) = _allInstances.update { currentValue ->
+    override fun add(vararg actors: Any) = _allActors.update { currentValue ->
         val uniqueGameObjects = actors.filterIsInstance<Unique>()
         if (uniqueGameObjects.isEmpty()) {
             currentValue
@@ -63,16 +62,14 @@ internal class InstanceManagerImpl(
                 filteredCurrentValue.removeAll { it::class == unique::class }
             }
             filteredCurrentValue
-        } + actors.onEach { actor ->
-            actor.instanceId = Uuid.random().toString()
-        }
+        } + actors
     }
 
-    override fun remove(vararg actors: Actor) = _allInstances.update { currentValue ->
+    override fun remove(vararg actors: Any) = _allActors.update { currentValue ->
         currentValue.filterNot { it in actors }
     }
 
-    override fun removeAll() = _allInstances.update { emptyList() }
+    override fun removeAll() = _allActors.update { emptyList() }
 
     override suspend fun serializeState() =
         engineImpl.serializationManager.serializeInstanceStates(allActors.value.filterIsInstance<Editable<*>>().map { it.saveState() })
@@ -85,14 +82,12 @@ internal class InstanceManagerImpl(
 
     override fun findVisibleInstancesWithBoundsInPosition(position: WorldCoordinates) = visibleActorsWithinViewport.value
         .filter { it.occupiesPosition(position) }
-        .map { it as Actor }
 
-    override fun findVisibleInstancesWithPivotsAroundPosition(position: WorldCoordinates, range: Float) = visibleInstances.value
+    override fun findVisibleInstancesWithPivotsAroundPosition(position: WorldCoordinates, range: Float) = visibleActors.value
         .filter {
             it.isAroundPosition(
                 position = position,
                 range = range,
             )
         }
-        .map { it as Actor }
 }

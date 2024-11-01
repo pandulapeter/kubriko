@@ -10,7 +10,7 @@ import androidx.compose.ui.window.application
 import com.pandulapeter.kubriko.editor.implementation.EditorController
 import com.pandulapeter.kubriko.editor.implementation.userInterface.EditorUserInterface
 import com.pandulapeter.kubriko.engine.Kubriko
-import com.pandulapeter.kubriko.engine.actor.EditableMetadata
+import com.pandulapeter.kubriko.engine.editorIntegration.EditableMetadata
 import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame

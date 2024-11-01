@@ -1,7 +1,7 @@
 package com.pandulapeter.kubrikoStressTest.implementation.gameObjects.traits
 
-import com.pandulapeter.kubriko.engine.actor.traits.Movable
-import com.pandulapeter.kubriko.engine.actor.traits.Visible
+import com.pandulapeter.kubriko.engine.traits.Movable
+import com.pandulapeter.kubriko.engine.traits.Visible
 import com.pandulapeter.kubriko.engine.implementation.extensions.angleTowards
 import com.pandulapeter.kubriko.engine.implementation.extensions.deg
 import com.pandulapeter.kubriko.engine.types.AngleDegrees

@@ -1,8 +1,7 @@
 package com.pandulapeter.kubriko.engine.implementation.managers
 
-import com.pandulapeter.kubriko.engine.actor.Actor
-import com.pandulapeter.kubriko.engine.actor.EditableMetadata
-import com.pandulapeter.kubriko.engine.actor.traits.Editable
+import com.pandulapeter.kubriko.engine.editorIntegration.EditableMetadata
+import com.pandulapeter.kubriko.engine.traits.Editable
 import com.pandulapeter.kubriko.engine.managers.SerializationManager
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -11,7 +10,7 @@ import kotlinx.serialization.json.Json
 import kotlin.reflect.KClass
 
 internal class SerializationManagerImpl(
-    vararg editableMetadata: EditableMetadata<out Actor>,
+    vararg editableMetadata: EditableMetadata<out Editable<*>>,
 ) : SerializationManager {
 
     private val typeIdsToDeserializers = editableMetadata.associate { registration -> registration.typeId to registration.deserializeState }
@@ -22,7 +21,7 @@ internal class SerializationManagerImpl(
     override fun resolveTypeId(type: KClass<*>) = typeResolvers[type].orEmpty()
 
     override suspend fun serializeInstanceStates(
-        instanceStates: List<Editable.State<*>>,
+        instanceStates: List<Editable.State<out Editable<*>>>,
     ) = json.encodeToString(
         instanceStates.map { state ->
             InstanceStateWrapper(

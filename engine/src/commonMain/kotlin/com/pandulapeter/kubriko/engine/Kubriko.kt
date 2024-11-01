@@ -1,6 +1,6 @@
 package com.pandulapeter.kubriko.engine
 
-import com.pandulapeter.kubriko.engine.actor.EditableMetadata
+import com.pandulapeter.kubriko.engine.editorIntegration.EditableMetadata
 import com.pandulapeter.kubriko.engine.implementation.KubrikoImpl
 import com.pandulapeter.kubriko.engine.managers.InputManager
 import com.pandulapeter.kubriko.engine.managers.InstanceManager

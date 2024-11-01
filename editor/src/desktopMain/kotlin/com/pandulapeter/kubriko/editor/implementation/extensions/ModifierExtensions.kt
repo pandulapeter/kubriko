@@ -10,7 +10,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
-import com.pandulapeter.kubriko.engine.actor.traits.Editable
+import com.pandulapeter.kubriko.engine.traits.Editable
 import com.pandulapeter.kubriko.engine.implementation.extensions.occupiesPosition
 import com.pandulapeter.kubriko.engine.managers.InputManager
 import com.pandulapeter.kubriko.engine.managers.ViewportManager

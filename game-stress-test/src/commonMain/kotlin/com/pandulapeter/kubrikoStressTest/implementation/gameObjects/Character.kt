@@ -4,15 +4,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.key.Key
-import com.pandulapeter.kubriko.engine.actor.Actor
-import com.pandulapeter.kubriko.engine.actor.editor.EditableProperty
-import com.pandulapeter.kubriko.engine.actor.traits.Editable
-import com.pandulapeter.kubriko.engine.actor.traits.Dynamic
-import com.pandulapeter.kubriko.engine.actor.traits.Unique
-import com.pandulapeter.kubriko.engine.actor.traits.Visible
+import com.pandulapeter.kubriko.engine.editorIntegration.EditableProperty
 import com.pandulapeter.kubriko.engine.implementation.extensions.KeyboardDirectionState
 import com.pandulapeter.kubriko.engine.implementation.extensions.directionState
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableWorldCoordinates
+import com.pandulapeter.kubriko.engine.traits.Dynamic
+import com.pandulapeter.kubriko.engine.traits.Editable
+import com.pandulapeter.kubriko.engine.traits.Unique
+import com.pandulapeter.kubriko.engine.traits.Visible
 import com.pandulapeter.kubriko.engine.types.WorldCoordinates
 import com.pandulapeter.kubriko.engine.types.WorldSize
 import com.pandulapeter.kubrikoStressTest.implementation.GameplayController
@@ -30,9 +29,7 @@ import kotlinx.serialization.json.Json
 import kotlin.math.PI
 import kotlin.math.sin
 
-class Character private constructor(
-    state: CharacterState,
-) : Actor(), Editable<Character>, Unique, Dynamic, CoroutineScope {
+class Character private constructor(state: CharacterState) : Editable<Character>, Unique, Dynamic, CoroutineScope {
 
     @set:EditableProperty(name = "position")
     override var position: WorldCoordinates = state.position
