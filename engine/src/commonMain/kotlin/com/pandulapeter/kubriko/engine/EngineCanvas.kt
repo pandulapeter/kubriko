@@ -14,6 +14,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.pandulapeter.kubriko.engine.implementation.extensions.drawEditorGrid
 import com.pandulapeter.kubriko.engine.implementation.extensions.minus
 import com.pandulapeter.kubriko.engine.implementation.extensions.transform
 import com.pandulapeter.kubriko.engine.implementation.extensions.transformViewport
@@ -74,24 +75,35 @@ fun EngineCanvas(
         onDraw = {
             gameTime.value
             viewportManager.updateSize(size = size)
-            viewportManager.center.value.let { viewportCenter ->
-                withTransform(
-                    transformBlock = {
-                        transformViewport(
-                            viewportCenter = viewportCenter,
-                            shiftedViewportOffset = (size / 2f) - viewportCenter,
-                            viewportScaleFactor = viewportManager.scaleFactor.value,
+            viewportManager.size.value.let { viewportSize ->
+                viewportManager.center.value.let { viewportCenter ->
+                    viewportManager.scaleFactor.value.let { viewportScaleFactor ->
+                        withTransform(
+                            transformBlock = {
+                                transformViewport(
+                                    viewportCenter = viewportCenter,
+                                    shiftedViewportOffset = (size / 2f) - viewportCenter,
+                                    viewportScaleFactor = viewportScaleFactor,
+                                )
+                            },
+                            drawBlock = {
+                                instanceManager.visibleActorsWithinViewport.value.forEach { visible ->
+                                    withTransform(
+                                        transformBlock = { visible.transform(this) },
+                                        drawBlock = { visible.draw(this) }
+                                    )
+                                }
+                                if (kubriko.isEditor) {
+                                    drawEditorGrid(
+                                        viewportCenter = viewportCenter,
+                                        viewportSize = viewportSize,
+                                        viewportScaleFactor = viewportScaleFactor,
+                                    )
+                                }
+                            }
                         )
-                    },
-                    drawBlock = {
-                        instanceManager.visibleActorsWithinViewport.value.forEach { visible ->
-                            withTransform(
-                                transformBlock = { visible.transform(this) },
-                                drawBlock = { visible.draw(this) }
-                            )
-                        }
                     }
-                )
+                }
             }
         }
     )

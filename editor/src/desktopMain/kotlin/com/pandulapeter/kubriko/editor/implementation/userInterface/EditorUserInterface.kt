@@ -53,7 +53,6 @@ internal fun EditorUserInterface(
                 selectInstance = editorController::selectInstance,
                 resolveTypeId = editorController.kubriko.serializationManager::resolveTypeId,
             )
-            // TODO: Draw a grid in the background
             EngineCanvas(
                 modifier = Modifier
                     .weight(1f)

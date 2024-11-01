@@ -65,6 +65,7 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
     val shouldShowVisibleOnly = _shouldShowVisibleOnly.asStateFlow()
 
     init {
+        kubriko.isEditor = true
         kubriko.inputManager.activeKeys
             .filter { it.isNotEmpty() }
             .onEach(kubriko.viewportManager::handleKeys)
@@ -166,6 +167,7 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
     }
 
     fun reset() {
+        kubriko.viewportManager.setCenter(WorldCoordinates.Zero)
         _currentFileName.update { DEFAULT_MAP_FILE_NAME }
         _selectedInstance.update { null }
         kubriko.instanceManager.removeAll()
