@@ -12,6 +12,7 @@ interface Identifiable {
     /**
      * The name of the Actor instance.
      * If implementations provide a {null} [name], [Kubriko] will set a random-generated value when the Actor is added to the Scene.
+     * The engine will not change the value during runtime.
      */
     var name: String?
 }

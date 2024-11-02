@@ -1,6 +1,8 @@
 package com.pandulapeter.kubriko.editor.implementation
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.editor.implementation.helpers.exitApp
 import com.pandulapeter.kubriko.editor.implementation.helpers.handleKeyReleased
 import com.pandulapeter.kubriko.editor.implementation.helpers.handleKeys
@@ -9,6 +11,8 @@ import com.pandulapeter.kubriko.editor.implementation.helpers.saveFile
 import com.pandulapeter.kubriko.engine.Kubriko
 import com.pandulapeter.kubriko.engine.implementation.extensions.toSceneOffset
 import com.pandulapeter.kubriko.engine.traits.Editable
+import com.pandulapeter.kubriko.engine.traits.Overlay
+import com.pandulapeter.kubriko.engine.traits.Unique
 import com.pandulapeter.kubriko.engine.traits.Visible
 import com.pandulapeter.kubriko.engine.types.SceneOffset
 import kotlinx.coroutines.CoroutineScope
@@ -26,7 +30,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
+internal class EditorController(val kubriko: Kubriko) : CoroutineScope, Overlay, Unique {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
     val allInstances = kubriko.actorManager.allActors
@@ -173,12 +177,14 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
         _currentFileName.update { DEFAULT_MAP_FILE_NAME }
         _selectedInstance.update { null }
         kubriko.actorManager.removeAll()
+        kubriko.actorManager.add(this)
     }
 
     fun loadMap(path: String) {
         launch {
             loadFile(path)?.let { json ->
                 kubriko.actorManager.deserializeState(json)
+                kubriko.actorManager.add(this@EditorController)
                 _currentFileName.update { path.split('/').last() }
             }
         }
@@ -201,8 +207,74 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
         }
     }
 
+    override fun drawToViewport(scope: DrawScope) {
+        kubriko.viewportManager.size.value.let { viewportSize ->
+            kubriko.viewportManager.center.value.let { viewportCenter ->
+                kubriko.viewportManager.scaleFactor.value.let { viewportScaleFactor ->
+                    // Calculate the viewport boundaries in world coordinates
+                    val viewportTopLeft = Offset.Zero.toSceneOffset(
+                        viewportCenter = viewportCenter,
+                        viewportSize = viewportSize,
+                        viewportScaleFactor = viewportScaleFactor,
+                    )
+                    val viewportBottomRight = Offset(viewportSize.width, viewportSize.height).toSceneOffset(
+                        viewportCenter = viewportCenter,
+                        viewportSize = viewportSize,
+                        viewportScaleFactor = viewportScaleFactor,
+                    )
+
+                    // Precomputed values for major and minor lines
+                    val strokeWidth = 1f / viewportScaleFactor
+
+                    // Calculate the starting point for vertical lines and ensure alignment with (0,0)
+                    var startX = (viewportTopLeft.x / GRID_CELL_SIZE).raw.toInt() * GRID_CELL_SIZE
+                    if (startX > viewportTopLeft.x.raw) startX -= GRID_CELL_SIZE
+                    val startXLineIndex = (startX / GRID_CELL_SIZE).toInt() // Adjust to always align with origin
+
+                    // Draw vertical grid lines
+                    var currentX = startX
+                    var iterationX = 0
+                    while (currentX <= viewportBottomRight.x.raw) {
+                        val alpha = if ((startXLineIndex + iterationX) % 10 == 0) ALPHA_MAJOR else ALPHA_MINOR
+                        scope.drawLine(
+                            color = Color.Gray.copy(alpha = alpha),
+                            start = Offset(currentX, viewportTopLeft.y.raw),
+                            end = Offset(currentX, viewportBottomRight.y.raw),
+                            strokeWidth = strokeWidth
+                        )
+                        currentX += GRID_CELL_SIZE
+                        iterationX++
+                    }
+
+                    // Calculate the starting point for horizontal lines, aligning with (0,0)
+                    var startY = (viewportTopLeft.y / GRID_CELL_SIZE).raw.toInt() * GRID_CELL_SIZE
+                    if (startY > viewportTopLeft.y.raw) startY -= GRID_CELL_SIZE
+                    val startYLineIndex = (startY / GRID_CELL_SIZE).toInt() // Align with origin
+
+                    // Draw horizontal grid lines
+                    var currentY = startY
+                    var iterationY = 0
+                    while (currentY <= viewportBottomRight.y.raw) {
+                        val alpha = if ((startYLineIndex + iterationY) % 10 == 0) ALPHA_MAJOR else ALPHA_MINOR
+                        scope.drawLine(
+                            color = Color.Gray.copy(alpha = alpha),
+                            start = Offset(viewportTopLeft.x.raw, currentY),
+                            end = Offset(viewportBottomRight.x.raw, currentY),
+                            strokeWidth = strokeWidth
+                        )
+                        currentY += GRID_CELL_SIZE
+                        iterationY++
+                    }
+                }
+            }
+        }
+    }
+
     companion object {
         const val MAPS_DIRECTORY = "./src/commonMain/composeResources/files/maps"
         private const val DEFAULT_MAP_FILE_NAME = "map_untitled.json"
+        private const val GRID_CELL_SIZE = 100f
+        private const val ALPHA_MAJOR = 0.4f
+        private const val ALPHA_MINOR = 0.2f
     }
 }

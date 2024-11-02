@@ -30,7 +30,6 @@ interface Kubriko {
     /**
      * Designed to be used only for the Editor. Should return {false} under normal circumstances.
      * Setting this value to {true} has the following effects:
-     * - A grid is drawn behind the Actors
      * - [Dynamic] Actors no longer receive update events
      * - [Editable] Actors will become visible through their {editorPreview} implementation
      */

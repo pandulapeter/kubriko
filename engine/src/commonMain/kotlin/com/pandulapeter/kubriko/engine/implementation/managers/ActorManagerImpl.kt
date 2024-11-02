@@ -37,7 +37,7 @@ internal class ActorManagerImpl(
         .map { actors -> actors.filterIsInstance<Visible>() }
         .stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
     val overlayActors = _allActors
-        .map { actors -> actors.filterIsInstance<Overlay>() }
+        .map { actors -> actors.filterIsInstance<Overlay>().sortedByDescending { it.overlayDrawingOrder } }
         .stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
     override val visibleActorsWithinViewport = combine(
         engineImpl.metadataManager.runtimeInMilliseconds.map { it / 100 }.distinctUntilChanged(),

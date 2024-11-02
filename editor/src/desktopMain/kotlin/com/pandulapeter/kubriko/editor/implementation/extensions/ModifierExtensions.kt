@@ -10,10 +10,10 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
-import com.pandulapeter.kubriko.engine.traits.Editable
 import com.pandulapeter.kubriko.engine.implementation.extensions.occupiesPosition
 import com.pandulapeter.kubriko.engine.managers.InputManager
 import com.pandulapeter.kubriko.engine.managers.ViewportManager
+import com.pandulapeter.kubriko.engine.traits.Editable
 import com.pandulapeter.kubriko.engine.types.SceneOffset
 
 private var startOffset: SceneOffset? = null
@@ -31,7 +31,7 @@ internal fun Modifier.handleMouseClick(
         PointerButton.Primary -> getSelectedInstance()?.let { selectedInstance ->
             getMouseSceneOffset().let { mouseWorldCoordinates ->
                 if (selectedInstance.occupiesPosition(mouseWorldCoordinates)) {
-                    startOffset = mouseWorldCoordinates - selectedInstance.editorPreview.position
+                    startOffset = mouseWorldCoordinates - selectedInstance.position
                 }
             }
         }

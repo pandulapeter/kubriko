@@ -16,7 +16,7 @@ interface Visible : Positionable {
     val rotation: AngleRadians get() = AngleRadians.Zero
 
     /**
-     * This number will be used to determine the order of executing the [draw] function relative to other Actors.
+     * This number will be used to determine the order of executing the [draw] function relative to other [Visible] Actors.
      * Actors with smaller [drawingOrder]-s get drawn later (on top).
      */
     val drawingOrder: Float get() = 0f
