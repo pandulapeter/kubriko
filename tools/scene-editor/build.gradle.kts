@@ -14,6 +14,7 @@ kotlin {
         val desktopMain by getting {
             dependencies {
                 implementation(projects.engine)
+                api(projects.plugins.sceneSerializer)
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material)

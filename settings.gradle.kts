@@ -4,6 +4,7 @@ include(
     ":games:pong",
     ":games:stress-test",
     ":plugins:debug-info",
+    ":plugins:scene-serializer",
     ":tools:scene-editor",
 )
 

@@ -2,19 +2,17 @@ package com.pandulapeter.kubrikoPong.implementation
 
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubrikoPong.implementation.gameObjects.Ball
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
-import kubriko.games.pong.generated.resources.Res
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.MissingResourceException
 
+// TODO: Implement Pong game logic
 internal class GameplayController(
-    private val kubriko: Kubriko,
+    val kubriko: Kubriko,
 ) : CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
@@ -27,24 +25,12 @@ internal class GameplayController(
         kubriko.inputManager.onKeyReleased
             .onEach(::handleKeyReleased)
             .launchIn(this)
-        loadMap(SCENE_NAME)
-    }
-
-    @OptIn(ExperimentalResourceApi::class)
-    private fun loadMap(mapName: String) = launch {
-        try {
-            kubriko.actorManager.deserializeState(Res.readBytes("files/scenes/$mapName.json").decodeToString())
-        } catch (_: MissingResourceException) {
-        }
+        kubriko.actorManager.add(Ball())
     }
 
     private fun handleKeyReleased(key: Key) {
         when (key) {
             Key.Escape, Key.Back, Key.Backspace -> kubriko.stateManager.updateIsRunning(!kubriko.stateManager.isRunning.value)
         }
-    }
-
-    companion object {
-        const val SCENE_NAME = "scene_demo"
     }
 }

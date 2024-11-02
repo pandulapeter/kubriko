@@ -47,7 +47,6 @@ kotlin {
         }
         val desktopMain by getting {
             dependencies {
-                implementation(projects.tools.sceneEditor)
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlinx.coroutines.swing)
             }

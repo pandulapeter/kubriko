@@ -35,6 +35,7 @@ kotlin {
         commonMain.dependencies {
             implementation(projects.engine)
             implementation(projects.plugins.debugInfo)
+            implementation(projects.plugins.sceneSerializer)
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material)
