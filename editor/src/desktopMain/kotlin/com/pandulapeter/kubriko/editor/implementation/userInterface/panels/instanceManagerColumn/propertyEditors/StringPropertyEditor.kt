@@ -6,17 +6,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.editor.implementation.userInterface.components.EditorNumberInput
+import com.pandulapeter.kubriko.editor.implementation.userInterface.components.EditorTextInput
 
 @Composable
-internal fun FloatPropertyEditor(
+internal fun StringPropertyEditor(
     name: String,
-    value: Float,
-    onValueChanged: (Float) -> Unit,
+    value: String,
+    onValueChanged: (String) -> Unit,
 ) = Column(
     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
 ) {
-    EditorNumberInput(
+    EditorTextInput(
         title = name,
         value = value,
         onValueChanged = onValueChanged,
