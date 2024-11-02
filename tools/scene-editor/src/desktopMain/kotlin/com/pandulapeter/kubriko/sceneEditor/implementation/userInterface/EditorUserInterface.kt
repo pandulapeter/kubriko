@@ -48,16 +48,16 @@ internal fun EditorUserInterface(
                 shouldShowVisibleOnly = editorController.shouldShowVisibleOnly.collectAsState().value,
                 allInstances = editorController.allEditableActors.collectAsState().value,
                 visibleInstances = editorController.visibleActorsWithinViewport.collectAsState().value,
-                selectedUpdatableInstance = editorController.selectedUpdatableInstance.collectAsState().value,
+                selectedUpdatableInstance = editorController.selectedUpdatableActor.collectAsState().value,
                 onShouldShowVisibleOnlyToggled = editorController::onShouldShowVisibleOnlyToggled,
-                selectInstance = editorController::selectInstance,
-                resolveTypeId = editorController.sceneSerializer::resolveTypeId,
+                selectInstance = editorController::selectActor,
+                resolveTypeId = editorController.sceneSerializer::getTypeId,
             )
             EngineCanvas(
                 modifier = Modifier
                     .weight(1f)
                     .handleMouseClick(
-                        getSelectedInstance = editorController::getSelectedInstance,
+                        getSelectedActor = editorController::getSelectedActor,
                         getMouseSceneOffset = editorController::getMouseWorldCoordinates,
                         onLeftClick = editorController::onLeftClick,
                         onRightClick = editorController::onRightClick,
@@ -71,23 +71,23 @@ internal fun EditorUserInterface(
                     .handleMouseDrag(
                         inputManager = editorController.kubriko.inputManager,
                         viewportManager = editorController.kubriko.viewportManager,
-                        getSelectedInstance = editorController::getSelectedInstance,
+                        getSelectedActor = editorController::getSelectedActor,
                         getMouseSceneOffset = editorController::getMouseWorldCoordinates,
-                        notifySelectedInstanceUpdate = editorController::notifySelectedInstanceUpdate,
+                        notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
                     )
                     .background(Color.White),
                 kubriko = editorController.kubriko,
             )
             InstanceManagerColumn(
-                registeredTypeIds = editorController.sceneSerializer.typeIdsForEditor.toList(),
+                registeredTypeIds = editorController.sceneSerializer.registeredTypeIds.toList(),
                 selectedTypeId = editorController.selectedTypeId.collectAsState().value,
-                selectedUpdatableInstance = editorController.selectedUpdatableInstance.collectAsState().value,
-                selectTypeId = editorController::selectInstance,
-                resolveTypeId = editorController.sceneSerializer::resolveTypeId,
-                deselectSelectedInstance = editorController::deselectSelectedInstance,
-                locateSelectedInstance = editorController::locateSelectedInstance,
-                deleteSelectedInstance = editorController::deleteSelectedInstance,
-                notifySelectedInstanceUpdate = editorController::notifySelectedInstanceUpdate,
+                selectedUpdatableInstance = editorController.selectedUpdatableActor.collectAsState().value,
+                selectTypeId = editorController::selectActor,
+                resolveTypeId = editorController.sceneSerializer::getTypeId,
+                deselectSelectedInstance = editorController::deselectSelectedActor,
+                locateSelectedInstance = editorController::locateSelectedActor,
+                deleteSelectedInstance = editorController::removeSelectedActor,
+                notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
             )
         }
         MetadataRow(

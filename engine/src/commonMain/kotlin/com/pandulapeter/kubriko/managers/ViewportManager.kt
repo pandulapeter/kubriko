@@ -10,12 +10,12 @@ import kotlinx.coroutines.flow.StateFlow
  */
 interface ViewportManager {
     val size: StateFlow<Size>
-    val center: StateFlow<SceneOffset>
+    val cameraPosition: StateFlow<SceneOffset>
     val scaleFactor: StateFlow<Float>
 
-    fun addToCenter(offset: Offset)
+    fun addToCameraPosition(offset: Offset)
 
-    fun setCenter(position: SceneOffset)
+    fun setCameraPosition(position: SceneOffset)
 
     fun multiplyScaleFactor(scaleFactor: Float)
 }

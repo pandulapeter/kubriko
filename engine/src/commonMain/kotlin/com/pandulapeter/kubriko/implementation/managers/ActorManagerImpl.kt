@@ -7,10 +7,8 @@ import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.KubrikoImpl
-import com.pandulapeter.kubriko.implementation.extensions.isAroundPosition
 import com.pandulapeter.kubriko.implementation.extensions.isVisible
 import com.pandulapeter.kubriko.managers.ActorManager
-import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -42,7 +40,7 @@ internal class ActorManagerImpl(
         engineImpl.metadataManager.runtimeInMilliseconds.map { it / 100 }.distinctUntilChanged(),
         visibleActors,
         engineImpl.viewportManager.size,
-        engineImpl.viewportManager.center,
+        engineImpl.viewportManager.cameraPosition,
         engineImpl.viewportManager.scaleFactor,
     ) { _, allVisibleActors, viewportSize, viewportCenter, viewportScaleFactor ->
         allVisibleActors
@@ -68,12 +66,4 @@ internal class ActorManagerImpl(
     }
 
     override fun removeAll() = _allActors.update { emptyList() }
-
-    override fun findVisibleActorsWithPivotsAroundPosition(position: SceneOffset, range: Float) = visibleActors.value
-        .filter {
-            it.isAroundPosition(
-                position = position,
-                range = range,
-            )
-        }
 }

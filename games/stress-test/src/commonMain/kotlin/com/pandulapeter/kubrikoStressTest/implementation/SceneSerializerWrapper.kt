@@ -2,9 +2,9 @@ package com.pandulapeter.kubrikoStressTest.implementation
 
 import com.pandulapeter.kubriko.sceneSerializer.SceneSerializer
 import com.pandulapeter.kubriko.sceneSerializer.integration.EditableMetadata
-import com.pandulapeter.kubrikoStressTest.implementation.gameObjects.BoxWithCircle
-import com.pandulapeter.kubrikoStressTest.implementation.gameObjects.Character
-import com.pandulapeter.kubrikoStressTest.implementation.gameObjects.MovingBox
+import com.pandulapeter.kubrikoStressTest.implementation.actors.BoxWithCircle
+import com.pandulapeter.kubrikoStressTest.implementation.actors.Character
+import com.pandulapeter.kubrikoStressTest.implementation.actors.MovingBox
 import kotlinx.serialization.json.Json
 
 class SceneSerializerWrapper {

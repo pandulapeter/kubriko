@@ -1,4 +1,4 @@
-package com.pandulapeter.kubrikoStressTest.implementation.gameObjects.traits
+package com.pandulapeter.kubrikoStressTest.implementation.actors.traits
 
 import com.pandulapeter.kubriko.actor.traits.Movable
 import com.pandulapeter.kubriko.actor.traits.Visible

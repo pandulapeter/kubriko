@@ -6,7 +6,7 @@ import com.pandulapeter.kubriko.managers.ViewportManager
 import com.pandulapeter.kubriko.types.SceneOffset
 
 fun Offset.toSceneOffset(viewportManager: ViewportManager): SceneOffset = toSceneOffset(
-    viewportCenter = viewportManager.center.value,
+    viewportCenter = viewportManager.cameraPosition.value,
     viewportSize = viewportManager.size.value,
     viewportScaleFactor = viewportManager.scaleFactor.value,
 )

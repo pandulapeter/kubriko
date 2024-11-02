@@ -17,7 +17,7 @@ internal fun Modifier.handleDragAndPan(
 ) = pointerInput("dragAndPan") {
     detectTransformGestures { _, pan, zoom, _ ->
         if (stateManager.isRunning.value) {
-            viewportManager.addToCenter(pan)
+            viewportManager.addToCameraPosition(pan)
             viewportManager.multiplyScaleFactor(zoom)
         }
     }

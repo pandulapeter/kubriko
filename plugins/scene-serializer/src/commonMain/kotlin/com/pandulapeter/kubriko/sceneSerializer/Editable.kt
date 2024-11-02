@@ -18,6 +18,7 @@ import com.pandulapeter.kubriko.sceneSerializer.integration.EditableMetadata
  * If an [Editable] Actor is not [Visible], the Scene Editor will create a default representation for it (that's only visible in the Editor). Use [editorPreview] to override this representation.
  */
 // TODO: Rename to Serializable
+// TODO: Separate Positionable
 interface Editable<T : Editable<T>> : Positionable, Actor {
 
     /**

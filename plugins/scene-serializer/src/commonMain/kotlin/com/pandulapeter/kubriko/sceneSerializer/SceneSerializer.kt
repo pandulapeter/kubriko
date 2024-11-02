@@ -9,10 +9,11 @@ import kotlin.reflect.KClass
  */
 interface SceneSerializer {
 
-    // TODO: Rename this
-    val typeIdsForEditor: Set<String>
+    val registeredTypeIds: Set<String>
 
-    fun resolveTypeId(type: KClass<*>): String?
+    fun getTypeId(type: KClass<out Editable<*>>): String?
+
+    fun getType(typeId: String): KClass<out Editable<*>>?
 
     suspend fun serializeActors(actors: List<Editable<*>>): String
 

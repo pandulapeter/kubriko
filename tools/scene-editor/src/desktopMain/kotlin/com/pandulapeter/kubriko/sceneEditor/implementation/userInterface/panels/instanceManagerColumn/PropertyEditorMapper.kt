@@ -42,7 +42,7 @@ import kotlin.reflect.full.withNullability
 
 
 internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
-    instance: T,
+    actor: T,
     notifySelectedInstanceUpdate: () -> Unit,
 ): (@Composable () -> Unit)? = setter.findAnnotation<EditableProperty>()?.let { editableProperty ->
     editableProperty.name.let { name ->
@@ -51,9 +51,9 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 {
                     ColorPropertyEditor(
                         name = name,
-                        value = getter.call(instance) as Color,
+                        value = getter.call(actor) as Color,
                         onValueChanged = { color ->
-                            setter.call(instance, color)
+                            setter.call(actor, color)
                             notifySelectedInstanceUpdate()
                         }
                     )
@@ -64,9 +64,9 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 {
                     AngleDegreesPropertyEditor(
                         name = name,
-                        value = getter.call(instance) as AngleDegrees,
+                        value = getter.call(actor) as AngleDegrees,
                         onValueChanged = {
-                            setter.call(instance, it)
+                            setter.call(actor, it)
                             notifySelectedInstanceUpdate()
                         }
                     )
@@ -77,9 +77,9 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 {
                     AngleRadiansPropertyEditor(
                         name = name,
-                        value = getter.call(instance) as AngleRadians,
+                        value = getter.call(actor) as AngleRadians,
                         onValueChanged = {
-                            setter.call(instance, it)
+                            setter.call(actor, it)
                             notifySelectedInstanceUpdate()
                         }
                     )
@@ -90,9 +90,9 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 {
                     SceneOffsetPropertyEditor(
                         name = name,
-                        value = getter.call(instance) as SceneOffset,
+                        value = getter.call(actor) as SceneOffset,
                         onValueChanged = {
-                            setter.call(instance, it)
+                            setter.call(actor, it)
                             notifySelectedInstanceUpdate()
                         }
                     )
@@ -103,9 +103,9 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 {
                     ScalePropertyEditor(
                         name = name,
-                        value = getter.call(instance) as Scale,
+                        value = getter.call(actor) as Scale,
                         onValueChanged = {
-                            setter.call(instance, it)
+                            setter.call(actor, it)
                             notifySelectedInstanceUpdate()
                         }
                     )
@@ -116,9 +116,9 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 {
                     FloatPropertyEditor(
                         name = name,
-                        value = getter.call(instance) as Float,
+                        value = getter.call(actor) as Float,
                         onValueChanged = {
-                            setter.call(instance, it)
+                            setter.call(actor, it)
                             notifySelectedInstanceUpdate()
                         }
                     )
@@ -129,9 +129,9 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 {
                     StringPropertyEditor(
                         name = name,
-                        value = getter.call(instance) as String,
+                        value = getter.call(actor) as String,
                         onValueChanged = {
-                            setter.call(instance, it)
+                            setter.call(actor, it)
                             notifySelectedInstanceUpdate()
                         }
                     )
@@ -142,9 +142,9 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 {
                     ScenePixelPropertyEditor(
                         name = name,
-                        value = getter.call(instance) as ScenePixel,
+                        value = getter.call(actor) as ScenePixel,
                         onValueChanged = {
-                            setter.call(instance, it)
+                            setter.call(actor, it)
                             notifySelectedInstanceUpdate()
                         }
                     )

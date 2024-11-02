@@ -10,7 +10,7 @@ private const val CAMERA_SPEED = 15f
 private const val CAMERA_SPEED_DIAGONAL = 0.7071f * CAMERA_SPEED
 
 internal fun ViewportManager.handleKeys(keys: Set<Key>) {
-    addToCenter(
+    addToCameraPosition(
         -when (keys.directionState) {
             com.pandulapeter.kubriko.implementation.extensions.KeyboardDirectionState.NONE -> Offset.Zero
             com.pandulapeter.kubriko.implementation.extensions.KeyboardDirectionState.LEFT -> Offset(-CAMERA_SPEED, 0f)

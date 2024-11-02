@@ -15,15 +15,15 @@ internal class ViewportManagerImpl : ViewportManager {
     private val _size = MutableStateFlow(Size.Zero)
     override val size = _size.asStateFlow()
     private val _center = MutableStateFlow(SceneOffset.Zero)
-    override val center = _center.asStateFlow()
+    override val cameraPosition = _center.asStateFlow()
     private val _scaleFactor = MutableStateFlow(1f)
     override val scaleFactor = _scaleFactor.asStateFlow()
 
-    override fun addToCenter(
+    override fun addToCameraPosition(
         offset: Offset,
     ) = _center.update { currentValue -> currentValue - SceneOffset(offset / _scaleFactor.value) }
 
-    override fun setCenter(
+    override fun setCameraPosition(
         position: SceneOffset,
     ) = _center.update { position }
 

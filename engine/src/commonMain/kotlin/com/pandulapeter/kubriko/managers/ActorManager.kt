@@ -1,7 +1,6 @@
 package com.pandulapeter.kubriko.managers
 
 import com.pandulapeter.kubriko.actor.Actor
-import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -17,7 +16,4 @@ interface ActorManager {
     fun remove(vararg actors: Actor)
 
     fun removeAll()
-
-    // TODO: No need for this
-    fun findVisibleActorsWithPivotsAroundPosition(position: SceneOffset, range: Float): List<Actor>
 }

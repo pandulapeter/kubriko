@@ -2,7 +2,7 @@ package com.pandulapeter.kubrikoPong.implementation
 
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubrikoPong.implementation.gameObjects.Ball
+import com.pandulapeter.kubrikoPong.implementation.actors.Ball
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

@@ -1,4 +1,4 @@
-package com.pandulapeter.kubrikoPong.implementation.gameObjects
+package com.pandulapeter.kubrikoPong.implementation.actors
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope

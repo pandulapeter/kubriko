@@ -2,6 +2,7 @@ package com.pandulapeter.kubriko.sceneEditor.implementation
 
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.occupiesPosition
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.GridOverlay
@@ -12,7 +13,6 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.saveFile
 import com.pandulapeter.kubriko.sceneSerializer.Editable
 import com.pandulapeter.kubriko.sceneSerializer.SceneSerializer
-import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,7 +50,7 @@ internal class EditorController(
     private val mouseScreenCoordinates = MutableStateFlow(Offset.Zero)
     val mouseSceneOffset = combine(
         mouseScreenCoordinates,
-        kubriko.viewportManager.center,
+        kubriko.viewportManager.cameraPosition,
         kubriko.viewportManager.size,
         kubriko.viewportManager.scaleFactor,
     ) { mouseScreenCoordinates, viewportCenter, viewportSize, viewportScaleFactor ->
@@ -60,13 +60,13 @@ internal class EditorController(
             viewportScaleFactor = viewportScaleFactor,
         )
     }.stateIn(this, SharingStarted.Eagerly, SceneOffset.Zero)
-    private val instanceUpdateTrigger = MutableStateFlow(false)
-    private val _selectedInstance = MutableStateFlow<Editable<*>?>(null)
-    val selectedUpdatableInstance = combine(
-        _selectedInstance,
-        instanceUpdateTrigger,
-    ) { selectedGameObject, triggerGameObjectUpdate ->
-        selectedGameObject to triggerGameObjectUpdate
+    private val triggerActorUpdate = MutableStateFlow(false)
+    private val _selectedActor = MutableStateFlow<Editable<*>?>(null)
+    val selectedUpdatableActor = combine(
+        _selectedActor,
+        triggerActorUpdate,
+    ) { actor, triggerActorUpdate ->
+        actor to triggerActorUpdate
     }.stateIn(this, SharingStarted.Eagerly, null to false)
     private val _selectedTypeId = MutableStateFlow<String?>(null)
     val selectedTypeId = _selectedTypeId.asStateFlow()
@@ -95,16 +95,16 @@ internal class EditorController(
         !currentValue
     }
 
-    fun getSelectedInstance() = selectedUpdatableInstance.value.first
+    fun getSelectedActor() = selectedUpdatableActor.value.first
 
     fun getMouseWorldCoordinates() = mouseSceneOffset.value
 
     fun onLeftClick(screenCoordinates: Offset) {
         val positionInWorld = screenCoordinates.toSceneOffset(kubriko.viewportManager)
-        findInstanceOnPosition(positionInWorld).let { gameObjectAtPosition ->
-            selectedUpdatableInstance.value.first.let { currentSelectedGameObject ->
-                if (gameObjectAtPosition == null) {
-                    if (currentSelectedGameObject == null) {
+        findActorOnPosition(positionInWorld).let { actorAtPosition ->
+            selectedUpdatableActor.value.first.let { currentSelectedActor ->
+                if (actorAtPosition == null) {
+                    if (currentSelectedActor == null) {
                         launch {
                             val typeId = selectedTypeId.value
                             // TODO: Should find a better way
@@ -115,20 +115,20 @@ internal class EditorController(
                             }
                         }
                     } else {
-                        deselectSelectedInstance()
+                        deselectSelectedActor()
                     }
                 } else {
-                    (gameObjectAtPosition as? Editable<*>)?.let(::selectInstance)
+                    (actorAtPosition as? Editable<*>)?.let(::selectActor)
                 }
             }
         }
     }
 
     fun onRightClick(screenCoordinates: Offset) {
-        findInstanceOnPosition(screenCoordinates.toSceneOffset(kubriko.viewportManager)).let { actorAtPosition ->
+        findActorOnPosition(screenCoordinates.toSceneOffset(kubriko.viewportManager)).let { actorAtPosition ->
             if (actorAtPosition != null) {
-                if (actorAtPosition == _selectedInstance.value) {
-                    deleteSelectedInstance()
+                if (actorAtPosition == _selectedActor.value) {
+                    removeSelectedActor()
                 } else {
                     kubriko.actorManager.remove(actorAtPosition)
                 }
@@ -136,50 +136,48 @@ internal class EditorController(
         }
     }
 
-    private fun findInstanceOnPosition(sceneOffset: SceneOffset) = visibleActorsWithinViewport.value
+    private fun findActorOnPosition(sceneOffset: SceneOffset) = visibleActorsWithinViewport.value
         .filter { it.occupiesPosition(sceneOffset) }
         .minByOrNull { (it as? Visible)?.drawingOrder ?: 0f }
 
-    fun selectInstance(gameObject: Editable<*>) {
-        val currentSelectedGameObject = selectedUpdatableInstance.value.first
-        // TODO currentSelectedGameObject?.isSelectedInEditor = false
-        _selectedInstance.update {
-            if (currentSelectedGameObject == gameObject) {
+    fun selectActor(actor: Editable<*>) {
+        val currentSelectedActor = selectedUpdatableActor.value.first
+        // TODO currentSelectedActor?.isSelectedInEditor = false
+        _selectedActor.update {
+            if (currentSelectedActor == actor) {
                 null
             } else {
-                gameObject// TODO .also { it.isSelectedInEditor = true }
+                actor// TODO .also { it.isSelectedInEditor = true }
             }
         }
     }
 
-    fun deleteSelectedInstance() {
-        _selectedInstance.value?.let { selectedGameObject ->
-            _selectedInstance.update { null }
-            kubriko.actorManager.remove(selectedGameObject)
-        }
+    fun removeSelectedActor() = _selectedActor.update { selectedActor ->
+        selectedActor?.let { kubriko.actorManager.remove(selectedActor) }
+        null
     }
 
     fun onMouseMove(screenCoordinates: Offset) = mouseScreenCoordinates.update { screenCoordinates }
 
-    fun locateSelectedInstance() {
-        (_selectedInstance.value as? Visible)?.let { visibleTrait ->
-            kubriko.viewportManager.setCenter(visibleTrait.position)
+    fun locateSelectedActor() {
+        (_selectedActor.value as? Visible)?.let { visibleTrait ->
+            kubriko.viewportManager.setCameraPosition(visibleTrait.position)
         }
     }
 
-    fun notifySelectedInstanceUpdate() = instanceUpdateTrigger.update { !it }
+    fun notifySelectedActorUpdate() = triggerActorUpdate.update { !it }
 
-    fun selectInstance(typeId: String) = _selectedTypeId.update { typeId }
+    fun selectActor(typeId: String) = _selectedTypeId.update { typeId }
 
-    fun deselectSelectedInstance() {
-        // TODO _selectedInstance.value?.isSelectedInEditor = false
-        _selectedInstance.update { null }
+    fun deselectSelectedActor() {
+        // TODO _selectedActor.value?.isSelectedInEditor = false
+        _selectedActor.update { null }
     }
 
     fun reset() {
-        kubriko.viewportManager.setCenter(SceneOffset.Zero)
+        kubriko.viewportManager.setCameraPosition(SceneOffset.Zero)
         _currentFileName.update { DEFAULT_SCENE_FILE_NAME }
-        _selectedInstance.update { null }
+        _selectedActor.update { null }
         kubriko.actorManager.removeAll()
         kubriko.actorManager.add(actors = editorActors.toTypedArray())
     }
@@ -205,10 +203,10 @@ internal class EditorController(
     }
 
     private fun navigateBack() {
-        if (selectedUpdatableInstance.value.first == null) {
+        if (selectedUpdatableActor.value.first == null) {
             exitApp()
         } else {
-            deselectSelectedInstance()
+            deselectSelectedActor()
         }
     }
 

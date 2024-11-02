@@ -22,16 +22,16 @@ private var isDragging = false
 // TODO: Fix some clicks registering as drag
 @OptIn(ExperimentalComposeUiApi::class)
 internal fun Modifier.handleMouseClick(
-    getSelectedInstance: () -> Editable<*>?,
+    getSelectedActor: () -> Editable<*>?,
     getMouseSceneOffset: () -> SceneOffset,
     onLeftClick: (Offset) -> Unit,
     onRightClick: (Offset) -> Unit,
 ): Modifier = onPointerEvent(PointerEventType.Press) { event ->
     when (event.button) {
-        PointerButton.Primary -> getSelectedInstance()?.let { selectedInstance ->
+        PointerButton.Primary -> getSelectedActor()?.let { selectedActor ->
             getMouseSceneOffset().let { mouseWorldCoordinates ->
-                if (selectedInstance.occupiesPosition(mouseWorldCoordinates)) {
-                    startOffset = mouseWorldCoordinates - selectedInstance.position
+                if (selectedActor.occupiesPosition(mouseWorldCoordinates)) {
+                    startOffset = mouseWorldCoordinates - selectedActor.position
                 }
             }
         }
@@ -74,23 +74,23 @@ internal fun Modifier.handleMouseZoom(
 internal fun Modifier.handleMouseDrag(
     inputManager: InputManager,
     viewportManager: ViewportManager,
-    getSelectedInstance: () -> Editable<*>?,
+    getSelectedActor: () -> Editable<*>?,
     getMouseSceneOffset: () -> SceneOffset,
     notifySelectedInstanceUpdate: () -> Unit,
 ): Modifier = onDrag(
     matcher = PointerMatcher.mouse(PointerButton.Tertiary),
 ) { screenCoordinates ->
-    viewportManager.addToCenter(screenCoordinates)
+    viewportManager.addToCameraPosition(screenCoordinates)
 }.onDrag(
     matcher = PointerMatcher.mouse(PointerButton.Primary),
 ) { screenCoordinates ->
     isDragging = true
     if (inputManager.run { isKeyPressed(Key.ShiftLeft) || isKeyPressed(Key.ShiftRight) }) {
-        viewportManager.addToCenter(screenCoordinates)
+        viewportManager.addToCameraPosition(screenCoordinates)
     } else {
         startOffset?.let { startOffset ->
-            getSelectedInstance()?.let { selectedInstance ->
-                selectedInstance.position = getMouseSceneOffset() - startOffset
+            getSelectedActor()?.let { selectedActor ->
+                selectedActor.position = getMouseSceneOffset() - startOffset
                 notifySelectedInstanceUpdate()
             }
         }

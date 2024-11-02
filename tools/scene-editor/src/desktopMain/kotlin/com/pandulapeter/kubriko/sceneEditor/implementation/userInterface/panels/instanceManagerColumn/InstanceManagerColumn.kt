@@ -75,13 +75,13 @@ internal fun InstanceManagerColumn(
                     .sortedBy { it.name }
                     .mapNotNull { property ->
                         property.toPropertyEditor(
-                            instance = selectedInstance,
+                            actor = selectedInstance,
                             notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
                         )
                     }
                     .let { controls ->
                         if (controls.isNotEmpty()) {
-                            item(key = "gameObjectEditor") {
+                            item(key = "actorEditor") {
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()

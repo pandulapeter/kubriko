@@ -1,23 +1,24 @@
-package com.pandulapeter.kubrikoStressTest.implementation.gameObjects
+package com.pandulapeter.kubrikoStressTest.implementation.actors
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.key.Key
-import com.pandulapeter.kubriko.implementation.extensions.KeyboardDirectionState
-import com.pandulapeter.kubriko.implementation.extensions.directionState
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.sceneSerializer.Editable
-import com.pandulapeter.kubriko.sceneEditor.EditableProperty
-import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableSceneOffset
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.implementation.extensions.KeyboardDirectionState
+import com.pandulapeter.kubriko.implementation.extensions.directionState
+import com.pandulapeter.kubriko.implementation.extensions.isAroundPosition
+import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.sceneEditor.EditableProperty
+import com.pandulapeter.kubriko.sceneSerializer.Editable
+import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableSceneOffset
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubrikoStressTest.implementation.GameplayController
-import com.pandulapeter.kubrikoStressTest.implementation.gameObjects.traits.Destructible
+import com.pandulapeter.kubrikoStressTest.implementation.actors.traits.Destructible
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -42,7 +43,7 @@ class Character private constructor(state: CharacterState) : Editable<Character>
     )
     override var drawingOrder = 0f
     private var sizeMultiplier = 1f
-    private var nearbyGameObjectPositions = emptyList<SceneOffset>()
+    private var nearbyActorPositions = emptyList<SceneOffset>()
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
 
@@ -63,20 +64,20 @@ class Character private constructor(state: CharacterState) : Editable<Character>
 
     override fun update(deltaTimeInMillis: Float) {
         drawingOrder = -position.y.raw - pivotOffset.y.raw - 100f
-        GameplayController.kubriko.viewportManager.addToCenter(calculateViewportOffsetDelta().raw)
+        GameplayController.kubriko.viewportManager.addToCameraPosition(calculateViewportOffsetDelta().raw)
         if (sizeMultiplier > 1f) {
             sizeMultiplier -= 0.01f * deltaTimeInMillis
         } else {
             sizeMultiplier = 1f
         }
-        nearbyGameObjectPositions = GameplayController.kubriko.actorManager.findVisibleActorsWithPivotsAroundPosition(
+        nearbyActorPositions = findDestructibleActorsNearby(
             position = position + pivotOffset,
             range = EXPLOSION_RANGE,
-        ).mapNotNull { (it as? Visible)?.position }
+        ).map { it.position }
     }
 
     override fun draw(scope: DrawScope) {
-        nearbyGameObjectPositions.forEach { nearbyObjectPosition ->
+        nearbyActorPositions.forEach { nearbyObjectPosition ->
             scope.drawLine(
                 color = Color.Red,
                 start = pivotOffset.raw,
@@ -93,7 +94,7 @@ class Character private constructor(state: CharacterState) : Editable<Character>
 
     override fun save() = CharacterState(position = position)
 
-    private fun calculateViewportOffsetDelta() = GameplayController.kubriko.viewportManager.center.value.let { viewportOffset ->
+    private fun calculateViewportOffsetDelta() = GameplayController.kubriko.viewportManager.cameraPosition.value.let { viewportOffset ->
         GameplayController.kubriko.viewportManager.scaleFactor.value.let { scaleFactor ->
             (viewportOffset - position) * VIEWPORT_FOLLOWING_SPEED_MULTIPLIER * scaleFactor * scaleFactor
         }
@@ -118,12 +119,24 @@ class Character private constructor(state: CharacterState) : Editable<Character>
     private fun triggerExplosion() {
         if (GameplayController.kubriko.stateManager.isRunning.value) {
             sizeMultiplier = MAX_SIZE_MULTIPLIER
-            GameplayController.kubriko.actorManager.findVisibleActorsWithPivotsAroundPosition(
+            findDestructibleActorsNearby(
                 position = position + pivotOffset,
                 range = EXPLOSION_RANGE,
-            ).filterIsInstance<Destructible>().forEach { it.destroy(this) }
+            ).forEach { it.destroy(this) }
         }
     }
+
+    private fun findDestructibleActorsNearby(
+        position: SceneOffset,
+        range: Float,
+    ) = GameplayController.kubriko.actorManager.allActors.value
+        .filterIsInstance<Destructible>()
+        .filter {
+            it.isAroundPosition(
+                position = position,
+                range = range,
+            )
+        }
 
     @Serializable
     data class CharacterState(

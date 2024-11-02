@@ -79,7 +79,7 @@ fun EngineCanvas(
         onDraw = {
             gameTime.value
             viewportManager.updateSize(size = size)
-            viewportManager.center.value.let { viewportCenter ->
+            viewportManager.cameraPosition.value.let { viewportCenter ->
                 withTransform(
                     transformBlock = {
                         transformViewport(

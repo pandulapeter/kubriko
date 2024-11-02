@@ -12,7 +12,7 @@ internal class GridOverlay(private val viewportManager: ViewportManager) : Overl
 
     override fun drawToViewport(scope: DrawScope) {
         viewportManager.size.value.let { viewportSize ->
-            viewportManager.center.value.let { viewportCenter ->
+            viewportManager.cameraPosition.value.let { viewportCenter ->
                 viewportManager.scaleFactor.value.let { viewportScaleFactor ->
                     // Calculate the viewport boundaries in world coordinates
                     val viewportTopLeft = Offset.Zero.toSceneOffset(

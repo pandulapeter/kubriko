@@ -26,7 +26,7 @@ fun Positionable.occupiesPosition(
     sceneOffset: SceneOffset,
 ): Boolean = sceneOffset.x.raw in left..right && sceneOffset.y.raw in top..bottom
 
-internal fun Positionable.isAroundPosition(
+fun Positionable.isAroundPosition(
     position: SceneOffset,
     range: Float,
 ): Boolean = (this.position - position).raw.getDistance() < range
