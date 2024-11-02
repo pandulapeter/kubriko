@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.editor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.kubriko.editor.implementation.userInterface.components.EditorText
 import com.pandulapeter.kubriko.engine.traits.Editable
+import com.pandulapeter.kubriko.engine.traits.Identifiable
 import kubriko.editor.generated.resources.Res
 import kubriko.editor.generated.resources.ic_visible_only_off
 import kubriko.editor.generated.resources.ic_visible_only_on
@@ -54,13 +55,19 @@ internal fun InstanceBrowserColumn(
                         horizontal = 8.dp,
                         vertical = 2.dp,
                     ),
-                    text = resolveTypeId(instance::class) ?: "Unknown Actor type",
+                    text = instance.getName(resolveTypeId(instance::class)),
                     isBold = instance == selectedUpdatableInstance.first,
                 )
             }
         }
     }
     Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
+}
+
+private fun Editable<*>.getName(typeId: String?) : String {
+    val type =  typeId ?: "Unknown Actor type"
+    val id = (this as? Identifiable)?.id
+    return if (id == null) type else "type [$id]"
 }
 
 @Composable

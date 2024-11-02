@@ -23,7 +23,7 @@ import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.insta
 import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.FloatPropertyEditor
 import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ScalePropertyEditor
 import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ScenePixelPropertyEditor
-import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.WorldCoordinatesPropertyEditor
+import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.SceneOffsetPropertyEditor
 import com.pandulapeter.kubriko.engine.editorIntegration.EditableProperty
 import com.pandulapeter.kubriko.engine.types.AngleDegrees
 import com.pandulapeter.kubriko.engine.types.AngleRadians
@@ -85,7 +85,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
 
             SceneOffset::class.createType() -> {
                 {
-                    WorldCoordinatesPropertyEditor(
+                    SceneOffsetPropertyEditor(
                         name = name,
                         value = getter.call(instance) as SceneOffset,
                         onValueChanged = {

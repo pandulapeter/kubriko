@@ -99,7 +99,7 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
                         launch {
                             val typeId = selectedTypeId.value
                             kubriko.serializationManager.deserializeActors(
-                                serializedStates = "[{\"typeId\":\"$typeId\",\"state\":\"{\\\"position\\\":{\\\"x\\\":${positionInWorld.x},\\\"y\\\":${positionInWorld.y}}}\"}]"
+                                serializedStates = "[{\"typeId\":\"$typeId\",\"state\":\"{\\\"position\\\":{\\\"x\\\":${positionInWorld.x.raw},\\\"y\\\":${positionInWorld.y.raw}}}\"}]"
                             ).firstOrNull()?.let { actor ->
                                 kubriko.actorManager.add(actor)
                             }

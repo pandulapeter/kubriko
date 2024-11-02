@@ -7,6 +7,7 @@ import com.pandulapeter.kubriko.engine.implementation.extensions.occupiesPositio
 import com.pandulapeter.kubriko.engine.managers.ActorManager
 import com.pandulapeter.kubriko.engine.traits.Dynamic
 import com.pandulapeter.kubriko.engine.traits.Editable
+import com.pandulapeter.kubriko.engine.traits.Identifiable
 import com.pandulapeter.kubriko.engine.traits.Overlay
 import com.pandulapeter.kubriko.engine.traits.Unique
 import com.pandulapeter.kubriko.engine.traits.Visible
@@ -20,6 +21,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 internal class ActorManagerImpl(
     private val engineImpl: KubrikoImpl,
@@ -42,8 +45,8 @@ internal class ActorManagerImpl(
         engineImpl.viewportManager.size,
         engineImpl.viewportManager.center,
         engineImpl.viewportManager.scaleFactor,
-    ) { _, allVisibleactors, viewportSize, viewportCenter, viewportScaleFactor ->
-        allVisibleactors
+    ) { _, allVisibleActors, viewportSize, viewportCenter, viewportScaleFactor ->
+        allVisibleActors
             .filter {
                 it.isVisible(
                     scaledHalfViewportSize = SceneSize(viewportSize / (viewportScaleFactor * 2)),
@@ -54,17 +57,18 @@ internal class ActorManagerImpl(
             .sortedByDescending { it.drawingOrder }
     }.stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
 
-    override fun add(vararg actors: Any) = _allActors.update { currentValue ->
-        val uniqueactors = actors.filterIsInstance<Unique>()
-        if (uniqueactors.isEmpty()) {
-            currentValue
-        } else {
-            val filteredCurrentValue = currentValue.toMutableList()
-            uniqueactors.forEach { unique ->
-                filteredCurrentValue.removeAll { it::class == unique::class }
-            }
-            filteredCurrentValue
-        } + actors
+    @OptIn(ExperimentalUuidApi::class)
+    override fun add(vararg actors: Any) = _allActors.update { currentActors ->
+        val uniqueActors = actors.filterIsInstance<Unique>().map { it::class }.toSet()
+        val filteredCurrentActors = currentActors.filterNot { it::class in uniqueActors }
+        val currentIdentifiableActors = filteredCurrentActors.filterIsInstance<Identifiable>()
+        val newIdentifiableActors = actors
+            .filterIsInstance<Identifiable>()
+            .onEach { if (it.id == null) it.id = Uuid.random().toString() }
+            .distinctBy { it.id }
+        val identifiableActors = (currentIdentifiableActors + newIdentifiableActors).distinctBy { it.id }
+        val nonIdentifiableActors = (filteredCurrentActors + actors).filterNot { it is Identifiable }
+        nonIdentifiableActors + identifiableActors
     }
 
     override fun remove(vararg actors: Any) = _allActors.update { currentValue ->

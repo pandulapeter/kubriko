@@ -10,7 +10,7 @@ import com.pandulapeter.kubriko.editor.implementation.userInterface.components.E
 import com.pandulapeter.kubriko.engine.types.SceneOffset
 
 @Composable
-internal fun WorldCoordinatesPropertyEditor(
+internal fun SceneOffsetPropertyEditor(
     name: String,
     value: SceneOffset,
     onValueChanged: (SceneOffset) -> Unit,
@@ -18,9 +18,9 @@ internal fun WorldCoordinatesPropertyEditor(
     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
 ) {
     EditorTextLabel(
-        text = "$name.x: ${value.x}",
+        text = "$name.x: ${value.x.raw}",
     )
     EditorTextLabel(
-        text = "$name.y: ${value.y}",
+        text = "$name.y: ${value.y.raw}",
     )
 }
