@@ -10,7 +10,7 @@ private const val GRID_CELL_SIZE = 100f
 private const val ALPHA_MAJOR = 0.4f
 private const val ALPHA_MINOR = 0.2f
 
-// TODO: Should be moved to the editor module
+// TODO: Should be moved to the editor module by creating an Overlay Actor there.
 // TODO: Secondary lines should fade out gradually
 internal fun DrawScope.drawEditorGrid(
     viewportCenter: SceneOffset,

@@ -37,8 +37,8 @@ fun EngineCanvas(
     kubriko: Kubriko,
 ) {
     // Caching the internal implementations
+    val actorManager = remember { kubriko.actorManager as ActorManagerImpl }
     val inputManager = remember { kubriko.inputManager as InputManagerImpl }
-    val instanceManager = remember { kubriko.actorManager as ActorManagerImpl }
     val metadataManager = remember { kubriko.metadataManager as MetadataManagerImpl }
     val stateManager = remember { kubriko.stateManager as StateManagerImpl }
     val viewportManager = remember { kubriko.viewportManager as ViewportManagerImpl }
@@ -57,7 +57,7 @@ fun EngineCanvas(
                 )
                 inputManager.emit()
                 if (stateManager.isRunning.value) {
-                    instanceManager.dynamicActors.value.forEach { it.update(deltaTimeInMillis) }
+                    actorManager.dynamicActors.value.forEach { it.update(deltaTimeInMillis) }
                 }
                 gameTime.value = gameTimeNanos
             }
@@ -92,11 +92,14 @@ fun EngineCanvas(
                                 )
                             },
                             drawBlock = {
-                                instanceManager.visibleActorsWithinViewport.value.forEach { visible ->
+                                actorManager.visibleActorsWithinViewport.value.forEach { visible ->
                                     withTransform(
                                         transformBlock = { visible.transform(this) },
                                         drawBlock = { visible.draw(this) }
                                     )
+                                }
+                                actorManager.overlayActors.value.forEach { overlay ->
+                                    overlay.drawToViewport(this)
                                 }
                                 if (kubriko.isEditor) {
                                     drawEditorGrid(

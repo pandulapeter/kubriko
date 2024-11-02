@@ -7,6 +7,7 @@ import com.pandulapeter.kubriko.engine.implementation.extensions.occupiesPositio
 import com.pandulapeter.kubriko.engine.managers.ActorManager
 import com.pandulapeter.kubriko.engine.traits.Dynamic
 import com.pandulapeter.kubriko.engine.traits.Editable
+import com.pandulapeter.kubriko.engine.traits.Overlay
 import com.pandulapeter.kubriko.engine.traits.Unique
 import com.pandulapeter.kubriko.engine.traits.Visible
 import com.pandulapeter.kubriko.engine.types.SceneOffset
@@ -27,10 +28,13 @@ internal class ActorManagerImpl(
     private val _allActors = MutableStateFlow(emptyList<Any>())
     override val allActors = _allActors.asStateFlow()
     val dynamicActors = _allActors
-        .map { gameObjects -> gameObjects.filterIsInstance<Dynamic>() }
+        .map { actors -> actors.filterIsInstance<Dynamic>() }
         .stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
     private val visibleActors = _allActors
-        .map { gameObjects -> gameObjects.filterIsInstance<Visible>() }
+        .map { actors -> actors.filterIsInstance<Visible>() }
+        .stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
+    val overlayActors = _allActors
+        .map { actors -> actors.filterIsInstance<Overlay>() }
         .stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
     override val visibleActorsWithinViewport = combine(
         engineImpl.metadataManager.runtimeInMilliseconds.map { it / 100 }.distinctUntilChanged(),
@@ -38,8 +42,8 @@ internal class ActorManagerImpl(
         engineImpl.viewportManager.size,
         engineImpl.viewportManager.center,
         engineImpl.viewportManager.scaleFactor,
-    ) { _, allVisibleGameObjects, viewportSize, viewportCenter, viewportScaleFactor ->
-        allVisibleGameObjects
+    ) { _, allVisibleactors, viewportSize, viewportCenter, viewportScaleFactor ->
+        allVisibleactors
             .filter {
                 it.isVisible(
                     scaledHalfViewportSize = SceneSize(viewportSize / (viewportScaleFactor * 2)),
@@ -51,12 +55,12 @@ internal class ActorManagerImpl(
     }.stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
 
     override fun add(vararg actors: Any) = _allActors.update { currentValue ->
-        val uniqueGameObjects = actors.filterIsInstance<Unique>()
-        if (uniqueGameObjects.isEmpty()) {
+        val uniqueactors = actors.filterIsInstance<Unique>()
+        if (uniqueactors.isEmpty()) {
             currentValue
         } else {
             val filteredCurrentValue = currentValue.toMutableList()
-            uniqueGameObjects.forEach { unique ->
+            uniqueactors.forEach { unique ->
                 filteredCurrentValue.removeAll { it::class == unique::class }
             }
             filteredCurrentValue

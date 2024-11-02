@@ -22,7 +22,7 @@ interface Visible : Positionable {
     val drawingOrder: Float get() = 0f
 
     /**
-     * Override this function to draw the Actor into the scope, that has already been positioned, scaled and rotated.
+     * Implement this function to draw the Actor into the Scene using the [scope], that has already been positioned, scaled and rotated.
      * The units used within this drawing scope must always be raw values of [ScenePixel].
      */
     fun draw(scope: DrawScope)
