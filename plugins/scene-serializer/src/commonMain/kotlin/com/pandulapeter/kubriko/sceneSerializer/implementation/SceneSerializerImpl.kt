@@ -1,17 +1,17 @@
-package com.pandulapeter.kubriko.implementation.managers
+package com.pandulapeter.kubriko.sceneSerializer.implementation
 
-import com.pandulapeter.kubriko.sceneEditorIntegration.EditableMetadata
-import com.pandulapeter.kubriko.managers.SerializationManager
-import com.pandulapeter.kubriko.traits.Editable
+import com.pandulapeter.kubriko.sceneSerializer.Editable
+import com.pandulapeter.kubriko.sceneSerializer.SceneSerializer
+import com.pandulapeter.kubriko.sceneSerializer.integration.EditableMetadata
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.reflect.KClass
 
-internal class SerializationManagerImpl(
+internal class SceneSerializerImpl(
     vararg editableMetadata: EditableMetadata<out Editable<*>>,
-) : SerializationManager {
+) : SceneSerializer {
 
     private val typeIdsToDeserializers = editableMetadata.associate { registration -> registration.typeId to registration.deserializeState }
     private val typeResolvers = editableMetadata.associate { registration -> registration.type to registration.typeId }
@@ -38,7 +38,6 @@ internal class SerializationManagerImpl(
     ) = json.decodeFromString<List<InstanceStateWrapper>>(serializedStates).mapNotNull { wrapper ->
         typeIdsToDeserializers[wrapper.typeId]?.invoke(wrapper.serializedState)?.restore()
     }
-
 
     @Serializable
     private data class InstanceStateWrapper(

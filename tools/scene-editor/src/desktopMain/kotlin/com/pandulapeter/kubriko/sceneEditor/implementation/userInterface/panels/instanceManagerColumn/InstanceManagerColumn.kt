@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorRadioButton
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorTextTitle
-import com.pandulapeter.kubriko.traits.Editable
+import com.pandulapeter.kubriko.sceneSerializer.Editable
 import kubriko.tools.scene_editor.generated.resources.Res
 import kubriko.tools.scene_editor.generated.resources.ic_close
 import kubriko.tools.scene_editor.generated.resources.ic_delete

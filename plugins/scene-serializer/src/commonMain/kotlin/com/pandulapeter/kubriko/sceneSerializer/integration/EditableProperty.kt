@@ -1,6 +1,7 @@
-package com.pandulapeter.kubriko.sceneEditorIntegration
+package com.pandulapeter.kubriko.sceneSerializer.integration
 
-import com.pandulapeter.kubriko.traits.Editable
+import com.pandulapeter.kubriko.sceneSerializer.Editable
+
 
 /**
  * Use this annotation on property setters of [Editable] Actors to expose those properties to the Scene Editor.

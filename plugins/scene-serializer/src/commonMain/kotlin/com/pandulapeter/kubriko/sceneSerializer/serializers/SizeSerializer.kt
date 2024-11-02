@@ -1,7 +1,6 @@
-package com.pandulapeter.kubriko.implementation.serializers
+package com.pandulapeter.kubriko.sceneSerializer.serializers
 
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.types.SceneSize
+import androidx.compose.ui.geometry.Size
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -16,25 +15,25 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 
-typealias SerializableSceneSize = @Serializable(with = SceneSizeSerializer::class) SceneSize
+typealias SerializableSize = @Serializable(with = SizeSerializer::class) Size
 
 @Suppress("EXTERNAL_SERIALIZER_USELESS")
 @OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = SceneSize::class)
-object SceneSizeSerializer : KSerializer<SceneSize> {
-    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("sceneSize") {
+@Serializer(forClass = Size::class)
+object SizeSerializer : KSerializer<Size> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("size") {
         element<Float>("width")
         element<Float>("height")
     }
 
-    override fun serialize(encoder: Encoder, value: SceneSize) {
+    override fun serialize(encoder: Encoder, value: Size) {
         encoder.encodeStructure(descriptor) {
-            encodeFloatElement(descriptor, 0, value.width.raw)
-            encodeFloatElement(descriptor, 1, value.height.raw)
+            encodeFloatElement(descriptor, 0, value.width)
+            encodeFloatElement(descriptor, 1, value.height)
         }
     }
 
-    override fun deserialize(decoder: Decoder): SceneSize {
+    override fun deserialize(decoder: Decoder): Size {
         return decoder.decodeStructure(descriptor) {
             var width = 0f
             var height = 0f
@@ -46,7 +45,7 @@ object SceneSizeSerializer : KSerializer<SceneSize> {
                     else -> throw SerializationException("Unexpected index $index")
                 }
             }
-            SceneSize(width.scenePixel, height.scenePixel)
+            Size(width, height)
         }
     }
 }

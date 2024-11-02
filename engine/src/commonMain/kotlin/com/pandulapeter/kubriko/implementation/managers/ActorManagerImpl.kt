@@ -6,7 +6,6 @@ import com.pandulapeter.kubriko.implementation.extensions.isVisible
 import com.pandulapeter.kubriko.implementation.extensions.occupiesPosition
 import com.pandulapeter.kubriko.managers.ActorManager
 import com.pandulapeter.kubriko.traits.Dynamic
-import com.pandulapeter.kubriko.traits.Editable
 import com.pandulapeter.kubriko.traits.Identifiable
 import com.pandulapeter.kubriko.traits.Overlay
 import com.pandulapeter.kubriko.traits.Unique
@@ -25,7 +24,7 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 internal class ActorManagerImpl(
-    private val engineImpl: KubrikoImpl,
+    engineImpl: KubrikoImpl,
 ) : ActorManager {
 
     private val _allActors = MutableStateFlow(emptyList<Any>())
@@ -70,15 +69,6 @@ internal class ActorManagerImpl(
     }
 
     override fun removeAll() = _allActors.update { emptyList() }
-
-    override suspend fun serializeState() =
-        engineImpl.serializationManager.serializeActors(allActors.value.filterIsInstance<Editable<*>>())
-
-    override suspend fun deserializeState(json: String) {
-        removeAll()
-        // TODO: Weird things happen at this point once we try to restore more than 20000 Actors. Singletons constructors get invoked again.
-        add(actors = engineImpl.serializationManager.deserializeActors(json).toTypedArray())
-    }
 
     override fun findVisibleInstancesWithBoundsInPosition(position: SceneOffset) = visibleActorsWithinViewport.value
         .filter { it.occupiesPosition(position) }

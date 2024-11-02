@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.compose)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -47,6 +48,7 @@ kotlin {
             implementation(compose.runtime)
             api(compose.foundation)
             implementation(compose.material)
+            api(libs.kotlinx.serialization)
         }
     }
 }

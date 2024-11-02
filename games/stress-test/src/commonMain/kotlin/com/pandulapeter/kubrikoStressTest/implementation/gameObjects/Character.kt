@@ -4,13 +4,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.key.Key
-import com.pandulapeter.kubriko.sceneEditorIntegration.EditableProperty
 import com.pandulapeter.kubriko.implementation.extensions.KeyboardDirectionState
 import com.pandulapeter.kubriko.implementation.extensions.directionState
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.implementation.serializers.SerializableSceneOffset
+import com.pandulapeter.kubriko.sceneSerializer.Editable
+import com.pandulapeter.kubriko.sceneSerializer.integration.EditableProperty
+import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableSceneOffset
 import com.pandulapeter.kubriko.traits.Dynamic
-import com.pandulapeter.kubriko.traits.Editable
 import com.pandulapeter.kubriko.traits.Unique
 import com.pandulapeter.kubriko.traits.Visible
 import com.pandulapeter.kubriko.types.SceneOffset

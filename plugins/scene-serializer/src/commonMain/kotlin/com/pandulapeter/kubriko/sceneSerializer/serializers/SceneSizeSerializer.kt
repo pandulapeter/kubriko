@@ -1,7 +1,7 @@
-package com.pandulapeter.kubriko.implementation.serializers
+package com.pandulapeter.kubriko.sceneSerializer.serializers
 
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -16,37 +16,37 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 
-typealias SerializableSceneOffset = @Serializable(with = SceneOffsetSerializer::class) SceneOffset
+typealias SerializableSceneSize = @Serializable(with = SceneSizeSerializer::class) SceneSize
 
 @Suppress("EXTERNAL_SERIALIZER_USELESS")
 @OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = SceneOffset::class)
-object SceneOffsetSerializer : KSerializer<SceneOffset> {
-    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("sceneOffset") {
-        element<Float>("x")
-        element<Float>("y")
+@Serializer(forClass = SceneSize::class)
+object SceneSizeSerializer : KSerializer<SceneSize> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("sceneSize") {
+        element<Float>("width")
+        element<Float>("height")
     }
 
-    override fun serialize(encoder: Encoder, value: SceneOffset) {
+    override fun serialize(encoder: Encoder, value: SceneSize) {
         encoder.encodeStructure(descriptor) {
-            encodeFloatElement(descriptor, 0, value.x.raw)
-            encodeFloatElement(descriptor, 1, value.y.raw)
+            encodeFloatElement(descriptor, 0, value.width.raw)
+            encodeFloatElement(descriptor, 1, value.height.raw)
         }
     }
 
-    override fun deserialize(decoder: Decoder): SceneOffset {
+    override fun deserialize(decoder: Decoder): SceneSize {
         return decoder.decodeStructure(descriptor) {
-            var x = 0f
-            var y = 0f
+            var width = 0f
+            var height = 0f
             while (true) {
                 when (val index = decodeElementIndex(descriptor)) {
-                    0 -> x = decodeFloatElement(descriptor, 0)
-                    1 -> y = decodeFloatElement(descriptor, 1)
+                    0 -> width = decodeFloatElement(descriptor, 0)
+                    1 -> height = decodeFloatElement(descriptor, 1)
                     CompositeDecoder.DECODE_DONE -> break
                     else -> throw SerializationException("Unexpected index $index")
                 }
             }
-            SceneOffset(x.scenePixel, y.scenePixel)
+            SceneSize(width.scenePixel, height.scenePixel)
         }
     }
 }

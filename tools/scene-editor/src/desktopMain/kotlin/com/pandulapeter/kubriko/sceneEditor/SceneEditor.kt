@@ -7,10 +7,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.window.AwtWindow
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.EditorUserInterface
-import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.sceneEditorIntegration.EditableMetadata
+import com.pandulapeter.kubriko.sceneSerializer.SceneSerializer
 import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame
@@ -19,9 +19,14 @@ import java.io.FilenameFilter
 
 fun openSceneEditor(
     defaultMapFilename: String? = null,
-    vararg editableMetadata: EditableMetadata<*>,
+    sceneSerializer: SceneSerializer,
 ) = application {
-    val editorController = remember { EditorController(Kubriko.newInstance(editableMetadata = editableMetadata)) }
+    val editorController = remember {
+        EditorController(
+            kubriko = Kubriko.newInstance(),
+            sceneSerializer = sceneSerializer,
+        )
+    }
     LaunchedEffect(Unit) {
         defaultMapFilename?.let { editorController.loadMap("${EditorController.SCENES_DIRECTORY}/$it.json") }
     }

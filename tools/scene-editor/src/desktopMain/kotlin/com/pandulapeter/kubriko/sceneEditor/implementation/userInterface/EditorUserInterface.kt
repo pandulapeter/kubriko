@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.pandulapeter.kubriko.EngineCanvas
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseClick
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseDrag
@@ -18,7 +19,6 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceBrowserColumn.InstanceBrowserColumn
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.InstanceManagerColumn
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.metadataRow.MetadataRow
-import com.pandulapeter.kubriko.EngineCanvas
 
 @Composable
 internal fun EditorUserInterface(
@@ -46,12 +46,12 @@ internal fun EditorUserInterface(
         ) {
             InstanceBrowserColumn(
                 shouldShowVisibleOnly = editorController.shouldShowVisibleOnly.collectAsState().value,
-                allInstances = editorController.allInstances.collectAsState().value,
-                visibleInstances = editorController.visibleInstancesWithinViewport.collectAsState().value,
+                allInstances = editorController.allEditableActors.collectAsState().value,
+                visibleInstances = editorController.visibleActorsWithinViewport.collectAsState().value,
                 selectedUpdatableInstance = editorController.selectedUpdatableInstance.collectAsState().value,
                 onShouldShowVisibleOnlyToggled = editorController::onShouldShowVisibleOnlyToggled,
                 selectInstance = editorController::selectInstance,
-                resolveTypeId = editorController.kubriko.serializationManager::resolveTypeId,
+                resolveTypeId = editorController.sceneSerializer::resolveTypeId,
             )
             EngineCanvas(
                 modifier = Modifier
@@ -79,11 +79,11 @@ internal fun EditorUserInterface(
                 kubriko = editorController.kubriko,
             )
             InstanceManagerColumn(
-                registeredTypeIds = editorController.kubriko.serializationManager.typeIdsForEditor.toList(),
+                registeredTypeIds = editorController.sceneSerializer.typeIdsForEditor.toList(),
                 selectedTypeId = editorController.selectedTypeId.collectAsState().value,
                 selectedUpdatableInstance = editorController.selectedUpdatableInstance.collectAsState().value,
                 selectTypeId = editorController::selectInstance,
-                resolveTypeId = editorController.kubriko.serializationManager::resolveTypeId,
+                resolveTypeId = editorController.sceneSerializer::resolveTypeId,
                 deselectSelectedInstance = editorController::deselectSelectedInstance,
                 locateSelectedInstance = editorController::locateSelectedInstance,
                 deleteSelectedInstance = editorController::deleteSelectedInstance,

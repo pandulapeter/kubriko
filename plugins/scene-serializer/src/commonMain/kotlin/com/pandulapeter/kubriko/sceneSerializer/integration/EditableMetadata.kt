@@ -1,7 +1,8 @@
-package com.pandulapeter.kubriko.sceneEditorIntegration
+package com.pandulapeter.kubriko.sceneSerializer.integration
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.traits.Editable
+import com.pandulapeter.kubriko.sceneSerializer.Editable
+import com.pandulapeter.kubriko.sceneSerializer.integration.EditableMetadata.Companion.invoke
 import kotlin.reflect.KClass
 
 /**
@@ -13,7 +14,6 @@ import kotlin.reflect.KClass
  * The serialization logic is defined in the [Editable] implementation.
  * @param type - The [KClass] of the [Editable] this metadata refers to.
  */
-// TODO: Extract into a plugin
 data class EditableMetadata<T : Editable<T>>(
     val typeId: String,
     val deserializeState: (String) -> Editable.State<T>,

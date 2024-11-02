@@ -1,16 +1,13 @@
 package com.pandulapeter.kubriko
 
 import com.pandulapeter.kubriko.Kubriko.Companion.newInstance
-import com.pandulapeter.kubriko.sceneEditorIntegration.EditableMetadata
 import com.pandulapeter.kubriko.implementation.KubrikoImpl
-import com.pandulapeter.kubriko.managers.InputManager
 import com.pandulapeter.kubriko.managers.ActorManager
+import com.pandulapeter.kubriko.managers.InputManager
 import com.pandulapeter.kubriko.managers.MetadataManager
-import com.pandulapeter.kubriko.managers.SerializationManager
 import com.pandulapeter.kubriko.managers.StateManager
 import com.pandulapeter.kubriko.managers.ViewportManager
 import com.pandulapeter.kubriko.traits.Dynamic
-import com.pandulapeter.kubriko.traits.Editable
 
 /**
  * Holds references to the individual Manager classes that control the different aspects of a game.
@@ -23,7 +20,6 @@ interface Kubriko {
     val actorManager: ActorManager
     val inputManager: InputManager
     val metadataManager: MetadataManager
-    val serializationManager: SerializationManager
     val stateManager: StateManager
     val viewportManager: ViewportManager
 
@@ -33,18 +29,13 @@ interface Kubriko {
      * - [Dynamic] Actors no longer receive update events
      * - [Editable] Actors will become visible through their [Editable.editorPreview] implementations
      */
+    // TODO: Can I get rid of this?
     var isEditor: Boolean
 
     companion object {
         /**
          * Creates a new [Kubriko] instance.
-         *
-         * @param editableMetadata - Any number of actor types that should be registered for usage in the Scene Editor.
          */
-        fun newInstance(
-            vararg editableMetadata: EditableMetadata<*>,
-        ): Kubriko = KubrikoImpl(
-            editableMetadata = editableMetadata,
-        )
+        fun newInstance(): Kubriko = KubrikoImpl()
     }
 }

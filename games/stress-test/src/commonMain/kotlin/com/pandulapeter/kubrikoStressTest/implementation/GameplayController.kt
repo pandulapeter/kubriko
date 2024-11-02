@@ -18,10 +18,11 @@ import org.jetbrains.compose.resources.MissingResourceException
 
 internal object GameplayController : CoroutineScope {
 
-    const val SCENE_NAME = "scene_demo"
+    const val SCENE_NAME = "scene_stress_test"
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
-    val kubriko = Kubriko.newInstance(editableMetadata = GameObjectRegistry.typesAvailableInEditor)
+    val kubriko = Kubriko.newInstance()
+    private val sceneSerializer by lazy { SceneSerializerWrapper().sceneSerializer }
 
     init {
         kubriko.stateManager.isFocused
@@ -41,7 +42,7 @@ internal object GameplayController : CoroutineScope {
     @OptIn(ExperimentalResourceApi::class)
     private fun loadMap(mapName: String) = launch {
         try {
-            kubriko.actorManager.deserializeState(Res.readBytes("files/scenes/$mapName.json").decodeToString())
+            kubriko.actorManager.add(actors = sceneSerializer.deserializeActors(Res.readBytes("files/scenes/$mapName.json").decodeToString()).toTypedArray())
         } catch (_: MissingResourceException) {
         }
     }

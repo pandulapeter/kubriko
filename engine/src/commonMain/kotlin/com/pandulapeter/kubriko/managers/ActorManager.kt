@@ -17,10 +17,6 @@ interface ActorManager {
 
     fun removeAll()
 
-    suspend fun serializeState(): String
-
-    suspend fun deserializeState(json: String)
-
     // TODO: No need for this
     fun findVisibleInstancesWithBoundsInPosition(position: SceneOffset): List<Any>
 

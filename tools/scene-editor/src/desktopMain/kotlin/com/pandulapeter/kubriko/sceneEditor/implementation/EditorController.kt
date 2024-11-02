@@ -3,15 +3,16 @@ package com.pandulapeter.kubriko.sceneEditor.implementation
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
-import com.pandulapeter.kubriko.traits.Editable
-import com.pandulapeter.kubriko.traits.Visible
-import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.GridOverlay
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.exitApp
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.handleKeyReleased
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.handleKeys
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.saveFile
+import com.pandulapeter.kubriko.sceneSerializer.Editable
+import com.pandulapeter.kubriko.sceneSerializer.SceneSerializer
+import com.pandulapeter.kubriko.traits.Visible
+import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -27,16 +28,19 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
+internal class EditorController(
+    val kubriko: Kubriko,
+    val sceneSerializer: SceneSerializer,
+) : CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
-    private val editorActors = arrayOf(
+    private val editorActors = listOf(
         GridOverlay(kubriko.viewportManager),
     )
-    val allInstances = kubriko.actorManager.allActors
+    val allEditableActors = kubriko.actorManager.allActors
         .map { it.filterIsInstance<Editable<*>>() }
         .stateIn(this, SharingStarted.Eagerly, emptyList())
-    val visibleInstancesWithinViewport = kubriko.actorManager.visibleActorsWithinViewport
+    val visibleActorsWithinViewport = kubriko.actorManager.visibleActorsWithinViewport
         .map { it.filterIsInstance<Editable<*>>() }
         .stateIn(this, SharingStarted.Eagerly, emptyList())
     val totalActorCount = kubriko.actorManager.allActors
@@ -102,7 +106,8 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
                     if (currentSelectedGameObject == null) {
                         launch {
                             val typeId = selectedTypeId.value
-                            kubriko.serializationManager.deserializeActors(
+                            // TODO: Should find a better way
+                            sceneSerializer.deserializeActors(
                                 serializedStates = "[{\"typeId\":\"$typeId\",\"state\":\"{\\\"position\\\":{\\\"x\\\":${positionInWorld.x.raw},\\\"y\\\":${positionInWorld.y.raw}}}\"}]"
                             ).firstOrNull()?.let { actor ->
                                 kubriko.actorManager.add(actor)
@@ -175,14 +180,15 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
         _currentFileName.update { DEFAULT_SCENE_FILE_NAME }
         _selectedInstance.update { null }
         kubriko.actorManager.removeAll()
-        kubriko.actorManager.add(actors = editorActors)
+        kubriko.actorManager.add(actors = editorActors.toTypedArray())
     }
 
     fun loadMap(path: String) {
         launch {
             loadFile(path)?.let { json ->
-                kubriko.actorManager.deserializeState(json)
-                kubriko.actorManager.add(actors = editorActors)
+                val actors = sceneSerializer.deserializeActors(json)
+                kubriko.actorManager.removeAll()
+                kubriko.actorManager.add(actors = (actors + editorActors).toTypedArray())
                 _currentFileName.update { path.split('/').last() }
             }
         }
@@ -192,7 +198,7 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
         launch {
             saveFile(
                 path = path,
-                content = kubriko.actorManager.serializeState(),
+                content = sceneSerializer.serializeActors(allEditableActors.value),
             )
         }
     }

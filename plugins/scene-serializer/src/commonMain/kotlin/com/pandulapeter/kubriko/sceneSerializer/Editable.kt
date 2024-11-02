@@ -1,7 +1,10 @@
-package com.pandulapeter.kubriko.traits
+package com.pandulapeter.kubriko.sceneSerializer
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.sceneEditorIntegration.EditableMetadata
+import com.pandulapeter.kubriko.sceneSerializer.Editable.State
+import com.pandulapeter.kubriko.sceneSerializer.integration.EditableMetadata
+import com.pandulapeter.kubriko.traits.Positionable
+import com.pandulapeter.kubriko.traits.Visible
 
 
 /**
@@ -12,7 +15,7 @@ import com.pandulapeter.kubriko.sceneEditorIntegration.EditableMetadata
  * Actors that appear in the Scene Editor must be [Positionable] so that they can be placed into the Scene, and they are usually [Visible] too, however the latter is not enforced.
  * If an [Editable] Actor is not [Visible], the Scene Editor will create a default representation for it (that's only visible in the Editor). Use [editorPreview] to override this representation.
  */
-// TODO: Extract into a plugin
+// TODO: Rename to Serializable
 interface Editable<T : Editable<T>> : Positionable {
 
     /**
