@@ -1,9 +1,9 @@
 package com.pandulapeter.kubrikoStressTest.implementation
 
 import androidx.compose.ui.input.key.Key
-import com.pandulapeter.kubriko.engine.Kubriko
-import com.pandulapeter.kubriko.engine.implementation.extensions.KeyboardZoomState
-import com.pandulapeter.kubriko.engine.implementation.extensions.zoomState
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.implementation.extensions.KeyboardZoomState
+import com.pandulapeter.kubriko.implementation.extensions.zoomState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

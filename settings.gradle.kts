@@ -3,8 +3,8 @@ include(
     ":engine",
     ":games:pong",
     ":games:stress-test",
-    ":scene-editor",
     ":plugins:debug-info",
+    ":tools:scene-editor",
 )
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

@@ -6,9 +6,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.pandulapeter.kubriko.engine.Kubriko
-import com.pandulapeter.kubriko.engine.EngineCanvas
-import com.pandulapeter.kubriko.pluginDebugInfo.DebugInfo
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.EngineCanvas
+import com.pandulapeter.kubriko.debugInfo.DebugInfo
 import com.pandulapeter.kubrikoPong.implementation.GameObjectRegistry
 import com.pandulapeter.kubrikoPong.implementation.GameplayController
 import com.pandulapeter.kubrikoPong.implementation.UserInterface

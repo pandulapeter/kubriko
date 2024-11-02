@@ -1,11 +1,11 @@
 package com.pandulapeter.kubrikoStressTest.implementation.gameObjects.traits
 
-import com.pandulapeter.kubriko.engine.traits.Movable
-import com.pandulapeter.kubriko.engine.traits.Visible
-import com.pandulapeter.kubriko.engine.implementation.extensions.angleTowards
-import com.pandulapeter.kubriko.engine.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.engine.types.AngleRadians
-import com.pandulapeter.kubriko.engine.types.ScenePixel
+import com.pandulapeter.kubriko.traits.Movable
+import com.pandulapeter.kubriko.traits.Visible
+import com.pandulapeter.kubriko.implementation.extensions.angleTowards
+import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.types.AngleRadians
+import com.pandulapeter.kubriko.types.ScenePixel
 
 interface Destructible : Movable {
     var destructionState: Float

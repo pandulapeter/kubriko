@@ -1,7 +1,7 @@
 package com.pandulapeter.kubrikoPong.implementation
 
 import androidx.compose.ui.input.key.Key
-import com.pandulapeter.kubriko.engine.Kubriko
+import com.pandulapeter.kubriko.Kubriko
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

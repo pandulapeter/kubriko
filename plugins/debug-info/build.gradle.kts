@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.pandulapeter.kubriko.pluginDebugInfo"
+    namespace = "com.pandulapeter.kubriko.debugInfo"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()

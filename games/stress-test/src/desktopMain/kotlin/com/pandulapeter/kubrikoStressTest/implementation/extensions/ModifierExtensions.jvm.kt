@@ -4,8 +4,8 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
-import com.pandulapeter.kubriko.engine.managers.StateManager
-import com.pandulapeter.kubriko.engine.managers.ViewportManager
+import com.pandulapeter.kubriko.managers.StateManager
+import com.pandulapeter.kubriko.managers.ViewportManager
 
 @OptIn(ExperimentalComposeUiApi::class)
 internal actual fun Modifier.handleMouseZoom(

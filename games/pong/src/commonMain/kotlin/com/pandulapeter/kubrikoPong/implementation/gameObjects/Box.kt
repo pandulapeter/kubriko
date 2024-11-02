@@ -2,15 +2,15 @@ package com.pandulapeter.kubrikoPong.implementation.gameObjects
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import com.pandulapeter.kubriko.engine.editorIntegration.EditableProperty
-import com.pandulapeter.kubriko.engine.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableColor
-import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableSceneOffset
-import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableSceneSize
-import com.pandulapeter.kubriko.engine.traits.Editable
-import com.pandulapeter.kubriko.engine.traits.Visible
-import com.pandulapeter.kubriko.engine.types.SceneOffset
-import com.pandulapeter.kubriko.engine.types.SceneSize
+import com.pandulapeter.kubriko.sceneEditorIntegration.EditableProperty
+import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.implementation.serializers.SerializableColor
+import com.pandulapeter.kubriko.implementation.serializers.SerializableSceneOffset
+import com.pandulapeter.kubriko.implementation.serializers.SerializableSceneSize
+import com.pandulapeter.kubriko.traits.Editable
+import com.pandulapeter.kubriko.traits.Visible
+import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString

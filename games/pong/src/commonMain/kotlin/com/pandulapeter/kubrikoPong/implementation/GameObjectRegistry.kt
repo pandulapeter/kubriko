@@ -1,6 +1,6 @@
 package com.pandulapeter.kubrikoPong.implementation
 
-import com.pandulapeter.kubriko.engine.editorIntegration.EditableMetadata
+import com.pandulapeter.kubriko.sceneEditorIntegration.EditableMetadata
 import com.pandulapeter.kubrikoPong.implementation.gameObjects.Box
 import kotlinx.serialization.json.Json
 
