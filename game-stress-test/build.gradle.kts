@@ -26,7 +26,7 @@ kotlin {
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            baseName = "ComposeApp"
+            baseName = "StressTest"
             isStatic = true
         }
     }
@@ -34,6 +34,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.engine)
+            implementation(projects.plugins.debugInfo)
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material)

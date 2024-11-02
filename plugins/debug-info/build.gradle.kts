@@ -6,11 +6,10 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.compose)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
-    namespace = "com.pandulapeter.kubriko.engine"
+    namespace = "com.pandulapeter.kubriko.pluginDebugInfo"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
@@ -37,17 +36,17 @@ kotlin {
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            baseName = "KubrikoEngine"
+            baseName = "KubrikoPluginDebugInfo"
             isStatic = true
         }
     }
 
     sourceSets {
         commonMain.dependencies {
+            implementation(projects.engine)
             implementation(compose.runtime)
             api(compose.foundation)
-            implementation(libs.androidx.lifecycle.runtime.compose)
-            implementation(libs.kotlinx.serialization)
+            implementation(compose.material)
         }
     }
 }

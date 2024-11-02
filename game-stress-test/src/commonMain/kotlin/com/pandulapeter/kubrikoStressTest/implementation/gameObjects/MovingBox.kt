@@ -12,7 +12,6 @@ import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableSc
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableSceneOffset
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableScenePixel
 import com.pandulapeter.kubriko.engine.traits.Editable
-import com.pandulapeter.kubriko.engine.traits.Identifiable
 import com.pandulapeter.kubriko.engine.traits.Visible
 import com.pandulapeter.kubriko.engine.types.AngleRadians
 import com.pandulapeter.kubriko.engine.types.Scale
@@ -27,10 +26,7 @@ import kotlinx.serialization.json.Json
 import kotlin.math.cos
 import kotlin.math.sin
 
-class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>, Destructible, Visible, Identifiable {
-
-    @set:EditableProperty(name = "id")
-    override var name: String? = state.id
+class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>, Destructible, Visible {
 
     @set:EditableProperty(name = "edgeSize")
     var edgeSize: ScenePixel = state.edgeSize
@@ -105,7 +101,6 @@ class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>
     }
 
     override fun save() = MovingBoxState(
-        id = name,
         edgeSize = edgeSize,
         position = position,
         boxColor = boxColor,
@@ -115,7 +110,6 @@ class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>
 
     @Serializable
     data class MovingBoxState(
-        @SerialName("id") val id: String? = null,
         @SerialName("edgeSize") val edgeSize: SerializableScenePixel = 100f.scenePixel,
         @SerialName("position") val position: SerializableSceneOffset = SceneOffset.Zero,
         @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,

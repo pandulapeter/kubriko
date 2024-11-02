@@ -4,6 +4,7 @@ include(
     ":engine",
     ":game-pong",
     ":game-stress-test",
+    ":plugins:debug-info",
 )
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

@@ -16,7 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoStressTest.implementation.helpers.platformName
-import com.pandulapeter.kubrikoStressTest.implementation.models.Metadata
 import kubriko.game_stress_test.generated.resources.Res
 import kubriko.game_stress_test.generated.resources.logo
 import org.jetbrains.compose.resources.painterResource
@@ -24,9 +23,9 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 fun UserInterface(
     modifier: Modifier = Modifier,
-    metadata: Metadata,
     isRunning: Boolean,
     updateIsRunning: (Boolean) -> Unit,
+    debugInfo: @Composable () -> Unit,
 ) = MaterialTheme {
     Column(
         modifier = modifier.fillMaxSize().padding(vertical = 16.dp),
@@ -37,9 +36,7 @@ fun UserInterface(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            DebugInfo(
-                metadata = metadata,
-            )
+            debugInfo()
             Button(
                 onClick = { updateIsRunning(!isRunning) },
             ) {
@@ -66,11 +63,3 @@ fun UserInterface(
         }
     }
 }
-
-@Composable
-private fun DebugInfo(metadata: Metadata) = Text(
-    text = "FPS: ${metadata.fps.toString().subSequence(0, metadata.fps.toString().indexOf('.'))}\n" +
-            "Total object count: ${metadata.totalGameObjectCount}\n" +
-            "Visible object count: ${metadata.visibleGameObjectCount}\n" +
-            "Play time in seconds: ${metadata.playTimeInSeconds}"
-)
