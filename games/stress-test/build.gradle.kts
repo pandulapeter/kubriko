@@ -36,6 +36,7 @@ kotlin {
             implementation(projects.engine)
             implementation(projects.plugins.debugInfo)
             implementation(projects.plugins.sceneSerializer)
+            implementation(projects.tools.sceneEditor)
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material)
@@ -48,7 +49,6 @@ kotlin {
         }
         val desktopMain by getting {
             dependencies {
-                implementation(projects.tools.sceneEditor)
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlinx.coroutines.swing)
             }

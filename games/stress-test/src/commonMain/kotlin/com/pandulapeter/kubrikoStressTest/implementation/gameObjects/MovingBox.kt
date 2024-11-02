@@ -6,7 +6,7 @@ import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.sceneSerializer.Editable
-import com.pandulapeter.kubriko.sceneSerializer.integration.EditableProperty
+import com.pandulapeter.kubriko.sceneEditor.EditableProperty
 import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableAngleRadians
 import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableColor
 import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableScale

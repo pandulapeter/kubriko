@@ -8,7 +8,7 @@ import com.pandulapeter.kubriko.implementation.extensions.KeyboardDirectionState
 import com.pandulapeter.kubriko.implementation.extensions.directionState
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.sceneSerializer.Editable
-import com.pandulapeter.kubriko.sceneSerializer.integration.EditableProperty
+import com.pandulapeter.kubriko.sceneEditor.EditableProperty
 import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableSceneOffset
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Unique
