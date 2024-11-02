@@ -89,15 +89,19 @@ fun EngineCanvas(
                         )
                     },
                     drawBlock = {
-                        actorManager.visibleActorsWithinViewport.value.forEach { visible ->
-                            withTransform(
-                                transformBlock = { visible.transform(this) },
-                                drawBlock = { visible.draw(this) }
-                            )
-                        }
-                        actorManager.overlayActors.value.forEach { overlay ->
-                            overlay.drawToViewport(this)
-                        }
+                        actorManager.visibleActorsWithinViewport.value
+                            .sortedByDescending { it.drawingOrder }
+                            .forEach { visible ->
+                                withTransform(
+                                    transformBlock = { visible.transform(this) },
+                                    drawBlock = { visible.draw(this) }
+                                )
+                            }
+                        actorManager.overlayActors.value
+                            .sortedByDescending { it.overlayDrawingOrder }
+                            .forEach { overlay ->
+                                overlay.drawToViewport(this)
+                            }
                     }
                 )
             }

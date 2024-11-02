@@ -3,7 +3,7 @@ package com.pandulapeter.kubrikoPong.implementation.gameObjects
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.traits.Visible
+import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 

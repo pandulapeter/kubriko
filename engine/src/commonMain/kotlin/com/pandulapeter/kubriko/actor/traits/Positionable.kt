@@ -1,21 +1,22 @@
-package com.pandulapeter.kubriko.traits
+package com.pandulapeter.kubriko.actor.traits
 
+import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
 /**
- * Actors that have a well defined position in the Scene should implement this interface.
+ * [Actor]s that want to have a well defined position in the Scene should implement this interface.
  */
-interface Positionable {
+interface Positionable : Actor {
 
     /**
-     * The virtual size of the Actor, calculated from the [pivotOffset].
+     * The virtual size of the [Actor], calculated from the [pivotOffset].
      */
     val boundingBox: SceneSize
 
     /**
-     * The absolute position of the Actor in the Scene.
+     * The absolute position of the [Actor] in the Scene.
      */
     var position: SceneOffset
 

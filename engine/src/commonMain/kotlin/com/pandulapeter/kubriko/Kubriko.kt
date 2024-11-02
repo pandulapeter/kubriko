@@ -7,7 +7,7 @@ import com.pandulapeter.kubriko.managers.InputManager
 import com.pandulapeter.kubriko.managers.MetadataManager
 import com.pandulapeter.kubriko.managers.StateManager
 import com.pandulapeter.kubriko.managers.ViewportManager
-import com.pandulapeter.kubriko.traits.Dynamic
+import com.pandulapeter.kubriko.actor.traits.Dynamic
 
 /**
  * Holds references to the individual Manager classes that control the different aspects of a game.

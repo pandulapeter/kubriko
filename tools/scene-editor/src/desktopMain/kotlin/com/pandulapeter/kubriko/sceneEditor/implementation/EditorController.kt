@@ -2,6 +2,7 @@ package com.pandulapeter.kubriko.sceneEditor.implementation
 
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.implementation.extensions.occupiesPosition
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.GridOverlay
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.exitApp
@@ -11,7 +12,7 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.saveFile
 import com.pandulapeter.kubriko.sceneSerializer.Editable
 import com.pandulapeter.kubriko.sceneSerializer.SceneSerializer
-import com.pandulapeter.kubriko.traits.Visible
+import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -135,8 +136,8 @@ internal class EditorController(
         }
     }
 
-    private fun findInstanceOnPosition(positionInWorld: SceneOffset) = kubriko.actorManager
-        .findVisibleInstancesWithBoundsInPosition(positionInWorld)
+    private fun findInstanceOnPosition(sceneOffset: SceneOffset) = visibleActorsWithinViewport.value
+        .filter { it.occupiesPosition(sceneOffset) }
         .minByOrNull { (it as? Visible)?.drawingOrder ?: 0f }
 
     fun selectInstance(gameObject: Editable<*>) {

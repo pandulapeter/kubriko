@@ -11,7 +11,7 @@ import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableAngleRad
 import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableColor
 import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableSceneOffset
 import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableScenePixel
-import com.pandulapeter.kubriko.traits.Visible
+import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel

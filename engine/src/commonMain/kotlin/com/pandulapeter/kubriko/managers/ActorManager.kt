@@ -1,25 +1,23 @@
 package com.pandulapeter.kubriko.managers
 
-import com.pandulapeter.kubriko.traits.Visible
+import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.StateFlow
+
 /**
  * TODO: Documentation
  */
 interface ActorManager {
 
-    val allActors: StateFlow<List<Any>>
-    val visibleActorsWithinViewport: StateFlow<List<Visible>>
+    val allActors: StateFlow<List<Actor>>
+    val visibleActorsWithinViewport: StateFlow<List<Actor>>
 
-    fun add(vararg actors: Any)
+    fun add(vararg actors: Actor)
 
-    fun remove(vararg actors: Any)
+    fun remove(vararg actors: Actor)
 
     fun removeAll()
 
     // TODO: No need for this
-    fun findVisibleInstancesWithBoundsInPosition(position: SceneOffset): List<Any>
-
-    // TODO: No need for this
-    fun findVisibleInstancesWithPivotsAroundPosition(position: SceneOffset, range: Float): List<Any>
+    fun findVisibleActorsWithPivotsAroundPosition(position: SceneOffset, range: Float): List<Actor>
 }

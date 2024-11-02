@@ -10,9 +10,9 @@ import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.sceneSerializer.Editable
 import com.pandulapeter.kubriko.sceneSerializer.integration.EditableProperty
 import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableSceneOffset
-import com.pandulapeter.kubriko.traits.Dynamic
-import com.pandulapeter.kubriko.traits.Unique
-import com.pandulapeter.kubriko.traits.Visible
+import com.pandulapeter.kubriko.actor.traits.Dynamic
+import com.pandulapeter.kubriko.actor.traits.Unique
+import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
@@ -69,7 +69,7 @@ class Character private constructor(state: CharacterState) : Editable<Character>
         } else {
             sizeMultiplier = 1f
         }
-        nearbyGameObjectPositions = GameplayController.kubriko.actorManager.findVisibleInstancesWithPivotsAroundPosition(
+        nearbyGameObjectPositions = GameplayController.kubriko.actorManager.findVisibleActorsWithPivotsAroundPosition(
             position = position + pivotOffset,
             range = EXPLOSION_RANGE,
         ).mapNotNull { (it as? Visible)?.position }
@@ -118,7 +118,7 @@ class Character private constructor(state: CharacterState) : Editable<Character>
     private fun triggerExplosion() {
         if (GameplayController.kubriko.stateManager.isRunning.value) {
             sizeMultiplier = MAX_SIZE_MULTIPLIER
-            GameplayController.kubriko.actorManager.findVisibleInstancesWithPivotsAroundPosition(
+            GameplayController.kubriko.actorManager.findVisibleActorsWithPivotsAroundPosition(
                 position = position + pivotOffset,
                 range = EXPLOSION_RANGE,
             ).filterIsInstance<Destructible>().forEach { it.destroy(this) }

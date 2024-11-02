@@ -1,9 +1,11 @@
-package com.pandulapeter.kubriko.traits
+package com.pandulapeter.kubriko.actor.traits
+
+import com.pandulapeter.kubriko.actor.Actor
 
 /**
- * Should be implemented by Actors who want to hook into the game loop.
+ * Should be implemented by [Actor]s that want to hook into the game loop.
  */
-interface Dynamic {
+interface Dynamic : Actor {
 
     /**
      * Called in every frame unless the game state is paused.

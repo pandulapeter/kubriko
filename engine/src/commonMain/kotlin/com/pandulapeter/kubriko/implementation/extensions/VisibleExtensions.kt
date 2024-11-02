@@ -1,7 +1,7 @@
 package com.pandulapeter.kubriko.implementation.extensions
 
 import androidx.compose.ui.graphics.drawscope.DrawTransform
-import com.pandulapeter.kubriko.traits.Visible
+import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.types.Scale
 
 internal fun Visible.transform(drawTransform: DrawTransform) {

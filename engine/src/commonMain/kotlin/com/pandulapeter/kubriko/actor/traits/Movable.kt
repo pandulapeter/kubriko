@@ -1,6 +1,7 @@
-package com.pandulapeter.kubriko.traits
+package com.pandulapeter.kubriko.actor.traits
 
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -9,10 +10,10 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * Should be implemented by Actors that want their positions to be updated automatically by [Kubriko] in function of their speed, direction and friction.
- * [Movable] Actors must also be [Dynamic] and [Positionable].
+ * Should be implemented by [Actor]s that want their positions to be updated automatically by [Kubriko] in function of their speed, direction and friction.
+ * [Movable] [Actor]s must also be [Dynamic] and [Positionable].
  */
-interface Movable : Dynamic, Positionable {
+interface Movable : Dynamic, Positionable, Actor {
 
     /**
      * The speed of the Actor in [ScenePixel]-s / milliseconds.

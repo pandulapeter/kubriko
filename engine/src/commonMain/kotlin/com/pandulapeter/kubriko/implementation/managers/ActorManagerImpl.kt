@@ -1,15 +1,15 @@
 package com.pandulapeter.kubriko.implementation.managers
 
+import com.pandulapeter.kubriko.actor.Actor
+import com.pandulapeter.kubriko.actor.traits.Dynamic
+import com.pandulapeter.kubriko.actor.traits.Identifiable
+import com.pandulapeter.kubriko.actor.traits.Overlay
+import com.pandulapeter.kubriko.actor.traits.Unique
+import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.KubrikoImpl
 import com.pandulapeter.kubriko.implementation.extensions.isAroundPosition
 import com.pandulapeter.kubriko.implementation.extensions.isVisible
-import com.pandulapeter.kubriko.implementation.extensions.occupiesPosition
 import com.pandulapeter.kubriko.managers.ActorManager
-import com.pandulapeter.kubriko.traits.Dynamic
-import com.pandulapeter.kubriko.traits.Identifiable
-import com.pandulapeter.kubriko.traits.Overlay
-import com.pandulapeter.kubriko.traits.Unique
-import com.pandulapeter.kubriko.traits.Visible
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +27,7 @@ internal class ActorManagerImpl(
     engineImpl: KubrikoImpl,
 ) : ActorManager {
 
-    private val _allActors = MutableStateFlow(emptyList<Any>())
+    private val _allActors = MutableStateFlow(emptyList<Actor>())
     override val allActors = _allActors.asStateFlow()
     val dynamicActors = _allActors
         .map { actors -> actors.filterIsInstance<Dynamic>() }
@@ -36,7 +36,7 @@ internal class ActorManagerImpl(
         .map { actors -> actors.filterIsInstance<Visible>() }
         .stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
     val overlayActors = _allActors
-        .map { actors -> actors.filterIsInstance<Overlay>().sortedByDescending { it.overlayDrawingOrder } }
+        .map { actors -> actors.filterIsInstance<Overlay>() }
         .stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
     override val visibleActorsWithinViewport = combine(
         engineImpl.metadataManager.runtimeInMilliseconds.map { it / 100 }.distinctUntilChanged(),
@@ -53,27 +53,23 @@ internal class ActorManagerImpl(
                     viewportScaleFactor = viewportScaleFactor,
                 )
             }
-            .sortedByDescending { it.drawingOrder }
     }.stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
 
     @OptIn(ExperimentalUuidApi::class)
-    override fun add(vararg actors: Any) = _allActors.update { currentActors ->
+    override fun add(vararg actors: Actor) = _allActors.update { currentActors ->
         val uniqueActors = actors.filterIsInstance<Unique>().map { it::class }.toSet()
         val filteredCurrentActors = currentActors.filterNot { it::class in uniqueActors }
         actors.filterIsInstance<Identifiable>().onEach { if (it.name == null) it.name = Uuid.random().toString() }
         filteredCurrentActors + actors
     }
 
-    override fun remove(vararg actors: Any) = _allActors.update { currentValue ->
+    override fun remove(vararg actors: Actor) = _allActors.update { currentValue ->
         currentValue.filterNot { it in actors }
     }
 
     override fun removeAll() = _allActors.update { emptyList() }
 
-    override fun findVisibleInstancesWithBoundsInPosition(position: SceneOffset) = visibleActorsWithinViewport.value
-        .filter { it.occupiesPosition(position) }
-
-    override fun findVisibleInstancesWithPivotsAroundPosition(position: SceneOffset, range: Float) = visibleActors.value
+    override fun findVisibleActorsWithPivotsAroundPosition(position: SceneOffset, range: Float) = visibleActors.value
         .filter {
             it.isAroundPosition(
                 position = position,

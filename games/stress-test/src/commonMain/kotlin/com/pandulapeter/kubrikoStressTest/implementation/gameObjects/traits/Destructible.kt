@@ -1,7 +1,7 @@
 package com.pandulapeter.kubrikoStressTest.implementation.gameObjects.traits
 
-import com.pandulapeter.kubriko.traits.Movable
-import com.pandulapeter.kubriko.traits.Visible
+import com.pandulapeter.kubriko.actor.traits.Movable
+import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.angleTowards
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.types.AngleRadians

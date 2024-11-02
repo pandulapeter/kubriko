@@ -1,6 +1,6 @@
 package com.pandulapeter.kubriko.implementation.extensions
 
-import com.pandulapeter.kubriko.traits.Positionable
+import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel

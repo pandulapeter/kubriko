@@ -5,8 +5,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
 import com.pandulapeter.kubriko.managers.ViewportManager
-import com.pandulapeter.kubriko.traits.Overlay
-import com.pandulapeter.kubriko.traits.Unique
+import com.pandulapeter.kubriko.actor.traits.Overlay
+import com.pandulapeter.kubriko.actor.traits.Unique
 
 internal class GridOverlay(private val viewportManager: ViewportManager) : Overlay, Unique {
 
