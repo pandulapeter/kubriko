@@ -36,7 +36,7 @@ kotlin {
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            baseName = "KubrikoPluginDebugInfo"
+            baseName = "ComposeApp"
             isStatic = true
         }
     }

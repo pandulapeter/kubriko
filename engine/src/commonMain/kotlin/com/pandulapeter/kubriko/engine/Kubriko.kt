@@ -28,10 +28,10 @@ interface Kubriko {
     val viewportManager: ViewportManager
 
     /**
-     * Designed to be used only for the Editor. Should return {false} under normal circumstances.
+     * Designed to be used only for the Scene Editor. Should return {false} under normal circumstances.
      * Setting this value to {true} has the following effects:
      * - [Dynamic] Actors no longer receive update events
-     * - [Editable] Actors will become visible through their {editorPreview} implementation
+     * - [Editable] Actors will become visible through their [Editable.editorPreview] implementations
      */
     var isEditor: Boolean
 
@@ -39,7 +39,7 @@ interface Kubriko {
         /**
          * Creates a new [Kubriko] instance.
          *
-         * @param editableMetadata - Any number of actor types that should be registered for usage in the Editor.
+         * @param editableMetadata - Any number of actor types that should be registered for usage in the Scene Editor.
          */
         fun newInstance(
             vararg editableMetadata: EditableMetadata<*>,

@@ -1,9 +1,9 @@
 rootProject.name = "Kubriko"
 include(
-    ":editor",
     ":engine",
-    ":game-pong",
-    ":game-stress-test",
+    ":games:pong",
+    ":games:stress-test",
+    ":scene-editor",
     ":plugins:debug-info",
 )
 
