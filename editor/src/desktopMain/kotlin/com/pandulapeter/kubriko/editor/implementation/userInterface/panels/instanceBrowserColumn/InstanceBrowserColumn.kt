@@ -66,8 +66,8 @@ internal fun InstanceBrowserColumn(
 
 private fun Editable<*>.getName(typeId: String?) : String {
     val type =  typeId ?: "Unknown Actor type"
-    val id = (this as? Identifiable)?.id
-    return if (id == null) type else "type [$id]"
+    val id = (this as? Identifiable)?.name
+    return if (id == null) type else "$type [$id]"
 }
 
 @Composable

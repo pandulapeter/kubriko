@@ -37,6 +37,8 @@ import kubriko.editor.generated.resources.ic_expand
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.starProjectedType
+import kotlin.reflect.full.withNullability
 
 
 internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
@@ -123,7 +125,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 }
             }
 
-            String::class.createType() -> {
+            String::class.starProjectedType.withNullability(true) -> {
                 {
                     StringPropertyEditor(
                         name = name,

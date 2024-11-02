@@ -16,7 +16,7 @@ internal fun EditorTextInput(
     modifier = modifier,
 ) {
     EditorTextLabel(
-        text = "$title: $value",
+        text = title,
     )
     // TODO: Focusing this fields should take focus away from the EngineCanvas to avoid navigation using the arrow keys.
     OutlinedTextField(

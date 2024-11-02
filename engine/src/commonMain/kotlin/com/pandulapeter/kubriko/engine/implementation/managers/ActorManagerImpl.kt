@@ -61,14 +61,8 @@ internal class ActorManagerImpl(
     override fun add(vararg actors: Any) = _allActors.update { currentActors ->
         val uniqueActors = actors.filterIsInstance<Unique>().map { it::class }.toSet()
         val filteredCurrentActors = currentActors.filterNot { it::class in uniqueActors }
-        val currentIdentifiableActors = filteredCurrentActors.filterIsInstance<Identifiable>()
-        val newIdentifiableActors = actors
-            .filterIsInstance<Identifiable>()
-            .onEach { if (it.id == null) it.id = Uuid.random().toString() }
-            .distinctBy { it.id }
-        val identifiableActors = (currentIdentifiableActors + newIdentifiableActors).distinctBy { it.id }
-        val nonIdentifiableActors = (filteredCurrentActors + actors).filterNot { it is Identifiable }
-        nonIdentifiableActors + identifiableActors
+        actors.filterIsInstance<Identifiable>().onEach { if (it.name == null) it.name = Uuid.random().toString() }
+        filteredCurrentActors + actors
     }
 
     override fun remove(vararg actors: Any) = _allActors.update { currentValue ->
