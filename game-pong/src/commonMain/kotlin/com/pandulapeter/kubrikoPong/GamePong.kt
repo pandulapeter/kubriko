@@ -16,7 +16,7 @@ import com.pandulapeter.kubrikoPong.implementation.UserInterface
 fun GamePong(
     modifier: Modifier = Modifier,
 ) {
-    val kubriko = remember { Kubriko.newInstance(editableActorMetadata = GameObjectRegistry.typesAvailableInEditor) }
+    val kubriko = remember { Kubriko.newInstance(editableMetadata = GameObjectRegistry.typesAvailableInEditor) }
     val gameplayController = remember { GameplayController(kubriko) }
     EngineCanvas(
         modifier = Modifier.background(Color.White),

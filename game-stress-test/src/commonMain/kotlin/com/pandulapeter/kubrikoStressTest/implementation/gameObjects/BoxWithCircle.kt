@@ -5,33 +5,37 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.kubriko.engine.editorIntegration.EditableProperty
 import com.pandulapeter.kubriko.engine.implementation.extensions.rad
+import com.pandulapeter.kubriko.engine.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableAngleRadians
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableColor
-import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableWorldCoordinates
+import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableSceneOffset
+import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableScenePixel
 import com.pandulapeter.kubriko.engine.traits.Editable
+import com.pandulapeter.kubriko.engine.traits.Visible
 import com.pandulapeter.kubriko.engine.types.AngleRadians
-import com.pandulapeter.kubriko.engine.types.WorldCoordinates
-import com.pandulapeter.kubriko.engine.types.WorldSize
+import com.pandulapeter.kubriko.engine.types.SceneOffset
+import com.pandulapeter.kubriko.engine.types.ScenePixel
+import com.pandulapeter.kubriko.engine.types.SceneSize
 import com.pandulapeter.kubrikoStressTest.implementation.gameObjects.traits.Destructible
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class BoxWithCircle private constructor(state: BoxWithCircleState) : Editable<BoxWithCircle>, Destructible {
+class BoxWithCircle private constructor(state: BoxWithCircleState) : Editable<BoxWithCircle>, Destructible, Visible {
 
     @set:EditableProperty(name = "edgeSize")
-    var edgeSize: Float = state.edgeSize
+    var edgeSize: ScenePixel = state.edgeSize
         set(value) {
             field = value
-            boundingBox = WorldSize(
+            boundingBox = SceneSize(
                 width = value,
                 height = value
             )
         }
 
     @set:EditableProperty(name = "position")
-    override var position: WorldCoordinates = state.position
+    override var position: SceneOffset = state.position
 
     @set:EditableProperty(name = "boxColor")
     var boxColor: Color = state.boxColor
@@ -40,34 +44,34 @@ class BoxWithCircle private constructor(state: BoxWithCircleState) : Editable<Bo
     var circleColor: Color = state.circleColor
 
     @set:EditableProperty(name = "circleRadius")
-    var circleRadius: Float = state.circleRadius
+    var circleRadius: ScenePixel = state.circleRadius
 
     @set:EditableProperty(name = "rotation")
     override var rotation: AngleRadians = state.rotation
 
     override var drawingOrder = 0f
-    override var boundingBox = WorldSize(
+    override var boundingBox = SceneSize(
         width = state.edgeSize,
         height = state.edgeSize
     )
     override var destructionState = 0f
     override var direction = AngleRadians.Zero
-    override var speed = 0f
+    override var speed = ScenePixel.Zero
 
     override fun update(deltaTimeInMillis: Float) {
         super.update(deltaTimeInMillis)
-        drawingOrder = -position.y - pivotOffset.y
+        drawingOrder = -position.y.raw - pivotOffset.y.raw
     }
 
     override fun draw(scope: DrawScope) {
         scope.drawRect(
             color = lerp(boxColor, Color.Black, destructionState),
-            size = boundingBox.rawSize,
+            size = boundingBox.raw,
         )
         scope.drawCircle(
             color = lerp(circleColor, Color.Black, destructionState),
-            radius = circleRadius,
-            center = boundingBox.center.rawOffset,
+            radius = circleRadius.raw,
+            center = boundingBox.center.raw,
         )
     }
 
@@ -82,11 +86,11 @@ class BoxWithCircle private constructor(state: BoxWithCircleState) : Editable<Bo
 
     @Serializable
     data class BoxWithCircleState(
-        @SerialName("edgeSize") val edgeSize: Float = 100f,
-        @SerialName("position") val position: SerializableWorldCoordinates = WorldCoordinates.Zero,
+        @SerialName("edgeSize") val edgeSize: SerializableScenePixel = 100f.scenePixel,
+        @SerialName("position") val position: SerializableSceneOffset = SceneOffset.Zero,
         @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,
         @SerialName("circleColor") val circleColor: SerializableColor = Color.White,
-        @SerialName("circleRadius") val circleRadius: Float = edgeSize / 3f,
+        @SerialName("circleRadius") val circleRadius: SerializableScenePixel = edgeSize / 3f,
         @SerialName("rotation") val rotation: SerializableAngleRadians = 0f.rad,
     ) : Editable.State<BoxWithCircle> {
 

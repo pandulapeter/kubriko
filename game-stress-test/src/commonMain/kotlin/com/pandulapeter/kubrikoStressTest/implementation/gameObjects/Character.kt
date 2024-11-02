@@ -7,13 +7,15 @@ import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.engine.editorIntegration.EditableProperty
 import com.pandulapeter.kubriko.engine.implementation.extensions.KeyboardDirectionState
 import com.pandulapeter.kubriko.engine.implementation.extensions.directionState
-import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableWorldCoordinates
+import com.pandulapeter.kubriko.engine.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableSceneOffset
 import com.pandulapeter.kubriko.engine.traits.Dynamic
 import com.pandulapeter.kubriko.engine.traits.Editable
 import com.pandulapeter.kubriko.engine.traits.Unique
 import com.pandulapeter.kubriko.engine.traits.Visible
-import com.pandulapeter.kubriko.engine.types.WorldCoordinates
-import com.pandulapeter.kubriko.engine.types.WorldSize
+import com.pandulapeter.kubriko.engine.types.SceneOffset
+import com.pandulapeter.kubriko.engine.types.ScenePixel
+import com.pandulapeter.kubriko.engine.types.SceneSize
 import com.pandulapeter.kubrikoStressTest.implementation.GameplayController
 import com.pandulapeter.kubrikoStressTest.implementation.gameObjects.traits.Destructible
 import kotlinx.coroutines.CoroutineScope
@@ -32,15 +34,15 @@ import kotlin.math.sin
 class Character private constructor(state: CharacterState) : Editable<Character>, Unique, Dynamic, Visible, CoroutineScope {
 
     @set:EditableProperty(name = "position")
-    override var position: WorldCoordinates = state.position
+    override var position: SceneOffset = state.position
 
-    override val boundingBox = WorldSize(
-        width = RADIUS * 2f,
-        height = RADIUS * 2f,
+    override val boundingBox = SceneSize(
+        width = Radius * 2f,
+        height = Radius * 2f,
     )
     override var drawingOrder = 0f
     private var sizeMultiplier = 1f
-    private var nearbyGameObjectPositions = emptyList<WorldCoordinates>()
+    private var nearbyGameObjectPositions = emptyList<SceneOffset>()
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
 
@@ -60,14 +62,14 @@ class Character private constructor(state: CharacterState) : Editable<Character>
     }
 
     override fun update(deltaTimeInMillis: Float) {
-        drawingOrder = -position.y - pivotOffset.y - 100f
-        GameplayController.kubriko.viewportManager.addToCenter(calculateViewportOffsetDelta().rawOffset)
+        drawingOrder = -position.y.raw - pivotOffset.y.raw - 100f
+        GameplayController.kubriko.viewportManager.addToCenter(calculateViewportOffsetDelta().raw)
         if (sizeMultiplier > 1f) {
             sizeMultiplier -= 0.01f * deltaTimeInMillis
         } else {
             sizeMultiplier = 1f
         }
-        nearbyGameObjectPositions = GameplayController.kubriko.instanceManager.findVisibleInstancesWithPivotsAroundPosition(
+        nearbyGameObjectPositions = GameplayController.kubriko.actorManager.findVisibleInstancesWithPivotsAroundPosition(
             position = position + pivotOffset,
             range = EXPLOSION_RANGE,
         ).mapNotNull { (it as? Visible)?.position }
@@ -77,15 +79,15 @@ class Character private constructor(state: CharacterState) : Editable<Character>
         nearbyGameObjectPositions.forEach { nearbyObjectPosition ->
             scope.drawLine(
                 color = Color.Red,
-                start = pivotOffset.rawOffset,
-                end = (nearbyObjectPosition - position + pivotOffset).rawOffset,
+                start = pivotOffset.raw,
+                end = (nearbyObjectPosition - position + pivotOffset).raw,
                 strokeWidth = 2f,
             )
         }
         scope.drawCircle(
             color = lerp(Color.Red, Color.Green, ((1f + MAX_SIZE_MULTIPLIER) - sizeMultiplier) / MAX_SIZE_MULTIPLIER),
-            radius = RADIUS * sizeMultiplier,
-            center = boundingBox.center.rawOffset,
+            radius = (Radius * sizeMultiplier).raw,
+            center = boundingBox.center.raw,
         )
     }
 
@@ -100,15 +102,15 @@ class Character private constructor(state: CharacterState) : Editable<Character>
     private fun move(directionState: KeyboardDirectionState) {
         if (GameplayController.kubriko.stateManager.isRunning.value) {
             position += when (directionState) {
-                KeyboardDirectionState.NONE -> WorldCoordinates.Zero
-                KeyboardDirectionState.LEFT -> WorldCoordinates(-SPEED, 0f)
-                KeyboardDirectionState.UP_LEFT -> WorldCoordinates(-SPEED_DIAGONAL, -SPEED_DIAGONAL)
-                KeyboardDirectionState.UP -> WorldCoordinates(0f, -SPEED)
-                KeyboardDirectionState.UP_RIGHT -> WorldCoordinates(SPEED_DIAGONAL, -SPEED_DIAGONAL)
-                KeyboardDirectionState.RIGHT -> WorldCoordinates(SPEED, 0f)
-                KeyboardDirectionState.DOWN_RIGHT -> WorldCoordinates(SPEED_DIAGONAL, SPEED_DIAGONAL)
-                KeyboardDirectionState.DOWN -> WorldCoordinates(0f, SPEED)
-                KeyboardDirectionState.DOWN_LEFT -> WorldCoordinates(-SPEED_DIAGONAL, SPEED_DIAGONAL)
+                KeyboardDirectionState.NONE -> SceneOffset.Zero
+                KeyboardDirectionState.LEFT -> SceneOffset(-Speed, ScenePixel.Zero)
+                KeyboardDirectionState.UP_LEFT -> SceneOffset(-SpeedDiagonal, -SpeedDiagonal)
+                KeyboardDirectionState.UP -> SceneOffset(ScenePixel.Zero, -Speed)
+                KeyboardDirectionState.UP_RIGHT -> SceneOffset(SpeedDiagonal, -SpeedDiagonal)
+                KeyboardDirectionState.RIGHT -> SceneOffset(Speed, ScenePixel.Zero)
+                KeyboardDirectionState.DOWN_RIGHT -> SceneOffset(SpeedDiagonal, SpeedDiagonal)
+                KeyboardDirectionState.DOWN -> SceneOffset(ScenePixel.Zero, Speed)
+                KeyboardDirectionState.DOWN_LEFT -> SceneOffset(-SpeedDiagonal, SpeedDiagonal)
             }
         }
     }
@@ -116,7 +118,7 @@ class Character private constructor(state: CharacterState) : Editable<Character>
     private fun triggerExplosion() {
         if (GameplayController.kubriko.stateManager.isRunning.value) {
             sizeMultiplier = MAX_SIZE_MULTIPLIER
-            GameplayController.kubriko.instanceManager.findVisibleInstancesWithPivotsAroundPosition(
+            GameplayController.kubriko.actorManager.findVisibleInstancesWithPivotsAroundPosition(
                 position = position + pivotOffset,
                 range = EXPLOSION_RANGE,
             ).filterIsInstance<Destructible>().forEach { it.destroy(this) }
@@ -125,7 +127,7 @@ class Character private constructor(state: CharacterState) : Editable<Character>
 
     @Serializable
     data class CharacterState(
-        @SerialName("position") val position: SerializableWorldCoordinates = WorldCoordinates.Zero
+        @SerialName("position") val position: SerializableSceneOffset = SceneOffset.Zero
     ) : Editable.State<Character> {
 
         override fun restore() = Character(this)
@@ -134,11 +136,11 @@ class Character private constructor(state: CharacterState) : Editable<Character>
     }
 
     companion object {
+        private val Radius = 50f.scenePixel
+        private val Speed = 6f.scenePixel
+        private val SpeedDiagonal = (sin(PI / 4) * Speed.raw).toFloat().scenePixel
         private const val VIEWPORT_FOLLOWING_SPEED_MULTIPLIER = 0.03f
         private const val MAX_SIZE_MULTIPLIER = 3f
         private const val EXPLOSION_RANGE = 500f
-        private const val RADIUS = 50f
-        private const val SPEED = 6f
-        private val SPEED_DIAGONAL = (sin(PI / 4) * SPEED).toFloat()
     }
 }

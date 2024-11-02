@@ -22,12 +22,14 @@ import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.insta
 import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ColorPropertyEditor
 import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.FloatPropertyEditor
 import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ScalePropertyEditor
+import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ScenePixelPropertyEditor
 import com.pandulapeter.kubriko.editor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.WorldCoordinatesPropertyEditor
 import com.pandulapeter.kubriko.engine.editorIntegration.EditableProperty
 import com.pandulapeter.kubriko.engine.types.AngleDegrees
 import com.pandulapeter.kubriko.engine.types.AngleRadians
 import com.pandulapeter.kubriko.engine.types.Scale
-import com.pandulapeter.kubriko.engine.types.WorldCoordinates
+import com.pandulapeter.kubriko.engine.types.SceneOffset
+import com.pandulapeter.kubriko.engine.types.ScenePixel
 import kubriko.editor.generated.resources.Res
 import kubriko.editor.generated.resources.ic_collapse
 import kubriko.editor.generated.resources.ic_expand
@@ -81,11 +83,11 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 }
             }
 
-            WorldCoordinates::class.createType() -> {
+            SceneOffset::class.createType() -> {
                 {
                     WorldCoordinatesPropertyEditor(
                         name = name,
-                        value = getter.call(instance) as WorldCoordinates,
+                        value = getter.call(instance) as SceneOffset,
                         onValueChanged = {
                             setter.call(instance, it)
                             notifySelectedInstanceUpdate()
@@ -112,6 +114,19 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                     FloatPropertyEditor(
                         name = name,
                         value = getter.call(instance) as Float,
+                        onValueChanged = {
+                            setter.call(instance, it)
+                            notifySelectedInstanceUpdate()
+                        }
+                    )
+                }
+            }
+
+            ScenePixel::class.createType() -> {
+                {
+                    ScenePixelPropertyEditor(
+                        name = name,
+                        value = getter.call(instance) as ScenePixel,
                         onValueChanged = {
                             setter.call(instance, it)
                             notifySelectedInstanceUpdate()

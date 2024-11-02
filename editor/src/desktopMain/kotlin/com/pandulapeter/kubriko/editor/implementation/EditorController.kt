@@ -7,10 +7,10 @@ import com.pandulapeter.kubriko.editor.implementation.helpers.handleKeys
 import com.pandulapeter.kubriko.editor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.editor.implementation.helpers.saveFile
 import com.pandulapeter.kubriko.engine.Kubriko
+import com.pandulapeter.kubriko.engine.implementation.extensions.toSceneOffset
 import com.pandulapeter.kubriko.engine.traits.Editable
 import com.pandulapeter.kubriko.engine.traits.Visible
-import com.pandulapeter.kubriko.engine.implementation.extensions.toWorldCoordinates
-import com.pandulapeter.kubriko.engine.types.WorldCoordinates
+import com.pandulapeter.kubriko.engine.types.SceneOffset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -29,26 +29,28 @@ import kotlinx.coroutines.launch
 internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
-    val allInstances = kubriko.instanceManager.allActors
+    val allInstances = kubriko.actorManager.allActors
         .map { it.filterIsInstance<Editable<*>>() }
         .stateIn(this, SharingStarted.Eagerly, emptyList())
-    val visibleInstancesWithinViewport = kubriko.instanceManager.visibleActorsWithinViewport
+    val visibleInstancesWithinViewport = kubriko.actorManager.visibleActorsWithinViewport
         .map { it.filterIsInstance<Editable<*>>() }
         .stateIn(this, SharingStarted.Eagerly, emptyList())
-    val totalGameObjectCount = kubriko.metadataManager.totalGameObjectCount
+    val totalActorCount = kubriko.actorManager.allActors
+        .map { it.filterIsInstance<Editable<*>>().count() }
+        .stateIn(this, SharingStarted.Eagerly, 0)
     private val mouseScreenCoordinates = MutableStateFlow(Offset.Zero)
-    val mouseWorldCoordinates = combine(
+    val mouseSceneOffset = combine(
         mouseScreenCoordinates,
         kubriko.viewportManager.center,
         kubriko.viewportManager.size,
         kubriko.viewportManager.scaleFactor,
     ) { mouseScreenCoordinates, viewportCenter, viewportSize, viewportScaleFactor ->
-        mouseScreenCoordinates.toWorldCoordinates(
+        mouseScreenCoordinates.toSceneOffset(
             viewportCenter = viewportCenter,
             viewportSize = viewportSize,
             viewportScaleFactor = viewportScaleFactor,
         )
-    }.stateIn(this, SharingStarted.Eagerly, WorldCoordinates.Zero)
+    }.stateIn(this, SharingStarted.Eagerly, SceneOffset.Zero)
     private val instanceUpdateTrigger = MutableStateFlow(false)
     private val _selectedInstance = MutableStateFlow<Editable<*>?>(null)
     val selectedUpdatableInstance = combine(
@@ -86,10 +88,10 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
 
     fun getSelectedInstance() = selectedUpdatableInstance.value.first
 
-    fun getMouseWorldCoordinates() = mouseWorldCoordinates.value
+    fun getMouseWorldCoordinates() = mouseSceneOffset.value
 
     fun onLeftClick(screenCoordinates: Offset) {
-        val positionInWorld = screenCoordinates.toWorldCoordinates(kubriko.viewportManager)
+        val positionInWorld = screenCoordinates.toSceneOffset(kubriko.viewportManager)
         findInstanceOnPosition(positionInWorld).let { gameObjectAtPosition ->
             selectedUpdatableInstance.value.first.let { currentSelectedGameObject ->
                 if (gameObjectAtPosition == null) {
@@ -99,7 +101,7 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
                             kubriko.serializationManager.deserializeActors(
                                 serializedStates = "[{\"typeId\":\"$typeId\",\"state\":\"{\\\"position\\\":{\\\"x\\\":${positionInWorld.x},\\\"y\\\":${positionInWorld.y}}}\"}]"
                             ).firstOrNull()?.let { actor ->
-                                kubriko.instanceManager.add(actor)
+                                kubriko.actorManager.add(actor)
                             }
                         }
                     } else {
@@ -115,18 +117,18 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
     }
 
     fun onRightClick(screenCoordinates: Offset) {
-        findInstanceOnPosition(screenCoordinates.toWorldCoordinates(kubriko.viewportManager)).let { actorAtPosition ->
+        findInstanceOnPosition(screenCoordinates.toSceneOffset(kubriko.viewportManager)).let { actorAtPosition ->
             if (actorAtPosition != null) {
                 if (actorAtPosition == _selectedInstance.value) {
                     deleteSelectedInstance()
                 } else {
-                    kubriko.instanceManager.remove(actorAtPosition)
+                    kubriko.actorManager.remove(actorAtPosition)
                 }
             }
         }
     }
 
-    private fun findInstanceOnPosition(positionInWorld: WorldCoordinates) = kubriko.instanceManager
+    private fun findInstanceOnPosition(positionInWorld: SceneOffset) = kubriko.actorManager
         .findVisibleInstancesWithBoundsInPosition(positionInWorld)
         .minByOrNull { (it as? Visible)?.drawingOrder ?: 0f }
 
@@ -145,7 +147,7 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
     fun deleteSelectedInstance() {
         _selectedInstance.value?.let { selectedGameObject ->
             _selectedInstance.update { null }
-            kubriko.instanceManager.remove(selectedGameObject)
+            kubriko.actorManager.remove(selectedGameObject)
         }
     }
 
@@ -167,16 +169,16 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
     }
 
     fun reset() {
-        kubriko.viewportManager.setCenter(WorldCoordinates.Zero)
+        kubriko.viewportManager.setCenter(SceneOffset.Zero)
         _currentFileName.update { DEFAULT_MAP_FILE_NAME }
         _selectedInstance.update { null }
-        kubriko.instanceManager.removeAll()
+        kubriko.actorManager.removeAll()
     }
 
     fun loadMap(path: String) {
         launch {
             loadFile(path)?.let { json ->
-                kubriko.instanceManager.deserializeState(json)
+                kubriko.actorManager.deserializeState(json)
                 _currentFileName.update { path.split('/').last() }
             }
         }
@@ -186,7 +188,7 @@ internal class EditorController(val kubriko: Kubriko) : CoroutineScope {
         launch {
             saveFile(
                 path = path,
-                content = kubriko.instanceManager.serializeState(),
+                content = kubriko.actorManager.serializeState(),
             )
         }
     }

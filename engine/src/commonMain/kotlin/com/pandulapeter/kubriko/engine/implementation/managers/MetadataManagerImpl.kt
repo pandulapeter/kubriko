@@ -13,8 +13,6 @@ internal class MetadataManagerImpl(private val engineImpl: KubrikoImpl) : Metada
 
     private val _fps = MutableStateFlow(0f)
     override val fps = _fps.asStateFlow()
-    override val visibleGameObjectCount by lazy { engineImpl.instanceManager.visibleActorsWithinViewport.map { it.count() }.stateIn(engineImpl, SharingStarted.Eagerly, 0) }
-    override val totalGameObjectCount by lazy { engineImpl.instanceManager.allActors.map { it.count() }.stateIn(engineImpl, SharingStarted.Eagerly, 0) }
     private val _runtimeInMilliseconds = MutableStateFlow(0L)
     override val runtimeInMilliseconds = _runtimeInMilliseconds.asStateFlow()
     private var lastFpsUpdateTimestamp = 0L

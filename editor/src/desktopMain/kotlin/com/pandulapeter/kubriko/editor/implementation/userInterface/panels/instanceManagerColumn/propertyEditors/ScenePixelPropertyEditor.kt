@@ -6,21 +6,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.editor.implementation.userInterface.components.EditorTextLabel
-import com.pandulapeter.kubriko.engine.types.SceneOffset
+import com.pandulapeter.kubriko.editor.implementation.userInterface.components.EditorNumberInput
+import com.pandulapeter.kubriko.engine.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.engine.types.ScenePixel
 
 @Composable
-internal fun WorldCoordinatesPropertyEditor(
+internal fun ScenePixelPropertyEditor(
     name: String,
-    value: SceneOffset,
-    onValueChanged: (SceneOffset) -> Unit,
+    value: ScenePixel,
+    onValueChanged: (ScenePixel) -> Unit,
 ) = Column(
     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
 ) {
-    EditorTextLabel(
-        text = "$name.x: ${value.x}",
-    )
-    EditorTextLabel(
-        text = "$name.y: ${value.y}",
+    EditorNumberInput(
+        title = name,
+        value = value.raw,
+        onValueChanged = { onValueChanged(it.scenePixel) },
     )
 }

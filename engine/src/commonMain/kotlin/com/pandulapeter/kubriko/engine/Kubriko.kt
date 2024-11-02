@@ -1,10 +1,10 @@
 package com.pandulapeter.kubriko.engine
 
 import com.pandulapeter.kubriko.engine.Kubriko.Companion.newInstance
-import com.pandulapeter.kubriko.engine.editorIntegration.EditableActorMetadata
+import com.pandulapeter.kubriko.engine.editorIntegration.EditableMetadata
 import com.pandulapeter.kubriko.engine.implementation.KubrikoImpl
 import com.pandulapeter.kubriko.engine.managers.InputManager
-import com.pandulapeter.kubriko.engine.managers.InstanceManager
+import com.pandulapeter.kubriko.engine.managers.ActorManager
 import com.pandulapeter.kubriko.engine.managers.MetadataManager
 import com.pandulapeter.kubriko.engine.managers.SerializationManager
 import com.pandulapeter.kubriko.engine.managers.StateManager
@@ -16,11 +16,12 @@ import com.pandulapeter.kubriko.engine.traits.Editable
  * Holds references to the individual Manager classes that control the different aspects of a game.
  * See the documentations of the specific Managers for detailed information.
  * Use the static [newInstance] function to instantiate a [Kubriko] implementation.
+ * Provide that instance to the [EngineCanvas] Composable to draw the game world.
  */
 interface Kubriko {
 
+    val actorManager: ActorManager
     val inputManager: InputManager
-    val instanceManager: InstanceManager
     val metadataManager: MetadataManager
     val serializationManager: SerializationManager
     val stateManager: StateManager
@@ -39,12 +40,12 @@ interface Kubriko {
         /**
          * Creates a new [Kubriko] instance.
          *
-         * @param editableActorMetadata - Any number of actor types that should be registered for usage in the Editor.
+         * @param editableMetadata - Any number of actor types that should be registered for usage in the Editor.
          */
         fun newInstance(
-            vararg editableActorMetadata: EditableActorMetadata<*>,
+            vararg editableMetadata: EditableMetadata<*>,
         ): Kubriko = KubrikoImpl(
-            editableActorMetadata = editableActorMetadata,
+            editableMetadata = editableMetadata,
         )
     }
 }

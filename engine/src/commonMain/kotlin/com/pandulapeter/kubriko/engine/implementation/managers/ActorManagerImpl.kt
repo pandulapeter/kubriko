@@ -4,12 +4,13 @@ import com.pandulapeter.kubriko.engine.implementation.KubrikoImpl
 import com.pandulapeter.kubriko.engine.implementation.extensions.isAroundPosition
 import com.pandulapeter.kubriko.engine.implementation.extensions.isVisible
 import com.pandulapeter.kubriko.engine.implementation.extensions.occupiesPosition
-import com.pandulapeter.kubriko.engine.managers.InstanceManager
+import com.pandulapeter.kubriko.engine.managers.ActorManager
 import com.pandulapeter.kubriko.engine.traits.Dynamic
 import com.pandulapeter.kubriko.engine.traits.Editable
 import com.pandulapeter.kubriko.engine.traits.Unique
 import com.pandulapeter.kubriko.engine.traits.Visible
-import com.pandulapeter.kubriko.engine.types.WorldCoordinates
+import com.pandulapeter.kubriko.engine.types.SceneOffset
+import com.pandulapeter.kubriko.engine.types.SceneSize
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,9 +20,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
-internal class InstanceManagerImpl(
+internal class ActorManagerImpl(
     private val engineImpl: KubrikoImpl,
-) : InstanceManager {
+) : ActorManager {
 
     private val _allActors = MutableStateFlow(emptyList<Any>())
     override val allActors = _allActors.asStateFlow()
@@ -41,7 +42,7 @@ internal class InstanceManagerImpl(
         allVisibleGameObjects
             .filter {
                 it.isVisible(
-                    scaledHalfViewportSize = viewportSize / (viewportScaleFactor * 2),
+                    scaledHalfViewportSize = SceneSize(viewportSize / (viewportScaleFactor * 2)),
                     viewportCenter = viewportCenter,
                     viewportScaleFactor = viewportScaleFactor,
                 )
@@ -77,10 +78,10 @@ internal class InstanceManagerImpl(
         add(actors = engineImpl.serializationManager.deserializeActors(json).toTypedArray())
     }
 
-    override fun findVisibleInstancesWithBoundsInPosition(position: WorldCoordinates) = visibleActorsWithinViewport.value
+    override fun findVisibleInstancesWithBoundsInPosition(position: SceneOffset) = visibleActorsWithinViewport.value
         .filter { it.occupiesPosition(position) }
 
-    override fun findVisibleInstancesWithPivotsAroundPosition(position: WorldCoordinates, range: Float) = visibleActors.value
+    override fun findVisibleInstancesWithPivotsAroundPosition(position: SceneOffset, range: Float) = visibleActors.value
         .filter {
             it.isAroundPosition(
                 position = position,

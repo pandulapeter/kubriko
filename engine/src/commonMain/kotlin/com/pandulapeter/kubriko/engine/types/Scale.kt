@@ -6,13 +6,15 @@ import kotlin.jvm.JvmInline
 import kotlin.math.absoluteValue
 
 /**
- * Note: Negative scale is not supported.
+ * 2D scaling factor.
+ *
+ * Negative scale is NOT supported.
  */
 @JvmInline
-value class Scale(private val size: Size) {
-    val horizontal: Float get() = size.width.absoluteValue
-    val vertical: Float get() = size.height.absoluteValue
-    val center get() = WorldCoordinates(Size(horizontal, vertical).center)
+value class Scale(private val raw: Size) {
+    val horizontal: Float get() = raw.width.absoluteValue
+    val vertical: Float get() = raw.height.absoluteValue
+    val center get() = SceneOffset(Size(horizontal, vertical).center)
 
     constructor(horizontal: Float, vertical: Float) : this(Size(horizontal, vertical))
 
@@ -26,13 +28,13 @@ value class Scale(private val size: Size) {
         vertical = vertical - other.vertical,
     )
 
-    operator fun times(scale: Float): Scale = Scale(size * scale)
+    operator fun times(scale: Float): Scale = Scale(raw * scale)
 
-    operator fun times(scale: Int): Scale = Scale(size * scale.toFloat())
+    operator fun times(scale: Int): Scale = Scale(raw * scale.toFloat())
 
-    operator fun div(scale: Float): Scale = Scale(size / scale)
+    operator fun div(scale: Float): Scale = Scale(raw / scale)
 
-    operator fun div(scale: Int): Scale = Scale(size / scale.toFloat())
+    operator fun div(scale: Int): Scale = Scale(raw / scale.toFloat())
 
     override fun toString(): String = "Scale(horizontal=$horizontal, vertical=$vertical)"
 

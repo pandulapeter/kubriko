@@ -1,10 +1,12 @@
 package com.pandulapeter.kubriko.engine.managers
 
 import com.pandulapeter.kubriko.engine.traits.Visible
-import com.pandulapeter.kubriko.engine.types.WorldCoordinates
+import com.pandulapeter.kubriko.engine.types.SceneOffset
 import kotlinx.coroutines.flow.StateFlow
-
-interface InstanceManager {
+/**
+ * TODO: Documentation
+ */
+interface ActorManager {
 
     val allActors: StateFlow<List<Any>>
     val visibleActorsWithinViewport: StateFlow<List<Visible>>
@@ -20,8 +22,8 @@ interface InstanceManager {
     suspend fun deserializeState(json: String)
 
     // TODO: No need for this
-    fun findVisibleInstancesWithBoundsInPosition(position: WorldCoordinates): List<Any>
+    fun findVisibleInstancesWithBoundsInPosition(position: SceneOffset): List<Any>
 
     // TODO: No need for this
-    fun findVisibleInstancesWithPivotsAroundPosition(position: WorldCoordinates, range: Float): List<Any>
+    fun findVisibleInstancesWithPivotsAroundPosition(position: SceneOffset, range: Float): List<Any>
 }

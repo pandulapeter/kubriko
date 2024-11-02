@@ -1,6 +1,6 @@
 package com.pandulapeter.kubriko.engine.implementation.managers
 
-import com.pandulapeter.kubriko.engine.editorIntegration.EditableActorMetadata
+import com.pandulapeter.kubriko.engine.editorIntegration.EditableMetadata
 import com.pandulapeter.kubriko.engine.managers.SerializationManager
 import com.pandulapeter.kubriko.engine.traits.Editable
 import kotlinx.serialization.SerialName
@@ -10,11 +10,11 @@ import kotlinx.serialization.json.Json
 import kotlin.reflect.KClass
 
 internal class SerializationManagerImpl(
-    vararg editableActorMetadata: EditableActorMetadata<out Editable<*>>,
+    vararg editableMetadata: EditableMetadata<out Editable<*>>,
 ) : SerializationManager {
 
-    private val typeIdsToDeserializers = editableActorMetadata.associate { registration -> registration.typeId to registration.deserializeState }
-    private val typeResolvers = editableActorMetadata.associate { registration -> registration.type to registration.typeId }
+    private val typeIdsToDeserializers = editableMetadata.associate { registration -> registration.typeId to registration.deserializeState }
+    private val typeResolvers = editableMetadata.associate { registration -> registration.type to registration.typeId }
     override val typeIdsForEditor = typeIdsToDeserializers.keys
     private val json = Json { ignoreUnknownKeys = true }
 

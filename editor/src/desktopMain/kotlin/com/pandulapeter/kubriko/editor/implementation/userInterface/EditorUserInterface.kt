@@ -58,7 +58,7 @@ internal fun EditorUserInterface(
                     .weight(1f)
                     .handleMouseClick(
                         getSelectedInstance = editorController::getSelectedInstance,
-                        getMouseWorldCoordinates = editorController::getMouseWorldCoordinates,
+                        getMouseSceneOffset = editorController::getMouseWorldCoordinates,
                         onLeftClick = editorController::onLeftClick,
                         onRightClick = editorController::onRightClick,
                     )
@@ -72,7 +72,7 @@ internal fun EditorUserInterface(
                         inputManager = editorController.kubriko.inputManager,
                         viewportManager = editorController.kubriko.viewportManager,
                         getSelectedInstance = editorController::getSelectedInstance,
-                        getMouseWorldCoordinates = editorController::getMouseWorldCoordinates,
+                        getMouseSceneOffset = editorController::getMouseWorldCoordinates,
                         notifySelectedInstanceUpdate = editorController::notifySelectedInstanceUpdate,
                     )
                     .background(Color.White),
@@ -91,8 +91,8 @@ internal fun EditorUserInterface(
             )
         }
         MetadataRow(
-            gameObjectCount = editorController.totalGameObjectCount.collectAsState().value,
-            mouseWorldCoordinates = editorController.mouseWorldCoordinates.collectAsState().value,
+            totalActorCount = editorController.totalActorCount.collectAsState().value,
+            mouseSceneOffset = editorController.mouseSceneOffset.collectAsState().value,
         )
     }
 }

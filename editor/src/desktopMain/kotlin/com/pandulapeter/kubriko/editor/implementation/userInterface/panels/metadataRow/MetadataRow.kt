@@ -11,14 +11,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.editor.implementation.userInterface.components.EditorText
-import com.pandulapeter.kubriko.engine.types.WorldCoordinates
+import com.pandulapeter.kubriko.engine.types.SceneOffset
 import kotlin.math.roundToInt
 
 
 @Composable
 internal fun MetadataRow(
-    gameObjectCount: Int,
-    mouseWorldCoordinates: WorldCoordinates,
+    totalActorCount: Int,
+    mouseSceneOffset: SceneOffset,
 ) = Column(
     modifier = Modifier.fillMaxWidth(),
 ) {
@@ -34,10 +34,10 @@ internal fun MetadataRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         EditorText(
-            text = "Instances: $gameObjectCount",
+            text = "Actors: $totalActorCount",
         )
         EditorText(
-            text = "${mouseWorldCoordinates.x.roundToInt()}:${mouseWorldCoordinates.y.roundToInt()}",
+            text = "${mouseSceneOffset.x.raw.roundToInt()}:${mouseSceneOffset.y.raw.roundToInt()}",
         )
     }
 }

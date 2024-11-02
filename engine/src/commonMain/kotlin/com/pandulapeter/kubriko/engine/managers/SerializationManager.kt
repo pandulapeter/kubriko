@@ -3,6 +3,9 @@ package com.pandulapeter.kubriko.engine.managers
 import com.pandulapeter.kubriko.engine.traits.Editable
 import kotlin.reflect.KClass
 
+/**
+ * TODO: Documentation
+ */
 interface SerializationManager {
 
     val typeIdsForEditor: Set<String>

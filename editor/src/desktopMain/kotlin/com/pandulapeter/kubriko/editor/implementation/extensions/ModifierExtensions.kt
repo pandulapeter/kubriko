@@ -14,22 +14,22 @@ import com.pandulapeter.kubriko.engine.traits.Editable
 import com.pandulapeter.kubriko.engine.implementation.extensions.occupiesPosition
 import com.pandulapeter.kubriko.engine.managers.InputManager
 import com.pandulapeter.kubriko.engine.managers.ViewportManager
-import com.pandulapeter.kubriko.engine.types.WorldCoordinates
+import com.pandulapeter.kubriko.engine.types.SceneOffset
 
-private var startOffset: WorldCoordinates? = null
+private var startOffset: SceneOffset? = null
 private var isDragging = false
 
 // TODO: Fix some clicks registering as drag
 @OptIn(ExperimentalComposeUiApi::class)
 internal fun Modifier.handleMouseClick(
     getSelectedInstance: () -> Editable<*>?,
-    getMouseWorldCoordinates: () -> WorldCoordinates,
+    getMouseSceneOffset: () -> SceneOffset,
     onLeftClick: (Offset) -> Unit,
     onRightClick: (Offset) -> Unit,
 ): Modifier = onPointerEvent(PointerEventType.Press) { event ->
     when (event.button) {
         PointerButton.Primary -> getSelectedInstance()?.let { selectedInstance ->
-            getMouseWorldCoordinates().let { mouseWorldCoordinates ->
+            getMouseSceneOffset().let { mouseWorldCoordinates ->
                 if (selectedInstance.occupiesPosition(mouseWorldCoordinates)) {
                     startOffset = mouseWorldCoordinates - selectedInstance.editorPreview.position
                 }
@@ -75,7 +75,7 @@ internal fun Modifier.handleMouseDrag(
     inputManager: InputManager,
     viewportManager: ViewportManager,
     getSelectedInstance: () -> Editable<*>?,
-    getMouseWorldCoordinates: () -> WorldCoordinates,
+    getMouseSceneOffset: () -> SceneOffset,
     notifySelectedInstanceUpdate: () -> Unit,
 ): Modifier = onDrag(
     matcher = PointerMatcher.mouse(PointerButton.Tertiary),
@@ -90,7 +90,7 @@ internal fun Modifier.handleMouseDrag(
     } else {
         startOffset?.let { startOffset ->
             getSelectedInstance()?.let { selectedInstance ->
-                selectedInstance.position = getMouseWorldCoordinates() - startOffset
+                selectedInstance.position = getMouseSceneOffset() - startOffset
                 notifySelectedInstanceUpdate()
             }
         }

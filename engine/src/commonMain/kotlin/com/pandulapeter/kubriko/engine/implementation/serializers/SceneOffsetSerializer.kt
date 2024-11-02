@@ -1,6 +1,7 @@
 package com.pandulapeter.kubriko.engine.implementation.serializers
 
-import com.pandulapeter.kubriko.engine.types.WorldCoordinates
+import com.pandulapeter.kubriko.engine.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.engine.types.SceneOffset
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -15,25 +16,25 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 
-typealias SerializableWorldCoordinates = @Serializable(with = WorldCoordinatesSerializer::class) WorldCoordinates
+typealias SerializableSceneOffset = @Serializable(with = SceneOffsetSerializer::class) SceneOffset
 
 @Suppress("EXTERNAL_SERIALIZER_USELESS")
 @OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = WorldCoordinates::class)
-object WorldCoordinatesSerializer : KSerializer<WorldCoordinates> {
-    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("worldCoordinates") {
+@Serializer(forClass = SceneOffset::class)
+object SceneOffsetSerializer : KSerializer<SceneOffset> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("sceneOffset") {
         element<Float>("x")
         element<Float>("y")
     }
 
-    override fun serialize(encoder: Encoder, value: WorldCoordinates) {
+    override fun serialize(encoder: Encoder, value: SceneOffset) {
         encoder.encodeStructure(descriptor) {
-            encodeFloatElement(descriptor, 0, value.x)
-            encodeFloatElement(descriptor, 1, value.y)
+            encodeFloatElement(descriptor, 0, value.x.raw)
+            encodeFloatElement(descriptor, 1, value.y.raw)
         }
     }
 
-    override fun deserialize(decoder: Decoder): WorldCoordinates {
+    override fun deserialize(decoder: Decoder): SceneOffset {
         return decoder.decodeStructure(descriptor) {
             var x = 0f
             var y = 0f
@@ -45,7 +46,7 @@ object WorldCoordinatesSerializer : KSerializer<WorldCoordinates> {
                     else -> throw SerializationException("Unexpected index $index")
                 }
             }
-            WorldCoordinates(x, y)
+            SceneOffset(x.scenePixel, y.scenePixel)
         }
     }
 }

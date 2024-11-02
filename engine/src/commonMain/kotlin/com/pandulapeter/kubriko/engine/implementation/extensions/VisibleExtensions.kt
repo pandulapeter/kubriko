@@ -7,20 +7,20 @@ import com.pandulapeter.kubriko.engine.types.Scale
 
 internal fun Visible.transform(drawTransform: DrawTransform) {
     drawTransform.translate(
-        left = position.x - pivotOffset.x,
-        top = position.y - pivotOffset.y,
+        left = (position.x - pivotOffset.x).raw,
+        top = (position.y - pivotOffset.y).raw,
     )
     if (rotation != AngleRadians.Zero) {
         drawTransform.rotate(
             degrees = rotation.deg,
-            pivot = pivotOffset.rawOffset,
+            pivot = pivotOffset.raw,
         )
     }
     if (scale != Scale.Unit) {
         drawTransform.scale(
             scaleX = scale.horizontal,
             scaleY = scale.vertical,
-            pivot = pivotOffset.rawOffset,
+            pivot = pivotOffset.raw,
         )
     }
 }

@@ -5,16 +5,19 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.kubriko.engine.editorIntegration.EditableProperty
 import com.pandulapeter.kubriko.engine.implementation.extensions.rad
+import com.pandulapeter.kubriko.engine.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableAngleRadians
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableColor
 import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableScale
-import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableWorldCoordinates
+import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableSceneOffset
+import com.pandulapeter.kubriko.engine.implementation.serializers.SerializableScenePixel
 import com.pandulapeter.kubriko.engine.traits.Editable
 import com.pandulapeter.kubriko.engine.traits.Visible
 import com.pandulapeter.kubriko.engine.types.AngleRadians
 import com.pandulapeter.kubriko.engine.types.Scale
-import com.pandulapeter.kubriko.engine.types.WorldCoordinates
-import com.pandulapeter.kubriko.engine.types.WorldSize
+import com.pandulapeter.kubriko.engine.types.SceneOffset
+import com.pandulapeter.kubriko.engine.types.ScenePixel
+import com.pandulapeter.kubriko.engine.types.SceneSize
 import com.pandulapeter.kubrikoStressTest.implementation.gameObjects.traits.Destructible
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -23,20 +26,20 @@ import kotlinx.serialization.json.Json
 import kotlin.math.cos
 import kotlin.math.sin
 
-class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>, Destructible {
+class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>, Destructible, Visible {
 
     @set:EditableProperty(name = "edgeSize")
-    var edgeSize: Float = state.edgeSize
+    var edgeSize: ScenePixel = state.edgeSize
         set(value) {
             field = value
-            boundingBox = WorldSize(
+            boundingBox = SceneSize(
                 width = value,
                 height = value
             )
         }
 
     @set:EditableProperty(name = "position")
-    override var position: WorldCoordinates = state.position
+    override var position: SceneOffset = state.position
 
     @set:EditableProperty(name = "boxColor")
     var boxColor: Color = state.boxColor
@@ -48,20 +51,20 @@ class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>
     override var scale: Scale = state.scale
 
     override var drawingOrder = 0f
-    override var boundingBox = WorldSize(
+    override var boundingBox = SceneSize(
         width = state.edgeSize,
         height = state.edgeSize
     )
     override var destructionState = 0f
     override var direction = AngleRadians.Zero
-    override var speed = 0f
+    override var speed = ScenePixel.Zero
     private var isGrowing = true
     private var isMoving = true
 
     override fun update(deltaTimeInMillis: Float) {
         super.update(deltaTimeInMillis)
-        drawingOrder = -position.y - pivotOffset.y
-        rotation += (0.1f * deltaTimeInMillis * (1f - destructionState)).rad
+        drawingOrder = -position.y.raw - pivotOffset.y.raw
+        rotation += (0.001f * deltaTimeInMillis * (1f - destructionState)).rad
         if (scale.horizontal >= 1.6f) {
             isGrowing = false
         }
@@ -80,16 +83,16 @@ class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>
             )
         }
         if (isMoving) {
-            position += WorldCoordinates(
-                x = cos(rotation.normalized),
-                y = -sin(rotation.normalized),
+            position += SceneOffset(
+                x = cos(rotation.normalized).scenePixel,
+                y = -sin(rotation.normalized).scenePixel,
             )
         }
     }
 
     override fun draw(scope: DrawScope) = scope.drawRect(
         color = lerp(boxColor, Color.Black, destructionState),
-        size = boundingBox.rawSize,
+        size = boundingBox.raw,
     )
 
     override fun destroy(character: Visible) {
@@ -107,8 +110,8 @@ class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>
 
     @Serializable
     data class MovingBoxState(
-        @SerialName("edgeSize") val edgeSize: Float = 100f,
-        @SerialName("position") val position: SerializableWorldCoordinates = WorldCoordinates.Zero,
+        @SerialName("edgeSize") val edgeSize: SerializableScenePixel = 100f.scenePixel,
+        @SerialName("position") val position: SerializableSceneOffset = SceneOffset.Zero,
         @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,
         @SerialName("rotation") val rotation: SerializableAngleRadians = 0f.rad,
         @SerialName("scale") val scale: SerializableScale = Scale.Unit,

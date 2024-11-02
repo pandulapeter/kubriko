@@ -24,14 +24,15 @@ internal class GameplayController(
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
     val metadata = combine(
         kubriko.metadataManager.fps,
-        kubriko.metadataManager.totalGameObjectCount,
-        kubriko.metadataManager.visibleGameObjectCount,
+        kubriko.actorManager.allActors,
+        kubriko.actorManager.visibleActorsWithinViewport,
         kubriko.metadataManager.runtimeInMilliseconds,
-    ) { fps, totalGameObjectCount, visibleGameObjectCount, runtimeInMilliseconds ->
+    ) { fps, allActors, visibleActorsWithinViewport, runtimeInMilliseconds ->
+        // TODO: Should be an extension
         Metadata(
             fps = fps,
-            totalGameObjectCount = totalGameObjectCount,
-            visibleGameObjectCount = visibleGameObjectCount,
+            totalActorCount = allActors.count(),
+            visibleGameObjectCount = visibleActorsWithinViewport.count(),
             playTimeInSeconds = runtimeInMilliseconds / 1000,
         )
     }.stateIn(this, SharingStarted.Eagerly, Metadata())
@@ -50,7 +51,7 @@ internal class GameplayController(
     @OptIn(ExperimentalResourceApi::class)
     private fun loadMap(mapName: String) = launch {
         try {
-            kubriko.instanceManager.deserializeState(Res.readBytes("files/maps/$mapName.json").decodeToString())
+            kubriko.actorManager.deserializeState(Res.readBytes("files/maps/$mapName.json").decodeToString())
         } catch (_: MissingResourceException) {
         }
     }

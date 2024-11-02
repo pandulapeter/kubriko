@@ -20,12 +20,17 @@ import com.pandulapeter.kubriko.engine.implementation.extensions.transform
 import com.pandulapeter.kubriko.engine.implementation.extensions.transformViewport
 import com.pandulapeter.kubriko.engine.implementation.helpers.rememberKeyboardEventHandler
 import com.pandulapeter.kubriko.engine.implementation.managers.InputManagerImpl
-import com.pandulapeter.kubriko.engine.implementation.managers.InstanceManagerImpl
+import com.pandulapeter.kubriko.engine.implementation.managers.ActorManagerImpl
 import com.pandulapeter.kubriko.engine.implementation.managers.MetadataManagerImpl
 import com.pandulapeter.kubriko.engine.implementation.managers.StateManagerImpl
 import com.pandulapeter.kubriko.engine.implementation.managers.ViewportManagerImpl
 import kotlinx.coroutines.isActive
 
+/**
+ * This Composable should be embedded into applications to draw the game world and handle all related logic.
+ *
+ * @param kubriko - The [Kubriko] instance that will be used for the game within this Composable.
+ */
 @Composable
 fun EngineCanvas(
     modifier: Modifier = Modifier,
@@ -33,7 +38,7 @@ fun EngineCanvas(
 ) {
     // Caching the internal implementations
     val inputManager = remember { kubriko.inputManager as InputManagerImpl }
-    val instanceManager = remember { kubriko.instanceManager as InstanceManagerImpl }
+    val instanceManager = remember { kubriko.actorManager as ActorManagerImpl }
     val metadataManager = remember { kubriko.metadataManager as MetadataManagerImpl }
     val stateManager = remember { kubriko.stateManager as StateManagerImpl }
     val viewportManager = remember { kubriko.viewportManager as ViewportManagerImpl }
