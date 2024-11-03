@@ -22,10 +22,13 @@ interface SceneSerializer<MD : SerializableMetadata<out T>, out T : Serializable
 
     companion object {
 
+        /**
+         * TODO: Documentation. Mention the shortcut in Metadata to this generic mess
+         */
         fun <MD : SerializableMetadata<out T>, T : Serializable<out T>> newInstance(
-            vararg editableMetadata: MD,
+            vararg serializableMetadata: MD,
         ): SceneSerializer<MD, T> = SceneSerializerImpl(
-            editableMetadata = editableMetadata,
+            serializableMetadata = serializableMetadata,
         )
     }
 }

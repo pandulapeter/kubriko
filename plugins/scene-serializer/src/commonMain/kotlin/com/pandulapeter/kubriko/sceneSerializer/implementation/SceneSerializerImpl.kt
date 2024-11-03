@@ -9,11 +9,11 @@ import kotlinx.serialization.json.Json
 import kotlin.reflect.KClass
 
 internal class SceneSerializerImpl<MD : SerializableMetadata<out T>, out T : Serializable<out T>>(
-    vararg editableMetadata: MD,
+    vararg serializableMetadata: MD,
 ) : SceneSerializer<MD, T> {
-    private val typeIdsToMetadata = editableMetadata.associate { registration -> registration.typeId to registration }
-    private val typeIdsToDeserializers = editableMetadata.associate { registration -> registration.typeId to registration.deserializeState }
-    private val typeResolvers = editableMetadata.associate { registration -> registration.type to registration.typeId }
+    private val typeIdsToMetadata = serializableMetadata.associate { registration -> registration.typeId to registration }
+    private val typeIdsToDeserializers = serializableMetadata.associate { registration -> registration.typeId to registration.deserializeState }
+    private val typeResolvers = serializableMetadata.associate { registration -> registration.type to registration.typeId }
     override val registeredTypeIds = typeIdsToDeserializers.keys
     private val json = Json { ignoreUnknownKeys = true }
 
