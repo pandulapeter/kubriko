@@ -7,7 +7,6 @@ import com.pandulapeter.kubriko.managers.InputManager
 import com.pandulapeter.kubriko.managers.MetadataManager
 import com.pandulapeter.kubriko.managers.StateManager
 import com.pandulapeter.kubriko.managers.ViewportManager
-import com.pandulapeter.kubriko.actor.traits.Dynamic
 
 /**
  * Holds references to the individual Manager classes that control the different aspects of a game.
@@ -22,15 +21,6 @@ interface Kubriko {
     val metadataManager: MetadataManager
     val stateManager: StateManager
     val viewportManager: ViewportManager
-
-    /**
-     * Designed to be used only for the Scene Editor. Should return {false} under normal circumstances.
-     * Setting this value to {true} has the following effects:
-     * - [Dynamic] Actors no longer receive update events
-     * - [Editable] Actors will become visible through their [Editable.editorPreview] implementations
-     */
-    // TODO: Can I get rid of this?
-    var isEditor: Boolean
 
     companion object {
         /**

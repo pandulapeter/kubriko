@@ -19,5 +19,4 @@ internal class KubrikoImpl : Kubriko, CoroutineScope {
     override val viewportManager by lazy { ViewportManagerImpl() }
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
-    override var isEditor = false
 }

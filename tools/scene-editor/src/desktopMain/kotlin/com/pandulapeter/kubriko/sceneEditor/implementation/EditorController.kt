@@ -77,7 +77,6 @@ internal class EditorController(
     val shouldShowVisibleOnly = _shouldShowVisibleOnly.asStateFlow()
 
     init {
-        kubriko.isEditor = true
         kubriko.inputManager.activeKeys
             .filter { it.isNotEmpty() }
             .onEach(kubriko.viewportManager::handleKeys)
