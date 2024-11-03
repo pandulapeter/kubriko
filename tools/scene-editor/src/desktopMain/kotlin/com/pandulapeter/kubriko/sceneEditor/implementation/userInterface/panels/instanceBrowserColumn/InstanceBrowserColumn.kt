@@ -16,10 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.actor.traits.Identifiable
+import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorText
-import com.pandulapeter.kubriko.sceneSerializer.Editable
-import com.pandulapeter.kubriko.actor.traits.Identifiable
 import kubriko.tools.scene_editor.generated.resources.Res
 import kubriko.tools.scene_editor.generated.resources.ic_visible_only_off
 import kubriko.tools.scene_editor.generated.resources.ic_visible_only_on

@@ -1,11 +1,10 @@
-package com.pandulapeter.kubriko.sceneSerializer
+package com.pandulapeter.kubriko.sceneSerializer.integration
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.sceneSerializer.Editable.State
-import com.pandulapeter.kubriko.sceneSerializer.integration.EditableMetadata
+import com.pandulapeter.kubriko.sceneSerializer.integration.Serializable.State
 
 
 // TODO: Revisit documentation.
@@ -13,18 +12,11 @@ import com.pandulapeter.kubriko.sceneSerializer.integration.EditableMetadata
  * Should be implemented by [Actor]s that want to appear in the Scene Editor.
  * It's important that such types should also be registered as [EditableMetadata] when instantiating [Kubriko].
  * The main point of this interface is to enforce a serialization pattern (the deserialization logic is defined in [EditableMetadata]), so that
- * the Scene Editor can save and load instance [State]-s from text files. This [State] can then be used to restore the [Editable] instance.
+ * the Scene Editor can save and load instance [State]-s from text files. This [State] can then be used to restore the [Serializable] instance.
  * Actors that appear in the Scene Editor must be [Positionable] so that they can be placed into the Scene, and they are usually [Visible] too, however the latter is not enforced.
- * If an [Editable] Actor is not [Visible], the Scene Editor will create a default representation for it (that's only visible in the Editor). Use [editorPreview] to override this representation.
+ * If an [Serializable] Actor is not [Visible], the Scene Editor will create a default representation for it (that's only visible in the Editor). Use [editorPreview] to override this representation.
  */
-// TODO: Rename to Serializable
-// TODO: Separate Positionable
-interface Editable<T : Editable<T>> : Positionable, Actor {
-
-    /**
-     * The appearance of the [Actor] in the Editor.
-     */
-    val editorPreview: Visible get() = this as? Visible ?: throw IllegalStateException("EditorPreview must be configured") // TODO: Default should come from the editor module
+interface Serializable<T : Serializable<T>> : Actor {
 
     /**
      * Invoked when saving the state of the [Actor] instance.
@@ -39,7 +31,7 @@ interface Editable<T : Editable<T>> : Positionable, Actor {
     interface State<T> {
 
         /**
-         * Instantiates an [Editable] [Actor] from the current [State].
+         * Instantiates an [Serializable] [Actor] from the current [State].
          */
         fun restore(): T
 

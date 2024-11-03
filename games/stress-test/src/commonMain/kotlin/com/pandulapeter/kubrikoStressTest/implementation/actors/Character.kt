@@ -11,8 +11,9 @@ import com.pandulapeter.kubriko.implementation.extensions.KeyboardDirectionState
 import com.pandulapeter.kubriko.implementation.extensions.directionState
 import com.pandulapeter.kubriko.implementation.extensions.isAroundPosition
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.sceneEditor.EditableProperty
-import com.pandulapeter.kubriko.sceneSerializer.Editable
+import com.pandulapeter.kubriko.sceneEditor.Editable
+import com.pandulapeter.kubriko.sceneEditor.Exposed
+import com.pandulapeter.kubriko.sceneSerializer.integration.Serializable
 import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableSceneOffset
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
@@ -26,7 +27,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.math.PI
@@ -34,7 +34,7 @@ import kotlin.math.sin
 
 class Character private constructor(state: CharacterState) : Editable<Character>, Unique, Dynamic, Visible, CoroutineScope {
 
-    @set:EditableProperty(name = "position")
+    @set:Exposed(name = "position")
     override var position: SceneOffset = state.position
 
     override val boundingBox = SceneSize(
@@ -138,10 +138,10 @@ class Character private constructor(state: CharacterState) : Editable<Character>
             )
         }
 
-    @Serializable
+    @kotlinx.serialization.Serializable
     data class CharacterState(
         @SerialName("position") val position: SerializableSceneOffset = SceneOffset.Zero
-    ) : Editable.State<Character> {
+    ) : Serializable.State<Character> {
 
         override fun restore() = Character(this)
 

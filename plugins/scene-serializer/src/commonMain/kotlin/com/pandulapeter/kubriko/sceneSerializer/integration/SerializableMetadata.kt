@@ -2,8 +2,7 @@ package com.pandulapeter.kubriko.sceneSerializer.integration
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
-import com.pandulapeter.kubriko.sceneSerializer.Editable
-import com.pandulapeter.kubriko.sceneSerializer.integration.EditableMetadata.Companion.invoke
+import com.pandulapeter.kubriko.sceneSerializer.integration.SerializableMetadata.Companion.invoke
 import kotlin.reflect.KClass
 
 // TODO: Revisit documentation, rename class if needed.
@@ -16,24 +15,24 @@ import kotlin.reflect.KClass
  * The serialization logic is defined in the [Editable] implementation.
  * @param type - The [KClass] of the [Editable] this metadata refers to.
  */
-data class EditableMetadata<T : Editable<T>>(
+open class SerializableMetadata<T : Serializable<T>>(
     val typeId: String,
-    val deserializeState: (String) -> Editable.State<T>,
+    val deserializeState: (String) -> Serializable.State<T>,
     val type: KClass<T>,
 ) {
 
     companion object {
         /**
-         * Simplified way to instantiate [EditableMetadata].
+         * Simplified way to instantiate [SerializableMetadata].
          *
-         * @param type - The unique [String] that defines the type of the Actor.
+         * @param typeId - The unique [String] that defines the type of the Actor.
          * @param deserializeState - This lambda will be invoked to restore the [Editable.State] of and [Editable] from a [String].
          * The serialization logic is defined in the [Editable] implementation.
          */
-        inline operator fun <reified T : Editable<T>> invoke(
+        inline operator fun <reified T : Serializable<T>> invoke(
             typeId: String,
-            noinline deserializeState: (String) -> Editable.State<T>,
-        ): EditableMetadata<T> = EditableMetadata(
+            noinline deserializeState: (String) -> Serializable.State<T>,
+        ): SerializableMetadata<T> = SerializableMetadata(
             typeId = typeId,
             deserializeState = deserializeState,
             type = T::class,

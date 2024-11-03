@@ -3,16 +3,17 @@ package com.pandulapeter.kubrikoStressTest.implementation.actors
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
+import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.sceneSerializer.Editable
-import com.pandulapeter.kubriko.sceneEditor.EditableProperty
+import com.pandulapeter.kubriko.sceneEditor.Editable
+import com.pandulapeter.kubriko.sceneEditor.Exposed
+import com.pandulapeter.kubriko.sceneSerializer.integration.Serializable
 import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableAngleRadians
 import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableColor
 import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableScale
 import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableSceneOffset
 import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableScenePixel
-import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -20,7 +21,6 @@ import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubrikoStressTest.implementation.actors.traits.Destructible
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.math.cos
@@ -28,7 +28,7 @@ import kotlin.math.sin
 
 class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>, Destructible, Visible {
 
-    @set:EditableProperty(name = "edgeSize")
+    @set:Exposed(name = "edgeSize")
     var edgeSize: ScenePixel = state.edgeSize
         set(value) {
             field = value
@@ -38,16 +38,16 @@ class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>
             )
         }
 
-    @set:EditableProperty(name = "position")
+    @set:Exposed(name = "position")
     override var position: SceneOffset = state.position
 
-    @set:EditableProperty(name = "boxColor")
+    @set:Exposed(name = "boxColor")
     var boxColor: Color = state.boxColor
 
-    @set:EditableProperty(name = "rotation")
+    @set:Exposed(name = "rotation")
     override var rotation: AngleRadians = state.rotation
 
-    @set:EditableProperty(name = "scale")
+    @set:Exposed(name = "scale")
     override var scale: Scale = state.scale
 
     override var drawingOrder = 0f
@@ -108,14 +108,14 @@ class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>
         scale = scale,
     )
 
-    @Serializable
+    @kotlinx.serialization.Serializable
     data class MovingBoxState(
         @SerialName("edgeSize") val edgeSize: SerializableScenePixel = 100f.scenePixel,
         @SerialName("position") val position: SerializableSceneOffset = SceneOffset.Zero,
         @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,
         @SerialName("rotation") val rotation: SerializableAngleRadians = 0f.rad,
         @SerialName("scale") val scale: SerializableScale = Scale.Unit,
-    ) : Editable.State<MovingBox> {
+    ) : Serializable.State<MovingBox> {
 
         override fun restore() = MovingBox(this)
 

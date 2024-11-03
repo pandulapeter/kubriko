@@ -1,7 +1,6 @@
 package com.pandulapeter.kubriko.sceneEditor
 
 import com.pandulapeter.kubriko.actor.Actor
-import com.pandulapeter.kubriko.sceneSerializer.Editable
 
 
 /**
@@ -11,6 +10,6 @@ import com.pandulapeter.kubriko.sceneSerializer.Editable
 // TODO: Could make it work for constructor parameters as well
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.PROPERTY_SETTER)
-annotation class EditableProperty(
+annotation class Exposed(
     val name: String,
 )

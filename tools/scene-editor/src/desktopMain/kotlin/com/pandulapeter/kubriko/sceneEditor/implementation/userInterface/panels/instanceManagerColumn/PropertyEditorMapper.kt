@@ -25,7 +25,7 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.SceneOffsetPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ScenePixelPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.StringPropertyEditor
-import com.pandulapeter.kubriko.sceneEditor.EditableProperty
+import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.types.AngleDegrees
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
@@ -44,7 +44,7 @@ import kotlin.reflect.full.withNullability
 internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
     actor: T,
     notifySelectedInstanceUpdate: () -> Unit,
-): (@Composable () -> Unit)? = setter.findAnnotation<EditableProperty>()?.let { editableProperty ->
+): (@Composable () -> Unit)? = setter.findAnnotation<Exposed>()?.let { editableProperty ->
     editableProperty.name.let { name ->
         when (returnType) {
             Color::class.createType() -> {

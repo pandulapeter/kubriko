@@ -5,26 +5,26 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.sceneSerializer.Editable
-import com.pandulapeter.kubriko.sceneEditor.EditableProperty
+import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableAngleRadians
 import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableColor
 import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableSceneOffset
 import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableScenePixel
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.sceneEditor.Editable
+import com.pandulapeter.kubriko.sceneSerializer.integration.Serializable
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubrikoStressTest.implementation.actors.traits.Destructible
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class BoxWithCircle private constructor(state: BoxWithCircleState) : Editable<BoxWithCircle>, Destructible, Visible {
 
-    @set:EditableProperty(name = "edgeSize")
+    @set:Exposed(name = "edgeSize")
     var edgeSize: ScenePixel = state.edgeSize
         set(value) {
             field = value
@@ -34,19 +34,19 @@ class BoxWithCircle private constructor(state: BoxWithCircleState) : Editable<Bo
             )
         }
 
-    @set:EditableProperty(name = "position")
+    @set:Exposed(name = "position")
     override var position: SceneOffset = state.position
 
-    @set:EditableProperty(name = "boxColor")
+    @set:Exposed(name = "boxColor")
     var boxColor: Color = state.boxColor
 
-    @set:EditableProperty(name = "circleColor")
+    @set:Exposed(name = "circleColor")
     var circleColor: Color = state.circleColor
 
-    @set:EditableProperty(name = "circleRadius")
+    @set:Exposed(name = "circleRadius")
     var circleRadius: ScenePixel = state.circleRadius
 
-    @set:EditableProperty(name = "rotation")
+    @set:Exposed(name = "rotation")
     override var rotation: AngleRadians = state.rotation
 
     override var drawingOrder = 0f
@@ -84,7 +84,7 @@ class BoxWithCircle private constructor(state: BoxWithCircleState) : Editable<Bo
         rotation = rotation,
     )
 
-    @Serializable
+    @kotlinx.serialization.Serializable
     data class BoxWithCircleState(
         @SerialName("edgeSize") val edgeSize: SerializableScenePixel = 100f.scenePixel,
         @SerialName("position") val position: SerializableSceneOffset = SceneOffset.Zero,
@@ -92,7 +92,7 @@ class BoxWithCircle private constructor(state: BoxWithCircleState) : Editable<Bo
         @SerialName("circleColor") val circleColor: SerializableColor = Color.White,
         @SerialName("circleRadius") val circleRadius: SerializableScenePixel = edgeSize / 3f,
         @SerialName("rotation") val rotation: SerializableAngleRadians = 0f.rad,
-    ) : Editable.State<BoxWithCircle> {
+    ) : Serializable.State<BoxWithCircle> {
 
         override fun restore() = BoxWithCircle(this)
 

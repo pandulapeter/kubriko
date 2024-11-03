@@ -13,7 +13,7 @@ import androidx.compose.ui.input.pointer.onPointerEvent
 import com.pandulapeter.kubriko.implementation.extensions.occupiesPosition
 import com.pandulapeter.kubriko.managers.InputManager
 import com.pandulapeter.kubriko.managers.ViewportManager
-import com.pandulapeter.kubriko.sceneSerializer.Editable
+import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.types.SceneOffset
 
 private var startOffset: SceneOffset? = null

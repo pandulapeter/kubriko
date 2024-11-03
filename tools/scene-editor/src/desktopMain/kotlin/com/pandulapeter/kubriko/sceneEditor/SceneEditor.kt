@@ -19,7 +19,7 @@ import java.io.FilenameFilter
 
 fun openSceneEditor(
     defaultMapFilename: String? = null,
-    sceneSerializer: SceneSerializer,
+    sceneSerializer: SceneSerializer<EditableMetadata<*>, out Editable<*>>,
 ) = application {
     val editorController = remember {
         EditorController(

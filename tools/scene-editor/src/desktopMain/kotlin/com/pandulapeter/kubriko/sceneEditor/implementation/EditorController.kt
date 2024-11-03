@@ -5,13 +5,14 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.occupiesPosition
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
+import com.pandulapeter.kubriko.sceneEditor.Editable
+import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.GridOverlay
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.exitApp
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.handleKeyReleased
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.handleKeys
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.saveFile
-import com.pandulapeter.kubriko.sceneSerializer.Editable
 import com.pandulapeter.kubriko.sceneSerializer.SceneSerializer
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.CoroutineScope
@@ -31,7 +32,7 @@ import kotlinx.coroutines.launch
 
 internal class EditorController(
     val kubriko: Kubriko,
-    val sceneSerializer: SceneSerializer,
+    val sceneSerializer: SceneSerializer<EditableMetadata<*>, Editable<*>>,
 ) : CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
@@ -105,13 +106,9 @@ internal class EditorController(
             selectedUpdatableActor.value.first.let { currentSelectedActor ->
                 if (actorAtPosition == null) {
                     if (currentSelectedActor == null) {
-                        launch {
-                            val typeId = selectedTypeId.value
-                            // TODO: Should find a better way
-                            sceneSerializer.deserializeActors(
-                                serializedStates = "[{\"typeId\":\"$typeId\",\"state\":\"{\\\"position\\\":{\\\"x\\\":${positionInWorld.x.raw},\\\"y\\\":${positionInWorld.y.raw}}}\"}]"
-                            ).firstOrNull()?.let { actor ->
-                                kubriko.actorManager.add(actor)
+                        selectedTypeId.value?.let { typeId ->
+                            sceneSerializer.getMetadata(typeId)?.instantiate?.invoke(positionInWorld)?.restore()?.let {
+                                kubriko.actorManager.add(it)
                             }
                         }
                     } else {
