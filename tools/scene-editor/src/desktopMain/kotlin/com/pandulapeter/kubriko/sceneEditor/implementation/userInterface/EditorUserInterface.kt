@@ -51,7 +51,7 @@ internal fun EditorUserInterface(
                 selectedUpdatableInstance = editorController.selectedUpdatableActor.collectAsState().value,
                 onShouldShowVisibleOnlyToggled = editorController::onShouldShowVisibleOnlyToggled,
                 selectInstance = editorController::selectActor,
-                resolveTypeId = editorController.sceneSerializer::getTypeId,
+                resolveTypeId = editorController.actorSerializer::getTypeId,
             )
             EngineCanvas(
                 modifier = Modifier
@@ -79,11 +79,11 @@ internal fun EditorUserInterface(
                 kubriko = editorController.kubriko,
             )
             InstanceManagerColumn(
-                registeredTypeIds = editorController.sceneSerializer.registeredTypeIds.toList(),
+                registeredTypeIds = editorController.actorSerializer.registeredTypeIds.toList(),
                 selectedTypeId = editorController.selectedTypeId.collectAsState().value,
                 selectedUpdatableInstance = editorController.selectedUpdatableActor.collectAsState().value,
                 selectTypeId = editorController::selectActor,
-                resolveTypeId = editorController.sceneSerializer::getTypeId,
+                resolveTypeId = editorController.actorSerializer::getTypeId,
                 deselectSelectedInstance = editorController::deselectSelectedActor,
                 locateSelectedInstance = editorController::locateSelectedActor,
                 deleteSelectedInstance = editorController::removeSelectedActor,

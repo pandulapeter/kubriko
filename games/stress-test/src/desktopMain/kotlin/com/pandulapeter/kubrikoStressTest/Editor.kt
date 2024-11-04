@@ -6,5 +6,5 @@ import com.pandulapeter.kubrikoStressTest.implementation.SceneSerializerWrapper
 
 fun main() = openSceneEditor(
     defaultMapFilename = GameplayController.SCENE_NAME,
-    sceneSerializer = SceneSerializerWrapper().sceneSerializer,
+    actorSerializer = SceneSerializerWrapper().sceneSerializer,
 )

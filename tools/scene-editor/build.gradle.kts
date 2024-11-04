@@ -50,7 +50,7 @@ kotlin {
         commonMain.dependencies {
             implementation(compose.components.resources)
             implementation(projects.engine)
-            api(projects.plugins.sceneSerializer)
+            api(projects.plugins.actorSerializer)
         }
         val desktopMain by getting {
             dependencies {

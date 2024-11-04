@@ -7,10 +7,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.debugInfo.implementation.DebugInfoManager
+import kotlin.math.roundToInt
 
 /**
  * TODO: Documentation
  */
+// TODO: Make this Composable configurable
 @Composable
 fun DebugInfo(
     modifier: Modifier = Modifier,
@@ -20,7 +22,7 @@ fun DebugInfo(
     val debugInfoMetadata = debugInfoManager.debugInfoMetadata.collectAsState().value
     Text(
         modifier = modifier,
-        text = "FPS: ${debugInfoMetadata.fps.toString().subSequence(0, debugInfoMetadata.fps.toString().indexOf('.'))}\n" +
+        text = "FPS: ${debugInfoMetadata.fps.roundToInt()}\n" +
                 "Total Actors: ${debugInfoMetadata.totalActorCount}\n" +
                 "Visible Actors within viewport: ${debugInfoMetadata.visibleActorWithinViewportCount}\n" +
                 "Play time in seconds: ${debugInfoMetadata.playTimeInSeconds}"

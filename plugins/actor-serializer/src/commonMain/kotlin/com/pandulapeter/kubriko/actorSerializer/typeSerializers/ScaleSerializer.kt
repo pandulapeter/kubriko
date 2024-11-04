@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.sceneSerializer.serializers
+package com.pandulapeter.kubriko.actorSerializer.typeSerializers
 
 import com.pandulapeter.kubriko.types.Scale
 import kotlinx.serialization.ExperimentalSerializationApi

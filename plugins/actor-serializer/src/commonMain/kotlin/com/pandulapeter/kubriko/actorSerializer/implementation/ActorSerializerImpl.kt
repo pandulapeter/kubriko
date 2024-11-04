@@ -1,17 +1,17 @@
-package com.pandulapeter.kubriko.sceneSerializer.implementation
+package com.pandulapeter.kubriko.actorSerializer.implementation
 
-import com.pandulapeter.kubriko.sceneSerializer.SceneSerializer
-import com.pandulapeter.kubriko.sceneSerializer.integration.Serializable
-import com.pandulapeter.kubriko.sceneSerializer.integration.SerializableMetadata
+import com.pandulapeter.kubriko.actorSerializer.ActorSerializer
+import com.pandulapeter.kubriko.actorSerializer.integration.Serializable
+import com.pandulapeter.kubriko.actorSerializer.integration.SerializableMetadata
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.reflect.KClass
 
-internal class SceneSerializerImpl<MD : SerializableMetadata<out T>, out T : Serializable<out T>>(
+internal class ActorSerializerImpl<MD : SerializableMetadata<out T>, out T : Serializable<out T>>(
     vararg serializableMetadata: MD,
-) : SceneSerializer<MD, T> {
-    private val typeIdsToMetadata = serializableMetadata.associate { registration -> registration.typeId to registration }
+) : ActorSerializer<MD, T> {
+    private val typeIdsToMetadata = serializableMetadata.associateBy { registration -> registration.typeId }
     private val typeIdsToDeserializers = serializableMetadata.associate { registration -> registration.typeId to registration.deserializeState }
     private val typeResolvers = serializableMetadata.associate { registration -> registration.type to registration.typeId }
     override val registeredTypeIds = typeIdsToDeserializers.keys

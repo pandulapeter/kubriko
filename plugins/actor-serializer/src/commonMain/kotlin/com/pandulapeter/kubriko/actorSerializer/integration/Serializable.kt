@@ -1,10 +1,10 @@
-package com.pandulapeter.kubriko.sceneSerializer.integration
+package com.pandulapeter.kubriko.actorSerializer.integration
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.sceneSerializer.integration.Serializable.State
+import com.pandulapeter.kubriko.actorSerializer.integration.Serializable.State
 
 
 // TODO: Revisit documentation.

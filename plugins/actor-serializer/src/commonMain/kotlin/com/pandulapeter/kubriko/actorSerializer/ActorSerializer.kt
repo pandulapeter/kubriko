@@ -1,14 +1,14 @@
-package com.pandulapeter.kubriko.sceneSerializer
+package com.pandulapeter.kubriko.actorSerializer
 
-import com.pandulapeter.kubriko.sceneSerializer.implementation.SceneSerializerImpl
-import com.pandulapeter.kubriko.sceneSerializer.integration.Serializable
-import com.pandulapeter.kubriko.sceneSerializer.integration.SerializableMetadata
+import com.pandulapeter.kubriko.actorSerializer.implementation.ActorSerializerImpl
+import com.pandulapeter.kubriko.actorSerializer.integration.Serializable
+import com.pandulapeter.kubriko.actorSerializer.integration.SerializableMetadata
 import kotlin.reflect.KClass
 
 /**
  * TODO: Documentation
  */
-interface SceneSerializer<MD : SerializableMetadata<out T>, out T : Serializable<out T>> {
+interface ActorSerializer<MD : SerializableMetadata<out T>, out T : Serializable<out T>> {
 
     val registeredTypeIds: Set<String>
 
@@ -27,7 +27,7 @@ interface SceneSerializer<MD : SerializableMetadata<out T>, out T : Serializable
          */
         fun <MD : SerializableMetadata<out T>, T : Serializable<out T>> newInstance(
             vararg serializableMetadata: MD,
-        ): SceneSerializer<MD, T> = SceneSerializerImpl(
+        ): ActorSerializer<MD, T> = ActorSerializerImpl(
             serializableMetadata = serializableMetadata,
         )
     }

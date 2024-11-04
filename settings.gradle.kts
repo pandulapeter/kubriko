@@ -3,8 +3,8 @@ include(
     ":engine",
     ":games:pong",
     ":games:stress-test",
+    ":plugins:actor-serializer",
     ":plugins:debug-info",
-    ":plugins:scene-serializer",
     ":tools:scene-editor",
 )
 

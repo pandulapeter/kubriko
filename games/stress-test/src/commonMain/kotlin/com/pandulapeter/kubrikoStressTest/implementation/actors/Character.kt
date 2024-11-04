@@ -13,8 +13,8 @@ import com.pandulapeter.kubriko.implementation.extensions.isAroundPosition
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.Exposed
-import com.pandulapeter.kubriko.sceneSerializer.integration.Serializable
-import com.pandulapeter.kubriko.sceneSerializer.serializers.SerializableSceneOffset
+import com.pandulapeter.kubriko.actorSerializer.integration.Serializable
+import com.pandulapeter.kubriko.actorSerializer.typeSerializers.SerializableSceneOffset
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize

@@ -13,7 +13,7 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.handleKeyRele
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.handleKeys
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.saveFile
-import com.pandulapeter.kubriko.sceneSerializer.SceneSerializer
+import com.pandulapeter.kubriko.actorSerializer.ActorSerializer
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 
 internal class EditorController(
     val kubriko: Kubriko,
-    val sceneSerializer: SceneSerializer<EditableMetadata<*>, Editable<*>>,
+    val actorSerializer: ActorSerializer<EditableMetadata<*>, Editable<*>>,
 ) : CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
@@ -106,7 +106,7 @@ internal class EditorController(
                 if (actorAtPosition == null) {
                     if (currentSelectedActor == null) {
                         selectedTypeId.value?.let { typeId ->
-                            sceneSerializer.getMetadata(typeId)?.instantiate?.invoke(positionInWorld)?.restore()?.let {
+                            actorSerializer.getMetadata(typeId)?.instantiate?.invoke(positionInWorld)?.restore()?.let {
                                 kubriko.actorManager.add(it)
                             }
                         }
@@ -181,7 +181,7 @@ internal class EditorController(
     fun loadMap(path: String) {
         launch {
             loadFile(path)?.let { json ->
-                val actors = sceneSerializer.deserializeActors(json)
+                val actors = actorSerializer.deserializeActors(json)
                 kubriko.actorManager.removeAll()
                 kubriko.actorManager.add(actors = (actors + editorActors).toTypedArray())
                 _currentFileName.update { path.split('/').last() }
@@ -193,7 +193,7 @@ internal class EditorController(
         launch {
             saveFile(
                 path = path,
-                content = sceneSerializer.serializeActors(allEditableActors.value),
+                content = actorSerializer.serializeActors(allEditableActors.value),
             )
         }
     }
