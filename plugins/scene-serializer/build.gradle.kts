@@ -42,6 +42,12 @@ kotlin {
         }
     }
 
+    js("web") {
+        moduleName = "scene-serializer"
+        browser()
+        binaries.executable()
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(projects.engine)

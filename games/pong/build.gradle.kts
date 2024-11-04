@@ -30,6 +30,12 @@ kotlin {
             isStatic = true
         }
     }
+
+    js("web") {
+        moduleName = "pong"
+        browser()
+        binaries.executable()
+    }
     
     sourceSets {
         commonMain.dependencies {

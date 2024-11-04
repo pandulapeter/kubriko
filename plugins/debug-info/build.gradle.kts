@@ -41,6 +41,12 @@ kotlin {
         }
     }
 
+    js("web") {
+        moduleName = "debug-info"
+        browser()
+        binaries.executable()
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(projects.engine)

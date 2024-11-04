@@ -41,6 +41,12 @@ kotlin {
         }
     }
 
+    js("web") {
+        moduleName = "kubriko"
+        browser()
+        binaries.executable()
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(compose.runtime)
