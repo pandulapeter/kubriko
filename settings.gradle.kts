@@ -5,6 +5,7 @@ include(
     ":games:stress-test",
     ":plugins:actor-serializer",
     ":plugins:debug-info",
+    ":plugins:shader",
     ":tools:scene-editor",
 )
 

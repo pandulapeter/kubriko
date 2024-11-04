@@ -17,9 +17,9 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    
+
     jvm("desktop")
-    
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -36,12 +36,13 @@ kotlin {
         browser()
         binaries.executable()
     }
-    
+
     sourceSets {
         commonMain.dependencies {
             implementation(projects.engine)
             implementation(projects.plugins.actorSerializer)
             implementation(projects.plugins.debugInfo)
+            implementation(projects.plugins.shader)
             implementation(projects.tools.sceneEditor)
             implementation(compose.runtime)
             implementation(compose.foundation)

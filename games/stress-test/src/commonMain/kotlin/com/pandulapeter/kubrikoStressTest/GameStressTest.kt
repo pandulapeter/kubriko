@@ -7,6 +7,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.EngineCanvas
 import com.pandulapeter.kubriko.debugInfo.DebugInfo
+import com.pandulapeter.kubriko.shader.collection.chromaticAberrationShader
+import com.pandulapeter.kubriko.shader.collection.smoothPixelationShader
+import com.pandulapeter.kubriko.shader.collection.vignetteShader
 import com.pandulapeter.kubrikoStressTest.implementation.GameplayController
 import com.pandulapeter.kubrikoStressTest.implementation.UserInterface
 import com.pandulapeter.kubrikoStressTest.implementation.extensions.handleDragAndPan
@@ -26,6 +29,9 @@ fun GameStressTest(
                 stateManager = GameplayController.kubriko.stateManager,
                 viewportManager = GameplayController.kubriko.viewportManager,
             )
+            .chromaticAberrationShader(20f)
+            .vignetteShader(30f, 0.6f)
+            .smoothPixelationShader(2f)
             .background(Color.White),
         kubriko = GameplayController.kubriko,
     )

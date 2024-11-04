@@ -8,6 +8,7 @@ import com.pandulapeter.kubriko.actor.Actor
  * @param name - The name the Scene Editor will display on its UI for the property
  */
 // TODO: Could make it work for constructor parameters as well
+// TODO: "RUNTIME_ANNOTATION_NOT_SUPPORTED" warning explanation
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.PROPERTY_SETTER)
 annotation class Exposed(

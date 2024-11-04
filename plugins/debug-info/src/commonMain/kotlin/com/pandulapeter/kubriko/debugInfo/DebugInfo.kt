@@ -1,10 +1,17 @@
 package com.pandulapeter.kubriko.debugInfo
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.debugInfo.implementation.DebugInfoManager
 import kotlin.math.roundToInt
@@ -21,10 +28,14 @@ fun DebugInfo(
     val debugInfoManager = remember { DebugInfoManager(kubriko) }
     val debugInfoMetadata = debugInfoManager.debugInfoMetadata.collectAsState().value
     Text(
-        modifier = modifier,
+        modifier = modifier
+            .defaultMinSize(minWidth = 200.dp)
+            .background(Color.White)
+            .padding(8.dp),
+        style = TextStyle.Default.copy(fontSize = 10.sp),
         text = "FPS: ${debugInfoMetadata.fps.roundToInt()}\n" +
                 "Total Actors: ${debugInfoMetadata.totalActorCount}\n" +
-                "Visible Actors within viewport: ${debugInfoMetadata.visibleActorWithinViewportCount}\n" +
+                "Visible within viewport: ${debugInfoMetadata.visibleActorWithinViewportCount}\n" +
                 "Play time in seconds: ${debugInfoMetadata.playTimeInSeconds}"
     )
 }
