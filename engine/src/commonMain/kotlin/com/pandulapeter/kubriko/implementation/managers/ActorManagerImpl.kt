@@ -4,6 +4,7 @@ import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Identifiable
 import com.pandulapeter.kubriko.actor.traits.Overlay
+import com.pandulapeter.kubriko.actor.traits.Shader
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.KubrikoImpl
@@ -29,6 +30,9 @@ internal class ActorManagerImpl(
     override val allActors = _allActors.asStateFlow()
     val dynamicActors = _allActors
         .map { actors -> actors.filterIsInstance<Dynamic>() }
+        .stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
+    val shaderActors = _allActors
+        .map { actors -> actors.filterIsInstance<Shader>() }
         .stateIn(engineImpl, SharingStarted.Eagerly, emptyList())
     private val visibleActors = _allActors
         .map { actors -> actors.filterIsInstance<Visible>() }

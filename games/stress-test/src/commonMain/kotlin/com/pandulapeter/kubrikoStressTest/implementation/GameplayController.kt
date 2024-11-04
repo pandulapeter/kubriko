@@ -4,6 +4,9 @@ import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.KeyboardZoomState
 import com.pandulapeter.kubriko.implementation.extensions.zoomState
+import com.pandulapeter.kubriko.shader.collection.ChromaticAberrationShader
+import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader
+import com.pandulapeter.kubriko.shader.collection.VignetteShader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -42,6 +45,9 @@ internal object GameplayController : CoroutineScope {
     @OptIn(ExperimentalResourceApi::class)
     private fun loadMap(mapName: String) = launch {
         try {
+            kubriko.actorManager.add(ChromaticAberrationShader())
+            kubriko.actorManager.add(VignetteShader())
+            kubriko.actorManager.add(SmoothPixelationShader())
             kubriko.actorManager.add(actors = sceneSerializer.deserializeActors(Res.readBytes("files/scenes/$mapName.json").decodeToString()).toTypedArray())
         } catch (_: MissingResourceException) {
         }

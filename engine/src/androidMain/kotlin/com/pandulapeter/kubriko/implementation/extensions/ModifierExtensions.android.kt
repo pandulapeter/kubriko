@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.shader
+package com.pandulapeter.kubriko.implementation.extensions
 
 import android.graphics.RenderEffect
 import android.graphics.RuntimeShader
@@ -10,23 +10,22 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
+import com.pandulapeter.kubriko.actor.traits.Shader
 
-actual fun Modifier.runtimeShader(
-    shader: String,
-    uniformName: String,
-    uniformsBlock: (ShaderUniformProvider.() -> Unit)?,
-): Modifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) this then composed {
-    val runtimeShader = remember { RuntimeShader(shader) }
+internal actual fun Modifier.runtimeShader(
+    shaderWrapper: Shader
+) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) this then composed {
+    val runtimeShader = remember { RuntimeShader(shaderWrapper.shaderCode) }
     val shaderUniformProvider = remember { ShaderUniformProviderImpl(runtimeShader) }
     graphicsLayer {
         clip = true
         renderEffect = RenderEffect
             .createRuntimeShaderEffect(
                 runtimeShader.apply {
-                    uniformsBlock?.invoke(shaderUniformProvider)
+                    shaderWrapper.uniformsBlock?.invoke(shaderUniformProvider)
                     shaderUniformProvider.updateResolution(size)
                 },
-                uniformName,
+                shaderWrapper.uniformName,
             ).asComposeRenderEffect()
     }
 } else this

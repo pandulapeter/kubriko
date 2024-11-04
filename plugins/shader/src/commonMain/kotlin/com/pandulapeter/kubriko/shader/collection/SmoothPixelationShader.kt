@@ -1,9 +1,14 @@
 package com.pandulapeter.kubriko.shader.collection
 
-import androidx.compose.ui.Modifier
-import com.pandulapeter.kubriko.shader.runtimeShader
+import com.pandulapeter.kubriko.actor.traits.Shader
+import com.pandulapeter.kubriko.implementation.extensions.ShaderUniformProvider
 
-private val shader = """
+class SmoothPixelationShader : Shader {
+
+    // TODO: Changing this value should trigger an update
+    private var pixelSize = 2f
+
+    override val shaderCode = """
     uniform float2 resolution;
     uniform shader content; 
     uniform float pixelSize;
@@ -16,8 +21,7 @@ private val shader = """
     }
 """.trimIndent()
 
-fun Modifier.smoothPixelationShader(
-    pixelSize: Float,
-): Modifier = this then runtimeShader(shader) {
-    uniform("pixelSize", pixelSize)
+    override val uniformsBlock: ShaderUniformProvider.() -> Unit = {
+        uniform("pixelSize", pixelSize)
+    }
 }

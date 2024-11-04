@@ -1,9 +1,13 @@
 package com.pandulapeter.kubriko.shader.collection
 
-import androidx.compose.ui.Modifier
-import com.pandulapeter.kubriko.shader.runtimeShader
+import com.pandulapeter.kubriko.actor.traits.Shader
+import com.pandulapeter.kubriko.implementation.extensions.ShaderUniformProvider
 
-private val shader = """
+class ChromaticAberrationShader : Shader {
+
+    // TODO: Changing this value should trigger an update
+    private var intensity = 20f
+    override val shaderCode = """
     uniform float2 resolution;
     uniform float intensity;
     uniform shader content; 
@@ -18,8 +22,7 @@ private val shader = """
     }
 """.trimIndent()
 
-fun Modifier.chromaticAberrationShader(
-    intensity: Float,
-): Modifier = this then runtimeShader(shader) {
-    uniform("intensity", intensity)
+    override val uniformsBlock: ShaderUniformProvider.() -> Unit = {
+        uniform("intensity", intensity)
+    }
 }

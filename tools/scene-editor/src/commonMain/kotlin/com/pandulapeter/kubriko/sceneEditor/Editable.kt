@@ -16,6 +16,7 @@ import com.pandulapeter.kubriko.actorSerializer.integration.Serializable
  * Actors that appear in the Scene Editor must be [Positionable] so that they can be placed into the Scene, and they are usually [Visible] too, however the latter is not enforced.
  * If an [Editable] Actor is not [Visible], the Scene Editor will create a default representation for it (that's only visible in the Editor). Use [editorPreview] to override this representation.
  */
+// TODO: Positionable could not be a requirement. The Editor could support invisible Actors separately
 interface Editable<T : Editable<T>> : Serializable<T>, Positionable, Actor {
 
     /**

@@ -1,9 +1,15 @@
 package com.pandulapeter.kubriko.shader.collection
 
-import androidx.compose.ui.Modifier
-import com.pandulapeter.kubriko.shader.runtimeShader
+import com.pandulapeter.kubriko.actor.traits.Shader
+import com.pandulapeter.kubriko.implementation.extensions.ShaderUniformProvider
 
-private val shader = """
+class VignetteShader : Shader {
+
+    // TODO: Changing these values should trigger an update
+    private var intensity = 30f
+    private var decayFactor = 0.6f
+
+    override val shaderCode = """
     uniform float2 resolution;
     uniform shader content; 
     uniform float intensity;
@@ -19,10 +25,8 @@ private val shader = """
     }
 """.trimIndent()
 
-fun Modifier.vignetteShader(
-    intensity: Float,
-    decayFactor: Float,
-) = this then runtimeShader(shader) {
-    uniform("intensity", intensity)
-    uniform("decayFactor", decayFactor)
+    override val uniformsBlock: ShaderUniformProvider.() -> Unit = {
+        uniform("intensity", intensity)
+        uniform("decayFactor", decayFactor)
+    }
 }

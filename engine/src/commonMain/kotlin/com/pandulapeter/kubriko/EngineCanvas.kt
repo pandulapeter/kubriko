@@ -1,20 +1,25 @@
 package com.pandulapeter.kubriko
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.pandulapeter.kubriko.implementation.extensions.minus
+import com.pandulapeter.kubriko.implementation.extensions.runtimeShader
 import com.pandulapeter.kubriko.implementation.extensions.transform
 import com.pandulapeter.kubriko.implementation.extensions.transformViewport
 import com.pandulapeter.kubriko.implementation.helpers.rememberKeyboardEventHandler
@@ -75,7 +80,12 @@ fun EngineCanvas(
 
     // Game canvas
     Canvas(
-        modifier = modifier.fillMaxSize().clipToBounds().focusable(),
+        modifier = modifier
+            .fillMaxSize()
+            .clipToBounds()
+            .focusable()
+            .runtimeShader(actorManager.shaderActors.collectAsState().value)
+            .background(Color.White), // TODO: The engine should not draw its own background by default
         onDraw = {
             gameTime.value
             viewportManager.updateSize(size = size)
