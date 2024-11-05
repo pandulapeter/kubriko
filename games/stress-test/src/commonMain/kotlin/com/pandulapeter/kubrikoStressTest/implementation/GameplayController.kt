@@ -3,10 +3,19 @@ package com.pandulapeter.kubrikoStressTest.implementation
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.KeyboardZoomState
+import com.pandulapeter.kubriko.implementation.extensions.get
+import com.pandulapeter.kubriko.implementation.extensions.isAroundPosition
 import com.pandulapeter.kubriko.implementation.extensions.zoomState
+import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.InputManager
+import com.pandulapeter.kubriko.manager.ShaderManager
+import com.pandulapeter.kubriko.manager.StateManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.shader.collection.ChromaticAberrationShader
 import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader
 import com.pandulapeter.kubriko.shader.collection.VignetteShader
+import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubrikoStressTest.implementation.actors.traits.Destructible
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -24,19 +33,25 @@ internal object GameplayController : CoroutineScope {
     const val SCENE_NAME = "scene_stress_test"
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
-    val kubriko = Kubriko.newInstance()
+    val kubriko = Kubriko.newInstance(
+        ShaderManager.newInstance()
+    )
     private val sceneSerializer by lazy { SceneSerializerWrapper().sceneSerializer }
+    private val actorManager by lazy { kubriko.get<ActorManager>() }
+    private val inputManager by lazy { kubriko.get<InputManager>() }
+    val stateManager by lazy { kubriko.get<StateManager>() }
+    val viewportManager by lazy { kubriko.get<ViewportManager>() }
 
     init {
-        kubriko.stateManager.isFocused
+        stateManager.isFocused
             .filterNot { it }
-            .onEach { kubriko.stateManager.updateIsRunning(false) }
+            .onEach { stateManager.updateIsRunning(false) }
             .launchIn(this)
-        kubriko.inputManager.activeKeys
+        inputManager.activeKeys
             .filter { it.isNotEmpty() }
             .onEach(::handleKeys)
             .launchIn(this)
-        kubriko.inputManager.onKeyReleased
+        inputManager.onKeyReleased
             .onEach(::handleKeyReleased)
             .launchIn(this)
         loadMap(SCENE_NAME)
@@ -45,17 +60,19 @@ internal object GameplayController : CoroutineScope {
     @OptIn(ExperimentalResourceApi::class)
     private fun loadMap(mapName: String) = launch {
         try {
-            kubriko.actorManager.add(ChromaticAberrationShader())
-            kubriko.actorManager.add(VignetteShader())
-            kubriko.actorManager.add(SmoothPixelationShader())
-            kubriko.actorManager.add(actors = sceneSerializer.deserializeActors(Res.readBytes("files/scenes/$mapName.json").decodeToString()).toTypedArray())
+            kubriko.get<ActorManager>().run {
+                add(ChromaticAberrationShader())
+                add(VignetteShader())
+                add(SmoothPixelationShader())
+                add(actors = sceneSerializer.deserializeActors(Res.readBytes("files/scenes/$mapName.json").decodeToString()).toTypedArray())
+            }
         } catch (_: MissingResourceException) {
         }
     }
 
     private fun handleKeys(keys: Set<Key>) {
-        if (kubriko.stateManager.isRunning.value) {
-            kubriko.viewportManager.multiplyScaleFactor(
+        if (stateManager.isRunning.value) {
+            viewportManager.multiplyScaleFactor(
                 when (keys.zoomState) {
                     KeyboardZoomState.NONE -> 1f
                     KeyboardZoomState.ZOOM_IN -> 1.02f
@@ -67,7 +84,19 @@ internal object GameplayController : CoroutineScope {
 
     private fun handleKeyReleased(key: Key) {
         when (key) {
-            Key.Escape, Key.Back, Key.Backspace -> kubriko.stateManager.updateIsRunning(!kubriko.stateManager.isRunning.value)
+            Key.Escape, Key.Back, Key.Backspace -> stateManager.updateIsRunning(!stateManager.isRunning.value)
         }
     }
+
+    fun findDestructibleActorsNearby(
+        position: SceneOffset,
+        range: Float,
+    ) = actorManager.allActors.value
+        .filterIsInstance<Destructible>()
+        .filter {
+            it.isAroundPosition(
+                position = position,
+                range = range,
+            )
+        }
 }

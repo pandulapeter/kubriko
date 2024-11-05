@@ -2,7 +2,7 @@ package com.pandulapeter.kubriko.implementation.extensions
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import com.pandulapeter.kubriko.managers.ViewportManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.SceneOffset
 
 fun Offset.toSceneOffset(viewportManager: ViewportManager): SceneOffset = toSceneOffset(

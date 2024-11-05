@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.pandulapeter.kubriko.EngineCanvas
+import com.pandulapeter.kubriko.KubrikoCanvas
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseClick
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseDrag
@@ -53,7 +53,7 @@ internal fun EditorUserInterface(
                 selectInstance = editorController::selectActor,
                 resolveTypeId = editorController.actorSerializer::getTypeId,
             )
-            EngineCanvas(
+            KubrikoCanvas(
                 modifier = Modifier
                     .weight(1f)
                     .handleMouseClick(
@@ -66,11 +66,11 @@ internal fun EditorUserInterface(
                         onMouseMove = editorController::onMouseMove,
                     )
                     .handleMouseZoom(
-                        viewportManager = editorController.kubriko.viewportManager,
+                        viewportManager = editorController.viewportManager,
                     )
                     .handleMouseDrag(
-                        inputManager = editorController.kubriko.inputManager,
-                        viewportManager = editorController.kubriko.viewportManager,
+                        inputManager = editorController.inputManager,
+                        viewportManager = editorController.viewportManager,
                         getSelectedActor = editorController::getSelectedActor,
                         getMouseSceneOffset = editorController::getMouseWorldCoordinates,
                         notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,

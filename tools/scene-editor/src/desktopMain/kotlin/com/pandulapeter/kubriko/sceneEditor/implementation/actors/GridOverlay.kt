@@ -4,7 +4,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
-import com.pandulapeter.kubriko.managers.ViewportManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
 

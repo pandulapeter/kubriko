@@ -1,6 +1,7 @@
 package com.pandulapeter.kubriko.implementation.helpers
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.input.key.Key
 import java.awt.AWTEvent
 import java.awt.Toolkit
@@ -11,20 +12,22 @@ import java.awt.event.KeyEvent
 internal actual fun rememberKeyboardEventHandler(
     onKeyPressed: (Key) -> Unit,
     onKeyReleased: (Key) -> Unit
-): KeyboardEventHandler = object : KeyboardEventHandler, AWTEventListener {
+): KeyboardEventHandler = remember {
+    object : KeyboardEventHandler, AWTEventListener {
 
 
-    override fun startListening(
-    ) = Toolkit.getDefaultToolkit().addAWTEventListener(this, AWTEvent.KEY_EVENT_MASK)
+        override fun startListening(
+        ) = Toolkit.getDefaultToolkit().addAWTEventListener(this, AWTEvent.KEY_EVENT_MASK)
 
-    override fun stopListening() = Toolkit.getDefaultToolkit().removeAWTEventListener(this)
+        override fun stopListening() = Toolkit.getDefaultToolkit().removeAWTEventListener(this)
 
-    override fun eventDispatched(event: AWTEvent?) {
-        if (event is KeyEvent) {
-            event.toKey()?.let { key ->
-                when (event.id) {
-                    KeyEvent.KEY_PRESSED -> onKeyPressed(key)
-                    KeyEvent.KEY_RELEASED -> onKeyReleased(key)
+        override fun eventDispatched(event: AWTEvent?) {
+            if (event is KeyEvent) {
+                event.toKey()?.let { key ->
+                    when (event.id) {
+                        KeyEvent.KEY_PRESSED -> onKeyPressed(key)
+                        KeyEvent.KEY_RELEASED -> onKeyReleased(key)
+                    }
                 }
             }
         }

@@ -4,7 +4,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.implementation.extensions.directionState
 import com.pandulapeter.kubriko.implementation.extensions.zoomState
-import com.pandulapeter.kubriko.managers.ViewportManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 
 private const val CAMERA_SPEED = 15f
 private const val CAMERA_SPEED_DIAGONAL = 0.7071f * CAMERA_SPEED

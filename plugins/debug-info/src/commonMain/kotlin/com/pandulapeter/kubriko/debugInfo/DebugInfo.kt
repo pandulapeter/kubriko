@@ -13,7 +13,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.debugInfo.implementation.DebugInfoManager
+import com.pandulapeter.kubriko.debugInfo.implementation.DebugInfoHelper
 import kotlin.math.roundToInt
 
 /**
@@ -25,8 +25,8 @@ fun DebugInfo(
     modifier: Modifier = Modifier,
     kubriko: Kubriko,
 ) {
-    val debugInfoManager = remember { DebugInfoManager(kubriko) }
-    val debugInfoMetadata = debugInfoManager.debugInfoMetadata.collectAsState().value
+    val debugInfoHelper = remember { DebugInfoHelper(kubriko) }
+    val debugInfoMetadata = debugInfoHelper.debugInfoMetadata.collectAsState().value
     Text(
         modifier = modifier
             .defaultMinSize(minWidth = 200.dp)

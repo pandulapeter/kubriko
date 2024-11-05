@@ -3,8 +3,8 @@ package com.pandulapeter.kubrikoStressTest.implementation.extensions
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import com.pandulapeter.kubriko.managers.StateManager
-import com.pandulapeter.kubriko.managers.ViewportManager
+import com.pandulapeter.kubriko.manager.StateManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 
 internal expect fun Modifier.handleMouseZoom(
     stateManager: StateManager,

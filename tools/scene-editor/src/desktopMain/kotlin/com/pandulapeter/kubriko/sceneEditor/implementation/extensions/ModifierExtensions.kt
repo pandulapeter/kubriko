@@ -11,8 +11,8 @@ import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import com.pandulapeter.kubriko.implementation.extensions.occupiesPosition
-import com.pandulapeter.kubriko.managers.InputManager
-import com.pandulapeter.kubriko.managers.ViewportManager
+import com.pandulapeter.kubriko.manager.InputManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.types.SceneOffset
 

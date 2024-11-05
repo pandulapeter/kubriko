@@ -1,22 +1,36 @@
 package com.pandulapeter.kubriko.implementation
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.implementation.managers.ActorManagerImpl
-import com.pandulapeter.kubriko.implementation.managers.InputManagerImpl
-import com.pandulapeter.kubriko.implementation.managers.MetadataManagerImpl
-import com.pandulapeter.kubriko.implementation.managers.StateManagerImpl
-import com.pandulapeter.kubriko.implementation.managers.ViewportManagerImpl
+import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.InputManager
+import com.pandulapeter.kubriko.manager.Manager
+import com.pandulapeter.kubriko.manager.MetadataManager
+import com.pandulapeter.kubriko.manager.StateManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlin.reflect.KClass
 
-internal class KubrikoImpl : Kubriko, CoroutineScope {
-
-    override val actorManager by lazy { ActorManagerImpl(this) }
-    override val inputManager by lazy { InputManagerImpl(this) }
-    override val metadataManager by lazy { MetadataManagerImpl(this) }
-    override val stateManager by lazy { StateManagerImpl(this) }
-    override val viewportManager by lazy { ViewportManagerImpl() }
+internal class KubrikoImpl(
+    vararg manager: Manager,
+) : Kubriko, CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
+    val managers = manager.toSet()
+        .addIfNeeded { ActorManager.newInstance() }
+        .addIfNeeded { InputManager.newInstance() }
+        .addIfNeeded { MetadataManager.newInstance() }
+        .addIfNeeded { StateManager.newInstance() }
+        .addIfNeeded { ViewportManager.newInstance() }
+        .distinctBy { it::class }
+
+    init {
+        managers.forEach { it.initializeInternal(this) }
+    }
+
+    private inline fun <reified T : Manager> Set<Manager>.addIfNeeded(creator: () -> T) = if (none { T::class.isInstance(it) }) this + creator() else this
+
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : Manager> get(managerType: KClass<T>) = managers.firstOrNull { managerType.isInstance(it) } as? T ?: throw IllegalStateException("$managerType has not been registered as a Manager in Kubriko.newInstance()")
 }

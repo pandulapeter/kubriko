@@ -3,8 +3,13 @@ package com.pandulapeter.kubriko.sceneEditor.implementation
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.actorSerializer.ActorSerializer
+import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.implementation.extensions.occupiesPosition
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
+import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.InputManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.GridOverlay
@@ -13,7 +18,6 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.handleKeyRele
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.handleKeys
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.saveFile
-import com.pandulapeter.kubriko.actorSerializer.ActorSerializer
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,24 +40,27 @@ internal class EditorController(
 ) : CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
+    private val actorManager = kubriko.get<ActorManager>()
+    val viewportManager = kubriko.get<ViewportManager>()
+    val inputManager = kubriko.get<InputManager>()
     private val editorActors = listOf(
-        GridOverlay(kubriko.viewportManager),
+        GridOverlay(viewportManager),
     )
-    val allEditableActors = kubriko.actorManager.allActors
+    val allEditableActors = actorManager.allActors
         .map { it.filterIsInstance<Editable<*>>() }
         .stateIn(this, SharingStarted.Eagerly, emptyList())
-    val visibleActorsWithinViewport = kubriko.actorManager.visibleActorsWithinViewport
+    val visibleActorsWithinViewport = actorManager.visibleActorsWithinViewport
         .map { it.filterIsInstance<Editable<*>>() }
         .stateIn(this, SharingStarted.Eagerly, emptyList())
-    val totalActorCount = kubriko.actorManager.allActors
+    val totalActorCount = actorManager.allActors
         .map { it.filterIsInstance<Editable<*>>().count() }
         .stateIn(this, SharingStarted.Eagerly, 0)
     private val mouseScreenCoordinates = MutableStateFlow(Offset.Zero)
     val mouseSceneOffset = combine(
         mouseScreenCoordinates,
-        kubriko.viewportManager.cameraPosition,
-        kubriko.viewportManager.size,
-        kubriko.viewportManager.scaleFactor,
+        viewportManager.cameraPosition,
+        viewportManager.size,
+        viewportManager.scaleFactor,
     ) { mouseScreenCoordinates, viewportCenter, viewportSize, viewportScaleFactor ->
         mouseScreenCoordinates.toSceneOffset(
             viewportCenter = viewportCenter,
@@ -77,18 +84,22 @@ internal class EditorController(
     val shouldShowVisibleOnly = _shouldShowVisibleOnly.asStateFlow()
 
     init {
-        kubriko.inputManager.activeKeys
-            .filter { it.isNotEmpty() }
-            .onEach(kubriko.viewportManager::handleKeys)
-            .launchIn(this)
-        kubriko.inputManager.onKeyReleased
-            .onEach { key ->
-                handleKeyReleased(
-                    key = key,
-                    onNavigateBackRequested = ::navigateBack,
-                )
+        kubriko.get<InputManager>().let { inputManager ->
+            kubriko.get<ViewportManager>().let { viewportManager ->
+                inputManager.activeKeys
+                    .filter { it.isNotEmpty() }
+                    .onEach(viewportManager::handleKeys)
+                    .launchIn(this)
+                inputManager.onKeyReleased
+                    .onEach { key ->
+                        handleKeyReleased(
+                            key = key,
+                            onNavigateBackRequested = ::navigateBack,
+                        )
+                    }
+                    .launchIn(this)
             }
-            .launchIn(this)
+        }
     }
 
     fun onShouldShowVisibleOnlyToggled() = _shouldShowVisibleOnly.update { currentValue ->
@@ -100,14 +111,14 @@ internal class EditorController(
     fun getMouseWorldCoordinates() = mouseSceneOffset.value
 
     fun onLeftClick(screenCoordinates: Offset) {
-        val positionInWorld = screenCoordinates.toSceneOffset(kubriko.viewportManager)
+        val positionInWorld = screenCoordinates.toSceneOffset(viewportManager)
         findActorOnPosition(positionInWorld).let { actorAtPosition ->
             selectedUpdatableActor.value.first.let { currentSelectedActor ->
                 if (actorAtPosition == null) {
                     if (currentSelectedActor == null) {
                         selectedTypeId.value?.let { typeId ->
                             actorSerializer.getMetadata(typeId)?.instantiate?.invoke(positionInWorld)?.restore()?.let {
-                                kubriko.actorManager.add(it)
+                                actorManager.add(it)
                             }
                         }
                     } else {
@@ -121,12 +132,12 @@ internal class EditorController(
     }
 
     fun onRightClick(screenCoordinates: Offset) {
-        findActorOnPosition(screenCoordinates.toSceneOffset(kubriko.viewportManager)).let { actorAtPosition ->
+        findActorOnPosition(screenCoordinates.toSceneOffset(viewportManager)).let { actorAtPosition ->
             if (actorAtPosition != null) {
                 if (actorAtPosition == _selectedActor.value) {
                     removeSelectedActor()
                 } else {
-                    kubriko.actorManager.remove(actorAtPosition)
+                    actorManager.remove(actorAtPosition)
                 }
             }
         }
@@ -149,7 +160,7 @@ internal class EditorController(
     }
 
     fun removeSelectedActor() = _selectedActor.update { selectedActor ->
-        selectedActor?.let { kubriko.actorManager.remove(selectedActor) }
+        selectedActor?.let { actorManager.remove(selectedActor) }
         null
     }
 
@@ -157,7 +168,7 @@ internal class EditorController(
 
     fun locateSelectedActor() {
         (_selectedActor.value as? Visible)?.let { visibleTrait ->
-            kubriko.viewportManager.setCameraPosition(visibleTrait.position)
+            viewportManager.setCameraPosition(visibleTrait.position)
         }
     }
 
@@ -171,19 +182,19 @@ internal class EditorController(
     }
 
     fun reset() {
-        kubriko.viewportManager.setCameraPosition(SceneOffset.Zero)
+        viewportManager.setCameraPosition(SceneOffset.Zero)
         _currentFileName.update { DEFAULT_SCENE_FILE_NAME }
         _selectedActor.update { null }
-        kubriko.actorManager.removeAll()
-        kubriko.actorManager.add(actors = editorActors.toTypedArray())
+        actorManager.removeAll()
+        actorManager.add(actors = editorActors.toTypedArray())
     }
 
     fun loadMap(path: String) {
         launch {
             loadFile(path)?.let { json ->
                 val actors = actorSerializer.deserializeActors(json)
-                kubriko.actorManager.removeAll()
-                kubriko.actorManager.add(actors = (actors + editorActors).toTypedArray())
+                actorManager.removeAll()
+                actorManager.add(actors = (actors + editorActors).toTypedArray())
                 _currentFileName.update { path.split('/').last() }
             }
         }

@@ -1,6 +1,7 @@
 package com.pandulapeter.kubriko.implementation.helpers
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.input.key.Key
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.CoreGraphics.CGRectMake
@@ -14,43 +15,45 @@ import platform.UIKit.UIView
 internal actual fun rememberKeyboardEventHandler(
     onKeyPressed: (Key) -> Unit,
     onKeyReleased: (Key) -> Unit
-): KeyboardEventHandler = object : KeyboardEventHandler {
+): KeyboardEventHandler = remember {
+    object : KeyboardEventHandler {
 
-    private val inputView = object : UIView(CGRectMake(0.0, 0.0, 0.0, 0.0)) {
+        private val inputView = object : UIView(CGRectMake(0.0, 0.0, 0.0, 0.0)) {
 
-        override fun canBecomeFirstResponder() = true
+            override fun canBecomeFirstResponder() = true
 
-        override fun pressesBegan(presses: Set<*>, withEvent: UIPressesEvent?) {
-            super.pressesBegan(presses, withEvent)
-            presses.filterIsInstance<UIPress>().forEach { press ->
-                press.toKey()?.let(onKeyPressed)
+            override fun pressesBegan(presses: Set<*>, withEvent: UIPressesEvent?) {
+                super.pressesBegan(presses, withEvent)
+                presses.filterIsInstance<UIPress>().forEach { press ->
+                    press.toKey()?.let(onKeyPressed)
+                }
+            }
+
+            override fun pressesEnded(presses: Set<*>, withEvent: UIPressesEvent?) {
+                super.pressesEnded(presses, withEvent)
+                presses.filterIsInstance<UIPress>().forEach { press ->
+                    press.toKey()?.let(onKeyReleased)
+                }
+            }
+
+            override fun pressesCancelled(presses: Set<*>, withEvent: UIPressesEvent?) {
+                super.pressesCancelled(presses, withEvent)
+                presses.filterIsInstance<UIPress>().forEach { press ->
+                    press.toKey()?.let(onKeyReleased)
+                }
             }
         }
 
-        override fun pressesEnded(presses: Set<*>, withEvent: UIPressesEvent?) {
-            super.pressesEnded(presses, withEvent)
-            presses.filterIsInstance<UIPress>().forEach { press ->
-                press.toKey()?.let(onKeyReleased)
-            }
+        init {
+            inputView.becomeFirstResponder()
+            val currentViewController = UIApplication.sharedApplication.keyWindow?.rootViewController
+            currentViewController?.view?.addSubview(inputView)
         }
 
-        override fun pressesCancelled(presses: Set<*>, withEvent: UIPressesEvent?) {
-            super.pressesCancelled(presses, withEvent)
-            presses.filterIsInstance<UIPress>().forEach { press ->
-                press.toKey()?.let(onKeyReleased)
-            }
-        }
+        override fun startListening() = Unit
+
+        override fun stopListening() = inputView.removeFromSuperview()
     }
-
-    init {
-        inputView.becomeFirstResponder()
-        val currentViewController = UIApplication.sharedApplication.keyWindow?.rootViewController
-        currentViewController?.view?.addSubview(inputView)
-    }
-
-    override fun startListening() = Unit
-
-    override fun stopListening() = inputView.removeFromSuperview()
 }
 
 private fun UIPress.toKey() = key?.keyCode()?.run { Key(this) }

@@ -1,6 +1,7 @@
 package com.pandulapeter.kubriko.implementation.helpers
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.input.key.Key
 import kotlinx.browser.window
 import org.w3c.dom.events.EventListener
@@ -10,35 +11,37 @@ import org.w3c.dom.events.KeyboardEvent
 internal actual fun rememberKeyboardEventHandler(
     onKeyPressed: (Key) -> Unit,
     onKeyReleased: (Key) -> Unit
-): KeyboardEventHandler = object : KeyboardEventHandler {
+): KeyboardEventHandler = remember {
+    object : KeyboardEventHandler {
 
-    private val pressedKeys = mutableSetOf<String>() // Track keys that are currently pressed
+        private val pressedKeys = mutableSetOf<String>() // Track keys that are currently pressed
 
-    private val keyDownListener = EventListener { event ->
-        (event as? KeyboardEvent)?.let { keyboardEvent ->
-            if (pressedKeys.add(keyboardEvent.code)) { // Only add if not already pressed
-                onKeyPressed(mapKeyboardEventCodeToKey(keyboardEvent.code))
+        private val keyDownListener = EventListener { event ->
+            (event as? KeyboardEvent)?.let { keyboardEvent ->
+                if (pressedKeys.add(keyboardEvent.code)) { // Only add if not already pressed
+                    onKeyPressed(mapKeyboardEventCodeToKey(keyboardEvent.code))
+                }
             }
         }
-    }
 
-    private val keyUpListener = EventListener { event ->
-        (event as? KeyboardEvent)?.let { keyboardEvent ->
-            if (pressedKeys.remove(keyboardEvent.code)) { // Only remove if it was pressed
-                onKeyReleased(mapKeyboardEventCodeToKey(keyboardEvent.code))
+        private val keyUpListener = EventListener { event ->
+            (event as? KeyboardEvent)?.let { keyboardEvent ->
+                if (pressedKeys.remove(keyboardEvent.code)) { // Only remove if it was pressed
+                    onKeyReleased(mapKeyboardEventCodeToKey(keyboardEvent.code))
+                }
             }
         }
-    }
 
-    override fun startListening() {
-        window.addEventListener("keydown", keyDownListener)
-        window.addEventListener("keyup", keyUpListener)
-    }
+        override fun startListening() {
+            window.addEventListener("keydown", keyDownListener)
+            window.addEventListener("keyup", keyUpListener)
+        }
 
-    override fun stopListening() {
-        window.removeEventListener("keydown", keyDownListener)
-        window.removeEventListener("keyup", keyUpListener)
-        pressedKeys.clear()
+        override fun stopListening() {
+            window.removeEventListener("keydown", keyDownListener)
+            window.removeEventListener("keyup", keyUpListener)
+            pressedKeys.clear()
+        }
     }
 }
 

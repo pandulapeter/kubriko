@@ -1,8 +1,8 @@
 package com.pandulapeter.kubrikoStressTest.implementation.extensions
 
 import androidx.compose.ui.Modifier
-import com.pandulapeter.kubriko.managers.StateManager
-import com.pandulapeter.kubriko.managers.ViewportManager
+import com.pandulapeter.kubriko.manager.StateManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 
 internal actual fun Modifier.handleMouseZoom(
     stateManager: StateManager,

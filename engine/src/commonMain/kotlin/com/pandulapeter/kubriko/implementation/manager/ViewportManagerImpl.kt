@@ -1,8 +1,8 @@
-package com.pandulapeter.kubriko.implementation.managers
+package com.pandulapeter.kubriko.implementation.manager
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import com.pandulapeter.kubriko.managers.ViewportManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.update
 import kotlin.math.max
 import kotlin.math.min
 
-internal class ViewportManagerImpl : ViewportManager {
+internal class ViewportManagerImpl : ViewportManager() {
 
     private val _size = MutableStateFlow(Size.Zero)
     override val size = _size.asStateFlow()
