@@ -52,23 +52,23 @@ fun KubrikoCanvas(
             withFrameNanos { gameTimeInNanos ->
                 val deltaTimeInMillis = (gameTimeInNanos - gameTime.value) / 1000000f
                 lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED).let(stateManager::updateFocus)
-                kubrikoImpl.managers.forEach { it.update(deltaTimeInMillis, gameTimeInNanos) }
+                kubrikoImpl.managers.forEach { it.onUpdate(deltaTimeInMillis, gameTimeInNanos) }
                 gameTime.value = gameTimeInNanos
             }
         }
     }
 
-    kubrikoImpl.managers.forEach { it.composition() }
+    kubrikoImpl.managers.forEach { it.onRecomposition() }
 
     DisposableEffect(Unit) {
-        kubrikoImpl.managers.forEach { it.launch() }
-        onDispose { kubrikoImpl.managers.forEach { it.dispose() } }
+        kubrikoImpl.managers.forEach { it.onLaunch() }
+        onDispose { kubrikoImpl.managers.forEach { it.onDispose() } }
     }
 
     // Game canvas
     Canvas(
         modifier = kubrikoImpl.managers
-            .mapNotNull { it.modifier() }
+            .mapNotNull { it.onCreateModifier() }
             .fold(modifier.fillMaxSize().clipToBounds()) { compoundModifier, managerModifier ->
                 compoundModifier then managerModifier
             }

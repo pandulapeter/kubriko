@@ -19,14 +19,14 @@ abstract class Manager {
     protected open fun initialize(kubriko: Kubriko) = Unit
 
     @Composable
-    open fun modifier(): Modifier? = null
+    open fun onCreateModifier(): Modifier? = null
 
     @Composable
-    open fun composition() = Unit
+    open fun onRecomposition() = Unit
 
-    open fun launch() = Unit
+    open fun onLaunch() = Unit
 
-    open fun update(deltaTimeInMillis: Float, gameTimeNanos: Long) = Unit
+    open fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) = Unit
 
-    open fun dispose() = Unit
+    open fun onDispose() = Unit
 }

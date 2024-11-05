@@ -7,8 +7,8 @@ import com.pandulapeter.kubriko.actorSerializer.ActorSerializer
 import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.implementation.extensions.occupiesPosition
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
+import com.pandulapeter.kubriko.inputManager.InputManager
 import com.pandulapeter.kubriko.manager.ActorManager
-import com.pandulapeter.kubriko.manager.InputManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata

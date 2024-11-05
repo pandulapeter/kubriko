@@ -22,7 +22,7 @@ internal class ShaderManagerImpl : ShaderManager() {
     }
 
     @Composable
-    override fun modifier() = Modifier.runtimeShader(
+    override fun onCreateModifier() = Modifier.runtimeShader(
         actorManager.allActors
             .map { actors -> actors.filterIsInstance<Shader>() }
             .stateIn(scope, SharingStarted.Eagerly, emptyList())

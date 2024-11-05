@@ -9,6 +9,7 @@ kotlin {
             implementation(compose.components.resources)
             implementation(projects.engine)
             api(projects.plugins.actorSerializer)
+            implementation(projects.plugins.inputManager)
         }
         val desktopMain by getting {
             dependencies {

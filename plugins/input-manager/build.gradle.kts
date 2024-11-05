@@ -13,5 +13,5 @@ kotlin {
 }
 
 android {
-    namespace = "com.pandulapeter.kubriko.shaderManager"
+    namespace = "com.pandulapeter.kubriko.inputManager"
 }

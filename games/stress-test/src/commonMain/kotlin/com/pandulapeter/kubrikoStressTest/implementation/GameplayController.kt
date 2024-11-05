@@ -6,8 +6,8 @@ import com.pandulapeter.kubriko.implementation.extensions.KeyboardZoomState
 import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.implementation.extensions.isAroundPosition
 import com.pandulapeter.kubriko.implementation.extensions.zoomState
+import com.pandulapeter.kubriko.inputManager.InputManager
 import com.pandulapeter.kubriko.manager.ActorManager
-import com.pandulapeter.kubriko.manager.InputManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.shaderManager.ShaderManager
@@ -34,11 +34,12 @@ internal object GameplayController : CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
     val kubriko = Kubriko.newInstance(
-        ShaderManager.newInstance()
+        InputManager.newInstance(),
+        ShaderManager.newInstance(),
     )
     private val sceneSerializer by lazy { SceneSerializerWrapper().sceneSerializer }
     private val actorManager by lazy { kubriko.get<ActorManager>() }
-    private val inputManager by lazy { kubriko.get<InputManager>() }
+    val inputManager by lazy { kubriko.get<InputManager>() }
     val stateManager by lazy { kubriko.get<StateManager>() }
     val viewportManager by lazy { kubriko.get<ViewportManager>() }
 

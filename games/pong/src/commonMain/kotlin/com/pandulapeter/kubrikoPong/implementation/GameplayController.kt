@@ -1,10 +1,8 @@
 package com.pandulapeter.kubrikoPong.implementation
 
-import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.manager.ActorManager
-import com.pandulapeter.kubriko.manager.InputManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubrikoPong.implementation.actors.Ball
 import kotlinx.coroutines.CoroutineScope
@@ -21,7 +19,6 @@ internal class GameplayController(
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
     private val actorManager = kubriko.get<ActorManager>()
-    private val inputManager = kubriko.get<InputManager>()
     val stateManager = kubriko.get<StateManager>()
 
     init {
@@ -29,15 +26,6 @@ internal class GameplayController(
             .filterNot { it }
             .onEach { stateManager.updateIsRunning(false) }
             .launchIn(this)
-        inputManager.onKeyReleased
-            .onEach(::handleKeyReleased)
-            .launchIn(this)
         actorManager.add(Ball())
-    }
-
-    private fun handleKeyReleased(key: Key) {
-        when (key) {
-            Key.Escape, Key.Back, Key.Backspace -> stateManager.updateIsRunning(!stateManager.isRunning.value)
-        }
     }
 }

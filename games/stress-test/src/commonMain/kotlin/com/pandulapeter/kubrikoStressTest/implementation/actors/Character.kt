@@ -11,9 +11,7 @@ import com.pandulapeter.kubriko.actorSerializer.integration.Serializable
 import com.pandulapeter.kubriko.actorSerializer.typeSerializers.SerializableSceneOffset
 import com.pandulapeter.kubriko.implementation.extensions.KeyboardDirectionState
 import com.pandulapeter.kubriko.implementation.extensions.directionState
-import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.manager.InputManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -49,19 +47,17 @@ class Character private constructor(state: CharacterState) : Editable<Character>
 
     init {
         // TODO: Should be traits instead (InputAware maybe)
-        GameplayController.kubriko.get<InputManager>().let { inputManager ->
-            inputManager.activeKeys
-                .filter { it.isNotEmpty() }
-                .onEach { move(it.directionState) }
-                .launchIn(this)
-            inputManager.onKeyPressed
-                .onEach { key ->
-                    when (key) {
-                        Key.Spacebar -> triggerExplosion()
-                    }
+        GameplayController.inputManager.activeKeys
+            .filter { it.isNotEmpty() }
+            .onEach { move(it.directionState) }
+            .launchIn(this)
+        GameplayController.inputManager.onKeyPressed
+            .onEach { key ->
+                when (key) {
+                    Key.Spacebar -> triggerExplosion()
                 }
-                .launchIn(this)
-        }
+            }
+            .launchIn(this)
     }
 
     override fun update(deltaTimeInMillis: Float) {

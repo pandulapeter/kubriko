@@ -21,7 +21,7 @@ internal class MetadataManagerImpl : MetadataManager() {
         stateManager = kubriko.get<StateManager>()
     }
 
-    override fun update(deltaTimeInMillis: Float, gameTimeNanos: Long) {
+    override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
         if (stateManager.isRunning.value) {
             _runtimeInMilliseconds.update { currentValue ->
                 (currentValue + deltaTimeInMillis).toLong()
