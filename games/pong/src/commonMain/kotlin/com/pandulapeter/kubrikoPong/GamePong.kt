@@ -9,22 +9,27 @@ import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoCanvas
 import com.pandulapeter.kubriko.debugInfo.DebugInfo
-import com.pandulapeter.kubrikoPong.implementation.GameplayController
+import com.pandulapeter.kubrikoPong.implementation.GameplayManager
 import com.pandulapeter.kubrikoPong.implementation.UserInterface
 
 @Composable
 fun GamePong(
     modifier: Modifier = Modifier,
 ) {
-    val gameplayController = remember { GameplayController(Kubriko.newInstance()) }
+    val gameplayManager = remember { GameplayManager() }
+    val kubriko = remember {
+        Kubriko.newInstance(
+            gameplayManager,
+        )
+    }
     KubrikoCanvas(
         modifier = Modifier.background(Color.White),
-        kubriko = gameplayController.kubriko,
+        kubriko = kubriko,
     )
     UserInterface(
         modifier = modifier,
-        isRunning = gameplayController.stateManager.isRunning.collectAsState().value,
-        updateIsRunning = gameplayController.stateManager::updateIsRunning,
-        debugInfo = { DebugInfo(kubriko = gameplayController.kubriko) },
+        isRunning = gameplayManager.stateManager.isRunning.collectAsState().value,
+        updateIsRunning = gameplayManager.stateManager::updateIsRunning,
+        debugInfo = { DebugInfo(kubriko = kubriko) },
     )
 }

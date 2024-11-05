@@ -1,7 +1,7 @@
 package com.pandulapeter.kubriko.implementation.manager
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.implementation.extensions.get
+import com.pandulapeter.kubriko.implementation.KubrikoImpl
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.StateManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,8 +17,8 @@ internal class MetadataManagerImpl : MetadataManager() {
     override val runtimeInMilliseconds = _runtimeInMilliseconds.asStateFlow()
     private var lastFpsUpdateTimestamp = 0L
 
-    override fun initialize(kubriko: Kubriko) {
-        stateManager = kubriko.get<StateManager>()
+    override fun onInitialize(kubriko: Kubriko) {
+        stateManager = (kubriko as KubrikoImpl).stateManager
     }
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {

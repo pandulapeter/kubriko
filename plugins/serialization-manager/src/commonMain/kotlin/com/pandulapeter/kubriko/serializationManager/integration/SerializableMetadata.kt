@@ -1,9 +1,9 @@
-package com.pandulapeter.kubriko.actorSerializer.integration
+package com.pandulapeter.kubriko.serializationManager.integration
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
-import com.pandulapeter.kubriko.actorSerializer.ActorSerializer
-import com.pandulapeter.kubriko.actorSerializer.integration.SerializableMetadata.Companion.invoke
+import com.pandulapeter.kubriko.serializationManager.SerializationManager
+import com.pandulapeter.kubriko.serializationManager.integration.SerializableMetadata.Companion.invoke
 import kotlin.reflect.KClass
 
 // TODO: Revisit documentation, rename class if needed.
@@ -26,9 +26,9 @@ open class SerializableMetadata<T : Serializable<T>>(
         /**
          * TODO: Documentation
          */
-        fun newSceneSerializerInstance(
+        fun newSerializationManagerInstance(
             vararg serializableMetadata: SerializableMetadata<*>,
-        ) = ActorSerializer.newInstance<SerializableMetadata<*>, Serializable<*>>(
+        ) = SerializationManager.newInstance<SerializableMetadata<*>, Serializable<*>>(
             serializableMetadata = serializableMetadata
         )
 

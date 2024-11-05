@@ -3,9 +3,8 @@ package com.pandulapeter.kubriko.sceneEditor.implementation
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.actorSerializer.ActorSerializer
-import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.implementation.extensions.occupiesPosition
+import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
 import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -17,6 +16,7 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.actors.KeyboardInputL
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.exitApp
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.saveFile
+import com.pandulapeter.kubriko.serializationManager.SerializationManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,13 +32,13 @@ import kotlinx.coroutines.launch
 
 internal class EditorController(
     val kubriko: Kubriko,
-    val actorSerializer: ActorSerializer<EditableMetadata<*>, Editable<*>>,
 ) : CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
-    private val actorManager = kubriko.get<ActorManager>()
-    val viewportManager = kubriko.get<ViewportManager>()
-    val keyboardInputManager = kubriko.get<KeyboardInputManager>()
+    private val actorManager = kubriko.require<ActorManager>()
+    val viewportManager = kubriko.require<ViewportManager>()
+    val keyboardInputManager = kubriko.require<KeyboardInputManager>()
+    val serializationManager = kubriko.require<SerializationManager<EditableMetadata<*>, Editable<*>>>()
     private val editorActors = listOf(
         GridOverlay(viewportManager),
         KeyboardInputListener(viewportManager, ::navigateBack),
@@ -95,7 +95,7 @@ internal class EditorController(
                 if (actorAtPosition == null) {
                     if (currentSelectedActor == null) {
                         selectedTypeId.value?.let { typeId ->
-                            actorSerializer.getMetadata(typeId)?.instantiate?.invoke(positionInWorld)?.restore()?.let {
+                            serializationManager.getMetadata(typeId)?.instantiate?.invoke(positionInWorld)?.restore()?.let {
                                 actorManager.add(it)
                             }
                         }
@@ -170,7 +170,7 @@ internal class EditorController(
     fun loadMap(path: String) {
         launch {
             loadFile(path)?.let { json ->
-                val actors = actorSerializer.deserializeActors(json)
+                val actors = serializationManager.deserializeActors(json)
                 actorManager.removeAll()
                 actorManager.add(actors = (actors + editorActors).toTypedArray())
                 _currentFileName.update { path.split('/').last() }
@@ -182,7 +182,7 @@ internal class EditorController(
         launch {
             saveFile(
                 path = path,
-                content = actorSerializer.serializeActors(allEditableActors.value),
+                content = serializationManager.serializeActors(allEditableActors.value),
             )
         }
     }

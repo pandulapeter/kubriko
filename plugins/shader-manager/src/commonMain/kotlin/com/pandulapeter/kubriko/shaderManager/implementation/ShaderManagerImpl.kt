@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.implementation.extensions.get
+import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.shaderManager.Shader
 import com.pandulapeter.kubriko.shaderManager.ShaderManager
@@ -17,8 +17,8 @@ internal class ShaderManagerImpl : ShaderManager() {
 
     private lateinit var actorManager: ActorManager
 
-    override fun initialize(kubriko: Kubriko) {
-        actorManager = kubriko.get<ActorManager>()
+    override fun onInitialize(kubriko: Kubriko) {
+        actorManager = kubriko.require<ActorManager>()
     }
 
     @Composable

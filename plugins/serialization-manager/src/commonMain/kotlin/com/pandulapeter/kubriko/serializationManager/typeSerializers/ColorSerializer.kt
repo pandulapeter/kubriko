@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.actorSerializer.typeSerializers
+package com.pandulapeter.kubriko.serializationManager.typeSerializers
 
 import androidx.compose.ui.graphics.Color
 import kotlinx.serialization.ExperimentalSerializationApi

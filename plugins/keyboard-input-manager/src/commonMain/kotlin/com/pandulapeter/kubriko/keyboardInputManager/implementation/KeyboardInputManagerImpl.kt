@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.implementation.extensions.get
+import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputAware
 import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -29,9 +29,9 @@ internal class KeyboardInputManagerImpl : KeyboardInputManager() {
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
     }
 
-    override fun initialize(kubriko: Kubriko) {
-        actorManager = kubriko.get<ActorManager>()
-        stateManager = kubriko.get<StateManager>()
+    override fun onInitialize(kubriko: Kubriko) {
+        actorManager = kubriko.require<ActorManager>()
+        stateManager = kubriko.require<StateManager>()
         stateManager.isFocused
             .filterNot { it }
             .onEach { activeKeysCache.forEach(::onKeyReleased) }

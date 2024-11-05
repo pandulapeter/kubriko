@@ -16,16 +16,9 @@ import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.pandulapeter.kubriko.implementation.KubrikoImpl
-import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.implementation.extensions.minus
 import com.pandulapeter.kubriko.implementation.extensions.transform
 import com.pandulapeter.kubriko.implementation.extensions.transformViewport
-import com.pandulapeter.kubriko.implementation.manager.ActorManagerImpl
-import com.pandulapeter.kubriko.implementation.manager.StateManagerImpl
-import com.pandulapeter.kubriko.implementation.manager.ViewportManagerImpl
-import com.pandulapeter.kubriko.manager.ActorManager
-import com.pandulapeter.kubriko.manager.StateManager
-import com.pandulapeter.kubriko.manager.ViewportManager
 import kotlinx.coroutines.isActive
 
 /**
@@ -38,11 +31,11 @@ fun KubrikoCanvas(
     modifier: Modifier = Modifier,
     kubriko: Kubriko,
 ) {
-    // Caching the internal implementations
-    val kubrikoImpl = remember { kubriko as KubrikoImpl }
-    val actorManager = remember { kubriko.get<ActorManager>() as ActorManagerImpl }
-    val stateManager = remember { kubriko.get<StateManager>() as StateManagerImpl }
-    val viewportManager = remember { kubriko.get<ViewportManager>() as ViewportManagerImpl }
+    // Enforce and cache the internal implementation
+    val kubrikoImpl = remember {
+        kubriko as? KubrikoImpl
+            ?: throw IllegalStateException("Custom implementations of the Kubriko interface are not supported. Use Kubriko.newInstance() to instantiate Kubriko.")
+    }
 
     // Game loop and focus handling
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -51,7 +44,7 @@ fun KubrikoCanvas(
         while (isActive) {
             withFrameNanos { gameTimeInNanos ->
                 val deltaTimeInMillis = (gameTimeInNanos - gameTime.value) / 1000000f
-                lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED).let(stateManager::updateFocus)
+                lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED).let(kubrikoImpl.stateManager::updateFocus)
                 kubrikoImpl.managers.forEach { it.onUpdate(deltaTimeInMillis, gameTimeInNanos) }
                 gameTime.value = gameTimeInNanos
             }
@@ -75,18 +68,18 @@ fun KubrikoCanvas(
             .background(Color.White), // TODO: The engine should not draw its own background by default),
         onDraw = {
             gameTime.value
-            viewportManager.updateSize(size = size)
-            viewportManager.cameraPosition.value.let { viewportCenter ->
+            kubrikoImpl.viewportManager.updateSize(size = size)
+            kubrikoImpl.viewportManager.cameraPosition.value.let { viewportCenter ->
                 withTransform(
                     transformBlock = {
                         transformViewport(
                             viewportCenter = viewportCenter,
                             shiftedViewportOffset = (size / 2f) - viewportCenter,
-                            viewportScaleFactor = viewportManager.scaleFactor.value,
+                            viewportScaleFactor = kubrikoImpl.viewportManager.scaleFactor.value,
                         )
                     },
                     drawBlock = {
-                        actorManager.visibleActorsWithinViewport.value
+                        kubrikoImpl.actorManager.visibleActorsWithinViewport.value
                             .sortedByDescending { it.drawingOrder }
                             .forEach { visible ->
                                 withTransform(
@@ -94,7 +87,7 @@ fun KubrikoCanvas(
                                     drawBlock = { visible.draw(this) }
                                 )
                             }
-                        actorManager.overlayActors.value
+                        kubrikoImpl.actorManager.overlayActors.value
                             .sortedByDescending { it.overlayDrawingOrder }
                             .forEach { overlay ->
                                 overlay.drawToViewport(this)

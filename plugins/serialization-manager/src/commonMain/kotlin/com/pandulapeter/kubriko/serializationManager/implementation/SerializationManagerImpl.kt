@@ -1,16 +1,16 @@
-package com.pandulapeter.kubriko.actorSerializer.implementation
+package com.pandulapeter.kubriko.serializationManager.implementation
 
-import com.pandulapeter.kubriko.actorSerializer.ActorSerializer
-import com.pandulapeter.kubriko.actorSerializer.integration.Serializable
-import com.pandulapeter.kubriko.actorSerializer.integration.SerializableMetadata
+import com.pandulapeter.kubriko.serializationManager.SerializationManager
+import com.pandulapeter.kubriko.serializationManager.integration.Serializable
+import com.pandulapeter.kubriko.serializationManager.integration.SerializableMetadata
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.reflect.KClass
 
-internal class ActorSerializerImpl<MD : SerializableMetadata<out T>, out T : Serializable<out T>>(
+internal class SerializationManagerImpl<MD : SerializableMetadata<out T>, out T : Serializable<out T>>(
     vararg serializableMetadata: MD,
-) : ActorSerializer<MD, T> {
+) : SerializationManager<MD, T>() {
     private val typeIdsToMetadata = serializableMetadata.associateBy { registration -> registration.typeId }
     private val typeIdsToDeserializers = serializableMetadata.associate { registration -> registration.typeId to registration.deserializeState }
     private val typeResolvers = serializableMetadata.associate { registration -> registration.type to registration.typeId }
@@ -21,7 +21,7 @@ internal class ActorSerializerImpl<MD : SerializableMetadata<out T>, out T : Ser
 
     override fun getMetadata(typeId: String) = typeIdsToMetadata[typeId]
 
-    override suspend fun serializeActors(
+    override fun serializeActors(
         actors: List<@UnsafeVariance T>,
     ) = json.encodeToString(
         actors.mapNotNull { actor ->
@@ -34,7 +34,7 @@ internal class ActorSerializerImpl<MD : SerializableMetadata<out T>, out T : Ser
         }
     )
 
-    override suspend fun deserializeActors(
+    override fun deserializeActors(
         serializedStates: String,
     ) = json.decodeFromString<List<ActorStateWrapper>>(serializedStates).mapNotNull { wrapper ->
         typeIdsToDeserializers[wrapper.typeId]?.invoke(wrapper.serializedState)?.restore()

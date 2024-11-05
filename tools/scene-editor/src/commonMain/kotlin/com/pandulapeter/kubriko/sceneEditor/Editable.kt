@@ -4,7 +4,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.actorSerializer.integration.Serializable
+import com.pandulapeter.kubriko.serializationManager.integration.Serializable
 
 
 // TODO: Revisit documentation.

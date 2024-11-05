@@ -8,10 +8,10 @@ import androidx.compose.ui.window.AwtWindow
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputManager
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.EditorUserInterface
-import com.pandulapeter.kubriko.actorSerializer.ActorSerializer
-import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputManager
+import com.pandulapeter.kubriko.serializationManager.SerializationManager
 import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame
@@ -20,14 +20,14 @@ import java.io.FilenameFilter
 
 fun openSceneEditor(
     defaultMapFilename: String? = null,
-    actorSerializer: ActorSerializer<EditableMetadata<*>, out Editable<*>>,
+    serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
 ) = application {
     val editorController = remember {
         EditorController(
             kubriko = Kubriko.newInstance(
                 KeyboardInputManager.newInstance(),
+                serializationManager,
             ),
-            actorSerializer = actorSerializer,
         )
     }
     LaunchedEffect(Unit) {

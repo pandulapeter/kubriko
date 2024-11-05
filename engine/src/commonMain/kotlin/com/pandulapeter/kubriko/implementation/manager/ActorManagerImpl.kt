@@ -7,7 +7,7 @@ import com.pandulapeter.kubriko.actor.traits.Identifiable
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.implementation.extensions.get
+import com.pandulapeter.kubriko.implementation.KubrikoImpl
 import com.pandulapeter.kubriko.implementation.extensions.isVisible
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.MetadataManager
@@ -66,10 +66,10 @@ internal class ActorManagerImpl : ActorManager() {
         }.stateIn(scope, SharingStarted.Eagerly, emptyList())
     }
 
-    override fun initialize(kubriko: Kubriko) {
-        metadataManager = kubriko.get<MetadataManager>()
-        viewportManager = kubriko.get<ViewportManager>()
-        stateManager = kubriko.get<StateManager>()
+    override fun onInitialize(kubriko: Kubriko) {
+        metadataManager = (kubriko as KubrikoImpl).metadataManager
+        stateManager = kubriko.stateManager
+        viewportManager = kubriko.viewportManager
     }
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
@@ -83,12 +83,17 @@ internal class ActorManagerImpl : ActorManager() {
         val uniqueActors = actors.filterIsInstance<Unique>().map { it::class }.toSet()
         val filteredCurrentActors = currentActors.filterNot { it::class in uniqueActors }
         actors.filterIsInstance<Identifiable>().onEach { if (it.name == null) it.name = Uuid.random().toString() }
+        actors.forEach { it.onAdd(scope as Kubriko) }
         filteredCurrentActors + actors
     }
 
     override fun remove(vararg actors: Actor) = _allActors.update { currentValue ->
+        actors.forEach { it.onRemove() }
         currentValue.filterNot { it in actors }
     }
 
-    override fun removeAll() = _allActors.update { emptyList() }
+    override fun removeAll() = _allActors.update { currentValue ->
+        currentValue.forEach { it.onRemove() }
+        emptyList()
+    }
 }

@@ -1,7 +1,7 @@
 package com.pandulapeter.kubriko.debugInfo.implementation
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.implementation.extensions.get
+import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.MetadataManager
 import kotlinx.coroutines.CoroutineScope
@@ -14,8 +14,8 @@ import kotlinx.coroutines.flow.stateIn
 internal class DebugInfoHelper(kubriko: Kubriko) : CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
-    val debugInfoMetadata = kubriko.get<MetadataManager>().let { metadataManager ->
-        kubriko.get<ActorManager>().let { actorManager ->
+    val debugInfoMetadata = kubriko.require<MetadataManager>().let { metadataManager ->
+        kubriko.require<ActorManager>().let { actorManager ->
             combine(
                 metadataManager.fps,
                 actorManager.allActors,

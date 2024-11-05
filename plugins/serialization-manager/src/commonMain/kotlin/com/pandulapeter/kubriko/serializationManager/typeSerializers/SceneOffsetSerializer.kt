@@ -1,6 +1,7 @@
-package com.pandulapeter.kubriko.actorSerializer.typeSerializers
+package com.pandulapeter.kubriko.serializationManager.typeSerializers
 
-import androidx.compose.ui.geometry.Offset
+import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -15,25 +16,25 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 
-typealias SerializableOffset = @Serializable(with = OffsetSerializer::class) Offset
+typealias SerializableSceneOffset = @Serializable(with = SceneOffsetSerializer::class) SceneOffset
 
 @Suppress("EXTERNAL_SERIALIZER_USELESS")
 @OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = Offset::class)
-object OffsetSerializer : KSerializer<Offset> {
-    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("offset") {
+@Serializer(forClass = SceneOffset::class)
+object SceneOffsetSerializer : KSerializer<SceneOffset> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("sceneOffset") {
         element<Float>("x")
         element<Float>("y")
     }
 
-    override fun serialize(encoder: Encoder, value: Offset) {
+    override fun serialize(encoder: Encoder, value: SceneOffset) {
         encoder.encodeStructure(descriptor) {
-            encodeFloatElement(descriptor, 0, value.x)
-            encodeFloatElement(descriptor, 1, value.y)
+            encodeFloatElement(descriptor, 0, value.x.raw)
+            encodeFloatElement(descriptor, 1, value.y.raw)
         }
     }
 
-    override fun deserialize(decoder: Decoder): Offset {
+    override fun deserialize(decoder: Decoder): SceneOffset {
         return decoder.decodeStructure(descriptor) {
             var x = 0f
             var y = 0f
@@ -45,7 +46,7 @@ object OffsetSerializer : KSerializer<Offset> {
                     else -> throw SerializationException("Unexpected index $index")
                 }
             }
-            Offset(x, y)
+            SceneOffset(x.scenePixel, y.scenePixel)
         }
     }
 }

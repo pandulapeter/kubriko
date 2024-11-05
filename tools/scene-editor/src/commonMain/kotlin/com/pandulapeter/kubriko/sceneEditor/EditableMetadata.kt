@@ -3,9 +3,9 @@ package com.pandulapeter.kubriko.sceneEditor
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata.Companion.invoke
-import com.pandulapeter.kubriko.actorSerializer.ActorSerializer
-import com.pandulapeter.kubriko.actorSerializer.integration.Serializable
-import com.pandulapeter.kubriko.actorSerializer.integration.SerializableMetadata
+import com.pandulapeter.kubriko.serializationManager.SerializationManager
+import com.pandulapeter.kubriko.serializationManager.integration.Serializable
+import com.pandulapeter.kubriko.serializationManager.integration.SerializableMetadata
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlin.reflect.KClass
 
@@ -35,9 +35,9 @@ class EditableMetadata<T : Editable<T>>(
         /**
          * TODO: Documentation
          */
-        fun newSceneSerializerInstance(
+        fun newSerializationManagerInstance(
             vararg editableMetadata: EditableMetadata<*>,
-        ) = ActorSerializer.newInstance<EditableMetadata<*>, Editable<*>>(
+        ) = SerializationManager.newInstance<EditableMetadata<*>, Editable<*>>(
             serializableMetadata = editableMetadata
         )
 

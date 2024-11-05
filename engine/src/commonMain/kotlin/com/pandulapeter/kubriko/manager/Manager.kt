@@ -3,20 +3,24 @@ package com.pandulapeter.kubriko.manager
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.implementation.KubrikoImpl
 import kotlinx.coroutines.CoroutineScope
 
 abstract class Manager {
 
+    protected var isInitialized = false
+        private set
     protected lateinit var scope: CoroutineScope
         private set
 
     internal fun initializeInternal(kubriko: Kubriko) {
-        scope = kubriko as KubrikoImpl
-        initialize(kubriko)
+        if (!isInitialized) {
+            scope = kubriko as CoroutineScope
+            onInitialize(kubriko)
+            isInitialized = true
+        }
     }
 
-    protected open fun initialize(kubriko: Kubriko) = Unit
+    protected open fun onInitialize(kubriko: Kubriko) = Unit
 
     @Composable
     open fun onCreateModifier(): Modifier? = null

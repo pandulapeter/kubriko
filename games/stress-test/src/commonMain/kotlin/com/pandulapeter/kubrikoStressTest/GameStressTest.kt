@@ -2,10 +2,11 @@ package com.pandulapeter.kubrikoStressTest
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.KubrikoCanvas
 import com.pandulapeter.kubriko.debugInfo.DebugInfo
-import com.pandulapeter.kubrikoStressTest.implementation.GameplayController
+import com.pandulapeter.kubrikoStressTest.implementation.KubrikoWrapper
 import com.pandulapeter.kubrikoStressTest.implementation.UserInterface
 import com.pandulapeter.kubrikoStressTest.implementation.extensions.handleDragAndPan
 import com.pandulapeter.kubrikoStressTest.implementation.extensions.handleMouseZoom
@@ -14,22 +15,23 @@ import com.pandulapeter.kubrikoStressTest.implementation.extensions.handleMouseZ
 fun GameStressTest(
     modifier: Modifier = Modifier,
 ) {
+    val kubrikoWrapper = remember { KubrikoWrapper() }
     KubrikoCanvas(
         modifier = Modifier
             .handleMouseZoom(
-                stateManager = GameplayController.stateManager,
-                viewportManager = GameplayController.viewportManager,
+                stateManager = kubrikoWrapper.gameplayManager.stateManager,
+                viewportManager = kubrikoWrapper.gameplayManager.viewportManager,
             )
             .handleDragAndPan(
-                stateManager = GameplayController.stateManager,
-                viewportManager = GameplayController.viewportManager,
+                stateManager = kubrikoWrapper.gameplayManager.stateManager,
+                viewportManager = kubrikoWrapper.gameplayManager.viewportManager,
             ),
-        kubriko = GameplayController.kubriko,
+        kubriko = kubrikoWrapper.kubriko,
     )
     UserInterface(
         modifier = modifier,
-        isRunning = GameplayController.stateManager.isRunning.collectAsState().value,
-        updateIsRunning = GameplayController.stateManager::updateIsRunning,
-        debugInfo = { DebugInfo(kubriko = GameplayController.kubriko) },
+        isRunning = kubrikoWrapper.gameplayManager.stateManager.isRunning.collectAsState().value,
+        updateIsRunning = kubrikoWrapper.gameplayManager.stateManager::updateIsRunning,
+        debugInfo = { DebugInfo(kubriko = kubrikoWrapper.kubriko) },
     )
 }

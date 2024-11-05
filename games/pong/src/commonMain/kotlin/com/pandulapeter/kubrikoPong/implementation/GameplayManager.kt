@@ -1,31 +1,29 @@
 package com.pandulapeter.kubrikoPong.implementation
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.implementation.extensions.get
+import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubrikoPong.implementation.actors.Ball
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 // TODO: Implement Pong game logic
-internal class GameplayController(
-    val kubriko: Kubriko,
-) : CoroutineScope {
+internal class GameplayManager : Manager() {
 
-    override val coroutineContext = SupervisorJob() + Dispatchers.Default
-    private val actorManager = kubriko.get<ActorManager>()
-    val stateManager = kubriko.get<StateManager>()
+    private lateinit var actorManager: ActorManager
+    lateinit var stateManager: StateManager
+        private set
 
-    init {
+    override fun onInitialize(kubriko: Kubriko) {
+        actorManager = kubriko.require()
+        stateManager = kubriko.require()
         stateManager.isFocused
             .filterNot { it }
             .onEach { stateManager.updateIsRunning(false) }
-            .launchIn(this)
+            .launchIn(scope)
         actorManager.add(Ball())
     }
 }

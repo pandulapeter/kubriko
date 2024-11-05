@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.actorSerializer.typeSerializers
+package com.pandulapeter.kubriko.serializationManager.typeSerializers
 
 import com.pandulapeter.kubriko.implementation.extensions.deg
 import com.pandulapeter.kubriko.types.AngleDegrees

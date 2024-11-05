@@ -6,7 +6,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(projects.plugins.actorSerializer)
+            api(projects.plugins.serializationManager)
             implementation(compose.components.resources)
             implementation(projects.engine)
             implementation(projects.plugins.keyboardInputManager)
