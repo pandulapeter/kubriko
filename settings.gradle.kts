@@ -9,7 +9,6 @@ pluginManagement {
     includeBuild("build-logic")
 }
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
@@ -21,6 +20,6 @@ include(
     ":games:stress-test",
     ":plugins:actor-serializer",
     ":plugins:debug-info",
-    ":plugins:shader",
+    ":plugins:shader-manager",
     ":tools:scene-editor",
 )

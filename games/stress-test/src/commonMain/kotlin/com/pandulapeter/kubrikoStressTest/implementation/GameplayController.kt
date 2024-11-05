@@ -8,12 +8,12 @@ import com.pandulapeter.kubriko.implementation.extensions.isAroundPosition
 import com.pandulapeter.kubriko.implementation.extensions.zoomState
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.InputManager
-import com.pandulapeter.kubriko.manager.ShaderManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
-import com.pandulapeter.kubriko.shader.collection.ChromaticAberrationShader
-import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader
-import com.pandulapeter.kubriko.shader.collection.VignetteShader
+import com.pandulapeter.kubriko.shaderManager.ShaderManager
+import com.pandulapeter.kubriko.shaderManager.collection.ChromaticAberrationShader
+import com.pandulapeter.kubriko.shaderManager.collection.SmoothPixelationShader
+import com.pandulapeter.kubriko.shaderManager.collection.VignetteShader
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubrikoStressTest.implementation.actors.traits.Destructible
 import kotlinx.coroutines.CoroutineScope

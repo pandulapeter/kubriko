@@ -70,7 +70,7 @@ fun KubrikoCanvas(
         modifier = kubrikoImpl.managers
             .mapNotNull { it.modifier() }
             .fold(modifier.fillMaxSize().clipToBounds()) { compoundModifier, managerModifier ->
-                compoundModifier.then(managerModifier)
+                compoundModifier then managerModifier
             }
             .background(Color.White), // TODO: The engine should not draw its own background by default),
         onDraw = {

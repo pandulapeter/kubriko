@@ -11,7 +11,7 @@ kotlin {
             implementation(projects.engine)
             implementation(projects.plugins.actorSerializer)
             implementation(projects.plugins.debugInfo)
-            implementation(projects.plugins.shader)
+            implementation(projects.plugins.shaderManager)
             implementation(projects.tools.sceneEditor)
             implementation(compose.runtime)
             implementation(compose.foundation)
