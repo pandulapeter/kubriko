@@ -6,13 +6,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.get
-import com.pandulapeter.kubriko.implementation.helpers.eventFlow
 import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputAware
 import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -22,13 +20,8 @@ import kotlinx.coroutines.flow.stateIn
 internal class KeyboardInputManagerImpl : KeyboardInputManager() {
 
     private lateinit var actorManager: ActorManager
+    private lateinit var stateManager: StateManager
     private var activeKeysCache = mutableSetOf<Key>()
-    private val _activeKeys = eventFlow<Set<Key>>()
-    override val activeKeys = _activeKeys.asSharedFlow()
-    private val _onKeyPressed = eventFlow<Key>()
-    override val onKeyPressed = _onKeyPressed.asSharedFlow()
-    private val _onKeyReleased = eventFlow<Key>()
-    override val onKeyReleased = _onKeyReleased.asSharedFlow()
     private lateinit var keyboardEventHandler: KeyboardEventHandler
     private val keyboardInputAwareActors by lazy {
         actorManager.allActors
@@ -38,12 +31,10 @@ internal class KeyboardInputManagerImpl : KeyboardInputManager() {
 
     override fun initialize(kubriko: Kubriko) {
         actorManager = kubriko.get<ActorManager>()
-        kubriko.get<StateManager>().isFocused
+        stateManager = kubriko.get<StateManager>()
+        stateManager.isFocused
             .filterNot { it }
-            .onEach {
-                activeKeysCache.forEach(_onKeyReleased::tryEmit)
-                activeKeysCache.clear()
-            }
+            .onEach { activeKeysCache.forEach(::onKeyReleased) }
             .launchIn(scope)
     }
 
@@ -63,9 +54,8 @@ internal class KeyboardInputManagerImpl : KeyboardInputManager() {
     override fun onLaunch() = keyboardEventHandler.startListening()
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
-        if (activeKeysCache.isNotEmpty()) {
+        if (activeKeysCache.isNotEmpty() && stateManager.isFocused.value) {
             activeKeysCache.toSet().let { activeKeys ->
-                _activeKeys.tryEmit(activeKeys)
                 keyboardInputAwareActors.value.forEach { it.handleActiveKeys(activeKeys) }
             }
         }
@@ -74,16 +64,14 @@ internal class KeyboardInputManagerImpl : KeyboardInputManager() {
     override fun onDispose() = keyboardEventHandler.stopListening()
 
     private fun onKeyPressed(key: Key) {
-        if (!activeKeysCache.contains(key)) {
-            _onKeyPressed.tryEmit(key)
+        if (!activeKeysCache.contains(key) && stateManager.isFocused.value) {
             keyboardInputAwareActors.value.forEach { it.onKeyPressed(key) }
             activeKeysCache.add(key)
         }
     }
 
     private fun onKeyReleased(key: Key) {
-        activeKeysCache.remove(key)
         keyboardInputAwareActors.value.forEach { it.onKeyReleased(key) }
-        _onKeyReleased.tryEmit(key)
+        activeKeysCache.remove(key)
     }
 }

@@ -4,9 +4,8 @@ import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.implementation.extensions.isAroundPosition
+import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputAware
 import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputManager
-import com.pandulapeter.kubriko.keyboardInputManager.extensions.KeyboardZoomState
-import com.pandulapeter.kubriko.keyboardInputManager.extensions.zoomState
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
@@ -15,11 +14,11 @@ import com.pandulapeter.kubriko.shaderManager.collection.ChromaticAberrationShad
 import com.pandulapeter.kubriko.shaderManager.collection.SmoothPixelationShader
 import com.pandulapeter.kubriko.shaderManager.collection.VignetteShader
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubrikoStressTest.implementation.actors.KeyboardInputListener
 import com.pandulapeter.kubrikoStressTest.implementation.actors.traits.Destructible
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -28,7 +27,7 @@ import kubriko.games.stress_test.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.MissingResourceException
 
-internal object GameplayController : CoroutineScope {
+internal object GameplayController : CoroutineScope, KeyboardInputAware {
 
     const val SCENE_NAME = "scene_stress_test"
 
@@ -39,7 +38,6 @@ internal object GameplayController : CoroutineScope {
     )
     private val sceneSerializer by lazy { SceneSerializerWrapper().sceneSerializer }
     private val actorManager by lazy { kubriko.get<ActorManager>() }
-    private val keyboardInputManager by lazy { kubriko.get<KeyboardInputManager>() }
     val stateManager by lazy { kubriko.get<StateManager>() }
     val viewportManager by lazy { kubriko.get<ViewportManager>() }
 
@@ -48,44 +46,25 @@ internal object GameplayController : CoroutineScope {
             .filterNot { it }
             .onEach { stateManager.updateIsRunning(false) }
             .launchIn(this)
-        keyboardInputManager.activeKeys
-            .filter { it.isNotEmpty() }
-            .onEach(::handleKeys)
-            .launchIn(this)
-        keyboardInputManager.onKeyReleased
-            .onEach(::handleKeyReleased)
-            .launchIn(this)
         loadMap(SCENE_NAME)
+    }
+
+    override fun onKeyReleased(key: Key) = when (key) {
+        Key.Escape, Key.Back, Key.Backspace -> stateManager.updateIsRunning(!stateManager.isRunning.value)
+        else -> Unit
     }
 
     @OptIn(ExperimentalResourceApi::class)
     private fun loadMap(mapName: String) = launch {
         try {
-            kubriko.get<ActorManager>().run {
-                add(ChromaticAberrationShader())
-                add(VignetteShader())
-                add(SmoothPixelationShader())
-                add(actors = sceneSerializer.deserializeActors(Res.readBytes("files/scenes/$mapName.json").decodeToString()).toTypedArray())
-            }
+            val actors = listOf(
+                ChromaticAberrationShader(),
+                VignetteShader(),
+                SmoothPixelationShader(),
+                KeyboardInputListener(stateManager),
+            ) + sceneSerializer.deserializeActors(Res.readBytes("files/scenes/$mapName.json").decodeToString())
+            actorManager.add(actors = actors.toTypedArray())
         } catch (_: MissingResourceException) {
-        }
-    }
-
-    private fun handleKeys(keys: Set<Key>) {
-        if (stateManager.isRunning.value) {
-            viewportManager.multiplyScaleFactor(
-                when (keys.zoomState) {
-                    KeyboardZoomState.NONE -> 1f
-                    KeyboardZoomState.ZOOM_IN -> 1.02f
-                    KeyboardZoomState.ZOOM_OUT -> 0.98f
-                }
-            )
-        }
-    }
-
-    private fun handleKeyReleased(key: Key) {
-        when (key) {
-            Key.Escape, Key.Back, Key.Backspace -> stateManager.updateIsRunning(!stateManager.isRunning.value)
         }
     }
 

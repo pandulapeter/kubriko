@@ -13,9 +13,8 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.GridOverlay
+import com.pandulapeter.kubriko.sceneEditor.implementation.actors.KeyboardInputListener
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.exitApp
-import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.handleKeyReleased
-import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.handleKeys
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.saveFile
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -26,10 +25,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -45,6 +41,7 @@ internal class EditorController(
     val keyboardInputManager = kubriko.get<KeyboardInputManager>()
     private val editorActors = listOf(
         GridOverlay(viewportManager),
+        KeyboardInputListener(viewportManager, ::navigateBack),
     )
     val allEditableActors = actorManager.allActors
         .map { it.filterIsInstance<Editable<*>>() }
@@ -82,25 +79,6 @@ internal class EditorController(
     val currentFileName = _currentFileName.asStateFlow()
     private val _shouldShowVisibleOnly = MutableStateFlow(false)
     val shouldShowVisibleOnly = _shouldShowVisibleOnly.asStateFlow()
-
-    init {
-        kubriko.get<KeyboardInputManager>().let { inputManager ->
-            kubriko.get<ViewportManager>().let { viewportManager ->
-                inputManager.activeKeys
-                    .filter { it.isNotEmpty() }
-                    .onEach(viewportManager::handleKeys)
-                    .launchIn(this)
-                inputManager.onKeyReleased
-                    .onEach { key ->
-                        handleKeyReleased(
-                            key = key,
-                            onNavigateBackRequested = ::navigateBack,
-                        )
-                    }
-                    .launchIn(this)
-            }
-        }
-    }
 
     fun onShouldShowVisibleOnlyToggled() = _shouldShowVisibleOnly.update { currentValue ->
         !currentValue
