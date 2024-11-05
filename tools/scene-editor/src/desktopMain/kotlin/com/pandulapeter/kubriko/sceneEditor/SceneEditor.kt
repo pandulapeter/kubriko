@@ -11,7 +11,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.EditorUserInterface
 import com.pandulapeter.kubriko.actorSerializer.ActorSerializer
-import com.pandulapeter.kubriko.inputManager.InputManager
+import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputManager
 import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame
@@ -25,7 +25,7 @@ fun openSceneEditor(
     val editorController = remember {
         EditorController(
             kubriko = Kubriko.newInstance(
-                InputManager.newInstance(),
+                KeyboardInputManager.newInstance(),
             ),
             actorSerializer = actorSerializer,
         )

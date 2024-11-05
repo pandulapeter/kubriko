@@ -69,7 +69,7 @@ internal fun EditorUserInterface(
                         viewportManager = editorController.viewportManager,
                     )
                     .handleMouseDrag(
-                        inputManager = editorController.inputManager,
+                        keyboardInputManager = editorController.keyboardInputManager,
                         viewportManager = editorController.viewportManager,
                         getSelectedActor = editorController::getSelectedActor,
                         getMouseSceneOffset = editorController::getMouseWorldCoordinates,

@@ -9,28 +9,23 @@ import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.actorSerializer.integration.Serializable
 import com.pandulapeter.kubriko.actorSerializer.typeSerializers.SerializableSceneOffset
-import com.pandulapeter.kubriko.implementation.extensions.KeyboardDirectionState
-import com.pandulapeter.kubriko.implementation.extensions.directionState
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputAware
+import com.pandulapeter.kubriko.keyboardInputManager.extensions.KeyboardDirectionState
+import com.pandulapeter.kubriko.keyboardInputManager.extensions.directionState
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubrikoStressTest.implementation.GameplayController
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.math.PI
 import kotlin.math.sin
 
-class Character private constructor(state: CharacterState) : Editable<Character>, Unique, Dynamic, Visible, CoroutineScope {
+class Character private constructor(state: CharacterState) : Editable<Character>, Unique, Dynamic, Visible, KeyboardInputAware {
 
     @set:Exposed(name = "position")
     override var position: SceneOffset = state.position
@@ -43,21 +38,11 @@ class Character private constructor(state: CharacterState) : Editable<Character>
     private var sizeMultiplier = 1f
     private var nearbyActorPositions = emptyList<SceneOffset>()
 
-    override val coroutineContext = SupervisorJob() + Dispatchers.Default
+    override fun handleActiveKeys(activeKeys: Set<Key>) = move(activeKeys.directionState)
 
-    init {
-        // TODO: Should be traits instead (InputAware maybe)
-        GameplayController.inputManager.activeKeys
-            .filter { it.isNotEmpty() }
-            .onEach { move(it.directionState) }
-            .launchIn(this)
-        GameplayController.inputManager.onKeyPressed
-            .onEach { key ->
-                when (key) {
-                    Key.Spacebar -> triggerExplosion()
-                }
-            }
-            .launchIn(this)
+    override fun onKeyPressed(key: Key) = when (key) {
+        Key.Spacebar -> triggerExplosion()
+        else -> Unit
     }
 
     override fun update(deltaTimeInMillis: Float) {

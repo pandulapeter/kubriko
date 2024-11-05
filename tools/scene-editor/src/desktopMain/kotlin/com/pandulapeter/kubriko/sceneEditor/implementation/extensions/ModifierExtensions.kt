@@ -11,7 +11,7 @@ import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import com.pandulapeter.kubriko.implementation.extensions.occupiesPosition
-import com.pandulapeter.kubriko.inputManager.InputManager
+import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -72,7 +72,7 @@ internal fun Modifier.handleMouseZoom(
 
 @OptIn(ExperimentalFoundationApi::class)
 internal fun Modifier.handleMouseDrag(
-    inputManager: InputManager,
+    keyboardInputManager: KeyboardInputManager,
     viewportManager: ViewportManager,
     getSelectedActor: () -> Editable<*>?,
     getMouseSceneOffset: () -> SceneOffset,
@@ -85,7 +85,7 @@ internal fun Modifier.handleMouseDrag(
     matcher = PointerMatcher.mouse(PointerButton.Primary),
 ) { screenCoordinates ->
     isDragging = true
-    if (inputManager.run { isKeyPressed(Key.ShiftLeft) || isKeyPressed(Key.ShiftRight) }) {
+    if (keyboardInputManager.run { isKeyPressed(Key.ShiftLeft) || isKeyPressed(Key.ShiftRight) }) {
         viewportManager.addToCameraPosition(screenCoordinates)
     } else {
         startOffset?.let { startOffset ->

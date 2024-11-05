@@ -7,7 +7,7 @@ import com.pandulapeter.kubriko.actorSerializer.ActorSerializer
 import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.implementation.extensions.occupiesPosition
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
-import com.pandulapeter.kubriko.inputManager.InputManager
+import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
@@ -42,7 +42,7 @@ internal class EditorController(
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
     private val actorManager = kubriko.get<ActorManager>()
     val viewportManager = kubriko.get<ViewportManager>()
-    val inputManager = kubriko.get<InputManager>()
+    val keyboardInputManager = kubriko.get<KeyboardInputManager>()
     private val editorActors = listOf(
         GridOverlay(viewportManager),
     )
@@ -84,7 +84,7 @@ internal class EditorController(
     val shouldShowVisibleOnly = _shouldShowVisibleOnly.asStateFlow()
 
     init {
-        kubriko.get<InputManager>().let { inputManager ->
+        kubriko.get<KeyboardInputManager>().let { inputManager ->
             kubriko.get<ViewportManager>().let { viewportManager ->
                 inputManager.activeKeys
                     .filter { it.isNotEmpty() }

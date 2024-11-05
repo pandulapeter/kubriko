@@ -2,11 +2,11 @@ package com.pandulapeter.kubrikoStressTest.implementation
 
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.implementation.extensions.KeyboardZoomState
 import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.implementation.extensions.isAroundPosition
-import com.pandulapeter.kubriko.implementation.extensions.zoomState
-import com.pandulapeter.kubriko.inputManager.InputManager
+import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputManager
+import com.pandulapeter.kubriko.keyboardInputManager.extensions.KeyboardZoomState
+import com.pandulapeter.kubriko.keyboardInputManager.extensions.zoomState
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
@@ -34,12 +34,12 @@ internal object GameplayController : CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
     val kubriko = Kubriko.newInstance(
-        InputManager.newInstance(),
+        KeyboardInputManager.newInstance(),
         ShaderManager.newInstance(),
     )
     private val sceneSerializer by lazy { SceneSerializerWrapper().sceneSerializer }
     private val actorManager by lazy { kubriko.get<ActorManager>() }
-    val inputManager by lazy { kubriko.get<InputManager>() }
+    private val keyboardInputManager by lazy { kubriko.get<KeyboardInputManager>() }
     val stateManager by lazy { kubriko.get<StateManager>() }
     val viewportManager by lazy { kubriko.get<ViewportManager>() }
 
@@ -48,11 +48,11 @@ internal object GameplayController : CoroutineScope {
             .filterNot { it }
             .onEach { stateManager.updateIsRunning(false) }
             .launchIn(this)
-        inputManager.activeKeys
+        keyboardInputManager.activeKeys
             .filter { it.isNotEmpty() }
             .onEach(::handleKeys)
             .launchIn(this)
-        inputManager.onKeyReleased
+        keyboardInputManager.onKeyReleased
             .onEach(::handleKeyReleased)
             .launchIn(this)
         loadMap(SCENE_NAME)

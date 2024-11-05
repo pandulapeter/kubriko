@@ -6,10 +6,10 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
+            api(projects.plugins.actorSerializer)
             implementation(compose.components.resources)
             implementation(projects.engine)
-            api(projects.plugins.actorSerializer)
-            implementation(projects.plugins.inputManager)
+            implementation(projects.plugins.keyboardInputManager)
         }
         val desktopMain by getting {
             dependencies {

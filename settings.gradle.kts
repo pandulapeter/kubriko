@@ -20,7 +20,7 @@ include(
     ":games:stress-test",
     ":plugins:actor-serializer",
     ":plugins:debug-info",
-    ":plugins:input-manager",
+    ":plugins:keyboard-input-manager",
     ":plugins:shader-manager",
     ":tools:scene-editor",
 )
