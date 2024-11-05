@@ -1,4 +1,20 @@
 rootProject.name = "Kubriko"
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+    includeBuild("build-logic")
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
 include(
     ":engine",
     ":games:pong",
@@ -8,20 +24,3 @@ include(
     ":plugins:shader",
     ":tools:scene-editor",
 )
-
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-
-pluginManagement {
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}
-
-dependencyResolutionManagement {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}

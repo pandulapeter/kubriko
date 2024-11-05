@@ -1,42 +1,11 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.androidApplication)
-    alias(libs.plugins.compose)
-    alias(libs.plugins.compose.compiler)
+    id("kubriko-application")
     alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
-    androidTarget {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
-        }
-    }
-
-    jvm("desktop")
-
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "ComposeApp"
-            isStatic = true
-        }
-    }
-
-    js("web") {
-        moduleName = "stress-test"
-        browser()
-        binaries.executable()
-    }
-
     sourceSets {
         commonMain.dependencies {
             implementation(projects.engine)
@@ -57,7 +26,7 @@ kotlin {
         val desktopMain by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
-                implementation(libs.kotlinx.coroutines.swing)
+                implementation(libs.kotlinx.coroutines)
             }
         }
     }
@@ -65,25 +34,11 @@ kotlin {
 
 android {
     namespace = "com.pandulapeter.kubrikoStressTest"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         applicationId = "com.pandulapeter.kubrikoStressTest"
-        minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
-    }
-    buildTypes {
-        release {
-            isDebuggable = false
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
     }
 }
 
