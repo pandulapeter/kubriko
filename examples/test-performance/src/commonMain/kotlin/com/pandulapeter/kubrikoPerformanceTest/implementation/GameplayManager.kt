@@ -1,16 +1,13 @@
 package com.pandulapeter.kubrikoPerformanceTest.implementation
 
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
 import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
@@ -62,20 +59,9 @@ internal class GameplayManager : Manager(), KeyboardInputAware, Visible, Unique 
     override fun onAdd(kubriko: Kubriko) {
         viewportManager.cameraPosition.onEach { position = it }.launchIn(scope)
         combine(
-            viewportManager.size,
-            viewportManager.cameraPosition,
-            viewportManager.scaleFactor,
-        ) { viewportSize, viewportCenter, viewportScaleFactor ->
-            val viewportTopLeft = Offset.Zero.toSceneOffset(
-                viewportCenter = viewportCenter,
-                viewportSize = viewportSize,
-                viewportScaleFactor = viewportScaleFactor,
-            )
-            val viewportBottomRight = Offset(viewportSize.width, viewportSize.height).toSceneOffset(
-                viewportCenter = viewportCenter,
-                viewportSize = viewportSize,
-                viewportScaleFactor = viewportScaleFactor,
-            )
+            viewportManager.topLeft,
+            viewportManager.bottomRight,
+        ) { viewportBottomRight, viewportTopLeft ->
             viewportBottomRight to viewportTopLeft
         }.onEach { (viewportBottomRight, viewportTopLeft) ->
             boundingBox = (viewportBottomRight - viewportTopLeft).let { SceneSize(it.x + 50f.scenePixel, it.y + 50f.scenePixel) }

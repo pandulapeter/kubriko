@@ -13,9 +13,11 @@ import kotlinx.coroutines.flow.StateFlow
  */
 abstract class ViewportManager : Manager() {
 
+    abstract val cameraPosition: StateFlow<SceneOffset> // Center of the viewport
     abstract val size: StateFlow<Size>
-    abstract val cameraPosition: StateFlow<SceneOffset>
     abstract val scaleFactor: StateFlow<Float>
+    abstract val topLeft: StateFlow<SceneOffset>
+    abstract val bottomRight: StateFlow<SceneOffset>
 
     abstract fun addToCameraPosition(offset: Offset)
 

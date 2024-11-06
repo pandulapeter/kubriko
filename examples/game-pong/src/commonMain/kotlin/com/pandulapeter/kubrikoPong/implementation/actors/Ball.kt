@@ -31,19 +31,8 @@ class Ball(
     }
 
     override fun update(deltaTimeInMillis: Float) {
-        val viewportCenter = viewportManager.cameraPosition.value
-        val viewportSize = viewportManager.size.value
-        val viewportScaleFactor = viewportManager.scaleFactor.value
-        val viewportTopLeft = Offset.Zero.toSceneOffset(
-            viewportCenter = viewportCenter,
-            viewportSize = viewportSize,
-            viewportScaleFactor = viewportScaleFactor,
-        )
-        val viewportBottomRight = Offset(viewportSize.width, viewportSize.height).toSceneOffset(
-            viewportCenter = viewportCenter,
-            viewportSize = viewportSize,
-            viewportScaleFactor = viewportScaleFactor,
-        )
+        val viewportTopLeft = viewportManager.topLeft.value
+        val viewportBottomRight = viewportManager.bottomRight.value
         // Validate current position to handle potential bugs caused by resizing the screen
         if (position.x < viewportTopLeft.x) {
             position = SceneOffset(viewportTopLeft.x + size, position.y)
