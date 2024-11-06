@@ -8,27 +8,28 @@ import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.KubrikoImpl
+import com.pandulapeter.kubriko.implementation.extensions.distinctUntilChangedWithDelay
 import com.pandulapeter.kubriko.implementation.extensions.isVisible
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.StateManager
-import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-internal class ActorManagerImpl : ActorManager() {
+internal class ActorManagerImpl(
+    private val invisibleActorMinimumRefreshTimeInMillis: Long,
+) : ActorManager() {
 
     private lateinit var metadataManager: MetadataManager
-    private lateinit var viewportManager: ViewportManager
+    private lateinit var viewportManager: ViewportManagerImpl
     private lateinit var stateManager: StateManager
     private val _allActors = MutableStateFlow(emptyList<Actor>())
     override val allActors = _allActors.asStateFlow()
@@ -49,7 +50,7 @@ internal class ActorManagerImpl : ActorManager() {
     }
     override val visibleActorsWithinViewport by lazy {
         combine(
-            metadataManager.runtimeInMilliseconds.map { it / 100 }.distinctUntilChanged(),
+            metadataManager.runtimeInMilliseconds.distinctUntilChangedWithDelay(invisibleActorMinimumRefreshTimeInMillis),
             visibleActors,
             viewportManager.size,
             viewportManager.cameraPosition,
@@ -61,6 +62,7 @@ internal class ActorManagerImpl : ActorManager() {
                         scaledHalfViewportSize = SceneSize(viewportSize / (viewportScaleFactor * 2)),
                         viewportCenter = viewportCenter,
                         viewportScaleFactor = viewportScaleFactor,
+                        viewportEdgeBuffer = viewportManager.viewportEdgeBuffer,
                     )
                 }
         }.stateIn(scope, SharingStarted.Eagerly, emptyList())

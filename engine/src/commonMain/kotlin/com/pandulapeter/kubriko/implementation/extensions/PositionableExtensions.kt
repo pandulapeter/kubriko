@@ -6,19 +6,16 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
 
-private const val VIEWPORT_EDGE_BUFFER = 50
-
 internal fun Positionable.isVisible(
     scaledHalfViewportSize: SceneSize,
     viewportCenter: SceneOffset,
     viewportScaleFactor: Float,
-): Boolean = (com.pandulapeter.kubriko.implementation.extensions.VIEWPORT_EDGE_BUFFER / viewportScaleFactor).scenePixel.let { viewportEdgeBuffer ->
-    boundingBox.width.raw * viewportScaleFactor >= 1f && boundingBox.height.raw * viewportScaleFactor >= 1f &&
-            left <= viewportCenter.x + scaledHalfViewportSize.width + viewportEdgeBuffer &&
-            top <= viewportCenter.y + scaledHalfViewportSize.height + viewportEdgeBuffer &&
-            right >= viewportCenter.x - scaledHalfViewportSize.width - viewportEdgeBuffer &&
-            bottom >= viewportCenter.y - scaledHalfViewportSize.height - viewportEdgeBuffer
-}
+    viewportEdgeBuffer: ScenePixel,
+): Boolean = boundingBox.width.raw * viewportScaleFactor >= 1f && boundingBox.height.raw * viewportScaleFactor >= 1f &&
+        left <= viewportCenter.x + scaledHalfViewportSize.width + viewportEdgeBuffer &&
+        top <= viewportCenter.y + scaledHalfViewportSize.height + viewportEdgeBuffer &&
+        right >= viewportCenter.x - scaledHalfViewportSize.width - viewportEdgeBuffer &&
+        bottom >= viewportCenter.y - scaledHalfViewportSize.height - viewportEdgeBuffer
 
 fun Positionable.angleTowards(other: Positionable): AngleRadians = (position + pivotOffset).angleTowards(other.position + other.pivotOffset)
 

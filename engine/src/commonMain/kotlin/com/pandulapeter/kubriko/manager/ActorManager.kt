@@ -19,6 +19,10 @@ abstract class ActorManager : Manager() {
     abstract fun removeAll()
 
     companion object {
-        fun newInstance(): ActorManager = ActorManagerImpl()
+        fun newInstance(
+            invisibleActorMinimumRefreshTimeInMillis: Long = 100,
+        ): ActorManager = ActorManagerImpl(
+            invisibleActorMinimumRefreshTimeInMillis = invisibleActorMinimumRefreshTimeInMillis,
+        )
     }
 }
