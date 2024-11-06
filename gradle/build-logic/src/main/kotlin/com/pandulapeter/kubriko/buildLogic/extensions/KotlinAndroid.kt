@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.convention.extensions
+package com.pandulapeter.kubriko.buildLogic.extensions
 
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.dsl.CommonExtension

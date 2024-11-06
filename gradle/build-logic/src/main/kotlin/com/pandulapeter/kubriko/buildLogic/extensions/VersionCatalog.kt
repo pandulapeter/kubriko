@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.convention.extensions
+package com.pandulapeter.kubriko.buildLogic.extensions
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalog
