@@ -1,1 +1,1 @@
-TODO: Documentation for the Editor module
+TODO: Documentation for the SceneEditor module

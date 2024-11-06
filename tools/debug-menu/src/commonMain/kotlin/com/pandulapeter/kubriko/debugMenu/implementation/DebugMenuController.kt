@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.debugInfo.implementation
+package com.pandulapeter.kubriko.debugMenu.implementation
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.require
@@ -11,10 +11,10 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
-internal class DebugInfoHelper(kubriko: Kubriko) : CoroutineScope {
+internal class DebugMenuController(kubriko: Kubriko) : CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
-    val debugInfoMetadata = kubriko.require<MetadataManager>().let { metadataManager ->
+    val debugMenuMetadata = kubriko.require<MetadataManager>().let { metadataManager ->
         kubriko.require<ActorManager>().let { actorManager ->
             combine(
                 metadataManager.fps,
@@ -22,13 +22,13 @@ internal class DebugInfoHelper(kubriko: Kubriko) : CoroutineScope {
                 actorManager.visibleActorsWithinViewport,
                 metadataManager.runtimeInMilliseconds,
             ) { fps, allActors, visibleActorsWithinViewport, runtimeInMilliseconds ->
-                DebugInfoMetadata(
+                DebugMenuMetadata(
                     fps = fps,
                     totalActorCount = allActors.count(),
                     visibleActorWithinViewportCount = visibleActorsWithinViewport.count(),
                     playTimeInSeconds = runtimeInMilliseconds / 1000,
                 )
-            }.stateIn(this, SharingStarted.Eagerly, DebugInfoMetadata())
+            }.stateIn(this, SharingStarted.Eagerly, DebugMenuMetadata())
         }
     }
 }

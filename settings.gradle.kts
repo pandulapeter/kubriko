@@ -18,9 +18,9 @@ include(
     ":engine",
     ":games:pong",
     ":games:stress-test",
-    ":plugins:debug-info",
     ":plugins:keyboard-input-manager",
     ":plugins:serialization-manager",
     ":plugins:shader-manager",
+    ":tools:debug-menu",
     ":tools:scene-editor",
 )

@@ -25,7 +25,6 @@ fun UserInterface(
     modifier: Modifier = Modifier,
     isRunning: Boolean,
     updateIsRunning: (Boolean) -> Unit,
-    debugInfo: @Composable () -> Unit,
 ) = MaterialTheme {
     Column(
         modifier = modifier.fillMaxSize().padding(vertical = 16.dp),
@@ -34,9 +33,8 @@ fun UserInterface(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.End,
         ) {
-            debugInfo()
             Button(
                 onClick = { updateIsRunning(!isRunning) },
             ) {

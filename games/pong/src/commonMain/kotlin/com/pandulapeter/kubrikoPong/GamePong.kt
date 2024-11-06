@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoCanvas
-import com.pandulapeter.kubriko.debugInfo.DebugInfo
+import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubrikoPong.implementation.GameplayManager
 import com.pandulapeter.kubrikoPong.implementation.UserInterface
 
@@ -22,14 +22,15 @@ fun GamePong(
             gameplayManager,
         )
     }
-    KubrikoCanvas(
-        modifier = Modifier.background(Color.White),
-        kubriko = kubriko,
-    )
-    UserInterface(
-        modifier = modifier,
-        isRunning = gameplayManager.stateManager.isRunning.collectAsState().value,
-        updateIsRunning = gameplayManager.stateManager::updateIsRunning,
-        debugInfo = { DebugInfo(kubriko = kubriko) },
-    )
+    DebugMenu(kubriko = kubriko) {
+        KubrikoCanvas(
+            modifier = Modifier.background(Color.White),
+            kubriko = kubriko,
+        )
+        UserInterface(
+            modifier = modifier,
+            isRunning = gameplayManager.stateManager.isRunning.collectAsState().value,
+            updateIsRunning = gameplayManager.stateManager::updateIsRunning,
+        )
+    }
 }

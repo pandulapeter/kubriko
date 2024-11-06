@@ -14,5 +14,5 @@ kotlin {
 }
 
 android {
-    namespace = "com.pandulapeter.kubriko.debugInfo"
+    namespace = "com.pandulapeter.kubriko.debugMenu"
 }

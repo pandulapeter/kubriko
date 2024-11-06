@@ -8,7 +8,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.engine)
-            implementation(projects.plugins.debugInfo)
+            implementation(projects.tools.debugMenu)
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material)
