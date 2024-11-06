@@ -5,9 +5,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContent
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -16,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,6 +37,7 @@ import kotlin.math.roundToInt
 @Composable
 fun DebugMenu(
     modifier: Modifier = Modifier,
+    contentModifier: Modifier = Modifier,
     kubriko: Kubriko,
     gameCanvas: @Composable BoxScope.() -> Unit,
 ) {
@@ -41,7 +48,7 @@ fun DebugMenu(
         modifier = modifier,
     ) {
         Row(
-            modifier = modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Box(
@@ -52,10 +59,17 @@ fun DebugMenu(
             AnimatedVisibility(
                 visible = isDebugMenuVisible.value,
             ) {
+                val windowInsetPadding = WindowInsets.safeContent.asPaddingValues()
                 Text(
                     modifier = Modifier
-                        .defaultMinSize(minWidth = 200.dp)
-                        .padding(8.dp),
+                        .padding(16.dp)
+                        .padding(
+                            // start = systemBarPadding.calculateStartPadding(LocalLayoutDirection.current),
+                            top = windowInsetPadding.calculateTopPadding(),
+                            end = windowInsetPadding.calculateEndPadding(LocalLayoutDirection.current),
+                            bottom = windowInsetPadding.calculateBottomPadding(),
+                        )
+                        .defaultMinSize(minWidth = 150.dp),
                     style = TextStyle.Default.copy(fontSize = 10.sp),
                     text = "FPS: ${debugInfoMetadata.fps.roundToInt()}\n" +
                             "Total Actors: ${debugInfoMetadata.totalActorCount}\n" +
@@ -64,11 +78,15 @@ fun DebugMenu(
                 )
             }
         }
-        Button(
-            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
-            onClick = { isDebugMenuVisible.value = !isDebugMenuVisible.value }
+        Box(
+            modifier = contentModifier.fillMaxSize(),
         ) {
-            Text(text = "Debug Menu")
+            Button(
+                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                onClick = { isDebugMenuVisible.value = !isDebugMenuVisible.value }
+            ) {
+                Text(text = "Debug Menu")
+            }
         }
     }
 }

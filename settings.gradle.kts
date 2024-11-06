@@ -16,8 +16,8 @@ dependencyResolutionManagement {
 }
 include(
     ":engine",
-    ":games:pong",
-    ":games:stress-test",
+    ":examples:game-pong",
+    ":examples:test-performance",
     ":plugins:keyboard-input-manager",
     ":plugins:serialization-manager",
     ":plugins:shader-manager",
