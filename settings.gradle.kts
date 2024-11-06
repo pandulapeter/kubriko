@@ -17,6 +17,7 @@ dependencyResolutionManagement {
 include(
     ":engine",
     ":examples:game-pong",
+    ":examples:test-keyboard-input",
     ":examples:test-performance",
     ":plugins:keyboard-input-manager",
     ":plugins:serialization-manager",
