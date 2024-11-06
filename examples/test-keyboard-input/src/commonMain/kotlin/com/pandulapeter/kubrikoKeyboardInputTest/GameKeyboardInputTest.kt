@@ -24,6 +24,6 @@ fun GameKeyboardInputTest(
     )
     UserInterface(
         modifier = modifier,
-        text = keyboardInputTestManager.text.collectAsState().value,
+        activeKeys = keyboardInputTestManager.activeKeys.collectAsState().value,
     )
 }

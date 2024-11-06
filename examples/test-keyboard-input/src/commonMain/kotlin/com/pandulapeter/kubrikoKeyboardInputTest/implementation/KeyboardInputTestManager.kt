@@ -12,14 +12,12 @@ import kotlinx.coroutines.flow.update
 
 internal class KeyboardInputTestManager : Manager(), KeyboardInputAware {
 
-    private val _text = MutableStateFlow("Idle")
-    val text = _text.asStateFlow()
+    private val _activeKeys = MutableStateFlow(emptySet<Key>())
+    val activeKeys = _activeKeys.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         kubriko.require<ActorManager>().add(this)
     }
 
-    override fun onKeyPressed(key: Key) = _text.update { key.toString() }
-
-    override fun onKeyReleased(key: Key) = _text.update { "Idle" }
+    override fun handleActiveKeys(activeKeys: Set<Key>) = _activeKeys.update { activeKeys }
 }

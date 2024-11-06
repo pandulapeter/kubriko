@@ -1,6 +1,5 @@
 package com.pandulapeter.kubrikoPong.implementation.actors
 
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.Kubriko
@@ -8,7 +7,6 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
