@@ -1,7 +1,6 @@
 package com.pandulapeter.kubriko
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -11,7 +10,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -32,10 +30,7 @@ fun KubrikoCanvas(
     kubriko: Kubriko,
 ) {
     // Enforce and cache the internal implementation
-    val kubrikoImpl = remember {
-        kubriko as? KubrikoImpl
-            ?: throw IllegalStateException("Custom implementations of the Kubriko interface are not supported. Use Kubriko.newInstance() to instantiate Kubriko.")
-    }
+    val kubrikoImpl = remember { kubriko as? KubrikoImpl ?: throw IllegalStateException("Custom implementations of the Kubriko interface are not supported. Use Kubriko.newInstance() to instantiate Kubriko.") }
 
     // Game loop and focus handling
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -62,10 +57,7 @@ fun KubrikoCanvas(
     Canvas(
         modifier = kubrikoImpl.managers
             .mapNotNull { it.onCreateModifier() }
-            .fold(modifier.fillMaxSize().clipToBounds()) { compoundModifier, managerModifier ->
-                compoundModifier then managerModifier
-            }
-            .background(Color.White), // TODO: The engine should not draw its own background by default),
+            .fold(modifier.fillMaxSize().clipToBounds()) { compoundModifier, managerModifier -> compoundModifier then managerModifier },
         onDraw = {
             gameTime.value
             kubrikoImpl.viewportManager.updateSize(size = size)
