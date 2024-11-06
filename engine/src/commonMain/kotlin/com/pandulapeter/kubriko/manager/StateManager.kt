@@ -14,6 +14,10 @@ abstract class StateManager : Manager() {
     abstract fun updateIsRunning(isRunning: Boolean)
 
     companion object {
-        fun newInstance(): StateManager = StateManagerImpl()
+        fun newInstance(
+            shouldAutoStart: Boolean = true,
+        ): StateManager = StateManagerImpl(
+            shouldAutoStart = shouldAutoStart,
+        )
     }
 }

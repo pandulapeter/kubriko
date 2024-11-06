@@ -39,6 +39,9 @@ internal class KubrikoImpl(
         stateManager.initializeInternal(this)
         viewportManager.initializeInternal(this)
         managers.forEach { it.initializeInternal(this) }
+        if (stateManager.shouldAutoStart) {
+            stateManager.updateIsRunning(true)
+        }
     }
 
     private inline fun <reified T : Manager> Set<Manager>.addIfNeeded(creator: () -> T) =

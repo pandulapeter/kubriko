@@ -6,7 +6,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(compose.foundation)
-            implementation(compose.runtime)
+            api(compose.runtime)
             implementation(libs.androidx.lifecycle.runtime.compose)
         }
     }

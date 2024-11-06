@@ -14,10 +14,7 @@ kotlin {
             implementation(projects.plugins.shaderManager)
             implementation(projects.tools.debugMenu)
             implementation(projects.tools.sceneEditor)
-            implementation(compose.runtime)
-            implementation(compose.foundation)
             implementation(compose.material)
-            implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(libs.kotlinx.serialization)
         }
@@ -27,7 +24,6 @@ kotlin {
         val desktopMain by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
-                implementation(libs.kotlinx.coroutines)
             }
         }
     }

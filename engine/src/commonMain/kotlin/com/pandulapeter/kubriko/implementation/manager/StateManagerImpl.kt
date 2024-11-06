@@ -8,7 +8,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
-internal class StateManagerImpl : StateManager() {
+internal class StateManagerImpl(
+    val shouldAutoStart: Boolean,
+) : StateManager() {
 
     private val _isFocused = MutableStateFlow(false)
     override val isFocused = _isFocused.asStateFlow()

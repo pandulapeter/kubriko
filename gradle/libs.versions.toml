@@ -6,7 +6,6 @@ androidx-activity = "1.9.3" # https://developer.android.com/jetpack/androidx/rel
 androidx-lifecycle = "2.8.3" # https://developer.android.com/jetpack/androidx/releases/lifecycle
 compose-plugin = "1.7.0" # https://github.com/JetBrains/compose-multiplatform/releases
 kotlin = "2.0.21" # https://kotlinlang.org/docs/releases.html
-kotlinx-coroutines = "1.9.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinx-serialization = "1.7.3" # https://github.com/Kotlin/kotlinx.serialization/releases
 gradle = "8.7.2" # https://developer.android.com/build/releases/gradle-plugin
 
@@ -16,7 +15,6 @@ androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
-kotlinx-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 
 [plugins]

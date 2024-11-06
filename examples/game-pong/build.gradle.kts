@@ -8,12 +8,6 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.engine)
-            implementation(projects.tools.debugMenu)
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
@@ -21,7 +15,6 @@ kotlin {
         val desktopMain by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
-                implementation(libs.kotlinx.coroutines)
             }
         }
     }

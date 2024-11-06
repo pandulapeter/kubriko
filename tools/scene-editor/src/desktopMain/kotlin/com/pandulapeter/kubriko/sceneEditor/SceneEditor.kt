@@ -9,6 +9,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputManager
+import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.EditorUserInterface
 import com.pandulapeter.kubriko.serializationManager.SerializationManager
@@ -25,6 +26,7 @@ fun openSceneEditor(
     val editorController = remember {
         EditorController(
             kubriko = Kubriko.newInstance(
+                StateManager.newInstance(shouldAutoStart = false),
                 KeyboardInputManager.newInstance(),
                 serializationManager,
             ),

@@ -3,23 +3,32 @@ package com.pandulapeter.kubrikoPong.implementation.actors
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
 
-class Ball(private val viewportManager: ViewportManager) : Visible, Dynamic {
+class Ball(
+    private val size: ScenePixel = 20f.scenePixel,
+    speed: ScenePixel = 1.5f.scenePixel,
+) : Visible, Dynamic {
 
-    private val size = 20f.scenePixel
-    private val speed = 1.5f.scenePixel
     override val boundingBox: SceneSize = SceneSize(size, size)
     override var position: SceneOffset = SceneOffset.Zero
     private val boxColor: Color = Color.Gray
     private var speedX = speed
     private var speedY = speed
+    private lateinit var viewportManager: ViewportManager
+
+    override fun onAdd(kubriko: Kubriko) {
+        viewportManager = kubriko.require()
+    }
 
     override fun update(deltaTimeInMillis: Float) {
         val viewportCenter = viewportManager.cameraPosition.value
