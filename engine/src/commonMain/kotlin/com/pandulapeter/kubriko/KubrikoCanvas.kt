@@ -1,7 +1,6 @@
 package com.pandulapeter.kubriko
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -11,7 +10,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.toSize
@@ -32,7 +30,6 @@ import kotlinx.coroutines.isActive
 fun KubrikoCanvas(
     modifier: Modifier = Modifier,
     kubriko: Kubriko,
-    background: Color? = null,
 ) {
     // Enforce and cache the internal implementation
     val kubrikoImpl = remember(kubriko) {
@@ -63,8 +60,7 @@ fun KubrikoCanvas(
         modifier = kubrikoImpl.managers
             .mapNotNull { it.onCreateModifier() }
             .fold(modifier.fillMaxSize().clipToBounds()) { compoundModifier, managerModifier -> compoundModifier then managerModifier }
-            .onSizeChanged { kubrikoImpl.viewportManager.updateSize(it.toSize()) }
-            .let { if (background != null) it.background(background) else it },
+            .onSizeChanged { kubrikoImpl.viewportManager.updateSize(it.toSize()) },
         onDraw = {
             gameTime.value // This line invalidates the Canvas (causing a refresh) on every frame
             kubrikoImpl.viewportManager.cameraPosition.value.let { viewportCenter ->

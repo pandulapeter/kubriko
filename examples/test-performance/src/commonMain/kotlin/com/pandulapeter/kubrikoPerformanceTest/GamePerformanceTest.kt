@@ -1,5 +1,6 @@
 package com.pandulapeter.kubrikoPerformanceTest
 
+import androidx.compose.foundation.background
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -31,9 +32,9 @@ fun GamePerformanceTest(
                 .handleDragAndPan(
                     stateManager = kubrikoWrapper.gameplayManager.stateManager,
                     viewportManager = kubrikoWrapper.gameplayManager.viewportManager,
-                ),
+                )
+                .background(Color.Black),
             kubriko = kubrikoWrapper.kubriko,
-            background = Color.Black
         )
         UserInterface(
             modifier = modifier,
