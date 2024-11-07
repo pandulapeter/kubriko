@@ -19,5 +19,8 @@ abstract class ShaderManager : Manager() {
 
     companion object {
         fun newInstance(vararg initialShader: Shader): ShaderManager = ShaderManagerImpl(initialShader = initialShader)
+
+        const val UNIFORM_CONTENT = "content"
+        const val UNIFORM_RESOLUTION = "resolution"
     }
 }
