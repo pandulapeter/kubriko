@@ -26,6 +26,7 @@ internal class ShaderManagerImpl : ShaderManager() {
         actorManager.allActors
             .map { actors -> actors.filterIsInstance<Shader>() }
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
-            .collectAsState().value
+            .collectAsState()
+            .value
     )
 }

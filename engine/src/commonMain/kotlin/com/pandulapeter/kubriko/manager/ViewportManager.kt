@@ -16,6 +16,7 @@ abstract class ViewportManager : Manager() {
     abstract val cameraPosition: StateFlow<SceneOffset> // Center of the viewport
     abstract val size: StateFlow<Size>
     abstract val scaleFactor: StateFlow<Float>
+    // TODO: Support rotation
     abstract val topLeft: StateFlow<SceneOffset>
     abstract val bottomRight: StateFlow<SceneOffset>
 

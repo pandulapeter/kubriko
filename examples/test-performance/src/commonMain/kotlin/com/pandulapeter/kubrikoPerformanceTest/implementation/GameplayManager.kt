@@ -32,7 +32,6 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.MissingResourceException
 import kotlin.math.abs
 
-// TODO: There should be a simpler way of drawing a background than making this Manager an Actor.
 internal class GameplayManager : Manager(), KeyboardInputAware, Visible, Unique {
 
     private lateinit var actorManager: ActorManager
@@ -57,20 +56,15 @@ internal class GameplayManager : Manager(), KeyboardInputAware, Visible, Unique 
         loadMap(SCENE_NAME)
     }
 
-    override fun onAdd(kubriko: Kubriko) {
-        viewportManager.cameraPosition.onEach { position = it }.launchIn(scope)
-        combine(
-            viewportManager.topLeft,
-            viewportManager.bottomRight,
-        ) { viewportBottomRight, viewportTopLeft ->
-            viewportBottomRight to viewportTopLeft
-        }.onEach { (viewportBottomRight, viewportTopLeft) ->
-            boundingBox = (viewportBottomRight - viewportTopLeft).let {
-                SceneSize((abs(it.x.raw) + 50).scenePixel, (abs(it.y.raw) + 50).scenePixel)
-            }
-        }.launchIn(scope)
+    // TODO: Glitchy on web
+    override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
+        boundingBox = (viewportManager.topLeft.value - viewportManager.bottomRight.value).let {
+            SceneSize((abs(it.x.raw) + 50).scenePixel, (abs(it.y.raw) + 50).scenePixel)
+        }
+        position = viewportManager.cameraPosition.value
     }
 
+    // TODO: There should be a simpler way of drawing a background than making this Manager an Actor.
     override fun draw(scope: DrawScope) = scope.drawRect(
         color = Color.White,
         size = boundingBox.raw,

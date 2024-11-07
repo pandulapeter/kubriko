@@ -1,6 +1,7 @@
 package com.pandulapeter.kubriko
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -10,7 +11,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.pandulapeter.kubriko.implementation.KubrikoImpl
@@ -28,14 +32,17 @@ import kotlinx.coroutines.isActive
 fun KubrikoCanvas(
     modifier: Modifier = Modifier,
     kubriko: Kubriko,
+    background: Color? = null,
 ) {
     // Enforce and cache the internal implementation
-    val kubrikoImpl = remember { kubriko as? KubrikoImpl ?: throw IllegalStateException("Custom implementations of the Kubriko interface are not supported. Use Kubriko.newInstance() to instantiate Kubriko.") }
+    val kubrikoImpl = remember(kubriko) {
+        kubriko as? KubrikoImpl ?: throw IllegalStateException("Custom Kubriko implementations are not supported. Use Kubriko.newInstance() to instantiate Kubriko.")
+    }
 
     // Game loop and focus handling
+    val gameTime = remember(kubriko) { mutableStateOf(0L) }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
-    val gameTime = remember { mutableStateOf(0L) }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(kubriko) {
         while (isActive) {
             withFrameNanos { gameTimeInNanos ->
                 val deltaTimeInMillis = (gameTimeInNanos - gameTime.value) / 1000000f
@@ -45,10 +52,8 @@ fun KubrikoCanvas(
             }
         }
     }
-
     kubrikoImpl.managers.forEach { it.onRecomposition() }
-
-    DisposableEffect(Unit) {
+    DisposableEffect(kubriko) {
         kubrikoImpl.managers.forEach { it.onLaunch() }
         onDispose { kubrikoImpl.managers.forEach { it.onDispose() } }
     }
@@ -57,10 +62,11 @@ fun KubrikoCanvas(
     Canvas(
         modifier = kubrikoImpl.managers
             .mapNotNull { it.onCreateModifier() }
-            .fold(modifier.fillMaxSize().clipToBounds()) { compoundModifier, managerModifier -> compoundModifier then managerModifier },
+            .fold(modifier.fillMaxSize().clipToBounds()) { compoundModifier, managerModifier -> compoundModifier then managerModifier }
+            .onSizeChanged { kubrikoImpl.viewportManager.updateSize(it.toSize()) }
+            .let { if (background != null) it.background(background) else it },
         onDraw = {
-            gameTime.value
-            kubrikoImpl.viewportManager.updateSize(size = size)
+            gameTime.value // This line invalidates the Canvas (causing a refresh) on every frame
             kubrikoImpl.viewportManager.cameraPosition.value.let { viewportCenter ->
                 withTransform(
                     transformBlock = {
