@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 
 abstract class Manager {
 
@@ -11,6 +12,7 @@ abstract class Manager {
         private set
     protected lateinit var scope: CoroutineScope
         private set
+    open val modifier: Flow<Modifier>? = null
 
     internal fun initializeInternal(kubriko: Kubriko) {
         if (!isInitialized) {
@@ -21,9 +23,6 @@ abstract class Manager {
     }
 
     protected open fun onInitialize(kubriko: Kubriko) = Unit
-
-    @Composable
-    open fun onCreateModifier(): Modifier? = null
 
     @Composable
     open fun onRecomposition() = Unit

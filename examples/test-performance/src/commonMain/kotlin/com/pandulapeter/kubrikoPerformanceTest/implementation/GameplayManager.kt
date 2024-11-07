@@ -16,13 +16,9 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serializationManager.SerializationManager
-import com.pandulapeter.kubriko.shaderManager.collection.ChromaticAberrationShader
-import com.pandulapeter.kubriko.shaderManager.collection.SmoothPixelationShader
-import com.pandulapeter.kubriko.shaderManager.collection.VignetteShader
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubrikoPerformanceTest.implementation.actors.KeyboardInputListener
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -56,7 +52,7 @@ internal class GameplayManager : Manager(), KeyboardInputAware, Visible, Unique 
         loadMap(SCENE_NAME)
     }
 
-    // TODO: Glitchy on web
+    // TODO: Glitchy background when FPS is low (web)
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
         boundingBox = (viewportManager.topLeft.value - viewportManager.bottomRight.value).let {
             SceneSize((abs(it.x.raw) + 50).scenePixel, (abs(it.y.raw) + 50).scenePixel)
@@ -80,9 +76,6 @@ internal class GameplayManager : Manager(), KeyboardInputAware, Visible, Unique 
         try {
             val actors = listOf(
                 this@GameplayManager,
-                ChromaticAberrationShader(),
-                VignetteShader(),
-                SmoothPixelationShader(),
                 KeyboardInputListener(),
             ) + serializationManager.deserializeActors(Res.readBytes("files/scenes/$mapName.json").decodeToString())
             actorManager.add(actors = actors.toTypedArray())

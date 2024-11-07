@@ -1,36 +1,26 @@
 package com.pandulapeter.kubriko.shaderManager.implementation.extensions
 
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.RenderEffect
 import androidx.compose.ui.graphics.asComposeRenderEffect
-import androidx.compose.ui.graphics.graphicsLayer
 import com.pandulapeter.kubriko.shaderManager.Shader
 import org.jetbrains.skia.ImageFilter
 import org.jetbrains.skia.RuntimeEffect
 import org.jetbrains.skia.RuntimeShaderBuilder
 
-internal actual fun Modifier.runtimeShader(
-    shaderWrapper: Shader
-) = this then composed {
-    val runtimeShaderBuilder = remember {
-        RuntimeShaderBuilder(
-            effect = RuntimeEffect.makeForShader(shaderWrapper.shaderCode),
-        )
-    }
-    val shaderUniformProvider = remember { ShaderUniformProviderImpl(runtimeShaderBuilder) }
-    graphicsLayer {
-        clip = true
-        renderEffect = ImageFilter.makeRuntimeShader(
-            runtimeShaderBuilder = runtimeShaderBuilder.apply {
-                shaderWrapper.uniformsBlock?.invoke(shaderUniformProvider)
-                shaderUniformProvider.updateResolution(size)
-            },
-            shaderName = shaderWrapper.uniformName,
-            input = null,
-        ).asComposeRenderEffect()
-    }
+internal actual fun shader(shader: Shader, size: Size): RenderEffect? {
+    val runtimeShaderBuilder = RuntimeShaderBuilder(
+        effect = RuntimeEffect.makeForShader(shader.code),
+    )
+    val shaderUniformProvider = ShaderUniformProviderImpl(runtimeShaderBuilder)
+    return ImageFilter.makeRuntimeShader(
+        runtimeShaderBuilder = runtimeShaderBuilder.apply {
+            shader.applyUniforms(shaderUniformProvider)
+            shaderUniformProvider.updateResolution(size)
+        },
+        shaderName = shader.uniformName,
+        input = null,
+    ).asComposeRenderEffect()
 }
 
 private class ShaderUniformProviderImpl(

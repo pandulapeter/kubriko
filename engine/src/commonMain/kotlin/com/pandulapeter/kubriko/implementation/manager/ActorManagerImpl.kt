@@ -82,20 +82,20 @@ internal class ActorManagerImpl(
 
     @OptIn(ExperimentalUuidApi::class)
     override fun add(vararg actors: Actor) = _allActors.update { currentActors ->
-        val uniqueActors = actors.filterIsInstance<Unique>().map { it::class }.toSet()
-        val filteredCurrentActors = currentActors.filterNot { it::class in uniqueActors }
+        val uniqueNewActorTypes = actors.filterIsInstance<Unique>().map { it::class }.toSet()
+        val filteredCurrentActors = currentActors.filterNot { it::class in uniqueNewActorTypes }
         actors.filterIsInstance<Identifiable>().onEach { if (it.name == null) it.name = Uuid.random().toString() }
         actors.forEach { it.onAdd(scope as Kubriko) }
         filteredCurrentActors + actors
     }
 
-    override fun remove(vararg actors: Actor) = _allActors.update { currentValue ->
+    override fun remove(vararg actors: Actor) = _allActors.update { currentActors ->
         actors.forEach { it.onRemove() }
-        currentValue.filterNot { it in actors }
+        currentActors.filterNot { it in actors }
     }
 
-    override fun removeAll() = _allActors.update { currentValue ->
-        currentValue.forEach { it.onRemove() }
+    override fun removeAll() = _allActors.update { currentActors ->
+        currentActors.forEach { it.onRemove() }
         emptyList()
     }
 }

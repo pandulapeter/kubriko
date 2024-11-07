@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
@@ -57,9 +58,10 @@ fun KubrikoCanvas(
 
     // Game canvas
     Canvas(
-        modifier = kubrikoImpl.managers
-            .mapNotNull { it.onCreateModifier() }
-            .fold(modifier.fillMaxSize().clipToBounds()) { compoundModifier, managerModifier -> compoundModifier then managerModifier }
+        modifier = kubrikoImpl.managers.mapNotNull { it.modifier?.collectAsState(null)?.value }
+            .fold(modifier.fillMaxSize().clipToBounds()) { compoundModifier, managerModifier ->
+                compoundModifier then managerModifier
+            }
             .onSizeChanged { kubrikoImpl.viewportManager.updateSize(it.toSize()) },
         onDraw = {
             gameTime.value // This line invalidates the Canvas (causing a refresh) on every frame

@@ -44,7 +44,7 @@ internal class KubrikoImpl(
         }
     }
 
-    private inline fun <reified T : Manager> Set<Manager>.addIfNeeded(creator: () -> T) =
+    private inline fun <reified T : Manager> Collection<Manager>.addIfNeeded(creator: () -> T) =
         if (none { T::class.isInstance(it) }) this + creator() else this
 
     @Suppress("UNCHECKED_CAST")

@@ -3,11 +3,10 @@ package com.pandulapeter.kubriko.shaderManager.collection
 import com.pandulapeter.kubriko.shaderManager.Shader
 import com.pandulapeter.kubriko.shaderManager.implementation.extensions.ShaderUniformProvider
 
-class ChromaticAberrationShader : Shader {
-
-    // TODO: Changing this value should trigger an update
-    private var intensity = 20f
-    override val shaderCode = """
+data class ChromaticAberrationShader(
+    private val intensity: Float = 20f,
+) : Shader {
+    override val code = """
     uniform float2 resolution;
     uniform float intensity;
     uniform shader content; 
@@ -22,7 +21,7 @@ class ChromaticAberrationShader : Shader {
     }
 """.trimIndent()
 
-    override val uniformsBlock: ShaderUniformProvider.() -> Unit = {
-        uniform("intensity", intensity)
+    override fun applyUniforms(provider: ShaderUniformProvider) {
+        provider.uniform("intensity", intensity)
     }
 }

@@ -3,13 +3,11 @@ package com.pandulapeter.kubriko.shaderManager.collection
 import com.pandulapeter.kubriko.shaderManager.Shader
 import com.pandulapeter.kubriko.shaderManager.implementation.extensions.ShaderUniformProvider
 
-class VignetteShader : Shader {
-
-    // TODO: Changing these values should trigger an update
-    private var intensity = 30f
-    private var decayFactor = 0.6f
-
-    override val shaderCode = """
+data class VignetteShader(
+    private val intensity: Float = 30f,
+    private val decayFactor: Float = 0.6f,
+) : Shader {
+    override val code = """
     uniform float2 resolution;
     uniform shader content; 
     uniform float intensity;
@@ -25,8 +23,8 @@ class VignetteShader : Shader {
     }
 """.trimIndent()
 
-    override val uniformsBlock: ShaderUniformProvider.() -> Unit = {
-        uniform("intensity", intensity)
-        uniform("decayFactor", decayFactor)
+    override fun applyUniforms(provider: ShaderUniformProvider) {
+        provider.uniform("intensity", intensity)
+        provider.uniform("decayFactor", decayFactor)
     }
 }

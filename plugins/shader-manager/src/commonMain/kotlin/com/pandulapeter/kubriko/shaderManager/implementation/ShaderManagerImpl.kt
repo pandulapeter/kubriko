@@ -1,32 +1,35 @@
 package com.pandulapeter.kubriko.shaderManager.implementation
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.implementation.extensions.require
-import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.shaderManager.Shader
 import com.pandulapeter.kubriko.shaderManager.ShaderManager
 import com.pandulapeter.kubriko.shaderManager.implementation.extensions.runtimeShader
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 
-internal class ShaderManagerImpl : ShaderManager() {
+internal class ShaderManagerImpl(
+    vararg initialShader: Shader,
+) : ShaderManager() {
 
-    private lateinit var actorManager: ActorManager
-
-    override fun onInitialize(kubriko: Kubriko) {
-        actorManager = kubriko.require<ActorManager>()
+    private val _allShaders = MutableStateFlow(initialShader.toSet().distinctBy { it::class })
+    override val allShaders = _allShaders.asStateFlow()
+    override val modifier = _allShaders.map { shaders ->
+        shaders.fold<Shader, Modifier>(Modifier) { compoundModifier, shader ->
+            compoundModifier.runtimeShader(shader)
+        }
     }
 
-    @Composable
-    override fun onCreateModifier() = Modifier.runtimeShader(
-        actorManager.allActors
-            .map { actors -> actors.filterIsInstance<Shader>() }
-            .stateIn(scope, SharingStarted.Eagerly, emptyList())
-            .collectAsState()
-            .value
-    )
+    override fun add(vararg shaders: Shader) = _allShaders.update { currentShaders ->
+        val uniqueNewShaderTypes = shaders.map { it::class }.toSet()
+        val filteredCurrentShaders = currentShaders.filterNot { it::class in uniqueNewShaderTypes }
+        filteredCurrentShaders + shaders
+    }
+
+    override fun remove(vararg shaders: Shader) = _allShaders.update { currentShaders ->
+        currentShaders.filterNot { it in shaders }
+    }
+
+    override fun removeAll() = _allShaders.update { emptyList() }
 }

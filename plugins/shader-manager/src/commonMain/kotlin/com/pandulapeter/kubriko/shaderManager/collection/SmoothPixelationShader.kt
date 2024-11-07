@@ -3,12 +3,10 @@ package com.pandulapeter.kubriko.shaderManager.collection
 import com.pandulapeter.kubriko.shaderManager.Shader
 import com.pandulapeter.kubriko.shaderManager.implementation.extensions.ShaderUniformProvider
 
-class SmoothPixelationShader : Shader {
-
-    // TODO: Changing this value should trigger an update
-    private var pixelSize = 2f
-
-    override val shaderCode = """
+data class SmoothPixelationShader(
+    private val pixelSize: Float = 2f,
+) : Shader {
+    override val code = """
     uniform float2 resolution;
     uniform shader content; 
     uniform float pixelSize;
@@ -21,7 +19,7 @@ class SmoothPixelationShader : Shader {
     }
 """.trimIndent()
 
-    override val uniformsBlock: ShaderUniformProvider.() -> Unit = {
-        uniform("pixelSize", pixelSize)
+    override fun applyUniforms(provider: ShaderUniformProvider) {
+        provider.uniform("pixelSize", pixelSize)
     }
 }

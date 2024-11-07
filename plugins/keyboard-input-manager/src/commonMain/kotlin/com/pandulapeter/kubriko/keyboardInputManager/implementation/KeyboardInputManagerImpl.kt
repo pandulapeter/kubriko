@@ -1,8 +1,6 @@
 package com.pandulapeter.kubriko.keyboardInputManager.implementation
 
-import androidx.compose.foundation.focusable
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.require
@@ -41,9 +39,6 @@ internal class KeyboardInputManagerImpl : KeyboardInputManager() {
     }
 
     override fun isKeyPressed(key: Key) = activeKeysCache.contains(key)
-
-    @Composable
-    override fun onCreateModifier() = Modifier.focusable()
 
     @Composable
     override fun onRecomposition() {
