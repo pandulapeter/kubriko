@@ -17,7 +17,7 @@ internal class ShaderManagerImpl(
     override val allShaders = _allShaders.asStateFlow()
     override val modifier = _allShaders.map { shaders ->
         shaders.fold<Shader, Modifier>(Modifier) { compoundModifier, shader ->
-            compoundModifier.runtimeShader(shader)
+            compoundModifier then Modifier.runtimeShader(shader)
         }
     }
 
