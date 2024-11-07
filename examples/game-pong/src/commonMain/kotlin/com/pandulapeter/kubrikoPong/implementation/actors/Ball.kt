@@ -20,7 +20,6 @@ class Ball(
 
     override val boundingBox: SceneSize = SceneSize(size, size)
     override var position: SceneOffset = SceneOffset.Zero
-    private val boxColor: Color = Color.Gray
     private var speedX = speed
     private var speedY = speed
     private lateinit var viewportManager: ViewportManager
@@ -44,7 +43,7 @@ class Ball(
     }
 
     override fun draw(scope: DrawScope) = scope.drawCircle(
-        color = boxColor,
+        color = Color.White,
         radius = (boundingBox.raw.width + boundingBox.raw.height) / 2,
         center = pivotOffset.raw,
     )
