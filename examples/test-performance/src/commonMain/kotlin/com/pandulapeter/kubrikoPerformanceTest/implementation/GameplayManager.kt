@@ -11,11 +11,14 @@ import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
+import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serializationManager.SerializationManager
+import com.pandulapeter.kubriko.shaderManager.ShaderManager
+import com.pandulapeter.kubriko.shaderManager.collection.RippleShader
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubrikoPerformanceTest.implementation.actors.KeyboardInputListener
@@ -31,7 +34,9 @@ import kotlin.math.abs
 internal class GameplayManager : Manager(), KeyboardInputAware, Visible, Unique {
 
     private lateinit var actorManager: ActorManager
+    private lateinit var metadataManager: MetadataManager
     private lateinit var serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>
+    private lateinit var shaderManager: ShaderManager
     lateinit var stateManager: StateManager
         private set
     lateinit var viewportManager: ViewportManager
@@ -42,7 +47,9 @@ internal class GameplayManager : Manager(), KeyboardInputAware, Visible, Unique 
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
+        metadataManager = kubriko.require()
         serializationManager = kubriko.require()
+        shaderManager = kubriko.require()
         stateManager = kubriko.require()
         viewportManager = kubriko.require()
         stateManager.isFocused
@@ -58,6 +65,9 @@ internal class GameplayManager : Manager(), KeyboardInputAware, Visible, Unique 
             SceneSize((abs(it.x.raw) + 50).scenePixel, (abs(it.y.raw) + 50).scenePixel)
         }
         position = viewportManager.cameraPosition.value
+        shaderManager.add(
+            RippleShader((metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f)
+        )
     }
 
     // TODO: There should be a simpler way of drawing a background than making this Manager an Actor.
