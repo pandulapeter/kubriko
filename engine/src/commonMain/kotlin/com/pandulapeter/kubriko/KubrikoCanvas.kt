@@ -40,9 +40,9 @@ fun KubrikoCanvas(
     }
 
     // Game loop and focus handling
-    val gameTime = remember(kubriko) { mutableStateOf(0L) }
+    val gameTime = remember { mutableStateOf(0L) }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
-    LaunchedEffect(kubriko) {
+    LaunchedEffect(Unit) {
         while (isActive) {
             withFrameNanos { gameTimeInNanos ->
                 val deltaTimeInMillis = (gameTimeInNanos - gameTime.value) / 1000000f
@@ -53,7 +53,7 @@ fun KubrikoCanvas(
         }
     }
     kubrikoImpl.managers.forEach { it.onRecomposition() }
-    DisposableEffect(kubriko) {
+    DisposableEffect(Unit) {
         kubrikoImpl.managers.forEach { it.onLaunch() }
         onDispose { kubrikoImpl.managers.forEach { it.onDispose() } }
     }
