@@ -30,6 +30,7 @@ import kotlinx.coroutines.launch
 import kubriko.examples.test_performance.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.MissingResourceException
+import kotlin.math.abs
 
 // TODO: There should be a simpler way of drawing a background than making this Manager an Actor.
 internal class GameplayManager : Manager(), KeyboardInputAware, Visible, Unique {
@@ -64,7 +65,9 @@ internal class GameplayManager : Manager(), KeyboardInputAware, Visible, Unique 
         ) { viewportBottomRight, viewportTopLeft ->
             viewportBottomRight to viewportTopLeft
         }.onEach { (viewportBottomRight, viewportTopLeft) ->
-            boundingBox = (viewportBottomRight - viewportTopLeft).let { SceneSize(it.x + 50f.scenePixel, it.y + 50f.scenePixel) }
+            boundingBox = (viewportBottomRight - viewportTopLeft).let {
+                SceneSize((abs(it.x.raw) + 50).scenePixel, (abs(it.y.raw) + 50).scenePixel)
+            }
         }.launchIn(scope)
     }
 
