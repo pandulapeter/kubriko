@@ -28,6 +28,7 @@ internal class KeyboardInputManagerImpl : KeyboardInputManager() {
             .map { it.filterIsInstance<KeyboardInputAware>() }
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
     }
+    private var hasSentEmptyMap = false
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require<ActorManager>()
@@ -56,8 +57,16 @@ internal class KeyboardInputManagerImpl : KeyboardInputManager() {
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
         if (activeKeysCache.isNotEmpty() && stateManager.isFocused.value) {
+            hasSentEmptyMap = false
             activeKeysCache.toSet().let { activeKeys ->
                 keyboardInputAwareActors.value.forEach { it.handleActiveKeys(activeKeys) }
+            }
+        } else {
+            if (!hasSentEmptyMap) {
+                hasSentEmptyMap = true
+                activeKeysCache.toSet().let { activeKeys ->
+                    keyboardInputAwareActors.value.forEach { it.handleActiveKeys(activeKeys) }
+                }
             }
         }
     }

@@ -5,131 +5,193 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.pandulapeter.kubriko.keyboardInputManager.extensions.displayName
 
 @Composable
 internal fun UserInterface(
     modifier: Modifier = Modifier,
     activeKeys: Set<Key>,
 ) = Box(
-    modifier = modifier.fillMaxSize(),
+    modifier = Modifier.fillMaxSize(),
 ) {
-
-    val keySize = 40.dp
-    val keyPadding = 4.dp
-
     Column(
-        modifier = Modifier.padding(8.dp),
+        modifier = modifier.align(Alignment.Center),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Row 1: Function keys
         KeyboardRow(
-            keys = listOf(Key.Escape, Key.F1, Key.F2, Key.F3, Key.F4, Key.F5, Key.F6, Key.F7, Key.F8, Key.F9, Key.F10, Key.F11, Key.F12),
-            activeKeys = activeKeys,
-            keySize = keySize,
-            keyPadding = keyPadding
+            keyWrappers = listOf(
+                Key.Escape,
+                Key.F1,
+                Key.F2,
+                Key.F3,
+                Key.F4,
+                Key.F5,
+                Key.F6,
+                Key.F7,
+                Key.F8,
+                Key.F9,
+                Key.F10,
+                Key.F11,
+                Key.F12,
+            ).map { it.toWrapper(activeKeys) },
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Row 2: Number row
         KeyboardRow(
-            keys = listOf(Key.Grave, Key.One, Key.Two, Key.Three, Key.Four, Key.Five, Key.Six, Key.Seven, Key.Eight, Key.Nine, Key.Zero, Key.Minus, Key.Equals, Key.Backspace),
-            activeKeys = activeKeys,
-            keySize = keySize,
-            keyPadding = keyPadding
+            keyWrappers = listOf(
+                Key.Grave,
+                Key.One,
+                Key.Two,
+                Key.Three,
+                Key.Four,
+                Key.Five,
+                Key.Six,
+                Key.Seven,
+                Key.Eight,
+                Key.Nine,
+                Key.Zero,
+                Key.Minus,
+                Key.Equals,
+                Key.Backspace,
+            ).map { it.toWrapper(activeKeys) },
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Row 3: QWERTY row
         KeyboardRow(
-            keys = listOf(Key.Tab, Key.Q, Key.W, Key.E, Key.R, Key.T, Key.Y, Key.U, Key.I, Key.O, Key.P, Key.LeftBracket, Key.RightBracket, Key.Backslash),
-            activeKeys = activeKeys,
-            keySize = keySize,
-            keyPadding = keyPadding
+            keyWrappers = listOf(
+                Key.Tab,
+                Key.Q,
+                Key.W,
+                Key.E,
+                Key.R,
+                Key.T,
+                Key.Y,
+                Key.U,
+                Key.I,
+                Key.O,
+                Key.P,
+                Key.LeftBracket,
+                Key.RightBracket,
+                Key.Backslash,
+            ).map { it.toWrapper(activeKeys) },
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Row 4: ASDF row
         KeyboardRow(
-            keys = listOf(Key.CapsLock, Key.A, Key.S, Key.D, Key.F, Key.G, Key.H, Key.J, Key.K, Key.L, Key.Semicolon, Key.Apostrophe, Key.Enter),
-            activeKeys = activeKeys,
-            keySize = keySize,
-            keyPadding = keyPadding
+            keyWrappers = listOf(
+                Key.CapsLock,
+                Key.A,
+                Key.S,
+                Key.D,
+                Key.F,
+                Key.G,
+                Key.H,
+                Key.J,
+                Key.K,
+                Key.L,
+                Key.Semicolon,
+                Key.Apostrophe,
+                Key.Enter,
+            ).map { it.toWrapper(activeKeys) },
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Row 5: ZXCV row
         KeyboardRow(
-            keys = listOf(Key.ShiftLeft, Key.Z, Key.X, Key.C, Key.V, Key.B, Key.N, Key.M, Key.Comma, Key.Period, Key.Slash, Key.ShiftRight),
-            activeKeys = activeKeys,
-            keySize = keySize,
-            keyPadding = keyPadding
+            keyWrappers = listOf(
+                Key.ShiftLeft,
+                Key.Z,
+                Key.X,
+                Key.C,
+                Key.V,
+                Key.B,
+                Key.N,
+                Key.M,
+                Key.Comma,
+                Key.Period,
+                Key.Slash,
+                Key.ShiftRight,
+            ).map { it.toWrapper(activeKeys) },
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Row 6: Bottom row (space bar and modifiers)
         KeyboardRow(
-            keys = listOf(Key.CtrlLeft, Key.MetaLeft, Key.AltLeft, Key.Spacebar, Key.AltRight, Key.MetaRight, Key.Menu, Key.CtrlRight),
-            activeKeys = activeKeys,
-            keySize = keySize,
-            keyPadding = keyPadding
+            keyWrappers = listOf(
+                Key.CtrlLeft,
+                Key.AltLeft,
+                Key.MetaLeft,
+                Key.Spacebar,
+                Key.MetaRight,
+                Key.AltRight,
+                Key.CtrlRight,
+            ).map { it.toWrapper(activeKeys) },
+        )
+        Text(
+            modifier = Modifier.padding(top = 16.dp),
+            textAlign = TextAlign.Center,
+            text = activeKeys.joinToString { it.keyCode.toString() },
         )
     }
 }
 
+private fun Key.toWrapper(activeKeys: Set<Key>) = KeyWrapper(
+    key = this,
+    size = when (this) {
+        Key.Escape, Key.Backspace, Key.Tab, Key.Enter, Key.CapsLock, Key.ShiftRight, Key.ShiftRight -> Size.WIDE
+        Key.Spacebar -> Size.EXTRA_WIDE
+        else -> Size.NORMAL
+    },
+    isPressed = this in activeKeys,
+)
+
 @Composable
 private fun KeyboardRow(
-    keys: List<Key>,
-    activeKeys: Set<Key>,
-    keySize: Dp,
-    keyPadding: Dp,
-) {
+    keyWrappers: List<KeyWrapper>,
+) = Box {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.align(Alignment.Center),
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        keys.forEach { key ->
-            KeyButton(key = key, activeKeys = activeKeys, size = keySize, padding = keyPadding)
+        keyWrappers.forEach { keyWrapper ->
+            KeyButton(
+                keyWrapper = keyWrapper,
+            )
         }
     }
 }
 
 @Composable
 private fun KeyButton(
-    key: Key,
-    activeKeys: Set<Key>,
-    size: Dp,
-    padding: Dp,
-) {
-    Box(
-        modifier = Modifier
-            .size(width = if (key == Key.Spacebar) size * 5 else size, height = size)
-            .background(if (activeKeys.contains(key)) Color.White else Color.Gray)
-            .padding(padding)
-    ) {
-        Text(
-            text = key.toString().substringAfter(":"),
-            fontSize = 12.sp,
-            modifier = Modifier.align(Alignment.Center)
+    keyWrapper: KeyWrapper,
+) = Box(
+    modifier = Modifier
+        .defaultMinSize(
+            minWidth = when (keyWrapper.size) {
+                Size.NORMAL -> 40.dp
+                Size.WIDE -> 80.dp
+                Size.EXTRA_WIDE -> 200.dp
+            }
         )
-    }
+        .height(40.dp)
+        .background(if (keyWrapper.isPressed) Color.White else Color.Gray)
+        .padding(4.dp)
+) {
+    Text(
+        modifier = Modifier.align(Alignment.Center),
+        text = keyWrapper.key.displayName,
+    )
+}
+
+private data class KeyWrapper(
+    val key: Key,
+    val size: Size,
+    val isPressed: Boolean,
+)
+
+private enum class Size {
+    NORMAL,
+    WIDE,
+    EXTRA_WIDE,
 }
