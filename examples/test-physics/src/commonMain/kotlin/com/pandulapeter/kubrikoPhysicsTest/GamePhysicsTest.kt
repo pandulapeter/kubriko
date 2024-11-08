@@ -7,7 +7,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoCanvas
 import com.pandulapeter.kubriko.physicsManager.PhysicsManager
 import com.pandulapeter.kubriko.shaderManager.ShaderManager
-import com.pandulapeter.kubriko.shaderManager.collection.SmoothPixelationShader
+import com.pandulapeter.kubriko.shaderManager.collection.ChromaticAberrationShader
 import com.pandulapeter.kubrikoPhysicsTest.implementation.BackgroundManager
 import com.pandulapeter.kubrikoPhysicsTest.implementation.GameplayManager
 
@@ -19,7 +19,7 @@ fun GamePhysicsTest(
         Kubriko.newInstance(
             BackgroundManager(),
             PhysicsManager.newInstance(),
-            ShaderManager.newInstance(SmoothPixelationShader(canvasIndex = -1)),
+            ShaderManager.newInstance(ChromaticAberrationShader(canvasIndex = -1)),
             GameplayManager(),
         )
     }
