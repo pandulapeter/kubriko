@@ -2,47 +2,33 @@ package com.pandulapeter.kubrikoPhysicsTest.implementation
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.require
+import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
-import com.pandulapeter.kubriko.physicsManager.implementation.dynamics.Body
-import com.pandulapeter.kubriko.physicsManager.implementation.dynamics.World
-import com.pandulapeter.kubriko.physicsManager.implementation.geometry.Circle
-import com.pandulapeter.kubriko.physicsManager.implementation.geometry.Polygon
-import com.pandulapeter.kubriko.physicsManager.implementation.math.Vec2
-import com.pandulapeter.kubrikoPhysicsTest.implementation.actors.BouncyBallActor
-import com.pandulapeter.kubrikoPhysicsTest.implementation.actors.PlatformActor
+import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.SceneSize
+import com.pandulapeter.kubrikoPhysicsTest.implementation.actors.BouncyBall
+import com.pandulapeter.kubrikoPhysicsTest.implementation.actors.Platform
 
 internal class GameplayManager : Manager() {
 
     private lateinit var actorManager: ActorManager
-    private val world = World(Vec2(.0, 9.81))
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
-        val platform = Body(Polygon(600.0, 20.0), .0, 400.0)
-        platform.density = .0
-        world.addBody(platform)
-        actorManager.add(PlatformActor(platform))
-        (0..100).forEach {
-            createBall(
-                radius = (10..50).random().toDouble(),
-                x = (-600..600).random().toDouble(),
-                y = (-400..200).random().toDouble()
-            )
-        }
-    }
-
-    private fun createBall(
-        radius: Double,
-        x: Double,
-        y: Double
-    ) {
-        val bouncyBall = Body(Circle(radius), x, y)
-        world.addBody(bouncyBall)
-        actorManager.add(BouncyBallActor(bouncyBall, radius.toFloat()))
-    }
-
-    override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
-        world.step(deltaTimeInMillis / 100.0)
+        actorManager.add(
+            actors = ((0..100).map {
+                BouncyBall(
+                    radius = (10..50).random().toFloat().scenePixel,
+                    position = SceneOffset(
+                        x = (-600..600).random().toFloat().scenePixel,
+                        y = (-400..200).random().toFloat().scenePixel,
+                    ),
+                )
+            } + Platform(
+                position = SceneOffset(0f.scenePixel, 350f.scenePixel),
+                boundingBox = SceneSize(1200f.scenePixel, 40f.scenePixel),
+            )).toTypedArray()
+        )
     }
 }
