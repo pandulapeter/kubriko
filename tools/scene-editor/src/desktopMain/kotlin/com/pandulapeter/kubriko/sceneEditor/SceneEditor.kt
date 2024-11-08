@@ -8,11 +8,11 @@ import androidx.compose.ui.window.AwtWindow
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputManager
+import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.EditorUserInterface
-import com.pandulapeter.kubriko.serializationManager.SerializationManager
+import com.pandulapeter.kubriko.serialization.SerializationManager
 import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame

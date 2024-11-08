@@ -4,9 +4,9 @@ import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.implementation.extensions.require
-import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputAware
-import com.pandulapeter.kubriko.keyboardInputManager.extensions.KeyboardZoomState
-import com.pandulapeter.kubriko.keyboardInputManager.extensions.zoomState
+import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
+import com.pandulapeter.kubriko.keyboardInput.extensions.KeyboardZoomState
+import com.pandulapeter.kubriko.keyboardInput.extensions.zoomState
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 

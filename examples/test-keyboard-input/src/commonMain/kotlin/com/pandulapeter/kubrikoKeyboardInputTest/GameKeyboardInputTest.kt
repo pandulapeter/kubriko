@@ -7,7 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoCanvas
-import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputManager
+import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubrikoKeyboardInputTest.implementation.KeyboardInputTestManager
 import com.pandulapeter.kubrikoKeyboardInputTest.implementation.UserInterface
 

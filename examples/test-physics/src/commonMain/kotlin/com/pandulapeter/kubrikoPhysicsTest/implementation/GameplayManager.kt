@@ -17,12 +17,12 @@ internal class GameplayManager : Manager() {
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
         actorManager.add(
-            actors = ((0..100).map {
+            actors = ((0..50).map {
                 BouncyBall(
                     radius = (10..50).random().toFloat().scenePixel,
                     position = SceneOffset(
-                        x = (-600..600).random().toFloat().scenePixel,
-                        y = (-400..200).random().toFloat().scenePixel,
+                        x = (-0..0).random().toFloat().scenePixel,
+                        y = (-1200..1200).random().toFloat().scenePixel,
                     ),
                 )
             } + Platform(

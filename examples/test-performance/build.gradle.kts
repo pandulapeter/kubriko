@@ -9,9 +9,9 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.engine)
-            implementation(projects.plugins.keyboardInputManager)
-            implementation(projects.plugins.serializationManager)
-            implementation(projects.plugins.shaderManager)
+            implementation(projects.plugins.keyboardInput)
+            implementation(projects.plugins.serialization)
+            implementation(projects.plugins.shader)
             implementation(projects.tools.debugMenu)
             implementation(projects.tools.sceneEditor)
             implementation(compose.material)

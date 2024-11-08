@@ -1,12 +1,12 @@
 package com.pandulapeter.kubrikoPerformanceTest.implementation
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputManager
+import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
-import com.pandulapeter.kubriko.shaderManager.ShaderManager
-import com.pandulapeter.kubriko.shaderManager.collection.ChromaticAberrationShader
-import com.pandulapeter.kubriko.shaderManager.collection.SmoothPixelationShader
-import com.pandulapeter.kubriko.shaderManager.collection.VignetteShader
+import com.pandulapeter.kubriko.shader.ShaderManager
+import com.pandulapeter.kubriko.shader.collection.ChromaticAberrationShader
+import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader
+import com.pandulapeter.kubriko.shader.collection.VignetteShader
 import com.pandulapeter.kubrikoPerformanceTest.implementation.actors.BoxWithCircle
 import com.pandulapeter.kubrikoPerformanceTest.implementation.actors.Character
 import com.pandulapeter.kubrikoPerformanceTest.implementation.actors.MovingBox

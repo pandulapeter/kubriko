@@ -3,11 +3,9 @@ package com.pandulapeter.kubrikoPhysicsTest.implementation.actors
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.actor.traits.Dynamic
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.physicsManager.RigidBody
-import com.pandulapeter.kubriko.physicsManager.implementation.physics.dynamics.Body
-import com.pandulapeter.kubriko.physicsManager.implementation.physics.geometry.Polygon
-import com.pandulapeter.kubriko.physicsManager.implementation.physics.math.Vec2
+import com.pandulapeter.kubriko.physics.RigidBody
+import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
+import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize

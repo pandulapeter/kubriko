@@ -8,7 +8,7 @@ import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputAware
+import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
@@ -16,8 +16,8 @@ import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
-import com.pandulapeter.kubriko.serializationManager.SerializationManager
-import com.pandulapeter.kubriko.shaderManager.collection.RippleShader
+import com.pandulapeter.kubriko.serialization.SerializationManager
+import com.pandulapeter.kubriko.shader.collection.RippleShader
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubrikoPerformanceTest.implementation.actors.KeyboardInputListener

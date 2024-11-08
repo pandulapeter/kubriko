@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.keyboardInputManager.extensions.displayName
+import com.pandulapeter.kubriko.keyboardInput.extensions.displayName
 
 @Composable
 internal fun UserInterface(

@@ -5,7 +5,7 @@ import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
-import com.pandulapeter.kubriko.shaderManager.collection.FractalShader
+import com.pandulapeter.kubriko.shader.collection.FractalShader
 
 internal class BackgroundManager : Manager() {
 

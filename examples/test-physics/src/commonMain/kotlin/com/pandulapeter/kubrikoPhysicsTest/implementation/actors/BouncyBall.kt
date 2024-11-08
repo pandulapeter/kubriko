@@ -8,10 +8,10 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.wrapWithin
 import com.pandulapeter.kubriko.manager.ViewportManager
-import com.pandulapeter.kubriko.physicsManager.RigidBody
-import com.pandulapeter.kubriko.physicsManager.implementation.physics.dynamics.Body
-import com.pandulapeter.kubriko.physicsManager.implementation.physics.geometry.Circle
-import com.pandulapeter.kubriko.physicsManager.implementation.physics.math.Vec2
+import com.pandulapeter.kubriko.physics.RigidBody
+import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
+import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
+import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel

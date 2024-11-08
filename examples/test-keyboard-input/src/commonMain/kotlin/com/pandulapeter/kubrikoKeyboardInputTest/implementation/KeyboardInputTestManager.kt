@@ -3,7 +3,7 @@ package com.pandulapeter.kubrikoKeyboardInputTest.implementation
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.require
-import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputAware
+import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import kotlinx.coroutines.flow.MutableStateFlow

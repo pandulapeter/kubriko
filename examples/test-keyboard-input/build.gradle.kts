@@ -8,7 +8,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.engine)
-            implementation(projects.plugins.keyboardInputManager)
+            implementation(projects.plugins.keyboardInput)
             implementation(compose.material)
         }
         androidMain.dependencies {

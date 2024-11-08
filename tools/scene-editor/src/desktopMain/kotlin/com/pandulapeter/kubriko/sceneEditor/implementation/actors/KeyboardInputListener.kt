@@ -2,7 +2,7 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.actors
 
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.actor.traits.Unique
-import com.pandulapeter.kubriko.keyboardInputManager.KeyboardInputAware
+import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.handleKeyReleased
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.handleKeys

@@ -7,8 +7,8 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(projects.engine)
-            api(projects.plugins.serializationManager)
-            implementation(projects.plugins.keyboardInputManager)
+            api(projects.plugins.serialization)
+            implementation(projects.plugins.keyboardInput)
             implementation(compose.components.resources)
         }
         val desktopMain by getting {

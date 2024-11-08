@@ -8,8 +8,8 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.engine)
-            implementation(projects.plugins.physicsManager)
-            implementation(projects.plugins.shaderManager)
+            implementation(projects.plugins.physics)
+            implementation(projects.plugins.shader)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)

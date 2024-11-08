@@ -2,10 +2,10 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.helpers
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
-import com.pandulapeter.kubriko.keyboardInputManager.extensions.KeyboardDirectionState
-import com.pandulapeter.kubriko.keyboardInputManager.extensions.KeyboardZoomState
-import com.pandulapeter.kubriko.keyboardInputManager.extensions.directionState
-import com.pandulapeter.kubriko.keyboardInputManager.extensions.zoomState
+import com.pandulapeter.kubriko.keyboardInput.extensions.KeyboardDirectionState
+import com.pandulapeter.kubriko.keyboardInput.extensions.KeyboardZoomState
+import com.pandulapeter.kubriko.keyboardInput.extensions.directionState
+import com.pandulapeter.kubriko.keyboardInput.extensions.zoomState
 import com.pandulapeter.kubriko.manager.ViewportManager
 
 private const val CAMERA_SPEED = 15f
