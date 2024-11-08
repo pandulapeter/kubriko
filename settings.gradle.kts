@@ -20,6 +20,7 @@ include(
     ":examples:test-keyboard-input",
     ":examples:test-performance",
     ":plugins:keyboard-input-manager",
+    ":plugins:physics-manager",
     ":plugins:serialization-manager",
     ":plugins:shader-manager",
     ":tools:debug-menu",
