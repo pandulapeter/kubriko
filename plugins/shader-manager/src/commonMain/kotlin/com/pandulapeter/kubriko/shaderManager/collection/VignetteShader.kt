@@ -7,6 +7,7 @@ import com.pandulapeter.kubriko.shaderManager.implementation.extensions.ShaderUn
 data class VignetteShader(
     private val intensity: Float = 30f,
     private val decayFactor: Float = 0.6f,
+    override val canvasIndex: Int? = null,
 ) : Shader {
     override val code = """
     uniform float2 ${ShaderManager.UNIFORM_RESOLUTION};

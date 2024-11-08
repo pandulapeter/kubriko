@@ -12,7 +12,8 @@ abstract class Manager {
         private set
     protected lateinit var scope: CoroutineScope
         private set
-    open val modifier: Flow<Modifier>? = null
+
+    open fun getModifier(canvasIndex: Int?): Flow<Modifier>? = null
 
     internal fun initializeInternal(kubriko: Kubriko) {
         if (!isInitialized) {

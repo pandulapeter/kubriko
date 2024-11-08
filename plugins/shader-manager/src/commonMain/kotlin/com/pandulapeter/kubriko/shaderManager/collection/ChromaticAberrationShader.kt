@@ -6,6 +6,7 @@ import com.pandulapeter.kubriko.shaderManager.implementation.extensions.ShaderUn
 
 data class ChromaticAberrationShader(
     private val intensity: Float = 20f,
+    override val canvasIndex: Int? = null,
 ) : Shader {
     override val code = """
     uniform float2 ${ShaderManager.UNIFORM_RESOLUTION};

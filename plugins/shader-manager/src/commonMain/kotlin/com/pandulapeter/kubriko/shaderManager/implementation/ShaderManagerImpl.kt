@@ -14,15 +14,14 @@ internal class ShaderManagerImpl(
 ) : ShaderManager() {
 
     private lateinit var actorManager: ActorManager
-    override val modifier by lazy {
-        actorManager.allActors
-            .map { it.filterIsInstance<Shader>() }
-            .map { shaders ->
-                shaders.fold<Shader, Modifier>(Modifier) { compoundModifier, shader ->
-                    compoundModifier then Modifier.runtimeShader(shader)
-                }
+
+    override fun getModifier(canvasIndex: Int?) = actorManager.allActors
+        .map { it.filterIsInstance<Shader>().filter { it.canvasIndex == canvasIndex } }
+        .map { shaders ->
+            shaders.fold<Shader, Modifier>(Modifier) { compoundModifier, shader ->
+                compoundModifier then Modifier.runtimeShader(shader)
             }
-    }
+        }
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()

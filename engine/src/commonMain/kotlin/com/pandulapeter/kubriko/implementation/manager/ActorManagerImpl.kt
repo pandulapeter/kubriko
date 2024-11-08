@@ -2,6 +2,7 @@ package com.pandulapeter.kubriko.implementation.manager
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
+import com.pandulapeter.kubriko.actor.traits.CanvasAware
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Identifiable
 import com.pandulapeter.kubriko.actor.traits.Overlay
@@ -36,6 +37,11 @@ internal class ActorManagerImpl(
     private val dynamicActors by lazy {
         _allActors
             .map { actors -> actors.filterIsInstance<Dynamic>() }
+            .stateIn(scope, SharingStarted.Eagerly, emptyList())
+    }
+    val canvasAwareActors by lazy {
+        _allActors
+            .map { actors -> actors.filterIsInstance<CanvasAware>() }
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
     }
     private val visibleActors by lazy {

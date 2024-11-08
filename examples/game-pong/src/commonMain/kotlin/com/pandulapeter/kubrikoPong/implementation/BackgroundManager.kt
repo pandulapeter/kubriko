@@ -17,9 +17,10 @@ internal class BackgroundManager : Manager() {
         metadataManager = kubriko.require()
     }
 
-    override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
-        actorManager.add(
-            FractalShader((metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f)
+    override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) = actorManager.add(
+        FractalShader(
+            time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f,
+            canvasIndex = 1,
         )
-    }
+    )
 }

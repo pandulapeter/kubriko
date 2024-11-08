@@ -12,6 +12,7 @@ class PlatformActor(
     body: Body,
 ) : Visible {
 
+    override val canvasIndex = -1
     override val boundingBox: SceneSize = SceneSize(1200f.scenePixel, 40f.scenePixel)
     override var position: SceneOffset = body.position.let {
         SceneOffset(

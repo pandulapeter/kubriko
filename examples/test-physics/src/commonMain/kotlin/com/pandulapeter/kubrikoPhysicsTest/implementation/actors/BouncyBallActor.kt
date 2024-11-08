@@ -17,6 +17,7 @@ class BouncyBallActor(
     private val radius: Float,
 ) : Visible, Dynamic {
 
+    override val canvasIndex = -1
     override val boundingBox: SceneSize = SceneSize(radius.scenePixel, radius.scenePixel)
     override var position: SceneOffset = body.position.let {
         SceneOffset(

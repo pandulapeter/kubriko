@@ -15,9 +15,10 @@ import com.pandulapeter.kubriko.types.SceneSize
 
 class Ball(
     size: ScenePixel = 20f.scenePixel,
-    speed: ScenePixel = 1.5f.scenePixel,
+    speed: ScenePixel = 0.5f.scenePixel,
 ) : Visible, Dynamic {
 
+    override val canvasIndex = -1
     override val boundingBox: SceneSize = SceneSize(size, size)
     override var position: SceneOffset = SceneOffset.Zero
     private var speedX = speed

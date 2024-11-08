@@ -6,6 +6,7 @@ import com.pandulapeter.kubriko.shaderManager.implementation.extensions.ShaderUn
 
 data class FractalShader(
     private val time: Float = 0f,
+    override val canvasIndex: Int? = null,
 ) : Shader {
     override val code = """
     uniform float2 ${ShaderManager.UNIFORM_RESOLUTION};
