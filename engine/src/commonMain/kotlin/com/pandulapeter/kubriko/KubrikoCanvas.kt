@@ -43,7 +43,7 @@ fun KubrikoCanvas(
     LaunchedEffect(Unit) {
         while (isActive) {
             withFrameNanos { gameTimeInNanos ->
-                val deltaTimeInMillis = (gameTimeInNanos - gameTime.value) / 1000000f
+                val deltaTimeInMillis = if (gameTime.value == 0L) 0f else (gameTimeInNanos - gameTime.value) / 1000000f
                 lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED).let(kubrikoImpl.stateManager::updateFocus)
                 kubrikoImpl.managers.forEach { it.onUpdate(deltaTimeInMillis, gameTimeInNanos) }
                 gameTime.value = gameTimeInNanos

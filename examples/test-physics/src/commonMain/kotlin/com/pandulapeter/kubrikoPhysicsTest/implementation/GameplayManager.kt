@@ -43,6 +43,6 @@ internal class GameplayManager : Manager() {
     }
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
-        world.step(0.1) // TODO: Should be in function of deltaTimeInMillis
+        world.step(deltaTimeInMillis / 100.0)
     }
 }
