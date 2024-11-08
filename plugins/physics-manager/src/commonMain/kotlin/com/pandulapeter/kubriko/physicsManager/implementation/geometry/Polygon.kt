@@ -30,15 +30,15 @@ class Polygon : Shape {
     /**
      * Constructor to generate a rectangle.
      *
-     * @param width  Desired width of rectangle
-     * @param height Desired height of rectangle
+     * @param halfWidth  Desired width of rectangle
+     * @param halfHeight Desired height of rectangle
      */
-    constructor(width: Double, height: Double) {
+    constructor(halfWidth: Double, halfHeight: Double) {
         vertices = arrayOf(
-            Vec2(-width, -height),
-            Vec2(width, -height),
-            Vec2(width, height),
-            Vec2(-width, height)
+            Vec2(-halfWidth, -halfHeight),
+            Vec2(halfWidth, -halfHeight),
+            Vec2(halfWidth, halfHeight),
+            Vec2(-halfWidth, halfHeight)
         )
         normals = arrayOf(
             Vec2(0.0, -1.0),

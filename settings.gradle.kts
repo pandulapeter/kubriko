@@ -19,6 +19,7 @@ include(
     ":examples:game-pong",
     ":examples:test-keyboard-input",
     ":examples:test-performance",
+    ":examples:test-physics",
     ":plugins:keyboard-input-manager",
     ":plugins:physics-manager",
     ":plugins:serialization-manager",
