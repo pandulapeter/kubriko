@@ -9,7 +9,7 @@ import com.pandulapeter.kubriko.types.ScenePixel
  * [Actor]s that want to be drawn on the Scene should implement this interface.
  * A [Visible] actor must also be [Positionable].
  */
-interface Visible : Positionable, Actor {
+interface Visible : Positionable, CanvasAware, Actor {
 
     /**
      * The angle of the rotation transformation that will be applied to the  drawing scope.

@@ -31,7 +31,7 @@ internal class KeyboardInputManagerImpl : KeyboardInputManager() {
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require<ActorManager>()
         stateManager = kubriko.require<StateManager>()
-        keyboardInputAwareActors.value // Make sure the listeners are initialized TODO: HACK
+        keyboardInputAwareActors.value // Make sure the listeners are initialized TODO: HACK - custom delegates instead of Lazy could be a fix
         stateManager.isFocused
             .filterNot { it }
             .onEach { activeKeysCache.forEach(::onKeyReleased) }
