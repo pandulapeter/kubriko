@@ -63,7 +63,6 @@ fun KubrikoCanvas(
             .fold(modifier.fillMaxSize().clipToBounds()) { compoundModifier, managerModifier -> compoundModifier then managerModifier }
             .onSizeChanged { kubrikoImpl.viewportManager.updateSize(it.toSize()) },
     ) {
-        // TODO: Draw multiple Canvases
         kubrikoImpl.viewportManager.cameraPosition.value.let { viewportCenter ->
             kubrikoImpl.actorManager.canvasAwareActors.value.groupBy { it.canvasIndex }.let { canvasGroups ->
                 canvasGroups.keys.sortedByDescending { it }.forEach { canvasIndex ->

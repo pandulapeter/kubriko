@@ -20,13 +20,13 @@ internal class GameplayManager : Manager() {
             actors = ((0..50).map {
                 BouncyBall(
                     radius = (10..50).random().toFloat().scenePixel,
-                    position = SceneOffset(
+                    initialPosition = SceneOffset(
                         x = (-0..0).random().toFloat().scenePixel,
                         y = (-1200..1200).random().toFloat().scenePixel,
                     ),
                 )
             } + Platform(
-                position = SceneOffset(0f.scenePixel, 350f.scenePixel),
+                initialPosition = SceneOffset(0f.scenePixel, 350f.scenePixel),
                 boundingBox = SceneSize(1200f.scenePixel, 40f.scenePixel),
             )).toTypedArray()
         )

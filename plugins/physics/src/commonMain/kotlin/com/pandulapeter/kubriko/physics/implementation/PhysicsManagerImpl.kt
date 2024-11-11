@@ -1,9 +1,7 @@
 package com.pandulapeter.kubriko.physics.implementation
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.implementation.extensions.require
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.physics.PhysicsManager
 import com.pandulapeter.kubriko.physics.RigidBody
@@ -26,11 +24,6 @@ internal class PhysicsManagerImpl(
         )
     }
     private lateinit var actorManager: ActorManager
-    private val rigidBodies by lazy {
-        actorManager.allActors
-            .map { it.filterIsInstance<RigidBody>() }
-            .stateIn(scope, SharingStarted.Eagerly, emptyList())
-    }
     private val rigidBodiesForPhysicsEngine by lazy {
         actorManager.allActors
             .map { it.filterIsInstance<RigidBody>().map { it.body } }
@@ -44,15 +37,6 @@ internal class PhysicsManagerImpl(
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
         if (deltaTimeInMillis > 0) {
             world.step(deltaTimeInMillis / 100.0)
-            rigidBodies.value.forEach { actor ->
-                actor.position = actor.body.position.let {
-                    SceneOffset(
-                        it.x.toFloat().scenePixel,
-                        it.y.toFloat().scenePixel,
-                    )
-                }
-                actor.rotation = actor.body.orientation.toFloat().rad
-            }
         }
     }
 }

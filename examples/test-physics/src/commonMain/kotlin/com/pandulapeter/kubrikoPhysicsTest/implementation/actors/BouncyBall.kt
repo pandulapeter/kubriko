@@ -18,13 +18,12 @@ import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
 
 class BouncyBall(
-    override var position: SceneOffset,
+    initialPosition: SceneOffset,
     private val radius: ScenePixel,
 ) : RigidBody, Dynamic {
     override val canvasIndex = -1
     override val boundingBox = SceneSize(radius, radius)
-    override val body = Body(Circle(radius.raw.toDouble()), position.x.raw.toDouble(), position.y.raw.toDouble())
-    override var rotation: AngleRadians = AngleRadians.Zero
+    override val body = Body(Circle(radius.raw.toDouble()), initialPosition.x.raw.toDouble(), initialPosition.y.raw.toDouble())
     private lateinit var viewportManager: ViewportManager
 
     override fun onAdd(kubriko: Kubriko) {
@@ -32,9 +31,7 @@ class BouncyBall(
     }
 
     override fun update(deltaTimeInMillis: Float) {
-        body.position = position.wrapWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value).raw.let {
-            Vec2(it.x.toDouble(), it.y.toDouble())
-        }
+        position = position.wrapWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value)
     }
 
     override fun draw(scope: DrawScope) {
