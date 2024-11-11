@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.input.key.Key
 import kotlinx.browser.window
-import org.w3c.dom.events.EventListener
+import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 
 @Composable
@@ -15,18 +15,16 @@ internal actual fun rememberKeyboardEventHandler(
     object : KeyboardEventHandler {
 
         private val pressedKeys = mutableSetOf<String>() // Track keys that are currently pressed
-
-        private val keyDownListener = EventListener { event ->
+        private val keyDownListener: (Event) -> Unit = { event ->
             (event as? KeyboardEvent)?.let { keyboardEvent ->
-                if (pressedKeys.add(keyboardEvent.code)) { // Only add if not already pressed
+                if (pressedKeys.add(keyboardEvent.code)) {
                     onKeyPressed(mapKeyboardEventCodeToKey(keyboardEvent.code))
                 }
             }
         }
-
-        private val keyUpListener = EventListener { event ->
+        private val keyUpListener: (Event) -> Unit = { event ->
             (event as? KeyboardEvent)?.let { keyboardEvent ->
-                if (pressedKeys.remove(keyboardEvent.code)) { // Only remove if it was pressed
+                if (pressedKeys.remove(keyboardEvent.code)) {
                     onKeyReleased(mapKeyboardEventCodeToKey(keyboardEvent.code))
                 }
             }
