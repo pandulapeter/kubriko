@@ -11,8 +11,8 @@ import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
  * @param direction  The direction of the ray points in radians.
  * @param distance   The distance the ray is projected
  */
-class Ray(var startPoint: Vec2, direction: Vec2, distance: Double) {
-    val distance: Double
+class Ray(var startPoint: Vec2, direction: Vec2, distance: Float) {
+    val distance: Float
 
     /**
      * Gets the direction of the ray in radians.
@@ -28,7 +28,7 @@ class Ray(var startPoint: Vec2, direction: Vec2, distance: Double) {
      * @param direction The direction of the ray points in radians.
      * @param distance  The distance the ray is projected
      */
-    constructor(direction: Double, distance: Double) : this(
+    constructor(direction: Float, distance: Float) : this(
         Vec2(),
         Vec2(direction), distance
     )
@@ -40,7 +40,7 @@ class Ray(var startPoint: Vec2, direction: Vec2, distance: Double) {
      * @param direction The direction of the ray points.
      * @param distance  The distance the ray is projected
      */
-    constructor(direction: Vec2, distance: Double) : this(Vec2(), direction, distance)
+    constructor(direction: Vec2, distance: Float) : this(Vec2(), direction, distance)
 
     /**
      * Convenience constructor. Similar to
@@ -50,7 +50,7 @@ class Ray(var startPoint: Vec2, direction: Vec2, distance: Double) {
      * @param direction  The direction of the ray points in radians.
      * @param distance   The distance the ray is projected
      */
-    constructor(startPoint: Vec2, direction: Double, distance: Double) : this(
+    constructor(startPoint: Vec2, direction: Float, distance: Float) : this(
         startPoint,
         Vec2(direction),
         distance
@@ -72,9 +72,9 @@ class Ray(var startPoint: Vec2, direction: Vec2, distance: Double) {
     fun updateProjection(bodiesToEvaluate: ArrayList<TranslatableBody>) {
         rayInformation = null
         val endPoint = direction.scalar(distance).plus(startPoint)
-        var minT1 = Double.POSITIVE_INFINITY
-        var minPx = 0.0
-        var minPy = 0.0
+        var minT1 = Float.POSITIVE_INFINITY
+        var minPx = 0f
+        var minPy = 0f
         var intersectionFound = false
         var closestBody: TranslatableBody? = null
         for (body in bodiesToEvaluate) {

@@ -33,7 +33,7 @@ class Polygon : Shape {
      * @param halfWidth  Desired width of rectangle
      * @param halfHeight Desired height of rectangle
      */
-    constructor(halfWidth: Double, halfHeight: Double) {
+    constructor(halfWidth: Float, halfHeight: Float) {
         vertices = arrayOf(
             Vec2(-halfWidth, -halfHeight),
             Vec2(halfWidth, -halfHeight),
@@ -41,10 +41,10 @@ class Polygon : Shape {
             Vec2(-halfWidth, halfHeight)
         )
         normals = arrayOf(
-            Vec2(0.0, -1.0),
-            Vec2(1.0, 0.0),
-            Vec2(0.0, 1.0),
-            Vec2(-1.0, 0.0)
+            Vec2(0f, -1f),
+            Vec2(1f, 0f),
+            Vec2(0f, 1f),
+            Vec2(-1f, 0f)
         )
     }
 
@@ -57,7 +57,7 @@ class Polygon : Shape {
     constructor(radius: Int, noOfSides: Int) {
         val vertices = MutableList(noOfSides) { Vec2() }
         for (i in 0 until noOfSides) {
-            val angle = 2 * PI / noOfSides * (i + 0.75)
+            val angle = 2 * PI.toFloat() / noOfSides * (i + 0.75f)
             val pointX = radius * cos(angle)
             val pointY = radius * sin(angle)
             vertices[i] = Vec2(pointX, pointY)
@@ -83,35 +83,35 @@ class Polygon : Shape {
      *
      * @param density The desired density to factor into the calculation.
      */
-    override fun calcMass(density: Double) {
+    override fun calcMass(density: Float) {
         val physicalBody = this.body
         if (physicalBody !is PhysicalBodyInterface) return
         var centroidDistVec: Vec2? =
-            Vec2(0.0, 0.0)
-        var area = 0.0
-        var inertia = 0.0
-        val k = 1.0 / 3.0
+            Vec2(0f, 0f)
+        var area = 0f
+        var inertia = 0f
+        val k = 1f / 3f
         for (i in vertices.indices) {
             val point1 = vertices[i]
             val point2 = vertices[(i + 1) % vertices.size]
             val areaOfParallelogram = point1.cross(point2)
-            val triangleArea = 0.5 * areaOfParallelogram
+            val triangleArea = 0.5f * areaOfParallelogram
             area += triangleArea
             val weight = triangleArea * k
             centroidDistVec!!.add(point1.scalar(weight))
             centroidDistVec.add(point2.scalar(weight))
             val intx2 = point1.x * point1.x + point2.x * point1.x + point2.x * point2.x
             val inty2 = point1.y * point1.y + point2.y * point1.y + point2.y * point2.y
-            inertia += 0.25 * k * areaOfParallelogram * (intx2 + inty2)
+            inertia += 0.25f * k * areaOfParallelogram * (intx2 + inty2)
         }
-        centroidDistVec = centroidDistVec!!.scalar(1.0 / area)
+        centroidDistVec = centroidDistVec!!.scalar(1f / area)
         for (i in vertices.indices) {
             vertices[i] = vertices[i].minus(centroidDistVec)
         }
         physicalBody.mass = density * area
-        physicalBody.invMass = if (physicalBody.mass != 0.0) 1.0 / physicalBody.mass else 0.0
+        physicalBody.invMass = if (physicalBody.mass != 0f) 1f / physicalBody.mass else 0f
         physicalBody.inertia = inertia * density
-        physicalBody.invInertia = if (physicalBody.inertia != 0.0) 1.0 / physicalBody.inertia else 0.0
+        physicalBody.invInertia = if (physicalBody.inertia != 0f) 1f / physicalBody.inertia else 0f
     }
 
     /**
@@ -154,7 +154,7 @@ class Polygon : Shape {
     private fun generateHull(vertices: Array<Vec2>, n: Int): Array<Vec2> {
         val hull = ArrayList<Vec2>()
         var firstPointIndex = 0
-        var minX = Double.MAX_VALUE
+        var minX = Float.MAX_VALUE
         for (i in 0 until n) {
             val x = vertices[i].x
             if (x < minX) {
@@ -191,7 +191,7 @@ class Polygon : Shape {
      */
     private fun sideOfLine(p1: Vec2, p2: Vec2, point: Vec2): Int {
         val value = (p2.y - p1.y) * (point.x - p2.x) - (p2.x - p1.x) * (point.y - p2.y)
-        return if (value > 0) 1 else if (value == 0.0) 0 else -1
+        return if (value > 0) 1 else if (value == 0f) 0 else -1
     }
 
     /**
@@ -217,9 +217,9 @@ class Polygon : Shape {
         return true
     }
 
-    override fun rayIntersect(startPoint: Vec2, endPoint: Vec2, maxDistance: Double, rayLength: Double): IntersectionReturnElement {
-        var minPx = 0.0
-        var minPy = 0.0
+    override fun rayIntersect(startPoint: Vec2, endPoint: Vec2, maxDistance: Float, rayLength: Float): IntersectionReturnElement {
+        var minPx = 0f
+        var minPy = 0f
         var intersectionFound = false
         var closestBody: TranslatableBody? = null
         var maxD = maxDistance

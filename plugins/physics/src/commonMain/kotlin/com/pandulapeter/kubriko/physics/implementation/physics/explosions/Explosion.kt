@@ -12,7 +12,7 @@ interface Explosion {
      *
      * @param blastPower The impulse magnitude.
      */
-    fun applyBlastImpulse(blastPower: Double)
+    fun applyBlastImpulse(blastPower: Float)
 
     /**
      * Updates the arraylist to reevaluate what objects are effected/within the proximity.

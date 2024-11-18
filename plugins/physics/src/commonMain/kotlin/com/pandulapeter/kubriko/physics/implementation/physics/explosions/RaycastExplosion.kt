@@ -13,7 +13,7 @@ import com.pandulapeter.kubriko.physics.implementation.physics.rays.RayInformati
  * @param distance    Distance of projected rays.
  * @param worldBodies The world the rays effect and are projected in.
  */
-class RaycastExplosion(epicentre: Vec2, noOfRays: Int, distance: Double, worldBodies: ArrayList<TranslatableBody>) : Explosion {
+class RaycastExplosion(epicentre: Vec2, noOfRays: Int, distance: Float, worldBodies: ArrayList<TranslatableBody>) : Explosion {
     val rayScatter: RayScatter
 
     /**
@@ -55,11 +55,11 @@ class RaycastExplosion(epicentre: Vec2, noOfRays: Int, distance: Double, worldBo
      *
      * @param blastPower The impulse magnitude.
      */
-    override fun applyBlastImpulse(blastPower: Double) {
+    override fun applyBlastImpulse(blastPower: Float) {
         for (ray in raysInContact) {
             val blastDir = ray.coordinates.minus(rayScatter.epicentre)
             val distance = blastDir.length()
-            if (distance == 0.0) return
+            if (distance == 0f) return
             val invDistance = 1 / distance
             val impulseMag = blastDir.normalize().scalar(blastPower * invDistance)
             val b = ray.b

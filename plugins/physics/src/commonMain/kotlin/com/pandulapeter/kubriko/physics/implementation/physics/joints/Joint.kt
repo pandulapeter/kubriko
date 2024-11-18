@@ -16,9 +16,9 @@ import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
  */
 abstract class Joint protected constructor(
     protected val body: Body,
-    protected val naturalLength: Double,
-    protected val springConstant: Double,
-    protected val dampeningConstant: Double,
+    protected val naturalLength: Float,
+    protected val springConstant: Float,
+    protected val dampeningConstant: Float,
     protected val canGoSlack: Boolean,
     protected val offset: Vec2
 ) {
@@ -39,11 +39,11 @@ abstract class Joint protected constructor(
      *
      * @return double value of the tension force between two points/bodies
      */
-    abstract fun calculateTension(): Double
+    abstract fun calculateTension(): Float
 
     /**
      * Determines the rate of change between two objects/points.
      * @return double value of the rate of change
      */
-    abstract fun rateOfChangeOfExtension(): Double
+    abstract fun rateOfChangeOfExtension(): Float
 }

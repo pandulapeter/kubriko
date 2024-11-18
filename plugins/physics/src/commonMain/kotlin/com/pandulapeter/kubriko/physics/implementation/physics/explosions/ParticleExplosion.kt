@@ -5,6 +5,7 @@ import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.World
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Mat2
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
+import kotlin.math.PI
 
 /**
  * Models particle explosions.
@@ -13,13 +14,13 @@ import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
  * @param noOfParticles Total number of particles the explosion has.
  * @param lifespan          The life time of the particle.
  */
-class ParticleExplosion(private val epicentre: Vec2, private val noOfParticles: Int, private val lifespan: Double) {
+class ParticleExplosion(private val epicentre: Vec2, private val noOfParticles: Int, private val lifespan: Float) {
     /**
      * Getter to return the list of particles in the world.
      *
      * @return Array of bodies.
      */
-    val particles = MutableList(noOfParticles) { Body(Circle(.0), .0, .0) }
+    val particles = MutableList(noOfParticles) { Body(Circle(0f), 0f, 0f) }
 
     /**
      * Creates particles in the supplied world.
@@ -29,19 +30,19 @@ class ParticleExplosion(private val epicentre: Vec2, private val noOfParticles: 
      * @param radius  The distance away from the epicenter the particles are placed.
      * @param world   The world the particles are created in.
      */
-    fun createParticles(size: Double, density: Int, radius: Int, world: World) {
-        val separationAngle = 6.28319 / noOfParticles
-        val distanceFromCentre = Vec2(.0, radius.toDouble())
+    fun createParticles(size: Float, density: Int, radius: Int, world: World) {
+        val separationAngle = (PI.toFloat() * 2) / noOfParticles
+        val distanceFromCentre = Vec2(0f, radius.toFloat())
         val rotate = Mat2(separationAngle)
         for (i in 0 until noOfParticles) {
             val particlePlacement = epicentre.plus(distanceFromCentre)
             val b = Body(Circle(size), particlePlacement.x, particlePlacement.y)
-            b.density = density.toDouble()
-            b.restitution = 1.0
-            b.staticFriction = 0.0
-            b.dynamicFriction = 0.0
+            b.density = density.toFloat()
+            b.restitution = 1f
+            b.staticFriction = 0f
+            b.dynamicFriction = 0f
             b.affectedByGravity = false
-            b.linearDampening = 0.0
+            b.linearDampening = 0f
             b.particle = true
             world.addBody(b)
             particles[i] = b
@@ -54,7 +55,7 @@ class ParticleExplosion(private val epicentre: Vec2, private val noOfParticles: 
      *
      * @param blastPower The impulse magnitude.
      */
-    fun applyBlastImpulse(blastPower: Double) {
+    fun applyBlastImpulse(blastPower: Float) {
         var line: Vec2
         for (b in particles) {
             line = b.position.minus(epicentre)

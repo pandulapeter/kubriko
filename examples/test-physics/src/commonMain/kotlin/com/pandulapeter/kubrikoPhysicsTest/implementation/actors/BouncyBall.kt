@@ -23,7 +23,7 @@ class BouncyBall(
 ) : RigidBody, Dynamic {
     override val canvasIndex = -1
     override val boundingBox = SceneSize(radius, radius)
-    override val body = Body(Circle(radius.raw.toDouble()), initialPosition.x.raw.toDouble(), initialPosition.y.raw.toDouble())
+    override val body = Body(Circle(radius.raw), initialPosition.x.raw, initialPosition.y.raw)
     private lateinit var viewportManager: ViewportManager
 
     override fun onAdd(kubriko: Kubriko) {

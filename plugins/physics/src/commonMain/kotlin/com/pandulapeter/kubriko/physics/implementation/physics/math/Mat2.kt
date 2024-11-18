@@ -17,7 +17,7 @@ class Mat2 {
      * Constructs and sets the matrix up to be a rotation matrix that stores the angle specified in the matrix.
      * @param radians The desired angle of the rotation matrix
      */
-    constructor(radians: Double) {
+    constructor(radians: Float) {
         this.set(radians)
     }
 
@@ -25,7 +25,7 @@ class Mat2 {
      * Sets the matrix up to be a rotation matrix that stores the angle specified in the matrix.
      * @param radians The desired angle of the rotation matrix
      */
-    fun set(radians: Double) {
+    fun set(radians: Float) {
         val c = cos(radians)
         val s = sin(radians)
         row1.x = c

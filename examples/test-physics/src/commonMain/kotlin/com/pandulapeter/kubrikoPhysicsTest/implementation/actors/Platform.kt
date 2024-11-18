@@ -16,10 +16,10 @@ class Platform(
 ) : RigidBody, Dynamic {
     override val canvasIndex = -1
     override val body = Body(
-        Polygon(boundingBox.width.raw / 2.0, boundingBox.height.raw / 2.0),
-        initialPosition.x.raw.toDouble(),
-        initialPosition.y.raw.toDouble(),
-    ).apply { density = 0.0 }
+        Polygon(boundingBox.width.raw / 2f, boundingBox.height.raw / 2f),
+        initialPosition.x.raw,
+        initialPosition.y.raw,
+    ).apply { density = 0f }
 
     override fun update(deltaTimeInMillis: Float) {
         rotation += (0.002 * deltaTimeInMillis).toFloat().rad

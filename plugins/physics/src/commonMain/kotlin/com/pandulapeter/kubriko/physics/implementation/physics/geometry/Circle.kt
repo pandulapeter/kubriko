@@ -15,19 +15,19 @@ class Circle
  * Constructor for a circle.
  *
  * @param radius Desired radius of the circle.
- */(var radius: Double) : Shape() {
+ */(var radius: Float) : Shape() {
     /**
      * Calculates the mass of a circle.
      *
      * @param density The desired density to factor into the calculation.
      */
-    override fun calcMass(density: Double) {
+    override fun calcMass(density: Float) {
         val physicalBody = this.body
         if (physicalBody !is PhysicalBodyInterface) return
-        physicalBody.mass = PI * radius * radius * density
-        physicalBody.invMass = if (physicalBody.mass != 0.0) 1.0f / physicalBody.mass else 0.0
+        physicalBody.mass = PI.toFloat() * radius * radius * density
+        physicalBody.invMass = if (physicalBody.mass != 0f) 1.0f / physicalBody.mass else 0f
         physicalBody.inertia = physicalBody.mass * radius * radius
-        physicalBody.invInertia = if (physicalBody.inertia != 0.0) 1.0f / physicalBody.inertia else 0.0
+        physicalBody.invInertia = if (physicalBody.inertia != 0f) 1.0f / physicalBody.inertia else 0f
     }
 
     /**
@@ -51,9 +51,9 @@ class Circle
         return d.length() <= radius
     }
 
-    override fun rayIntersect(startPoint: Vec2, endPoint: Vec2, maxDistance: Double, rayLength: Double): IntersectionReturnElement {
-        var minPx = 0.0
-        var minPy = 0.0
+    override fun rayIntersect(startPoint: Vec2, endPoint: Vec2, maxDistance: Float, rayLength: Float): IntersectionReturnElement {
+        var minPx = 0f
+        var minPy = 0f
         var intersectionFound = false
         var closestBody: TranslatableBody? = null
         var maxD = maxDistance
@@ -69,7 +69,7 @@ class Circle
         if (discriminant >= 0) {
             discriminant = sqrt(discriminant)
             val t1 = (-b - discriminant) / (2 * a)
-            if (t1 in 0.0..1.0) {
+            if (t1 in 0f..1f) {
                 if (t1 < maxDistance) {
                     maxD = t1
                     minPx = startPoint.x + endPoint.x * t1

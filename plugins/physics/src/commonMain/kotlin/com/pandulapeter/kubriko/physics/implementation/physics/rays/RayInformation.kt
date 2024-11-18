@@ -37,7 +37,7 @@ class RayInformation {
      * @param y     y position of intersection.
      * @param index Index of shapes side that intersection intersects.
      */
-    constructor(b: TranslatableBody, x: Double, y: Double, index: Int) {
+    constructor(b: TranslatableBody, x: Float, y: Float, index: Int) {
         this.b = b
         coordinates = Vec2(x, y)
         this.index = index

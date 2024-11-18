@@ -7,16 +7,16 @@ interface PhysicalBodyInterface :
     TranslatableBody {
     var velocity: Vec2
     var force: Vec2
-    var angularVelocity: Double
-    var torque: Double
-    var restitution: Double
-    var density: Double
-    var mass: Double
-    var invMass: Double
-    var inertia: Double
-    var invInertia: Double
-    var angularDampening: Double
-    var linearDampening: Double
+    var angularVelocity: Float
+    var torque: Float
+    var restitution: Float
+    var density: Float
+    var mass: Float
+    var invMass: Float
+    var inertia: Float
+    var invInertia: Float
+    var angularDampening: Float
+    var linearDampening: Float
     var affectedByGravity: Boolean
     var particle: Boolean
 

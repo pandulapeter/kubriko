@@ -17,8 +17,8 @@ import kotlin.math.sqrt
  * @param direction  The direction of the ray points in radians.
  * @param distance   The distance the ray is projected
  */
-class Slice(val startPoint: Vec2, direction: Vec2, distance: Double) {
-    var distance: Double
+class Slice(val startPoint: Vec2, direction: Vec2, distance: Float) {
+    var distance: Float
     var direction: Vec2 = direction
         set(value) {
             field = value.minus(startPoint)
@@ -42,8 +42,8 @@ class Slice(val startPoint: Vec2, direction: Vec2, distance: Double) {
         val endPoint = direction.scalar(distance)
         val endX = endPoint.x
         val endY = endPoint.y
-        var minPx: Double
-        var minPy: Double
+        var minPx: Float
+        var minPy: Float
         var noOfIntersections = 0
         for (body in bodiesToEvaluate) {
             if (body !is CollisionBodyInterface) continue
@@ -58,11 +58,11 @@ class Slice(val startPoint: Vec2, direction: Vec2, distance: Double) {
                     val dy = endOfPolyEdge.y - startOfPolyEdge.y
 
                     //Check to see if the lines are not parallel
-                    if (dx - endX != 0.0 && dy - endY != 0.0) {
+                    if (dx - endX != 0f && dy - endY != 0f) {
                         val t2 =
                             (endX * (startOfPolyEdge.y - startPoint.y) + endY * (startPoint.x - startOfPolyEdge.x)) / (dx * endY - dy * endX)
                         val t1 = (startOfPolyEdge.x + dx * t2 - startPoint.x) / endX
-                        if (t1 > 0 && t2 >= 0 && t2 <= 1.0) {
+                        if (t1 > 0 && t2 >= 0 && t2 <= 1f) {
                             val point = Vec2(startPoint.x + endX * t1, startPoint.y + endY * t1)
                             val dist = point.minus(startPoint).length()
                             if (dist < distance) {
@@ -87,13 +87,13 @@ class Slice(val startPoint: Vec2, direction: Vec2, distance: Double) {
                 if (discriminant > 0) {
                     discriminant = sqrt(discriminant)
                     val t1 = (-b - discriminant) / (2 * a)
-                    if (t1 in 0.0..1.0) {
+                    if (t1 in 0f..1f) {
                         minPx = startPoint.x + endX * t1
                         minPy = startPoint.y + endY * t1
                         intersectingBodiesInfo.add(RayInformation(body, minPx, minPy, -1))
                     }
                     val t2 = (-b + discriminant) / (2 * a)
-                    if (t2 in 0.0..1.0) {
+                    if (t2 in 0f..1f) {
                         minPx = startPoint.x + endX * t2
                         minPy = startPoint.y + endY * t2
                         intersectingBodiesInfo.add(RayInformation(body, minPx, minPy, -1))
@@ -118,7 +118,7 @@ class Slice(val startPoint: Vec2, direction: Vec2, distance: Double) {
         while (i < intersectingBodiesInfo.size - k) {
             val b = intersectingBodiesInfo[i].b
             if (b !is CollisionBodyInterface || b !is PhysicalBodyInterface) continue
-            val isStatic = b.mass == 0.0
+            val isStatic = b.mass == 0f
             if (b.shape is Polygon) {
                 val p = b.shape as Polygon
                 val intersection1 = intersectingBodiesInfo[i]
@@ -138,7 +138,7 @@ class Slice(val startPoint: Vec2, direction: Vec2, distance: Double) {
                 }
                 var polyCentre = findPolyCentre(obj1Vertz)
                 val b1 = Body(Polygon(obj1Vertz.toList().toTypedArray()), polyCentre.x, polyCentre.y)
-                if (isStatic) b1.density = .0
+                if (isStatic) b1.density = 0f
                 world.addBody(b1)
                 totalVerticesObj1 = secondIndex - obj2firstIndex + 2
                 val obj2Vertz = MutableList(totalVerticesObj1) { Vec2() }
@@ -150,7 +150,7 @@ class Slice(val startPoint: Vec2, direction: Vec2, distance: Double) {
                 obj2Vertz[totalVerticesObj1 - 1] = intersection2.coordinates
                 polyCentre = findPolyCentre(obj2Vertz)
                 val b2 = Body(Polygon(obj2Vertz.toList().toTypedArray()), polyCentre.x, polyCentre.y)
-                if (isStatic) b2.density = .0
+                if (isStatic) b2.density = 0f
                 world.addBody(b2)
             }
             world.removeBody(b)
@@ -165,9 +165,9 @@ class Slice(val startPoint: Vec2, direction: Vec2, distance: Double) {
      * @return Center of mass of type Vec2.
      */
     private fun findPolyCentre(obj2Vertz: MutableList<Vec2>): Vec2 {
-        var accumulatedArea = 0.0
-        var centerX = 0.0
-        var centerY = 0.0
+        var accumulatedArea = 0f
+        var centerX = 0f
+        var centerY = 0f
         var i = 0
         var j = obj2Vertz.size - 1
         while (i < obj2Vertz.size) {
@@ -177,8 +177,8 @@ class Slice(val startPoint: Vec2, direction: Vec2, distance: Double) {
             centerY += (obj2Vertz[i].y + obj2Vertz[j].y) * temp
             j = i++
         }
-        if (accumulatedArea == 0.0) return Vec2()
-        accumulatedArea *= 3.0
+        if (accumulatedArea == 0f) return Vec2()
+        accumulatedArea *= 3f
         return Vec2(centerX / accumulatedArea, centerY / accumulatedArea)
     }
 }

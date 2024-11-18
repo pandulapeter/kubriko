@@ -19,7 +19,7 @@ internal class PhysicsManagerImpl(
 
     private val world by lazy {
         World(
-            gravity = Vec2(gravity.x.raw.toDouble(), gravity.y.raw.toDouble()),
+            gravity = Vec2(gravity.x.raw, gravity.y.raw),
             getRigidBodies = { rigidBodiesForPhysicsEngine.value }
         )
     }
@@ -36,7 +36,7 @@ internal class PhysicsManagerImpl(
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
         if (deltaTimeInMillis > 0) {
-            world.step(deltaTimeInMillis / 100.0)
+            world.step(deltaTimeInMillis / 100f)
         }
     }
 }

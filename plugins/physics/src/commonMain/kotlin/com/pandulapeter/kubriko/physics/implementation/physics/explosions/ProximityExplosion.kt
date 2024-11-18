@@ -61,13 +61,13 @@ class ProximityExplosion
      *
      * @param blastPower Blast magnitude.
      */
-    override fun applyBlastImpulse(blastPower: Double) {
+    override fun applyBlastImpulse(blastPower: Float) {
         for (b in bodiesEffected) {
             if (b !is PhysicalBodyInterface) continue
 
             val blastDir = b.position.minus(epicentre)
             val distance = blastDir.length()
-            if (distance == 0.0) return
+            if (distance == 0f) return
 
             //Not physically correct as it should be blast * radius to object ^ 2 as the pressure of an explosion in 2D dissipates
             val invDistance = 1 / distance

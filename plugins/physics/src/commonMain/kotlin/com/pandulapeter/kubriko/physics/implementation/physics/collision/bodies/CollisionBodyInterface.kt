@@ -6,8 +6,8 @@ import com.pandulapeter.kubriko.physics.implementation.physics.geometry.bodies.T
 
 interface CollisionBodyInterface : TranslatableBody {
     var shape: Shape
-    var dynamicFriction: Double
-    var staticFriction: Double
-    var orientation: Double
+    var dynamicFriction: Float
+    var staticFriction: Float
+    var orientation: Float
     var aabb: AxisAlignedBoundingBox
 }

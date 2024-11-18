@@ -13,11 +13,11 @@ import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
  * @param x     Position x in world space.
  * @param y     Position y in world space.
  */
-class Body(override var shape: Shape, x: Double, y: Double) : AbstractPhysicalBody(), CollisionBodyInterface {
+class Body(override var shape: Shape, x: Float, y: Float) : AbstractPhysicalBody(), CollisionBodyInterface {
     override var position: Vec2 = Vec2(x, y)
-    override var dynamicFriction = .2
-    override var staticFriction = .5
-    override var orientation = .0
+    override var dynamicFriction = 0.2f
+    override var staticFriction = 0.5f
+    override var orientation = 0f
         set(value) {
             field = value
             shape.orientation.set(orientation)

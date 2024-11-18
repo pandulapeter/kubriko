@@ -68,7 +68,7 @@ class World(
      *
      * @param dt Timestep
      */
-    fun step(dt: Double) {
+    fun step(dt: Float) {
         contacts.clear()
         broadPhaseCheck()
         semiImplicit(dt)
@@ -84,7 +84,7 @@ class World(
      *
      * @param dt Timestep
      */
-    private fun semiImplicit(dt: Double) {
+    private fun semiImplicit(dt: Float) {
         //Applies tentative velocities
         applyForces(dt)
         solve()
@@ -92,15 +92,15 @@ class World(
         //Integrate positions
         for (b in getRigidBodies()) {
             if (b !is PhysicalBodyInterface) continue
-            if (b.invMass == 0.0) {
+            if (b.invMass == 0f) {
                 continue
             }
             b.position.add(b.velocity.scalar(dt))
             if (b is CollisionBodyInterface) {
                 b.orientation = b.orientation + dt * b.angularVelocity
             }
-            b.force[0.0] = 0.0
-            b.torque = 0.0
+            b.force[0f] = 0f
+            b.torque = 0f
         }
     }
 
@@ -109,10 +109,10 @@ class World(
      *
      * @param dt Timestep
      */
-    private fun applyForces(dt: Double) {
+    private fun applyForces(dt: Float) {
         for (b in getRigidBodies()) {
             if (b !is PhysicalBodyInterface) continue
-            if (b.invMass == 0.0) {
+            if (b.invMass == 0f) {
                 continue
             }
             applyLinearDrag(b)
@@ -171,7 +171,7 @@ class World(
                 if (a !is CollisionBodyInterface || b !is CollisionBodyInterface) continue
 
                 //Ignores static or particle objects
-                if (a is PhysicalBodyInterface && b is PhysicalBodyInterface && (a.invMass == 0.0 && b.invMass == 0.0 || a.particle && b.particle)) {
+                if (a is PhysicalBodyInterface && b is PhysicalBodyInterface && (a.invMass == 0f && b.invMass == 0f || a.particle && b.particle)) {
                     continue
                 }
                 if (AxisAlignedBoundingBox.aabbOverlap(a, b)) {
@@ -216,7 +216,7 @@ class World(
                 val bodyB = bodies[b]
                 if (bodyB !is PhysicalBodyInterface || bodyA !is PhysicalBodyInterface) continue
                 val distance = bodyA.position.distance(bodyB.position)
-                val force = 6.67.pow(-11.0) * bodyA.mass * bodyB.mass / (distance * distance)
+                val force = 6.67f.pow(-11f) * bodyA.mass * bodyB.mass / (distance * distance)
                 var direction: Vec2? =
                     Vec2(bodyB.position.x - bodyA.position.x, bodyB.position.y - bodyA.position.y)
                 direction = direction!!.scalar(force)

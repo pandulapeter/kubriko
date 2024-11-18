@@ -17,7 +17,7 @@ abstract class Shape {
      *
      * @param density The desired density to factor into the calculation.
      */
-    abstract fun calcMass(density: Double)
+    abstract fun calcMass(density: Float)
 
     /**
      * Generates an AABB for the shape.
@@ -33,9 +33,9 @@ abstract class Shape {
      * @param endPoint The end point of the ray.
      * @param maxDistance The ray information.
      * @param rayInformation The object to store the information in.
-     * @return Double Returns the distance to the intersection point. maxDistance if no intersection was found.
+     * @return Float Returns the distance to the intersection point. maxDistance if no intersection was found.
      */
-    abstract fun rayIntersect(startPoint: Vec2, endPoint: Vec2, maxDistance: Double, rayLength: Double): IntersectionReturnElement
+    abstract fun rayIntersect(startPoint: Vec2, endPoint: Vec2, maxDistance: Float, rayLength: Float): IntersectionReturnElement
 
-    class IntersectionReturnElement(val minPx: Double, val minPy: Double, val intersectionFound: Boolean, val closestBody: TranslatableBody?, val maxDistance: Double)
+    class IntersectionReturnElement(val minPx: Float, val minPy: Float, val intersectionFound: Boolean, val closestBody: TranslatableBody?, val maxDistance: Float)
 }

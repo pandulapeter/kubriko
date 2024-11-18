@@ -13,13 +13,13 @@ interface RigidBody : Visible, Actor {
 
     val body: Body
     override var rotation: AngleRadians
-        get() = body.orientation.toFloat().rad
+        get() = body.orientation.rad
         set(value) {
-            body.orientation = value.normalized.toDouble()
+            body.orientation = value.normalized
         }
     override var position: SceneOffset
-        get() = body.position.let { SceneOffset(it.x.toFloat().scenePixel, it.y.toFloat().scenePixel) }
+        get() = body.position.let { SceneOffset(it.x.scenePixel, it.y.scenePixel) }
         set(value) {
-            body.position = Vec2(value.x.raw.toDouble(), value.y.raw.toDouble())
+            body.position = Vec2(value.x.raw, value.y.raw)
         }
 }

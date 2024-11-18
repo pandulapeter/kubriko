@@ -8,10 +8,10 @@ import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
 abstract class AbstractPhysicalBody : PhysicalBodyInterface {
     override var velocity = Vec2()
     override var force = Vec2()
-    override var angularVelocity = .0
-    override var torque = .0
-    override var restitution = .8
-    override var density = 1.0
+    override var angularVelocity = 0f
+    override var torque = 0f
+    override var restitution = 0.8f
+    override var density = 1f
         /**
          * Sets the density and calculates the mass depending on it.
          *
@@ -19,7 +19,7 @@ abstract class AbstractPhysicalBody : PhysicalBodyInterface {
          */
         set(value) {
             field = value
-            if (density == .0) {
+            if (density == 0f) {
                 setStatic()
             } else if (this is CollisionBodyInterface) {
                 shape.body = this
@@ -29,17 +29,17 @@ abstract class AbstractPhysicalBody : PhysicalBodyInterface {
                 }
             } else {
                 mass = density * 1000
-                invMass = if (mass != 0.0) 1.0 / mass else 0.0
+                invMass = if (mass != 0f) 1f / mass else 0f
                 inertia *= density
-                invInertia = if (inertia != 0.0) 1.0 / inertia else 0.0
+                invInertia = if (inertia != 0f) 1f / inertia else 0f
             }
         }
-    override var mass = .0
-    override var invMass = .0
-    override var inertia = .0
-    override var invInertia = .0
-    override var angularDampening = .0
-    override var linearDampening = .0
+    override var mass = 0f
+    override var invMass = 0f
+    override var inertia = 0f
+    override var invInertia = 0f
+    override var angularDampening = 0f
+    override var linearDampening = 0f
     override var affectedByGravity = true
     override var particle = false
 
@@ -87,9 +87,9 @@ abstract class AbstractPhysicalBody : PhysicalBodyInterface {
      * Sets all mass and inertia variables to zero. Object cannot be moved.
      */
     override fun setStatic() {
-        mass = 0.0
-        invMass = 0.0
-        inertia = 0.0
-        invInertia = 0.0
+        mass = 0f
+        invMass = 0f
+        inertia = 0f
+        invInertia = 0f
     }
 }

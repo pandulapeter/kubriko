@@ -19,7 +19,7 @@ class ShadowCasting
  *
  * @param startPoint Origin of projecting rays.
  * @param distance   The desired distance to project the rays.
- */(var startPoint: Vec2, private val distance: Double) {
+ */(var startPoint: Vec2, private val distance: Float) {
 
     val rayData = ArrayList<RayAngleInformation>()
 
@@ -65,7 +65,7 @@ class ShadowCasting
      * @param bodiesToEvaluate Arraylist of bodies to check if they intersect with the ray projection.
      */
     private fun projectRays(direction: Vec2, bodiesToEvaluate: ArrayList<TranslatableBody>) {
-        val m = Mat2(0.001)
+        val m = Mat2(0.001f)
         m.transpose().mul(direction)
         for (i in 0..2) {
             val ray = Ray(startPoint, direction, distance)
@@ -105,5 +105,5 @@ class RayAngleInformation
      *
      * @return returns ANGLE.
      */
-    val angle: Double
+    val angle: Float
 )

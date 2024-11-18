@@ -22,9 +22,9 @@ class JointToPoint
  */(
     b1: Body,
     val pointAttachedTo: Vec2,
-    jointLength: Double,
-    jointConstant: Double,
-    dampening: Double,
+    jointLength: Float,
+    jointConstant: Float,
+    dampening: Float,
     canGoSlack: Boolean,
     offset: Vec2
 ) : Joint(b1, jointLength, jointConstant, dampening, canGoSlack, offset) {
@@ -47,10 +47,10 @@ class JointToPoint
      *
      * @return double value of the tension force between the point and attached bodies point
      */
-    override fun calculateTension(): Double {
+    override fun calculateTension(): Float {
         val distance = object1AttachmentPoint.minus(pointAttachedTo).length()
         if (distance < naturalLength && canGoSlack) {
-            return .0
+            return 0f
         }
         val extensionRatio = distance - naturalLength
         val tensionDueToHooksLaw = extensionRatio * springConstant
@@ -63,7 +63,7 @@ class JointToPoint
      *
      * @return double value of the rate of change
      */
-    override fun rateOfChangeOfExtension(): Double {
+    override fun rateOfChangeOfExtension(): Float {
         val distance = pointAttachedTo.minus(object1AttachmentPoint)
         distance.normalize()
         val relativeVelocity = body.velocity.copyNegative()
