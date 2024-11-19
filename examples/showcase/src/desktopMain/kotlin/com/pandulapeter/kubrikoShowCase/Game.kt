@@ -7,7 +7,7 @@ import java.awt.Dimension
 fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
-        title = "Showcase",
+        title = "Kubriko Showcase",
     ) {
         window.minimumSize = Dimension(400, 400)
         ShowcaseGame()
