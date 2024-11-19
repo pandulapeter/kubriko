@@ -1,5 +1,6 @@
 package com.pandulapeter.kubrikoShowcase.implementation.shaders
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,42 +52,46 @@ internal fun ShadersShowcase(
                 )
             }
         }
-        Box(
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            KubrikoCanvas(
-                kubriko = kubriko,
-            )
-            when (selectedDemoType.value) {
-                ShaderDemoType.CLOUDS -> Unit
-                ShaderDemoType.FRACTAL -> Card(
-                    modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+        Crossfade(
+            targetState = selectedDemoType.value
+        ) { demoType ->
+            Box(
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                KubrikoCanvas(
+                    kubriko = kubriko,
+                )
+                when (demoType) {
+                    ShaderDemoType.CLOUDS -> Unit
+                    ShaderDemoType.FRACTAL -> Card(
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
                     ) {
-                        val red = gameplayManager.red.collectAsState()
-                        val green = gameplayManager.green.collectAsState()
-                        val blue = gameplayManager.blue.collectAsState()
-                        Slider(
-                            modifier = Modifier.height(24.dp),
-                            value = red.value.toFloat(),
-                            onValueChange = { gameplayManager.setRed(it.roundToInt()) },
-                            valueRange = 0f..20f,
-                        )
-                        Slider(
-                            modifier = Modifier.height(24.dp),
-                            value = green.value.toFloat(),
-                            onValueChange = { gameplayManager.setGreen(it.roundToInt()) },
-                            valueRange = 0f..20f,
-                        )
-                        Slider(
-                            modifier = Modifier.height(24.dp),
-                            value = blue.value.toFloat(),
-                            onValueChange = { gameplayManager.setBlue(it.roundToInt()) },
-                            valueRange = 0f..20f,
-                        )
+                        Column(
+                            modifier = Modifier.padding(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            val red = gameplayManager.red.collectAsState()
+                            val green = gameplayManager.green.collectAsState()
+                            val blue = gameplayManager.blue.collectAsState()
+                            Slider(
+                                modifier = Modifier.height(24.dp),
+                                value = red.value.toFloat(),
+                                onValueChange = { gameplayManager.setRed(it.roundToInt()) },
+                                valueRange = 0f..20f,
+                            )
+                            Slider(
+                                modifier = Modifier.height(24.dp),
+                                value = green.value.toFloat(),
+                                onValueChange = { gameplayManager.setGreen(it.roundToInt()) },
+                                valueRange = 0f..20f,
+                            )
+                            Slider(
+                                modifier = Modifier.height(24.dp),
+                                value = blue.value.toFloat(),
+                                onValueChange = { gameplayManager.setBlue(it.roundToInt()) },
+                                valueRange = 0f..20f,
+                            )
+                        }
                     }
                 }
             }

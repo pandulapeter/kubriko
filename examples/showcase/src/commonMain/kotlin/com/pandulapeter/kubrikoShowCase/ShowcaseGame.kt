@@ -1,5 +1,9 @@
 package com.pandulapeter.kubrikoShowcase
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -31,8 +35,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import kubriko.examples.showcase.generated.resources.Res
-import kubriko.examples.showcase.generated.resources.close
-import kubriko.examples.showcase.generated.resources.ic_close
+import kubriko.examples.showcase.generated.resources.back
+import kubriko.examples.showcase.generated.resources.ic_back
 import kubriko.examples.showcase.generated.resources.kubriko_showcase
 import kubriko.examples.showcase.generated.resources.welcome_message
 import org.jetbrains.compose.resources.painterResource
@@ -55,7 +59,6 @@ fun ShowcaseGame(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Content(
     modifier: Modifier = Modifier,
@@ -66,30 +69,10 @@ private fun Content(
 ) = Scaffold(
     modifier = modifier,
     topBar = {
-        TopAppBar(
-            title = {
-                Text(
-                    text = stringResource(
-                        resource = if (shouldUseCompactUi && selectedShowcaseEntry != null) {
-                            selectedShowcaseEntry.titleStringResource
-                        } else {
-                            Res.string.kubriko_showcase
-                        }
-                    ),
-                )
-            },
-            navigationIcon = {
-                if (shouldUseCompactUi && selectedShowcaseEntry != null) {
-                    Icon(
-                        modifier = modifier
-                            .clip(CircleShape)
-                            .clickable { onShowcaseEntrySelected(null) }
-                            .padding(4.dp),
-                        painter = painterResource(Res.drawable.ic_close),
-                        contentDescription = stringResource(Res.string.close),
-                    )
-                }
-            }
+        HeaderWrapper(
+            shouldUseCompactUi = shouldUseCompactUi,
+            selectedShowcaseEntry = selectedShowcaseEntry,
+            onShowcaseEntrySelected = onShowcaseEntrySelected,
         )
     }
 ) { paddingValues ->
@@ -97,7 +80,11 @@ private fun Content(
         modifier = Modifier.fillMaxSize().padding(paddingValues)
     ) {
         if (shouldUseCompactUi) {
-            if (selectedShowcaseEntry == null) {
+            AnimatedVisibility(
+                visible = selectedShowcaseEntry == null,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize()
                 ) {
@@ -110,8 +97,13 @@ private fun Content(
                         onShowcaseEntrySelected = onShowcaseEntrySelected,
                     )
                 }
-            } else {
-                selectedShowcaseEntry.content.invoke()
+            }
+            AnimatedVisibility(
+                visible = selectedShowcaseEntry != null,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                selectedShowcaseEntry?.content?.invoke()
             }
         } else {
             Row(
@@ -129,12 +121,76 @@ private fun Content(
                 Column(
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    selectedShowcaseEntry?.content?.invoke() ?: WelcomeMessage()
+                    Crossfade(
+                        targetState = selectedShowcaseEntry,
+                    ) { showcaseEntry ->
+                        showcaseEntry?.content?.invoke() ?: WelcomeMessage()
+                    }
                 }
             }
         }
     }
 }
+
+@Composable
+private fun HeaderWrapper(
+    modifier: Modifier = Modifier,
+    shouldUseCompactUi: Boolean,
+    selectedShowcaseEntry: ShowcaseEntry?,
+    onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
+) = if (shouldUseCompactUi) {
+    Crossfade(
+        targetState = selectedShowcaseEntry
+    ) { showcaseEntry ->
+        Header(
+            modifier = modifier,
+            shouldUseCompactUi = shouldUseCompactUi,
+            selectedShowcaseEntry = showcaseEntry,
+            onShowcaseEntrySelected = onShowcaseEntrySelected,
+        )
+    }
+} else {
+    Header(
+        modifier = modifier,
+        shouldUseCompactUi = shouldUseCompactUi,
+        selectedShowcaseEntry = selectedShowcaseEntry,
+        onShowcaseEntrySelected = onShowcaseEntrySelected,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun Header(
+    modifier: Modifier = Modifier,
+    shouldUseCompactUi: Boolean,
+    selectedShowcaseEntry: ShowcaseEntry?,
+    onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
+) = TopAppBar(
+    modifier = modifier,
+    title = {
+        Text(
+            text = stringResource(
+                resource = if (shouldUseCompactUi && selectedShowcaseEntry != null) {
+                    selectedShowcaseEntry.titleStringResource
+                } else {
+                    Res.string.kubriko_showcase
+                }
+            ),
+        )
+    },
+    navigationIcon = {
+        if (shouldUseCompactUi && selectedShowcaseEntry != null) {
+            Icon(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .clickable { onShowcaseEntrySelected(null) }
+                    .padding(4.dp),
+                painter = painterResource(Res.drawable.ic_back),
+                contentDescription = stringResource(Res.string.back),
+            )
+        }
+    }
+)
 
 @Composable
 private fun WelcomeMessage(

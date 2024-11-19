@@ -1,7 +1,7 @@
 <resources>
     <!-- General -->
     <string name="kubriko_showcase">Kubriko Showcase</string>
-    <string name="close">Close</string>
+    <string name="back">Back</string>
     <string name="welcome_message">Welcome!\n\nThis is the Showcase app for the Kubriko game engine.</string>
 
     <!-- Keyboard Input -->
