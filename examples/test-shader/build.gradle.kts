@@ -9,6 +9,9 @@ kotlin {
         commonMain.dependencies {
             implementation(projects.engine)
             implementation(projects.plugins.shader)
+            implementation(compose.components.resources)
+            implementation(compose.material3)
+            implementation(compose.material3AdaptiveNavigationSuite)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
