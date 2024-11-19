@@ -34,14 +34,14 @@ internal class ActorManagerImpl(
     private lateinit var stateManager: StateManager
     private val _allActors = MutableStateFlow(emptyList<Actor>())
     override val allActors = _allActors.asStateFlow()
+    val canvasGroups by lazy {
+        _allActors
+            .map { actors -> actors.filterIsInstance<CanvasAware>().groupBy { it.canvasIndex }.keys }
+            .stateIn(scope, SharingStarted.Eagerly, emptyList())
+    }
     private val dynamicActors by lazy {
         _allActors
             .map { actors -> actors.filterIsInstance<Dynamic>() }
-            .stateIn(scope, SharingStarted.Eagerly, emptyList())
-    }
-    val canvasAwareActors by lazy {
-        _allActors
-            .map { actors -> actors.filterIsInstance<CanvasAware>() }
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
     }
     private val visibleActors by lazy {
