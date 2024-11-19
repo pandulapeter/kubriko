@@ -19,6 +19,12 @@ internal class GameplayManager : Manager() {
     private lateinit var metadataManager: MetadataManager
     private val _demoType = MutableStateFlow(DemoType.CLOUDS)
     val demoType = _demoType.asStateFlow()
+    private val _red = MutableStateFlow(2)
+    val red = _red.asStateFlow()
+    private val _green = MutableStateFlow(5)
+    val green = _green.asStateFlow()
+    private val _blue = MutableStateFlow(12)
+    val blue = _blue.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
@@ -34,9 +40,18 @@ internal class GameplayManager : Manager() {
 
             DemoType.FRACTAL -> FractalShader(
                 time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f,
+                red = red.value,
+                green = green.value,
+                blue = blue.value,
             )
         }
     )
 
     fun setSelectedDemoType(demoType: DemoType) = _demoType.update { demoType }
+
+    fun setRed(red: Int) = _red.update { red }
+
+    fun setGreen(green: Int) = _green.update { green }
+
+    fun setBlue(blue: Int) = _blue.update { blue }
 }
