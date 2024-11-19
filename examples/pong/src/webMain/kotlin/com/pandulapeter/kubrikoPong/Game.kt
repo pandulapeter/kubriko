@@ -5,7 +5,7 @@ import androidx.compose.ui.window.CanvasBasedWindow
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
-    CanvasBasedWindow(title = "Pong") {
+    CanvasBasedWindow(title = "Kubriko Pong") {
         PongGame()
     }
 }

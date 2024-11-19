@@ -1,4 +1,4 @@
-package com.pandulapeter.kubrikoShaderTest.implementation
+package com.pandulapeter.kubrikoShowcase.implementation.shaders
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.require
@@ -13,11 +13,11 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 
-internal class GameplayManager : Manager() {
+internal class ShadersShowcaseManager : Manager() {
 
     private lateinit var actorManager: ActorManager
     private lateinit var metadataManager: MetadataManager
-    private val _demoType = MutableStateFlow(DemoType.CLOUDS)
+    private val _demoType = MutableStateFlow(ShaderDemoType.CLOUDS)
     val demoType = _demoType.asStateFlow()
     private val _red = MutableStateFlow(2)
     val red = _red.asStateFlow()
@@ -34,11 +34,11 @@ internal class GameplayManager : Manager() {
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) = actorManager.add(
         when (demoType.value) {
-            DemoType.CLOUDS -> CloudShader(
+            ShaderDemoType.CLOUDS -> CloudShader(
                 time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f,
             )
 
-            DemoType.FRACTAL -> FractalShader(
+            ShaderDemoType.FRACTAL -> FractalShader(
                 time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f,
                 red = red.value,
                 green = green.value,
@@ -47,7 +47,7 @@ internal class GameplayManager : Manager() {
         }
     )
 
-    fun setSelectedDemoType(demoType: DemoType) = _demoType.update { demoType }
+    fun setSelectedDemoType(demoType: ShaderDemoType) = _demoType.update { demoType }
 
     fun setRed(red: Int) = _red.update { red }
 

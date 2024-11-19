@@ -1,36 +1,44 @@
 package com.pandulapeter.kubrikoShowcase.implementation
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoShowcase.implementation.shaders.ShadersShowcase
+import kubriko.examples.showcase.generated.resources.Res
+import kubriko.examples.showcase.generated.resources.keyboard_input
+import kubriko.examples.showcase.generated.resources.performance_test
+import kubriko.examples.showcase.generated.resources.physics
+import kubriko.examples.showcase.generated.resources.pointer_input
+import kubriko.examples.showcase.generated.resources.shaders
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 internal enum class ShowcaseEntry(
-    val title: String,
+    val titleStringResource: StringResource,
     val content: @Composable () -> Unit = {
         Text(
-            modifier = Modifier.fillMaxSize().background(Color.Red).padding(16.dp),
-            text = title,
+            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp).padding(top = 8.dp),
+            text = stringResource(titleStringResource),
         )
     },
 ) {
     KEYBOARD_INPUT(
-        title = "Keyboard Input",
+        titleStringResource = Res.string.keyboard_input,
     ),
     PERFORMANCE_TEST(
-        title = "Performance Test",
+        titleStringResource = Res.string.performance_test,
     ),
     POINTER_INPUT(
-        title = "Pointer Input",
+        titleStringResource = Res.string.pointer_input,
     ),
     PHYSICS(
-        title = "Physics",
+        titleStringResource = Res.string.physics,
     ),
     SHADERS(
-        title = "Shaders",
+        titleStringResource = Res.string.shaders,
+        content = { ShadersShowcase() }
     ),
 }

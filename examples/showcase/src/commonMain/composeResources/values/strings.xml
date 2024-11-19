@@ -1,0 +1,24 @@
+<resources>
+    <!-- General -->
+    <string name="kubriko_showcase">Kubriko Showcase</string>
+    <string name="close">Close</string>
+    <string name="welcome_message">Welcome!\n\nThis is the Showcase app for the Kubriko game engine.</string>
+
+    <!-- Keyboard Input -->
+    <string name="keyboard_input">Keyboard Input</string>
+
+    <!-- Performance Test -->
+    <string name="performance_test">Performance Test</string>
+
+    <!-- Pointer Input -->
+    <string name="pointer_input">Pointer Input</string>
+
+    <!-- Physics -->
+    <string name="physics">Physics</string>
+
+    <!-- Shaders -->
+    <string name="shaders">Shaders</string>
+    <string name="clouds">Clouds</string>
+    <string name="fractal">Fractal</string>
+
+</resources>

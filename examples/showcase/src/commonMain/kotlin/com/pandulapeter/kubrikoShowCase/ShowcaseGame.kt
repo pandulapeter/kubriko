@@ -24,7 +24,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,8 +31,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import kubriko.examples.showcase.generated.resources.Res
+import kubriko.examples.showcase.generated.resources.close
 import kubriko.examples.showcase.generated.resources.ic_close
+import kubriko.examples.showcase.generated.resources.kubriko_showcase
+import kubriko.examples.showcase.generated.resources.welcome_message
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ShowcaseGame(
@@ -64,7 +67,17 @@ private fun Content(
     modifier = modifier,
     topBar = {
         TopAppBar(
-            title = { Text(text = if (shouldUseCompactUi && selectedShowcaseEntry != null) selectedShowcaseEntry.title else "Kubriko Showcase") },
+            title = {
+                Text(
+                    text = stringResource(
+                        resource = if (shouldUseCompactUi && selectedShowcaseEntry != null) {
+                            selectedShowcaseEntry.titleStringResource
+                        } else {
+                            Res.string.kubriko_showcase
+                        }
+                    ),
+                )
+            },
             navigationIcon = {
                 if (shouldUseCompactUi && selectedShowcaseEntry != null) {
                     Icon(
@@ -73,7 +86,7 @@ private fun Content(
                             .clickable { onShowcaseEntrySelected(null) }
                             .padding(4.dp),
                         painter = painterResource(Res.drawable.ic_close),
-                        contentDescription = "Back",
+                        contentDescription = stringResource(Res.string.close),
                     )
                 }
             }
@@ -129,7 +142,7 @@ private fun WelcomeMessage(
 ) = Text(
     modifier = modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp),
     style = MaterialTheme.typography.bodySmall,
-    text = "Welcome!\n\nThis is the Showcase app for the Kubriko game engine.",
+    text = stringResource(Res.string.welcome_message),
 )
 
 private fun LazyListScope.menu(
@@ -155,7 +168,7 @@ private fun LazyListScope.menu(
                     horizontal = 16.dp,
                     vertical = 8.dp,
                 ),
-            text = showcaseEntry.title,
+            text = stringResource(showcaseEntry.titleStringResource),
         )
     }
 }
