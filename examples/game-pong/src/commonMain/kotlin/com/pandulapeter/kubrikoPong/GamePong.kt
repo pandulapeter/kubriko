@@ -5,7 +5,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoCanvas
-import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubrikoPong.implementation.GameplayManager
 
 @Composable
@@ -14,7 +13,6 @@ fun GamePong(
 ) {
     val kubriko = remember {
         Kubriko.newInstance(
-            ShaderManager.newInstance(),
             GameplayManager(),
         )
     }

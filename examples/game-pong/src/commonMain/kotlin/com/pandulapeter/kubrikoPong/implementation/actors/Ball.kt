@@ -44,7 +44,7 @@ class Ball(
     }
 
     override fun draw(scope: DrawScope) = scope.drawCircle(
-        color = Color.White,
+        color = Color.LightGray,
         radius = (boundingBox.raw.width + boundingBox.raw.height) / 2,
         center = pivotOffset.raw,
     )

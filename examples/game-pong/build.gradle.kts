@@ -8,7 +8,6 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.engine)
-            implementation(projects.plugins.shader)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
