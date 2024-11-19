@@ -53,19 +53,16 @@ fun KubrikoCanvas(
     }
 
     // Game canvas
-    val visibleActorsWithinViewport = kubrikoImpl.actorManager.visibleActorsWithinViewport.collectAsState()
     InternalCanvas(
         modifier = modifier.onSizeChanged { kubrikoImpl.viewportManager.updateSize(it.toSize()) },
-        content = kubrikoImpl.actorManager.canvasGroups.collectAsState().value.associateWith { canvasIndex ->
-            val modifierForCanvas = kubrikoImpl.managers
+        canvasModifiers = kubrikoImpl.actorManager.canvasGroups.collectAsState().value.associateWith { canvasIndex ->
+            kubrikoImpl.managers
                 .mapNotNull { it.getModifier(canvasIndex)?.collectAsState(null)?.value }
                 .fold(Modifier.fillMaxSize().clipToBounds()) { compoundModifier, managerModifier -> compoundModifier then managerModifier }
-            val visibleActorsOnCanvas = visibleActorsWithinViewport.value
-                .filter { it.canvasIndex == canvasIndex }
-            modifierForCanvas to visibleActorsOnCanvas
         },
         viewportCenter = kubrikoImpl.viewportManager.cameraPosition.collectAsState().value,
         viewportScaleFactor = kubrikoImpl.viewportManager.scaleFactor.collectAsState().value,
+        visibleActorsWithinViewport = kubrikoImpl.actorManager.visibleActorsWithinViewport.collectAsState().value,
         overlayActors = kubrikoImpl.actorManager.overlayActors.collectAsState().value,
         getGameTime = { gameTime.value }
     )

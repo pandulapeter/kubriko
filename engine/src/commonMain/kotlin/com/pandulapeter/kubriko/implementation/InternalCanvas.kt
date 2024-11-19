@@ -16,17 +16,18 @@ import com.pandulapeter.kubriko.types.SceneOffset
 @Composable
 internal fun InternalCanvas(
     modifier: Modifier,
-    content: Map<Int?, Pair<Modifier?, List<Visible>>>,
+    canvasModifiers: Map<Int?, Modifier>,
     viewportCenter: SceneOffset,
     viewportScaleFactor: Float,
+    visibleActorsWithinViewport: List<Visible>,
     overlayActors: List<Overlay>,
     getGameTime: () -> Long,
 ) = Box(
-    modifier = modifier then (content[null]?.first ?: Modifier),
+    modifier = modifier then (canvasModifiers[null] ?: Modifier),
 ) {
-    content.keys.sortedByDescending { it }.forEach { canvasIndex ->
+    canvasModifiers.keys.sortedByDescending { it }.forEach { canvasIndex ->
         Canvas(
-            modifier = if (canvasIndex == null) Modifier.fillMaxSize() else (content[canvasIndex]?.first ?: Modifier),
+            modifier = (if (canvasIndex == null) Modifier else (canvasModifiers[canvasIndex] ?: Modifier)).fillMaxSize(),
             onDraw = {
                 getGameTime() // This line invalidates the Canvas (causing a refresh) on every frame
                 withTransform(
@@ -38,8 +39,8 @@ internal fun InternalCanvas(
                         )
                     },
                     drawBlock = {
-                        content[canvasIndex]?.second
-                            .orEmpty()
+                        visibleActorsWithinViewport
+                            .filter { it.canvasIndex == canvasIndex }
                             .sortedByDescending { it.drawingOrder }
                             .forEach { visible ->
                                 withTransform(
