@@ -17,7 +17,10 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
+import com.pandulapeter.kubriko.shader.collection.ChromaticAberrationShader
 import com.pandulapeter.kubriko.shader.collection.RippleShader
+import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader
+import com.pandulapeter.kubriko.shader.collection.VignetteShader
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubrikoPerformanceTest.implementation.actors.KeyboardInputListener
@@ -54,6 +57,7 @@ internal class GameplayManager : Manager(), KeyboardInputAware, Visible, Unique 
             .onEach { stateManager.updateIsRunning(false) }
             .launchIn(scope)
         loadMap(SCENE_NAME)
+        actorManager.add(ChromaticAberrationShader(), VignetteShader(), SmoothPixelationShader())
     }
 
     // TODO: Glitchy background when FPS is low (web)

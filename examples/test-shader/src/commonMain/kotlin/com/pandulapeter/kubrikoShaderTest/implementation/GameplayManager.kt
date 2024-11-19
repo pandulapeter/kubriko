@@ -1,4 +1,4 @@
-package com.pandulapeter.kubrikoPhysicsTest.implementation
+package com.pandulapeter.kubrikoShaderTest.implementation
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.require
@@ -7,7 +7,7 @@ import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shader.collection.FractalShader
 
-internal class BackgroundManager : Manager() {
+internal class GameplayManager : Manager() {
 
     private lateinit var actorManager: ActorManager
     private lateinit var metadataManager: MetadataManager

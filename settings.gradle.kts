@@ -20,6 +20,7 @@ include(
     ":examples:test-keyboard-input",
     ":examples:test-performance",
     ":examples:test-physics",
+    ":examples:test-shader",
     ":plugins:keyboard-input",
     ":plugins:physics",
     ":plugins:serialization",

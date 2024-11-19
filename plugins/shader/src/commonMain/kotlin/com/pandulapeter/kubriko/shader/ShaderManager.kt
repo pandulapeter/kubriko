@@ -9,7 +9,7 @@ import com.pandulapeter.kubriko.shader.implementation.ShaderManagerImpl
 abstract class ShaderManager : Manager() {
 
     companion object {
-        fun newInstance(vararg initialShaders: Shader): ShaderManager = ShaderManagerImpl(initialShaders = initialShaders)
+        fun newInstance(): ShaderManager = ShaderManagerImpl()
 
         const val UNIFORM_CONTENT = "content"
         const val UNIFORM_RESOLUTION = "resolution"

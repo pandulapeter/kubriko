@@ -8,7 +8,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.engine)
-            implementation(projects.plugins.physics)
+            implementation(projects.plugins.shader)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
@@ -22,9 +22,9 @@ kotlin {
 }
 
 android {
-    namespace = "com.pandulapeter.kubrikoPhysicsTest"
+    namespace = "com.pandulapeter.kubrikoShaderTest"
     defaultConfig {
-        applicationId = "com.pandulapeter.kubrikoPhysicsTest"
+        applicationId = "com.pandulapeter.kubrikoShaderTest"
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
@@ -33,10 +33,10 @@ android {
 
 compose.desktop {
     application {
-        mainClass = "com.pandulapeter.kubrikoPhysicsTest.GameKt"
+        mainClass = "com.pandulapeter.kubrikoShaderTest.GameKt"
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.pandulapeter.kubrikoPhysicsTest"
+            packageName = "com.pandulapeter.kubrikoShaderTest"
             packageVersion = "1.0.0"
             buildTypes.release.proguard {
                 configurationFiles.from(project.file("proguard-rules.pro"))

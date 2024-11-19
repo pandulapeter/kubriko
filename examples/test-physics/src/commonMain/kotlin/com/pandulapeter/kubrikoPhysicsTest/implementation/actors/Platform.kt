@@ -14,7 +14,6 @@ class Platform(
     initialPosition: SceneOffset,
     override val boundingBox: SceneSize,
 ) : RigidBody, Dynamic {
-    override val canvasIndex = -1
     override val body = Body(
         Polygon(boundingBox.width.raw / 2f, boundingBox.height.raw / 2f),
         initialPosition.x.raw,
@@ -26,7 +25,7 @@ class Platform(
     }
 
     override fun draw(scope: DrawScope) = scope.drawRect(
-        color = Color.White,
+        color = Color.Gray,
         size = boundingBox.raw,
     )
 }

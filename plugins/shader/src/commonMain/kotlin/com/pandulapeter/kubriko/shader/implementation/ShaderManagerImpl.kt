@@ -9,9 +9,7 @@ import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.runtimeShader
 import kotlinx.coroutines.flow.map
 
-internal class ShaderManagerImpl(
-    private val initialShaders: Array<out Shader>,
-) : ShaderManager() {
+internal class ShaderManagerImpl : ShaderManager() {
 
     private lateinit var actorManager: ActorManager
 
@@ -25,6 +23,5 @@ internal class ShaderManagerImpl(
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
-        actorManager.add(actors = initialShaders)
     }
 }
