@@ -8,7 +8,7 @@ import com.pandulapeter.kubriko.KubrikoCanvas
 import com.pandulapeter.kubrikoPong.implementation.GameplayManager
 
 @Composable
-fun GamePong(
+fun PongGame(
     modifier: Modifier = Modifier,
 ) {
     val kubriko = remember {

@@ -1,4 +1,4 @@
-package com.pandulapeter.kubrikoPong
+package com.pandulapeter.kubrikoShowcase
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -16,7 +16,7 @@ class GameActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            PongGame(
+            ShowcaseGame(
                 modifier = Modifier
                     .systemBarsPadding()
                     .displayCutoutPadding()
