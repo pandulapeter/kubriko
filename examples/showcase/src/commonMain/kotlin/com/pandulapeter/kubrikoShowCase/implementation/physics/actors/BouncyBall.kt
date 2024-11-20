@@ -21,7 +21,7 @@ internal class BouncyBall(
     initialPosition: SceneOffset,
     private val radius: ScenePixel,
 ) : RigidBody, Dynamic {
-    override val boundingBox = SceneSize(radius, radius)
+    override val boundingBox = SceneSize(radius * 2, radius * 2)
     override val body = Body(Circle(radius.raw), initialPosition.x.raw, initialPosition.y.raw)
     private lateinit var viewportManager: ViewportManager
 

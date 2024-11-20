@@ -53,6 +53,12 @@ internal class Ball(
                 brickBoundingBox = brick.boundingBox,
             )
             actorManager.remove(brick)
+            actorManager.add(
+                Explosion(
+                    position = brick.position,
+                    hue = brick.hue,
+                )
+            )
         }
         position = nextPosition
     }

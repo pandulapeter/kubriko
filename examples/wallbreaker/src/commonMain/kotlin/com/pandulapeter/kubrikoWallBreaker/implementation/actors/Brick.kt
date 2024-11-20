@@ -10,7 +10,7 @@ import com.pandulapeter.kubriko.types.SceneSize
 
 internal class Brick(
     override var position: SceneOffset,
-    hue: Float,
+    val hue: Float,
 ) : Visible {
     override val boundingBox: SceneSize = SceneSize(Width, Height)
     private val color = Color.hsv(hue, 0.2f, 0.9f)
