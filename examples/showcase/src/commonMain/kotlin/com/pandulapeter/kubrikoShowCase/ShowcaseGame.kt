@@ -9,8 +9,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -112,6 +112,17 @@ private fun Content(
             Row(
                 modifier = Modifier.fillMaxSize(),
             ) {
+                Spacer(modifier = Modifier.width(200.dp))
+                Crossfade(
+                    modifier = Modifier.weight(1f),
+                    targetState = selectedShowcaseEntry,
+                ) { showcaseEntry ->
+                    showcaseEntry?.content?.invoke() ?: WelcomeMessage()
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxSize()
+            ) {
                 Surface(
                     modifier = Modifier.width(200.dp).fillMaxHeight(),
                     tonalElevation = when (isSystemInDarkTheme()) {
@@ -119,8 +130,8 @@ private fun Content(
                         false -> 0.dp
                     },
                     shadowElevation = when (isSystemInDarkTheme()) {
-                        true -> 8.dp
-                        false -> 4.dp
+                        true -> 4.dp
+                        false -> 2.dp
                     },
                 ) {
                     LazyColumn(
@@ -131,15 +142,6 @@ private fun Content(
                             selectedShowcaseEntry = selectedShowcaseEntry,
                             onShowcaseEntrySelected = onShowcaseEntrySelected,
                         )
-                    }
-                }
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    Crossfade(
-                        targetState = selectedShowcaseEntry,
-                    ) { showcaseEntry ->
-                        showcaseEntry?.content?.invoke() ?: WelcomeMessage()
                     }
                 }
             }
@@ -160,8 +162,8 @@ private fun HeaderWrapper(
         false -> 0.dp
     },
     shadowElevation = when (isSystemInDarkTheme()) {
-        true -> 8.dp
-        false -> 4.dp
+        true -> 4.dp
+        false -> 2.dp
     },
 ) {
     if (shouldUseCompactUi) {

@@ -2,6 +2,7 @@ package com.pandulapeter.kubrikoShowcase.implementation.physics.actors
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.physics.RigidBody
@@ -24,8 +25,15 @@ class Platform(
         rotation += (0.002 * deltaTimeInMillis).toFloat().rad
     }
 
-    override fun draw(scope: DrawScope) = scope.drawRect(
-        color = Color.Gray,
-        size = boundingBox.raw,
-    )
+    override fun draw(scope: DrawScope) {
+        scope.drawRect(
+            color = Color.LightGray,
+            size = boundingBox.raw,
+        )
+        scope.drawRect(
+            color = Color.Black,
+            size = boundingBox.raw,
+            style = Stroke(),
+        )
+    }
 }

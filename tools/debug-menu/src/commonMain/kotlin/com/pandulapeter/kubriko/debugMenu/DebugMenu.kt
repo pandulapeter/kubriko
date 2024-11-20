@@ -1,6 +1,7 @@
 package com.pandulapeter.kubriko.debugMenu
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -9,10 +10,12 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContent
 import androidx.compose.material3.Button
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -59,22 +62,33 @@ fun DebugMenu(
                 visible = isDebugMenuVisible.value,
             ) {
                 val windowInsetPadding = WindowInsets.safeContent.asPaddingValues()
-                Text(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .padding(
-                            // start = systemBarPadding.calculateStartPadding(LocalLayoutDirection.current),
-                            top = windowInsetPadding.calculateTopPadding(),
-                            end = windowInsetPadding.calculateEndPadding(LocalLayoutDirection.current),
-                            bottom = windowInsetPadding.calculateBottomPadding(),
-                        )
-                        .defaultMinSize(minWidth = 150.dp),
-                    style = TextStyle.Default.copy(fontSize = 10.sp),
-                    text = "FPS: ${debugInfoMetadata.fps.roundToInt()}\n" +
-                            "Total Actors: ${debugInfoMetadata.totalActorCount}\n" +
-                            "Visible within viewport: ${debugInfoMetadata.visibleActorWithinViewportCount}\n" +
-                            "Play time in seconds: ${debugInfoMetadata.playTimeInSeconds}"
-                )
+                Surface(
+                    modifier = Modifier.defaultMinSize(minWidth = 180.dp).fillMaxHeight(),
+                    tonalElevation = when (isSystemInDarkTheme()) {
+                        true -> 4.dp
+                        false -> 0.dp
+                    },
+                    shadowElevation = when (isSystemInDarkTheme()) {
+                        true -> 4.dp
+                        false -> 2.dp
+                    },
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .padding(
+                                // start = systemBarPadding.calculateStartPadding(LocalLayoutDirection.current),
+                                top = windowInsetPadding.calculateTopPadding(),
+                                end = windowInsetPadding.calculateEndPadding(LocalLayoutDirection.current),
+                                bottom = windowInsetPadding.calculateBottomPadding(),
+                            ),
+                        style = TextStyle.Default.copy(fontSize = 10.sp),
+                        text = "FPS: ${debugInfoMetadata.fps.roundToInt()}\n" +
+                                "Total Actors: ${debugInfoMetadata.totalActorCount}\n" +
+                                "Visible within viewport: ${debugInfoMetadata.visibleActorWithinViewportCount}\n" +
+                                "Play time in seconds: ${debugInfoMetadata.playTimeInSeconds}"
+                    )
+                }
             }
         }
         Box(

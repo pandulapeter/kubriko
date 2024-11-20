@@ -18,8 +18,8 @@ internal fun EditorSurface(
         false -> 0.dp
     },
     shadowElevation = when (isSystemInDarkTheme()) {
-        true -> if (isElevated) 16.dp else 8.dp
-        false -> if (isElevated) 8.dp else 4.dp
+        true -> if (isElevated) 8.dp else 4.dp
+        false -> 2.dp
     },
     content = content,
 )

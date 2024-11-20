@@ -3,11 +3,9 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
@@ -30,6 +28,7 @@ import kotlin.reflect.full.memberProperties
 
 @Composable
 internal fun InstanceManagerColumn(
+    modifier: Modifier = Modifier,
     registeredTypeIds: List<String>,
     selectedTypeId: String?,
     selectedUpdatableInstance: Pair<Editable<*>?, Boolean>,
@@ -40,7 +39,7 @@ internal fun InstanceManagerColumn(
     deleteSelectedInstance: () -> Unit,
     notifySelectedInstanceUpdate: () -> Unit,
 ) = EditorSurface(
-    modifier = Modifier.fillMaxHeight().width(200.dp),
+    modifier = modifier,
     isElevated = false,
 ) {
     LazyColumn(

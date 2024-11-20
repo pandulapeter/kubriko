@@ -19,12 +19,13 @@ import kubriko.tools.scene_editor.generated.resources.ic_save
 // TODO: Implement confirmation dialogs for actions
 @Composable
 internal fun FileManagerRow(
+    modifier: Modifier = Modifier,
     currentFileName: String,
     onNewIconClicked: () -> Unit,
     onOpenIconClicked: () -> Unit,
     onSaveIconClicked: () -> Unit,
 ) = EditorSurface(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = modifier,
     isElevated = true,
 ) {
     Row(

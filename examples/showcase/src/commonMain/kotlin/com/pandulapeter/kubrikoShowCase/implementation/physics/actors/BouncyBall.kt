@@ -3,6 +3,8 @@ package com.pandulapeter.kubrikoShowcase.implementation.physics.actors
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.DrawStyle
+import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.implementation.extensions.require
@@ -33,9 +35,15 @@ class BouncyBall(
 
     override fun draw(scope: DrawScope) {
         scope.drawCircle(
-            color = Color.Gray,
+            color = Color.LightGray,
             radius = radius.raw,
             center = pivotOffset.raw,
+        )
+        scope.drawCircle(
+            color = Color.Black,
+            radius = radius.raw,
+            center = pivotOffset.raw,
+            style = Stroke(),
         )
         scope.drawLine(
             color = Color.Black,

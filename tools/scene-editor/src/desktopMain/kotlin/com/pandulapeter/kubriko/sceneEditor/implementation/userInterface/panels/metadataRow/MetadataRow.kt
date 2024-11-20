@@ -16,10 +16,11 @@ import kotlin.math.roundToInt
 
 @Composable
 internal fun MetadataRow(
+    modifier: Modifier = Modifier,
     totalActorCount: Int,
     mouseSceneOffset: SceneOffset,
 ) = EditorSurface(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = modifier,
     isElevated = true,
 ) {
     Row(

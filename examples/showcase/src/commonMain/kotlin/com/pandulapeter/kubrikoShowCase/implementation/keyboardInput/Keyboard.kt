@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -175,7 +176,7 @@ private fun KeyButton(
             }
         )
         .height(40.dp)
-        .background(if (keyWrapper.isPressed) Color.White else Color.Gray)
+        .background(if (keyWrapper.isPressed) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant)
         .padding(4.dp)
 ) {
     Text(

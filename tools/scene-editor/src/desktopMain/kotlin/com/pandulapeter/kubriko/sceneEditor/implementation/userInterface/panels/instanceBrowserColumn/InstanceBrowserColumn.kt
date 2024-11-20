@@ -28,6 +28,7 @@ import kotlin.reflect.KClass
 
 @Composable
 internal fun InstanceBrowserColumn(
+    modifier: Modifier = Modifier,
     shouldShowVisibleOnly: Boolean,
     allInstances: List<Editable<*>>,
     visibleInstances: List<Editable<*>>,
@@ -36,7 +37,7 @@ internal fun InstanceBrowserColumn(
     selectInstance: (Editable<*>) -> Unit,
     resolveTypeId: (KClass<out Editable<*>>) -> String?,
 ) = EditorSurface(
-    modifier = Modifier.fillMaxHeight().width(150.dp),
+    modifier = modifier,
     isElevated = false,
 ) {
     Column {
