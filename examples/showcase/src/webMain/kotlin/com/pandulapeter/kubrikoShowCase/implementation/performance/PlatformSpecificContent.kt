@@ -4,6 +4,4 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
 
 @Composable
-internal actual fun BoxScope.PlatformSpecificContent(
-    onReloadClicked: () -> Unit,
-) = Unit
+internal actual fun BoxScope.PlatformSpecificContent() = Unit

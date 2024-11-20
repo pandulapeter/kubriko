@@ -32,8 +32,6 @@ fun PerformanceShowcase(
                 .background(Color.Black),
             kubriko = performanceShowcaseKubrikoWrapper.kubriko,
         )
-        PlatformSpecificContent(
-            onReloadClicked = performanceShowcaseKubrikoWrapper.performanceShowcaseManager::reloadMap
-        )
+        PlatformSpecificContent()
     }
 }

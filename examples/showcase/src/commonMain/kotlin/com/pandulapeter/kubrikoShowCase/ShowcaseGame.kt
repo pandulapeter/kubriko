@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
+import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseTheme
 import kubriko.examples.showcase.generated.resources.Res
 import kubriko.examples.showcase.generated.resources.back
 import kubriko.examples.showcase.generated.resources.ic_back
@@ -45,7 +46,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun ShowcaseGame(
     modifier: Modifier = Modifier,
-) = MaterialTheme {
+) = ShowcaseTheme {
     val selectedShowcaseEntry = rememberSaveable { mutableStateOf<ShowcaseEntry?>(null) }
     BoxWithConstraints(
         modifier = modifier,
