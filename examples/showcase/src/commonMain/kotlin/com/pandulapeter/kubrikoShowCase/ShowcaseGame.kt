@@ -4,6 +4,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -34,6 +36,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseTheme
@@ -103,10 +106,14 @@ private fun Content(
             }
             AnimatedVisibility(
                 visible = selectedShowcaseEntry != null,
-                enter = fadeIn(),
-                exit = fadeOut(),
+                enter = slideIn { IntOffset(0, it.height / 10) },
+                exit = slideOut { IntOffset(0, it.height / 10) },
             ) {
-                selectedShowcaseEntry?.content?.invoke()
+                Crossfade(
+                    targetState = selectedShowcaseEntry,
+                ) { showcaseEntry ->
+                    showcaseEntry?.content?.invoke()
+                }
             }
         } else {
             Row(

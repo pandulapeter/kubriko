@@ -1,6 +1,7 @@
 package com.pandulapeter.kubrikoShowcase.implementation.keyboardInput
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -170,18 +171,34 @@ private fun KeyButton(
     modifier = Modifier
         .defaultMinSize(
             minWidth = when (keyWrapper.size) {
-                Size.NORMAL -> 40.dp
-                Size.WIDE -> 80.dp
-                Size.EXTRA_WIDE -> 200.dp
+                Size.NORMAL -> 30.dp
+                Size.WIDE -> 60.dp
+                Size.EXTRA_WIDE -> 150.dp
             }
         )
-        .height(40.dp)
-        .background(if (keyWrapper.isPressed) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant)
+        .height(30.dp)
+        .background(
+            if (keyWrapper.isPressed) {
+                if (isSystemInDarkTheme()) {
+                    MaterialTheme.colorScheme.primaryContainer
+                } else {
+                    MaterialTheme.colorScheme.primary
+                }
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant
+            }
+        )
         .padding(4.dp)
 ) {
     Text(
         modifier = Modifier.align(Alignment.Center),
+        style = MaterialTheme.typography.bodySmall,
         text = keyWrapper.key.displayName,
+        color = if (isSystemInDarkTheme() || !keyWrapper.isPressed) {
+            Color.Unspecified
+        } else {
+            MaterialTheme.colorScheme.onPrimary
+        }
     )
 }
 
