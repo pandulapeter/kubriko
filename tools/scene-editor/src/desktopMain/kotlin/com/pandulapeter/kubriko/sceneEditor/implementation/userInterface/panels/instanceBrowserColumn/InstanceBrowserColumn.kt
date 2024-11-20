@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.actor.traits.Identifiable
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorIcon
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorSurface
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorText
 import kubriko.tools.scene_editor.generated.resources.Res
 import kubriko.tools.scene_editor.generated.resources.ic_visible_only_off
@@ -34,14 +35,11 @@ internal fun InstanceBrowserColumn(
     onShouldShowVisibleOnlyToggled: () -> Unit,
     selectInstance: (Editable<*>) -> Unit,
     resolveTypeId: (KClass<out Editable<*>>) -> String?,
-) = Row(
-    modifier = Modifier
-        .fillMaxHeight()
-        .width(150.dp),
+) = EditorSurface(
+    modifier = Modifier.fillMaxHeight().width(150.dp),
+    isElevated = false,
 ) {
-    Column(
-        modifier = Modifier.weight(1f),
-    ) {
+    Column {
         HeaderRow(
             shouldShowVisibleOnly = shouldShowVisibleOnly,
             onShouldShowVisibleOnlyToggled = onShouldShowVisibleOnlyToggled,
@@ -61,7 +59,6 @@ internal fun InstanceBrowserColumn(
             }
         }
     }
-    Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
 }
 
 private fun Editable<*>.getName(typeId: String?): String {
@@ -96,5 +93,5 @@ private fun HeaderRow(
             onClick = onShouldShowVisibleOnlyToggled,
         )
     }
-    Divider()
+    HorizontalDivider()
 }

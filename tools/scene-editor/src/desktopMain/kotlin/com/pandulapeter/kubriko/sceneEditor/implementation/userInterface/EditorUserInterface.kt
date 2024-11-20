@@ -3,6 +3,9 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -25,67 +28,71 @@ internal fun EditorUserInterface(
     openFilePickerForLoading: () -> Unit,
     openFilePickerForSaving: () -> Unit,
 ) = KubrikoTheme {
-    Column(
+    Scaffold(
         modifier = modifier,
-    ) {
-        FileManagerRow(
-            currentFileName = editorController.currentFileName.collectAsState().value,
-            onNewIconClicked = editorController::reset,
-            onOpenIconClicked = openFilePickerForLoading,
-            onSaveIconClicked = openFilePickerForSaving,
-        )
-        Row(
-            modifier = Modifier.weight(1f),
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier.padding(paddingValues),
         ) {
-            InstanceBrowserColumn(
-                shouldShowVisibleOnly = editorController.shouldShowVisibleOnly.collectAsState().value,
-                allInstances = editorController.allEditableActors.collectAsState().value,
-                visibleInstances = editorController.visibleActorsWithinViewport.collectAsState().value,
-                selectedUpdatableInstance = editorController.selectedUpdatableActor.collectAsState().value,
-                onShouldShowVisibleOnlyToggled = editorController::onShouldShowVisibleOnlyToggled,
-                selectInstance = editorController::selectActor,
-                resolveTypeId = editorController.serializationManager::getTypeId,
+            FileManagerRow(
+                currentFileName = editorController.currentFileName.collectAsState().value,
+                onNewIconClicked = editorController::reset,
+                onOpenIconClicked = openFilePickerForLoading,
+                onSaveIconClicked = openFilePickerForSaving,
             )
-            KubrikoCanvas(
-                modifier = Modifier
-                    .weight(1f)
-                    .handleMouseClick(
-                        getSelectedActor = editorController::getSelectedActor,
-                        getMouseSceneOffset = editorController::getMouseWorldCoordinates,
-                        onLeftClick = editorController::onLeftClick,
-                        onRightClick = editorController::onRightClick,
-                    )
-                    .handleMouseMove(
-                        onMouseMove = editorController::onMouseMove,
-                    )
-                    .handleMouseZoom(
-                        viewportManager = editorController.viewportManager,
-                    )
-                    .handleMouseDrag(
-                        keyboardInputManager = editorController.keyboardInputManager,
-                        viewportManager = editorController.viewportManager,
-                        getSelectedActor = editorController::getSelectedActor,
-                        getMouseSceneOffset = editorController::getMouseWorldCoordinates,
-                        notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
-                    )
-                    .background(Color.White),
-                kubriko = editorController.kubriko,
-            )
-            InstanceManagerColumn(
-                registeredTypeIds = editorController.serializationManager.registeredTypeIds.toList(),
-                selectedTypeId = editorController.selectedTypeId.collectAsState().value,
-                selectedUpdatableInstance = editorController.selectedUpdatableActor.collectAsState().value,
-                selectTypeId = editorController::selectActor,
-                resolveTypeId = editorController.serializationManager::getTypeId,
-                deselectSelectedInstance = editorController::deselectSelectedActor,
-                locateSelectedInstance = editorController::locateSelectedActor,
-                deleteSelectedInstance = editorController::removeSelectedActor,
-                notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
+            Row(
+                modifier = Modifier.weight(1f),
+            ) {
+                InstanceBrowserColumn(
+                    shouldShowVisibleOnly = editorController.shouldShowVisibleOnly.collectAsState().value,
+                    allInstances = editorController.allEditableActors.collectAsState().value,
+                    visibleInstances = editorController.visibleActorsWithinViewport.collectAsState().value,
+                    selectedUpdatableInstance = editorController.selectedUpdatableActor.collectAsState().value,
+                    onShouldShowVisibleOnlyToggled = editorController::onShouldShowVisibleOnlyToggled,
+                    selectInstance = editorController::selectActor,
+                    resolveTypeId = editorController.serializationManager::getTypeId,
+                )
+                KubrikoCanvas(
+                    modifier = Modifier
+                        .weight(1f)
+                        .handleMouseClick(
+                            getSelectedActor = editorController::getSelectedActor,
+                            getMouseSceneOffset = editorController::getMouseWorldCoordinates,
+                            onLeftClick = editorController::onLeftClick,
+                            onRightClick = editorController::onRightClick,
+                        )
+                        .handleMouseMove(
+                            onMouseMove = editorController::onMouseMove,
+                        )
+                        .handleMouseZoom(
+                            viewportManager = editorController.viewportManager,
+                        )
+                        .handleMouseDrag(
+                            keyboardInputManager = editorController.keyboardInputManager,
+                            viewportManager = editorController.viewportManager,
+                            getSelectedActor = editorController::getSelectedActor,
+                            getMouseSceneOffset = editorController::getMouseWorldCoordinates,
+                            notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
+                        )
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    kubriko = editorController.kubriko,
+                )
+                InstanceManagerColumn(
+                    registeredTypeIds = editorController.serializationManager.registeredTypeIds.toList(),
+                    selectedTypeId = editorController.selectedTypeId.collectAsState().value,
+                    selectedUpdatableInstance = editorController.selectedUpdatableActor.collectAsState().value,
+                    selectTypeId = editorController::selectActor,
+                    resolveTypeId = editorController.serializationManager::getTypeId,
+                    deselectSelectedInstance = editorController::deselectSelectedActor,
+                    locateSelectedInstance = editorController::locateSelectedActor,
+                    deleteSelectedInstance = editorController::removeSelectedActor,
+                    notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
+                )
+            }
+            MetadataRow(
+                totalActorCount = editorController.totalActorCount.collectAsState().value,
+                mouseSceneOffset = editorController.mouseSceneOffset.collectAsState().value,
             )
         }
-        MetadataRow(
-            totalActorCount = editorController.totalActorCount.collectAsState().value,
-            mouseSceneOffset = editorController.mouseSceneOffset.collectAsState().value,
-        )
     }
 }

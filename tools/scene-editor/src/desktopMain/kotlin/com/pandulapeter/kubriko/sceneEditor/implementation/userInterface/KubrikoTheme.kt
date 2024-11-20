@@ -9,7 +9,10 @@ import androidx.compose.runtime.Composable
 @Composable
 internal fun KubrikoTheme(
     content: @Composable () -> Unit
-) = MaterialTheme(
-    colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme(),
-    content = content,
-)
+) {
+
+    MaterialTheme(
+        colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme(),
+        content = content,
+    )
+}

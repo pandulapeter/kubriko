@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -110,14 +112,26 @@ private fun Content(
             Row(
                 modifier = Modifier.fillMaxSize(),
             ) {
-                LazyColumn(
+                Surface(
                     modifier = Modifier.width(200.dp).fillMaxHeight(),
+                    tonalElevation = when (isSystemInDarkTheme()) {
+                        true -> 4.dp
+                        false -> 0.dp
+                    },
+                    shadowElevation = when (isSystemInDarkTheme()) {
+                        true -> 8.dp
+                        false -> 4.dp
+                    },
                 ) {
-                    menu(
-                        allShowcaseEntries = allShowcaseEntries,
-                        selectedShowcaseEntry = selectedShowcaseEntry,
-                        onShowcaseEntrySelected = onShowcaseEntrySelected,
-                    )
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        menu(
+                            allShowcaseEntries = allShowcaseEntries,
+                            selectedShowcaseEntry = selectedShowcaseEntry,
+                            onShowcaseEntrySelected = onShowcaseEntrySelected,
+                        )
+                    }
                 }
                 Column(
                     modifier = Modifier.fillMaxSize(),
@@ -139,24 +153,36 @@ private fun HeaderWrapper(
     shouldUseCompactUi: Boolean,
     selectedShowcaseEntry: ShowcaseEntry?,
     onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
-) = if (shouldUseCompactUi) {
-    Crossfade(
-        targetState = selectedShowcaseEntry
-    ) { showcaseEntry ->
+) = Surface(
+    modifier = modifier,
+    tonalElevation = when (isSystemInDarkTheme()) {
+        true -> 4.dp
+        false -> 0.dp
+    },
+    shadowElevation = when (isSystemInDarkTheme()) {
+        true -> 8.dp
+        false -> 4.dp
+    },
+) {
+    if (shouldUseCompactUi) {
+        Crossfade(
+            targetState = selectedShowcaseEntry
+        ) { showcaseEntry ->
+            Header(
+                modifier = Modifier.fillMaxWidth(),
+                shouldUseCompactUi = shouldUseCompactUi,
+                selectedShowcaseEntry = showcaseEntry,
+                onShowcaseEntrySelected = onShowcaseEntrySelected,
+            )
+        }
+    } else {
         Header(
-            modifier = modifier,
+            modifier = Modifier.fillMaxWidth(),
             shouldUseCompactUi = shouldUseCompactUi,
-            selectedShowcaseEntry = showcaseEntry,
+            selectedShowcaseEntry = selectedShowcaseEntry,
             onShowcaseEntrySelected = onShowcaseEntrySelected,
         )
     }
-} else {
-    Header(
-        modifier = modifier,
-        shouldUseCompactUi = shouldUseCompactUi,
-        selectedShowcaseEntry = selectedShowcaseEntry,
-        onShowcaseEntrySelected = onShowcaseEntrySelected,
-    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -197,7 +223,7 @@ private fun Header(
 private fun WelcomeMessage(
     modifier: Modifier = Modifier,
 ) = Text(
-    modifier = modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp),
+    modifier = modifier.padding(16.dp),
     style = MaterialTheme.typography.bodySmall,
     text = stringResource(Res.string.welcome_message),
 )

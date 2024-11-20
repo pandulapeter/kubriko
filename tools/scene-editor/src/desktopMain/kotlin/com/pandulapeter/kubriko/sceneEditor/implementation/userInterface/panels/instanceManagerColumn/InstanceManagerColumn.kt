@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorRadioButton
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorSurface
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorTextTitle
 import kubriko.tools.scene_editor.generated.resources.Res
 import kubriko.tools.scene_editor.generated.resources.ic_close
@@ -38,12 +39,10 @@ internal fun InstanceManagerColumn(
     locateSelectedInstance: () -> Unit,
     deleteSelectedInstance: () -> Unit,
     notifySelectedInstanceUpdate: () -> Unit,
-) = Row(
-    modifier = Modifier
-        .fillMaxHeight()
-        .width(200.dp),
+) = EditorSurface(
+    modifier = Modifier.fillMaxHeight().width(200.dp),
+    isElevated = false,
 ) {
-    Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -90,7 +89,7 @@ internal fun InstanceManagerColumn(
                                 ) {
                                     controls.forEach {
                                         it.invoke()
-                                        Divider()
+                                        HorizontalDivider()
                                     }
                                 }
                             }
@@ -142,5 +141,5 @@ private fun SelectedInstanceHeader(
             onClick = onDeleteClicked,
         )
     }
-    Divider()
+    HorizontalDivider()
 }
