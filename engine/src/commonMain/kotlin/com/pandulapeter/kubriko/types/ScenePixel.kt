@@ -22,6 +22,8 @@ value class ScenePixel internal constructor(val raw: Float) : Comparable<ScenePi
 
     operator fun times(scale: Float): ScenePixel = (raw * scale).scenePixel
 
+    operator fun times(scenePixel: ScenePixel): ScenePixel = (raw * scenePixel.raw).scenePixel
+
     operator fun times(scale: Int): ScenePixel = (raw * scale.toFloat()).scenePixel
 
     operator fun div(scale: Float): ScenePixel = (raw / scale).scenePixel

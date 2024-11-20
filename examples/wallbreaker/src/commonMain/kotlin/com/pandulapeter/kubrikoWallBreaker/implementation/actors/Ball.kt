@@ -7,7 +7,6 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.constrainedWithin
-import com.pandulapeter.kubriko.implementation.extensions.occupiesPosition
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -15,11 +14,13 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
+import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.abs
 
 internal class Ball(
     private val radius: ScenePixel = 20f.scenePixel,
-    speed: ScenePixel = 0.5f.scenePixel,
+    speed: ScenePixel = 0.4f.scenePixel,
+    private val bricks: StateFlow<List<Brick>>,
 ) : Visible, Dynamic {
 
     override val boundingBox: SceneSize = SceneSize(radius * 2, radius * 2)
@@ -45,7 +46,7 @@ internal class Ball(
         if (nextPosition.y < viewportTopLeft.y || nextPosition.y > viewportBottomRight.y) {
             speedY *= -1
         }
-        actorManager.allActors.value.filterIsInstance<Brick>().firstOrNull { it.occupiesPosition(nextPosition) }?.let { brick ->
+        bricks.value.firstOrNull { isOverlappingBrick(position = nextPosition, brick = it) }?.let { brick ->
             handleCollision(
                 nextPosition = nextPosition,
                 brickPosition = brick.position,
@@ -54,6 +55,18 @@ internal class Ball(
             actorManager.remove(brick)
         }
         position = nextPosition
+    }
+
+    private fun isOverlappingBrick(
+        position: SceneOffset,
+        brick: Brick,
+    ): Boolean {
+        val brickTopLeft = brick.position - brick.pivotOffset
+        val brickBottomRight = brickTopLeft + SceneOffset(brick.boundingBox.width, brick.boundingBox.height)
+        val closestX = maxOf(brickTopLeft.x, minOf(position.x, brickBottomRight.x))
+        val closestY = maxOf(brickTopLeft.y, minOf(position.y, brickBottomRight.y))
+        val distanceSquared = (position.x - closestX) * (position.x - closestX) + (position.y - closestY) * (position.y - closestY)
+        return distanceSquared <= radius * radius
     }
 
     private fun handleCollision(

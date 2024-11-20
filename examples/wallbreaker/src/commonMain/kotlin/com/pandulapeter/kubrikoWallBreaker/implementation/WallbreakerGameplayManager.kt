@@ -8,16 +8,20 @@ import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubrikoWallbreaker.implementation.actors.Ball
 import com.pandulapeter.kubrikoWallbreaker.implementation.actors.Brick
+import kotlinx.coroutines.flow.map
 
 internal class WallbreakerGameplayManager : Manager() {
 
     private lateinit var actorManager: ActorManager
     private lateinit var metadataManager: MetadataManager
+    private val bricks by autoInitializingLazy {
+        actorManager.allActors.map { it.filterIsInstance<Brick>() }.asStateFlow(emptyList())
+    }
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
         metadataManager = kubriko.require()
-        val bricks = (0..5).flatMap { y ->
+        val allBricks = (0..5).flatMap { y ->
             (-5..5).map { x ->
                 Brick(
                     position = SceneOffset(
@@ -28,6 +32,6 @@ internal class WallbreakerGameplayManager : Manager() {
                 )
             }
         }
-        actorManager.add(actors = (bricks + Ball()).toTypedArray())
+        actorManager.add(actors = (allBricks + Ball(bricks = bricks)).toTypedArray())
     }
 }
