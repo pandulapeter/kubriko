@@ -15,7 +15,6 @@ import com.pandulapeter.kubriko.types.SceneOffset
 
 @Composable
 internal fun InternalCanvas(
-    modifier: Modifier,
     canvasModifiers: Map<Int?, Modifier>,
     viewportCenter: SceneOffset,
     viewportScaleFactor: Float,
@@ -23,7 +22,7 @@ internal fun InternalCanvas(
     overlayActors: List<Overlay>,
     getGameTime: () -> Long,
 ) = Box(
-    modifier = modifier then (canvasModifiers[null] ?: Modifier),
+    modifier = canvasModifiers[null] ?: Modifier,
 ) {
     canvasModifiers.keys.sortedByDescending { it }.forEach { canvasIndex ->
         Canvas(

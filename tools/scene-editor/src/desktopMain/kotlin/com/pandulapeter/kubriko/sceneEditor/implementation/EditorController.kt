@@ -13,7 +13,6 @@ import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.GridOverlay
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.KeyboardInputListener
-import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.exitApp
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.saveFile
 import com.pandulapeter.kubriko.serialization.SerializationManager
@@ -32,6 +31,7 @@ import kotlinx.coroutines.launch
 
 internal class EditorController(
     val kubriko: Kubriko,
+    private val onCloseRequest: () -> Unit,
 ) : CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
@@ -189,7 +189,7 @@ internal class EditorController(
 
     private fun navigateBack() {
         if (selectedUpdatableActor.value.first == null) {
-            exitApp()
+            onCloseRequest()
         } else {
             deselectSelectedActor()
         }

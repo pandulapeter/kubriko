@@ -9,6 +9,8 @@
 
     <!-- Performance -->
     <string name="performance">Performance</string>
+    <string name="editor">Editor</string>
+    <string name="reload">Reload</string>
 
     <!-- Pointer Input -->
     <string name="pointer_input">Pointer Input</string>

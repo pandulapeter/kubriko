@@ -1,9 +1,6 @@
 package com.pandulapeter.kubriko.sceneEditor.implementation.helpers
 
 import java.io.File
-import kotlin.system.exitProcess
-
-internal fun exitApp(): Nothing = exitProcess(0)
 
 internal suspend fun loadFile(path: String): String? = try {
     File(path).readBytes().decodeToString()

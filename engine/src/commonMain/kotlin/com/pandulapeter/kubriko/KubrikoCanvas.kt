@@ -54,12 +54,13 @@ fun KubrikoCanvas(
     }
 
     // Game canvas
-    BoxWithConstraints {
+    BoxWithConstraints(
+        modifier = modifier,
+    ){
         with(LocalDensity.current) {
             kubrikoImpl.viewportManager.updateSize(Size(maxWidth.toPx(), maxHeight.toPx()))
         }
         InternalCanvas(
-            modifier = modifier,
             canvasModifiers = kubrikoImpl.actorManager.canvasGroups.collectAsState().value.associateWith { canvasIndex ->
                 kubrikoImpl.managers
                     .mapNotNull { it.getModifier(canvasIndex)?.collectAsState(null)?.value }

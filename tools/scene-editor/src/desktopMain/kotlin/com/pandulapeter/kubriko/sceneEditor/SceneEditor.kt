@@ -23,6 +23,19 @@ fun openSceneEditor(
     defaultMapFilename: String? = null,
     serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
 ) = application {
+    SceneEditorWindow(
+        defaultMapFilename = defaultMapFilename,
+        serializationManager = serializationManager,
+        onCloseRequest = ::exitApplication,
+    )
+}
+
+@Composable
+fun SceneEditorWindow(
+    defaultMapFilename: String? = null,
+    serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
+    onCloseRequest: () -> Unit,
+) {
     val editorController = remember {
         EditorController(
             kubriko = Kubriko.newInstance(
@@ -30,13 +43,14 @@ fun openSceneEditor(
                 KeyboardInputManager.newInstance(),
                 serializationManager,
             ),
+            onCloseRequest = onCloseRequest,
         )
     }
     LaunchedEffect(Unit) {
         defaultMapFilename?.let { editorController.loadMap("${EditorController.SCENES_DIRECTORY}/$it.json") }
     }
     Window(
-        onCloseRequest = ::exitApplication,
+        onCloseRequest = onCloseRequest,
         title = "Scene Editor",
     ) {
         val isLoadFileChooserOpen = remember { mutableStateOf(false) }
