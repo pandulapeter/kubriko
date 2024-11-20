@@ -1,8 +1,10 @@
 package com.pandulapeter.kubrikoShowcase.implementation.performance
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.require
@@ -29,7 +31,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.MissingResourceException
 import kotlin.math.abs
 
-internal class PerformanceShowcaseManager : Manager(), KeyboardInputAware, Visible, Unique {
+internal class PerformanceShowcaseManager : Manager(), KeyboardInputAware, Visible, Unique, Overlay {
 
     private lateinit var actorManager: ActorManager
     private lateinit var metadataManager: MetadataManager
@@ -41,6 +43,7 @@ internal class PerformanceShowcaseManager : Manager(), KeyboardInputAware, Visib
     override var position = SceneOffset.Zero
     override var boundingBox = SceneSize.Zero
     override val drawingOrder = Float.MAX_VALUE
+    private var overlayAlpha = 1f
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
@@ -59,6 +62,11 @@ internal class PerformanceShowcaseManager : Manager(), KeyboardInputAware, Visib
         actorManager.add(
             RippleShader((metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f)
         )
+        if (actorManager.allActors.value.size > 1) {
+            if (overlayAlpha > 0) {
+                overlayAlpha -= 0.003f * deltaTimeInMillis
+            }
+        }
     }
 
     // TODO: There should be a simpler way of drawing a background than making this Manager an Actor.
@@ -66,6 +74,16 @@ internal class PerformanceShowcaseManager : Manager(), KeyboardInputAware, Visib
         color = Color.White,
         size = boundingBox.raw,
     )
+
+    override fun drawToViewport(scope: DrawScope) {
+        if (overlayAlpha > 0f) {
+            scope.drawRect(
+                color = Color.Black.copy(alpha = overlayAlpha),
+                size = scope.size,
+                topLeft = Offset.Zero,
+            )
+        }
+    }
 
     @OptIn(ExperimentalResourceApi::class)
     private fun loadMap(mapName: String) = scope.launch {

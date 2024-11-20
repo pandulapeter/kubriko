@@ -47,12 +47,12 @@ internal fun InternalCanvas(
                                     drawBlock = { visible.draw(this) }
                                 )
                             }
-                        overlayActors
-                            .filter { it.canvasIndex == canvasIndex }
-                            .sortedByDescending { it.overlayDrawingOrder }
-                            .forEach { it.drawToViewport(this) }
                     }
                 )
+                overlayActors
+                    .filter { it.canvasIndex == canvasIndex }
+                    .sortedByDescending { it.overlayDrawingOrder }
+                    .forEach { it.drawToViewport(this) }
             }
         )
     }
