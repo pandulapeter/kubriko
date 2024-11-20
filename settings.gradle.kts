@@ -16,7 +16,7 @@ dependencyResolutionManagement {
 }
 include(
     ":engine",
-    ":examples:pong",
+    ":examples:wallbreaker",
     ":examples:showcase",
     ":plugins:keyboard-input",
     ":plugins:physics",
