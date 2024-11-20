@@ -7,7 +7,7 @@ import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubrikoWallbreaker.implementation.actors.Ball
-import com.pandulapeter.kubrikoWallbreaker.implementation.actors.Block
+import com.pandulapeter.kubrikoWallbreaker.implementation.actors.Brick
 
 internal class WallbreakerGameplayManager : Manager() {
 
@@ -17,17 +17,17 @@ internal class WallbreakerGameplayManager : Manager() {
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
         metadataManager = kubriko.require()
-        val blocks = (0..5).flatMap { y ->
+        val bricks = (0..5).flatMap { y ->
             (-5..5).map { x ->
-                Block(
+                Brick(
                     position = SceneOffset(
-                        x = Block.Width * x,
-                        y = Block.Height * y,
+                        x = Brick.Width * x,
+                        y = Brick.Height * y,
                     ),
                     hue = (0..360).random().toFloat(),
                 )
             }
         }
-        actorManager.add(actors = (blocks + Ball()).toTypedArray())
+        actorManager.add(actors = (bricks + Ball()).toTypedArray())
     }
 }

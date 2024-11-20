@@ -15,6 +15,7 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
+import kotlin.math.abs
 
 internal class Ball(
     private val radius: ScenePixel = 20f.scenePixel,
@@ -38,16 +39,38 @@ internal class Ball(
         val viewportBottomRight = viewportManager.bottomRight.value
         position = position.constrainedWithin(viewportTopLeft, viewportBottomRight)
         val nextPosition = position + SceneOffset(speedX, speedY) * deltaTimeInMillis
-        actorManager.allActors.value.filterIsInstance<Block>().firstOrNull { it.occupiesPosition(nextPosition) }?.let { block ->
-            actorManager.remove(block)
-        }
         if (nextPosition.x < viewportTopLeft.x || nextPosition.x > viewportBottomRight.x) {
             speedX *= -1
         }
         if (nextPosition.y < viewportTopLeft.y || nextPosition.y > viewportBottomRight.y) {
             speedY *= -1
         }
+        actorManager.allActors.value.filterIsInstance<Brick>().firstOrNull { it.occupiesPosition(nextPosition) }?.let { brick ->
+            handleCollision(
+                nextPosition = nextPosition,
+                brickPosition = brick.position,
+                brickBoundingBox = brick.boundingBox,
+            )
+            actorManager.remove(brick)
+        }
         position = nextPosition
+    }
+
+    private fun handleCollision(
+        nextPosition: SceneOffset,
+        brickPosition: SceneOffset,
+        brickBoundingBox: SceneSize,
+    ) {
+        val overlapX = (brickBoundingBox.width.raw / 2) - abs((nextPosition.x - brickPosition.x).raw)
+        val overlapY = (brickBoundingBox.height.raw / 2) - abs((nextPosition.y - brickPosition.y).raw)
+        when {
+            overlapX < overlapY -> speedX *= -1
+            overlapY < overlapX -> speedY *= -1
+            else -> {
+                speedX *= -1
+                speedY *= -1
+            }
+        }
     }
 
     override fun draw(scope: DrawScope) {

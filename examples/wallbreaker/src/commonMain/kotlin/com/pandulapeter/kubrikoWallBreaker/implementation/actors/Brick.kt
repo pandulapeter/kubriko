@@ -8,7 +8,7 @@ import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
-internal class Block(
+internal class Brick(
     override var position: SceneOffset,
     hue: Float,
 ) : Visible {

@@ -70,13 +70,13 @@ class Character private constructor(state: CharacterState) : Editable<Character>
         }
         nearbyActorPositions = findDestructibleActorsNearby(
             position = position + pivotOffset,
-            range = EXPLOSION_RANGE,
+            range = ExplosionRange,
         ).map { it.position }
     }
 
     private fun findDestructibleActorsNearby(
         position: SceneOffset,
-        range: Float,
+        range: ScenePixel,
     ) = actorManager.allActors.value
         .filterIsInstance<Destructible>()
         .filter {
@@ -131,7 +131,7 @@ class Character private constructor(state: CharacterState) : Editable<Character>
             sizeMultiplier = MAX_SIZE_MULTIPLIER
             findDestructibleActorsNearby(
                 position = position + pivotOffset,
-                range = EXPLOSION_RANGE,
+                range = ExplosionRange,
             ).forEach { it.destroy(this) }
         }
     }
@@ -152,6 +152,6 @@ class Character private constructor(state: CharacterState) : Editable<Character>
         private val SpeedDiagonal = (sin(PI / 4) * Speed.raw).toFloat().scenePixel
         private const val VIEWPORT_FOLLOWING_SPEED_MULTIPLIER = 0.03f
         private const val MAX_SIZE_MULTIPLIER = 3f
-        private const val EXPLOSION_RANGE = 500f
+        private val ExplosionRange = 500f.scenePixel
     }
 }
