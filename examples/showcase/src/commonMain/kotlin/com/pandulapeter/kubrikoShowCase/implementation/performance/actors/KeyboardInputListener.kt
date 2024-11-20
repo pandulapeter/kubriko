@@ -31,9 +31,4 @@ internal class KeyboardInputListener : KeyboardInputAware, Unique {
             )
         }
     }
-
-    override fun onKeyReleased(key: Key) = when (key) {
-        Key.Escape, Key.Back, Key.Backspace -> stateManager.updateIsRunning(!stateManager.isRunning.value)
-        else -> Unit
-    }
 }

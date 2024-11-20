@@ -46,7 +46,7 @@ fun SceneEditorWindow(
             onCloseRequest = onCloseRequest,
         )
     }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(defaultMapFilename) {
         defaultMapFilename?.let { editorController.loadMap("${EditorController.SCENES_DIRECTORY}/$it.json") }
     }
     Window(

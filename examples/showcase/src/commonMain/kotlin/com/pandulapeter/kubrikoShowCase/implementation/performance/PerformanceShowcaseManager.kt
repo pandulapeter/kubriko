@@ -2,7 +2,6 @@ package com.pandulapeter.kubrikoShowcase.implementation.performance
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
@@ -50,7 +49,6 @@ internal class PerformanceShowcaseManager : Manager(), KeyboardInputAware, Visib
         stateManager = kubriko.require()
         viewportManager = kubriko.require()
         loadMap(SCENE_NAME)
-        actorManager.add(ChromaticAberrationShader(), VignetteShader(), SmoothPixelationShader())
     }
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
@@ -69,20 +67,19 @@ internal class PerformanceShowcaseManager : Manager(), KeyboardInputAware, Visib
         size = boundingBox.raw,
     )
 
-    override fun onKeyReleased(key: Key) = when (key) {
-        Key.Escape, Key.Back, Key.Backspace -> stateManager.updateIsRunning(!stateManager.isRunning.value)
-        else -> Unit
-    }
-
     @OptIn(ExperimentalResourceApi::class)
     private fun loadMap(mapName: String) = scope.launch {
         try {
-            val actors = listOf(
+            val deserializedActors = serializationManager.deserializeActors(Res.readBytes("files/scenes/$mapName.json").decodeToString())
+            actorManager.removeAll()
+            val allActors = listOf(
                 this@PerformanceShowcaseManager,
                 KeyboardInputListener(),
-
-                ) + serializationManager.deserializeActors(Res.readBytes("files/scenes/$mapName.json").decodeToString())
-            actorManager.add(actors = actors.toTypedArray())
+                ChromaticAberrationShader(),
+                VignetteShader(),
+                SmoothPixelationShader()
+            ) + deserializedActors
+            actorManager.add(actors = allActors.toTypedArray())
         } catch (_: MissingResourceException) {
         }
     }

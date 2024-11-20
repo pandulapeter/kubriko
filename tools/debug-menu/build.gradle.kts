@@ -6,7 +6,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(projects.engine)
-            implementation(compose.material)
+            implementation(compose.material3)
         }
     }
 }

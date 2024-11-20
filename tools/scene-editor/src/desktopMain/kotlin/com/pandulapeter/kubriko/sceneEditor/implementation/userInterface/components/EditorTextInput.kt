@@ -1,7 +1,7 @@
 package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material.OutlinedTextField
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 

@@ -1,10 +1,12 @@
 package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.lightColors
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -27,10 +29,7 @@ internal fun EditorUserInterface(
     openFilePickerForLoading: () -> Unit,
     openFilePickerForSaving: () -> Unit,
 ) = MaterialTheme(
-    colors = lightColors(
-        primary = Color.DarkGray,
-        secondary = Color.DarkGray,
-    ),
+    colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme(),
 ) {
     Column(
         modifier = modifier,

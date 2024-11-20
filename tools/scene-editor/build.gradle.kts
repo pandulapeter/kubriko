@@ -13,7 +13,7 @@ kotlin {
         }
         val desktopMain by getting {
             dependencies {
-                implementation(compose.material)
+                implementation(compose.material3)
                 implementation(libs.kotlinx.serialization)
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlin.reflect)

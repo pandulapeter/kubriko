@@ -2,7 +2,7 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.compon
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
-import androidx.compose.material.Slider
+import androidx.compose.material3.Slider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
