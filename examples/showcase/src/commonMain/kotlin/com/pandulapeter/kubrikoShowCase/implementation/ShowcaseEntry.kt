@@ -6,6 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoShowcase.implementation.keyboardInput.KeyboardInputShowcase
 import com.pandulapeter.kubrikoShowcase.implementation.physics.PhysicsShowcase
 import com.pandulapeter.kubrikoShowcase.implementation.shaders.ShadersShowcase
 import kubriko.examples.showcase.generated.resources.Res
@@ -28,6 +29,7 @@ internal enum class ShowcaseEntry(
 ) {
     KEYBOARD_INPUT(
         titleStringResource = Res.string.keyboard_input,
+        content = { KeyboardInputShowcase() }
     ),
     PERFORMANCE_TEST(
         titleStringResource = Res.string.performance_test,

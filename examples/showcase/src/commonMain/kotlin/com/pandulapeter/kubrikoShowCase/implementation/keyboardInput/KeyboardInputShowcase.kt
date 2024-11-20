@@ -1,6 +1,5 @@
-package com.pandulapeter.kubrikoKeyboardInputTest
+package com.pandulapeter.kubrikoShowcase.implementation.keyboardInput
 
-import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
@@ -8,22 +7,20 @@ import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoCanvas
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
-import com.pandulapeter.kubrikoKeyboardInputTest.implementation.KeyboardInputTestManager
-import com.pandulapeter.kubrikoKeyboardInputTest.implementation.UserInterface
 
 @Composable
-fun GameKeyboardInputTest(
+fun KeyboardInputShowcase(
     modifier: Modifier = Modifier,
-) = MaterialTheme {
-    val keyboardInputTestManager = remember { KeyboardInputTestManager() }
+) {
+    val keyboardInputShowcaseManager = remember { KeyboardInputShowcaseManager() }
     KubrikoCanvas(
         kubriko = Kubriko.newInstance(
             KeyboardInputManager.newInstance(),
-            keyboardInputTestManager,
+            keyboardInputShowcaseManager,
         ),
     )
-    UserInterface(
+    Keyboard(
         modifier = modifier,
-        activeKeys = keyboardInputTestManager.activeKeys.collectAsState().value,
+        activeKeys = keyboardInputShowcaseManager.activeKeys.collectAsState().value,
     )
 }
