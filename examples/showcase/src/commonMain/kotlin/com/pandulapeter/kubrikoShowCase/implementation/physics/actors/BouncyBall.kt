@@ -17,7 +17,7 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
 
-class BouncyBall(
+internal class BouncyBall(
     initialPosition: SceneOffset,
     private val radius: ScenePixel,
 ) : RigidBody, Dynamic {

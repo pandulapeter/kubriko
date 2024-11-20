@@ -7,10 +7,8 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlin.math.max
 import kotlin.math.min
@@ -25,23 +23,23 @@ internal class ViewportManagerImpl(
     override val size = _size.asStateFlow()
     private val _scaleFactor = MutableStateFlow(1f)
     override val scaleFactor = _scaleFactor.asStateFlow()
-    override val topLeft by lazy {
+    override val topLeft by autoInitializingLazy {
         combine(cameraPosition, size, scaleFactor) { viewportCenter, viewportSize, viewportScaleFactor ->
             Offset.Zero.toSceneOffset(
                 viewportCenter = viewportCenter,
                 viewportSize = viewportSize,
                 viewportScaleFactor = viewportScaleFactor,
             )
-        }.stateIn(scope, SharingStarted.Eagerly, SceneOffset.Zero)
+        }.asStateFlow(SceneOffset.Zero)
     }
-    override val bottomRight by lazy {
+    override val bottomRight by autoInitializingLazy {
         combine(cameraPosition, size, scaleFactor) { viewportCenter, viewportSize, viewportScaleFactor ->
             Offset(viewportSize.width, viewportSize.height).toSceneOffset(
                 viewportCenter = viewportCenter,
                 viewportSize = viewportSize,
                 viewportScaleFactor = viewportScaleFactor,
             )
-        }.stateIn(scope, SharingStarted.Eagerly, SceneOffset.Zero)
+        }.asStateFlow(SceneOffset.Zero)
     }
 
     override fun addToCameraPosition(

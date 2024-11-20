@@ -25,8 +25,8 @@ fun Positionable.occupiesPosition(
 
 fun Positionable.isAroundPosition(
     position: SceneOffset,
-    range: Float,
-): Boolean = (this.position - position).raw.getDistance() < range
+    range: ScenePixel,
+): Boolean = (this.position - position).raw.getDistance().scenePixel < range
 
 val Positionable.left: ScenePixel get() = scale.horizontal.let { position.x + pivotOffset.x * it - boundingBox.width * it }
 

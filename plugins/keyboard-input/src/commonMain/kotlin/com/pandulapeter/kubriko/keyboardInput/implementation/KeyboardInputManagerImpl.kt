@@ -8,12 +8,10 @@ import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 
 internal class KeyboardInputManagerImpl : KeyboardInputManager() {
 
@@ -21,17 +19,14 @@ internal class KeyboardInputManagerImpl : KeyboardInputManager() {
     private lateinit var stateManager: StateManager
     private var activeKeysCache = mutableSetOf<Key>()
     private lateinit var keyboardEventHandler: KeyboardEventHandler
-    private val keyboardInputAwareActors by lazy {
-        actorManager.allActors
-            .map { it.filterIsInstance<KeyboardInputAware>() }
-            .stateIn(scope, SharingStarted.Eagerly, emptyList())
+    private val keyboardInputAwareActors by autoInitializingLazy {
+        actorManager.allActors.map { it.filterIsInstance<KeyboardInputAware>() }.asStateFlow(emptyList())
     }
     private var hasSentEmptyMap = false
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require<ActorManager>()
         stateManager = kubriko.require<StateManager>()
-        keyboardInputAwareActors.value // Make sure the listeners are initialized TODO: HACK - custom delegates instead of Lazy could be a fix
         stateManager.isFocused
             .filterNot { it }
             .onEach { activeKeysCache.forEach(::onKeyReleased) }

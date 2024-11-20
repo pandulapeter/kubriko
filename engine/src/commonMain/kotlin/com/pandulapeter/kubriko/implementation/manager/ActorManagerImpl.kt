@@ -16,11 +16,9 @@ import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -34,27 +32,19 @@ internal class ActorManagerImpl(
     private lateinit var stateManager: StateManager
     private val _allActors = MutableStateFlow(emptyList<Actor>())
     override val allActors = _allActors.asStateFlow()
-    val canvasGroups by lazy {
-        _allActors
-            .map { actors -> actors.filterIsInstance<CanvasAware>().groupBy { it.canvasIndex }.keys }
-            .stateIn(scope, SharingStarted.Eagerly, emptyList())
+    val canvasGroups by autoInitializingLazy {
+        _allActors.map { actors -> actors.filterIsInstance<CanvasAware>().groupBy { it.canvasIndex }.keys }.asStateFlow(emptyList())
     }
-    private val dynamicActors by lazy {
-        _allActors
-            .map { actors -> actors.filterIsInstance<Dynamic>() }
-            .stateIn(scope, SharingStarted.Eagerly, emptyList())
+    private val dynamicActors by autoInitializingLazy {
+        _allActors.map { actors -> actors.filterIsInstance<Dynamic>() }.asStateFlow(emptyList())
     }
-    private val visibleActors by lazy {
-        _allActors
-            .map { actors -> actors.filterIsInstance<Visible>() }
-            .stateIn(scope, SharingStarted.Eagerly, emptyList())
+    private val visibleActors by autoInitializingLazy {
+        _allActors.map { actors -> actors.filterIsInstance<Visible>() }.asStateFlow(emptyList())
     }
-    val overlayActors by lazy {
-        _allActors
-            .map { actors -> actors.filterIsInstance<Overlay>() }
-            .stateIn(scope, SharingStarted.Eagerly, emptyList())
+    val overlayActors by autoInitializingLazy {
+        _allActors.map { actors -> actors.filterIsInstance<Overlay>() }.asStateFlow(emptyList())
     }
-    override val visibleActorsWithinViewport by lazy {
+    override val visibleActorsWithinViewport by autoInitializingLazy {
         combine(
             metadataManager.runtimeInMilliseconds.distinctUntilChangedWithDelay(invisibleActorMinimumRefreshTimeInMillis),
             visibleActors,
@@ -71,7 +61,7 @@ internal class ActorManagerImpl(
                         viewportEdgeBuffer = viewportManager.viewportEdgeBuffer,
                     )
                 }
-        }.stateIn(scope, SharingStarted.Eagerly, emptyList())
+        }.asStateFlow(emptyList())
     }
 
     override fun onInitialize(kubriko: Kubriko) {

@@ -18,7 +18,7 @@ interface Positionable : Actor {
     /**
      * The absolute position of the [Actor] in the Scene.
      */
-    var position: SceneOffset
+    val position: SceneOffset
 
     /**
      * The relative origin point of the [boundingBox]. Used as a center point positioning, scaling and rotation.

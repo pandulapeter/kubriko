@@ -11,7 +11,7 @@ import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
-class Platform(
+internal class Platform(
     initialPosition: SceneOffset,
     override val boundingBox: SceneSize,
 ) : RigidBody, Dynamic {
