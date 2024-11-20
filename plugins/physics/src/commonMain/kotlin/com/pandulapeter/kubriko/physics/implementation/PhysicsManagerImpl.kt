@@ -3,6 +3,7 @@ package com.pandulapeter.kubriko.physics.implementation
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.physics.PhysicsManager
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.World
@@ -24,6 +25,7 @@ internal class PhysicsManagerImpl(
         )
     }
     private lateinit var actorManager: ActorManager
+    private lateinit var stateManager: StateManager
     private val rigidBodiesForPhysicsEngine by lazy {
         actorManager.allActors
             .map { it.filterIsInstance<RigidBody>().map { it.body } }
@@ -32,10 +34,11 @@ internal class PhysicsManagerImpl(
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
+        stateManager = kubriko.require()
     }
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
-        if (deltaTimeInMillis > 0) {
+        if (stateManager.isRunning.value && deltaTimeInMillis > 0) {
             world.step(deltaTimeInMillis / 100f)
         }
     }
