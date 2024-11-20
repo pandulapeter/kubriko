@@ -7,11 +7,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoShowcase.implementation.keyboardInput.KeyboardInputShowcase
+import com.pandulapeter.kubrikoShowcase.implementation.performance.PerformanceShowcase
 import com.pandulapeter.kubrikoShowcase.implementation.physics.PhysicsShowcase
 import com.pandulapeter.kubrikoShowcase.implementation.shaders.ShadersShowcase
 import kubriko.examples.showcase.generated.resources.Res
 import kubriko.examples.showcase.generated.resources.keyboard_input
-import kubriko.examples.showcase.generated.resources.performance_test
+import kubriko.examples.showcase.generated.resources.performance
 import kubriko.examples.showcase.generated.resources.physics
 import kubriko.examples.showcase.generated.resources.pointer_input
 import kubriko.examples.showcase.generated.resources.shaders
@@ -31,8 +32,9 @@ internal enum class ShowcaseEntry(
         titleStringResource = Res.string.keyboard_input,
         content = { KeyboardInputShowcase() }
     ),
-    PERFORMANCE_TEST(
-        titleStringResource = Res.string.performance_test,
+    PERFORMANCE(
+        titleStringResource = Res.string.performance,
+        content = { PerformanceShowcase() }
     ),
     POINTER_INPUT(
         titleStringResource = Res.string.pointer_input,

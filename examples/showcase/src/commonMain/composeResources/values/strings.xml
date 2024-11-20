@@ -7,8 +7,8 @@
     <!-- Keyboard Input -->
     <string name="keyboard_input">Keyboard Input</string>
 
-    <!-- Performance Test -->
-    <string name="performance_test">Performance Test</string>
+    <!-- Performance -->
+    <string name="performance">Performance</string>
 
     <!-- Pointer Input -->
     <string name="pointer_input">Pointer Input</string>

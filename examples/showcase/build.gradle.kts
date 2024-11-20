@@ -2,6 +2,7 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
     id("kubriko-application")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -16,6 +17,7 @@ kotlin {
             implementation(projects.tools.sceneEditor)
             implementation(compose.components.resources)
             implementation(compose.material3)
+            implementation(libs.kotlinx.serialization)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
