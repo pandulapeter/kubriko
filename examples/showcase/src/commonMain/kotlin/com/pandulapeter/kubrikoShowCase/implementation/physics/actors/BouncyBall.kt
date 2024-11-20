@@ -1,4 +1,4 @@
-package com.pandulapeter.kubrikoPhysicsTest.implementation.actors
+package com.pandulapeter.kubrikoShowcase.implementation.physics.actors
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -11,8 +11,6 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
-import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
-import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
@@ -35,7 +33,7 @@ class BouncyBall(
 
     override fun draw(scope: DrawScope) {
         scope.drawCircle(
-            color = Color.Blue,
+            color = Color.Gray,
             radius = radius.raw,
             center = pivotOffset.raw,
         )

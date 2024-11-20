@@ -1,24 +1,26 @@
-package com.pandulapeter.kubrikoPhysicsTest
+package com.pandulapeter.kubrikoShowcase.implementation.physics
 
+import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoCanvas
 import com.pandulapeter.kubriko.physics.PhysicsManager
-import com.pandulapeter.kubrikoPhysicsTest.implementation.GameplayManager
 
 @Composable
-fun GamePhysicsTest(
+fun PhysicsShowcase(
     modifier: Modifier = Modifier,
 ) {
     val kubriko = remember {
         Kubriko.newInstance(
             PhysicsManager.newInstance(),
-            GameplayManager(),
+            PhysicsShowcaseManager(),
         )
     }
     KubrikoCanvas(
+        modifier = modifier.background(Color.LightGray),
         kubriko = kubriko,
     )
 }

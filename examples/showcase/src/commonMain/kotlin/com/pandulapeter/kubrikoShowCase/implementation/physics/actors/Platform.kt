@@ -1,4 +1,4 @@
-package com.pandulapeter.kubrikoPhysicsTest.implementation.actors
+package com.pandulapeter.kubrikoShowcase.implementation.physics.actors
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope

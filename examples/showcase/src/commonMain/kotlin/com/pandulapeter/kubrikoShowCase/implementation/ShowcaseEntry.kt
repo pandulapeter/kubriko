@@ -6,6 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoShowcase.implementation.physics.PhysicsShowcase
 import com.pandulapeter.kubrikoShowcase.implementation.shaders.ShadersShowcase
 import kubriko.examples.showcase.generated.resources.Res
 import kubriko.examples.showcase.generated.resources.keyboard_input
@@ -36,6 +37,7 @@ internal enum class ShowcaseEntry(
     ),
     PHYSICS(
         titleStringResource = Res.string.physics,
+        content = { PhysicsShowcase() }
     ),
     SHADERS(
         titleStringResource = Res.string.shaders,
