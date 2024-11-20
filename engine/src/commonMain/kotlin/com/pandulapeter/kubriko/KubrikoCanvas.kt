@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko
 
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -10,8 +11,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.unit.toSize
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.pandulapeter.kubriko.implementation.InternalCanvas
@@ -53,18 +54,23 @@ fun KubrikoCanvas(
     }
 
     // Game canvas
-    InternalCanvas(
-        modifier = modifier.onSizeChanged { kubrikoImpl.viewportManager.updateSize(it.toSize()) },
-        canvasModifiers = kubrikoImpl.actorManager.canvasGroups.collectAsState().value.associateWith { canvasIndex ->
-            kubrikoImpl.managers
-                .mapNotNull { it.getModifier(canvasIndex)?.collectAsState(null)?.value }
-                .fold(Modifier.fillMaxSize().clipToBounds()) { compoundModifier, managerModifier -> compoundModifier then managerModifier }
-        },
-        viewportCenter = kubrikoImpl.viewportManager.cameraPosition.collectAsState().value,
-        viewportScaleFactor = kubrikoImpl.viewportManager.scaleFactor.collectAsState().value,
-        visibleActorsWithinViewport = kubrikoImpl.actorManager.visibleActorsWithinViewport.collectAsState().value,
-        overlayActors = kubrikoImpl.actorManager.overlayActors.collectAsState().value,
-        getGameTime = { gameTime.value }
-    )
+    BoxWithConstraints {
+        with(LocalDensity.current) {
+            kubrikoImpl.viewportManager.updateSize(Size(maxWidth.toPx(), maxHeight.toPx()))
+        }
+        InternalCanvas(
+            modifier = modifier,
+            canvasModifiers = kubrikoImpl.actorManager.canvasGroups.collectAsState().value.associateWith { canvasIndex ->
+                kubrikoImpl.managers
+                    .mapNotNull { it.getModifier(canvasIndex)?.collectAsState(null)?.value }
+                    .fold(Modifier.fillMaxSize().clipToBounds()) { compoundModifier, managerModifier -> compoundModifier then managerModifier }
+            },
+            viewportCenter = kubrikoImpl.viewportManager.cameraPosition.collectAsState().value,
+            viewportScaleFactor = kubrikoImpl.viewportManager.scaleFactor.collectAsState().value,
+            visibleActorsWithinViewport = kubrikoImpl.actorManager.visibleActorsWithinViewport.collectAsState().value,
+            overlayActors = kubrikoImpl.actorManager.overlayActors.collectAsState().value,
+            getGameTime = { gameTime.value }
+        )
+    }
 }
 
