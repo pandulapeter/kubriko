@@ -26,7 +26,7 @@ internal fun Keyboard(
     modifier: Modifier = Modifier,
     activeKeys: Set<Key>,
 ) = Box(
-    modifier = Modifier.fillMaxSize(),
+    modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
 ) {
     Column(
         modifier = modifier.align(Alignment.Center),

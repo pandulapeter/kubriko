@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="GameTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+    <style name="GameThemeBase" parent="@style/Theme.Material3.DayNight.NoActionBar" />
+
+    <style name="GameTheme" parent="GameThemeBase">
         <item name="android:windowLightNavigationBar">true</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>

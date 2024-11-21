@@ -21,6 +21,7 @@ kotlin {
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
+            implementation(libs.google.material)
         }
         val desktopMain by getting {
             dependencies {

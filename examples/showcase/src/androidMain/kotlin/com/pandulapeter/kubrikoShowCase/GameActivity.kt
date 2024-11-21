@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.ui.Modifier
-import androidx.core.view.WindowCompat
 
 class GameActivity : ComponentActivity() {
 
@@ -22,14 +21,6 @@ class GameActivity : ComponentActivity() {
                     .displayCutoutPadding()
                     .imePadding(),
             )
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        WindowCompat.getInsetsController(window, window.decorView).run {
-            isAppearanceLightStatusBars = true
-            isAppearanceLightNavigationBars = true
         }
     }
 }
