@@ -14,7 +14,7 @@ internal class PerformanceShowcaseKubrikoWrapper {
     private val json by lazy { Json { ignoreUnknownKeys = true } }
     val performanceShowcaseManager by lazy {
         PerformanceShowcaseManager(
-            mapJson = sceneEditorRealtimeContent,
+            sceneJson = sceneJson,
         )
     }
     val serializationManager by lazy {

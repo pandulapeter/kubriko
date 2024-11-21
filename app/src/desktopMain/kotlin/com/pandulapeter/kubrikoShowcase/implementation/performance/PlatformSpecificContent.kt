@@ -10,16 +10,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.close_scene_editor
 import kubriko.app.generated.resources.open_scene_editor
 import org.jetbrains.compose.resources.stringResource
 
 internal val isSceneEditorVisible = MutableStateFlow(false)
-internal val _sceneEditorRealtimeContent = MutableStateFlow("")
-internal actual val sceneEditorRealtimeContent: StateFlow<String>? = _sceneEditorRealtimeContent.asStateFlow()
+internal actual val sceneJson: MutableStateFlow<String>? = MutableStateFlow("")
 
 @Composable
 internal actual fun BoxScope.PlatformSpecificContent() {

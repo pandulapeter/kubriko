@@ -25,9 +25,11 @@ import com.pandulapeter.kubriko.shader.collection.VignetteShader
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubrikoShowcase.implementation.performance.actors.KeyboardInputListener
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kubriko.app.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -35,7 +37,7 @@ import org.jetbrains.compose.resources.MissingResourceException
 import kotlin.math.abs
 
 internal class PerformanceShowcaseManager(
-    private val mapJson: StateFlow<String>?,
+    private val sceneJson: MutableStateFlow<String>?,
 ) : Manager(), KeyboardInputAware, Visible, Unique, Overlay {
 
     private lateinit var actorManager: ActorManager
@@ -56,9 +58,8 @@ internal class PerformanceShowcaseManager(
         serializationManager = kubriko.require()
         stateManager = kubriko.require()
         viewportManager = kubriko.require()
-        mapJson.let {
-            it?.onEach(::processJson)?.launchIn(scope) ?: loadMap()
-        }
+        loadMap()
+        sceneJson?.filter { it.isNotBlank() }?.onEach(::processJson)?.launchIn(scope)
     }
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
@@ -99,7 +100,9 @@ internal class PerformanceShowcaseManager(
     @OptIn(ExperimentalResourceApi::class)
     private fun loadMap() = scope.launch {
         try {
-            processJson(Res.readBytes("files/scenes/$SCENE_NAME.json").decodeToString())
+            val json = Res.readBytes("files/scenes/$SCENE_NAME.json").decodeToString()
+            sceneJson?.update { json }
+            processJson(json)
         } catch (_: MissingResourceException) {
         }
     }
