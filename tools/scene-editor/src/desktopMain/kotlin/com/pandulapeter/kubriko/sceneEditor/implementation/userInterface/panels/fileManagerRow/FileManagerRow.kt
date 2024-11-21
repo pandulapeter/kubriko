@@ -15,15 +15,18 @@ import kubriko.tools.scene_editor.generated.resources.Res
 import kubriko.tools.scene_editor.generated.resources.ic_new
 import kubriko.tools.scene_editor.generated.resources.ic_open
 import kubriko.tools.scene_editor.generated.resources.ic_save
+import kubriko.tools.scene_editor.generated.resources.ic_sync
 
 // TODO: Implement confirmation dialogs for actions
 @Composable
 internal fun FileManagerRow(
     modifier: Modifier = Modifier,
+    isConnected: Boolean,
     currentFileName: String,
     onNewIconClicked: () -> Unit,
     onOpenIconClicked: () -> Unit,
     onSaveIconClicked: () -> Unit,
+    onSyncIconClicked: () -> Unit,
 ) = EditorSurface(
     modifier = modifier,
 ) {
@@ -50,6 +53,13 @@ internal fun FileManagerRow(
             contentDescription = "Save",
             onClick = onSaveIconClicked,
         )
+        if (isConnected) {
+            EditorIcon(
+                drawableResource = Res.drawable.ic_sync,
+                contentDescription = "Sync",
+                onClick = onSyncIconClicked,
+            )
+        }
         EditorText(
             text = currentFileName,
         )

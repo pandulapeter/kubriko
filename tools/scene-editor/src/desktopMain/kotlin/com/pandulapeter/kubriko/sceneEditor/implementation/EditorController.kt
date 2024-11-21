@@ -11,6 +11,7 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
+import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.GridOverlay
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.KeyboardInputListener
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
@@ -32,6 +33,8 @@ import kotlinx.coroutines.launch
 
 internal class EditorController(
     val kubriko: Kubriko,
+    val sceneEditorMode: SceneEditorMode,
+    defaultMapFilename: String?,
     private val onCloseRequest: () -> Unit,
 ) : CoroutineScope {
 
@@ -78,10 +81,24 @@ internal class EditorController(
     val selectedTypeId = _selectedTypeId.asStateFlow()
     private val _colorEditorMode = MutableStateFlow(ColorEditorMode.HSV)
     val colorEditorMode = _colorEditorMode.asStateFlow()
-    private val _currentFileName = MutableStateFlow(DEFAULT_SCENE_FILE_NAME)
+    private val _currentFileName = MutableStateFlow(defaultMapFilename ?: DEFAULT_SCENE_FILE_NAME)
     val currentFileName = _currentFileName.asStateFlow()
     private val _shouldShowVisibleOnly = MutableStateFlow(false)
     val shouldShowVisibleOnly = _shouldShowVisibleOnly.asStateFlow()
+
+    init {
+        when (sceneEditorMode) {
+            SceneEditorMode.Normal -> {
+                defaultMapFilename?.let { loadMap("${SCENES_DIRECTORY}/$it.json") }
+            }
+
+            is SceneEditorMode.Connected -> {
+                parseJson(
+                    json = sceneEditorMode.sceneJson,
+                )
+            }
+        }
+    }
 
     fun onShouldShowVisibleOnlyToggled() = _shouldShowVisibleOnly.update { currentValue ->
         !currentValue
@@ -175,11 +192,21 @@ internal class EditorController(
     fun loadMap(path: String) {
         launch {
             loadFile(path)?.let { json ->
-                val actors = serializationManager.deserializeActors(json)
-                actorManager.removeAll()
-                actorManager.add(actors = (actors + editorActors).toTypedArray())
-                _currentFileName.update { path.split('/').last() }
+                parseJson(json)
+                _currentFileName.update { path.split('/').last().removeSuffix(".json") }
             }
+        }
+    }
+
+    private fun parseJson(json: String) {
+        val actors = serializationManager.deserializeActors(json)
+        actorManager.removeAll()
+        actorManager.add(actors = (actors + editorActors).toTypedArray())
+    }
+
+    fun syncScene() {
+        launch {
+            (sceneEditorMode as? SceneEditorMode.Connected)?.onSceneJsonChanged?.invoke(serializationManager.serializeActors(allEditableActors.value))
         }
     }
 

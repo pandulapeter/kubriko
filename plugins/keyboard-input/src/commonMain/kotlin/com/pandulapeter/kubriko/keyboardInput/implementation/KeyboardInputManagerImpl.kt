@@ -27,10 +27,12 @@ internal class KeyboardInputManagerImpl : KeyboardInputManager() {
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require<ActorManager>()
         stateManager = kubriko.require<StateManager>()
-        stateManager.isFocused
-            .filterNot { it }
-            .onEach { activeKeysCache.forEach(::onKeyReleased) }
-            .launchIn(scope)
+        activeKeysCache.let { activeKeysCache ->
+            stateManager.isFocused
+                .filterNot { it }
+                .onEach { activeKeysCache.forEach(::onKeyReleased) }
+                .launchIn(scope)
+        }
     }
 
     override fun isKeyPressed(key: Key) = activeKeysCache.contains(key)

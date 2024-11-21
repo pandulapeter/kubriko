@@ -32,6 +32,8 @@ fun PerformanceShowcase(
                 .background(Color.Black),
             kubriko = performanceShowcaseKubrikoWrapper.kubriko,
         )
-        PlatformSpecificContent()
+        PlatformSpecificContent(
+
+        )
     }
 }

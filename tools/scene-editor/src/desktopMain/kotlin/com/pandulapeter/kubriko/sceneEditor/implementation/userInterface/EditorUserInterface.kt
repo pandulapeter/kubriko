@@ -17,6 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoCanvas
+import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseClick
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseDrag
@@ -117,10 +118,12 @@ internal fun EditorUserInterface(
             }
             FileManagerRow(
                 modifier = Modifier.height(fileManagerRowHeight),
+                isConnected = editorController.sceneEditorMode is SceneEditorMode.Connected,
                 currentFileName = editorController.currentFileName.collectAsState().value,
                 onNewIconClicked = editorController::reset,
                 onOpenIconClicked = openFilePickerForLoading,
                 onSaveIconClicked = openFilePickerForSaving,
+                onSyncIconClicked = editorController::syncScene,
             )
         }
     }

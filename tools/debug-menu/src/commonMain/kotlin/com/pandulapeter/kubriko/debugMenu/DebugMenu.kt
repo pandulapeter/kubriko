@@ -6,14 +6,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -26,7 +22,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,6 +42,7 @@ import kotlin.math.roundToInt
 @Composable
 fun DebugMenu(
     modifier: Modifier = Modifier,
+    debugMenuModifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
     kubriko: Kubriko,
     gameCanvas: @Composable BoxScope.() -> Unit,
@@ -69,7 +65,6 @@ fun DebugMenu(
             AnimatedVisibility(
                 visible = isDebugMenuVisible.value,
             ) {
-                val windowInsetPadding = WindowInsets.safeContent.asPaddingValues()
                 Surface(
                     modifier = Modifier.defaultMinSize(minWidth = 180.dp).fillMaxHeight(),
                     tonalElevation = when (isSystemInDarkTheme()) {
@@ -82,14 +77,7 @@ fun DebugMenu(
                     },
                 ) {
                     Text(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .padding(
-                                // start = systemBarPadding.calculateStartPadding(LocalLayoutDirection.current),
-                                top = windowInsetPadding.calculateTopPadding(),
-                                end = windowInsetPadding.calculateEndPadding(LocalLayoutDirection.current),
-                                bottom = windowInsetPadding.calculateBottomPadding(),
-                            ),
+                        modifier = debugMenuModifier.padding(16.dp),
                         style = TextStyle.Default.copy(fontSize = 10.sp),
                         text = "FPS: ${debugInfoMetadata.fps.roundToInt()}\n" +
                                 "Total Actors: ${debugInfoMetadata.totalActorCount}\n" +

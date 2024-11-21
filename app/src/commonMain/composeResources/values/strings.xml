@@ -15,7 +15,6 @@
     <string name="performance">Performance</string>
     <string name="open_scene_editor">Open Scene Editor</string>
     <string name="close_scene_editor">Close Scene Editor</string>
-    <string name="editor_disclaimer">Changes made using the Scene Editor will only be visible after rebuilding the app</string>
 
     <!-- Pointer Input -->
     <string name="pointer_input">Pointer Input</string>

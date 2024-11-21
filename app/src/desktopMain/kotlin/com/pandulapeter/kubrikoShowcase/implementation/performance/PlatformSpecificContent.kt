@@ -1,12 +1,8 @@
 package com.pandulapeter.kubrikoShowcase.implementation.performance
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -14,29 +10,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.close_scene_editor
 import kubriko.app.generated.resources.open_scene_editor
-import kubriko.app.generated.resources.editor_disclaimer
 import org.jetbrains.compose.resources.stringResource
 
 internal val isSceneEditorVisible = MutableStateFlow(false)
+internal val _sceneEditorRealtimeContent = MutableStateFlow("")
+internal actual val sceneEditorRealtimeContent: StateFlow<String>? = _sceneEditorRealtimeContent.asStateFlow()
 
 @Composable
-internal actual fun BoxScope.PlatformSpecificContent() = Column(
-    modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
-    horizontalAlignment = Alignment.End,
-    verticalArrangement = Arrangement.spacedBy(8.dp),
-) {
+internal actual fun BoxScope.PlatformSpecificContent() {
     val isEditorVisible = isSceneEditorVisible.collectAsState()
-    Card {
-        Text(
-            modifier = Modifier.padding(8.dp),
-            style = MaterialTheme.typography.bodySmall,
-            text = stringResource(Res.string.editor_disclaimer)
-        )
-    }
     Button(
+        modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
         onClick = { isSceneEditorVisible.value = !isEditorVisible.value }
     ) {
         Text(

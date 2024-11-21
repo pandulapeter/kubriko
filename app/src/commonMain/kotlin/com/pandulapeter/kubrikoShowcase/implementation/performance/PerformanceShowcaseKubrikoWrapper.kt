@@ -12,7 +12,11 @@ import kotlinx.serialization.json.Json
 internal class PerformanceShowcaseKubrikoWrapper {
 
     private val json by lazy { Json { ignoreUnknownKeys = true } }
-    val performanceShowcaseManager by lazy { PerformanceShowcaseManager() }
+    val performanceShowcaseManager by lazy {
+        PerformanceShowcaseManager(
+            mapJson = sceneEditorRealtimeContent,
+        )
+    }
     val serializationManager by lazy {
         EditableMetadata.newSerializationManagerInstance(
             EditableMetadata(

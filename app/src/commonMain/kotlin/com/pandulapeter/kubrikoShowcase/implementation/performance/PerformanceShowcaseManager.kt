@@ -25,13 +25,18 @@ import com.pandulapeter.kubriko.shader.collection.VignetteShader
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubrikoShowcase.implementation.performance.actors.KeyboardInputListener
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kubriko.app.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.MissingResourceException
 import kotlin.math.abs
 
-internal class PerformanceShowcaseManager : Manager(), KeyboardInputAware, Visible, Unique, Overlay {
+internal class PerformanceShowcaseManager(
+    private val mapJson: StateFlow<String>?,
+) : Manager(), KeyboardInputAware, Visible, Unique, Overlay {
 
     private lateinit var actorManager: ActorManager
     private lateinit var metadataManager: MetadataManager
@@ -51,7 +56,9 @@ internal class PerformanceShowcaseManager : Manager(), KeyboardInputAware, Visib
         serializationManager = kubriko.require()
         stateManager = kubriko.require()
         viewportManager = kubriko.require()
-        loadMap(SCENE_NAME)
+        mapJson.let {
+            it?.onEach(::processJson)?.launchIn(scope) ?: loadMap()
+        }
     }
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
@@ -70,10 +77,14 @@ internal class PerformanceShowcaseManager : Manager(), KeyboardInputAware, Visib
     }
 
     // TODO: There should be a simpler way of drawing a background than making this Manager an Actor.
-    override fun DrawScope.draw() = drawRect(
-        color = Color.White,
-        size = boundingBox.raw,
-    )
+    override fun DrawScope.draw() {
+        if (overlayAlpha < 1f) {
+            drawRect(
+                color = Color.White,
+                size = boundingBox.raw,
+            )
+        }
+    }
 
     override fun DrawScope.drawToViewport() {
         if (overlayAlpha > 0f) {
@@ -86,19 +97,24 @@ internal class PerformanceShowcaseManager : Manager(), KeyboardInputAware, Visib
     }
 
     @OptIn(ExperimentalResourceApi::class)
-    private fun loadMap(mapName: String) = scope.launch {
+    private fun loadMap() = scope.launch {
         try {
-            val deserializedActors = serializationManager.deserializeActors(Res.readBytes("files/scenes/$mapName.json").decodeToString())
-            val allActors = listOf(
-                this@PerformanceShowcaseManager,
-                KeyboardInputListener(),
-                ChromaticAberrationShader(),
-                VignetteShader(),
-                SmoothPixelationShader()
-            ) + deserializedActors
-            actorManager.add(actors = allActors.toTypedArray())
+            processJson(Res.readBytes("files/scenes/$SCENE_NAME.json").decodeToString())
         } catch (_: MissingResourceException) {
         }
+    }
+
+    private fun processJson(json: String) {
+        actorManager.removeAll()
+        actorManager.add(this)
+        val deserializedActors = serializationManager.deserializeActors(json)
+        val allActors = listOf(
+            KeyboardInputListener(),
+            ChromaticAberrationShader(),
+            VignetteShader(),
+            SmoothPixelationShader()
+        ) + deserializedActors
+        actorManager.add(actors = allActors.toTypedArray())
     }
 
     companion object {
