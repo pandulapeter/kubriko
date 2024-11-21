@@ -21,7 +21,6 @@ internal fun MetadataRow(
     mouseSceneOffset: SceneOffset,
 ) = EditorSurface(
     modifier = modifier,
-    isElevated = true,
 ) {
     Row(
         modifier = Modifier

@@ -26,7 +26,6 @@ internal fun FileManagerRow(
     onSaveIconClicked: () -> Unit,
 ) = EditorSurface(
     modifier = modifier,
-    isElevated = true,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(

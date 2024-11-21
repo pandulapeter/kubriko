@@ -1,20 +1,21 @@
 package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceBrowserColumn
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.actor.traits.Identifiable
 import com.pandulapeter.kubriko.sceneEditor.Editable
@@ -38,7 +39,6 @@ internal fun InstanceBrowserColumn(
     resolveTypeId: (KClass<out Editable<*>>) -> String?,
 ) = EditorSurface(
     modifier = modifier,
-    isElevated = false,
 ) {
     Column {
         HeaderRow(
@@ -50,12 +50,14 @@ internal fun InstanceBrowserColumn(
         ) {
             items(if (shouldShowVisibleOnly) visibleInstances else allInstances) { instance ->
                 EditorText(
-                    modifier = Modifier.fillMaxWidth().clickable { selectInstance(instance) }.padding(
-                        horizontal = 8.dp,
-                        vertical = 2.dp,
-                    ),
+                    modifier = Modifier.fillMaxWidth()
+                        .background(
+                            color = if (instance == selectedUpdatableInstance.first) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                        ).clickable { selectInstance(instance) }.padding(
+                            horizontal = 8.dp,
+                            vertical = 2.dp,
+                        ),
                     text = instance.getName(resolveTypeId(instance::class)),
-                    isBold = instance == selectedUpdatableInstance.first,
                 )
             }
         }

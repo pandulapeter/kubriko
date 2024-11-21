@@ -2,6 +2,7 @@
     <!-- General -->
     <string name="kubriko_showcase">Kubriko Showcase</string>
     <string name="back">Back</string>
+    <string name="welcome">Welcome</string>
     <string name="welcome_message">Welcome!\n\nThis is the Showcase app for the Kubriko game engine.</string>
 
     <!-- Keyboard Input -->
@@ -10,6 +11,7 @@
     <!-- Performance -->
     <string name="performance">Performance</string>
     <string name="open_scene_editor">Open Scene Editor</string>
+    <string name="close_scene_editor">Close Scene Editor</string>
     <string name="editor_disclaimer">Changes made using the Scene Editor will only be visible after rebuilding the app</string>
 
     <!-- Pointer Input -->

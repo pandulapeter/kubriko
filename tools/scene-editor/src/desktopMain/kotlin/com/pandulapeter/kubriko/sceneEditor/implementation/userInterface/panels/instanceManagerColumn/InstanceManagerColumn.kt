@@ -43,7 +43,6 @@ internal fun InstanceManagerColumn(
     onColorEditorModeChanged: (ColorEditorMode) -> Unit,
 ) = EditorSurface(
     modifier = modifier,
-    isElevated = false,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),

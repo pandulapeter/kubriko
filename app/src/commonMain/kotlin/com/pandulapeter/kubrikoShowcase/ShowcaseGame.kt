@@ -44,7 +44,9 @@ import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.back
 import kubriko.app.generated.resources.ic_back
 import kubriko.app.generated.resources.kubriko_showcase
+import kubriko.app.generated.resources.welcome
 import kubriko.app.generated.resources.welcome_message
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -144,6 +146,13 @@ private fun Content(
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                     ) {
+                        item {
+                            MenuItem(
+                                isSelected = selectedShowcaseEntry == null,
+                                title = Res.string.welcome,
+                                onSelected = { onShowcaseEntrySelected(null) },
+                            )
+                        }
                         menu(
                             allShowcaseEntries = allShowcaseEntries,
                             selectedShowcaseEntry = selectedShowcaseEntry,
@@ -245,22 +254,31 @@ private fun LazyListScope.menu(
     items = allShowcaseEntries,
     key = { it.name }
 ) { showcaseEntry ->
-    (selectedShowcaseEntry == showcaseEntry).let { isSelected ->
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .selectable(
-                    selected = isSelected,
-                    onClick = { onShowcaseEntrySelected(if (isSelected) null else showcaseEntry) },
-                )
-                .background(
-                    color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-                )
-                .padding(
-                    horizontal = 16.dp,
-                    vertical = 8.dp,
-                ),
-            text = stringResource(showcaseEntry.titleStringResource),
-        )
-    }
+    MenuItem(
+        isSelected = selectedShowcaseEntry == showcaseEntry,
+        title = showcaseEntry.titleStringResource,
+        onSelected = { onShowcaseEntrySelected(showcaseEntry) },
+    )
 }
+
+@Composable
+private fun MenuItem(
+    isSelected: Boolean,
+    title: StringResource,
+    onSelected: () -> Unit,
+) = Text(
+    modifier = Modifier
+        .fillMaxWidth()
+        .selectable(
+            selected = isSelected,
+            onClick = onSelected,
+        )
+        .background(
+            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+        )
+        .padding(
+            horizontal = 16.dp,
+            vertical = 8.dp,
+        ),
+    text = stringResource(title),
+)
