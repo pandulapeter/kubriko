@@ -4,6 +4,8 @@
     <string name="back">Back</string>
     <string name="welcome">Welcome</string>
     <string name="welcome_message">Welcome!\n\nThis is the Showcase app for the Kubriko game engine.</string>
+    <string name="demos">Demos</string>
+    <string name="games">Games</string>
 
     <!-- Keyboard Input -->
     <string name="keyboard_input">Keyboard Input</string>
@@ -26,5 +28,8 @@
     <string name="collapse_controls">Collapse controls</string>
     <string name="clouds">Clouds</string>
     <string name="fractal">Fractal</string>
+
+    <!-- Wallbreaker -->
+    <string name="wallbreaker">Wallbreaker</string>
 
 </resources>

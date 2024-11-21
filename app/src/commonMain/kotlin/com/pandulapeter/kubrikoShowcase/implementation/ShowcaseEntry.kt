@@ -6,35 +6,54 @@ import com.pandulapeter.kubrikoShowcase.implementation.performance.PerformanceSh
 import com.pandulapeter.kubrikoShowcase.implementation.physics.PhysicsShowcase
 import com.pandulapeter.kubrikoShowcase.implementation.shaders.ShadersShowcase
 import kubriko.app.generated.resources.Res
+import kubriko.app.generated.resources.demos
+import kubriko.app.generated.resources.games
 import kubriko.app.generated.resources.keyboard_input
 import kubriko.app.generated.resources.performance
 import kubriko.app.generated.resources.physics
 import kubriko.app.generated.resources.shaders
+import kubriko.app.generated.resources.wallbreaker
 import org.jetbrains.compose.resources.StringResource
 
 internal enum class ShowcaseEntry(
+    val type: ShowcaseEntryType,
     val titleStringResource: StringResource,
     val content: @Composable () -> Unit,
 ) {
     KEYBOARD_INPUT(
+        type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.keyboard_input,
         content = { KeyboardInputShowcase() },
     ),
     PERFORMANCE(
+        type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.performance,
         content = { PerformanceShowcase() },
     ),
-
-    //    POINTER_INPUT(
-//        titleStringResource = Res.string.pointer_input,
-//        content = { PointerInputShowcase() },
-//    ),
     PHYSICS(
+        type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.physics,
         content = { PhysicsShowcase() },
     ),
     SHADERS(
+        type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.shaders,
         content = { ShadersShowcase() },
+    ),
+    WALLBREAKER(
+        type = ShowcaseEntryType.GAME,
+        titleStringResource = Res.string.wallbreaker,
+        content = { ShadersShowcase() },
+    ),
+}
+
+internal enum class ShowcaseEntryType(
+    val titleStringResource: StringResource,
+) {
+    DEMO(
+        titleStringResource = Res.string.demos,
+    ),
+    GAME(
+        titleStringResource = Res.string.games,
     ),
 }

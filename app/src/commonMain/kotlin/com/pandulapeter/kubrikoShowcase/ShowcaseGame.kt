@@ -21,8 +21,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -94,7 +96,7 @@ private fun Content(
                 exit = fadeOut(),
             ) {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     item("welcome") {
                         WelcomeMessage()
@@ -250,15 +252,22 @@ private fun LazyListScope.menu(
     allShowcaseEntries: List<ShowcaseEntry>,
     selectedShowcaseEntry: ShowcaseEntry?,
     onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
-) = items(
-    items = allShowcaseEntries,
-    key = { it.name }
-) { showcaseEntry ->
-    MenuItem(
-        isSelected = selectedShowcaseEntry == showcaseEntry,
-        title = showcaseEntry.titleStringResource,
-        onSelected = { onShowcaseEntrySelected(showcaseEntry) },
-    )
+) = allShowcaseEntries.groupBy { it.type }.let { groups ->
+    groups.forEach { (type, entries) ->
+        item(type.name) {
+            MenuCategoryLabel(title = type.titleStringResource)
+        }
+        items(
+            items = entries,
+            key = { it.name }
+        ) { showcaseEntry ->
+            MenuItem(
+                isSelected = selectedShowcaseEntry == showcaseEntry,
+                title = showcaseEntry.titleStringResource,
+                onSelected = { onShowcaseEntrySelected(showcaseEntry) },
+            )
+        }
+    }
 }
 
 @Composable
@@ -280,5 +289,20 @@ private fun MenuItem(
             horizontal = 16.dp,
             vertical = 8.dp,
         ),
+    text = stringResource(title),
+)
+
+@Composable
+private fun MenuCategoryLabel(
+    title: StringResource,
+) = Text(
+    modifier = Modifier
+        .fillMaxWidth()
+        .padding(
+            horizontal = 16.dp,
+            vertical = 8.dp,
+        ),
+    color = MaterialTheme.colorScheme.primary,
+    style = MaterialTheme.typography.labelSmall,
     text = stringResource(title),
 )
