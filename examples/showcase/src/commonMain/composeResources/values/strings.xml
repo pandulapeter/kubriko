@@ -20,6 +20,8 @@
 
     <!-- Shaders -->
     <string name="shaders">Shaders</string>
+    <string name="expand_controls">Expand controls</string>
+    <string name="collapse_controls">Collapse controls</string>
     <string name="clouds">Clouds</string>
     <string name="fractal">Fractal</string>
 

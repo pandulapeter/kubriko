@@ -26,7 +26,7 @@ internal fun ShaderSlider(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     Slider(
-        modifier = modifier.height(16.dp),
+        modifier = modifier.height(24.dp),
         value = value,
         onValueChange = onValueChanged,
         valueRange = valueRange,

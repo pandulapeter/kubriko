@@ -17,12 +17,12 @@ internal class PhysicsShowcaseManager : Manager() {
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
         actorManager.add(
-            actors = ((0..50).map {
+            actors = ((0..40).map {
                 BouncyBall(
                     radius = (10..50).random().toFloat().scenePixel,
                     initialPosition = SceneOffset(
-                        x = (-0..0).random().toFloat().scenePixel,
-                        y = (-1200..1200).random().toFloat().scenePixel,
+                        x = (-500..500).random().toFloat().scenePixel,
+                        y = (-800..0).random().toFloat().scenePixel,
                     ),
                 )
             } + Platform(
