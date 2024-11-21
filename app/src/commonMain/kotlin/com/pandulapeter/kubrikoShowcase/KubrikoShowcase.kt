@@ -25,6 +25,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -225,14 +226,14 @@ private fun Header(
     },
     navigationIcon = {
         if (shouldUseCompactUi && selectedShowcaseEntry != null) {
-            Icon(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .clickable { onShowcaseEntrySelected(null) }
-                    .padding(4.dp),
-                painter = painterResource(Res.drawable.ic_back),
-                contentDescription = stringResource(Res.string.back),
-            )
+            IconButton(
+                onClick = { onShowcaseEntrySelected(null) }
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_back),
+                    contentDescription = stringResource(Res.string.back),
+                )
+            }
         }
     }
 )

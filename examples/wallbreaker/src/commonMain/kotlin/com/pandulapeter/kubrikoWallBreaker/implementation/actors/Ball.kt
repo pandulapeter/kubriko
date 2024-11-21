@@ -19,7 +19,7 @@ import kotlin.math.abs
 
 internal class Ball(
     private val radius: ScenePixel = 20f.scenePixel,
-    speed: ScenePixel = 0.4f.scenePixel,
+    speed: ScenePixel = 0.8f.scenePixel,
     private val bricks: StateFlow<List<Brick>>,
 ) : Visible, Dynamic {
 
