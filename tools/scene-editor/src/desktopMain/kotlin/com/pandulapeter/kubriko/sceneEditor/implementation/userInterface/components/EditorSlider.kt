@@ -56,6 +56,7 @@ internal fun EditorSlider(
             SliderDefaults.Track(
                 modifier = Modifier.height(4.dp),
                 colors = colors,
+                enabled = enabled,
                 sliderState = sliderState,
                 trackInsideCornerSize = 0.dp,
                 thumbTrackGapSize = 0.dp,
