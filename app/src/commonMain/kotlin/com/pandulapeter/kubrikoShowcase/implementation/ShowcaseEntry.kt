@@ -5,6 +5,7 @@ import com.pandulapeter.kubrikoShowcase.implementation.keyboardInput.KeyboardInp
 import com.pandulapeter.kubrikoShowcase.implementation.performance.PerformanceShowcase
 import com.pandulapeter.kubrikoShowcase.implementation.physics.PhysicsShowcase
 import com.pandulapeter.kubrikoShowcase.implementation.shaders.ShadersShowcase
+import com.pandulapeter.kubrikoWallbreaker.WallbreakerGame
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.demos
 import kubriko.app.generated.resources.games
@@ -43,7 +44,7 @@ internal enum class ShowcaseEntry(
     WALLBREAKER(
         type = ShowcaseEntryType.GAME,
         titleStringResource = Res.string.wallbreaker,
-        content = { ShadersShowcase() },
+        content = { WallbreakerGame() },
     ),
 }
 
