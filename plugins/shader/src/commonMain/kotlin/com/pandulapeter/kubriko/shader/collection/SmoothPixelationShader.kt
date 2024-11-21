@@ -9,14 +9,14 @@ data class SmoothPixelationShader(
     override val canvasIndex: Int? = null,
 ) : Shader {
     override val code = """
-    uniform float2 ${ShaderManager.UNIFORM_RESOLUTION};
-    uniform shader ${ShaderManager.UNIFORM_CONTENT}; 
+    uniform float2 ${ShaderManager.RESOLUTION};
+    uniform shader ${ShaderManager.CONTENT}; 
     uniform float $UNIFORM_PIXEL_SIZE;
 
     vec4 main(vec2 fragCoord) {
-        vec2 uv = fragCoord.xy / ${ShaderManager.UNIFORM_RESOLUTION}.xy;
-        float factor = (abs(sin(${ShaderManager.UNIFORM_RESOLUTION}.y * (uv.y - 0.5) / $UNIFORM_PIXEL_SIZE)) + abs(sin(${ShaderManager.UNIFORM_RESOLUTION}.x * (uv.x - 0.5) / $UNIFORM_PIXEL_SIZE))) / 2.0;
-        half4 color = ${ShaderManager.UNIFORM_CONTENT}.eval(fragCoord);
+        vec2 uv = fragCoord.xy / ${ShaderManager.RESOLUTION}.xy;
+        float factor = (abs(sin(${ShaderManager.RESOLUTION}.y * (uv.y - 0.5) / $UNIFORM_PIXEL_SIZE)) + abs(sin(${ShaderManager.RESOLUTION}.x * (uv.x - 0.5) / $UNIFORM_PIXEL_SIZE))) / 2.0;
+        half4 color = ${ShaderManager.CONTENT}.eval(fragCoord);
         return half4(factor * color.rgb, color.a); 
     }
 """.trimIndent()

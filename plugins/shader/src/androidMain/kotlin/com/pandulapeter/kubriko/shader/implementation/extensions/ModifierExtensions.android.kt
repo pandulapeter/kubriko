@@ -18,7 +18,7 @@ internal actual fun shader(shader: Shader, size: Size): androidx.compose.ui.grap
                 shader.applyUniforms(shaderUniformProvider)
                 shaderUniformProvider.updateResolution(size)
             },
-            ShaderManager.UNIFORM_CONTENT,
+            ShaderManager.CONTENT,
         ).asComposeRenderEffect()
     } else {
         return null
@@ -30,7 +30,7 @@ private class ShaderUniformProviderImpl(
     private val runtimeShader: RuntimeShader,
 ) : ShaderUniformProvider {
 
-    fun updateResolution(size: Size) = uniform(ShaderManager.UNIFORM_RESOLUTION, size.width, size.height)
+    fun updateResolution(size: Size) = uniform(ShaderManager.RESOLUTION, size.width, size.height)
 
     override fun uniform(name: String, value: Int) = runtimeShader.setIntUniform(name, value)
 

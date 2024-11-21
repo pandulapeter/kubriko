@@ -19,7 +19,7 @@ internal actual fun shader(shader: Shader, size: Size): RenderEffect? {
             shader.applyUniforms(shaderUniformProvider)
             shaderUniformProvider.updateResolution(size)
         },
-        shaderName = ShaderManager.UNIFORM_CONTENT,
+        shaderName = ShaderManager.CONTENT,
         input = null,
     ).asComposeRenderEffect()
 }
@@ -28,7 +28,7 @@ private class ShaderUniformProviderImpl(
     private val runtimeShaderBuilder: RuntimeShaderBuilder,
 ) : ShaderUniformProvider {
 
-    fun updateResolution(size: Size) = uniform(ShaderManager.UNIFORM_RESOLUTION, size.width, size.height)
+    fun updateResolution(size: Size) = uniform(ShaderManager.RESOLUTION, size.width, size.height)
 
     override fun uniform(name: String, value: Int) = runtimeShaderBuilder.uniform(name, value)
 

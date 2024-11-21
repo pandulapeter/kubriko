@@ -9,24 +9,23 @@ data class CloudShader(
     override val canvasIndex: Int? = null,
 ) : Shader {
     override val code = """
-    uniform float2 ${ShaderManager.UNIFORM_RESOLUTION};
-    uniform float $UNIFORM_TIME;
-    uniform float $UNIFORM_SKY_1_RED;
-    uniform float $UNIFORM_SKY_1_GREEN;
-    uniform float $UNIFORM_SKY_1_BLUE;
-    uniform float $UNIFORM_SKY_2_RED;
-    uniform float $UNIFORM_SKY_2_GREEN;
-    uniform float $UNIFORM_SKY_2_BLUE;
-    uniform shader ${ShaderManager.UNIFORM_CONTENT};
+    uniform float2 ${ShaderManager.RESOLUTION};
+    uniform float $SCALE;
+    uniform float $SPEED;
+    uniform float $DARK;
+    uniform float $LIGHT;
+    uniform float $COVER;
+    uniform float $ALPHA;
+    uniform float $TINT;
+    uniform float $TIME;
+    uniform float $SKY_1_RED;
+    uniform float $SKY_1_GREEN;
+    uniform float $SKY_1_BLUE;
+    uniform float $SKY_2_RED;
+    uniform float $SKY_2_GREEN;
+    uniform float $SKY_2_BLUE;
+    uniform shader ${ShaderManager.CONTENT};
     
-    const float cloudscale = 1.1;
-    const float speed = 0.03;
-    const float clouddark = 0.5;
-    const float cloudlight = 0.3;
-    const float cloudcover = 0.2;
-    const float cloudalpha = 8.0;
-    const float skytint = 0.5;  
-
     const mat2 m = mat2( 1.6,  1.2, -1.2,  1.6 );
 
     float2 hash( float2 p ) {
@@ -60,14 +59,14 @@ data class CloudShader(
     // -----------------------------------------------
 
     half4 main(in float2 fragCoord ) {
-        float2 p = fragCoord.xy / ${ShaderManager.UNIFORM_RESOLUTION}.xy;
-    	float2 uv = p*float2(${ShaderManager.UNIFORM_RESOLUTION}.x/${ShaderManager.UNIFORM_RESOLUTION}.y,1.0);    
-        float time = $UNIFORM_TIME * speed;
-        float q = fbm(uv * cloudscale * 0.5);
+        float2 p = fragCoord.xy / ${ShaderManager.RESOLUTION}.xy;
+    	float2 uv = p*float2(${ShaderManager.RESOLUTION}.x/${ShaderManager.RESOLUTION}.y,1.0);    
+        float time = $TIME * $SPEED;
+        float q = fbm(uv * $SCALE * 0.5);
         
         //ridged noise shape
     	float r = 0.0;
-    	uv *= cloudscale;
+    	uv *= $SCALE;
         uv -= q - time;
         float weight = 0.8;
         for (int i=0; i<8; i++){
@@ -78,8 +77,8 @@ data class CloudShader(
         
         //noise shape
     	float f = 0.0;
-        uv = p*float2(${ShaderManager.UNIFORM_RESOLUTION}.x/${ShaderManager.UNIFORM_RESOLUTION}.y,1.0);
-    	uv *= cloudscale;
+        uv = p*float2(${ShaderManager.RESOLUTION}.x/${ShaderManager.RESOLUTION}.y,1.0);
+    	uv *= $SCALE;
         uv -= q - time;
         weight = 0.7;
         for (int i=0; i<8; i++){
@@ -92,9 +91,9 @@ data class CloudShader(
         
         //noise colour
         float c = 0.0;
-        time = $UNIFORM_TIME * speed * 2.0;
-        uv = p*float2(${ShaderManager.UNIFORM_RESOLUTION}.x/${ShaderManager.UNIFORM_RESOLUTION}.y,1.0);
-    	uv *= cloudscale*2.0;
+        time = $TIME * $SPEED * 2.0;
+        uv = p*float2(${ShaderManager.RESOLUTION}.x/${ShaderManager.RESOLUTION}.y,1.0);
+    	uv *= $SCALE*2.0;
         uv -= q - time;
         weight = 0.4;
         for (int i=0; i<7; i++){
@@ -105,9 +104,9 @@ data class CloudShader(
         
         //noise ridge colour
         float c1 = 0.0;
-        time = $UNIFORM_TIME * speed * 3.0;
-        uv = p*float2(${ShaderManager.UNIFORM_RESOLUTION}.x/${ShaderManager.UNIFORM_RESOLUTION}.y,1.0);
-    	uv *= cloudscale*3.0;
+        time = $TIME * $SPEED * 3.0;
+        uv = p*float2(${ShaderManager.RESOLUTION}.x/${ShaderManager.RESOLUTION}.y,1.0);
+    	uv *= $SCALE*3.0;
         uv -= q - time;
         weight = 0.4;
         for (int i=0; i<7; i++){
@@ -118,29 +117,43 @@ data class CloudShader(
     	
         c += c1;
         
-        float3 skycolour = mix(float3($UNIFORM_SKY_1_RED, $UNIFORM_SKY_1_GREEN, $UNIFORM_SKY_1_BLUE), float3($UNIFORM_SKY_2_RED, $UNIFORM_SKY_2_GREEN, $UNIFORM_SKY_2_BLUE), p.y);
-        float3 cloudcolour = float3(1.1, 1.1, 0.9) * clamp((clouddark + cloudlight*c), 0.0, 1.0);
+        float3 skycolour = mix(float3($SKY_1_RED, $SKY_1_GREEN, $SKY_1_BLUE), float3($SKY_2_RED, $SKY_2_GREEN, $SKY_2_BLUE), p.y);
+        float3 cloudcolour = float3(1.1, 1.1, 0.9) * clamp(($DARK + $LIGHT*c), 0.0, 1.0);
        
-        f = cloudcover + cloudalpha*f*r;
+        f = $COVER + $ALPHA*f*r;
         
-        float3 result = mix(skycolour, clamp(skytint * skycolour + cloudcolour, 0.0, 1.0), clamp(f + c, 0.0, 1.0));
+        float3 result = mix(skycolour, clamp($TINT * skycolour + cloudcolour, 0.0, 1.0), clamp(f + c, 0.0, 1.0));
         
     	return float4( result, 1.0 );
     }
 """.trimIndent()
 
     override fun applyUniforms(provider: ShaderUniformProvider) {
-        provider.uniform(UNIFORM_TIME, properties.time)
-        provider.uniform(UNIFORM_SKY_1_RED, properties.sky1Red)
-        provider.uniform(UNIFORM_SKY_1_GREEN, properties.sky1Green)
-        provider.uniform(UNIFORM_SKY_1_BLUE, properties.sky1Blue)
-        provider.uniform(UNIFORM_SKY_2_RED, properties.sky2Red)
-        provider.uniform(UNIFORM_SKY_2_GREEN, properties.sky2Green)
-        provider.uniform(UNIFORM_SKY_2_BLUE, properties.sky2Blue)
+        provider.uniform(TIME, properties.time)
+        provider.uniform(SCALE, properties.scale)
+        provider.uniform(SPEED, properties.speed)
+        provider.uniform(DARK, properties.dark)
+        provider.uniform(LIGHT, properties.light)
+        provider.uniform(COVER, properties.cover)
+        provider.uniform(ALPHA, properties.alpha)
+        provider.uniform(TINT, properties.tint)
+        provider.uniform(SKY_1_RED, properties.sky1Red)
+        provider.uniform(SKY_1_GREEN, properties.sky1Green)
+        provider.uniform(SKY_1_BLUE, properties.sky1Blue)
+        provider.uniform(SKY_2_RED, properties.sky2Red)
+        provider.uniform(SKY_2_GREEN, properties.sky2Green)
+        provider.uniform(SKY_2_BLUE, properties.sky2Blue)
     }
 
     data class Properties(
         val time: Float = 0f,
+        val scale: Float = 1.1f,
+        val speed: Float = 0.03f,
+        val dark: Float = 0.5f,
+        val light: Float = 0.3f,
+        val cover: Float = 0.2f,
+        val alpha: Float = 8.0f,
+        val tint: Float = 0.5f,
         val sky1Red: Float = 0.2f,
         val sky1Green: Float = 0.4f,
         val sky1Blue: Float = 0.6f,
@@ -150,12 +163,19 @@ data class CloudShader(
     )
 
     companion object {
-        private const val UNIFORM_TIME = "iTime"
-        private const val UNIFORM_SKY_1_RED = "sky1Red"
-        private const val UNIFORM_SKY_1_GREEN = "sky1Green"
-        private const val UNIFORM_SKY_1_BLUE = "sky1Blue"
-        private const val UNIFORM_SKY_2_RED = "sky2Red"
-        private const val UNIFORM_SKY_2_GREEN = "sky2Green"
-        private const val UNIFORM_SKY_2_BLUE = "sky2Blue"
+        private const val TIME = "iTime"
+        private const val SCALE = "scale"
+        private const val SPEED = "speed"
+        private const val DARK = "dark"
+        private const val LIGHT = "light"
+        private const val COVER = "cover"
+        private const val ALPHA = "alpha"
+        private const val TINT = "tint"
+        private const val SKY_1_RED = "sky1Red"
+        private const val SKY_1_GREEN = "sky1Green"
+        private const val SKY_1_BLUE = "sky1Blue"
+        private const val SKY_2_RED = "sky2Red"
+        private const val SKY_2_GREEN = "sky2Green"
+        private const val SKY_2_BLUE = "sky2Blue"
     }
 }
