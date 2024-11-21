@@ -51,6 +51,12 @@ internal fun ColorPropertyEditor(
         }
     }
     Spacer(modifier = Modifier.height(8.dp))
+    EditorSlider(
+        title = "${name}.alpha",
+        value = value.alpha,
+        onValueChanged = { onValueChanged(value.copy(alpha = it)) },
+        valueRange = 0f..1f,
+    )
     when (colorEditorMode) {
         ColorEditorMode.HSV -> ControlsHSV(
             value = value,
@@ -77,21 +83,21 @@ private fun ControlsHSV(
     EditorSlider(
         title = "${name}.hue",
         value = colorHue,
-        onValueChanged = { onValueChanged(Color.hsv(it, colorSaturation, colorValue)) },
+        onValueChanged = { onValueChanged(Color.hsv(it, colorSaturation, colorValue).copy(alpha = value.alpha)) },
         valueRange = 0f..359.5f,
         enabled = colorSaturation > 0 && colorValue > 0,
     )
     EditorSlider(
         title = "${name}.saturation",
         value = colorSaturation,
-        onValueChanged = { onValueChanged(Color.hsv(colorHue, it, colorValue)) },
+        onValueChanged = { onValueChanged(Color.hsv(colorHue, it, colorValue).copy(alpha = value.alpha)) },
         valueRange = 0f..1f,
         enabled = colorValue > 0,
     )
     EditorSlider(
         title = "${name}.value",
         value = colorValue,
-        onValueChanged = { onValueChanged(Color.hsv(colorHue, colorSaturation, it)) },
+        onValueChanged = { onValueChanged(Color.hsv(colorHue, colorSaturation, it).copy(alpha = value.alpha)) },
         valueRange = 0f..1f,
     )
 }
