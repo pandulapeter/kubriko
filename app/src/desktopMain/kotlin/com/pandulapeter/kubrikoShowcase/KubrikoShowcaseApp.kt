@@ -1,8 +1,6 @@
 package com.pandulapeter.kubrikoShowcase
 
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorWindow
@@ -18,7 +16,7 @@ fun main() = application {
         title = "Kubriko",
     ) {
         window.minimumSize = Dimension(400, 400)
-        ShowcaseGame()
+        KubrikoShowcase()
     }
     if (shouldShowSceneEditorWindow.value) {
         SceneEditorWindow(

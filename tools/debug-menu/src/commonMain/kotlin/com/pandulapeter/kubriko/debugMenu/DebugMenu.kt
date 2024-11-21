@@ -14,7 +14,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContent
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +32,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuController
+import kubriko.tools.debug_menu.generated.resources.Res
+import kubriko.tools.debug_menu.generated.resources.debug_menu
+import kubriko.tools.debug_menu.generated.resources.ic_debug
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
 /**
@@ -92,13 +100,17 @@ fun DebugMenu(
             }
         }
         Box(
-            modifier = contentModifier.fillMaxSize(),
+            modifier = contentModifier.fillMaxSize().padding(16.dp),
         ) {
-            Button(
-                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
-                onClick = { isDebugMenuVisible.value = !isDebugMenuVisible.value }
+            FloatingActionButton(
+                modifier = Modifier.size(40.dp).align(Alignment.BottomEnd),
+                containerColor = MaterialTheme.colorScheme.primary,
+                onClick = { isDebugMenuVisible.value = !isDebugMenuVisible.value },
             ) {
-                Text(text = "Debug Menu")
+                Icon(
+                    painter = painterResource(Res.drawable.ic_debug),
+                    contentDescription = stringResource(Res.string.debug_menu)
+                )
             }
         }
     }

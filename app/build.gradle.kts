@@ -44,7 +44,7 @@ android {
 
 compose.desktop {
     application {
-        mainClass = "com.pandulapeter.kubrikoShowcase.GameKt"
+        mainClass = "com.pandulapeter.kubrikoShowcase.KubrikoShowcaseAppKt"
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.pandulapeter.kubrikoShowcase"

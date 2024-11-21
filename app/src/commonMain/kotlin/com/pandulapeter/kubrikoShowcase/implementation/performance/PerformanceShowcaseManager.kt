@@ -59,10 +59,10 @@ internal class PerformanceShowcaseManager : Manager(), KeyboardInputAware, Visib
             SceneSize((abs(it.x.raw) + 50).scenePixel, (abs(it.y.raw) + 50).scenePixel)
         }
         position = viewportManager.cameraPosition.value
-        actorManager.add(
-            RippleShader((metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f)
-        )
         if (actorManager.allActors.value.size > 1) {
+            actorManager.add(
+                RippleShader((metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f)
+            )
             if (overlayAlpha > 0) {
                 overlayAlpha -= 0.003f * deltaTimeInMillis
             }
@@ -89,7 +89,6 @@ internal class PerformanceShowcaseManager : Manager(), KeyboardInputAware, Visib
     private fun loadMap(mapName: String) = scope.launch {
         try {
             val deserializedActors = serializationManager.deserializeActors(Res.readBytes("files/scenes/$mapName.json").decodeToString())
-            actorManager.removeAll()
             val allActors = listOf(
                 this@PerformanceShowcaseManager,
                 KeyboardInputListener(),

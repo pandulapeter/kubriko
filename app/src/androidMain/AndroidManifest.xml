@@ -11,7 +11,7 @@
         android:theme="@style/GameTheme">
 
         <activity
-            android:name=".GameActivity"
+            android:name=".KubrikoShowcaseActivity"
             android:exported="true"
             android:resizeableActivity="true">
 

@@ -9,13 +9,13 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.ui.Modifier
 
-class GameActivity : ComponentActivity() {
+class KubrikoShowcaseActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            ShowcaseGame(
+            KubrikoShowcase(
                 modifier = Modifier
                     .systemBarsPadding()
                     .displayCutoutPadding()

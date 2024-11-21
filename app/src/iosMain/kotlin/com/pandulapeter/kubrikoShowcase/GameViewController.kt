@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.ComposeUIViewController
 
 fun GameViewController() = ComposeUIViewController {
-    ShowcaseGame(
+    KubrikoShowcase(
         modifier = Modifier
             .systemBarsPadding()
             .displayCutoutPadding()
