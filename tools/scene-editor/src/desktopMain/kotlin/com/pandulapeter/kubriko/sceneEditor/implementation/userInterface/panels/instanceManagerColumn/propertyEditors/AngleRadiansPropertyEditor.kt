@@ -17,6 +17,6 @@ internal fun AngleRadiansPropertyEditor(
     modifier = Modifier.padding(horizontal = 8.dp),
     title = name,
     value = value.normalized,
-    onValueChange = { onValueChanged(it.rad) },
+    onValueChanged = { onValueChanged(it.rad) },
     valueRange = 0f..6.27f
 )

@@ -5,12 +5,18 @@ import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
 data class CloudShader(
-    private val time: Float = 0f,
+    private val properties: Properties = Properties(),
     override val canvasIndex: Int? = null,
 ) : Shader {
     override val code = """
     uniform float2 ${ShaderManager.UNIFORM_RESOLUTION};
     uniform float $UNIFORM_TIME;
+    uniform float $UNIFORM_SKY_1_RED;
+    uniform float $UNIFORM_SKY_1_GREEN;
+    uniform float $UNIFORM_SKY_1_BLUE;
+    uniform float $UNIFORM_SKY_2_RED;
+    uniform float $UNIFORM_SKY_2_GREEN;
+    uniform float $UNIFORM_SKY_2_BLUE;
     uniform shader ${ShaderManager.UNIFORM_CONTENT};
     
     const float cloudscale = 1.1;
@@ -19,9 +25,7 @@ data class CloudShader(
     const float cloudlight = 0.3;
     const float cloudcover = 0.2;
     const float cloudalpha = 8.0;
-    const float skytint = 0.5;
-    const float3 skycolour1 = float3(0.2, 0.4, 0.6);
-    const float3 skycolour2 = float3(0.4, 0.7, 1.0);
+    const float skytint = 0.5;  
 
     const mat2 m = mat2( 1.6,  1.2, -1.2,  1.6 );
 
@@ -114,7 +118,7 @@ data class CloudShader(
     	
         c += c1;
         
-        float3 skycolour = mix(skycolour2, skycolour1, p.y);
+        float3 skycolour = mix(float3($UNIFORM_SKY_1_RED, $UNIFORM_SKY_1_GREEN, $UNIFORM_SKY_1_BLUE), float3($UNIFORM_SKY_2_RED, $UNIFORM_SKY_2_GREEN, $UNIFORM_SKY_2_BLUE), p.y);
         float3 cloudcolour = float3(1.1, 1.1, 0.9) * clamp((clouddark + cloudlight*c), 0.0, 1.0);
        
         f = cloudcover + cloudalpha*f*r;
@@ -126,10 +130,32 @@ data class CloudShader(
 """.trimIndent()
 
     override fun applyUniforms(provider: ShaderUniformProvider) {
-        provider.uniform(UNIFORM_TIME, time)
+        provider.uniform(UNIFORM_TIME, properties.time)
+        provider.uniform(UNIFORM_SKY_1_RED, properties.sky1Red)
+        provider.uniform(UNIFORM_SKY_1_GREEN, properties.sky1Green)
+        provider.uniform(UNIFORM_SKY_1_BLUE, properties.sky1Blue)
+        provider.uniform(UNIFORM_SKY_2_RED, properties.sky2Red)
+        provider.uniform(UNIFORM_SKY_2_GREEN, properties.sky2Green)
+        provider.uniform(UNIFORM_SKY_2_BLUE, properties.sky2Blue)
     }
+
+    data class Properties(
+        val time: Float = 0f,
+        val sky1Red: Float = 0.2f,
+        val sky1Green: Float = 0.4f,
+        val sky1Blue: Float = 0.6f,
+        val sky2Red: Float = 0.4f,
+        val sky2Green: Float = 0.7f,
+        val sky2Blue: Float = 1f,
+    )
 
     companion object {
         private const val UNIFORM_TIME = "iTime"
+        private const val UNIFORM_SKY_1_RED = "sky1Red"
+        private const val UNIFORM_SKY_1_GREEN = "sky1Green"
+        private const val UNIFORM_SKY_1_BLUE = "sky1Blue"
+        private const val UNIFORM_SKY_2_RED = "sky2Red"
+        private const val UNIFORM_SKY_2_GREEN = "sky2Green"
+        private const val UNIFORM_SKY_2_BLUE = "sky2Blue"
     }
 }

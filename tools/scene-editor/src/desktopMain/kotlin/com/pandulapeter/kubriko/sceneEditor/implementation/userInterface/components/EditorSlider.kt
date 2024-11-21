@@ -13,7 +13,7 @@ internal fun EditorSlider(
     title: String,
     suffix: String = "",
     value: Float,
-    onValueChange: (Float) -> Unit,
+    onValueChanged: (Float) -> Unit,
     valueRange: ClosedFloatingPointRange<Float>,
     enabled: Boolean = true,
 ) = Column(
@@ -25,7 +25,7 @@ internal fun EditorSlider(
     Slider(
         modifier = Modifier.height(24.dp),
         value = value,
-        onValueChange = onValueChange,
+        onValueChange = onValueChanged,
         valueRange = valueRange,
         enabled = enabled,
     )

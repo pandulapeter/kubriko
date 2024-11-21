@@ -34,21 +34,21 @@ internal fun ColorPropertyEditor(
     EditorSlider(
         title = "${name}.hue",
         value = colorHue,
-        onValueChange = { onValueChanged(Color.hsv(it, colorSaturation, colorValue)) },
+        onValueChanged = { onValueChanged(Color.hsv(it, colorSaturation, colorValue)) },
         valueRange = 0f..359.5f,
         enabled = colorSaturation > 0 && colorValue > 0,
     )
     EditorSlider(
         title = "${name}.saturation",
         value = colorSaturation,
-        onValueChange = { onValueChanged(Color.hsv(colorHue, it, colorValue)) },
+        onValueChanged = { onValueChanged(Color.hsv(colorHue, it, colorValue)) },
         valueRange = 0f..1f,
         enabled = colorValue > 0,
     )
     EditorSlider(
         title = "${name}.value",
         value = colorValue,
-        onValueChange = { onValueChanged(Color.hsv(colorHue, colorSaturation, it)) },
+        onValueChanged = { onValueChanged(Color.hsv(colorHue, colorSaturation, it)) },
         valueRange = 0f..1f,
     )
 }

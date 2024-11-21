@@ -18,6 +18,6 @@ internal fun AngleDegreesPropertyEditor(
     title = name,
     suffix = "°",
     value = value.normalized,
-    onValueChange = { onValueChanged(it.deg) },
+    onValueChanged = { onValueChanged(it.deg) },
     valueRange = 0f..359.99f
 )

@@ -5,10 +5,7 @@ import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
 data class FractalShader(
-    private val time: Float = 0f,
-    private val red: Int = 2,
-    private val green: Int = 5,
-    private val blue: Int = 12,
+    private val properties: Properties = Properties(),
     override val canvasIndex: Int? = null,
 ) : Shader {
     override val code = """
@@ -37,11 +34,18 @@ data class FractalShader(
 """.trimIndent()
 
     override fun applyUniforms(provider: ShaderUniformProvider) {
-        provider.uniform(UNIFORM_TIME, time)
-        provider.uniform(UNIFORM_RED, red)
-        provider.uniform(UNIFORM_GREEN, green)
-        provider.uniform(UNIFORM_BLUE, blue)
+        provider.uniform(UNIFORM_TIME, properties.time)
+        provider.uniform(UNIFORM_RED, properties.red)
+        provider.uniform(UNIFORM_GREEN, properties.green)
+        provider.uniform(UNIFORM_BLUE, properties.blue)
     }
+
+    data class Properties(
+        val time: Float = 0f,
+        val red: Int = 2,
+        val green: Int = 5,
+        val blue: Int = 12,
+    )
 
     companion object {
         private const val UNIFORM_TIME = "time"

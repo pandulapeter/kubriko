@@ -26,10 +26,10 @@ internal enum class ShowcaseEntry(
         titleStringResource = Res.string.performance,
         content = { PerformanceShowcase() },
     ),
-    POINTER_INPUT(
-        titleStringResource = Res.string.pointer_input,
-        content = { PointerInputShowcase() },
-    ),
+//    POINTER_INPUT(
+//        titleStringResource = Res.string.pointer_input,
+//        content = { PointerInputShowcase() },
+//    ),
     PHYSICS(
         titleStringResource = Res.string.physics,
         content = { PhysicsShowcase() },

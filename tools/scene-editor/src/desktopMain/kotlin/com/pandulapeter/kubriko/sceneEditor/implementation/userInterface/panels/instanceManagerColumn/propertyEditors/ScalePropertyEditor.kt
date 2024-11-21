@@ -20,13 +20,13 @@ internal fun ScalePropertyEditor(
     EditorSlider(
         title = "$name.horizontal",
         value = value.horizontal,
-        onValueChange = { onValueChanged(Scale(it, value.vertical)) },
+        onValueChanged = { onValueChanged(Scale(it, value.vertical)) },
         valueRange = 0f..10f
     )
     EditorSlider(
         title = "$name.vertical",
         value = value.vertical,
-        onValueChange = { onValueChanged(Scale(value.horizontal, it)) },
+        onValueChanged = { onValueChanged(Scale(value.horizontal, it)) },
         valueRange = 0f..10f
     )
 }

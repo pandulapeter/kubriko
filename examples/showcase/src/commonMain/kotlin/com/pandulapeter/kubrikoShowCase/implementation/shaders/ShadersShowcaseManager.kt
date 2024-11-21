@@ -19,12 +19,10 @@ internal class ShadersShowcaseManager : Manager() {
     private lateinit var metadataManager: MetadataManager
     private val _demoType = MutableStateFlow(ShaderDemoType.CLOUDS)
     val demoType = _demoType.asStateFlow()
-    private val _red = MutableStateFlow(2)
-    val red = _red.asStateFlow()
-    private val _green = MutableStateFlow(5)
-    val green = _green.asStateFlow()
-    private val _blue = MutableStateFlow(12)
-    val blue = _blue.asStateFlow()
+    private val _cloudProperties = MutableStateFlow(CloudShader.Properties())
+    val cloudProperties = _cloudProperties.asStateFlow()
+    private val _fractalProperties = MutableStateFlow(FractalShader.Properties())
+    val fractalProperties = _fractalProperties.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
@@ -35,23 +33,22 @@ internal class ShadersShowcaseManager : Manager() {
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) = actorManager.add(
         when (demoType.value) {
             ShaderDemoType.CLOUDS -> CloudShader(
-                time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f,
+                properties = cloudProperties.value.copy(
+                    time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f,
+                ),
             )
 
             ShaderDemoType.FRACTAL -> FractalShader(
-                time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f,
-                red = red.value,
-                green = green.value,
-                blue = blue.value,
+                properties = fractalProperties.value.copy(
+                    time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f,
+                ),
             )
         }
     )
 
     fun setSelectedDemoType(demoType: ShaderDemoType) = _demoType.update { demoType }
 
-    fun setRed(red: Int) = _red.update { red }
+    fun setCloudProperties(properties: CloudShader.Properties) = _cloudProperties.update { properties }
 
-    fun setGreen(green: Int) = _green.update { green }
-
-    fun setBlue(blue: Int) = _blue.update { blue }
+    fun setFractalProperties(properties: FractalShader.Properties) = _fractalProperties.update { properties }
 }
