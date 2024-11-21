@@ -15,9 +15,9 @@ dependencyResolutionManagement {
     }
 }
 include(
+    ":app",
     ":engine",
     ":examples:wallbreaker",
-    ":examples:showcase",
     ":plugins:keyboard-input",
     ":plugins:physics",
     ":plugins:serialization",
