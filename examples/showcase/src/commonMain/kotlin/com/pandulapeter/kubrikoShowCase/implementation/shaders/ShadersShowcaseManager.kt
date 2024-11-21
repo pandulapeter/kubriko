@@ -17,7 +17,7 @@ internal class ShadersShowcaseManager : Manager() {
 
     private lateinit var actorManager: ActorManager
     private lateinit var metadataManager: MetadataManager
-    private val _demoType = MutableStateFlow(ShaderDemoType.CLOUDS)
+    private val _demoType = MutableStateFlow(ShaderDemoType.FRACTAL)
     val demoType = _demoType.asStateFlow()
     private val _cloudProperties = MutableStateFlow(CloudShader.Properties())
     val cloudProperties = _cloudProperties.asStateFlow()
@@ -32,14 +32,14 @@ internal class ShadersShowcaseManager : Manager() {
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) = actorManager.add(
         when (demoType.value) {
-            ShaderDemoType.CLOUDS -> CloudShader(
-                properties = cloudProperties.value.copy(
+            ShaderDemoType.FRACTAL -> FractalShader(
+                properties = fractalProperties.value.copy(
                     time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f,
                 ),
             )
 
-            ShaderDemoType.FRACTAL -> FractalShader(
-                properties = fractalProperties.value.copy(
+            ShaderDemoType.CLOUDS -> CloudShader(
+                properties = cloudProperties.value.copy(
                     time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f,
                 ),
             )

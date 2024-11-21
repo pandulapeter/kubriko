@@ -2,7 +2,6 @@ package com.pandulapeter.kubrikoShowcase.implementation.shaders.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.runtime.Composable
@@ -20,8 +19,46 @@ internal fun CloudControls(
 ) {
     Column(
         modifier = Modifier.padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
+        FloatSlider(
+            title = "Scale",
+            value = properties.scale,
+            onValueChanged = { onPropertiesChanged(properties.copy(scale = it)) },
+            valueRange = 0f..10f,
+        )
+        FloatSlider(
+            title = "Speed",
+            value = properties.speed,
+            onValueChanged = { onPropertiesChanged(properties.copy(speed = it)) },
+        )
+        FloatSlider(
+            title = "Dark",
+            value = properties.dark,
+            onValueChanged = { onPropertiesChanged(properties.copy(dark = it)) },
+        )
+        FloatSlider(
+            title = "Light",
+            value = properties.light,
+            onValueChanged = { onPropertiesChanged(properties.copy(light = it)) },
+        )
+        FloatSlider(
+            title = "Cover",
+            value = properties.cover,
+            onValueChanged = { onPropertiesChanged(properties.copy(cover = it)) },
+        )
+        FloatSlider(
+            title = "Alpha",
+            value = properties.alpha,
+            onValueChanged = { onPropertiesChanged(properties.copy(alpha = it)) },
+            valueRange = 0f..10f,
+        )
+        FloatSlider(
+            title = "Tint",
+            value = properties.tint,
+            onValueChanged = { onPropertiesChanged(properties.copy(tint = it)) },
+            valueRange = 0f..2f,
+        )
         ColorSlider(
             title = "Sky 1",
             red = properties.sky1Red,

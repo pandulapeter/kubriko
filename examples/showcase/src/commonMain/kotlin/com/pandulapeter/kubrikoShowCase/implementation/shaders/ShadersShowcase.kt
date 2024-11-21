@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -62,13 +63,13 @@ internal fun ShadersShowcase(
                 )
                 when (demoType) {
                     ShaderDemoType.CLOUDS -> CloudControls(
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).width(300.dp),
                         properties = shadersShowcaseManager.cloudProperties.collectAsState().value,
                         onPropertiesChanged = shadersShowcaseManager::setCloudProperties,
                     )
 
                     ShaderDemoType.FRACTAL -> FractalControls(
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).width(300.dp),
                         properties = shadersShowcaseManager.fractalProperties.collectAsState().value,
                         onPropertiesChanged = shadersShowcaseManager::setFractalProperties,
                     )

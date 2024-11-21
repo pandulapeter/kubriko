@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -27,26 +26,26 @@ internal fun ColorSlider(
     horizontalArrangement = Arrangement.spacedBy(8.dp),
 ) {
     Text(
-        modifier = Modifier.defaultMinSize(minWidth = 48.dp),
+        modifier = Modifier.defaultMinSize(minWidth = 42.dp),
         style = MaterialTheme.typography.labelSmall,
         text = title,
     )
-    Slider(
-        modifier = Modifier.weight(1f).height(24.dp),
+    ShaderSlider(
+        modifier = Modifier.weight(1f),
         value = red,
-        onValueChange = { onValueChanged(it, green, blue) },
+        onValueChanged = { onValueChanged(it, green, blue) },
         valueRange = valueRange,
     )
-    Slider(
-        modifier = Modifier.weight(1f).height(24.dp),
+    ShaderSlider(
+        modifier = Modifier.weight(1f),
         value = green,
-        onValueChange = { onValueChanged(red, it, blue) },
+        onValueChanged = { onValueChanged(red, it, blue) },
         valueRange = valueRange,
     )
-    Slider(
-        modifier = Modifier.weight(1f).height(24.dp),
+    ShaderSlider(
+        modifier = Modifier.weight(1f),
         value = blue,
-        onValueChange = { onValueChanged(red, green, it) },
+        onValueChanged = { onValueChanged(red, green, it) },
         valueRange = valueRange,
     )
 }

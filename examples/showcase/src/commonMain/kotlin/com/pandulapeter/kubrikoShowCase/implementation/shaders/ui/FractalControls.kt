@@ -20,8 +20,14 @@ internal fun FractalControls(
 ) {
     Column(
         modifier = Modifier.padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
+        FloatSlider(
+            title = "Speed",
+            value = properties.speed,
+            onValueChanged = { onPropertiesChanged(properties.copy(speed = it)) },
+            valueRange = 0f..20f,
+        )
         ColorSlider(
             title = "Color",
             red = properties.red.toFloat(),

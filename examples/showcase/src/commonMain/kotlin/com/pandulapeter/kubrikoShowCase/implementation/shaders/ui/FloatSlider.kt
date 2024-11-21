@@ -5,13 +5,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlin.math.roundToInt
 
 @Composable
 internal fun FloatSlider(
@@ -19,21 +17,21 @@ internal fun FloatSlider(
     title: String,
     value: Float,
     onValueChanged: (Float) -> Unit,
-    valueRange: ClosedFloatingPointRange<Float>,
+    valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
 ) = Row(
     modifier = modifier,
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(8.dp),
 ) {
     Text(
-        modifier = Modifier.defaultMinSize(minWidth = 48.dp),
+        modifier = Modifier.defaultMinSize(minWidth = 42.dp),
         style = MaterialTheme.typography.labelSmall,
-        text = "$title: ${value.roundToInt()}",
+        text = title,
     )
-    Slider(
-        modifier = Modifier.weight(1f).height(24.dp),
+    ShaderSlider(
+        modifier = Modifier.weight(1f),
         value = value,
-        onValueChange = onValueChanged,
+        onValueChanged = onValueChanged,
         valueRange = valueRange,
     )
 }
