@@ -8,10 +8,8 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.serialization.integration.Serializable
-import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneOffset
-import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.isAroundPosition
+import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.keyboardInput.extensions.KeyboardDirectionState
@@ -21,6 +19,8 @@ import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.Exposed
+import com.pandulapeter.kubriko.serialization.integration.Serializable
+import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneOffset
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
@@ -42,7 +42,6 @@ class Character private constructor(state: CharacterState) : Editable<Character>
     )
     override var drawingOrder = 0f
     private var sizeMultiplier = 1f
-    private var nearbyActorPositions = emptyList<SceneOffset>()
     private lateinit var actorManager: ActorManager
     private lateinit var stateManager: StateManager
     private lateinit var viewportManager: ViewportManager
@@ -68,10 +67,6 @@ class Character private constructor(state: CharacterState) : Editable<Character>
         } else {
             sizeMultiplier = 1f
         }
-        nearbyActorPositions = findDestructibleActorsNearby(
-            position = position + pivotOffset,
-            range = ExplosionRange,
-        ).map { it.position }
     }
 
     private fun findDestructibleActorsNearby(
@@ -86,21 +81,11 @@ class Character private constructor(state: CharacterState) : Editable<Character>
             )
         }
 
-    override fun draw(scope: DrawScope) {
-        nearbyActorPositions.forEach { nearbyObjectPosition ->
-            scope.drawLine(
-                color = Color.Red,
-                start = pivotOffset.raw,
-                end = (nearbyObjectPosition - position + pivotOffset).raw,
-                strokeWidth = 2f,
-            )
-        }
-        scope.drawCircle(
-            color = lerp(Color.Red, Color.Green, ((1f + MAX_SIZE_MULTIPLIER) - sizeMultiplier) / MAX_SIZE_MULTIPLIER),
-            radius = (Radius * sizeMultiplier).raw,
-            center = boundingBox.center.raw,
-        )
-    }
+    override fun DrawScope.draw() = drawCircle(
+        color = lerp(Color.Red, Color.Green, ((1f + MAX_SIZE_MULTIPLIER) - sizeMultiplier) / MAX_SIZE_MULTIPLIER),
+        radius = (Radius * sizeMultiplier).raw,
+        center = boundingBox.center.raw,
+    )
 
     override fun save() = CharacterState(position = position)
 

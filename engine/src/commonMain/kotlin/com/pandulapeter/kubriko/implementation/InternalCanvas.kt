@@ -46,11 +46,13 @@ internal fun InternalCanvas(
                                 withTransform(
                                     transformBlock = { visible.transform(this) },
                                     drawBlock = {
-                                        clipRect(
-                                            right = visible.boundingBox.width.raw,
-                                            bottom = visible.boundingBox.height.raw,
-                                        ) {
-                                            visible.draw(this)
+                                        with(visible) {
+                                            clipRect(
+                                                right = boundingBox.width.raw,
+                                                bottom = boundingBox.height.raw,
+                                            ) {
+                                                draw()
+                                            }
                                         }
                                     }
                                 )
@@ -60,7 +62,7 @@ internal fun InternalCanvas(
                 overlayActors
                     .filter { it.canvasIndex == canvasIndex }
                     .sortedByDescending { it.overlayDrawingOrder }
-                    .forEach { it.drawToViewport(this) }
+                    .forEach { with(it) { drawToViewport() } }
             }
         )
     }

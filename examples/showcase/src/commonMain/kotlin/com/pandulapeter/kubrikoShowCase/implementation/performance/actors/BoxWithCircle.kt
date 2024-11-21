@@ -63,12 +63,12 @@ class BoxWithCircle private constructor(state: BoxWithCircleState) : Editable<Bo
         drawingOrder = -position.y.raw - pivotOffset.y.raw
     }
 
-    override fun draw(scope: DrawScope) {
-        scope.drawRect(
+    override fun DrawScope.draw() {
+        drawRect(
             color = lerp(boxColor, Color.Black, destructionState),
             size = boundingBox.raw,
         )
-        scope.drawCircle(
+        drawCircle(
             color = lerp(circleColor, Color.Black, destructionState),
             radius = circleRadius.raw,
             center = boundingBox.center.raw,

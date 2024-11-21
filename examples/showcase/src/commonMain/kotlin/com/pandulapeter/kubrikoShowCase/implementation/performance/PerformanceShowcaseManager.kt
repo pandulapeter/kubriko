@@ -70,16 +70,16 @@ internal class PerformanceShowcaseManager : Manager(), KeyboardInputAware, Visib
     }
 
     // TODO: There should be a simpler way of drawing a background than making this Manager an Actor.
-    override fun draw(scope: DrawScope) = scope.drawRect(
+    override fun DrawScope.draw() = drawRect(
         color = Color.White,
         size = boundingBox.raw,
     )
 
-    override fun drawToViewport(scope: DrawScope) {
+    override fun DrawScope.drawToViewport() {
         if (overlayAlpha > 0f) {
-            scope.drawRect(
+            drawRect(
                 color = Color.Black.copy(alpha = overlayAlpha),
-                size = scope.size,
+                size = size,
                 topLeft = Offset.Zero,
             )
         }

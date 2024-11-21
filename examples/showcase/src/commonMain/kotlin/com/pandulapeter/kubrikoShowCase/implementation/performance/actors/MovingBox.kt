@@ -90,7 +90,7 @@ class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>
         }
     }
 
-    override fun draw(scope: DrawScope) = scope.drawRect(
+    override fun DrawScope.draw() = drawRect(
         color = lerp(boxColor, Color.Black, destructionState),
         size = boundingBox.raw,
     )

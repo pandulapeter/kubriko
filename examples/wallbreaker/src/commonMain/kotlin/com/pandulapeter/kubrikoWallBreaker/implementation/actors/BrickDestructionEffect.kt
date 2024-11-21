@@ -12,7 +12,7 @@ import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
-internal class Explosion(
+internal class BrickDestructionEffect(
     override var position: SceneOffset,
     hue: Float,
 ) : Visible, Dynamic {
@@ -34,12 +34,12 @@ internal class Explosion(
         }
     }
 
-    override fun draw(scope: DrawScope) {
-        scope.drawRect(
+    override fun DrawScope.draw() {
+        drawRect(
             color = color.copy(alpha = alpha),
             size = boundingBox.raw,
         )
-        scope.drawRect(
+        drawRect(
             color = Color.Black.copy(alpha = alpha),
             size = boundingBox.raw,
             style = Stroke(),

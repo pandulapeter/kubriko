@@ -18,5 +18,5 @@ interface Overlay : CanvasAware, Actor {
     /**
      * Invoked by [Kubriko] to draw using the viewport drawing [scope].
      */
-    fun drawToViewport(scope: DrawScope)
+    fun DrawScope.drawToViewport()
 }

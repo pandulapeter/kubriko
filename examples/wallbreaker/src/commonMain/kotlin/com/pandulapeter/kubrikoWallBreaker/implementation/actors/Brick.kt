@@ -15,12 +15,12 @@ internal class Brick(
     override val boundingBox: SceneSize = SceneSize(Width, Height)
     private val color = Color.hsv(hue, 0.2f, 0.9f)
 
-    override fun draw(scope: DrawScope) {
-        scope.drawRect(
+    override fun DrawScope.draw() {
+        drawRect(
             color = color,
             size = boundingBox.raw,
         )
-        scope.drawRect(
+        drawRect(
             color = Color.Black,
             size = boundingBox.raw,
             style = Stroke(),

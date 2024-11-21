@@ -54,7 +54,7 @@ internal class Ball(
             )
             actorManager.remove(brick)
             actorManager.add(
-                Explosion(
+                BrickDestructionEffect(
                     position = brick.position,
                     hue = brick.hue,
                 )
@@ -92,13 +92,13 @@ internal class Ball(
         }
     }
 
-    override fun draw(scope: DrawScope) {
-        scope.drawCircle(
+    override fun DrawScope.draw() {
+        drawCircle(
             color = Color.LightGray,
             radius = radius.raw,
             center = pivotOffset.raw,
         )
-        scope.drawCircle(
+        drawCircle(
             color = Color.Black,
             radius = radius.raw,
             center = pivotOffset.raw,

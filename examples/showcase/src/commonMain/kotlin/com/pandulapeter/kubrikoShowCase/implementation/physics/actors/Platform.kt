@@ -25,12 +25,12 @@ internal class Platform(
         rotation += (0.002 * deltaTimeInMillis).toFloat().rad
     }
 
-    override fun draw(scope: DrawScope) {
-        scope.drawRect(
+    override fun DrawScope.draw() {
+        drawRect(
             color = Color.LightGray,
             size = boundingBox.raw,
         )
-        scope.drawRect(
+        drawRect(
             color = Color.Black,
             size = boundingBox.raw,
             style = Stroke(),

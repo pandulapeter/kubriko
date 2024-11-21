@@ -13,8 +13,8 @@ import com.pandulapeter.kubriko.types.SceneOffset
 
 internal class GridOverlay(private val viewportManager: ViewportManager) : Overlay, Unique {
 
-    override fun drawToViewport(scope: DrawScope) = viewportManager.scaleFactor.value.let { viewportScaleFactor ->
-        scope.withTransform(
+    override fun DrawScope.drawToViewport() = viewportManager.scaleFactor.value.let { viewportScaleFactor ->
+        withTransform(
             transformBlock = {
                 viewportManager.cameraPosition.value.let { viewportCenter ->
                     transformViewport(
@@ -39,7 +39,7 @@ internal class GridOverlay(private val viewportManager: ViewportManager) : Overl
                 var iterationX = 0
                 while (currentX <= viewportBottomRight.x.raw) {
                     val alpha = if ((startXLineIndex + iterationX) % 10 == 0) ALPHA_MAJOR else ALPHA_MINOR
-                    scope.drawLine(
+                    drawLine(
                         color = Color.Gray.copy(alpha = alpha),
                         start = Offset(currentX, viewportTopLeft.y.raw),
                         end = Offset(currentX, viewportBottomRight.y.raw),
@@ -59,7 +59,7 @@ internal class GridOverlay(private val viewportManager: ViewportManager) : Overl
                 var iterationY = 0
                 while (currentY <= viewportBottomRight.y.raw) {
                     val alpha = if ((startYLineIndex + iterationY) % 10 == 0) ALPHA_MAJOR else ALPHA_MINOR
-                    scope.drawLine(
+                    drawLine(
                         color = Color.Gray.copy(alpha = alpha),
                         start = Offset(viewportTopLeft.x.raw, currentY),
                         end = Offset(viewportBottomRight.x.raw, currentY),

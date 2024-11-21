@@ -33,25 +33,25 @@ internal class BouncyBall(
         position = position.wrapWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value)
     }
 
-    override fun draw(scope: DrawScope) {
-        scope.drawCircle(
+    override fun DrawScope.draw() {
+        drawCircle(
             color = Color.LightGray,
             radius = radius.raw,
             center = pivotOffset.raw,
         )
-        scope.drawCircle(
+        drawCircle(
             color = Color.Black,
             radius = radius.raw,
             center = pivotOffset.raw,
             style = Stroke(),
         )
-        scope.drawLine(
+        drawLine(
             color = Color.Black,
             start = Offset(pivotOffset.raw.x - radius.raw, pivotOffset.raw.y),
             end = Offset(pivotOffset.raw.x + radius.raw, pivotOffset.raw.y),
             strokeWidth = 2f,
         )
-        scope.drawLine(
+        drawLine(
             color = Color.Black,
             start = Offset(pivotOffset.raw.x, pivotOffset.raw.y - radius.raw),
             end = Offset(pivotOffset.raw.x, pivotOffset.raw.y + radius.raw),
