@@ -7,6 +7,7 @@ import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shader.collection.CloudShader
 import com.pandulapeter.kubriko.shader.collection.FractalShader
+import com.pandulapeter.kubriko.shader.collection.WarpShader
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -23,6 +24,8 @@ internal class ShadersShowcaseManager : Manager() {
     val cloudProperties = _cloudProperties.asStateFlow()
     private val _fractalProperties = MutableStateFlow(FractalShader.Properties())
     val fractalProperties = _fractalProperties.asStateFlow()
+    private val _warpProperties = MutableStateFlow(WarpShader.Properties())
+    val warpProperties = _warpProperties.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
@@ -43,6 +46,12 @@ internal class ShadersShowcaseManager : Manager() {
                     time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f,
                 ),
             )
+
+            ShaderDemoType.WARP -> WarpShader(
+                properties = warpProperties.value.copy(
+                    time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f,
+                ),
+            )
         }
     )
 
@@ -51,4 +60,6 @@ internal class ShadersShowcaseManager : Manager() {
     fun setCloudProperties(properties: CloudShader.Properties) = _cloudProperties.update { properties }
 
     fun setFractalProperties(properties: FractalShader.Properties) = _fractalProperties.update { properties }
+
+    fun setWarpProperties(properties: WarpShader.Properties) = _warpProperties.update { properties }
 }

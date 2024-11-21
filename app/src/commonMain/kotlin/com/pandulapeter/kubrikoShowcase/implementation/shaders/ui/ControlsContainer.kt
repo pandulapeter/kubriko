@@ -71,6 +71,11 @@ internal fun ControlsContainer(
                                 properties = shadersShowcaseManager.fractalProperties.collectAsState().value,
                                 onPropertiesChanged = shadersShowcaseManager::setFractalProperties,
                             )
+
+                            ShaderDemoType.WARP -> WarpControls(
+                                properties = shadersShowcaseManager.warpProperties.collectAsState().value,
+                                onPropertiesChanged = shadersShowcaseManager::setWarpProperties,
+                            )
                         }
                         Spacer(modifier = Modifier.height(16.dp))
                     }

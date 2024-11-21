@@ -3,6 +3,7 @@ package com.pandulapeter.kubrikoShowcase.implementation.shaders
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.clouds
 import kubriko.app.generated.resources.fractal
+import kubriko.app.generated.resources.warp
 import org.jetbrains.compose.resources.StringResource
 
 internal enum class ShaderDemoType(
@@ -10,4 +11,5 @@ internal enum class ShaderDemoType(
 ) {
     FRACTAL(nameStringResource = Res.string.fractal),
     CLOUDS(nameStringResource = Res.string.clouds),
+    WARP(nameStringResource = Res.string.warp),
 }
