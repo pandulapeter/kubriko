@@ -94,6 +94,8 @@ internal fun EditorUserInterface(
                             locateSelectedInstance = editorController::locateSelectedActor,
                             deleteSelectedInstance = editorController::removeSelectedActor,
                             notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
+                            colorEditorMode = editorController.colorEditorMode.collectAsState().value,
+                            onColorEditorModeChanged = editorController::onColorEditorModeChanged,
                         )
                     }
                     InstanceBrowserColumn(

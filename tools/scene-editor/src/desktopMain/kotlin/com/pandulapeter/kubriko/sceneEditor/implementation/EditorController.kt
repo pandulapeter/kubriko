@@ -15,6 +15,7 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.actors.GridOverlay
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.KeyboardInputListener
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.saveFile
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ColorEditorMode
 import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.CoroutineScope
@@ -75,6 +76,8 @@ internal class EditorController(
     }.stateIn(this, SharingStarted.Eagerly, null to false)
     private val _selectedTypeId = MutableStateFlow<String?>(null)
     val selectedTypeId = _selectedTypeId.asStateFlow()
+    private val _colorEditorMode = MutableStateFlow(ColorEditorMode.HSV)
+    val colorEditorMode = _colorEditorMode.asStateFlow()
     private val _currentFileName = MutableStateFlow(DEFAULT_SCENE_FILE_NAME)
     val currentFileName = _currentFileName.asStateFlow()
     private val _shouldShowVisibleOnly = MutableStateFlow(false)
@@ -151,6 +154,8 @@ internal class EditorController(
     }
 
     fun notifySelectedActorUpdate() = triggerActorUpdate.update { !it }
+
+    fun onColorEditorModeChanged(colorEditorMode: ColorEditorMode) = _colorEditorMode.update { colorEditorMode }
 
     fun selectActor(typeId: String) = _selectedTypeId.update { typeId }
 

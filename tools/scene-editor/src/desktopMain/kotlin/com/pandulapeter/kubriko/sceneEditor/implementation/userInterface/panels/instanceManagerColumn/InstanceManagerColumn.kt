@@ -18,6 +18,7 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.compone
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorRadioButton
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorSurface
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorTextTitle
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ColorEditorMode
 import kubriko.tools.scene_editor.generated.resources.Res
 import kubriko.tools.scene_editor.generated.resources.ic_close
 import kubriko.tools.scene_editor.generated.resources.ic_delete
@@ -38,6 +39,8 @@ internal fun InstanceManagerColumn(
     locateSelectedInstance: () -> Unit,
     deleteSelectedInstance: () -> Unit,
     notifySelectedInstanceUpdate: () -> Unit,
+    colorEditorMode: ColorEditorMode,
+    onColorEditorModeChanged: (ColorEditorMode) -> Unit,
 ) = EditorSurface(
     modifier = modifier,
     isElevated = false,
@@ -75,6 +78,8 @@ internal fun InstanceManagerColumn(
                         property.toPropertyEditor(
                             actor = selectedInstance,
                             notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
+                            colorEditorMode = colorEditorMode,
+                            onColorEditorModeChanged = onColorEditorModeChanged,
                         )
                     }
                     .let { controls ->

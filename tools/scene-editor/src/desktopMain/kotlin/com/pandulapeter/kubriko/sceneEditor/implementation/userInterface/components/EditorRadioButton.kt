@@ -11,6 +11,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -18,6 +19,7 @@ internal fun EditorRadioButton(
     modifier: Modifier = Modifier,
     label: String,
     isSelected: Boolean,
+    isSmall: Boolean = false,
     onSelectionChanged: () -> Unit,
 ) = Row(
     modifier = modifier
@@ -30,12 +32,17 @@ internal fun EditorRadioButton(
     horizontalArrangement = Arrangement.spacedBy(8.dp)
 ) {
     RadioButton(
-        modifier = Modifier.size(16.dp),
+        modifier = Modifier.scale(if (isSmall) 0.5f else 0.75f).size(if (isSmall) 12.dp else 16.dp),
         selected = isSelected,
         onClick = onSelectionChanged,
     )
-    EditorTextTitle(
-        modifier = Modifier.wrapContentHeight(),
-        text = label,
-    )
+    if (isSmall) {
+        EditorText(
+            text = label,
+        )
+    } else {
+        EditorTextTitle(
+            text = label,
+        )
+    }
 }

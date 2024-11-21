@@ -20,6 +20,7 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.compone
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorTextTitle
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.AngleDegreesPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.AngleRadiansPropertyEditor
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ColorEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ColorPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.FloatPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ScalePropertyEditor
@@ -45,6 +46,8 @@ import kotlin.reflect.jvm.isAccessible
 internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
     actor: T,
     notifySelectedInstanceUpdate: () -> Unit,
+    colorEditorMode: ColorEditorMode,
+    onColorEditorModeChanged: (ColorEditorMode) -> Unit,
 ): (@Composable () -> Unit)? = setter.findAnnotation<Exposed>()?.let { editableProperty ->
     isAccessible = true
     editableProperty.name.let { name ->
@@ -57,7 +60,9 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                         onValueChanged = { color ->
                             setter.call(actor, color)
                             notifySelectedInstanceUpdate()
-                        }
+                        },
+                        colorEditorMode = colorEditorMode,
+                        onColorEditorModeChanged = onColorEditorModeChanged,
                     )
                 }
             }
