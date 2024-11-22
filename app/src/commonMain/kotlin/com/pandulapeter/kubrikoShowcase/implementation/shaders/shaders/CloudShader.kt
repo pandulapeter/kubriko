@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.shader.collection
+package com.pandulapeter.kubrikoShowcase.implementation.shaders.shaders
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
@@ -8,7 +8,7 @@ import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
-class CloudShader(
+internal class CloudShader(
     initialState: State = State(),
     override val canvasIndex: Int? = null,
 ) : Shader<CloudShader.State>, Dynamic {

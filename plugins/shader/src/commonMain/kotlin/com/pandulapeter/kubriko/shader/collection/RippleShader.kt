@@ -6,7 +6,6 @@ import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
-import com.pandulapeter.kubriko.shader.collection.CloudShader.State
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
 class RippleShader(

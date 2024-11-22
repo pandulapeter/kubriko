@@ -5,10 +5,10 @@ import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
-import com.pandulapeter.kubriko.shader.collection.CloudShader
-import com.pandulapeter.kubriko.shader.collection.FractalShader
-import com.pandulapeter.kubriko.shader.collection.GradientShader
-import com.pandulapeter.kubriko.shader.collection.WarpShader
+import com.pandulapeter.kubrikoShowcase.implementation.shaders.shaders.CloudShader
+import com.pandulapeter.kubrikoShowcase.implementation.shaders.shaders.FractalShader
+import com.pandulapeter.kubrikoShowcase.implementation.shaders.shaders.GradientShader
+import com.pandulapeter.kubrikoShowcase.implementation.shaders.shaders.WarpShader
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn

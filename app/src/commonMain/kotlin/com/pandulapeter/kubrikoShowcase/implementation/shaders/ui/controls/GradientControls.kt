@@ -1,7 +1,8 @@
-package com.pandulapeter.kubrikoShowcase.implementation.shaders.ui
+package com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.controls
 
 import androidx.compose.runtime.Composable
-import com.pandulapeter.kubriko.shader.collection.GradientShader
+import com.pandulapeter.kubrikoShowcase.implementation.shaders.shaders.GradientShader
+import com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.FloatSlider
 
 @Composable
 internal fun GradientControls(

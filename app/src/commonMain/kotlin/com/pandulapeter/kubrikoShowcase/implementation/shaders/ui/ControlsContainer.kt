@@ -26,6 +26,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoShowcase.implementation.shaders.ShaderDemoType
 import com.pandulapeter.kubrikoShowcase.implementation.shaders.ShadersShowcaseManager
+import com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.controls.CloudControls
+import com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.controls.FractalControls
+import com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.controls.GradientControls
+import com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.controls.WarpControls
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.collapse_controls
 import kubriko.app.generated.resources.expand_controls

@@ -1,7 +1,8 @@
-package com.pandulapeter.kubrikoShowcase.implementation.shaders.ui
+package com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.controls
 
 import androidx.compose.runtime.Composable
-import com.pandulapeter.kubriko.shader.collection.WarpShader
+import com.pandulapeter.kubrikoShowcase.implementation.shaders.shaders.WarpShader
+import com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.FloatSlider
 
 @Composable
 internal fun WarpControls(

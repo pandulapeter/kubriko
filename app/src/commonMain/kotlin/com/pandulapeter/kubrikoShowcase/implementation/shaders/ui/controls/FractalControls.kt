@@ -1,7 +1,9 @@
-package com.pandulapeter.kubrikoShowcase.implementation.shaders.ui
+package com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.controls
 
 import androidx.compose.runtime.Composable
-import com.pandulapeter.kubriko.shader.collection.FractalShader
+import com.pandulapeter.kubrikoShowcase.implementation.shaders.shaders.FractalShader
+import com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.ColorSlider
+import com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.FloatSlider
 import kotlin.math.roundToInt
 
 @Composable
