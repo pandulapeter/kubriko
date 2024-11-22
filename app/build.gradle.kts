@@ -7,13 +7,11 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.engine)
+            implementation(projects.examples.demoCustomShaders)
             implementation(projects.examples.demoInput)
             implementation(projects.examples.demoPerformance)
             implementation(projects.examples.demoPhysics)
             implementation(projects.examples.gameWallbreaker)
-            // TODO: Remove direct plugin dependencies
-            implementation(projects.plugins.shader)
             implementation(compose.components.resources)
             implementation(compose.material3)
         }

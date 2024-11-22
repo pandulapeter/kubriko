@@ -1,4 +1,4 @@
-package com.pandulapeter.kubrikoShowcase.implementation.shaders.shaders
+package com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
@@ -8,36 +8,28 @@ import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
-internal class FractalShader(
+internal class GradientShader(
     initialState: State = State(),
     override val layerIndex: Int? = null,
-) : Shader<FractalShader.State>, Dynamic {
+) : Shader<GradientShader.State>, Dynamic {
     override var state = initialState
         private set
     override val cache = Shader.Cache()
     override val code = """
     uniform float2 ${ShaderManager.RESOLUTION};
+    uniform shader ${ShaderManager.CONTENT};
     uniform float $TIME;
     uniform float $SPEED;
-    uniform int $RED;
-    uniform int $GREEN;
-    uniform int $BLUE;
-    uniform shader ${ShaderManager.CONTENT};
     
-    float f(float3 p) {
-        p.z -= $TIME * $SPEED;
-        float a = p.z * .1;
-        p.xy *= mat2(cos(a), sin(a), -sin(a), cos(a));
-        return .1 - length(cos(p.xy) + sin(p.yz));
-    }
-    
-    half4 main(float2 fragcoord) { 
-        float3 d = .5 - fragcoord.xy1 / ${ShaderManager.RESOLUTION}.y;
-        float3 p=float3(0);
-        for (int i = 0; i < 32; i++) {
-          p += f(p) * d;
-        }
-        return ((sin(p) + float3($RED, $GREEN, $BLUE)) / length(p)).xyz1;
+    float4 main(float2 fragCoord) {
+        // Normalized pixel coordinates (from 0 to 1)
+        float2 uv = fragCoord/${ShaderManager.RESOLUTION}.xy;
+
+        // Time varying pixel color
+        float3 col = 0.8 + 0.2 * cos($TIME*$SPEED+uv.xxx*2.0+float3(1,2,4));
+
+        // Output to screen
+        return float4(col,1.0);
     }
 """.trimIndent()
     private lateinit var metadataManager: MetadataManager
@@ -57,25 +49,16 @@ internal class FractalShader(
     data class State(
         val time: Float = 0f,
         val speed: Float = 2f,
-        val red: Int = 4,
-        val green: Int = 4,
-        val blue: Int = 18,
     ) : Shader.State {
 
         override fun ShaderUniformProvider.applyUniforms() {
             uniform(TIME, time)
             uniform(SPEED, speed)
-            uniform(RED, red)
-            uniform(GREEN, green)
-            uniform(BLUE, blue)
         }
     }
 
     companion object {
         private const val TIME = "time"
         private const val SPEED = "speed"
-        private const val RED = "red"
-        private const val GREEN = "green"
-        private const val BLUE = "blue"
     }
 }

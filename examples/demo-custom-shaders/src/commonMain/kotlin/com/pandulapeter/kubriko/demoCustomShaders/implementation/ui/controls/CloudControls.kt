@@ -1,9 +1,9 @@
-package com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.controls
+package com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls
 
 import androidx.compose.runtime.Composable
-import com.pandulapeter.kubrikoShowcase.implementation.shaders.shaders.CloudShader
-import com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.ColorSlider
-import com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.FloatSlider
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.CloudShader
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.ColorSlider
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.FloatSlider
 
 @Composable
 internal fun CloudControls(

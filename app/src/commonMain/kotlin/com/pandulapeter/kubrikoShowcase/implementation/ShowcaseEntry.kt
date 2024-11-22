@@ -1,24 +1,24 @@
 package com.pandulapeter.kubrikoShowcase.implementation
 
 import androidx.compose.runtime.Composable
+import com.pandulapeter.kubriko.demoCustomShaders.CustomShadersDemo
 import com.pandulapeter.kubriko.demoInput.InputDemo
 import com.pandulapeter.kubriko.demoPerformance.PerformanceDemo
 import com.pandulapeter.kubriko.demoPhysics.PhysicsDemo
-import com.pandulapeter.kubrikoShowcase.implementation.shaders.ShadersShowcase
 import com.pandulapeter.kubriko.gameWallbreaker.WallbreakerGame
 import kubriko.app.generated.resources.Res
-import kubriko.app.generated.resources.demos
-import kubriko.app.generated.resources.games
+import kubriko.app.generated.resources.demo_custom_shaders
+import kubriko.app.generated.resources.demo_custom_shaders_subtitle
 import kubriko.app.generated.resources.demo_input
 import kubriko.app.generated.resources.demo_input_subtitle
-import kubriko.app.generated.resources.performance
-import kubriko.app.generated.resources.performance_subtitle
-import kubriko.app.generated.resources.physics
-import kubriko.app.generated.resources.physics_subtitle
-import kubriko.app.generated.resources.shaders
-import kubriko.app.generated.resources.shaders_subtitle
-import kubriko.app.generated.resources.wallbreaker
-import kubriko.app.generated.resources.wallbreaker_subtitle
+import kubriko.app.generated.resources.demo_performance
+import kubriko.app.generated.resources.demo_performance_subtitle
+import kubriko.app.generated.resources.demo_physics
+import kubriko.app.generated.resources.demo_physics_subtitle
+import kubriko.app.generated.resources.demos
+import kubriko.app.generated.resources.game_wallbreaker
+import kubriko.app.generated.resources.game_wallbreaker_subtitle
+import kubriko.app.generated.resources.games
 import org.jetbrains.compose.resources.StringResource
 
 internal enum class ShowcaseEntry(
@@ -27,6 +27,12 @@ internal enum class ShowcaseEntry(
     val subtitleStringResource: StringResource,
     val content: @Composable () -> Unit,
 ) {
+    CUSTOM_SHADERS(
+        type = ShowcaseEntryType.DEMO,
+        titleStringResource = Res.string.demo_custom_shaders,
+        subtitleStringResource = Res.string.demo_custom_shaders_subtitle,
+        content = { CustomShadersDemo() },
+    ),
     INPUT(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_input,
@@ -35,26 +41,20 @@ internal enum class ShowcaseEntry(
     ),
     PERFORMANCE(
         type = ShowcaseEntryType.DEMO,
-        titleStringResource = Res.string.performance,
-        subtitleStringResource = Res.string.performance_subtitle,
+        titleStringResource = Res.string.demo_performance,
+        subtitleStringResource = Res.string.demo_performance_subtitle,
         content = { PerformanceDemo() },
     ),
     PHYSICS(
         type = ShowcaseEntryType.DEMO,
-        titleStringResource = Res.string.physics,
-        subtitleStringResource = Res.string.physics_subtitle,
+        titleStringResource = Res.string.demo_physics,
+        subtitleStringResource = Res.string.demo_physics_subtitle,
         content = { PhysicsDemo() },
-    ),
-    SHADERS(
-        type = ShowcaseEntryType.DEMO,
-        titleStringResource = Res.string.shaders,
-        subtitleStringResource = Res.string.shaders_subtitle,
-        content = { ShadersShowcase() },
     ),
     WALLBREAKER(
         type = ShowcaseEntryType.GAME,
-        titleStringResource = Res.string.wallbreaker,
-        subtitleStringResource = Res.string.wallbreaker_subtitle,
+        titleStringResource = Res.string.game_wallbreaker,
+        subtitleStringResource = Res.string.game_wallbreaker_subtitle,
         content = { WallbreakerGame() },
     ),
 }

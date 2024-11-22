@@ -11,30 +11,24 @@
     <string name="welcome_subtitle">A short introduction</string>
     <string name="welcome_message">Welcome!\n\nThis is the Showcase app for the Kubriko game engine.</string>
 
+    <!-- Custom Shaders -->
+    <string name="demo_custom_shaders">Custom shaders</string>
+    <string name="demo_custom_shaders_subtitle">Full-screen shader animation examples</string>
+
     <!-- Input -->
     <string name="demo_input">Input</string>
     <string name="demo_input_subtitle">Keyboard input tester</string>
 
     <!-- Performance -->
-    <string name="performance">Performance</string>
-    <string name="performance_subtitle">Large number of dynamic actors, shaders, etc</string>
+    <string name="demo_performance">Performance</string>
+    <string name="demo_performance_subtitle">Large number of dynamic actors, shaders, etc</string>
 
     <!-- Physics -->
-    <string name="physics">Physics</string>
-    <string name="physics_subtitle">Rigid body collisions, joints, raytracing, etc.</string>
-
-    <!-- Shaders -->
-    <string name="shaders">Custom shaders</string>
-    <string name="shaders_subtitle">Full-screen shader animation examples</string>
-    <string name="expand_controls">Expand controls</string>
-    <string name="collapse_controls">Collapse controls</string>
-    <string name="clouds">Clouds</string>
-    <string name="fractal">Fractal</string>
-    <string name="warp">Warp</string>
-    <string name="gradient">Gradient</string>
+    <string name="demo_physics">Physics</string>
+    <string name="demo_physics_subtitle">Rigid body collisions, joints, raytracing, etc.</string>
 
     <!-- Wallbreaker -->
-    <string name="wallbreaker">Wallbreaker</string>
-    <string name="wallbreaker_subtitle">Simple motion, collisions, actor management</string>
+    <string name="game_wallbreaker">Wallbreaker</string>
+    <string name="game_wallbreaker_subtitle">Simple motion, collisions, actor management</string>
 
 </resources>

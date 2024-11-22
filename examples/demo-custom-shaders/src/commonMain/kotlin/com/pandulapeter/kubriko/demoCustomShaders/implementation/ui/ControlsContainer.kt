@@ -1,4 +1,4 @@
-package com.pandulapeter.kubrikoShowcase.implementation.shaders.ui
+package com.pandulapeter.kubriko.demoCustomShaders.implementation.ui
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
@@ -24,16 +24,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubrikoShowcase.implementation.shaders.ShaderDemoType
-import com.pandulapeter.kubrikoShowcase.implementation.shaders.ShadersShowcaseManager
-import com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.controls.CloudControls
-import com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.controls.FractalControls
-import com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.controls.GradientControls
-import com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.controls.WarpControls
-import kubriko.app.generated.resources.Res
-import kubriko.app.generated.resources.collapse_controls
-import kubriko.app.generated.resources.expand_controls
-import kubriko.app.generated.resources.ic_brush
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.CustomShaderType
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.CustomShadersDemoManager
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.CloudControls
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.FractalControls
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.GradientControls
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.WarpControls
+import kubriko.examples.demo_custom_shaders.generated.resources.Res
+import kubriko.examples.demo_custom_shaders.generated.resources.collapse_controls
+import kubriko.examples.demo_custom_shaders.generated.resources.expand_controls
+import kubriko.examples.demo_custom_shaders.generated.resources.ic_brush
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -42,9 +42,9 @@ private val MaximumWidth = 300.dp
 @Composable
 internal fun ControlsContainer(
     modifier: Modifier = Modifier,
-    state: Pair<ShaderDemoType, Boolean>,
+    state: Pair<CustomShaderType, Boolean>,
     onIsExpandedChanged: (Boolean) -> Unit,
-    shadersShowcaseManager: ShadersShowcaseManager,
+    customShadersDemoManager: CustomShadersDemoManager,
 ) {
     Box(
         modifier = modifier,
@@ -64,24 +64,24 @@ internal fun ControlsContainer(
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         when (targetExpanded.first) {
-                            ShaderDemoType.CLOUDS -> CloudControls(
-                                properties = shadersShowcaseManager.cloudState.collectAsState().value,
-                                onPropertiesChanged = shadersShowcaseManager::setCloudState,
+                            CustomShaderType.CLOUDS -> CloudControls(
+                                properties = customShadersDemoManager.cloudState.collectAsState().value,
+                                onPropertiesChanged = customShadersDemoManager::setCloudState,
                             )
 
-                            ShaderDemoType.FRACTAL -> FractalControls(
-                                properties = shadersShowcaseManager.fractalState.collectAsState().value,
-                                onPropertiesChanged = shadersShowcaseManager::setFractalState,
+                            CustomShaderType.FRACTAL -> FractalControls(
+                                properties = customShadersDemoManager.fractalState.collectAsState().value,
+                                onPropertiesChanged = customShadersDemoManager::setFractalState,
                             )
 
-                            ShaderDemoType.WARP -> WarpControls(
-                                properties = shadersShowcaseManager.warpState.collectAsState().value,
-                                onPropertiesChanged = shadersShowcaseManager::setWarpState,
+                            CustomShaderType.WARP -> WarpControls(
+                                properties = customShadersDemoManager.warpState.collectAsState().value,
+                                onPropertiesChanged = customShadersDemoManager::setWarpState,
                             )
 
-                            ShaderDemoType.GRADIENT -> GradientControls(
-                                properties = shadersShowcaseManager.gradientState.collectAsState().value,
-                                onPropertiesChanged = shadersShowcaseManager::setGradientState,
+                            CustomShaderType.GRADIENT -> GradientControls(
+                                properties = customShadersDemoManager.gradientState.collectAsState().value,
+                                onPropertiesChanged = customShadersDemoManager::setGradientState,
                             )
                         }
                         Spacer(modifier = Modifier.height(16.dp))

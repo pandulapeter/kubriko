@@ -1,4 +1,4 @@
-package com.pandulapeter.kubrikoShowcase.implementation.shaders
+package com.pandulapeter.kubriko.demoCustomShaders
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,22 +18,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.CustomShaderType
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.CustomShadersDemoManager
 import com.pandulapeter.kubriko.shader.ShaderManager
-import com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.ControlsContainer
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.ControlsContainer
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun ShadersShowcase(
+fun CustomShadersDemo(
     modifier: Modifier = Modifier,
 ) {
-    val shadersShowcaseManager = remember { ShadersShowcaseManager() }
+    val customShadersDemoManager = remember { CustomShadersDemoManager() }
     val kubriko = remember {
         Kubriko.newInstance(
             ShaderManager.newInstance(),
-            shadersShowcaseManager,
+            customShadersDemoManager,
         )
     }
-    val selectedDemoType = shadersShowcaseManager.demoType.collectAsState()
+    val selectedDemoType = customShadersDemoManager.demoType.collectAsState()
     val areControlsExpanded = remember { mutableStateOf(false) }
     Column(
         modifier = modifier.fillMaxSize(),
@@ -42,12 +44,12 @@ internal fun ShadersShowcase(
             modifier = Modifier.fillMaxWidth(),
             selectedTabIndex = selectedDemoType.value.ordinal,
         ) {
-            ShaderDemoType.entries.forEach { demoType ->
+            CustomShaderType.entries.forEach { demoType ->
                 Tab(
                     modifier = Modifier.height(42.dp),
                     text = { Text(stringResource(demoType.nameStringResource)) },
                     selected = demoType == selectedDemoType.value,
-                    onClick = { shadersShowcaseManager.setSelectedDemoType(demoType) }
+                    onClick = { customShadersDemoManager.setSelectedDemoType(demoType) }
                 )
             }
         }
@@ -61,7 +63,7 @@ internal fun ShadersShowcase(
                 modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
                 state = selectedDemoType.value to areControlsExpanded.value,
                 onIsExpandedChanged = { areControlsExpanded.value = it },
-                shadersShowcaseManager = shadersShowcaseManager,
+                customShadersDemoManager = customShadersDemoManager,
             )
         }
     }

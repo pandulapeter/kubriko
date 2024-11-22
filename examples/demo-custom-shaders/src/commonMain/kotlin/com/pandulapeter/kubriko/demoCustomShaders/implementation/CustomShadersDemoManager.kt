@@ -1,25 +1,25 @@
-package com.pandulapeter.kubrikoShowcase.implementation.shaders
+package com.pandulapeter.kubriko.demoCustomShaders.implementation
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
-import com.pandulapeter.kubrikoShowcase.implementation.shaders.shaders.CloudShader
-import com.pandulapeter.kubrikoShowcase.implementation.shaders.shaders.FractalShader
-import com.pandulapeter.kubrikoShowcase.implementation.shaders.shaders.GradientShader
-import com.pandulapeter.kubrikoShowcase.implementation.shaders.shaders.WarpShader
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.CloudShader
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.FractalShader
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.GradientShader
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.WarpShader
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 
-internal class ShadersShowcaseManager : Manager() {
+internal class CustomShadersDemoManager : Manager() {
 
     private lateinit var actorManager: ActorManager
     private lateinit var metadataManager: MetadataManager
-    private val _demoType = MutableStateFlow(ShaderDemoType.FRACTAL)
+    private val _demoType = MutableStateFlow(CustomShaderType.FRACTAL)
     val demoType = _demoType.asStateFlow()
     private val fractalShader by lazy { FractalShader() }
     private val _fractalState by lazy { MutableStateFlow(fractalShader.state) }
@@ -41,10 +41,10 @@ internal class ShadersShowcaseManager : Manager() {
             actorManager.removeAll()
             actorManager.add(
                 when (demoType) {
-                    ShaderDemoType.FRACTAL -> fractalShader
-                    ShaderDemoType.CLOUDS -> cloudShader
-                    ShaderDemoType.WARP -> warpShader
-                    ShaderDemoType.GRADIENT -> gradientShader
+                    CustomShaderType.FRACTAL -> fractalShader
+                    CustomShaderType.CLOUDS -> cloudShader
+                    CustomShaderType.WARP -> warpShader
+                    CustomShaderType.GRADIENT -> gradientShader
                 }
             )
         }.launchIn(scope)
@@ -54,7 +54,7 @@ internal class ShadersShowcaseManager : Manager() {
         gradientState.onEach { gradientShader.updateState(it) }.launchIn(scope)
     }
 
-    fun setSelectedDemoType(demoType: ShaderDemoType) = _demoType.update { demoType }
+    fun setSelectedDemoType(demoType: CustomShaderType) = _demoType.update { demoType }
 
     fun setCloudState(state: CloudShader.State) = _cloudState.update { state }
 

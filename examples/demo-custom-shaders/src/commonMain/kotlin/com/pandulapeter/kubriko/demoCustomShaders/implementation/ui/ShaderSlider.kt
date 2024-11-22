@@ -1,4 +1,4 @@
-package com.pandulapeter.kubrikoShowcase.implementation.shaders.ui
+package com.pandulapeter.kubriko.demoCustomShaders.implementation.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.hoverable

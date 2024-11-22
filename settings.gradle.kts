@@ -17,6 +17,7 @@ dependencyResolutionManagement {
 include(
     ":app",
     ":engine",
+    ":examples:demo-custom-shaders",
     ":examples:demo-input",
     ":examples:demo-performance",
     ":examples:demo-physics",

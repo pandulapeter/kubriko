@@ -1,4 +1,4 @@
-package com.pandulapeter.kubrikoShowcase.implementation.shaders.shaders
+package com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic

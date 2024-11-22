@@ -1,9 +1,8 @@
-package com.pandulapeter.kubrikoShowcase.implementation.shaders.ui
+package com.pandulapeter.kubriko.demoCustomShaders.implementation.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,14 +11,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun ColorSlider(
+internal fun FloatSlider(
     modifier: Modifier = Modifier,
     title: String,
-    red: Float,
-    green: Float,
-    blue: Float,
-    onValueChanged: (Float, Float, Float) -> Unit,
-    valueRange: ClosedFloatingPointRange<Float>,
+    value: Float,
+    onValueChanged: (Float) -> Unit,
+    valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
 ) = Row(
     modifier = modifier,
     verticalAlignment = Alignment.CenterVertically,
@@ -32,20 +29,8 @@ internal fun ColorSlider(
     )
     ShaderSlider(
         modifier = Modifier.weight(1f),
-        value = red,
-        onValueChanged = { onValueChanged(it, green, blue) },
-        valueRange = valueRange,
-    )
-    ShaderSlider(
-        modifier = Modifier.weight(1f),
-        value = green,
-        onValueChanged = { onValueChanged(red, it, blue) },
-        valueRange = valueRange,
-    )
-    ShaderSlider(
-        modifier = Modifier.weight(1f),
-        value = blue,
-        onValueChanged = { onValueChanged(red, green, it) },
+        value = value,
+        onValueChanged = onValueChanged,
         valueRange = valueRange,
     )
 }
