@@ -14,8 +14,8 @@ internal actual fun <T : Shader.State> shader(
     size: Size,
 ): androidx.compose.ui.graphics.RenderEffect? {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        val runtimeShader = RuntimeShader(shader.code)
-        val shaderUniformProvider = ShaderUniformProviderImpl(runtimeShader)
+        val runtimeShader = (shader.cache.runtimeShader as? RuntimeShader) ?: RuntimeShader(shader.code).also { shader.cache.runtimeShader = it}
+        val shaderUniformProvider = (shader.cache.uniformProvider as? ShaderUniformProviderImpl) ?: ShaderUniformProviderImpl(runtimeShader).also { shader.cache.uniformProvider = it }
         return RenderEffect.createRuntimeShaderEffect(
             runtimeShader.apply {
                 with(shader.state.value) { shaderUniformProvider.applyUniforms() }

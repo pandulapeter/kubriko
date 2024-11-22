@@ -15,6 +15,7 @@ class WarpShader(
     initialState: State = State(),
     override val canvasIndex: Int? = null,
 ) : Shader<WarpShader.State>, Dynamic {
+    override val cache = Shader.Cache()
     private val _state = MutableStateFlow(initialState)
     override val state = _state.asStateFlow()
     override val code = """

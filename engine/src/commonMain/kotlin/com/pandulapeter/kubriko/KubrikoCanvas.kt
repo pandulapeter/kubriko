@@ -61,7 +61,7 @@ fun KubrikoCanvas(
             kubrikoImpl.viewportManager.updateSize(Size(maxWidth.toPx(), maxHeight.toPx()))
         }
         InternalCanvas(
-            canvasModifiers = kubrikoImpl.actorManager.canvasGroups.collectAsState().value.associateWith { canvasIndex ->
+            canvasModifiers = kubrikoImpl.actorManager.canvasIndices.collectAsState().value.associateWith { canvasIndex ->
                 kubrikoImpl.managers
                     .mapNotNull { it.getModifier(canvasIndex)?.collectAsState(null)?.value }
                     .fold(Modifier.fillMaxSize().clipToBounds()) { compoundModifier, managerModifier -> compoundModifier then managerModifier }

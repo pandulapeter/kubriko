@@ -32,8 +32,8 @@ internal class ActorManagerImpl(
     private lateinit var stateManager: StateManager
     private val _allActors = MutableStateFlow(emptyList<Actor>())
     override val allActors = _allActors.asStateFlow()
-    val canvasGroups by autoInitializingLazy {
-        _allActors.map { actors -> actors.filterIsInstance<CanvasAware>().groupBy { it.canvasIndex }.keys }.asStateFlow(emptyList())
+    val canvasIndices by autoInitializingLazy {
+        _allActors.map { actors -> actors.filterIsInstance<CanvasAware>().groupBy { it.canvasIndex }.keys.sortedByDescending { it } }.asStateFlow(emptyList())
     }
     private val dynamicActors by autoInitializingLazy {
         _allActors.map { actors -> actors.filterIsInstance<Dynamic>() }.asStateFlow(emptyList())

@@ -10,6 +10,7 @@ class VignetteShader(
     initialState: State = State(),
     override val canvasIndex: Int? = null,
 ) : Shader<VignetteShader.State> {
+    override val cache = Shader.Cache()
     private val _state = MutableStateFlow(initialState)
     override val state = _state.asStateFlow()
     override val code = """
