@@ -21,6 +21,7 @@ import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.integration.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneOffset
+import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
@@ -43,6 +44,7 @@ class Character private constructor(state: State) : Editable<Character>, Unique,
     )
     override var drawingOrder = 0f
     private var sizeMultiplier = 1f
+    override var scale = Scale.Unit
     private lateinit var actorManager: ActorManager
     private lateinit var stateManager: StateManager
     private lateinit var viewportManager: ViewportManager
@@ -68,6 +70,7 @@ class Character private constructor(state: State) : Editable<Character>, Unique,
         } else {
             sizeMultiplier = 1f
         }
+        scale = Scale.Unit * sizeMultiplier
     }
 
     private fun findDestructibleActorsNearby(
@@ -84,7 +87,7 @@ class Character private constructor(state: State) : Editable<Character>, Unique,
 
     override fun DrawScope.draw() = drawCircle(
         color = lerp(Color.Red, Color.Green, ((1f + MAX_SIZE_MULTIPLIER) - sizeMultiplier) / MAX_SIZE_MULTIPLIER),
-        radius = (Radius * sizeMultiplier).raw,
+        radius = Radius.raw,
         center = boundingBox.center.raw,
     )
 

@@ -24,6 +24,7 @@ internal class ShaderManagerImpl : ShaderManager() {
     }
 
     override fun getModifier(canvasIndex: Int?) = shaders.value
+        .filter { it.canvasIndex == canvasIndex }
         .fold<Shader<*>, Modifier>(Modifier) { compoundModifier, shader ->
             compoundModifier then Modifier.runtimeShader(shader)
         }

@@ -49,6 +49,7 @@ class BoxWithCircle private constructor(state: State) : Editable<BoxWithCircle>,
     @set:Exposed(name = "rotation")
     override var rotation: AngleRadians = state.rotation
 
+    override val canvasIndex = 0
     override var drawingOrder = 0f
     override var boundingBox = SceneSize(
         width = state.edgeSize,

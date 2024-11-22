@@ -6,9 +6,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
-import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.require
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
@@ -21,8 +19,6 @@ import com.pandulapeter.kubriko.shader.collection.ChromaticAberrationShader
 import com.pandulapeter.kubriko.shader.collection.RippleShader
 import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader
 import com.pandulapeter.kubriko.shader.collection.VignetteShader
-import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubrikoShowcase.implementation.performance.actors.KeyboardInputListener
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
@@ -33,11 +29,10 @@ import kotlinx.coroutines.launch
 import kubriko.app.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.MissingResourceException
-import kotlin.math.abs
 
 internal class PerformanceShowcaseManager(
     private val sceneJson: MutableStateFlow<String>?,
-) : Manager(), Visible, Unique, Overlay {
+) : Manager(), Unique, Overlay {
 
     private lateinit var actorManager: ActorManager
     private lateinit var metadataManager: MetadataManager
@@ -46,9 +41,6 @@ internal class PerformanceShowcaseManager(
         private set
     lateinit var viewportManager: ViewportManager
         private set
-    override var position = SceneOffset.Zero
-    override var boundingBox = SceneSize.Zero
-    override val drawingOrder = Float.MAX_VALUE
     override val overlayDrawingOrder = Float.MIN_VALUE
     private var overlayAlpha = 1f
 
@@ -64,22 +56,8 @@ internal class PerformanceShowcaseManager(
     }
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
-        boundingBox = (viewportManager.topLeft.value - viewportManager.bottomRight.value).let {
-            SceneSize((abs(it.x.raw) + 50).scenePixel, (abs(it.y.raw) + 50).scenePixel)
-        }
-        position = viewportManager.cameraPosition.value
         if (actorManager.allActors.value.size > 1 && overlayAlpha > 0) {
             overlayAlpha -= 0.003f * deltaTimeInMillis
-        }
-    }
-
-    // TODO: There should be a simpler way of drawing a background than making this Manager an Actor.
-    override fun DrawScope.draw() {
-        if (overlayAlpha < 1f) {
-            drawRect(
-                color = Color.White,
-                size = boundingBox.raw,
-            )
         }
     }
 
@@ -109,10 +87,10 @@ internal class PerformanceShowcaseManager(
         val deserializedActors = serializationManager.deserializeActors(json)
         val allActors = listOf(
             KeyboardInputListener(),
-            ChromaticAberrationShader(),
-            VignetteShader(),
             SmoothPixelationShader(),
-            RippleShader(),
+            RippleShader(canvasIndex = 0),
+            ChromaticAberrationShader(canvasIndex = 0),
+            VignetteShader(),
         ) + deserializedActors
         actorManager.add(actors = allActors.toTypedArray())
     }
