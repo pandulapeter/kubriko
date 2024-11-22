@@ -15,6 +15,9 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.types.SceneSize
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -30,19 +33,20 @@ internal class ActorManagerImpl(
     private lateinit var metadataManager: MetadataManager
     private lateinit var viewportManager: ViewportManagerImpl
     private lateinit var stateManager: StateManager
-    private val _allActors = MutableStateFlow(emptyList<Actor>())
+    private val _allActors = MutableStateFlow<ImmutableList<Actor>>(persistentListOf())
     override val allActors = _allActors.asStateFlow()
     val canvasIndices by autoInitializingLazy {
-        _allActors.map { actors -> actors.filterIsInstance<CanvasAware>().groupBy { it.canvasIndex }.keys.sortedByDescending { it } }.asStateFlow(emptyList())
+        _allActors.map { actors -> actors.filterIsInstance<CanvasAware>().groupBy { it.canvasIndex }.keys.sortedByDescending { it }.toImmutableList() }
+            .asStateFlow(persistentListOf())
     }
     private val dynamicActors by autoInitializingLazy {
-        _allActors.map { actors -> actors.filterIsInstance<Dynamic>() }.asStateFlow(emptyList())
+        _allActors.map { actors -> actors.filterIsInstance<Dynamic>().toImmutableList() }.asStateFlow(persistentListOf())
     }
     private val visibleActors by autoInitializingLazy {
-        _allActors.map { actors -> actors.filterIsInstance<Visible>() }.asStateFlow(emptyList())
+        _allActors.map { actors -> actors.filterIsInstance<Visible>().sortedByDescending { it.drawingOrder }.toImmutableList() }.asStateFlow(persistentListOf())
     }
     val overlayActors by autoInitializingLazy {
-        _allActors.map { actors -> actors.filterIsInstance<Overlay>() }.asStateFlow(emptyList())
+        _allActors.map { actors -> actors.filterIsInstance<Overlay>().sortedByDescending { it.overlayDrawingOrder }.toImmutableList() }.asStateFlow(persistentListOf())
     }
     override val visibleActorsWithinViewport by autoInitializingLazy {
         combine(
@@ -61,7 +65,8 @@ internal class ActorManagerImpl(
                         viewportEdgeBuffer = viewportManager.viewportEdgeBuffer,
                     )
                 }
-        }.asStateFlow(emptyList())
+                .toImmutableList()
+        }.asStateFlow(persistentListOf())
     }
 
     override fun onInitialize(kubriko: Kubriko) {
@@ -82,16 +87,16 @@ internal class ActorManagerImpl(
         val filteredCurrentActors = currentActors.filterNot { it::class in uniqueNewActorTypes }
         actors.filterIsInstance<Identifiable>().onEach { if (it.name == null) it.name = Uuid.random().toString() }
         actors.forEach { it.onAdd(scope as Kubriko) }
-        filteredCurrentActors + actors
+        (filteredCurrentActors + actors).toImmutableList()
     }
 
     override fun remove(vararg actors: Actor) = _allActors.update { currentActors ->
         actors.forEach { it.onRemove() }
-        currentActors.filterNot { it in actors }
+        currentActors.filterNot { it in actors }.toImmutableList()
     }
 
     override fun removeAll() = _allActors.update { currentActors ->
         currentActors.forEach { it.onRemove() }
-        emptyList()
+        persistentListOf()
     }
 }

@@ -20,8 +20,9 @@ class RippleShader(
     override val state = _state.asStateFlow()
     override val code = """
     uniform float2 ${ShaderManager.RESOLUTION};
-    uniform float $TIME;
     uniform shader ${ShaderManager.CONTENT};
+    uniform float $TIME;
+    uniform float $SPEED;
     
     half4 main(float2 fragCoord) {
         float scale = 1 / ${ShaderManager.RESOLUTION}.x;
@@ -29,7 +30,7 @@ class RippleShader(
         float2 center = ${ShaderManager.RESOLUTION} * 0.5 * scale;
         float dist = distance(scaledCoord, center);
         float2 dir = scaledCoord - center;
-        float sin = sin(dist * 70 - $TIME * 6.28);
+        float sin = sin(dist * 70 - $TIME * $SPEED);
         float2 offset = dir * sin;
         float2 textCoord = scaledCoord + offset / 30;
         return ${ShaderManager.CONTENT}.eval(textCoord / scale);
@@ -47,14 +48,17 @@ class RippleShader(
 
     data class State(
         val time: Float = 0f,
+        val speed: Float = 6.28f,
     ) : Shader.State {
 
         override fun ShaderUniformProvider.applyUniforms() {
             uniform(TIME, time)
+            uniform(SPEED, speed)
         }
     }
 
     companion object {
         private const val TIME = "time"
+        private const val SPEED = "speed"
     }
 }

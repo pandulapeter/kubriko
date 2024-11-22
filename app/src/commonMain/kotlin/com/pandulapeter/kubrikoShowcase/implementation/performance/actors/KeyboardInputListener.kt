@@ -9,6 +9,7 @@ import com.pandulapeter.kubriko.keyboardInput.extensions.KeyboardZoomState
 import com.pandulapeter.kubriko.keyboardInput.extensions.zoomState
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
+import kotlinx.collections.immutable.ImmutableSet
 
 internal class KeyboardInputListener : KeyboardInputAware, Unique {
 
@@ -20,7 +21,7 @@ internal class KeyboardInputListener : KeyboardInputAware, Unique {
         viewportManager = kubriko.require()
     }
 
-    override fun handleActiveKeys(activeKeys: Set<Key>) {
+    override fun handleActiveKeys(activeKeys: ImmutableSet<Key>) {
         if (stateManager.isRunning.value) {
             viewportManager.multiplyScaleFactor(
                 when (activeKeys.zoomState) {

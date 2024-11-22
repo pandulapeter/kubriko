@@ -9,7 +9,6 @@ import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
@@ -38,7 +37,7 @@ import kotlin.math.abs
 
 internal class PerformanceShowcaseManager(
     private val sceneJson: MutableStateFlow<String>?,
-) : Manager(), KeyboardInputAware, Visible, Unique, Overlay {
+) : Manager(), Visible, Unique, Overlay {
 
     private lateinit var actorManager: ActorManager
     private lateinit var metadataManager: MetadataManager
@@ -50,6 +49,7 @@ internal class PerformanceShowcaseManager(
     override var position = SceneOffset.Zero
     override var boundingBox = SceneSize.Zero
     override val drawingOrder = Float.MAX_VALUE
+    override val overlayDrawingOrder = Float.MIN_VALUE
     private var overlayAlpha = 1f
 
     override fun onInitialize(kubriko: Kubriko) {
@@ -58,6 +58,7 @@ internal class PerformanceShowcaseManager(
         serializationManager = kubriko.require()
         stateManager = kubriko.require()
         viewportManager = kubriko.require()
+        actorManager.add(this)
         loadMap()
         sceneJson?.filter { it.isNotBlank() }?.onEach(::processJson)?.launchIn(scope)
     }

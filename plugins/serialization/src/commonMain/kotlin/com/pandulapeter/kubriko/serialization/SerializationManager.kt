@@ -4,6 +4,7 @@ import com.pandulapeter.kubriko.serialization.implementation.SerializationManage
 import com.pandulapeter.kubriko.serialization.integration.Serializable
 import com.pandulapeter.kubriko.serialization.integration.SerializableMetadata
 import com.pandulapeter.kubriko.manager.Manager
+import kotlinx.collections.immutable.ImmutableSet
 import kotlin.reflect.KClass
 
 /**
@@ -11,7 +12,7 @@ import kotlin.reflect.KClass
  */
 abstract class SerializationManager<MD : SerializableMetadata<out T>, out T : Serializable<out T>> : Manager() {
 
-    abstract val registeredTypeIds: Set<String>
+    abstract val registeredTypeIds: ImmutableSet<String>
 
     abstract fun getTypeId(type: KClass<out @UnsafeVariance T>): String?
 

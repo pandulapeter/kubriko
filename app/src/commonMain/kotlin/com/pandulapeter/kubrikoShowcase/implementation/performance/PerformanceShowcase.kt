@@ -1,6 +1,7 @@
 package com.pandulapeter.kubrikoShowcase.implementation.performance
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -13,7 +14,7 @@ import com.pandulapeter.kubrikoShowcase.implementation.performance.extensions.ha
 @Composable
 fun PerformanceShowcase(
     modifier: Modifier = Modifier,
-) {
+) = Box(modifier = modifier) {
     val performanceShowcaseKubrikoWrapper = remember { PerformanceShowcaseKubrikoWrapper() }
     DebugMenu(
         contentModifier = modifier,
@@ -32,8 +33,6 @@ fun PerformanceShowcase(
                 .background(Color.Black),
             kubriko = performanceShowcaseKubrikoWrapper.kubriko,
         )
-        PlatformSpecificContent(
-
-        )
+        PlatformSpecificContent()
     }
 }

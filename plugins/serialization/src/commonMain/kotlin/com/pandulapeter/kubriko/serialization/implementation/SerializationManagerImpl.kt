@@ -3,6 +3,7 @@ package com.pandulapeter.kubriko.serialization.implementation
 import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.serialization.integration.Serializable
 import com.pandulapeter.kubriko.serialization.integration.SerializableMetadata
+import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -11,9 +12,9 @@ import kotlin.reflect.KClass
 internal class SerializationManagerImpl<MD : SerializableMetadata<out T>, out T : Serializable<out T>>(
     vararg serializableMetadata: MD,
 ) : SerializationManager<MD, T>() {
-    private val typeIdsToMetadata = serializableMetadata.associateBy { registration -> registration.typeId }
-    private val typeIdsToDeserializers = serializableMetadata.associate { registration -> registration.typeId to registration.deserializeState }
-    private val typeResolvers = serializableMetadata.associate { registration -> registration.type to registration.typeId }
+    private val typeIdsToMetadata = serializableMetadata.associateBy { registration -> registration.typeId }.toImmutableMap()
+    private val typeIdsToDeserializers = serializableMetadata.associate { registration -> registration.typeId to registration.deserializeState }.toImmutableMap()
+    private val typeResolvers = serializableMetadata.associate { registration -> registration.type to registration.typeId }.toImmutableMap()
     override val registeredTypeIds = typeIdsToDeserializers.keys
     private val json = Json { ignoreUnknownKeys = true }
 

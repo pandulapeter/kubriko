@@ -25,6 +25,7 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubrikoShowcase.implementation.performance.actors.traits.Destructible
+import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -52,7 +53,7 @@ class Character private constructor(state: State) : Editable<Character>, Unique,
         viewportManager = kubriko.require()
     }
 
-    override fun handleActiveKeys(activeKeys: Set<Key>) = move(activeKeys.directionState)
+    override fun handleActiveKeys(activeKeys: ImmutableSet<Key>) = move(activeKeys.directionState)
 
     override fun onKeyPressed(key: Key) = when (key) {
         Key.Spacebar -> triggerExplosion()

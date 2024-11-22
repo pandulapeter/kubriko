@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
@@ -26,6 +25,10 @@ import com.pandulapeter.kubriko.implementation.extensions.minus
 import com.pandulapeter.kubriko.implementation.extensions.transform
 import com.pandulapeter.kubriko.implementation.extensions.transformViewport
 import com.pandulapeter.kubriko.types.SceneOffset
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.isActive
 
 @Composable
@@ -60,75 +63,96 @@ fun InternalViewport(
     // Game canvas
     BoxWithConstraints(
         modifier = modifier,
-    ){
+    ) {
         with(LocalDensity.current) {
             kubrikoImpl.viewportManager.updateSize(Size(maxWidth.toPx(), maxHeight.toPx()))
         }
-        PrivateViewport(
-            canvasModifiers = kubrikoImpl.actorManager.canvasIndices.collectAsState().value.associateWith { canvasIndex ->
-                kubrikoImpl.managers
-                    .mapNotNull { it.getModifier(canvasIndex)?.collectAsState(null)?.value }
-                    .fold(Modifier.fillMaxSize().clipToBounds()) { compoundModifier, managerModifier -> compoundModifier then managerModifier }
+        CanvasWrapperCluster(
+            gameTime = gameTime.value,
+            canvasModifiers = {
+                kubrikoImpl.actorManager.canvasIndices.value.associateWith { canvasIndex ->
+                    kubrikoImpl.managers
+                        .mapNotNull { it.getModifier(canvasIndex) }
+                        .fold<Modifier, Modifier>(Modifier) { compoundModifier, managerModifier -> compoundModifier then managerModifier }
+                }.toImmutableMap()
             },
-            viewportCenter = kubrikoImpl.viewportManager.cameraPosition.collectAsState().value,
-            viewportScaleFactor = kubrikoImpl.viewportManager.scaleFactor.collectAsState().value,
-            visibleActorsWithinViewport = kubrikoImpl.actorManager.visibleActorsWithinViewport.collectAsState().value,
-            overlayActors = kubrikoImpl.actorManager.overlayActors.collectAsState().value,
-            getGameTime = { gameTime.value }
+            viewportSize = { kubrikoImpl.viewportManager.size.value },
+            viewportCenter = { kubrikoImpl.viewportManager.cameraPosition.value },
+            viewportScaleFactor = { kubrikoImpl.viewportManager.scaleFactor.value },
+            visibleActorsWithinViewport = { kubrikoImpl.actorManager.visibleActorsWithinViewport.value },
+            overlayActors = { kubrikoImpl.actorManager.overlayActors.value },
         )
     }
 }
 
 @Composable
-private fun PrivateViewport(
-    canvasModifiers: Map<Int?, Modifier>,
-    viewportCenter: SceneOffset,
-    viewportScaleFactor: Float,
-    visibleActorsWithinViewport: List<Visible>,
-    overlayActors: List<Overlay>,
-    getGameTime: () -> Long,
-) = Box(
-    modifier = canvasModifiers[null] ?: Modifier,
-) {
-    canvasModifiers.keys.sortedByDescending { it }.forEach { canvasIndex ->
-        Canvas(
-            modifier = (if (canvasIndex == null) Modifier else (canvasModifiers[canvasIndex] ?: Modifier)).fillMaxSize(),
-            onDraw = {
-                getGameTime() // This line invalidates the Canvas (causing a refresh) on every frame
-                withTransform(
-                    transformBlock = {
-                        transformViewport(
-                            viewportCenter = viewportCenter,
-                            shiftedViewportOffset = (size / 2f) - viewportCenter,
-                            viewportScaleFactor = viewportScaleFactor,
-                        )
-                    },
-                    drawBlock = {
-                        visibleActorsWithinViewport
-                            .filter { it.canvasIndex == canvasIndex }
-                            .sortedByDescending { it.drawingOrder }
-                            .forEach { visible ->
-                                withTransform(
-                                    transformBlock = { visible.transform(this) },
-                                    drawBlock = {
-                                        with(visible) {
-                                            clipRect(
-                                                right = boundingBox.width.raw,
-                                                bottom = boundingBox.height.raw,
-                                            ) {
-                                                draw()
-                                            }
-                                        }
-                                    }
-                                )
-                            }
-                    }
-                )
-                overlayActors
-                    .filter { it.canvasIndex == canvasIndex }
-                    .sortedByDescending { it.overlayDrawingOrder }
-                    .forEach { with(it) { drawToViewport() } }
-            }
-        )
+private fun CanvasWrapperCluster(
+    gameTime: Long,
+    canvasModifiers: () -> ImmutableMap<Int?, Modifier>,
+    viewportSize: () -> Size,
+    viewportCenter: () -> SceneOffset,
+    viewportScaleFactor: () -> Float,
+    visibleActorsWithinViewport: () -> ImmutableList<Visible>,
+    overlayActors: () -> ImmutableList<Overlay>,
+) = canvasModifiers().let { resolvedCanvasModifiers ->
+    Box(
+        modifier = resolvedCanvasModifiers[null] ?: Modifier,
+    ) {
+        resolvedCanvasModifiers.forEach { (canvasIndex, modifier) ->
+            CanvasWrapper(
+                gameTime = gameTime,
+                modifier = { if (canvasIndex == null) Modifier else modifier },
+                viewportSize = viewportSize,
+                viewportCenter = viewportCenter,
+                viewportScaleFactor = viewportScaleFactor,
+                visibleActorsWithinViewport = { visibleActorsWithinViewport().filter { it.canvasIndex == canvasIndex }.toImmutableList() },
+                overlayActors = { overlayActors().filter { it.canvasIndex == canvasIndex }.toImmutableList() },
+            )
+        }
     }
+}
+
+@Composable
+private fun CanvasWrapper(
+    gameTime: Long,
+    modifier: () -> Modifier,
+    viewportSize: () -> Size,
+    viewportCenter: () -> SceneOffset,
+    viewportScaleFactor: () -> Float,
+    visibleActorsWithinViewport: () -> ImmutableList<Visible>,
+    overlayActors: () -> ImmutableList<Overlay>,
+) = viewportCenter().let { resolvedViewportCenter ->
+    Canvas(
+        modifier = modifier().fillMaxSize().clipToBounds(),
+        onDraw = {
+            gameTime // This line invalidates the Canvas (causing a refresh) on every frame
+            withTransform(
+                transformBlock = {
+                    transformViewport(
+                        viewportCenter = resolvedViewportCenter,
+                        shiftedViewportOffset = (viewportSize() / 2f) - resolvedViewportCenter,
+                        viewportScaleFactor = viewportScaleFactor(),
+                    )
+                },
+                drawBlock = {
+                    visibleActorsWithinViewport().forEach { visible ->
+                        withTransform(
+                            transformBlock = { visible.transform(this) },
+                            drawBlock = {
+                                with(visible) {
+                                    clipRect(
+                                        right = boundingBox.width.raw,
+                                        bottom = boundingBox.height.raw,
+                                    ) {
+                                        draw()
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
+            )
+            overlayActors().forEach { with(it) { drawToViewport() } }
+        }
+    )
 }

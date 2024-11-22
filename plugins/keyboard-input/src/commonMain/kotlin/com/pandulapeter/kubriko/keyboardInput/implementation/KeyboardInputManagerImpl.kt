@@ -8,6 +8,7 @@ import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
+import kotlinx.collections.immutable.toImmutableSet
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -50,13 +51,13 @@ internal class KeyboardInputManagerImpl : KeyboardInputManager() {
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
         if (activeKeysCache.isNotEmpty() && stateManager.isFocused.value) {
             hasSentEmptyMap = false
-            activeKeysCache.toSet().let { activeKeys ->
+            activeKeysCache.toImmutableSet().let { activeKeys ->
                 keyboardInputAwareActors.value.forEach { it.handleActiveKeys(activeKeys) }
             }
         } else {
             if (!hasSentEmptyMap) {
                 hasSentEmptyMap = true
-                activeKeysCache.toSet().let { activeKeys ->
+                activeKeysCache.toImmutableSet().let { activeKeys ->
                     keyboardInputAwareActors.value.forEach { it.handleActiveKeys(activeKeys) }
                 }
             }
