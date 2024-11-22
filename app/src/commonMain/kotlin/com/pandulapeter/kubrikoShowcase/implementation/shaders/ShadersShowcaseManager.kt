@@ -7,6 +7,7 @@ import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shader.collection.CloudShader
 import com.pandulapeter.kubriko.shader.collection.FractalShader
+import com.pandulapeter.kubriko.shader.collection.GradientShader
 import com.pandulapeter.kubriko.shader.collection.WarpShader
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,6 +27,8 @@ internal class ShadersShowcaseManager : Manager() {
     val fractalProperties = _fractalProperties.asStateFlow()
     private val _warpProperties = MutableStateFlow(WarpShader.Properties())
     val warpProperties = _warpProperties.asStateFlow()
+    private val _gradientProperties = MutableStateFlow(GradientShader.Properties())
+    val gradientProperties = _gradientProperties.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
@@ -52,6 +55,12 @@ internal class ShadersShowcaseManager : Manager() {
                     time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f,
                 ),
             )
+
+            ShaderDemoType.GRADIENT -> GradientShader(
+                properties = gradientProperties.value.copy(
+                    time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f,
+                ),
+            )
         }
     )
 
@@ -62,4 +71,6 @@ internal class ShadersShowcaseManager : Manager() {
     fun setFractalProperties(properties: FractalShader.Properties) = _fractalProperties.update { properties }
 
     fun setWarpProperties(properties: WarpShader.Properties) = _warpProperties.update { properties }
+
+    fun setGradientProperties(properties: GradientShader.Properties) = _gradientProperties.update { properties }
 }

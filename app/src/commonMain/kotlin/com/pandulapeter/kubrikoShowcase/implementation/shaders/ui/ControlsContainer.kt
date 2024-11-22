@@ -1,7 +1,6 @@
 package com.pandulapeter.kubrikoShowcase.implementation.shaders.ui
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -24,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoShowcase.implementation.shaders.ShaderDemoType
 import com.pandulapeter.kubrikoShowcase.implementation.shaders.ShadersShowcaseManager
@@ -49,7 +47,7 @@ internal fun ControlsContainer(
     ) {
         Card(
             modifier = Modifier.padding(16.dp),
-            colors = CardDefaults.cardColors().copy(containerColor =  MaterialTheme.colorScheme.surface),
+            colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surface),
         ) {
             AnimatedContent(
                 targetState = state,
@@ -75,6 +73,11 @@ internal fun ControlsContainer(
                             ShaderDemoType.WARP -> WarpControls(
                                 properties = shadersShowcaseManager.warpProperties.collectAsState().value,
                                 onPropertiesChanged = shadersShowcaseManager::setWarpProperties,
+                            )
+
+                            ShaderDemoType.GRADIENT -> GradientControls(
+                                properties = shadersShowcaseManager.gradientProperties.collectAsState().value,
+                                onPropertiesChanged = shadersShowcaseManager::setGradientProperties,
                             )
                         }
                         Spacer(modifier = Modifier.height(16.dp))

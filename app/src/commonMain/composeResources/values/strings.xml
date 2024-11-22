@@ -29,6 +29,7 @@
     <string name="clouds">Clouds</string>
     <string name="fractal">Fractal</string>
     <string name="warp">Warp</string>
+    <string name="gradient">Gradient</string>
 
     <!-- Wallbreaker -->
     <string name="wallbreaker">Wallbreaker</string>
