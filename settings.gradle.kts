@@ -17,7 +17,7 @@ dependencyResolutionManagement {
 include(
     ":app",
     ":engine",
-    ":examples:wallbreaker",
+    ":examples:game-wallbreaker",
     ":plugins:keyboard-input",
     ":plugins:physics",
     ":plugins:serialization",

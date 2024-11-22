@@ -1,11 +1,11 @@
 package com.pandulapeter.kubriko.shader
 
 import com.pandulapeter.kubriko.actor.Actor
-import com.pandulapeter.kubriko.actor.traits.CanvasAware
+import com.pandulapeter.kubriko.actor.traits.LayerAware
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
 //TODO: Documentation
-interface Shader<T : Shader.State> : CanvasAware, Actor {
+interface Shader<T : Shader.State> : LayerAware, Actor {
 
     val state: T
     val cache: Cache

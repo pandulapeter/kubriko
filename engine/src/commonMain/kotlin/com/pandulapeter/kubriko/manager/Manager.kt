@@ -18,7 +18,7 @@ abstract class Manager {
         private set
     private val autoInitializingLazyProperties = mutableListOf<AutoInitializingLazy<*>>()
 
-    open fun getModifier(canvasIndex: Int?): Modifier? = null
+    open fun getModifier(layerIndex: Int?): Modifier? = null
 
     internal fun initializeInternal(kubriko: Kubriko) {
         if (!isInitialized) {

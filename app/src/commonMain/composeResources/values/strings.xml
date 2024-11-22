@@ -37,6 +37,6 @@
 
     <!-- Wallbreaker -->
     <string name="wallbreaker">Wallbreaker</string>
-    <string name="wallbreaker_subtitle">A simple game</string>
+    <string name="wallbreaker_subtitle">Simple motion, collisions, actor management</string>
 
 </resources>

@@ -2,7 +2,7 @@ package com.pandulapeter.kubriko.actor.traits
 
 import com.pandulapeter.kubriko.actor.Actor
 
-interface CanvasAware : Actor {
+interface LayerAware : Actor {
 
-    val canvasIndex: Int? get() = null
+    val layerIndex: Int? get() = null
 }

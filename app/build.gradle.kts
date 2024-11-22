@@ -9,7 +9,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.engine)
-            implementation(projects.examples.wallbreaker)
+            implementation(projects.examples.gameWallbreaker)
             implementation(projects.plugins.keyboardInput)
             implementation(projects.plugins.physics)
             implementation(projects.plugins.serialization)

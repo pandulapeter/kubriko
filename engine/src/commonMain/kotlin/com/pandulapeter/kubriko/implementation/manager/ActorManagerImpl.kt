@@ -2,7 +2,7 @@ package com.pandulapeter.kubriko.implementation.manager
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
-import com.pandulapeter.kubriko.actor.traits.CanvasAware
+import com.pandulapeter.kubriko.actor.traits.LayerAware
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Identifiable
 import com.pandulapeter.kubriko.actor.traits.Overlay
@@ -35,8 +35,8 @@ internal class ActorManagerImpl(
     private lateinit var stateManager: StateManager
     private val _allActors = MutableStateFlow<ImmutableList<Actor>>(persistentListOf())
     override val allActors = _allActors.asStateFlow()
-    val canvasIndices by autoInitializingLazy {
-        _allActors.map { actors -> actors.filterIsInstance<CanvasAware>().groupBy { it.canvasIndex }.keys.sortedByDescending { it }.toImmutableList() }
+    val layerIndices by autoInitializingLazy {
+        _allActors.map { actors -> actors.filterIsInstance<LayerAware>().groupBy { it.layerIndex }.keys.sortedByDescending { it }.toImmutableList() }
             .asStateFlow(persistentListOf())
     }
     private val dynamicActors by autoInitializingLazy {

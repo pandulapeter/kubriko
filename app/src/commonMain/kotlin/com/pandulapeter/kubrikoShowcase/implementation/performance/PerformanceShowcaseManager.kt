@@ -88,8 +88,8 @@ internal class PerformanceShowcaseManager(
         val allActors = listOf(
             KeyboardInputListener(),
             SmoothPixelationShader(),
-            RippleShader(canvasIndex = 0),
-            ChromaticAberrationShader(canvasIndex = 0),
+            RippleShader(layerIndex = 0),
+            ChromaticAberrationShader(layerIndex = 0),
             VignetteShader(),
         ) + deserializedActors
         actorManager.add(actors = allActors.toTypedArray())

@@ -10,7 +10,7 @@ import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformPr
 
 class RippleShader(
     initialState: State = State(),
-    override val canvasIndex: Int? = null,
+    override val layerIndex: Int? = null,
 ) : Shader<RippleShader.State>, Dynamic {
     override var state = initialState
         private set

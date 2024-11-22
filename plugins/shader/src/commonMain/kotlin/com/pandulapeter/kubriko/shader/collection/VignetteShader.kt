@@ -6,7 +6,7 @@ import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformPr
 
 data class VignetteShader(
     override var state: State = State(),
-    override val canvasIndex: Int? = null,
+    override val layerIndex: Int? = null,
 ) : Shader<VignetteShader.State> {
     override val cache = Shader.Cache()
     override val code = """

@@ -7,7 +7,7 @@ import com.pandulapeter.kubriko.actor.Actor
 /**
  * [Actor]s that implement this interface get to draw directly onto the viewport.
  */
-interface Overlay : CanvasAware, Actor {
+interface Overlay : LayerAware, Actor {
 
     /**
      * This number will be used to determine the order of executing the [drawToViewport] function relative to other [Overlay] [Actor]s.

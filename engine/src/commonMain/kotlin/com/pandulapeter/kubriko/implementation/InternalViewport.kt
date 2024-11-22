@@ -62,7 +62,7 @@ fun InternalViewport(
         with(LocalDensity.current) {
             kubrikoImpl.viewportManager.updateSize(Size(maxWidth.toPx(), maxHeight.toPx()))
         }
-        CanvasWrapperCluster(
+        LayerCluster(
             gameTime = gameTime.value,
             getKubriko = { kubrikoImpl },
         )
@@ -70,35 +70,35 @@ fun InternalViewport(
 }
 
 @Composable
-private fun CanvasWrapperCluster(
+private fun LayerCluster(
     gameTime: Long,
     getKubriko: () -> KubrikoImpl,
 ) = getKubriko().let { kubrikoImpl ->
     Box(
         modifier = kubrikoImpl.managers.mapNotNull { it.getModifier(null) }.toImmutableList().fold()
     ) {
-        kubrikoImpl.actorManager.canvasIndices.value.forEach { canvasIndex ->
-            CanvasWrapper(
+        kubrikoImpl.actorManager.layerIndices.value.forEach { layerIndex ->
+            Layer(
                 gameTime = gameTime,
                 getKubriko = getKubriko,
-                canvasIndex = canvasIndex,
+                layerIndex = layerIndex,
             )
         }
     }
 }
 
 @Composable
-private fun CanvasWrapper(
+private fun Layer(
     gameTime: Long,
     getKubriko: () -> KubrikoImpl,
-    canvasIndex: Int?,
+    layerIndex: Int?,
 ) = getKubriko().let { kubrikoImpl ->
     kubrikoImpl.viewportManager.cameraPosition.value.let { viewportCenter ->
         Canvas(
-            modifier = if (canvasIndex == null) {
+            modifier = if (layerIndex == null) {
                 Modifier.fillMaxSize().clipToBounds()
             } else {
-                kubrikoImpl.managers.mapNotNull { it.getModifier(canvasIndex) }.toImmutableList().fold()
+                kubrikoImpl.managers.mapNotNull { it.getModifier(layerIndex) }.toImmutableList().fold()
             },
             onDraw = {
                 gameTime  // This line invalidates the Canvas, causing a refresh on every frame
@@ -112,7 +112,7 @@ private fun CanvasWrapper(
                     },
                     drawBlock = {
                         kubrikoImpl.actorManager.visibleActorsWithinViewport.value
-                            .filter { it.canvasIndex == canvasIndex }
+                            .filter { it.layerIndex == layerIndex }
                             .forEach { visible ->
                                 withTransform(
                                     transformBlock = { visible.transform(this) },
@@ -131,7 +131,7 @@ private fun CanvasWrapper(
                     }
                 )
                 kubrikoImpl.actorManager.overlayActors.value
-                    .filter { it.canvasIndex == canvasIndex }
+                    .filter { it.layerIndex == layerIndex }
                     .forEach { with(it) { drawToViewport() } }
             }
         )

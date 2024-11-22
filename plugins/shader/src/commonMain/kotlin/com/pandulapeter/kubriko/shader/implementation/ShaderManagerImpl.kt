@@ -23,8 +23,8 @@ internal class ShaderManagerImpl : ShaderManager() {
         }.asStateFlow(persistentListOf())
     }
 
-    override fun getModifier(canvasIndex: Int?) = shaders.value
-        .filter { it.canvasIndex == canvasIndex }
+    override fun getModifier(layerIndex: Int?) = shaders.value
+        .filter { it.layerIndex == layerIndex }
         .fold<Shader<*>, Modifier>(Modifier) { compoundModifier, shader ->
             compoundModifier then Modifier.runtimeShader(shader)
         }
