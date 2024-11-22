@@ -30,7 +30,7 @@ internal class BouncyBall(
     }
 
     override fun update(deltaTimeInMillis: Float) {
-        position = position.wrapWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value)
+        position = wrapWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value)
     }
 
     override fun DrawScope.draw() {
