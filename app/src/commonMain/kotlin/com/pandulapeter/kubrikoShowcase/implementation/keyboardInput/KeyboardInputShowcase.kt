@@ -5,7 +5,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.KubrikoCanvas
+import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 
 @Composable
@@ -13,7 +13,7 @@ fun KeyboardInputShowcase(
     modifier: Modifier = Modifier,
 ) {
     val keyboardInputShowcaseManager = remember { KeyboardInputShowcaseManager() }
-    KubrikoCanvas(
+    KubrikoViewport(
         kubriko = Kubriko.newInstance(
             KeyboardInputManager.newInstance(),
             keyboardInputShowcaseManager,

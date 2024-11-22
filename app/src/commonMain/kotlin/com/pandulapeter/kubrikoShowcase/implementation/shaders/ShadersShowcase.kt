@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -18,7 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.KubrikoCanvas
+import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubrikoShowcase.implementation.shaders.ui.ControlsContainer
 import org.jetbrains.compose.resources.stringResource
@@ -55,7 +54,7 @@ internal fun ShadersShowcase(
         Box(
             modifier = Modifier.fillMaxSize(),
         ) {
-            KubrikoCanvas(
+            KubrikoViewport(
                 kubriko = kubriko,
             )
             ControlsContainer(

@@ -5,9 +5,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.KubrikoCanvas
+import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.physics.PhysicsManager
 
 @Composable
@@ -20,7 +19,7 @@ fun PhysicsShowcase(
             PhysicsShowcaseManager(),
         )
     }
-    KubrikoCanvas(
+    KubrikoViewport(
         modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant),
         kubriko = kubriko,
     )

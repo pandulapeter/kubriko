@@ -16,7 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.KubrikoCanvas
+import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseClick
@@ -59,7 +59,7 @@ internal fun EditorUserInterface(
                         Spacer(
                             modifier = Modifier.fillMaxHeight().width(instanceBrowserColumnWidth),
                         )
-                        KubrikoCanvas(
+                        KubrikoViewport(
                             modifier = Modifier
                                 .weight(1f)
                                 .handleMouseClick(

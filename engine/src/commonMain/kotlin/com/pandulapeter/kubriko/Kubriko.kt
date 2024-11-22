@@ -9,7 +9,7 @@ import kotlin.reflect.KClass
  * Holds references to the individual Manager classes that control the different aspects of a game.
  * See the documentations of the specific Managers for detailed information.
  * Use the static [newInstance] function to instantiate a [Kubriko] implementation.
- * Provide that instance to the [KubrikoCanvas] Composable to draw the game world.
+ * Provide that instance to the [KubrikoViewport] Composable to draw the game world.
  */
 interface Kubriko {
 
