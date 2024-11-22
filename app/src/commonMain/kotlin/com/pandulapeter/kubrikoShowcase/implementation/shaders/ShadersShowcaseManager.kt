@@ -21,14 +21,14 @@ internal class ShadersShowcaseManager : Manager() {
     private lateinit var metadataManager: MetadataManager
     private val _demoType = MutableStateFlow(ShaderDemoType.FRACTAL)
     val demoType = _demoType.asStateFlow()
-    private val _cloudProperties = MutableStateFlow(CloudShader.Properties())
-    val cloudProperties = _cloudProperties.asStateFlow()
-    private val _fractalProperties = MutableStateFlow(FractalShader.Properties())
-    val fractalProperties = _fractalProperties.asStateFlow()
-    private val _warpProperties = MutableStateFlow(WarpShader.Properties())
-    val warpProperties = _warpProperties.asStateFlow()
-    private val _gradientProperties = MutableStateFlow(GradientShader.Properties())
-    val gradientProperties = _gradientProperties.asStateFlow()
+    private val _cloudState = MutableStateFlow(CloudShader.State())
+    val cloudProperties = _cloudState.asStateFlow()
+    private val _fractalState = MutableStateFlow(FractalShader.State())
+    val fractalProperties = _fractalState.asStateFlow()
+    private val _warpState = MutableStateFlow(WarpShader.State())
+    val warpProperties = _warpState.asStateFlow()
+    private val _gradientState = MutableStateFlow(GradientShader.State())
+    val gradientProperties = _gradientState.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
@@ -39,25 +39,25 @@ internal class ShadersShowcaseManager : Manager() {
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) = actorManager.add(
         when (demoType.value) {
             ShaderDemoType.FRACTAL -> FractalShader(
-                properties = fractalProperties.value.copy(
+                initialState = fractalProperties.value.copy(
                     time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f,
                 ),
             )
 
             ShaderDemoType.CLOUDS -> CloudShader(
-                properties = cloudProperties.value.copy(
+                initialState = cloudProperties.value.copy(
                     time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f,
                 ),
             )
 
             ShaderDemoType.WARP -> WarpShader(
-                properties = warpProperties.value.copy(
+                initialState = warpProperties.value.copy(
                     time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f,
                 ),
             )
 
             ShaderDemoType.GRADIENT -> GradientShader(
-                properties = gradientProperties.value.copy(
+                initialState = gradientProperties.value.copy(
                     time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f,
                 ),
             )
@@ -66,11 +66,11 @@ internal class ShadersShowcaseManager : Manager() {
 
     fun setSelectedDemoType(demoType: ShaderDemoType) = _demoType.update { demoType }
 
-    fun setCloudProperties(properties: CloudShader.Properties) = _cloudProperties.update { properties }
+    fun setCloudState(properties: CloudShader.State) = _cloudState.update { properties }
 
-    fun setFractalProperties(properties: FractalShader.Properties) = _fractalProperties.update { properties }
+    fun setFractalState(properties: FractalShader.State) = _fractalState.update { properties }
 
-    fun setWarpProperties(properties: WarpShader.Properties) = _warpProperties.update { properties }
+    fun setWarpState(properties: WarpShader.State) = _warpState.update { properties }
 
-    fun setGradientProperties(properties: GradientShader.Properties) = _gradientProperties.update { properties }
+    fun setGradientState(properties: GradientShader.State) = _gradientState.update { properties }
 }

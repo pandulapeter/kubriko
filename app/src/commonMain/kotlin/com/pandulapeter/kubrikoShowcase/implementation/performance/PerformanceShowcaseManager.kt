@@ -69,7 +69,7 @@ internal class PerformanceShowcaseManager(
         position = viewportManager.cameraPosition.value
         if (actorManager.allActors.value.size > 1) {
             actorManager.add(
-                RippleShader((metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f)
+                RippleShader(initialState = RippleShader.State(time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f))
             )
             if (overlayAlpha > 0) {
                 overlayAlpha -= 0.003f * deltaTimeInMillis

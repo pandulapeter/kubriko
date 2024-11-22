@@ -21,18 +21,18 @@ internal class PerformanceShowcaseKubrikoWrapper {
         EditableMetadata.newSerializationManagerInstance(
             EditableMetadata(
                 typeId = "character",
-                deserializeState = { serializedState -> json.decodeFromString<Character.CharacterState>(serializedState) },
-                instantiate = { Character.CharacterState(position = it) },
+                deserializeState = { serializedState -> json.decodeFromString<Character.State>(serializedState) },
+                instantiate = { Character.State(position = it) },
             ),
             EditableMetadata(
                 typeId = "boxWithCircle",
-                deserializeState = { serializedState -> json.decodeFromString<BoxWithCircle.BoxWithCircleState>(serializedState) },
-                instantiate = { BoxWithCircle.BoxWithCircleState(position = it) },
+                deserializeState = { serializedState -> json.decodeFromString<BoxWithCircle.State>(serializedState) },
+                instantiate = { BoxWithCircle.State(position = it) },
             ),
             EditableMetadata(
                 typeId = "movingBox",
-                deserializeState = { serializedState -> json.decodeFromString<MovingBox.MovingBoxState>(serializedState) },
-                instantiate = { MovingBox.MovingBoxState(position = it) }
+                deserializeState = { serializedState -> json.decodeFromString<MovingBox.State>(serializedState) },
+                instantiate = { MovingBox.State(position = it) }
             ),
         )
     }

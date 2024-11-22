@@ -6,8 +6,8 @@ import kotlin.math.roundToInt
 
 @Composable
 internal fun FractalControls(
-    properties: FractalShader.Properties,
-    onPropertiesChanged: (FractalShader.Properties) -> Unit,
+    properties: FractalShader.State,
+    onPropertiesChanged: (FractalShader.State) -> Unit,
 ) {
     FloatSlider(
         title = "Speed",

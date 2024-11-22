@@ -3,35 +3,44 @@ package com.pandulapeter.kubriko.shader.collection
 import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
-data class VignetteShader(
-    private val intensity: Float = 30f,
-    private val decayFactor: Float = 0.6f,
+class VignetteShader(
+    initialState: State = State(),
     override val canvasIndex: Int? = null,
-) : Shader {
+) : Shader<VignetteShader.State> {
+    private val _state = MutableStateFlow(initialState)
+    override val state = _state.asStateFlow()
     override val code = """
     uniform float2 ${ShaderManager.RESOLUTION};
     uniform shader ${ShaderManager.CONTENT}; 
-    uniform float $UNIFORM_INTENSITY;
-    uniform float $UNIFORM_DECAY_FACTOR;
+    uniform float $INTENSITY;
+    uniform float $DECAY_FACTOR;
 
     half4 main(vec2 fragCoord) {
         vec2 uv = fragCoord.xy / ${ShaderManager.RESOLUTION}.xy;
         half4 color = ${ShaderManager.CONTENT}.eval(fragCoord);
         uv *=  1.0 - uv.yx;
-        float vig = clamp(uv.x*uv.y * $UNIFORM_INTENSITY, 0., 1.);
-        vig = pow(vig, $UNIFORM_DECAY_FACTOR);
+        float vig = clamp(uv.x*uv.y * $INTENSITY, 0., 1.);
+        vig = pow(vig, $DECAY_FACTOR);
         return half4(vig * color.rgb, color.a);
     }
 """.trimIndent()
 
-    override fun applyUniforms(provider: ShaderUniformProvider) {
-        provider.uniform(UNIFORM_INTENSITY, intensity)
-        provider.uniform("decayFactor", decayFactor)
+    data class State(
+        private val intensity: Float = 30f,
+        private val decayFactor: Float = 0.6f,
+    ) : Shader.State {
+
+        override fun ShaderUniformProvider.applyUniforms() {
+            uniform(INTENSITY, intensity)
+            uniform(DECAY_FACTOR, decayFactor)
+        }
     }
 
     companion object {
-        private const val UNIFORM_INTENSITY = "intensity"
-        private const val UNIFORM_DECAY_FACTOR = "decayFactor"
+        private const val INTENSITY = "intensity"
+        private const val DECAY_FACTOR = "decayFactor"
     }
 }

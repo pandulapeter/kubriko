@@ -5,8 +5,8 @@ import com.pandulapeter.kubriko.shader.collection.WarpShader
 
 @Composable
 internal fun WarpControls(
-    properties: WarpShader.Properties,
-    onPropertiesChanged: (WarpShader.Properties) -> Unit,
+    properties: WarpShader.State,
+    onPropertiesChanged: (WarpShader.State) -> Unit,
 ) {
     FloatSlider(
         title = "Speed",

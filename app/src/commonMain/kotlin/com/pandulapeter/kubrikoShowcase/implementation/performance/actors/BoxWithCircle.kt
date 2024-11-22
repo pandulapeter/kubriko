@@ -22,7 +22,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class BoxWithCircle private constructor(state: BoxWithCircleState) : Editable<BoxWithCircle>, Destructible, Visible {
+class BoxWithCircle private constructor(state: State) : Editable<BoxWithCircle>, Destructible, Visible {
 
     @set:Exposed(name = "edgeSize")
     var edgeSize: ScenePixel = state.edgeSize
@@ -75,7 +75,7 @@ class BoxWithCircle private constructor(state: BoxWithCircleState) : Editable<Bo
         )
     }
 
-    override fun save() = BoxWithCircleState(
+    override fun save() = State(
         edgeSize = edgeSize,
         position = position,
         boxColor = boxColor,
@@ -85,7 +85,7 @@ class BoxWithCircle private constructor(state: BoxWithCircleState) : Editable<Bo
     )
 
     @kotlinx.serialization.Serializable
-    data class BoxWithCircleState(
+    data class State(
         @SerialName("edgeSize") val edgeSize: SerializableScenePixel = 100f.scenePixel,
         @SerialName("position") val position: SerializableSceneOffset = SceneOffset.Zero,
         @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,

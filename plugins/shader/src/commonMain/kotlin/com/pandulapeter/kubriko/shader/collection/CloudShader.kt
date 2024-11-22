@@ -3,11 +3,15 @@ package com.pandulapeter.kubriko.shader.collection
 import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
-data class CloudShader(
-    private val properties: Properties = Properties(),
+class CloudShader(
+    initialState: State = State(),
     override val canvasIndex: Int? = null,
-) : Shader {
+) : Shader<CloudShader.State> {
+    private val _state = MutableStateFlow(initialState)
+    override val state = _state.asStateFlow()
     override val code = """
     uniform float2 ${ShaderManager.RESOLUTION};
     uniform float $SCALE;
@@ -128,24 +132,7 @@ data class CloudShader(
     }
 """.trimIndent()
 
-    override fun applyUniforms(provider: ShaderUniformProvider) {
-        provider.uniform(TIME, properties.time)
-        provider.uniform(SCALE, properties.scale)
-        provider.uniform(SPEED, properties.speed)
-        provider.uniform(DARK, properties.dark)
-        provider.uniform(LIGHT, properties.light)
-        provider.uniform(COVER, properties.cover)
-        provider.uniform(ALPHA, properties.alpha)
-        provider.uniform(TINT, properties.tint)
-        provider.uniform(SKY_1_RED, properties.sky1Red)
-        provider.uniform(SKY_1_GREEN, properties.sky1Green)
-        provider.uniform(SKY_1_BLUE, properties.sky1Blue)
-        provider.uniform(SKY_2_RED, properties.sky2Red)
-        provider.uniform(SKY_2_GREEN, properties.sky2Green)
-        provider.uniform(SKY_2_BLUE, properties.sky2Blue)
-    }
-
-    data class Properties(
+    data class State(
         val time: Float = 0f,
         val scale: Float = 1.1f,
         val speed: Float = 0.03f,
@@ -160,7 +147,25 @@ data class CloudShader(
         val sky2Red: Float = 0.4f,
         val sky2Green: Float = 0.7f,
         val sky2Blue: Float = 1f,
-    )
+    ) : Shader.State {
+
+        override fun ShaderUniformProvider.applyUniforms() {
+            uniform(TIME, time)
+            uniform(SCALE, scale)
+            uniform(SPEED, speed)
+            uniform(DARK, dark)
+            uniform(LIGHT, light)
+            uniform(COVER, cover)
+            uniform(ALPHA, alpha)
+            uniform(TINT, tint)
+            uniform(SKY_1_RED, sky1Red)
+            uniform(SKY_1_GREEN, sky1Green)
+            uniform(SKY_1_BLUE, sky1Blue)
+            uniform(SKY_2_RED, sky2Red)
+            uniform(SKY_2_GREEN, sky2Green)
+            uniform(SKY_2_BLUE, sky2Blue)
+        }
+    }
 
     companion object {
         private const val TIME = "iTime"

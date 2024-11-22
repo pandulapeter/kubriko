@@ -5,8 +5,8 @@ import com.pandulapeter.kubriko.shader.collection.GradientShader
 
 @Composable
 internal fun GradientControls(
-    properties: GradientShader.Properties,
-    onPropertiesChanged: (GradientShader.Properties) -> Unit,
+    properties: GradientShader.State,
+    onPropertiesChanged: (GradientShader.State) -> Unit,
 ) {
     FloatSlider(
         title = "Speed",

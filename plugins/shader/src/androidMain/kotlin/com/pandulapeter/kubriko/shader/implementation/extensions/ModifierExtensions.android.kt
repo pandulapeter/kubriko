@@ -9,13 +9,16 @@ import androidx.compose.ui.graphics.asComposeRenderEffect
 import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
 
-internal actual fun shader(shader: Shader, size: Size): androidx.compose.ui.graphics.RenderEffect? {
+internal actual fun <T : Shader.State> shader(
+    shader: Shader<T>,
+    size: Size,
+): androidx.compose.ui.graphics.RenderEffect? {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         val runtimeShader = RuntimeShader(shader.code)
         val shaderUniformProvider = ShaderUniformProviderImpl(runtimeShader)
         return RenderEffect.createRuntimeShaderEffect(
             runtimeShader.apply {
-                shader.applyUniforms(shaderUniformProvider)
+                with(shader.state.value) { shaderUniformProvider.applyUniforms() }
                 shaderUniformProvider.updateResolution(size)
             },
             ShaderManager.CONTENT,

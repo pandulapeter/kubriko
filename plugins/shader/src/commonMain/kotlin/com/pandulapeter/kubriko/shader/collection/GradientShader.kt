@@ -3,11 +3,15 @@ package com.pandulapeter.kubriko.shader.collection
 import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
-data class GradientShader(
-    private val properties: Properties = Properties(),
+class GradientShader(
+    initialState: State = State(),
     override val canvasIndex: Int? = null,
-) : Shader {
+) : Shader<GradientShader.State> {
+    private val _state = MutableStateFlow(initialState)
+    override val state = _state.asStateFlow()
     override val code = """
     uniform float2 ${ShaderManager.RESOLUTION};
     uniform shader ${ShaderManager.CONTENT};
@@ -26,15 +30,16 @@ data class GradientShader(
     }
 """.trimIndent()
 
-    override fun applyUniforms(provider: ShaderUniformProvider) {
-        provider.uniform(TIME, properties.time)
-        provider.uniform(SPEED, properties.speed)
-    }
-
-    data class Properties(
+    data class State(
         val time: Float = 0f,
         val speed: Float = 2f,
-    )
+    ) : Shader.State {
+
+        override fun ShaderUniformProvider.applyUniforms() {
+            uniform(TIME, time)
+            uniform(SPEED, speed)
+        }
+    }
 
     companion object {
         private const val TIME = "time"

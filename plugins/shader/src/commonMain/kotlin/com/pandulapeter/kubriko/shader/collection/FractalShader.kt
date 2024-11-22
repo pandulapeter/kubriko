@@ -3,11 +3,15 @@ package com.pandulapeter.kubriko.shader.collection
 import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
-data class FractalShader(
-    private val properties: Properties = Properties(),
+class FractalShader(
+    initialState: State = State(),
     override val canvasIndex: Int? = null,
-) : Shader {
+) : Shader<FractalShader.State> {
+    private val _state = MutableStateFlow(initialState)
+    override val state = _state.asStateFlow()
     override val code = """
     uniform float2 ${ShaderManager.RESOLUTION};
     uniform float $TIME;
@@ -34,21 +38,22 @@ data class FractalShader(
     }
 """.trimIndent()
 
-    override fun applyUniforms(provider: ShaderUniformProvider) {
-        provider.uniform(TIME, properties.time)
-        provider.uniform(SPEED, properties.speed)
-        provider.uniform(RED, properties.red)
-        provider.uniform(GREEN, properties.green)
-        provider.uniform(BLUE, properties.blue)
-    }
-
-    data class Properties(
+    data class State(
         val time: Float = 0f,
         val speed: Float = 2f,
         val red: Int = 4,
         val green: Int = 4,
         val blue: Int = 18,
-    )
+    ) : Shader.State {
+
+        override fun ShaderUniformProvider.applyUniforms() {
+            uniform(TIME, time)
+            uniform(SPEED, speed)
+            uniform(RED, red)
+            uniform(GREEN, green)
+            uniform(BLUE, blue)
+        }
+    }
 
     companion object {
         private const val TIME = "time"

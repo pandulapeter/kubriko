@@ -26,7 +26,7 @@ import kotlinx.serialization.json.Json
 import kotlin.math.cos
 import kotlin.math.sin
 
-class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>, Destructible, Visible {
+class MovingBox private constructor(state: State) : Editable<MovingBox>, Destructible, Visible {
 
     @set:Exposed(name = "edgeSize")
     var edgeSize: ScenePixel = state.edgeSize
@@ -100,7 +100,7 @@ class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>
         isMoving = false
     }
 
-    override fun save() = MovingBoxState(
+    override fun save() = State(
         edgeSize = edgeSize,
         position = position,
         boxColor = boxColor,
@@ -109,7 +109,7 @@ class MovingBox private constructor(state: MovingBoxState) : Editable<MovingBox>
     )
 
     @kotlinx.serialization.Serializable
-    data class MovingBoxState(
+    data class State(
         @SerialName("edgeSize") val edgeSize: SerializableScenePixel = 100f.scenePixel,
         @SerialName("position") val position: SerializableSceneOffset = SceneOffset.Zero,
         @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,

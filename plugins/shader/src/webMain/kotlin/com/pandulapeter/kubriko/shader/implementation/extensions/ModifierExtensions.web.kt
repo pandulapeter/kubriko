@@ -9,14 +9,17 @@ import org.jetbrains.skia.ImageFilter
 import org.jetbrains.skia.RuntimeEffect
 import org.jetbrains.skia.RuntimeShaderBuilder
 
-internal actual fun shader(shader: Shader, size: Size): RenderEffect? {
+internal actual fun <T : Shader.State> shader(
+    shader: Shader<T>,
+    size: Size,
+): RenderEffect? {
     val runtimeShaderBuilder = RuntimeShaderBuilder(
         effect = RuntimeEffect.makeForShader(shader.code),
     )
     val shaderUniformProvider = ShaderUniformProviderImpl(runtimeShaderBuilder)
     return ImageFilter.makeRuntimeShader(
         runtimeShaderBuilder = runtimeShaderBuilder.apply {
-            shader.applyUniforms(shaderUniformProvider)
+            with(shader.state.value) { shaderUniformProvider.applyUniforms() }
             shaderUniformProvider.updateResolution(size)
         },
         shaderName = ShaderManager.CONTENT,

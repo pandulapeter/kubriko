@@ -31,7 +31,7 @@ import kotlinx.serialization.json.Json
 import kotlin.math.PI
 import kotlin.math.sin
 
-class Character private constructor(state: CharacterState) : Editable<Character>, Unique, Dynamic, Visible, KeyboardInputAware {
+class Character private constructor(state: State) : Editable<Character>, Unique, Dynamic, Visible, KeyboardInputAware {
 
     @set:Exposed(name = "position")
     override var position: SceneOffset = state.position
@@ -87,7 +87,7 @@ class Character private constructor(state: CharacterState) : Editable<Character>
         center = boundingBox.center.raw,
     )
 
-    override fun save() = CharacterState(position = position)
+    override fun save() = State(position = position)
 
     private fun calculateViewportOffsetDelta() = viewportManager.cameraPosition.value.let { viewportOffset ->
         viewportManager.scaleFactor.value.let { scaleFactor ->
@@ -122,7 +122,7 @@ class Character private constructor(state: CharacterState) : Editable<Character>
     }
 
     @kotlinx.serialization.Serializable
-    data class CharacterState(
+    data class State(
         @SerialName("position") val position: SerializableSceneOffset = SceneOffset.Zero
     ) : Serializable.State<Character> {
 

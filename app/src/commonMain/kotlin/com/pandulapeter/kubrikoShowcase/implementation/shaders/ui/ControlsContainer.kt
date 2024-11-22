@@ -62,22 +62,22 @@ internal fun ControlsContainer(
                         when (targetExpanded.first) {
                             ShaderDemoType.CLOUDS -> CloudControls(
                                 properties = shadersShowcaseManager.cloudProperties.collectAsState().value,
-                                onPropertiesChanged = shadersShowcaseManager::setCloudProperties,
+                                onPropertiesChanged = shadersShowcaseManager::setCloudState,
                             )
 
                             ShaderDemoType.FRACTAL -> FractalControls(
                                 properties = shadersShowcaseManager.fractalProperties.collectAsState().value,
-                                onPropertiesChanged = shadersShowcaseManager::setFractalProperties,
+                                onPropertiesChanged = shadersShowcaseManager::setFractalState,
                             )
 
                             ShaderDemoType.WARP -> WarpControls(
                                 properties = shadersShowcaseManager.warpProperties.collectAsState().value,
-                                onPropertiesChanged = shadersShowcaseManager::setWarpProperties,
+                                onPropertiesChanged = shadersShowcaseManager::setWarpState,
                             )
 
                             ShaderDemoType.GRADIENT -> GradientControls(
                                 properties = shadersShowcaseManager.gradientProperties.collectAsState().value,
-                                onPropertiesChanged = shadersShowcaseManager::setGradientProperties,
+                                onPropertiesChanged = shadersShowcaseManager::setGradientState,
                             )
                         }
                         Spacer(modifier = Modifier.height(16.dp))

@@ -3,14 +3,18 @@ package com.pandulapeter.kubriko.shader.collection
 import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
-data class RippleShader(
-    private val time: Float = 0f,
+class RippleShader(
+    initialState: State = State(),
     override val canvasIndex: Int? = null,
-) : Shader {
+) : Shader<RippleShader.State> {
+    private val _state = MutableStateFlow(initialState)
+    override val state = _state.asStateFlow()
     override val code = """
     uniform float2 ${ShaderManager.RESOLUTION};
-    uniform float $UNIFORM_TIME;
+    uniform float $TIME;
     uniform shader ${ShaderManager.CONTENT};
     
     half4 main(float2 fragCoord) {
@@ -19,18 +23,24 @@ data class RippleShader(
         float2 center = ${ShaderManager.RESOLUTION} * 0.5 * scale;
         float dist = distance(scaledCoord, center);
         float2 dir = scaledCoord - center;
-        float sin = sin(dist * 70 - $UNIFORM_TIME * 6.28);
+        float sin = sin(dist * 70 - $TIME * 6.28);
         float2 offset = dir * sin;
         float2 textCoord = scaledCoord + offset / 30;
         return ${ShaderManager.CONTENT}.eval(textCoord / scale);
     }
 """.trimIndent()
 
-    override fun applyUniforms(provider: ShaderUniformProvider) {
-        provider.uniform(UNIFORM_TIME, time)
+
+    data class State(
+        val time: Float = 0f,
+    ) : Shader.State {
+
+        override fun ShaderUniformProvider.applyUniforms() {
+            uniform(TIME, time)
+        }
     }
 
     companion object {
-        private const val UNIFORM_TIME = "time"
+        private const val TIME = "time"
     }
 }

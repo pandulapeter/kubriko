@@ -5,8 +5,8 @@ import com.pandulapeter.kubriko.shader.collection.CloudShader
 
 @Composable
 internal fun CloudControls(
-    properties: CloudShader.Properties,
-    onPropertiesChanged: (CloudShader.Properties) -> Unit,
+    properties: CloudShader.State,
+    onPropertiesChanged: (CloudShader.State) -> Unit,
 ) {
     FloatSlider(
         title = "Scale",
