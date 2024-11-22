@@ -3,27 +3,31 @@
     <!-- General -->
     <string name="kubriko_showcase">Kubriko Showcase</string>
     <string name="back">Back</string>
-    <string name="welcome">Welcome</string>
-    <string name="welcome_message">Welcome!\n\nThis is the Showcase app for the Kubriko game engine.</string>
     <string name="demos">Demos</string>
     <string name="games">Games</string>
 
+    <!-- Welcome -->
+    <string name="welcome">Welcome</string>
+    <string name="welcome_subtitle">What to expect</string>
+    <string name="welcome_message">Welcome!\n\nThis is the Showcase app for the Kubriko game engine.</string>
+
     <!-- Keyboard Input -->
-    <string name="keyboard_input">Keyboard Input</string>
+    <string name="keyboard_input">Input</string>
+    <string name="keyboard_input_subtitle">Keyboard input tester</string>
 
     <!-- Performance -->
     <string name="performance">Performance</string>
+    <string name="performance_subtitle">Large number of dynamic actors, shaders, etc</string>
     <string name="open_scene_editor">Open Scene Editor</string>
     <string name="close_scene_editor">Close Scene Editor</string>
 
-    <!-- Pointer Input -->
-    <string name="pointer_input">Pointer Input</string>
-
     <!-- Physics -->
     <string name="physics">Physics</string>
+    <string name="physics_subtitle">Rigid body collisions, joints, raytracing, etc.</string>
 
     <!-- Shaders -->
-    <string name="shaders">Shaders</string>
+    <string name="shaders">Custom shaders</string>
+    <string name="shaders_subtitle">Full-screen shader animations</string>
     <string name="expand_controls">Expand controls</string>
     <string name="collapse_controls">Collapse controls</string>
     <string name="clouds">Clouds</string>
@@ -33,5 +37,6 @@
 
     <!-- Wallbreaker -->
     <string name="wallbreaker">Wallbreaker</string>
+    <string name="wallbreaker_subtitle">A simple game</string>
 
 </resources>

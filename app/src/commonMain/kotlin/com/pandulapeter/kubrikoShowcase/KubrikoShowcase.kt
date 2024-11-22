@@ -7,10 +7,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -22,7 +22,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,8 +34,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
@@ -47,6 +46,7 @@ import kubriko.app.generated.resources.ic_back
 import kubriko.app.generated.resources.kubriko_showcase
 import kubriko.app.generated.resources.welcome
 import kubriko.app.generated.resources.welcome_message
+import kubriko.app.generated.resources.welcome_subtitle
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -151,6 +151,7 @@ private fun Content(
                             MenuItem(
                                 isSelected = selectedShowcaseEntry == null,
                                 title = Res.string.welcome,
+                                subtitle = Res.string.welcome_subtitle,
                                 onSelected = { onShowcaseEntrySelected(null) },
                             )
                         }
@@ -263,6 +264,7 @@ private fun LazyListScope.menu(
             MenuItem(
                 isSelected = selectedShowcaseEntry == showcaseEntry,
                 title = showcaseEntry.titleStringResource,
+                subtitle = showcaseEntry.subtitleStringResource,
                 onSelected = { onShowcaseEntrySelected(showcaseEntry) },
             )
         }
@@ -273,8 +275,9 @@ private fun LazyListScope.menu(
 private fun MenuItem(
     isSelected: Boolean,
     title: StringResource,
+    subtitle: StringResource,
     onSelected: () -> Unit,
-) = Text(
+) = Column(
     modifier = Modifier
         .fillMaxWidth()
         .selectable(
@@ -288,8 +291,20 @@ private fun MenuItem(
             horizontal = 16.dp,
             vertical = 8.dp,
         ),
-    text = stringResource(title),
-)
+) {
+    Text(
+        modifier = Modifier
+            .fillMaxWidth(),
+        style = MaterialTheme.typography.titleSmall,
+        text = stringResource(title),
+    )
+    Text(
+        modifier = Modifier
+            .fillMaxWidth(),
+        style = MaterialTheme.typography.bodySmall,
+        text = stringResource(subtitle),
+    )
+}
 
 @Composable
 private fun MenuCategoryLabel(
@@ -299,9 +314,10 @@ private fun MenuCategoryLabel(
         .fillMaxWidth()
         .padding(
             horizontal = 16.dp,
-            vertical = 8.dp,
+            vertical = 4.dp,
         ),
     color = MaterialTheme.colorScheme.primary,
+    fontWeight = FontWeight.Medium,
     style = MaterialTheme.typography.labelSmall,
     text = stringResource(title),
 )
