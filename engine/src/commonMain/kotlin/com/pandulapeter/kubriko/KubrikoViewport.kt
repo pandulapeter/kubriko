@@ -15,5 +15,5 @@ fun KubrikoViewport(
     kubriko: Kubriko,
 ) = InternalViewport(
     modifier = modifier,
-    kubriko = kubriko,
+    getKubriko = { kubriko },
 )

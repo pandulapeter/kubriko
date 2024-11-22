@@ -3,16 +3,12 @@ package com.pandulapeter.kubriko.shader.collection
 import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
-class ChromaticAberrationShader(
-    initialState: State = State(),
+data class ChromaticAberrationShader(
+    override var state: State = State(),
     override val canvasIndex: Int? = null,
 ) : Shader<ChromaticAberrationShader.State> {
     override val cache = Shader.Cache()
-    private val _state = MutableStateFlow(initialState)
-    override val state = _state.asStateFlow()
     override val code = """
     uniform float2 ${ShaderManager.RESOLUTION};
     uniform float $INTENSITY;

@@ -18,7 +18,7 @@ internal actual fun <T : Shader.State> shader(
         val shaderUniformProvider = (shader.cache.uniformProvider as? ShaderUniformProviderImpl) ?: ShaderUniformProviderImpl(runtimeShader).also { shader.cache.uniformProvider = it }
         return RenderEffect.createRuntimeShaderEffect(
             runtimeShader.apply {
-                with(shader.state.value) { shaderUniformProvider.applyUniforms() }
+                with(shader.state) { shaderUniformProvider.applyUniforms() }
                 shaderUniformProvider.updateResolution(size)
             },
             ShaderManager.CONTENT,

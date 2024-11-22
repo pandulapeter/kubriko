@@ -3,16 +3,12 @@ package com.pandulapeter.kubriko.shader.collection
 import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
-class VignetteShader(
-    initialState: State = State(),
+data class VignetteShader(
+    override var state: State = State(),
     override val canvasIndex: Int? = null,
 ) : Shader<VignetteShader.State> {
     override val cache = Shader.Cache()
-    private val _state = MutableStateFlow(initialState)
-    override val state = _state.asStateFlow()
     override val code = """
     uniform float2 ${ShaderManager.RESOLUTION};
     uniform shader ${ShaderManager.CONTENT}; 

@@ -22,13 +22,17 @@ internal class ShadersShowcaseManager : Manager() {
     private val _demoType = MutableStateFlow(ShaderDemoType.FRACTAL)
     val demoType = _demoType.asStateFlow()
     private val fractalShader by lazy { FractalShader() }
-    val fractalState get() = fractalShader.state
+    private val _fractalState by lazy { MutableStateFlow(fractalShader.state) }
+    val fractalState get() = _fractalState.asStateFlow()
     private val cloudShader by lazy { CloudShader() }
-    val cloudState get() = cloudShader.state
+    private val _cloudState by lazy { MutableStateFlow(cloudShader.state) }
+    val cloudState get() = _cloudState.asStateFlow()
     private val warpShader by lazy { WarpShader() }
-    val warpState get() = warpShader.state
+    private val _warpState by lazy { MutableStateFlow(warpShader.state) }
+    val warpState get() = _warpState.asStateFlow()
     private val gradientShader by lazy { GradientShader() }
-    val gradientState get() = gradientShader.state
+    private val _gradientState by lazy { MutableStateFlow(gradientShader.state) }
+    val gradientState get() = _gradientState.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
@@ -44,15 +48,19 @@ internal class ShadersShowcaseManager : Manager() {
                 }
             )
         }.launchIn(scope)
+        fractalState.onEach { fractalShader.updateState(it) }.launchIn(scope)
+        cloudState.onEach { cloudShader.updateState(it) }.launchIn(scope)
+        warpState.onEach { warpShader.updateState(it) }.launchIn(scope)
+        gradientState.onEach { gradientShader.updateState(it) }.launchIn(scope)
     }
 
     fun setSelectedDemoType(demoType: ShaderDemoType) = _demoType.update { demoType }
 
-    fun setCloudState(state: CloudShader.State) = cloudShader.updateState(state)
+    fun setCloudState(state: CloudShader.State) = _cloudState.update { state }
 
-    fun setFractalState(state: FractalShader.State) = fractalShader.updateState(state)
+    fun setFractalState(state: FractalShader.State) = _fractalState.update { state }
 
-    fun setWarpState(state: WarpShader.State) = warpShader.updateState(state)
+    fun setWarpState(state: WarpShader.State) = _warpState.update { state }
 
-    fun setGradientState(state: GradientShader.State) = gradientShader.updateState(state)
+    fun setGradientState(state: GradientShader.State) = _gradientState.update { state }
 }

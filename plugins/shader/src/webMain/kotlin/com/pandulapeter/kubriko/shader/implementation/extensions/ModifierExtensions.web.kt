@@ -17,7 +17,7 @@ internal actual fun <T : Shader.State> shader(
     val shaderUniformProvider = (shader.cache.uniformProvider as? ShaderUniformProviderImpl) ?: ShaderUniformProviderImpl(runtimeShaderBuilder).also { shader.cache.uniformProvider = it }
     return ImageFilter.makeRuntimeShader(
         runtimeShaderBuilder = runtimeShaderBuilder.apply {
-            with(shader.state.value) { shaderUniformProvider.applyUniforms() }
+            with(shader.state) { shaderUniformProvider.applyUniforms() }
             shaderUniformProvider.updateResolution(size)
         },
         shaderName = ShaderManager.CONTENT,

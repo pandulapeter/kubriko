@@ -7,17 +7,14 @@ import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 
 class CloudShader(
     initialState: State = State(),
     override val canvasIndex: Int? = null,
 ) : Shader<CloudShader.State>, Dynamic {
+    override var state = initialState
+        private set
     override val cache = Shader.Cache()
-    private val _state = MutableStateFlow(initialState)
-    override val state = _state.asStateFlow()
     override val code = """
     uniform float2 ${ShaderManager.RESOLUTION};
     uniform float $SCALE;
@@ -143,12 +140,12 @@ class CloudShader(
         metadataManager = kubriko.require()
     }
 
-    override fun update(deltaTimeInMillis: Float) = _state.update { currentValue ->
-        currentValue.copy(time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f)
+    override fun update(deltaTimeInMillis: Float) {
+        state = state.copy(time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f)
     }
 
-    fun updateState(state: State) = _state.update { currentValue ->
-        state.copy(time = currentValue.time)
+    fun updateState(state: State) {
+        this.state = state.copy(time = this.state.time)
     }
 
     data class State(
