@@ -67,13 +67,8 @@ internal class PerformanceShowcaseManager(
             SceneSize((abs(it.x.raw) + 50).scenePixel, (abs(it.y.raw) + 50).scenePixel)
         }
         position = viewportManager.cameraPosition.value
-        if (actorManager.allActors.value.size > 1) {
-            actorManager.add(
-                RippleShader(initialState = RippleShader.State(time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f))
-            )
-            if (overlayAlpha > 0) {
-                overlayAlpha -= 0.003f * deltaTimeInMillis
-            }
+        if (actorManager.allActors.value.size > 1 && overlayAlpha > 0) {
+            overlayAlpha -= 0.003f * deltaTimeInMillis
         }
     }
 
@@ -115,7 +110,8 @@ internal class PerformanceShowcaseManager(
             KeyboardInputListener(),
             ChromaticAberrationShader(),
             VignetteShader(),
-            SmoothPixelationShader()
+            SmoothPixelationShader(),
+            RippleShader(),
         ) + deserializedActors
         actorManager.add(actors = allActors.toTypedArray())
     }

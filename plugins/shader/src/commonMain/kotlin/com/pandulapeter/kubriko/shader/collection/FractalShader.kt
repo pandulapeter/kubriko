@@ -1,15 +1,20 @@
 package com.pandulapeter.kubriko.shader.collection
 
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.traits.Dynamic
+import com.pandulapeter.kubriko.implementation.extensions.require
+import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 class FractalShader(
     initialState: State = State(),
     override val canvasIndex: Int? = null,
-) : Shader<FractalShader.State> {
+) : Shader<FractalShader.State>, Dynamic {
     private val _state = MutableStateFlow(initialState)
     override val state = _state.asStateFlow()
     override val code = """
@@ -37,6 +42,19 @@ class FractalShader(
         return ((sin(p) + float3($RED, $GREEN, $BLUE)) / length(p)).xyz1;
     }
 """.trimIndent()
+    private lateinit var metadataManager: MetadataManager
+
+    override fun onAdd(kubriko: Kubriko) {
+        metadataManager = kubriko.require()
+    }
+
+    override fun update(deltaTimeInMillis: Float) = _state.update { currentValue ->
+        currentValue.copy(time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f)
+    }
+
+    fun updateState(state: State) = _state.update { currentValue ->
+        state.copy(time = currentValue.time)
+    }
 
     data class State(
         val time: Float = 0f,
