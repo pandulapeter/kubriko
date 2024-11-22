@@ -25,6 +25,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -215,15 +216,26 @@ private fun Header(
 ) = TopAppBar(
     modifier = modifier,
     title = {
-        Text(
-            text = stringResource(
-                resource = if (shouldUseCompactUi && selectedShowcaseEntry != null) {
-                    selectedShowcaseEntry.titleStringResource
-                } else {
-                    Res.string.kubriko_showcase
-                }
-            ),
-        )
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(
+                text = stringResource(
+                    resource = if (shouldUseCompactUi && selectedShowcaseEntry != null) {
+                        selectedShowcaseEntry.titleStringResource
+                    } else {
+                        Res.string.kubriko_showcase
+                    }
+                ),
+            )
+            if (shouldUseCompactUi && selectedShowcaseEntry != null) {
+                Text(
+                    color = LocalContentColor.current.copy(alpha = 0.75f),
+                    style = MaterialTheme.typography.titleSmall,
+                    text = stringResource(selectedShowcaseEntry.subtitleStringResource),
+                )
+            }
+        }
     },
     navigationIcon = {
         if (shouldUseCompactUi && selectedShowcaseEntry != null) {
@@ -293,15 +305,14 @@ private fun MenuItem(
         ),
 ) {
     Text(
-        modifier = Modifier
-            .fillMaxWidth(),
-        style = MaterialTheme.typography.titleSmall,
+        modifier = Modifier.fillMaxWidth(),
+        style = MaterialTheme.typography.labelLarge,
         text = stringResource(title),
     )
     Text(
-        modifier = Modifier
-            .fillMaxWidth(),
-        style = MaterialTheme.typography.bodySmall,
+        modifier = Modifier.fillMaxWidth(),
+        color = LocalContentColor.current.copy(alpha = 0.75f),
+        style = MaterialTheme.typography.labelSmall,
         text = stringResource(subtitle),
     )
 }
@@ -317,7 +328,7 @@ private fun MenuCategoryLabel(
             vertical = 4.dp,
         ),
     color = MaterialTheme.colorScheme.primary,
-    fontWeight = FontWeight.Medium,
+    fontWeight = FontWeight.Bold,
     style = MaterialTheme.typography.labelSmall,
     text = stringResource(title),
 )
