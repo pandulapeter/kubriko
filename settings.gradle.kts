@@ -18,6 +18,7 @@ include(
     ":app",
     ":engine",
     ":examples:demo-input",
+    ":examples:demo-performance",
     ":examples:game-wallbreaker",
     ":plugins:keyboard-input",
     ":plugins:physics",

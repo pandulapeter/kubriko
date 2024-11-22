@@ -2,7 +2,7 @@ package com.pandulapeter.kubrikoShowcase.implementation
 
 import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.demoInput.InputDemo
-import com.pandulapeter.kubrikoShowcase.implementation.performance.PerformanceShowcase
+import com.pandulapeter.kubriko.demoPerformance.PerformanceDemo
 import com.pandulapeter.kubrikoShowcase.implementation.physics.PhysicsShowcase
 import com.pandulapeter.kubrikoShowcase.implementation.shaders.ShadersShowcase
 import com.pandulapeter.kubriko.gameWallbreaker.WallbreakerGame
@@ -37,7 +37,7 @@ internal enum class ShowcaseEntry(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.performance,
         subtitleStringResource = Res.string.performance_subtitle,
-        content = { PerformanceShowcase() },
+        content = { PerformanceDemo() },
     ),
     PHYSICS(
         type = ShowcaseEntryType.DEMO,

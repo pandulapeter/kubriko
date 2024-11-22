@@ -18,8 +18,6 @@
     <!-- Performance -->
     <string name="performance">Performance</string>
     <string name="performance_subtitle">Large number of dynamic actors, shaders, etc</string>
-    <string name="open_scene_editor">Open Scene Editor</string>
-    <string name="close_scene_editor">Close Scene Editor</string>
 
     <!-- Physics -->
     <string name="physics">Physics</string>

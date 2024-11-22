@@ -5,7 +5,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.WallbreakerGameplayManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.WallbreakerGameManager
 
 @Composable
 fun WallbreakerGame(
@@ -13,7 +13,7 @@ fun WallbreakerGame(
 ) {
     val kubriko = remember {
         Kubriko.newInstance(
-            WallbreakerGameplayManager(),
+            WallbreakerGameManager(),
         )
     }
     KubrikoViewport(

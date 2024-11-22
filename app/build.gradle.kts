@@ -10,6 +10,7 @@ kotlin {
         commonMain.dependencies {
             implementation(projects.engine)
             implementation(projects.examples.demoInput)
+            implementation(projects.examples.demoPerformance)
             implementation(projects.examples.gameWallbreaker)
             // TODO: Remove direct plugin dependencies
             implementation(projects.plugins.keyboardInput)
