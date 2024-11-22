@@ -1,4 +1,4 @@
-package com.pandulapeter.kubrikoWallbreaker.implementation
+package com.pandulapeter.kubriko.gameWallbreaker.implementation
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.require
@@ -6,8 +6,8 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubrikoWallbreaker.implementation.actors.Ball
-import com.pandulapeter.kubrikoWallbreaker.implementation.actors.Brick
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Ball
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Brick
 import kotlinx.coroutines.flow.map
 
 internal class WallbreakerGameplayManager : Manager() {

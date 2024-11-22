@@ -1,16 +1,16 @@
 package com.pandulapeter.kubrikoShowcase.implementation
 
 import androidx.compose.runtime.Composable
-import com.pandulapeter.kubrikoShowcase.implementation.keyboardInput.KeyboardInputShowcase
+import com.pandulapeter.kubriko.demoInput.InputDemo
 import com.pandulapeter.kubrikoShowcase.implementation.performance.PerformanceShowcase
 import com.pandulapeter.kubrikoShowcase.implementation.physics.PhysicsShowcase
 import com.pandulapeter.kubrikoShowcase.implementation.shaders.ShadersShowcase
-import com.pandulapeter.kubrikoWallbreaker.WallbreakerGame
+import com.pandulapeter.kubriko.gameWallbreaker.WallbreakerGame
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.demos
 import kubriko.app.generated.resources.games
-import kubriko.app.generated.resources.keyboard_input
-import kubriko.app.generated.resources.keyboard_input_subtitle
+import kubriko.app.generated.resources.demo_input
+import kubriko.app.generated.resources.demo_input_subtitle
 import kubriko.app.generated.resources.performance
 import kubriko.app.generated.resources.performance_subtitle
 import kubriko.app.generated.resources.physics
@@ -27,11 +27,11 @@ internal enum class ShowcaseEntry(
     val subtitleStringResource: StringResource,
     val content: @Composable () -> Unit,
 ) {
-    KEYBOARD_INPUT(
+    INPUT(
         type = ShowcaseEntryType.DEMO,
-        titleStringResource = Res.string.keyboard_input,
-        subtitleStringResource = Res.string.keyboard_input_subtitle,
-        content = { KeyboardInputShowcase() },
+        titleStringResource = Res.string.demo_input,
+        subtitleStringResource = Res.string.demo_input_subtitle,
+        content = { InputDemo() },
     ),
     PERFORMANCE(
         type = ShowcaseEntryType.DEMO,

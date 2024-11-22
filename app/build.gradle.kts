@@ -9,7 +9,9 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.engine)
+            implementation(projects.examples.demoInput)
             implementation(projects.examples.gameWallbreaker)
+            // TODO: Remove direct plugin dependencies
             implementation(projects.plugins.keyboardInput)
             implementation(projects.plugins.physics)
             implementation(projects.plugins.serialization)

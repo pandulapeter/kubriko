@@ -1,4 +1,4 @@
-package com.pandulapeter.kubrikoShowcase.implementation.keyboardInput
+package com.pandulapeter.kubriko.demoInput.implementation
 
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-internal class KeyboardInputShowcaseManager : Manager(), KeyboardInputAware {
+internal class InputDemoManager : Manager(), KeyboardInputAware {
 
     private val _activeKeys = MutableStateFlow(emptySet<Key>())
     val activeKeys = _activeKeys.asStateFlow()

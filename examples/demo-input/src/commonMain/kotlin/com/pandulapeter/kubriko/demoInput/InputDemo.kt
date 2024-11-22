@@ -1,4 +1,4 @@
-package com.pandulapeter.kubrikoShowcase.implementation.keyboardInput
+package com.pandulapeter.kubriko.demoInput
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -6,21 +6,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
+import com.pandulapeter.kubriko.demoInput.implementation.InputDemoManager
+import com.pandulapeter.kubriko.demoInput.implementation.ui.Keyboard
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 
 @Composable
-fun KeyboardInputShowcase(
+fun InputDemo(
     modifier: Modifier = Modifier,
 ) {
-    val keyboardInputShowcaseManager = remember { KeyboardInputShowcaseManager() }
+    val inputDemoManager = remember { InputDemoManager() }
     KubrikoViewport(
         kubriko = Kubriko.newInstance(
             KeyboardInputManager.newInstance(),
-            keyboardInputShowcaseManager,
+            inputDemoManager,
         ),
     )
     Keyboard(
         modifier = modifier,
-        activeKeys = keyboardInputShowcaseManager.activeKeys.collectAsState().value,
+        activeKeys = inputDemoManager.activeKeys.collectAsState().value,
     )
 }

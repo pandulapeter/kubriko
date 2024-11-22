@@ -1,4 +1,4 @@
-package com.pandulapeter.kubrikoWallbreaker.implementation.actors
+package com.pandulapeter.kubriko.gameWallbreaker.implementation.actors
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope

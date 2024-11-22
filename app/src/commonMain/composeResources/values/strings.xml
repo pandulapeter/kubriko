@@ -8,12 +8,12 @@
 
     <!-- Welcome -->
     <string name="welcome">Welcome</string>
-    <string name="welcome_subtitle">What to expect</string>
+    <string name="welcome_subtitle">A short introduction</string>
     <string name="welcome_message">Welcome!\n\nThis is the Showcase app for the Kubriko game engine.</string>
 
     <!-- Input -->
-    <string name="keyboard_input">Input</string>
-    <string name="keyboard_input_subtitle">Keyboard input tester</string>
+    <string name="demo_input">Input</string>
+    <string name="demo_input_subtitle">Keyboard input tester</string>
 
     <!-- Performance -->
     <string name="performance">Performance</string>

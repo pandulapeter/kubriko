@@ -1,4 +1,4 @@
-package com.pandulapeter.kubrikoShowcase.implementation.keyboardInput
+package com.pandulapeter.kubriko.demoInput.implementation.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
