@@ -19,6 +19,7 @@ include(
     ":engine",
     ":examples:demo-input",
     ":examples:demo-performance",
+    ":examples:demo-physics",
     ":examples:game-wallbreaker",
     ":plugins:keyboard-input",
     ":plugins:physics",

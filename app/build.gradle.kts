@@ -2,7 +2,6 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
     id("kubriko-application")
-    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -11,17 +10,12 @@ kotlin {
             implementation(projects.engine)
             implementation(projects.examples.demoInput)
             implementation(projects.examples.demoPerformance)
+            implementation(projects.examples.demoPhysics)
             implementation(projects.examples.gameWallbreaker)
             // TODO: Remove direct plugin dependencies
-            implementation(projects.plugins.keyboardInput)
-            implementation(projects.plugins.physics)
-            implementation(projects.plugins.serialization)
             implementation(projects.plugins.shader)
-            implementation(projects.tools.debugMenu)
-            implementation(projects.tools.sceneEditor)
             implementation(compose.components.resources)
             implementation(compose.material3)
-            implementation(libs.kotlinx.serialization)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)

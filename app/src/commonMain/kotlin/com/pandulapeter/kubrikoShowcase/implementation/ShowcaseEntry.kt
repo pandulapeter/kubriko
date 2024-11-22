@@ -3,7 +3,7 @@ package com.pandulapeter.kubrikoShowcase.implementation
 import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.demoInput.InputDemo
 import com.pandulapeter.kubriko.demoPerformance.PerformanceDemo
-import com.pandulapeter.kubrikoShowcase.implementation.physics.PhysicsShowcase
+import com.pandulapeter.kubriko.demoPhysics.PhysicsDemo
 import com.pandulapeter.kubrikoShowcase.implementation.shaders.ShadersShowcase
 import com.pandulapeter.kubriko.gameWallbreaker.WallbreakerGame
 import kubriko.app.generated.resources.Res
@@ -43,7 +43,7 @@ internal enum class ShowcaseEntry(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.physics,
         subtitleStringResource = Res.string.physics_subtitle,
-        content = { PhysicsShowcase() },
+        content = { PhysicsDemo() },
     ),
     SHADERS(
         type = ShowcaseEntryType.DEMO,

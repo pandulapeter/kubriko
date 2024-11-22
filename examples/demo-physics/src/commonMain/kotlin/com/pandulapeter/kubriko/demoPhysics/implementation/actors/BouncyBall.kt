@@ -1,9 +1,8 @@
-package com.pandulapeter.kubrikoShowcase.implementation.physics.actors
+package com.pandulapeter.kubriko.demoPhysics.implementation.actors
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic

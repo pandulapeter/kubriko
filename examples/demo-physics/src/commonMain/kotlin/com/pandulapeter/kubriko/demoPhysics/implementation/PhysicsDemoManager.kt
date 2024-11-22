@@ -1,4 +1,4 @@
-package com.pandulapeter.kubrikoShowcase.implementation.physics
+package com.pandulapeter.kubriko.demoPhysics.implementation
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.require
@@ -7,10 +7,10 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
-import com.pandulapeter.kubrikoShowcase.implementation.physics.actors.BouncyBall
-import com.pandulapeter.kubrikoShowcase.implementation.physics.actors.Platform
+import com.pandulapeter.kubriko.demoPhysics.implementation.actors.BouncyBall
+import com.pandulapeter.kubriko.demoPhysics.implementation.actors.Platform
 
-internal class PhysicsShowcaseManager : Manager() {
+internal class PhysicsDemoManager : Manager() {
 
     private lateinit var actorManager: ActorManager
 

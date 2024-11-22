@@ -1,26 +1,25 @@
-package com.pandulapeter.kubrikoShowcase.implementation.physics
+package com.pandulapeter.kubriko.demoPhysics
 
-import androidx.compose.foundation.background
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
+import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoManager
 import com.pandulapeter.kubriko.physics.PhysicsManager
 
 @Composable
-fun PhysicsShowcase(
+fun PhysicsDemo(
     modifier: Modifier = Modifier,
 ) {
     val kubriko = remember {
         Kubriko.newInstance(
             PhysicsManager.newInstance(),
-            PhysicsShowcaseManager(),
+            PhysicsDemoManager(),
         )
     }
     KubrikoViewport(
-        modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant),
+        modifier = modifier,
         kubriko = kubriko,
     )
 }
