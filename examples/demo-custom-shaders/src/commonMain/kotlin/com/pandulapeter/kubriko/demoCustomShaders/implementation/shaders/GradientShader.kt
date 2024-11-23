@@ -20,13 +20,14 @@ internal class GradientShader(
     uniform shader ${ShaderManager.CONTENT};
     uniform float $TIME;
     uniform float $SPEED;
+    uniform float $DARK;
+    uniform float $FREQUENCY;
     
     float4 main(float2 fragCoord) {
-        // Normalized pixel coordinates (from 0 to 1)
         float2 uv = fragCoord/${ShaderManager.RESOLUTION}.xy;
 
         // Time varying pixel color
-        float3 col = 0.8 + 0.2 * cos($TIME*$SPEED+uv.xxx*2.0+float3(1,2,4));
+        float3 col = (1.0 - $DARK) + $DARK * sin($TIME*$SPEED+uv.xxx*$FREQUENCY+float3(1,2,4));
 
         // Output to screen
         return float4(col,1.0);
@@ -49,16 +50,22 @@ internal class GradientShader(
     data class State(
         val time: Float = 0f,
         val speed: Float = 2f,
+        val dark: Float = 0.2f,
+        val frequency: Float = 2.0f,
     ) : Shader.State {
 
         override fun ShaderUniformProvider.applyUniforms() {
             uniform(TIME, time)
             uniform(SPEED, speed)
+            uniform(DARK, dark)
+            uniform(FREQUENCY, frequency)
         }
     }
 
     companion object {
         private const val TIME = "time"
         private const val SPEED = "speed"
+        private const val DARK = "dark"
+        private const val FREQUENCY = "stg"
     }
 }
