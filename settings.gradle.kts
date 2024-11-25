@@ -22,6 +22,7 @@ include(
     ":examples:demo-performance",
     ":examples:demo-physics",
     ":examples:game-wallbreaker",
+    ":plugins:collision",
     ":plugins:keyboard-input",
     ":plugins:physics",
     ":plugins:serialization",

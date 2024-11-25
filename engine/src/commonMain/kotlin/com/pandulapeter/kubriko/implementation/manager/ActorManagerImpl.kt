@@ -95,6 +95,8 @@ internal class ActorManagerImpl(
         currentActors.filterNot { it in actors }.toImmutableList()
     }
 
+    override fun remove(actors: Collection<Actor>)  = remove(actors = actors.toTypedArray())
+
     override fun removeAll() = _allActors.update { currentActors ->
         currentActors.forEach { it.onRemove() }
         persistentListOf()

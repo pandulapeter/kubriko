@@ -6,7 +6,10 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.collision.Collidable
+import com.pandulapeter.kubriko.collision.CollisionDetector
 import com.pandulapeter.kubriko.implementation.extensions.constrainedWithin
+import com.pandulapeter.kubriko.implementation.extensions.distanceTo
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -14,15 +17,13 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
-import kotlinx.coroutines.flow.StateFlow
-import kotlin.math.abs
 
 internal class Ball(
     private val radius: ScenePixel = 20f.scenePixel,
     speed: ScenePixel = 0.8f.scenePixel,
-    private val bricks: StateFlow<List<Brick>>,
-) : Visible, Dynamic {
+) : CollisionDetector, Visible, Dynamic {
 
+    override val collidableTypes = listOf(Brick::class)
     override val boundingBox: SceneSize = SceneSize(radius * 2, radius * 2)
     override var position: SceneOffset = SceneOffset(0f.scenePixel, (-400f).scenePixel)
     private var speedX = speed
@@ -46,50 +47,29 @@ internal class Ball(
         if (nextPosition.y < viewportTopLeft.y || nextPosition.y > viewportBottomRight.y) {
             speedY *= -1
         }
-        bricks.value.firstOrNull { isOverlappingBrick(position = nextPosition, brick = it) }?.let { brick ->
-            handleCollision(
-                nextPosition = nextPosition,
-                brickPosition = brick.position,
-                brickBoundingBox = brick.boundingBox,
-            )
-            actorManager.remove(brick)
-            actorManager.add(
-                BrickDestructionEffect(
-                    position = brick.position,
-                    hue = brick.hue,
-                )
-            )
-        }
         position = nextPosition
     }
 
-    private fun isOverlappingBrick(
-        position: SceneOffset,
-        brick: Brick,
-    ): Boolean {
+    // TODO: We could predict collisions instead of only treating them afterwards
+    override fun onCollisionDetected(collidables: List<Collidable>) {
+        val brick = collidables.filterIsInstance<Brick>().minBy { it.position.distanceTo(position) }
         val brickTopLeft = brick.position - brick.pivotOffset
         val brickBottomRight = brickTopLeft + SceneOffset(brick.boundingBox.width, brick.boundingBox.height)
-        val closestX = maxOf(brickTopLeft.x, minOf(position.x, brickBottomRight.x))
-        val closestY = maxOf(brickTopLeft.y, minOf(position.y, brickBottomRight.y))
-        val distanceSquared = (position.x - closestX) * (position.x - closestX) + (position.y - closestY) * (position.y - closestY)
-        return distanceSquared <= radius * radius
-    }
-
-    private fun handleCollision(
-        nextPosition: SceneOffset,
-        brickPosition: SceneOffset,
-        brickBoundingBox: SceneSize,
-    ) {
-        val overlapX = (brickBoundingBox.width.raw / 2) - abs((nextPosition.x - brickPosition.x).raw)
-        val overlapY = (brickBoundingBox.height.raw / 2) - abs((nextPosition.y - brickPosition.y).raw)
         when {
-            overlapX < overlapY -> speedX *= -1
-            overlapY < overlapX -> speedY *= -1
+            position.y.raw in brickTopLeft.y..brickBottomRight.y -> speedX *= -1
+            position.x.raw in brickTopLeft.x..brickBottomRight.x -> speedY *= -1
             else -> {
                 speedX *= -1
                 speedY *= -1
             }
         }
+        actorManager.remove(actors = collidables.toTypedArray())
+        actorManager.add(
+            BrickDestructionEffect(
+                position = brick.position,
+                hue = brick.hue,
+            )
+        )
     }
 
     override fun DrawScope.draw() {

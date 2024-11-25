@@ -17,6 +17,8 @@ abstract class ActorManager : Manager() {
 
     abstract fun remove(vararg actors: Actor)
 
+    abstract fun remove(actors: Collection<Actor>)
+
     abstract fun removeAll()
 
     companion object {
