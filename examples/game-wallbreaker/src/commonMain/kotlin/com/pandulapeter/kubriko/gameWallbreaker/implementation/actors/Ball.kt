@@ -26,6 +26,7 @@ internal class Ball(
     override val collidableTypes = listOf(Brick::class)
     override val boundingBox: SceneSize = SceneSize(radius * 2, radius * 2)
     override var position: SceneOffset = SceneOffset(0f.scenePixel, (-400f).scenePixel)
+    private var previousPosition = position
     private var speedX = speed
     private var speedY = speed
     private lateinit var actorManager: ActorManager
@@ -47,11 +48,13 @@ internal class Ball(
         if (nextPosition.y < viewportTopLeft.y || nextPosition.y > viewportBottomRight.y) {
             speedY *= -1
         }
+        previousPosition = position
         position = nextPosition
     }
 
     // TODO: We could predict collisions instead of only treating them afterwards
     override fun onCollisionDetected(collidables: List<Collidable>) {
+        position = previousPosition
         val brick = collidables.filterIsInstance<Brick>().minBy { it.position.distanceTo(position) }
         val brickTopLeft = brick.position - brick.pivotOffset
         val brickBottomRight = brickTopLeft + SceneOffset(brick.boundingBox.width, brick.boundingBox.height)
@@ -63,7 +66,7 @@ internal class Ball(
                 speedY *= -1
             }
         }
-        actorManager.remove(actors = collidables.toTypedArray())
+        actorManager.remove(brick)
         actorManager.add(
             BrickDestructionEffect(
                 position = brick.position,

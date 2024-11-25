@@ -35,3 +35,17 @@ val Positionable.top: ScenePixel get() = scale.vertical.let { position.y + pivot
 val Positionable.right: ScenePixel get() = scale.horizontal.let { position.x - pivotOffset.x * it + boundingBox.width * it }
 
 val Positionable.bottom: ScenePixel get() = scale.vertical.let { position.y - pivotOffset.y * it + boundingBox.height * it }
+
+// TODO: AABB - might be merged with the implementation from the physics module
+// TODO: Fine-tune with better collision masks
+fun Positionable.isOverlapping(other: Positionable): Boolean {
+    val overlapTopLeft = SceneOffset(
+        x = maxOf(left, other.left),
+        y = maxOf(top, other.top)
+    )
+    val overlapBottomRight = SceneOffset(
+        x = minOf(right, other.right),
+        y = minOf(bottom, other.bottom)
+    )
+    return !(overlapTopLeft.x >= overlapBottomRight.x || overlapTopLeft.y >= overlapBottomRight.y)
+}

@@ -1,7 +1,6 @@
 package com.pandulapeter.kubriko.collision
 
 import com.pandulapeter.kubriko.actor.Actor
-import com.pandulapeter.kubriko.types.SceneOffset
 import kotlin.reflect.KClass
 
 //TODO: Documentation
