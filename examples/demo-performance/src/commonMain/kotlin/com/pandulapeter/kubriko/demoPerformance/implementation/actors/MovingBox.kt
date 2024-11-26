@@ -30,18 +30,8 @@ import kotlin.math.sin
 
 class MovingBox private constructor(state: State) : Destructible, Visible, Editable<MovingBox> {
 
-    // TODO
-    override val body = RectangleBody()
-
     @set:Exposed(name = "edgeSize")
     var edgeSize: ScenePixel = state.edgeSize
-        set(value) {
-            field = value
-            boundingBox = SceneSize(
-                width = value,
-                height = value
-            )
-        }
 
     @set:Exposed(name = "position")
     var position: SceneOffset = state.position
@@ -56,15 +46,18 @@ class MovingBox private constructor(state: State) : Destructible, Visible, Edita
     var scale: Scale = state.scale
 
     override var drawingOrder = 0f
-    var boundingBox = SceneSize(
-        width = state.edgeSize,
-        height = state.edgeSize
-    )
     override var destructionState = 0f
     override var direction = AngleRadians.Zero
     override var speed = ScenePixel.Zero
     private var isGrowing = true
     private var isMoving = true
+
+
+    override val body= RectangleBody(
+        initialSize = SceneSize(edgeSize, edgeSize),
+        initialPosition = position,
+        initialRotation = rotation
+    )
 
     override fun update(deltaTimeInMillis: Float) {
         super.update(deltaTimeInMillis)
@@ -97,7 +90,7 @@ class MovingBox private constructor(state: State) : Destructible, Visible, Edita
 
     override fun DrawScope.draw() = drawRect(
         color = lerp(boxColor, Color.Black, destructionState),
-        size = boundingBox.raw,
+        size = body.size.raw,
     )
 
     override fun destroy(character: Visible) {

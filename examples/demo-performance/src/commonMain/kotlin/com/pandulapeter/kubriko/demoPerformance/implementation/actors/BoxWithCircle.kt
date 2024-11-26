@@ -26,9 +26,6 @@ import kotlinx.serialization.json.Json
 
 class BoxWithCircle private constructor(state: State) : Visible, Destructible, Editable<BoxWithCircle> {
 
-    // TODO
-    override val body= RectangleBody()
-
     @set:Exposed(name = "edgeSize")
     var edgeSize: ScenePixel = state.edgeSize
         set(value) {
@@ -63,6 +60,12 @@ class BoxWithCircle private constructor(state: State) : Visible, Destructible, E
     override var destructionState = 0f
     override var direction = AngleRadians.Zero
     override var speed = ScenePixel.Zero
+
+    override val body= RectangleBody(
+        initialSize = SceneSize(edgeSize, edgeSize),
+        initialPosition = position,
+        initialRotation = rotation
+    )
 
     override fun update(deltaTimeInMillis: Float) {
         super.update(deltaTimeInMillis)

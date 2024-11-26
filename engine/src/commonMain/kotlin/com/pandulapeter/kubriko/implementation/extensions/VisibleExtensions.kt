@@ -8,7 +8,7 @@ import com.pandulapeter.kubriko.types.SceneOffset
 
 fun Visible.angleTowards(other: Visible): AngleRadians = (body.position + body.pivot).angleTowards(other.body.position + other.body.pivot)
 
-internal fun Visible.transform(drawTransform: DrawTransform) {
+internal fun Visible.transformForViewport(drawTransform: DrawTransform) {
     drawTransform.translate(
         left = (body.position.x - body.pivot.x).raw,
         top = (body.position.y - body.pivot.y).raw,

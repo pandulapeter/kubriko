@@ -21,7 +21,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.fold
 import com.pandulapeter.kubriko.implementation.extensions.minus
-import com.pandulapeter.kubriko.implementation.extensions.transform
+import com.pandulapeter.kubriko.implementation.extensions.transformForViewport
 import com.pandulapeter.kubriko.implementation.extensions.transformViewport
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.isActive
@@ -115,7 +115,7 @@ private fun Layer(
                             .filter { it.isVisible && it.layerIndex == layerIndex }
                             .forEach { visible ->
                                 withTransform(
-                                    transformBlock = { visible.transform(this) },
+                                    transformBlock = { visible.transformForViewport(this) },
                                     drawBlock = {
                                         with(visible) {
                                             clipRect(

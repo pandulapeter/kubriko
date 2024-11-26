@@ -26,7 +26,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuController
+import com.pandulapeter.kubriko.KubrikoViewport
+import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuManager
+import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuMetadata
 import kubriko.tools.debug_menu.generated.resources.Res
 import kubriko.tools.debug_menu.generated.resources.debug_menu
 import kubriko.tools.debug_menu.generated.resources.ic_debug
@@ -47,8 +49,8 @@ fun DebugMenu(
     kubriko: Kubriko,
     gameCanvas: @Composable BoxScope.() -> Unit,
 ) {
-    val debugMenuController = remember { DebugMenuController(kubriko) }
-    val debugInfoMetadata = debugMenuController.debugMenuMetadata.collectAsState().value
+    val debugMenuManager = remember { DebugMenuManager(kubriko) }
+    val debugInfoMetadata = debugMenuManager.debugMenuMetadata.collectAsState(DebugMenuMetadata()).value
     val isDebugMenuVisible = remember { mutableStateOf(false) }
     Box(
         modifier = modifier,
@@ -61,6 +63,9 @@ fun DebugMenu(
                 modifier = Modifier.weight(1f),
             ) {
                 gameCanvas()
+                KubrikoViewport(
+                    kubriko = Kubriko.newInstance(debugMenuManager),
+                )
             }
             AnimatedVisibility(
                 visible = isDebugMenuVisible.value,

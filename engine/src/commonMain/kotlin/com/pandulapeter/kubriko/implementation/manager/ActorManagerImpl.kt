@@ -89,15 +89,18 @@ internal class ActorManagerImpl(
         (filteredCurrentActors + actors).toImmutableList()
     }
 
-    override fun remove(vararg actors: Actor) = _allActors.update { currentActors ->
+    override fun remove(vararg actors: Actor) {
+        _allActors.update { currentActors ->
+            currentActors.filterNot { it in actors }.toImmutableList()
+        }
         actors.forEach { it.onRemoved() }
-        currentActors.filterNot { it in actors }.toImmutableList()
     }
 
     override fun remove(actors: Collection<Actor>) = remove(actors = actors.toTypedArray())
 
-    override fun removeAll() = _allActors.update { currentActors ->
+    override fun removeAll() {
+        val currentActors = _allActors.value
+        _allActors.update { persistentListOf() }
         currentActors.forEach { it.onRemoved() }
-        persistentListOf()
     }
 }

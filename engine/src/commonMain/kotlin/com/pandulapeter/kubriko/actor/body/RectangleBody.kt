@@ -40,12 +40,14 @@ class RectangleBody(
         }
 
     override fun createAxisAlignedBoundingBox(): AxisAlignedBoundingBox {
+        // Compute all four corners of the transformed rectangle
         val corners = listOf(
-            transformPoint(position - pivot),
-            transformPoint(position - pivot + SceneOffset(size.width, 0f.scenePixel)),
-            transformPoint(position - pivot + SceneOffset(0f.scenePixel, size.height)),
-            transformPoint(position - pivot + SceneOffset(size.width, size.height))
+            transformPoint(position), // Top-left
+            transformPoint(position + SceneOffset(size.width, 0f.scenePixel)), // Top-right
+            transformPoint(position + SceneOffset(0f.scenePixel, size.height)), // Bottom-left
+            transformPoint(position + SceneOffset(size.width, size.height)) // Bottom-right
         )
+        println("Corners: $corners")
 
         return AxisAlignedBoundingBox(
             min = SceneOffset(corners.minOf { it.x }, corners.minOf { it.y }),
@@ -54,13 +56,14 @@ class RectangleBody(
     }
 
     private fun transformPoint(point: SceneOffset): SceneOffset {
-        // Translate to pivot
-        val translatedX = point.x
-        val translatedY = point.y
+        println("Transforming $point")
+        // Offset the point by the pivot for transformation
+        val offsetX = point.x - pivot.x
+        val offsetY = point.y - pivot.y
 
-        // Apply scaling relative to pivot
-        val scaledX = translatedX * scale.horizontal
-        val scaledY = translatedY * scale.vertical
+        // Apply scaling relative to the pivot
+        val scaledX = offsetX * scale.horizontal
+        val scaledY = offsetY * scale.vertical
 
         // Apply rotation (assuming rotation is in radians)
         val rotatedX = scaledX * cos(rotation.normalized) - scaledY * sin(rotation.normalized)

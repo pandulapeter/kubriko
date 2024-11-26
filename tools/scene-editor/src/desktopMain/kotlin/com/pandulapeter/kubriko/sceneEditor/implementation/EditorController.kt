@@ -228,6 +228,7 @@ internal class EditorController(
     }
 
     companion object {
+        // TODO: Modularization broke this
         const val SCENES_DIRECTORY = "./src/commonMain/composeResources/files/scenes"
         private const val DEFAULT_SCENE_FILE_NAME = "scene_untitled.json"
     }
