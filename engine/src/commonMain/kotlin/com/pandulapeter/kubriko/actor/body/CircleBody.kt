@@ -1,10 +1,14 @@
 package com.pandulapeter.kubriko.actor.body
 
+import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
 
 class CircleBody(
     initialPosition: SceneOffset = SceneOffset.Zero,
@@ -38,23 +42,34 @@ class CircleBody(
         }
 
     override fun createAxisAlignedBoundingBox(): AxisAlignedBoundingBox {
-        // Convert pivot to an absolute scene position
-        val absolutePivot = position// + pivot
-
-        // Compute the scaled radius in both directions
-        val scaledRadiusX = radius * scale.horizontal
-        val scaledRadiusY = radius * scale.vertical
-
-        // Compute the AABB based on the scaled radii
-        return AxisAlignedBoundingBox(
-            min = SceneOffset(
-                x = absolutePivot.x - scaledRadiusX,
-                y = absolutePivot.y - scaledRadiusY
-            ),
-            max = SceneOffset(
-                x = absolutePivot.x + scaledRadiusX,
-                y = absolutePivot.y + scaledRadiusY
+        if (scale.horizontal == scale.vertical) {
+            val scaledRadius = radius * scale.horizontal
+            return AxisAlignedBoundingBox(
+                min = SceneOffset(
+                    x = position.x - scaledRadius,
+                    y = position.y - scaledRadius
+                ),
+                max = SceneOffset(
+                    x = position.x + scaledRadius,
+                    y = position.y + scaledRadius
+                )
             )
-        )
+        } else {
+            val scaledRadius = SceneOffset(
+                x = radius * scale.horizontal,
+                y = radius * scale.vertical,
+            )
+            val cosTheta = cos(rotation.normalized)
+            val sinTheta = sin(rotation.normalized)
+            val rotatedRadius = SceneOffset(
+                x = abs(scaledRadius.x.raw * cosTheta).scenePixel + abs(scaledRadius.y.raw * sinTheta).scenePixel,
+                y = abs(scaledRadius.x.raw * sinTheta).scenePixel + abs(scaledRadius.y.raw * cosTheta).scenePixel,
+            )
+
+            return AxisAlignedBoundingBox(
+                min = position - rotatedRadius,
+                max = position + rotatedRadius
+            )
+        }
     }
 }

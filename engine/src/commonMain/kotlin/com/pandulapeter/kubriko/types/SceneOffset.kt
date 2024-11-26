@@ -26,6 +26,8 @@ value class SceneOffset(val raw: Offset) {
 
     operator fun times(scale: ScenePixel): SceneOffset = SceneOffset(raw * scale.raw)
 
+    operator fun times(scale: Scale): SceneOffset = SceneOffset(x * scale.horizontal, y * scale.vertical)
+
     operator fun div(scale: Float): SceneOffset = SceneOffset(raw / scale)
 
     operator fun div(scale: Int): SceneOffset = SceneOffset(raw / scale.toFloat())

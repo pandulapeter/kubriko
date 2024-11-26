@@ -41,13 +41,11 @@ internal class TestCircle(
             color = Color.Black,
             start = Offset(body.pivot.raw.x - body.radius.raw, body.pivot.raw.y),
             end = Offset(body.pivot.raw.x + body.radius.raw, body.pivot.raw.y),
-            strokeWidth = 2f,
         )
         drawLine(
             color = Color.Black,
             start = Offset(body.pivot.raw.x, body.pivot.raw.y - body.radius.raw),
             end = Offset(body.pivot.raw.x, body.pivot.raw.y + body.radius.raw),
-            strokeWidth = 2f,
         )
     }
 
@@ -57,8 +55,8 @@ internal class TestCircle(
         body.rotation += (deltaTimeInMillis * 0.001f).rad
         acc += deltaTimeInMillis
         body.scale = Scale(
-            horizontal = 1f + 2f * cos(acc * 0.001f),
-            vertical = 1f + 2f * sin(acc * 0.001f)
+            horizontal = 1f + 2f * sin(acc * 0.001f),
+            vertical = 1f + 2f * cos(acc * 0.001f)
         )
     }
 
