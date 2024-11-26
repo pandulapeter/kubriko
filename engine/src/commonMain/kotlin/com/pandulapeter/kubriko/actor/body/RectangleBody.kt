@@ -55,19 +55,22 @@ class RectangleBody(
     }
 
     private fun transformPoint(point: SceneOffset): SceneOffset {
-        // Offset the point by the pivot for transformation
-        val offsetX = point.x - pivot.x
-        val offsetY = point.y - pivot.y
+        // Convert pivot to an absolute scene position
+        val absolutePivot = position + pivot
+
+        // Translate the point relative to the pivot
+        val translatedX = point.x - absolutePivot.x
+        val translatedY = point.y - absolutePivot.y
 
         // Apply scaling relative to the pivot
-        val scaledX = offsetX * scale.horizontal
-        val scaledY = offsetY * scale.vertical
+        val scaledX = translatedX * scale.horizontal
+        val scaledY = translatedY * scale.vertical
 
         // Apply rotation (assuming rotation is in radians)
         val rotatedX = scaledX * cos(rotation.normalized) - scaledY * sin(rotation.normalized)
         val rotatedY = scaledX * sin(rotation.normalized) + scaledY * cos(rotation.normalized)
 
-        // Translate back to the original position relative to the pivot
-        return SceneOffset(rotatedX + pivot.x, rotatedY + pivot.y)
+        // Translate back to the scene position
+        return SceneOffset(rotatedX + absolutePivot.x, rotatedY + absolutePivot.y)
     }
 }

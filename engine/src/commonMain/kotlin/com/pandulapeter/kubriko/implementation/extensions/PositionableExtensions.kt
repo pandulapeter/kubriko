@@ -9,11 +9,10 @@ import com.pandulapeter.kubriko.types.SceneSize
 internal fun Positionable.isWithinViewportBounds(
     scaledHalfViewportSize: SceneSize,
     viewportCenter: SceneOffset,
-    viewportEdgeBuffer: ScenePixel,
-): Boolean = body.axisAlignedBoundingBox.left <= viewportCenter.x + scaledHalfViewportSize.width + viewportEdgeBuffer &&
-        body.axisAlignedBoundingBox.top <= viewportCenter.y + scaledHalfViewportSize.height + viewportEdgeBuffer &&
-        body.axisAlignedBoundingBox.right >= viewportCenter.x - scaledHalfViewportSize.width - viewportEdgeBuffer &&
-        body.axisAlignedBoundingBox.bottom >= viewportCenter.y - scaledHalfViewportSize.height - viewportEdgeBuffer
+): Boolean = body.axisAlignedBoundingBox.left <= viewportCenter.x + scaledHalfViewportSize.width &&
+        body.axisAlignedBoundingBox.top <= viewportCenter.y + scaledHalfViewportSize.height &&
+        body.axisAlignedBoundingBox.right >= viewportCenter.x - scaledHalfViewportSize.width &&
+        body.axisAlignedBoundingBox.bottom >= viewportCenter.y - scaledHalfViewportSize.height
 
 fun Positionable.angleTowards(other: Positionable): AngleRadians = (body.position).angleTowards(other.body.position)
 

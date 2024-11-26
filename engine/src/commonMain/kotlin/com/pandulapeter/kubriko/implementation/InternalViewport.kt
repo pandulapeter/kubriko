@@ -119,8 +119,8 @@ private fun Layer(
                                     drawBlock = {
                                         with(visible) {
                                             clipRect(
-                                                right = body.axisAlignedBoundingBox.size.width.raw,
-                                                bottom = body.axisAlignedBoundingBox.size.height.raw
+                                                right = body.size.width.raw,
+                                                bottom = body.size.height.raw
                                             ) {
                                                 draw()
                                             }

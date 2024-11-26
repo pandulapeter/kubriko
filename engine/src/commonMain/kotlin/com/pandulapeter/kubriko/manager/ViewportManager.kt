@@ -27,10 +27,6 @@ abstract class ViewportManager : Manager() {
     abstract fun multiplyScaleFactor(scaleFactor: Float)
 
     companion object {
-        fun newInstance(
-            viewportEdgeBuffer: ScenePixel = 100f.scenePixel,
-        ): ViewportManager = ViewportManagerImpl(
-            viewportEdgeBuffer = viewportEdgeBuffer,
-        )
+        fun newInstance(): ViewportManager = ViewportManagerImpl()
     }
 }

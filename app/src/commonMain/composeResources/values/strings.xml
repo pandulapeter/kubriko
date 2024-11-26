@@ -13,7 +13,7 @@
 
     <!-- Collisions -->
     <string name="demo_collisions">Collisions</string>
-    <string name="demo_collisions_subtitle">Collision checking playground</string>
+    <string name="demo_collisions_subtitle">Playground for testing axis-aligned bounding boxes</string>
 
     <!-- Custom Shaders -->
     <string name="demo_custom_shaders">Custom shaders</string>
