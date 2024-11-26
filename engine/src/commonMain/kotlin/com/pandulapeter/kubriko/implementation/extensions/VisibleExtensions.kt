@@ -30,16 +30,16 @@ internal fun Visible.transformForViewport(drawTransform: DrawTransform) {
 
 fun Visible.wrapWithin(topLeft: SceneOffset, bottomRight: SceneOffset): SceneOffset {
     var offset = body.position
-    if (body.axisAlignedBoundingBox.min.x < topLeft.x) {
+    if (body.axisAlignedBoundingBox.max.x < topLeft.x) {
         offset = SceneOffset(bottomRight.x + body.axisAlignedBoundingBox.size.width, offset.y)
     }
-    if (body.axisAlignedBoundingBox.max.x > bottomRight.x) {
+    if (body.axisAlignedBoundingBox.min.x > bottomRight.x) {
         offset = SceneOffset(topLeft.x - body.axisAlignedBoundingBox.size.width, offset.y)
     }
-    if (body.axisAlignedBoundingBox.min.y < topLeft.y) {
+    if (body.axisAlignedBoundingBox.max.y < topLeft.y) {
         offset = SceneOffset(offset.x, bottomRight.y + body.axisAlignedBoundingBox.size.height)
     }
-    if (body.axisAlignedBoundingBox.max.y > bottomRight.y) {
+    if (body.axisAlignedBoundingBox.min.y > bottomRight.y) {
         offset = SceneOffset(offset.x, topLeft.y - body.axisAlignedBoundingBox.size.height)
     }
     return offset

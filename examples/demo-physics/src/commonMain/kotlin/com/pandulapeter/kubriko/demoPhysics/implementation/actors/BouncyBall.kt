@@ -15,6 +15,7 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
+import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
@@ -25,6 +26,7 @@ internal class BouncyBall(
 ) : RigidBody, Dynamic {
     override val body = RectangleBody(
         initialSize= SceneSize(radius * 2, radius * 2),
+        initialPosition = initialPosition,
     )
     override val physicsBody = Body(Circle(radius.raw), initialPosition.x.raw, initialPosition.y.raw)
     private lateinit var viewportManager: ViewportManager
@@ -35,7 +37,8 @@ internal class BouncyBall(
 
     override fun update(deltaTimeInMillis: Float) {
         body.position = SceneOffset(physicsBody.position.x.scenePixel, physicsBody.position.y.scenePixel)
-        body.position = wrapWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value)
+        physicsBody.position = wrapWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value).let { Vec2(it.x.raw, it.y.raw) }
+        body.position = SceneOffset(physicsBody.position.x.scenePixel, physicsBody.position.y.scenePixel)
         body.rotation = physicsBody.orientation.rad
     }
 
