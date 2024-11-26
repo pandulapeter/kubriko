@@ -47,7 +47,6 @@ class RectangleBody(
             transformPoint(position + SceneOffset(0f.scenePixel, size.height)), // Bottom-left
             transformPoint(position + SceneOffset(size.width, size.height)) // Bottom-right
         )
-        println("Corners: $corners")
 
         return AxisAlignedBoundingBox(
             min = SceneOffset(corners.minOf { it.x }, corners.minOf { it.y }),
@@ -56,7 +55,6 @@ class RectangleBody(
     }
 
     private fun transformPoint(point: SceneOffset): SceneOffset {
-        println("Transforming $point")
         // Offset the point by the pivot for transformation
         val offsetX = point.x - pivot.x
         val offsetY = point.y - pivot.y

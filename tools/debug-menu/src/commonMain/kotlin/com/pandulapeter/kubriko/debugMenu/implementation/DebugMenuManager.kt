@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko.debugMenu.implementation
 
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawTransform
@@ -53,20 +54,11 @@ internal class DebugMenuManager(gameKubriko: Kubriko) : Manager(), Overlay, Uniq
             },
             drawBlock = {
                 gameActorManager.visibleActorsWithinViewport.value.forEach { visible ->
-                    withTransform(
-                        transformBlock = {
-                            translate(
-                                left = (visible.body.position.x - visible.body.pivot.x).raw,
-                                top = (visible.body.position.y - visible.body.pivot.y).raw,
-                            )
-                        },
-                        drawBlock = {
-                            drawRect(
-                                color = Color.Cyan,
-                                size = visible.body.axisAlignedBoundingBox.size.raw,
-                                style = Stroke(),
-                            )
-                        },
+                    drawRect(
+                        color = Color.Cyan,
+                        topLeft = visible.body.axisAlignedBoundingBox.min.raw - visible.body.pivot.raw,
+                        size = visible.body.axisAlignedBoundingBox.size.raw,
+                        style = Stroke(),
                     )
                 }
             },

@@ -11,6 +11,10 @@
     <string name="welcome_subtitle">A short introduction</string>
     <string name="welcome_message">Welcome!\n\nThis is the Showcase app for the Kubriko game engine.</string>
 
+    <!-- Collisions -->
+    <string name="demo_collisions">Collisions</string>
+    <string name="demo_collisions_subtitle">Collision checking playground</string>
+
     <!-- Custom Shaders -->
     <string name="demo_custom_shaders">Custom shaders</string>
     <string name="demo_custom_shaders_subtitle">Full-screen shader animation examples</string>

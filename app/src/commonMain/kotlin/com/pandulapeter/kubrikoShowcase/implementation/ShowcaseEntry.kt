@@ -1,12 +1,15 @@
 package com.pandulapeter.kubrikoShowcase.implementation
 
 import androidx.compose.runtime.Composable
+import com.pandulapeter.kubriko.demoCollisions.CollisionsDemo
 import com.pandulapeter.kubriko.demoCustomShaders.CustomShadersDemo
 import com.pandulapeter.kubriko.demoInput.InputDemo
 import com.pandulapeter.kubriko.demoPerformance.PerformanceDemo
 import com.pandulapeter.kubriko.demoPhysics.PhysicsDemo
 import com.pandulapeter.kubriko.gameWallbreaker.WallbreakerGame
 import kubriko.app.generated.resources.Res
+import kubriko.app.generated.resources.demo_collisions
+import kubriko.app.generated.resources.demo_collisions_subtitle
 import kubriko.app.generated.resources.demo_custom_shaders
 import kubriko.app.generated.resources.demo_custom_shaders_subtitle
 import kubriko.app.generated.resources.demo_input
@@ -27,6 +30,12 @@ internal enum class ShowcaseEntry(
     val subtitleStringResource: StringResource,
     val content: @Composable () -> Unit,
 ) {
+    COLLISIONS(
+        type = ShowcaseEntryType.DEMO,
+        titleStringResource = Res.string.demo_collisions,
+        subtitleStringResource = Res.string.demo_collisions_subtitle,
+        content = { CollisionsDemo() },
+    ),
     CUSTOM_SHADERS(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_custom_shaders,
