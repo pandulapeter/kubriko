@@ -101,7 +101,7 @@ private fun Layer(
                 kubrikoImpl.managers.mapNotNull { it.getModifier(layerIndex) }.toImmutableList().fold()
             },
             onDraw = {
-                gameTime  // This line invalidates the Canvas, causing a refresh on every frame
+                @Suppress("UNUSED_EXPRESSION") gameTime  // This line invalidates the Canvas, causing a refresh on every frame
                 withTransform(
                     transformBlock = {
                         transformViewport(
@@ -112,15 +112,15 @@ private fun Layer(
                     },
                     drawBlock = {
                         kubrikoImpl.actorManager.visibleActorsWithinViewport.value
-                            .filter { it.layerIndex == layerIndex }
+                            .filter { it.isVisible && it.layerIndex == layerIndex }
                             .forEach { visible ->
                                 withTransform(
                                     transformBlock = { visible.transform(this) },
                                     drawBlock = {
                                         with(visible) {
                                             clipRect(
-                                                right = boundingBox.width.raw,
-                                                bottom = boundingBox.height.raw,
+                                                right = body.axisAlignedBoundingBox.size.width.raw,
+                                                bottom = body.axisAlignedBoundingBox.size.height.raw
                                             ) {
                                                 draw()
                                             }

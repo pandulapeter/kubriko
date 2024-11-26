@@ -42,7 +42,7 @@ internal class FractalShader(
 """.trimIndent()
     private lateinit var metadataManager: MetadataManager
 
-    override fun onAdd(kubriko: Kubriko) {
+    override fun onAdded(kubriko: Kubriko) {
         metadataManager = kubriko.require()
     }
 

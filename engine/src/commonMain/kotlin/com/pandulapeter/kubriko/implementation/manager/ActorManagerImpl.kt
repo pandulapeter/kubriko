@@ -2,15 +2,15 @@ package com.pandulapeter.kubriko.implementation.manager
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
-import com.pandulapeter.kubriko.actor.traits.LayerAware
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Identifiable
+import com.pandulapeter.kubriko.actor.traits.LayerAware
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.KubrikoImpl
 import com.pandulapeter.kubriko.implementation.extensions.distinctUntilChangedWithDelay
-import com.pandulapeter.kubriko.implementation.extensions.isVisible
+import com.pandulapeter.kubriko.implementation.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.StateManager
@@ -58,10 +58,9 @@ internal class ActorManagerImpl(
         ) { _, allVisibleActors, viewportSize, viewportCenter, viewportScaleFactor ->
             allVisibleActors
                 .filter {
-                    it.isVisible(
+                    it.isWithinViewportBounds(
                         scaledHalfViewportSize = SceneSize(viewportSize / (viewportScaleFactor * 2)),
                         viewportCenter = viewportCenter,
-                        viewportScaleFactor = viewportScaleFactor,
                         viewportEdgeBuffer = viewportManager.viewportEdgeBuffer,
                     )
                 }
@@ -86,19 +85,19 @@ internal class ActorManagerImpl(
         val uniqueNewActorTypes = actors.filterIsInstance<Unique>().map { it::class }.toSet()
         val filteredCurrentActors = currentActors.filterNot { it::class in uniqueNewActorTypes }
         actors.filterIsInstance<Identifiable>().onEach { if (it.name == null) it.name = Uuid.random().toString() }
-        actors.forEach { it.onAdd(scope as Kubriko) }
+        actors.forEach { it.onAdded(scope as Kubriko) }
         (filteredCurrentActors + actors).toImmutableList()
     }
 
     override fun remove(vararg actors: Actor) = _allActors.update { currentActors ->
-        actors.forEach { it.onRemove() }
+        actors.forEach { it.onRemoved() }
         currentActors.filterNot { it in actors }.toImmutableList()
     }
 
-    override fun remove(actors: Collection<Actor>)  = remove(actors = actors.toTypedArray())
+    override fun remove(actors: Collection<Actor>) = remove(actors = actors.toTypedArray())
 
     override fun removeAll() = _allActors.update { currentActors ->
-        currentActors.forEach { it.onRemove() }
+        currentActors.forEach { it.onRemoved() }
         persistentListOf()
     }
 }

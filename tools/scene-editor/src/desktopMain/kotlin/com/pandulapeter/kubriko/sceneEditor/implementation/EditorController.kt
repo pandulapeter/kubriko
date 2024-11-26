@@ -166,7 +166,7 @@ internal class EditorController(
 
     fun locateSelectedActor() {
         (_selectedActor.value as? Visible)?.let { visibleTrait ->
-            viewportManager.setCameraPosition(visibleTrait.position)
+            viewportManager.setCameraPosition(visibleTrait.body.position)
         }
     }
 

@@ -13,6 +13,7 @@ import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
  * @param x     Position x in world space.
  * @param y     Position y in world space.
  */
+// TODO: Should inherit from RectangleBody?
 class Body(override var shape: Shape, x: Float, y: Float) : AbstractPhysicalBody(), CollisionBodyInterface {
     override var position: Vec2 = Vec2(x, y)
     override var dynamicFriction = 0.2f

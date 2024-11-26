@@ -28,7 +28,7 @@ internal class PhysicsManagerImpl(
     private lateinit var stateManager: StateManager
     private val rigidBodiesForPhysicsEngine by lazy {
         actorManager.allActors
-            .map { it.filterIsInstance<RigidBody>().map { it.body } }
+            .map { it.filterIsInstance<RigidBody>().map { it.physicsBody } }
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
     }
 

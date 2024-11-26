@@ -5,7 +5,6 @@ import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.serialization.integration.Serializable
-import com.pandulapeter.kubriko.types.SceneOffset
 
 
 // TODO: Revisit documentation.
@@ -24,9 +23,4 @@ interface Editable<T : Editable<T>> : Serializable<T>, Positionable, Actor {
      * The appearance of the [Actor] in the Editor.
      */
     val editorPreview: Visible get() = this as? Visible ?: throw IllegalStateException("EditorPreview must be configured") // TODO: Default should come from the editor module
-
-    /**
-     * The absolute position of the [Actor] in the Scene.
-     */
-    override var position: SceneOffset
 }

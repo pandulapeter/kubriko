@@ -6,46 +6,37 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
 
-internal fun Positionable.isVisible(
+internal fun Positionable.isWithinViewportBounds(
     scaledHalfViewportSize: SceneSize,
     viewportCenter: SceneOffset,
-    viewportScaleFactor: Float,
     viewportEdgeBuffer: ScenePixel,
-): Boolean = boundingBox.width.raw * viewportScaleFactor >= 1f && boundingBox.height.raw * viewportScaleFactor >= 1f &&
-        left <= viewportCenter.x + scaledHalfViewportSize.width + viewportEdgeBuffer &&
-        top <= viewportCenter.y + scaledHalfViewportSize.height + viewportEdgeBuffer &&
-        right >= viewportCenter.x - scaledHalfViewportSize.width - viewportEdgeBuffer &&
-        bottom >= viewportCenter.y - scaledHalfViewportSize.height - viewportEdgeBuffer
+): Boolean = body.axisAlignedBoundingBox.left <= viewportCenter.x + scaledHalfViewportSize.width + viewportEdgeBuffer &&
+        body.axisAlignedBoundingBox.top <= viewportCenter.y + scaledHalfViewportSize.height + viewportEdgeBuffer &&
+        body.axisAlignedBoundingBox.right >= viewportCenter.x - scaledHalfViewportSize.width - viewportEdgeBuffer &&
+        body.axisAlignedBoundingBox.bottom >= viewportCenter.y - scaledHalfViewportSize.height - viewportEdgeBuffer
 
-fun Positionable.angleTowards(other: Positionable): AngleRadians = (position + pivotOffset).angleTowards(other.position + other.pivotOffset)
+fun Positionable.angleTowards(other: Positionable): AngleRadians = (body.position).angleTowards(other.body.position)
 
 fun Positionable.occupiesPosition(
     sceneOffset: SceneOffset,
-): Boolean = sceneOffset.x.raw in left..right && sceneOffset.y.raw in top..bottom
+): Boolean =
+    sceneOffset.x.raw in body.axisAlignedBoundingBox.left..body.axisAlignedBoundingBox.right && sceneOffset.y.raw in body.axisAlignedBoundingBox.top..body.axisAlignedBoundingBox.bottom
 
 fun Positionable.isAroundPosition(
     position: SceneOffset,
     range: ScenePixel,
-): Boolean = (this.position - position).raw.getDistance().scenePixel < range
-
-val Positionable.left: ScenePixel get() = scale.horizontal.let { position.x + pivotOffset.x * it - boundingBox.width * it }
-
-val Positionable.top: ScenePixel get() = scale.vertical.let { position.y + pivotOffset.y * it - boundingBox.height * it }
-
-val Positionable.right: ScenePixel get() = scale.horizontal.let { position.x - pivotOffset.x * it + boundingBox.width * it }
-
-val Positionable.bottom: ScenePixel get() = scale.vertical.let { position.y - pivotOffset.y * it + boundingBox.height * it }
+): Boolean = (this.body.position - position).raw.getDistance().scenePixel < range
 
 // TODO: AABB - might be merged with the implementation from the physics module
 // TODO: Fine-tune with better collision masks
 fun Positionable.isOverlapping(other: Positionable): Boolean {
     val overlapTopLeft = SceneOffset(
-        x = maxOf(left, other.left),
-        y = maxOf(top, other.top)
+        x = maxOf(body.axisAlignedBoundingBox.left, other.body.axisAlignedBoundingBox.left),
+        y = maxOf(body.axisAlignedBoundingBox.top, other.body.axisAlignedBoundingBox.top)
     )
     val overlapBottomRight = SceneOffset(
-        x = minOf(right, other.right),
-        y = minOf(bottom, other.bottom)
+        x = minOf(body.axisAlignedBoundingBox.right, other.body.axisAlignedBoundingBox.right),
+        y = minOf(body.axisAlignedBoundingBox.bottom, other.body.axisAlignedBoundingBox.bottom)
     )
     return !(overlapTopLeft.x >= overlapBottomRight.x || overlapTopLeft.y >= overlapBottomRight.y)
 }

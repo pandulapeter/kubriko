@@ -13,7 +13,7 @@ import kotlin.math.sin
  * Should be implemented by [Actor]s that want their positions to be updated automatically by [Kubriko] in function of their speed, direction and friction.
  * [Movable] [Actor]s must also be [Dynamic] and [Positionable].
  */
-interface Movable : Dynamic, Positionable, Actor {
+interface Movable : Dynamic, Positionable {
 
     /**
      * The speed of the Actor in [ScenePixel]-s / milliseconds.
@@ -31,11 +31,6 @@ interface Movable : Dynamic, Positionable, Actor {
     val direction: AngleRadians get() = AngleRadians.Zero
 
     /**
-     * The absolute position of the [Actor] in the Scene.
-     */
-    override var position: SceneOffset
-
-    /**
      * Actors can overrides this function, but they should call the super implementation to take advantage of the full feature set of [Movable].
      */
     override fun update(deltaTimeInMillis: Float) {
@@ -44,7 +39,7 @@ interface Movable : Dynamic, Positionable, Actor {
             if (speed.raw < MINIMUM_SPEED) {
                 speed = ScenePixel.Zero
             }
-            position += SceneOffset(
+            body.position += SceneOffset(
                 x = cos(direction.normalized).scenePixel,
                 y = -sin(direction.normalized).scenePixel
             ) * speed * deltaTimeInMillis

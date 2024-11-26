@@ -6,6 +6,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(projects.engine)
+            api(projects.plugins.collision)
         }
     }
 }

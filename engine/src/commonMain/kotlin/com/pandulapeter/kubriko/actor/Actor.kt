@@ -9,8 +9,8 @@ import com.pandulapeter.kubriko.manager.ActorManager
 interface Actor {
 
     // TODO: Documentation
-    fun onAdd(kubriko: Kubriko) = Unit
+    fun onAdded(kubriko: Kubriko) = Unit
 
     // TODO: Documentation
-    fun onRemove() = Unit
+    fun onRemoved() = Unit
 }

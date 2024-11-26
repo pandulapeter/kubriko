@@ -3,6 +3,8 @@ package com.pandulapeter.kubriko.demoPerformance.implementation.actors
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
+import com.pandulapeter.kubriko.actor.body.PointBody
+import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.sceneEditor.Exposed
@@ -22,7 +24,10 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class BoxWithCircle private constructor(state: State) : Editable<BoxWithCircle>, Destructible, Visible {
+class BoxWithCircle private constructor(state: State) : Visible, Destructible, Editable<BoxWithCircle> {
+
+    // TODO
+    override val body= RectangleBody()
 
     @set:Exposed(name = "edgeSize")
     var edgeSize: ScenePixel = state.edgeSize
@@ -35,7 +40,7 @@ class BoxWithCircle private constructor(state: State) : Editable<BoxWithCircle>,
         }
 
     @set:Exposed(name = "position")
-    override var position: SceneOffset = state.position
+    var position: SceneOffset = state.position
 
     @set:Exposed(name = "boxColor")
     var boxColor: Color = state.boxColor
@@ -47,11 +52,11 @@ class BoxWithCircle private constructor(state: State) : Editable<BoxWithCircle>,
     var circleRadius: ScenePixel = state.circleRadius
 
     @set:Exposed(name = "rotation")
-    override var rotation: AngleRadians = state.rotation
+    var rotation: AngleRadians = state.rotation
 
     override val layerIndex = 0
     override var drawingOrder = 0f
-    override var boundingBox = SceneSize(
+    var boundingBox = SceneSize(
         width = state.edgeSize,
         height = state.edgeSize
     )
@@ -61,7 +66,7 @@ class BoxWithCircle private constructor(state: State) : Editable<BoxWithCircle>,
 
     override fun update(deltaTimeInMillis: Float) {
         super.update(deltaTimeInMillis)
-        drawingOrder = -position.y.raw - pivotOffset.y.raw
+        drawingOrder = -position.y.raw - body.pivot.y.raw
     }
 
     override fun DrawScope.draw() {

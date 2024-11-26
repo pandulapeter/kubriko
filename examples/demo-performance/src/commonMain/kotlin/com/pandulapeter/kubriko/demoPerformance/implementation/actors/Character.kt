@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
@@ -33,23 +34,26 @@ import kotlinx.serialization.json.Json
 import kotlin.math.PI
 import kotlin.math.sin
 
-class Character private constructor(state: State) : Editable<Character>, Unique, Dynamic, Visible, KeyboardInputAware {
+class Character private constructor(state: State) : Unique, Dynamic, Visible, KeyboardInputAware, Editable<Character> {
+
+    // TODO
+    override val body = RectangleBody()
 
     @set:Exposed(name = "position")
-    override var position: SceneOffset = state.position
+    var position: SceneOffset = state.position
 
-    override val boundingBox = SceneSize(
+    val boundingBox = SceneSize(
         width = Radius * 2f,
         height = Radius * 2f,
     )
     override var drawingOrder = 0f
     private var sizeMultiplier = 1f
-    override var scale = Scale.Unit
+    var scale = Scale.Unit
     private lateinit var actorManager: ActorManager
     private lateinit var stateManager: StateManager
     private lateinit var viewportManager: ViewportManager
 
-    override fun onAdd(kubriko: Kubriko) {
+    override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.require()
         stateManager = kubriko.require()
         viewportManager = kubriko.require()
@@ -63,7 +67,7 @@ class Character private constructor(state: State) : Editable<Character>, Unique,
     }
 
     override fun update(deltaTimeInMillis: Float) {
-        drawingOrder = -position.y.raw - pivotOffset.y.raw - 100f
+        drawingOrder = -position.y.raw - body.pivot.y.raw - 100f
         viewportManager.addToCameraPosition(calculateViewportOffsetDelta().raw)
         if (sizeMultiplier > 1f) {
             sizeMultiplier -= 0.01f * deltaTimeInMillis
@@ -119,7 +123,7 @@ class Character private constructor(state: State) : Editable<Character>, Unique,
         if (stateManager.isRunning.value) {
             sizeMultiplier = MAX_SIZE_MULTIPLIER
             findDestructibleActorsNearby(
-                position = position + pivotOffset,
+                position = position + body.pivot,
                 range = ExplosionRange,
             ).forEach { it.destroy(this) }
         }

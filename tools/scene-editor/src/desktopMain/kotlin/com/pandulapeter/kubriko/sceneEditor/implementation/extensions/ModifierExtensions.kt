@@ -31,7 +31,7 @@ internal fun Modifier.handleMouseClick(
         PointerButton.Primary -> getSelectedActor()?.let { selectedActor ->
             getMouseSceneOffset().let { mouseWorldCoordinates ->
                 if (selectedActor.occupiesPosition(mouseWorldCoordinates)) {
-                    startOffset = mouseWorldCoordinates - selectedActor.position
+                    startOffset = mouseWorldCoordinates - selectedActor.body.position
                 }
             }
         }
@@ -90,7 +90,7 @@ internal fun Modifier.handleMouseDrag(
     } else {
         startOffset?.let { startOffset ->
             getSelectedActor()?.let { selectedActor ->
-                selectedActor.position = getMouseSceneOffset() - startOffset
+                selectedActor.body.position = getMouseSceneOffset() - startOffset
                 notifySelectedInstanceUpdate()
             }
         }

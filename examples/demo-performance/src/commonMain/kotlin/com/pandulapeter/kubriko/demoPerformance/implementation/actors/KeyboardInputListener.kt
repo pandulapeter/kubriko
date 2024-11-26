@@ -16,7 +16,7 @@ internal class KeyboardInputListener : KeyboardInputAware, Unique {
     private lateinit var stateManager: StateManager
     private lateinit var viewportManager: ViewportManager
 
-    override fun onAdd(kubriko: Kubriko) {
+    override fun onAdded(kubriko: Kubriko) {
         stateManager = kubriko.require()
         viewportManager = kubriko.require()
     }

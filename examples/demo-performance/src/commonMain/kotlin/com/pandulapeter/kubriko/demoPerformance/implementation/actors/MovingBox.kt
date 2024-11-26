@@ -3,6 +3,8 @@ package com.pandulapeter.kubriko.demoPerformance.implementation.actors
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
+import com.pandulapeter.kubriko.actor.body.PointBody
+import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
@@ -26,7 +28,10 @@ import kotlinx.serialization.json.Json
 import kotlin.math.cos
 import kotlin.math.sin
 
-class MovingBox private constructor(state: State) : Editable<MovingBox>, Destructible, Visible {
+class MovingBox private constructor(state: State) : Destructible, Visible, Editable<MovingBox> {
+
+    // TODO
+    override val body = RectangleBody()
 
     @set:Exposed(name = "edgeSize")
     var edgeSize: ScenePixel = state.edgeSize
@@ -39,19 +44,19 @@ class MovingBox private constructor(state: State) : Editable<MovingBox>, Destruc
         }
 
     @set:Exposed(name = "position")
-    override var position: SceneOffset = state.position
+    var position: SceneOffset = state.position
 
     @set:Exposed(name = "boxColor")
     var boxColor: Color = state.boxColor
 
     @set:Exposed(name = "rotation")
-    override var rotation: AngleRadians = state.rotation
+    var rotation: AngleRadians = state.rotation
 
     @set:Exposed(name = "scale")
-    override var scale: Scale = state.scale
+    var scale: Scale = state.scale
 
     override var drawingOrder = 0f
-    override var boundingBox = SceneSize(
+    var boundingBox = SceneSize(
         width = state.edgeSize,
         height = state.edgeSize
     )
@@ -63,7 +68,7 @@ class MovingBox private constructor(state: State) : Editable<MovingBox>, Destruc
 
     override fun update(deltaTimeInMillis: Float) {
         super.update(deltaTimeInMillis)
-        drawingOrder = -position.y.raw - pivotOffset.y.raw
+        drawingOrder = -position.y.raw - body.pivot.y.raw
         rotation += (0.001f * deltaTimeInMillis * (1f - destructionState)).rad
         if (scale.horizontal >= 1.6f) {
             isGrowing = false
