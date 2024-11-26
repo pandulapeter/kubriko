@@ -56,7 +56,7 @@ internal class DebugMenuManager(gameKubriko: Kubriko) : Manager(), Overlay, Uniq
                 gameActorManager.visibleActorsWithinViewport.value.forEach { visible ->
                     drawRect(
                         color = Color.Cyan,
-                        topLeft = visible.body.axisAlignedBoundingBox.min.raw - visible.body.pivot.raw,
+                        topLeft = visible.body.axisAlignedBoundingBox.min.raw,
                         size = visible.body.axisAlignedBoundingBox.size.raw,
                         style = Stroke(),
                     )

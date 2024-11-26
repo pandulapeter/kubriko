@@ -28,7 +28,7 @@ import kotlinx.serialization.json.Json
 import kotlin.math.cos
 import kotlin.math.sin
 
-class MovingBox private constructor(state: State) : Destructible, Visible, Editable<MovingBox> {
+class MovingBox private constructor(state: State) : Visible, Destructible, Editable<MovingBox> {
 
     @set:Exposed(name = "edgeSize")
     var edgeSize: ScenePixel = state.edgeSize

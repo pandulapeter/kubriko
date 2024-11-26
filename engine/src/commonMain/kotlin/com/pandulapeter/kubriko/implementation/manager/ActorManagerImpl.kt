@@ -58,7 +58,7 @@ internal class ActorManagerImpl(
         ) { _, allVisibleActors, viewportSize, viewportCenter, viewportScaleFactor ->
             allVisibleActors
                 .filter {
-                    it.isWithinViewportBounds(
+                    it.body.axisAlignedBoundingBox.isWithinViewportBounds(
                         scaledHalfViewportSize = SceneSize(viewportSize / (viewportScaleFactor * 2)),
                         viewportCenter = viewportCenter,
                     )

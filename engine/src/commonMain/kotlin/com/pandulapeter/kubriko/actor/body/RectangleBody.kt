@@ -49,8 +49,8 @@ class RectangleBody(
         )
 
         return AxisAlignedBoundingBox(
-            min = SceneOffset(corners.minOf { it.x }, corners.minOf { it.y }),
-            max = SceneOffset(corners.maxOf { it.x }, corners.maxOf { it.y })
+            min = SceneOffset(corners.minOf { it.x }, corners.minOf { it.y }) - pivot,
+            max = SceneOffset(corners.maxOf { it.x }, corners.maxOf { it.y }) - pivot,
         )
     }
 
