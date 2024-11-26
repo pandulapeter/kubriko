@@ -32,18 +32,34 @@ class MovingBox private constructor(state: State) : Destructible, Visible, Edita
 
     @set:Exposed(name = "edgeSize")
     var edgeSize: ScenePixel = state.edgeSize
+        set(value) {
+            field = value
+            body.size = SceneSize(value, value)
+        }
 
     @set:Exposed(name = "position")
     var position: SceneOffset = state.position
+        set(value) {
+            field = value
+            body.position = value
+        }
 
     @set:Exposed(name = "boxColor")
     var boxColor: Color = state.boxColor
 
     @set:Exposed(name = "rotation")
     var rotation: AngleRadians = state.rotation
+        set(value) {
+            field = value
+            body.rotation = value
+        }
 
     @set:Exposed(name = "scale")
     var scale: Scale = state.scale
+        set(value) {
+            field = value
+            body.scale = value
+        }
 
     override var drawingOrder = 0f
     override var destructionState = 0f
@@ -56,7 +72,8 @@ class MovingBox private constructor(state: State) : Destructible, Visible, Edita
     override val body= RectangleBody(
         initialSize = SceneSize(edgeSize, edgeSize),
         initialPosition = position,
-        initialRotation = rotation
+        initialRotation = rotation,
+        initialScale = scale,
     )
 
     override fun update(deltaTimeInMillis: Float) {

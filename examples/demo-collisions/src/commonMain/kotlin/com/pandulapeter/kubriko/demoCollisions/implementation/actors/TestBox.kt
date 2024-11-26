@@ -1,6 +1,5 @@
 package com.pandulapeter.kubriko.demoCollisions.implementation.actors
 
-import androidx.compose.ui.geometry.times
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke

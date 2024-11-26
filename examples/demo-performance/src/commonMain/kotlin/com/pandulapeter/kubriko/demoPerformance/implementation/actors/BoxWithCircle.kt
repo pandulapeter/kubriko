@@ -3,23 +3,22 @@ package com.pandulapeter.kubriko.demoPerformance.implementation.actors
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
-import com.pandulapeter.kubriko.actor.body.PointBody
 import com.pandulapeter.kubriko.actor.body.RectangleBody
+import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.demoPerformance.implementation.actors.traits.Destructible
 import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.Exposed
+import com.pandulapeter.kubriko.serialization.integration.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableAngleRadians
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableColor
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneOffset
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableScenePixel
-import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.sceneEditor.Editable
-import com.pandulapeter.kubriko.serialization.integration.Serializable
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
-import com.pandulapeter.kubriko.demoPerformance.implementation.actors.traits.Destructible
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -30,14 +29,15 @@ class BoxWithCircle private constructor(state: State) : Visible, Destructible, E
     var edgeSize: ScenePixel = state.edgeSize
         set(value) {
             field = value
-            boundingBox = SceneSize(
-                width = value,
-                height = value
-            )
+            body.size = SceneSize(value, value)
         }
 
     @set:Exposed(name = "position")
     var position: SceneOffset = state.position
+        set(value) {
+            field = value
+            body.position = position
+        }
 
     @set:Exposed(name = "boxColor")
     var boxColor: Color = state.boxColor
@@ -50,18 +50,18 @@ class BoxWithCircle private constructor(state: State) : Visible, Destructible, E
 
     @set:Exposed(name = "rotation")
     var rotation: AngleRadians = state.rotation
+        set(value) {
+            field = value
+            body.rotation = rotation
+        }
 
     override val layerIndex = 0
     override var drawingOrder = 0f
-    var boundingBox = SceneSize(
-        width = state.edgeSize,
-        height = state.edgeSize
-    )
     override var destructionState = 0f
     override var direction = AngleRadians.Zero
     override var speed = ScenePixel.Zero
 
-    override val body= RectangleBody(
+    override val body = RectangleBody(
         initialSize = SceneSize(edgeSize, edgeSize),
         initialPosition = position,
         initialRotation = rotation
@@ -75,12 +75,12 @@ class BoxWithCircle private constructor(state: State) : Visible, Destructible, E
     override fun DrawScope.draw() {
         drawRect(
             color = lerp(boxColor, Color.Black, destructionState),
-            size = boundingBox.raw,
+            size = body.size.raw,
         )
         drawCircle(
             color = lerp(circleColor, Color.Black, destructionState),
             radius = circleRadius.raw,
-            center = boundingBox.center.raw,
+            center = body.size.center.raw,
         )
     }
 

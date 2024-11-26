@@ -9,6 +9,7 @@ import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.demoPerformance.implementation.actors.traits.Destructible
 import com.pandulapeter.kubriko.implementation.extensions.isAroundPosition
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
@@ -26,7 +27,6 @@ import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
-import com.pandulapeter.kubriko.demoPerformance.implementation.actors.traits.Destructible
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
@@ -36,19 +36,27 @@ import kotlin.math.sin
 
 class Character private constructor(state: State) : Unique, Dynamic, Visible, KeyboardInputAware, Editable<Character> {
 
-    // TODO
-    override val body = RectangleBody()
-
     @set:Exposed(name = "position")
     var position: SceneOffset = state.position
+        set(value) {
+            field = value
+            body.position = value
+        }
 
-    val boundingBox = SceneSize(
-        width = Radius * 2f,
-        height = Radius * 2f,
+    override val body = RectangleBody(
+        initialPosition = position,
+        initialSize = SceneSize(
+            width = Radius * 2f,
+            height = Radius * 2f,
+        ),
     )
     override var drawingOrder = 0f
     private var sizeMultiplier = 1f
-    var scale = Scale.Unit
+    private var scale = Scale.Unit
+        set(value) {
+            field = value
+            body.scale = value
+        }
     private lateinit var actorManager: ActorManager
     private lateinit var stateManager: StateManager
     private lateinit var viewportManager: ViewportManager
@@ -92,7 +100,7 @@ class Character private constructor(state: State) : Unique, Dynamic, Visible, Ke
     override fun DrawScope.draw() = drawCircle(
         color = lerp(Color.Red, Color.Green, ((1f + MAX_SIZE_MULTIPLIER) - sizeMultiplier) / MAX_SIZE_MULTIPLIER),
         radius = Radius.raw,
-        center = boundingBox.center.raw,
+        center = body.pivot.raw,
     )
 
     override fun save() = State(position = position)
