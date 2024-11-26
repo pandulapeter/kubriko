@@ -13,7 +13,9 @@ import kotlinx.coroutines.flow.update
 import kotlin.math.max
 import kotlin.math.min
 
-internal class ViewportManagerImpl : ViewportManager() {
+internal class ViewportManagerImpl(
+    val viewportEdgeBuffer: ScenePixel,
+) : ViewportManager() {
 
     private val _cameraPosition = MutableStateFlow(SceneOffset.Zero)
     override val cameraPosition = _cameraPosition.asStateFlow()

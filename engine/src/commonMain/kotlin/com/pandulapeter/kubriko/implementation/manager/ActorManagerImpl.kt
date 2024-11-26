@@ -61,6 +61,7 @@ internal class ActorManagerImpl(
                     it.body.axisAlignedBoundingBox.isWithinViewportBounds(
                         scaledHalfViewportSize = SceneSize(viewportSize / (viewportScaleFactor * 2)),
                         viewportCenter = viewportCenter,
+                        viewportEdgeBuffer = viewportManager.viewportEdgeBuffer,
                     )
                 }
                 .toImmutableList()

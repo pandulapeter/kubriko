@@ -27,7 +27,7 @@ internal class PhysicsDemoManager : Manager() {
                 )
             } + Platform(
                 initialPosition = SceneOffset(0f.scenePixel, 350f.scenePixel),
-                boundingBox = SceneSize(1200f.scenePixel, 40f.scenePixel),
+                boundingBox = SceneSize(800f.scenePixel, 40f.scenePixel),
             )).toTypedArray()
         )
     }

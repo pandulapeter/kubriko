@@ -8,7 +8,6 @@ import com.pandulapeter.kubriko.types.SceneSize
 import kotlin.math.cos
 import kotlin.math.sin
 
-// TODO: Pivot and scale are implementation details. `position` and `size` should return adjusted values
 class RectangleBody(
     initialPosition: SceneOffset = SceneOffset.Zero,
     initialSize: SceneSize = SceneSize.Zero,
@@ -17,23 +16,23 @@ class RectangleBody(
     initialRotation: AngleRadians = AngleRadians.Zero
 ) : PointBody(
     initialPosition = initialPosition,
-) {
-    var size = initialSize
+), ComplexBody {
+    override var size = initialSize
         set(value) {
             field = value
             axisAlignedBoundingBox = createAxisAlignedBoundingBox()
         }
-    var pivot = initialPivot
+    override var pivot = initialPivot
         set(value) {
             field = value
             axisAlignedBoundingBox = createAxisAlignedBoundingBox()
         }
-    var scale = initialScale
+    override var scale = initialScale
         set(value) {
             field = value
             axisAlignedBoundingBox = createAxisAlignedBoundingBox()
         }
-    var rotation = initialRotation
+    override var rotation = initialRotation
         set(value) {
             field = value
             axisAlignedBoundingBox = createAxisAlignedBoundingBox()

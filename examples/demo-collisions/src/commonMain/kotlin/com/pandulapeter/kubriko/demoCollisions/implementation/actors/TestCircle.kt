@@ -1,9 +1,10 @@
 package com.pandulapeter.kubriko.demoCollisions.implementation.actors
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.pandulapeter.kubriko.actor.body.RectangleBody
+import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
@@ -11,29 +12,42 @@ import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.SceneSize
 import kotlin.math.cos
 import kotlin.math.sin
 
-internal class TestBox(
+internal class TestCircle(
     position: SceneOffset,
     hue: Float,
 ) : Visible, Collidable, Dynamic {
-    override val body = RectangleBody(
+    override val body = CircleBody(
         initialPosition = position,
-        initialSize = SceneSize(Width, Height),
+        initialRadius = Radius,
     )
     private val color = Color.hsv(hue, 0.2f, 0.9f)
 
     override fun DrawScope.draw() {
-        drawRect(
+        drawCircle(
             color = color,
-            size = body.size.raw,
+            radius = body.radius.raw,
+            center = body.pivot.raw,
         )
-        drawRect(
+        drawCircle(
             color = Color.Black,
-            size = body.size.raw,
+            radius = body.radius.raw,
+            center = body.pivot.raw,
             style = Stroke(),
+        )
+        drawLine(
+            color = Color.Black,
+            start = Offset(body.pivot.raw.x - body.radius.raw, body.pivot.raw.y),
+            end = Offset(body.pivot.raw.x + body.radius.raw, body.pivot.raw.y),
+            strokeWidth = 2f,
+        )
+        drawLine(
+            color = Color.Black,
+            start = Offset(body.pivot.raw.x, body.pivot.raw.y - body.radius.raw),
+            end = Offset(body.pivot.raw.x, body.pivot.raw.y + body.radius.raw),
+            strokeWidth = 2f,
         )
     }
 
@@ -49,7 +63,6 @@ internal class TestBox(
     }
 
     companion object {
-        val Width = 100f.scenePixel
-        val Height = 40f.scenePixel
+        val Radius = 50f.scenePixel
     }
 }

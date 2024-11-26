@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.implementation.extensions.rad
@@ -24,8 +25,8 @@ internal class BouncyBall(
     initialPosition: SceneOffset,
     private val radius: ScenePixel,
 ) : RigidBody, Dynamic {
-    override val body = RectangleBody(
-        initialSize= SceneSize(radius * 2, radius * 2),
+    override val body = CircleBody(
+        initialRadius = radius,
         initialPosition = initialPosition,
     )
     override val physicsBody = Body(Circle(radius.raw), initialPosition.x.raw, initialPosition.y.raw)
