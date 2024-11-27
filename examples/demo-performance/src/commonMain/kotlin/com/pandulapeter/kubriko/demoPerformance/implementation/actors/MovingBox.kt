@@ -37,29 +37,8 @@ class MovingBox private constructor(state: State) : Visible, Destructible, Edita
             body.size = SceneSize(value, value)
         }
 
-    @set:Exposed(name = "position")
-    var position: SceneOffset = state.position
-        set(value) {
-            field = value
-            body.position = value
-        }
-
     @set:Exposed(name = "boxColor")
     var boxColor: Color = state.boxColor
-
-    @set:Exposed(name = "rotation")
-    var rotation: AngleRadians = state.rotation
-        set(value) {
-            field = value
-            body.rotation = value
-        }
-
-    @set:Exposed(name = "scale")
-    var scale: Scale = state.scale
-        set(value) {
-            field = value
-            body.scale = value
-        }
 
     override var drawingOrder = 0f
     override var destructionState = 0f
@@ -71,36 +50,36 @@ class MovingBox private constructor(state: State) : Visible, Destructible, Edita
 
     override val body= RectangleBody(
         initialSize = SceneSize(edgeSize, edgeSize),
-        initialPosition = position,
-        initialRotation = rotation,
-        initialScale = scale,
+        initialPosition = state.position,
+        initialRotation = state.rotation,
+        initialScale = state.scale,
     )
 
     override fun update(deltaTimeInMillis: Float) {
         super.update(deltaTimeInMillis)
-        drawingOrder = -position.y.raw - body.pivot.y.raw
-        rotation += (0.001f * deltaTimeInMillis * (1f - destructionState)).rad
-        if (scale.horizontal >= 1.6f) {
+        drawingOrder = -body.position.y.raw - body.pivot.y.raw
+        body.rotation += (0.001f * deltaTimeInMillis * (1f - destructionState)).rad
+        if (body.scale.horizontal >= 1.6f) {
             isGrowing = false
         }
-        if (scale.vertical <= 0.5f) {
+        if (body.scale.vertical <= 0.5f) {
             isGrowing = true
         }
         if (isGrowing) {
-            scale = Scale(
-                horizontal = scale.horizontal + 0.001f * deltaTimeInMillis * (1f - destructionState),
-                vertical = scale.vertical + 0.001f * deltaTimeInMillis * (1f - destructionState),
+            body.scale = Scale(
+                horizontal = body.scale.horizontal + 0.001f * deltaTimeInMillis * (1f - destructionState),
+                vertical = body.scale.vertical + 0.001f * deltaTimeInMillis * (1f - destructionState),
             )
         } else {
-            scale = Scale(
-                horizontal = scale.horizontal - 0.001f * deltaTimeInMillis * (1f - destructionState),
-                vertical = scale.vertical - 0.001f * deltaTimeInMillis * (1f - destructionState),
+            body.scale = Scale(
+                horizontal = body.scale.horizontal - 0.001f * deltaTimeInMillis * (1f - destructionState),
+                vertical = body.scale.vertical - 0.001f * deltaTimeInMillis * (1f - destructionState),
             )
         }
         if (isMoving) {
-            position += SceneOffset(
-                x = cos(rotation.normalized).scenePixel,
-                y = -sin(rotation.normalized).scenePixel,
+            body.position += SceneOffset(
+                x = cos(body.rotation.normalized).scenePixel,
+                y = -sin(body.rotation.normalized).scenePixel,
             )
         }
     }
@@ -117,10 +96,10 @@ class MovingBox private constructor(state: State) : Visible, Destructible, Edita
 
     override fun save() = State(
         edgeSize = edgeSize,
-        position = position,
+        position = body.position,
         boxColor = boxColor,
-        rotation = rotation,
-        scale = scale,
+        rotation = body.rotation,
+        scale = body.scale,
     )
 
     @kotlinx.serialization.Serializable

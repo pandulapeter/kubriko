@@ -19,6 +19,7 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.compone
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorSurface
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorTextTitle
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ColorEditorMode
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.createBodyPropertyEditor
 import kubriko.tools.scene_editor.generated.resources.Res
 import kubriko.tools.scene_editor.generated.resources.ic_close
 import kubriko.tools.scene_editor.generated.resources.ic_delete
@@ -82,18 +83,25 @@ internal fun InstanceManagerColumn(
                         )
                     }
                     .let { controls ->
-                        if (controls.isNotEmpty()) {
-                            item(key = "actorEditor") {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp),
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    controls.forEach {
-                                        it.invoke()
-                                        HorizontalDivider()
-                                    }
+                        val allControls = controls.toMutableList().apply {
+                            add(
+                                index = 0,
+                                element = createBodyPropertyEditor(
+                                    getActor = { selectedInstance },
+                                    notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
+                                )
+                            )
+                        }
+                        item(key = "actorEditor") {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                allControls.forEach {
+                                    it.invoke()
+                                    HorizontalDivider()
                                 }
                             }
                         }

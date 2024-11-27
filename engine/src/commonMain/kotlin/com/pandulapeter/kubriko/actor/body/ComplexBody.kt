@@ -10,10 +10,10 @@ import com.pandulapeter.kubriko.types.SceneSize
 
 interface ComplexBody : Body {
 
+    var pivot: SceneOffset
     val size: SceneSize
-    val pivot: SceneOffset
-    val scale: Scale
-    val rotation: AngleRadians
+    var scale: Scale
+    var rotation: AngleRadians
 
     fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke)
 }

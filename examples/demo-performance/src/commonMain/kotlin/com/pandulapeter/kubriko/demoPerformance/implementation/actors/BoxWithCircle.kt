@@ -32,13 +32,6 @@ class BoxWithCircle private constructor(state: State) : Visible, Destructible, E
             body.size = SceneSize(value, value)
         }
 
-    @set:Exposed(name = "position")
-    var position: SceneOffset = state.position
-        set(value) {
-            field = value
-            body.position = position
-        }
-
     @set:Exposed(name = "boxColor")
     var boxColor: Color = state.boxColor
 
@@ -48,28 +41,20 @@ class BoxWithCircle private constructor(state: State) : Visible, Destructible, E
     @set:Exposed(name = "circleRadius")
     var circleRadius: ScenePixel = state.circleRadius
 
-    @set:Exposed(name = "rotation")
-    var rotation: AngleRadians = state.rotation
-        set(value) {
-            field = value
-            body.rotation = rotation
-        }
-
     override val layerIndex = 0
     override var drawingOrder = 0f
     override var destructionState = 0f
     override var direction = AngleRadians.Zero
     override var speed = ScenePixel.Zero
-
     override val body = RectangleBody(
         initialSize = SceneSize(edgeSize, edgeSize),
-        initialPosition = position,
-        initialRotation = rotation
+        initialPosition = state.position,
+        initialRotation = state.rotation
     )
 
     override fun update(deltaTimeInMillis: Float) {
         super.update(deltaTimeInMillis)
-        drawingOrder = -position.y.raw - body.pivot.y.raw
+        drawingOrder = -body.position.y.raw - body.pivot.y.raw
     }
 
     override fun DrawScope.draw() {
@@ -86,11 +71,11 @@ class BoxWithCircle private constructor(state: State) : Visible, Destructible, E
 
     override fun save() = State(
         edgeSize = edgeSize,
-        position = position,
+        position = body.position,
         boxColor = boxColor,
         circleColor = circleColor,
         circleRadius = circleRadius,
-        rotation = rotation,
+        rotation = body.rotation,
     )
 
     @kotlinx.serialization.Serializable
