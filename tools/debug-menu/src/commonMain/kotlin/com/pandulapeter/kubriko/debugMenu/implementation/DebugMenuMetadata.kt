@@ -5,4 +5,5 @@ internal data class DebugMenuMetadata(
     val totalActorCount: Int = 0,
     val visibleActorWithinViewportCount: Int = 0,
     val playTimeInSeconds: Long = 0,
+    val isDebugOverlayEnabled: Boolean = false,
 )

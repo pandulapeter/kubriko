@@ -16,25 +16,32 @@ import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.SceneOffset
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 
 internal class DebugMenuManager(gameKubriko: Kubriko) : Manager(), Overlay, Unique {
 
     private val gameActorManager by lazy { gameKubriko.require<ActorManager>() }
     private val gameMetadataManager by lazy { gameKubriko.require<MetadataManager>() }
     private val gameViewportManager by lazy { gameKubriko.require<ViewportManager>() }
+    private val isDebugOverlayEnabled = MutableStateFlow(false)
+    private val debugStroke by lazy { Stroke() }
+    private val debugColor = Color.Cyan
     override val overlayDrawingOrder = Float.MIN_VALUE
     val debugMenuMetadata = combine(
         gameMetadataManager.fps,
         gameActorManager.allActors,
         gameActorManager.visibleActorsWithinViewport,
         gameMetadataManager.runtimeInMilliseconds,
-    ) { fps, allActors, visibleActorsWithinViewport, runtimeInMilliseconds ->
+        isDebugOverlayEnabled,
+    ) { fps, allActors, visibleActorsWithinViewport, runtimeInMilliseconds, isDebugOverlayEnabled ->
         DebugMenuMetadata(
             fps = fps,
             totalActorCount = allActors.count(),
             visibleActorWithinViewportCount = visibleActorsWithinViewport.count(),
             playTimeInSeconds = runtimeInMilliseconds / 1000,
+            isDebugOverlayEnabled = isDebugOverlayEnabled,
         )
     }
 
@@ -42,33 +49,36 @@ internal class DebugMenuManager(gameKubriko: Kubriko) : Manager(), Overlay, Uniq
         kubriko.require<ActorManager>().add(this)
     }
 
-    private val debugStroke by lazy { Stroke(width = 2f) }
-    private val debugColor = Color.Cyan
+    fun onIsDebugOverlayEnabledChanged() = isDebugOverlayEnabled.update { currentValue -> !currentValue }
 
-    override fun DrawScope.drawToViewport() = gameViewportManager.cameraPosition.value.let { viewportCenter ->
-        withTransform(
-            transformBlock = {
-                transformViewport(
-                    viewportCenter = viewportCenter,
-                    shiftedViewportOffset = (gameViewportManager.size.value / 2f) - viewportCenter,
-                    viewportScaleFactor = gameViewportManager.scaleFactor.value,
+    override fun DrawScope.drawToViewport() {
+        if (isDebugOverlayEnabled.value) {
+            gameViewportManager.cameraPosition.value.let { viewportCenter ->
+                withTransform(
+                    transformBlock = {
+                        transformViewport(
+                            viewportCenter = viewportCenter,
+                            shiftedViewportOffset = (gameViewportManager.size.value / 2f) - viewportCenter,
+                            viewportScaleFactor = gameViewportManager.scaleFactor.value,
+                        )
+                    },
+                    drawBlock = {
+                        gameActorManager.visibleActorsWithinViewport.value.forEach { visible ->
+                            drawRect(
+                                color = debugColor,
+                                topLeft = visible.body.axisAlignedBoundingBox.min.raw,
+                                size = visible.body.axisAlignedBoundingBox.size.raw,
+                                style = debugStroke,
+                            )
+                            withTransform(
+                                transformBlock = { visible.transformForViewport(this) },
+                                drawBlock = { with(visible.body) { drawDebugBounds(debugColor, debugStroke) } },
+                            )
+                        }
+                    },
                 )
-            },
-            drawBlock = {
-                gameActorManager.visibleActorsWithinViewport.value.forEach { visible ->
-                    drawRect(
-                        color = debugColor,
-                        topLeft = visible.body.axisAlignedBoundingBox.min.raw,
-                        size = visible.body.axisAlignedBoundingBox.size.raw,
-                        style = debugStroke,
-                    )
-                    withTransform(
-                        transformBlock = { visible.transformForViewport(this) },
-                        drawBlock = { with(visible.body) { drawDebugBounds(debugColor, debugStroke) } },
-                    )
-                }
-            },
-        )
+            }
+        }
     }
 
     private fun DrawTransform.transformViewport(

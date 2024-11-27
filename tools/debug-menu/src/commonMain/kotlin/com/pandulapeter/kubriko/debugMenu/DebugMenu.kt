@@ -15,26 +15,23 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuManager
 import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuMetadata
+import com.pandulapeter.kubriko.debugMenu.implementation.ui.DebugMenuContents
 import kubriko.tools.debug_menu.generated.resources.Res
 import kubriko.tools.debug_menu.generated.resources.debug_menu
 import kubriko.tools.debug_menu.generated.resources.ic_debug
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import kotlin.math.roundToInt
 
 /**
  * TODO: Documentation
@@ -50,7 +47,6 @@ fun DebugMenu(
     gameCanvas: @Composable BoxScope.() -> Unit,
 ) {
     val debugMenuManager = remember { DebugMenuManager(kubriko) }
-    val debugInfoMetadata = debugMenuManager.debugMenuMetadata.collectAsState(DebugMenuMetadata()).value
     val isDebugMenuVisible = remember { mutableStateOf(false) }
     Box(
         modifier = modifier,
@@ -81,13 +77,10 @@ fun DebugMenu(
                         false -> 2.dp
                     },
                 ) {
-                    Text(
-                        modifier = debugMenuModifier.padding(16.dp),
-                        style = TextStyle.Default.copy(fontSize = 10.sp),
-                        text = "FPS: ${debugInfoMetadata.fps.roundToInt()}\n" +
-                                "Total Actors: ${debugInfoMetadata.totalActorCount}\n" +
-                                "Visible within viewport: ${debugInfoMetadata.visibleActorWithinViewportCount}\n" +
-                                "Play time in seconds: ${debugInfoMetadata.playTimeInSeconds}"
+                    DebugMenuContents(
+                        modifier = debugMenuModifier,
+                        debugMenuMetadata = debugMenuManager.debugMenuMetadata.collectAsState(DebugMenuMetadata()).value,
+                        onIsDebugOverlayEnabledChanged = debugMenuManager::onIsDebugOverlayEnabledChanged,
                     )
                 }
             }

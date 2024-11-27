@@ -51,8 +51,8 @@ internal class PerformanceDemoManager(
         stateManager = kubriko.require()
         viewportManager = kubriko.require()
         actorManager.add(this)
-        loadMap()
         sceneJson?.filter { it.isNotBlank() }?.onEach(::processJson)?.launchIn(scope)
+        loadMap()
     }
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
@@ -75,8 +75,7 @@ internal class PerformanceDemoManager(
     private fun loadMap() = scope.launch {
         try {
             val json = Res.readBytes("files/scenes/$SCENE_NAME.json").decodeToString()
-            sceneJson?.update { json }
-            processJson(json)
+            sceneJson?.update { json } ?: processJson(json)
         } catch (_: MissingResourceException) {
         }
     }
