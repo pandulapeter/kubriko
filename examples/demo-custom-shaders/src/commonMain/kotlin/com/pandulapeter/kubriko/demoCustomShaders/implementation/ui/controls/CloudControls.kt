@@ -14,7 +14,7 @@ internal fun CloudControls(
         title = "Scale",
         value = properties.scale,
         onValueChanged = { onPropertiesChanged(properties.copy(scale = it)) },
-        valueRange = 0f..10f,
+        valueRange = 0.5f..5f,
     )
     FloatSlider(
         title = "Speed",
@@ -35,18 +35,13 @@ internal fun CloudControls(
         title = "Cover",
         value = properties.cover,
         onValueChanged = { onPropertiesChanged(properties.copy(cover = it)) },
+        valueRange = 0f..4f,
     )
     FloatSlider(
         title = "Alpha",
         value = properties.alpha,
         onValueChanged = { onPropertiesChanged(properties.copy(alpha = it)) },
         valueRange = 0f..10f,
-    )
-    FloatSlider(
-        title = "Tint",
-        value = properties.tint,
-        onValueChanged = { onPropertiesChanged(properties.copy(tint = it)) },
-        valueRange = 0f..2f,
     )
     ColorSlider(
         title = "Sky 1",

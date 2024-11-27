@@ -1,9 +1,7 @@
 package com.pandulapeter.kubriko.demoCollisions.implementation.actors
 
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
@@ -25,29 +23,11 @@ internal class TestCircle(
     )
     private val color = Color.hsv(hue, 0.2f, 0.9f)
 
-    override fun DrawScope.draw() {
-        drawCircle(
-            color = color,
-            radius = body.radius.raw,
-            center = body.pivot.raw,
-        )
-        drawCircle(
-            color = Color.Black,
-            radius = body.radius.raw,
-            center = body.pivot.raw,
-            style = Stroke(),
-        )
-        drawLine(
-            color = Color.Black,
-            start = Offset(body.pivot.raw.x - body.radius.raw, body.pivot.raw.y),
-            end = Offset(body.pivot.raw.x + body.radius.raw, body.pivot.raw.y),
-        )
-        drawLine(
-            color = Color.Black,
-            start = Offset(body.pivot.raw.x, body.pivot.raw.y - body.radius.raw),
-            end = Offset(body.pivot.raw.x, body.pivot.raw.y + body.radius.raw),
-        )
-    }
+    override fun DrawScope.draw() = drawCircle(
+        color = color,
+        radius = body.radius.raw,
+        center = body.pivot.raw,
+    )
 
     private var acc = 0f
 

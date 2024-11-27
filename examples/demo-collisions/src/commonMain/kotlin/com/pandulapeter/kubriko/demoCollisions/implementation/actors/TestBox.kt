@@ -2,7 +2,6 @@ package com.pandulapeter.kubriko.demoCollisions.implementation.actors
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
@@ -25,17 +24,10 @@ internal class TestBox(
     )
     private val color = Color.hsv(hue, 0.2f, 0.9f)
 
-    override fun DrawScope.draw() {
-        drawRect(
-            color = color,
-            size = body.size.raw,
-        )
-        drawRect(
-            color = Color.Black,
-            size = body.size.raw,
-            style = Stroke(),
-        )
-    }
+    override fun DrawScope.draw() = drawRect(
+        color = color,
+        size = body.size.raw,
+    )
 
     private var acc = 0f
 

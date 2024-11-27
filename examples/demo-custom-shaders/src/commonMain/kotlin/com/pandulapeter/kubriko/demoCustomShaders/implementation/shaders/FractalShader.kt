@@ -8,6 +8,10 @@ import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
+/**
+ * Yutaka Sato
+ * https://x.com/notargs/status/1250468645030858753
+ */
 internal class FractalShader(
     initialState: State = State(),
     override val layerIndex: Int? = null,

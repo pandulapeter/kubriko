@@ -8,6 +8,10 @@ import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
+/**
+ * David Hoskins
+ * https://www.shadertoy.com/view/4tjSDt
+ */
 internal class WarpShader(
     initialState: State = State(),
     override val layerIndex: Int? = null,

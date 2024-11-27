@@ -13,18 +13,18 @@ internal fun GradientControls(
         title = "Speed",
         value = properties.speed,
         onValueChanged = { onPropertiesChanged(properties.copy(speed = it)) },
-        valueRange = 0f..10f,
+        valueRange = 0f..8f,
     )
     FloatSlider(
-        title = "Dark",
+        title = "Satur",
         value = properties.dark,
         onValueChanged = { onPropertiesChanged(properties.copy(dark = it)) },
-        valueRange = 0f..1f,
+        valueRange = 0f..0.5f,
     )
     FloatSlider(
         title = "Freq",
         value = properties.frequency,
         onValueChanged = { onPropertiesChanged(properties.copy(frequency = it)) },
-        valueRange = 0f..20f,
+        valueRange = 0f..8f,
     )
 }

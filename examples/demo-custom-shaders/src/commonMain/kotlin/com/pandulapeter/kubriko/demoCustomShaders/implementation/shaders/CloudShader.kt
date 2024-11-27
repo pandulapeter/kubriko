@@ -8,6 +8,10 @@ import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
+/**
+ * drift
+ * https://www.shadertoy.com/view/4tdSWr
+ */
 internal class CloudShader(
     initialState: State = State(),
     override val layerIndex: Int? = null,
@@ -23,7 +27,6 @@ internal class CloudShader(
     uniform float $LIGHT;
     uniform float $COVER;
     uniform float $ALPHA;
-    uniform float $TINT;
     uniform float $TIME;
     uniform float $SKY_1_RED;
     uniform float $SKY_1_GREEN;
@@ -41,11 +44,11 @@ internal class CloudShader(
     }
 
     float noise( in float2 p ) {
-        const float K1 = 0.366025404; // (sqrt(3)-1)/2;
-        const float K2 = 0.211324865; // (3-sqrt(3))/6;
+        const float K1 = 0.366025404;
+        const float K2 = 0.211324865;
     	float2 i = floor(p + (p.x+p.y)*K1);	
         float2 a = p - i + (i.x+i.y)*K2;
-        float2 o = (a.x>a.y) ? float2(1.0,0.0) : float2(0.0,1.0); //float2 of = 0.5 + 0.5*float2(sign(a.x-a.y), sign(a.y-a.x));
+        float2 o = (a.x>a.y) ? float2(1.0,0.0) : float2(0.0,1.0);
         float2 b = a - o + K2;
     	float2 c = a - 1.0 + 2.0*K2;
         float3 h = max(0.5-float3(dot(a,a), dot(b,b), dot(c,c) ), 0.0 );
@@ -62,8 +65,6 @@ internal class CloudShader(
     	}
     	return total;
     }
-
-    // -----------------------------------------------
 
     half4 main(in float2 fragCoord ) {
         float2 p = fragCoord.xy / ${ShaderManager.RESOLUTION}.xy;
@@ -82,7 +83,6 @@ internal class CloudShader(
     		weight *= 0.7;
         }
         
-        //noise shape
     	float f = 0.0;
         uv = p*float2(${ShaderManager.RESOLUTION}.x/${ShaderManager.RESOLUTION}.y,1.0);
     	uv *= $SCALE;
@@ -96,7 +96,6 @@ internal class CloudShader(
         
         f *= r + f;
         
-        //noise colour
         float c = 0.0;
         time = $TIME * $SPEED * 2.0;
         uv = p*float2(${ShaderManager.RESOLUTION}.x/${ShaderManager.RESOLUTION}.y,1.0);
@@ -109,7 +108,6 @@ internal class CloudShader(
     		weight *= 0.6;
         }
         
-        //noise ridge colour
         float c1 = 0.0;
         time = $TIME * $SPEED * 3.0;
         uv = p*float2(${ShaderManager.RESOLUTION}.x/${ShaderManager.RESOLUTION}.y,1.0);
@@ -129,7 +127,7 @@ internal class CloudShader(
        
         f = $COVER + $ALPHA*f*r;
         
-        float3 result = mix(skycolour, clamp($TINT * skycolour + cloudcolour, 0.0, 1.0), clamp(f + c, 0.0, 1.0));
+        float3 result = mix(skycolour, clamp(0.5 * skycolour + cloudcolour, 0.0, 1.0), clamp(f + c, 0.0, 1.0));
         
     	return float4( result, 1.0 );
     }
@@ -156,7 +154,6 @@ internal class CloudShader(
         val light: Float = 0.3f,
         val cover: Float = 0.2f,
         val alpha: Float = 8.0f,
-        val tint: Float = 0.5f,
         val sky1Red: Float = 0.2f,
         val sky1Green: Float = 0.4f,
         val sky1Blue: Float = 0.6f,
@@ -173,7 +170,6 @@ internal class CloudShader(
             uniform(LIGHT, light)
             uniform(COVER, cover)
             uniform(ALPHA, alpha)
-            uniform(TINT, tint)
             uniform(SKY_1_RED, sky1Red)
             uniform(SKY_1_GREEN, sky1Green)
             uniform(SKY_1_BLUE, sky1Blue)
@@ -191,7 +187,6 @@ internal class CloudShader(
         private const val LIGHT = "light"
         private const val COVER = "cover"
         private const val ALPHA = "alpha"
-        private const val TINT = "tint"
         private const val SKY_1_RED = "sky1Red"
         private const val SKY_1_GREEN = "sky1Green"
         private const val SKY_1_BLUE = "sky1Blue"

@@ -8,6 +8,10 @@ import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
+/**
+ * Shadertoy
+ * https://www.shadertoy.com/
+ */
 internal class GradientShader(
     initialState: State = State(),
     override val layerIndex: Int? = null,

@@ -1,9 +1,5 @@
 package com.pandulapeter.kubriko.actor.body
 
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Fill
-import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.types.SceneOffset
 
 open class PointBody(
@@ -24,11 +20,5 @@ open class PointBody(
     protected open fun createAxisAlignedBoundingBox() = AxisAlignedBoundingBox(
         min = position,
         max = position,
-    )
-
-    override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = drawCircle(
-        color = color,
-        radius = stroke.width,
-        style = Fill,
     )
 }
