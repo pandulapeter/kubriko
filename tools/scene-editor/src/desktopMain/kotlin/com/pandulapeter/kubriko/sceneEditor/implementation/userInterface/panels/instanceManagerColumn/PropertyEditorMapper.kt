@@ -126,7 +126,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                         onValueChanged = {
                             setter.call(actor, it)
                             notifySelectedInstanceUpdate()
-                        }
+                        },
                     )
                 }
             }

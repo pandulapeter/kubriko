@@ -3,17 +3,14 @@ package com.pandulapeter.kubriko.types
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.center
 import kotlin.jvm.JvmInline
-import kotlin.math.absoluteValue
 
 /**
  * 2D scaling factor.
- *
- * Negative scale is NOT supported.
  */
 @JvmInline
 value class Scale(private val raw: Size) {
-    val horizontal: Float get() = raw.width.absoluteValue
-    val vertical: Float get() = raw.height.absoluteValue
+    val horizontal: Float get() = raw.width
+    val vertical: Float get() = raw.height
     val center get() = SceneOffset(Size(horizontal, vertical).center)
 
     constructor(horizontal: Float, vertical: Float) : this(Size(horizontal, vertical))

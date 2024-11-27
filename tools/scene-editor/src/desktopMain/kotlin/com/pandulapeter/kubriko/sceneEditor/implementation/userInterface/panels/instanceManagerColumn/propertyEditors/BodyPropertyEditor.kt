@@ -53,6 +53,7 @@ internal fun BodyPropertyEditor(
             value = body.size,
             onValueChanged = {
                 body.size = it
+                notifySelectedInstanceUpdate()
             }
         )
         HorizontalDivider()

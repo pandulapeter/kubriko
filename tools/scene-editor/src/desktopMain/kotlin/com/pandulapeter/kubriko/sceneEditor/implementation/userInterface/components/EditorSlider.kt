@@ -21,18 +21,20 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun EditorSlider(
     modifier: Modifier = Modifier,
-    title: String,
+    title: String = "",
     suffix: String = "",
     value: Float,
     onValueChanged: (Float) -> Unit,
-    valueRange: ClosedFloatingPointRange<Float>,
+    valueRange: ClosedFloatingPointRange<Float>? = null,
     enabled: Boolean = true,
 ) = Column(
     modifier = modifier,
 ) {
-    EditorTextLabel(
-        text = "$title: ${"%.2f".format(value)}$suffix",
-    )
+    if (title.isNotBlank()) {
+        EditorTextLabel(
+            text = "$title: ${"%.2f".format(value)}$suffix",
+        )
+    }
     val interactionSource = remember { MutableInteractionSource() }
     val colors = SliderDefaults.colors().copy(
         inactiveTrackColor = MaterialTheme.colorScheme.primary,
@@ -41,7 +43,7 @@ internal fun EditorSlider(
         modifier = Modifier.height(16.dp),
         value = value,
         onValueChange = onValueChanged,
-        valueRange = valueRange,
+        valueRange = valueRange ?: -100f..100f, // TODO: Intelligent slider
         enabled = enabled,
         interactionSource = interactionSource,
         thumb = {

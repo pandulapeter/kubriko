@@ -13,6 +13,7 @@ internal fun FloatPropertyEditor(
     name: String,
     value: Float,
     onValueChanged: (Float) -> Unit,
+    valueRange: ClosedFloatingPointRange<Float>? = null,
 ) = Column(
     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
 ) {
@@ -20,5 +21,6 @@ internal fun FloatPropertyEditor(
         title = name,
         value = value,
         onValueChanged = onValueChanged,
+        valueRange = valueRange,
     )
 }

@@ -1,7 +1,6 @@
 package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -25,12 +24,12 @@ internal fun SceneOffsetPropertyEditor(
         modifier = Modifier.weight(1f),
         title = "$name.x",
         value = value.x.raw,
-        onValueChanged = { onValueChanged(SceneOffset(it.scenePixel, value.y)) }
+        onValueChanged = { onValueChanged(SceneOffset(it.scenePixel, value.y)) },
     )
     EditorNumberInput(
         modifier = Modifier.weight(1f),
         title = "$name.y",
         value = value.y.raw,
-        onValueChanged = { onValueChanged(SceneOffset(value.x, it.scenePixel)) }
+        onValueChanged = { onValueChanged(SceneOffset(value.x, it.scenePixel)) },
     )
 }
