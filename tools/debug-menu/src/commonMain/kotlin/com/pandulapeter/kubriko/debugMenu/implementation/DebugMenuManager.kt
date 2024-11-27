@@ -1,6 +1,5 @@
 package com.pandulapeter.kubriko.debugMenu.implementation
 
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawTransform
@@ -9,9 +8,9 @@ import androidx.compose.ui.graphics.drawscope.withTransform
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
-import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.minus
 import com.pandulapeter.kubriko.implementation.extensions.require
+import com.pandulapeter.kubriko.implementation.extensions.transformForViewport
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
@@ -43,6 +42,9 @@ internal class DebugMenuManager(gameKubriko: Kubriko) : Manager(), Overlay, Uniq
         kubriko.require<ActorManager>().add(this)
     }
 
+    private val debugStroke by lazy { Stroke(width = 2f) }
+    private val debugColor = Color.Cyan
+
     override fun DrawScope.drawToViewport() = gameViewportManager.cameraPosition.value.let { viewportCenter ->
         withTransform(
             transformBlock = {
@@ -55,10 +57,14 @@ internal class DebugMenuManager(gameKubriko: Kubriko) : Manager(), Overlay, Uniq
             drawBlock = {
                 gameActorManager.visibleActorsWithinViewport.value.forEach { visible ->
                     drawRect(
-                        color = Color.Cyan,
+                        color = debugColor,
                         topLeft = visible.body.axisAlignedBoundingBox.min.raw,
                         size = visible.body.axisAlignedBoundingBox.size.raw,
-                        style = Stroke(),
+                        style = debugStroke,
+                    )
+                    withTransform(
+                        transformBlock = { visible.transformForViewport(this) },
+                        drawBlock = { with(visible.body) { drawDebugBounds(debugColor, debugStroke) } },
                     )
                 }
             },

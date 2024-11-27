@@ -1,5 +1,9 @@
 package com.pandulapeter.kubriko.actor.body
 
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
@@ -61,5 +65,25 @@ class RectangleBody(
             y = scaled.x * sin(rotation.normalized) + scaled.y * cos(rotation.normalized)
         )
         return rotated + absolutePivot
+    }
+
+    override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = this@RectangleBody.size.raw.let { size ->
+        drawRect(
+            color = color,
+            size = size,
+            style = stroke,
+        )
+        drawLine(
+            color = color,
+            start = Offset.Zero,
+            end = Offset(size.width, size.height),
+            strokeWidth = stroke.width,
+        )
+        drawLine(
+            color = color,
+            start = Offset(0f, size.height),
+            end = Offset(size.width, 0f),
+            strokeWidth = stroke.width,
+        )
     }
 }

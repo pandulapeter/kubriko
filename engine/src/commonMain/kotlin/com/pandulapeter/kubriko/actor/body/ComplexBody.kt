@@ -5,7 +5,7 @@ import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
-interface ComplexBody : SimpleBody {
+interface ComplexBody : Body {
 
     val size: SceneSize
     val pivot: SceneOffset
