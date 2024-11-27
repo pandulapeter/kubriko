@@ -99,9 +99,11 @@ internal fun InstanceManagerColumn(
                                     .padding(vertical = 4.dp),
                                 verticalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                allControls.forEach {
-                                    it.invoke()
-                                    HorizontalDivider()
+                                allControls.forEachIndexed { index, lambda ->
+                                    lambda()
+                                    if (index != allControls.lastIndex) {
+                                        HorizontalDivider()
+                                    }
                                 }
                             }
                         }

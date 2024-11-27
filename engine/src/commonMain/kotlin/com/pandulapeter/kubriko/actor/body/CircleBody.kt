@@ -28,7 +28,10 @@ class CircleBody(
             field = value
             axisAlignedBoundingBox = createAxisAlignedBoundingBox()
         }
-    override val size get() = SceneSize(radius * 2, radius * 2)
+    override var size get() = SceneSize(radius * 2, radius * 2)
+        set(value) {
+            // TODO: Not sure how to deal with this
+        }
     override var pivot = initialPivot
         set(value) {
             field = value
