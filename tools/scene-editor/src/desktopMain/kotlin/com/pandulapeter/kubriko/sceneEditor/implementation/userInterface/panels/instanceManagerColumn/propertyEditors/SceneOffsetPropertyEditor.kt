@@ -22,13 +22,13 @@ internal fun SceneOffsetPropertyEditor(
 ) {
     EditorNumberInput(
         modifier = Modifier.weight(1f),
-        title = "$name.x",
+        name = "$name.x",
         value = value.x.raw,
         onValueChanged = { onValueChanged(SceneOffset(it.scenePixel, value.y)) },
     )
     EditorNumberInput(
         modifier = Modifier.weight(1f),
-        title = "$name.y",
+        name = "$name.y",
         value = value.y.raw,
         onValueChanged = { onValueChanged(SceneOffset(value.x, it.scenePixel)) },
     )

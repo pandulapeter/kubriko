@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.implementation.extensions.toHSV
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorRadioButton
-import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorSlider
 
 @Composable
 internal fun ColorPropertyEditor(
@@ -25,11 +24,11 @@ internal fun ColorPropertyEditor(
     colorEditorMode: ColorEditorMode,
     onColorEditorModeChanged: (ColorEditorMode) -> Unit,
 ) = Column(
-    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+    modifier = Modifier.fillMaxWidth(),
 ) {
     Spacer(modifier = Modifier.height(8.dp))
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
     ) {
         Box(
             modifier = Modifier
@@ -51,8 +50,8 @@ internal fun ColorPropertyEditor(
         }
     }
     Spacer(modifier = Modifier.height(8.dp))
-    EditorSlider(
-        title = "${name}.alpha",
+    FloatPropertyEditor(
+        name = "${name}.alpha",
         value = value.alpha,
         onValueChanged = { onValueChanged(value.copy(alpha = it)) },
         valueRange = 0f..1f,
@@ -80,22 +79,22 @@ private fun ControlsHSV(
     onValueChanged: (Color) -> Unit,
 ) {
     val (colorHue, colorSaturation, colorValue) = value.toHSV()
-    EditorSlider(
-        title = "${name}.hue",
+    FloatPropertyEditor(
+        name = "${name}.hue",
         value = colorHue,
         onValueChanged = { onValueChanged(Color.hsv(it, colorSaturation, colorValue).copy(alpha = value.alpha)) },
         valueRange = 0f..359.5f,
         enabled = colorSaturation > 0 && colorValue > 0,
     )
-    EditorSlider(
-        title = "${name}.saturation",
+    FloatPropertyEditor(
+        name = "${name}.saturation",
         value = colorSaturation,
         onValueChanged = { onValueChanged(Color.hsv(colorHue, it, colorValue).copy(alpha = value.alpha)) },
         valueRange = 0f..1f,
         enabled = colorValue > 0,
     )
-    EditorSlider(
-        title = "${name}.value",
+    FloatPropertyEditor(
+        name = "${name}.value",
         value = colorValue,
         onValueChanged = { onValueChanged(Color.hsv(colorHue, colorSaturation, it).copy(alpha = value.alpha)) },
         valueRange = 0f..1f,
@@ -108,20 +107,20 @@ private fun ControlsRGB(
     name: String,
     onValueChanged: (Color) -> Unit,
 ) {
-    EditorSlider(
-        title = "${name}.red",
+    FloatPropertyEditor(
+        name = "${name}.red",
         value = value.red,
         onValueChanged = { onValueChanged(value.copy(red = it)) },
         valueRange = 0f..1f,
     )
-    EditorSlider(
-        title = "${name}.green",
+    FloatPropertyEditor(
+        name = "${name}.green",
         value = value.green,
         onValueChanged = { onValueChanged(value.copy(green = it)) },
         valueRange = 0f..1f,
     )
-    EditorSlider(
-        title = "${name}.blue",
+    FloatPropertyEditor(
+        name = "${name}.blue",
         value = value.blue,
         onValueChanged = { onValueChanged(value.copy(blue = it)) },
         valueRange = 0f..1f,

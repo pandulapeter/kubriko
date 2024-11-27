@@ -31,7 +31,7 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.
 private val fileManagerRowHeight = 32.dp
 private val metadataRowHeight = 32.dp
 private val instanceBrowserColumnWidth = 150.dp
-private val instanceManagerColumnWidth = 200.dp
+private val instanceManagerColumnWidth = 220.dp
 
 @Composable
 internal fun EditorUserInterface(

@@ -1,6 +1,7 @@
 package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -14,16 +15,19 @@ internal fun ScalePropertyEditor(
     name: String,
     value: Scale,
     onValueChanged: (Scale) -> Unit,
-) = Column(
-    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+) = Row(
+    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
 ) {
     EditorNumberInput(
-        title = "$name.horizontal",
+        modifier = Modifier.weight(1f),
+        name = "$name.horizontal",
         value = value.horizontal,
         onValueChanged = { onValueChanged(Scale(it, value.vertical)) },
     )
     EditorNumberInput(
-        title = "$name.vertical",
+        modifier = Modifier.weight(1f),
+        name = "$name.vertical",
         value = value.vertical,
         onValueChanged = { onValueChanged(Scale(value.horizontal, it)) },
     )

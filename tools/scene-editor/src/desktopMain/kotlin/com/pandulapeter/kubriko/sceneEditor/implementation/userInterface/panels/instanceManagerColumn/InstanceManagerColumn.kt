@@ -139,11 +139,6 @@ private fun SelectedInstanceHeader(
             text = instanceTypeName,
         )
         EditorIcon(
-            drawableResource = Res.drawable.ic_close,
-            contentDescription = "Deselect",
-            onClick = onDeselectClicked,
-        )
-        EditorIcon(
             drawableResource = Res.drawable.ic_locate,
             contentDescription = "Locate",
             onClick = onLocateClicked,
@@ -152,6 +147,11 @@ private fun SelectedInstanceHeader(
             drawableResource = Res.drawable.ic_delete,
             contentDescription = "Delete",
             onClick = onDeleteClicked,
+        )
+        EditorIcon(
+            drawableResource = Res.drawable.ic_close,
+            contentDescription = "Deselect",
+            onClick = onDeselectClicked,
         )
     }
     HorizontalDivider()

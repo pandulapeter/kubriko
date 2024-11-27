@@ -9,7 +9,8 @@ import kotlin.math.min
 @Composable
 internal fun EditorNumberInput(
     modifier: Modifier = Modifier,
-    title: String,
+    name: String,
+    suffix: String = "",
     value: Float,
     onValueChanged: (Float) -> Unit,
     valueRange: ClosedFloatingPointRange<Float>? = null,
@@ -19,8 +20,8 @@ internal fun EditorNumberInput(
         modifier = modifier,
     ) {
         EditorTextInput(
-            title = title,
-            value = "%.2f".format(value),
+            title = name,
+            value = "%.2f".format(value) + suffix,
             onValueChanged = { newValue ->
                 newValue.toFloatOrNull()?.let {
                     onValueChanged(if (valueRange == null) it else min(valueRange.endInclusive, max(valueRange.start, it)))

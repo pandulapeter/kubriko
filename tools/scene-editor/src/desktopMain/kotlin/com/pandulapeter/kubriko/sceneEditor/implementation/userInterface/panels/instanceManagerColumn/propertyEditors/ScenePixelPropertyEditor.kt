@@ -19,7 +19,7 @@ internal fun ScenePixelPropertyEditor(
     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
 ) {
     EditorNumberInput(
-        title = name,
+        name = name,
         value = value.raw,
         onValueChanged = { onValueChanged(it.scenePixel) },
     )

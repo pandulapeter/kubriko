@@ -24,7 +24,7 @@ import kotlin.math.abs
 @Composable
 internal fun EditorSlider(
     modifier: Modifier = Modifier,
-    title: String = "",
+    name: String = "",
     suffix: String = "",
     value: Float,
     onValueChanged: (Float) -> Unit,
@@ -35,9 +35,9 @@ internal fun EditorSlider(
 ) {
     val add = remember { mutableStateOf(0f) }
     val interactionSource = remember { MutableInteractionSource() }
-    if (title.isNotBlank()) {
+    if (name.isNotBlank()) {
         EditorTextLabel(
-            text = "$title: ${"%.2f".format(value)}$suffix",
+            text = "$name: ${"%.2f".format(value)}$suffix",
         )
     }
     val colors = SliderDefaults.colors().copy(

@@ -22,13 +22,13 @@ internal fun SceneSizePropertyEditor(
 ) {
     EditorNumberInput(
         modifier = Modifier.weight(1f),
-        title = "$name.width",
+        name = "$name.width",
         value = value.width.raw,
         onValueChanged = { onValueChanged(SceneSize(it.scenePixel, value.height)) },
     )
     EditorNumberInput(
         modifier = Modifier.weight(1f),
-        title = "$name.height",
+        name = "$name.height",
         value = value.height.raw,
         onValueChanged = { onValueChanged(SceneSize(value.width, it.scenePixel)) },
     )

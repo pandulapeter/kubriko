@@ -11,16 +11,20 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.compone
 @Composable
 internal fun FloatPropertyEditor(
     name: String,
+    suffix: String = "",
     value: Float,
     onValueChanged: (Float) -> Unit,
     valueRange: ClosedFloatingPointRange<Float>? = null,
+    enabled: Boolean = true,
 ) = Column(
     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
 ) {
     EditorNumberInput(
-        title = name,
+        name = name,
+        suffix = suffix,
         value = value,
         onValueChanged = onValueChanged,
         valueRange = valueRange,
+        enabled = enabled,
     )
 }
