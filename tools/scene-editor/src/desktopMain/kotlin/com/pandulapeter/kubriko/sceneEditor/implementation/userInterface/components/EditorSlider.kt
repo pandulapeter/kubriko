@@ -18,7 +18,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlin.math.abs
+import kotlin.math.absoluteValue
+import kotlin.math.exp
+import kotlin.math.ln
+import kotlin.math.sign
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,10 +88,8 @@ internal fun EditorSlider(
     )
 }
 
-private fun Float.toDifference() = when (abs(this)) {
-    in 0f..0.5f -> this / 1000
-    in 0.5f..1.5f -> this / 100
-    in 1.5f..3.5f -> this / 10
-    in 3.5f..4.9f -> this
-    else -> this * 2
+fun Float.toDifference(): Float {
+    val a = absoluteValue / 1000
+    val b = ln(2000.0) / 5
+    return (a * exp(b * absoluteValue).toFloat() * sign)
 }
