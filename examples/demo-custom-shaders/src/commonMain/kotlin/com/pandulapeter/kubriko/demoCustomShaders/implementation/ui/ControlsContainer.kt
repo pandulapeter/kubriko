@@ -24,7 +24,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.demoCustomShaders.implementation.CustomShaderType
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.CustomShaderDemoType
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.CustomShadersDemoManager
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.CloudControls
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.FractalControls
@@ -42,7 +42,7 @@ private val MaximumWidth = 300.dp
 @Composable
 internal fun ControlsContainer(
     modifier: Modifier = Modifier,
-    state: Pair<CustomShaderType, Boolean>,
+    state: Pair<CustomShaderDemoType, Boolean>,
     onIsExpandedChanged: (Boolean) -> Unit,
     customShadersDemoManager: CustomShadersDemoManager,
 ) {
@@ -64,22 +64,22 @@ internal fun ControlsContainer(
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         when (targetExpanded.first) {
-                            CustomShaderType.CLOUDS -> CloudControls(
+                            CustomShaderDemoType.CLOUDS -> CloudControls(
                                 properties = customShadersDemoManager.cloudState.collectAsState().value,
                                 onPropertiesChanged = customShadersDemoManager::setCloudState,
                             )
 
-                            CustomShaderType.FRACTAL -> FractalControls(
+                            CustomShaderDemoType.FRACTAL -> FractalControls(
                                 properties = customShadersDemoManager.fractalState.collectAsState().value,
                                 onPropertiesChanged = customShadersDemoManager::setFractalState,
                             )
 
-                            CustomShaderType.WARP -> WarpControls(
+                            CustomShaderDemoType.WARP -> WarpControls(
                                 properties = customShadersDemoManager.warpState.collectAsState().value,
                                 onPropertiesChanged = customShadersDemoManager::setWarpState,
                             )
 
-                            CustomShaderType.GRADIENT -> GradientControls(
+                            CustomShaderDemoType.GRADIENT -> GradientControls(
                                 properties = customShadersDemoManager.gradientState.collectAsState().value,
                                 onPropertiesChanged = customShadersDemoManager::setGradientState,
                             )

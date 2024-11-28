@@ -1,17 +1,22 @@
 package com.pandulapeter.kubriko.demoPhysics.implementation
 
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.demoPhysics.implementation.actors.BouncyBall
+import com.pandulapeter.kubriko.demoPhysics.implementation.actors.Platform
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
-import com.pandulapeter.kubriko.demoPhysics.implementation.actors.BouncyBall
-import com.pandulapeter.kubriko.demoPhysics.implementation.actors.Platform
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 internal class PhysicsDemoManager : Manager() {
 
+    private val _demoType = MutableStateFlow(PhysicsDemoType.RIGID_BODY_COLLISIONS)
+    val demoType = _demoType.asStateFlow()
     private lateinit var actorManager: ActorManager
 
     override fun onInitialize(kubriko: Kubriko) {
@@ -31,4 +36,6 @@ internal class PhysicsDemoManager : Manager() {
             )).toTypedArray()
         )
     }
+
+    fun setSelectedDemoType(demoType: PhysicsDemoType) = _demoType.update { demoType }
 }

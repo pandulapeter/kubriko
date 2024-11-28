@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
-import com.pandulapeter.kubriko.demoCustomShaders.implementation.CustomShaderType
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.CustomShaderDemoType
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.CustomShadersDemoManager
 import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.ControlsContainer
@@ -44,7 +44,7 @@ fun CustomShadersDemo(
             modifier = Modifier.fillMaxWidth(),
             selectedTabIndex = selectedDemoType.value.ordinal,
         ) {
-            CustomShaderType.entries.forEach { demoType ->
+            CustomShaderDemoType.entries.forEach { demoType ->
                 Tab(
                     modifier = Modifier.height(42.dp),
                     text = { Text(stringResource(demoType.nameStringResource)) },

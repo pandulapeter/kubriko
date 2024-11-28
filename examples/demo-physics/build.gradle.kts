@@ -8,6 +8,8 @@ kotlin {
             implementation(projects.engine)
             implementation(projects.plugins.physics)
             implementation(projects.tools.debugMenu)
+            implementation(compose.components.resources)
+            implementation(compose.material3)
         }
     }
 }

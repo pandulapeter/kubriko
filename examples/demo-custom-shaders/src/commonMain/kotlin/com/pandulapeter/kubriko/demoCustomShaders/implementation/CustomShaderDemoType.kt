@@ -7,7 +7,7 @@ import kubriko.examples.demo_custom_shaders.generated.resources.gradient
 import kubriko.examples.demo_custom_shaders.generated.resources.warp
 import org.jetbrains.compose.resources.StringResource
 
-internal enum class CustomShaderType(
+internal enum class CustomShaderDemoType(
     val nameStringResource: StringResource,
 ) {
     FRACTAL(nameStringResource = Res.string.fractal),

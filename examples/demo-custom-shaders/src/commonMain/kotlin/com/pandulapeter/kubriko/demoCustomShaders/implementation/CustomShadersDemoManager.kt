@@ -19,7 +19,7 @@ internal class CustomShadersDemoManager : Manager() {
 
     private lateinit var actorManager: ActorManager
     private lateinit var metadataManager: MetadataManager
-    private val _demoType = MutableStateFlow(CustomShaderType.FRACTAL)
+    private val _demoType = MutableStateFlow(CustomShaderDemoType.FRACTAL)
     val demoType = _demoType.asStateFlow()
     private val fractalShader by lazy { FractalShader() }
     private val _fractalState by lazy { MutableStateFlow(fractalShader.state) }
@@ -41,10 +41,10 @@ internal class CustomShadersDemoManager : Manager() {
             actorManager.removeAll()
             actorManager.add(
                 when (demoType) {
-                    CustomShaderType.FRACTAL -> fractalShader
-                    CustomShaderType.CLOUDS -> cloudShader
-                    CustomShaderType.WARP -> warpShader
-                    CustomShaderType.GRADIENT -> gradientShader
+                    CustomShaderDemoType.FRACTAL -> fractalShader
+                    CustomShaderDemoType.CLOUDS -> cloudShader
+                    CustomShaderDemoType.WARP -> warpShader
+                    CustomShaderDemoType.GRADIENT -> gradientShader
                 }
             )
         }.launchIn(scope)
@@ -54,7 +54,7 @@ internal class CustomShadersDemoManager : Manager() {
         gradientState.onEach { gradientShader.updateState(it) }.launchIn(scope)
     }
 
-    fun setSelectedDemoType(demoType: CustomShaderType) = _demoType.update { demoType }
+    fun setSelectedDemoType(demoType: CustomShaderDemoType) = _demoType.update { demoType }
 
     fun setCloudState(state: CloudShader.State) = _cloudState.update { state }
 
