@@ -1,6 +1,7 @@
 package com.pandulapeter.kubriko.debugMenu.implementation
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawTransform
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -26,7 +27,6 @@ internal class DebugMenuManager(gameKubriko: Kubriko) : Manager(), Overlay, Uniq
     private val gameMetadataManager by lazy { gameKubriko.require<MetadataManager>() }
     private val gameViewportManager by lazy { gameKubriko.require<ViewportManager>() }
     private val isDebugOverlayEnabled = MutableStateFlow(false)
-    private val debugStroke by lazy { Stroke() }
     private val debugColor = Color.Cyan
     override val overlayDrawingOrder = Float.MIN_VALUE
     val debugMenuMetadata = combine(
@@ -54,29 +54,35 @@ internal class DebugMenuManager(gameKubriko: Kubriko) : Manager(), Overlay, Uniq
     override fun DrawScope.drawToViewport() {
         if (isDebugOverlayEnabled.value) {
             gameViewportManager.cameraPosition.value.let { viewportCenter ->
-                withTransform(
-                    transformBlock = {
-                        transformViewport(
-                            viewportCenter = viewportCenter,
-                            shiftedViewportOffset = (gameViewportManager.size.value / 2f) - viewportCenter,
-                            viewportScaleFactor = gameViewportManager.scaleFactor.value,
-                        )
-                    },
-                    drawBlock = {
-                        gameActorManager.visibleActorsWithinViewport.value.forEach { visible ->
-                            drawRect(
-                                color = debugColor,
-                                topLeft = visible.body.axisAlignedBoundingBox.min.raw,
-                                size = visible.body.axisAlignedBoundingBox.size.raw,
-                                style = debugStroke,
+                gameViewportManager.scaleFactor.value.let { scaleFactor ->
+                    withTransform(
+                        transformBlock = {
+                            transformViewport(
+                                viewportCenter = viewportCenter,
+                                shiftedViewportOffset = (gameViewportManager.size.value / 2f) - viewportCenter,
+                                viewportScaleFactor = scaleFactor,
                             )
-                            withTransform(
-                                transformBlock = { visible.transformForViewport(this) },
-                                drawBlock = { with(visible.body) { drawDebugBounds(debugColor, debugStroke) } },
+                        },
+                        drawBlock = {
+                            val stroke = Stroke(
+                                width = 3f / scaleFactor,
+                                join = StrokeJoin.Round,
                             )
-                        }
-                    },
-                )
+                            gameActorManager.visibleActorsWithinViewport.value.forEach { visible ->
+                                drawRect(
+                                    color = debugColor,
+                                    topLeft = visible.body.axisAlignedBoundingBox.min.raw,
+                                    size = visible.body.axisAlignedBoundingBox.size.raw,
+                                    style = stroke,
+                                )
+                                withTransform(
+                                    transformBlock = { visible.transformForViewport(this) },
+                                    drawBlock = { with(visible.body) { drawDebugBounds(debugColor, stroke) } },
+                                )
+                            }
+                        },
+                    )
+                }
             }
         }
     }

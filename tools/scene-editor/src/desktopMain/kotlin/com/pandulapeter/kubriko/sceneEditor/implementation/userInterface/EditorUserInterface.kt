@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,6 +24,7 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMous
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseDrag
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseMove
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseZoom
+import com.pandulapeter.kubriko.sceneEditor.implementation.overlay.EditorOverlay
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.fileManagerRow.FileManagerRow
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceBrowserColumn.InstanceBrowserColumn
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.InstanceManagerColumn
@@ -59,31 +61,39 @@ internal fun EditorUserInterface(
                         Spacer(
                             modifier = Modifier.fillMaxHeight().width(instanceBrowserColumnWidth),
                         )
-                        KubrikoViewport(
-                            modifier = Modifier
-                                .weight(1f)
-                                .handleMouseClick(
-                                    getSelectedActor = editorController::getSelectedActor,
-                                    getMouseSceneOffset = editorController::getMouseWorldCoordinates,
-                                    onLeftClick = editorController::onLeftClick,
-                                    onRightClick = editorController::onRightClick,
-                                )
-                                .handleMouseMove(
-                                    onMouseMove = editorController::onMouseMove,
-                                )
-                                .handleMouseZoom(
-                                    viewportManager = editorController.viewportManager,
-                                )
-                                .handleMouseDrag(
-                                    keyboardInputManager = editorController.keyboardInputManager,
-                                    viewportManager = editorController.viewportManager,
-                                    getSelectedActor = editorController::getSelectedActor,
-                                    getMouseSceneOffset = editorController::getMouseWorldCoordinates,
-                                    notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
-                                )
-                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                            kubriko = editorController.kubriko,
-                        )
+                        Box(
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            KubrikoViewport(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .handleMouseClick(
+                                        getSelectedActor = editorController::getSelectedActor,
+                                        getMouseSceneOffset = editorController::getMouseWorldCoordinates,
+                                        onLeftClick = editorController::onLeftClick,
+                                        onRightClick = editorController::onRightClick,
+                                    )
+                                    .handleMouseMove(
+                                        onMouseMove = editorController::onMouseMove,
+                                    )
+                                    .handleMouseZoom(
+                                        viewportManager = editorController.viewportManager,
+                                    )
+                                    .handleMouseDrag(
+                                        keyboardInputManager = editorController.keyboardInputManager,
+                                        viewportManager = editorController.viewportManager,
+                                        getSelectedActor = editorController::getSelectedActor,
+                                        getMouseSceneOffset = editorController::getMouseWorldCoordinates,
+                                        notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
+                                    )
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                kubriko = editorController.kubriko,
+                            )
+                            EditorOverlay(
+                                modifier = Modifier.fillMaxSize(),
+                                editorController = editorController,
+                            )
+                        }
                         InstanceManagerColumn(
                             modifier = Modifier.fillMaxHeight().width(instanceManagerColumnWidth),
                             registeredTypeIds = editorController.serializationManager.registeredTypeIds.toList(),
