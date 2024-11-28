@@ -33,26 +33,31 @@ internal class OverlayManager(
     }
 
     override fun DrawScope.drawToViewport() {
-        gameViewportManager.cameraPosition.value.let { viewportCenter ->
-            gameViewportManager.scaleFactor.value.let { scaleFactor ->
-                withTransform(
-                    transformBlock = {
-                        transformViewport(
-                            viewportCenter = viewportCenter,
-                            shiftedViewportOffset = (gameViewportManager.size.value / 2f) - viewportCenter,
-                            viewportScaleFactor = scaleFactor,
-                        )
-                    },
-                    drawBlock = {
-                        val strokeBack = Stroke(
-                            width = 5f / scaleFactor,
-                            join = StrokeJoin.Round,
-                        )
-                        val strokeFront = Stroke(
-                            width = 2f / scaleFactor,
-                            join = StrokeJoin.Round,
-                        )
-                        // TODO: Fade on hover
+        editorController.selectedUpdatableActor.value.first?.let { positionable ->
+            drawRect(
+                color = Color.Black.copy(0.2f),
+                size = size,
+            )
+            gameViewportManager.cameraPosition.value.let { viewportCenter ->
+                gameViewportManager.scaleFactor.value.let { scaleFactor ->
+                    withTransform(
+                        transformBlock = {
+                            transformViewport(
+                                viewportCenter = viewportCenter,
+                                shiftedViewportOffset = (gameViewportManager.size.value / 2f) - viewportCenter,
+                                viewportScaleFactor = scaleFactor,
+                            )
+                        },
+                        drawBlock = {
+                            val strokeBack = Stroke(
+                                width = 8f / scaleFactor,
+                                join = StrokeJoin.Round,
+                            )
+                            val strokeFront = Stroke(
+                                width = 4f / scaleFactor,
+                                join = StrokeJoin.Round,
+                            )
+                            // TODO: Fade on hover
 //                        gameActorManager.visibleActorsWithinViewport.value.forEach { visible ->
 //                            withTransform(
 //                                transformBlock = { visible.transformForViewport(this) },
@@ -64,7 +69,6 @@ internal class OverlayManager(
 //                                },
 //                            )
 //                        }
-                        editorController.selectedUpdatableActor.value.first?.let { positionable ->
                             if (positionable is Visible) { // TODO: Handle else branch
                                 withTransform(
                                     transformBlock = { positionable.transformForViewport(this) },
@@ -76,9 +80,9 @@ internal class OverlayManager(
                                     },
                                 )
                             }
-                        }
-                    },
-                )
+                        },
+                    )
+                }
             }
         }
     }
