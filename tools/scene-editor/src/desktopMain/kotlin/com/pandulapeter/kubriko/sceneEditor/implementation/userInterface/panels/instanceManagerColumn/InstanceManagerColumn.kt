@@ -19,6 +19,7 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.compone
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorSurface
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorTextTitle
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ColorEditorMode
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.RotationEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.createBodyPropertyEditor
 import kubriko.tools.scene_editor.generated.resources.Res
 import kubriko.tools.scene_editor.generated.resources.ic_close
@@ -42,6 +43,8 @@ internal fun InstanceManagerColumn(
     notifySelectedInstanceUpdate: () -> Unit,
     colorEditorMode: ColorEditorMode,
     onColorEditorModeChanged: (ColorEditorMode) -> Unit,
+    rotationEditorMode: RotationEditorMode,
+    onRotationEditorModeChanged: (RotationEditorMode) -> Unit,
 ) = EditorSurface(
     modifier = modifier,
 ) {
@@ -80,6 +83,8 @@ internal fun InstanceManagerColumn(
                             notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
                             colorEditorMode = colorEditorMode,
                             onColorEditorModeChanged = onColorEditorModeChanged,
+                            rotationEditorMode = rotationEditorMode,
+                            onRotationEditorModeChanged = onRotationEditorModeChanged,
                         )
                     }
                     .let { controls ->
@@ -89,6 +94,8 @@ internal fun InstanceManagerColumn(
                                 element = createBodyPropertyEditor(
                                     getActor = { selectedInstance },
                                     notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
+                                    rotationEditorMode = rotationEditorMode,
+                                    onRotationEditorModeChanged = onRotationEditorModeChanged,
                                 )
                             )
                         }

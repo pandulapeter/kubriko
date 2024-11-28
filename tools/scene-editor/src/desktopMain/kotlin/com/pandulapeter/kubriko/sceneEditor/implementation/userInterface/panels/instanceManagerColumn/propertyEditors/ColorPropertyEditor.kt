@@ -28,7 +28,7 @@ internal fun ColorPropertyEditor(
 ) {
     Spacer(modifier = Modifier.height(8.dp))
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = 8.dp),
     ) {
         Box(
             modifier = Modifier

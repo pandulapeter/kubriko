@@ -15,7 +15,7 @@ fun Visible.transformForViewport(drawTransform: DrawTransform) {
     )
     if (body.rotation != AngleRadians.Zero) {
         drawTransform.rotate(
-            degrees = body.rotation.deg,
+            degrees = body.rotation.deg.normalized,
             pivot = body.pivot.raw,
         )
     }

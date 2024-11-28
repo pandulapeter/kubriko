@@ -12,11 +12,15 @@ import kotlin.reflect.full.memberProperties
 internal fun createBodyPropertyEditor(
     getActor: () -> Positionable,
     notifySelectedInstanceUpdate: () -> Unit,
+    rotationEditorMode: RotationEditorMode,
+    onRotationEditorModeChanged: (RotationEditorMode) -> Unit,
 ): @Composable () -> Unit {
     return {
         BodyPropertyEditor(
             getActor = getActor,
             notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
+            rotationEditorMode = rotationEditorMode,
+            onRotationEditorModeChanged = onRotationEditorModeChanged,
         )
     }
 }
@@ -25,6 +29,8 @@ internal fun createBodyPropertyEditor(
 internal fun BodyPropertyEditor(
     getActor: () -> Positionable,
     notifySelectedInstanceUpdate: () -> Unit,
+    rotationEditorMode: RotationEditorMode,
+    onRotationEditorModeChanged: (RotationEditorMode) -> Unit,
 ) {
     val actor = getActor()
     val bd = actor::class.memberProperties.firstOrNull { it.returnType.isSubtypeOf(Body::class.createType()) }
@@ -66,13 +72,15 @@ internal fun BodyPropertyEditor(
             },
         )
         HorizontalDivider()
-        AngleRadiansPropertyEditor(
+        RotationPropertyEditor(
             name = "rotation",
             value = body.rotation,
             onValueChanged = {
                 body.rotation = it
                 notifySelectedInstanceUpdate()
             },
+            rotationEditorMode = rotationEditorMode,
+            onRotationEditorModeChanged = onRotationEditorModeChanged,
         )
     }
 }

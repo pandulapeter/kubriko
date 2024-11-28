@@ -17,6 +17,7 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.actors.KeyboardInputL
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.saveFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ColorEditorMode
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.RotationEditorMode
 import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.CoroutineScope
@@ -82,6 +83,8 @@ internal class EditorController(
     val selectedTypeId = _selectedTypeId.asStateFlow()
     private val _colorEditorMode = MutableStateFlow(ColorEditorMode.HSV)
     val colorEditorMode = _colorEditorMode.asStateFlow()
+    private val _rotationEditorMode = MutableStateFlow(RotationEditorMode.DEGREES)
+    val rotationEditorMode = _rotationEditorMode.asStateFlow()
     private val _currentFolderPath = MutableStateFlow(defaultSceneFolderPath)
     val currentFolderPath = _currentFolderPath.asStateFlow()
     private val _currentFileName = MutableStateFlow(defaultSceneFilename ?: DEFAULT_SCENE_FILE_NAME)
@@ -173,6 +176,8 @@ internal class EditorController(
 
     fun onColorEditorModeChanged(colorEditorMode: ColorEditorMode) = _colorEditorMode.update { colorEditorMode }
 
+    fun onRotationEditorModeChanged(rotationEditorMode: RotationEditorMode) = _rotationEditorMode.update { rotationEditorMode }
+
     fun selectActor(typeId: String) = _selectedTypeId.update { typeId }
 
     fun deselectSelectedActor() = _selectedActor.update { null }
@@ -217,7 +222,7 @@ internal class EditorController(
     }
 
     private fun updateCurrentFolderPathAndFileName(path: String) {
-        _currentFolderPath.update { path.split('/').let { it.take(it.size - 1)}.joinToString("/") }
+        _currentFolderPath.update { path.split('/').let { it.take(it.size - 1) }.joinToString("/") }
         _currentFileName.update { path.split('/').last() }
     }
 

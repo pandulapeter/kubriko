@@ -15,14 +15,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.implementation.extensions.deg
+import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorTextTitle
-import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.AngleDegreesPropertyEditor
-import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.AngleRadiansPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ColorEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ColorPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.FloatPropertyEditor
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.RotationEditorMode
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.RotationPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ScalePropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.SceneOffsetPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ScenePixelPropertyEditor
@@ -47,6 +49,8 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
     notifySelectedInstanceUpdate: () -> Unit,
     colorEditorMode: ColorEditorMode,
     onColorEditorModeChanged: (ColorEditorMode) -> Unit,
+    rotationEditorMode: RotationEditorMode,
+    onRotationEditorModeChanged: (RotationEditorMode) -> Unit,
 ): (@Composable () -> Unit)? = setter.findAnnotation<Exposed>()?.let { editableProperty ->
     isAccessible = true
     editableProperty.name.let { name ->
@@ -68,26 +72,30 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
 
             AngleDegrees::class.createType() -> {
                 {
-                    AngleDegreesPropertyEditor(
+                    RotationPropertyEditor(
                         name = name,
-                        value = getter.call(actor) as AngleDegrees,
+                        value = (getter.call(actor) as AngleDegrees).rad,
                         onValueChanged = {
-                            setter.call(actor, it)
+                            setter.call(actor, it.deg)
                             notifySelectedInstanceUpdate()
-                        }
+                        },
+                        rotationEditorMode = rotationEditorMode,
+                        onRotationEditorModeChanged = onRotationEditorModeChanged,
                     )
                 }
             }
 
             AngleRadians::class.createType() -> {
                 {
-                    AngleRadiansPropertyEditor(
+                    RotationPropertyEditor(
                         name = name,
                         value = getter.call(actor) as AngleRadians,
                         onValueChanged = {
                             setter.call(actor, it)
                             notifySelectedInstanceUpdate()
-                        }
+                        },
+                        rotationEditorMode = rotationEditorMode,
+                        onRotationEditorModeChanged = onRotationEditorModeChanged,
                     )
                 }
             }

@@ -10,6 +10,7 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.compone
 
 @Composable
 internal fun FloatPropertyEditor(
+    modifier: Modifier = Modifier,
     name: String,
     suffix: String = "",
     value: Float,
@@ -17,7 +18,7 @@ internal fun FloatPropertyEditor(
     valueRange: ClosedFloatingPointRange<Float>? = null,
     enabled: Boolean = true,
 ) = Column(
-    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+    modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp)
 ) {
     EditorNumberInput(
         name = name,

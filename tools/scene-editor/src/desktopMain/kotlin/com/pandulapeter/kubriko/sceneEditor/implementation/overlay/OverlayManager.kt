@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawTransform
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.withTransform
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
@@ -72,24 +73,17 @@ internal class OverlayManager(
                                 width = 4f / scaleFactor,
                                 join = StrokeJoin.Round,
                             )
-                            // TODO: Fade on hover
-//                        gameActorManager.visibleActorsWithinViewport.value.forEach { visible ->
-//                            withTransform(
-//                                transformBlock = { visible.transformForViewport(this) },
-//                                drawBlock = {
-//                                    with(visible.body) {
-//                                        drawDebugBounds(colorBack, strokeBack)
-//                                        drawDebugBounds(colorFront, strokeFront)
-//                                    }
-//                                },
-//                            )
-//                        }
                             if (positionable is Visible) { // TODO: Handle else branch
                                 withTransform(
                                     transformBlock = { positionable.transformForViewport(this) },
                                     drawBlock = {
                                         with(positionable) {
-                                            draw()
+                                            clipRect(
+                                                right = body.size.width.raw,
+                                                bottom = body.size.height.raw
+                                            ) {
+                                                draw()
+                                            }
                                         }
                                         with(positionable.body) {
                                             drawDebugBounds(colorBack, strokeBack)

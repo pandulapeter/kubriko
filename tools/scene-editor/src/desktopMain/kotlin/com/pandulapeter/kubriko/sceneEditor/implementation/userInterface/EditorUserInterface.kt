@@ -107,6 +107,8 @@ internal fun EditorUserInterface(
                             notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
                             colorEditorMode = editorController.colorEditorMode.collectAsState().value,
                             onColorEditorModeChanged = editorController::onColorEditorModeChanged,
+                            rotationEditorMode = editorController.rotationEditorMode.collectAsState().value,
+                            onRotationEditorModeChanged = editorController::onRotationEditorModeChanged,
                         )
                     }
                     InstanceBrowserColumn(
