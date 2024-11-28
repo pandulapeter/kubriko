@@ -21,11 +21,14 @@ import java.io.FilenameFilter
 
 @Composable
 internal fun InternalSceneEditor(
-    defaultMapFilename: String?,
+    defaultSceneFilename: String?,
+    defaultSceneFolderPath: String,
     serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
     sceneEditorMode: SceneEditorMode,
     onCloseRequest: () -> Unit,
 ) {
+    val isLoadFileChooserOpen = remember { mutableStateOf(false) }
+    val isSaveFileChooserOpen = remember { mutableStateOf(false) }
     val editorController = remember {
         EditorController(
             kubriko = Kubriko.newInstance(
@@ -34,16 +37,19 @@ internal fun InternalSceneEditor(
                 serializationManager,
             ),
             sceneEditorMode = sceneEditorMode,
-            defaultMapFilename = defaultMapFilename,
-            onCloseRequest = onCloseRequest,
+            defaultSceneFilename = defaultSceneFilename,
+            defaultSceneFolderPath = defaultSceneFolderPath,
+            onCloseRequest = {
+                if (!isLoadFileChooserOpen.value && !isSaveFileChooserOpen.value) {
+                    onCloseRequest()
+                }
+            },
         )
     }
     Window(
         onCloseRequest = onCloseRequest,
         title = "Scene Editor",
     ) {
-        val isLoadFileChooserOpen = remember { mutableStateOf(false) }
-        val isSaveFileChooserOpen = remember { mutableStateOf(false) }
         window.minimumSize = Dimension(600, 400)
         EditorUserInterface(
             editorController = editorController,
@@ -54,6 +60,7 @@ internal fun InternalSceneEditor(
             FileDialog(
                 parent = window,
                 currentFileName = editorController.currentFileName.value,
+                currentFolderPath = editorController.currentFolderPath.value,
                 isForLoading = true,
                 onCloseRequest = { directory, fileName ->
                     isLoadFileChooserOpen.value = false
@@ -67,11 +74,12 @@ internal fun InternalSceneEditor(
             FileDialog(
                 parent = window,
                 currentFileName = editorController.currentFileName.value,
+                currentFolderPath = editorController.currentFolderPath.value,
                 isForLoading = false,
                 onCloseRequest = { directory, fileName ->
                     isSaveFileChooserOpen.value = false
                     if (fileName != null) {
-                        editorController.saveMap("$directory/$fileName")
+                        editorController.saveScene("$directory/$fileName")
                     }
                 }
             )
@@ -83,21 +91,22 @@ internal fun InternalSceneEditor(
 private fun FileDialog(
     parent: Frame? = null,
     currentFileName: String?,
+    currentFolderPath: String,
     isForLoading: Boolean,
     onCloseRequest: (directory: String?, fileName: String?) -> Unit
 ) = AwtWindow(
     create = {
-        object : FileDialog(parent, "Choose a file", if (isForLoading) LOAD else SAVE) {
+        object : FileDialog(parent, "Scene file", if (isForLoading) LOAD else SAVE) {
             init {
-                val scenesDirectoryFile = File(EditorController.SCENES_DIRECTORY)
+                val scenesDirectoryFile = File(currentFolderPath)
                 scenesDirectoryFile.parentFile?.mkdirs()
                 if (!scenesDirectoryFile.exists()) {
                     scenesDirectoryFile.mkdir()
                 }
-                filenameFilter = FilenameFilter { _, name ->
-                    name.endsWith(".json")
-                }
-                directory = EditorController.SCENES_DIRECTORY
+//                filenameFilter = FilenameFilter { _, name ->
+//                    name.endsWith(".json")
+//                }
+                directory = currentFolderPath
                 if (!isForLoading) {
                     file = currentFileName
                 }

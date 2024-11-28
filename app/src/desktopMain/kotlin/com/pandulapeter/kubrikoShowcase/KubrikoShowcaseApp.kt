@@ -13,5 +13,7 @@ fun main() = application {
         window.minimumSize = Dimension(400, 400)
         KubrikoShowcase()
     }
-    PerformanceDemoSceneEditor()
+    PerformanceDemoSceneEditor(
+        defaultSceneFolderPath = "../examples/demo-performance/src/commonMain/composeResources/files/scenes"
+    )
 }

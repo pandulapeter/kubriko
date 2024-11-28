@@ -10,10 +10,13 @@ import com.pandulapeter.kubriko.sceneEditor.SceneEditor
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
 
 @Composable
-fun PerformanceDemoSceneEditor() {
+fun PerformanceDemoSceneEditor(
+    defaultSceneFolderPath: String,
+) {
     if (isSceneEditorVisible.collectAsState().value) {
         SceneEditor(
-            defaultMapFilename = PerformanceDemoManager.SCENE_NAME,
+            defaultSceneFilename = PerformanceDemoManager.SCENE_NAME,
+            defaultSceneFolderPath = defaultSceneFolderPath,
             serializationManager = PerformanceDemoKubrikoWrapper().serializationManager,
             onCloseRequest = { isSceneEditorVisible.value = false },
             sceneEditorMode = sceneJson?.let { sceneJson ->

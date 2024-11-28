@@ -74,7 +74,7 @@ internal class PerformanceDemoManager(
     @OptIn(ExperimentalResourceApi::class)
     private fun loadMap() = scope.launch {
         try {
-            val json = Res.readBytes("files/scenes/$SCENE_NAME.json").decodeToString()
+            val json = Res.readBytes("files/scenes/$SCENE_NAME").decodeToString()
             sceneJson?.update { json } ?: processJson(json)
         } catch (_: MissingResourceException) {
         }
@@ -95,6 +95,6 @@ internal class PerformanceDemoManager(
     }
 
     companion object {
-        const val SCENE_NAME = "scene_performance_test"
+        const val SCENE_NAME = "scene_performance_test.json"
     }
 }

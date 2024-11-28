@@ -34,7 +34,7 @@ internal fun ViewportManager.handleKeys(keys: Set<Key>) {
     )
 }
 
-internal fun handleKeyReleased(
+internal fun handleKeyPressed(
     key: Key,
     onNavigateBackRequested: () -> Unit,
 ) {

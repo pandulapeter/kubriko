@@ -34,7 +34,8 @@ import kotlinx.coroutines.launch
 internal class EditorController(
     val kubriko: Kubriko,
     val sceneEditorMode: SceneEditorMode,
-    defaultMapFilename: String?,
+    defaultSceneFilename: String?,
+    defaultSceneFolderPath: String,
     private val onCloseRequest: () -> Unit,
 ) : CoroutineScope {
 
@@ -81,7 +82,9 @@ internal class EditorController(
     val selectedTypeId = _selectedTypeId.asStateFlow()
     private val _colorEditorMode = MutableStateFlow(ColorEditorMode.HSV)
     val colorEditorMode = _colorEditorMode.asStateFlow()
-    private val _currentFileName = MutableStateFlow(defaultMapFilename ?: DEFAULT_SCENE_FILE_NAME)
+    private val _currentFolderPath = MutableStateFlow(defaultSceneFolderPath)
+    val currentFolderPath = _currentFolderPath.asStateFlow()
+    private val _currentFileName = MutableStateFlow(defaultSceneFilename ?: DEFAULT_SCENE_FILE_NAME)
     val currentFileName = _currentFileName.asStateFlow()
     private val _shouldShowVisibleOnly = MutableStateFlow(false)
     val shouldShowVisibleOnly = _shouldShowVisibleOnly.asStateFlow()
@@ -89,7 +92,7 @@ internal class EditorController(
     init {
         when (sceneEditorMode) {
             SceneEditorMode.Normal -> {
-                defaultMapFilename?.let { loadMap("${SCENES_DIRECTORY}/$it.json") }
+                defaultSceneFilename?.let { loadMap("${currentFolderPath.value}/$it") }
             }
 
             is SceneEditorMode.Connected -> {
@@ -145,15 +148,11 @@ internal class EditorController(
         .filter { it.occupiesPosition(sceneOffset) }
         .minByOrNull { (it as? Visible)?.drawingOrder ?: 0f }
 
-    fun selectActor(actor: Editable<*>) {
-        val currentSelectedActor = selectedUpdatableActor.value.first
-        // TODO currentSelectedActor?.isSelectedInEditor = false
-        _selectedActor.update {
-            if (currentSelectedActor == actor) {
-                null
-            } else {
-                actor// TODO .also { it.isSelectedInEditor = true }
-            }
+    fun selectActor(actor: Editable<*>) = _selectedActor.update {
+        if (selectedUpdatableActor.value.first == actor) {
+            null
+        } else {
+            actor
         }
     }
 
@@ -176,10 +175,7 @@ internal class EditorController(
 
     fun selectActor(typeId: String) = _selectedTypeId.update { typeId }
 
-    fun deselectSelectedActor() {
-        // TODO _selectedActor.value?.isSelectedInEditor = false
-        _selectedActor.update { null }
-    }
+    fun deselectSelectedActor() = _selectedActor.update { null }
 
     fun reset() {
         viewportManager.setCameraPosition(SceneOffset.Zero)
@@ -193,7 +189,7 @@ internal class EditorController(
         launch {
             loadFile(path)?.let { json ->
                 parseJson(json)
-                _currentFileName.update { path.split('/').last().removeSuffix(".json") }
+                updateCurrentFolderPathAndFileName(path)
             }
         }
     }
@@ -210,13 +206,19 @@ internal class EditorController(
         }
     }
 
-    fun saveMap(path: String) {
+    fun saveScene(path: String) {
         launch {
             saveFile(
                 path = path,
                 content = serializationManager.serializeActors(allEditableActors.value),
             )
+            updateCurrentFolderPathAndFileName(path)
         }
+    }
+
+    private fun updateCurrentFolderPathAndFileName(path: String) {
+        _currentFolderPath.update { path.split('/').let { it.take(it.size - 1)}.joinToString("/") }
+        _currentFileName.update { path.split('/').last() }
     }
 
     private fun navigateBack() {
@@ -228,8 +230,6 @@ internal class EditorController(
     }
 
     companion object {
-        // TODO: Modularization broke this
-        const val SCENES_DIRECTORY = "./src/commonMain/composeResources/files/scenes"
         private const val DEFAULT_SCENE_FILE_NAME = "scene_untitled.json"
     }
 }

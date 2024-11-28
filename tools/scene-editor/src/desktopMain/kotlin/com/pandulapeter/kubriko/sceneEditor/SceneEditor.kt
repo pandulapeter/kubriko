@@ -6,11 +6,13 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.InternalSceneEditor
 import com.pandulapeter.kubriko.serialization.SerializationManager
 
 fun openSceneEditor(
-    defaultMapFilename: String? = null,
+    defaultSceneFilename: String? = null,
+    defaultSceneFolderPath: String = "./src/commonMain/composeResources/files/scenes",
     serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
 ) = application {
     SceneEditor(
-        defaultMapFilename = defaultMapFilename,
+        defaultSceneFilename = defaultSceneFilename,
+        defaultSceneFolderPath = defaultSceneFolderPath,
         serializationManager = serializationManager,
         onCloseRequest = ::exitApplication,
     )
@@ -28,12 +30,14 @@ sealed class SceneEditorMode {
 
 @Composable
 fun SceneEditor(
-    defaultMapFilename: String? = null,
+    defaultSceneFilename: String? = null,
+    defaultSceneFolderPath: String = "./src/commonMain/composeResources/files/scenes",
     serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
     sceneEditorMode: SceneEditorMode = SceneEditorMode.Normal,
     onCloseRequest: () -> Unit,
 ) = InternalSceneEditor(
-    defaultMapFilename = defaultMapFilename,
+    defaultSceneFilename = defaultSceneFilename,
+    defaultSceneFolderPath = defaultSceneFolderPath,
     serializationManager = serializationManager,
     sceneEditorMode = sceneEditorMode,
     onCloseRequest = onCloseRequest,
