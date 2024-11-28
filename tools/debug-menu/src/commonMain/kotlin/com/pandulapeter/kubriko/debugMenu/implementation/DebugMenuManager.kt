@@ -65,7 +65,7 @@ internal class DebugMenuManager(gameKubriko: Kubriko) : Manager(), Overlay, Uniq
                         },
                         drawBlock = {
                             val stroke = Stroke(
-                                width = 3f / scaleFactor,
+                                width = 2f / scaleFactor,
                                 join = StrokeJoin.Round,
                             )
                             gameActorManager.visibleActorsWithinViewport.value.forEach { visible ->

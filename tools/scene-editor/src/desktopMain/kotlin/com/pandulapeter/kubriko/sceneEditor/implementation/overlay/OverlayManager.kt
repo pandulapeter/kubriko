@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.drawscope.withTransform
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
+import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.minus
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.transformForViewport
@@ -18,8 +19,9 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
 import com.pandulapeter.kubriko.types.SceneOffset
 
-internal class OverlayManager(editorController: EditorController) : Manager(), Overlay, Unique {
-
+internal class OverlayManager(
+    private val editorController: EditorController,
+) : Manager(), Overlay, Unique {
     private val gameActorManager by lazy { editorController.kubriko.require<ActorManager>() }
     private val gameViewportManager by lazy { editorController.kubriko.require<ViewportManager>() }
     private val colorBack = Color.Black.copy(alpha = 0.75f)
@@ -50,16 +52,30 @@ internal class OverlayManager(editorController: EditorController) : Manager(), O
                             width = 2f / scaleFactor,
                             join = StrokeJoin.Round,
                         )
-                        gameActorManager.visibleActorsWithinViewport.value.forEach { visible ->
-                            withTransform(
-                                transformBlock = { visible.transformForViewport(this) },
-                                drawBlock = {
-                                    with(visible.body) {
-                                        drawDebugBounds(colorBack, strokeBack)
-                                        drawDebugBounds(colorFront, strokeFront)
-                                    }
-                                },
-                            )
+                        // TODO: Fade on hover
+//                        gameActorManager.visibleActorsWithinViewport.value.forEach { visible ->
+//                            withTransform(
+//                                transformBlock = { visible.transformForViewport(this) },
+//                                drawBlock = {
+//                                    with(visible.body) {
+//                                        drawDebugBounds(colorBack, strokeBack)
+//                                        drawDebugBounds(colorFront, strokeFront)
+//                                    }
+//                                },
+//                            )
+//                        }
+                        editorController.selectedUpdatableActor.value.first?.let { positionable ->
+                            if (positionable is Visible) { // TODO: Handle else branch
+                                withTransform(
+                                    transformBlock = { positionable.transformForViewport(this) },
+                                    drawBlock = {
+                                        with(positionable.body) {
+                                            drawDebugBounds(colorBack, strokeBack)
+                                            drawDebugBounds(colorFront, strokeFront)
+                                        }
+                                    },
+                                )
+                            }
                         }
                     },
                 )
