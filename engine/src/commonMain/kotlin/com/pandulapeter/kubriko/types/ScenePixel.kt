@@ -28,6 +28,8 @@ value class ScenePixel internal constructor(val raw: Float) : Comparable<ScenePi
 
     operator fun div(scale: Float): ScenePixel = (raw / scale).scenePixel
 
+    operator fun div(scale: ScenePixel): ScenePixel = (raw / scale.raw).scenePixel
+
     operator fun div(scale: Int): ScenePixel = (raw / scale.toFloat()).scenePixel
 
     override operator fun compareTo(other: ScenePixel) = raw.compareTo(other.raw)
@@ -40,5 +42,6 @@ value class ScenePixel internal constructor(val raw: Float) : Comparable<ScenePi
 
     companion object {
         val Zero = ScenePixel(0f)
+        val Unit = ScenePixel(1f)
     }
 }

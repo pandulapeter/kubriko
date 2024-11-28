@@ -32,9 +32,27 @@ value class SceneOffset(val raw: Offset) {
 
     operator fun div(scale: Int): SceneOffset = SceneOffset(raw / scale.toFloat())
 
+    operator fun unaryMinus(): SceneOffset = SceneOffset(
+        x = x.unaryMinus(),
+        y = y.unaryMinus(),
+    )
+
+    operator fun unaryPlus(): SceneOffset = SceneOffset(
+        x = x.unaryPlus(),
+        y = y.unaryPlus(),
+    )
+
     override fun toString(): String = "SceneOffset(x=$x, y=$y)"
 
     companion object {
-        val Zero = SceneOffset(Offset.Zero)
+        val Zero = SceneOffset(ScenePixel.Zero, ScenePixel.Zero)
+        val Left = SceneOffset(-ScenePixel.Unit, ScenePixel.Zero)
+        val TopLeft = SceneOffset(-ScenePixel.Unit, -ScenePixel.Unit)
+        val Top = SceneOffset(ScenePixel.Zero, -ScenePixel.Unit)
+        val TopRight = SceneOffset(ScenePixel.Unit, -ScenePixel.Unit)
+        val Right = SceneOffset(ScenePixel.Unit, ScenePixel.Zero)
+        val BottomRight = SceneOffset(ScenePixel.Unit, ScenePixel.Unit)
+        val Bottom = SceneOffset(ScenePixel.Zero, ScenePixel.Unit)
+        val BottomLeft = SceneOffset(-ScenePixel.Unit, ScenePixel.Unit)
     }
 }
