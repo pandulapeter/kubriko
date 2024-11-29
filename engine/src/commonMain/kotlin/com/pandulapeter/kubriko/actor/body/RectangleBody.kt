@@ -24,33 +24,32 @@ class RectangleBody(
     override var size = initialSize
         set(value) {
             field = value
-            axisAlignedBoundingBox = createAxisAlignedBoundingBox()
+            isAxisAlignedBoundingBoxDirty = true
         }
     override var pivot = initialPivot
         set(value) {
             field = value
-            axisAlignedBoundingBox = createAxisAlignedBoundingBox()
+            isAxisAlignedBoundingBoxDirty = true
         }
     override var scale = initialScale
         set(value) {
             field = value
-            axisAlignedBoundingBox = createAxisAlignedBoundingBox()
+            isAxisAlignedBoundingBoxDirty = true
         }
     override var rotation = initialRotation
         set(value) {
             field = value
-            axisAlignedBoundingBox = createAxisAlignedBoundingBox()
+            isAxisAlignedBoundingBoxDirty = true
         }
 
-    override fun createAxisAlignedBoundingBox(): AxisAlignedBoundingBox {
-        // Compute all four corners of the transformed rectangle
-        val corners = listOf(
-            transformPoint(position), // Top-left
-            transformPoint(position + SceneOffset(size.width, 0f.scenePixel)), // Top-right
-            transformPoint(position + SceneOffset(0f.scenePixel, size.height)), // Bottom-left
-            transformPoint(position + SceneOffset(size.width, size.height)) // Bottom-right
-        )
+    private val corners = mutableListOf<SceneOffset>()
 
+    override fun createAxisAlignedBoundingBox(): AxisAlignedBoundingBox {
+        corners.clear()
+        corners.add(transformPoint(position))
+        corners.add(transformPoint(position + SceneOffset(size.width, 0f.scenePixel)))
+        corners.add(transformPoint(position + SceneOffset(0f.scenePixel, size.height)))
+        corners.add(transformPoint(position + SceneOffset(size.width, size.height)))
         return AxisAlignedBoundingBox(
             min = SceneOffset(corners.minOf { it.x }, corners.minOf { it.y }) - pivot,
             max = SceneOffset(corners.maxOf { it.x }, corners.maxOf { it.y }) - pivot,

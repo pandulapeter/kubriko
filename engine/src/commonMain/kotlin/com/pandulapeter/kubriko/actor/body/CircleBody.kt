@@ -26,7 +26,7 @@ class CircleBody(
     var radius = initialRadius
         set(value) {
             field = value
-            axisAlignedBoundingBox = createAxisAlignedBoundingBox()
+            isAxisAlignedBoundingBoxDirty = true
         }
     override var size get() = SceneSize(radius * 2, radius * 2)
         set(value) {
@@ -35,19 +35,22 @@ class CircleBody(
     override var pivot = initialPivot
         set(value) {
             field = value
-            axisAlignedBoundingBox = createAxisAlignedBoundingBox()
+            isAxisAlignedBoundingBoxDirty = true
         }
     override var scale = initialScale
         set(value) {
             field = value
-            axisAlignedBoundingBox = createAxisAlignedBoundingBox()
+            isAxisAlignedBoundingBoxDirty = true
         }
     override var rotation = initialRotation
         set(value) {
             field = value
-            axisAlignedBoundingBox = createAxisAlignedBoundingBox()
+            if (scale.horizontal != scale.vertical) {
+                isAxisAlignedBoundingBoxDirty = true
+            }
         }
 
+    // TODO: Pivot should be taken into consideration
     override fun createAxisAlignedBoundingBox(): AxisAlignedBoundingBox {
         if (scale.horizontal == scale.vertical) {
             val scaledRadius = radius * scale.horizontal

@@ -19,7 +19,7 @@ internal fun Project.configureKotlinAndroid(
     if (extension is ApplicationExtension) {
         // TODO: Signing config for release builds
         buildTypes {
-            getByName("release"){
+            getByName("release") {
                 isShrinkResources = true
                 isMinifyEnabled = true
                 proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

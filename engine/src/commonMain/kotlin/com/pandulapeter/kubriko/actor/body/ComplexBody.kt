@@ -11,7 +11,7 @@ import com.pandulapeter.kubriko.types.SceneSize
 interface ComplexBody : Body {
 
     var pivot: SceneOffset
-    var size: SceneSize
+    var size: SceneSize // TODO: TO BE REMOVED
     var scale: Scale
     var rotation: AngleRadians
 

@@ -8,11 +8,18 @@ open class PointBody(
     override var position = initialPosition
         set(value) {
             field = value
-            axisAlignedBoundingBox = createAxisAlignedBoundingBox()
+            isAxisAlignedBoundingBoxDirty = true
         }
+    protected var isAxisAlignedBoundingBoxDirty = false
     private var _axisAlignedBoundingBox: AxisAlignedBoundingBox? = null
     override var axisAlignedBoundingBox: AxisAlignedBoundingBox
-        get() = _axisAlignedBoundingBox ?: createAxisAlignedBoundingBox().also { _axisAlignedBoundingBox = it }
+        get() {
+            if (isAxisAlignedBoundingBoxDirty) {
+                _axisAlignedBoundingBox = null
+                isAxisAlignedBoundingBoxDirty = false
+            }
+            return _axisAlignedBoundingBox ?: createAxisAlignedBoundingBox().also { _axisAlignedBoundingBox = it }
+        }
         protected set(value) {
             _axisAlignedBoundingBox = value
         }
