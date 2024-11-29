@@ -7,6 +7,7 @@ kotlin {
         commonMain.dependencies {
             implementation(projects.engine)
             implementation(projects.plugins.keyboardInput)
+            implementation(projects.plugins.pointerInput)
             implementation(compose.material3)
         }
     }

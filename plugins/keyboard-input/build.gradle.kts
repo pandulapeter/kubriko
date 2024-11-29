@@ -11,5 +11,5 @@ kotlin {
 }
 
 android {
-    namespace = "com.pandulapeter.kubriko.keyboardInputManager"
+    namespace = "com.pandulapeter.kubriko.keyboardInput"
 }

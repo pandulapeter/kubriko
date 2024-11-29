@@ -21,7 +21,7 @@
 
     <!-- Input -->
     <string name="demo_input">Input</string>
-    <string name="demo_input_subtitle">Keyboard input tester</string>
+    <string name="demo_input_subtitle">Keyboard and pointer input tester</string>
 
     <!-- Performance -->
     <string name="demo_performance">Performance</string>

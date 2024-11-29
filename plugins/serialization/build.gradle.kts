@@ -13,5 +13,5 @@ kotlin {
 }
 
 android {
-    namespace = "com.pandulapeter.kubriko.serializationManager"
+    namespace = "com.pandulapeter.kubriko.serialization"
 }

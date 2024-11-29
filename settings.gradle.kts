@@ -26,6 +26,7 @@ include(
     ":plugins:collision",
     ":plugins:keyboard-input",
     ":plugins:physics",
+    ":plugins:pointer-input",
     ":plugins:serialization",
     ":plugins:shader",
     ":tools:debug-menu",
