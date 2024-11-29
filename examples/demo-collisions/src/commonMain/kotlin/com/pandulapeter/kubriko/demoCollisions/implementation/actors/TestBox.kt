@@ -23,13 +23,12 @@ internal class TestBox(
         initialSize = SceneSize(Width, Height),
     )
     private val color = Color.hsv(hue, 0.2f, 0.9f)
+    private var acc = 0f
 
     override fun DrawScope.draw() = drawRect(
         color = color,
         size = body.size.raw,
     )
-
-    private var acc = 0f
 
     override fun update(deltaTimeInMillis: Float) {
         body.rotation += (deltaTimeInMillis * 0.001f).rad

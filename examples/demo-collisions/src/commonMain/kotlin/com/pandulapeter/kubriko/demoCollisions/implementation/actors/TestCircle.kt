@@ -22,14 +22,13 @@ internal class TestCircle(
         initialRadius = Radius,
     )
     private val color = Color.hsv(hue, 0.2f, 0.9f)
+    private var acc = 0f
 
     override fun DrawScope.draw() = drawCircle(
         color = color,
         radius = body.radius.raw,
         center = body.pivot.raw,
     )
-
-    private var acc = 0f
 
     override fun update(deltaTimeInMillis: Float) {
         body.rotation += (deltaTimeInMillis * 0.001f).rad

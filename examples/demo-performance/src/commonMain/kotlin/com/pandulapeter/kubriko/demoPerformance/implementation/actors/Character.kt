@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.RectangleBody
+import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
@@ -23,6 +23,8 @@ import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.integration.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneOffset
+import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableScenePixel
+import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneSize
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
@@ -36,19 +38,9 @@ import kotlin.math.sin
 
 class Character private constructor(state: State) : Unique, Dynamic, Visible, KeyboardInputAware, Editable<Character> {
 
-    @set:Exposed(name = "position")
-    var position: SceneOffset = state.position
-        set(value) {
-            field = value
-            body.position = value
-        }
-
-    override val body = RectangleBody(
-        initialPosition = position,
-        initialSize = SceneSize(
-            width = Radius * 2f,
-            height = Radius * 2f,
-        ),
+    override val body = CircleBody(
+        initialPosition = state.position,
+        initialRadius = 50f.scenePixel,
     )
     override var drawingOrder = 0f
     private var sizeMultiplier = 1f
@@ -75,7 +67,7 @@ class Character private constructor(state: State) : Unique, Dynamic, Visible, Ke
     }
 
     override fun update(deltaTimeInMillis: Float) {
-        drawingOrder = -position.y.raw - body.pivot.y.raw - 100f
+        drawingOrder = -body.position.y.raw - body.pivot.y.raw - 100f
         viewportManager.addToCameraPosition(calculateViewportOffsetDelta().raw)
         if (sizeMultiplier > 1f) {
             sizeMultiplier -= 0.01f * deltaTimeInMillis
@@ -99,21 +91,21 @@ class Character private constructor(state: State) : Unique, Dynamic, Visible, Ke
 
     override fun DrawScope.draw() = drawCircle(
         color = lerp(Color.Red, Color.Green, ((1f + MAX_SIZE_MULTIPLIER) - sizeMultiplier) / MAX_SIZE_MULTIPLIER),
-        radius = Radius.raw,
+        radius = body.radius.raw,
         center = body.pivot.raw,
     )
 
-    override fun save() = State(position = position)
+    override fun save() = State(position = body.position)
 
     private fun calculateViewportOffsetDelta() = viewportManager.cameraPosition.value.let { viewportOffset ->
         viewportManager.scaleFactor.value.let { scaleFactor ->
-            (viewportOffset - position) * VIEWPORT_FOLLOWING_SPEED_MULTIPLIER * scaleFactor * scaleFactor
+            (viewportOffset - body.position) * VIEWPORT_FOLLOWING_SPEED_MULTIPLIER * scaleFactor * scaleFactor
         }
     }
 
     private fun move(directionState: KeyboardDirectionState) {
         if (stateManager.isRunning.value) {
-            position += when (directionState) {
+            body.position += when (directionState) {
                 KeyboardDirectionState.NONE -> SceneOffset.Zero
                 KeyboardDirectionState.LEFT -> SceneOffset(-Speed, ScenePixel.Zero)
                 KeyboardDirectionState.UP_LEFT -> SceneOffset(-SpeedDiagonal, -SpeedDiagonal)
@@ -131,7 +123,7 @@ class Character private constructor(state: State) : Unique, Dynamic, Visible, Ke
         if (stateManager.isRunning.value) {
             sizeMultiplier = MAX_SIZE_MULTIPLIER
             findDestructibleActorsNearby(
-                position = position + body.pivot,
+                position = body.position + body.pivot,
                 range = ExplosionRange,
             ).forEach { it.destroy(this) }
         }
@@ -139,7 +131,7 @@ class Character private constructor(state: State) : Unique, Dynamic, Visible, Ke
 
     @kotlinx.serialization.Serializable
     data class State(
-        @SerialName("position") val position: SerializableSceneOffset = SceneOffset.Zero
+        @SerialName("position") val position: SerializableSceneOffset = SceneOffset.Zero,
     ) : Serializable.State<Character> {
 
         override fun restore() = Character(this)
@@ -148,7 +140,6 @@ class Character private constructor(state: State) : Unique, Dynamic, Visible, Ke
     }
 
     companion object {
-        private val Radius = 50f.scenePixel
         private val Speed = 6f.scenePixel
         private val SpeedDiagonal = (sin(PI / 4) * Speed.raw).toFloat().scenePixel
         private const val VIEWPORT_FOLLOWING_SPEED_MULTIPLIER = 0.03f

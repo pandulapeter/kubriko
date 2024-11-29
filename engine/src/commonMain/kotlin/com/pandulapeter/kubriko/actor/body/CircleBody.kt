@@ -26,12 +26,10 @@ class CircleBody(
     var radius = initialRadius
         set(value) {
             field = value
+            pivot = size.center
             isAxisAlignedBoundingBoxDirty = true
         }
-    override var size get() = SceneSize(radius * 2, radius * 2)
-        set(value) {
-            // TODO: Not sure how to deal with this
-        }
+    override val size get() = SceneSize(radius * 2, radius * 2)
     override var pivot = initialPivot
         set(value) {
             field = value

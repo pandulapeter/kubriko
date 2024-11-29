@@ -11,9 +11,9 @@ import com.pandulapeter.kubriko.types.SceneSize
 interface ComplexBody : Body {
 
     var pivot: SceneOffset
-    var size: SceneSize // TODO: TO BE REMOVED
     var scale: Scale
     var rotation: AngleRadians
+    val size: SceneSize
 
     fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke)
 }

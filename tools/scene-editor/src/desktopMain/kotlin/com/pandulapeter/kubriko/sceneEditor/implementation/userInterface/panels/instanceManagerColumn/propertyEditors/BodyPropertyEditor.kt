@@ -2,9 +2,15 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels
 
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.actor.body.Body
+import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.body.ComplexBody
+import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Positionable
+import com.pandulapeter.kubriko.implementation.extensions.deg
+import com.pandulapeter.kubriko.implementation.extensions.rad
+import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
@@ -54,15 +60,27 @@ internal fun BodyPropertyEditor(
             }
         )
         HorizontalDivider()
-        SceneSizePropertyEditor(
-            name = "size",
-            value = body.size,
-            onValueChanged = {
-                body.size = it
-                notifySelectedInstanceUpdate()
-            }
-        )
-        HorizontalDivider()
+        if (body is RectangleBody) {
+            SceneSizePropertyEditor(
+                name = "size",
+                value = body.size,
+                onValueChanged = {
+                    body.size = it
+                    notifySelectedInstanceUpdate()
+                }
+            )
+            HorizontalDivider()
+        }
+        if (body is CircleBody) {
+            FloatPropertyEditor(
+                name = "radius",
+                value = body.radius.raw,
+                onValueChanged = {
+                    body.radius = it.scenePixel
+                    notifySelectedInstanceUpdate()
+                },
+            )
+        }
         ScalePropertyEditor(
             name = "scale",
             value = body.scale,
