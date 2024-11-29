@@ -1,6 +1,6 @@
 <resources>
 
     <string name="rigid_body_collisions">Rigid body collisions</string>
-    <string name="joints">Joints</string>
+    <string name="chains">Chains</string>
 
 </resources>

@@ -4,6 +4,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
+import com.pandulapeter.kubriko.physics.JointWrapper
 import com.pandulapeter.kubriko.physics.PhysicsManager
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.World
@@ -21,7 +22,8 @@ internal class PhysicsManagerImpl(
     private val world by lazy {
         World(
             gravity = Vec2(gravity.x.raw, gravity.y.raw),
-            getRigidBodies = { rigidBodiesForPhysicsEngine.value }
+            getRigidBodies = { rigidBodiesForPhysicsEngine.value },
+            getJoints = { jointsForPhysicsEngine.value },
         )
     }
     private lateinit var actorManager: ActorManager
@@ -29,6 +31,11 @@ internal class PhysicsManagerImpl(
     private val rigidBodiesForPhysicsEngine by lazy {
         actorManager.allActors
             .map { it.filterIsInstance<RigidBody>().map { it.physicsBody } }
+            .stateIn(scope, SharingStarted.Eagerly, emptyList())
+    }
+    private val jointsForPhysicsEngine by lazy {
+        actorManager.allActors
+            .map { it.filterIsInstance<JointWrapper>().map { it.physicsJoint } }
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
     }
 

@@ -17,6 +17,7 @@ import kotlin.math.pow
 class World(
     private var gravity: Vec2 = Vec2(),
     private val getRigidBodies: () -> List<TranslatableBody>,
+    private val getJoints: () -> List<Joint>,
 ) {
 
     /**
@@ -39,8 +40,6 @@ class World(
         // TODO
     }
 
-    var joints = ArrayList<Joint>()
-
     /**
      * Adds a joint to the world.
      *
@@ -48,7 +47,7 @@ class World(
      * @return Returns the joint added to the world.
      */
     fun addJoint(j: Joint): Joint {
-        joints.add(j)
+        // TODO
         return j
     }
 
@@ -58,7 +57,7 @@ class World(
      * @param j The joint to remove from the world.
      */
     fun removeJoint(j: Joint) {
-        joints.remove(j)
+        // TODO
     }
 
     var contacts = ArrayList<Arbiter>()
@@ -135,7 +134,7 @@ class World(
         Early out could be used like in the collision solver
         This may change in the future and will be revised at a later date.
         */
-        for (j in joints) {
+        for (j in getJoints()) {
             j.applyTension()
         }
 
@@ -202,7 +201,7 @@ class World(
     fun clearWorld() {
         // TODO bodies.clear()
         contacts.clear()
-        joints.clear()
+        // TODO: joints.clear()
     }
 
     /**

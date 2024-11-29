@@ -6,23 +6,18 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
-import com.pandulapeter.kubriko.actor.traits.Dynamic
-import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.implementation.extensions.require
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.implementation.extensions.wrapWithin
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
-import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 
-internal class BouncyBall(
+internal class StaticBall(
     initialPosition: SceneOffset,
     private val radius: ScenePixel,
-) : RigidBody, Dynamic {
+) : RigidBody {
     override val body = CircleBody(
         initialRadius = radius,
         initialPosition = initialPosition,
@@ -31,18 +26,11 @@ internal class BouncyBall(
         shape = Circle(radius.raw),
         x = initialPosition.x.raw,
         y = initialPosition.y.raw
-    )
+    ).apply { density = 0f }
     private lateinit var viewportManager: ViewportManager
 
     override fun onAdded(kubriko: Kubriko) {
         viewportManager = kubriko.require()
-    }
-
-    override fun update(deltaTimeInMillis: Float) {
-        body.position = SceneOffset(physicsBody.position.x.scenePixel, physicsBody.position.y.scenePixel)
-        physicsBody.position = wrapWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value).let { Vec2(it.x.raw, it.y.raw) }
-        body.position = SceneOffset(physicsBody.position.x.scenePixel, physicsBody.position.y.scenePixel)
-        body.rotation = physicsBody.orientation.rad
     }
 
     override fun DrawScope.draw() {

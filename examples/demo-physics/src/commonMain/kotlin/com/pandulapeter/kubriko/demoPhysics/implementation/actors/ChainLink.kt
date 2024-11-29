@@ -13,24 +13,22 @@ import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
-internal class Platform(
+internal class ChainLink(
     initialPosition: SceneOffset,
-    size: SceneSize,
 ) : RigidBody, Dynamic {
     override val physicsBody = Body(
-        shape = Polygon(size.width.raw / 2f, size.height.raw / 2f),
+        shape = Polygon(Width.raw / 2f, Height.raw / 2f),
         x = initialPosition.x.raw,
         y = initialPosition.y.raw,
-    ).apply { density = 0f }
+    )
     override val body = RectangleBody(
         initialPosition = initialPosition,
-        initialSize = size,
+        initialSize = SceneSize(Width, Height),
     )
 
     override fun update(deltaTimeInMillis: Float) {
         body.position = SceneOffset(physicsBody.position.x.scenePixel, physicsBody.position.y.scenePixel)
-        body.rotation += (0.002 * deltaTimeInMillis).toFloat().rad
-        physicsBody.orientation = body.rotation.normalized
+        body.rotation = physicsBody.orientation.rad
     }
 
     override fun DrawScope.draw() {
@@ -43,5 +41,10 @@ internal class Platform(
             size = body.size.raw,
             style = Stroke(),
         )
+    }
+
+    companion object {
+        private val Width = 40f.scenePixel
+        private val Height = 10f.scenePixel
     }
 }
