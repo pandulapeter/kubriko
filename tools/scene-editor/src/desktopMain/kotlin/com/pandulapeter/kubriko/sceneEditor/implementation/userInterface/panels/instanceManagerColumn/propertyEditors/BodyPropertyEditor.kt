@@ -8,8 +8,6 @@ import com.pandulapeter.kubriko.actor.body.ComplexBody
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorButton
-import com.pandulapeter.kubriko.types.Scale
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
@@ -90,13 +88,6 @@ internal fun BodyPropertyEditor(
                 body.scale = it
                 notifySelectedInstanceUpdate()
             },
-        )
-        EditorButton(
-            text = "Set to unit",
-            onClick = {
-                body.scale = Scale.Unit
-                notifySelectedInstanceUpdate()
-            }
         )
         HorizontalDivider()
         RotationPropertyEditor(

@@ -7,8 +7,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorNumberInput
 import com.pandulapeter.kubriko.types.Scale
+import kubriko.tools.scene_editor.generated.resources.Res
+import kubriko.tools.scene_editor.generated.resources.ic_unit
 
 @Composable
 internal fun ScalePropertyEditor(
@@ -24,11 +27,37 @@ internal fun ScalePropertyEditor(
         name = "$name.horizontal",
         value = value.horizontal,
         onValueChanged = { onValueChanged(Scale(it, value.vertical)) },
+        extraContent = {
+            UnitButton(
+                value = value.horizontal,
+                onValueChanged = { onValueChanged(Scale(it, value.vertical)) },
+            )
+        }
     )
     EditorNumberInput(
         modifier = Modifier.weight(1f),
         name = "$name.vertical",
         value = value.vertical,
         onValueChanged = { onValueChanged(Scale(value.horizontal, it)) },
+        extraContent = {
+            UnitButton(
+                value = value.vertical,
+                onValueChanged = { onValueChanged(Scale(value.horizontal, it)) },
+            )
+        }
+    )
+}
+
+
+@Composable
+private fun UnitButton(
+    value: Float,
+    onValueChanged: (Float) -> Unit,
+) {
+    EditorIcon(
+        drawableResource = Res.drawable.ic_unit,
+        contentDescription = "Unit",
+        isEnabled = value != 1f,
+        onClick = { onValueChanged(1f) }
     )
 }

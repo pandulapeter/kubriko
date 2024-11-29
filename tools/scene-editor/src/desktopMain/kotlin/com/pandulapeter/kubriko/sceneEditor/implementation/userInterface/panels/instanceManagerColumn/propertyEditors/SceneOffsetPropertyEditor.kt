@@ -34,12 +34,13 @@ internal fun SceneOffsetPropertyEditor(
         onValueChanged = { onValueChanged(SceneOffset(it.scenePixel, value.y)) },
         valueRange = xValueRange,
         extraContent = {
-            CenterButton(
-                value = value.x,
-                onValueChanged = { onValueChanged(SceneOffset(it, value.y)) },
-                shouldShowCenterButton = shouldShowCenterButton,
-                range = xValueRange,
-            )
+            if (shouldShowCenterButton) {
+                CenterButton(
+                    value = value.x,
+                    onValueChanged = { onValueChanged(SceneOffset(it, value.y)) },
+                    range = xValueRange,
+                )
+            }
         }
     )
     EditorNumberInput(
@@ -49,12 +50,13 @@ internal fun SceneOffsetPropertyEditor(
         onValueChanged = { onValueChanged(SceneOffset(value.x, it.scenePixel)) },
         valueRange = yValueRange,
         extraContent = {
-            CenterButton(
-                value = value.y,
-                onValueChanged = { onValueChanged(SceneOffset(value.x, it)) },
-                shouldShowCenterButton = shouldShowCenterButton,
-                range = yValueRange,
-            )
+            if (shouldShowCenterButton) {
+                CenterButton(
+                    value = value.y,
+                    onValueChanged = { onValueChanged(SceneOffset(value.x, it)) },
+                    range = yValueRange,
+                )
+            }
         }
     )
 }
@@ -63,18 +65,15 @@ internal fun SceneOffsetPropertyEditor(
 private fun CenterButton(
     value: ScenePixel,
     onValueChanged: (ScenePixel) -> Unit,
-    shouldShowCenterButton: Boolean,
     range: ClosedFloatingPointRange<Float>?,
 ) {
-    if (shouldShowCenterButton && range != null) {
+    if (range != null) {
         val center = (range.endInclusive - range.start).scenePixel / 2
         EditorIcon(
             drawableResource = Res.drawable.ic_center,
             contentDescription = "Center",
             isEnabled = value != center,
-            onClick = {
-                onValueChanged(center)
-            }
+            onClick = { onValueChanged(center) }
         )
     }
 }

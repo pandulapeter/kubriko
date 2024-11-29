@@ -1,12 +1,12 @@
 package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 
@@ -18,18 +18,18 @@ internal fun EditorTextInput(
     onValueChanged: (String) -> Unit,
     enabled: Boolean = true,
     extraContent: (@Composable () -> Unit)? = null,
-) = Row(
-    modifier = modifier,
+) = Column(
+    modifier = Modifier.fillMaxWidth(),
 ) {
-    Column(
-        modifier = Modifier.weight(1f),
+    EditorTextLabel(
+        text = title,
+    )
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        EditorTextLabel(
-            text = title,
-        )
         // TODO: Focusing this fields should take focus away from the EngineCanvas to avoid navigation using the arrow keys.
         BasicTextField(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.weight(1f),
             value = value,
             enabled = enabled,
             onValueChange = onValueChanged,
@@ -38,10 +38,8 @@ internal fun EditorTextInput(
             textStyle = MaterialTheme.typography.bodySmall.copy(
                 color = MaterialTheme.colorScheme.onSurface,
             ),
-            decorationBox = { innerTextField ->
-                innerTextField()
-            }
+            decorationBox = { innerTextField -> innerTextField() }
         )
+        extraContent?.invoke()
     }
-    extraContent?.invoke()
 }
