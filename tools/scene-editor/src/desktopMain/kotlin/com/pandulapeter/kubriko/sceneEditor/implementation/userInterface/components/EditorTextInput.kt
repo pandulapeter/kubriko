@@ -21,7 +21,7 @@ internal fun EditorTextInput(
     enabled: Boolean = true,
     extraContent: (@Composable () -> Unit)? = null,
 ) = Column(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = modifier,
 ) {
     EditorTextLabel(
         text = title,

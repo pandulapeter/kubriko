@@ -18,9 +18,9 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.compone
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorRadioButton
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorSurface
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorTextTitle
-import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ColorEditorMode
-import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.RotationEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.createBodyPropertyEditor
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.ColorEditorMode
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.AngleEditorMode
 import kubriko.tools.scene_editor.generated.resources.Res
 import kubriko.tools.scene_editor.generated.resources.ic_close
 import kubriko.tools.scene_editor.generated.resources.ic_delete
@@ -42,9 +42,7 @@ internal fun InstanceManagerColumn(
     deleteSelectedInstance: () -> Unit,
     notifySelectedInstanceUpdate: () -> Unit,
     colorEditorMode: ColorEditorMode,
-    onColorEditorModeChanged: (ColorEditorMode) -> Unit,
-    rotationEditorMode: RotationEditorMode,
-    onRotationEditorModeChanged: (RotationEditorMode) -> Unit,
+    angleEditorMode: AngleEditorMode,
 ) = EditorSurface(
     modifier = modifier,
 ) {
@@ -82,9 +80,7 @@ internal fun InstanceManagerColumn(
                             actor = selectedInstance,
                             notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
                             colorEditorMode = colorEditorMode,
-                            onColorEditorModeChanged = onColorEditorModeChanged,
-                            rotationEditorMode = rotationEditorMode,
-                            onRotationEditorModeChanged = onRotationEditorModeChanged,
+                            angleEditorMode = angleEditorMode,
                         )
                     }
                     .let { controls ->
@@ -94,8 +90,7 @@ internal fun InstanceManagerColumn(
                                 element = createBodyPropertyEditor(
                                     getActor = { selectedInstance },
                                     notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
-                                    rotationEditorMode = rotationEditorMode,
-                                    onRotationEditorModeChanged = onRotationEditorModeChanged,
+                                    angleEditorMode = angleEditorMode,
                                 )
                             )
                         }

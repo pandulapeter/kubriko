@@ -2,7 +2,6 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -13,6 +12,7 @@ import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorText
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.AngleEditorMode
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
@@ -20,15 +20,13 @@ import kotlin.reflect.full.memberProperties
 internal fun createBodyPropertyEditor(
     getActor: () -> Positionable,
     notifySelectedInstanceUpdate: () -> Unit,
-    rotationEditorMode: RotationEditorMode,
-    onRotationEditorModeChanged: (RotationEditorMode) -> Unit,
+    angleEditorMode: AngleEditorMode,
 ): @Composable () -> Unit {
     return {
         BodyPropertyEditor(
             getActor = getActor,
             notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
-            rotationEditorMode = rotationEditorMode,
-            onRotationEditorModeChanged = onRotationEditorModeChanged,
+            angleEditorMode = angleEditorMode,
         )
     }
 }
@@ -37,11 +35,10 @@ internal fun createBodyPropertyEditor(
 internal fun BodyPropertyEditor(
     getActor: () -> Positionable,
     notifySelectedInstanceUpdate: () -> Unit,
-    rotationEditorMode: RotationEditorMode,
-    onRotationEditorModeChanged: (RotationEditorMode) -> Unit,
+    angleEditorMode: AngleEditorMode,
 ) {
     EditorText(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
         text = "body",
         isBold = true,
     )
@@ -104,8 +101,7 @@ internal fun BodyPropertyEditor(
                 body.rotation = it
                 notifySelectedInstanceUpdate()
             },
-            rotationEditorMode = rotationEditorMode,
-            onRotationEditorModeChanged = onRotationEditorModeChanged,
+            angleEditorMode = angleEditorMode,
         )
     }
 }

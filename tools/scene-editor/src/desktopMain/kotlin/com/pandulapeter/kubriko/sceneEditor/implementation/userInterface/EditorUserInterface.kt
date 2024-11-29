@@ -41,6 +41,7 @@ internal fun EditorUserInterface(
     editorController: EditorController,
     openFilePickerForLoading: () -> Unit,
     openFilePickerForSaving: () -> Unit,
+    openSettings: () -> Unit,
 ) = KubrikoTheme {
     Scaffold(
         modifier = modifier,
@@ -106,9 +107,7 @@ internal fun EditorUserInterface(
                             deleteSelectedInstance = editorController::removeSelectedActor,
                             notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
                             colorEditorMode = editorController.colorEditorMode.collectAsState().value,
-                            onColorEditorModeChanged = editorController::onColorEditorModeChanged,
-                            rotationEditorMode = editorController.rotationEditorMode.collectAsState().value,
-                            onRotationEditorModeChanged = editorController::onRotationEditorModeChanged,
+                            angleEditorMode = editorController.angleEditorMode.collectAsState().value,
                         )
                     }
                     InstanceBrowserColumn(
@@ -136,6 +135,7 @@ internal fun EditorUserInterface(
                 onOpenIconClicked = openFilePickerForLoading,
                 onSaveIconClicked = openFilePickerForSaving,
                 onSyncIconClicked = editorController::syncScene,
+                onSettingsIconClicked = openSettings,
             )
         }
     }

@@ -15,6 +15,7 @@ import kubriko.tools.scene_editor.generated.resources.Res
 import kubriko.tools.scene_editor.generated.resources.ic_new
 import kubriko.tools.scene_editor.generated.resources.ic_open
 import kubriko.tools.scene_editor.generated.resources.ic_save
+import kubriko.tools.scene_editor.generated.resources.ic_settings
 import kubriko.tools.scene_editor.generated.resources.ic_sync
 
 // TODO: Implement confirmation dialogs for actions
@@ -27,14 +28,12 @@ internal fun FileManagerRow(
     onOpenIconClicked: () -> Unit,
     onSaveIconClicked: () -> Unit,
     onSyncIconClicked: () -> Unit,
+    onSettingsIconClicked: () -> Unit,
 ) = EditorSurface(
     modifier = modifier,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(
-            horizontal = 8.dp,
-            vertical = 4.dp,
-        ),
+        modifier = Modifier.fillMaxWidth().padding(4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -61,7 +60,13 @@ internal fun FileManagerRow(
             )
         }
         EditorText(
+            modifier = Modifier.weight(1f),
             text = currentFileName,
+        )
+        EditorIcon(
+            drawableResource = Res.drawable.ic_settings,
+            contentDescription = "Editor Settings",
+            onClick = onSettingsIconClicked,
         )
     }
 }

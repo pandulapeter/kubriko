@@ -17,6 +17,7 @@ internal fun FloatPropertyEditor(
     onValueChanged: (Float) -> Unit,
     valueRange: ClosedFloatingPointRange<Float>? = null,
     enabled: Boolean = true,
+    shouldUseHorizontalLayout: Boolean = false,
 ) = Column(
     modifier = modifier,
 ) {
@@ -27,5 +28,6 @@ internal fun FloatPropertyEditor(
         onValueChanged = onValueChanged,
         valueRange = valueRange,
         enabled = enabled,
+        shouldUseHorizontalLayout = shouldUseHorizontalLayout,
     )
 }

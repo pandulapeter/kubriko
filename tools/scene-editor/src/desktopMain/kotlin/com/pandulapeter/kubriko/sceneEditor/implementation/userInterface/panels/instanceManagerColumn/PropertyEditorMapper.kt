@@ -20,15 +20,15 @@ import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorTextTitle
-import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ColorEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ColorPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.FloatPropertyEditor
-import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.RotationEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.RotationPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ScalePropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.SceneOffsetPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ScenePixelPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.StringPropertyEditor
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.ColorEditorMode
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.AngleEditorMode
 import com.pandulapeter.kubriko.types.AngleDegrees
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
@@ -48,9 +48,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
     actor: T,
     notifySelectedInstanceUpdate: () -> Unit,
     colorEditorMode: ColorEditorMode,
-    onColorEditorModeChanged: (ColorEditorMode) -> Unit,
-    rotationEditorMode: RotationEditorMode,
-    onRotationEditorModeChanged: (RotationEditorMode) -> Unit,
+    angleEditorMode: AngleEditorMode,
 ): (@Composable () -> Unit)? = setter.findAnnotation<Exposed>()?.let { editableProperty ->
     isAccessible = true
     editableProperty.name.let { name ->
@@ -65,7 +63,6 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                             notifySelectedInstanceUpdate()
                         },
                         colorEditorMode = colorEditorMode,
-                        onColorEditorModeChanged = onColorEditorModeChanged,
                     )
                 }
             }
@@ -79,8 +76,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                             setter.call(actor, it.deg)
                             notifySelectedInstanceUpdate()
                         },
-                        rotationEditorMode = rotationEditorMode,
-                        onRotationEditorModeChanged = onRotationEditorModeChanged,
+                        angleEditorMode = angleEditorMode,
                     )
                 }
             }
@@ -94,8 +90,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                             setter.call(actor, it)
                             notifySelectedInstanceUpdate()
                         },
-                        rotationEditorMode = rotationEditorMode,
-                        onRotationEditorModeChanged = onRotationEditorModeChanged,
+                        angleEditorMode = angleEditorMode,
                     )
                 }
             }
@@ -161,7 +156,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                         onValueChanged = {
                             setter.call(actor, it)
                             notifySelectedInstanceUpdate()
-                        }
+                        },
                     )
                 }
             }

@@ -1,10 +1,14 @@
 package com.pandulapeter.kubriko.sceneEditor.implementation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.AwtWindow
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.rememberWindowState
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.StateManager
@@ -12,12 +16,12 @@ import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.EditorUserInterface
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.Settings
 import com.pandulapeter.kubriko.serialization.SerializationManager
 import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
-import java.io.FilenameFilter
 
 @Composable
 internal fun InternalSceneEditor(
@@ -29,6 +33,7 @@ internal fun InternalSceneEditor(
 ) {
     val isLoadFileChooserOpen = remember { mutableStateOf(false) }
     val isSaveFileChooserOpen = remember { mutableStateOf(false) }
+    val isSettingsOpen = remember { mutableStateOf(false) }
     val editorController = remember {
         EditorController(
             kubriko = Kubriko.newInstance(
@@ -40,7 +45,9 @@ internal fun InternalSceneEditor(
             defaultSceneFilename = defaultSceneFilename,
             defaultSceneFolderPath = defaultSceneFolderPath,
             onCloseRequest = {
-                if (!isLoadFileChooserOpen.value && !isSaveFileChooserOpen.value) {
+                if (isSettingsOpen.value) {
+                    isSettingsOpen.value = false
+                } else if (!isLoadFileChooserOpen.value && !isSaveFileChooserOpen.value) {
                     onCloseRequest()
                 }
             },
@@ -55,6 +62,7 @@ internal fun InternalSceneEditor(
             editorController = editorController,
             openFilePickerForLoading = { isLoadFileChooserOpen.value = true },
             openFilePickerForSaving = { isSaveFileChooserOpen.value = true },
+            openSettings = { isSettingsOpen.value = !isSettingsOpen.value },
         )
         if (isLoadFileChooserOpen.value) {
             FileDialog(
@@ -82,6 +90,22 @@ internal fun InternalSceneEditor(
                         editorController.saveScene("$directory/$fileName")
                     }
                 }
+            )
+        }
+    }
+    if (isSettingsOpen.value) {
+        Window(
+            onCloseRequest = { isSettingsOpen.value = false },
+            title = "Editor Settings",
+            state = rememberWindowState(
+                size = DpSize(200.dp, 200.dp),
+            )
+        ) {
+            Settings(
+                colorEditorMode = editorController.colorEditorMode.collectAsState().value,
+                onColorEditorModeChanged = editorController::onColorEditorModeChanged,
+                angleEditorMode = editorController.angleEditorMode.collectAsState().value,
+                onAngleEditorModeChanged = editorController::onAngleEditorModeChanged,
             )
         }
     }

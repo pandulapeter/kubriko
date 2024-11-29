@@ -6,6 +6,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,7 +35,7 @@ internal fun EditorSlider(
     valueRange: ClosedFloatingPointRange<Float>? = null,
     enabled: Boolean = true,
 ) = Column(
-    modifier = modifier,
+    modifier = modifier.padding(bottom = 4.dp),
 ) {
     val add = remember { mutableStateOf(0f) }
     val interactionSource = remember { MutableInteractionSource() }
