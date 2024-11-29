@@ -4,6 +4,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import com.pandulapeter.kubriko.implementation.extensions.bottomRight
+import com.pandulapeter.kubriko.implementation.extensions.clampToBounds
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
@@ -24,11 +26,12 @@ class RectangleBody(
     override var size = initialSize
         set(value) {
             field = value
+            pivot = pivot.clampToBounds(SceneOffset.Zero, value.bottomRight)
             isAxisAlignedBoundingBoxDirty = true
         }
-    override var pivot = initialPivot
+    override var pivot = initialPivot.clampToBounds(SceneOffset.Zero, size.bottomRight)
         set(value) {
-            field = value
+            field = value.clampToBounds(SceneOffset.Zero, size.bottomRight)
             isAxisAlignedBoundingBoxDirty = true
         }
     override var scale = initialScale
@@ -42,15 +45,13 @@ class RectangleBody(
             isAxisAlignedBoundingBoxDirty = true
         }
 
-    private val corners = mutableListOf<SceneOffset>()
-
-    override fun createAxisAlignedBoundingBox(): AxisAlignedBoundingBox {
-        corners.clear()
-        corners.add(transformPoint(position))
-        corners.add(transformPoint(position + SceneOffset(size.width, 0f.scenePixel)))
-        corners.add(transformPoint(position + SceneOffset(0f.scenePixel, size.height)))
-        corners.add(transformPoint(position + SceneOffset(size.width, size.height)))
-        return AxisAlignedBoundingBox(
+    override fun createAxisAlignedBoundingBox() = arrayOf(
+        transformPoint(position),
+        transformPoint(position + SceneOffset(size.width, 0f.scenePixel)),
+        transformPoint(position + SceneOffset(0f.scenePixel, size.height)),
+        transformPoint(position + SceneOffset(size.width, size.height)),
+    ).let { corners ->
+        AxisAlignedBoundingBox(
             min = SceneOffset(corners.minOf { it.x }, corners.minOf { it.y }) - pivot,
             max = SceneOffset(corners.maxOf { it.x }, corners.maxOf { it.y }) - pivot,
         )
@@ -74,14 +75,14 @@ class RectangleBody(
         )
         drawLine(
             color = color,
-            start = Offset.Zero,
-            end = Offset(size.width, size.height),
+            start = Offset(pivot.x.raw, 0f),
+            end = Offset(pivot.x.raw, size.height),
             strokeWidth = stroke.width,
         )
         drawLine(
             color = color,
-            start = Offset(0f, size.height),
-            end = Offset(size.width, 0f),
+            start = Offset(0f, pivot.y.raw),
+            end = Offset(size.width, pivot.y.raw),
             strokeWidth = stroke.width,
         )
     }

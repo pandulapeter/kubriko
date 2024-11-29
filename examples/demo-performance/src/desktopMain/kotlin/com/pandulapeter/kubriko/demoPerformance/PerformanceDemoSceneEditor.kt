@@ -8,6 +8,12 @@ import com.pandulapeter.kubriko.demoPerformance.implementation.isSceneEditorVisi
 import com.pandulapeter.kubriko.demoPerformance.implementation.sceneJson
 import com.pandulapeter.kubriko.sceneEditor.SceneEditor
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
+import com.pandulapeter.kubriko.sceneEditor.openSceneEditor
+
+fun main()  = openSceneEditor(
+    defaultSceneFilename = PerformanceDemoManager.SCENE_NAME,
+    serializationManager = PerformanceDemoKubrikoWrapper().serializationManager,
+)
 
 @Composable
 fun PerformanceDemoSceneEditor(

@@ -57,7 +57,9 @@ internal fun BodyPropertyEditor(
             onValueChanged = {
                 body.pivot = it
                 notifySelectedInstanceUpdate()
-            }
+            },
+            xValueRange = 0f..body.size.width.raw,
+            yValueRange = 0f..body.size.height.raw,
         )
         HorizontalDivider()
         if (body is RectangleBody) {

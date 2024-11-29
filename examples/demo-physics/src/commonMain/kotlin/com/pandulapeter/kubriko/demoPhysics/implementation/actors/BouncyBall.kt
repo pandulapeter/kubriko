@@ -47,24 +47,24 @@ internal class BouncyBall(
         drawCircle(
             color = Color.LightGray,
             radius = radius.raw,
-            center = body.pivot.raw,
+            center = body.size.center.raw,
         )
         drawCircle(
             color = Color.Black,
             radius = radius.raw,
-            center = body.pivot.raw,
+            center = body.size.center.raw,
             style = Stroke(),
         )
         drawLine(
             color = Color.Black,
-            start = Offset(body.pivot.raw.x - radius.raw, body.pivot.raw.y),
-            end = Offset(body.pivot.raw.x + radius.raw, body.pivot.raw.y),
+            start = Offset(0f, body.radius.raw),
+            end = Offset(body.size.width.raw, body.radius.raw),
             strokeWidth = 2f,
         )
         drawLine(
             color = Color.Black,
-            start = Offset(body.pivot.raw.x, body.pivot.raw.y - radius.raw),
-            end = Offset(body.pivot.raw.x, body.pivot.raw.y + radius.raw),
+            start = Offset(body.radius.raw, 0f),
+            end = Offset(body.radius.raw, body.size.height.raw),
             strokeWidth = 2f,
         )
     }

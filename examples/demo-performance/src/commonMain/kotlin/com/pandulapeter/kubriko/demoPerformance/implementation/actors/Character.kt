@@ -92,7 +92,7 @@ class Character private constructor(state: State) : Unique, Dynamic, Visible, Ke
     override fun DrawScope.draw() = drawCircle(
         color = lerp(Color.Red, Color.Green, ((1f + MAX_SIZE_MULTIPLIER) - sizeMultiplier) / MAX_SIZE_MULTIPLIER),
         radius = body.radius.raw,
-        center = body.pivot.raw,
+        center = body.size.center.raw,
     )
 
     override fun save() = State(position = body.position)

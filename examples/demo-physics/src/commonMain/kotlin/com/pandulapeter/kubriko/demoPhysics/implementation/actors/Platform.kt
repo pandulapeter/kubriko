@@ -15,16 +15,16 @@ import com.pandulapeter.kubriko.types.SceneSize
 
 internal class Platform(
     initialPosition: SceneOffset,
-    boundingBox: SceneSize,
+    size: SceneSize,
 ) : RigidBody, Dynamic {
     override val physicsBody = Body(
-        Polygon(boundingBox.width.raw / 2f, boundingBox.height.raw / 2f),
+        Polygon(size.width.raw / 2f, size.height.raw / 2f),
         initialPosition.x.raw,
         initialPosition.y.raw,
     ).apply { density = 0f }
     override val body = RectangleBody(
         initialPosition = initialPosition,
-        initialSize = boundingBox,
+        initialSize = size,
     )
 
     override fun update(deltaTimeInMillis: Float) {

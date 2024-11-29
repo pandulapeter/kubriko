@@ -32,26 +32,26 @@ fun PhysicsDemo(
         )
     }
     val selectedDemoType = physicsDemoManager.demoType.collectAsState()
-    DebugMenu(
-        modifier = modifier,
-        kubriko = kubriko,
+    Column(
+        modifier = Modifier.fillMaxSize(),
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
+        TabRow(
+            modifier = Modifier.fillMaxWidth(),
+            selectedTabIndex = selectedDemoType.value.ordinal,
         ) {
-            TabRow(
-                modifier = Modifier.fillMaxWidth(),
-                selectedTabIndex = selectedDemoType.value.ordinal,
-            ) {
-                PhysicsDemoType.entries.forEach { demoType ->
-                    Tab(
-                        modifier = Modifier.height(42.dp),
-                        text = { Text(stringResource(demoType.nameStringResource)) },
-                        selected = demoType == selectedDemoType.value,
-                        onClick = { physicsDemoManager.setSelectedDemoType(demoType) }
-                    )
-                }
+            PhysicsDemoType.entries.forEach { demoType ->
+                Tab(
+                    modifier = Modifier.height(42.dp),
+                    text = { Text(stringResource(demoType.nameStringResource)) },
+                    selected = demoType == selectedDemoType.value,
+                    onClick = { physicsDemoManager.setSelectedDemoType(demoType) }
+                )
             }
+        }
+        DebugMenu(
+            modifier = modifier,
+            kubriko = kubriko,
+        ) {
             KubrikoViewport(
                 modifier = Modifier.fillMaxSize(),
                 kubriko = kubriko,

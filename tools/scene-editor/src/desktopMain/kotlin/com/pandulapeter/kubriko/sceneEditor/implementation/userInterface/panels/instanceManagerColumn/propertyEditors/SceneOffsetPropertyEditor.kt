@@ -16,6 +16,8 @@ internal fun SceneOffsetPropertyEditor(
     name: String,
     value: SceneOffset,
     onValueChanged: (SceneOffset) -> Unit,
+    xValueRange: ClosedFloatingPointRange<Float>? = null,
+    yValueRange: ClosedFloatingPointRange<Float>? = null,
 ) = Row(
     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -25,11 +27,13 @@ internal fun SceneOffsetPropertyEditor(
         name = "$name.x",
         value = value.x.raw,
         onValueChanged = { onValueChanged(SceneOffset(it.scenePixel, value.y)) },
+        valueRange = xValueRange,
     )
     EditorNumberInput(
         modifier = Modifier.weight(1f),
         name = "$name.y",
         value = value.y.raw,
         onValueChanged = { onValueChanged(SceneOffset(value.x, it.scenePixel)) },
+        valueRange = yValueRange,
     )
 }

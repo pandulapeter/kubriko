@@ -4,6 +4,8 @@ import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import kotlin.math.atan2
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sqrt
 
 fun SceneOffset.angleTowards(offset: SceneOffset): AngleRadians = atan2((offset.y - y).raw, (offset.x - x).raw).rad
@@ -24,6 +26,11 @@ fun SceneOffset.constrainedWithin(topLeft: SceneOffset, bottomRight: SceneOffset
     }
     return offset
 }
+
+fun SceneOffset.clampToBounds(topLeft: SceneOffset, bottomRight: SceneOffset) = SceneOffset(
+    x = max(topLeft.x.raw, min(bottomRight.x.raw, x.raw)).scenePixel,
+    y = max(topLeft.y.raw, min(bottomRight.y.raw, y.raw)).scenePixel
+)
 
 fun SceneOffset.wrapWithin(topLeft: SceneOffset, bottomRight: SceneOffset): SceneOffset {
     var offset = this

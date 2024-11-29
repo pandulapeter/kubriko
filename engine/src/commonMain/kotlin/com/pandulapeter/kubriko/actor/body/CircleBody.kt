@@ -1,9 +1,12 @@
 package com.pandulapeter.kubriko.actor.body
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import com.pandulapeter.kubriko.implementation.extensions.bottomRight
+import com.pandulapeter.kubriko.implementation.extensions.clampToBounds
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
@@ -26,13 +29,13 @@ class CircleBody(
     var radius = initialRadius
         set(value) {
             field = value
-            pivot = size.center
+            pivot = pivot.clampToBounds(SceneOffset.Zero, size.bottomRight)
             isAxisAlignedBoundingBoxDirty = true
         }
     override val size get() = SceneSize(radius * 2, radius * 2)
-    override var pivot = initialPivot
+    override var pivot = initialPivot.clampToBounds(SceneOffset.Zero, size.bottomRight)
         set(value) {
-            field = value
+            field = value.clampToBounds(SceneOffset.Zero, size.bottomRight)
             isAxisAlignedBoundingBoxDirty = true
         }
     override var scale = initialScale
@@ -81,23 +84,23 @@ class CircleBody(
         }
     }
 
-    override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) {
+    override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = this@CircleBody.size.raw.let { size ->
         drawCircle(
             color = color,
             radius = radius.raw,
-            center = pivot.raw,
+            center = size.center,
             style = stroke,
         )
         drawLine(
             color = color,
-            start = Offset(pivot.raw.x - radius.raw, pivot.raw.y),
-            end = Offset(pivot.raw.x + radius.raw, pivot.raw.y),
+            start = Offset(pivot.x.raw, 0f),
+            end = Offset(pivot.x.raw, size.height),
             strokeWidth = stroke.width,
         )
         drawLine(
             color = color,
-            start = Offset(pivot.raw.x, pivot.raw.y - radius.raw),
-            end = Offset(pivot.raw.x, pivot.raw.y + radius.raw),
+            start = Offset(0f, pivot.y.raw),
+            end = Offset(size.width, pivot.y.raw),
             strokeWidth = stroke.width,
         )
     }

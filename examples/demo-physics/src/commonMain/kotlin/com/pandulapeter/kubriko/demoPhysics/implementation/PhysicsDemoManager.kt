@@ -45,7 +45,7 @@ internal class PhysicsDemoManager : Manager() {
             )
         } + Platform(
             initialPosition = SceneOffset(0f.scenePixel, 350f.scenePixel),
-            boundingBox = SceneSize(800f.scenePixel, 40f.scenePixel),
+            size = SceneSize(800f.scenePixel, 40f.scenePixel),
         ))
 
         PhysicsDemoType.JOINTS -> emptyList()
