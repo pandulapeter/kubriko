@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.implementation.extensions.bottomRight
-import com.pandulapeter.kubriko.implementation.extensions.clampToBounds
+import com.pandulapeter.kubriko.implementation.extensions.clamp
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
@@ -26,12 +26,12 @@ class RectangleBody(
     override var size = initialSize
         set(value) {
             field = value
-            pivot = pivot.clampToBounds(SceneOffset.Zero, value.bottomRight)
+            pivot = pivot.clamp(min = SceneOffset.Zero, max = value.bottomRight)
             isAxisAlignedBoundingBoxDirty = true
         }
-    override var pivot = initialPivot.clampToBounds(SceneOffset.Zero, size.bottomRight)
+    override var pivot = initialPivot.clamp(min = SceneOffset.Zero, max = size.bottomRight)
         set(value) {
-            field = value.clampToBounds(SceneOffset.Zero, size.bottomRight)
+            field = value.clamp(min = SceneOffset.Zero, max = size.bottomRight)
             isAxisAlignedBoundingBoxDirty = true
         }
     override var scale = initialScale

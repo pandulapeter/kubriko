@@ -6,7 +6,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.implementation.extensions.bottomRight
-import com.pandulapeter.kubriko.implementation.extensions.clampToBounds
+import com.pandulapeter.kubriko.implementation.extensions.clamp
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
@@ -26,16 +26,16 @@ class CircleBody(
 ) : PointBody(
     initialPosition = initialPosition,
 ), ComplexBody {
-    var radius = initialRadius
+    var radius = initialRadius.clamp(min = ScenePixel.Zero)
         set(value) {
-            field = value
-            pivot = pivot.clampToBounds(SceneOffset.Zero, size.bottomRight)
+            field = value.clamp(min = ScenePixel.Zero)
+            pivot = pivot.clamp(min = SceneOffset.Zero, max = size.bottomRight)
             isAxisAlignedBoundingBoxDirty = true
         }
     override val size get() = SceneSize(radius * 2, radius * 2)
-    override var pivot = initialPivot.clampToBounds(SceneOffset.Zero, size.bottomRight)
+    override var pivot = initialPivot.clamp(SceneOffset.Zero, size.bottomRight)
         set(value) {
-            field = value.clampToBounds(SceneOffset.Zero, size.bottomRight)
+            field = value.clamp(SceneOffset.Zero, size.bottomRight)
             isAxisAlignedBoundingBoxDirty = true
         }
     override var scale = initialScale

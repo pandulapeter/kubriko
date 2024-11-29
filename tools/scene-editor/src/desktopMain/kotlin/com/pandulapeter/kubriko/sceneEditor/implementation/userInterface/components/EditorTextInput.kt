@@ -2,6 +2,7 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.compon
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.MaterialTheme
@@ -16,25 +17,31 @@ internal fun EditorTextInput(
     value: String,
     onValueChanged: (String) -> Unit,
     enabled: Boolean = true,
-) = Column(
+    extraContent: (@Composable () -> Unit)? = null,
+) = Row(
     modifier = modifier,
 ) {
-    EditorTextLabel(
-        text = title,
-    )
-    // TODO: Focusing this fields should take focus away from the EngineCanvas to avoid navigation using the arrow keys.
-    BasicTextField(
-        modifier = Modifier.fillMaxWidth(),
-        value = value,
-        enabled = enabled,
-        onValueChange = onValueChanged,
-        singleLine = true,
-        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-        textStyle = MaterialTheme.typography.bodySmall.copy(
-            color = MaterialTheme.colorScheme.onSurface,
-        ),
-        decorationBox = { innerTextField ->
-            innerTextField()
-        }
-    )
+    Column(
+        modifier = Modifier.weight(1f),
+    ) {
+        EditorTextLabel(
+            text = title,
+        )
+        // TODO: Focusing this fields should take focus away from the EngineCanvas to avoid navigation using the arrow keys.
+        BasicTextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = value,
+            enabled = enabled,
+            onValueChange = onValueChanged,
+            singleLine = true,
+            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+            textStyle = MaterialTheme.typography.bodySmall.copy(
+                color = MaterialTheme.colorScheme.onSurface,
+            ),
+            decorationBox = { innerTextField ->
+                innerTextField()
+            }
+        )
+    }
+    extraContent?.invoke()
 }

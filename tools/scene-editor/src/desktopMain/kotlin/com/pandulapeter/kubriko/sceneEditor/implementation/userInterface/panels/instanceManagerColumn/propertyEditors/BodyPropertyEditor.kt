@@ -2,15 +2,14 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels
 
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.actor.body.Body
 import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.body.ComplexBody
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Positionable
-import com.pandulapeter.kubriko.implementation.extensions.deg
-import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorButton
+import com.pandulapeter.kubriko.types.Scale
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
@@ -60,6 +59,7 @@ internal fun BodyPropertyEditor(
             },
             xValueRange = 0f..body.size.width.raw,
             yValueRange = 0f..body.size.height.raw,
+            shouldShowCenterButton = true,
         )
         HorizontalDivider()
         if (body is RectangleBody) {
@@ -90,6 +90,13 @@ internal fun BodyPropertyEditor(
                 body.scale = it
                 notifySelectedInstanceUpdate()
             },
+        )
+        EditorButton(
+            text = "Set to unit",
+            onClick = {
+                body.scale = Scale.Unit
+                notifySelectedInstanceUpdate()
+            }
         )
         HorizontalDivider()
         RotationPropertyEditor(

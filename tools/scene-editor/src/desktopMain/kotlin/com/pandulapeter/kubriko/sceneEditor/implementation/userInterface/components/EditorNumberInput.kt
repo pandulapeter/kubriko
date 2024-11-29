@@ -15,6 +15,7 @@ internal fun EditorNumberInput(
     onValueChanged: (Float) -> Unit,
     valueRange: ClosedFloatingPointRange<Float>? = null,
     enabled: Boolean = true,
+    extraContent: (@Composable () -> Unit)? = null,
 ) {
     Column(
         modifier = modifier,
@@ -28,6 +29,7 @@ internal fun EditorNumberInput(
                 }
             },
             enabled = enabled,
+            extraContent = extraContent,
         )
         EditorSlider(
             value = value,

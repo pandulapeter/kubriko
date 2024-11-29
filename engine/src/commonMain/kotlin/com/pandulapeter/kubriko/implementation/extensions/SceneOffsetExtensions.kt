@@ -27,9 +27,12 @@ fun SceneOffset.constrainedWithin(topLeft: SceneOffset, bottomRight: SceneOffset
     return offset
 }
 
-fun SceneOffset.clampToBounds(topLeft: SceneOffset, bottomRight: SceneOffset) = SceneOffset(
-    x = max(topLeft.x.raw, min(bottomRight.x.raw, x.raw)).scenePixel,
-    y = max(topLeft.y.raw, min(bottomRight.y.raw, y.raw)).scenePixel
+fun SceneOffset.clamp(
+    min: SceneOffset? = null,
+    max: SceneOffset? = null,
+) = SceneOffset(
+    x = max((min ?: this).x.raw, min((max ?: this).x.raw, x.raw)).scenePixel,
+    y = max((min ?: this).y.raw, min((max ?: this).y.raw, y.raw)).scenePixel
 )
 
 fun SceneOffset.wrapWithin(topLeft: SceneOffset, bottomRight: SceneOffset): SceneOffset {
