@@ -18,7 +18,7 @@ internal fun FloatPropertyEditor(
     valueRange: ClosedFloatingPointRange<Float>? = null,
     enabled: Boolean = true,
 ) = Column(
-    modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp)
+    modifier = modifier,
 ) {
     EditorNumberInput(
         name = name,

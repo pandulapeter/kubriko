@@ -129,6 +129,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
             Float::class.createType() -> {
                 {
                     FloatPropertyEditor(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
                         name = name,
                         value = getter.call(actor) as Float,
                         onValueChanged = {

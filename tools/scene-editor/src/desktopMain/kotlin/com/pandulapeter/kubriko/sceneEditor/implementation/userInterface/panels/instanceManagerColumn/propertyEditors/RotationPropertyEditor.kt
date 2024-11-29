@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,7 +29,7 @@ internal fun RotationPropertyEditor(
 ) {
     when (rotationEditorMode) {
         RotationEditorMode.DEGREES -> FloatPropertyEditor(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
             name = name,
             suffix = "°",
             value = value.deg.normalized,
@@ -37,7 +38,7 @@ internal fun RotationPropertyEditor(
         )
 
         RotationEditorMode.RADIANS -> FloatPropertyEditor(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
             name = name,
             value = value.normalized,
             onValueChanged = { onValueChanged(it.rad) },
