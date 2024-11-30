@@ -20,17 +20,17 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 
 internal class BouncyBall(
-    initialPosition: SceneOffset,
+    initialOffset: SceneOffset,
     private val radius: ScenePixel,
 ) : RigidBody, Dynamic {
     override val body = CircleBody(
         initialRadius = radius,
-        initialPosition = initialPosition,
+        initialPosition = initialOffset,
     )
     override val physicsBody = Body(
         shape = Circle(radius.raw),
-        x = initialPosition.x.raw,
-        y = initialPosition.y.raw
+        x = initialOffset.x.raw,
+        y = initialOffset.y.raw
     )
     private lateinit var viewportManager: ViewportManager
 

@@ -15,17 +15,17 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 
 internal class StaticBall(
-    initialPosition: SceneOffset,
+    initialOffset: SceneOffset,
     private val radius: ScenePixel,
 ) : RigidBody {
     override val body = CircleBody(
         initialRadius = radius,
-        initialPosition = initialPosition,
+        initialPosition = initialOffset,
     )
     override val physicsBody = Body(
         shape = Circle(radius.raw),
-        x = initialPosition.x.raw,
-        y = initialPosition.y.raw
+        x = initialOffset.x.raw,
+        y = initialOffset.y.raw
     ).apply { density = 0f }
     private lateinit var viewportManager: ViewportManager
 

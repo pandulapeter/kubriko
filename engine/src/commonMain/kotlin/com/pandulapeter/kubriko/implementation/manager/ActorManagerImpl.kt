@@ -3,6 +3,7 @@ package com.pandulapeter.kubriko.implementation.manager
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.traits.Dynamic
+import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.Identifiable
 import com.pandulapeter.kubriko.actor.traits.LayerAware
 import com.pandulapeter.kubriko.actor.traits.Overlay
@@ -80,20 +81,27 @@ internal class ActorManagerImpl(
         }
     }
 
+    private fun flattenActors(actors: List<Actor>): List<Actor> = actors.flatMap { actor ->
+        if (actor is Group) flattenActors(actor.actors) + actor
+        else listOf(actor)
+    }
+
     @OptIn(ExperimentalUuidApi::class)
     override fun add(vararg actors: Actor) = _allActors.update { currentActors ->
-        val uniqueNewActorTypes = actors.filterIsInstance<Unique>().map { it::class }.toSet()
+        val newActors = flattenActors(actors.toList())
+        val uniqueNewActorTypes = newActors.filterIsInstance<Unique>().map { it::class }.toSet()
         val filteredCurrentActors = currentActors.filterNot { it::class in uniqueNewActorTypes }
-        actors.filterIsInstance<Identifiable>().onEach { if (it.name == null) it.name = Uuid.random().toString() }
-        actors.forEach { it.onAdded(scope as Kubriko) }
-        (filteredCurrentActors + actors).toImmutableList()
+        newActors.filterIsInstance<Identifiable>().onEach { if (it.name == null) it.name = Uuid.random().toString() }
+        newActors.forEach { it.onAdded(scope as Kubriko) }
+        (filteredCurrentActors + newActors).toImmutableList()
     }
 
     override fun remove(vararg actors: Actor) {
+        val flattenedActors = flattenActors(actors.toList())
         _allActors.update { currentActors ->
-            currentActors.filterNot { it in actors }.toImmutableList()
+            currentActors.filterNot { it in flattenedActors }.toImmutableList()
         }
-        actors.forEach { it.onRemoved() }
+        flattenedActors.forEach { it.onRemoved() }
     }
 
     override fun remove(actors: Collection<Actor>) = remove(actors = actors.toTypedArray())

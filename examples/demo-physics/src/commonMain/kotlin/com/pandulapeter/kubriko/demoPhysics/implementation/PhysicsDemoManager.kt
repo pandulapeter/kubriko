@@ -3,17 +3,15 @@ package com.pandulapeter.kubriko.demoPhysics.implementation
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.BouncyBall
-import com.pandulapeter.kubriko.demoPhysics.implementation.actors.ChainLink
+import com.pandulapeter.kubriko.demoPhysics.implementation.actors.Chain
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.Platform
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticBall
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
-import com.pandulapeter.kubriko.physics.JointWrapper
-import com.pandulapeter.kubriko.physics.implementation.physics.joints.JointToBody
-import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,8 +40,8 @@ internal class PhysicsDemoManager : Manager() {
     private fun PhysicsDemoType.createActors(): Array<Actor> = when (this) {
         PhysicsDemoType.RIGID_BODY_COLLISIONS -> ((0..40).map {
             BouncyBall(
-                radius = (10..50).random().toFloat().scenePixel,
-                initialPosition = SceneOffset(
+                radius = (30..60).random().toFloat().scenePixel,
+                initialOffset = SceneOffset(
                     x = (-500..500).random().toFloat().scenePixel,
                     y = (-800..0).random().toFloat().scenePixel,
                 ),
@@ -53,31 +51,14 @@ internal class PhysicsDemoManager : Manager() {
             size = SceneSize(800f.scenePixel, 40f.scenePixel),
         ))
 
-        PhysicsDemoType.CHAINS -> (0..20).map { linkIndex ->
-            ChainLink(
-                initialPosition = SceneOffset(
-                    x = (400 - (40 * linkIndex)).scenePixel,
-                    y = (-200).scenePixel,
-                )
+        PhysicsDemoType.CHAINS -> listOf(
+            Chain(
+                initialCenterOffset = SceneOffset(ScenePixel.Zero, (-200f).scenePixel),
+            ),
+            StaticBall(
+                initialOffset = SceneOffset.Zero,
+                radius = 60.scenePixel,
             )
-        }.let { chainLinks ->
-            chainLinks + chainLinks.mapIndexedNotNull { index, chainLink ->
-                if (index > 0) JointWrapper(
-                    physicsJoint = JointToBody(
-                        body1 = chainLinks[index - 1].physicsBody,
-                        body2 = chainLink.physicsBody,
-                        jointLength = 10f,
-                        jointConstant = 200f,
-                        dampening = 10f,
-                        canGoSlack = true,
-                        offset1 = Vec2(-10f, 0f),
-                        offset2 = Vec2(10f, 0f),
-                    )
-                ) else null
-            }
-        } + StaticBall(
-            initialPosition = SceneOffset.Zero,
-            radius = 60.scenePixel,
         )
     }.toTypedArray()
 }
