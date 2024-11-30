@@ -9,6 +9,7 @@ kotlin {
             api(projects.engine)
             api(projects.plugins.serialization)
             implementation(projects.plugins.keyboardInput)
+            implementation(projects.tools.debugMenu)
             implementation(compose.components.resources)
         }
         val desktopMain by getting {

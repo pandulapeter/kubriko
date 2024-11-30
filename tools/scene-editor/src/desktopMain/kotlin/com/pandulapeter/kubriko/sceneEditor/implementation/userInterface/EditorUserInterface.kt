@@ -18,6 +18,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
+import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseClick
@@ -65,31 +66,35 @@ internal fun EditorUserInterface(
                         Box(
                             modifier = Modifier.weight(1f),
                         ) {
-                            KubrikoViewport(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .handleMouseClick(
-                                        getSelectedActor = editorController::getSelectedActor,
-                                        getMouseSceneOffset = editorController::getMouseWorldCoordinates,
-                                        onLeftClick = editorController::onLeftClick,
-                                        onRightClick = editorController::onRightClick,
-                                    )
-                                    .handleMouseMove(
-                                        onMouseMove = editorController::onMouseMove,
-                                    )
-                                    .handleMouseZoom(
-                                        viewportManager = editorController.viewportManager,
-                                    )
-                                    .handleMouseDrag(
-                                        keyboardInputManager = editorController.keyboardInputManager,
-                                        viewportManager = editorController.viewportManager,
-                                        getSelectedActor = editorController::getSelectedActor,
-                                        getMouseSceneOffset = editorController::getMouseWorldCoordinates,
-                                        notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
-                                    )
-                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                            DebugMenu(
                                 kubriko = editorController.kubriko,
-                            )
+                            ) {
+                                KubrikoViewport(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .handleMouseClick(
+                                            getSelectedActor = editorController::getSelectedActor,
+                                            getMouseSceneOffset = editorController::getMouseWorldCoordinates,
+                                            onLeftClick = editorController::onLeftClick,
+                                            onRightClick = editorController::onRightClick,
+                                        )
+                                        .handleMouseMove(
+                                            onMouseMove = editorController::onMouseMove,
+                                        )
+                                        .handleMouseZoom(
+                                            viewportManager = editorController.viewportManager,
+                                        )
+                                        .handleMouseDrag(
+                                            keyboardInputManager = editorController.keyboardInputManager,
+                                            viewportManager = editorController.viewportManager,
+                                            getSelectedActor = editorController::getSelectedActor,
+                                            getMouseSceneOffset = editorController::getMouseWorldCoordinates,
+                                            notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
+                                        )
+                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                                    kubriko = editorController.kubriko,
+                                )
+                            }
                             EditorOverlay(
                                 modifier = Modifier.fillMaxSize(),
                                 editorController = editorController,
