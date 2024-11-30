@@ -48,6 +48,7 @@ internal fun EditorNumberInput(
                     modifier = Modifier.weight(2f),
                     value = value,
                     onValueChanged = onValueChanged,
+                    enabled = enabled,
                     valueRange = valueRange,
                 )
             }
@@ -56,6 +57,7 @@ internal fun EditorNumberInput(
             EditorSlider(
                 value = value,
                 onValueChanged = onValueChanged,
+                enabled = enabled,
                 valueRange = valueRange,
             )
         }
