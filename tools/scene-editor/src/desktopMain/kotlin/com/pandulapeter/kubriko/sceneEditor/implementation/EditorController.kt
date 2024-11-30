@@ -14,6 +14,7 @@ import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.GridOverlay
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.KeyboardInputListener
+import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.UserPreferences
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.saveFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.AngleEditorMode
@@ -27,7 +28,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -45,6 +48,7 @@ internal class EditorController(
     val viewportManager = kubriko.require<ViewportManager>()
     val keyboardInputManager = kubriko.require<KeyboardInputManager>()
     val serializationManager = kubriko.require<SerializationManager<EditableMetadata<*>, Editable<*>>>()
+    private val userPreferences = UserPreferences()
     private val editorActors = listOf(
         GridOverlay(viewportManager),
         KeyboardInputListener(viewportManager, ::navigateBack),
@@ -81,11 +85,11 @@ internal class EditorController(
     }.stateIn(this, SharingStarted.Eagerly, null to false)
     private val _selectedTypeId = MutableStateFlow<String?>(null)
     val selectedTypeId = _selectedTypeId.asStateFlow()
-    private val _colorEditorMode = MutableStateFlow(ColorEditorMode.HSV) // TODO: Should be persisted
+    private val _colorEditorMode = MutableStateFlow(userPreferences.colorEditorMode)
     val colorEditorMode = _colorEditorMode.asStateFlow()
-    private val _angleEditorMode = MutableStateFlow(AngleEditorMode.DEGREES) // TODO: Should be persisted
+    private val _angleEditorMode = MutableStateFlow(userPreferences.angleEditorMode)
     val angleEditorMode = _angleEditorMode.asStateFlow()
-    private val _isDebugMenuEnabled = MutableStateFlow(false) // TODO: Should be persisted
+    private val _isDebugMenuEnabled = MutableStateFlow(userPreferences.isDebugMenuEnabled)
     val isDebugMenuEnabled = _isDebugMenuEnabled.asStateFlow()
     private val _currentFolderPath = MutableStateFlow(defaultSceneFolderPath)
     val currentFolderPath = _currentFolderPath.asStateFlow()
@@ -106,6 +110,9 @@ internal class EditorController(
                 )
             }
         }
+        colorEditorMode.onEach { userPreferences.colorEditorMode = it }.launchIn(this)
+        angleEditorMode.onEach { userPreferences.angleEditorMode = it }.launchIn(this)
+        isDebugMenuEnabled.onEach { userPreferences.isDebugMenuEnabled = it }.launchIn(this)
     }
 
     fun onShouldShowVisibleOnlyToggled() = _shouldShowVisibleOnly.update { currentValue ->
