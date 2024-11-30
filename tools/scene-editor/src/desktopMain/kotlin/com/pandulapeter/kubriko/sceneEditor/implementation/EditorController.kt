@@ -16,8 +16,8 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.actors.GridOverlay
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.KeyboardInputListener
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.saveFile
-import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.ColorEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.AngleEditorMode
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.ColorEditorMode
 import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.CoroutineScope
@@ -81,10 +81,12 @@ internal class EditorController(
     }.stateIn(this, SharingStarted.Eagerly, null to false)
     private val _selectedTypeId = MutableStateFlow<String?>(null)
     val selectedTypeId = _selectedTypeId.asStateFlow()
-    private val _colorEditorMode = MutableStateFlow(ColorEditorMode.HSV)
+    private val _colorEditorMode = MutableStateFlow(ColorEditorMode.HSV) // TODO: Should be persisted
     val colorEditorMode = _colorEditorMode.asStateFlow()
-    private val _angleEditorMode = MutableStateFlow(AngleEditorMode.DEGREES)
+    private val _angleEditorMode = MutableStateFlow(AngleEditorMode.DEGREES) // TODO: Should be persisted
     val angleEditorMode = _angleEditorMode.asStateFlow()
+    private val _isDebugMenuEnabled = MutableStateFlow(false) // TODO: Should be persisted
+    val isDebugMenuEnabled = _isDebugMenuEnabled.asStateFlow()
     private val _currentFolderPath = MutableStateFlow(defaultSceneFolderPath)
     val currentFolderPath = _currentFolderPath.asStateFlow()
     private val _currentFileName = MutableStateFlow(defaultSceneFilename ?: DEFAULT_SCENE_FILE_NAME)
@@ -177,6 +179,8 @@ internal class EditorController(
     fun onColorEditorModeChanged(colorEditorMode: ColorEditorMode) = _colorEditorMode.update { colorEditorMode }
 
     fun onAngleEditorModeChanged(angleEditorMode: AngleEditorMode) = _angleEditorMode.update { angleEditorMode }
+
+    fun onIsDebugMenuEnabledChanged(isDebugMenuEnabled: Boolean) = _isDebugMenuEnabled.update { isDebugMenuEnabled }
 
     fun selectActor(typeId: String) = _selectedTypeId.update { typeId }
 

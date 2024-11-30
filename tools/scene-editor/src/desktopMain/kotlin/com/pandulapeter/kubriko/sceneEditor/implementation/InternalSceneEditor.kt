@@ -98,14 +98,17 @@ internal fun InternalSceneEditor(
             onCloseRequest = { isSettingsOpen.value = false },
             title = "Editor Settings",
             state = rememberWindowState(
-                size = DpSize(200.dp, 200.dp),
+                size = DpSize(200.dp, 250.dp),
             )
         ) {
+            window.minimumSize = Dimension(200, 250)
             Settings(
                 colorEditorMode = editorController.colorEditorMode.collectAsState().value,
                 onColorEditorModeChanged = editorController::onColorEditorModeChanged,
                 angleEditorMode = editorController.angleEditorMode.collectAsState().value,
                 onAngleEditorModeChanged = editorController::onAngleEditorModeChanged,
+                isDebutMenuEnabled = editorController.isDebugMenuEnabled.collectAsState().value,
+                onIsDebutMenuEnabledChanged = editorController::onIsDebugMenuEnabledChanged,
             )
         }
     }

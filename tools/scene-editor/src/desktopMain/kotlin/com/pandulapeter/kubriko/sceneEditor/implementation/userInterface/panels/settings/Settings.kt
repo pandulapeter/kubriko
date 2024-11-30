@@ -1,7 +1,8 @@
 package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -17,6 +18,8 @@ internal fun Settings(
     onColorEditorModeChanged: (ColorEditorMode) -> Unit,
     angleEditorMode: AngleEditorMode,
     onAngleEditorModeChanged: (AngleEditorMode) -> Unit,
+    isDebutMenuEnabled: Boolean,
+    onIsDebutMenuEnabledChanged: (Boolean) -> Unit,
 ) = KubrikoTheme {
     Scaffold(
         modifier = modifier,
@@ -25,23 +28,30 @@ internal fun Settings(
             modifier = Modifier
                 .padding(paddingValues)
                 .padding(vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             EditorText(
                 modifier = Modifier.padding(horizontal = 8.dp),
                 text = "Color controls",
             )
+            Spacer(modifier = Modifier.height(8.dp))
             ColorSettings(
                 colorEditorMode = colorEditorMode,
                 onColorEditorModeChanged = onColorEditorModeChanged,
             )
+            Spacer(modifier = Modifier.height(8.dp))
             EditorText(
                 modifier = Modifier.padding(horizontal = 8.dp),
                 text = "Angle controls",
             )
+            Spacer(modifier = Modifier.height(8.dp))
             AngleSettings(
                 angleEditorMode = angleEditorMode,
                 onAngleEditorModeChanged = onAngleEditorModeChanged,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            DebugMenuSettings(
+                isDebutMenuEnabled = isDebutMenuEnabled,
+                onIsDebutMenuEnabledChanged = onIsDebutMenuEnabledChanged,
             )
         }
     }
