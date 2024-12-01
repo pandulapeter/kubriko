@@ -7,13 +7,11 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.implementation.extensions.bottomRight
 import com.pandulapeter.kubriko.implementation.extensions.clamp
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
-import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -46,42 +44,33 @@ class CircleBody(
     override var rotation = initialRotation
         set(value) {
             field = value
-            if (scale.horizontal != scale.vertical) {
+            if (pivot != size.center || scale.horizontal != scale.vertical) {
                 isAxisAlignedBoundingBoxDirty = true
             }
         }
 
-    // TODO: Pivot should be taken into consideration
-    override fun createAxisAlignedBoundingBox(): AxisAlignedBoundingBox {
-        if (scale.horizontal == scale.vertical) {
-            val scaledRadius = radius * scale.horizontal
-            return AxisAlignedBoundingBox(
-                min = SceneOffset(
-                    x = position.x - scaledRadius,
-                    y = position.y - scaledRadius
-                ),
-                max = SceneOffset(
-                    x = position.x + scaledRadius,
-                    y = position.y + scaledRadius
-                )
-            )
-        } else {
-            val scaledRadius = SceneOffset(
-                x = radius * scale.horizontal,
-                y = radius * scale.vertical,
-            )
-            val cosTheta = cos(rotation.normalized)
-            val sinTheta = sin(rotation.normalized)
-            val rotatedRadius = SceneOffset(
-                x = abs(scaledRadius.x.raw * cosTheta).scenePixel + abs(scaledRadius.y.raw * sinTheta).scenePixel,
-                y = abs(scaledRadius.x.raw * sinTheta).scenePixel + abs(scaledRadius.y.raw * cosTheta).scenePixel,
-            )
-
-            return AxisAlignedBoundingBox(
-                min = position - rotatedRadius,
-                max = position + rotatedRadius
+    // TODO: Not precise while rotating
+    override fun createAxisAlignedBoundingBox() = (if (scale.horizontal != scale.vertical || pivot != size.center) rotation else AngleRadians.Zero).let { rotation ->
+        arrayOf(
+            transformPoint(SceneOffset.Zero, rotation),
+            transformPoint(SceneOffset.Right * size.width, rotation),
+            transformPoint(SceneOffset.Bottom * size.height, rotation),
+            transformPoint(size.bottomRight, rotation),
+        ).let { corners ->
+            AxisAlignedBoundingBox(
+                min = SceneOffset(corners.minOf { it.x }, corners.minOf { it.y }) - pivot + position,
+                max = SceneOffset(corners.maxOf { it.x }, corners.maxOf { it.y }) - pivot + position,
             )
         }
+    }
+
+    private fun transformPoint(point: SceneOffset, rotation: AngleRadians): SceneOffset {
+        val scaled = (point - pivot) * scale
+        val rotated = if (rotation == AngleRadians.Zero) scaled else SceneOffset(
+            x = scaled.x * cos(rotation.normalized) - scaled.y * sin(rotation.normalized),
+            y = scaled.x * sin(rotation.normalized) + scaled.y * cos(rotation.normalized)
+        )
+        return rotated + pivot
     }
 
     override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = this@CircleBody.size.raw.let { size ->
