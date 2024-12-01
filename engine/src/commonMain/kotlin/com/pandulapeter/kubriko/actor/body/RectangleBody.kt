@@ -10,6 +10,7 @@ import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlin.math.cos
 import kotlin.math.sin
@@ -46,25 +47,24 @@ class RectangleBody(
         }
 
     override fun createAxisAlignedBoundingBox() = arrayOf(
-        transformPoint(position),
-        transformPoint(position + SceneOffset(size.width, 0f.scenePixel)),
-        transformPoint(position + SceneOffset(0f.scenePixel, size.height)),
-        transformPoint(position + SceneOffset(size.width, size.height)),
+        transformPoint(SceneOffset.Zero),
+        transformPoint(SceneOffset.Right * size.width),
+        transformPoint(SceneOffset.Bottom * size.height),
+        transformPoint(size.bottomRight),
     ).let { corners ->
         AxisAlignedBoundingBox(
-            min = SceneOffset(corners.minOf { it.x }, corners.minOf { it.y }) - pivot,
-            max = SceneOffset(corners.maxOf { it.x }, corners.maxOf { it.y }) - pivot,
+            min = SceneOffset(corners.minOf { it.x }, corners.minOf { it.y }) - pivot + position,
+            max = SceneOffset(corners.maxOf { it.x }, corners.maxOf { it.y }) - pivot + position,
         )
     }
 
     private fun transformPoint(point: SceneOffset): SceneOffset {
-        val absolutePivot = position + pivot
-        val scaled = (point - absolutePivot) * scale
+        val scaled = (point - pivot) * scale
         val rotated = if (rotation == AngleRadians.Zero) scaled else SceneOffset(
             x = scaled.x * cos(rotation.normalized) - scaled.y * sin(rotation.normalized),
             y = scaled.x * sin(rotation.normalized) + scaled.y * cos(rotation.normalized)
         )
-        return rotated + absolutePivot
+        return rotated + pivot
     }
 
     override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = this@RectangleBody.size.raw.let { size ->
