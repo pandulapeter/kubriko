@@ -69,7 +69,7 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique {
         )
     }.toTypedArray()
 
-    override fun onClick(screenOffset: Offset) {
+    override fun onPointerReleased(screenOffset: Offset) {
         if (demoType.value == PhysicsDemoType.RIGID_BODY_COLLISIONS) {
             actorManager.add(
                 BouncyBall(

@@ -10,7 +10,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
-import com.pandulapeter.kubriko.implementation.extensions.occupiesPosition
+import com.pandulapeter.kubriko.collision.CollisionManager
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
@@ -22,6 +22,7 @@ private var isDragging = false
 // TODO: Fix some clicks registering as drag
 @OptIn(ExperimentalComposeUiApi::class)
 internal fun Modifier.handleMouseClick(
+    collisionManager: CollisionManager,
     getSelectedActor: () -> Editable<*>?,
     getMouseSceneOffset: () -> SceneOffset,
     onLeftClick: (Offset) -> Unit,
@@ -29,9 +30,9 @@ internal fun Modifier.handleMouseClick(
 ): Modifier = onPointerEvent(PointerEventType.Press) { event ->
     when (event.button) {
         PointerButton.Primary -> getSelectedActor()?.let { selectedActor ->
-            getMouseSceneOffset().let { mouseWorldCoordinates ->
-                if (selectedActor.occupiesPosition(mouseWorldCoordinates)) {
-                    startOffset = mouseWorldCoordinates - selectedActor.body.position
+            getMouseSceneOffset().let { mouseSceneOffset ->
+                if (collisionManager.isInside(mouseSceneOffset, selectedActor)) {
+                    startOffset = mouseSceneOffset - selectedActor.body.position
                 }
             }
         }

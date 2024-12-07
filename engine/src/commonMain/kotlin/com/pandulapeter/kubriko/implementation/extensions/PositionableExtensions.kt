@@ -1,25 +1,14 @@
 package com.pandulapeter.kubriko.implementation.extensions
 
 import com.pandulapeter.kubriko.actor.traits.Positionable
-import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.ScenePixel
 
-fun Positionable.angleTowards(other: Positionable): AngleRadians = (body.position).angleTowards(other.body.position)
-
-fun Positionable.occupiesPosition(
+fun Positionable.checkAxisAlignedBoundingBoxOverlap(
     sceneOffset: SceneOffset,
 ): Boolean =
     sceneOffset.x.raw in body.axisAlignedBoundingBox.left..body.axisAlignedBoundingBox.right && sceneOffset.y.raw in body.axisAlignedBoundingBox.top..body.axisAlignedBoundingBox.bottom
 
-fun Positionable.isAroundPosition(
-    position: SceneOffset,
-    range: ScenePixel,
-): Boolean = (this.body.position - position).raw.getDistance().scenePixel < range
-
-// TODO: AABB - might be merged with the implementation from the physics module
-// TODO: Fine-tune with better collision masks
-fun Positionable.isOverlapping(other: Positionable): Boolean {
+fun Positionable.checkAxisAlignedBoundingBoxOverlap(other: Positionable): Boolean {
     val overlapTopLeft = SceneOffset(
         x = maxOf(body.axisAlignedBoundingBox.left, other.body.axisAlignedBoundingBox.left),
         y = maxOf(body.axisAlignedBoundingBox.top, other.body.axisAlignedBoundingBox.top)

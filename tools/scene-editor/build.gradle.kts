@@ -8,6 +8,7 @@ kotlin {
         commonMain.dependencies {
             api(projects.engine)
             api(projects.plugins.serialization)
+            implementation(projects.plugins.collision)
             implementation(projects.plugins.keyboardInput)
             implementation(projects.plugins.pointerInput)
             implementation(projects.tools.debugMenu)

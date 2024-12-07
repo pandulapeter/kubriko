@@ -7,10 +7,12 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
+import com.pandulapeter.kubriko.implementation.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.implementation.extensions.wrapWithin
+import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
@@ -32,17 +34,20 @@ internal class BouncyBall(
         x = initialOffset.x.raw,
         y = initialOffset.y.raw
     )
+    private lateinit var actorManager: ActorManager
     private lateinit var viewportManager: ViewportManager
 
     override fun onAdded(kubriko: Kubriko) {
+        actorManager = kubriko.require()
         viewportManager = kubriko.require()
     }
 
     override fun update(deltaTimeInMillis: Float) {
         body.position = SceneOffset(physicsBody.position.x.scenePixel, physicsBody.position.y.scenePixel)
-        physicsBody.position = wrapWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value).let { Vec2(it.x.raw, it.y.raw) }
-        body.position = SceneOffset(physicsBody.position.x.scenePixel, physicsBody.position.y.scenePixel)
         body.rotation = physicsBody.orientation.rad
+        if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
+            actorManager.remove(this)
+        }
     }
 
     override fun DrawScope.draw() {

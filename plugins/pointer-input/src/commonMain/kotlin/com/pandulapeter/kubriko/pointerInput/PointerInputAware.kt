@@ -6,5 +6,5 @@ import com.pandulapeter.kubriko.actor.Actor
 // TODO: Documentation
 interface PointerInputAware : Actor {
 
-    fun onClick(screenOffset: Offset)
+    fun onPointerReleased(screenOffset: Offset)
 }

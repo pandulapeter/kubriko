@@ -7,10 +7,10 @@ import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
+import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.traits.Destructible
-import com.pandulapeter.kubriko.implementation.extensions.isAroundPosition
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
@@ -20,15 +20,11 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
-import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.integration.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneOffset
-import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableScenePixel
-import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneSize
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
-import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
@@ -88,6 +84,11 @@ class Character private constructor(state: State) : Unique, Dynamic, Visible, Ke
                 range = range,
             )
         }
+
+    private fun Positionable.isAroundPosition(
+        position: SceneOffset,
+        range: ScenePixel,
+    ): Boolean = (this.body.position - position).raw.getDistance().scenePixel < range
 
     override fun DrawScope.draw() = drawCircle(
         color = lerp(Color.Red, Color.Green, ((1f + MAX_SIZE_MULTIPLIER) - sizeMultiplier) / MAX_SIZE_MULTIPLIER),

@@ -28,7 +28,7 @@ internal class PointerInputManagerImpl : PointerInputManager() {
         .pointerInput(Unit) {
             detectTapGestures(
                 onTap = { screenOffset ->
-                    pointerInputAwareActors.value.forEach { it.onClick(screenOffset) }
+                    pointerInputAwareActors.value.forEach { it.onPointerReleased(screenOffset) }
                 }
             )
         }
