@@ -71,10 +71,14 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique {
 
         PhysicsDemoType.CHAINS -> listOf(
             Chain(
-                initialCenterOffset = SceneOffset(SceneUnit.Zero, (-200f).sceneUnit),
+                initialCenterOffset = SceneOffset(SceneUnit.Zero, (-200).sceneUnit),
             ),
             StaticBall(
                 initialOffset = SceneOffset.Zero,
+                radius = 60.sceneUnit,
+            ),
+            StaticBall(
+                initialOffset = SceneOffset((-100).sceneUnit, (-100).sceneUnit),
                 radius = 60.sceneUnit,
             ),
         )

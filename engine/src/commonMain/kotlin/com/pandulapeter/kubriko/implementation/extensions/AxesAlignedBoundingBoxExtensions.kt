@@ -4,8 +4,8 @@ import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.implementation.manager.ViewportManagerImpl
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.SceneUnit
 import com.pandulapeter.kubriko.types.SceneSize
+import com.pandulapeter.kubriko.types.SceneUnit
 
 fun AxisAlignedBoundingBox.isWithinViewportBounds(
     viewportManager: ViewportManager,
@@ -23,3 +23,15 @@ internal fun AxisAlignedBoundingBox.isWithinViewportBounds(
         top <= viewportCenter.y + scaledHalfViewportSize.height + viewportEdgeBuffer &&
         right >= viewportCenter.x - scaledHalfViewportSize.width - viewportEdgeBuffer &&
         bottom >= viewportCenter.y - scaledHalfViewportSize.height - viewportEdgeBuffer
+
+fun AxisAlignedBoundingBox.isInside(other: AxisAlignedBoundingBox): Boolean {
+    val overlapTopLeft = SceneOffset(
+        x = maxOf(left, other.left),
+        y = maxOf(top, other.top)
+    )
+    val overlapBottomRight = SceneOffset(
+        x = minOf(right, other.right),
+        y = minOf(bottom, other.bottom)
+    )
+    return !(overlapTopLeft.x >= overlapBottomRight.x || overlapTopLeft.y >= overlapBottomRight.y)
+}

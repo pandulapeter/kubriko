@@ -10,7 +10,6 @@ import androidx.compose.ui.window.AwtWindow
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.rememberWindowState
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.collision.CollisionManager
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
@@ -40,7 +39,6 @@ internal fun InternalSceneEditor(
         EditorController(
             kubriko = Kubriko.newInstance(
                 StateManager.newInstance(shouldAutoStart = false),
-                CollisionManager.newInstance(),
                 KeyboardInputManager.newInstance(),
                 PointerInputManager.newInstance(),
                 serializationManager,

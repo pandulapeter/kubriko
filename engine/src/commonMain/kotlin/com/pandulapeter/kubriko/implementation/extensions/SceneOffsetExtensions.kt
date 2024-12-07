@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko.implementation.extensions
 
+import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -80,3 +81,7 @@ fun SceneOffset.cross(a: Float): SceneOffset = normal().scalar(a)
 fun SceneOffset.scalar(a: Float): SceneOffset = SceneOffset(x * a, y * a)
 
 fun SceneOffset.scalar(a: SceneUnit): SceneOffset = SceneOffset(x * a, y * a)
+
+fun SceneOffset.isWithin(
+    axisAlignedBoundingBox: AxisAlignedBoundingBox
+): Boolean = x.raw in axisAlignedBoundingBox.left..axisAlignedBoundingBox.right && y.raw in axisAlignedBoundingBox.top..axisAlignedBoundingBox.bottom

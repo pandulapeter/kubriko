@@ -48,7 +48,7 @@ internal fun DebugMenuContents(
     ) {
         Text(
             modifier = Modifier.weight(1f),
-            text = "Debug overlay",
+            text = "Show collision masks",
             style = TextStyle.Default.copy(fontSize = 10.sp),
         )
         Switch(

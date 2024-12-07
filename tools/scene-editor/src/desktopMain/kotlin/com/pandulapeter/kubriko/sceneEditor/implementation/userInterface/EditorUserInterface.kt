@@ -134,7 +134,6 @@ private fun Viewport(
         modifier = Modifier
             .fillMaxSize()
             .handleMouseClick(
-                collisionManager = editorController.collisionManager,
                 getSelectedActor = editorController::getSelectedActor,
                 getMouseSceneOffset = editorController::getMouseWorldCoordinates,
                 onLeftClick = editorController::onLeftClick,

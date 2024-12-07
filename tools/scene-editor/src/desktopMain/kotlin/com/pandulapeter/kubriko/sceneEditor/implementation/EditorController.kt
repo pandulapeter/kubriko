@@ -3,7 +3,7 @@ package com.pandulapeter.kubriko.sceneEditor.implementation
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.collision.CollisionManager
+import com.pandulapeter.kubriko.collision.implementation.extensions.isWithin
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
@@ -47,7 +47,6 @@ internal class EditorController(
     private val actorManager = kubriko.require<ActorManager>()
     val viewportManager = kubriko.require<ViewportManager>()
     val keyboardInputManager = kubriko.require<KeyboardInputManager>()
-    val collisionManager = kubriko.require<CollisionManager>()
     val serializationManager = kubriko.require<SerializationManager<EditableMetadata<*>, Editable<*>>>()
     private val userPreferences = UserPreferences()
     private val editorActors = listOf(
@@ -158,7 +157,7 @@ internal class EditorController(
     }
 
     private fun findActorOnPosition(sceneOffset: SceneOffset) = visibleActorsWithinViewport.value
-        .filter { collisionManager.isInside(sceneOffset, it) }
+        .filter { sceneOffset.isWithin(it.body) }
         .minByOrNull { (it as? Visible)?.drawingOrder ?: 0f }
 
     fun selectActor(actor: Editable<*>) = _selectedActor.update {
