@@ -12,3 +12,5 @@ val Float.rad: AngleRadians
 
 val Float.sceneUnit: SceneUnit
     get() = SceneUnit(this)
+
+operator fun Float.times(scale: SceneUnit): SceneUnit = (scale.raw * this).sceneUnit

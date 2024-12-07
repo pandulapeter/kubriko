@@ -5,8 +5,11 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.demoPerformance.implementation.actors.traits.Destructible
+import com.pandulapeter.kubriko.implementation.extensions.cos
 import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
+import com.pandulapeter.kubriko.implementation.extensions.sin
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.integration.Serializable
@@ -18,14 +21,11 @@ import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneU
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.SceneUnit
 import com.pandulapeter.kubriko.types.SceneSize
-import com.pandulapeter.kubriko.demoPerformance.implementation.actors.traits.Destructible
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlin.math.cos
-import kotlin.math.sin
 
 class MovingBox private constructor(state: State) : Visible, Destructible, Editable<MovingBox> {
 
@@ -47,7 +47,7 @@ class MovingBox private constructor(state: State) : Visible, Destructible, Edita
     private var isMoving = true
 
 
-    override val body= RectangleBody(
+    override val body = RectangleBody(
         initialSize = SceneSize(edgeSize, edgeSize),
         initialPosition = state.position,
         initialRotation = state.rotation,
@@ -77,8 +77,8 @@ class MovingBox private constructor(state: State) : Visible, Destructible, Edita
         }
         if (isMoving) {
             body.position += SceneOffset(
-                x = cos(body.rotation.normalized).sceneUnit,
-                y = -sin(body.rotation.normalized).sceneUnit,
+                x = body.rotation.cos.sceneUnit,
+                y = -body.rotation.sin.sceneUnit,
             )
         }
     }

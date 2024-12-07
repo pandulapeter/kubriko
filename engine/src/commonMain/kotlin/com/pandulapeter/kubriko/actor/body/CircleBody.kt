@@ -7,13 +7,13 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.implementation.extensions.bottomRight
 import com.pandulapeter.kubriko.implementation.extensions.clamp
+import com.pandulapeter.kubriko.implementation.extensions.cos
+import com.pandulapeter.kubriko.implementation.extensions.sin
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.SceneUnit
 import com.pandulapeter.kubriko.types.SceneSize
-import kotlin.math.cos
-import kotlin.math.sin
+import com.pandulapeter.kubriko.types.SceneUnit
 
 class CircleBody(
     initialPosition: SceneOffset = SceneOffset.Zero,
@@ -67,8 +67,8 @@ class CircleBody(
     private fun transformPoint(point: SceneOffset, rotation: AngleRadians): SceneOffset {
         val scaled = (point - pivot) * scale
         val rotated = if (rotation == AngleRadians.Zero) scaled else SceneOffset(
-            x = scaled.x * cos(rotation.normalized) - scaled.y * sin(rotation.normalized),
-            y = scaled.x * sin(rotation.normalized) + scaled.y * cos(rotation.normalized)
+            x = scaled.x * rotation.cos - scaled.y * rotation.sin,
+            y = scaled.x * rotation.sin + scaled.y * rotation.cos,
         )
         return rotated + pivot
     }

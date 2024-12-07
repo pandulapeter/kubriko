@@ -2,12 +2,12 @@ package com.pandulapeter.kubriko.actor.traits
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
+import com.pandulapeter.kubriko.implementation.extensions.cos
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
+import com.pandulapeter.kubriko.implementation.extensions.sin
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
-import kotlin.math.cos
-import kotlin.math.sin
 
 /**
  * Should be implemented by [Actor]s that want their positions to be updated automatically by [Kubriko] in function of their speed, direction and friction.
@@ -40,8 +40,8 @@ interface Movable : Dynamic, Positionable {
                 speed = SceneUnit.Zero
             }
             body.position += SceneOffset(
-                x = cos(direction.normalized).sceneUnit,
-                y = -sin(direction.normalized).sceneUnit
+                x = direction.cos.sceneUnit,
+                y = -direction.sin.sceneUnit
             ) * speed * deltaTimeInMillis
         }
     }
