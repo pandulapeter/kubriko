@@ -6,8 +6,9 @@ import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.BouncyBall
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.Chain
-import com.pandulapeter.kubriko.demoPhysics.implementation.actors.Platform
+import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicPlatform
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticBall
+import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticPlatform
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
@@ -16,8 +17,8 @@ import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.SceneUnit
 import com.pandulapeter.kubriko.types.SceneSize
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -45,18 +46,28 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique {
     }
 
     private fun PhysicsDemoType.createActors(): Array<Actor> = when (this) {
-        PhysicsDemoType.RIGID_BODY_COLLISIONS -> ((0..2).map {
+        PhysicsDemoType.RIGID_BODY_COLLISIONS -> listOf(
             BouncyBall(
-                radius = (30..60).random().toFloat().sceneUnit,
-                initialOffset = SceneOffset(
-                    x = (-500..500).random().toFloat().sceneUnit,
-                    y = (-800..0).random().toFloat().sceneUnit,
-                ),
-            )
-        } + Platform(
-            initialPosition = SceneOffset(0f.sceneUnit, 350f.sceneUnit),
-            size = SceneSize(800f.sceneUnit, 40f.sceneUnit),
-        ))
+                radius = 40.sceneUnit,
+                initialOffset = SceneOffset(270.sceneUnit, (-200).sceneUnit),
+            ),
+            BouncyBall(
+                radius = 50.sceneUnit,
+                initialOffset = SceneOffset(170.sceneUnit, (-250).sceneUnit),
+            ),
+            BouncyBall(
+                radius = 60.sceneUnit,
+                initialOffset = SceneOffset(70.sceneUnit, (-150).sceneUnit),
+            ),
+            DynamicPlatform(
+                initialPosition = SceneOffset((-200).sceneUnit, 0.sceneUnit),
+                size = SceneSize(40.sceneUnit, 500.sceneUnit),
+            ),
+            StaticPlatform(
+                initialPosition = SceneOffset(400.sceneUnit, 150.sceneUnit),
+                size = SceneSize(400.sceneUnit, 40.sceneUnit),
+            ),
+        )
 
         PhysicsDemoType.CHAINS -> listOf(
             Chain(
@@ -65,16 +76,22 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique {
             StaticBall(
                 initialOffset = SceneOffset.Zero,
                 radius = 60.sceneUnit,
-            )
+            ),
         )
     }.toTypedArray()
 
-    override fun onPointerReleased(screenOffset: Offset) {
-        if (demoType.value == PhysicsDemoType.RIGID_BODY_COLLISIONS) {
-            actorManager.add(
+    override fun onPointerReleased(screenOffset: Offset) = screenOffset.toSceneOffset(viewportManager).let { pointerSceneOffset ->
+        when (demoType.value) {
+            PhysicsDemoType.RIGID_BODY_COLLISIONS -> actorManager.add(
                 BouncyBall(
                     radius = (30..60).random().toFloat().sceneUnit,
-                    initialOffset = screenOffset.toSceneOffset(viewportManager),
+                    initialOffset = pointerSceneOffset,
+                )
+            )
+
+            PhysicsDemoType.CHAINS -> actorManager.add(
+                Chain(
+                    initialCenterOffset = pointerSceneOffset,
                 )
             )
         }

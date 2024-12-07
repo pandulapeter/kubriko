@@ -13,7 +13,7 @@ import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
-internal class Platform(
+internal class DynamicPlatform(
     initialPosition: SceneOffset,
     size: SceneSize,
 ) : RigidBody, Dynamic {
@@ -29,7 +29,7 @@ internal class Platform(
 
     override fun update(deltaTimeInMillis: Float) {
         body.position = SceneOffset(physicsBody.position.x.sceneUnit, physicsBody.position.y.sceneUnit)
-        body.rotation += (0.002 * deltaTimeInMillis).toFloat().rad
+        body.rotation -= (0.002 * deltaTimeInMillis).toFloat().rad
         physicsBody.orientation = body.rotation.normalized
     }
 

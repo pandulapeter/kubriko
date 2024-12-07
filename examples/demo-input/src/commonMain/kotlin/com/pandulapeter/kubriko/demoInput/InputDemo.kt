@@ -8,6 +8,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.demoInput.implementation.InputDemoManager
 import com.pandulapeter.kubriko.demoInput.implementation.ui.Keyboard
+import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 
 @Composable
@@ -18,6 +19,7 @@ fun InputDemo(
     KubrikoViewport(
         kubriko = Kubriko.newInstance(
             PointerInputManager.newInstance(),
+            KeyboardInputManager.newInstance(),
             inputDemoManager,
         ),
     )
