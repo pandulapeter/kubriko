@@ -127,7 +127,10 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique {
 
             false -> StaticPolygon(
                 initialPosition = offset,
-                shape = Polygon((20..60).random().sceneUnit, (3..10).random()),
+                shape = Polygon(
+                    radius = (20..60).random().sceneUnit,
+                    noOfSides = (3..10).random(),
+                ),
             )
         }
     }

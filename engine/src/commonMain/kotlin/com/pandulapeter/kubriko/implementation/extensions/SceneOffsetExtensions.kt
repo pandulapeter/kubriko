@@ -90,29 +90,13 @@ fun SceneOffset.isWithin(
 ): Boolean = x.raw in axisAlignedBoundingBox.left..axisAlignedBoundingBox.right && y.raw in axisAlignedBoundingBox.top..axisAlignedBoundingBox.bottom
 
 val List<SceneOffset>.center
-    get(): SceneOffset {
-        if (isEmpty()) return SceneOffset.Zero
-        if (size == 1) return first()
-        if (size == 2) return SceneOffset(
-            x = (first().x + last().x) / 2,
-            y = (first().y + last().y) / 2,
-        )
-        var signedArea = SceneUnit.Zero
-        var centroidX = SceneUnit.Zero
-        var centroidY = SceneUnit.Zero
-        for (i in indices) {
-            val current = this[i]
-            val next = this[(i + 1) % size]
-
-            val crossProduct = current.x * next.y - next.x * current.y
-            signedArea += crossProduct
-            centroidX += (current.x + next.x) * crossProduct
-            centroidY += (current.y + next.y) * crossProduct
-        }
-        signedArea *= 0.5f
-        centroidX /= (6 * signedArea)
-        centroidY /= (6 * signedArea)
-        return SceneOffset(centroidX, centroidY)
+    get(): SceneOffset = when {
+        isEmpty() -> SceneOffset.Zero
+        size == 1 -> first()
+        else -> SceneOffset(
+            x = maxOf { it.x } - minOf { it.x },
+            y = maxOf { it.y } - minOf { it.y },
+        ) / 2
     }
 
 fun SceneOffset.toOffset(viewportManager: ViewportManager): Offset = toOffset(

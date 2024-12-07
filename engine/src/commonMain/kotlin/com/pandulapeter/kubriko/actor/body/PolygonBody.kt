@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.implementation.extensions.bottomRight
+import com.pandulapeter.kubriko.implementation.extensions.center
 import com.pandulapeter.kubriko.implementation.extensions.clamp
 import com.pandulapeter.kubriko.implementation.extensions.cos
 import com.pandulapeter.kubriko.implementation.extensions.sin
@@ -17,17 +18,21 @@ import com.pandulapeter.kubriko.types.SceneSize
 class PolygonBody(
     val vertices: List<SceneOffset>,
     initialPosition: SceneOffset = SceneOffset.Zero,
-    initialPivot: SceneOffset = SceneOffset.Zero, //TODO vertices.center,
+    initialPivot: SceneOffset = vertices.center,
     initialScale: Scale = Scale.Unit,
     initialRotation: AngleRadians = AngleRadians.Zero
 ) : PointBody(
     initialPosition = initialPosition,
 ), ComplexBody {
     override val size = SceneSize(
-        width = (vertices.maxOf { it.x } - vertices.minOf { it.x }),
+        width = vertices.maxOf { it.x } - vertices.minOf { it.x },
         height = vertices.maxOf { it.y } - vertices.minOf { it.y },
     )
-    override var pivot = initialPivot.clamp(min = SceneOffset.Zero, max = size.bottomRight)
+    override var pivot = initialPivot.clamp(min = SceneOffset.Zero, max = size.bottomRight).also {
+        println(
+            it
+        )
+    }
         set(value) {
             field = value.clamp(min = SceneOffset.Zero, max = size.bottomRight)
             isAxisAlignedBoundingBoxDirty = true
@@ -67,9 +72,9 @@ class PolygonBody(
 
     override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = this@PolygonBody.size.raw.let { size ->
         val path = Path().apply {
-            moveTo(vertices[0].x.raw, vertices[0].y.raw)
+            moveTo(vertices[0].x.raw + pivot.x.raw, vertices[0].y.raw + pivot.y.raw)
             for (i in 1 until vertices.size) {
-                lineTo(vertices[i].x.raw, vertices[i].y.raw)
+                lineTo(vertices[i].x.raw + pivot.x.raw, vertices[i].y.raw + pivot.y.raw)
             }
             close()
         }

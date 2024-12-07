@@ -27,9 +27,9 @@ internal class StaticPolygon(
 
     override fun DrawScope.draw() {
         val path = Path().apply {
-            moveTo(body.vertices[0].x.raw, body.vertices[0].y.raw)
+            moveTo(body.vertices[0].x.raw + body.pivot.x.raw, body.vertices[0].y.raw + body.pivot.y.raw)
             for (i in 1 until body.vertices.size) {
-                lineTo(body.vertices[i].x.raw, body.vertices[i].y.raw)
+                lineTo(body.vertices[i].x.raw + body.pivot.x.raw, body.vertices[i].y.raw + body.pivot.y.raw)
             }
             close()
         }
