@@ -6,8 +6,8 @@ import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.World
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Mat2
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
+import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneUnit
-import kotlin.math.PI
 
 /**
  * Models particle explosions.
@@ -33,7 +33,7 @@ class ParticleExplosion(private val epicentre: Vec2, private val noOfParticles: 
      * @param world   The world the particles are created in.
      */
     fun createParticles(size: SceneUnit, density: Int, radius: SceneUnit, world: World) {
-        val separationAngle = (PI.toFloat() * 2) / noOfParticles
+        val separationAngle = AngleRadians.TwoPi / noOfParticles
         val distanceFromCentre = Vec2(0.sceneUnit, radius)
         val rotate = Mat2(separationAngle)
         for (i in 0 until noOfParticles) {

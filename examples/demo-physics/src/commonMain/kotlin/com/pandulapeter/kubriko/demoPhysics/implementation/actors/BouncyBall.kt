@@ -42,7 +42,7 @@ internal class BouncyBall(
 
     override fun update(deltaTimeInMillis: Float) {
         body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
-        body.rotation = physicsBody.orientation.rad
+        body.rotation = physicsBody.orientation
         if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
             actorManager.remove(this)
         }

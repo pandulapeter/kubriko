@@ -8,7 +8,6 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.implementation.extensions.isWithinViewportBounds
-import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
@@ -42,7 +41,7 @@ internal class BouncyBox(
 
     override fun update(deltaTimeInMillis: Float) {
         body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
-        body.rotation = physicsBody.orientation.rad
+        body.rotation = physicsBody.orientation
         if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
             actorManager.remove(this)
         }

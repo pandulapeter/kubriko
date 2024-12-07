@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko.physics.implementation.physics.dynamics
 
+import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.physics.collision.Arbiter
 import com.pandulapeter.kubriko.physics.implementation.physics.collision.AxisAlignedBoundingBox
@@ -97,7 +98,7 @@ class World(
             }
             b.position.add(b.velocity.scalar(dt))
             if (b is CollisionBodyInterface) {
-                b.orientation += dt * b.angularVelocity
+                b.orientation += (dt * b.angularVelocity).rad
             }
             b.force.set(0f.sceneUnit, 0f.sceneUnit)
             b.torque = 0f

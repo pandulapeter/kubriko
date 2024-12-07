@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko.physics.implementation.physics.rays
 
+import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.physics.implementation.physics.collision.Arbiter.Companion.isPointInside
 import com.pandulapeter.kubriko.physics.implementation.physics.collision.bodies.CollisionBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
@@ -47,7 +48,7 @@ class ShadowCasting
             } else {
                 val circle = B.shape as Circle
                 val d = B.position.minus(startPoint)
-                val angle = asin((circle.radius / d.length()).raw)
+                val angle = asin((circle.radius / d.length()).raw).rad
                 val u = Mat2(angle)
                 projectRays(u.mul(d.normalize(), Vec2()), bodiesToEvaluate)
                 val u2 = Mat2(-angle)
@@ -66,7 +67,7 @@ class ShadowCasting
      * @param bodiesToEvaluate Arraylist of bodies to check if they intersect with the ray projection.
      */
     private fun projectRays(direction: Vec2, bodiesToEvaluate: ArrayList<TranslatableBody>) {
-        val m = Mat2(0.001f)
+        val m = Mat2(0.001f.rad)
         m.transpose().mul(direction)
         for (i in 0..2) {
             val ray = Ray(startPoint, direction, distance)

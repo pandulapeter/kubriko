@@ -1,6 +1,9 @@
 package com.pandulapeter.kubriko.physics.implementation.physics.math
 
+import com.pandulapeter.kubriko.implementation.extensions.cos
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
+import com.pandulapeter.kubriko.implementation.extensions.sin
+import com.pandulapeter.kubriko.types.AngleRadians
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -18,7 +21,7 @@ class Mat2 {
      * Constructs and sets the matrix up to be a rotation matrix that stores the angle specified in the matrix.
      * @param radians The desired angle of the rotation matrix
      */
-    constructor(radians: Float) {
+    constructor(radians: AngleRadians) {
         this.set(radians)
     }
 
@@ -26,9 +29,9 @@ class Mat2 {
      * Sets the matrix up to be a rotation matrix that stores the angle specified in the matrix.
      * @param radians The desired angle of the rotation matrix
      */
-    fun set(radians: Float) {
-        val c = cos(radians).sceneUnit
-        val s = sin(radians).sceneUnit
+    fun set(radians: AngleRadians) {
+        val c = radians.cos.sceneUnit
+        val s = radians.sin.sceneUnit
         row1.x = c
         row1.y = -s
         row2.x = s

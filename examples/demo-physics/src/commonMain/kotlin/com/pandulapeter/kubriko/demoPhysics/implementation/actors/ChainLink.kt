@@ -5,7 +5,6 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
-import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
@@ -28,7 +27,7 @@ internal class ChainLink(
 
     override fun update(deltaTimeInMillis: Float) {
         body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
-        body.rotation = physicsBody.orientation.rad
+        body.rotation = physicsBody.orientation
     }
 
     override fun DrawScope.draw() {
