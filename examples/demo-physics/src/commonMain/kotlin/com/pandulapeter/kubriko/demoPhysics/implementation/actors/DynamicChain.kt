@@ -26,12 +26,13 @@ import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
 
 internal class DynamicChain(
+    private val linkCount: Int,
     initialCenterOffset: SceneOffset
 ) : Group, Dynamic, Visible {
-    private val chainLinks = (0..LINK_COUNT).map { linkIndex ->
+    private val chainLinks = (0..linkCount).map { linkIndex ->
         ChainLink(
             initialPosition = SceneOffset(
-                x = initialCenterOffset.x + LinkDistance * (LINK_COUNT / 2) - (LinkDistance * linkIndex),
+                x = initialCenterOffset.x + LinkDistance * (linkCount / 2) - (LinkDistance * linkIndex),
                 y = initialCenterOffset.y,
             )
         )
@@ -42,8 +43,8 @@ internal class DynamicChain(
                 body1 = chainLinks[index - 1].physicsBody,
                 body2 = chainLink.physicsBody,
                 jointLength = LinkDistance,
-                jointConstant = 100f,
-                dampening = 10f,
+                jointConstant = 10000f,
+                dampening = 100f,
                 canGoSlack = true,
                 offset1 = Vec2((-10).sceneUnit, SceneUnit.Zero),
                 offset2 = Vec2(10.sceneUnit, SceneUnit.Zero),
@@ -96,7 +97,7 @@ internal class DynamicChain(
                     lineTo(lastPoint.x.raw, lastPoint.y.raw)
                 },
                 color = Color.LightGray,
-                style = Stroke(width = 4f)
+                style = Stroke(width = ChainLink.Radius.raw * 2)
             )
         }
     }
@@ -108,7 +109,10 @@ internal class DynamicChain(
             shape = Circle(Radius),
             x = initialPosition.x,
             y = initialPosition.y,
-        )
+        ).apply {
+            density = 10f
+            restitution = 0.2f
+        }
         override val body = CircleBody(
             initialRadius = Radius,
             initialPosition = initialPosition,
@@ -139,7 +143,6 @@ internal class DynamicChain(
     }
 
     companion object {
-        private const val LINK_COUNT = 20
         private val LinkDistance = ChainLink.Radius * 2f
     }
 }

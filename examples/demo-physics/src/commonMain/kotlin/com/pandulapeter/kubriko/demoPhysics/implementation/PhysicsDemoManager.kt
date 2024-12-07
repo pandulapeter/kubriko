@@ -64,6 +64,7 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique {
 
             ActionType.CHAIN -> actorManager.add(
                 DynamicChain(
+                    linkCount = (10..40).random(),
                     initialCenterOffset = pointerSceneOffset,
                 )
             )
