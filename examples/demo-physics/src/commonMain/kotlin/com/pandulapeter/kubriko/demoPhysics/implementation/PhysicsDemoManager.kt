@@ -12,8 +12,10 @@ import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticBall
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticCircle
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticPlatform
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticPolygon
+import com.pandulapeter.kubriko.implementation.extensions.cos
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
+import com.pandulapeter.kubriko.implementation.extensions.sin
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
@@ -21,7 +23,9 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
+import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
+import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -128,8 +132,15 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique {
             false -> StaticPolygon(
                 initialPosition = offset,
                 shape = Polygon(
-                    radius = (20..60).random().sceneUnit,
-                    noOfSides = (3..10).random(),
+                    vertList = (3..10).random().let { sideCount ->
+                        (0..sideCount).map { sideIndex ->
+                            val angle = AngleRadians.TwoPi / sideCount * (sideIndex + 0.75f)
+                            Vec2(
+                                x = (30..60).random().sceneUnit * angle.cos,
+                                y = (30..60).random().sceneUnit * angle.sin,
+                            )
+                        }
+                    },
                 ),
             )
         }

@@ -9,6 +9,7 @@ import com.pandulapeter.kubriko.physics.implementation.physics.math.Math.pointIs
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.PI
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -16,16 +17,16 @@ import kotlin.math.sin
  * Class for representing polygon shape.
  */
 class Polygon : Shape {
-    var vertices: Array<Vec2>
-    lateinit var normals: Array<Vec2>
+    var vertices: MutableList<Vec2>
+    lateinit var normals: List<Vec2>
 
     /**
      * Constructor takes a supplied list of vertices and generates a convex hull around them.
      *
      * @param vertList Vertices of polygon to create.
      */
-    constructor(vertList: Array<Vec2>) {
-        vertices = generateHull(vertList, vertList.size)
+    constructor(vertList: List<Vec2>) {
+        vertices = generateHull(vertList).toMutableList()
         calcNormals()
     }
 
@@ -36,13 +37,13 @@ class Polygon : Shape {
      * @param halfHeight Desired height of rectangle
      */
     constructor(halfWidth: SceneUnit, halfHeight: SceneUnit) {
-        vertices = arrayOf(
+        vertices = mutableListOf(
             Vec2(-halfWidth, -halfHeight),
             Vec2(halfWidth, -halfHeight),
             Vec2(halfWidth, halfHeight),
             Vec2(-halfWidth, halfHeight)
         )
-        normals = arrayOf(
+        normals = listOf(
             Vec2(0f.sceneUnit, (-1f).sceneUnit),
             Vec2(1f.sceneUnit, 0f.sceneUnit),
             Vec2(0f.sceneUnit, 1f.sceneUnit),
@@ -64,7 +65,7 @@ class Polygon : Shape {
             val pointY = radius * sin(angle)
             vertices[i] = Vec2(pointX, pointY)
         }
-        this.vertices = vertices.toList().toTypedArray()
+        this.vertices = generateHull(vertices).toMutableList()
         calcNormals()
     }
 
@@ -77,7 +78,7 @@ class Polygon : Shape {
             val face = vertices[if (i + 1 == vertices.size) 0 else i + 1].minus(vertices[i])
             normals[i] = face.normal().normalize().unaryMinus()
         }
-        this.normals = normals.toList().toTypedArray()
+        this.normals = normals
     }
 
     /**
@@ -153,34 +154,41 @@ class Polygon : Shape {
      * @param n        Number of vertices supplied.
      * @return Returns a convex hull array.
      */
-    private fun generateHull(vertices: Array<Vec2>, n: Int): Array<Vec2> {
-        val hull = ArrayList<Vec2>()
-        var firstPointIndex = 0
-        var minX = Float.MAX_VALUE.sceneUnit
-        for (i in 0 until n) {
-            val x = vertices[i].x
-            if (x < minX) {
-                firstPointIndex = i
-                minX = x
+    // TODO: Doesn't work
+    private fun generateHull(vertices: List<Vec2>): List<Vec2> {
+        if (vertices.size < 3) return vertices // Convex hull is not defined for fewer than 3 points
+
+        // Step 1: Find the leftmost point (lowest x, then lowest y)
+        var pivot = vertices[0]
+        for (vertex in vertices) {
+            if (vertex.x < pivot.x || (vertex.x == pivot.x && vertex.y < pivot.y)) {
+                pivot = vertex
             }
         }
-        var point = firstPointIndex
-        var currentEvalPoint: Int
-        var first = true
-        while (point != firstPointIndex || first) {
-            first = false
-            hull.add(vertices[point])
-            currentEvalPoint = (point + 1) % n
-            for (i in 0 until n) {
-                if (sideOfLine(vertices[point], vertices[i], vertices[currentEvalPoint]) == -1) currentEvalPoint = i
+
+        // Step 2: Sort the points based on polar angle relative to the pivot
+        val sortedVertices = vertices
+            .filter { it != pivot } // Remove the pivot from the list
+            .sortedBy { atan2((it.y - pivot.y).raw.toDouble(), (it.x - pivot.x).raw.toDouble()) }
+
+        // Step 3: Add the pivot to the sorted list
+        val sortedPoints = listOf(pivot) + sortedVertices
+
+        // Step 4: Construct the convex hull using a stack
+        val hull = mutableListOf<Vec2>()
+        for (point in sortedPoints) {
+            while (hull.size >= 2 && crossProduct(hull[hull.size - 2], hull[hull.size - 1], point) <= 0) {
+                hull.removeAt(hull.size - 1) // Remove the last point from the hull if it's a clockwise turn
             }
-            point = currentEvalPoint
+            hull.add(point)
         }
-        val hulls = MutableList(hull.size) { Vec2() }
-        for (i in hull.indices) {
-            hulls[i] = hull[i]
-        }
-        return hulls.toList().toTypedArray()
+
+        // Step 5: Return the constructed convex hull
+        return hull
+    }
+
+    private fun crossProduct(o: Vec2, a: Vec2, b: Vec2): Float {
+        return ((a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)).raw
     }
 
     /**

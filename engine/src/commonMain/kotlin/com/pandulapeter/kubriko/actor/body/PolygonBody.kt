@@ -28,11 +28,7 @@ class PolygonBody(
         width = vertices.maxOf { it.x } - vertices.minOf { it.x },
         height = vertices.maxOf { it.y } - vertices.minOf { it.y },
     )
-    override var pivot = initialPivot.clamp(min = SceneOffset.Zero, max = size.bottomRight).also {
-        println(
-            it
-        )
-    }
+    override var pivot = initialPivot.clamp(min = SceneOffset.Zero, max = size.bottomRight)
         set(value) {
             field = value.clamp(min = SceneOffset.Zero, max = size.bottomRight)
             isAxisAlignedBoundingBoxDirty = true
