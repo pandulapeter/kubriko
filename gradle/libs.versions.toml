@@ -6,10 +6,10 @@ androidx-activity = "1.9.3" # https://developer.android.com/jetpack/androidx/rel
 androidx-lifecycle = "2.8.4" # https://developer.android.com/jetpack/androidx/releases/lifecycle
 compose-plugin = "1.7.1" # https://github.com/JetBrains/compose-multiplatform/releases
 google-material = "1.12.0" # https://github.com/material-components/material-components-android/releases
-kotlin = "2.0.21" # https://kotlinlang.org/docs/releases.html
+kotlin = "2.1.0" # https://kotlinlang.org/docs/releases.html
 kotlinx-immutable = "0.3.8" # https://github.com/Kotlin/kotlinx.collections.immutable/releases
 kotlinx-serialization = "1.7.3" # https://github.com/Kotlin/kotlinx.serialization/releases
-gradle = "8.7.2" # https://developer.android.com/build/releases/gradle-plugin
+gradle = "8.7.3" # https://developer.android.com/build/releases/gradle-plugin
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
