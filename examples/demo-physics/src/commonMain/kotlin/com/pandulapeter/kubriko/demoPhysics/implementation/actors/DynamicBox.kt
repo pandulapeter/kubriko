@@ -18,7 +18,7 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
 
-internal class BouncyBox(
+internal class DynamicBox(
     initialOffset: SceneOffset,
     sideSize: SceneUnit,
 ) : RigidBody, Dynamic {

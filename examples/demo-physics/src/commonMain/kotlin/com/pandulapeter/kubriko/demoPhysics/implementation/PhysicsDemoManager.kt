@@ -4,11 +4,10 @@ import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.traits.Unique
-import com.pandulapeter.kubriko.demoPhysics.implementation.actors.BouncyBall
-import com.pandulapeter.kubriko.demoPhysics.implementation.actors.BouncyBox
+import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicCircle
+import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicBox
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.Chain
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicPlatform
-import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticBall
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticCircle
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticPlatform
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticPolygon
@@ -21,7 +20,6 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
-import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
@@ -57,15 +55,15 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique {
 
     private fun PhysicsDemoType.createActors(): Array<Actor> = when (this) {
         PhysicsDemoType.RIGID_BODY_COLLISIONS -> listOf(
-            BouncyBall(
+            DynamicCircle(
                 radius = 40.sceneUnit,
                 initialOffset = SceneOffset(270.sceneUnit, (-200).sceneUnit),
             ),
-            BouncyBox(
+            DynamicBox(
                 sideSize = 100.sceneUnit,
                 initialOffset = SceneOffset(170.sceneUnit, (-300).sceneUnit),
             ),
-            BouncyBall(
+            DynamicCircle(
                 radius = 60.sceneUnit,
                 initialOffset = SceneOffset(70.sceneUnit, (-150).sceneUnit),
             ),
@@ -83,11 +81,11 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique {
             Chain(
                 initialCenterOffset = SceneOffset(SceneUnit.Zero, (-200).sceneUnit),
             ),
-            StaticBall(
+            StaticCircle(
                 initialOffset = SceneOffset.Zero,
                 radius = 60.sceneUnit,
             ),
-            StaticBall(
+            StaticCircle(
                 initialOffset = SceneOffset((-100).sceneUnit, (-100).sceneUnit),
                 radius = 60.sceneUnit,
             ),
@@ -98,12 +96,12 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique {
         when (demoType.value) {
             PhysicsDemoType.RIGID_BODY_COLLISIONS -> actorManager.add(
                 if (listOf(true, false).random()) {
-                    BouncyBall(
+                    DynamicCircle(
                         radius = (30..60).random().toFloat().sceneUnit,
                         initialOffset = pointerSceneOffset,
                     )
                 } else {
-                    BouncyBox(
+                    DynamicBox(
                         sideSize = (60..120).random().toFloat().sceneUnit,
                         initialOffset = pointerSceneOffset,
                     )
@@ -125,8 +123,8 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique {
         )
         return when (listOf(true, false).random()) {
             true -> StaticCircle(
-                initialPosition = offset,
-                shape = Circle((10..30).random().sceneUnit)
+                initialOffset = offset,
+                radius = (10..30).random().sceneUnit,
             )
 
             false -> StaticPolygon(
@@ -136,8 +134,8 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique {
                         (0..sideCount).map { sideIndex ->
                             val angle = AngleRadians.TwoPi / sideCount * (sideIndex + 0.75f)
                             Vec2(
-                                x = (30..60).random().sceneUnit * angle.cos,
-                                y = (30..60).random().sceneUnit * angle.sin,
+                                x = (30..120).random().sceneUnit * angle.cos,
+                                y = (30..120).random().sceneUnit * angle.sin,
                             )
                         }
                     },

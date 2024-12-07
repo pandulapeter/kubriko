@@ -29,7 +29,7 @@ internal class StaticPlatform(
 
     override fun DrawScope.draw() {
         drawRect(
-            color = Color.LightGray,
+            color = Color.DarkGray,
             size = body.size.raw,
         )
         drawRect(

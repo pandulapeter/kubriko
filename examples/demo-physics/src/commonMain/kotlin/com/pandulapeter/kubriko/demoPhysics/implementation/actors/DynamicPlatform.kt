@@ -28,14 +28,13 @@ internal class DynamicPlatform(
     )
 
     override fun update(deltaTimeInMillis: Float) {
-        body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
         body.rotation -= (0.002 * deltaTimeInMillis).toFloat().rad
         physicsBody.orientation = body.rotation
     }
 
     override fun DrawScope.draw() {
         drawRect(
-            color = Color.LightGray,
+            color = Color.DarkGray,
             size = body.size.raw,
         )
         drawRect(
