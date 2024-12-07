@@ -1,6 +1,9 @@
 package com.pandulapeter.kubriko.implementation.extensions
 
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
+import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -85,3 +88,47 @@ fun SceneOffset.scalar(a: SceneUnit): SceneOffset = SceneOffset(x * a, y * a)
 fun SceneOffset.isWithin(
     axisAlignedBoundingBox: AxisAlignedBoundingBox
 ): Boolean = x.raw in axisAlignedBoundingBox.left..axisAlignedBoundingBox.right && y.raw in axisAlignedBoundingBox.top..axisAlignedBoundingBox.bottom
+
+val List<SceneOffset>.center
+    get(): SceneOffset {
+        if (isEmpty()) return SceneOffset.Zero
+        if (size == 1) return first()
+        if (size == 2) return SceneOffset(
+            x = (first().x + last().x) / 2,
+            y = (first().y + last().y) / 2,
+        )
+        var signedArea = SceneUnit.Zero
+        var centroidX = SceneUnit.Zero
+        var centroidY = SceneUnit.Zero
+        for (i in indices) {
+            val current = this[i]
+            val next = this[(i + 1) % size]
+
+            val crossProduct = current.x * next.y - next.x * current.y
+            signedArea += crossProduct
+            centroidX += (current.x + next.x) * crossProduct
+            centroidY += (current.y + next.y) * crossProduct
+        }
+        signedArea *= 0.5f
+        centroidX /= (6 * signedArea)
+        centroidY /= (6 * signedArea)
+        return SceneOffset(centroidX, centroidY)
+    }
+
+fun SceneOffset.toOffset(viewportManager: ViewportManager): Offset = toOffset(
+    viewportCenter = viewportManager.cameraPosition.value,
+    viewportSize = viewportManager.size.value,
+    viewportScaleFactor = viewportManager.scaleFactor.value,
+)
+
+fun SceneOffset.toOffset(
+    viewportCenter: SceneOffset,
+    viewportSize: Size,
+    viewportScaleFactor: Float,
+): Offset {
+    val localSceneOffset = (this - viewportCenter) * viewportScaleFactor
+    return Offset(
+        x = localSceneOffset.x.raw + viewportSize.width / 2,
+        y = localSceneOffset.y.raw + viewportSize.height / 2
+    )
+}

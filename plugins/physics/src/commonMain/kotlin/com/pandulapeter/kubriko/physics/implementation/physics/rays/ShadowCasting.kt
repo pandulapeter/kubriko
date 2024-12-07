@@ -30,7 +30,7 @@ class ShadowCasting
      *
      * @param bodiesToEvaluate Arraylist of bodies to check if they intersect with the ray projection.
      */
-    fun updateProjections(bodiesToEvaluate: ArrayList<TranslatableBody>) {
+    fun updateProjections(bodiesToEvaluate: List<TranslatableBody>) {
         rayData.clear()
         for (B in bodiesToEvaluate) {
             if (B !is CollisionBodyInterface) continue
@@ -66,7 +66,7 @@ class ShadowCasting
      * @param direction        Direction of ray to project.
      * @param bodiesToEvaluate Arraylist of bodies to check if they intersect with the ray projection.
      */
-    private fun projectRays(direction: Vec2, bodiesToEvaluate: ArrayList<TranslatableBody>) {
+    private fun projectRays(direction: Vec2, bodiesToEvaluate: List<TranslatableBody>) {
         val m = Mat2(0.001f.rad)
         m.transpose().mul(direction)
         for (i in 0..2) {

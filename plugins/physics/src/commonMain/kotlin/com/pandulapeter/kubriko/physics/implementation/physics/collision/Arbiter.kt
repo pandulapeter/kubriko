@@ -116,7 +116,7 @@ class Arbiter(
 
         //Transpose effectively removes the rotation thus allowing the OBB vs OBB detection to become AABB vs OBB
         val distOfBodies = circleBody.position.minus(polygonBody.position)
-        val polyToCircleVec = polygon.orientation.transpose().mul(distOfBodies)
+        val polyToCircleVec = polygon.orientation.transpose().mulV2(distOfBodies)
         var penetration = (-Float.MAX_VALUE).sceneUnit
         var faceNormalIndex = 0
 
@@ -153,8 +153,8 @@ class Arbiter(
             }
             this.penetration = circle.radius - distBetweenObj
             contactCount = 1
-            polygon.orientation.mul(contactNormal.set(vector1.minus(polyToCircleVec).normalize()))
-            contacts[0] = polygon.orientation.mul(vector1, Vec2()).plus(polygonBody.position)
+            contactNormal = polygon.orientation.mulV2((vector1 - polyToCircleVec).normalize())
+            contacts[0] = polygon.orientation.mulV2(vector1).plus(polygonBody.position)
             return
         }
         val v2ToV1 = vector1.minus(vector2)
@@ -172,8 +172,8 @@ class Arbiter(
             }
             this.penetration = circle.radius - distBetweenObj
             contactCount = 1
-            polygon.orientation.mul(contactNormal.set(vector2.minus(polyToCircleVec).normalize()))
-            contacts[0] = polygon.orientation.mul(vector2, Vec2()).plus(polygonBody.position)
+            contactNormal = polygon.orientation.mulV2(vector2.minus(polyToCircleVec).normalize())
+            contacts[0] = polygon.orientation.mulV2(vector2).plus(polygonBody.position)
         } else {
             val distFromEdgeToCircle = polyToCircleVec.minus(vector1).dot(polygon.normals[faceNormalIndex])
             if (distFromEdgeToCircle >= circle.radius) {
@@ -358,8 +358,7 @@ class Arbiter(
             val distanceOfBA = A.body.position.minus(B.body.position)
 
             //Best vertex relative to polygon B in object space
-            val polyANormalVertex =
-                B.orientation.transpose().mul(A.orientation.mul(A.vertices[i], Vec2()).plus(distanceOfBA))
+            val polyANormalVertex = B.orientation.transpose().mulV2(A.orientation.mulV2(A.vertices[i]) + distanceOfBA)
 
             //Distance between best vertex and polygon A's plane in object space
             val d = objectPolyANormal.dot(bestVertex.minus(polyANormalVertex))

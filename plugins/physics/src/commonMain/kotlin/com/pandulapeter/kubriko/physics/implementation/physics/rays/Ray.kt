@@ -72,7 +72,7 @@ class Ray(var startPoint: Vec2, direction: Vec2, distance: SceneUnit) {
      *
      * @param bodiesToEvaluate Arraylist of bodies to check if they intersect with the ray projection.
      */
-    fun updateProjection(bodiesToEvaluate: ArrayList<TranslatableBody>) {
+    fun updateProjection(bodiesToEvaluate: List<TranslatableBody>) {
         rayInformation = null
         val endPoint = direction.scalar(distance).plus(startPoint)
         var minT1 = Float.POSITIVE_INFINITY.sceneUnit

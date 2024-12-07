@@ -4,8 +4,6 @@ import com.pandulapeter.kubriko.implementation.extensions.cos
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.implementation.extensions.sin
 import com.pandulapeter.kubriko.types.AngleRadians
-import kotlin.math.cos
-import kotlin.math.sin
 
 class Mat2 {
     var row1 = Vec2()
@@ -58,13 +56,22 @@ class Mat2 {
         return mat
     }
 
-    fun mul(v: Vec2?): Vec2 {
-        val x = v!!.x
+    fun mul(v: Vec2): Vec2 {
+        val x = v.x
         val y = v.y
-        v.x = row1.x * x + row1.y * y
-        v.y = row2.x * x + row2.y * y
-        return v
+        val s = Vec2(
+            x = row1.x * x + row1.y * y,
+            y = row2.x * x + row2.y * y,
+        )
+        v.x = s.x
+        v.y = s.y
+        return s
     }
+
+    fun mulV2(v: Vec2) = Vec2(
+        x = row1.x * v.x + row1.y * v.y,
+        y = row2.x * v.x + row2.y * v.y,
+    )
 
     fun mul(v: Vec2?, out: Vec2): Vec2 {
         out.x = row1.x * v!!.x + row1.y * v.y

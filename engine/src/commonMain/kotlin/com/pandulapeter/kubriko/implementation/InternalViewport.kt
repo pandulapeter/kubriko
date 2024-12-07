@@ -120,7 +120,7 @@ private fun Layer(
                                         with(visible) {
                                             clipRect(
                                                 right = body.size.width.raw,
-                                                bottom = body.size.height.raw
+                                                bottom = body.size.height.raw,
                                             ) {
                                                 draw()
                                             }

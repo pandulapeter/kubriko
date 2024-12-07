@@ -34,7 +34,7 @@ class ParticleExplosion(private val epicentre: Vec2, private val noOfParticles: 
      */
     fun createParticles(size: SceneUnit, density: Int, radius: SceneUnit, world: World) {
         val separationAngle = AngleRadians.TwoPi / noOfParticles
-        val distanceFromCentre = Vec2(0.sceneUnit, radius)
+        var distanceFromCentre = Vec2(0.sceneUnit, radius)
         val rotate = Mat2(separationAngle)
         for (i in 0 until noOfParticles) {
             val particlePlacement = epicentre.plus(distanceFromCentre)
@@ -48,7 +48,7 @@ class ParticleExplosion(private val epicentre: Vec2, private val noOfParticles: 
             b.particle = true
             world.addBody(b)
             particles[i] = b
-            rotate.mul(distanceFromCentre)
+            distanceFromCentre = rotate.mulV2(distanceFromCentre)
         }
     }
 
