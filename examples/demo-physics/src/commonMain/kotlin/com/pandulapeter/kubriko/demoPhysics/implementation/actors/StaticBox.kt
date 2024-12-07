@@ -13,17 +13,17 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
 internal class StaticBox(
-    initialPosition: SceneOffset,
+    initialOffset: SceneOffset,
     size: SceneSize,
     private val isRotating: Boolean,
 ) : RigidBody, Dynamic {
     override val physicsBody = Body(
         shape = Polygon(size.width / 2f, size.height / 2f),
-        x = initialPosition.x,
-        y = initialPosition.y,
+        x = initialOffset.x,
+        y = initialOffset.y,
     ).apply { density = 0f }
     override val body = RectangleBody(
-        initialPosition = initialPosition,
+        initialPosition = initialOffset,
         initialSize = size,
     )
 

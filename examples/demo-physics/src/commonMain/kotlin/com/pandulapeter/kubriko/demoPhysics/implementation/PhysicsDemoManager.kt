@@ -107,27 +107,18 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique {
     )
 
     private fun createStaticCircle() = StaticCircle(
-        initialOffset = SceneOffset(
-            x = (-600..600).random().sceneUnit,
-            y = (-600..600).random().sceneUnit,
-        ),
+        initialOffset = randomSceneOffset(),
         radius = (30..120).random().sceneUnit,
     )
 
     private fun createStaticBox() = StaticBox(
-        initialPosition = SceneOffset(
-            x = (-600..600).random().sceneUnit,
-            y = (-600..600).random().sceneUnit,
-        ),
+        initialOffset = randomSceneOffset(),
         size = SceneSize(400.sceneUnit, 40.sceneUnit),
         isRotating = listOf(true, false).random(),
     )
 
     private fun createStaticPolygon() = StaticPolygon(
-        initialPosition = SceneOffset(
-            x = (-600..600).random().sceneUnit,
-            y = (-600..600).random().sceneUnit,
-        ),
+        initialOffset = randomSceneOffset(),
         shape = Polygon(
             vertList = (3..10).random().let { sideCount ->
                 (0..sideCount).map { sideIndex ->
@@ -140,6 +131,11 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique {
             },
         ),
         isRotating = true,
+    )
+
+    private fun randomSceneOffset() = SceneOffset(
+        x = (-1200..1200).random().sceneUnit,
+        y = (-1200..1200).random().sceneUnit,
     )
 
     private enum class ShapeType {

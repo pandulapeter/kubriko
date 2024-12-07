@@ -14,6 +14,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 internal class ViewportManagerImpl(
+    val aspectRatioMode: AspectRatioMode, // TODO: Handle different aspect ratio modes.
     val viewportEdgeBuffer: SceneUnit,
 ) : ViewportManager() {
 

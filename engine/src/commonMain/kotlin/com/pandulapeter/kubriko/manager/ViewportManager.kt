@@ -16,6 +16,7 @@ abstract class ViewportManager : Manager() {
     abstract val cameraPosition: StateFlow<SceneOffset> // Center of the viewport
     abstract val size: StateFlow<Size>
     abstract val scaleFactor: StateFlow<Float>
+
     // TODO: Support rotation
     abstract val topLeft: StateFlow<SceneOffset>
     abstract val bottomRight: StateFlow<SceneOffset>
@@ -26,10 +27,20 @@ abstract class ViewportManager : Manager() {
 
     abstract fun multiplyScaleFactor(scaleFactor: Float)
 
+    sealed class AspectRatioMode {
+        data object Dynamic : AspectRatioMode()
+        sealed class Fixed : AspectRatioMode() {
+            data class Horizontal(val ratio: Float) : Fixed()
+            data class Vertical(val ratio: Float) : Fixed()
+        }
+    }
+
     companion object {
         fun newInstance(
+            aspectRatioMode: AspectRatioMode = AspectRatioMode.Dynamic,
             viewportEdgeBuffer: SceneUnit = 0f.sceneUnit,
         ): ViewportManager = ViewportManagerImpl(
+            aspectRatioMode = aspectRatioMode,
             viewportEdgeBuffer = viewportEdgeBuffer,
         )
     }

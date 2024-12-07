@@ -11,21 +11,20 @@ import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
-import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 
 internal class StaticPolygon(
-    initialPosition: SceneOffset,
+    initialOffset: SceneOffset,
     shape: Polygon,
     private val isRotating: Boolean,
 ) : RigidBody, Dynamic {
     override val physicsBody = Body(
         shape = shape,
-        x = initialPosition.x,
-        y = initialPosition.y,
+        x = initialOffset.x,
+        y = initialOffset.y,
     ).apply { density = 0f }
     override val body = PolygonBody(
-        initialPosition = initialPosition,
+        initialPosition = initialOffset,
         vertices = shape.vertices.map { SceneOffset(it.x, it.y) },
     )
 

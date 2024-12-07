@@ -15,6 +15,7 @@ import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
+// TODO: Merge with RectangleBody
 class PolygonBody(
     val vertices: List<SceneOffset>,
     initialPosition: SceneOffset = SceneOffset.Zero,
