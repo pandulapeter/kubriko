@@ -7,7 +7,7 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.implementation.extensions.rad
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlin.math.cos
@@ -40,6 +40,6 @@ internal class TestCircle(
     }
 
     companion object {
-        val Radius = 50f.scenePixel
+        val Radius = 50f.sceneUnit
     }
 }

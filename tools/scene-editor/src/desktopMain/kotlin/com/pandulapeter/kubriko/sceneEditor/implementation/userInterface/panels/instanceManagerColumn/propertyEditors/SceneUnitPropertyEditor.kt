@@ -7,20 +7,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorNumberInput
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.types.ScenePixel
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
+import com.pandulapeter.kubriko.types.SceneUnit
 
 @Composable
-internal fun ScenePixelPropertyEditor(
+internal fun SceneUnitPropertyEditor(
     name: String,
-    value: ScenePixel,
-    onValueChanged: (ScenePixel) -> Unit,
+    value: SceneUnit,
+    onValueChanged: (SceneUnit) -> Unit,
 ) = Column(
     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
 ) {
     EditorNumberInput(
         name = name,
         value = value.raw,
-        onValueChanged = { onValueChanged(it.scenePixel) },
+        onValueChanged = { onValueChanged(it.sceneUnit) },
     )
 }

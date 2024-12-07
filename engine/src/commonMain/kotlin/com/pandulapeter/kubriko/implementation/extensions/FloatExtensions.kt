@@ -2,7 +2,7 @@ package com.pandulapeter.kubriko.implementation.extensions
 
 import com.pandulapeter.kubriko.types.AngleDegrees
 import com.pandulapeter.kubriko.types.AngleRadians
-import com.pandulapeter.kubriko.types.ScenePixel
+import com.pandulapeter.kubriko.types.SceneUnit
 
 val Float.deg: AngleDegrees
     get() = AngleDegrees(this)
@@ -10,5 +10,5 @@ val Float.deg: AngleDegrees
 val Float.rad: AngleRadians
     get() = AngleRadians(this)
 
-val Float.scenePixel: ScenePixel
-    get() = ScenePixel(this)
+val Float.sceneUnit: SceneUnit
+    get() = SceneUnit(this)

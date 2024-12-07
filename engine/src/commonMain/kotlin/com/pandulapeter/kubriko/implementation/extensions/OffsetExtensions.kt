@@ -16,6 +16,6 @@ fun Offset.toSceneOffset(
     viewportSize: Size,
     viewportScaleFactor: Float,
 ): SceneOffset = viewportCenter + SceneOffset(
-    x = (x - viewportSize.width / 2).scenePixel,
-    y = (y - viewportSize.height / 2).scenePixel,
+    x = (x - viewportSize.width / 2).sceneUnit,
+    y = (y - viewportSize.height / 2).sceneUnit,
 ) / viewportScaleFactor

@@ -4,14 +4,14 @@ import com.pandulapeter.kubriko.actor.traits.Movable
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.angleTowards
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.AngleRadians
-import com.pandulapeter.kubriko.types.ScenePixel
+import com.pandulapeter.kubriko.types.SceneUnit
 
 interface Destructible : Movable {
     var destructionState: Float
     override var direction: AngleRadians
-    override val friction: ScenePixel get() = 0.015f.scenePixel
+    override val friction: SceneUnit get() = 0.015f.sceneUnit
 
     override fun update(deltaTimeInMillis: Float) {
         super.update(deltaTimeInMillis)
@@ -29,7 +29,7 @@ interface Destructible : Movable {
             destructionState = 0.01f
         }
         direction = AngleRadians.Pi - if (this is Visible) angleTowards(character) else angleTowards(character)
-        speed = 3f.scenePixel
+        speed = 3f.sceneUnit
     }
 
     private fun Positionable.angleTowards(other: Positionable): AngleRadians = (body.position).angleTowards(other.body.position)

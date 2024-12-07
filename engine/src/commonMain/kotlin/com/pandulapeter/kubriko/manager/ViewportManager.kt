@@ -2,10 +2,10 @@ package com.pandulapeter.kubriko.manager
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.implementation.manager.ViewportManagerImpl
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.ScenePixel
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -28,7 +28,7 @@ abstract class ViewportManager : Manager() {
 
     companion object {
         fun newInstance(
-            viewportEdgeBuffer: ScenePixel = 0f.scenePixel,
+            viewportEdgeBuffer: SceneUnit = 0f.sceneUnit,
         ): ViewportManager = ViewportManagerImpl(
             viewportEdgeBuffer = viewportEdgeBuffer,
         )

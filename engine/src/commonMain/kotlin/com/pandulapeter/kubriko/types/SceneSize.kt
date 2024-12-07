@@ -2,21 +2,21 @@ package com.pandulapeter.kubriko.types
 
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.center
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import kotlin.jvm.JvmInline
 
 /**
- * Defines a [Size] in [ScenePixel]-s.
+ * Defines a [Size] in [SceneUnit]-s.
  *
  * Regular [Size] values should be used for screen sizes while this wrapper should be used for Scene sizes.
  */
 @JvmInline
 value class SceneSize(val raw: Size) {
-    val width: ScenePixel get() = raw.width.scenePixel
-    val height: ScenePixel get() = raw.height.scenePixel
+    val width: SceneUnit get() = raw.width.sceneUnit
+    val height: SceneUnit get() = raw.height.sceneUnit
     val center get() = SceneOffset(raw.center)
 
-    constructor(width: ScenePixel, height: ScenePixel) : this(Size(width.raw, height.raw))
+    constructor(width: SceneUnit, height: SceneUnit) : this(Size(width.raw, height.raw))
 
     operator fun plus(other: SceneSize): SceneSize = SceneSize(
         width = width + other.width,
@@ -32,7 +32,7 @@ value class SceneSize(val raw: Size) {
 
     operator fun times(scale: Int): SceneSize = SceneSize(raw * scale.toFloat())
 
-    operator fun times(scale: ScenePixel): SceneSize = SceneSize(raw * scale.raw)
+    operator fun times(scale: SceneUnit): SceneSize = SceneSize(raw * scale.raw)
 
     operator fun div(scale: Float): SceneSize = SceneSize(raw / scale)
 

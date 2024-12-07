@@ -1,6 +1,6 @@
 package com.pandulapeter.kubriko.serialization.typeSerializers
 
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -46,7 +46,7 @@ object SceneSizeSerializer : KSerializer<SceneSize> {
                     else -> throw SerializationException("Unexpected index $index")
                 }
             }
-            SceneSize(width.scenePixel, height.scenePixel)
+            SceneSize(width.sceneUnit, height.sceneUnit)
         }
     }
 }

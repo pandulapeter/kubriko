@@ -2,7 +2,7 @@ package com.pandulapeter.kubriko.implementation.extensions
 
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.ScenePixel
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.atan2
 import kotlin.math.max
 import kotlin.math.min
@@ -31,8 +31,8 @@ fun SceneOffset.clamp(
     min: SceneOffset? = null,
     max: SceneOffset? = null,
 ) = SceneOffset(
-    x = max((min ?: this).x.raw, min((max ?: this).x.raw, x.raw)).scenePixel,
-    y = max((min ?: this).y.raw, min((max ?: this).y.raw, y.raw)).scenePixel
+    x = max((min ?: this).x.raw, min((max ?: this).x.raw, x.raw)).sceneUnit,
+    y = max((min ?: this).y.raw, min((max ?: this).y.raw, y.raw)).sceneUnit
 )
 
 fun SceneOffset.wrapWithin(topLeft: SceneOffset, bottomRight: SceneOffset): SceneOffset {
@@ -52,20 +52,20 @@ fun SceneOffset.wrapWithin(topLeft: SceneOffset, bottomRight: SceneOffset): Scen
     return offset
 }
 
-fun SceneOffset.distanceTo(other: SceneOffset): ScenePixel = (x.raw - other.x.raw).let { dx ->
+fun SceneOffset.distanceTo(other: SceneOffset): SceneUnit = (x.raw - other.x.raw).let { dx ->
     (y.raw - other.y.raw).let { dy ->
-        sqrt(dx * dx + dy * dy).scenePixel
+        sqrt(dx * dx + dy * dy).sceneUnit
     }
 }
 
-fun SceneOffset.length(): ScenePixel = distanceTo(SceneOffset.Zero)
+fun SceneOffset.length(): SceneUnit = distanceTo(SceneOffset.Zero)
 
-fun SceneOffset.dot(v1: SceneOffset): ScenePixel = (v1.x.raw * x.raw + v1.y.raw * y.raw).scenePixel
+fun SceneOffset.dot(v1: SceneOffset): SceneUnit = (v1.x.raw * x.raw + v1.y.raw * y.raw).sceneUnit
 
 fun SceneOffset.normal(): SceneOffset = SceneOffset(-y, x)
 
 fun SceneOffset.normalize(): SceneOffset = length().let { length ->
-    (if (length == ScenePixel.Zero) ScenePixel.Unit else length).let { d ->
+    (if (length == SceneUnit.Zero) SceneUnit.Unit else length).let { d ->
         SceneOffset(
             x = x / d,
             y = y / d,
@@ -73,10 +73,10 @@ fun SceneOffset.normalize(): SceneOffset = length().let { length ->
     }
 }
 
-fun SceneOffset.cross(v1: SceneOffset): ScenePixel = x * v1.y - y * v1.x
+fun SceneOffset.cross(v1: SceneOffset): SceneUnit = x * v1.y - y * v1.x
 
 fun SceneOffset.cross(a: Float): SceneOffset = normal().scalar(a)
 
 fun SceneOffset.scalar(a: Float): SceneOffset = SceneOffset(x * a, y * a)
 
-fun SceneOffset.scalar(a: ScenePixel): SceneOffset = SceneOffset(x * a, y * a)
+fun SceneOffset.scalar(a: SceneUnit): SceneOffset = SceneOffset(x * a, y * a)

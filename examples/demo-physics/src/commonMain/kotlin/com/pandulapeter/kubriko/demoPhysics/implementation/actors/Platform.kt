@@ -6,7 +6,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.implementation.extensions.rad
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
@@ -28,7 +28,7 @@ internal class Platform(
     )
 
     override fun update(deltaTimeInMillis: Float) {
-        body.position = SceneOffset(physicsBody.position.x.scenePixel, physicsBody.position.y.scenePixel)
+        body.position = SceneOffset(physicsBody.position.x.sceneUnit, physicsBody.position.y.sceneUnit)
         body.rotation += (0.002 * deltaTimeInMillis).toFloat().rad
         physicsBody.orientation = body.rotation.normalized
     }

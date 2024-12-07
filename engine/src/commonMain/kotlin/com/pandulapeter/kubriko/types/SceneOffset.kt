@@ -1,20 +1,20 @@
 package com.pandulapeter.kubriko.types
 
 import androidx.compose.ui.geometry.Offset
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import kotlin.jvm.JvmInline
 
 /**
- * Defines an [Offset] in [ScenePixel]-s.
+ * Defines an [Offset] in [SceneUnit]-s.
  *
  * Regular [Offset] values should be used for coordinates on the screen while this wrapper should be used for coordinates within the Scene.
  */
 @JvmInline
 value class SceneOffset(val raw: Offset) {
-    val x: ScenePixel get() = raw.x.scenePixel
-    val y: ScenePixel get() = raw.y.scenePixel
+    val x: SceneUnit get() = raw.x.sceneUnit
+    val y: SceneUnit get() = raw.y.sceneUnit
 
-    constructor(x: ScenePixel, y: ScenePixel) : this(Offset(x.raw, y.raw))
+    constructor(x: SceneUnit, y: SceneUnit) : this(Offset(x.raw, y.raw))
 
     operator fun plus(other: SceneOffset): SceneOffset = SceneOffset(raw + other.raw)
 
@@ -24,7 +24,7 @@ value class SceneOffset(val raw: Offset) {
 
     operator fun times(scale: Int): SceneOffset = SceneOffset(raw * scale.toFloat())
 
-    operator fun times(scale: ScenePixel): SceneOffset = SceneOffset(raw * scale.raw)
+    operator fun times(scale: SceneUnit): SceneOffset = SceneOffset(raw * scale.raw)
 
     operator fun times(scale: Scale): SceneOffset = SceneOffset(x * scale.horizontal, y * scale.vertical)
 
@@ -45,14 +45,14 @@ value class SceneOffset(val raw: Offset) {
     override fun toString(): String = "SceneOffset(x=$x, y=$y)"
 
     companion object {
-        val Zero = SceneOffset(ScenePixel.Zero, ScenePixel.Zero)
-        val Left = SceneOffset(-ScenePixel.Unit, ScenePixel.Zero)
-        val TopLeft = SceneOffset(-ScenePixel.Unit, -ScenePixel.Unit)
-        val Top = SceneOffset(ScenePixel.Zero, -ScenePixel.Unit)
-        val TopRight = SceneOffset(ScenePixel.Unit, -ScenePixel.Unit)
-        val Right = SceneOffset(ScenePixel.Unit, ScenePixel.Zero)
-        val BottomRight = SceneOffset(ScenePixel.Unit, ScenePixel.Unit)
-        val Bottom = SceneOffset(ScenePixel.Zero, ScenePixel.Unit)
-        val BottomLeft = SceneOffset(-ScenePixel.Unit, ScenePixel.Unit)
+        val Zero = SceneOffset(SceneUnit.Zero, SceneUnit.Zero)
+        val Left = SceneOffset(-SceneUnit.Unit, SceneUnit.Zero)
+        val TopLeft = SceneOffset(-SceneUnit.Unit, -SceneUnit.Unit)
+        val Top = SceneOffset(SceneUnit.Zero, -SceneUnit.Unit)
+        val TopRight = SceneOffset(SceneUnit.Unit, -SceneUnit.Unit)
+        val Right = SceneOffset(SceneUnit.Unit, SceneUnit.Zero)
+        val BottomRight = SceneOffset(SceneUnit.Unit, SceneUnit.Unit)
+        val Bottom = SceneOffset(SceneUnit.Zero, SceneUnit.Unit)
+        val BottomLeft = SceneOffset(-SceneUnit.Unit, SceneUnit.Unit)
     }
 }

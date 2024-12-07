@@ -6,7 +6,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
@@ -33,7 +33,7 @@ internal class Brick(
     }
 
     companion object {
-        val Width = 100f.scenePixel
-        val Height = 40f.scenePixel
+        val Width = 100f.sceneUnit
+        val Height = 40f.sceneUnit
     }
 }

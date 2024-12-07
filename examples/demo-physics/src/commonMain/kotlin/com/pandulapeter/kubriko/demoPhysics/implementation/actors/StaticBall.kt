@@ -12,11 +12,11 @@ import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.ScenePixel
+import com.pandulapeter.kubriko.types.SceneUnit
 
 internal class StaticBall(
     initialOffset: SceneOffset,
-    private val radius: ScenePixel,
+    private val radius: SceneUnit,
 ) : RigidBody {
     override val body = CircleBody(
         initialRadius = radius,

@@ -10,23 +10,23 @@ import com.pandulapeter.kubriko.implementation.extensions.clamp
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.ScenePixel
+import com.pandulapeter.kubriko.types.SceneUnit
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlin.math.cos
 import kotlin.math.sin
 
 class CircleBody(
     initialPosition: SceneOffset = SceneOffset.Zero,
-    initialRadius: ScenePixel = ScenePixel.Zero,
+    initialRadius: SceneUnit = SceneUnit.Zero,
     initialPivot: SceneOffset = SceneOffset(initialRadius, initialRadius),
     initialScale: Scale = Scale.Unit,
     initialRotation: AngleRadians = AngleRadians.Zero
 ) : PointBody(
     initialPosition = initialPosition,
 ), ComplexBody {
-    var radius = initialRadius.clamp(min = ScenePixel.Zero)
+    var radius = initialRadius.clamp(min = SceneUnit.Zero)
         set(value) {
-            field = value.clamp(min = ScenePixel.Zero)
+            field = value.clamp(min = SceneUnit.Zero)
             pivot = pivot.clamp(min = SceneOffset.Zero, max = size.bottomRight)
             isAxisAlignedBoundingBoxDirty = true
         }

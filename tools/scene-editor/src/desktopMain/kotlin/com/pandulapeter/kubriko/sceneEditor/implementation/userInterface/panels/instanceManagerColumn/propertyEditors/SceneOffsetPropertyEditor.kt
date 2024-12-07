@@ -7,11 +7,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorNumberInput
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.ScenePixel
+import com.pandulapeter.kubriko.types.SceneUnit
 import kubriko.tools.scene_editor.generated.resources.Res
 import kubriko.tools.scene_editor.generated.resources.ic_center
 
@@ -31,7 +31,7 @@ internal fun SceneOffsetPropertyEditor(
         modifier = Modifier.weight(1f),
         name = "$name.x",
         value = value.x.raw,
-        onValueChanged = { onValueChanged(SceneOffset(it.scenePixel, value.y)) },
+        onValueChanged = { onValueChanged(SceneOffset(it.sceneUnit, value.y)) },
         valueRange = xValueRange,
         extraContent = {
             if (shouldShowCenterButton) {
@@ -47,7 +47,7 @@ internal fun SceneOffsetPropertyEditor(
         modifier = Modifier.weight(1f),
         name = "$name.y",
         value = value.y.raw,
-        onValueChanged = { onValueChanged(SceneOffset(value.x, it.scenePixel)) },
+        onValueChanged = { onValueChanged(SceneOffset(value.x, it.sceneUnit)) },
         valueRange = yValueRange,
         extraContent = {
             if (shouldShowCenterButton) {
@@ -63,12 +63,12 @@ internal fun SceneOffsetPropertyEditor(
 
 @Composable
 private fun CenterButton(
-    value: ScenePixel,
-    onValueChanged: (ScenePixel) -> Unit,
+    value: SceneUnit,
+    onValueChanged: (SceneUnit) -> Unit,
     range: ClosedFloatingPointRange<Float>?,
 ) {
     if (range != null) {
-        val center = (range.endInclusive - range.start).scenePixel / 2
+        val center = (range.endInclusive - range.start).sceneUnit / 2
         EditorIcon(
             drawableResource = Res.drawable.ic_center,
             contentDescription = "Center",

@@ -4,7 +4,7 @@ import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.implementation.manager.ViewportManagerImpl
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.ScenePixel
+import com.pandulapeter.kubriko.types.SceneUnit
 import com.pandulapeter.kubriko.types.SceneSize
 
 fun AxisAlignedBoundingBox.isWithinViewportBounds(
@@ -18,7 +18,7 @@ fun AxisAlignedBoundingBox.isWithinViewportBounds(
 internal fun AxisAlignedBoundingBox.isWithinViewportBounds(
     scaledHalfViewportSize: SceneSize,
     viewportCenter: SceneOffset,
-    viewportEdgeBuffer: ScenePixel,
+    viewportEdgeBuffer: SceneUnit,
 ): Boolean = left <= viewportCenter.x + scaledHalfViewportSize.width + viewportEdgeBuffer &&
         top <= viewportCenter.y + scaledHalfViewportSize.height + viewportEdgeBuffer &&
         right >= viewportCenter.x - scaledHalfViewportSize.width - viewportEdgeBuffer &&

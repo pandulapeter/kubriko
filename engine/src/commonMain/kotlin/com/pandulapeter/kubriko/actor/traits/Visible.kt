@@ -3,7 +3,7 @@ package com.pandulapeter.kubriko.actor.traits
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.body.ComplexBody
-import com.pandulapeter.kubriko.types.ScenePixel
+import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
  * [Actor]s that want to be drawn on the Scene should implement this interface.
@@ -23,7 +23,7 @@ interface Visible : Positionable, LayerAware {
 
     /**
      * Implement this function to draw the [Actor] into the Scene using the [scope], that has already been positioned, scaled and rotated.
-     * The units used within this drawing scope must always be raw values of [ScenePixel].
+     * The units used within this drawing scope must always be raw values of [SceneUnit].
      */
     fun DrawScope.draw()
 }

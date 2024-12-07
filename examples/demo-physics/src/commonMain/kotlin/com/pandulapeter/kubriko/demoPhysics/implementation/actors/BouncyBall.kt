@@ -10,20 +10,18 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.implementation.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.implementation.extensions.require
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.implementation.extensions.wrapWithin
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
-import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.ScenePixel
+import com.pandulapeter.kubriko.types.SceneUnit
 
 internal class BouncyBall(
     initialOffset: SceneOffset,
-    private val radius: ScenePixel,
+    private val radius: SceneUnit,
 ) : RigidBody, Dynamic {
     override val body = CircleBody(
         initialRadius = radius,
@@ -43,7 +41,7 @@ internal class BouncyBall(
     }
 
     override fun update(deltaTimeInMillis: Float) {
-        body.position = SceneOffset(physicsBody.position.x.scenePixel, physicsBody.position.y.scenePixel)
+        body.position = SceneOffset(physicsBody.position.x.sceneUnit, physicsBody.position.y.sceneUnit)
         body.rotation = physicsBody.orientation.rad
         if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
             actorManager.remove(this)

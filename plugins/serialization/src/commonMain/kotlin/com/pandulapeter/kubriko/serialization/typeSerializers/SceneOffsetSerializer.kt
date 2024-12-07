@@ -1,6 +1,6 @@
 package com.pandulapeter.kubriko.serialization.typeSerializers
 
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -46,7 +46,7 @@ object SceneOffsetSerializer : KSerializer<SceneOffset> {
                     else -> throw SerializationException("Unexpected index $index")
                 }
             }
-            SceneOffset(x.scenePixel, y.scenePixel)
+            SceneOffset(x.sceneUnit, y.sceneUnit)
         }
     }
 }

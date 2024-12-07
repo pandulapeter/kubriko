@@ -1,7 +1,7 @@
 package com.pandulapeter.kubriko.serialization.typeSerializers
 
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
-import com.pandulapeter.kubriko.types.ScenePixel
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -12,19 +12,19 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
-typealias SerializableScenePixel = @Serializable(with = ScenePixelSerializer::class) ScenePixel
+typealias SerializableSceneUnit = @Serializable(with = SceneUnitSerializer::class) SceneUnit
 
 @Suppress("EXTERNAL_SERIALIZER_USELESS")
 @OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = ScenePixel::class)
-object ScenePixelSerializer : KSerializer<ScenePixel> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("scenePixel", PrimitiveKind.FLOAT)
+@Serializer(forClass = SceneUnit::class)
+object SceneUnitSerializer : KSerializer<SceneUnit> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("sceneUnit", PrimitiveKind.FLOAT)
 
-    override fun serialize(encoder: Encoder, value: ScenePixel) {
+    override fun serialize(encoder: Encoder, value: SceneUnit) {
         encoder.encodeFloat(value.raw)
     }
 
-    override fun deserialize(decoder: Decoder): ScenePixel {
-        return decoder.decodeFloat().scenePixel
+    override fun deserialize(decoder: Decoder): SceneUnit {
+        return decoder.decodeFloat().sceneUnit
     }
 }

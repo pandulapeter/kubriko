@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorNumberInput
 import com.pandulapeter.kubriko.types.SceneSize
 
@@ -24,12 +24,12 @@ internal fun SceneSizePropertyEditor(
         modifier = Modifier.weight(1f),
         name = "$name.width",
         value = value.width.raw,
-        onValueChanged = { onValueChanged(SceneSize(it.scenePixel, value.height)) },
+        onValueChanged = { onValueChanged(SceneSize(it.sceneUnit, value.height)) },
     )
     EditorNumberInput(
         modifier = Modifier.weight(1f),
         name = "$name.height",
         value = value.height.raw,
-        onValueChanged = { onValueChanged(SceneSize(value.width, it.scenePixel)) },
+        onValueChanged = { onValueChanged(SceneSize(value.width, it.sceneUnit)) },
     )
 }

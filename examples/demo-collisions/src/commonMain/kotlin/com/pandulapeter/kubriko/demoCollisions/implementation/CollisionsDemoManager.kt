@@ -4,7 +4,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.demoCollisions.implementation.actors.TestBox
 import com.pandulapeter.kubriko.demoCollisions.implementation.actors.TestCircle
 import com.pandulapeter.kubriko.implementation.extensions.require
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -18,15 +18,15 @@ internal class CollisionsDemoManager : Manager() {
         actorManager.add(
             TestBox(
                 position = SceneOffset(
-                    x = 100f.scenePixel,
-                    y = 100f.scenePixel,
+                    x = 100f.sceneUnit,
+                    y = 100f.sceneUnit,
                 ),
                 hue = (0..360).random().toFloat(),
             ),
             TestCircle(
                 position = SceneOffset(
-                    x = (-100f).scenePixel,
-                    y = (-100f).scenePixel,
+                    x = (-100f).sceneUnit,
+                    y = (-100f).sceneUnit,
                 ),
                 hue = (0..360).random().toFloat(),
             ),

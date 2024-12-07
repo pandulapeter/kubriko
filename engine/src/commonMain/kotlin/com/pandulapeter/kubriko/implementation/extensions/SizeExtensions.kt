@@ -10,6 +10,6 @@ operator fun Size.minus(offset: Offset) = Offset(
 )
 
 operator fun Size.minus(offset: SceneOffset) = SceneOffset(
-    x = width.scenePixel - offset.x,
-    y = height.scenePixel - offset.y,
+    x = width.sceneUnit - offset.x,
+    y = height.sceneUnit - offset.y,
 )

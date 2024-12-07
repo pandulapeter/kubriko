@@ -1,7 +1,7 @@
 package com.pandulapeter.kubriko.demoPhysics.implementation.actors
 
 import com.pandulapeter.kubriko.actor.traits.Group
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.JointWrapper
 import com.pandulapeter.kubriko.physics.implementation.physics.joints.JointToBody
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
@@ -36,6 +36,6 @@ internal class Chain(
 
     companion object {
         private const val LINK_COUNT = 20
-        private val LinkDistance = 40.scenePixel
+        private val LinkDistance = 40.sceneUnit
     }
 }

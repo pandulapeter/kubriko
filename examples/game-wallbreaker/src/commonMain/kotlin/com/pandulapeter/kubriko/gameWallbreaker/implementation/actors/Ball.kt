@@ -12,21 +12,21 @@ import com.pandulapeter.kubriko.collision.CollisionDetector
 import com.pandulapeter.kubriko.implementation.extensions.constrainedWithin
 import com.pandulapeter.kubriko.implementation.extensions.distanceTo
 import com.pandulapeter.kubriko.implementation.extensions.require
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.ScenePixel
+import com.pandulapeter.kubriko.types.SceneUnit
 import com.pandulapeter.kubriko.types.SceneSize
 
 internal class Ball(
-    private val radius: ScenePixel = 20f.scenePixel,
-    speed: ScenePixel = 0.8f.scenePixel,
+    private val radius: SceneUnit = 20f.sceneUnit,
+    speed: SceneUnit = 0.8f.sceneUnit,
 ) : Visible, Dynamic, CollisionDetector {
 
     override val collidableTypes = listOf(Brick::class)
     override val body = RectangleBody(
-        initialPosition = SceneOffset(0f.scenePixel, (-400f).scenePixel),
+        initialPosition = SceneOffset(0f.sceneUnit, (-400f).sceneUnit),
         initialSize = SceneSize(radius * 2, radius * 2),
     )
     private var previousPosition = body.position

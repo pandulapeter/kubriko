@@ -12,7 +12,7 @@ import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.traits.Destructible
 import com.pandulapeter.kubriko.implementation.extensions.require
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.keyboardInput.extensions.KeyboardDirectionState
 import com.pandulapeter.kubriko.keyboardInput.extensions.directionState
@@ -24,7 +24,7 @@ import com.pandulapeter.kubriko.serialization.integration.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneOffset
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.ScenePixel
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
@@ -36,7 +36,7 @@ class Character private constructor(state: State) : Unique, Dynamic, Visible, Ke
 
     override val body = CircleBody(
         initialPosition = state.position,
-        initialRadius = 50f.scenePixel,
+        initialRadius = 50f.sceneUnit,
     )
     override var drawingOrder = 0f
     private var sizeMultiplier = 1f
@@ -75,7 +75,7 @@ class Character private constructor(state: State) : Unique, Dynamic, Visible, Ke
 
     private fun findDestructibleActorsNearby(
         position: SceneOffset,
-        range: ScenePixel,
+        range: SceneUnit,
     ) = actorManager.allActors.value
         .filterIsInstance<Destructible>()
         .filter {
@@ -87,8 +87,8 @@ class Character private constructor(state: State) : Unique, Dynamic, Visible, Ke
 
     private fun Positionable.isAroundPosition(
         position: SceneOffset,
-        range: ScenePixel,
-    ): Boolean = (this.body.position - position).raw.getDistance().scenePixel < range
+        range: SceneUnit,
+    ): Boolean = (this.body.position - position).raw.getDistance().sceneUnit < range
 
     override fun DrawScope.draw() = drawCircle(
         color = lerp(Color.Red, Color.Green, ((1f + MAX_SIZE_MULTIPLIER) - sizeMultiplier) / MAX_SIZE_MULTIPLIER),
@@ -108,13 +108,13 @@ class Character private constructor(state: State) : Unique, Dynamic, Visible, Ke
         if (stateManager.isRunning.value) {
             body.position += when (directionState) {
                 KeyboardDirectionState.NONE -> SceneOffset.Zero
-                KeyboardDirectionState.LEFT -> SceneOffset(-Speed, ScenePixel.Zero)
+                KeyboardDirectionState.LEFT -> SceneOffset(-Speed, SceneUnit.Zero)
                 KeyboardDirectionState.UP_LEFT -> SceneOffset(-SpeedDiagonal, -SpeedDiagonal)
-                KeyboardDirectionState.UP -> SceneOffset(ScenePixel.Zero, -Speed)
+                KeyboardDirectionState.UP -> SceneOffset(SceneUnit.Zero, -Speed)
                 KeyboardDirectionState.UP_RIGHT -> SceneOffset(SpeedDiagonal, -SpeedDiagonal)
-                KeyboardDirectionState.RIGHT -> SceneOffset(Speed, ScenePixel.Zero)
+                KeyboardDirectionState.RIGHT -> SceneOffset(Speed, SceneUnit.Zero)
                 KeyboardDirectionState.DOWN_RIGHT -> SceneOffset(SpeedDiagonal, SpeedDiagonal)
-                KeyboardDirectionState.DOWN -> SceneOffset(ScenePixel.Zero, Speed)
+                KeyboardDirectionState.DOWN -> SceneOffset(SceneUnit.Zero, Speed)
                 KeyboardDirectionState.DOWN_LEFT -> SceneOffset(-SpeedDiagonal, SpeedDiagonal)
             }
         }
@@ -141,10 +141,10 @@ class Character private constructor(state: State) : Unique, Dynamic, Visible, Ke
     }
 
     companion object {
-        private val Speed = 6f.scenePixel
-        private val SpeedDiagonal = (sin(PI / 4) * Speed.raw).toFloat().scenePixel
+        private val Speed = 6f.sceneUnit
+        private val SpeedDiagonal = (sin(PI / 4) * Speed.raw).toFloat().sceneUnit
         private const val VIEWPORT_FOLLOWING_SPEED_MULTIPLIER = 0.03f
         private const val MAX_SIZE_MULTIPLIER = 3f
-        private val ExplosionRange = 500f.scenePixel
+        private val ExplosionRange = 500f.sceneUnit
     }
 }

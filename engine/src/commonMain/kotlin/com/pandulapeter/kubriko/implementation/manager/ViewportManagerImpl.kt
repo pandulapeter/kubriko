@@ -5,7 +5,7 @@ import androidx.compose.ui.geometry.Size
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.ScenePixel
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -14,7 +14,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 internal class ViewportManagerImpl(
-    val viewportEdgeBuffer: ScenePixel,
+    val viewportEdgeBuffer: SceneUnit,
 ) : ViewportManager() {
 
     private val _cameraPosition = MutableStateFlow(SceneOffset.Zero)

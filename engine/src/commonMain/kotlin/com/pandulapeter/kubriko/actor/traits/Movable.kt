@@ -2,10 +2,10 @@ package com.pandulapeter.kubriko.actor.traits
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.ScenePixel
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -16,14 +16,14 @@ import kotlin.math.sin
 interface Movable : Dynamic, Positionable {
 
     /**
-     * The speed of the Actor in [ScenePixel]-s / milliseconds.
+     * The speed of the Actor in [SceneUnit]-s / milliseconds.
      */
-    var speed: ScenePixel
+    var speed: SceneUnit
 
     /**
-     * The friction applied to the speed in [ScenePixel]-s / milliseconds.
+     * The friction applied to the speed in [SceneUnit]-s / milliseconds.
      */
-    val friction: ScenePixel get() = ScenePixel.Zero
+    val friction: SceneUnit get() = SceneUnit.Zero
 
     /**
      * The direction the Actor should be moving towards.
@@ -34,14 +34,14 @@ interface Movable : Dynamic, Positionable {
      * Actors can overrides this function, but they should call the super implementation to take advantage of the full feature set of [Movable].
      */
     override fun update(deltaTimeInMillis: Float) {
-        if (speed != ScenePixel.Zero) {
+        if (speed != SceneUnit.Zero) {
             speed -= friction * deltaTimeInMillis
             if (speed.raw < MINIMUM_SPEED) {
-                speed = ScenePixel.Zero
+                speed = SceneUnit.Zero
             }
             body.position += SceneOffset(
-                x = cos(direction.normalized).scenePixel,
-                y = -sin(direction.normalized).scenePixel
+                x = cos(direction.normalized).sceneUnit,
+                y = -sin(direction.normalized).sceneUnit
             ) * speed * deltaTimeInMillis
         }
     }

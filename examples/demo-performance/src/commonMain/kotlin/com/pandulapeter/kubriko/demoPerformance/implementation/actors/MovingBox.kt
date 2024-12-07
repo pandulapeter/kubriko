@@ -3,11 +3,10 @@ package com.pandulapeter.kubriko.demoPerformance.implementation.actors
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.lerp
-import com.pandulapeter.kubriko.actor.body.PointBody
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.rad
-import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.integration.Serializable
@@ -15,11 +14,11 @@ import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableAngleR
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableColor
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableScale
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneOffset
-import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableScenePixel
+import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneUnit
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.ScenePixel
+import com.pandulapeter.kubriko.types.SceneUnit
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.traits.Destructible
 import kotlinx.serialization.SerialName
@@ -31,7 +30,7 @@ import kotlin.math.sin
 class MovingBox private constructor(state: State) : Visible, Destructible, Editable<MovingBox> {
 
     @set:Exposed(name = "edgeSize")
-    var edgeSize: ScenePixel = state.edgeSize
+    var edgeSize: SceneUnit = state.edgeSize
         set(value) {
             field = value
             body.size = SceneSize(value, value)
@@ -43,7 +42,7 @@ class MovingBox private constructor(state: State) : Visible, Destructible, Edita
     override var drawingOrder = 0f
     override var destructionState = 0f
     override var direction = AngleRadians.Zero
-    override var speed = ScenePixel.Zero
+    override var speed = SceneUnit.Zero
     private var isGrowing = true
     private var isMoving = true
 
@@ -78,8 +77,8 @@ class MovingBox private constructor(state: State) : Visible, Destructible, Edita
         }
         if (isMoving) {
             body.position += SceneOffset(
-                x = cos(body.rotation.normalized).scenePixel,
-                y = -sin(body.rotation.normalized).scenePixel,
+                x = cos(body.rotation.normalized).sceneUnit,
+                y = -sin(body.rotation.normalized).sceneUnit,
             )
         }
     }
@@ -104,7 +103,7 @@ class MovingBox private constructor(state: State) : Visible, Destructible, Edita
 
     @kotlinx.serialization.Serializable
     data class State(
-        @SerialName("edgeSize") val edgeSize: SerializableScenePixel = 100f.scenePixel,
+        @SerialName("edgeSize") val edgeSize: SerializableSceneUnit = 100f.sceneUnit,
         @SerialName("position") val position: SerializableSceneOffset = SceneOffset.Zero,
         @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,
         @SerialName("rotation") val rotation: SerializableAngleRadians = 0f.rad,
