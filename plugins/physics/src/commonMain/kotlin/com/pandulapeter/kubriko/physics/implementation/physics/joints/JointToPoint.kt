@@ -3,6 +3,7 @@ package com.pandulapeter.kubriko.physics.implementation.physics.joints
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Mat2
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
+import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
  * Class for a joint between a body and a point in world space.
@@ -22,7 +23,7 @@ class JointToPoint
  */(
     b1: Body,
     val pointAttachedTo: Vec2,
-    jointLength: Float,
+    jointLength: SceneUnit,
     jointConstant: Float,
     dampening: Float,
     canGoSlack: Boolean,
@@ -47,14 +48,14 @@ class JointToPoint
      *
      * @return double value of the tension force between the point and attached bodies point
      */
-    override fun calculateTension(): Float {
+    override fun calculateTension(): SceneUnit {
         val distance = object1AttachmentPoint.minus(pointAttachedTo).length()
         if (distance < naturalLength && canGoSlack) {
-            return 0f
+            return SceneUnit.Zero
         }
         val extensionRatio = distance - naturalLength
         val tensionDueToHooksLaw = extensionRatio * springConstant
-        val tensionDueToMotionDamping = dampeningConstant * rateOfChangeOfExtension()
+        val tensionDueToMotionDamping = rateOfChangeOfExtension() * dampeningConstant
         return tensionDueToHooksLaw + tensionDueToMotionDamping
     }
 
@@ -63,7 +64,7 @@ class JointToPoint
      *
      * @return double value of the rate of change
      */
-    override fun rateOfChangeOfExtension(): Float {
+    override fun rateOfChangeOfExtension(): SceneUnit {
         val distance = pointAttachedTo.minus(object1AttachmentPoint)
         distance.normalize()
         val relativeVelocity = body.velocity.copyNegative()

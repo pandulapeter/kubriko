@@ -29,12 +29,12 @@ internal class Chain(
             physicsJoint = JointToBody(
                 body1 = chainLinks[index - 1].physicsBody,
                 body2 = chainLink.physicsBody,
-                jointLength = 10f,
+                jointLength = 10f.sceneUnit,
                 jointConstant = 200f,
                 dampening = 10f,
                 canGoSlack = true,
-                offset1 = Vec2(-10f, 0f),
-                offset2 = Vec2(10f, 0f),
+                offset1 = Vec2(-10f.sceneUnit, 0f.sceneUnit),
+                offset2 = Vec2(10f.sceneUnit, 0f.sceneUnit),
             )
         ) else null
     }

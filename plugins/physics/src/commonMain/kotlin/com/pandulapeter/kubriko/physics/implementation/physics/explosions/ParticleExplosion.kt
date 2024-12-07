@@ -1,10 +1,12 @@
 package com.pandulapeter.kubriko.physics.implementation.physics.explosions
 
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.World
+import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Mat2
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
-import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.PI
 
 /**
@@ -20,7 +22,7 @@ class ParticleExplosion(private val epicentre: Vec2, private val noOfParticles: 
      *
      * @return Array of bodies.
      */
-    val particles = MutableList(noOfParticles) { Body(Circle(0f), 0f, 0f) }
+    val particles = MutableList(noOfParticles) { Body(Circle(SceneUnit.Zero), SceneUnit.Zero, SceneUnit.Zero) }
 
     /**
      * Creates particles in the supplied world.
@@ -30,9 +32,9 @@ class ParticleExplosion(private val epicentre: Vec2, private val noOfParticles: 
      * @param radius  The distance away from the epicenter the particles are placed.
      * @param world   The world the particles are created in.
      */
-    fun createParticles(size: Float, density: Int, radius: Int, world: World) {
+    fun createParticles(size: SceneUnit, density: Int, radius: SceneUnit, world: World) {
         val separationAngle = (PI.toFloat() * 2) / noOfParticles
-        val distanceFromCentre = Vec2(0f, radius.toFloat())
+        val distanceFromCentre = Vec2(0.sceneUnit, radius)
         val rotate = Mat2(separationAngle)
         for (i in 0 until noOfParticles) {
             val particlePlacement = epicentre.plus(distanceFromCentre)

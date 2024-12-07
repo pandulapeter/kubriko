@@ -17,9 +17,9 @@ internal class ChainLink(
     initialPosition: SceneOffset,
 ) : RigidBody, Dynamic {
     override val physicsBody = Body(
-        shape = Polygon(Width.raw / 2f, Height.raw / 2f),
-        x = initialPosition.x.raw,
-        y = initialPosition.y.raw,
+        shape = Polygon(Width / 2f, Height / 2f),
+        x = initialPosition.x,
+        y = initialPosition.y,
     )
     override val body = RectangleBody(
         initialPosition = initialPosition,
@@ -27,7 +27,7 @@ internal class ChainLink(
     )
 
     override fun update(deltaTimeInMillis: Float) {
-        body.position = SceneOffset(physicsBody.position.x.sceneUnit, physicsBody.position.y.sceneUnit)
+        body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
         body.rotation = physicsBody.orientation.rad
     }
 

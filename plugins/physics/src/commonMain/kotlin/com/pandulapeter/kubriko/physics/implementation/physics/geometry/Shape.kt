@@ -4,6 +4,7 @@ import com.pandulapeter.kubriko.physics.implementation.physics.collision.bodies.
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.bodies.TranslatableBody
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Mat2
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
+import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
  * Abstract class presenting a geometric shape.
@@ -35,7 +36,7 @@ abstract class Shape {
      * @param rayInformation The object to store the information in.
      * @return Float Returns the distance to the intersection point. maxDistance if no intersection was found.
      */
-    abstract fun rayIntersect(startPoint: Vec2, endPoint: Vec2, maxDistance: Float, rayLength: Float): IntersectionReturnElement
+    abstract fun rayIntersect(startPoint: Vec2, endPoint: Vec2, maxDistance: SceneUnit, rayLength: SceneUnit): IntersectionReturnElement
 
-    class IntersectionReturnElement(val minPx: Float, val minPy: Float, val intersectionFound: Boolean, val closestBody: TranslatableBody?, val maxDistance: Float)
+    class IntersectionReturnElement(val minPx: SceneUnit, val minPy: SceneUnit, val intersectionFound: Boolean, val closestBody: TranslatableBody?, val maxDistance: SceneUnit)
 }

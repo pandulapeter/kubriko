@@ -3,6 +3,7 @@ package com.pandulapeter.kubriko.physics.implementation.physics.joints
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Mat2
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
+import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
  * Abstract class for joints holding all the common properties of joints.
@@ -16,7 +17,7 @@ import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
  */
 abstract class Joint protected constructor(
     protected val body: Body,
-    protected val naturalLength: Float,
+    protected val naturalLength: SceneUnit,
     protected val springConstant: Float,
     protected val dampeningConstant: Float,
     protected val canGoSlack: Boolean,
@@ -37,13 +38,13 @@ abstract class Joint protected constructor(
     /**
      * Abstract method to calculate tension between the joint
      *
-     * @return double value of the tension force between two points/bodies
+     * @return value of the tension force between two points/bodies
      */
-    abstract fun calculateTension(): Float
+    abstract fun calculateTension(): SceneUnit
 
     /**
      * Determines the rate of change between two objects/points.
-     * @return double value of the rate of change
+     * @return value of the rate of change
      */
-    abstract fun rateOfChangeOfExtension(): Float
+    abstract fun rateOfChangeOfExtension(): SceneUnit
 }

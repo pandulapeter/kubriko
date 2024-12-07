@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko.physics.implementation.physics.collision
 
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.physics.collision.bodies.CollisionBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.bodies.TranslatableBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Physics
@@ -7,6 +8,7 @@ import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.bodies.P
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.abs
 
 /**
@@ -75,7 +77,7 @@ class Arbiter(
         }
     }
 
-    private var penetration = 0f
+    private var penetration = SceneUnit.Zero
 
     /**
      * Circle vs circle collision detection method
@@ -91,9 +93,9 @@ class Arbiter(
             return
         }
         contactCount = 1
-        if (distance == 0f) {
+        if (distance == SceneUnit.Zero) {
             penetration = radius
-            contactNormal = Vec2.UP
+            contactNormal = Vec2(0.sceneUnit, 1.sceneUnit)
             contacts[0].set(a.position)
         } else {
             penetration = radius - distance
@@ -115,7 +117,7 @@ class Arbiter(
         //Transpose effectively removes the rotation thus allowing the OBB vs OBB detection to become AABB vs OBB
         val distOfBodies = circleBody.position.minus(polygonBody.position)
         val polyToCircleVec = polygon.orientation.transpose().mul(distOfBodies)
-        var penetration = -Float.MAX_VALUE
+        var penetration = (-Float.MAX_VALUE).sceneUnit
         var faceNormalIndex = 0
 
         //Applies SAT to check for potential penetration
@@ -142,7 +144,7 @@ class Arbiter(
         val firstPolyCorner = circleBodyTov1.dot(v1ToV2)
 
         //If first vertex is positive, v1 face region collision check
-        if (firstPolyCorner <= 0f) {
+        if (firstPolyCorner <= SceneUnit.Zero) {
             val distBetweenObj = polyToCircleVec.distance(vector1)
 
             //Check to see if vertex is within the circle
@@ -161,7 +163,7 @@ class Arbiter(
 
         //If second vertex is positive, v2 face region collision check
         //Else circle has made contact with the polygon face.
-        if (secondPolyCorner < 0f) {
+        if (secondPolyCorner < SceneUnit.Zero) {
             val distBetweenObj = polyToCircleVec.distance(vector2)
 
             //Check to see if vertex is within the circle
@@ -193,12 +195,12 @@ class Arbiter(
         val pb = b.shape as Polygon
         val aData = AxisData()
         findAxisOfMinPenetration(aData, pa, pb)
-        if (aData.penetration >= 0) {
+        if (aData.penetration >= SceneUnit.Zero) {
             return
         }
         val bData = AxisData()
         findAxisOfMinPenetration(bData, pb, pa)
-        if (bData.penetration >= 0) {
+        if (bData.penetration >= SceneUnit.Zero) {
             return
         }
         val referenceFaceIndex: Int
@@ -226,7 +228,7 @@ class Arbiter(
         //Finds face of incident polygon angled best vs reference poly normal.
         //Best face is the incident face that is the most anti parallel (most negative dot product)
         var incidentIndex = 0
-        var minDot = Float.MAX_VALUE
+        var minDot = Float.MAX_VALUE.sceneUnit
         for (i in incidentPoly.vertices.indices) {
             val dot = referenceNormal.dot(incidentPoly.normals[i])
             if (dot < minDot) {
@@ -267,13 +269,13 @@ class Arbiter(
         }
         val refFaceNormal = refTangent.normal().copyNegative()
         val contactVectorsFound = MutableList(2) { Vec2() }
-        var totalPen = 0f
+        var totalPen = SceneUnit.Zero
         var contactsFound = 0
 
         //Discards points that are positive/above the reference face
         for (i in 0..1) {
             val separation = refFaceNormal.dot(incidentFaceVertexes[i]) - refFaceNormal.dot(v1)
-            if (separation <= 0f + Physics.EPSILON) {
+            if (separation <= SceneUnit.Zero + Physics.EPSILON.toFloat().sceneUnit) {
                 contactVectorsFound[contactsFound] = incidentFaceVertexes[i]
                 totalPen += -separation
                 contactsFound++
@@ -300,7 +302,7 @@ class Arbiter(
      * @param incidentFace Clipped face vertex's
      * @return Number of clipped vertex's
      */
-    private fun clip(planeTangent: Vec2, offset: Float, incidentFace: Array<Vec2>): Int {
+    private fun clip(planeTangent: Vec2, offset: SceneUnit, incidentFace: Array<Vec2>): Int {
         var num = 0
         val out = arrayOf(
             Vec2(incidentFace[0]),
@@ -308,12 +310,14 @@ class Arbiter(
         )
         val dist = planeTangent.dot(incidentFace[0]) - offset
         val dist1 = planeTangent.dot(incidentFace[1]) - offset
-        if (dist <= 0f) out[num++].set(incidentFace[0])
-        if (dist1 <= 0f) out[num++].set(incidentFace[1])
-        if (dist * dist1 < 0f) {
+        if (dist <= SceneUnit.Zero) out[num++].set(incidentFace[0])
+        if (dist1 <= SceneUnit.Zero) out[num++].set(incidentFace[1])
+        if (dist * dist1 < SceneUnit.Zero) {
             val interp = dist / (dist - dist1)
-            out[num].set(incidentFace[1].minus(incidentFace[0]).scalar(interp).plus(incidentFace[0]))
-            num++
+            if (num < 2) {
+                out[num].set(incidentFace[1].minus(incidentFace[0]).scalar(interp).plus(incidentFace[0]))
+                num++
+            }
         }
         incidentFace[0] = out[0]
         incidentFace[1] = out[1]
@@ -328,7 +332,7 @@ class Arbiter(
      * @param B    Polygon B to test.
      */
     private fun findAxisOfMinPenetration(data: AxisData, A: Polygon, B: Polygon) {
-        var distance = -Float.MAX_VALUE
+        var distance = (-Float.MAX_VALUE).sceneUnit
         var bestIndex = 0
         for (i in A.vertices.indices) {
             //Applies polygon A's orientation to its normals for calculation.
@@ -337,7 +341,7 @@ class Arbiter(
             //Rotates the normal by the clock wise rotation matrix of B to put the normal relative to the object space of polygon B
             //Polygon b is axis aligned and the normal is located according to this in the correct position in object space
             val objectPolyANormal = B.orientation.transpose().mul(polyANormal, Vec2())
-            var bestProjection = Float.MAX_VALUE
+            var bestProjection = Float.MAX_VALUE.sceneUnit
             var bestVertex = B.vertices[0]
 
             //Finds the index of the most negative vertex relative to the normal of polygon A
@@ -375,8 +379,8 @@ class Arbiter(
      * Based on linear projection to move the shapes away from each other based on a correction constant and scaled relative to the inverse mass of the objects.
      */
     fun penetrationResolution() {
-        val penetrationTolerance = penetration - Physics.PENETRATION_ALLOWANCE
-        if (penetrationTolerance <= 0f) {
+        val penetrationTolerance = penetration - Physics.PENETRATION_ALLOWANCE.sceneUnit
+        if (penetrationTolerance <= SceneUnit.Zero) {
             return
         }
 
@@ -384,8 +388,8 @@ class Arbiter(
 
         val totalMass = a.mass + b.mass
         val correction = penetrationTolerance * Physics.PENETRATION_CORRECTION / totalMass
-        a.position = a.position.plus(contactNormal.scalar(-a.mass * correction))
-        b.position = b.position.plus(contactNormal.scalar(b.mass * correction))
+        a.position = a.position.plus(contactNormal.scalar(-a.mass.sceneUnit * correction))
+        b.position = b.position.plus(contactNormal.scalar(b.mass.sceneUnit * correction))
     }
 
     /**
@@ -409,13 +413,13 @@ class Arbiter(
 
         //Prevents objects colliding when they are moving away from each other.
         //If not, objects could still be overlapping after a contact has been resolved and cause objects to stick together
-        if (contactVel >= 0) {
+        if (contactVel >= SceneUnit.Zero) {
             return
         }
         val acn = contactA.cross(contactNormal)
         val bcn = contactB.cross(contactNormal)
         val inverseMassSum = a.invMass + b.invMass + acn * acn * a.invInertia + bcn * bcn * b.invInertia
-        var j = -(restitution + 1) * contactVel
+        var j = -(restitution.sceneUnit + SceneUnit.Unit) * contactVel
         j /= inverseMassSum
         val impulse = contactNormal.scalar(j)
         b.applyLinearImpulse(impulse, contactB)
@@ -429,7 +433,7 @@ class Arbiter(
         t.add(contactNormal.scalar(-relativeVel.dot(contactNormal))).normalize()
         var jt = -relativeVel.dot(t)
         jt /= inverseMassSum
-        val tangentImpulse: Vec2 = if (abs(jt) < j * staticFriction) {
+        val tangentImpulse: Vec2 = if (abs(jt.raw).sceneUnit < j * staticFriction) {
             t.scalar(jt)
         } else {
             t.scalar(j).scalar(-dynamicFriction)
@@ -459,7 +463,7 @@ class Arbiter(
          * @param b penetration value b
          * @return boolean value whether a is to be preferred or not.
          */
-        private fun selectionBias(a: Float, b: Float): Boolean {
+        private fun selectionBias(a: SceneUnit, b: SceneUnit): Boolean {
             return a >= b * Physics.BIAS_RELATIVE + a * Physics.BIAS_ABSOLUTE
         }
     }
@@ -474,7 +478,7 @@ class AxisData {
      *
      * @return double penetration value.
      */
-    var penetration: Float = -Float.MAX_VALUE
+    var penetration: SceneUnit = (-Float.MAX_VALUE).sceneUnit
 
     /**
      * Gets the referenceFaceIndex value stored

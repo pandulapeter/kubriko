@@ -2,6 +2,7 @@ package com.pandulapeter.kubriko.physics.implementation.physics.explosions
 
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.bodies.TranslatableBody
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
+import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
  * Interface detailing what explosions need to include.
@@ -12,7 +13,7 @@ interface Explosion {
      *
      * @param blastPower The impulse magnitude.
      */
-    fun applyBlastImpulse(blastPower: Float)
+    fun applyBlastImpulse(blastPower: SceneUnit)
 
     /**
      * Updates the arraylist to reevaluate what objects are effected/within the proximity.

@@ -1,6 +1,7 @@
 package com.pandulapeter.kubriko.physics.implementation.physics.math
 
-import kotlin.math.abs
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -11,8 +12,8 @@ import kotlin.math.sqrt
  * @param x Sets x value.
  * @param y Sets y value.
  */
-// TODO: Should use SceneOffset instead
-data class Vec2(var x: Float = 0f, var y: Float = 0f) {
+// TODO: Use SceneOffset instead
+data class Vec2(var x: SceneUnit = SceneUnit.Zero, var y: SceneUnit = SceneUnit.Zero) {
 
     /**
      * Copy constructor.
@@ -26,7 +27,7 @@ data class Vec2(var x: Float = 0f, var y: Float = 0f) {
      *
      * @param direction Direction in radians.
      */
-    constructor(direction: Float) : this(cos(direction).toFloat(), sin(direction).toFloat())
+    constructor(direction: Float) : this(cos(direction).sceneUnit, sin(direction).sceneUnit)
 
     /**
      * Sets a vector to equal an x/y value and returns this.
@@ -35,7 +36,7 @@ data class Vec2(var x: Float = 0f, var y: Float = 0f) {
      * @param y y value.
      * @return The current instance vector.
      */
-    operator fun set(x: Float, y: Float): Vec2 {
+    fun set(x: SceneUnit, y: SceneUnit): Vec2 {
         this.x = x
         this.y = y
         return this
@@ -119,7 +120,7 @@ data class Vec2(var x: Float = 0f, var y: Float = 0f) {
      * @return Returns the normalized version of the current instance vector.
      */
     fun normalize(): Vec2 {
-        var d = sqrt(x * x + y * y)
+        var d = sqrt(x.raw * x.raw + y.raw * y.raw)
         if (d == 0f) {
             d = 1f
         }
@@ -135,7 +136,7 @@ data class Vec2(var x: Float = 0f, var y: Float = 0f) {
      */
     val normalized: Vec2
         get() {
-            var d = sqrt(x * x + y * y)
+            var d = sqrt(x.raw * x.raw + y.raw * y.raw)
             if (d == 0f) {
                 d = 1f
             }
@@ -148,10 +149,10 @@ data class Vec2(var x: Float = 0f, var y: Float = 0f) {
      * @param v Vector to find distance from.
      * @return Returns distance from vector v to the current instance vector.
      */
-    fun distance(v: Vec2): Float {
-        val dx = x - v.x
-        val dy = y - v.y
-        return sqrt(dx * dx + dy * dy)
+    fun distance(v: Vec2): SceneUnit {
+        val dx = (x - v.x).raw
+        val dy = (y - v.y).raw
+        return sqrt(dx * dx + dy * dy).sceneUnit
     }
 
     /**
@@ -171,7 +172,7 @@ data class Vec2(var x: Float = 0f, var y: Float = 0f) {
      * @return double
      */
     fun cross(v1: Vec2): Float {
-        return x * v1.y - y * v1.x
+        return x.raw * v1.y.raw - y.raw * v1.x.raw
     }
 
     fun cross(a: Float): Vec2 {
@@ -182,13 +183,17 @@ data class Vec2(var x: Float = 0f, var y: Float = 0f) {
         return Vec2(x * a, y * a)
     }
 
+    fun scalar(a: SceneUnit): Vec2 {
+        return Vec2(x * a, y * a)
+    }
+
     /**
      * Finds dotproduct between two vectors.
      *
      * @param v1 Other vector to apply dotproduct to.
      * @return double
      */
-    fun dot(v1: Vec2): Float {
+    fun dot(v1: Vec2): SceneUnit {
         return v1.x * x + v1.y * y
     }
 
@@ -197,8 +202,8 @@ data class Vec2(var x: Float = 0f, var y: Float = 0f) {
      *
      * @return double
      */
-    fun length(): Float {
-        return sqrt(x * x + y * y)
+    fun length(): SceneUnit {
+        return sqrt(x.raw * x.raw + y.raw * y.raw).sceneUnit
     }
 
     /**
@@ -207,68 +212,9 @@ data class Vec2(var x: Float = 0f, var y: Float = 0f) {
      * @return boolean value whether a vector is valid or not.
      */
     val isValid: Boolean
-        get() = !x.isNaN() && !x.isInfinite() && !y.isNaN() && !y.isInfinite()
-
-    /**
-     * Checks to see if a vector is set to (0,0).
-     *
-     * @return boolean value whether the vector is set to (0,0).
-     */
-    val isZero: Boolean
-        get() = abs(x) == 0f && abs(y) == 0f
+        get() = !x.raw.isNaN() && !x.raw.isInfinite() && !y.raw.isNaN() && !y.raw.isInfinite()
 
     override fun toString(): String {
         return "$x : $y"
-    }
-
-    companion object {
-        /**
-         * Static method for any cross product, same as
-         * [.cross]
-         *
-         * @param s double.
-         * @param a Vec2.
-         * @return Cross product scalar result.
-         */
-        fun cross(a: Vec2, s: Float): Vec2 {
-            return Vec2(s * a.y, -s * a.x)
-        }
-
-        /**
-         * Finds the cross product of a scalar and a vector. Produces a scalar in 2D.
-         *
-         * @param s double.
-         * @param a Vec2.
-         * @return Cross product scalar result.
-         */
-
-        fun cross(s: Float, a: Vec2): Vec2 {
-            return Vec2(-s * a.y, s * a.x)
-        }
-
-        /**
-         * Generates an array of length n with zero initialised vectors.
-         *
-         * @param n Length of array.
-         * @return A Vec2 array of zero initialised vectors.
-         */
-
-        fun createArray(n: Int): Array<Vec2?> {
-            val array = arrayOfNulls<Vec2>(n)
-
-            array.forEach {
-                if (it != null) {
-                    it.x = 0f
-                    it.y = 0f
-                }
-            }
-            return array
-        }
-
-        val ZERO = Vec2(0f, 0f)
-        val DOWN = Vec2(0f, -1f)
-        val UP = Vec2(0f, 1f)
-        val LEFT = Vec2(-1f, 0f)
-        val RIGHT = Vec2(1f, 0f)
     }
 }

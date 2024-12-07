@@ -1,8 +1,10 @@
 package com.pandulapeter.kubriko.physics.implementation.physics.joints
 
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Mat2
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
+import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
  * Class for a joint between two bodies.
@@ -22,7 +24,7 @@ class JointToBody
  */(
     body1: Body,
     private val body2: Body,
-    jointLength: Float,
+    jointLength: SceneUnit,
     jointConstant: Float,
     dampening: Float,
     canGoSlack: Boolean,
@@ -57,14 +59,14 @@ class JointToBody
      *
      * @return double value of the tension force between the two bodies attachment points
      */
-    override fun calculateTension(): Float {
+    override fun calculateTension(): SceneUnit {
         val distance = object1AttachmentPoint.minus(object2AttachmentPoint).length()
         if (distance < naturalLength && canGoSlack) {
-            return 0f
+            return SceneUnit.Zero
         }
         val extensionRatio = distance - naturalLength
         val tensionDueToHooksLaw = extensionRatio * springConstant
-        val tensionDueToMotionDamping = dampeningConstant * rateOfChangeOfExtension()
+        val tensionDueToMotionDamping = rateOfChangeOfExtension() * dampeningConstant
         return tensionDueToHooksLaw + tensionDueToMotionDamping
     }
 
@@ -73,7 +75,7 @@ class JointToBody
      *
      * @return double value of the rate of change
      */
-    override fun rateOfChangeOfExtension(): Float {
+    override fun rateOfChangeOfExtension(): SceneUnit {
         val distance = object2AttachmentPoint.minus(object1AttachmentPoint)
         distance.normalize()
         val relativeVelocity = body2.velocity.plus(

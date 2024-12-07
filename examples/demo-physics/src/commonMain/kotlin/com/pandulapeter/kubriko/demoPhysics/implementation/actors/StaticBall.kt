@@ -23,9 +23,9 @@ internal class StaticBall(
         initialPosition = initialOffset,
     )
     override val physicsBody = Body(
-        shape = Circle(radius.raw),
-        x = initialOffset.x.raw,
-        y = initialOffset.y.raw
+        shape = Circle(radius),
+        x = initialOffset.x,
+        y = initialOffset.y
     ).apply { density = 0f }
     private lateinit var viewportManager: ViewportManager
 

@@ -1,9 +1,11 @@
 package com.pandulapeter.kubriko.physics.implementation.physics.geometry
 
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.physics.collision.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.bodies.PhysicalBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.bodies.TranslatableBody
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.PI
 import kotlin.math.sqrt
 
@@ -15,7 +17,7 @@ class Circle
  * Constructor for a circle.
  *
  * @param radius Desired radius of the circle.
- */(var radius: Float) : Shape() {
+ */(var radius: SceneUnit) : Shape() {
     /**
      * Calculates the mass of a circle.
      *
@@ -24,9 +26,9 @@ class Circle
     override fun calcMass(density: Float) {
         val physicalBody = this.body
         if (physicalBody !is PhysicalBodyInterface) return
-        physicalBody.mass = PI.toFloat() * radius * radius * density
+        physicalBody.mass = PI.toFloat() * radius.raw * radius.raw * density
         physicalBody.invMass = if (physicalBody.mass != 0f) 1.0f / physicalBody.mass else 0f
-        physicalBody.inertia = physicalBody.mass * radius * radius
+        physicalBody.inertia = physicalBody.mass * radius.raw * radius.raw
         physicalBody.invInertia = if (physicalBody.inertia != 0f) 1.0f / physicalBody.inertia else 0f
     }
 
@@ -47,13 +49,13 @@ class Circle
      * @return boolean value whether the point is inside the first body.
      */
     override fun isPointInside(startPoint: Vec2): Boolean {
-        val d = this.body.position.minus(startPoint)
+        val d = body.position.minus(startPoint)
         return d.length() <= radius
     }
 
-    override fun rayIntersect(startPoint: Vec2, endPoint: Vec2, maxDistance: Float, rayLength: Float): IntersectionReturnElement {
-        var minPx = 0f
-        var minPy = 0f
+    override fun rayIntersect(startPoint: Vec2, endPoint: Vec2, maxDistance: SceneUnit, rayLength: SceneUnit): IntersectionReturnElement {
+        var minPx = SceneUnit.Zero
+        var minPy = SceneUnit.Zero
         var intersectionFound = false
         var closestBody: TranslatableBody? = null
         var maxD = maxDistance
@@ -63,13 +65,13 @@ class Circle
         val r = radius
         val difInCenters = startPoint.minus(circleCenter)
         val a = ray.dot(ray)
-        val b = 2 * difInCenters.dot(ray)
+        val b = 2.sceneUnit * difInCenters.dot(ray)
         val c = difInCenters.dot(difInCenters) - r * r
-        var discriminant = b * b - 4 * a * c
-        if (discriminant >= 0) {
-            discriminant = sqrt(discriminant)
-            val t1 = (-b - discriminant) / (2 * a)
-            if (t1 in 0f..1f) {
+        var discriminant = b * b - 4.sceneUnit * a * c
+        if (discriminant >= SceneUnit.Zero) {
+            discriminant = sqrt(discriminant.raw).sceneUnit
+            val t1 = (-b - discriminant) / (2.sceneUnit * a)
+            if (t1.raw in SceneUnit.Zero..SceneUnit.Unit) {
                 if (t1 < maxDistance) {
                     maxD = t1
                     minPx = startPoint.x + endPoint.x * t1

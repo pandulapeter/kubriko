@@ -5,6 +5,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.BouncyBall
+import com.pandulapeter.kubriko.demoPhysics.implementation.actors.BouncyBox
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.Chain
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicPlatform
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticBall
@@ -51,9 +52,9 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique {
                 radius = 40.sceneUnit,
                 initialOffset = SceneOffset(270.sceneUnit, (-200).sceneUnit),
             ),
-            BouncyBall(
-                radius = 50.sceneUnit,
-                initialOffset = SceneOffset(170.sceneUnit, (-250).sceneUnit),
+            BouncyBox(
+                sideSize = 100.sceneUnit,
+                initialOffset = SceneOffset(170.sceneUnit, (-300).sceneUnit),
             ),
             BouncyBall(
                 radius = 60.sceneUnit,
@@ -87,10 +88,17 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique {
     override fun onPointerReleased(screenOffset: Offset) = screenOffset.toSceneOffset(viewportManager).let { pointerSceneOffset ->
         when (demoType.value) {
             PhysicsDemoType.RIGID_BODY_COLLISIONS -> actorManager.add(
-                BouncyBall(
-                    radius = (30..60).random().toFloat().sceneUnit,
-                    initialOffset = pointerSceneOffset,
-                )
+                if (listOf(true, false).random()) {
+                    BouncyBall(
+                        radius = (30..60).random().toFloat().sceneUnit,
+                        initialOffset = pointerSceneOffset,
+                    )
+                } else {
+                    BouncyBox(
+                        sideSize = (60..120).random().toFloat().sceneUnit,
+                        initialOffset = pointerSceneOffset,
+                    )
+                }
             )
 
             PhysicsDemoType.CHAINS -> actorManager.add(

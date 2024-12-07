@@ -1,5 +1,7 @@
 package com.pandulapeter.kubriko.physics.implementation.physics.math
 
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -17,7 +19,7 @@ object Math {
         val y4 = line2End.y
 
         val denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
-        if (denom == 0f) {
+        if (denom == SceneUnit.Zero) {
             return null
         }
 
@@ -45,13 +47,13 @@ object Math {
 
         val a = (lineEnd.y - lineStart.y) / (lineEnd.x - lineStart.x)
         val b = lineStart.y - a * lineStart.x
-        if (abs(point.y - (a * point.x + b)) < 0.01) {
-            val smallerX = min(lineStart.x, lineEnd.x)
-            val smallerY = min(lineStart.y, lineEnd.y)
-            val biggerX = max(lineStart.x, lineEnd.x)
-            val biggerY = max(lineStart.y, lineEnd.y)
+        if (abs((point.y - (a * point.x + b)).raw) < 0.01) {
+            val smallerX = min(lineStart.x.raw, lineEnd.x.raw).sceneUnit
+            val smallerY = min(lineStart.y.raw, lineEnd.y.raw).sceneUnit
+            val biggerX = max(lineStart.x.raw, lineEnd.x.raw).sceneUnit
+            val biggerY = max(lineStart.y.raw, lineEnd.y.raw).sceneUnit
 
-            return point.x in smallerX..biggerX && point.y in smallerY..biggerY
+            return point.x.raw in smallerX..biggerX && point.y.raw in smallerY..biggerY
         }
         return false
     }

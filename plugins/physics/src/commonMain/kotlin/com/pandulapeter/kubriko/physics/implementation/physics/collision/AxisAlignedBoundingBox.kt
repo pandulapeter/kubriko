@@ -48,34 +48,6 @@ class AxisAlignedBoundingBox(min: Vec2 = Vec2(), max: Vec2 = Vec2()) {
     }
 
     /**
-     * Method to check if an AABB is valid.
-     * Makes sure the bounding volume is not; a point, has order of vertex's backwards and valid values have been used for the bounds.
-     *
-     * @return boolean value of the validity of the AABB.
-     */
-    val isValid: Boolean
-        get() {
-            if (max.x - min.x < 0) {
-                return false
-            }
-            return if (max.y - min.y < 0) {
-                false
-            } else min.isValid && max.isValid
-        }
-
-    /**
-     * Method to check if a point resides inside an AABB in object space.
-     *
-     * @param point A point to check if its inside the AABB's object space. Point needs to also be in object space.
-     * @return Boolean value whether or not the point lies inside the AABB bounds.
-     */
-    fun aabbOverlap(point: Vec2): Boolean {
-        val x = point.x
-        val y = point.y
-        return x <= max.x && x >= min.x && y >= max.y && y <= min.y
-    }
-
-    /**
      * Method to add offset to the AABB's bounds. Can be useful to convert from object to world space .
      *
      * @param offset A vector to apply to the min and max vectors to translate the bounds and therefore AABB to desired position.

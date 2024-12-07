@@ -18,9 +18,9 @@ internal class StaticPlatform(
     size: SceneSize,
 ) : RigidBody {
     override val physicsBody = Body(
-        shape = Polygon(size.width.raw / 2f, size.height.raw / 2f),
-        x = initialPosition.x.raw,
-        y = initialPosition.y.raw,
+        shape = Polygon(size.width / 2f, size.height / 2f),
+        x = initialPosition.x,
+        y = initialPosition.y,
     ).apply { density = 0f }
     override val body = RectangleBody(
         initialPosition = initialPosition,

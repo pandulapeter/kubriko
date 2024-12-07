@@ -3,6 +3,7 @@ package com.pandulapeter.kubriko.physics.implementation.physics.explosions
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.bodies.PhysicalBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.bodies.TranslatableBody
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
+import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
  * Models proximity explosions.
@@ -13,7 +14,7 @@ class ProximityExplosion
  *
  * @param epicentre The epicentre of the explosion.
  * @param proximity    The proximity in which bodies are effected.
- */(private var epicentre: Vec2, val proximity: Int) : Explosion {
+ */(private var epicentre: Vec2, val proximity: SceneUnit) : Explosion {
     /**
      * Sets the epicentre to a different coordinate.
      *
@@ -61,16 +62,16 @@ class ProximityExplosion
      *
      * @param blastPower Blast magnitude.
      */
-    override fun applyBlastImpulse(blastPower: Float) {
+    override fun applyBlastImpulse(blastPower: SceneUnit) {
         for (b in bodiesEffected) {
             if (b !is PhysicalBodyInterface) continue
 
             val blastDir = b.position.minus(epicentre)
             val distance = blastDir.length()
-            if (distance == 0f) return
+            if (distance == SceneUnit.Zero) return
 
             //Not physically correct as it should be blast * radius to object ^ 2 as the pressure of an explosion in 2D dissipates
-            val invDistance = 1 / distance
+            val invDistance = SceneUnit.Unit / distance
             val impulseMag = blastPower * invDistance
             b.applyLinearImpulse(blastDir.normalize().scalar(impulseMag))
         }

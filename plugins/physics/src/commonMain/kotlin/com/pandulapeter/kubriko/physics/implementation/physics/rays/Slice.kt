@@ -1,13 +1,15 @@
 package com.pandulapeter.kubriko.physics.implementation.physics.rays
 
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.physics.collision.bodies.CollisionBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.World
+import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.bodies.PhysicalBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
+import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.bodies.TranslatableBody
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
-import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.bodies.PhysicalBodyInterface
-import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.sqrt
 
 /**
@@ -17,8 +19,8 @@ import kotlin.math.sqrt
  * @param direction  The direction of the ray points in radians.
  * @param distance   The distance the ray is projected
  */
-class Slice(val startPoint: Vec2, direction: Vec2, distance: Float) {
-    var distance: Float
+class Slice(val startPoint: Vec2, direction: Vec2, distance: SceneUnit) {
+    var distance: SceneUnit
     var direction: Vec2 = direction
         set(value) {
             field = value.minus(startPoint)
@@ -42,8 +44,8 @@ class Slice(val startPoint: Vec2, direction: Vec2, distance: Float) {
         val endPoint = direction.scalar(distance)
         val endX = endPoint.x
         val endY = endPoint.y
-        var minPx: Float
-        var minPy: Float
+        var minPx: SceneUnit
+        var minPy: SceneUnit
         var noOfIntersections = 0
         for (body in bodiesToEvaluate) {
             if (body !is CollisionBodyInterface) continue
@@ -58,11 +60,11 @@ class Slice(val startPoint: Vec2, direction: Vec2, distance: Float) {
                     val dy = endOfPolyEdge.y - startOfPolyEdge.y
 
                     //Check to see if the lines are not parallel
-                    if (dx - endX != 0f && dy - endY != 0f) {
+                    if (dx - endX != SceneUnit.Zero && dy - endY != SceneUnit.Zero) {
                         val t2 =
                             (endX * (startOfPolyEdge.y - startPoint.y) + endY * (startPoint.x - startOfPolyEdge.x)) / (dx * endY - dy * endX)
                         val t1 = (startOfPolyEdge.x + dx * t2 - startPoint.x) / endX
-                        if (t1 > 0 && t2 >= 0 && t2 <= 1f) {
+                        if (t1 > SceneUnit.Zero && t2 >= SceneUnit.Zero && t2 <= SceneUnit.Unit) {
                             val point = Vec2(startPoint.x + endX * t1, startPoint.y + endY * t1)
                             val dist = point.minus(startPoint).length()
                             if (dist < distance) {
@@ -81,19 +83,19 @@ class Slice(val startPoint: Vec2, direction: Vec2, distance: Float) {
                 val r = circle.radius
                 val difInCenters = startPoint.minus(circleCenter)
                 val a = ray.dot(ray)
-                val b = 2 * difInCenters.dot(ray)
+                val b = difInCenters.dot(ray) * 2
                 val c = difInCenters.dot(difInCenters) - r * r
-                var discriminant = b * b - 4 * a * c
-                if (discriminant > 0) {
-                    discriminant = sqrt(discriminant)
-                    val t1 = (-b - discriminant) / (2 * a)
-                    if (t1 in 0f..1f) {
+                var discriminant = b * b - a * c * 4
+                if (discriminant > SceneUnit.Zero) {
+                    discriminant = sqrt(discriminant.raw).sceneUnit
+                    val t1 = (-b - discriminant) / (a * 2)
+                    if (t1.raw in SceneUnit.Zero..SceneUnit.Unit) {
                         minPx = startPoint.x + endX * t1
                         minPy = startPoint.y + endY * t1
                         intersectingBodiesInfo.add(RayInformation(body, minPx, minPy, -1))
                     }
-                    val t2 = (-b + discriminant) / (2 * a)
-                    if (t2 in 0f..1f) {
+                    val t2 = (-b + discriminant) / (a * 2)
+                    if (t2.raw in SceneUnit.Zero..SceneUnit.Unit) {
                         minPx = startPoint.x + endX * t2
                         minPy = startPoint.y + endY * t2
                         intersectingBodiesInfo.add(RayInformation(body, minPx, minPy, -1))
@@ -165,9 +167,9 @@ class Slice(val startPoint: Vec2, direction: Vec2, distance: Float) {
      * @return Center of mass of type Vec2.
      */
     private fun findPolyCentre(obj2Vertz: MutableList<Vec2>): Vec2 {
-        var accumulatedArea = 0f
-        var centerX = 0f
-        var centerY = 0f
+        var accumulatedArea = SceneUnit.Zero
+        var centerX = SceneUnit.Zero
+        var centerY = SceneUnit.Zero
         var i = 0
         var j = obj2Vertz.size - 1
         while (i < obj2Vertz.size) {
@@ -177,7 +179,7 @@ class Slice(val startPoint: Vec2, direction: Vec2, distance: Float) {
             centerY += (obj2Vertz[i].y + obj2Vertz[j].y) * temp
             j = i++
         }
-        if (accumulatedArea == 0f) return Vec2()
+        if (accumulatedArea == SceneUnit.Zero) return Vec2()
         accumulatedArea *= 3f
         return Vec2(centerX / accumulatedArea, centerY / accumulatedArea)
     }

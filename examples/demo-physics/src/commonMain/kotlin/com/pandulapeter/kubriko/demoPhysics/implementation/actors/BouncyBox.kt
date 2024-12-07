@@ -5,30 +5,30 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.CircleBody
+import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.implementation.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.implementation.extensions.require
-import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
-import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
+import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
 
-internal class BouncyBall(
+internal class BouncyBox(
     initialOffset: SceneOffset,
-    private val radius: SceneUnit,
+    sideSize: SceneUnit,
 ) : RigidBody, Dynamic {
-    override val body = CircleBody(
-        initialRadius = radius,
+    override val body = RectangleBody(
+        initialSize = SceneSize(sideSize, sideSize),
         initialPosition = initialOffset,
     )
     override val physicsBody = Body(
-        shape = Circle(radius),
+        shape = Polygon(sideSize / 2, sideSize / 2),
         x = initialOffset.x,
         y = initialOffset.y,
     )
@@ -49,27 +49,25 @@ internal class BouncyBall(
     }
 
     override fun DrawScope.draw() {
-        drawCircle(
+        drawRect(
             color = Color.LightGray,
-            radius = radius.raw,
-            center = body.size.center.raw,
+            size = body.size.raw,
         )
-        drawCircle(
+        drawRect(
             color = Color.Black,
-            radius = radius.raw,
-            center = body.size.center.raw,
+            size = body.size.raw,
             style = Stroke(),
         )
         drawLine(
             color = Color.Black,
-            start = Offset(0f, body.radius.raw),
-            end = Offset(body.size.width.raw, body.radius.raw),
+            start = Offset.Zero,
+            end = Offset(body.size.width.raw, body.size.height.raw),
             strokeWidth = 2f,
         )
         drawLine(
             color = Color.Black,
-            start = Offset(body.radius.raw, 0f),
-            end = Offset(body.radius.raw, body.size.height.raw),
+            start = Offset(body.size.width.raw, 0f),
+            end = Offset(0f, body.size.height.raw),
             strokeWidth = 2f,
         )
     }

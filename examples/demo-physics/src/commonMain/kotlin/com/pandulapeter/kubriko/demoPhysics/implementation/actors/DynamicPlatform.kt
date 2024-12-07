@@ -18,9 +18,9 @@ internal class DynamicPlatform(
     size: SceneSize,
 ) : RigidBody, Dynamic {
     override val physicsBody = Body(
-        shape = Polygon(size.width.raw / 2f, size.height.raw / 2f),
-        x = initialPosition.x.raw,
-        y = initialPosition.y.raw,
+        shape = Polygon(size.width / 2f, size.height / 2f),
+        x = initialPosition.x,
+        y = initialPosition.y,
     ).apply { density = 0f }
     override val body = RectangleBody(
         initialPosition = initialPosition,
@@ -28,7 +28,7 @@ internal class DynamicPlatform(
     )
 
     override fun update(deltaTimeInMillis: Float) {
-        body.position = SceneOffset(physicsBody.position.x.sceneUnit, physicsBody.position.y.sceneUnit)
+        body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
         body.rotation -= (0.002 * deltaTimeInMillis).toFloat().rad
         physicsBody.orientation = body.rotation.normalized
     }

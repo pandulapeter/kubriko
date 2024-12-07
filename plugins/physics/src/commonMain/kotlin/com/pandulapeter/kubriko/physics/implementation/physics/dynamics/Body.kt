@@ -5,6 +5,7 @@ import com.pandulapeter.kubriko.physics.implementation.physics.collision.bodies.
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.bodies.AbstractPhysicalBody
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Shape
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
+import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
  * Class to create a body to add to a world.
@@ -14,7 +15,7 @@ import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
  * @param y     Position y in world space.
  */
 // TODO: Should inherit from RectangleBody?
-class Body(override var shape: Shape, x: Float, y: Float) : AbstractPhysicalBody(), CollisionBodyInterface {
+class Body(override var shape: Shape, x: SceneUnit, y: SceneUnit) : AbstractPhysicalBody(), CollisionBodyInterface {
     override var position: Vec2 = Vec2(x, y)
     override var dynamicFriction = 0.2f
     override var staticFriction = 0.5f

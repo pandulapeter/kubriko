@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko.physics.implementation.physics.math
 
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -26,8 +27,8 @@ class Mat2 {
      * @param radians The desired angle of the rotation matrix
      */
     fun set(radians: Float) {
-        val c = cos(radians)
-        val s = sin(radians)
+        val c = cos(radians).sceneUnit
+        val s = sin(radians).sceneUnit
         row1.x = c
         row1.y = -s
         row2.x = s

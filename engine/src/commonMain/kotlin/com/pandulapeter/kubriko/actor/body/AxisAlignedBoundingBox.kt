@@ -3,6 +3,7 @@ package com.pandulapeter.kubriko.actor.body
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
+// TODO: Could be optimized by making it mutable
 data class AxisAlignedBoundingBox(
     val min: SceneOffset,
     val max: SceneOffset

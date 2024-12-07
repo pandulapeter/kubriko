@@ -1,8 +1,10 @@
 package com.pandulapeter.kubriko.physics.implementation.physics.rays
 
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.physics.collision.bodies.CollisionBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.bodies.TranslatableBody
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
+import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
  * Ray class to define and project rays in a world.
@@ -11,8 +13,8 @@ import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
  * @param direction  The direction of the ray points in radians.
  * @param distance   The distance the ray is projected
  */
-class Ray(var startPoint: Vec2, direction: Vec2, distance: Float) {
-    val distance: Float
+class Ray(var startPoint: Vec2, direction: Vec2, distance: SceneUnit) {
+    val distance: SceneUnit
 
     /**
      * Gets the direction of the ray in radians.
@@ -28,9 +30,10 @@ class Ray(var startPoint: Vec2, direction: Vec2, distance: Float) {
      * @param direction The direction of the ray points in radians.
      * @param distance  The distance the ray is projected
      */
-    constructor(direction: Float, distance: Float) : this(
+    constructor(direction: Float, distance: SceneUnit) : this(
         Vec2(),
-        Vec2(direction), distance
+        Vec2(direction),
+        distance
     )
 
     /**
@@ -40,7 +43,7 @@ class Ray(var startPoint: Vec2, direction: Vec2, distance: Float) {
      * @param direction The direction of the ray points.
      * @param distance  The distance the ray is projected
      */
-    constructor(direction: Vec2, distance: Float) : this(Vec2(), direction, distance)
+    constructor(direction: Vec2, distance: SceneUnit) : this(Vec2(), direction, distance)
 
     /**
      * Convenience constructor. Similar to
@@ -50,7 +53,7 @@ class Ray(var startPoint: Vec2, direction: Vec2, distance: Float) {
      * @param direction  The direction of the ray points in radians.
      * @param distance   The distance the ray is projected
      */
-    constructor(startPoint: Vec2, direction: Float, distance: Float) : this(
+    constructor(startPoint: Vec2, direction: Float, distance: SceneUnit) : this(
         startPoint,
         Vec2(direction),
         distance
@@ -72,9 +75,9 @@ class Ray(var startPoint: Vec2, direction: Vec2, distance: Float) {
     fun updateProjection(bodiesToEvaluate: ArrayList<TranslatableBody>) {
         rayInformation = null
         val endPoint = direction.scalar(distance).plus(startPoint)
-        var minT1 = Float.POSITIVE_INFINITY
-        var minPx = 0f
-        var minPy = 0f
+        var minT1 = Float.POSITIVE_INFINITY.sceneUnit
+        var minPx = SceneUnit.Zero
+        var minPy = SceneUnit.Zero
         var intersectionFound = false
         var closestBody: TranslatableBody? = null
         for (body in bodiesToEvaluate) {

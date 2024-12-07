@@ -7,6 +7,7 @@ import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.bodies.TranslatableBody
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Mat2
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.asin
 import kotlin.math.atan2
 
@@ -19,7 +20,7 @@ class ShadowCasting
  *
  * @param startPoint Origin of projecting rays.
  * @param distance   The desired distance to project the rays.
- */(var startPoint: Vec2, private val distance: Float) {
+ */(var startPoint: Vec2, private val distance: SceneUnit) {
 
     val rayData = ArrayList<RayAngleInformation>()
 
@@ -46,7 +47,7 @@ class ShadowCasting
             } else {
                 val circle = B.shape as Circle
                 val d = B.position.minus(startPoint)
-                val angle = asin(circle.radius / d.length())
+                val angle = asin((circle.radius / d.length()).raw)
                 val u = Mat2(angle)
                 projectRays(u.mul(d.normalize(), Vec2()), bodiesToEvaluate)
                 val u2 = Mat2(-angle)
@@ -70,7 +71,7 @@ class ShadowCasting
         for (i in 0..2) {
             val ray = Ray(startPoint, direction, distance)
             ray.updateProjection(bodiesToEvaluate)
-            rayData.add(RayAngleInformation(ray, atan2(direction.y, direction.x)))
+            rayData.add(RayAngleInformation(ray, atan2(direction.y.raw, direction.x.raw)))
             m.mul(direction)
         }
     }

@@ -21,7 +21,7 @@ internal class PhysicsManagerImpl(
 
     private val world by lazy {
         World(
-            gravity = Vec2(gravity.x.raw, gravity.y.raw),
+            gravity = Vec2(gravity.x, gravity.y),
             getRigidBodies = { rigidBodiesForPhysicsEngine.value },
             getJoints = { jointsForPhysicsEngine.value },
         )

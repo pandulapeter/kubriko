@@ -4,6 +4,7 @@ import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.bodies.P
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.bodies.TranslatableBody
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
 import com.pandulapeter.kubriko.physics.implementation.physics.rays.RayInformation
+import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
  * Models raycast explosions.
@@ -13,7 +14,7 @@ import com.pandulapeter.kubriko.physics.implementation.physics.rays.RayInformati
  * @param distance    Distance of projected rays.
  * @param worldBodies The world the rays effect and are projected in.
  */
-class RaycastExplosion(epicentre: Vec2, noOfRays: Int, distance: Float, worldBodies: ArrayList<TranslatableBody>) : Explosion {
+class RaycastExplosion(epicentre: Vec2, noOfRays: Int, distance: SceneUnit, worldBodies: ArrayList<TranslatableBody>) : Explosion {
     val rayScatter: RayScatter
 
     /**
@@ -55,12 +56,12 @@ class RaycastExplosion(epicentre: Vec2, noOfRays: Int, distance: Float, worldBod
      *
      * @param blastPower The impulse magnitude.
      */
-    override fun applyBlastImpulse(blastPower: Float) {
+    override fun applyBlastImpulse(blastPower: SceneUnit) {
         for (ray in raysInContact) {
             val blastDir = ray.coordinates.minus(rayScatter.epicentre)
             val distance = blastDir.length()
-            if (distance == 0f) return
-            val invDistance = 1 / distance
+            if (distance == SceneUnit.Zero) return
+            val invDistance = SceneUnit.Unit / distance
             val impulseMag = blastDir.normalize().scalar(blastPower * invDistance)
             val b = ray.b
             if (b !is PhysicalBodyInterface) continue

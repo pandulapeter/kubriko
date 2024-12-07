@@ -4,6 +4,7 @@ import com.pandulapeter.kubriko.physics.implementation.physics.geometry.bodies.T
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Mat2
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
 import com.pandulapeter.kubriko.physics.implementation.physics.rays.Ray
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.PI
 
 /**
@@ -29,9 +30,9 @@ class RayScatter(epicentre: Vec2, private val noOfRays: Int) {
      *
      * @param distance Distance of projected rays.
      */
-    fun castRays(distance: Float) {
+    fun castRays(distance: SceneUnit) {
         val angle = (PI.toFloat() * 2) / noOfRays
-        val direction = Vec2(1f, 1f)
+        val direction = Vec2(SceneUnit.Unit, SceneUnit.Unit)
         val u = Mat2(angle)
         for (i in rays.indices) {
             rays.add(Ray(epicentre, direction, distance))

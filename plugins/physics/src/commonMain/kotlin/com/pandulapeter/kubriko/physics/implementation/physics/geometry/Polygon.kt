@@ -1,11 +1,13 @@
 package com.pandulapeter.kubriko.physics.implementation.physics.geometry
 
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.physics.collision.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.bodies.PhysicalBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.bodies.TranslatableBody
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Math.lineIntersect
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Math.pointIsOnLine
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -33,7 +35,7 @@ class Polygon : Shape {
      * @param halfWidth  Desired width of rectangle
      * @param halfHeight Desired height of rectangle
      */
-    constructor(halfWidth: Float, halfHeight: Float) {
+    constructor(halfWidth: SceneUnit, halfHeight: SceneUnit) {
         vertices = arrayOf(
             Vec2(-halfWidth, -halfHeight),
             Vec2(halfWidth, -halfHeight),
@@ -41,10 +43,10 @@ class Polygon : Shape {
             Vec2(-halfWidth, halfHeight)
         )
         normals = arrayOf(
-            Vec2(0f, -1f),
-            Vec2(1f, 0f),
-            Vec2(0f, 1f),
-            Vec2(-1f, 0f)
+            Vec2(0f.sceneUnit, (-1f).sceneUnit),
+            Vec2(1f.sceneUnit, 0f.sceneUnit),
+            Vec2(0f.sceneUnit, 1f.sceneUnit),
+            Vec2((-1f).sceneUnit, 0f.sceneUnit)
         )
     }
 
@@ -54,7 +56,7 @@ class Polygon : Shape {
      * @param radius    The maximum distance any vertex is away from the center of mass.
      * @param noOfSides The desired number of face the polygon has.
      */
-    constructor(radius: Int, noOfSides: Int) {
+    constructor(radius: SceneUnit, noOfSides: Int) {
         val vertices = MutableList(noOfSides) { Vec2() }
         for (i in 0 until noOfSides) {
             val angle = 2 * PI.toFloat() / noOfSides * (i + 0.75f)
@@ -87,7 +89,7 @@ class Polygon : Shape {
         val physicalBody = this.body
         if (physicalBody !is PhysicalBodyInterface) return
         var centroidDistVec: Vec2? =
-            Vec2(0f, 0f)
+            Vec2(SceneUnit.Zero, SceneUnit.Zero)
         var area = 0f
         var inertia = 0f
         val k = 1f / 3f
@@ -102,7 +104,7 @@ class Polygon : Shape {
             centroidDistVec.add(point2.scalar(weight))
             val intx2 = point1.x * point1.x + point2.x * point1.x + point2.x * point2.x
             val inty2 = point1.y * point1.y + point2.y * point1.y + point2.y * point2.y
-            inertia += 0.25f * k * areaOfParallelogram * (intx2 + inty2)
+            inertia += 0.25f * k * areaOfParallelogram * (intx2.raw + inty2.raw)
         }
         centroidDistVec = centroidDistVec!!.scalar(1f / area)
         for (i in vertices.indices) {
@@ -154,7 +156,7 @@ class Polygon : Shape {
     private fun generateHull(vertices: Array<Vec2>, n: Int): Array<Vec2> {
         val hull = ArrayList<Vec2>()
         var firstPointIndex = 0
-        var minX = Float.MAX_VALUE
+        var minX = Float.MAX_VALUE.sceneUnit
         for (i in 0 until n) {
             val x = vertices[i].x
             if (x < minX) {
@@ -191,7 +193,7 @@ class Polygon : Shape {
      */
     private fun sideOfLine(p1: Vec2, p2: Vec2, point: Vec2): Int {
         val value = (p2.y - p1.y) * (point.x - p2.x) - (p2.x - p1.x) * (point.y - p2.y)
-        return if (value > 0) 1 else if (value == 0f) 0 else -1
+        return if (value > SceneUnit.Zero) 1 else if (value == SceneUnit.Zero) 0 else -1
     }
 
     /**
@@ -210,16 +212,16 @@ class Polygon : Shape {
                     )
                 )
             )
-            if (objectPoint.dot(this.body.shape.orientation.mul(normals[i], Vec2())) > 0) {
+            if (objectPoint.dot(this.body.shape.orientation.mul(normals[i], Vec2())) > SceneUnit.Zero) {
                 return false
             }
         }
         return true
     }
 
-    override fun rayIntersect(startPoint: Vec2, endPoint: Vec2, maxDistance: Float, rayLength: Float): IntersectionReturnElement {
-        var minPx = 0f
-        var minPy = 0f
+    override fun rayIntersect(startPoint: Vec2, endPoint: Vec2, maxDistance: SceneUnit, rayLength: SceneUnit): IntersectionReturnElement {
+        var minPx = SceneUnit.Zero
+        var minPy = SceneUnit.Zero
         var intersectionFound = false
         var closestBody: TranslatableBody? = null
         var maxD = maxDistance

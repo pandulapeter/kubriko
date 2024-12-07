@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko.physics.implementation.physics.dynamics
 
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.physics.collision.Arbiter
 import com.pandulapeter.kubriko.physics.implementation.physics.collision.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.physics.implementation.physics.collision.bodies.CollisionBodyInterface
@@ -96,9 +97,9 @@ class World(
             }
             b.position.add(b.velocity.scalar(dt))
             if (b is CollisionBodyInterface) {
-                b.orientation = b.orientation + dt * b.angularVelocity
+                b.orientation += dt * b.angularVelocity
             }
-            b.force[0f] = 0f
+            b.force.set(0f.sceneUnit, 0f.sceneUnit)
             b.torque = 0f
         }
     }
@@ -215,7 +216,7 @@ class World(
                 val bodyB = bodies[b]
                 if (bodyB !is PhysicalBodyInterface || bodyA !is PhysicalBodyInterface) continue
                 val distance = bodyA.position.distance(bodyB.position)
-                val force = 6.67f.pow(-11f) * bodyA.mass * bodyB.mass / (distance * distance)
+                val force = 6.67f.pow(-11f) * bodyA.mass * bodyB.mass / (distance.raw * distance.raw)
                 var direction: Vec2? =
                     Vec2(bodyB.position.x - bodyA.position.x, bodyB.position.y - bodyA.position.y)
                 direction = direction!!.scalar(force)
