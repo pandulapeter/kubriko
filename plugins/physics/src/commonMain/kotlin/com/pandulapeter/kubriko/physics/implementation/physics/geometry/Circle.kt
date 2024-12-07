@@ -48,10 +48,7 @@ class Circle
      * @param startPoint Vector point to check if its inside the first body.
      * @return boolean value whether the point is inside the first body.
      */
-    override fun isPointInside(startPoint: Vec2): Boolean {
-        val d = body.position.minus(startPoint)
-        return d.length() <= radius
-    }
+    override fun isPointInside(startPoint: Vec2) = (body.position - startPoint).length() <= radius
 
     override fun rayIntersect(startPoint: Vec2, endPoint: Vec2, maxDistance: SceneUnit, rayLength: SceneUnit): IntersectionReturnElement {
         var minPx = SceneUnit.Zero
@@ -60,10 +57,10 @@ class Circle
         var closestBody: TranslatableBody? = null
         var maxD = maxDistance
 
-        val ray = endPoint.copy().minus(startPoint)
+        val ray = endPoint.copy() - startPoint
         val circleCenter = body.position.copy()
         val r = radius
-        val difInCenters = startPoint.minus(circleCenter)
+        val difInCenters = startPoint - circleCenter
         val a = ray.dot(ray)
         val b = difInCenters.dot(ray) * 2
         val c = difInCenters.dot(difInCenters) - r * r

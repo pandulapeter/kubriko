@@ -35,7 +35,7 @@ class JointToPoint
      */
     override fun applyTension() {
         val mat1 = Mat2(body.orientation)
-        object1AttachmentPoint = body.position.plus(mat1.mul(offset, Vec2()))
+        object1AttachmentPoint = body.position + mat1.mul(offset)
         val tension = calculateTension()
         val distance = pointAttachedTo.minus(object1AttachmentPoint)
         distance.normalize()

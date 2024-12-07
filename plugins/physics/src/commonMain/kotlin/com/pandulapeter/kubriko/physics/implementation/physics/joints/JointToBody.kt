@@ -1,6 +1,5 @@
 package com.pandulapeter.kubriko.physics.implementation.physics.joints
 
-import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Mat2
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
@@ -31,21 +30,16 @@ class JointToBody
     offset1: Vec2,
     private val offset2: Vec2
 ) : Joint(body1, jointLength, jointConstant, dampening, canGoSlack, offset1) {
-    var object2AttachmentPoint: Vec2 = body2.position.plus(
-        Mat2(body2.orientation).mul(
-            offset2,
-            Vec2()
-        )
-    )
+    private var object2AttachmentPoint: Vec2 = body2.position + Mat2(body2.orientation).mul(offset2)
 
     /**
      * Applies tension to the two bodies.
      */
     override fun applyTension() {
         val mat1 = Mat2(body.orientation)
-        object1AttachmentPoint = body.position.plus(mat1.mul(offset, Vec2()))
+        object1AttachmentPoint = body.position + mat1.mul(offset)
         val mat2 = Mat2(body2.orientation)
-        object2AttachmentPoint = body2.position.plus(mat2.mul(offset2, Vec2()))
+        object2AttachmentPoint = body2.position + mat2.mul(offset2)
         val tension = calculateTension()
         val distance = object2AttachmentPoint.minus(object1AttachmentPoint)
         distance.normalize()

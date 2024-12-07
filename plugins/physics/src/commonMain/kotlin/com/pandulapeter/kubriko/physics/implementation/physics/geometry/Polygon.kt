@@ -120,13 +120,13 @@ class Polygon : Shape {
      * Generates an AABB encompassing the polygon and binds it to the body.
      */
     override fun createAABB() {
-        val firstPoint = orientation.mul(vertices[0], Vec2())
+        val firstPoint = orientation.mul(vertices[0])
         var minX = firstPoint.x
         var maxX = firstPoint.x
         var minY = firstPoint.y
         var maxY = firstPoint.y
         for (i in 1 until vertices.size) {
-            val point = orientation.mul(vertices[i], Vec2())
+            val point = orientation.mul(vertices[i])
             val px = point.x
             val py = point.y
             if (px < minX) {
@@ -204,15 +204,8 @@ class Polygon : Shape {
      */
     override fun isPointInside(startPoint: Vec2): Boolean {
         for (i in vertices.indices) {
-            val objectPoint = startPoint.minus(
-                this.body.position.plus(
-                    this.body.shape.orientation.mul(
-                        vertices[i],
-                        Vec2()
-                    )
-                )
-            )
-            if (objectPoint.dot(this.body.shape.orientation.mul(normals[i], Vec2())) > SceneUnit.Zero) {
+            val objectPoint = startPoint - (body.position + body.shape.orientation.mul(vertices[i]))
+            if (objectPoint.dot(this.body.shape.orientation.mul(normals[i])) > SceneUnit.Zero) {
                 return false
             }
         }
@@ -229,8 +222,8 @@ class Polygon : Shape {
         for (i in vertices.indices) {
             var startOfPolyEdge = vertices[i]
             var endOfPolyEdge = vertices[if (i + 1 == vertices.size) 0 else i + 1]
-            startOfPolyEdge = orientation.mul(startOfPolyEdge, Vec2()).plus(body.position)
-            endOfPolyEdge = orientation.mul(endOfPolyEdge, Vec2()).plus(body.position)
+            startOfPolyEdge = orientation.mul(startOfPolyEdge) + body.position
+            endOfPolyEdge = orientation.mul(endOfPolyEdge) + body.position
 
             //detect if line (startPoint -> endpoint) intersects with the current edge (startOfPolyEdge -> endOfPolyEdge)
             val intersection = lineIntersect(startPoint, endPoint, startOfPolyEdge, endOfPolyEdge)

@@ -1,15 +1,8 @@
 package com.pandulapeter.kubriko.demoPhysics.implementation
 
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Fill
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
-import com.pandulapeter.kubriko.actor.traits.Dynamic
-import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.BouncyBall
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.BouncyBox
@@ -21,7 +14,6 @@ import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticPlatform
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticPolygon
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
-import com.pandulapeter.kubriko.implementation.extensions.toOffset
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
@@ -29,9 +21,6 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
-import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
-import com.pandulapeter.kubriko.physics.implementation.physics.rays.Ray
-import com.pandulapeter.kubriko.physics.implementation.physics.rays.ShadowCasting
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
@@ -42,13 +31,12 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 
-internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique, Overlay, Dynamic {
+internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique {
 
     private val _demoType = MutableStateFlow(PhysicsDemoType.RIGID_BODY_COLLISIONS)
     val demoType = _demoType.asStateFlow()
     private lateinit var actorManager: ActorManager
     private lateinit var viewportManager: ViewportManager
-    private var shadowCasting: ShadowCasting? = null
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
@@ -59,7 +47,6 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique, Overla
     fun setSelectedDemoType(demoType: PhysicsDemoType) = _demoType.update { demoType }
 
     private fun resetDemo(demoType: PhysicsDemoType) {
-        shadowCasting = null
         actorManager.removeAll()
         actorManager.add(actors = demoType.createActors() + this)
     }
@@ -86,7 +73,7 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique, Overla
                 initialPosition = SceneOffset(400.sceneUnit, 150.sceneUnit),
                 size = SceneSize(400.sceneUnit, 40.sceneUnit),
             ),
-        )
+        ) + (0..10).map { createRandomObject() }
 
         PhysicsDemoType.CHAINS -> listOf(
             Chain(
@@ -100,62 +87,39 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique, Overla
                 initialOffset = SceneOffset((-100).sceneUnit, (-100).sceneUnit),
                 radius = 60.sceneUnit,
             ),
-        )
-
-        PhysicsDemoType.RAYTRACING -> (0..10).map { createRandomObject() } + createSides()
+        ) + (0..10).map { createRandomObject() }
     }.toTypedArray()
 
-    override fun update(deltaTimeInMillis: Float) {
-        shadowCasting?.updateProjections(
-            actorManager.visibleActorsWithinViewport.value.filterIsInstance<RigidBody>().map { it.physicsBody }
-        )
-    }
-
-    override fun onPointerPress(screenOffset: Offset) = screenOffset.toSceneOffset(viewportManager).let { pointerSceneOffset ->
-        shadowCasting = shadowCasting?.also {
-            it.startPoint = Vec2(pointerSceneOffset.x, pointerSceneOffset.y)
-        } ?: ShadowCasting(
-            startPoint = Vec2(pointerSceneOffset.x, pointerSceneOffset.y),
-            distance = 5000.sceneUnit
-        )
-    }
-
     override fun onPointerReleased(screenOffset: Offset) = screenOffset.toSceneOffset(viewportManager).let { pointerSceneOffset ->
-        if (shadowCasting == null) {
-            when (demoType.value) {
-                PhysicsDemoType.RIGID_BODY_COLLISIONS -> actorManager.add(
-                    if (listOf(true, false).random()) {
-                        BouncyBall(
-                            radius = (30..60).random().toFloat().sceneUnit,
-                            initialOffset = pointerSceneOffset,
-                        )
-                    } else {
-                        BouncyBox(
-                            sideSize = (60..120).random().toFloat().sceneUnit,
-                            initialOffset = pointerSceneOffset,
-                        )
-                    }
-                )
-
-                PhysicsDemoType.CHAINS -> actorManager.add(
-                    Chain(
-                        initialCenterOffset = pointerSceneOffset,
+        when (demoType.value) {
+            PhysicsDemoType.RIGID_BODY_COLLISIONS -> actorManager.add(
+                if (listOf(true, false).random()) {
+                    BouncyBall(
+                        radius = (30..60).random().toFloat().sceneUnit,
+                        initialOffset = pointerSceneOffset,
                     )
-                )
+                } else {
+                    BouncyBox(
+                        sideSize = (60..120).random().toFloat().sceneUnit,
+                        initialOffset = pointerSceneOffset,
+                    )
+                }
+            )
 
-                PhysicsDemoType.RAYTRACING -> Unit
-            }
-        } else {
-            shadowCasting = null
+            PhysicsDemoType.CHAINS -> actorManager.add(
+                Chain(
+                    initialCenterOffset = pointerSceneOffset,
+                )
+            )
         }
     }
 
     private fun createRandomObject(): RigidBody {
         val offset = SceneOffset(
-            x = (-300..300).random().sceneUnit,
-            y = (-300..300).random().sceneUnit,
+            x = (-600..600).random().sceneUnit,
+            y = (-600..600).random().sceneUnit,
         )
-        return when (listOf(false, false).random()) {
+        return when (listOf(true, false).random()) {
             true -> StaticCircle(
                 initialPosition = offset,
                 shape = Circle((10..30).random().sceneUnit)
@@ -164,60 +128,6 @@ internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique, Overla
             false -> StaticPolygon(
                 initialPosition = offset,
                 shape = Polygon((20..60).random().sceneUnit, (3..10).random()),
-            )
-        }
-    }
-
-    private fun createSides() = listOf(
-        StaticPlatform(
-            initialPosition = SceneOffset(0.sceneUnit, (-400).sceneUnit),
-            size = SceneSize(800.sceneUnit, 20.sceneUnit)
-        ),
-        StaticPlatform(
-            initialPosition = SceneOffset(400.sceneUnit, 0.sceneUnit),
-            size = SceneSize(20.sceneUnit, 800.sceneUnit)
-        ),
-        StaticPlatform(
-            initialPosition = SceneOffset(0.sceneUnit, 400.sceneUnit),
-            size = SceneSize(800.sceneUnit, 20.sceneUnit)
-        ),
-        StaticPlatform(
-            initialPosition = SceneOffset((-400).sceneUnit, 0.sceneUnit),
-            size = SceneSize(20.sceneUnit, 800.sceneUnit)
-        ),
-    )
-
-    override fun DrawScope.drawToViewport() {
-        shadowCasting?.run {
-            val path = Path()
-            rayData.forEachIndexed { index, ray ->
-                drawCircle(
-                    color = Color.Green,
-                    radius = 4f,
-                    center = SceneOffset(ray.ray.startPoint.x, ray.ray.startPoint.y).toOffset(viewportManager),
-                )
-                ray.ray.rayInformation?.let {
-                    drawCircle(
-                        color = Color.Red,
-                        radius = 4f,
-                        center = SceneOffset(it.coordinates.x, it.coordinates.y).toOffset(viewportManager),
-                    )
-                }
-                val ray1: Ray = ray.ray
-                val ray2: Ray = rayData[if (index + 1 == rayData.size) 0 else index + 1].ray
-                val worldStartPoint = ray.ray.startPoint.let { SceneOffset(it.x, it.y) }.toOffset(viewportManager)
-                path.run {
-                    moveTo(worldStartPoint.x, worldStartPoint.y)
-                    ray1.rayInformation?.let { SceneOffset(it.coordinates.x, it.coordinates.y).toOffset(viewportManager).let { lineTo(it.x, it.y) } }
-                    ray2.rayInformation?.let { SceneOffset(it.coordinates.x, it.coordinates.y).toOffset(viewportManager).let { lineTo(it.x, it.y) } }
-                    close()
-                }
-            }
-            drawPath(
-                path = path,
-                color = Color.White,
-                style = Fill,
-                blendMode = BlendMode.Softlight,
             )
         }
     }

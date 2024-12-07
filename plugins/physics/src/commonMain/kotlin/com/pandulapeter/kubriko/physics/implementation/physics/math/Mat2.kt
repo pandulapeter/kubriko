@@ -56,28 +56,10 @@ class Mat2 {
         return mat
     }
 
-    fun mul(v: Vec2): Vec2 {
-        val x = v.x
-        val y = v.y
-        val s = Vec2(
-            x = row1.x * x + row1.y * y,
-            y = row2.x * x + row2.y * y,
-        )
-        v.x = s.x
-        v.y = s.y
-        return s
-    }
-
-    fun mulV2(v: Vec2) = Vec2(
+    fun mul(v: Vec2) = Vec2(
         x = row1.x * v.x + row1.y * v.y,
         y = row2.x * v.x + row2.y * v.y,
     )
-
-    fun mul(v: Vec2?, out: Vec2): Vec2 {
-        out.x = row1.x * v!!.x + row1.y * v.y
-        out.y = row2.x * v.x + row2.y * v.y
-        return out
-    }
 
     override fun toString(): String {
         return """${row1.x} : ${row1.y}
