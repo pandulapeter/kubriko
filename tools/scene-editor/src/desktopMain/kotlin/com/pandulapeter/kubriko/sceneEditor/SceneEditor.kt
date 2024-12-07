@@ -5,6 +5,9 @@ import androidx.compose.ui.window.application
 import com.pandulapeter.kubriko.sceneEditor.implementation.InternalSceneEditor
 import com.pandulapeter.kubriko.serialization.SerializationManager
 
+/**
+ * TODO: Documentation
+ */
 fun openSceneEditor(
     defaultSceneFilename: String? = null,
     defaultSceneFolderPath: String = "./src/commonMain/composeResources/files/scenes",
@@ -28,6 +31,9 @@ sealed class SceneEditorMode {
     ) : SceneEditorMode()
 }
 
+/**
+ * TODO: Documentation
+ */
 @Composable
 fun SceneEditor(
     defaultSceneFilename: String? = null,

@@ -1,15 +1,20 @@
 package com.pandulapeter.kubriko.demoPhysics.implementation
 
+import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
+import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.BouncyBall
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.Chain
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.Platform
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticBall
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.scenePixel
+import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
+import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.ScenePixel
 import com.pandulapeter.kubriko.types.SceneSize
@@ -19,14 +24,16 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 
-internal class PhysicsDemoManager : Manager() {
+internal class PhysicsDemoManager : Manager(), PointerInputAware, Unique {
 
     private val _demoType = MutableStateFlow(PhysicsDemoType.RIGID_BODY_COLLISIONS)
     val demoType = _demoType.asStateFlow()
     private lateinit var actorManager: ActorManager
+    private lateinit var viewportManager: ViewportManager
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
+        viewportManager = kubriko.require()
         demoType.onEach(::resetDemo).launchIn(scope)
     }
 
@@ -34,11 +41,11 @@ internal class PhysicsDemoManager : Manager() {
 
     private fun resetDemo(demoType: PhysicsDemoType) {
         actorManager.removeAll()
-        actorManager.add(actors = demoType.createActors())
+        actorManager.add(actors = demoType.createActors() + this)
     }
 
     private fun PhysicsDemoType.createActors(): Array<Actor> = when (this) {
-        PhysicsDemoType.RIGID_BODY_COLLISIONS -> ((0..40).map {
+        PhysicsDemoType.RIGID_BODY_COLLISIONS -> ((0..2).map {
             BouncyBall(
                 radius = (30..60).random().toFloat().scenePixel,
                 initialOffset = SceneOffset(
@@ -61,4 +68,15 @@ internal class PhysicsDemoManager : Manager() {
             )
         )
     }.toTypedArray()
+
+    override fun onClick(screenOffset: Offset) {
+        if (demoType.value == PhysicsDemoType.RIGID_BODY_COLLISIONS) {
+            actorManager.add(
+                BouncyBall(
+                    radius = (30..60).random().toFloat().scenePixel,
+                    initialOffset = screenOffset.toSceneOffset(viewportManager),
+                )
+            )
+        }
+    }
 }

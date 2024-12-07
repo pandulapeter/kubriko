@@ -12,6 +12,7 @@ import androidx.compose.ui.window.rememberWindowState
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.StateManager
+import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
@@ -39,6 +40,7 @@ internal fun InternalSceneEditor(
             kubriko = Kubriko.newInstance(
                 StateManager.newInstance(shouldAutoStart = false),
                 KeyboardInputManager.newInstance(),
+                PointerInputManager.newInstance(),
                 serializationManager,
             ),
             sceneEditorMode = sceneEditorMode,

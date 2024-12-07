@@ -18,6 +18,7 @@ import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoManager
 import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoType
 import com.pandulapeter.kubriko.physics.PhysicsManager
+import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -28,6 +29,7 @@ fun PhysicsDemo(
     val kubriko = remember {
         Kubriko.newInstance(
             PhysicsManager.newInstance(),
+            PointerInputManager.newInstance(),
             physicsDemoManager,
         )
     }
