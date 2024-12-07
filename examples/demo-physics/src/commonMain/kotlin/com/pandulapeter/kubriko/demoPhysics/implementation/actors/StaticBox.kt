@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
+import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
@@ -16,7 +17,7 @@ internal class StaticBox(
     initialOffset: SceneOffset,
     size: SceneSize,
     private val isRotating: Boolean,
-) : RigidBody, Dynamic {
+) : RigidBody, Visible, Dynamic {
     override val physicsBody = Body(
         shape = Polygon(size.width / 2f, size.height / 2f),
         x = initialOffset.x,

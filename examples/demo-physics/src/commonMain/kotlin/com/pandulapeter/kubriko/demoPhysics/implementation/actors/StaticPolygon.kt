@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.PolygonBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
+import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
@@ -17,7 +18,7 @@ internal class StaticPolygon(
     initialOffset: SceneOffset,
     shape: Polygon,
     private val isRotating: Boolean,
-) : RigidBody, Dynamic {
+) : RigidBody, Visible, Dynamic {
     override val physicsBody = Body(
         shape = shape,
         x = initialOffset.x,

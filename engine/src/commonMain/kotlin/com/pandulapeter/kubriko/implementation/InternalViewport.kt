@@ -3,6 +3,7 @@ package com.pandulapeter.kubriko.implementation
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -10,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Size
@@ -23,6 +25,7 @@ import com.pandulapeter.kubriko.implementation.extensions.fold
 import com.pandulapeter.kubriko.implementation.extensions.minus
 import com.pandulapeter.kubriko.implementation.extensions.transformForViewport
 import com.pandulapeter.kubriko.implementation.extensions.transformViewport
+import com.pandulapeter.kubriko.manager.ViewportManager
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.isActive
 
@@ -56,16 +59,27 @@ fun InternalViewport(
     }
 
     // Game canvas
-    BoxWithConstraints(
-        modifier = modifier,
+    Box(
+        modifier = modifier.fillMaxSize(),
     ) {
-        with(LocalDensity.current) {
-            kubrikoImpl.viewportManager.updateSize(Size(maxWidth.toPx(), maxHeight.toPx()))
+        BoxWithConstraints(
+            modifier = when (val aspectRatioMode = kubrikoImpl.viewportManager.aspectRatioMode) {
+                ViewportManager.AspectRatioMode.Dynamic -> Modifier
+                is ViewportManager.AspectRatioMode.Fixed -> Modifier.align(Alignment.Center).aspectRatio(
+                    ratio = aspectRatioMode.ratio, // TODO: Not perfect, zoom should be adjusted as well
+                )
+
+                is ViewportManager.AspectRatioMode.Stretched -> Modifier // TODO: Needs to be implemented
+            }
+        ) {
+            with(LocalDensity.current) {
+                kubrikoImpl.viewportManager.updateSize(Size(maxWidth.toPx(), maxHeight.toPx()))
+            }
+            LayerCluster(
+                gameTime = gameTime.value,
+                getKubriko = { kubrikoImpl },
+            )
         }
-        LayerCluster(
-            gameTime = gameTime.value,
-            getKubriko = { kubrikoImpl },
-        )
     }
 }
 

@@ -13,9 +13,7 @@ import com.pandulapeter.kubriko.types.SceneUnit
 internal class DynamicCircle(
     initialOffset: SceneOffset,
     private val radius: SceneUnit,
-) : BaseDynamicObject(
-    shouldAutoRemove = true,
-) {
+) : BaseDynamicObject() {
     override val body = CircleBody(
         initialRadius = radius,
         initialPosition = initialOffset,

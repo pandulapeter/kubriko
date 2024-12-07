@@ -13,9 +13,7 @@ import com.pandulapeter.kubriko.types.SceneOffset
 internal class DynamicPolygon(
     initialOffset: SceneOffset,
     shape: Polygon,
-) : BaseDynamicObject(
-    shouldAutoRemove = true,
-) {
+) : BaseDynamicObject() {
     override val physicsBody = Body(
         shape = shape,
         x = initialOffset.x,

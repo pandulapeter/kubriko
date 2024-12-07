@@ -13,9 +13,7 @@ import com.pandulapeter.kubriko.types.SceneSize
 internal class DynamicBox(
     initialOffset: SceneOffset,
     size: SceneSize,
-) : BaseDynamicObject(
-    shouldAutoRemove = true,
-) {
+) : BaseDynamicObject() {
     override val body = RectangleBody(
         initialSize = size,
         initialPosition = initialOffset,

@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
+import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
@@ -16,7 +17,7 @@ import com.pandulapeter.kubriko.types.SceneUnit
 internal class StaticCircle(
     initialOffset: SceneOffset,
     private val radius: SceneUnit,
-) : RigidBody {
+) : RigidBody, Visible {
     override val body = CircleBody(
         initialRadius = radius,
         initialPosition = initialOffset,

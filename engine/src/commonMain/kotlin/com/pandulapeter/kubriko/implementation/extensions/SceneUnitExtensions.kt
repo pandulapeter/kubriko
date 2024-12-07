@@ -10,7 +10,7 @@ fun SceneUnit.clamp(
     max: SceneUnit? = null,
 ) = max(min?.raw ?: raw, min(max?.raw ?: raw, raw)).sceneUnit
 
-val SceneUnit.abs get() = abs(raw)
+val SceneUnit.abs get() = abs(raw).sceneUnit
 
 fun min(a: SceneUnit, b: SceneUnit) = min(a.raw, b.raw)
 

@@ -29,10 +29,8 @@ abstract class ViewportManager : Manager() {
 
     sealed class AspectRatioMode {
         data object Dynamic : AspectRatioMode()
-        sealed class Fixed : AspectRatioMode() {
-            data class Horizontal(val ratio: Float) : Fixed()
-            data class Vertical(val ratio: Float) : Fixed()
-        }
+        data class Stretched(val preferredWidth: Int, val preferredHeight: Int) : AspectRatioMode()
+        data class Fixed(val ratio: Float) : AspectRatioMode()
     }
 
     companion object {
