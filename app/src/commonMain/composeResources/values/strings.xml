@@ -29,7 +29,7 @@
 
     <!-- Physics -->
     <string name="demo_physics">Physics</string>
-    <string name="demo_physics_subtitle">Rigid body collisions, joints, raytracing, etc.</string>
+    <string name="demo_physics_subtitle">Rigid body collisions, chains, explosions, etc.</string>
 
     <!-- Wallbreaker -->
     <string name="game_wallbreaker">Wallbreaker</string>
