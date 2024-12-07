@@ -65,13 +65,13 @@ class Circle
         val r = radius
         val difInCenters = startPoint.minus(circleCenter)
         val a = ray.dot(ray)
-        val b = 2.sceneUnit * difInCenters.dot(ray)
+        val b = difInCenters.dot(ray) * 2
         val c = difInCenters.dot(difInCenters) - r * r
-        var discriminant = b * b - 4.sceneUnit * a * c
+        var discriminant = b * b - a * c * 4
         if (discriminant >= SceneUnit.Zero) {
             discriminant = sqrt(discriminant.raw).sceneUnit
-            val t1 = (-b - discriminant) / (2.sceneUnit * a)
-            if (t1.raw in SceneUnit.Zero..SceneUnit.Unit) {
+            val t1 = (-b - discriminant) / (a * 2)
+            if (t1.raw in 0.0..1.0) {
                 if (t1 < maxDistance) {
                     maxD = t1
                     minPx = startPoint.x + endPoint.x * t1

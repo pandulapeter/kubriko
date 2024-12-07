@@ -32,11 +32,11 @@ class RayScatter(epicentre: Vec2, private val noOfRays: Int) {
      */
     fun castRays(distance: SceneUnit) {
         val angle = AngleRadians.TwoPi / noOfRays
-        val direction = Vec2(SceneUnit.Unit, SceneUnit.Unit)
+        var direction = Vec2(SceneUnit.Unit, SceneUnit.Unit)
         val u = Mat2(angle)
         for (i in rays.indices) {
             rays.add(Ray(epicentre, direction, distance))
-            u.mul(direction)
+            direction = u.mulV2(direction)
         }
     }
 

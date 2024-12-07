@@ -48,10 +48,10 @@ class ShadowCasting
             } else {
                 val circle = B.shape as Circle
                 val d = B.position.minus(startPoint)
-                val angle = asin((circle.radius / d.length()).raw).rad
-                val u = Mat2(angle)
+                val angle = asin(circle.radius.raw / d.length().raw)
+                val u = Mat2(angle.rad)
                 projectRays(u.mul(d.normalize(), Vec2()), bodiesToEvaluate)
-                val u2 = Mat2(-angle)
+                val u2 = Mat2(-angle.rad)
                 projectRays(u2.mul(d.normalize(), Vec2()), bodiesToEvaluate)
             }
         }
@@ -76,14 +76,6 @@ class ShadowCasting
             m.mul(direction)
         }
     }
-
-    /**
-     * Getter for number of rays projected.
-     *
-     * @return Returns size of raydata.
-     */
-    val noOfRays: Int
-        get() = rayData.size
 }
 
 /**
