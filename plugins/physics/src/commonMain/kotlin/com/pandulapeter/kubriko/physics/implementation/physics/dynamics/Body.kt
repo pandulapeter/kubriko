@@ -16,7 +16,11 @@ import com.pandulapeter.kubriko.types.SceneUnit
  * @param y     Position y in world space.
  */
 // TODO: Should inherit from RectangleBody?
-class Body(override var shape: Shape, x: SceneUnit, y: SceneUnit) : AbstractPhysicalBody(), CollisionBodyInterface {
+class Body(
+    override var shape: Shape,
+    x: SceneUnit,
+    y: SceneUnit,
+) : AbstractPhysicalBody(), CollisionBodyInterface {
     override var position: Vec2 = Vec2(x, y)
     override var dynamicFriction = 0.2f
     override var staticFriction = 0.5f

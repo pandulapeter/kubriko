@@ -1,6 +1,7 @@
 <resources>
 
-    <string name="rigid_body_collisions">Rigid body collisions</string>
-    <string name="chains">Chains</string>
+    <string name="shape">Shape</string>
+    <string name="chain">Chain</string>
+    <string name="explosion">Explosion</string>
 
 </resources>

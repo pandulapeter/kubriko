@@ -96,6 +96,8 @@ internal class ActorManagerImpl(
         (filteredCurrentActors + newActors).toImmutableList()
     }
 
+    override fun add(actors: Collection<Actor>) = add(actors = actors.toTypedArray())
+
     override fun remove(vararg actors: Actor) {
         val flattenedActors = flattenActors(actors.toList())
         _allActors.update { currentActors ->

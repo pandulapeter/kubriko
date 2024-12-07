@@ -6,35 +6,25 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.PolygonBody
-import com.pandulapeter.kubriko.actor.traits.Dynamic
-import com.pandulapeter.kubriko.implementation.extensions.rad
-import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
-import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 
-internal class StaticPolygon(
-    initialPosition: SceneOffset,
+internal class DynamicPolygon(
+    initialOffset: SceneOffset,
     shape: Polygon,
-    private val isRotating: Boolean,
-) : RigidBody, Dynamic {
+) : BaseDynamicObject(
+    shouldAutoRemove = true,
+) {
     override val physicsBody = Body(
         shape = shape,
-        x = initialPosition.x,
-        y = initialPosition.y,
-    ).apply { density = 0f }
+        x = initialOffset.x,
+        y = initialOffset.y,
+    )
     override val body = PolygonBody(
-        initialPosition = initialPosition,
+        initialPosition = initialOffset,
         vertices = shape.vertices.map { SceneOffset(it.x, it.y) },
     )
-
-    override fun update(deltaTimeInMillis: Float) {
-        if (isRotating) {
-            body.rotation -= (0.002 * deltaTimeInMillis).toFloat().rad
-            physicsBody.orientation = body.rotation
-        }
-    }
 
     override fun DrawScope.draw() {
         val path = Path().apply {
@@ -46,7 +36,7 @@ internal class StaticPolygon(
         }
         drawPath(
             path = path,
-            color = Color.DarkGray,
+            color = Color.LightGray,
             style = Fill,
         )
         drawPath(

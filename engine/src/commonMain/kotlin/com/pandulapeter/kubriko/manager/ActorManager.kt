@@ -16,6 +16,8 @@ abstract class ActorManager : Manager() {
 
     abstract fun add(vararg actors: Actor)
 
+    abstract fun add(actors: Collection<Actor>)
+
     abstract fun remove(vararg actors: Actor)
 
     abstract fun remove(actors: Collection<Actor>)

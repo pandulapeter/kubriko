@@ -89,7 +89,7 @@ fun DebugMenu(
             modifier = contentModifier.fillMaxSize().padding(16.dp),
         ) {
             FloatingActionButton(
-                modifier = Modifier.size(40.dp).align(Alignment.BottomEnd),
+                modifier = Modifier.size(40.dp).align(Alignment.TopStart),
                 containerColor = MaterialTheme.colorScheme.primary,
                 onClick = { isDebugMenuVisible.value = !isDebugMenuVisible.value },
             ) {

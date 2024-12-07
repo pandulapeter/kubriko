@@ -133,6 +133,12 @@ private fun Viewport(
     KubrikoViewport(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+        kubriko = editorController.kubriko,
+    )
+    EditorOverlay(
+        modifier = Modifier
+            .fillMaxSize()
             .handleMouseClick(
                 getSelectedActor = editorController::getSelectedActor,
                 getMouseSceneOffset = editorController::getMouseWorldCoordinates,
@@ -151,12 +157,7 @@ private fun Viewport(
                 getSelectedActor = editorController::getSelectedActor,
                 getMouseSceneOffset = editorController::getMouseWorldCoordinates,
                 notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
-            )
-            .background(MaterialTheme.colorScheme.surfaceVariant),
-        kubriko = editorController.kubriko,
-    )
-    EditorOverlay(
-        modifier = Modifier.fillMaxSize(),
+            ),
         editorController = editorController,
     )
 }
