@@ -42,12 +42,12 @@ internal class DynamicChain(
             physicsJoint = JointToBody(
                 body1 = chainLinks[index - 1].physicsBody,
                 body2 = chainLink.physicsBody,
-                jointLength = LinkDistance,
+                jointLength = ChainLink.Radius,
                 jointConstant = 10000f,
                 dampening = 100f,
                 canGoSlack = true,
-                offset1 = Vec2((-10).sceneUnit, SceneUnit.Zero),
-                offset2 = Vec2(10.sceneUnit, SceneUnit.Zero),
+                offset1 = Vec2(-ChainLink.Radius, SceneUnit.Zero),
+                offset2 = Vec2(ChainLink.Radius, SceneUnit.Zero),
             )
         ) else null
     }
@@ -55,7 +55,7 @@ internal class DynamicChain(
     private lateinit var viewportManager: ViewportManager
     override val actors = chainLinks + joints
     override val body = RectangleBody()
-    override val drawingOrder = 10f
+    override val drawingOrder = -1f
     private val offset = SceneOffset(SceneUnit.Zero, ChainLink.Radius * 2)
 
     override fun onAdded(kubriko: Kubriko) {
