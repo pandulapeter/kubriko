@@ -17,7 +17,9 @@ import kotlin.math.min
 
 internal class ViewportManagerImpl(
     val aspectRatioMode: AspectRatioMode,
-    val initialScaleFactor: Float,
+    initialScaleFactor: Float,
+    private val minimumScaleFactor: Float,
+    private val maximumScaleFactor: Float,
     val viewportEdgeBuffer: SceneUnit,
 ) : ViewportManager() {
 
@@ -59,15 +61,10 @@ internal class ViewportManagerImpl(
 
     override fun multiplyScaleFactor(scaleFactor: Float) = _scaleFactor.update { currentValue ->
         Scale(
-            horizontal = max(SCALE_MIN, min(currentValue.horizontal * scaleFactor, SCALE_MAX)),
-            vertical = max(SCALE_MIN, min(currentValue.vertical * scaleFactor, SCALE_MAX)),
+            horizontal = max(minimumScaleFactor, min(currentValue.horizontal * scaleFactor, maximumScaleFactor)),
+            vertical = max(minimumScaleFactor, min(currentValue.vertical * scaleFactor, maximumScaleFactor)),
         )
     }
 
     fun updateSize(size: Size) = _size.update { size }
-
-    companion object {
-        private const val SCALE_MIN = 0.1f
-        private const val SCALE_MAX = 10f
-    }
 }

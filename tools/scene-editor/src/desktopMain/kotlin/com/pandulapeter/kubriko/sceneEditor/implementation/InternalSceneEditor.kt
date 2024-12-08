@@ -40,7 +40,11 @@ internal fun InternalSceneEditor(
     val editorController = remember {
         EditorController(
             kubriko = Kubriko.newInstance(
-                ViewportManager.newInstance(aspectRatioMode = ViewportManager.AspectRatioMode.Dynamic),
+                ViewportManager.newInstance(
+                    aspectRatioMode = ViewportManager.AspectRatioMode.Dynamic,
+                    minimumScaleFactor = 0.1f,
+                    maximumScaleFactor = 10f,
+                ),
                 StateManager.newInstance(shouldAutoStart = false),
                 KeyboardInputManager.newInstance(),
                 PointerInputManager.newInstance(),

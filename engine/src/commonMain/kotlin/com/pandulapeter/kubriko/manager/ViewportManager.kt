@@ -56,10 +56,14 @@ abstract class ViewportManager : Manager() {
         fun newInstance(
             aspectRatioMode: AspectRatioMode = AspectRatioMode.Dynamic,
             initialScaleFactor: Float = 1f,
+            minimumScaleFactor: Float = 0.2f,
+            maximumScaleFactor: Float = 5f,
             viewportEdgeBuffer: SceneUnit = 0f.sceneUnit,
         ): ViewportManager = ViewportManagerImpl(
             aspectRatioMode = aspectRatioMode,
             initialScaleFactor = initialScaleFactor,
+            minimumScaleFactor = minimumScaleFactor,
+            maximumScaleFactor = maximumScaleFactor,
             viewportEdgeBuffer = viewportEdgeBuffer,
         )
     }
