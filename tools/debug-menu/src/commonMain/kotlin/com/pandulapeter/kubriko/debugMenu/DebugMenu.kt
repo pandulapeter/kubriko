@@ -27,6 +27,8 @@ import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuManager
 import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuMetadata
 import com.pandulapeter.kubriko.debugMenu.implementation.ui.DebugMenuContents
+import com.pandulapeter.kubriko.implementation.extensions.require
+import com.pandulapeter.kubriko.manager.ViewportManager
 import kubriko.tools.debug_menu.generated.resources.Res
 import kubriko.tools.debug_menu.generated.resources.debug_menu
 import kubriko.tools.debug_menu.generated.resources.ic_debug
@@ -60,7 +62,10 @@ fun DebugMenu(
             ) {
                 gameCanvas()
                 KubrikoViewport(
-                    kubriko = Kubriko.newInstance(debugMenuManager),
+                    kubriko = Kubriko.newInstance(
+                        kubriko.require<ViewportManager>(),
+                        debugMenuManager,
+                    ),
                 )
             }
             AnimatedVisibility(
