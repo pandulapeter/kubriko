@@ -11,6 +11,7 @@ import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
 import com.pandulapeter.kubriko.sceneEditor.Editable
+import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.integration.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneOffset
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneSize
@@ -21,7 +22,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 internal class StaticBox private constructor(
-    private val state: State,
+    state: State,
 ) : RigidBody, Visible, Dynamic, Editable<StaticBox> {
     override val physicsBody = Body(
         shape = Polygon(state.size.width / 2f, state.size.height / 2f),
@@ -33,8 +34,11 @@ internal class StaticBox private constructor(
         initialSize = state.size,
     )
 
+    @set:Exposed(name = "isRotating")
+    var isRotating = state.isRotating
+
     override fun update(deltaTimeInMillis: Float) {
-        if (state.isRotating) {
+        if (isRotating) {
             body.rotation -= (0.002 * deltaTimeInMillis).toFloat().rad
             physicsBody.orientation = body.rotation
         }
@@ -55,7 +59,7 @@ internal class StaticBox private constructor(
     override fun save() = State(
         initialOffset = body.position,
         size = body.size,
-        isRotating = state.isRotating,
+        isRotating = isRotating,
     )
 
     @kotlinx.serialization.Serializable

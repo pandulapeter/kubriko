@@ -20,6 +20,7 @@ import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorTextTitle
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.BooleanPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ColorPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.FloatPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.RotationPropertyEditor
@@ -27,8 +28,8 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.SceneOffsetPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.SceneUnitPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.StringPropertyEditor
-import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.ColorEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.AngleEditorMode
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.ColorEditorMode
 import com.pandulapeter.kubriko.types.AngleDegrees
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
@@ -53,6 +54,19 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
     isAccessible = true
     editableProperty.name.let { name ->
         when (returnType) {
+            Boolean::class.createType() -> {
+                {
+                    BooleanPropertyEditor(
+                        name = name,
+                        value = getter.call(actor) as Boolean,
+                        onValueChanged = { boolean ->
+                            setter.call(actor, boolean)
+                            notifySelectedInstanceUpdate()
+                        },
+                    )
+                }
+            }
+
             Color::class.createType() -> {
                 {
                     ColorPropertyEditor(
