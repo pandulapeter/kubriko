@@ -1,6 +1,7 @@
 package com.pandulapeter.kubriko.implementation
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.aspectRatio
@@ -67,13 +68,13 @@ fun InternalViewport(
         BoxWithConstraints(
             modifier = when (val aspectRatioMode = kubrikoImpl.viewportManager.aspectRatioMode) {
                 ViewportManager.AspectRatioMode.Dynamic,
-                    // TODO: Bar color should be customizable
                 is ViewportManager.AspectRatioMode.FitHorizontal,
-                is ViewportManager.AspectRatioMode.FitVertical -> Modifier
-
-                is ViewportManager.AspectRatioMode.Fixed -> Modifier.align(Alignment.Center).aspectRatio(
-                    ratio = aspectRatioMode.ratio,
-                )
+                is ViewportManager.AspectRatioMode.FitVertical,
+                is ViewportManager.AspectRatioMode.Stretched -> Modifier
+                is ViewportManager.AspectRatioMode.Fixed -> Modifier
+                    .align(Alignment.Center)
+                    .aspectRatio(ratio = aspectRatioMode.ratio)
+                    .background(aspectRatioMode.viewportBackgroundColor)
             }
         ) {
             val density = LocalDensity.current
@@ -85,9 +86,13 @@ fun InternalViewport(
                         scaleFactorMultiplier.update {
                             when (val aspectRatioMode = aspectRatioMode) {
                                 ViewportManager.AspectRatioMode.Dynamic -> Scale.Unit
-                                is ViewportManager.AspectRatioMode.FitHorizontal -> (maxWidth.toPx() / aspectRatioMode.defaultWidth).let { Scale(it,it) }
-                                is ViewportManager.AspectRatioMode.FitVertical -> (maxHeight.toPx() / aspectRatioMode.defaultHeight).let { Scale(it,it) }
-                                is ViewportManager.AspectRatioMode.Fixed -> (maxWidth.toPx() / aspectRatioMode.defaultWidth).let { Scale(it,it) }
+                                is ViewportManager.AspectRatioMode.FitHorizontal -> (maxWidth.toPx() / aspectRatioMode.defaultWidth.raw).let { Scale(it, it) }
+                                is ViewportManager.AspectRatioMode.FitVertical -> (maxHeight.toPx() / aspectRatioMode.defaultHeight.raw).let { Scale(it, it) }
+                                is ViewportManager.AspectRatioMode.Fixed -> (maxWidth.toPx() / aspectRatioMode.defaultWidth.raw).let { Scale(it, it) }
+                                is ViewportManager.AspectRatioMode.Stretched -> Scale(
+                                    horizontal = maxWidth.toPx() / aspectRatioMode.defaultWidth.raw,
+                                    vertical = maxHeight.toPx() / aspectRatioMode.defaultHeight.raw,
+                                )
                             }
                         }
                     }

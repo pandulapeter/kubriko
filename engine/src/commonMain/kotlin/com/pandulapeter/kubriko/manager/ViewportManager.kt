@@ -2,6 +2,7 @@ package com.pandulapeter.kubriko.manager
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.implementation.manager.ViewportManagerImpl
 import com.pandulapeter.kubriko.types.Scale
@@ -29,16 +30,32 @@ abstract class ViewportManager : Manager() {
     abstract fun multiplyScaleFactor(scaleFactor: Float)
 
     sealed class AspectRatioMode {
+
         data object Dynamic : AspectRatioMode()
-        // TODO data class Stretched(val preferredWidth: Int, val preferredHeight: Int) : AspectRatioMode()
-        data class Fixed(val ratio: Float, val defaultWidth: Float) : AspectRatioMode()
-        data class FitHorizontal(val defaultWidth: Float) : AspectRatioMode()
-        data class FitVertical(val defaultHeight: Float) : AspectRatioMode()
+
+        data class FitHorizontal(
+            val defaultWidth: SceneUnit,
+        ) : AspectRatioMode()
+
+        data class FitVertical(
+            val defaultHeight: SceneUnit,
+        ) : AspectRatioMode()
+
+        data class Fixed(
+            val ratio: Float,
+            val defaultWidth: SceneUnit,
+            val viewportBackgroundColor: Color = Color.Transparent,
+        ) : AspectRatioMode()
+
+        data class Stretched(
+            val defaultWidth: SceneUnit,
+            val defaultHeight: SceneUnit,
+        ) : AspectRatioMode()
     }
 
     companion object {
         fun newInstance(
-            aspectRatioMode: AspectRatioMode = AspectRatioMode.Fixed(ratio = 16f/9f, defaultWidth = 1200f),
+            aspectRatioMode: AspectRatioMode = AspectRatioMode.Dynamic,
             viewportEdgeBuffer: SceneUnit = 0f.sceneUnit,
         ): ViewportManager = ViewportManagerImpl(
             aspectRatioMode = aspectRatioMode,
