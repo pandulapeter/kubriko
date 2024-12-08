@@ -8,6 +8,7 @@ import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformPr
 /**
  * Credit: https://gist.github.com/zach-klippenstein/f92f7d59c1bdabcda67a3aed51a3fe3a
  */
+// TODO: Extract parameters
 class ComicShader(
     override var state: State = State(),
     override val layerIndex: Int? = null,
@@ -16,7 +17,7 @@ class ComicShader(
     override val code = """
     uniform float2 ${ShaderManager.RESOLUTION};
     uniform shader ${ShaderManager.CONTENT};
-    uniform float2 $MOUSE_POSITION;
+    uniform float2 $FOCUS_POINT;
     
     float tileSize = 12;
     float dotMinDiameter = 9;
@@ -29,7 +30,7 @@ class ComicShader(
       float maxDimension = max(${ShaderManager.RESOLUTION}.x, ${ShaderManager.RESOLUTION}.y);
       float focalSizeCutoff = maxDimension / 2;
       float focalChromaticCutoff = maxDimension;
-      vec2 focalPoint = $MOUSE_POSITION.xy;
+      vec2 focalPoint = $FOCUS_POINT.xy;
       
       vec2 tileIndex = vec2(
         floor(fragcoord.x / tileSize),
@@ -75,11 +76,11 @@ class ComicShader(
     ) : Shader.State {
 
         override fun ShaderUniformProvider.applyUniforms() {
-            uniform(MOUSE_POSITION, focusPoint.x, focusPoint.y)
+            uniform(FOCUS_POINT, focusPoint.x, focusPoint.y)
         }
     }
 
     companion object {
-        private const val MOUSE_POSITION = "radius"
+        private const val FOCUS_POINT = "focusPoint"
     }
 }

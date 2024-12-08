@@ -11,7 +11,7 @@ internal class StateManagerImpl(
 ) : StateManager() {
 
     private val _isFocused = MutableStateFlow(false)
-    override val isFocused = _isFocused.asStateFlow()
+    override val isFocused by autoInitializingLazy { _isFocused.asStateFlow() }
     private val _isRunning = MutableStateFlow(false)
     override val isRunning by autoInitializingLazy {
         combine(isFocused, _isRunning) { isFocused, isRunning -> isFocused && isRunning }.asStateFlow(false)
