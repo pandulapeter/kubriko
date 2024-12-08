@@ -67,12 +67,11 @@ internal class EditorController(
         mouseScreenCoordinates,
         viewportManager.cameraPosition,
         viewportManager.size,
-        viewportManager.scaleFactor,
-    ) { mouseScreenCoordinates, viewportCenter, viewportSize, viewportScaleFactor ->
+    ) { mouseScreenCoordinates, viewportCenter, viewportSize ->
         mouseScreenCoordinates.toSceneOffset(
             viewportCenter = viewportCenter,
             viewportSize = viewportSize,
-            viewportScaleFactor = viewportScaleFactor,
+            viewportScaleFactor = viewportManager.scaleFactor.value,
         )
     }.stateIn(this, SharingStarted.Eagerly, SceneOffset.Zero)
     private val triggerActorUpdate = MutableStateFlow(false)

@@ -27,6 +27,7 @@ import com.pandulapeter.kubriko.implementation.extensions.transformForViewport
 import com.pandulapeter.kubriko.implementation.extensions.transformViewport
 import com.pandulapeter.kubriko.manager.ViewportManager
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 
 @Composable
@@ -64,16 +65,32 @@ fun InternalViewport(
     ) {
         BoxWithConstraints(
             modifier = when (val aspectRatioMode = kubrikoImpl.viewportManager.aspectRatioMode) {
-                ViewportManager.AspectRatioMode.Dynamic -> Modifier
-                is ViewportManager.AspectRatioMode.Fixed -> Modifier.align(Alignment.Center).aspectRatio(
-                    ratio = aspectRatioMode.ratio, // TODO: Not perfect, zoom should be adjusted as well
-                )
+                ViewportManager.AspectRatioMode.Dynamic,
+                    // TODO: Bar color should be customizable
+                is ViewportManager.AspectRatioMode.FitHorizontal,
+                is ViewportManager.AspectRatioMode.FitVertical -> Modifier
 
-                is ViewportManager.AspectRatioMode.Stretched -> Modifier // TODO: Needs to be implemented
+                is ViewportManager.AspectRatioMode.Fixed -> Modifier.align(Alignment.Center).aspectRatio(
+                    ratio = aspectRatioMode.ratio,
+                )
             }
         ) {
-            with(LocalDensity.current) {
-                kubrikoImpl.viewportManager.updateSize(Size(maxWidth.toPx(), maxHeight.toPx()))
+            val density = LocalDensity.current
+            LaunchedEffect(maxWidth, maxHeight) {
+                with(density) {
+                    kubrikoImpl.viewportManager.run {
+                        val newSize = Size(maxWidth.toPx(), maxHeight.toPx())
+                        updateSize(newSize)
+                        scaleFactorMultiplier.update {
+                            when (val aspectRatioMode = aspectRatioMode) {
+                                ViewportManager.AspectRatioMode.Dynamic -> 1f
+                                is ViewportManager.AspectRatioMode.FitHorizontal -> maxWidth.toPx() / aspectRatioMode.defaultWidth
+                                is ViewportManager.AspectRatioMode.FitVertical -> maxHeight.toPx() / aspectRatioMode.defaultHeight
+                                is ViewportManager.AspectRatioMode.Fixed -> maxWidth.toPx() / aspectRatioMode.defaultWidth
+                            }
+                        }
+                    }
+                }
             }
             LayerCluster(
                 gameTime = gameTime.value,

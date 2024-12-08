@@ -29,13 +29,15 @@ abstract class ViewportManager : Manager() {
 
     sealed class AspectRatioMode {
         data object Dynamic : AspectRatioMode()
-        data class Stretched(val preferredWidth: Int, val preferredHeight: Int) : AspectRatioMode()
-        data class Fixed(val ratio: Float) : AspectRatioMode()
+        // TODO data class Stretched(val preferredWidth: Int, val preferredHeight: Int) : AspectRatioMode()
+        data class Fixed(val ratio: Float, val defaultWidth: Float) : AspectRatioMode()
+        data class FitHorizontal(val defaultWidth: Float) : AspectRatioMode()
+        data class FitVertical(val defaultHeight: Float) : AspectRatioMode()
     }
 
     companion object {
         fun newInstance(
-            aspectRatioMode: AspectRatioMode = AspectRatioMode.Dynamic,
+            aspectRatioMode: AspectRatioMode = AspectRatioMode.Fixed(ratio = 16f/9f, defaultWidth = 1200f),
             viewportEdgeBuffer: SceneUnit = 0f.sceneUnit,
         ): ViewportManager = ViewportManagerImpl(
             aspectRatioMode = aspectRatioMode,

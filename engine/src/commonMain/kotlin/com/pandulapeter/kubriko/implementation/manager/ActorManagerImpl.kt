@@ -49,18 +49,18 @@ internal class ActorManagerImpl(
     val overlayActors by autoInitializingLazy {
         _allActors.map { actors -> actors.filterIsInstance<Overlay>().sortedByDescending { it.overlayDrawingOrder }.toImmutableList() }.asStateFlow(persistentListOf())
     }
-    override val visibleActorsWithinViewport by autoInitializingLazy {
+    override val visibleActorsWithinViewport by lazy {
         combine(
             metadataManager.runtimeInMilliseconds.distinctUntilChangedWithDelay(invisibleActorMinimumRefreshTimeInMillis),
             visibleActors,
             viewportManager.size,
             viewportManager.cameraPosition,
             viewportManager.scaleFactor,
-        ) { _, allVisibleActors, viewportSize, viewportCenter, viewportScaleFactor ->
+        ) { _, allVisibleActors, viewportSize, viewportCenter, scaleFactor ->
             allVisibleActors
                 .filter {
                     it.body.axisAlignedBoundingBox.isWithinViewportBounds(
-                        scaledHalfViewportSize = SceneSize(viewportSize / (viewportScaleFactor * 2)),
+                        scaledHalfViewportSize = SceneSize(viewportSize / (scaleFactor * 2)),
                         viewportCenter = viewportCenter,
                         viewportEdgeBuffer = viewportManager.viewportEdgeBuffer,
                     )

@@ -56,7 +56,7 @@ internal class DynamicChain(
     override val actors = chainLinks + joints
     override val body = RectangleBody()
     override val drawingOrder = 10f
-    private val offset = SceneOffset(SceneUnit.Zero, 5.sceneUnit)
+    private val offset = SceneOffset(SceneUnit.Zero, ChainLink.Radius * 2)
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.require()

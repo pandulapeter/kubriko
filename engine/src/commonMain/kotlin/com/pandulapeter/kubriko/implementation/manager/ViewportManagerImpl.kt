@@ -22,38 +22,43 @@ internal class ViewportManagerImpl(
     override val cameraPosition = _cameraPosition.asStateFlow()
     private val _size = MutableStateFlow(Size.Zero)
     override val size = _size.asStateFlow()
-    private val _scaleFactor = MutableStateFlow(1f)
-    override val scaleFactor = _scaleFactor.asStateFlow()
+
+    // TODO: Should be separated to horizontal and vertical scale
+    var scaleFactorMultiplier = MutableStateFlow(1f)
+    private var _scaleFactor = MutableStateFlow(1f)
+    override val scaleFactor by autoInitializingLazy {
+        combine(_scaleFactor, scaleFactorMultiplier) { scaleFactor, scaleFactorMultiplier ->
+            scaleFactor * scaleFactorMultiplier
+        }.asStateFlow(1f)
+    }
     override val topLeft by autoInitializingLazy {
-        combine(cameraPosition, size, scaleFactor) { viewportCenter, viewportSize, viewportScaleFactor ->
+        combine(cameraPosition, size, scaleFactor) { viewportCenter, viewportSize, scaleFactor ->
             Offset.Zero.toSceneOffset(
                 viewportCenter = viewportCenter,
                 viewportSize = viewportSize,
-                viewportScaleFactor = viewportScaleFactor,
+                viewportScaleFactor = scaleFactor,
             )
         }.asStateFlow(SceneOffset.Zero)
     }
     override val bottomRight by autoInitializingLazy {
-        combine(cameraPosition, size, scaleFactor) { viewportCenter, viewportSize, viewportScaleFactor ->
+        combine(cameraPosition, size, scaleFactor) { viewportCenter, viewportSize, scaleFactor ->
             Offset(viewportSize.width, viewportSize.height).toSceneOffset(
                 viewportCenter = viewportCenter,
                 viewportSize = viewportSize,
-                viewportScaleFactor = viewportScaleFactor,
+                viewportScaleFactor = scaleFactor,
             )
         }.asStateFlow(SceneOffset.Zero)
     }
 
-    override fun addToCameraPosition(
-        offset: Offset,
-    ) = _cameraPosition.update { currentValue -> currentValue - SceneOffset(offset / _scaleFactor.value) }
+    override fun addToCameraPosition(offset: Offset) = _cameraPosition.update { currentValue ->
+        currentValue - SceneOffset(offset / scaleFactor.value)
+    }
 
-    override fun setCameraPosition(
-        position: SceneOffset,
-    ) = _cameraPosition.update { position }
+    override fun setCameraPosition(position: SceneOffset) = _cameraPosition.update { position }
 
-    override fun multiplyScaleFactor(
-        scaleFactor: Float
-    ) = _scaleFactor.update { currentValue -> max(SCALE_MIN, min(currentValue * scaleFactor, SCALE_MAX)) }
+    override fun multiplyScaleFactor(scaleFactor: Float) = _scaleFactor.update { currentValue ->
+        max(SCALE_MIN, min(currentValue * scaleFactor, SCALE_MAX))
+    }
 
     fun updateSize(size: Size) = _size.update { size }
 
