@@ -5,6 +5,7 @@ import com.pandulapeter.kubriko.serialization.integration.Serializable
 import com.pandulapeter.kubriko.serialization.integration.SerializableMetadata
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.reflect.KClass
@@ -37,8 +38,12 @@ internal class SerializationManagerImpl<MD : SerializableMetadata<out T>, out T 
 
     override fun deserializeActors(
         serializedStates: String,
-    ) = json.decodeFromString<List<ActorStateWrapper>>(serializedStates).mapNotNull { wrapper ->
-        typeIdsToDeserializers[wrapper.typeId]?.invoke(wrapper.serializedState)?.restore()
+    ) = try {
+        json.decodeFromString<List<ActorStateWrapper>>(serializedStates).mapNotNull { wrapper ->
+            typeIdsToDeserializers[wrapper.typeId]?.invoke(wrapper.serializedState)?.restore()
+        }
+    } catch (_: SerializationException) {
+        emptyList()
     }
 
     @kotlinx.serialization.Serializable

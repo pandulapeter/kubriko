@@ -1,5 +1,6 @@
 plugins {
     id("kubriko-library")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -9,8 +10,10 @@ kotlin {
             implementation(projects.plugins.physics)
             implementation(projects.plugins.pointerInput)
             implementation(projects.tools.debugMenu)
+            implementation(projects.tools.sceneEditor)
             implementation(compose.components.resources)
             implementation(compose.material3)
+            implementation(libs.kotlinx.serialization)
         }
     }
 }

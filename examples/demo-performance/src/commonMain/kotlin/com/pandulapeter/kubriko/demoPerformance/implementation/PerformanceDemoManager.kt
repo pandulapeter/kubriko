@@ -36,10 +36,8 @@ internal class PerformanceDemoManager(
     private lateinit var actorManager: ActorManager
     private lateinit var metadataManager: MetadataManager
     private lateinit var serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>
-    lateinit var stateManager: StateManager
-        private set
-    lateinit var viewportManager: ViewportManager
-        private set
+    private lateinit var stateManager: StateManager
+    private lateinit var viewportManager: ViewportManager
     override val overlayDrawingOrder = Float.MIN_VALUE
     private var overlayAlpha = 1f
 
@@ -83,13 +81,14 @@ internal class PerformanceDemoManager(
         actorManager.removeAll()
         actorManager.add(this)
         val deserializedActors = serializationManager.deserializeActors(json)
-        val allActors = listOf(
-            SmoothPixelationShader(),
-            RippleShader(layerIndex = 0),
-            ChromaticAberrationShader(layerIndex = 0),
-            VignetteShader(),
-        ) + deserializedActors
-        actorManager.add(actors = allActors.toTypedArray())
+        actorManager.add(
+            listOf(
+                SmoothPixelationShader(),
+                RippleShader(layerIndex = 0),
+                ChromaticAberrationShader(layerIndex = 0),
+                VignetteShader(),
+            ) + deserializedActors
+        )
     }
 
     companion object {

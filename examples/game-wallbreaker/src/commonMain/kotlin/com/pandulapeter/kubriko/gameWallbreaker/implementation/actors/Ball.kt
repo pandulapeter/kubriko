@@ -78,7 +78,7 @@ internal class Ball(
 
     override fun DrawScope.draw() {
         drawCircle(
-            color = Color.DarkGray,
+            color = Color.LightGray,
             radius = radius.raw,
             center = body.pivot.raw,
         )

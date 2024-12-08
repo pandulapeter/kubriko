@@ -17,7 +17,9 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.demoPhysics.implementation.ActionType
+import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoKubrikoWrapper
 import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoManager
+import com.pandulapeter.kubriko.demoPhysics.implementation.PlatformSpecificContent
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.PhysicsManager
@@ -36,34 +38,27 @@ import org.jetbrains.compose.resources.stringResource
 fun PhysicsDemo(
     modifier: Modifier = Modifier,
 ) {
-    val physicsDemoManager = remember { PhysicsDemoManager() }
-    val kubriko = remember {
-        Kubriko.newInstance(
-            ViewportManager.newInstance(aspectRatioMode = ViewportManager.AspectRatioMode.FitVertical(defaultHeight = 1920.sceneUnit)),
-            PhysicsManager.newInstance(),
-            PointerInputManager.newInstance(),
-            physicsDemoManager,
-        )
-    }
-    val selectedActionType = physicsDemoManager.actionType.collectAsState()
+    val physicsDemoKubrikoWrapper = remember { PhysicsDemoKubrikoWrapper() }
+    val selectedActionType = physicsDemoKubrikoWrapper.physicsDemoManager.actionType.collectAsState()
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
         DebugMenu(
             modifier = modifier,
-            kubriko = kubriko,
+            kubriko = physicsDemoKubrikoWrapper.kubriko,
         ) {
             KubrikoViewport(
                 modifier = Modifier.fillMaxSize(),
-                kubriko = kubriko,
+                kubriko = physicsDemoKubrikoWrapper.kubriko,
             )
+            PlatformSpecificContent()
             Box(
                 modifier = Modifier.fillMaxSize().padding(16.dp)
             ) {
                 FloatingActionButton(
                     modifier = Modifier.size(40.dp).align(Alignment.BottomEnd),
                     containerColor = MaterialTheme.colorScheme.primary,
-                    onClick = physicsDemoManager::changeSelectedActionType,
+                    onClick = physicsDemoKubrikoWrapper.physicsDemoManager::changeSelectedActionType,
                 ) {
                     Icon(
                         painter = painterResource(

@@ -8,6 +8,7 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.shader.collection.ChromaticAberrationShader
+import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader
 import com.pandulapeter.kubriko.shader.collection.VignetteShader
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.filterNot
@@ -33,7 +34,7 @@ internal class WallbreakerGameManager : Manager() {
                 )
             }
         }
-        actorManager.add(allBricks + Ball() + VignetteShader() + ChromaticAberrationShader())
+        actorManager.add(allBricks + Ball() + SmoothPixelationShader() + VignetteShader() + ChromaticAberrationShader())
         stateManager.isFocused
             .filterNot { it }
             .onEach { stateManager.updateIsRunning(false) }

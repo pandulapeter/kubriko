@@ -31,6 +31,7 @@ internal fun InternalSceneEditor(
     defaultSceneFolderPath: String,
     serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
     sceneEditorMode: SceneEditorMode,
+    title: String,
     onCloseRequest: () -> Unit,
 ) {
     val isLoadFileChooserOpen = remember { mutableStateOf(false) }
@@ -59,7 +60,7 @@ internal fun InternalSceneEditor(
     }
     Window(
         onCloseRequest = onCloseRequest,
-        title = "Scene Editor",
+        title = title,
     ) {
         window.minimumSize = Dimension(600, 400)
         EditorUserInterface(

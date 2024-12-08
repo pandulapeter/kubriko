@@ -94,7 +94,7 @@ internal class EditorController(
     val currentFolderPath = _currentFolderPath.asStateFlow()
     private val _currentFileName = MutableStateFlow(defaultSceneFilename ?: DEFAULT_SCENE_FILE_NAME)
     val currentFileName = _currentFileName.asStateFlow()
-    private val _shouldShowVisibleOnly = MutableStateFlow(false)
+    private val _shouldShowVisibleOnly = MutableStateFlow(true)
     val shouldShowVisibleOnly = _shouldShowVisibleOnly.asStateFlow()
 
     init {

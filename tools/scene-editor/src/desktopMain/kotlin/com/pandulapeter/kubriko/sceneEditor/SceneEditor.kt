@@ -40,11 +40,13 @@ fun SceneEditor(
     defaultSceneFolderPath: String = "./src/commonMain/composeResources/files/scenes",
     serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
     sceneEditorMode: SceneEditorMode = SceneEditorMode.Normal,
+    title: String = "Scene Editor",
     onCloseRequest: () -> Unit,
 ) = InternalSceneEditor(
     defaultSceneFilename = defaultSceneFilename,
     defaultSceneFolderPath = defaultSceneFolderPath,
     serializationManager = serializationManager,
     sceneEditorMode = sceneEditorMode,
+    title = title,
     onCloseRequest = onCloseRequest,
 )

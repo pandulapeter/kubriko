@@ -52,7 +52,7 @@ fun WallbreakerGame(
     }
     Box {
         KubrikoViewport(
-            modifier = modifier.background(Color.LightGray),
+            modifier = modifier.background(Color.Black),
             kubriko = kubriko,
         )
         AnimatedVisibility(

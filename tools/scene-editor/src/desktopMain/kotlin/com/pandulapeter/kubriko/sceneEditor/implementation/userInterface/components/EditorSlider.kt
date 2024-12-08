@@ -18,7 +18,6 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import kotlin.math.absoluteValue
 import kotlin.math.exp
@@ -66,8 +65,8 @@ internal fun EditorSlider(
         onValueChangeFinished = {
             add.value = 0f
         },
-        valueRange = valueRange ?: -5f..5f,
-        enabled = enabled,
+        valueRange = valueRange?.let { if (valueRange.isEmpty()) null else valueRange } ?: -5f..5f,
+        enabled = valueRange?.isEmpty() != true && enabled,
         interactionSource = interactionSource,
         thumb = {
             Spacer(
