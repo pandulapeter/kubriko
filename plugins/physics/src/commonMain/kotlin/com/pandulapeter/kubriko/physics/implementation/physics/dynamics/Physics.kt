@@ -3,6 +3,7 @@ package com.pandulapeter.kubriko.physics.implementation.physics.dynamics
 /**
  * Settings class where all the constants are stored for the physics engine.
  */
+// TODO: Should be moved to PhysicsManager.newInstance()
 object Physics {
     const val PENETRATION_ALLOWANCE = 0.01f // TODO: SceneUnit
     const val PENETRATION_CORRECTION = 0.5f

@@ -2,7 +2,6 @@ package com.pandulapeter.kubriko.physics.implementation.physics.explosions
 
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
-import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.World
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Mat2
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
@@ -32,7 +31,7 @@ class ParticleExplosion(private val epicentre: Vec2, private val noOfParticles: 
      * @param radius  The distance away from the epicenter the particles are placed.
      * @param world   The world the particles are created in.
      */
-    fun createParticles(size: SceneUnit, density: Int, radius: SceneUnit, world: World) {
+    fun createParticles(size: SceneUnit, density: Int, radius: SceneUnit) {
         val separationAngle = AngleRadians.TwoPi / noOfParticles
         var distanceFromCentre = Vec2(0.sceneUnit, radius)
         val rotate = Mat2(separationAngle)
@@ -46,7 +45,7 @@ class ParticleExplosion(private val epicentre: Vec2, private val noOfParticles: 
             b.affectedByGravity = false
             b.linearDampening = 0f
             b.particle = true
-            world.addBody(b)
+            //TODO: world.addBody(b)
             particles[i] = b
             distanceFromCentre = rotate.mul(distanceFromCentre)
         }
