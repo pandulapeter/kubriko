@@ -2,10 +2,9 @@ package com.pandulapeter.kubriko.demoPerformance.implementation.actors
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.kubriko.actor.body.RectangleBody
+import com.pandulapeter.kubriko.actor.traits.Movable
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.demoPerformance.implementation.actors.traits.Destructible
 import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.sceneEditor.Editable
@@ -17,13 +16,13 @@ import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneO
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneUnit
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.SceneUnit
 import com.pandulapeter.kubriko.types.SceneSize
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class BoxWithCircle private constructor(state: State) : Visible, Destructible, Editable<BoxWithCircle> {
+class BoxWithCircle private constructor(state: State) : Visible, Movable, Editable<BoxWithCircle> {
 
     @set:Exposed(name = "edgeSize")
     var edgeSize: SceneUnit = state.edgeSize
@@ -43,7 +42,6 @@ class BoxWithCircle private constructor(state: State) : Visible, Destructible, E
 
     override val layerIndex = 0
     override var drawingOrder = 0f
-    override var destructionState = 0f
     override var direction = AngleRadians.Zero
     override var speed = SceneUnit.Zero
     override val body = RectangleBody(
@@ -59,11 +57,11 @@ class BoxWithCircle private constructor(state: State) : Visible, Destructible, E
 
     override fun DrawScope.draw() {
         drawRect(
-            color = lerp(boxColor, Color.Black, destructionState),
+            color = boxColor,
             size = body.size.raw,
         )
         drawCircle(
-            color = lerp(circleColor, Color.Black, destructionState),
+            color = circleColor,
             radius = circleRadius.raw,
             center = body.size.center.raw,
         )

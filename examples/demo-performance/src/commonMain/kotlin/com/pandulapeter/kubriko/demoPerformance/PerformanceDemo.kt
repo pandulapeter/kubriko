@@ -10,8 +10,6 @@ import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceDemoKubrikoWrapper
 import com.pandulapeter.kubriko.demoPerformance.implementation.PlatformSpecificContent
-import com.pandulapeter.kubriko.demoPerformance.implementation.extensions.handleDragAndPan
-import com.pandulapeter.kubriko.demoPerformance.implementation.extensions.handleMouseZoom
 
 @Composable
 fun PerformanceDemo(
@@ -23,16 +21,7 @@ fun PerformanceDemo(
         kubriko = performanceShowcaseKubrikoWrapper.kubriko,
     ) {
         KubrikoViewport(
-            modifier = Modifier
-                .handleMouseZoom(
-                    stateManager = performanceShowcaseKubrikoWrapper.performanceDemoManager.stateManager,
-                    viewportManager = performanceShowcaseKubrikoWrapper.performanceDemoManager.viewportManager,
-                )
-                .handleDragAndPan(
-                    stateManager = performanceShowcaseKubrikoWrapper.performanceDemoManager.stateManager,
-                    viewportManager = performanceShowcaseKubrikoWrapper.performanceDemoManager.viewportManager,
-                )
-                .background(Color.Black),
+            modifier = Modifier.background(Color.Black),
             kubriko = performanceShowcaseKubrikoWrapper.kubriko,
         )
         PlatformSpecificContent()

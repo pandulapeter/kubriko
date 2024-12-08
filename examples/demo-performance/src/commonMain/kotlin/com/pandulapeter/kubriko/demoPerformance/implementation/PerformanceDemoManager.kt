@@ -6,7 +6,6 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
-import com.pandulapeter.kubriko.demoPerformance.implementation.actors.KeyboardInputListener
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
@@ -85,7 +84,6 @@ internal class PerformanceDemoManager(
         actorManager.add(this)
         val deserializedActors = serializationManager.deserializeActors(json)
         val allActors = listOf(
-            KeyboardInputListener(),
             SmoothPixelationShader(),
             RippleShader(layerIndex = 0),
             ChromaticAberrationShader(layerIndex = 0),

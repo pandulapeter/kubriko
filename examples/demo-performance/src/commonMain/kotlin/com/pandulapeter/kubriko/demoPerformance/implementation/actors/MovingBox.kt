@@ -2,10 +2,9 @@ package com.pandulapeter.kubriko.demoPerformance.implementation.actors
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.kubriko.actor.body.RectangleBody
+import com.pandulapeter.kubriko.actor.traits.Movable
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.demoPerformance.implementation.actors.traits.Destructible
 import com.pandulapeter.kubriko.implementation.extensions.cos
 import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
@@ -27,7 +26,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class MovingBox private constructor(state: State) : Visible, Destructible, Editable<MovingBox> {
+class MovingBox private constructor(state: State) : Visible, Movable, Editable<MovingBox> {
 
     @set:Exposed(name = "edgeSize")
     var edgeSize: SceneUnit = state.edgeSize
@@ -40,12 +39,9 @@ class MovingBox private constructor(state: State) : Visible, Destructible, Edita
     var boxColor: Color = state.boxColor
 
     override var drawingOrder = 0f
-    override var destructionState = 0f
     override var direction = AngleRadians.Zero
     override var speed = SceneUnit.Zero
     private var isGrowing = true
-    private var isMoving = true
-
 
     override val body = RectangleBody(
         initialSize = SceneSize(edgeSize, edgeSize),
@@ -57,7 +53,7 @@ class MovingBox private constructor(state: State) : Visible, Destructible, Edita
     override fun update(deltaTimeInMillis: Float) {
         super.update(deltaTimeInMillis)
         drawingOrder = -body.position.y.raw - body.pivot.y.raw
-        body.rotation += (0.001f * deltaTimeInMillis * (1f - destructionState)).rad
+        body.rotation += 0.001f.rad * deltaTimeInMillis
         if (body.scale.horizontal >= 1.6f) {
             isGrowing = false
         }
@@ -66,32 +62,25 @@ class MovingBox private constructor(state: State) : Visible, Destructible, Edita
         }
         if (isGrowing) {
             body.scale = Scale(
-                horizontal = body.scale.horizontal + 0.001f * deltaTimeInMillis * (1f - destructionState),
-                vertical = body.scale.vertical + 0.001f * deltaTimeInMillis * (1f - destructionState),
+                horizontal = body.scale.horizontal + 0.001f * deltaTimeInMillis,
+                vertical = body.scale.vertical + 0.001f * deltaTimeInMillis,
             )
         } else {
             body.scale = Scale(
-                horizontal = body.scale.horizontal - 0.001f * deltaTimeInMillis * (1f - destructionState),
-                vertical = body.scale.vertical - 0.001f * deltaTimeInMillis * (1f - destructionState),
+                horizontal = body.scale.horizontal - 0.001f * deltaTimeInMillis,
+                vertical = body.scale.vertical - 0.001f * deltaTimeInMillis,
             )
         }
-        if (isMoving) {
-            body.position += SceneOffset(
-                x = body.rotation.cos.sceneUnit,
-                y = -body.rotation.sin.sceneUnit,
-            )
-        }
+        body.position += SceneOffset(
+            x = body.rotation.cos.sceneUnit,
+            y = -body.rotation.sin.sceneUnit,
+        )
     }
 
     override fun DrawScope.draw() = drawRect(
-        color = lerp(boxColor, Color.Black, destructionState),
+        color = boxColor,
         size = body.size.raw,
     )
-
-    override fun destroy(character: Visible) {
-        super.destroy(character)
-        isMoving = false
-    }
 
     override fun save() = State(
         edgeSize = edgeSize,

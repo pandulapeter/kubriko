@@ -4,8 +4,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.BoxWithCircle
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.Character
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.MovingBox
-import com.pandulapeter.kubriko.demoPerformance.implementation.sceneJson
-import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.shader.ShaderManager
 import kotlinx.serialization.json.Json
@@ -13,11 +12,6 @@ import kotlinx.serialization.json.Json
 internal class PerformanceDemoKubrikoWrapper {
 
     private val json by lazy { Json { ignoreUnknownKeys = true } }
-    val performanceDemoManager by lazy {
-        PerformanceDemoManager(
-            sceneJson = sceneJson,
-        )
-    }
     val serializationManager by lazy {
         EditableMetadata.newSerializationManagerInstance(
             EditableMetadata(
@@ -39,9 +33,9 @@ internal class PerformanceDemoKubrikoWrapper {
     }
     val kubriko by lazy {
         Kubriko.newInstance(
-            KeyboardInputManager.newInstance(),
             ShaderManager.newInstance(),
-            performanceDemoManager,
+            ViewportManager.newInstance(initialScaleFactor = 0.5f),
+            PerformanceDemoManager(sceneJson = sceneJson),
             serializationManager,
         )
     }

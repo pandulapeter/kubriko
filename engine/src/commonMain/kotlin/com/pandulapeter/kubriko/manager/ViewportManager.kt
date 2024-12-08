@@ -55,9 +55,11 @@ abstract class ViewportManager : Manager() {
     companion object {
         fun newInstance(
             aspectRatioMode: AspectRatioMode = AspectRatioMode.Dynamic,
+            initialScaleFactor: Float = 1f,
             viewportEdgeBuffer: SceneUnit = 0f.sceneUnit,
         ): ViewportManager = ViewportManagerImpl(
             aspectRatioMode = aspectRatioMode,
+            initialScaleFactor = initialScaleFactor,
             viewportEdgeBuffer = viewportEdgeBuffer,
         )
     }

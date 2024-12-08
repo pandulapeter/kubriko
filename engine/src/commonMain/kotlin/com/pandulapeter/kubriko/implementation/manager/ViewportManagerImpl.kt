@@ -16,7 +16,8 @@ import kotlin.math.max
 import kotlin.math.min
 
 internal class ViewportManagerImpl(
-    val aspectRatioMode: AspectRatioMode, // TODO: Handle different aspect ratio modes.
+    val aspectRatioMode: AspectRatioMode,
+    val initialScaleFactor: Float,
     val viewportEdgeBuffer: SceneUnit,
 ) : ViewportManager() {
 
@@ -24,10 +25,8 @@ internal class ViewportManagerImpl(
     override val cameraPosition = _cameraPosition.asStateFlow()
     private val _size = MutableStateFlow(Size.Zero)
     override val size = _size.asStateFlow()
-
-    // TODO: Should be separated to horizontal and vertical scale
     var scaleFactorMultiplier = MutableStateFlow(Scale.Unit)
-    private var _scaleFactor = MutableStateFlow(Scale.Unit)
+    private var _scaleFactor = MutableStateFlow(Scale(initialScaleFactor, initialScaleFactor))
     override val scaleFactor by autoInitializingLazy {
         combine(_scaleFactor, scaleFactorMultiplier) { scaleFactor, scaleFactorMultiplier ->
             scaleFactor * scaleFactorMultiplier
@@ -68,7 +67,7 @@ internal class ViewportManagerImpl(
     fun updateSize(size: Size) = _size.update { size }
 
     companion object {
-        private const val SCALE_MIN = 0.2f
-        private const val SCALE_MAX = 5f
+        private const val SCALE_MIN = 0.1f
+        private const val SCALE_MAX = 10f
     }
 }
