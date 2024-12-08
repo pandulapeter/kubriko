@@ -14,15 +14,17 @@ internal class DynamicPolygon(
     initialOffset: SceneOffset,
     shape: Polygon,
 ) : BaseDynamicObject() {
-    override val physicsBody = Body(
-        shape = shape,
-        x = initialOffset.x,
-        y = initialOffset.y,
-    )
     override val body = PolygonBody(
         initialPosition = initialOffset,
         vertices = shape.vertices.map { SceneOffset(it.x, it.y) },
     )
+    override val physicsBody = Body(
+        shape = shape,
+        x = initialOffset.x,
+        y = initialOffset.y,
+    ).apply {
+        restitution = 0.5f
+    }
 
     override fun DrawScope.draw() {
         val path = Path().apply {

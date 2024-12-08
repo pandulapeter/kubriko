@@ -25,7 +25,9 @@ internal class DynamicBox(
         ),
         x = initialOffset.x,
         y = initialOffset.y,
-    )
+    ).apply {
+        restitution = 0.5f
+    }
 
     override fun DrawScope.draw() {
         drawRect(

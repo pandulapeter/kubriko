@@ -272,7 +272,7 @@ class Arbiter(
         //Discards points that are positive/above the reference face
         for (i in 0..1) {
             val separation = refFaceNormal.dot(incidentFaceVertexes[i]) - refFaceNormal.dot(v1)
-            if (separation <= SceneUnit.Zero + Physics.EPSILON.toFloat().sceneUnit) {
+            if (separation <= SceneUnit.Zero + Physics.Epsilon) {
                 contactVectorsFound[contactsFound] = incidentFaceVertexes[i]
                 totalPen += -separation
                 contactsFound++
@@ -375,7 +375,7 @@ class Arbiter(
      * Based on linear projection to move the shapes away from each other based on a correction constant and scaled relative to the inverse mass of the objects.
      */
     fun penetrationResolution() {
-        val penetrationTolerance = penetration - Physics.PENETRATION_ALLOWANCE.sceneUnit
+        val penetrationTolerance = penetration - Physics.PenetrationAllowance
         if (penetrationTolerance <= SceneUnit.Zero) {
             return
         }

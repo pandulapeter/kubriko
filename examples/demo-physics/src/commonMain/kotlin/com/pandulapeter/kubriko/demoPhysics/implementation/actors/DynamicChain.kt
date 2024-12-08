@@ -2,6 +2,7 @@ package com.pandulapeter.kubriko.demoPhysics.implementation.actors
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.Kubriko
@@ -43,8 +44,8 @@ internal class DynamicChain(
                 body1 = chainLinks[index - 1].physicsBody,
                 body2 = chainLink.physicsBody,
                 jointLength = ChainLink.Radius,
-                jointConstant = 10000f,
-                dampening = 100f,
+                jointConstant = 2000f,
+                dampening = 0.001f,
                 canGoSlack = true,
                 offset1 = Vec2(-ChainLink.Radius, SceneUnit.Zero),
                 offset2 = Vec2(ChainLink.Radius, SceneUnit.Zero),
@@ -56,7 +57,7 @@ internal class DynamicChain(
     override val actors = chainLinks + joints
     override val body = RectangleBody()
     override val drawingOrder = -1f
-    private val offset = SceneOffset(SceneUnit.Zero, ChainLink.Radius * 2)
+    private val offset = SceneOffset(ChainLink.Radius * 2, ChainLink.Radius * 2)
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.require()
@@ -67,37 +68,37 @@ internal class DynamicChain(
         if (chainLinks.none { it.body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) }) {
             actorManager.remove(this)
         } else {
-            val left = chainLinks.minOf { it.body.position.x }
+            val left = chainLinks.minOf { it.body.position.x } - offset.x
             val top = chainLinks.minOf { it.body.position.y } - offset.y
-            val right = chainLinks.maxOf { it.body.position.x }
+            val right = chainLinks.maxOf { it.body.position.x } + offset.x
             val bottom = chainLinks.maxOf { it.body.position.y } + offset.y
             body.position = SceneOffset(left, top)
             body.size = SceneSize(right - left, bottom - top)
         }
     }
 
+    private val stroke = Stroke(
+        width = ChainLink.Radius.raw * 2,
+        cap = StrokeCap.Round,
+    )
+
     override fun DrawScope.draw() {
         if (chainLinks.size >= 2) {
             drawPath(
                 path = Path().apply {
-                    val firstPoint = chainLinks.first().body.position - body.position + offset
+                    val firstPoint = chainLinks.first().body.position - chainLinks.first().body.pivot - body.position + offset / 2
                     moveTo(firstPoint.x.raw, firstPoint.y.raw)
                     for (i in 1 until chainLinks.size) {
-                        val currentPoint = chainLinks[i].body.position - body.position + offset
-                        val previousPoint = chainLinks[i - 1].body.position - body.position + offset
+                        val currentPoint = chainLinks[i].body.position - chainLinks[i].body.pivot - body.position + offset / 2
+                        val previousPoint = chainLinks[i - 1].body.position - chainLinks[i - 1].body.pivot - body.position + offset / 2
                         val midPoint = (currentPoint + previousPoint) / 2f
-                        quadraticTo(
-                            previousPoint.x.raw,
-                            previousPoint.y.raw,
-                            midPoint.x.raw,
-                            midPoint.y.raw
-                        )
+                        quadraticTo(previousPoint.x.raw, previousPoint.y.raw, midPoint.x.raw, midPoint.y.raw)
                     }
-                    val lastPoint = chainLinks.last().body.position - body.position + offset
+                    val lastPoint = chainLinks.last().body.position - chainLinks.last().body.pivot - body.position + offset / 2
                     lineTo(lastPoint.x.raw, lastPoint.y.raw)
                 },
                 color = Color.LightGray,
-                style = Stroke(width = ChainLink.Radius.raw * 2)
+                style = stroke,
             )
         }
     }
@@ -110,8 +111,8 @@ internal class DynamicChain(
             x = initialPosition.x,
             y = initialPosition.y,
         ).apply {
-            density = 10f
-            restitution = 0.2f
+            density = 2f
+            restitution = 0f
         }
         override val body = CircleBody(
             initialRadius = Radius,
@@ -138,11 +139,11 @@ internal class DynamicChain(
         }
 
         companion object {
-            val Radius = 8f.sceneUnit
+            val Radius = 12f.sceneUnit
         }
     }
 
     companion object {
-        private val LinkDistance = ChainLink.Radius * 2f
+        private val LinkDistance = ChainLink.Radius * 3f
     }
 }
