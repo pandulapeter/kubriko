@@ -7,6 +7,7 @@ import kotlin.jvm.JvmInline
 /**
  * 2D scaling factor.
  */
+// TODO: Should be replaced with ScaleFactor
 @JvmInline
 value class Scale(private val raw: Size) {
     val horizontal: Float get() = raw.width
@@ -28,6 +29,11 @@ value class Scale(private val raw: Size) {
     operator fun times(scale: Float): Scale = Scale(raw * scale)
 
     operator fun times(scale: Int): Scale = Scale(raw * scale.toFloat())
+
+    operator fun times(scale: Scale): Scale = Scale(
+        horizontal = scale.horizontal * horizontal,
+        vertical = scale.vertical * vertical,
+    )
 
     operator fun div(scale: Float): Scale = Scale(raw / scale)
 

@@ -16,6 +16,7 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -65,7 +66,7 @@ internal class DebugMenuManager(gameKubriko: Kubriko) : Manager(), Overlay, Uniq
                         },
                         drawBlock = {
                             val stroke = Stroke(
-                                width = 2f / scaleFactor,
+                                width = 4f / (scaleFactor.horizontal + scaleFactor.vertical),
                                 join = StrokeJoin.Round,
                             )
                             gameActorManager.visibleActorsWithinViewport.value.forEach { visible ->
@@ -90,15 +91,15 @@ internal class DebugMenuManager(gameKubriko: Kubriko) : Manager(), Overlay, Uniq
     private fun DrawTransform.transformViewport(
         viewportCenter: SceneOffset,
         shiftedViewportOffset: SceneOffset,
-        viewportScaleFactor: Float,
+        viewportScaleFactor: Scale,
     ) {
         translate(
             left = shiftedViewportOffset.x.raw,
             top = shiftedViewportOffset.y.raw,
         )
         scale(
-            scaleX = viewportScaleFactor,
-            scaleY = viewportScaleFactor,
+            scaleX = viewportScaleFactor.horizontal,
+            scaleY = viewportScaleFactor.vertical,
             pivot = viewportCenter.raw,
         )
     }

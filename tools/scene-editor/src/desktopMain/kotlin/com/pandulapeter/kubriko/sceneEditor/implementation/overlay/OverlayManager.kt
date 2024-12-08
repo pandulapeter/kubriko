@@ -19,6 +19,7 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
+import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlin.math.max
 import kotlin.math.min
@@ -66,11 +67,11 @@ internal class OverlayManager(
                         },
                         drawBlock = {
                             val strokeBack = Stroke(
-                                width = 8f / scaleFactor,
+                                width = 16f / (scaleFactor.horizontal + scaleFactor.vertical),
                                 join = StrokeJoin.Round,
                             )
                             val strokeFront = Stroke(
-                                width = 4f / scaleFactor,
+                                width = 8f / (scaleFactor.horizontal + scaleFactor.vertical),
                                 join = StrokeJoin.Round,
                             )
                             if (positionable is Visible) { // TODO: Handle else branch
@@ -102,15 +103,15 @@ internal class OverlayManager(
     private fun DrawTransform.transformViewport(
         viewportCenter: SceneOffset,
         shiftedViewportOffset: SceneOffset,
-        viewportScaleFactor: Float,
+        viewportScaleFactor: Scale,
     ) {
         translate(
             left = shiftedViewportOffset.x.raw,
             top = shiftedViewportOffset.y.raw,
         )
         scale(
-            scaleX = viewportScaleFactor,
-            scaleY = viewportScaleFactor,
+            scaleX = viewportScaleFactor.horizontal,
+            scaleY = viewportScaleFactor.vertical,
             pivot = viewportCenter.raw,
         )
     }

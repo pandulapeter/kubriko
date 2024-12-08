@@ -26,6 +26,7 @@ import com.pandulapeter.kubriko.implementation.extensions.minus
 import com.pandulapeter.kubriko.implementation.extensions.transformForViewport
 import com.pandulapeter.kubriko.implementation.extensions.transformViewport
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.types.Scale
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
@@ -83,10 +84,10 @@ fun InternalViewport(
                         updateSize(newSize)
                         scaleFactorMultiplier.update {
                             when (val aspectRatioMode = aspectRatioMode) {
-                                ViewportManager.AspectRatioMode.Dynamic -> 1f
-                                is ViewportManager.AspectRatioMode.FitHorizontal -> maxWidth.toPx() / aspectRatioMode.defaultWidth
-                                is ViewportManager.AspectRatioMode.FitVertical -> maxHeight.toPx() / aspectRatioMode.defaultHeight
-                                is ViewportManager.AspectRatioMode.Fixed -> maxWidth.toPx() / aspectRatioMode.defaultWidth
+                                ViewportManager.AspectRatioMode.Dynamic -> Scale.Unit
+                                is ViewportManager.AspectRatioMode.FitHorizontal -> (maxWidth.toPx() / aspectRatioMode.defaultWidth).let { Scale(it,it) }
+                                is ViewportManager.AspectRatioMode.FitVertical -> (maxHeight.toPx() / aspectRatioMode.defaultHeight).let { Scale(it,it) }
+                                is ViewportManager.AspectRatioMode.Fixed -> (maxWidth.toPx() / aspectRatioMode.defaultWidth).let { Scale(it,it) }
                             }
                         }
                     }

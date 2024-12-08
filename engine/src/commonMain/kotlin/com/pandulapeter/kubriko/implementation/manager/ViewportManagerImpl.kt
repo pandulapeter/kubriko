@@ -2,8 +2,10 @@ package com.pandulapeter.kubriko.implementation.manager
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import com.pandulapeter.kubriko.implementation.extensions.div
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,12 +26,12 @@ internal class ViewportManagerImpl(
     override val size = _size.asStateFlow()
 
     // TODO: Should be separated to horizontal and vertical scale
-    var scaleFactorMultiplier = MutableStateFlow(1f)
-    private var _scaleFactor = MutableStateFlow(1f)
+    var scaleFactorMultiplier = MutableStateFlow(Scale.Unit)
+    private var _scaleFactor = MutableStateFlow(Scale.Unit)
     override val scaleFactor by autoInitializingLazy {
         combine(_scaleFactor, scaleFactorMultiplier) { scaleFactor, scaleFactorMultiplier ->
             scaleFactor * scaleFactorMultiplier
-        }.asStateFlow(1f)
+        }.asStateFlow(Scale.Unit)
     }
     override val topLeft by autoInitializingLazy {
         combine(cameraPosition, size, scaleFactor) { viewportCenter, viewportSize, scaleFactor ->
@@ -57,7 +59,10 @@ internal class ViewportManagerImpl(
     override fun setCameraPosition(position: SceneOffset) = _cameraPosition.update { position }
 
     override fun multiplyScaleFactor(scaleFactor: Float) = _scaleFactor.update { currentValue ->
-        max(SCALE_MIN, min(currentValue * scaleFactor, SCALE_MAX))
+        Scale(
+            horizontal = max(SCALE_MIN, min(currentValue.horizontal * scaleFactor, SCALE_MAX)),
+            vertical = max(SCALE_MIN, min(currentValue.vertical * scaleFactor, SCALE_MAX)),
+        )
     }
 
     fun updateSize(size: Size) = _size.update { size }

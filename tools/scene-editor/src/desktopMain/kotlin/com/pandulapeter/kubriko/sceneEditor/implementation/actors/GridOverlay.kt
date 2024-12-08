@@ -9,6 +9,7 @@ import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.implementation.extensions.minus
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 
 internal class GridOverlay(private val viewportManager: ViewportManager) : Overlay, Unique {
@@ -27,7 +28,7 @@ internal class GridOverlay(private val viewportManager: ViewportManager) : Overl
             drawBlock = {
                 val viewportTopLeft = viewportManager.topLeft.value
                 val viewportBottomRight = viewportManager.bottomRight.value
-                val strokeWidth = 1f / viewportScaleFactor
+                val strokeWidth = 2f / (viewportScaleFactor.horizontal + viewportScaleFactor.vertical)
 
                 // Calculate the starting point for vertical lines and ensure alignment with (0,0)
                 var startX = (viewportTopLeft.x / GRID_CELL_SIZE).raw.toInt() * GRID_CELL_SIZE
@@ -75,15 +76,15 @@ internal class GridOverlay(private val viewportManager: ViewportManager) : Overl
     private fun DrawTransform.transformViewport(
         viewportCenter: SceneOffset,
         shiftedViewportOffset: SceneOffset,
-        viewportScaleFactor: Float,
+        viewportScaleFactor: Scale,
     ) {
         translate(
             left = shiftedViewportOffset.x.raw,
             top = shiftedViewportOffset.y.raw,
         )
         scale(
-            scaleX = viewportScaleFactor,
-            scaleY = viewportScaleFactor,
+            scaleX = viewportScaleFactor.horizontal,
+            scaleY = viewportScaleFactor.vertical,
             pivot = viewportCenter.raw,
         )
     }

@@ -38,6 +38,11 @@ value class SceneSize(val raw: Size) {
 
     operator fun div(scale: Int): SceneSize = SceneSize(raw / scale.toFloat())
 
+    operator fun div(scale: Scale): SceneSize = SceneSize(
+        width = width / scale.horizontal,
+        height = height / scale.vertical,
+    )
+
     override fun toString(): String = "SceneSize(width=$width, height=$height)"
 
     companion object {

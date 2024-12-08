@@ -11,6 +11,7 @@ import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.KubrikoImpl
 import com.pandulapeter.kubriko.implementation.extensions.distinctUntilChangedWithDelay
+import com.pandulapeter.kubriko.implementation.extensions.div
 import com.pandulapeter.kubriko.implementation.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.MetadataManager
