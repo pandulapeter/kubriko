@@ -18,6 +18,8 @@ import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.demoPhysics.implementation.ActionType
 import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoManager
+import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
+import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.PhysicsManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import kubriko.examples.demo_physics.generated.resources.Res
@@ -37,6 +39,7 @@ fun PhysicsDemo(
     val physicsDemoManager = remember { PhysicsDemoManager() }
     val kubriko = remember {
         Kubriko.newInstance(
+            ViewportManager.newInstance(aspectRatioMode = ViewportManager.AspectRatioMode.FitVertical(defaultHeight = 1920.sceneUnit)),
             PhysicsManager.newInstance(),
             PointerInputManager.newInstance(),
             physicsDemoManager,

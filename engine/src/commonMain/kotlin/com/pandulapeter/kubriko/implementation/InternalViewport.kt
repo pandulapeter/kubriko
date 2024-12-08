@@ -63,18 +63,17 @@ fun InternalViewport(
 
     // Game canvas
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
     ) {
         BoxWithConstraints(
             modifier = when (val aspectRatioMode = kubrikoImpl.viewportManager.aspectRatioMode) {
                 ViewportManager.AspectRatioMode.Dynamic,
                 is ViewportManager.AspectRatioMode.FitHorizontal,
                 is ViewportManager.AspectRatioMode.FitVertical,
-                is ViewportManager.AspectRatioMode.Stretched -> Modifier
-                is ViewportManager.AspectRatioMode.Fixed -> Modifier
+                is ViewportManager.AspectRatioMode.Stretched -> modifier
+                is ViewportManager.AspectRatioMode.Fixed -> modifier
                     .align(Alignment.Center)
                     .aspectRatio(ratio = aspectRatioMode.ratio)
-                    .background(aspectRatioMode.viewportBackgroundColor)
             }
         ) {
             val density = LocalDensity.current

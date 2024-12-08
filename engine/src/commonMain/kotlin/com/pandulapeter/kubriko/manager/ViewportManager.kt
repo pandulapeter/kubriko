@@ -44,7 +44,6 @@ abstract class ViewportManager : Manager() {
         data class Fixed(
             val ratio: Float,
             val defaultWidth: SceneUnit,
-            val viewportBackgroundColor: Color = Color.Transparent,
         ) : AspectRatioMode()
 
         data class Stretched(

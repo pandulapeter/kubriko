@@ -22,7 +22,6 @@ fun WallbreakerGame(
                 aspectRatioMode = ViewportManager.AspectRatioMode.Fixed(
                     ratio = 16f / 9f,
                     defaultWidth = 1200.sceneUnit,
-                    viewportBackgroundColor = Color.LightGray,
                 )
             ),
             CollisionManager.newInstance(),
@@ -30,7 +29,7 @@ fun WallbreakerGame(
         )
     }
     KubrikoViewport(
-        modifier = modifier.background(color = Color.Black),
+        modifier = modifier.background(Color.LightGray),
         kubriko = kubriko,
     )
 }
