@@ -112,6 +112,7 @@ internal class PhysicsDemoManager(
     }
 
     private fun processJson(json: String) {
+        overlayAlpha = 1f
         actorManager.removeAll()
         actorManager.add(this)
         val deserializedActors = serializationManager.deserializeActors(json)
