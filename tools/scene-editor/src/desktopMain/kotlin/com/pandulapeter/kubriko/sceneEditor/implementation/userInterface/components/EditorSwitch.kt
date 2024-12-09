@@ -23,7 +23,7 @@ internal fun EditorSwitch(
     modifier = modifier.selectable(
         selected = isChecked,
         onClick = { onCheckedChanged(!isChecked) }
-    ).padding(horizontal = 8.dp),
+    ).padding(start = 8.dp),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(4.dp),
 ) {
@@ -32,7 +32,7 @@ internal fun EditorSwitch(
         text = text,
     )
     Switch(
-        modifier = Modifier.height(32.dp).scale(0.75f),
+        modifier = Modifier.scale(0.6f).height(24.dp),
         checked = isChecked,
         onCheckedChange = onCheckedChanged,
         enabled = isEnabled,
