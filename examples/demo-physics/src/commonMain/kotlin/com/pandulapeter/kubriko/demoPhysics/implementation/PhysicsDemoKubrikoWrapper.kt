@@ -1,8 +1,10 @@
 package com.pandulapeter.kubriko.demoPhysics.implementation
 
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticBox
+import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticCircle
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.PhysicsManager
@@ -21,6 +23,11 @@ internal class PhysicsDemoKubrikoWrapper {
                 typeId = "staticBox",
                 deserializeState = { serializedState -> json.decodeFromString<StaticBox.State>(serializedState) },
                 instantiate = { StaticBox.State(body = RectangleBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit))) },
+            ),
+            EditableMetadata(
+                typeId = "staticCircle",
+                deserializeState = { serializedState -> json.decodeFromString<StaticCircle.State>(serializedState) },
+                instantiate = { StaticCircle.State(body = CircleBody(initialPosition = it, initialRadius = 100.sceneUnit)) },
             ),
         )
     }

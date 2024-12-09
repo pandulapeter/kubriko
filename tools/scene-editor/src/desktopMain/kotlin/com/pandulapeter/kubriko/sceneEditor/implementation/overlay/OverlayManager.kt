@@ -117,7 +117,7 @@ internal class OverlayManager(
     }
 
     companion object {
-        private const val HIGHLIGHT_BACKGROUND_ALPHA = 0.5f
+        private const val HIGHLIGHT_BACKGROUND_ALPHA = 0.2f
         private const val HIGHLIGHT_BACKGROUND_FADE_SPEED = 0.002f
     }
 }

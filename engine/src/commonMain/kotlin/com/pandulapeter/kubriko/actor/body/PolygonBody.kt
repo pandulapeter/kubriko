@@ -17,7 +17,7 @@ import com.pandulapeter.kubriko.types.SceneSize
 
 // TODO: Merge with RectangleBody
 class PolygonBody(
-    val vertices: List<SceneOffset>,
+    val vertices: List<SceneOffset> = emptyList(),
     initialPosition: SceneOffset = SceneOffset.Zero,
     initialPivot: SceneOffset = vertices.center,
     initialScale: Scale = Scale.Unit,
