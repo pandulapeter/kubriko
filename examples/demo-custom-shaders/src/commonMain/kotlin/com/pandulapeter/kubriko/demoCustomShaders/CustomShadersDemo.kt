@@ -1,6 +1,5 @@
 package com.pandulapeter.kubriko.demoCustomShaders
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,8 +19,8 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.CustomShaderDemoType
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.CustomShadersDemoManager
-import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.ControlsContainer
+import com.pandulapeter.kubriko.shader.ShaderManager
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -53,12 +52,9 @@ fun CustomShadersDemo(
                 )
             }
         }
-        Box(
-            modifier = Modifier.fillMaxSize(),
+        KubrikoViewport(
+            kubriko = kubriko,
         ) {
-            KubrikoViewport(
-                kubriko = kubriko,
-            )
             ControlsContainer(
                 modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
                 state = selectedDemoType.value to areControlsExpanded.value,

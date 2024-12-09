@@ -22,7 +22,6 @@ import kotlinx.serialization.json.Json
 internal class PhysicsDemoKubrikoWrapper {
 
     private val json by lazy { Json { ignoreUnknownKeys = true } }
-    val physicsDemoManager = PhysicsDemoManager(sceneJson = sceneJson)
     val serializationManager by lazy {
         EditableMetadata.newSerializationManagerInstance(
             EditableMetadata(
@@ -57,6 +56,7 @@ internal class PhysicsDemoKubrikoWrapper {
             ),
         )
     }
+    val physicsDemoManager by lazy { PhysicsDemoManager(sceneJson = sceneJson) }
     val kubriko by lazy {
         Kubriko.newInstance(
             ViewportManager.newInstance(aspectRatioMode = ViewportManager.AspectRatioMode.FitVertical(defaultHeight = 1920.sceneUnit)),

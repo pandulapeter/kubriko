@@ -65,31 +65,27 @@ fun PhysicsDemo(
                     }
                 }
                 PlatformSpecificContent()
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(16.dp)
+                FloatingActionButton(
+                    modifier = Modifier.padding(16.dp).size(40.dp).align(Alignment.BottomEnd),
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    onClick = physicsDemoKubrikoWrapper.physicsDemoManager::changeSelectedActionType,
                 ) {
-                    FloatingActionButton(
-                        modifier = Modifier.size(40.dp).align(Alignment.BottomEnd),
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        onClick = physicsDemoKubrikoWrapper.physicsDemoManager::changeSelectedActionType,
-                    ) {
-                        Icon(
-                            painter = painterResource(
-                                when (selectedActionType.value) {
-                                    ActionType.SHAPE -> Res.drawable.ic_shape
-                                    ActionType.CHAIN -> Res.drawable.ic_chain
-                                    ActionType.EXPLOSION -> Res.drawable.ic_explosion
-                                }
-                            ),
-                            contentDescription = stringResource(
-                                when (selectedActionType.value) {
-                                    ActionType.SHAPE -> Res.string.shape
-                                    ActionType.CHAIN -> Res.string.chain
-                                    ActionType.EXPLOSION -> Res.string.explosion
-                                }
-                            ),
-                        )
-                    }
+                    Icon(
+                        painter = painterResource(
+                            when (selectedActionType.value) {
+                                ActionType.SHAPE -> Res.drawable.ic_shape
+                                ActionType.CHAIN -> Res.drawable.ic_chain
+                                ActionType.EXPLOSION -> Res.drawable.ic_explosion
+                            }
+                        ),
+                        contentDescription = stringResource(
+                            when (selectedActionType.value) {
+                                ActionType.SHAPE -> Res.string.shape
+                                ActionType.CHAIN -> Res.string.chain
+                                ActionType.EXPLOSION -> Res.string.explosion
+                            }
+                        ),
+                    )
                 }
             }
         }

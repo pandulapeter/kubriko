@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko
 
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.implementation.InternalViewport
@@ -13,7 +14,7 @@ import com.pandulapeter.kubriko.implementation.InternalViewport
 fun KubrikoViewport(
     modifier: Modifier = Modifier,
     kubriko: Kubriko,
-    overlay: @Composable () -> Unit = {},
+    overlay: @Composable BoxScope.() -> Unit = {},
 ) = InternalViewport(
     modifier = modifier,
     getKubriko = { kubriko },

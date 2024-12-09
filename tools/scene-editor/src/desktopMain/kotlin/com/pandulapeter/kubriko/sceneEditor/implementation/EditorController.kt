@@ -96,6 +96,8 @@ internal class EditorController(
     val currentFileName = _currentFileName.asStateFlow()
     private val _shouldShowVisibleOnly = MutableStateFlow(true)
     val shouldShowVisibleOnly = _shouldShowVisibleOnly.asStateFlow()
+    private val _shouldShowLoadingIndicator = MutableStateFlow(false)
+    val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
 
     init {
         actorManager.add(editorActors)
@@ -201,12 +203,13 @@ internal class EditorController(
         actorManager.add(editorActors)
     }
 
-    // TODO: Add loading indicator
     fun loadMap(path: String) {
+        _shouldShowLoadingIndicator.update { true }
         launch {
             loadFile(path)?.let { json ->
                 parseJson(json)
                 updateCurrentFolderPathAndFileName(path)
+                _shouldShowLoadingIndicator.update { false }
             }
         }
     }

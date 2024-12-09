@@ -1,8 +1,8 @@
 package com.pandulapeter.kubriko.implementation
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,7 +36,7 @@ import kotlinx.coroutines.isActive
 fun InternalViewport(
     modifier: Modifier = Modifier,
     getKubriko: () -> Kubriko,
-    overlay: @Composable () -> Unit,
+    overlay: @Composable BoxScope.() -> Unit,
 ) {
     // Enforce and cache the internal implementation
     val kubrikoImpl = remember {
@@ -72,6 +72,7 @@ fun InternalViewport(
                 is ViewportManager.AspectRatioMode.FitHorizontal,
                 is ViewportManager.AspectRatioMode.FitVertical,
                 is ViewportManager.AspectRatioMode.Stretched -> modifier
+
                 is ViewportManager.AspectRatioMode.Fixed -> modifier
                     .align(Alignment.Center)
                     .aspectRatio(ratio = aspectRatioMode.ratio)
