@@ -41,7 +41,7 @@ fun WallbreakerGame(
             stateManager,
             ViewportManager.newInstance(
                 aspectRatioMode = ViewportManager.AspectRatioMode.Fixed(
-                    ratio = 16f / 9f,
+                    ratio = 1f,
                     defaultWidth = 1200.sceneUnit,
                 )
             ),

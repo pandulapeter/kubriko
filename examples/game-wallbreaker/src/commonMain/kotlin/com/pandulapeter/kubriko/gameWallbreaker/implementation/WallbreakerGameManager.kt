@@ -23,8 +23,8 @@ internal class WallbreakerGameManager : Manager() {
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
         stateManager = kubriko.require()
-        val allBricks = (0..5).flatMap { y ->
-            (-5..5).map { x ->
+        val allBricks = (-3..5).flatMap { y ->
+            (-3..3).map { x ->
                 Brick(
                     position = SceneOffset(
                         x = Brick.Width * x,
