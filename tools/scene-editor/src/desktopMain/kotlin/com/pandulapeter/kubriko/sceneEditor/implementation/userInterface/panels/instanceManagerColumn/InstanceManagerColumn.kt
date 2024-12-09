@@ -1,5 +1,7 @@
 package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,8 +22,8 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.compone
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorSurface
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorTextTitle
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.createBodyPropertyEditor
-import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.ColorEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.AngleEditorMode
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.ColorEditorMode
 import kubriko.tools.scene_editor.generated.resources.Res
 import kubriko.tools.scene_editor.generated.resources.ic_close
 import kubriko.tools.scene_editor.generated.resources.ic_delete
@@ -29,6 +32,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.memberProperties
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun InstanceManagerColumn(
     modifier: Modifier = Modifier,
@@ -63,7 +67,7 @@ internal fun InstanceManagerColumn(
                     )
                 }
             } else {
-                item(key = "selectedTypeHeader") {
+                stickyHeader(key = "selectedTypeHeader") {
                     SelectedInstanceHeader(
                         instanceTypeName = resolveTypeId(selectedInstance::class) ?: "Unknown Actor type",
                         onDeselectClicked = deselectSelectedInstance,
@@ -121,40 +125,42 @@ private fun SelectedInstanceHeader(
     onDeselectClicked: () -> Unit,
     onLocateClicked: () -> Unit,
     onDeleteClicked: () -> Unit,
-) = Column(
-    modifier = Modifier.fillMaxWidth()
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                vertical = 2.dp,
-            )
-            .padding(
-                start = 8.dp,
-                end = 4.dp,
-            ),
-        verticalAlignment = Alignment.CenterVertically,
+) = EditorSurface {
+    Column(
+        modifier = Modifier.fillMaxWidth()
     ) {
-        EditorTextTitle(
-            modifier = Modifier.weight(1f),
-            text = instanceTypeName,
-        )
-        EditorIcon(
-            drawableResource = Res.drawable.ic_locate,
-            contentDescription = "Locate",
-            onClick = onLocateClicked,
-        )
-        EditorIcon(
-            drawableResource = Res.drawable.ic_delete,
-            contentDescription = "Delete",
-            onClick = onDeleteClicked,
-        )
-        EditorIcon(
-            drawableResource = Res.drawable.ic_close,
-            contentDescription = "Deselect",
-            onClick = onDeselectClicked,
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    vertical = 2.dp,
+                )
+                .padding(
+                    start = 8.dp,
+                    end = 4.dp,
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            EditorTextTitle(
+                modifier = Modifier.weight(1f),
+                text = instanceTypeName,
+            )
+            EditorIcon(
+                drawableResource = Res.drawable.ic_locate,
+                contentDescription = "Locate",
+                onClick = onLocateClicked,
+            )
+            EditorIcon(
+                drawableResource = Res.drawable.ic_delete,
+                contentDescription = "Delete",
+                onClick = onDeleteClicked,
+            )
+            EditorIcon(
+                drawableResource = Res.drawable.ic_close,
+                contentDescription = "Deselect",
+                onClick = onDeselectClicked,
+            )
+        }
+        HorizontalDivider()
     }
-    HorizontalDivider()
 }

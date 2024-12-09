@@ -17,15 +17,15 @@
 
     <!-- Custom Shaders -->
     <string name="demo_custom_shaders">Custom shaders</string>
-    <string name="demo_custom_shaders_subtitle">Full-screen shader animation examples</string>
+    <string name="demo_custom_shaders_subtitle">Fullscreen shader animation examples</string>
 
     <!-- Input -->
     <string name="demo_input">Input</string>
-    <string name="demo_input_subtitle">Keyboard and pointer input tester</string>
+    <string name="demo_input_subtitle">Playground for testing keyboard and pointer input</string>
 
     <!-- Performance -->
     <string name="demo_performance">Performance</string>
-    <string name="demo_performance_subtitle">Large number of dynamic actors</string>
+    <string name="demo_performance_subtitle">Stress test using a large number of dynamic actors</string>
 
     <!-- Physics -->
     <string name="demo_physics">Physics</string>
@@ -33,6 +33,6 @@
 
     <!-- Wallbreaker -->
     <string name="game_wallbreaker">Wallbreaker</string>
-    <string name="game_wallbreaker_subtitle" />
+    <string name="game_wallbreaker_subtitle">Break bricks with a bouncing ball and paddle</string>
 
 </resources>
