@@ -15,10 +15,6 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
-import com.pandulapeter.kubriko.shader.collection.ChromaticAberrationShader
-import com.pandulapeter.kubriko.shader.collection.RippleShader
-import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader
-import com.pandulapeter.kubriko.shader.collection.VignetteShader
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
@@ -89,14 +85,7 @@ internal class PerformanceDemoManager(
         actorManager.removeAll()
         actorManager.add(this)
         val deserializedActors = serializationManager.deserializeActors(json)
-        actorManager.add(
-            listOf(
-                SmoothPixelationShader(),
-                RippleShader(layerIndex = 0),
-                ChromaticAberrationShader(layerIndex = 0),
-                VignetteShader(),
-            ) + deserializedActors
-        )
+        actorManager.add(deserializedActors)
     }
 
     companion object {

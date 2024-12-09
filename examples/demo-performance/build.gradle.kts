@@ -7,7 +7,6 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.engine)
-            implementation(projects.plugins.shader)
             implementation(projects.tools.debugMenu)
             implementation(projects.tools.sceneEditor)
             implementation(compose.components.resources)

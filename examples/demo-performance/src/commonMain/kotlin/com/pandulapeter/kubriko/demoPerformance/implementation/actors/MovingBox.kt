@@ -3,7 +3,7 @@ package com.pandulapeter.kubriko.demoPerformance.implementation.actors
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.actor.body.RectangleBody
-import com.pandulapeter.kubriko.actor.traits.Movable
+import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.cos
 import com.pandulapeter.kubriko.implementation.extensions.rad
@@ -14,29 +14,24 @@ import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.integration.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableColor
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableRectangleBody
-import com.pandulapeter.kubriko.types.AngleRadians
-import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class MovingBox private constructor(state: State) : Visible, Movable, Editable<MovingBox> {
+internal class MovingBox private constructor(state: State) : Visible, Dynamic, Editable<MovingBox> {
     override val body = state.body
+
+    @set:Exposed(name = "isRotatingClockwise")
+    var isRotatingClockwise = state.isRotatingClockwise
 
     @set:Exposed(name = "boxColor")
     var boxColor: Color = state.boxColor
 
-    override var drawingOrder = 0f
-    override var direction = AngleRadians.Zero
-    override var speed = SceneUnit.Zero
     private var isGrowing = true
 
     override fun update(deltaTimeInMillis: Float) {
-        super.update(deltaTimeInMillis)
-        drawingOrder = -body.position.y.raw - body.pivot.y.raw
-        body.rotation += 0.001f.rad * deltaTimeInMillis
+        body.rotation += 0.001f.rad * deltaTimeInMillis * (if (isRotatingClockwise) 1 else -1)
         if (body.scale.horizontal >= 1.6f) {
             isGrowing = false
         }
@@ -44,15 +39,9 @@ class MovingBox private constructor(state: State) : Visible, Movable, Editable<M
             isGrowing = true
         }
         if (isGrowing) {
-            body.scale = Scale(
-                horizontal = body.scale.horizontal + 0.001f * deltaTimeInMillis,
-                vertical = body.scale.vertical + 0.001f * deltaTimeInMillis,
-            )
+            body.scale += deltaTimeInMillis * 0.001f
         } else {
-            body.scale = Scale(
-                horizontal = body.scale.horizontal - 0.001f * deltaTimeInMillis,
-                vertical = body.scale.vertical - 0.001f * deltaTimeInMillis,
-            )
+            body.scale -= deltaTimeInMillis * 0.001f
         }
         body.position += SceneOffset(
             x = body.rotation.cos.sceneUnit,
@@ -68,12 +57,14 @@ class MovingBox private constructor(state: State) : Visible, Movable, Editable<M
     override fun save() = State(
         body = body,
         boxColor = boxColor,
+        isRotatingClockwise = isRotatingClockwise,
     )
 
     @kotlinx.serialization.Serializable
     data class State(
         @SerialName("body") val body: SerializableRectangleBody = RectangleBody(),
         @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,
+        @SerialName("isRotatingClockwise") val isRotatingClockwise: Boolean = listOf(true, false).random(),
     ) : Serializable.State<MovingBox> {
 
         override fun restore() = MovingBox(this)

@@ -25,14 +25,14 @@
 
     <!-- Performance -->
     <string name="demo_performance">Performance</string>
-    <string name="demo_performance_subtitle">Large number of dynamic actors, shaders, etc</string>
+    <string name="demo_performance_subtitle">Large number of dynamic actors</string>
 
     <!-- Physics -->
     <string name="demo_physics">Physics</string>
-    <string name="demo_physics_subtitle">Rigid body collisions, chains, explosions, etc.</string>
+    <string name="demo_physics_subtitle">Rigid body collisions, chains, explosions</string>
 
     <!-- Wallbreaker -->
     <string name="game_wallbreaker">Wallbreaker</string>
-    <string name="game_wallbreaker_subtitle">Simple motion, collisions, actor management</string>
+    <string name="game_wallbreaker_subtitle" />
 
 </resources>

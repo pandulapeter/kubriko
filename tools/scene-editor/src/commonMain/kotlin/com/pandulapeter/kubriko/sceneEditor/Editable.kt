@@ -14,13 +14,6 @@ import com.pandulapeter.kubriko.serialization.integration.Serializable
  * The main point of this interface is to enforce a serialization pattern (the deserialization logic is defined in [EditableMetadata]), so that
  * the Scene Editor can save and load instance [State]-s from text files. This [State] can then be used to restore the [Editable] instance.
  * Actors that appear in the Scene Editor must be [Positionable] so that they can be placed into the Scene, and they are usually [Visible] too, however the latter is not enforced.
- * If an [Editable] Actor is not [Visible], the Scene Editor will create a default representation for it (that's only visible in the Editor). Use [editorPreview] to override this representation.
  */
 // TODO: Positionable could not be a requirement. The Editor could support invisible Actors separately
-interface Editable<T : Editable<T>> : Serializable<T>, Positionable, Actor {
-
-    /**
-     * The appearance of the [Actor] in the Editor.
-     */
-    val editorPreview: Visible get() = this as? Visible ?: throw IllegalStateException("EditorPreview must be configured") // TODO: Default should come from the editor module
-}
+interface Editable<T : Editable<T>> : Serializable<T>, Positionable

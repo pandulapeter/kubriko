@@ -21,9 +21,19 @@ value class Scale(private val raw: Size) {
         vertical = vertical + other.vertical,
     )
 
+    operator fun plus(other: Float): Scale = Scale(
+        horizontal = horizontal + other,
+        vertical = vertical + other,
+    )
+
     operator fun minus(other: Scale): Scale = Scale(
         horizontal = horizontal - other.horizontal,
         vertical = vertical - other.vertical,
+    )
+
+    operator fun minus(other: Float): Scale = Scale(
+        horizontal = horizontal - other,
+        vertical = vertical - other,
     )
 
     operator fun times(scale: Float): Scale = Scale(raw * scale)

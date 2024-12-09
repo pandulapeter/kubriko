@@ -9,7 +9,6 @@ import com.pandulapeter.kubriko.demoPerformance.implementation.actors.MovingBox
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
-import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.serialization.json.Json
 
@@ -38,7 +37,6 @@ internal class PerformanceDemoKubrikoWrapper {
     val performanceDemoManager = PerformanceDemoManager(sceneJson = sceneJson)
     val kubriko by lazy {
         Kubriko.newInstance(
-            ShaderManager.newInstance(),
             ViewportManager.newInstance(initialScaleFactor = 0.5f),
             performanceDemoManager,
             serializationManager,
