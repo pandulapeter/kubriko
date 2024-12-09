@@ -39,20 +39,20 @@ import org.jetbrains.compose.resources.stringResource
  * TODO: Documentation
  */
 // TODO: Make this Composable configurable
-// TODO: Should adapt to screen aspect ratio
 @Composable
 fun DebugMenu(
     modifier: Modifier = Modifier,
     debugMenuModifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
     kubriko: Kubriko,
+    isEnabled: Boolean = true,
     gameCanvas: @Composable BoxScope.() -> Unit,
+) = Box(
+    modifier = modifier,
 ) {
-    val debugMenuManager = remember { DebugMenuManager(kubriko) }
-    val isDebugMenuVisible = remember { mutableStateOf(false) }
-    Box(
-        modifier = modifier,
-    ) {
+    if (isEnabled) {
+        val debugMenuManager = remember { DebugMenuManager(kubriko) }
+        val isDebugMenuVisible = remember { mutableStateOf(false) }
         Row(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -104,5 +104,7 @@ fun DebugMenu(
                 )
             }
         }
+    } else {
+        gameCanvas()
     }
 }

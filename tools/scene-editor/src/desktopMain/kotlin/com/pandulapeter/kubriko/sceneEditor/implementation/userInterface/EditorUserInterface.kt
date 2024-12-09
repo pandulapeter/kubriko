@@ -66,15 +66,10 @@ internal fun EditorUserInterface(
                         Box(
                             modifier = Modifier.weight(1f),
                         ) {
-                            if (editorController.isDebugMenuEnabled.collectAsState().value) {
-                                DebugMenu(
-                                    kubriko = editorController.kubriko,
-                                ) {
-                                    Viewport(
-                                        editorController = editorController,
-                                    )
-                                }
-                            } else {
+                            DebugMenu(
+                                kubriko = editorController.kubriko,
+                                isEnabled = editorController.isDebugMenuEnabled.collectAsState().value,
+                            ) {
                                 Viewport(
                                     editorController = editorController,
                                 )
