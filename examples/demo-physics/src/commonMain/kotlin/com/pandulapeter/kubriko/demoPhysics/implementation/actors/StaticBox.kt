@@ -18,9 +18,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-internal class StaticBox private constructor(
-    state: State,
-) : RigidBody, Visible, Dynamic, Editable<StaticBox> {
+internal class StaticBox private constructor(state: State) : RigidBody, Visible, Dynamic, Editable<StaticBox> {
     override val body = state.body
     override val physicsBody = Body(
         shape = Polygon(body.size.width / 2f, body.size.height / 2f),

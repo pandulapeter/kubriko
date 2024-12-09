@@ -28,7 +28,7 @@ interface Serializable<T : Serializable<T>> : Actor {
      * Implementations should define properties for each important aspect of an [Actor] in a way that those properties can be saved to and restored from a [String].
      * See [SerializableMetadata] for more information.
      */
-    interface State<T> {
+    interface State<T: Serializable<T>> {
 
         /**
          * Instantiates an [Serializable] [Actor] from the current [State].

@@ -8,6 +8,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.actor.body.Body
 import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.body.ComplexBody
+import com.pandulapeter.kubriko.actor.body.PolygonBody
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
@@ -85,6 +86,9 @@ internal fun BodyPropertyEditor(
                     notifySelectedInstanceUpdate()
                 },
             )
+        }
+        if (body is PolygonBody) {
+            // TODO: Add support for editing vertices
         }
         ScalePropertyEditor(
             name = "scale",

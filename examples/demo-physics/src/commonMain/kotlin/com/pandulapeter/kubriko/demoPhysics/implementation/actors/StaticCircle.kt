@@ -17,9 +17,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-internal class StaticCircle private constructor(
-    state: State,
-) : RigidBody, Visible, Editable<StaticCircle> {
+internal class StaticCircle private constructor(state: State) : RigidBody, Visible, Editable<StaticCircle> {
     override val body = state.body
     override val physicsBody = Body(
         shape = Circle(body.radius),
@@ -45,6 +43,7 @@ internal class StaticCircle private constructor(
             style = Stroke(),
         )
     }
+
     override fun save() = State(
         body = body,
     )

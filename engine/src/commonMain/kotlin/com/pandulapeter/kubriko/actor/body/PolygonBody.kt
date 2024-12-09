@@ -25,7 +25,7 @@ class PolygonBody(
 ) : PointBody(
     initialPosition = initialPosition,
 ), ComplexBody {
-    override val size = SceneSize(
+    override val size = if (vertices.size < 2) SceneSize.Zero else SceneSize(
         width = vertices.maxOf { it.x } - vertices.minOf { it.x },
         height = vertices.maxOf { it.y } - vertices.minOf { it.y },
     )

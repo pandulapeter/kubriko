@@ -12,22 +12,28 @@ import com.pandulapeter.kubriko.implementation.extensions.rad
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
-import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
+import com.pandulapeter.kubriko.sceneEditor.Editable
+import com.pandulapeter.kubriko.sceneEditor.Exposed
+import com.pandulapeter.kubriko.serialization.integration.Serializable
+import com.pandulapeter.kubriko.serialization.typeSerializers.SerializablePolygonBody
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
-internal class StaticPolygon(
-    initialOffset: SceneOffset,
-    shape: Polygon,
-    private val isRotating: Boolean,
-) : RigidBody, Visible, Dynamic {
+internal class StaticPolygon private constructor(state: State) : RigidBody, Visible, Dynamic, Editable<StaticPolygon> {
+    override val body = state.body
     override val physicsBody = Body(
-        shape = shape,
-        x = initialOffset.x,
-        y = initialOffset.y,
-    ).apply { density = 0f }
-    override val body = PolygonBody(
-        initialPosition = initialOffset,
-        vertices = shape.vertices.map { SceneOffset(it.x, it.y) },
-    )
+        shape = Polygon(body.vertices.map { Vec2(it.x, it.y) }),
+        x = body.position.x,
+        y = body.position.y,
+    ).apply {
+        density = 0f
+        orientation = body.rotation
+    }
+
+    @set:Exposed(name = "isRotating")
+    var isRotating = state.isRotating
 
     override fun update(deltaTimeInMillis: Float) {
         if (isRotating) {
@@ -54,5 +60,21 @@ internal class StaticPolygon(
             color = Color.Black,
             style = Stroke(width = 2f),
         )
+    }
+
+    override fun save() = State(
+        body = body,
+        isRotating = isRotating,
+    )
+
+    @kotlinx.serialization.Serializable
+    data class State(
+        @SerialName("body") val body: SerializablePolygonBody = PolygonBody(),
+        @SerialName("isRotating") val isRotating: Boolean = false,
+    ) : Serializable.State<StaticPolygon> {
+
+        override fun restore() = StaticPolygon(this)
+
+        override fun serialize() = Json.encodeToString(this)
     }
 }
