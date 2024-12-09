@@ -98,6 +98,7 @@ internal class EditorController(
     val shouldShowVisibleOnly = _shouldShowVisibleOnly.asStateFlow()
 
     init {
+        actorManager.add(editorActors)
         when (sceneEditorMode) {
             SceneEditorMode.Normal -> {
                 defaultSceneFilename?.let { loadMap("${currentFolderPath.value}/$it") }
@@ -197,7 +198,7 @@ internal class EditorController(
         _currentFileName.update { DEFAULT_SCENE_FILE_NAME }
         _selectedActor.update { null }
         actorManager.removeAll()
-        actorManager.add(actors = editorActors.toTypedArray())
+        actorManager.add(editorActors)
     }
 
     fun loadMap(path: String) {
@@ -212,7 +213,7 @@ internal class EditorController(
     private fun parseJson(json: String) {
         val actors = serializationManager.deserializeActors(json)
         actorManager.removeAll()
-        actorManager.add(actors = (actors + editorActors).toTypedArray())
+        actorManager.add(actors + editorActors)
     }
 
     fun syncScene() {
