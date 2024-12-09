@@ -23,11 +23,11 @@ class BoxWithCircle private constructor(state: State) : Visible, Movable, Editab
     @set:Exposed(name = "boxColor")
     var boxColor: Color = state.boxColor
 
-    @set:Exposed(name = "circleColor")
-    var circleColor: Color = state.circleColor
-
     @set:Exposed(name = "circleRadius")
     var circleRadius: SceneUnit = state.circleRadius
+
+    @set:Exposed(name = "circleColor")
+    var circleColor: Color = state.circleColor
 
     override val layerIndex = 0
     override var drawingOrder = 0f
