@@ -78,7 +78,10 @@ internal class ActorManagerImpl(
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
         if (stateManager.isRunning.value) {
-            dynamicActors.value.forEach { it.update(deltaTimeInMillis) }
+            dynamicActors.value.forEach {
+                // TODO: Reduce update frequency for Positionable Dynamic actors that are not within the viewport
+                it.update(deltaTimeInMillis)
+            }
         }
     }
 

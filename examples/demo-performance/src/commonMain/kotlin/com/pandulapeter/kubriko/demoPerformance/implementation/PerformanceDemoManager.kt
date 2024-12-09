@@ -20,6 +20,7 @@ import com.pandulapeter.kubriko.shader.collection.RippleShader
 import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader
 import com.pandulapeter.kubriko.shader.collection.VignetteShader
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -40,6 +41,12 @@ internal class PerformanceDemoManager(
     private lateinit var viewportManager: ViewportManager
     override val overlayDrawingOrder = Float.MIN_VALUE
     private var overlayAlpha = 1f
+        set(value) {
+            field = value
+            _shouldShowLoadingIndicator.update { value == 1f }
+        }
+    private val _shouldShowLoadingIndicator = MutableStateFlow(true)
+    val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
