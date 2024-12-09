@@ -45,6 +45,16 @@ import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.full.withNullability
 import kotlin.reflect.jvm.isAccessible
 
+private val booleanType = Boolean::class.createType()
+private val colorType = Color::class.createType()
+private val angleDegreesType = AngleDegrees::class.createType()
+private val angleRadiansType = AngleRadians::class.createType()
+private val sceneOffsetType = SceneOffset::class.createType()
+private val scaleType = Scale::class.createType()
+private val floatType = Float::class.createType()
+private val stringType = String::class.starProjectedType.withNullability(true)
+private val sceneUnitType = SceneUnit::class.createType()
+
 internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
     actor: T,
     notifySelectedInstanceUpdate: () -> Unit,
@@ -54,7 +64,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
     isAccessible = true
     editableProperty.name.let { name ->
         when (returnType) {
-            Boolean::class.createType() -> {
+            booleanType -> {
                 {
                     BooleanPropertyEditor(
                         name = name,
@@ -67,7 +77,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 }
             }
 
-            Color::class.createType() -> {
+            colorType -> {
                 {
                     ColorPropertyEditor(
                         name = name,
@@ -81,7 +91,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 }
             }
 
-            AngleDegrees::class.createType() -> {
+            angleDegreesType -> {
                 {
                     RotationPropertyEditor(
                         name = name,
@@ -95,7 +105,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 }
             }
 
-            AngleRadians::class.createType() -> {
+            angleRadiansType -> {
                 {
                     RotationPropertyEditor(
                         name = name,
@@ -109,7 +119,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 }
             }
 
-            SceneOffset::class.createType() -> {
+            sceneOffsetType -> {
                 {
                     SceneOffsetPropertyEditor(
                         name = name,
@@ -122,7 +132,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 }
             }
 
-            Scale::class.createType() -> {
+            scaleType -> {
                 {
                     ScalePropertyEditor(
                         name = name,
@@ -135,7 +145,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 }
             }
 
-            Float::class.createType() -> {
+            floatType -> {
                 {
                     FloatPropertyEditor(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
@@ -149,7 +159,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 }
             }
 
-            String::class.starProjectedType.withNullability(true) -> {
+            stringType -> {
                 {
                     StringPropertyEditor(
                         name = name,
@@ -162,7 +172,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 }
             }
 
-            SceneUnit::class.createType() -> {
+            sceneUnitType -> {
                 {
                     SceneUnitPropertyEditor(
                         name = name,
