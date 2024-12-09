@@ -3,11 +3,13 @@ package com.pandulapeter.kubriko.demoPerformance
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
@@ -23,28 +25,29 @@ import com.pandulapeter.kubriko.demoPerformance.implementation.PlatformSpecificC
 fun PerformanceDemo(
     modifier: Modifier = Modifier,
 ) = Box(modifier = modifier) {
-    val performanceShowcaseKubrikoWrapper = remember { PerformanceDemoKubrikoWrapper() }
+    val performanceDemoKubrikoWrapper = remember { PerformanceDemoKubrikoWrapper() }
     DebugMenu(
         contentModifier = modifier,
-        kubriko = performanceShowcaseKubrikoWrapper.kubriko,
+        kubriko = performanceDemoKubrikoWrapper.kubriko,
     ) {
         KubrikoViewport(
-            kubriko = performanceShowcaseKubrikoWrapper.kubriko,
-        )
-        PlatformSpecificContent()
-        AnimatedVisibility(
-            visible = performanceShowcaseKubrikoWrapper.performanceDemoManager.shouldShowLoadingIndicator.collectAsState().value,
-            enter = fadeIn(),
-            exit = fadeOut(),
+            kubriko = performanceDemoKubrikoWrapper.kubriko,
         ) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
+            AnimatedVisibility(
+                visible = performanceDemoKubrikoWrapper.performanceDemoManager.shouldShowLoadingIndicator.collectAsState().value,
+                enter = fadeIn(),
+                exit = fadeOut(),
             ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp).align(Alignment.BottomStart),
-                    strokeWidth = 3.dp,
-                )
+                Box(
+                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(16.dp),
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp).align(Alignment.BottomStart),
+                        strokeWidth = 3.dp,
+                    )
+                }
             }
+            PlatformSpecificContent()
         }
     }
 }

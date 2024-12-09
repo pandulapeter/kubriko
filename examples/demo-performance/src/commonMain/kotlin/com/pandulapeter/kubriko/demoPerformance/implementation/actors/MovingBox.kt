@@ -2,6 +2,7 @@ package com.pandulapeter.kubriko.demoPerformance.implementation.actors
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
@@ -14,6 +15,7 @@ import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.integration.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableColor
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableRectangleBody
+import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
@@ -30,12 +32,15 @@ internal class MovingBox private constructor(state: State) : Visible, Dynamic, E
 
     private var isGrowing = true
 
+    override fun onAdded(kubriko: Kubriko) {
+        body.scale = ((5..16).random() / 10f).let { Scale(it,it) }
+    }
+
     override fun update(deltaTimeInMillis: Float) {
         body.rotation += 0.001f.rad * deltaTimeInMillis * (if (isRotatingClockwise) 1 else -1)
         if (body.scale.horizontal >= 1.6f) {
             isGrowing = false
-        }
-        if (body.scale.vertical <= 0.5f) {
+        } else if (body.scale.horizontal <= 0.5f) {
             isGrowing = true
         }
         if (isGrowing) {

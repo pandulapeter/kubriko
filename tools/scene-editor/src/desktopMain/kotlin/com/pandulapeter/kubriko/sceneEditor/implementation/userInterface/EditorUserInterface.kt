@@ -70,9 +70,37 @@ internal fun EditorUserInterface(
                                 kubriko = editorController.kubriko,
                                 isEnabled = editorController.isDebugMenuEnabled.collectAsState().value,
                             ) {
-                                Viewport(
-                                    editorController = editorController,
-                                )
+                                KubrikoViewport(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                                    kubriko = editorController.kubriko,
+                                ) {
+                                    EditorOverlay(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .handleMouseClick(
+                                                getSelectedActor = editorController::getSelectedActor,
+                                                getMouseSceneOffset = editorController::getMouseWorldCoordinates,
+                                                onLeftClick = editorController::onLeftClick,
+                                                onRightClick = editorController::onRightClick,
+                                            )
+                                            .handleMouseMove(
+                                                onMouseMove = editorController::onMouseMove,
+                                            )
+                                            .handleMouseZoom(
+                                                viewportManager = editorController.viewportManager,
+                                            )
+                                            .handleMouseDrag(
+                                                keyboardInputManager = editorController.keyboardInputManager,
+                                                viewportManager = editorController.viewportManager,
+                                                getSelectedActor = editorController::getSelectedActor,
+                                                getMouseSceneOffset = editorController::getMouseWorldCoordinates,
+                                                notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
+                                            ),
+                                        editorController = editorController,
+                                    )
+                                }
                             }
                         }
                         InstanceManagerColumn(
@@ -119,40 +147,4 @@ internal fun EditorUserInterface(
             )
         }
     }
-}
-
-@Composable
-private fun Viewport(
-    editorController: EditorController,
-) {
-    KubrikoViewport(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant),
-        kubriko = editorController.kubriko,
-    )
-    EditorOverlay(
-        modifier = Modifier
-            .fillMaxSize()
-            .handleMouseClick(
-                getSelectedActor = editorController::getSelectedActor,
-                getMouseSceneOffset = editorController::getMouseWorldCoordinates,
-                onLeftClick = editorController::onLeftClick,
-                onRightClick = editorController::onRightClick,
-            )
-            .handleMouseMove(
-                onMouseMove = editorController::onMouseMove,
-            )
-            .handleMouseZoom(
-                viewportManager = editorController.viewportManager,
-            )
-            .handleMouseDrag(
-                keyboardInputManager = editorController.keyboardInputManager,
-                viewportManager = editorController.viewportManager,
-                getSelectedActor = editorController::getSelectedActor,
-                getMouseSceneOffset = editorController::getMouseWorldCoordinates,
-                notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
-            ),
-        editorController = editorController,
-    )
 }

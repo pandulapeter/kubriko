@@ -36,6 +36,7 @@ import kotlinx.coroutines.isActive
 fun InternalViewport(
     modifier: Modifier = Modifier,
     getKubriko: () -> Kubriko,
+    overlay: @Composable () -> Unit,
 ) {
     // Enforce and cache the internal implementation
     val kubrikoImpl = remember {
@@ -101,6 +102,7 @@ fun InternalViewport(
                 gameTime = gameTime.value,
                 getKubriko = { kubrikoImpl },
             )
+            overlay()
         }
     }
 }

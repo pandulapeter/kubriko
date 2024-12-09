@@ -1,11 +1,6 @@
 package com.pandulapeter.kubriko.demoPerformance.implementation
 
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.traits.Overlay
-import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
@@ -15,6 +10,7 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
@@ -28,19 +24,13 @@ import org.jetbrains.compose.resources.MissingResourceException
 
 internal class PerformanceDemoManager(
     private val sceneJson: MutableStateFlow<String>?,
-) : Manager(), Unique, Overlay {
+) : Manager() {
 
     private lateinit var actorManager: ActorManager
     private lateinit var metadataManager: MetadataManager
     private lateinit var serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>
     private lateinit var stateManager: StateManager
     private lateinit var viewportManager: ViewportManager
-    override val overlayDrawingOrder = Float.MIN_VALUE
-    private var overlayAlpha = 1f
-        set(value) {
-            field = value
-            _shouldShowLoadingIndicator.update { value == 1f }
-        }
     private val _shouldShowLoadingIndicator = MutableStateFlow(true)
     val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
 
@@ -50,25 +40,15 @@ internal class PerformanceDemoManager(
         serializationManager = kubriko.require()
         stateManager = kubriko.require()
         viewportManager = kubriko.require()
-        actorManager.add(this)
+        actorManager.allActors
+            .filter { it.isNotEmpty() }
+            .onEach {
+                delay(100)
+                _shouldShowLoadingIndicator.update { false }
+            }
+            .launchIn(scope)
         sceneJson?.filter { it.isNotBlank() }?.onEach(::processJson)?.launchIn(scope)
         loadMap()
-    }
-
-    override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
-        if (actorManager.allActors.value.size > 1 && overlayAlpha > 0) {
-            overlayAlpha -= 0.003f * deltaTimeInMillis
-        }
-    }
-
-    override fun DrawScope.drawToViewport() {
-        if (overlayAlpha > 0f) {
-            drawRect(
-                color = Color.Black.copy(alpha = overlayAlpha),
-                size = size,
-                topLeft = Offset.Zero,
-            )
-        }
     }
 
     @OptIn(ExperimentalResourceApi::class)
@@ -81,9 +61,8 @@ internal class PerformanceDemoManager(
     }
 
     private fun processJson(json: String) {
-        overlayAlpha = 1f
+        _shouldShowLoadingIndicator.update { true }
         actorManager.removeAll()
-        actorManager.add(this)
         val deserializedActors = serializationManager.deserializeActors(json)
         actorManager.add(deserializedActors)
     }

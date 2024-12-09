@@ -54,30 +54,32 @@ fun WallbreakerGame(
         KubrikoViewport(
             modifier = modifier.background(Color.Black),
             kubriko = kubriko,
-        )
-        AnimatedVisibility(
-            visible = !stateManager.isRunning.collectAsState().value,
-            enter = fadeIn(),
-            exit = fadeOut(),
         ) {
-            Box(
-                modifier = Modifier.fillMaxSize().background(color = Color.Black.copy(0.5f)),
+            AnimatedVisibility(
+                visible = !stateManager.isRunning.collectAsState().value,
+                enter = fadeIn(),
+                exit = fadeOut(),
             ) {
-                Column(
-                    modifier = Modifier.align(Alignment.Center),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                Box(
+                    modifier = Modifier.fillMaxSize().background(color = Color.Black.copy(0.5f)),
                 ) {
-                    Text(
-                        textAlign = TextAlign.Center,
-                        text = stringResource(Res.string.game_paused),
-                    )
-                    Button(
-                        onClick = { stateManager.updateIsRunning(true) }
+                    Column(
+                        modifier = Modifier.align(Alignment.Center),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
-                            text = stringResource(Res.string.resume)
+                            textAlign = TextAlign.Center,
+                            color = Color.White,
+                            text = stringResource(Res.string.game_paused),
                         )
+                        Button(
+                            onClick = { stateManager.updateIsRunning(true) }
+                        ) {
+                            Text(
+                                text = stringResource(Res.string.resume)
+                            )
+                        }
                     }
                 }
             }

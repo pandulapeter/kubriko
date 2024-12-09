@@ -13,7 +13,9 @@ import com.pandulapeter.kubriko.implementation.InternalViewport
 fun KubrikoViewport(
     modifier: Modifier = Modifier,
     kubriko: Kubriko,
+    overlay: @Composable () -> Unit = {},
 ) = InternalViewport(
     modifier = modifier,
     getKubriko = { kubriko },
+    overlay = overlay,
 )
