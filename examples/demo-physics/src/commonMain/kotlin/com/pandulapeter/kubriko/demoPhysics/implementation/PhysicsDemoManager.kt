@@ -54,7 +54,6 @@ internal class PhysicsDemoManager(
         actorManager = kubriko.require()
         serializationManager = kubriko.require()
         viewportManager = kubriko.require()
-        actorManager.add(this)
         sceneJson?.filter { it.isNotBlank() }?.onEach(::processJson)?.launchIn(scope)
         loadMap()
     }

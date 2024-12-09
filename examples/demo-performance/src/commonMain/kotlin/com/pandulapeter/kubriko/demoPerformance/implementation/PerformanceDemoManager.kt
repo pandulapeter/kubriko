@@ -47,7 +47,6 @@ internal class PerformanceDemoManager(
         serializationManager = kubriko.require()
         stateManager = kubriko.require()
         viewportManager = kubriko.require()
-        actorManager.add(this)
         sceneJson?.filter { it.isNotBlank() }?.onEach(::processJson)?.launchIn(scope)
         loadMap()
     }

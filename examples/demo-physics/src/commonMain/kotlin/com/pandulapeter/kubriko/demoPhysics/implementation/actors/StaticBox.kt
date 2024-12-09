@@ -13,10 +13,7 @@ import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.integration.Serializable
-import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneOffset
-import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneSize
-import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.SceneSize
+import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableRectangleBody
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -24,15 +21,15 @@ import kotlinx.serialization.json.Json
 internal class StaticBox private constructor(
     state: State,
 ) : RigidBody, Visible, Dynamic, Editable<StaticBox> {
+    override val body = state.body
     override val physicsBody = Body(
-        shape = Polygon(state.size.width / 2f, state.size.height / 2f),
-        x = state.initialOffset.x,
-        y = state.initialOffset.y,
-    ).apply { density = 0f }
-    override val body = RectangleBody(
-        initialPosition = state.initialOffset,
-        initialSize = state.size,
-    )
+        shape = Polygon(body.size.width / 2f, body.size.height / 2f),
+        x = body.position.x,
+        y = body.position.y,
+    ).apply {
+        density = 0f
+        orientation = body.rotation
+    }
 
     @set:Exposed(name = "isRotating")
     var isRotating = state.isRotating
@@ -57,15 +54,13 @@ internal class StaticBox private constructor(
     }
 
     override fun save() = State(
-        initialOffset = body.position,
-        size = body.size,
+        body = body,
         isRotating = isRotating,
     )
 
     @kotlinx.serialization.Serializable
     data class State(
-        @SerialName("initialOffset") val initialOffset: SerializableSceneOffset = SceneOffset.Zero,
-        @SerialName("size") val size: SerializableSceneSize = SceneSize.Zero,
+        @SerialName("body") val body: SerializableRectangleBody = RectangleBody(),
         @SerialName("isRotating") val isRotating: Boolean = false,
     ) : Serializable.State<StaticBox> {
 
