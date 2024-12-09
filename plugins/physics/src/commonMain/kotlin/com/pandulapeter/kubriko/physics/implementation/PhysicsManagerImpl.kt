@@ -12,7 +12,6 @@ import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.collision.Arbiter
 import com.pandulapeter.kubriko.physics.implementation.physics.collision.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.physics.implementation.physics.collision.bodies.CollisionBodyInterface
-import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Physics
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.bodies.PhysicalBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -83,13 +82,11 @@ internal class PhysicsManagerImpl(
     }
 
     private fun solve() {
-        for (j in joints.value) {
-            j.applyTension()
+        for (joint in joints.value) {
+            joint.applyTension()
         }
-        for (i in 0 until Physics.ITERATIONS) {
-            for (contact in arbiters) {
-                contact.solve()
-            }
+        for (arbiter in arbiters) {
+            arbiter.solve()
         }
     }
 

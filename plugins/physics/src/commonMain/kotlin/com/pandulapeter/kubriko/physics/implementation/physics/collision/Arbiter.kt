@@ -272,7 +272,7 @@ class Arbiter(
         //Discards points that are positive/above the reference face
         for (i in 0..1) {
             val separation = refFaceNormal.dot(incidentFaceVertexes[i]) - refFaceNormal.dot(v1)
-            if (separation <= SceneUnit.Zero + Physics.Epsilon) {
+            if (separation <= SceneUnit.Zero) {
                 contactVectorsFound[contactsFound] = incidentFaceVertexes[i]
                 totalPen += -separation
                 contactsFound++
@@ -379,9 +379,7 @@ class Arbiter(
         if (penetrationTolerance <= SceneUnit.Zero) {
             return
         }
-
         if (a !is PhysicalBodyInterface || b !is PhysicalBodyInterface) return
-
         val totalMass = a.mass + b.mass
         val correction = penetrationTolerance * Physics.PENETRATION_CORRECTION / totalMass
         a.position = a.position.plus(contactNormal.scalar(-a.mass.sceneUnit * correction))
