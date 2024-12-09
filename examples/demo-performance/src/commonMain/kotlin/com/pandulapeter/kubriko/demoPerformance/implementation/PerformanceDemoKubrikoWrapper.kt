@@ -37,7 +37,10 @@ internal class PerformanceDemoKubrikoWrapper {
     val performanceDemoManager by lazy { PerformanceDemoManager(sceneJson = sceneJson) }
     val kubriko by lazy {
         Kubriko.newInstance(
-            ViewportManager.newInstance(initialScaleFactor = 0.5f),
+            ViewportManager.newInstance(
+                initialScaleFactor = 0.5f,
+                viewportEdgeBuffer = 200.sceneUnit,
+            ),
             performanceDemoManager,
             serializationManager,
         )
