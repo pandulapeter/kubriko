@@ -201,6 +201,7 @@ internal class EditorController(
         actorManager.add(editorActors)
     }
 
+    // TODO: Add loading indicator
     fun loadMap(path: String) {
         launch {
             loadFile(path)?.let { json ->
