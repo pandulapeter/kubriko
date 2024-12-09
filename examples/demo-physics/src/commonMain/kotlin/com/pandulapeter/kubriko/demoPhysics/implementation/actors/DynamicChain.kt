@@ -77,28 +77,38 @@ internal class DynamicChain(
         }
     }
 
-    private val stroke = Stroke(
+    private val strokeOutline = Stroke(
         width = ChainLink.Radius.raw * 2,
+        cap = StrokeCap.Round,
+    )
+    private val strokeInside = Stroke(
+        width = ChainLink.Radius.raw * 2 - 2,
         cap = StrokeCap.Round,
     )
 
     override fun DrawScope.draw() {
         if (chainLinks.size >= 2) {
+            val path =  Path().apply {
+                val firstPoint = chainLinks.first().body.position - chainLinks.first().body.pivot - body.position + offset / 2
+                moveTo(firstPoint.x.raw, firstPoint.y.raw)
+                for (i in 1 until chainLinks.size) {
+                    val currentPoint = chainLinks[i].body.position - chainLinks[i].body.pivot - body.position + offset / 2
+                    val previousPoint = chainLinks[i - 1].body.position - chainLinks[i - 1].body.pivot - body.position + offset / 2
+                    val midPoint = (currentPoint + previousPoint) / 2f
+                    quadraticTo(previousPoint.x.raw, previousPoint.y.raw, midPoint.x.raw, midPoint.y.raw)
+                }
+                val lastPoint = chainLinks.last().body.position - chainLinks.last().body.pivot - body.position + offset / 2
+                lineTo(lastPoint.x.raw, lastPoint.y.raw)
+            }
             drawPath(
-                path = Path().apply {
-                    val firstPoint = chainLinks.first().body.position - chainLinks.first().body.pivot - body.position + offset / 2
-                    moveTo(firstPoint.x.raw, firstPoint.y.raw)
-                    for (i in 1 until chainLinks.size) {
-                        val currentPoint = chainLinks[i].body.position - chainLinks[i].body.pivot - body.position + offset / 2
-                        val previousPoint = chainLinks[i - 1].body.position - chainLinks[i - 1].body.pivot - body.position + offset / 2
-                        val midPoint = (currentPoint + previousPoint) / 2f
-                        quadraticTo(previousPoint.x.raw, previousPoint.y.raw, midPoint.x.raw, midPoint.y.raw)
-                    }
-                    val lastPoint = chainLinks.last().body.position - chainLinks.last().body.pivot - body.position + offset / 2
-                    lineTo(lastPoint.x.raw, lastPoint.y.raw)
-                },
+                path =path,
+                color = Color.Black,
+                style = strokeOutline,
+            )
+            drawPath(
+                path = path,
                 color = Color.LightGray,
-                style = stroke,
+                style = strokeInside,
             )
         }
     }

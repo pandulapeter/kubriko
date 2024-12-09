@@ -1,6 +1,7 @@
 package com.pandulapeter.kubriko.demoPhysics
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -52,8 +53,8 @@ fun PhysicsDemo(
             ) {
                 AnimatedVisibility(
                     visible = physicsDemoKubrikoWrapper.physicsDemoManager.shouldShowLoadingIndicator.collectAsState().value,
-                    enter = fadeIn(),
-                    exit = fadeOut(),
+                    enter = fadeIn(animationSpec = tween(durationMillis = 0)),
+                    exit = fadeOut(animationSpec = tween(durationMillis = 1000)),
                 ) {
                     Box(
                         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(16.dp),
