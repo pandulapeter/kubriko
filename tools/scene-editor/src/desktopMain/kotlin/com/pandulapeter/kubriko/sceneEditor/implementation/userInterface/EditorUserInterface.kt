@@ -108,7 +108,7 @@ internal fun EditorUserInterface(
                             registeredTypeIds = editorController.serializationManager.registeredTypeIds.toList(),
                             selectedTypeId = editorController.selectedTypeId.collectAsState().value,
                             selectedUpdatableInstance = editorController.selectedUpdatableActor.collectAsState().value,
-                            selectTypeId = editorController::selectActor,
+                            selectTypeId = editorController::selectActorType,
                             resolveTypeId = editorController.serializationManager::getTypeId,
                             deselectSelectedInstance = editorController::deselectSelectedActor,
                             locateSelectedInstance = editorController::locateSelectedActor,

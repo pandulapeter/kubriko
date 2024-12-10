@@ -205,7 +205,7 @@ internal class EditorController(
 
     fun onFilterTextChanged(filterText: String) = _filterText.update { filterText }
 
-    fun selectActor(typeId: String) = _selectedTypeId.update { currentValue -> if (currentValue == typeId) null else typeId }
+    fun selectActorType(typeId: String?) = _selectedTypeId.update { currentValue -> if (currentValue == typeId) null else typeId }
 
     fun deselectSelectedActor() = _selectedActor.update { null }
 
@@ -257,7 +257,11 @@ internal class EditorController(
 
     private fun navigateBack() {
         if (selectedUpdatableActor.value.first == null) {
-            onCloseRequest()
+            if (selectedTypeId.value == null) {
+                onCloseRequest()
+            } else {
+                selectActorType(null)
+            }
         } else {
             deselectSelectedActor()
         }
