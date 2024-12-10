@@ -7,50 +7,50 @@ import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.FloatSlider
 
 @Composable
 internal fun CloudControls(
-    properties: CloudShader.State,
-    onPropertiesChanged: (CloudShader.State) -> Unit,
+    cloudShaderState: CloudShader.State,
+    onCloudShaderStateChanged: (CloudShader.State) -> Unit,
 ) {
     FloatSlider(
         title = "Scale",
-        value = properties.scale,
-        onValueChanged = { onPropertiesChanged(properties.copy(scale = it)) },
+        value = cloudShaderState.scale,
+        onValueChanged = { onCloudShaderStateChanged(cloudShaderState.copy(scale = it)) },
         valueRange = 0.5f..5f,
     )
     FloatSlider(
         title = "Speed",
-        value = properties.speed,
-        onValueChanged = { onPropertiesChanged(properties.copy(speed = it)) },
+        value = cloudShaderState.speed,
+        onValueChanged = { onCloudShaderStateChanged(cloudShaderState.copy(speed = it)) },
     )
     FloatSlider(
         title = "Dark",
-        value = properties.dark,
-        onValueChanged = { onPropertiesChanged(properties.copy(dark = it)) },
+        value = cloudShaderState.dark,
+        onValueChanged = { onCloudShaderStateChanged(cloudShaderState.copy(dark = it)) },
     )
     FloatSlider(
         title = "Light",
-        value = properties.light,
-        onValueChanged = { onPropertiesChanged(properties.copy(light = it)) },
+        value = cloudShaderState.light,
+        onValueChanged = { onCloudShaderStateChanged(cloudShaderState.copy(light = it)) },
     )
     FloatSlider(
         title = "Cover",
-        value = properties.cover,
-        onValueChanged = { onPropertiesChanged(properties.copy(cover = it)) },
+        value = cloudShaderState.cover,
+        onValueChanged = { onCloudShaderStateChanged(cloudShaderState.copy(cover = it)) },
         valueRange = 0f..4f,
     )
     FloatSlider(
         title = "Alpha",
-        value = properties.alpha,
-        onValueChanged = { onPropertiesChanged(properties.copy(alpha = it)) },
+        value = cloudShaderState.alpha,
+        onValueChanged = { onCloudShaderStateChanged(cloudShaderState.copy(alpha = it)) },
         valueRange = 0f..10f,
     )
     ColorSlider(
         title = "Sky 1",
-        red = properties.sky1Red,
-        green = properties.sky1Green,
-        blue = properties.sky1Blue,
+        red = cloudShaderState.sky1Red,
+        green = cloudShaderState.sky1Green,
+        blue = cloudShaderState.sky1Blue,
         onValueChanged = { red, green, blue ->
-            onPropertiesChanged(
-                properties.copy(
+            onCloudShaderStateChanged(
+                cloudShaderState.copy(
                     sky1Red = red,
                     sky1Green = green,
                     sky1Blue = blue
@@ -61,12 +61,12 @@ internal fun CloudControls(
     )
     ColorSlider(
         title = "Sky 2",
-        red = properties.sky2Red,
-        green = properties.sky2Green,
-        blue = properties.sky2Blue,
+        red = cloudShaderState.sky2Red,
+        green = cloudShaderState.sky2Green,
+        blue = cloudShaderState.sky2Blue,
         onValueChanged = { red, green, blue ->
-            onPropertiesChanged(
-                properties.copy(
+            onCloudShaderStateChanged(
+                cloudShaderState.copy(
                     sky2Red = red,
                     sky2Green = green,
                     sky2Blue = blue

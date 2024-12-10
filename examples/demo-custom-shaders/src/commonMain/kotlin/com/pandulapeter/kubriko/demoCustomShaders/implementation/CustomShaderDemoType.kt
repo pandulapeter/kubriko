@@ -11,7 +11,7 @@ internal enum class CustomShaderDemoType(
     val nameStringResource: StringResource,
 ) {
     FRACTAL(nameStringResource = Res.string.fractal),
-    CLOUDS(nameStringResource = Res.string.clouds),
+    CLOUD(nameStringResource = Res.string.clouds),
     WARP(nameStringResource = Res.string.warp),
     GRADIENT(nameStringResource = Res.string.gradient),
 }

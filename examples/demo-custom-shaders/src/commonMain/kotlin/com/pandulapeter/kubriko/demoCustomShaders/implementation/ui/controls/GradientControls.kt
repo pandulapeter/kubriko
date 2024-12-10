@@ -6,25 +6,25 @@ import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.FloatSlider
 
 @Composable
 internal fun GradientControls(
-    properties: GradientShader.State,
-    onPropertiesChanged: (GradientShader.State) -> Unit,
+    gradientShaderState: GradientShader.State,
+    onGradientShaderStateChanged: (GradientShader.State) -> Unit,
 ) {
     FloatSlider(
         title = "Speed",
-        value = properties.speed,
-        onValueChanged = { onPropertiesChanged(properties.copy(speed = it)) },
+        value = gradientShaderState.speed,
+        onValueChanged = { onGradientShaderStateChanged(gradientShaderState.copy(speed = it)) },
         valueRange = 0f..8f,
     )
     FloatSlider(
         title = "Satur",
-        value = properties.dark,
-        onValueChanged = { onPropertiesChanged(properties.copy(dark = it)) },
+        value = gradientShaderState.dark,
+        onValueChanged = { onGradientShaderStateChanged(gradientShaderState.copy(dark = it)) },
         valueRange = 0f..0.5f,
     )
     FloatSlider(
         title = "Freq",
-        value = properties.frequency,
-        onValueChanged = { onPropertiesChanged(properties.copy(frequency = it)) },
+        value = gradientShaderState.frequency,
+        onValueChanged = { onGradientShaderStateChanged(gradientShaderState.copy(frequency = it)) },
         valueRange = 0f..8f,
     )
 }

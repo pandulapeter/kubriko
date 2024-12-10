@@ -8,23 +8,23 @@ import kotlin.math.roundToInt
 
 @Composable
 internal fun FractalControls(
-    properties: FractalShader.State,
-    onPropertiesChanged: (FractalShader.State) -> Unit,
+    fractalShaderState: FractalShader.State,
+    onFractalShaderStateChanged: (FractalShader.State) -> Unit,
 ) {
     FloatSlider(
         title = "Speed",
-        value = properties.speed,
-        onValueChanged = { onPropertiesChanged(properties.copy(speed = it)) },
+        value = fractalShaderState.speed,
+        onValueChanged = { onFractalShaderStateChanged(fractalShaderState.copy(speed = it)) },
         valueRange = 0f..20f,
     )
     ColorSlider(
         title = "Color",
-        red = properties.red.toFloat(),
-        green = properties.green.toFloat(),
-        blue = properties.blue.toFloat(),
+        red = fractalShaderState.red.toFloat(),
+        green = fractalShaderState.green.toFloat(),
+        blue = fractalShaderState.blue.toFloat(),
         onValueChanged = { red, green, blue ->
-            onPropertiesChanged(
-                properties.copy(
+            onFractalShaderStateChanged(
+                fractalShaderState.copy(
                     red = red.roundToInt(),
                     green = green.roundToInt(),
                     blue = blue.roundToInt(),

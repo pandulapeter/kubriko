@@ -25,11 +25,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.CustomShaderDemoType
-import com.pandulapeter.kubriko.demoCustomShaders.implementation.CustomShadersDemoManager
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.CloudShader
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.FractalShader
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.GradientShader
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.WarpShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.CloudControls
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.FractalControls
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.GradientControls
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.WarpControls
+import kotlinx.coroutines.flow.StateFlow
 import kubriko.examples.demo_custom_shaders.generated.resources.Res
 import kubriko.examples.demo_custom_shaders.generated.resources.collapse_controls
 import kubriko.examples.demo_custom_shaders.generated.resources.expand_controls
@@ -44,7 +48,14 @@ internal fun ControlsContainer(
     modifier: Modifier = Modifier,
     state: Pair<CustomShaderDemoType, Boolean>,
     onIsExpandedChanged: (Boolean) -> Unit,
-    customShadersDemoManager: CustomShadersDemoManager,
+    getFractalShaderState: () -> StateFlow<FractalShader.State>,
+    onFractalShaderStateChanged: (FractalShader.State) -> Unit,
+    getCloudShaderState: () -> StateFlow<CloudShader.State>,
+    onCloudShaderStateChanged: (CloudShader.State) -> Unit,
+    getWarpShaderState: () -> StateFlow<WarpShader.State>,
+    onWarpShaderStateChanged: (WarpShader.State) -> Unit,
+    getGradientShaderState: () -> StateFlow<GradientShader.State>,
+    onGradientShaderStateChanged: (GradientShader.State) -> Unit,
 ) {
     Box(
         modifier = modifier,
@@ -64,24 +75,24 @@ internal fun ControlsContainer(
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         when (targetExpanded.first) {
-                            CustomShaderDemoType.CLOUDS -> CloudControls(
-                                properties = customShadersDemoManager.cloudState.collectAsState().value,
-                                onPropertiesChanged = customShadersDemoManager::setCloudState,
+                            CustomShaderDemoType.FRACTAL -> FractalControls(
+                                fractalShaderState = getFractalShaderState().collectAsState().value,
+                                onFractalShaderStateChanged = onFractalShaderStateChanged,
                             )
 
-                            CustomShaderDemoType.FRACTAL -> FractalControls(
-                                properties = customShadersDemoManager.fractalState.collectAsState().value,
-                                onPropertiesChanged = customShadersDemoManager::setFractalState,
+                            CustomShaderDemoType.CLOUD -> CloudControls(
+                                cloudShaderState = getCloudShaderState().collectAsState().value,
+                                onCloudShaderStateChanged = onCloudShaderStateChanged,
                             )
 
                             CustomShaderDemoType.WARP -> WarpControls(
-                                properties = customShadersDemoManager.warpState.collectAsState().value,
-                                onPropertiesChanged = customShadersDemoManager::setWarpState,
+                                warpShaderState = getWarpShaderState().collectAsState().value,
+                                onWarpShaderStateChanged = onWarpShaderStateChanged,
                             )
 
                             CustomShaderDemoType.GRADIENT -> GradientControls(
-                                properties = customShadersDemoManager.gradientState.collectAsState().value,
-                                onPropertiesChanged = customShadersDemoManager::setGradientState,
+                                gradientShaderState = getGradientShaderState().collectAsState().value,
+                                onGradientShaderStateChanged = onGradientShaderStateChanged,
                             )
                         }
                         Spacer(modifier = Modifier.height(16.dp))

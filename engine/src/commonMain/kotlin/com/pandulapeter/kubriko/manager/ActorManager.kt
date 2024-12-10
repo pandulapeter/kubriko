@@ -26,8 +26,10 @@ abstract class ActorManager : Manager() {
 
     companion object {
         fun newInstance(
+            initialActors: List<Actor> = emptyList(),
             invisibleActorMinimumRefreshTimeInMillis: Long = 100,
         ): ActorManager = ActorManagerImpl(
+            initialActors = initialActors,
             invisibleActorMinimumRefreshTimeInMillis = invisibleActorMinimumRefreshTimeInMillis,
         )
     }

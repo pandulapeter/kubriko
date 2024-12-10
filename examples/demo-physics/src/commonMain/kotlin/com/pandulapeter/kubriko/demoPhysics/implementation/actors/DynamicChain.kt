@@ -45,8 +45,8 @@ internal class DynamicChain(
                 body2 = chainLink.physicsBody,
                 jointLength = ChainLink.Radius,
                 jointConstant = 2000f,
-                dampening = 0.001f,
-                canGoSlack = true,
+                dampening = 0.0001f,
+                canGoSlack = false,
                 offset1 = Vec2(-ChainLink.Radius, SceneUnit.Zero),
                 offset2 = Vec2(ChainLink.Radius, SceneUnit.Zero),
             )
@@ -121,7 +121,7 @@ internal class DynamicChain(
             x = initialPosition.x,
             y = initialPosition.y,
         ).apply {
-            density = 2f
+            density = 0.6f
             restitution = 0f
         }
         override val body = CircleBody(

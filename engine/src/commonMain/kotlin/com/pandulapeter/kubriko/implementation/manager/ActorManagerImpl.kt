@@ -20,6 +20,7 @@ import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -29,13 +30,14 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 internal class ActorManagerImpl(
+    initialActors: List<Actor>,
     private val invisibleActorMinimumRefreshTimeInMillis: Long,
 ) : ActorManager() {
 
     private lateinit var metadataManager: MetadataManager
     private lateinit var viewportManager: ViewportManagerImpl
     private lateinit var stateManager: StateManager
-    private val _allActors = MutableStateFlow<ImmutableList<Actor>>(persistentListOf())
+    private val _allActors = MutableStateFlow<ImmutableList<Actor>>(initialActors.toPersistentList())
     override val allActors = _allActors.asStateFlow()
     val layerIndices by autoInitializingLazy {
         _allActors.map { actors -> actors.filterIsInstance<LayerAware>().groupBy { it.layerIndex }.keys.sortedByDescending { it }.toImmutableList() }

@@ -17,7 +17,7 @@
 
     <!-- Custom Shaders -->
     <string name="demo_custom_shaders">Custom shaders</string>
-    <string name="demo_custom_shaders_subtitle">Fullscreen shader animation examples</string>
+    <string name="demo_custom_shaders_subtitle">Examples for fullscreen shader animations</string>
 
     <!-- Input -->
     <string name="demo_input">Input</string>

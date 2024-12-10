@@ -24,7 +24,7 @@ internal class WallbreakerGameManager : Manager() {
         actorManager = kubriko.require()
         stateManager = kubriko.require()
         val allBricks = (-3..5).flatMap { y ->
-            (-3..3).map { x ->
+            (-4..4).map { x ->
                 Brick(
                     position = SceneOffset(
                         x = Brick.Width * x,
