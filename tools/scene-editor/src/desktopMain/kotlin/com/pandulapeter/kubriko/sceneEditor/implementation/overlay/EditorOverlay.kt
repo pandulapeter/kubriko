@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
+import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
 
@@ -29,7 +30,7 @@ internal fun EditorOverlay(
         modifier = modifier,
         kubriko = Kubriko.newInstance(
             ViewportManager.newInstance(aspectRatioMode = ViewportManager.AspectRatioMode.Dynamic),
-            overlayManager
+            overlayManager,
         ),
     ) {
         AnimatedVisibility(

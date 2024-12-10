@@ -7,6 +7,7 @@ import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.Identifiable
 import com.pandulapeter.kubriko.actor.traits.LayerAware
 import com.pandulapeter.kubriko.actor.traits.Overlay
+import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.KubrikoImpl
@@ -80,10 +81,12 @@ internal class ActorManagerImpl(
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
         if (stateManager.isRunning.value) {
-            dynamicActors.value.forEach {
-                // TODO: Reduce update frequency for Positionable Dynamic actors that are not within the viewport
-                it.update(deltaTimeInMillis)
-            }
+            dynamicActors.value
+                //.filter { if (it !is Positionable) true else it.body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) }
+                .forEach {
+                    // TODO: Reduce update frequency for Positionable Dynamic actors that are not within the viewport
+                    it.update(deltaTimeInMillis)
+                }
         }
     }
 

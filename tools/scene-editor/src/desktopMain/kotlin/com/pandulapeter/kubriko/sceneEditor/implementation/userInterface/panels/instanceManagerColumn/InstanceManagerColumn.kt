@@ -1,6 +1,5 @@
 package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,7 +29,6 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.memberProperties
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun InstanceManagerColumn(
     modifier: Modifier = Modifier,

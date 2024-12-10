@@ -109,6 +109,7 @@ internal class EditorController(
     val shouldShowVisibleOnly = _shouldShowVisibleOnly.asStateFlow()
     private val _shouldShowLoadingIndicator = MutableStateFlow(false)
     val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
+    var previewOverlayActor: Editable<*>? = null
 
     init {
         actorManager.add(editorActors)
@@ -142,10 +143,10 @@ internal class EditorController(
             selectedUpdatableActor.value.first.let { currentSelectedActor ->
                 if (actorAtPosition == null) {
                     if (currentSelectedActor == null) {
-                        selectedTypeId.value?.let { typeId ->
-                            serializationManager.getMetadata(typeId)?.instantiate?.invoke(positionInWorld)?.restore()?.let {
-                                actorManager.add(it)
-                            }
+                        previewOverlayActor?.let {
+                            actorManager.add(it)
+                            selectActor(it)
+                            previewOverlayActor = null
                         }
                     } else {
                         deselectSelectedActor()
@@ -204,7 +205,7 @@ internal class EditorController(
 
     fun onFilterTextChanged(filterText: String) = _filterText.update { filterText }
 
-    fun selectActor(typeId: String) = _selectedTypeId.update { typeId }
+    fun selectActor(typeId: String) = _selectedTypeId.update { currentValue -> if (currentValue == typeId) null else typeId }
 
     fun deselectSelectedActor() = _selectedActor.update { null }
 

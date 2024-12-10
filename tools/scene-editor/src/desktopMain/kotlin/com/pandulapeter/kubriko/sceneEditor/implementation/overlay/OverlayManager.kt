@@ -2,6 +2,7 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.overlay
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.alphaMultiplier
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawTransform
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -18,9 +19,13 @@ import com.pandulapeter.kubriko.implementation.extensions.transformForViewport
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlin.math.max
 import kotlin.math.min
 
@@ -35,6 +40,16 @@ internal class OverlayManager(
 
     override fun onInitialize(kubriko: Kubriko) {
         kubriko.require<ActorManager>().add(this)
+        combine(
+            editorController.selectedUpdatableActor,
+            editorController.selectedTypeId,
+        ) { (selectedInstance, _), selectedTypeId ->
+            selectedInstance to selectedTypeId
+        }.onEach { (_, selectedTypeId) ->
+            editorController.previewOverlayActor = selectedTypeId?.let {
+                editorController.serializationManager.getMetadata(selectedTypeId)?.instantiate?.invoke(SceneOffset.Zero)?.restore()
+            }
+        }.launchIn(scope)
     }
 
     override fun update(deltaTimeInMillis: Float) {
@@ -47,6 +62,7 @@ internal class OverlayManager(
                 alpha = min(HIGHLIGHT_BACKGROUND_ALPHA, alpha + deltaTimeInMillis * HIGHLIGHT_BACKGROUND_FADE_SPEED)
             }
         }
+        editorController.previewOverlayActor?.body?.position = editorController.mouseSceneOffset.value
     }
 
     override fun DrawScope.drawToViewport() {
@@ -54,18 +70,18 @@ internal class OverlayManager(
             color = Color.Black.copy(alpha),
             size = size,
         )
-        editorController.selectedUpdatableActor.value.first?.let { positionable ->
-            gameViewportManager.cameraPosition.value.let { viewportCenter ->
-                gameViewportManager.scaleFactor.value.let { scaleFactor ->
-                    withTransform(
-                        transformBlock = {
-                            transformViewport(
-                                viewportCenter = viewportCenter,
-                                shiftedViewportOffset = (gameViewportManager.size.value / 2f) - viewportCenter,
-                                viewportScaleFactor = scaleFactor,
-                            )
-                        },
-                        drawBlock = {
+        gameViewportManager.cameraPosition.value.let { viewportCenter ->
+            gameViewportManager.scaleFactor.value.let { scaleFactor ->
+                withTransform(
+                    transformBlock = {
+                        transformViewport(
+                            viewportCenter = viewportCenter,
+                            shiftedViewportOffset = (gameViewportManager.size.value / 2f) - viewportCenter,
+                            viewportScaleFactor = scaleFactor,
+                        )
+                    },
+                    drawBlock = {
+                        editorController.selectedUpdatableActor.value.first?.let { highlighted ->
                             val strokeBack = Stroke(
                                 width = 16f / (scaleFactor.horizontal + scaleFactor.vertical),
                                 join = StrokeJoin.Round,
@@ -74,11 +90,11 @@ internal class OverlayManager(
                                 width = 8f / (scaleFactor.horizontal + scaleFactor.vertical),
                                 join = StrokeJoin.Round,
                             )
-                            if (positionable is Visible) { // TODO: Handle else branch
+                            if (highlighted is Visible) { // TODO: Handle else branch
                                 withTransform(
-                                    transformBlock = { positionable.transformForViewport(this) },
+                                    transformBlock = { highlighted.transformForViewport(this) },
                                     drawBlock = {
-                                        with(positionable) {
+                                        with(highlighted) {
                                             clipRect(
                                                 right = body.size.width.raw,
                                                 bottom = body.size.height.raw
@@ -86,16 +102,33 @@ internal class OverlayManager(
                                                 draw()
                                             }
                                         }
-                                        with(positionable.body) {
+                                        with(highlighted.body) {
                                             drawDebugBounds(colorBack, strokeBack)
                                             drawDebugBounds(colorFront, strokeFront)
                                         }
                                     },
                                 )
                             }
-                        },
-                    )
-                }
+                        } ?: editorController.previewOverlayActor?.let { overlay ->
+                            if (overlay is Visible) { // TODO: Handle else branch
+                                withTransform(
+                                    transformBlock = { overlay.transformForViewport(this) },
+                                    drawBlock = {
+                                        with(overlay) {
+                                            clipRect(
+                                                right = body.size.width.raw,
+                                                bottom = body.size.height.raw
+                                            ) {
+                                                drawContext.canvas.alphaMultiplier = 0.4f
+                                                draw()
+                                            }
+                                        }
+                                    },
+                                )
+                            }
+                        }
+                    },
+                )
             }
         }
     }
