@@ -14,5 +14,5 @@ internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
 
     override fun onDispose() = audioPlayer.dispose()
 
-    override fun playSound(uri: String) = audioPlayer.play(uri)
+    override fun playSound(uri: String) = audioPlayer.playSound(uri)
 }

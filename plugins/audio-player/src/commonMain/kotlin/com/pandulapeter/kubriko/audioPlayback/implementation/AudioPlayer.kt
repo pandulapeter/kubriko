@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 
 internal interface AudioPlayer {
 
-    fun play(uri: String)
+    fun playSound(uri: String)
 
     fun dispose()
 }

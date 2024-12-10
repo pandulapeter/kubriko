@@ -17,7 +17,7 @@ internal actual fun rememberAudioPlayer(): AudioPlayer {
     return remember {
         object : AudioPlayer {
 
-            override fun play(uri: String) {
+            override fun playSound(uri: String) {
                 scope.launch(Dispatchers.Default) {
                     AVAudioPlayer(NSURL.URLWithString(URLString = uri)!!, error = null).run {
                         prepareToPlay()

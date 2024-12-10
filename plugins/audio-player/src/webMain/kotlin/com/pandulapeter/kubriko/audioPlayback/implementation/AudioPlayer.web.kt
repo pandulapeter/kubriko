@@ -10,7 +10,7 @@ import org.w3c.dom.events.Event
 internal actual fun rememberAudioPlayer() = remember {
     object : AudioPlayer {
 
-        override fun play(uri: String) {
+        override fun playSound(uri: String) {
             val audioElement = document.createElement("audio") as HTMLAudioElement
             audioElement.src = uri
             audioElement.play()

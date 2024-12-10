@@ -18,7 +18,7 @@ internal actual fun rememberAudioPlayer(): AudioPlayer {
     return remember {
         object : AudioPlayer {
 
-            override fun play(uri: String) {
+            override fun playSound(uri: String) {
                 val clip = AudioSystem.getClip()
                 scope.launch(Dispatchers.IO) {
                     val inputStream = URI(uri).let { uri ->
