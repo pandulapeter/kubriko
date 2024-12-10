@@ -2,5 +2,6 @@
 
     <string name="game_paused">Game paused</string>
     <string name="play">Play</string>
+    <string name="pause">Pause</string>
 
 </resources>
