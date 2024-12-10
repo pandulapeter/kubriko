@@ -10,11 +10,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -66,23 +66,20 @@ internal fun PauseMenu(
                     color = Color.White,
                     text = stringResource(Res.string.game_paused),
                 )
-                Button(
-                    modifier = Modifier.padding(top = 16.dp),
+                FloatingActionButton(
+                    modifier = Modifier.padding(top = 16.dp).height(40.dp),
                     onClick = onResumeButtonPressed,
-                    contentPadding = PaddingValues(
-                        vertical = 4.dp,
-                        horizontal = 16.dp,
-                    )
                 ) {
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Icon(
                             painter = painterResource(Res.drawable.ic_play),
                             contentDescription = stringResource(Res.string.play),
                         )
                         Text(
-                            modifier = Modifier.padding(end = 16.dp),
+                            modifier = Modifier.padding(end = 8.dp),
                             text = stringResource(Res.string.play),
                         )
                     }
