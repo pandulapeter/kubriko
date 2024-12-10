@@ -13,24 +13,52 @@ import platform.Foundation.NSURL
 @OptIn(ExperimentalForeignApi::class)
 @Composable
 internal actual fun rememberAudioPlayer(): AudioPlayer {
-    val scope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
     return remember {
         object : AudioPlayer {
+            private val audioPlayers = mutableMapOf<String, AVAudioPlayer>()
 
-            override fun playSound(uri: String) {
-                scope.launch(Dispatchers.Default) {
-                    AVAudioPlayer(NSURL.URLWithString(URLString = uri)!!, error = null).run {
-                        prepareToPlay()
-                        play()
-                        do {
-                            delay(100)
-                        } while (isPlaying())
-                        dispose()
+            private fun preloadSound(uri: String) {
+                coroutineScope.launch(Dispatchers.Default) {
+                    if (audioPlayers[uri] == null) {
+                        audioPlayers[uri] = AVAudioPlayer(NSURL.URLWithString(URLString = uri)!!, error = null).apply {
+                            prepareToPlay()
+                        }
                     }
                 }
             }
 
-            override fun dispose() = Unit
+            override fun preloadSounds(uris: List<String>) = uris.forEach(::preloadSound)
+
+            override fun playSound(uri: String) {
+                audioPlayers[uri].let { audioPlayer ->
+                    if (audioPlayer == null) {
+                        coroutineScope.launch {
+                            preloadSound(uri)
+                            do {
+                                delay(50)
+                            } while (audioPlayers[uri] == null)
+                        }
+                        playSound(uri)
+                    } else {
+                        audioPlayer.play()
+                    }
+                }
+            }
+
+            override fun unloadSound(uri: String) {
+                audioPlayers[uri]?.unload()
+                audioPlayers.remove(uri)
+            }
+
+            override fun dispose() {
+                audioPlayers.values.forEach { it.unload() }
+                audioPlayers.clear()
+            }
+
+            private fun AVAudioPlayer.unload() {
+                stop()
+            }
         }
     }
 }

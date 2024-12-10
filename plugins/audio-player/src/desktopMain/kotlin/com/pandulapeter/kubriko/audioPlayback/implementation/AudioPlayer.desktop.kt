@@ -10,35 +10,66 @@ import java.io.BufferedInputStream
 import java.io.FileInputStream
 import java.net.URI
 import javax.sound.sampled.AudioSystem
+import javax.sound.sampled.Clip
 
 
 @Composable
 internal actual fun rememberAudioPlayer(): AudioPlayer {
-    val scope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
     return remember {
         object : AudioPlayer {
+            private val clips = mutableMapOf<String, Clip>()
 
-            override fun playSound(uri: String) {
-                val clip = AudioSystem.getClip()
-                scope.launch(Dispatchers.IO) {
-                    val inputStream = URI(uri).let { uri ->
-                        if (uri.isAbsolute) {
-                            uri.toURL().openStream()
-                        } else {
-                            FileInputStream(uri.toString())
+            private fun preloadSound(uri: String) {
+                coroutineScope.launch(Dispatchers.IO) {
+                    if (clips[uri] == null) {
+                        clips[uri] = AudioSystem.getClip().apply {
+                            val inputStream = URI(uri).let { uri ->
+                                if (uri.isAbsolute) {
+                                    uri.toURL().openStream()
+                                } else {
+                                    FileInputStream(uri.toString())
+                                }
+                            }
+                            open(AudioSystem.getAudioInputStream(BufferedInputStream(inputStream)))
                         }
                     }
-                    clip.open(AudioSystem.getAudioInputStream(BufferedInputStream(inputStream)))
-                    clip.start()
-                    do {
-                        delay(100)
-                    } while (clip.isRunning)
-                    clip.close()
                 }
             }
 
-            override fun dispose() = Unit
-        }
+            override fun preloadSounds(uris: List<String>) = uris.forEach(::preloadSound)
 
+            override fun playSound(uri: String) {
+                clips[uri].let { clip ->
+                    if (clip == null) {
+                        coroutineScope.launch {
+                            preloadSound(uri)
+                            do {
+                                delay(50)
+                            } while (clips[uri] == null)
+                        }
+                        playSound(uri)
+                    } else {
+                        clip.framePosition = 0
+                        clip.start()
+                    }
+                }
+            }
+
+            override fun unloadSound(uri: String) {
+                clips[uri]?.unload()
+                clips.remove(uri)
+            }
+
+            override fun dispose() {
+                clips.values.forEach { it.unload() }
+                clips.clear()
+            }
+
+            private fun Clip.unload() {
+                stop()
+                close()
+            }
+        }
     }
 }

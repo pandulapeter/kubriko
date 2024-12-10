@@ -1,6 +1,9 @@
 package com.pandulapeter.kubriko.gameWallbreaker.implementation
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Ball
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Brick
 import com.pandulapeter.kubriko.implementation.extensions.require
@@ -14,14 +17,18 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kubriko.examples.game_wallbreaker.generated.resources.Res
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 internal class WallbreakerGameManager : Manager() {
 
     private lateinit var actorManager: ActorManager
+    private lateinit var audioPlaybackManager: AudioPlaybackManager
     private lateinit var stateManager: StateManager
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
+        audioPlaybackManager = kubriko.require()
         stateManager = kubriko.require()
         val allBricks = (-3..5).flatMap { y ->
             (-4..4).map { x ->
@@ -39,5 +46,16 @@ internal class WallbreakerGameManager : Manager() {
             .filterNot { it }
             .onEach { stateManager.updateIsRunning(false) }
             .launchIn(scope)
+    }
+
+    @Composable
+    @ExperimentalResourceApi
+    override fun onRecomposition() = remember {
+        audioPlaybackManager.preloadSounds(
+            listOf(
+                Res.getUri("files/sounds/click.wav"),
+                Res.getUri("files/sounds/pop.wav"),
+            )
+        )
     }
 }
