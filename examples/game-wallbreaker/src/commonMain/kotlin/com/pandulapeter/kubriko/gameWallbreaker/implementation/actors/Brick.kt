@@ -18,7 +18,7 @@ internal class Brick(
         initialPosition = position,
         initialSize = SceneSize(Width, Height),
     )
-    private val color = Color.hsv(hue, 0.2f, 0.9f)
+    private val color = Color.hsv(hue, 0.3f, 1f)
 
     override fun DrawScope.draw() {
         drawRect(
