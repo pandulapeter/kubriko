@@ -1,1 +1,0 @@
-TODO: Documentation for the Collisions game

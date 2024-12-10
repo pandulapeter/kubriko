@@ -31,7 +31,7 @@ import kotlin.uuid.Uuid
 
 internal class ActorManagerImpl(
     initialActors: List<Actor>,
-    private val invisibleActorMinimumRefreshTimeInMillis: Long,
+    private val invisibleActorMinimumRefreshTimeInMillis: Long, // TODO: Feels hacky
 ) : ActorManager() {
 
     private lateinit var metadataManager: MetadataManager

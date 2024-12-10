@@ -8,12 +8,12 @@
 
     <!-- Welcome -->
     <string name="welcome">Welcome</string>
-    <string name="welcome_subtitle">A short introduction</string>
+    <string name="welcome_subtitle">A short introduction and general overview</string>
     <string name="welcome_message">Welcome!\n\nThis is the Showcase app for the Kubriko game engine.</string>
 
-    <!-- Collisions -->
-    <string name="demo_collisions">Collisions</string>
-    <string name="demo_collisions_subtitle">Playground for testing axis-aligned bounding boxes</string>
+    <!-- Built-in Shaders -->
+    <string name="demo_built_in_shaders">Built-in Shaders</string>
+    <string name="demo_built_in_shaders_subtitle">Playground for testing the built-in shader effects</string>
 
     <!-- Custom Shaders -->
     <string name="demo_custom_shaders">Custom shaders</string>

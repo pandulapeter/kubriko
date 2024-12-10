@@ -7,7 +7,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.examples.demoCollisions)
+            implementation(projects.examples.demoBuiltInShaders)
             implementation(projects.examples.demoCustomShaders)
             implementation(projects.examples.demoInput)
             implementation(projects.examples.demoPerformance)
