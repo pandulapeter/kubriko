@@ -23,6 +23,7 @@ include(
     ":examples:demo-performance",
     ":examples:demo-physics",
     ":examples:game-wallbreaker",
+    ":plugins:audio-player",
     ":plugins:collision",
     ":plugins:keyboard-input",
     ":plugins:physics",

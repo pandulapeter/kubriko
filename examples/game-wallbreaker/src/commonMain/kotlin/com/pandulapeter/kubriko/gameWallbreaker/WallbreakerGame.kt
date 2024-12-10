@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
+import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
 import com.pandulapeter.kubriko.collision.CollisionManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.WallbreakerGameManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.PauseButton
@@ -47,6 +48,7 @@ fun createWallbreakerGameStateHolder(): WallbreakerGameStateHolder = Wallbreaker
 internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
     val stateManager = StateManager.newInstance()
     val kubriko = Kubriko.newInstance(
+        AudioPlaybackManager.newInstance(),
         stateManager,
         ViewportManager.newInstance(
             aspectRatioMode = ViewportManager.AspectRatioMode.Fixed(

@@ -6,6 +6,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.engine)
+            implementation(projects.plugins.audioPlayer)
             implementation(projects.plugins.collision)
             implementation(projects.plugins.shader)
             implementation(compose.components.resources)
