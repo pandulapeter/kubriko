@@ -7,6 +7,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.CollisionDetector
 import com.pandulapeter.kubriko.implementation.extensions.constrainedWithin
@@ -18,6 +19,8 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import com.pandulapeter.kubriko.types.SceneSize
+import kubriko.examples.game_wallbreaker.generated.resources.Res
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 internal class Ball(
     private val radius: SceneUnit = 20f.sceneUnit,
@@ -33,10 +36,12 @@ internal class Ball(
     private var speedX = speed
     private var speedY = speed
     private lateinit var actorManager: ActorManager
+    private lateinit var audioPlaybackManager: AudioPlaybackManager
     private lateinit var viewportManager: ViewportManager
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.require()
+        audioPlaybackManager = kubriko.require()
         viewportManager = kubriko.require()
     }
 
@@ -45,14 +50,21 @@ internal class Ball(
         val viewportBottomRight = viewportManager.bottomRight.value
         body.position = body.position.constrainedWithin(viewportTopLeft, viewportBottomRight)
         val nextPosition = body.position + SceneOffset(speedX, speedY) * deltaTimeInMillis
+        var shouldPlaySound = false
         if (nextPosition.x < viewportTopLeft.x || nextPosition.x > viewportBottomRight.x) {
             speedX *= -1
+            shouldPlaySound = true
         }
         if (nextPosition.y < viewportTopLeft.y || nextPosition.y > viewportBottomRight.y) {
             speedY *= -1
+            shouldPlaySound = true
         }
         previousPosition = body.position
         body.position = nextPosition
+        if (shouldPlaySound) {
+            @OptIn(ExperimentalResourceApi::class)
+            audioPlaybackManager.playSound(Res.getUri("files/sounds/click.wav"))
+        }
     }
 
     // TODO: We could predict collisions instead of only treating them afterwards
