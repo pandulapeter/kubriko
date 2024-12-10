@@ -2,7 +2,6 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,7 +21,9 @@ import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorSurface
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorText
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorTextInput
 import kubriko.tools.scene_editor.generated.resources.Res
+import kubriko.tools.scene_editor.generated.resources.ic_close
 import kubriko.tools.scene_editor.generated.resources.ic_visible_only_off
 import kubriko.tools.scene_editor.generated.resources.ic_visible_only_on
 import kotlin.reflect.KClass
@@ -30,6 +31,8 @@ import kotlin.reflect.KClass
 @Composable
 internal fun InstanceBrowserColumn(
     modifier: Modifier = Modifier,
+    filterText: String,
+    onFilterTextChanged: (String) -> Unit,
     shouldShowVisibleOnly: Boolean,
     allInstances: List<Editable<*>>,
     visibleInstances: List<Editable<*>>,
@@ -42,6 +45,8 @@ internal fun InstanceBrowserColumn(
 ) {
     Column {
         HeaderRow(
+            filterText = filterText,
+            onFilterTextChanged = onFilterTextChanged,
             shouldShowVisibleOnly = shouldShowVisibleOnly,
             onShouldShowVisibleOnlyToggled = onShouldShowVisibleOnlyToggled,
         )
@@ -72,6 +77,8 @@ private fun Editable<*>.getName(typeId: String?): String {
 
 @Composable
 private fun HeaderRow(
+    filterText: String,
+    onFilterTextChanged: (String) -> Unit,
     shouldShowVisibleOnly: Boolean,
     onShouldShowVisibleOnlyToggled: () -> Unit,
 ) = Column(
@@ -88,8 +95,20 @@ private fun HeaderRow(
                 end = 4.dp,
             ),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.End,
     ) {
+        EditorTextInput(
+            modifier = Modifier.weight(1f),
+            value = filterText,
+            hint = "Filter...",
+            onValueChanged = onFilterTextChanged,
+        )
+        if (filterText.isNotEmpty()) {
+            EditorIcon(
+                drawableResource = Res.drawable.ic_close,
+                contentDescription = "Clear filter",
+                onClick = { onFilterTextChanged("") },
+            )
+        }
         EditorIcon(
             drawableResource = if (shouldShowVisibleOnly) Res.drawable.ic_visible_only_on else Res.drawable.ic_visible_only_off,
             contentDescription = "Toggle visible only",

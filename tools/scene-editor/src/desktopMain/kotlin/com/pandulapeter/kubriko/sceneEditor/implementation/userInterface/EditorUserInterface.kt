@@ -120,9 +120,11 @@ internal fun EditorUserInterface(
                     }
                     InstanceBrowserColumn(
                         modifier = Modifier.fillMaxHeight().width(instanceBrowserColumnWidth),
+                        filterText = editorController.filterText.collectAsState().value,
+                        onFilterTextChanged = editorController::onFilterTextChanged,
                         shouldShowVisibleOnly = editorController.shouldShowVisibleOnly.collectAsState().value,
-                        allInstances = editorController.allEditableActors.collectAsState().value,
-                        visibleInstances = editorController.visibleActorsWithinViewport.collectAsState().value,
+                        allInstances = editorController.filteredAllEditableActors.collectAsState().value,
+                        visibleInstances = editorController.filteredVisibleActorsWithinViewport.collectAsState().value,
                         selectedUpdatableInstance = editorController.selectedUpdatableActor.collectAsState().value,
                         onShouldShowVisibleOnlyToggled = editorController::onShouldShowVisibleOnlyToggled,
                         selectInstance = editorController::selectActor,

@@ -1,7 +1,6 @@
 package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,70 +48,72 @@ internal fun InstanceManagerColumn(
 ) = EditorSurface(
     modifier = modifier,
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        selectedUpdatableInstance.first.let { selectedInstance ->
-            if (selectedInstance == null) {
-                items(
-                    items = registeredTypeIds,
-                    key = { "typeRadioButton_${it}" },
-                ) { typeId ->
-                    EditorRadioButton(
-                        label = typeId,
-                        isSelected = typeId == selectedTypeId,
-                        onSelectionChanged = { selectTypeId(typeId) },
-                    )
-                }
-            } else {
-                stickyHeader(key = "selectedTypeHeader") {
-                    SelectedInstanceHeader(
-                        instanceTypeName = resolveTypeId(selectedInstance::class) ?: "Unknown Actor type",
-                        onDeselectClicked = deselectSelectedInstance,
-                        onLocateClicked = locateSelectedInstance,
-                        onDeleteClicked = deleteSelectedInstance,
-                    )
-                }
-                // TODO: Sort into categories using expandedCategories.value
-                selectedInstance::class.memberProperties
-                    .filterIsInstance<KMutableProperty<*>>()
-                    .sortedBy { it.name }
-                    .mapNotNull { property ->
-                        property.toPropertyEditor(
-                            actor = selectedInstance,
-                            notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
-                            colorEditorMode = colorEditorMode,
-                            angleEditorMode = angleEditorMode,
+    selectedUpdatableInstance.first.let { selectedInstance ->
+        Column {
+            if (selectedInstance != null) {
+                SelectedInstanceHeader(
+                    instanceTypeName = resolveTypeId(selectedInstance::class) ?: "Unknown Actor type",
+                    onDeselectClicked = deselectSelectedInstance,
+                    onLocateClicked = locateSelectedInstance,
+                    onDeleteClicked = deleteSelectedInstance,
+                )
+            }
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                if (selectedInstance == null) {
+                    items(
+                        items = registeredTypeIds,
+                        key = { "typeRadioButton_${it}" },
+                    ) { typeId ->
+                        EditorRadioButton(
+                            label = typeId,
+                            isSelected = typeId == selectedTypeId,
+                            onSelectionChanged = { selectTypeId(typeId) },
                         )
                     }
-                    .let { controls ->
-                        val allControls = controls.toMutableList().apply {
-                            add(
-                                index = 0,
-                                element = createBodyPropertyEditor(
-                                    getActor = { selectedInstance },
-                                    notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
-                                    angleEditorMode = angleEditorMode,
-                                )
+                } else {
+                    // TODO: Sort into categories using expandedCategories.value
+                    selectedInstance::class.memberProperties
+                        .filterIsInstance<KMutableProperty<*>>()
+                        .sortedBy { it.name }
+                        .mapNotNull { property ->
+                            property.toPropertyEditor(
+                                actor = selectedInstance,
+                                notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
+                                colorEditorMode = colorEditorMode,
+                                angleEditorMode = angleEditorMode,
                             )
                         }
-                        item(key = "actorEditor") {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                allControls.forEachIndexed { index, lambda ->
-                                    lambda()
-                                    if (index != allControls.lastIndex) {
-                                        HorizontalDivider()
+                        .let { controls ->
+                            val allControls = controls.toMutableList().apply {
+                                add(
+                                    index = 0,
+                                    element = createBodyPropertyEditor(
+                                        getActor = { selectedInstance },
+                                        notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
+                                        angleEditorMode = angleEditorMode,
+                                    )
+                                )
+                            }
+                            item(key = "actorEditor") {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    allControls.forEachIndexed { index, lambda ->
+                                        lambda()
+                                        if (index != allControls.lastIndex) {
+                                            HorizontalDivider()
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
+                }
             }
         }
     }
@@ -125,42 +125,40 @@ private fun SelectedInstanceHeader(
     onDeselectClicked: () -> Unit,
     onLocateClicked: () -> Unit,
     onDeleteClicked: () -> Unit,
-) = EditorSurface {
-    Column(
-        modifier = Modifier.fillMaxWidth()
+) = Column(
+    modifier = Modifier.fillMaxWidth()
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                vertical = 2.dp,
+            )
+            .padding(
+                start = 8.dp,
+                end = 4.dp,
+            ),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    vertical = 2.dp,
-                )
-                .padding(
-                    start = 8.dp,
-                    end = 4.dp,
-                ),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            EditorTextTitle(
-                modifier = Modifier.weight(1f),
-                text = instanceTypeName,
-            )
-            EditorIcon(
-                drawableResource = Res.drawable.ic_locate,
-                contentDescription = "Locate",
-                onClick = onLocateClicked,
-            )
-            EditorIcon(
-                drawableResource = Res.drawable.ic_delete,
-                contentDescription = "Delete",
-                onClick = onDeleteClicked,
-            )
-            EditorIcon(
-                drawableResource = Res.drawable.ic_close,
-                contentDescription = "Deselect",
-                onClick = onDeselectClicked,
-            )
-        }
-        HorizontalDivider()
+        EditorTextTitle(
+            modifier = Modifier.weight(1f),
+            text = instanceTypeName,
+        )
+        EditorIcon(
+            drawableResource = Res.drawable.ic_locate,
+            contentDescription = "Locate",
+            onClick = onLocateClicked,
+        )
+        EditorIcon(
+            drawableResource = Res.drawable.ic_delete,
+            contentDescription = "Delete",
+            onClick = onDeleteClicked,
+        )
+        EditorIcon(
+            drawableResource = Res.drawable.ic_close,
+            contentDescription = "Deselect",
+            onClick = onDeselectClicked,
+        )
     }
+    HorizontalDivider()
 }

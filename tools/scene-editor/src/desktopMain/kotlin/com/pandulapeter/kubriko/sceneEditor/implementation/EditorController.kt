@@ -56,9 +56,20 @@ internal class EditorController(
     val allEditableActors = actorManager.allActors
         .map { it.filterIsInstance<Editable<*>>() }
         .stateIn(this, SharingStarted.Eagerly, emptyList())
-    val visibleActorsWithinViewport = actorManager.visibleActorsWithinViewport
-        .map { it.filterIsInstance<Editable<*>>() }
-        .stateIn(this, SharingStarted.Eagerly, emptyList())
+    private val _filterText = MutableStateFlow("")
+    val filterText = _filterText.asStateFlow()
+    val filteredAllEditableActors = combine(
+        allEditableActors,
+        filterText,
+    ) { allEditableActors, filterText ->
+        allEditableActors.filter { serializationManager.getTypeId(it::class)?.contains(filterText) == true }
+    }.stateIn(this, SharingStarted.Eagerly, emptyList())
+    val filteredVisibleActorsWithinViewport = combine(
+        actorManager.visibleActorsWithinViewport.map { it.filterIsInstance<Editable<*>>() },
+        filterText,
+    ) { visibleActorsWithinViewport, filterText ->
+        visibleActorsWithinViewport.filter { serializationManager.getTypeId(it::class)?.contains(filterText) == true }
+    }.stateIn(this, SharingStarted.Eagerly, emptyList())
     val totalActorCount = actorManager.allActors
         .map { it.filterIsInstance<Editable<*>>().count() }
         .stateIn(this, SharingStarted.Eagerly, 0)
@@ -158,7 +169,7 @@ internal class EditorController(
         }
     }
 
-    private fun findActorOnPosition(sceneOffset: SceneOffset) = visibleActorsWithinViewport.value
+    private fun findActorOnPosition(sceneOffset: SceneOffset) = filteredVisibleActorsWithinViewport.value
         .filter { sceneOffset.isWithin(it.body) }
         .minByOrNull { (it as? Visible)?.drawingOrder ?: 0f }
 
@@ -190,6 +201,8 @@ internal class EditorController(
     fun onAngleEditorModeChanged(angleEditorMode: AngleEditorMode) = _angleEditorMode.update { angleEditorMode }
 
     fun onIsDebugMenuEnabledChanged(isDebugMenuEnabled: Boolean) = _isDebugMenuEnabled.update { isDebugMenuEnabled }
+
+    fun onFilterTextChanged(filterText: String) = _filterText.update { filterText }
 
     fun selectActor(typeId: String) = _selectedTypeId.update { typeId }
 
