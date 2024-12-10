@@ -122,7 +122,7 @@ internal class DynamicChain(
             y = initialPosition.y,
         ).apply {
             density = 1.5f
-            restitution = 0f
+            restitution = 0.1f
         }
         override val body = CircleBody(
             initialRadius = Radius,

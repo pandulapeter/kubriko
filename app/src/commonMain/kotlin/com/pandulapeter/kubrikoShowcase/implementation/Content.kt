@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -88,6 +89,7 @@ internal fun Content(
     }
 ) { paddingValues ->
     val currentDemoStateHolders = rememberSaveable { mutableStateOf(emptyList<Any>()) }
+    val lazyListState = rememberLazyListState()
     Box(
         modifier = Modifier.fillMaxSize().padding(paddingValues)
     ) {
@@ -138,6 +140,7 @@ internal fun Content(
             ) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
+                    state = lazyListState,
                 ) {
                     item("welcome") {
                         WelcomeMessage()
@@ -188,6 +191,7 @@ internal fun Content(
                 ) {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
+                        state = lazyListState,
                     ) {
                         item {
                             MenuItem(

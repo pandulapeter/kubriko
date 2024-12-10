@@ -158,8 +158,10 @@ private fun Layer(
                                     drawBlock = {
                                         with(visible) {
                                             clipRect(
-                                                right = body.size.width.raw,
-                                                bottom = body.size.height.raw,
+                                                left = -CLIPPING_BORDER,
+                                                top = -CLIPPING_BORDER,
+                                                right = body.size.width.raw + CLIPPING_BORDER,
+                                                bottom = body.size.height.raw + CLIPPING_BORDER,
                                             ) {
                                                 draw()
                                             }
@@ -176,3 +178,5 @@ private fun Layer(
         )
     }
 }
+
+private const val CLIPPING_BORDER = 20f
