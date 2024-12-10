@@ -3,11 +3,14 @@ package com.pandulapeter.kubriko.gameWallbreaker
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,7 +30,9 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.shader.ShaderManager
 import kubriko.examples.game_wallbreaker.generated.resources.Res
 import kubriko.examples.game_wallbreaker.generated.resources.game_paused
-import kubriko.examples.game_wallbreaker.generated.resources.resume
+import kubriko.examples.game_wallbreaker.generated.resources.img_logo
+import kubriko.examples.game_wallbreaker.generated.resources.play
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -48,22 +53,35 @@ fun WallbreakerGame(
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize().background(color = Color.Black.copy(0.5f)),
+                )
+            }
+            AnimatedVisibility(
+                visible = !stateHolder.stateManager.isRunning.collectAsState().value,
+                enter = fadeIn() + scaleIn(),
+                exit = fadeOut() + scaleOut(),
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     Column(
                         modifier = Modifier.align(Alignment.Center),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
+                        Image(
+                            painter = painterResource(Res.drawable.img_logo),
+                            contentDescription = null,
+                        )
                         Text(
                             textAlign = TextAlign.Center,
                             color = Color.White,
                             text = stringResource(Res.string.game_paused),
                         )
                         Button(
+                            modifier = Modifier.padding(top = 16.dp),
                             onClick = { stateHolder.stateManager.updateIsRunning(true) }
                         ) {
                             Text(
-                                text = stringResource(Res.string.resume)
+                                text = stringResource(Res.string.play)
                             )
                         }
                     }
