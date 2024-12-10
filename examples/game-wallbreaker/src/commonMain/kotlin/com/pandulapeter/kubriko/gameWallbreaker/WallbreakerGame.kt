@@ -12,7 +12,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,29 +33,16 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun WallbreakerGame(
     modifier: Modifier = Modifier,
+    stateHolder: WallbreakerGameStateHolder = createWallbreakerGameStateHolder(),
 ) {
-    val stateManager = remember { StateManager.newInstance() }
-    val kubriko = remember {
-        Kubriko.newInstance(
-            stateManager,
-            ViewportManager.newInstance(
-                aspectRatioMode = ViewportManager.AspectRatioMode.Fixed(
-                    ratio = 1f,
-                    defaultWidth = 1200.sceneUnit,
-                )
-            ),
-            CollisionManager.newInstance(),
-            ShaderManager.newInstance(),
-            WallbreakerGameManager()
-        )
-    }
+    stateHolder as WallbreakerGameStateHolderImpl
     Box {
         KubrikoViewport(
             modifier = modifier.background(Color.Black),
-            kubriko = kubriko,
+            kubriko = stateHolder.kubriko,
         ) {
             AnimatedVisibility(
-                visible = !stateManager.isRunning.collectAsState().value,
+                visible = !stateHolder.stateManager.isRunning.collectAsState().value,
                 enter = fadeIn(),
                 exit = fadeOut(),
             ) {
@@ -74,7 +60,7 @@ fun WallbreakerGame(
                             text = stringResource(Res.string.game_paused),
                         )
                         Button(
-                            onClick = { stateManager.updateIsRunning(true) }
+                            onClick = { stateHolder.stateManager.updateIsRunning(true) }
                         ) {
                             Text(
                                 text = stringResource(Res.string.resume)
@@ -85,4 +71,24 @@ fun WallbreakerGame(
             }
         }
     }
+}
+
+sealed interface WallbreakerGameStateHolder
+
+fun createWallbreakerGameStateHolder(): WallbreakerGameStateHolder = WallbreakerGameStateHolderImpl()
+
+internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
+    val stateManager = StateManager.newInstance()
+    val kubriko = Kubriko.newInstance(
+        stateManager,
+        ViewportManager.newInstance(
+            aspectRatioMode = ViewportManager.AspectRatioMode.Fixed(
+                ratio = 1f,
+                defaultWidth = 1200.sceneUnit,
+            )
+        ),
+        CollisionManager.newInstance(),
+        ShaderManager.newInstance(),
+        WallbreakerGameManager()
+    )
 }

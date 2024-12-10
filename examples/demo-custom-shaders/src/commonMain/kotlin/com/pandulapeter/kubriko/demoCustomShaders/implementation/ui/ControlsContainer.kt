@@ -66,7 +66,13 @@ internal fun ControlsContainer(
             ) { targetExpanded ->
                 if (targetExpanded.second) {
                     Column(
-                        modifier = Modifier.verticalScroll(rememberScrollState()).width(MaximumWidth).padding(8.dp),
+                        modifier = Modifier
+                            .verticalScroll(rememberScrollState())
+                            .width(MaximumWidth)
+                            .padding(
+                                horizontal = 16.dp,
+                                vertical = 8.dp,
+                            ),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         val manager = demoHolders[targetExpanded.first]!!.manager

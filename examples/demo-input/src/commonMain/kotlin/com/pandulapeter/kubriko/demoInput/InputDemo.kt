@@ -2,7 +2,6 @@ package com.pandulapeter.kubriko.demoInput
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
@@ -14,17 +13,27 @@ import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 @Composable
 fun InputDemo(
     modifier: Modifier = Modifier,
+    stateHolder: InputDemoStateHolder = createInputDemoStateHolder(),
 ) {
-    val inputDemoManager = remember { InputDemoManager() }
+    stateHolder as InputDemoStateHolderImpl
     KubrikoViewport(
-        kubriko = Kubriko.newInstance(
-            PointerInputManager.newInstance(),
-            KeyboardInputManager.newInstance(),
-            inputDemoManager,
-        ),
+        kubriko = stateHolder.kubriko,
     )
     Keyboard(
         modifier = modifier,
-        activeKeys = inputDemoManager.activeKeys.collectAsState().value,
+        activeKeys = stateHolder.inputDemoManager.activeKeys.collectAsState().value,
+    )
+}
+
+sealed interface InputDemoStateHolder
+
+fun createInputDemoStateHolder(): InputDemoStateHolder = InputDemoStateHolderImpl()
+
+internal class InputDemoStateHolderImpl : InputDemoStateHolder {
+    val inputDemoManager = InputDemoManager()
+    val kubriko = Kubriko.newInstance(
+        PointerInputManager.newInstance(),
+        KeyboardInputManager.newInstance(),
+        inputDemoManager,
     )
 }

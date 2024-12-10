@@ -14,8 +14,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -28,37 +27,32 @@ import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.Gradien
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.WarpShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.ControlsContainer
 import kotlinx.collections.immutable.toPersistentMap
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CustomShadersDemo(
     modifier: Modifier = Modifier,
+    stateHolder: CustomShadersDemoStateHolder = createCustomShadersDemoStateHolder(),
 ) {
-    val demoHolders = remember {
-        CustomShaderDemoType.entries.associateWith {
-            when (it) {
-                CustomShaderDemoType.FRACTAL -> DemoHolder(FractalShader()) { shader, state -> shader.updateState(state) }
-                CustomShaderDemoType.CLOUD -> DemoHolder(CloudShader()) { shader, state -> shader.updateState(state) }
-                CustomShaderDemoType.WARP -> DemoHolder(WarpShader()) { shader, state -> shader.updateState(state) }
-                CustomShaderDemoType.GRADIENT -> DemoHolder(GradientShader()) { shader, state -> shader.updateState(state) }
-            }
-        }.toPersistentMap()
-    }
-    val selectedDemoType = remember { mutableStateOf(CustomShaderDemoType.FRACTAL) }
-    val areControlsExpanded = remember { mutableStateOf(false) }
+    stateHolder as CustomShadersDemoStateHolderImpl
+    val selectedDemoType = stateHolder.selectedDemoType.collectAsState().value
+    val areControlsExpanded = stateHolder.areControlsExpanded.collectAsState().value
     Column(
         modifier = modifier.fillMaxSize(),
     ) {
         TabRow(
             modifier = Modifier.fillMaxWidth(),
-            selectedTabIndex = selectedDemoType.value.ordinal,
+            selectedTabIndex = selectedDemoType.ordinal,
         ) {
             CustomShaderDemoType.entries.forEach { demoType ->
                 Tab(
                     modifier = Modifier.height(42.dp),
                     text = { Text(stringResource(demoType.nameStringResource)) },
-                    selected = demoType == selectedDemoType.value,
-                    onClick = { selectedDemoType.value = demoType }
+                    selected = demoType == selectedDemoType,
+                    onClick = { stateHolder.onSelectedDemoTypeChanged(demoType) }
                 )
             }
         }
@@ -66,20 +60,43 @@ fun CustomShadersDemo(
             modifier = Modifier.fillMaxSize(),
         ) {
             AnimatedContent(
-                targetState = selectedDemoType.value,
+                targetState = selectedDemoType,
                 transitionSpec = { fadeIn() togetherWith fadeOut() },
             ) { demoType ->
                 KubrikoViewport(
                     modifier = Modifier.fillMaxSize(),
-                    kubriko = demoHolders[demoType]!!.kubriko,
+                    kubriko = stateHolder.demoHolders[demoType]!!.kubriko,
                 )
             }
             ControlsContainer(
                 modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
-                state = selectedDemoType.value to areControlsExpanded.value,
-                onIsExpandedChanged = { areControlsExpanded.value = it },
-                demoHolders = demoHolders,
+                state = selectedDemoType to areControlsExpanded,
+                onIsExpandedChanged = stateHolder::onAreControlsEnabledChanged,
+                demoHolders = stateHolder.demoHolders,
             )
         }
     }
+}
+
+sealed interface CustomShadersDemoStateHolder
+
+fun createCustomShadersDemoStateHolder(): CustomShadersDemoStateHolder = CustomShadersDemoStateHolderImpl()
+
+internal class CustomShadersDemoStateHolderImpl : CustomShadersDemoStateHolder {
+    val demoHolders = CustomShaderDemoType.entries.associateWith {
+        when (it) {
+            CustomShaderDemoType.FRACTAL -> DemoHolder(FractalShader()) { shader, state -> shader.updateState(state) }
+            CustomShaderDemoType.CLOUD -> DemoHolder(CloudShader()) { shader, state -> shader.updateState(state) }
+            CustomShaderDemoType.WARP -> DemoHolder(WarpShader()) { shader, state -> shader.updateState(state) }
+            CustomShaderDemoType.GRADIENT -> DemoHolder(GradientShader()) { shader, state -> shader.updateState(state) }
+        }
+    }.toPersistentMap()
+    private val _selectedDemoType = MutableStateFlow(CustomShaderDemoType.FRACTAL)
+    val selectedDemoType = _selectedDemoType.asStateFlow()
+    private val _areControlsExpanded = MutableStateFlow(false)
+    val areControlsExpanded = _areControlsExpanded.asStateFlow()
+
+    fun onSelectedDemoTypeChanged(selectedDemoType: CustomShaderDemoType) = _selectedDemoType.update { selectedDemoType }
+
+    fun onAreControlsEnabledChanged(areControlsExpanded: Boolean) = _areControlsExpanded.update { areControlsExpanded }
 }

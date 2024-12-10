@@ -9,5 +9,8 @@ internal class DemoHolder<SHADER : Shader<STATE>, STATE : Shader.State>(
     updater: (SHADER, STATE) -> Unit,
 ) {
     val manager = CustomShadersDemoManager(shader, updater)
-    val kubriko = Kubriko.newInstance(ShaderManager.newInstance(), manager)
+    val kubriko = Kubriko.newInstance(
+        ShaderManager.newInstance(),
+        manager,
+    )
 }
