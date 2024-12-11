@@ -62,13 +62,13 @@ internal class EditorController(
         allEditableActors,
         filterText,
     ) { allEditableActors, filterText ->
-        allEditableActors.filter { serializationManager.getTypeId(it::class)?.contains(filterText) == true }
+        allEditableActors.filter { serializationManager.getTypeId(it::class)?.contains(filterText, true) == true }
     }.stateIn(this, SharingStarted.Eagerly, emptyList())
     val filteredVisibleActorsWithinViewport = combine(
         actorManager.visibleActorsWithinViewport.map { it.filterIsInstance<Editable<*>>() },
         filterText,
     ) { visibleActorsWithinViewport, filterText ->
-        visibleActorsWithinViewport.filter { serializationManager.getTypeId(it::class)?.contains(filterText) == true }
+        visibleActorsWithinViewport.filter { serializationManager.getTypeId(it::class)?.contains(filterText, true) == true }
     }.stateIn(this, SharingStarted.Eagerly, emptyList())
     val totalActorCount = actorManager.allActors
         .map { it.filterIsInstance<Editable<*>>().count() }

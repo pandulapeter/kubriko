@@ -23,11 +23,11 @@ internal class ShaderManagerImpl : ShaderManager() {
         }.asStateFlow(persistentListOf())
     }
 
-    override fun getModifier(layerIndex: Int?) = shaders.value
+    override fun getModifier(layerIndex: Int?) = if (isInitialized) shaders.value
         .filter { it.layerIndex == layerIndex }
         .fold<Shader<*>, Modifier>(Modifier) { compoundModifier, shader ->
             compoundModifier then Modifier.runtimeShader(shader)
-        }
+        } else Modifier
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()

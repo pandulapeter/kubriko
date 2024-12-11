@@ -39,6 +39,9 @@ internal class KubrikoImpl(
         metadataManager.initializeInternal(this)
         stateManager.initializeInternal(this)
         viewportManager.initializeInternal(this)
+    }
+
+    internal fun initialize() {
         managers.forEach { it.initializeInternal(this) }
         if (stateManager.shouldAutoStart) {
             stateManager.updateIsRunning(true)

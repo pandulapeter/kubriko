@@ -46,7 +46,9 @@ fun InternalViewport(
     // Game loop and focus handling
     val gameTime = remember { mutableStateOf(0L) }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
+    initializePlatformSpecificComponents()
     LaunchedEffect(Unit) {
+        kubrikoImpl.initialize()
         while (isActive) {
             withFrameNanos { gameTimeInNanos ->
                 val deltaTimeInMillis = if (gameTime.value == 0L) 0f else (gameTimeInNanos - gameTime.value) / 1000000f
@@ -58,7 +60,6 @@ fun InternalViewport(
     }
 
     // Game canvas
-    initializePlatformSpecificComponents()
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
