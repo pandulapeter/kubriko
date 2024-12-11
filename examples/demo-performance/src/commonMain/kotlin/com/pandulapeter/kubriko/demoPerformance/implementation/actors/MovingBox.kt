@@ -33,20 +33,22 @@ internal class MovingBox private constructor(state: State) : Visible, Dynamic, E
     private var isGrowing = true
 
     override fun onAdded(kubriko: Kubriko) {
-        body.scale = ((5..16).random() / 10f).let { Scale(it,it) }
+        body.scale = ((5..16).random() / 10f).let { Scale(it, it) }
     }
 
     override fun update(deltaTimeInMillis: Float) {
         body.rotation += 0.001f.rad * deltaTimeInMillis * (if (isRotatingClockwise) 1 else -1)
-        if (body.scale.horizontal >= 1.6f) {
-            isGrowing = false
-        } else if (body.scale.horizontal <= 0.5f) {
-            isGrowing = true
-        }
         if (isGrowing) {
             body.scale += deltaTimeInMillis * 0.001f
         } else {
             body.scale -= deltaTimeInMillis * 0.001f
+        }
+        if (body.scale.horizontal >= 1.6f) {
+            isGrowing = false
+            body.scale = Scale(1.6f, 1.6f)
+        } else if (body.scale.horizontal <= 0.5f) {
+            isGrowing = true
+            body.scale = Scale(0.5f, 0.5f)
         }
         body.position += SceneOffset(
             x = body.rotation.cos.sceneUnit,

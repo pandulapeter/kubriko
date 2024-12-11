@@ -60,14 +60,14 @@ internal class Ball(
             shouldPlaySound = true
         }
         previousPosition = body.position
-        body.position = nextPosition
+        body.position = nextPosition.constrainedWithin(viewportTopLeft, viewportBottomRight)
         if (shouldPlaySound) {
             @OptIn(ExperimentalResourceApi::class)
             audioPlaybackManager.playSound(Res.getUri("files/sounds/click.wav"))
         }
     }
 
-    // TODO: We could predict collisions instead of only treating them afterwards
+    // TODO: We should predict collisions instead of only treating them afterwards
     override fun onCollisionDetected(collidables: List<Collidable>) {
         body.position = previousPosition
         val brick = collidables.filterIsInstance<Brick>().minBy { it.body.position.distanceTo(body.position) }
