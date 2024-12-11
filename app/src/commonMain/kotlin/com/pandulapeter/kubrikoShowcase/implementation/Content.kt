@@ -35,7 +35,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -70,6 +69,8 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+private val currentDemoStateHolders = mutableStateOf(emptyList<Any>())
+
 @Composable
 internal fun Content(
     modifier: Modifier = Modifier,
@@ -88,7 +89,6 @@ internal fun Content(
         )
     }
 ) { paddingValues ->
-    val currentDemoStateHolders = rememberSaveable { mutableStateOf(emptyList<Any>()) }
     val lazyListState = rememberLazyListState()
     Box(
         modifier = Modifier.fillMaxSize().padding(paddingValues)
