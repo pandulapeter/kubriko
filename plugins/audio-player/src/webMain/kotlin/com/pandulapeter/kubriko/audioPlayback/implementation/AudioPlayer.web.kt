@@ -7,6 +7,7 @@ import kotlinx.browser.document
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.w3c.dom.Audio
 import org.w3c.dom.HTMLAudioElement
 
 @Composable
@@ -15,6 +16,7 @@ internal actual fun rememberAudioPlayer(): AudioPlayer {
     return remember {
         object : AudioPlayer {
             private val audioElements = mutableMapOf<String, HTMLAudioElement>()
+            private var audio: Audio? = null
 
             private fun preloadSound(uri: String) {
                 coroutineScope.launch(Dispatchers.Default) {
@@ -24,6 +26,32 @@ internal actual fun rememberAudioPlayer(): AudioPlayer {
                         }
                     }
                 }
+            }
+
+            override fun playMusic(uri: String, shouldLoop: Boolean) {
+                stopMusic()
+                audio = Audio(uri).apply {
+                    loop = shouldLoop
+                    play()
+                }
+            }
+
+            override fun resumeMusic() {
+                audio?.run {
+                    if (paused) {
+                        play()
+                    }
+                }
+            }
+
+            override fun pauseMusic() {
+                audio?.pause()
+            }
+
+            override fun stopMusic() {
+                audio?.currentTime = 0.0
+                audio?.unload()
+                audio = null
             }
 
             override fun preloadSounds(uris: Collection<String>) = uris.forEach(::preloadSound)
@@ -50,6 +78,7 @@ internal actual fun rememberAudioPlayer(): AudioPlayer {
             }
 
             override fun dispose() {
+                stopMusic()
                 audioElements.values.forEach { it.unload() }
                 audioElements.clear()
             }

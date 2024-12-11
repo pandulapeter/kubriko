@@ -3,7 +3,7 @@ package com.pandulapeter.kubriko.audioPlayback.implementation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import javazoom.jl.player.advanced.AdvancedPlayer
+import javazoom.jl.player.Player
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -22,7 +22,7 @@ internal actual fun rememberAudioPlayer(): AudioPlayer {
     return remember {
         object : AudioPlayer {
             private val clips = mutableMapOf<String, Clip>()
-            private var musicPlayer: AdvancedPlayer? = null
+            private var musicPlayer: Player? = null
             private var musicPlayingJob: Job? = null
 
             override fun playMusic(uri: String, shouldLoop: Boolean) {
@@ -37,7 +37,7 @@ internal actual fun rememberAudioPlayer(): AudioPlayer {
                             }
                         }
                         musicPlayer?.close()
-                        musicPlayer = AdvancedPlayer(inputStream)
+                        musicPlayer = Player(inputStream)
                         musicPlayer?.play()
                     } while (shouldLoop && isActive)
                 }
@@ -52,7 +52,7 @@ internal actual fun rememberAudioPlayer(): AudioPlayer {
             }
 
             override fun stopMusic() {
-                musicPlayer?.stop()
+                musicPlayer?.close()
                 musicPlayingJob?.cancel()
                 musicPlayingJob = null
                 musicPlayer = null

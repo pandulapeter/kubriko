@@ -9,6 +9,7 @@ import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Brick
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
+import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.shader.collection.ChromaticAberrationShader
 import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader
@@ -24,11 +25,13 @@ internal class WallbreakerGameManager : Manager() {
 
     private lateinit var actorManager: ActorManager
     private lateinit var audioPlaybackManager: AudioPlaybackManager
+    private lateinit var metadataManager: MetadataManager
     private lateinit var stateManager: StateManager
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
         audioPlaybackManager = kubriko.require()
+        metadataManager = kubriko.require()
         stateManager = kubriko.require()
         val allBricks = (-3..5).flatMap { y ->
             (-4..4).map { x ->
@@ -60,12 +63,14 @@ internal class WallbreakerGameManager : Manager() {
                 uri = Res.getUri("files/music/music.mp3"),
                 shouldLoop = true,
             )
-            stateManager.isRunning
-                .onEach { isRunning ->
-                    if (isRunning) {
-                        audioPlaybackManager.resumeMusic()
-                    } else {
-                        audioPlaybackManager.pauseMusic()
+            stateManager.isFocused
+                .onEach { isFocused ->
+                    if (metadataManager.runtimeInMilliseconds.value > 0) {
+                        if (isFocused) {
+                            audioPlaybackManager.resumeMusic()
+                        } else {
+                            audioPlaybackManager.pauseMusic()
+                        }
                     }
                 }
                 .launchIn(scope)
