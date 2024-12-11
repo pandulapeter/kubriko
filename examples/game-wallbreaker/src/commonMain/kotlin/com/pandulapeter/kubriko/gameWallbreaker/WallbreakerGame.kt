@@ -18,6 +18,9 @@ import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.shader.ShaderManager
 
+/**
+ * Music: https://opengameart.org/content/cyberpunk-moonlight-sonata
+ */
 @Composable
 fun WallbreakerGame(
     modifier: Modifier = Modifier,

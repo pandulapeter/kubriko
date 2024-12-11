@@ -37,7 +37,7 @@ internal actual fun rememberAudioPlayer(): AudioPlayer {
                 }
             }
 
-            override fun preloadSounds(uris: List<String>) = uris.forEach(::preloadSound)
+            override fun preloadSounds(uris: Collection<String>) = uris.forEach(::preloadSound)
 
             override fun playSound(uri: String) {
                 clips[uri].let { clip ->
@@ -56,7 +56,7 @@ internal actual fun rememberAudioPlayer(): AudioPlayer {
                 }
             }
 
-            override fun unloadSound(uri: String) {
+            override fun unloadSounds(uris: Collection<String>) = uris.forEach { uri ->
                 clips[uri]?.unload()
                 clips.remove(uri)
             }

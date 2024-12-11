@@ -4,11 +4,11 @@ import androidx.compose.runtime.Composable
 
 internal interface AudioPlayer {
 
-    fun preloadSounds(uris: List<String>)
+    fun preloadSounds(uris: Collection<String>)
 
     fun playSound(uri: String)
 
-    fun unloadSound(uri: String)
+    fun unloadSounds(uris: Collection<String>)
 
     fun dispose()
 }
