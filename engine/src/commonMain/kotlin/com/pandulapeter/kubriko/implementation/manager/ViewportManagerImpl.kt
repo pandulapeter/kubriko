@@ -59,6 +59,13 @@ internal class ViewportManagerImpl(
 
     override fun setCameraPosition(position: SceneOffset) = _cameraPosition.update { position }
 
+    override fun setScaleFactor(scaleFactor: Float) = _scaleFactor.update { currentValue ->
+        Scale(
+            horizontal = max(minimumScaleFactor, min(scaleFactor, maximumScaleFactor)),
+            vertical = max(minimumScaleFactor, min(scaleFactor, maximumScaleFactor)),
+        )
+    }
+
     override fun multiplyScaleFactor(scaleFactor: Float) = _scaleFactor.update { currentValue ->
         Scale(
             horizontal = max(minimumScaleFactor, min(currentValue.horizontal * scaleFactor, maximumScaleFactor)),

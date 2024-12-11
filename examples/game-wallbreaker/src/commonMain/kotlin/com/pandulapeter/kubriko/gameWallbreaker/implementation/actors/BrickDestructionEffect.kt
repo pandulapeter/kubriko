@@ -9,6 +9,7 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
@@ -23,16 +24,20 @@ internal class BrickDestructionEffect(
     )
     private val color = Color.hsv(hue, 0.2f, 0.9f)
     private lateinit var actorManager: ActorManager
+    private lateinit var viewportManager: ViewportManager
     private var alpha = 1f
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.require()
+        viewportManager = kubriko.require()
     }
 
     override fun update(deltaTimeInMillis: Float) {
         alpha -= 0.005f * deltaTimeInMillis
         body.scale = Scale.Unit * alpha
+        viewportManager.setScaleFactor(1f + (-10..10).random().toFloat() / 500f)
         if (alpha <= 0) {
+            viewportManager.setScaleFactor(1f)
             actorManager.remove(this)
         }
     }

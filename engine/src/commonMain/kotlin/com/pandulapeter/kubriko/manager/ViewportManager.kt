@@ -27,6 +27,8 @@ abstract class ViewportManager : Manager() {
 
     abstract fun setCameraPosition(position: SceneOffset)
 
+    abstract fun setScaleFactor(scaleFactor: Float)
+
     abstract fun multiplyScaleFactor(scaleFactor: Float)
 
     sealed class AspectRatioMode {
