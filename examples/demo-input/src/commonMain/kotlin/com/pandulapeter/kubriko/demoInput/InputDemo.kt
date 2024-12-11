@@ -25,7 +25,9 @@ fun InputDemo(
     )
 }
 
-sealed interface InputDemoStateHolder
+sealed interface InputDemoStateHolder {
+    fun dispose()
+}
 
 fun createInputDemoStateHolder(): InputDemoStateHolder = InputDemoStateHolderImpl()
 
@@ -36,4 +38,6 @@ internal class InputDemoStateHolderImpl : InputDemoStateHolder {
         KeyboardInputManager.newInstance(),
         inputDemoManager,
     )
+
+    override fun dispose() = kubriko.dispose()
 }

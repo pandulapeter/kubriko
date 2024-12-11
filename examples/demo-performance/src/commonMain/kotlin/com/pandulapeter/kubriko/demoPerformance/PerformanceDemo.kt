@@ -65,7 +65,9 @@ fun PerformanceDemo(
     }
 }
 
-sealed interface PerformanceDemoStateHolder
+sealed interface PerformanceDemoStateHolder {
+    fun dispose()
+}
 
 fun createPerformanceDemoStateHolder(): PerformanceDemoStateHolder = PerformanceDemoStateHolderImpl()
 
@@ -99,4 +101,6 @@ internal class PerformanceDemoStateHolderImpl : PerformanceDemoStateHolder {
             serializationManager,
         )
     }
+
+    override fun dispose() = kubriko.dispose()
 }

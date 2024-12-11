@@ -1,16 +1,14 @@
 package com.pandulapeter.kubriko.audioPlayback.implementation
 
-import androidx.compose.runtime.Composable
+import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
 
 internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
 
     private lateinit var audioPlayer: AudioPlayer
 
-    // TODO: Initializing the audioPlayer here is too late
-    @Composable
-    override fun onRecomposition() {
-        audioPlayer = rememberAudioPlayer()
+    override fun onInitialize(kubriko: Kubriko) {
+        audioPlayer = createAudioPlayer(scope)
     }
 
     override fun onDispose() = audioPlayer.dispose()

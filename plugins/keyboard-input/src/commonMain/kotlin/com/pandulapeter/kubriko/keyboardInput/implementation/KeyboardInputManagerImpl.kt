@@ -1,6 +1,5 @@
 package com.pandulapeter.kubriko.keyboardInput.implementation
 
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.require
@@ -13,6 +12,7 @@ import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlin.coroutines.coroutineContext
 
 internal class KeyboardInputManagerImpl : KeyboardInputManager() {
 
@@ -32,19 +32,15 @@ internal class KeyboardInputManagerImpl : KeyboardInputManager() {
             .filterNot { it }
             .onEach { activeKeysCache.forEach(::onKeyReleased) }
             .launchIn(scope)
+        keyboardEventHandler = createKeyboardEventHandler(
+            onKeyPressed = ::onKeyPressed,
+            onKeyReleased = ::onKeyReleased,
+            coroutineScope = scope,
+        )
+        keyboardEventHandler.startListening()
     }
 
     override fun isKeyPressed(key: Key) = activeKeysCache.contains(key)
-
-    @Composable
-    override fun onRecomposition() {
-        keyboardEventHandler = rememberKeyboardEventHandler(
-            onKeyPressed = ::onKeyPressed,
-            onKeyReleased = ::onKeyReleased,
-        )
-    }
-
-    override fun onLaunch() = keyboardEventHandler.startListening()
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
         if (activeKeysCache.isNotEmpty() && stateManager.isFocused.value) {

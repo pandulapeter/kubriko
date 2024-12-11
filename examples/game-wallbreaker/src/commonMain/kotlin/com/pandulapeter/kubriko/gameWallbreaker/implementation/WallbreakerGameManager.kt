@@ -1,7 +1,5 @@
 package com.pandulapeter.kubriko.gameWallbreaker.implementation
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Ball
@@ -28,6 +26,7 @@ internal class WallbreakerGameManager : Manager() {
     private lateinit var metadataManager: MetadataManager
     private lateinit var stateManager: StateManager
 
+    @ExperimentalResourceApi
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
         audioPlaybackManager = kubriko.require()
@@ -49,31 +48,22 @@ internal class WallbreakerGameManager : Manager() {
             .filterNot { it }
             .onEach { stateManager.updateIsRunning(false) }
             .launchIn(scope)
-    }
-
-    @Composable
-    @ExperimentalResourceApi
-    override fun onRecomposition() {
-        remember {
-            audioPlaybackManager.preloadSound(
-                Res.getUri("files/sounds/click.wav"),
-                Res.getUri("files/sounds/pop.wav"),
-            )
-            audioPlaybackManager.playMusic(
-                uri = Res.getUri("files/music/music.mp3"),
-                shouldLoop = true,
-            )
-            stateManager.isFocused
-                .onEach { isFocused ->
-                    if (metadataManager.runtimeInMilliseconds.value > 0) {
-                        if (isFocused) {
-                            audioPlaybackManager.resumeMusic()
-                        } else {
-                            audioPlaybackManager.pauseMusic()
-                        }
-                    }
+        audioPlaybackManager.preloadSound(
+            Res.getUri("files/sounds/click.wav"),
+            Res.getUri("files/sounds/pop.wav"),
+        )
+        audioPlaybackManager.playMusic(
+            uri = Res.getUri("files/music/music.mp3"),
+            shouldLoop = true,
+        )
+        stateManager.isFocused
+            .onEach { isFocused ->
+                if (isFocused) {
+                    audioPlaybackManager.resumeMusic()
+                } else {
+                    audioPlaybackManager.pauseMusic()
                 }
-                .launchIn(scope)
-        }
+            }
+            .launchIn(scope)
     }
 }

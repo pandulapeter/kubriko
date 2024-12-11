@@ -1,45 +1,42 @@
 package com.pandulapeter.kubriko.keyboardInput.implementation
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.input.key.Key
 import kotlinx.browser.window
+import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 
-@Composable
-internal actual fun rememberKeyboardEventHandler(
+internal actual fun createKeyboardEventHandler(
     onKeyPressed: (Key) -> Unit,
-    onKeyReleased: (Key) -> Unit
-): KeyboardEventHandler = remember {
-    object : KeyboardEventHandler {
+    onKeyReleased: (Key) -> Unit,
+    coroutineScope: CoroutineScope,
+): KeyboardEventHandler = object : KeyboardEventHandler {
 
-        private val pressedKeys = mutableSetOf<String>() // Track keys that are currently pressed
-        private val keyDownListener: (Event) -> Unit = { event ->
-            (event as? KeyboardEvent)?.let { keyboardEvent ->
-                if (pressedKeys.add(keyboardEvent.code)) {
-                    onKeyPressed(mapKeyboardEventCodeToKey(keyboardEvent.code))
-                }
+    private val pressedKeys = mutableSetOf<String>() // Track keys that are currently pressed
+    private val keyDownListener: (Event) -> Unit = { event ->
+        (event as? KeyboardEvent)?.let { keyboardEvent ->
+            if (pressedKeys.add(keyboardEvent.code)) {
+                onKeyPressed(mapKeyboardEventCodeToKey(keyboardEvent.code))
             }
         }
-        private val keyUpListener: (Event) -> Unit = { event ->
-            (event as? KeyboardEvent)?.let { keyboardEvent ->
-                if (pressedKeys.remove(keyboardEvent.code)) {
-                    onKeyReleased(mapKeyboardEventCodeToKey(keyboardEvent.code))
-                }
+    }
+    private val keyUpListener: (Event) -> Unit = { event ->
+        (event as? KeyboardEvent)?.let { keyboardEvent ->
+            if (pressedKeys.remove(keyboardEvent.code)) {
+                onKeyReleased(mapKeyboardEventCodeToKey(keyboardEvent.code))
             }
         }
+    }
 
-        override fun startListening() {
-            window.addEventListener("keydown", keyDownListener)
-            window.addEventListener("keyup", keyUpListener)
-        }
+    override fun startListening() {
+        window.addEventListener("keydown", keyDownListener)
+        window.addEventListener("keyup", keyUpListener)
+    }
 
-        override fun stopListening() {
-            window.removeEventListener("keydown", keyDownListener)
-            window.removeEventListener("keyup", keyUpListener)
-            pressedKeys.clear()
-        }
+    override fun stopListening() {
+        window.removeEventListener("keydown", keyDownListener)
+        window.removeEventListener("keyup", keyUpListener)
+        pressedKeys.clear()
     }
 }
 

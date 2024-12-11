@@ -17,15 +17,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.debugMenu.DebugMenu
+import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
+import com.pandulapeter.kubriko.sceneEditor.implementation.MAXIMUM_SCALE_FACTOR
+import com.pandulapeter.kubriko.sceneEditor.implementation.MINIMUM_SCALE_FACTOR
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseClick
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseDrag
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseMove
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseZoom
 import com.pandulapeter.kubriko.sceneEditor.implementation.overlay.EditorOverlay
+import com.pandulapeter.kubriko.sceneEditor.implementation.overlay.OverlayManager
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.fileManagerRow.FileManagerRow
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceBrowserColumn.InstanceBrowserColumn
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.InstanceManagerColumn
@@ -43,6 +48,7 @@ internal fun EditorUserInterface(
     openFilePickerForLoading: () -> Unit,
     openFilePickerForSaving: () -> Unit,
     openSettings: () -> Unit,
+    overlayKubriko: Kubriko,
 ) = KubrikoTheme {
     Scaffold(
         modifier = modifier,
@@ -99,6 +105,7 @@ internal fun EditorUserInterface(
                                                 notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
                                             ),
                                         editorController = editorController,
+                                        overlayKubriko = overlayKubriko,
                                     )
                                 }
                             }

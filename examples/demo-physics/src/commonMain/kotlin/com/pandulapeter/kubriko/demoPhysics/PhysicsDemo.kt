@@ -112,7 +112,9 @@ fun PhysicsDemo(
     }
 }
 
-sealed interface PhysicsDemoStateHolder
+sealed interface PhysicsDemoStateHolder {
+    fun dispose()
+}
 
 fun createPhysicsDemoStateHolder(): PhysicsDemoStateHolder = PhysicsDemoStateHolderImpl()
 
@@ -160,4 +162,6 @@ internal class PhysicsDemoStateHolderImpl : PhysicsDemoStateHolder {
             serializationManager,
         )
     }
+
+    override fun dispose() = kubriko.dispose()
 }

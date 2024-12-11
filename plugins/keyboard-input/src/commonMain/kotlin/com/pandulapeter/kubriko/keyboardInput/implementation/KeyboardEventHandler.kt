@@ -1,7 +1,7 @@
 package com.pandulapeter.kubriko.keyboardInput.implementation
 
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.input.key.Key
+import kotlinx.coroutines.CoroutineScope
 
 internal interface KeyboardEventHandler {
 
@@ -10,8 +10,8 @@ internal interface KeyboardEventHandler {
     fun stopListening()
 }
 
-@Composable
-internal expect fun rememberKeyboardEventHandler(
+internal expect fun createKeyboardEventHandler(
     onKeyPressed: (Key) -> Unit,
-    onKeyReleased: (Key) -> Unit
+    onKeyReleased: (Key) -> Unit,
+    coroutineScope: CoroutineScope,
 ): KeyboardEventHandler

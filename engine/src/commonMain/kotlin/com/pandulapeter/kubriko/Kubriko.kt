@@ -23,6 +23,11 @@ interface Kubriko {
      */
     fun <T : Manager> require(managerType: KClass<T>): T
 
+    /**
+     * TODO: Documentation
+     */
+    fun dispose()
+
     companion object {
         /**
          * Creates a new [Kubriko] instance.

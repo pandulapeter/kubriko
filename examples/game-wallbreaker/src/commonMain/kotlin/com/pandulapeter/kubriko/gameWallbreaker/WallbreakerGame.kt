@@ -44,12 +44,16 @@ fun WallbreakerGame(
     }
 }
 
-sealed interface WallbreakerGameStateHolder
+sealed interface WallbreakerGameStateHolder {
+    fun dispose()
+}
 
 fun createWallbreakerGameStateHolder(): WallbreakerGameStateHolder = WallbreakerGameStateHolderImpl()
 
 internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
-    val stateManager = StateManager.newInstance()
+    val stateManager = StateManager.newInstance(
+        shouldAutoStart = false,
+    )
     val kubriko = Kubriko.newInstance(
         AudioPlaybackManager.newInstance(),
         stateManager,
@@ -63,4 +67,6 @@ internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
         ShaderManager.newInstance(),
         WallbreakerGameManager()
     )
+
+    override fun dispose() = kubriko.dispose()
 }

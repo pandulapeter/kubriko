@@ -17,6 +17,7 @@ import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
+import com.pandulapeter.kubriko.sceneEditor.implementation.overlay.OverlayManager
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.EditorUserInterface
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.Settings
 import com.pandulapeter.kubriko.serialization.SerializationManager
@@ -34,22 +35,34 @@ internal fun InternalSceneEditor(
     title: String,
     onCloseRequest: () -> Unit,
 ) {
+    val editorKubriko = remember {
+        Kubriko.newInstance(
+            ViewportManager.newInstance(
+                aspectRatioMode = ViewportManager.AspectRatioMode.Dynamic,
+                minimumScaleFactor = MINIMUM_SCALE_FACTOR,
+                maximumScaleFactor = MAXIMUM_SCALE_FACTOR,
+            ),
+            StateManager.newInstance(shouldAutoStart = false),
+            KeyboardInputManager.newInstance(),
+            PointerInputManager.newInstance(),
+            serializationManager,
+        )
+    }
     val isLoadFileChooserOpen = remember { mutableStateOf(false) }
     val isSaveFileChooserOpen = remember { mutableStateOf(false) }
     val isSettingsOpen = remember { mutableStateOf(false) }
+
+    lateinit var overlayKubriko: Kubriko
+
+    fun disposeAndClose() {
+        editorKubriko.dispose()
+        overlayKubriko.dispose()
+        onCloseRequest()
+    }
+
     val editorController = remember {
         EditorController(
-            kubriko = Kubriko.newInstance(
-                ViewportManager.newInstance(
-                    aspectRatioMode = ViewportManager.AspectRatioMode.Dynamic,
-                    minimumScaleFactor = 0.1f,
-                    maximumScaleFactor = 10f,
-                ),
-                StateManager.newInstance(shouldAutoStart = false),
-                KeyboardInputManager.newInstance(),
-                PointerInputManager.newInstance(),
-                serializationManager,
-            ),
+            kubriko = editorKubriko,
             sceneEditorMode = sceneEditorMode,
             defaultSceneFilename = defaultSceneFilename,
             defaultSceneFolderPath = defaultSceneFolderPath,
@@ -57,13 +70,26 @@ internal fun InternalSceneEditor(
                 if (isSettingsOpen.value) {
                     isSettingsOpen.value = false
                 } else if (!isLoadFileChooserOpen.value && !isSaveFileChooserOpen.value) {
-                    onCloseRequest()
+                    disposeAndClose()
                 }
             },
         )
     }
+    val overlayManager = remember { OverlayManager(editorController) }
+
+    overlayKubriko = remember {
+        Kubriko.newInstance(
+            ViewportManager.newInstance(
+                aspectRatioMode = ViewportManager.AspectRatioMode.Dynamic,
+                minimumScaleFactor = MINIMUM_SCALE_FACTOR,
+                maximumScaleFactor = MAXIMUM_SCALE_FACTOR,
+            ),
+            overlayManager,
+        )
+    }
+
     Window(
-        onCloseRequest = onCloseRequest,
+        onCloseRequest = ::disposeAndClose,
         title = title,
     ) {
         window.minimumSize = Dimension(600, 400)
@@ -72,6 +98,7 @@ internal fun InternalSceneEditor(
             openFilePickerForLoading = { isLoadFileChooserOpen.value = true },
             openFilePickerForSaving = { isSaveFileChooserOpen.value = true },
             openSettings = { isSettingsOpen.value = !isSettingsOpen.value },
+            overlayKubriko = overlayKubriko,
         )
         if (isLoadFileChooserOpen.value) {
             FileDialog(
@@ -158,3 +185,6 @@ private fun FileDialog(
     },
     dispose = FileDialog::dispose
 )
+
+internal const val MINIMUM_SCALE_FACTOR = 0.1f
+internal const val MAXIMUM_SCALE_FACTOR = 10f

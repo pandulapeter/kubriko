@@ -38,7 +38,7 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * TODO: Documentation
  */
-// TODO: Make this Composable configurable
+// TODO: Make this Composable configurable)
 @Composable
 fun DebugMenu(
     modifier: Modifier = Modifier,
@@ -50,9 +50,16 @@ fun DebugMenu(
 ) = Box(
     modifier = modifier,
 ) {
+    // TODO: Should be persisted with Kubriko
+    val debugMenuManager = remember { DebugMenuManager(kubriko) }
+    val debugMenuKubriko = remember {
+        Kubriko.newInstance(
+            kubriko.require<ViewportManager>(),
+            debugMenuManager,
+        )
+    }
+    val isDebugMenuVisible = remember { mutableStateOf(false) }
     if (isEnabled) {
-        val debugMenuManager = remember { DebugMenuManager(kubriko) }
-        val isDebugMenuVisible = remember { mutableStateOf(false) }
         Row(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -62,10 +69,7 @@ fun DebugMenu(
             ) {
                 gameCanvas()
                 KubrikoViewport(
-                    kubriko = Kubriko.newInstance(
-                        kubriko.require<ViewportManager>(),
-                        debugMenuManager,
-                    ),
+                    kubriko = debugMenuKubriko,
                 )
             }
             AnimatedVisibility(

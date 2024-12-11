@@ -10,7 +10,7 @@ internal class StateManagerImpl(
     val shouldAutoStart: Boolean,
 ) : StateManager() {
 
-    private val _isFocused = MutableStateFlow(false)
+    private val _isFocused = MutableStateFlow(true)
     override val isFocused by autoInitializingLazy { _isFocused.asStateFlow() }
     private val _isRunning = MutableStateFlow(false)
     override val isRunning by autoInitializingLazy {

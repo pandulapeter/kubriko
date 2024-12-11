@@ -78,7 +78,9 @@ fun CustomShadersDemo(
     }
 }
 
-sealed interface CustomShadersDemoStateHolder
+sealed interface CustomShadersDemoStateHolder {
+    fun dispose()
+}
 
 fun createCustomShadersDemoStateHolder(): CustomShadersDemoStateHolder = CustomShadersDemoStateHolderImpl()
 
@@ -99,4 +101,6 @@ internal class CustomShadersDemoStateHolderImpl : CustomShadersDemoStateHolder {
     fun onSelectedDemoTypeChanged(selectedDemoType: CustomShaderDemoType) = _selectedDemoType.update { selectedDemoType }
 
     fun onAreControlsEnabledChanged(areControlsExpanded: Boolean) = _areControlsExpanded.update { areControlsExpanded }
+
+    override fun dispose() = demoHolders.values.forEach { it.kubriko.dispose() }
 }

@@ -23,7 +23,9 @@ fun BuiltInShadersDemo(
     )
 }
 
-sealed interface BuiltInShadersDemoStateHolder
+sealed interface BuiltInShadersDemoStateHolder {
+    fun dispose()
+}
 
 fun createBuiltInShadersDemoStateHolder(): BuiltInShadersDemoStateHolder = BuiltInShadersDemoStateHolderImpl()
 
@@ -35,4 +37,6 @@ internal class BuiltInShadersDemoStateHolderImpl : BuiltInShadersDemoStateHolder
         ),
         BuiltInShadersDemoManager()
     )
+
+    override fun dispose()  = kubriko.dispose()
 }

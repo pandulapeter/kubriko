@@ -93,7 +93,6 @@ internal fun Content(
     Box(
         modifier = Modifier.fillMaxSize().padding(paddingValues)
     ) {
-
         @Composable
         fun ShowcaseEntry.content() {
             when (this) {
@@ -125,6 +124,16 @@ internal fun Content(
                 onDispose {
                     if (getSelectedShowcaseEntry() != selectedShowcaseEntry) {
                         stateHolderType.let { type ->
+                            currentDemoStateHolders.value.filter { type.isInstance(it) }.forEach {
+                                when (it) {
+                                    is BuiltInShadersDemoStateHolder -> it.dispose()
+                                    is CustomShadersDemoStateHolder -> it.dispose()
+                                    is InputDemoStateHolder -> it.dispose()
+                                    is PerformanceDemoStateHolder -> it.dispose()
+                                    is PhysicsDemoStateHolder -> it.dispose()
+                                    is WallbreakerGameStateHolder -> it.dispose()
+                                }
+                            }
                             currentDemoStateHolders.value = currentDemoStateHolders.value.filterNot { type.isInstance(it) }
                         }
                     }

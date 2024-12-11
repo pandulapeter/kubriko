@@ -1,6 +1,5 @@
 package com.pandulapeter.kubriko.manager
 
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
 import kotlinx.coroutines.CoroutineScope
@@ -31,11 +30,6 @@ abstract class Manager {
     }
 
     protected open fun onInitialize(kubriko: Kubriko) = Unit
-
-    @Composable
-    open fun onRecomposition() = Unit
-
-    open fun onLaunch() = Unit
 
     open fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) = Unit
 

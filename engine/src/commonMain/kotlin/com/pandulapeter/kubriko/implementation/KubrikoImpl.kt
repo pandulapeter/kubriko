@@ -14,6 +14,7 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlin.reflect.KClass
 
 internal class KubrikoImpl(
@@ -57,4 +58,10 @@ internal class KubrikoImpl(
 
     override fun <T : Manager> require(managerType: KClass<T>) =
         get(managerType) ?: throw IllegalStateException("$managerType has not been registered as a Manager in Kubriko.newInstance()")
+
+    override fun dispose() {
+        disposePlatformSpecificComponents()
+        managers.forEach { it.onDispose() }
+        cancel()
+    }
 }

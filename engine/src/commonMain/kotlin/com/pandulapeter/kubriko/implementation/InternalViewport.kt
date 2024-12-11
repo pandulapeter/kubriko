@@ -56,13 +56,9 @@ fun InternalViewport(
             }
         }
     }
-    kubrikoImpl.managers.forEach { it.onRecomposition() }
-    DisposableEffect(Unit) {
-        kubrikoImpl.managers.forEach { it.onLaunch() }
-        onDispose { kubrikoImpl.managers.forEach { it.onDispose() } }
-    }
 
     // Game canvas
+    initializePlatformSpecificComponents()
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -178,5 +174,10 @@ private fun Layer(
         )
     }
 }
+
+@Composable
+internal expect fun initializePlatformSpecificComponents()
+
+internal expect fun disposePlatformSpecificComponents()
 
 private const val CLIPPING_BORDER = 20f
