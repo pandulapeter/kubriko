@@ -6,7 +6,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import com.pandulapeter.kubriko.ActivityHolder
 
-// TODO: There should be a way to get a the Activity earlier than the first composition
+// TODO: There should be a way to reference the Activity earlier than the first composition
 @Composable
 internal actual fun initializePlatformSpecificComponents() {
     val currentActivity = LocalContext.current as? Activity

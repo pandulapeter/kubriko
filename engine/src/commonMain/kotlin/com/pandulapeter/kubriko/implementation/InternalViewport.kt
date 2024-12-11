@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.fold
@@ -43,17 +44,20 @@ fun InternalViewport(
         getKubriko() as? KubrikoImpl ?: throw IllegalStateException("Custom Kubriko implementations are not supported. Use Kubriko.newInstance() to instantiate Kubriko.")
     }
 
-    // Game loop and focus handling
-    val gameTime = remember { mutableStateOf(0L) }
+    // Focus handling
+    val observer = remember { LifecycleEventObserver { source, _ -> kubrikoImpl.stateManager.updateFocus(source.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) } }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(lifecycle) { lifecycle.addObserver(observer) }
+    DisposableEffect(lifecycle) { onDispose { lifecycle.removeObserver(observer) } }
+
+    // Game loop
+    val gameTime = remember { mutableStateOf(0L) }
     initializePlatformSpecificComponents()
     LaunchedEffect(Unit) {
         kubrikoImpl.initialize()
         while (isActive) {
             withFrameNanos { gameTimeInNanos ->
                 val deltaTimeInMillis = if (gameTime.value == 0L) 0f else (gameTimeInNanos - gameTime.value) / 1000000f
-                // TODO: Doesn't work on Android!
-                lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED).let(kubrikoImpl.stateManager::updateFocus)
                 kubrikoImpl.managers.forEach { it.onUpdate(deltaTimeInMillis, gameTimeInNanos) }
                 gameTime.value = gameTimeInNanos
             }
