@@ -6,18 +6,20 @@ androidx-activity = "1.9.3" # https://developer.android.com/jetpack/androidx/rel
 androidx-lifecycle = "2.8.4" # https://developer.android.com/jetpack/androidx/releases/lifecycle
 compose-plugin = "1.7.1" # https://github.com/JetBrains/compose-multiplatform/releases
 google-material = "1.12.0" # https://github.com/material-components/material-components-android/releases
+gradle = "8.7.3" # https://developer.android.com/build/releases/gradle-plugin
+jlayer = "1.0.3" # https://github.com/umjammer/jlayer/releases
 kotlin = "2.1.0" # https://kotlinlang.org/docs/releases.html
 kotlinx-immutable = "0.3.8" # https://github.com/Kotlin/kotlinx.collections.immutable/releases
 kotlinx-serialization = "1.7.3" # https://github.com/Kotlin/kotlinx.serialization/releases
-gradle = "8.7.3" # https://developer.android.com/build/releases/gradle-plugin
 
 [libraries]
-androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity" }
 androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
-google-material = { module = "com.google.android.material:material", version.ref = "google-material" }
-gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
+google-material = { group = "com.google.android.material", name = "material", version.ref = "google-material" }
+gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "gradle" }
+jlayer = { group = "com.github.umjammer", name = "jlayer", version.ref = "jlayer" }
+kotlin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect" }
 kotlinx-immutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version.ref = "kotlinx-immutable" }
 kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 

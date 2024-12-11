@@ -8,6 +8,14 @@ import com.pandulapeter.kubriko.manager.Manager
  */
 abstract class AudioPlaybackManager : Manager() {
 
+    abstract fun playMusic(uri: String, shouldLoop: Boolean)
+
+    abstract fun resumeMusic()
+
+    abstract fun pauseMusic()
+
+    abstract fun stopMusic()
+
     abstract fun preloadSound(vararg uri: String)
 
     abstract fun preloadSound(uris: List<String>)
@@ -17,8 +25,6 @@ abstract class AudioPlaybackManager : Manager() {
     abstract fun unloadSound(vararg uri: String)
 
     abstract fun unloadSound(uris: List<String>)
-
-    // TODO: abstract fun playMusic(uri: String)
 
     companion object {
         fun newInstance(): AudioPlaybackManager = AudioPlaybackManagerImpl()

@@ -3,8 +3,11 @@ package com.pandulapeter.kubriko.audioPlayback.implementation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import javazoom.jl.player.advanced.AdvancedPlayer
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.BufferedInputStream
 import java.io.FileInputStream
@@ -19,6 +22,41 @@ internal actual fun rememberAudioPlayer(): AudioPlayer {
     return remember {
         object : AudioPlayer {
             private val clips = mutableMapOf<String, Clip>()
+            private var musicPlayer: AdvancedPlayer? = null
+            private var musicPlayingJob: Job? = null
+
+            override fun playMusic(uri: String, shouldLoop: Boolean) {
+                stopMusic()
+                musicPlayingJob = coroutineScope.launch(Dispatchers.Default) {
+                    do {
+                        val inputStream = URI(uri).let { uri ->
+                            if (uri.isAbsolute) {
+                                uri.toURL().openStream()
+                            } else {
+                                FileInputStream(uri.toString())
+                            }
+                        }
+                        musicPlayer?.close()
+                        musicPlayer = AdvancedPlayer(inputStream)
+                        musicPlayer?.play()
+                    } while (shouldLoop && isActive)
+                }
+            }
+
+            override fun resumeMusic() {
+                // TODO
+            }
+
+            override fun pauseMusic() {
+                // TODO
+            }
+
+            override fun stopMusic() {
+                musicPlayer?.stop()
+                musicPlayingJob?.cancel()
+                musicPlayingJob = null
+                musicPlayer = null
+            }
 
             private fun preloadSound(uri: String) {
                 coroutineScope.launch(Dispatchers.IO) {
@@ -62,6 +100,7 @@ internal actual fun rememberAudioPlayer(): AudioPlayer {
             }
 
             override fun dispose() {
+                stopMusic()
                 clips.values.forEach { it.unload() }
                 clips.clear()
             }

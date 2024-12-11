@@ -50,13 +50,25 @@ internal class WallbreakerGameManager : Manager() {
 
     @Composable
     @ExperimentalResourceApi
-    override fun onRecomposition() = remember {
-        audioPlaybackManager.preloadSound(
-            Res.getUri("files/sounds/click.wav"),
-            Res.getUri("files/sounds/pop.wav"),
-        )
-//        audioPlaybackManager.playSound(
-//            Res.getUri("files/music/music.mp3"),
-//        )
+    override fun onRecomposition() {
+        remember {
+            audioPlaybackManager.preloadSound(
+                Res.getUri("files/sounds/click.wav"),
+                Res.getUri("files/sounds/pop.wav"),
+            )
+            audioPlaybackManager.playMusic(
+                uri = Res.getUri("files/music/music.mp3"),
+                shouldLoop = true,
+            )
+            stateManager.isRunning
+                .onEach { isRunning ->
+                    if (isRunning) {
+                        audioPlaybackManager.resumeMusic()
+                    } else {
+                        audioPlaybackManager.pauseMusic()
+                    }
+                }
+                .launchIn(scope)
+        }
     }
 }

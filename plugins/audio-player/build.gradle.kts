@@ -7,6 +7,9 @@ kotlin {
         commonMain.dependencies {
             api(projects.engine)
         }
+        desktopMain.dependencies {
+            implementation(libs.jlayer)
+        }
     }
 }
 

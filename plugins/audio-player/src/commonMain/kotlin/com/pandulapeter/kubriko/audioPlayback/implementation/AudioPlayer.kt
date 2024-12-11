@@ -4,6 +4,14 @@ import androidx.compose.runtime.Composable
 
 internal interface AudioPlayer {
 
+    fun playMusic(uri: String, shouldLoop: Boolean)
+
+    fun resumeMusic()
+
+    fun pauseMusic()
+
+    fun stopMusic()
+
     fun preloadSounds(uris: Collection<String>)
 
     fun playSound(uri: String)

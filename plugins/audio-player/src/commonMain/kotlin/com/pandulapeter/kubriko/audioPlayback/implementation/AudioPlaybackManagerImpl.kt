@@ -15,6 +15,14 @@ internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
 
     override fun onDispose() = audioPlayer.dispose()
 
+    override fun playMusic(uri: String, shouldLoop: Boolean) = audioPlayer.playMusic(uri, shouldLoop)
+
+    override fun resumeMusic() = audioPlayer.resumeMusic()
+
+    override fun pauseMusic() = audioPlayer.pauseMusic()
+
+    override fun stopMusic() = audioPlayer.stopMusic()
+
     override fun preloadSound(vararg uri: String) = preloadSound(uri.toList())
 
     override fun preloadSound(uris: List<String>) = audioPlayer.preloadSounds(uris)
