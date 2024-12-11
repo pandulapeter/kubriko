@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko.manager
 
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -46,6 +47,7 @@ abstract class ViewportManager : Manager() {
         data class Fixed(
             val ratio: Float,
             val defaultWidth: SceneUnit,
+            val alignment: Alignment = Alignment.Center,
         ) : AspectRatioMode()
 
         data class Stretched(

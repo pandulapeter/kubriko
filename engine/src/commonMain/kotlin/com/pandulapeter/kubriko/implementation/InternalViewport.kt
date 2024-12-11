@@ -76,7 +76,7 @@ fun InternalViewport(
                 is ViewportManager.AspectRatioMode.Stretched -> modifier
 
                 is ViewportManager.AspectRatioMode.Fixed -> modifier
-                    .align(Alignment.Center)
+                    .align(aspectRatioMode.alignment)
                     .aspectRatio(ratio = aspectRatioMode.ratio)
             }
         ) {
