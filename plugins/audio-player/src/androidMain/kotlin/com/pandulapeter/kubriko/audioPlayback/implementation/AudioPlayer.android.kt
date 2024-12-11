@@ -84,7 +84,9 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
                 }
                 preloadSound(uri)
             } else {
-                soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                coroutineScope.launch(Dispatchers.Default) {
+                    soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                }
             }
         }
     }

@@ -86,6 +86,8 @@ internal class Ball(
                 hue = brick.hue,
             )
         )
+        @OptIn(ExperimentalResourceApi::class)
+        audioPlaybackManager.playSound(Res.getUri("files/sounds/pop.wav"))
     }
 
     override fun DrawScope.draw() {

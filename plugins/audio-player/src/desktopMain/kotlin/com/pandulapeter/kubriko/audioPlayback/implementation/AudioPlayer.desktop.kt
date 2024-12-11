@@ -86,16 +86,18 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
     override fun playSound(uri: String) {
         clips[uri].let { clip ->
             if (clip == null) {
-                coroutineScope.launch {
+                coroutineScope.launch(Dispatchers.Default) {
                     preloadSound(uri)
                     do {
                         delay(50)
                     } while (isActive && clips[uri] == null)
+                    playSound(uri)
                 }
-                playSound(uri)
             } else {
-                clip.framePosition = 0
-                clip.start()
+                coroutineScope.launch(Dispatchers.Default) {
+                    clip.framePosition = 0
+                    clip.start()
+                }
             }
         }
     }

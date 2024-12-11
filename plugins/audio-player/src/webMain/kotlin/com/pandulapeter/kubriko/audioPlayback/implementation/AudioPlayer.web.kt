@@ -24,10 +24,12 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
 
     override fun playMusic(uri: String, shouldLoop: Boolean) {
         stopMusic()
-        audio = Audio(uri).apply {
-            loop = shouldLoop
+        coroutineScope.launch(Dispatchers.Default) {
+            audio = Audio(uri).apply {
+                loop = shouldLoop
+            }
+            audio?.play()
         }
-        audio?.play()
     }
 
     override fun resumeMusic() {
@@ -59,15 +61,17 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
     override fun playSound(uri: String) {
         audioElements[uri].let { audioElement ->
             if (audioElement == null) {
-                coroutineScope.launch {
+                coroutineScope.launch(Dispatchers.Default) {
                     preloadSound(uri)
                     do {
                         delay(50)
                     } while (audioElements[uri] == null)
+                    playSound(uri)
                 }
-                playSound(uri)
             } else {
-                audioElement.play()
+                coroutineScope.launch(Dispatchers.Default) {
+                    audioElement.play()
+                }
             }
         }
     }

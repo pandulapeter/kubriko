@@ -25,9 +25,11 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
 
     override fun playMusic(uri: String, shouldLoop: Boolean) {
         stopMusic()
-        musicPlayer = AVAudioPlayer(NSURL.URLWithString(URLString = uri)!!, error = null).apply {
-            prepareToPlay()
-            play()
+        coroutineScope.launch(Dispatchers.Default) {
+            musicPlayer = AVAudioPlayer(NSURL.URLWithString(URLString = uri)!!, error = null).apply {
+                prepareToPlay()
+                play()
+            }
         }
     }
 
@@ -56,15 +58,17 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
     override fun playSound(uri: String) {
         audioPlayers[uri].let { audioPlayer ->
             if (audioPlayer == null) {
-                coroutineScope.launch {
+                coroutineScope.launch(Dispatchers.Default) {
                     preloadSound(uri)
                     do {
                         delay(50)
                     } while (audioPlayers[uri] == null)
+                    playSound(uri)
                 }
-                playSound(uri)
             } else {
-                audioPlayer.play()
+                coroutineScope.launch(Dispatchers.Default) {
+                    audioPlayer.play()
+                }
             }
         }
     }
