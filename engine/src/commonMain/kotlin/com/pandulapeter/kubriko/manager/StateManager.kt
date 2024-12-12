@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko.manager
 
+import com.pandulapeter.kubriko.implementation.getDefaultFocusDebounce
 import com.pandulapeter.kubriko.implementation.manager.StateManagerImpl
 import kotlinx.coroutines.flow.StateFlow
 
@@ -16,8 +17,10 @@ abstract class StateManager : Manager() {
     companion object {
         fun newInstance(
             shouldAutoStart: Boolean = true,
+            focusDebounce: Long = getDefaultFocusDebounce(),
         ): StateManager = StateManagerImpl(
             shouldAutoStart = shouldAutoStart,
+            focusDebounce = focusDebounce,
         )
     }
 }

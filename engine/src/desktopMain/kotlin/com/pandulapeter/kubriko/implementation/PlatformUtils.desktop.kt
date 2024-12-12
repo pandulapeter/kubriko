@@ -6,3 +6,5 @@ import androidx.compose.runtime.Composable
 internal actual fun initializePlatformSpecificComponents() = Unit
 
 internal actual fun disposePlatformSpecificComponents() = Unit
+
+internal actual fun getDefaultFocusDebounce() = 0L

@@ -10,10 +10,11 @@ import kotlinx.coroutines.flow.update
 @OptIn(FlowPreview::class)
 internal class StateManagerImpl(
     val shouldAutoStart: Boolean,
+    focusDebounce: Long,
 ) : StateManager() {
 
     private val _isFocused = MutableStateFlow(true)
-    override val isFocused by autoInitializingLazy { _isFocused.debounce(200).asStateFlow(true) }
+    override val isFocused by autoInitializingLazy { _isFocused.debounce(focusDebounce).asStateFlow(true) }
     private val _isRunning = MutableStateFlow(false)
     override val isRunning by autoInitializingLazy {
         combine(isFocused, _isRunning) { isFocused, isRunning -> isFocused && isRunning }.asStateFlow(false)

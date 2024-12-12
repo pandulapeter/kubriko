@@ -12,7 +12,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Size
@@ -180,10 +179,5 @@ private fun Layer(
         )
     }
 }
-
-@Composable
-internal expect fun initializePlatformSpecificComponents()
-
-internal expect fun disposePlatformSpecificComponents()
 
 private const val CLIPPING_BORDER = 20f
