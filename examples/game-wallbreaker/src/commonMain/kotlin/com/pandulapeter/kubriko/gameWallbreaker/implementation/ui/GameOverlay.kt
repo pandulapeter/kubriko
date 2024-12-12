@@ -37,7 +37,7 @@ internal fun GameOverlay(
     AnimatedVisibility(
         visible = isGameRunning,
         enter = fadeIn() + scaleIn(),
-        exit = fadeOut() + scaleOut(),
+        exit = scaleOut() + fadeOut(),
     ) {
         FloatingActionButton(
             modifier = Modifier.size(40.dp),

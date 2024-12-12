@@ -57,7 +57,7 @@ fun InternalViewport(
         while (isActive) {
             withFrameNanos { gameTimeInNanos ->
                 val deltaTimeInMillis = if (gameTime.value == 0L) 0f else (gameTimeInNanos - gameTime.value) / 1000000f
-                kubrikoImpl.managers.forEach { it.onUpdate(deltaTimeInMillis, gameTimeInNanos) }
+                kubrikoImpl.managers.forEach { it.onUpdateInternal(deltaTimeInMillis, gameTimeInNanos) }
                 gameTime.value = gameTimeInNanos
             }
         }
@@ -115,7 +115,7 @@ private fun LayerCluster(
     getKubriko: () -> KubrikoImpl,
 ) = getKubriko().let { kubrikoImpl ->
     Box(
-        modifier = kubrikoImpl.managers.mapNotNull { it.getModifier(null) }.toImmutableList().fold()
+        modifier = kubrikoImpl.managers.mapNotNull { it.getModifierInternal(null) }.toImmutableList().fold()
     ) {
         kubrikoImpl.actorManager.layerIndices.value.forEach { layerIndex ->
             Layer(
@@ -138,7 +138,7 @@ private fun Layer(
             modifier = if (layerIndex == null) {
                 Modifier.fillMaxSize().clipToBounds()
             } else {
-                kubrikoImpl.managers.mapNotNull { it.getModifier(layerIndex) }.toImmutableList().fold()
+                kubrikoImpl.managers.mapNotNull { it.getModifierInternal(layerIndex) }.toImmutableList().fold()
             },
             onDraw = {
                 @Suppress("UNUSED_EXPRESSION") gameTime  // This line invalidates the Canvas, causing a refresh on every frame

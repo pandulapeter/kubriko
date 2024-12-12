@@ -7,16 +7,14 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.ScoreManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.AudioManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.ScoreManager
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
-import kubriko.examples.game_wallbreaker.generated.resources.Res
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 internal class BrickDestructionEffect(
     position: SceneOffset,
@@ -34,8 +32,7 @@ internal class BrickDestructionEffect(
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.require()
         viewportManager = kubriko.require()
-        @OptIn(ExperimentalResourceApi::class)
-        kubriko.require<AudioPlaybackManager>().playSound(Res.getUri("files/sounds/pop.wav"))
+        kubriko.require<AudioManager>().playPopSound()
         kubriko.require<ScoreManager>().incrementScore()
     }
 

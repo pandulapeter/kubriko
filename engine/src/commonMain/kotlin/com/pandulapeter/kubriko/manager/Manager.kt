@@ -17,7 +17,9 @@ abstract class Manager {
         private set
     private val autoInitializingLazyProperties = mutableListOf<AutoInitializingLazy<*>>()
 
-    open fun getModifier(layerIndex: Int?): Modifier? = null
+    internal fun getModifierInternal(layerIndex: Int?) = getModifier(layerIndex)
+
+    protected open fun getModifier(layerIndex: Int?): Modifier? = null
 
     internal fun initializeInternal(kubriko: Kubriko) {
         if (!isInitialized) {
@@ -31,7 +33,9 @@ abstract class Manager {
 
     protected open fun onInitialize(kubriko: Kubriko) = Unit
 
-    open fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) = Unit
+    internal fun onUpdateInternal(deltaTimeInMillis: Float, gameTimeNanos: Long) = onUpdate(deltaTimeInMillis, gameTimeNanos)
+
+    protected open fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) = Unit
 
     internal fun onDisposeInternal() {
         if (isInitialized) {
@@ -39,7 +43,7 @@ abstract class Manager {
         }
     }
 
-    open fun onDispose() = Unit
+    protected open fun onDispose() = Unit
 
     protected fun <T> autoInitializingLazy(initializer: () -> T): ReadOnlyProperty<Manager, T> = AutoInitializingLazy(initializer)
 

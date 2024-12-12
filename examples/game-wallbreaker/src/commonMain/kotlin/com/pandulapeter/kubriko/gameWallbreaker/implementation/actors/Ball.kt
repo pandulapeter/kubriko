@@ -7,9 +7,9 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.CollisionDetector
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.implementation.extensions.constrainedWithin
 import com.pandulapeter.kubriko.implementation.extensions.distanceTo
 import com.pandulapeter.kubriko.implementation.extensions.require
@@ -19,8 +19,6 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
-import kubriko.examples.game_wallbreaker.generated.resources.Res
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 internal class Ball(
     private val radius: SceneUnit = 20f.sceneUnit,
@@ -36,12 +34,12 @@ internal class Ball(
     private var speedX = speed
     private var speedY = speed
     private lateinit var actorManager: ActorManager
-    private lateinit var audioPlaybackManager: AudioPlaybackManager
+    private lateinit var audioManager: AudioManager
     private lateinit var viewportManager: ViewportManager
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.require()
-        audioPlaybackManager = kubriko.require()
+        audioManager = kubriko.require()
         viewportManager = kubriko.require()
     }
 
@@ -62,8 +60,7 @@ internal class Ball(
         previousPosition = body.position
         body.position = nextPosition.constrainedWithin(viewportTopLeft, viewportBottomRight)
         if (shouldPlaySound) {
-            @OptIn(ExperimentalResourceApi::class)
-            audioPlaybackManager.playSound(Res.getUri("files/sounds/click.wav"))
+            audioManager.playClickSound()
         }
     }
 
