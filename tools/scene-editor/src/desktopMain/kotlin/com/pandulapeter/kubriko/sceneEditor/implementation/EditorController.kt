@@ -48,7 +48,7 @@ internal class EditorController(
     val viewportManager = kubriko.require<ViewportManager>()
     val keyboardInputManager = kubriko.require<KeyboardInputManager>()
     val serializationManager = kubriko.require<SerializationManager<EditableMetadata<*>, Editable<*>>>()
-    private val userPreferences = UserPreferences()
+    private val userPreferences = UserPreferences(kubriko.require())
     private val editorActors = listOf(
         GridOverlay(viewportManager),
         KeyboardInputListener(viewportManager, ::navigateBack),

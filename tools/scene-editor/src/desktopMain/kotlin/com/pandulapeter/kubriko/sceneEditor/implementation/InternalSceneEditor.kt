@@ -13,6 +13,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.persistence.PersistenceManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
@@ -45,6 +46,7 @@ internal fun InternalSceneEditor(
             StateManager.newInstance(shouldAutoStart = false),
             KeyboardInputManager.newInstance(),
             PointerInputManager.newInstance(),
+            PersistenceManager.newInstance(fileName = "kubrikoSceneEditor"),
             serializationManager,
         )
     }

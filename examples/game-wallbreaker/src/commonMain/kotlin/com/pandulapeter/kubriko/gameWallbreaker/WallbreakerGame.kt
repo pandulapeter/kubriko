@@ -16,6 +16,7 @@ import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.PauseMenuOverl
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.persistence.PersistenceManager
 import com.pandulapeter.kubriko.shader.ShaderManager
 
 /**
@@ -67,6 +68,7 @@ internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
         ),
         CollisionManager.newInstance(),
         ShaderManager.newInstance(),
+        PersistenceManager.newInstance(fileName = "kubrikoWallbreaker"),
         wallbreakerGameManager,
     )
 

@@ -1,6 +1,5 @@
 plugins {
     id("kubriko-library")
-    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -8,16 +7,16 @@ kotlin {
         commonMain.dependencies {
             api(projects.engine)
             api(projects.plugins.serialization)
-            implementation(projects.plugins.collision)
-            implementation(projects.plugins.keyboardInput)
-            implementation(projects.plugins.pointerInput)
-            implementation(projects.tools.debugMenu)
             implementation(compose.components.resources)
         }
         val desktopMain by getting {
             dependencies {
+                implementation(projects.plugins.collision)
+                implementation(projects.plugins.keyboardInput)
+                implementation(projects.plugins.persistence)
+                implementation(projects.plugins.pointerInput)
+                implementation(projects.tools.debugMenu)
                 implementation(compose.material3)
-                implementation(libs.kotlinx.serialization)
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlin.reflect)
             }
