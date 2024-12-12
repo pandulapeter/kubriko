@@ -1,6 +1,6 @@
 package com.pandulapeter.kubriko.audioPlayback.implementation
 
-import javazoom.jl.player.Player
+import javazoom.jl.player.FactoryRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -16,9 +16,10 @@ import javax.sound.sampled.Clip
 
 internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object : AudioPlayer {
     private val clips = mutableMapOf<String, Clip>()
-    private var musicPlayer: Player? = null
+    private var musicPlayer: MusicPlayer? = null
     private var musicPlayingJob: Job? = null
     private var isMusicPaused = false
+    private val audioDevice by lazy { FactoryRegistry.systemRegistry().createAudioDevice() }
 
     override fun playMusic(uri: String, shouldLoop: Boolean) {
         stopMusic()
@@ -33,7 +34,7 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
                     }
                 }
                 musicPlayer?.close()
-                musicPlayer = Player(inputStream)
+                musicPlayer = MusicPlayer(inputStream, audioDevice)
                 musicPlayer?.run {
                     var isThereANextFrame = true
                     do {
@@ -109,6 +110,7 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
 
     override fun dispose() {
         stopMusic()
+        audioDevice.flush()
         clips.values.forEach { it.unload() }
         clips.clear()
     }
