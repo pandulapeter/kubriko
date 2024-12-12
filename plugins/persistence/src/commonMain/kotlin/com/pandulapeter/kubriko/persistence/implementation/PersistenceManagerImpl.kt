@@ -49,6 +49,7 @@ internal class PersistenceManagerImpl(
             }
             ).flow
 
+    @Suppress("UNCHECKED_CAST")
     override fun <T> generic(key: String, defaultValue: T, serializer: (T) -> String, deserializer: (String) -> T) = (
             stateFlowMap[key] as? PersistedPropertyWrapper.Generic ?: PersistedPropertyWrapper.Generic(key, defaultValue, serializer, deserializer).also { wrapper ->
                 if (isInitialized) {
