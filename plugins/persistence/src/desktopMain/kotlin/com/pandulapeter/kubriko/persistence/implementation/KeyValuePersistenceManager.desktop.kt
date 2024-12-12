@@ -3,6 +3,7 @@ package com.pandulapeter.kubriko.persistence.implementation
 import java.util.prefs.Preferences
 
 internal actual fun createKeyValuePersistenceManager(fileName: String) = object : KeyValuePersistenceManager {
+
     private val preferences by lazy { Preferences.userRoot().node(fileName) }
 
     override fun getBoolean(key: String, defaultValue: Boolean) = preferences.getBoolean(key, defaultValue)

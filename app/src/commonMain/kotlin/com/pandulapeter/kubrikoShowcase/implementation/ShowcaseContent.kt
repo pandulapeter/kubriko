@@ -72,7 +72,7 @@ import org.jetbrains.compose.resources.stringResource
 private val currentDemoStateHolders = mutableStateOf(emptyList<Any>())
 
 @Composable
-internal fun Content(
+internal fun ShowcaseContent(
     modifier: Modifier = Modifier,
     shouldUseCompactUi: Boolean,
     allShowcaseEntries: List<ShowcaseEntry>,
