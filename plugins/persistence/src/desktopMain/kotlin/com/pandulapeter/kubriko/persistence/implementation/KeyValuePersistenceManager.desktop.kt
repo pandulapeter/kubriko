@@ -14,6 +14,10 @@ internal actual fun createKeyValuePersistenceManager(fileName: String) = object 
 
     override fun putInt(key: String, value: Int) = preferences.putInt(key, value)
 
+    override fun getFloat(key: String, defaultValue: Float) = preferences.getFloat(key, defaultValue)
+
+    override fun putFloat(key: String, value: Float) = preferences.putFloat(key, value)
+
     override fun getString(key: String, defaultValue: String) = preferences.get(key, defaultValue)
 
     override fun putString(key: String, value: String) = preferences.put(key, value)

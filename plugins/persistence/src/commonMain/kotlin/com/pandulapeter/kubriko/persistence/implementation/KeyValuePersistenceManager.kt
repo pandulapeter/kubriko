@@ -10,6 +10,10 @@ internal interface KeyValuePersistenceManager {
 
     fun putInt(key: String, value: Int)
 
+    fun getFloat(key: String, defaultValue: Float): Float
+
+    fun putFloat(key: String, value: Float)
+
     fun getString(key: String, defaultValue: String): String
 
     fun putString(key: String, value: String)

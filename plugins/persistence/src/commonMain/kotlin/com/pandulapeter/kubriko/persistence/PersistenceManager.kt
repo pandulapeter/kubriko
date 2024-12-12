@@ -19,6 +19,11 @@ abstract class PersistenceManager : Manager() {
         defaultValue: Int = 0,
     ): MutableStateFlow<Int>
 
+    abstract fun float(
+        key: String,
+        defaultValue: Float = 0f,
+    ): MutableStateFlow<Float>
+
     abstract fun string(
         key: String,
         defaultValue: String = "",

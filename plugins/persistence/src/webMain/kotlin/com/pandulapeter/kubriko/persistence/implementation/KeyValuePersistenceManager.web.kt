@@ -3,7 +3,7 @@ package com.pandulapeter.kubriko.persistence.implementation
 import kotlinx.browser.localStorage
 
 internal actual fun createKeyValuePersistenceManager(fileName: String) = object : KeyValuePersistenceManager {
-    
+
     private val preferences by lazy { localStorage }
 
     override fun getBoolean(key: String, defaultValue: Boolean) = when (preferences.getItem(key)) {
@@ -14,13 +14,13 @@ internal actual fun createKeyValuePersistenceManager(fileName: String) = object 
 
     override fun putBoolean(key: String, value: Boolean) = preferences.setItem(key, if (value) "true" else "false")
 
-    override fun getInt(key: String, defaultValue: Int) = try {
-        preferences.getItem(key)?.toInt() ?: defaultValue
-    } catch (_: NumberFormatException) {
-        defaultValue
-    }
+    override fun getInt(key: String, defaultValue: Int) = preferences.getItem(key)?.toIntOrNull() ?: defaultValue
 
     override fun putInt(key: String, value: Int) = preferences.setItem(key, value.toString())
+
+    override fun getFloat(key: String, defaultValue: Float) = preferences.getItem(key)?.toFloatOrNull() ?: defaultValue
+
+    override fun putFloat(key: String, value: Float) = preferences.setItem(key, value.toString())
 
     override fun getString(key: String, defaultValue: String) = preferences.getItem(key) ?: defaultValue
 

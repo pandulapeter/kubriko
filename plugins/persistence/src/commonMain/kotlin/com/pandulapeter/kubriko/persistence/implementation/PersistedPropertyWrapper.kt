@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
 internal sealed class PersistedPropertyWrapper<T>(
-    protected val key: kotlin.String,
+    val key: kotlin.String,
     protected val defaultValue: T,
 ) {
     val flow = MutableStateFlow(defaultValue)
@@ -31,6 +31,16 @@ internal sealed class PersistedPropertyWrapper<T>(
         override fun load(keyValuePersistenceManager: KeyValuePersistenceManager) = flow.update { keyValuePersistenceManager.getInt(key, defaultValue) }
 
         override fun save(keyValuePersistenceManager: KeyValuePersistenceManager) = keyValuePersistenceManager.putInt(key, flow.value)
+    }
+
+    class Float(
+        key: kotlin.String,
+        defaultValue: kotlin.Float,
+    ) : PersistedPropertyWrapper<kotlin.Float>(key, defaultValue) {
+
+        override fun load(keyValuePersistenceManager: KeyValuePersistenceManager) = flow.update { keyValuePersistenceManager.getFloat(key, defaultValue) }
+
+        override fun save(keyValuePersistenceManager: KeyValuePersistenceManager) = keyValuePersistenceManager.putFloat(key, flow.value)
     }
 
     class String(
