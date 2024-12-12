@@ -12,10 +12,9 @@ import kotlinx.coroutines.flow.update
 internal class ScoreManager(
     persistenceManager: PersistenceManager,
 ) : Manager() {
-    private var persistedHighScore by persistenceManager.int("highScore")
     private val _score = MutableStateFlow(0)
     val score = _score.asStateFlow()
-    private val _highScore = MutableStateFlow(persistedHighScore)
+    private val _highScore = persistenceManager.int("highScore")
     val highScore = _highScore.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
@@ -24,7 +23,6 @@ internal class ScoreManager(
                 _highScore.update { score }
             }
         }.launchIn(scope)
-        _highScore.onEach { persistedHighScore = it }.launchIn(scope)
     }
 
     fun incrementScore() = _score.update { currentValue -> currentValue + 1 }

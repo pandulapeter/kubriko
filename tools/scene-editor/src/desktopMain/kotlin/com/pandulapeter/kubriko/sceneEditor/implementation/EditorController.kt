@@ -28,9 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -53,7 +51,7 @@ internal class EditorController(
         GridOverlay(viewportManager),
         KeyboardInputListener(viewportManager, ::navigateBack),
     )
-    val allEditableActors = actorManager.allActors
+    private val allEditableActors = actorManager.allActors
         .map { it.filterIsInstance<Editable<*>>() }
         .stateIn(this, SharingStarted.Eagerly, emptyList())
     private val _filterText = MutableStateFlow("")
@@ -95,12 +93,9 @@ internal class EditorController(
     }.stateIn(this, SharingStarted.Eagerly, null to false)
     private val _selectedTypeId = MutableStateFlow<String?>(null)
     val selectedTypeId = _selectedTypeId.asStateFlow()
-    private val _colorEditorMode = MutableStateFlow(userPreferences.colorEditorMode)
-    val colorEditorMode = _colorEditorMode.asStateFlow()
-    private val _angleEditorMode = MutableStateFlow(userPreferences.angleEditorMode)
-    val angleEditorMode = _angleEditorMode.asStateFlow()
-    private val _isDebugMenuEnabled = MutableStateFlow(userPreferences.isDebugMenuEnabled)
-    val isDebugMenuEnabled = _isDebugMenuEnabled.asStateFlow()
+    val colorEditorMode = userPreferences.colorEditorMode
+    val angleEditorMode = userPreferences.angleEditorMode
+    val isDebugMenuEnabled = userPreferences.isDebugMenuEnabled
     private val _currentFolderPath = MutableStateFlow(defaultSceneFolderPath)
     val currentFolderPath = _currentFolderPath.asStateFlow()
     private val _currentFileName = MutableStateFlow(defaultSceneFilename ?: DEFAULT_SCENE_FILE_NAME)
@@ -124,9 +119,6 @@ internal class EditorController(
                 )
             }
         }
-        colorEditorMode.onEach { userPreferences.colorEditorMode = it }.launchIn(this)
-        angleEditorMode.onEach { userPreferences.angleEditorMode = it }.launchIn(this)
-        isDebugMenuEnabled.onEach { userPreferences.isDebugMenuEnabled = it }.launchIn(this)
     }
 
     fun onShouldShowVisibleOnlyToggled() = _shouldShowVisibleOnly.update { currentValue ->
@@ -197,11 +189,11 @@ internal class EditorController(
 
     fun notifySelectedActorUpdate() = triggerActorUpdate.update { !it }
 
-    fun onColorEditorModeChanged(colorEditorMode: ColorEditorMode) = _colorEditorMode.update { colorEditorMode }
+    fun onColorEditorModeChanged(colorEditorMode: ColorEditorMode) = userPreferences.colorEditorMode.update { colorEditorMode }
 
-    fun onAngleEditorModeChanged(angleEditorMode: AngleEditorMode) = _angleEditorMode.update { angleEditorMode }
+    fun onAngleEditorModeChanged(angleEditorMode: AngleEditorMode) = userPreferences.angleEditorMode.update { angleEditorMode }
 
-    fun onIsDebugMenuEnabledChanged(isDebugMenuEnabled: Boolean) = _isDebugMenuEnabled.update { isDebugMenuEnabled }
+    fun onIsDebugMenuEnabledChanged(isDebugMenuEnabled: Boolean) = userPreferences.isDebugMenuEnabled.update { isDebugMenuEnabled }
 
     fun onFilterTextChanged(filterText: String) = _filterText.update { filterText }
 

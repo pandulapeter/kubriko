@@ -6,17 +6,19 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.
 
 internal class UserPreferences(persistenceManager: PersistenceManager) {
 
-    var colorEditorMode by persistenceManager.generic(
+    val colorEditorMode = persistenceManager.generic(
         key = "colorEditorMode",
+        defaultValue = ColorEditorMode.HSV,
         serializer = { it.serializedName },
         deserializer = { it.toColorEditorMode },
     )
-    var angleEditorMode by persistenceManager.generic(
+    val angleEditorMode = persistenceManager.generic(
         key = "angleEditorMode",
+        defaultValue = AngleEditorMode.DEGREES,
         serializer = { it.serializedName },
         deserializer = { it.toAngleEditorMode },
     )
-    var isDebugMenuEnabled by persistenceManager.boolean("isDebugMenuEnabled")
+    val isDebugMenuEnabled = persistenceManager.boolean("isDebugMenuEnabled")
 
     private val ColorEditorMode.serializedName
         get() = when (this) {

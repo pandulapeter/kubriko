@@ -2,32 +2,34 @@ package com.pandulapeter.kubriko.persistence
 
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.persistence.implementation.PersistenceManagerImpl
-import kotlin.properties.ReadWriteProperty
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * TODO: Documentation
  */
 abstract class PersistenceManager : Manager() {
 
-    abstract fun boolean(key: String, defaultValue: Boolean = false): ReadWriteProperty<Any, Boolean>
+    abstract fun boolean(
+        key: String,
+        defaultValue: Boolean = false,
+    ): MutableStateFlow<Boolean>
 
-    abstract fun getBoolean(key: String, defaultValue: Boolean = false): Boolean
+    abstract fun int(
+        key: String,
+        defaultValue: Int = 0,
+    ): MutableStateFlow<Int>
 
-    abstract fun putBoolean(key: String, value: Boolean)
+    abstract fun string(
+        key: String,
+        defaultValue: String = "",
+    ): MutableStateFlow<String>
 
-    abstract fun int(key: String, defaultValue: Int = 0): ReadWriteProperty<Any, Int>
-
-    abstract fun getInt(key: String, defaultValue: Int = 0): Int
-
-    abstract fun putInt(key: String, value: Int)
-
-    abstract fun string(key: String, defaultValue: String = ""): ReadWriteProperty<Any, String>
-
-    abstract fun getString(key: String, defaultValue: String = ""): String
-
-    abstract fun putString(key: String, value: String)
-
-    abstract fun <T> generic(key: String, serializer: (T) -> String, deserializer: (String) -> T): ReadWriteProperty<Any, T>
+    abstract fun <T> generic(
+        key: String,
+        defaultValue: T,
+        serializer: (T) -> String,
+        deserializer: (String) -> T,
+    ): MutableStateFlow<T>
 
     companion object {
         fun newInstance(
