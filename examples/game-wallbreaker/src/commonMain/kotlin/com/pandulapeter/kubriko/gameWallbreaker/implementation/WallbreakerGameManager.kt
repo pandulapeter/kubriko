@@ -13,12 +13,9 @@ import com.pandulapeter.kubriko.shader.collection.ChromaticAberrationShader
 import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader
 import com.pandulapeter.kubriko.shader.collection.VignetteShader
 import com.pandulapeter.kubriko.types.SceneOffset
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.update
 import kubriko.examples.game_wallbreaker.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
@@ -28,8 +25,6 @@ internal class WallbreakerGameManager : Manager() {
     private lateinit var audioPlaybackManager: AudioPlaybackManager
     private lateinit var metadataManager: MetadataManager
     private lateinit var stateManager: StateManager
-    private val _score = MutableStateFlow(0)
-    val score = _score.asStateFlow()
 
     @ExperimentalResourceApi
     override fun onInitialize(kubriko: Kubriko) {
@@ -62,6 +57,4 @@ internal class WallbreakerGameManager : Manager() {
             shouldLoop = true,
         )
     }
-
-    fun incrementScore() = _score.update { currentValue -> currentValue + 1 }
 }

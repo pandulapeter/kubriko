@@ -3,6 +3,6 @@
     <string name="game_paused">Game paused</string>
     <string name="play">Play</string>
     <string name="pause">Pause</string>
-    <string name="score">Score: %1$d</string>
+    <string name="score">Highscore: %1$d\nScore: %2$d</string>
 
 </resources>

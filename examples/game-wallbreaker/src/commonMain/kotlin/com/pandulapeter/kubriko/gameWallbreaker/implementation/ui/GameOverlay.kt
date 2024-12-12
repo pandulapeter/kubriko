@@ -29,6 +29,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun GameOverlay(
     isGameRunning: Boolean,
     score: Int,
+    highScore: Int,
     onPauseButtonPressed: () -> Unit,
 ) = Box(
     modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -55,7 +56,7 @@ internal fun GameOverlay(
         exit = fadeOut(),
     ) {
         Text(
-            text = stringResource(Res.string.score, score),
+            text = stringResource(Res.string.score, highScore, score),
             color = Color.White,
             textAlign = TextAlign.End,
         )

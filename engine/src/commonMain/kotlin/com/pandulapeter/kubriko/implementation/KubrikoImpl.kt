@@ -64,7 +64,7 @@ internal class KubrikoImpl(
 
     override fun dispose() {
         disposePlatformSpecificComponents()
-        managers.forEach { it.onDispose() }
+        managers.forEach { it.onDisposeInternal() }
         cancel()
     }
 }

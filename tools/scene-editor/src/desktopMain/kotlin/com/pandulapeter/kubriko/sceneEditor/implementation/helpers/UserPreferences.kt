@@ -4,9 +4,8 @@ import com.pandulapeter.kubriko.persistence.PersistenceManager
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.AngleEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.ColorEditorMode
 
-internal class UserPreferences(
-    persistenceManager: PersistenceManager
-) {
+internal class UserPreferences(persistenceManager: PersistenceManager) {
+
     var colorEditorMode by persistenceManager.generic(
         key = "colorEditorMode",
         serializer = { it.serializedName },

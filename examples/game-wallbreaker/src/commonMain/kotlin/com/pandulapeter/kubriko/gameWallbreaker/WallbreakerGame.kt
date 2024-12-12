@@ -10,6 +10,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
 import com.pandulapeter.kubriko.collision.CollisionManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.ScoreManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.WallbreakerGameManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.GameOverlay
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.PauseMenuOverlay
@@ -39,7 +40,8 @@ fun WallbreakerGame(
             )
             GameOverlay(
                 isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value,
-                score = stateHolder.wallbreakerGameManager.score.collectAsState().value,
+                score = stateHolder.scoreManager.score.collectAsState().value,
+                highScore = stateHolder.scoreManager.highScore.collectAsState().value,
                 onPauseButtonPressed = { stateHolder.stateManager.updateIsRunning(false) },
             )
         }
@@ -56,7 +58,7 @@ internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
     val stateManager = StateManager.newInstance(
         shouldAutoStart = false,
     )
-    val wallbreakerGameManager = WallbreakerGameManager()
+    val scoreManager = ScoreManager()
     val kubriko = Kubriko.newInstance(
         AudioPlaybackManager.newInstance(),
         stateManager,
@@ -69,7 +71,8 @@ internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
         CollisionManager.newInstance(),
         ShaderManager.newInstance(),
         PersistenceManager.newInstance(fileName = "kubrikoWallbreaker"),
-        wallbreakerGameManager,
+        WallbreakerGameManager(),
+        scoreManager,
     )
 
     override fun dispose() = kubriko.dispose()

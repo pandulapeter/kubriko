@@ -33,6 +33,12 @@ abstract class Manager {
 
     open fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) = Unit
 
+    internal fun onDisposeInternal() {
+        if (isInitialized) {
+            onDispose()
+        }
+    }
+
     open fun onDispose() = Unit
 
     protected fun <T> autoInitializingLazy(initializer: () -> T): ReadOnlyProperty<Manager, T> = AutoInitializingLazy(initializer)
