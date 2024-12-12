@@ -1,9 +1,12 @@
 package com.pandulapeter.kubriko.gameWallbreaker.implementation
 
+import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Ball
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Brick
 import com.pandulapeter.kubriko.implementation.extensions.require
+import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
@@ -16,7 +19,7 @@ import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-internal class WallbreakerGameManager : Manager() {
+internal class WallbreakerGameManager : Manager(), KeyboardInputAware, Unique {
 
     private lateinit var actorManager: ActorManager
     private lateinit var metadataManager: MetadataManager
@@ -37,10 +40,16 @@ internal class WallbreakerGameManager : Manager() {
                 )
             }
         }
-        actorManager.add(allBricks + Ball() + SmoothPixelationShader() + VignetteShader() + ChromaticAberrationShader())
+        actorManager.add(allBricks + Ball() + SmoothPixelationShader() + VignetteShader() + ChromaticAberrationShader() + this)
         stateManager.isFocused
             .filterNot { it }
             .onEach { stateManager.updateIsRunning(false) }
             .launchIn(scope)
+    }
+
+    override fun onKeyReleased(key: Key) {
+        if (key == Key.Escape) {
+            stateManager.updateIsRunning(!stateManager.isRunning.value)
+        }
     }
 }

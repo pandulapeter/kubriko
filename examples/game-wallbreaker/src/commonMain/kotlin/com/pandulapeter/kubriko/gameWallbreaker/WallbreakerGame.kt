@@ -17,6 +17,7 @@ import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.UserPref
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.GameOverlay
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.PauseMenuOverlay
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
+import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.persistence.PersistenceManager
@@ -76,6 +77,7 @@ internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
         ),
         CollisionManager.newInstance(),
         ShaderManager.newInstance(),
+        KeyboardInputManager.newInstance(),
         persistenceManager,
         scoreManager,
         userPreferencesManager,
