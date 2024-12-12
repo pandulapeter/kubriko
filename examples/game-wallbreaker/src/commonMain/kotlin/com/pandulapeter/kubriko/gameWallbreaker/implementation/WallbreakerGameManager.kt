@@ -56,14 +56,5 @@ internal class WallbreakerGameManager : Manager() {
             uri = Res.getUri("files/music/music.mp3"),
             shouldLoop = true,
         )
-        stateManager.isFocused
-            .onEach { isFocused ->
-                if (isFocused) {
-                    audioPlaybackManager.resumeMusic()
-                } else {
-                    audioPlaybackManager.pauseMusic()
-                }
-            }
-            .launchIn(scope)
     }
 }

@@ -2,6 +2,10 @@ package com.pandulapeter.kubriko.audioPlayback.implementation
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
+import com.pandulapeter.kubriko.implementation.extensions.require
+import com.pandulapeter.kubriko.manager.StateManager
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
 
@@ -9,6 +13,15 @@ internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
 
     override fun onInitialize(kubriko: Kubriko) {
         audioPlayer = createAudioPlayer(scope)
+        kubriko.require<StateManager>().isFocused
+            .onEach { isFocused ->
+                if (isFocused) {
+                    resumeMusic()
+                } else {
+                    pauseMusic()
+                }
+            }
+            .launchIn(scope)
     }
 
     override fun onDispose() = audioPlayer.dispose()
