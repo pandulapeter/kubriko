@@ -2,9 +2,11 @@ package com.pandulapeter.kubriko.persistence.implementation
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.persistence.PersistenceManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 internal class PersistenceManagerImpl(
     fileName: String,
@@ -12,9 +14,13 @@ internal class PersistenceManagerImpl(
     private val keyValuePersistenceManager by lazy { createKeyValuePersistenceManager(fileName = fileName) }
     private val stateFlowMap = mutableMapOf<String, PersistedPropertyWrapper<*>>()
 
-    override fun onInitialize(kubriko: Kubriko) = stateFlowMap.values.forEach { wrapper ->
-        wrapper.load(keyValuePersistenceManager)
-        wrapper.flow.onEach { wrapper.save(keyValuePersistenceManager) }.launchIn(scope)
+    override fun onInitialize(kubriko: Kubriko) {
+        scope.launch(Dispatchers.Default) {
+            stateFlowMap.values.forEach { wrapper ->
+                wrapper.load(keyValuePersistenceManager)
+                wrapper.flow.onEach { wrapper.save(keyValuePersistenceManager) }.launchIn(scope)
+            }
+        }
     }
 
     override fun boolean(
@@ -52,8 +58,10 @@ internal class PersistenceManagerImpl(
 
     private fun <T> PersistedPropertyWrapper<T>.initialize() = this.also { wrapper ->
         if (isInitialized) {
-            wrapper.load(keyValuePersistenceManager)
-            wrapper.flow.onEach { wrapper.save(keyValuePersistenceManager) }.launchIn(scope)
+            scope.launch(Dispatchers.Default) {
+                wrapper.load(keyValuePersistenceManager)
+                wrapper.flow.onEach { wrapper.save(keyValuePersistenceManager) }.launchIn(scope)
+            }
         }
         stateFlowMap[key] = wrapper
     }
