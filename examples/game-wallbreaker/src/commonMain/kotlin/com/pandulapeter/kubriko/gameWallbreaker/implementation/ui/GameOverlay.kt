@@ -34,8 +34,6 @@ internal fun GameOverlay(
     score: Int,
     highScore: Int,
     onPauseButtonPressed: () -> Unit,
-) = Box(
-    modifier = Modifier.fillMaxSize(),
 ) {
     AnimatedVisibility(
         visible = isGameRunning,
@@ -57,15 +55,19 @@ internal fun GameOverlay(
         }
     }
     AnimatedVisibility(
-        modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
         visible = score > 0,
-        enter = fadeIn(),
-        exit = fadeOut(),
+        enter = fadeIn() + slideIn { IntOffset(0, -it.height) } + scaleIn(),
+        exit = scaleOut() + slideOut { IntOffset(0, -it.height) } + fadeOut(),
     ) {
-        Text(
-            text = stringResource(Res.string.score, highScore, score),
-            color = Color.White,
-            textAlign = TextAlign.End,
-        )
+        Box(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+        ) {
+            Text(
+                modifier = Modifier.align(Alignment.TopEnd),
+                text = stringResource(Res.string.score, highScore, score),
+                color = Color.White,
+                textAlign = TextAlign.End,
+            )
+        }
     }
 }
