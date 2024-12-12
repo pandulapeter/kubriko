@@ -17,19 +17,19 @@ import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.SceneUnit
 import com.pandulapeter.kubriko.types.SceneSize
+import com.pandulapeter.kubriko.types.SceneUnit
 import kubriko.examples.game_wallbreaker.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 internal class Ball(
     private val radius: SceneUnit = 20f.sceneUnit,
-    speed: SceneUnit = 0.8f.sceneUnit,
+    speed: SceneUnit = 1f.sceneUnit,
 ) : Visible, Dynamic, CollisionDetector {
 
     override val collidableTypes = listOf(Brick::class)
     override val body = RectangleBody(
-        initialPosition = SceneOffset(0f.sceneUnit, (-400f).sceneUnit),
+        initialPosition = SceneOffset(0.sceneUnit, 600.sceneUnit),
         initialSize = SceneSize(radius * 2, radius * 2),
     )
     private var previousPosition = body.position
@@ -86,8 +86,6 @@ internal class Ball(
                 hue = brick.hue,
             )
         )
-        @OptIn(ExperimentalResourceApi::class)
-        audioPlaybackManager.playSound(Res.getUri("files/sounds/pop.wav"))
     }
 
     override fun DrawScope.draw() {

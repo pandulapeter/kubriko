@@ -7,12 +7,16 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.WallbreakerGameManager
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
+import kubriko.examples.game_wallbreaker.generated.resources.Res
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 internal class BrickDestructionEffect(
     position: SceneOffset,
@@ -30,12 +34,15 @@ internal class BrickDestructionEffect(
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.require()
         viewportManager = kubriko.require()
+        @OptIn(ExperimentalResourceApi::class)
+        kubriko.require<AudioPlaybackManager>().playSound(Res.getUri("files/sounds/pop.wav"))
+        kubriko.require<WallbreakerGameManager>().incrementScore()
     }
 
     override fun update(deltaTimeInMillis: Float) {
         alpha -= 0.005f * deltaTimeInMillis
         body.scale = Scale.Unit * alpha
-        viewportManager.setScaleFactor(1f + (-10..10).random().toFloat() / 500f)
+        viewportManager.setScaleFactor(1f + (-10..10).random().toFloat() / 1500f)
         if (alpha <= 0) {
             viewportManager.setScaleFactor(1f)
             actorManager.remove(this)

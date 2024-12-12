@@ -11,8 +11,8 @@ import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
 import com.pandulapeter.kubriko.collision.CollisionManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.WallbreakerGameManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.PauseButton
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.PauseMenu
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.GameOverlay
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.PauseMenuOverlay
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
@@ -32,13 +32,14 @@ fun WallbreakerGame(
             modifier = modifier.background(Color.Black),
             kubriko = stateHolder.kubriko,
         ) {
-            PauseButton(
-                isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value,
-                onPauseButtonPressed = { stateHolder.stateManager.updateIsRunning(false) },
-            )
-            PauseMenu(
+            PauseMenuOverlay(
                 isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value,
                 onResumeButtonPressed = { stateHolder.stateManager.updateIsRunning(true) },
+            )
+            GameOverlay(
+                isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value,
+                score = stateHolder.wallbreakerGameManager.score.collectAsState().value,
+                onPauseButtonPressed = { stateHolder.stateManager.updateIsRunning(false) },
             )
         }
     }
@@ -54,6 +55,7 @@ internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
     val stateManager = StateManager.newInstance(
         shouldAutoStart = false,
     )
+    val wallbreakerGameManager = WallbreakerGameManager()
     val kubriko = Kubriko.newInstance(
         AudioPlaybackManager.newInstance(),
         stateManager,
@@ -65,7 +67,7 @@ internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
         ),
         CollisionManager.newInstance(),
         ShaderManager.newInstance(),
-        WallbreakerGameManager()
+        wallbreakerGameManager,
     )
 
     override fun dispose() = kubriko.dispose()

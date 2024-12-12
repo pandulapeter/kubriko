@@ -32,7 +32,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun PauseMenu(
+internal fun PauseMenuOverlay(
     isGameRunning: Boolean,
     onResumeButtonPressed: () -> Unit,
 ) {

@@ -3,5 +3,6 @@
     <string name="game_paused">Game paused</string>
     <string name="play">Play</string>
     <string name="pause">Pause</string>
+    <string name="score">Score: %1$d</string>
 
 </resources>
