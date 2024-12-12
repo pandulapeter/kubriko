@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 
-internal class ScoreManager(
+internal class WallbreakerScoreManager(
     persistenceManager: PersistenceManager,
 ) : Manager() {
     private val _score = MutableStateFlow(0)

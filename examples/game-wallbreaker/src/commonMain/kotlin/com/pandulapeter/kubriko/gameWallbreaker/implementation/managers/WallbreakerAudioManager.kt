@@ -3,17 +3,19 @@ package com.pandulapeter.kubriko.gameWallbreaker.implementation.managers
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
 import com.pandulapeter.kubriko.manager.Manager
+import com.pandulapeter.kubriko.manager.StateManager
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kubriko.examples.game_wallbreaker.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 @OptIn(ExperimentalResourceApi::class)
-internal class AudioManager(
+internal class WallbreakerAudioManager(
+    private val stateManager: StateManager,
     private val audioPlaybackManager: AudioPlaybackManager,
-    private val userPreferencesManager: UserPreferencesManager
+    private val wallbreakerUserPreferencesManager: WallbreakerUserPreferencesManager
 ) : Manager() {
-
     private var hasStartedMusic = false
 
     override fun onInitialize(kubriko: Kubriko) {
@@ -21,16 +23,23 @@ internal class AudioManager(
             Res.getUri(PATH_SOUND_EFFECT_CLICK),
             Res.getUri(PATH_SOUND_EFFECT_POP),
         )
-        userPreferencesManager.isMusicEnabled.onEach { isMusicEnabled ->
+        combine(
+            stateManager.isFocused,
+            wallbreakerUserPreferencesManager.isMusicEnabled,
+        ) { isFocused, isMusicEnabled ->
+            isFocused to isMusicEnabled
+        }.onEach { (isFocused, isMusicEnabled) ->
             if (isMusicEnabled) {
-                if (hasStartedMusic) {
-                    audioPlaybackManager.resumeMusic()
-                } else {
-                    audioPlaybackManager.playMusic(
-                        uri = Res.getUri(PATH_MUSIC),
-                        shouldLoop = true,
-                    )
-                    hasStartedMusic = true
+                if (isFocused) {
+                    if (hasStartedMusic) {
+                        audioPlaybackManager.resumeMusic()
+                    } else {
+                        audioPlaybackManager.playMusic(
+                            uri = Res.getUri(PATH_MUSIC),
+                            shouldLoop = true,
+                        )
+                        hasStartedMusic = true
+                    }
                 }
             } else {
                 audioPlaybackManager.pauseMusic()
@@ -39,13 +48,13 @@ internal class AudioManager(
     }
 
     fun playClickSound() {
-        if (userPreferencesManager.areSoundEffectsEnabled.value) {
+        if (wallbreakerUserPreferencesManager.areSoundEffectsEnabled.value) {
             audioPlaybackManager.playSound(Res.getUri(PATH_SOUND_EFFECT_CLICK))
         }
     }
 
     fun playPopSound() {
-        if (userPreferencesManager.areSoundEffectsEnabled.value) {
+        if (wallbreakerUserPreferencesManager.areSoundEffectsEnabled.value) {
             audioPlaybackManager.playSound(Res.getUri(PATH_SOUND_EFFECT_POP))
         }
     }

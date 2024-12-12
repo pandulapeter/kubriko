@@ -7,8 +7,8 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.AudioManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.ScoreManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerAudioManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
@@ -32,8 +32,8 @@ internal class BrickDestructionEffect(
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.require()
         viewportManager = kubriko.require()
-        kubriko.require<AudioManager>().playPopSound()
-        kubriko.require<ScoreManager>().incrementScore()
+        kubriko.require<WallbreakerAudioManager>().playPopSound()
+        kubriko.require<WallbreakerScoreManager>().incrementScore()
     }
 
     override fun update(deltaTimeInMillis: Float) {

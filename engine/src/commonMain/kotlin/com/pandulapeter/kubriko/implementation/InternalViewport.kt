@@ -77,7 +77,7 @@ fun InternalViewport(
                 is ViewportManager.AspectRatioMode.Fixed -> modifier
                     .align(aspectRatioMode.alignment)
                     .aspectRatio(ratio = aspectRatioMode.ratio)
-            }
+            }.clipToBounds()
         ) {
             val density = LocalDensity.current
             LaunchedEffect(maxWidth, maxHeight) {

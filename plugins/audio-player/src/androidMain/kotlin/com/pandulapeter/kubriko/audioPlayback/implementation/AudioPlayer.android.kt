@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object : AudioPlayer {
+    private val context by lazy { ActivityHolder.currentActivity.value!!.applicationContext }
     private val soundPool = SoundPool.Builder()
         .setMaxStreams(10)
         .setAudioAttributes(
@@ -24,10 +25,8 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
 
     private fun preloadSound(uri: String) {
         coroutineScope.launch(Dispatchers.IO) {
-            ActivityHolder.currentActivity.value?.applicationContext?.let { context ->
-                if (soundsIds[uri] == null) {
-                    soundsIds[uri] = soundPool.load(context.getFileDescriptor(uri), 1)
-                }
+            if (soundsIds[uri] == null) {
+                soundsIds[uri] = soundPool.load(context.getFileDescriptor(uri), 1)
             }
         }
     }
@@ -36,24 +35,22 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
 
     override fun playMusic(uri: String, shouldLoop: Boolean) {
         coroutineScope.launch(Dispatchers.IO) {
-            ActivityHolder.currentActivity.value?.applicationContext?.let { context ->
-                mediaPlayer = MediaPlayer().apply {
-                    val fileDescriptor = context.getFileDescriptor(uri)
-                    setDataSource(
-                        fileDescriptor.fileDescriptor,
-                        fileDescriptor.startOffset,
-                        fileDescriptor.length
-                    )
-                    fileDescriptor.close()
-                    prepare()
-                    if (shouldLoop) {
-                        isLooping = true
-                    } else {
-                        setOnCompletionListener { stopMusic() }
-                    }
+            mediaPlayer = MediaPlayer().apply {
+                val fileDescriptor = context.getFileDescriptor(uri)
+                setDataSource(
+                    fileDescriptor.fileDescriptor,
+                    fileDescriptor.startOffset,
+                    fileDescriptor.length
+                )
+                fileDescriptor.close()
+                prepare()
+                if (shouldLoop) {
+                    isLooping = true
+                } else {
+                    setOnCompletionListener { stopMusic() }
                 }
-                mediaPlayer?.start()
             }
+            mediaPlayer?.start()
         }
     }
 

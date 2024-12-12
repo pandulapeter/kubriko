@@ -10,14 +10,23 @@ import kotlinx.coroutines.flow.onEach
 internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
 
     private lateinit var audioPlayer: AudioPlayer
+    private var musicUri: String? = null
+    private var shouldLoopMusic = false
+    private var soundUrisToPreload = mutableListOf<String>()
 
     override fun onInitialize(kubriko: Kubriko) {
         audioPlayer = createAudioPlayer(scope)
-        kubriko.require<StateManager>().isFocused
+        val stateManager = kubriko.require<StateManager>()
+        musicUri?.let {
+            if (stateManager.isFocused.value) {
+                audioPlayer.playMusic(it, shouldLoopMusic)
+            }
+            musicUri = null
+        }
+        audioPlayer.preloadSounds(soundUrisToPreload.distinct())
+        stateManager.isFocused
             .onEach { isFocused ->
-                if (isFocused) {
-                    resumeMusic()
-                } else {
+                if (!isFocused) {
                     pauseMusic()
                 }
             }
@@ -26,17 +35,33 @@ internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
 
     override fun onDispose() = audioPlayer.dispose()
 
-    override fun playMusic(uri: String, shouldLoop: Boolean) = audioPlayer.playMusic(uri, shouldLoop)
+    override fun playMusic(uri: String, shouldLoop: Boolean) {
+        if (isInitialized) {
+            audioPlayer.playMusic(uri, shouldLoop)
+        } else {
+            musicUri = uri
+            shouldLoopMusic = shouldLoop
+        }
+    }
 
     override fun resumeMusic() = audioPlayer.resumeMusic()
 
     override fun pauseMusic() = audioPlayer.pauseMusic()
 
-    override fun stopMusic() = audioPlayer.stopMusic()
+    override fun stopMusic() {
+        audioPlayer.stopMusic()
+        musicUri = null
+    }
 
     override fun preloadSound(vararg uri: String) = preloadSound(uri.toList())
 
-    override fun preloadSound(uris: List<String>) = audioPlayer.preloadSounds(uris)
+    override fun preloadSound(uris: List<String>) {
+        if (isInitialized) {
+            audioPlayer.preloadSounds(uris)
+        } else {
+            soundUrisToPreload.addAll(uris)
+        }
+    }
 
     override fun playSound(uri: String) = audioPlayer.playSound(uri)
 

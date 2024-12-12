@@ -9,7 +9,7 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.CollisionDetector
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.AudioManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerAudioManager
 import com.pandulapeter.kubriko.implementation.extensions.constrainedWithin
 import com.pandulapeter.kubriko.implementation.extensions.distanceTo
 import com.pandulapeter.kubriko.implementation.extensions.require
@@ -34,12 +34,12 @@ internal class Ball(
     private var speedX = speed
     private var speedY = speed
     private lateinit var actorManager: ActorManager
-    private lateinit var audioManager: AudioManager
+    private lateinit var wallbreakerAudioManager: WallbreakerAudioManager
     private lateinit var viewportManager: ViewportManager
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.require()
-        audioManager = kubriko.require()
+        wallbreakerAudioManager = kubriko.require()
         viewportManager = kubriko.require()
     }
 
@@ -60,7 +60,7 @@ internal class Ball(
         previousPosition = body.position
         body.position = nextPosition.constrainedWithin(viewportTopLeft, viewportBottomRight)
         if (shouldPlaySound) {
-            audioManager.playClickSound()
+            wallbreakerAudioManager.playClickSound()
         }
     }
 
