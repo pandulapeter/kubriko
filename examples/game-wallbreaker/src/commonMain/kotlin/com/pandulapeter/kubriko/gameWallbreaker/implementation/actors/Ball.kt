@@ -39,6 +39,7 @@ internal class Ball(
     private lateinit var actorManager: ActorManager
     private lateinit var wallbreakerAudioManager: WallbreakerAudioManager
     private lateinit var viewportManager: ViewportManager
+    private var isCollidingWithPaddle = false
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.require()
@@ -76,8 +77,12 @@ internal class Ball(
 
     // TODO: We should predict collisions instead of only treating them afterwards
     override fun onCollisionDetected(collidables: List<Collidable>) {
-        body.position = previousPosition
         val collidable = collidables.filterIsInstance<Paddle>().firstOrNull() ?: collidables.filterIsInstance<Brick>().minBy { it.body.position.distanceTo(body.position) }
+        if (collidable is Paddle && isCollidingWithPaddle) {
+            return
+        }
+        body.position = previousPosition
+        isCollidingWithPaddle = false
         when {
             body.position.y.raw in collidable.body.axisAlignedBoundingBox.min.y..collidable.body.axisAlignedBoundingBox.max.y -> speedX *= -1
             body.position.x.raw in collidable.body.axisAlignedBoundingBox.min.x..collidable.body.axisAlignedBoundingBox.max.x -> speedY *= -1
@@ -97,6 +102,7 @@ internal class Ball(
         }
         if (collidable is Paddle) {
             wallbreakerAudioManager.playPaddleHitSound()
+            isCollidingWithPaddle = true
         }
     }
 
