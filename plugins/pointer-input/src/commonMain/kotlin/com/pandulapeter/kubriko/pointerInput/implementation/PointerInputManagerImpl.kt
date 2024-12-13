@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.onEach
 
 internal class PointerInputManagerImpl : PointerInputManager() {
 
+    // TODO: Implement multi-touch support
     private lateinit var actorManager: ActorManager
     private lateinit var stateManager: StateManager
     private val pointerInputAwareActors by autoInitializingLazy {
@@ -57,6 +58,7 @@ internal class PointerInputManagerImpl : PointerInputManager() {
             .launchIn(scope)
     }
 
+    // TODO: Offset issues with fixed aspect ratio
     override fun getOverlayModifier() = Modifier.pointerInput(Unit) {
         awaitPointerEventScope {
             while (true) {

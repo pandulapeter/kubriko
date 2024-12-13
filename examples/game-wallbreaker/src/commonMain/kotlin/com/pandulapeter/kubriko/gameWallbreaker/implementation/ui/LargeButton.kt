@@ -26,7 +26,7 @@ internal fun LargeButton(
     onClick = onButtonPressed,
 ) {
     Row(
-        modifier = Modifier.padding(horizontal = 16.dp),
+        modifier = Modifier.padding(horizontal = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Icon(
@@ -34,7 +34,7 @@ internal fun LargeButton(
             contentDescription = stringResource(title),
         )
         Text(
-            modifier = Modifier.padding(end = 8.dp),
+            modifier = Modifier.padding(end = 4.dp),
             text = stringResource(title),
         )
     }
