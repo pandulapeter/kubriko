@@ -18,6 +18,7 @@ import com.pandulapeter.kubriko.implementation.extensions.min
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -31,8 +32,6 @@ internal class Ball(
     ),
 ) : Visible, Dynamic, CollisionDetector, PointerInputAware {
 
-    private var isGameOver = false
-    private var isMoving = false
     override val collidableTypes = listOf<KClass<out Collidable>>(Brick::class, Paddle::class)
     override val body = CircleBody(
         initialPosition = initialPosition,
@@ -45,27 +44,39 @@ internal class Ball(
     private lateinit var audioManager: WallbreakerAudioManager
     private lateinit var gameManager: WallbreakerGameManager
     private lateinit var scoreManager: WallbreakerScoreManager
+    private lateinit var stateManager: StateManager
     private lateinit var viewportManager: ViewportManager
     private var isCollidingWithPaddle = false
+    private var state = State.UNINITIALIZED
+
+    private enum class State {
+        UNINITIALIZED,
+        POSITIONING,
+        LAUNCHED,
+        GAME_OVER,
+    }
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.require()
         audioManager = kubriko.require()
         gameManager = kubriko.require()
         scoreManager = kubriko.require()
+        stateManager = kubriko.require()
         viewportManager = kubriko.require()
     }
 
     override fun update(deltaTimeInMillis: Float) {
         val viewportTopLeft = viewportManager.topLeft.value
         val viewportBottomRight = viewportManager.bottomRight.value
-        if (!isMoving) {
-            body.position = SceneOffset(
-                x = paddle.body.position.x,
-                y = body.position.y,
-            ).constrainedWithin(viewportTopLeft, viewportBottomRight)
-        } else {
-            if (!isGameOver) {
+        when (state) {
+            State.UNINITIALIZED, State.POSITIONING -> {
+                body.position = SceneOffset(
+                    x = paddle.body.position.x,
+                    y = body.position.y,
+                ).constrainedWithin(viewportTopLeft, viewportBottomRight)
+            }
+
+            State.LAUNCHED -> {
                 body.position = body.position.constrainedWithin(viewportTopLeft, viewportBottomRight)
                 val speed = min(InitialSpeed + SpeedIncrement * scoreManager.score.value, MaximumSpeed)
                 val nextPosition = body.position + SceneOffset(speed * baseSpeedX, speed * baseSpeedY) * deltaTimeInMillis
@@ -79,7 +90,7 @@ internal class Ball(
                     shouldPlayEdgeBounceSoundEffect = true
                 }
                 if (nextPosition.y > viewportBottomRight.y) {
-                    isGameOver = true
+                    state = State.GAME_OVER
                     gameManager.onGameOver()
                     audioManager.playGameOverSoundEffect()
                 }
@@ -89,20 +100,28 @@ internal class Ball(
                     audioManager.playEdgeBounceSoundEffect()
                 }
             }
+
+            State.GAME_OVER -> Unit
         }
     }
 
     override fun onPointerPress(screenOffset: Offset) {
-        if (!isMoving) {
+        if (stateManager.isRunning.value && state == State.UNINITIALIZED) {
+            state = State.POSITIONING
+        }
+    }
+
+    override fun onPointerReleased(screenOffset: Offset) {
+        if (stateManager.isRunning.value && state == State.POSITIONING) {
+            state = State.LAUNCHED
             audioManager.playPaddleHitSoundEffect()
-            isMoving = true
         }
     }
 
     override fun onCollisionDetected(collidables: List<Collidable>) {
         var shouldPlayBrickPopSoundEffect = false
         var shouldPlayPaddleHitSoundEffect = false
-        if (isMoving && !isGameOver) {
+        if (state == State.LAUNCHED) {
             body.position = previousPosition
             collidables.forEach { collidable ->
                 when (collidable) {
@@ -152,7 +171,7 @@ internal class Ball(
     }
 
     override fun DrawScope.draw() {
-        if (!isGameOver) {
+        if (state != State.GAME_OVER) {
             drawCircle(
                 color = Color.LightGray,
                 radius = Radius.raw,
