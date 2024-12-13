@@ -40,7 +40,7 @@ internal class Ball(
     )
     private var previousPosition = body.position
     private var baseSpeedX = 1
-    private var baseSpeedY = 1
+    private var baseSpeedY = -1
     private lateinit var actorManager: ActorManager
     private lateinit var audioManager: WallbreakerAudioManager
     private lateinit var gameManager: WallbreakerGameManager
@@ -93,7 +93,10 @@ internal class Ball(
     }
 
     override fun onPointerPress(screenOffset: Offset) {
-        isMoving = true
+        if (!isMoving) {
+            audioManager.playPaddleHitSoundEffect()
+            isMoving = true
+        }
     }
 
     override fun onCollisionDetected(collidables: List<Collidable>) {
