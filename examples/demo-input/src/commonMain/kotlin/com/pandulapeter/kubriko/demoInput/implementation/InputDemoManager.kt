@@ -3,6 +3,7 @@ package com.pandulapeter.kubriko.demoInput.implementation
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Overlay
@@ -44,20 +45,40 @@ internal class InputDemoManager : Manager(), KeyboardInputAware, PointerInputAwa
 
     override fun DrawScope.drawToViewport() {
         pointerOffset?.let { pointerOffset ->
-            drawCircle(
-                color = Color.Black,
-                radius = if (isPointerBeingPressed) 40f else 20f,
-                center = pointerOffset,
-            )
             drawLine(
                 color = Color.Black,
                 start = Offset(pointerOffset.x, 0f),
                 end = Offset(pointerOffset.x, size.height),
+                strokeWidth = 4f,
+            )
+            drawLine(
+                color = Color.White,
+                start = Offset(pointerOffset.x, 0f),
+                end = Offset(pointerOffset.x, size.height),
+                strokeWidth = 2f,
             )
             drawLine(
                 color = Color.Black,
                 start = Offset(0f, pointerOffset.y),
                 end = Offset(size.width, pointerOffset.y),
+                strokeWidth = 4f,
+            )
+            drawLine(
+                color = Color.White,
+                start = Offset(0f, pointerOffset.y),
+                end = Offset(size.width, pointerOffset.y),
+                strokeWidth = 2f,
+            )
+            drawCircle(
+                color = Color.White,
+                radius = if (isPointerBeingPressed) 40f else 20f,
+                center = pointerOffset,
+            )
+            drawCircle(
+                color = Color.Black,
+                radius = if (isPointerBeingPressed) 40f else 20f,
+                center = pointerOffset,
+                style = Stroke(),
             )
         }
     }
