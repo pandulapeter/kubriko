@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,6 +33,10 @@ internal fun GameOverlay(
     highScore: Int,
     onPauseButtonPressed: () -> Unit,
 ) {
+    val shouldShowScore = remember { mutableStateOf(false) }
+    if (score > 0) {
+        shouldShowScore.value = true
+    }
     AnimatedVisibility(
         visible = isGameRunning,
         enter = fadeIn() + slideIn { IntOffset(0, -it.height) } + scaleIn(),
@@ -47,7 +53,7 @@ internal fun GameOverlay(
         }
     }
     AnimatedVisibility(
-        visible = score > 0,
+        visible = shouldShowScore.value,
         enter = fadeIn() + slideIn { IntOffset(0, -it.height) } + scaleIn(),
         exit = scaleOut() + slideOut { IntOffset(0, -it.height) } + fadeOut(),
     ) {

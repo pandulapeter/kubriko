@@ -26,14 +26,12 @@ import kubriko.examples.game_wallbreaker.generated.resources.Res
 import kubriko.examples.game_wallbreaker.generated.resources.ic_music_off
 import kubriko.examples.game_wallbreaker.generated.resources.ic_music_on
 import kubriko.examples.game_wallbreaker.generated.resources.ic_play
-import kubriko.examples.game_wallbreaker.generated.resources.ic_restart
 import kubriko.examples.game_wallbreaker.generated.resources.ic_sounds_off
 import kubriko.examples.game_wallbreaker.generated.resources.ic_sounds_on
 import kubriko.examples.game_wallbreaker.generated.resources.img_logo
 import kubriko.examples.game_wallbreaker.generated.resources.music_disable
 import kubriko.examples.game_wallbreaker.generated.resources.music_enable
 import kubriko.examples.game_wallbreaker.generated.resources.new_game
-import kubriko.examples.game_wallbreaker.generated.resources.restart
 import kubriko.examples.game_wallbreaker.generated.resources.resume
 import kubriko.examples.game_wallbreaker.generated.resources.sound_effects_disable
 import kubriko.examples.game_wallbreaker.generated.resources.sound_effects_enable
@@ -42,7 +40,7 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 internal fun PauseMenuOverlay(
     isGameRunning: Boolean,
-    isGameStarted: Boolean,
+    shouldShowResumeButton: Boolean,
     onResumeButtonPressed: () -> Unit,
     onRestartButtonPressed: () -> Unit,
     areSoundEffectsEnabled: Boolean,
@@ -62,9 +60,9 @@ internal fun PauseMenuOverlay(
     )
     TitleScreen(
         isVisible = !isGameRunning,
-        isGameStarted = isGameStarted,
+        shouldShowResumeButton = shouldShowResumeButton,
         onResumeButtonPressed = onResumeButtonPressed,
-        onNewGameButtonPressed = onRestartButtonPressed,
+        onRestartButtonPressed = onRestartButtonPressed,
     )
 }
 
@@ -118,15 +116,15 @@ private fun UserPreferenceControls(
 @Composable
 private fun TitleScreen(
     isVisible: Boolean,
-    isGameStarted: Boolean,
+    shouldShowResumeButton: Boolean,
     onResumeButtonPressed: () -> Unit,
-    onNewGameButtonPressed: () -> Unit,
+    onRestartButtonPressed: () -> Unit,
 ) = AnimatedVisibility(
     visible = isVisible,
     enter = fadeIn() + scaleIn(),
     exit = scaleOut() + fadeOut(),
 ) {
-    val shouldShowResumeButton = remember { isGameStarted }
+    val rememberedShouldShowResumeButton = remember { shouldShowResumeButton }
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -139,22 +137,11 @@ private fun TitleScreen(
                 painter = painterResource(Res.drawable.img_logo),
                 contentDescription = null,
             )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                if (shouldShowResumeButton) {
-                    LargeButton(
-                        onButtonPressed = onResumeButtonPressed,
-                        icon = Res.drawable.ic_play,
-                        title = Res.string.resume,
-                    )
-                }
-                LargeButton(
-                    onButtonPressed = onNewGameButtonPressed,
-                    icon = if (shouldShowResumeButton) Res.drawable.ic_restart else Res.drawable.ic_play,
-                    title = if (shouldShowResumeButton) Res.string.restart else Res.string.new_game,
-                )
-            }
+            LargeButton(
+                onButtonPressed = if (rememberedShouldShowResumeButton) onResumeButtonPressed else onRestartButtonPressed,
+                icon = Res.drawable.ic_play,
+                title = if (rememberedShouldShowResumeButton) Res.string.resume else Res.string.new_game,
+            )
         }
     }
 }

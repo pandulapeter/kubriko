@@ -24,6 +24,8 @@ import com.pandulapeter.kubriko.shader.collection.ChromaticAberrationShader
 import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader
 import com.pandulapeter.kubriko.shader.collection.VignetteShader
 import com.pandulapeter.kubriko.types.SceneOffset
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -37,6 +39,8 @@ internal class WallbreakerGameManager(
     private lateinit var pointerInputManager: PointerInputManager
     private lateinit var scoreManager: WallbreakerScoreManager
     private val paddle = Paddle()
+    private val _isGameOver = MutableStateFlow(true)
+    val isGameOver = _isGameOver.asStateFlow()
 
     override val actors = listOf(
         paddle,
@@ -70,11 +74,15 @@ internal class WallbreakerGameManager(
     override fun onKeyReleased(key: Key) {
         if (key == Key.Escape) {
             stateManager.updateIsRunning(!stateManager.isRunning.value)
+            if (isGameOver.value) {
+                restartGame()
+            }
         }
     }
 
     // TODO: Only the bricks, the ball and the paddle hsould be reset
     private fun initializeScene() {
+        _isGameOver.value = false
         val allBricks = (-8..1).flatMap { y ->
             (-4..4).map { x ->
                 Brick(
@@ -90,6 +98,11 @@ internal class WallbreakerGameManager(
     }
 
     fun pauseGame() = stateManager.updateIsRunning(false)
+
+    fun onGameOver() {
+        _isGameOver.value = true
+        stateManager.updateIsRunning(false)
+    }
 
     fun resumeGame() = stateManager.updateIsRunning(true)
 

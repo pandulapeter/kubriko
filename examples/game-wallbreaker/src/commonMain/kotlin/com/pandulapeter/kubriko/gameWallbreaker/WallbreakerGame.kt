@@ -40,7 +40,7 @@ fun WallbreakerGame(
         ) {
             PauseMenuOverlay(
                 isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value,
-                isGameStarted = stateHolder.wallbreakerScoreManager.score.collectAsState().value > 0,
+                shouldShowResumeButton = !stateHolder.wallbreakerGameManager.isGameOver.collectAsState().value,
                 onResumeButtonPressed = stateHolder.wallbreakerGameManager::resumeGame,
                 onRestartButtonPressed = stateHolder.wallbreakerGameManager::restartGame,
                 areSoundEffectsEnabled = stateHolder.wallbreakerUserPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
