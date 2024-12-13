@@ -13,6 +13,10 @@ abstract class PointerInputManager : Manager() {
     abstract val pointerScreenOffset: StateFlow<Offset?>
 
     companion object {
-        fun newInstance(): PointerInputManager = PointerInputManagerImpl()
+        fun newInstance(
+            isActiveAboveViewport: Boolean = false,
+        ): PointerInputManager = PointerInputManagerImpl(
+            isActiveAboveViewport = isActiveAboveViewport,
+        )
     }
 }

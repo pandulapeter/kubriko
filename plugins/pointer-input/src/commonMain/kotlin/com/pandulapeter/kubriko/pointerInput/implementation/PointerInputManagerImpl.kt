@@ -21,7 +21,9 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 
-internal class PointerInputManagerImpl : PointerInputManager() {
+internal class PointerInputManagerImpl(
+    private val isActiveAboveViewport: Boolean,
+) : PointerInputManager() {
 
     // TODO: Implement multi-touch support
     private lateinit var actorManager: ActorManager
@@ -39,7 +41,7 @@ internal class PointerInputManagerImpl : PointerInputManager() {
             rootOffset,
             viewportOffset,
         ) { rawPointerOffset, rootOffset, viewportOffset ->
-            rawPointerOffset?.let { it - viewportOffset + rootOffset }
+            if (isActiveAboveViewport) rawPointerOffset?.let { it - viewportOffset + rootOffset } else rawPointerOffset
         }.asStateFlow(null)
     }
 
@@ -74,36 +76,38 @@ internal class PointerInputManagerImpl : PointerInputManager() {
     }
 
     @Composable
-    override fun getOverlayModifier() = Modifier
+    override fun getOverlayModifier() = if (isActiveAboveViewport) Modifier
         .onGloballyPositioned { coordinates ->
             rootOffset.value = coordinates.positionInRoot()
-        }.pointerInput(Unit) {
-            awaitPointerEventScope {
-                while (true) {
-                    val event = awaitPointerEvent()
-                    event.changes.first().position.let { position ->
-                        when (event.type) {
-                            PointerEventType.Move -> {
-                                rawPointerOffset.value = position
-                            }
+        }.pointerInputHandlingModifier() else null
 
-                            PointerEventType.Press -> {
-                                rawPointerOffset.value = position
-                                isPointerPressed.value = true
-                            }
+    @Composable
+    override fun getModifier(layerIndex: Int?) = if (isActiveAboveViewport) Modifier.onGloballyPositioned { coordinates ->
+        viewportOffset.value = coordinates.positionInRoot()
+    } else Modifier.pointerInputHandlingModifier()
 
-                            PointerEventType.Release -> {
-                                rawPointerOffset.value = position
-                                isPointerPressed.value = false
-                            }
+    private fun Modifier.pointerInputHandlingModifier() = this.pointerInput(Unit) {
+        awaitPointerEventScope {
+            while (true) {
+                val event = awaitPointerEvent()
+                event.changes.first().position.let { position ->
+                    when (event.type) {
+                        PointerEventType.Move -> {
+                            rawPointerOffset.value = position
+                        }
+
+                        PointerEventType.Press -> {
+                            rawPointerOffset.value = position
+                            isPointerPressed.value = true
+                        }
+
+                        PointerEventType.Release -> {
+                            rawPointerOffset.value = position
+                            isPointerPressed.value = false
                         }
                     }
                 }
             }
         }
-
-    @Composable
-    override fun getModifier(layerIndex: Int?) = Modifier.onGloballyPositioned { coordinates ->
-        viewportOffset.value = coordinates.positionInRoot()
     }
 }

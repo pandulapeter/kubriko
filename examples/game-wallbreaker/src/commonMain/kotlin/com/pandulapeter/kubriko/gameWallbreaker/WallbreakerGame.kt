@@ -82,7 +82,7 @@ internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
         CollisionManager.newInstance(),
         ShaderManager.newInstance(),
         KeyboardInputManager.newInstance(),
-        PointerInputManager.newInstance(),
+        PointerInputManager.newInstance(isActiveAboveViewport = true),
         persistenceManager,
         wallbreakerScoreManager,
         wallbreakerUserPreferencesManager,
