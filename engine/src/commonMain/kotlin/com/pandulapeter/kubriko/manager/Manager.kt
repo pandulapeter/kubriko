@@ -17,6 +17,10 @@ abstract class Manager {
         private set
     private val autoInitializingLazyProperties = mutableListOf<AutoInitializingLazy<*>>()
 
+    internal fun getOverlayModifierInternal() = getOverlayModifier()
+
+    protected open fun getOverlayModifier(): Modifier? = null
+
     internal fun getModifierInternal(layerIndex: Int?) = getModifier(layerIndex)
 
     protected open fun getModifier(layerIndex: Int?): Modifier? = null

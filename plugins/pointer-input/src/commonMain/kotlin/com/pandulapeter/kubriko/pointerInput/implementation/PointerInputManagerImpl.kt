@@ -28,7 +28,7 @@ internal class PointerInputManagerImpl : PointerInputManager() {
         stateManager = kubriko.require<StateManager>()
     }
 
-    override fun getModifier(layerIndex: Int?) = Modifier
+    override fun getOverlayModifier() = Modifier
         .pointerInput(Unit) {
             detectDragGestures(
                 onDrag = { change, _ ->

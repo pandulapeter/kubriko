@@ -65,7 +65,7 @@ fun InternalViewport(
 
     // Game canvas
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = kubrikoImpl.managers.mapNotNull { it.getOverlayModifierInternal() }.toImmutableList().fold().fillMaxSize()
     ) {
         BoxWithConstraints(
             modifier = when (val aspectRatioMode = kubrikoImpl.viewportManager.aspectRatioMode) {
