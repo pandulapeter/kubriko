@@ -109,10 +109,12 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
     }
 
     override fun dispose() {
-        stopMusic()
-        audioDevice.flush()
-        clips.values.forEach { it.unload() }
-        clips.clear()
+        coroutineScope.launch(Dispatchers.Default) {
+            stopMusic()
+            audioDevice.flush()
+            clips.values.forEach { it.unload() }
+            clips.clear()
+        }
     }
 
     private fun Clip.unload() {
