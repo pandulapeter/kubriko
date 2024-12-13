@@ -5,22 +5,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.RectangleBody
+import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.CollisionDetector
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.WallbreakerGameManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerAudioManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
 import com.pandulapeter.kubriko.implementation.extensions.constrainedWithin
-import com.pandulapeter.kubriko.implementation.extensions.distanceTo
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.SceneSize
 import kotlin.reflect.KClass
 
 internal class Ball(
@@ -34,24 +33,25 @@ internal class Ball(
     private var isGameOver = false
     private var isMoving = false
     override val collidableTypes = listOf<KClass<out Collidable>>(Brick::class, Paddle::class)
-    override val body = RectangleBody(
+    override val body = CircleBody(
         initialPosition = initialPosition,
-        initialSize = SceneSize(Radius * 2, Radius * 2),
+        initialRadius = Radius,
     )
     private var previousPosition = body.position
-    private var speed = InitialSpeed
     private var baseSpeedX = 1
     private var baseSpeedY = 1
     private lateinit var actorManager: ActorManager
-    private lateinit var wallbreakerAudioManager: WallbreakerAudioManager
-    private lateinit var wallbreakerGameManager: WallbreakerGameManager
+    private lateinit var audioManager: WallbreakerAudioManager
+    private lateinit var gameManager: WallbreakerGameManager
+    private lateinit var scoreManager: WallbreakerScoreManager
     private lateinit var viewportManager: ViewportManager
     private var isCollidingWithPaddle = false
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.require()
-        wallbreakerAudioManager = kubriko.require()
-        wallbreakerGameManager = kubriko.require()
+        audioManager = kubriko.require()
+        gameManager = kubriko.require()
+        scoreManager = kubriko.require()
         viewportManager = kubriko.require()
     }
 
@@ -66,25 +66,26 @@ internal class Ball(
         } else {
             if (!isGameOver) {
                 body.position = body.position.constrainedWithin(viewportTopLeft, viewportBottomRight)
+                val speed = InitialSpeed + SpeedIncrement * scoreManager.score.value
                 val nextPosition = body.position + SceneOffset(speed * baseSpeedX, speed * baseSpeedY) * deltaTimeInMillis
-                var shouldPlaySound = false
+                var shouldPlayEdgeBounceSoundEffect = false
                 if (nextPosition.x < viewportTopLeft.x || nextPosition.x > viewportBottomRight.x) {
                     baseSpeedX *= -1
-                    shouldPlaySound = true
+                    shouldPlayEdgeBounceSoundEffect = true
                 }
                 if (nextPosition.y < viewportTopLeft.y) {
                     baseSpeedY *= -1
-                    shouldPlaySound = true
+                    shouldPlayEdgeBounceSoundEffect = true
                 }
                 if (nextPosition.y > viewportBottomRight.y) {
                     isGameOver = true
-                    wallbreakerGameManager.onGameOver()
-                    wallbreakerAudioManager.playGameOverSound()
+                    gameManager.onGameOver()
+                    audioManager.playGameOverSoundEffect()
                 }
                 previousPosition = body.position
                 body.position = nextPosition.constrainedWithin(viewportTopLeft, viewportBottomRight)
-                if (shouldPlaySound) {
-                    wallbreakerAudioManager.playEdgeBounceSound()
+                if (shouldPlayEdgeBounceSoundEffect) {
+                    audioManager.playEdgeBounceSoundEffect()
                 }
             }
         }
@@ -94,36 +95,54 @@ internal class Ball(
         isMoving = true
     }
 
-    // TODO: We should predict collisions instead of only treating them afterwards
     override fun onCollisionDetected(collidables: List<Collidable>) {
+        var shouldPlayBrickPopSoundEffect = false
+        var shouldPlayPaddleHitSoundEffect = false
         if (isMoving && !isGameOver) {
-            val collidable = collidables.filterIsInstance<Paddle>().firstOrNull() ?: collidables.filterIsInstance<Brick>().minBy { it.body.position.distanceTo(body.position) }
-            if (collidable is Paddle && isCollidingWithPaddle) {
-                return
-            }
             body.position = previousPosition
-            isCollidingWithPaddle = false
-            when {
-                body.position.y.raw in collidable.body.axisAlignedBoundingBox.min.y..collidable.body.axisAlignedBoundingBox.max.y -> baseSpeedX *= -1
-                body.position.x.raw in collidable.body.axisAlignedBoundingBox.min.x..collidable.body.axisAlignedBoundingBox.max.x -> baseSpeedY *= -1
-                else -> {
-                    baseSpeedX *= -1
-                    baseSpeedY *= -1
+            collidables.forEach { collidable ->
+                when (collidable) {
+                    is Brick -> {
+                        shouldPlayBrickPopSoundEffect = true
+                        actorManager.remove(collidable)
+                        actorManager.add(
+                            BrickPopEffect(
+                                position = collidable.body.position,
+                                hue = collidable.hue,
+                            )
+                        )
+                        scoreManager.incrementScore()
+                        isCollidingWithPaddle = false
+                    }
+
+                    is Paddle -> {
+                        shouldPlayPaddleHitSoundEffect = true
+                        if (isCollidingWithPaddle) {
+                            baseSpeedY = -1
+                            body.position = SceneOffset(
+                                x = body.position.x,
+                                y = paddle.body.position.y - paddle.body.pivot.y - Radius
+                            )
+                            return@forEach
+                        } else {
+                            isCollidingWithPaddle = true
+                        }
+                    }
+                }
+                when {
+                    body.position.y.raw in collidable.body.axisAlignedBoundingBox.min.y..collidable.body.axisAlignedBoundingBox.max.y -> baseSpeedX *= -1
+                    body.position.x.raw in collidable.body.axisAlignedBoundingBox.min.x..collidable.body.axisAlignedBoundingBox.max.x -> baseSpeedY *= -1
+                    else -> {
+                        baseSpeedX *= -1
+                        baseSpeedY *= -1
+                    }
                 }
             }
-            if (collidable is Brick) {
-                speed += SpeedIncrement
-                actorManager.remove(collidable)
-                actorManager.add(
-                    BrickPopEffect(
-                        position = collidable.body.position,
-                        hue = collidable.hue,
-                    )
-                )
+            if (shouldPlayBrickPopSoundEffect) {
+                audioManager.playBrickPopSoundEffect()
             }
-            if (collidable is Paddle) {
-                wallbreakerAudioManager.playPaddleHitSound()
-                isCollidingWithPaddle = true
+            if (shouldPlayPaddleHitSoundEffect) {
+                audioManager.playPaddleHitSoundEffect()
             }
         }
     }

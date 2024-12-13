@@ -12,6 +12,7 @@ import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Ball
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Brick
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Paddle
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerAudioManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
@@ -35,6 +36,7 @@ internal class WallbreakerGameManager(
 ) : Manager(), KeyboardInputAware, Unique, Group {
 
     private lateinit var actorManager: ActorManager
+    private lateinit var audioManager: WallbreakerAudioManager
     private lateinit var metadataManager: MetadataManager
     private lateinit var pointerInputManager: PointerInputManager
     private lateinit var scoreManager: WallbreakerScoreManager
@@ -56,6 +58,7 @@ internal class WallbreakerGameManager(
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
+        audioManager = kubriko.require()
         metadataManager = kubriko.require()
         pointerInputManager = kubriko.require()
         scoreManager = kubriko.require()
@@ -65,9 +68,10 @@ internal class WallbreakerGameManager(
             .onEach { stateManager.updateIsRunning(false) }
             .launchIn(scope)
         stateManager.isRunning
-            .onEach {
-                pointerInputManager.pointerScreenOffset.value?.let(paddle::onPointerOffsetChanged)
-            }
+            .onEach { pointerInputManager.pointerScreenOffset.value?.let(paddle::onPointerOffsetChanged) }
+            .launchIn(scope)
+        scoreManager.score
+            .onEach { if (actorManager.allActors.value.filterIsInstance<Brick>().isEmpty()) onLevelCleared() }
             .launchIn(scope)
     }
 
@@ -98,6 +102,12 @@ internal class WallbreakerGameManager(
     }
 
     fun pauseGame() = stateManager.updateIsRunning(false)
+
+    private fun onLevelCleared() {
+        audioManager.playLevelClearedSoundEffect()
+        actorManager.remove(actorManager.allActors.value.let { it.filterIsInstance<Ball>() + it.filterIsInstance<Paddle>() })
+        initializeScene()
+    }
 
     fun onGameOver() {
         _isGameOver.value = true
