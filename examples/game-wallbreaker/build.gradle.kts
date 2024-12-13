@@ -10,6 +10,7 @@ kotlin {
             implementation(projects.plugins.collision)
             implementation(projects.plugins.keyboardInput)
             implementation(projects.plugins.persistence)
+            implementation(projects.plugins.pointerInput)
             implementation(projects.plugins.shader)
             implementation(compose.components.resources)
             implementation(compose.material3)

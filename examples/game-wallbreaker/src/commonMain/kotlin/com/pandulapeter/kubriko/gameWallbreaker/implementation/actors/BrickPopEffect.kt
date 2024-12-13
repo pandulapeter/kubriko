@@ -16,7 +16,7 @@ import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
-internal class BrickDestructionEffect(
+internal class BrickPopEffect(
     position: SceneOffset,
     hue: Float,
 ) : Visible, Dynamic {
@@ -32,7 +32,7 @@ internal class BrickDestructionEffect(
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.require()
         viewportManager = kubriko.require()
-        kubriko.require<WallbreakerAudioManager>().playPopSound()
+        kubriko.require<WallbreakerAudioManager>().playBrickPopSound()
         kubriko.require<WallbreakerScoreManager>().incrementScore()
     }
 

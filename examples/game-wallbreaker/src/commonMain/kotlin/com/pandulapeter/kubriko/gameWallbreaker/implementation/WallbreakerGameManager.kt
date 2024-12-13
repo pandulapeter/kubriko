@@ -2,9 +2,11 @@ package com.pandulapeter.kubriko.gameWallbreaker.implementation
 
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Ball
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Brick
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Paddle
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
@@ -20,19 +22,25 @@ import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-internal class WallbreakerGameManager : Manager(), KeyboardInputAware, Unique {
+internal class WallbreakerGameManager : Manager(), KeyboardInputAware, Unique, Group {
 
     private lateinit var actorManager: ActorManager
     private lateinit var metadataManager: MetadataManager
     private lateinit var scoreManager: WallbreakerScoreManager
     private lateinit var stateManager: StateManager
 
+    override val actors = listOf(
+        SmoothPixelationShader(),
+        VignetteShader(),
+        ChromaticAberrationShader(),
+    )
+
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
         metadataManager = kubriko.require()
         scoreManager = kubriko.require()
         stateManager = kubriko.require()
-       initializeScene()
+        initializeScene()
         stateManager.isFocused
             .filterNot { it }
             .onEach { stateManager.updateIsRunning(false) }
@@ -45,8 +53,8 @@ internal class WallbreakerGameManager : Manager(), KeyboardInputAware, Unique {
         }
     }
 
+    // TODO: Only the bricks, the ball and the paddle hsould be reset
     private fun initializeScene() {
-        actorManager.removeAll()
         val allBricks = (-8..1).flatMap { y ->
             (-4..4).map { x ->
                 Brick(
@@ -58,7 +66,7 @@ internal class WallbreakerGameManager : Manager(), KeyboardInputAware, Unique {
                 )
             }
         }
-        actorManager.add(allBricks + Ball() + SmoothPixelationShader() + VignetteShader() + ChromaticAberrationShader() + this)
+        actorManager.add(allBricks + Ball() + Paddle() + this)
     }
 
     fun pauseGame() = stateManager.updateIsRunning(false)
@@ -66,6 +74,7 @@ internal class WallbreakerGameManager : Manager(), KeyboardInputAware, Unique {
     fun resumeGame() = stateManager.updateIsRunning(true)
 
     fun restartGame() {
+        actorManager.remove(actorManager.allActors.value.let { it.filterIsInstance<Brick>() + it.filterIsInstance<Ball>() + it.filterIsInstance<Paddle>() })
         initializeScene()
         scoreManager.resetScore()
         resumeGame()

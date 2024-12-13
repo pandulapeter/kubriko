@@ -4,6 +4,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.require
@@ -49,5 +50,17 @@ internal class PointerInputManagerImpl : PointerInputManager() {
                     pointerInputAwareActors.value.forEach { it.onPointerReleased(screenOffset) }
                 }
             )
+        }
+        .pointerInput(PointerEventType.Move) {
+            awaitPointerEventScope {
+                while (true) {
+                    val event = awaitPointerEvent()
+                    if (event.type == PointerEventType.Move) {
+                        event.changes.first().position.let { position ->
+                            pointerInputAwareActors.value.forEach { it.onPointerMove(position) }
+                        }
+                    }
+                }
+            }
         }
 }

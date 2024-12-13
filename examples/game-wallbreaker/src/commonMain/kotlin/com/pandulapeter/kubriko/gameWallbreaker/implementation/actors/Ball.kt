@@ -19,15 +19,18 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
+import kotlin.reflect.KClass
 
 internal class Ball(
-    private val radius: SceneUnit = 20f.sceneUnit,
-    speed: SceneUnit = 1f.sceneUnit,
+    initialPosition: SceneOffset = SceneOffset(0.sceneUnit, 500.sceneUnit),
+    speed: SceneUnit = 0.8f.sceneUnit,
 ) : Visible, Dynamic, CollisionDetector {
 
-    override val collidableTypes = listOf(Brick::class)
+    private var isGameOver = false
+    private val radius: SceneUnit = 20f.sceneUnit
+    override val collidableTypes = listOf<KClass<out Collidable>>(Brick::class, Paddle::class)
     override val body = RectangleBody(
-        initialPosition = SceneOffset(0.sceneUnit, 600.sceneUnit),
+        initialPosition = initialPosition,
         initialSize = SceneSize(radius * 2, radius * 2),
     )
     private var previousPosition = body.position
@@ -44,45 +47,57 @@ internal class Ball(
     }
 
     override fun update(deltaTimeInMillis: Float) {
-        val viewportTopLeft = viewportManager.topLeft.value
-        val viewportBottomRight = viewportManager.bottomRight.value
-        body.position = body.position.constrainedWithin(viewportTopLeft, viewportBottomRight)
-        val nextPosition = body.position + SceneOffset(speedX, speedY) * deltaTimeInMillis
-        var shouldPlaySound = false
-        if (nextPosition.x < viewportTopLeft.x || nextPosition.x > viewportBottomRight.x) {
-            speedX *= -1
-            shouldPlaySound = true
-        }
-        if (nextPosition.y < viewportTopLeft.y || nextPosition.y > viewportBottomRight.y) {
-            speedY *= -1
-            shouldPlaySound = true
-        }
-        previousPosition = body.position
-        body.position = nextPosition.constrainedWithin(viewportTopLeft, viewportBottomRight)
-        if (shouldPlaySound) {
-            wallbreakerAudioManager.playClickSound()
+        if (!isGameOver) {
+            val viewportTopLeft = viewportManager.topLeft.value
+            val viewportBottomRight = viewportManager.bottomRight.value
+            body.position = body.position.constrainedWithin(viewportTopLeft, viewportBottomRight)
+            val nextPosition = body.position + SceneOffset(speedX, speedY) * deltaTimeInMillis
+            var shouldPlaySound = false
+            if (nextPosition.x < viewportTopLeft.x || nextPosition.x > viewportBottomRight.x) {
+                speedX *= -1
+                shouldPlaySound = true
+            }
+            if (nextPosition.y < viewportTopLeft.y) {
+                speedY *= -1
+                shouldPlaySound = true
+            }
+            if (nextPosition.y > viewportBottomRight.y) {
+                // TODO: Game over
+                isGameOver = true
+                wallbreakerAudioManager.playGameOverSound()
+            }
+            previousPosition = body.position
+            body.position = nextPosition.constrainedWithin(viewportTopLeft, viewportBottomRight)
+            if (shouldPlaySound) {
+                wallbreakerAudioManager.playEdgeBounceSound()
+            }
         }
     }
 
     // TODO: We should predict collisions instead of only treating them afterwards
     override fun onCollisionDetected(collidables: List<Collidable>) {
         body.position = previousPosition
-        val brick = collidables.filterIsInstance<Brick>().minBy { it.body.position.distanceTo(body.position) }
+        val collidable = collidables.filterIsInstance<Paddle>().firstOrNull() ?: collidables.filterIsInstance<Brick>().minBy { it.body.position.distanceTo(body.position) }
         when {
-            body.position.y.raw in brick.body.axisAlignedBoundingBox.min.y..brick.body.axisAlignedBoundingBox.max.y -> speedX *= -1
-            body.position.x.raw in brick.body.axisAlignedBoundingBox.min.x..brick.body.axisAlignedBoundingBox.max.x -> speedY *= -1
+            body.position.y.raw in collidable.body.axisAlignedBoundingBox.min.y..collidable.body.axisAlignedBoundingBox.max.y -> speedX *= -1
+            body.position.x.raw in collidable.body.axisAlignedBoundingBox.min.x..collidable.body.axisAlignedBoundingBox.max.x -> speedY *= -1
             else -> {
                 speedX *= -1
                 speedY *= -1
             }
         }
-        actorManager.remove(brick)
-        actorManager.add(
-            BrickDestructionEffect(
-                position = brick.body.position,
-                hue = brick.hue,
+        if (collidable is Brick) {
+            actorManager.remove(collidable)
+            actorManager.add(
+                BrickPopEffect(
+                    position = collidable.body.position,
+                    hue = collidable.hue,
+                )
             )
-        )
+        }
+        if (collidable is Paddle) {
+            wallbreakerAudioManager.playPaddleHitSound()
+        }
     }
 
     override fun DrawScope.draw() {

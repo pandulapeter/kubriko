@@ -20,8 +20,8 @@ internal class WallbreakerAudioManager(
 
     override fun onInitialize(kubriko: Kubriko) {
         audioPlaybackManager.preloadSound(
-            Res.getUri(PATH_SOUND_EFFECT_CLICK),
-            Res.getUri(PATH_SOUND_EFFECT_POP),
+            Res.getUri(PATH_SOUND_EFFECT_EDGE_BOUNCE),
+            Res.getUri(PATH_SOUND_EFFECT_BRICK_POP),
         )
         combine(
             stateManager.isFocused,
@@ -47,21 +47,35 @@ internal class WallbreakerAudioManager(
         }.launchIn(scope)
     }
 
-    fun playClickSound() {
+    fun playEdgeBounceSound() {
         if (wallbreakerUserPreferencesManager.areSoundEffectsEnabled.value) {
-            audioPlaybackManager.playSound(Res.getUri(PATH_SOUND_EFFECT_CLICK))
+            audioPlaybackManager.playSound(Res.getUri(PATH_SOUND_EFFECT_EDGE_BOUNCE))
         }
     }
 
-    fun playPopSound() {
+    fun playBrickPopSound() {
         if (wallbreakerUserPreferencesManager.areSoundEffectsEnabled.value) {
-            audioPlaybackManager.playSound(Res.getUri(PATH_SOUND_EFFECT_POP))
+            audioPlaybackManager.playSound(Res.getUri(PATH_SOUND_EFFECT_BRICK_POP))
+        }
+    }
+
+    fun playPaddleHitSound() {
+        if (wallbreakerUserPreferencesManager.areSoundEffectsEnabled.value) {
+            audioPlaybackManager.playSound(Res.getUri(PATH_SOUND_EFFECT_PADDLE_HIT))
+        }
+    }
+
+    fun playGameOverSound() {
+        if (wallbreakerUserPreferencesManager.areSoundEffectsEnabled.value) {
+            audioPlaybackManager.playSound(Res.getUri(PATH_SOUND_EFFECT_GAME_OVER))
         }
     }
 
     companion object {
-        private const val PATH_SOUND_EFFECT_CLICK = "files/sounds/click.wav"
-        private const val PATH_SOUND_EFFECT_POP = "files/sounds/pop.wav"
+        private const val PATH_SOUND_EFFECT_EDGE_BOUNCE = "files/sounds/edge_bounce.wav"
+        private const val PATH_SOUND_EFFECT_BRICK_POP = "files/sounds/brick_pop.wav"
+        private const val PATH_SOUND_EFFECT_PADDLE_HIT = "files/sounds/paddle_hit.wav"
+        private const val PATH_SOUND_EFFECT_GAME_OVER = "files/sounds/game_over.wav"
         private const val PATH_MUSIC = "files/music/music.mp3"
     }
 }

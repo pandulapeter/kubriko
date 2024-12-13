@@ -21,6 +21,7 @@ import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.persistence.PersistenceManager
+import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shader.ShaderManager
 
 /**
@@ -81,6 +82,7 @@ internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
         CollisionManager.newInstance(),
         ShaderManager.newInstance(),
         KeyboardInputManager.newInstance(),
+        PointerInputManager.newInstance(),
         persistenceManager,
         wallbreakerScoreManager,
         wallbreakerUserPreferencesManager,
