@@ -17,4 +17,4 @@ internal actual fun initializePlatformSpecificComponents() {
 
 internal actual fun disposePlatformSpecificComponents() = ActivityHolder.updateCurrentActivity(null)
 
-internal actual fun getDefaultFocusDebounce() = 300L
+internal actual fun getDefaultFocusDebounce() = 350L
