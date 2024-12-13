@@ -39,8 +39,9 @@ internal class Ball(
         initialSize = SceneSize(Radius * 2, Radius * 2),
     )
     private var previousPosition = body.position
-    private var speedX = Speed
-    private var speedY = Speed
+    private var speed = InitialSpeed
+    private var baseSpeedX = 1
+    private var baseSpeedY = 1
     private lateinit var actorManager: ActorManager
     private lateinit var wallbreakerAudioManager: WallbreakerAudioManager
     private lateinit var wallbreakerGameManager: WallbreakerGameManager
@@ -65,14 +66,14 @@ internal class Ball(
         } else {
             if (!isGameOver) {
                 body.position = body.position.constrainedWithin(viewportTopLeft, viewportBottomRight)
-                val nextPosition = body.position + SceneOffset(speedX, speedY) * deltaTimeInMillis
+                val nextPosition = body.position + SceneOffset(speed * baseSpeedX, speed * baseSpeedY) * deltaTimeInMillis
                 var shouldPlaySound = false
                 if (nextPosition.x < viewportTopLeft.x || nextPosition.x > viewportBottomRight.x) {
-                    speedX *= -1
+                    baseSpeedX *= -1
                     shouldPlaySound = true
                 }
                 if (nextPosition.y < viewportTopLeft.y) {
-                    speedY *= -1
+                    baseSpeedY *= -1
                     shouldPlaySound = true
                 }
                 if (nextPosition.y > viewportBottomRight.y) {
@@ -103,14 +104,15 @@ internal class Ball(
             body.position = previousPosition
             isCollidingWithPaddle = false
             when {
-                body.position.y.raw in collidable.body.axisAlignedBoundingBox.min.y..collidable.body.axisAlignedBoundingBox.max.y -> speedX *= -1
-                body.position.x.raw in collidable.body.axisAlignedBoundingBox.min.x..collidable.body.axisAlignedBoundingBox.max.x -> speedY *= -1
+                body.position.y.raw in collidable.body.axisAlignedBoundingBox.min.y..collidable.body.axisAlignedBoundingBox.max.y -> baseSpeedX *= -1
+                body.position.x.raw in collidable.body.axisAlignedBoundingBox.min.x..collidable.body.axisAlignedBoundingBox.max.x -> baseSpeedY *= -1
                 else -> {
-                    speedX *= -1
-                    speedY *= -1
+                    baseSpeedX *= -1
+                    baseSpeedY *= -1
                 }
             }
             if (collidable is Brick) {
+                speed += SpeedIncrement
                 actorManager.remove(collidable)
                 actorManager.add(
                     BrickPopEffect(
@@ -143,7 +145,8 @@ internal class Ball(
     }
 
     companion object {
-        private val Speed = 0.8f.sceneUnit
+        private val InitialSpeed = 0.6f.sceneUnit
+        private val SpeedIncrement = 0.005f.sceneUnit
         private val Radius = 20f.sceneUnit
     }
 }

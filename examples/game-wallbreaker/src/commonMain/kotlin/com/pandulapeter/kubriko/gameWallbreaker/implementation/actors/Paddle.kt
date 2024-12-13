@@ -11,6 +11,7 @@ import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
+import com.pandulapeter.kubriko.implementation.extensions.clampWithin
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
@@ -51,7 +52,7 @@ internal class Paddle(
             body.position = SceneOffset(
                 x = screenOffset.toSceneOffset(viewportManager).x,
                 y = body.position.y,
-            )
+            ).clampWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value)
         }
     }
 
