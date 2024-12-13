@@ -1,7 +1,5 @@
 package com.pandulapeter.kubriko.pointerInput.implementation
 
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventType
@@ -12,7 +10,12 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNot
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 
 internal class PointerInputManagerImpl : PointerInputManager() {
 
@@ -21,46 +24,61 @@ internal class PointerInputManagerImpl : PointerInputManager() {
     private val pointerInputAwareActors by autoInitializingLazy {
         actorManager.allActors.map { it.filterIsInstance<PointerInputAware>() }.asStateFlow(emptyList())
     }
-    private var lastPointerOffset = Offset.Zero
+    private var pointerOffset = MutableStateFlow<Offset?>(null)
+    private var isPointerPressed = MutableStateFlow(false)
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require<ActorManager>()
         stateManager = kubriko.require<StateManager>()
+        stateManager.isFocused
+            .filterNot { it }
+            .onEach { isPointerPressed.value = false }
+            .launchIn(scope)
+        pointerOffset
+            .filterNotNull()
+            .onEach { pointerOffset ->
+                if (stateManager.isFocused.value) {
+                    pointerInputAwareActors.value.forEach { it.onPointerMove(pointerOffset) }
+                }
+            }
+            .launchIn(scope)
+        isPointerPressed
+            .onEach { isPointerPressed ->
+                pointerOffset.value?.let { pointerOffset ->
+                    if (stateManager.isFocused.value) {
+                        if (isPointerPressed) {
+                            pointerInputAwareActors.value.forEach { it.onPointerPress(pointerOffset) }
+                        } else {
+                            pointerInputAwareActors.value.forEach { it.onPointerReleased(pointerOffset) }
+                        }
+                    }
+                }
+            }
+            .launchIn(scope)
     }
 
-    override fun getOverlayModifier() = Modifier
-        .pointerInput(Unit) {
-            detectDragGestures(
-                onDrag = { change, _ ->
-                    lastPointerOffset = change.position
-                    pointerInputAwareActors.value.forEach { it.onPointerPress(lastPointerOffset) }
-                },
-                onDragEnd = {
-                    pointerInputAwareActors.value.forEach { it.onPointerReleased(lastPointerOffset) }
-                },
-                onDragCancel = {
-                    pointerInputAwareActors.value.forEach { it.onPointerReleased(lastPointerOffset) }
-                }
-            )
-        }
-        .pointerInput(Unit) {
-            detectTapGestures(
-                onTap = { screenOffset ->
-                    lastPointerOffset = screenOffset
-                    pointerInputAwareActors.value.forEach { it.onPointerReleased(screenOffset) }
-                }
-            )
-        }
-        .pointerInput(PointerEventType.Move) {
-            awaitPointerEventScope {
-                while (true) {
-                    val event = awaitPointerEvent()
-                    if (event.type == PointerEventType.Move) {
-                        event.changes.first().position.let { position ->
-                            pointerInputAwareActors.value.forEach { it.onPointerMove(position) }
+    override fun getOverlayModifier() = Modifier.pointerInput(Unit) {
+        awaitPointerEventScope {
+            while (true) {
+                val event = awaitPointerEvent()
+                event.changes.first().position.let { position ->
+                    when (event.type) {
+                        PointerEventType.Move -> {
+                            pointerOffset.value = position
+                        }
+
+                        PointerEventType.Press -> {
+                            pointerOffset.value = position
+                            isPointerPressed.value = true
+                        }
+
+                        PointerEventType.Release -> {
+                            pointerOffset.value = position
+                            isPointerPressed.value = false
                         }
                     }
                 }
             }
         }
+    }
 }

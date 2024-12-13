@@ -1,24 +1,64 @@
 package com.pandulapeter.kubriko.demoInput.implementation
 
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.traits.Overlay
+import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
+import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-internal class InputDemoManager : Manager(), KeyboardInputAware {
+internal class InputDemoManager : Manager(), KeyboardInputAware, PointerInputAware, Overlay, Unique {
 
     private val _activeKeys = MutableStateFlow(emptySet<Key>())
     val activeKeys = _activeKeys.asStateFlow()
+    private var pointerOffset: Offset? = null
+    private var isPointerBeingPressed = false
 
     override fun onInitialize(kubriko: Kubriko) {
         kubriko.require<ActorManager>().add(this)
     }
 
     override fun handleActiveKeys(activeKeys: ImmutableSet<Key>) = _activeKeys.update { activeKeys }
+
+    override fun onPointerMove(screenOffset: Offset) {
+        pointerOffset = screenOffset
+    }
+
+    override fun onPointerPress(screenOffset: Offset) {
+        isPointerBeingPressed = true
+    }
+
+    override fun onPointerReleased(screenOffset: Offset) {
+        isPointerBeingPressed = false
+    }
+
+    override fun DrawScope.drawToViewport() {
+        pointerOffset?.let { pointerOffset ->
+            drawCircle(
+                color = Color.Black,
+                radius = if (isPointerBeingPressed) 40f else 20f,
+                center = pointerOffset,
+            )
+            drawLine(
+                color = Color.Black,
+                start = Offset(pointerOffset.x, 0f),
+                end = Offset(pointerOffset.x, size.height),
+            )
+            drawLine(
+                color = Color.Black,
+                start = Offset(0f, pointerOffset.y),
+                end = Offset(size.width, pointerOffset.y),
+            )
+        }
+    }
 }
