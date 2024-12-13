@@ -224,6 +224,7 @@ internal class EditorController(
         val actors = serializationManager.deserializeActors(json)
         actorManager.removeAll()
         actorManager.add(actors + editorActors)
+        _selectedActor.update { null }
     }
 
     fun syncScene() {
