@@ -13,13 +13,13 @@ import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Ball
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Brick
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Paddle
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
-import com.pandulapeter.kubriko.implementation.extensions.Invisible
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.StateManager
+import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shader.collection.ChromaticAberrationShader
 import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader
 import com.pandulapeter.kubriko.shader.collection.VignetteShader
@@ -34,27 +34,36 @@ internal class WallbreakerGameManager(
 
     private lateinit var actorManager: ActorManager
     private lateinit var metadataManager: MetadataManager
+    private lateinit var pointerInputManager: PointerInputManager
     private lateinit var scoreManager: WallbreakerScoreManager
-
-    @Composable
-    override fun getModifier(layerIndex: Int?) = Modifier.pointerHoverIcon(
-        icon = if (stateManager.isRunning.collectAsState().value) PointerIcon.Invisible else PointerIcon.Default
-    )
+    private val paddle = Paddle()
 
     override val actors = listOf(
+        paddle,
         SmoothPixelationShader(),
         VignetteShader(),
         ChromaticAberrationShader(),
     )
 
+    @Composable
+    override fun getModifier(layerIndex: Int?) = Modifier.pointerHoverIcon(
+        icon = if (stateManager.isRunning.collectAsState().value) PointerIcon.Crosshair else PointerIcon.Default
+    )
+
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
         metadataManager = kubriko.require()
+        pointerInputManager = kubriko.require()
         scoreManager = kubriko.require()
         initializeScene()
         stateManager.isFocused
             .filterNot { it }
             .onEach { stateManager.updateIsRunning(false) }
+            .launchIn(scope)
+        stateManager.isRunning
+            .onEach {
+                pointerInputManager.pointerScreenOffset.value?.let(paddle::onPointerOffsetChanged)
+            }
             .launchIn(scope)
     }
 
@@ -77,7 +86,7 @@ internal class WallbreakerGameManager(
                 )
             }
         }
-        actorManager.add(allBricks + Ball() + Paddle() + this)
+        actorManager.add(allBricks + Ball(paddle) + this)
     }
 
     fun pauseGame() = stateManager.updateIsRunning(false)

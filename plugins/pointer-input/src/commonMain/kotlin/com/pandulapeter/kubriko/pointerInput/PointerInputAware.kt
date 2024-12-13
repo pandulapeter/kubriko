@@ -8,7 +8,7 @@ interface PointerInputAware : Actor {
 
     fun onPointerPress(screenOffset: Offset) = Unit
 
-    fun onPointerMove(screenOffset: Offset) = Unit
+    fun onPointerOffsetChanged(screenOffset: Offset) = Unit
 
     fun onPointerReleased(screenOffset: Offset) = Unit
 }

@@ -31,7 +31,7 @@ internal class InputDemoManager : Manager(), KeyboardInputAware, PointerInputAwa
 
     override fun handleActiveKeys(activeKeys: ImmutableSet<Key>) = _activeKeys.update { activeKeys }
 
-    override fun onPointerMove(screenOffset: Offset) {
+    override fun onPointerOffsetChanged(screenOffset: Offset) {
         pointerOffset = screenOffset
     }
 

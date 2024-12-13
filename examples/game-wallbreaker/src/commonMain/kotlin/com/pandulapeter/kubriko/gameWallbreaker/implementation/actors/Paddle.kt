@@ -46,7 +46,7 @@ internal class Paddle(
         )
     }
 
-    override fun onPointerMove(screenOffset: Offset) {
+    override fun onPointerOffsetChanged(screenOffset: Offset) {
         if (stateManager.isRunning.value) {
             body.position = SceneOffset(
                 x = screenOffset.toSceneOffset(viewportManager).x,

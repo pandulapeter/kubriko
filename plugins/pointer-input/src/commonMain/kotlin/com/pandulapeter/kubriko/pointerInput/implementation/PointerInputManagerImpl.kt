@@ -33,7 +33,7 @@ internal class PointerInputManagerImpl : PointerInputManager() {
     private val isPointerPressed = MutableStateFlow(false)
     private val rootOffset = MutableStateFlow(Offset.Zero)
     private val viewportOffset = MutableStateFlow(Offset.Zero)
-    private val pointerOffset by autoInitializingLazy {
+    override val pointerScreenOffset by autoInitializingLazy {
         combine(
             rawPointerOffset,
             rootOffset,
@@ -50,17 +50,17 @@ internal class PointerInputManagerImpl : PointerInputManager() {
             .filterNot { it }
             .onEach { isPointerPressed.value = false }
             .launchIn(scope)
-        pointerOffset
+        pointerScreenOffset
             .filterNotNull()
             .onEach { pointerOffset ->
                 if (stateManager.isFocused.value) {
-                    pointerInputAwareActors.value.forEach { it.onPointerMove(pointerOffset) }
+                    pointerInputAwareActors.value.forEach { it.onPointerOffsetChanged(pointerOffset) }
                 }
             }
             .launchIn(scope)
         isPointerPressed
             .onEach { isPointerPressed ->
-                pointerOffset.value?.let { pointerOffset ->
+                pointerScreenOffset.value?.let { pointerOffset ->
                     if (stateManager.isFocused.value) {
                         if (isPointerPressed) {
                             pointerInputAwareActors.value.forEach { it.onPointerPress(pointerOffset) }
