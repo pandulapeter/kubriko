@@ -8,10 +8,10 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
+import com.pandulapeter.kubriko.implementation.extensions.clampWithin
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
-import com.pandulapeter.kubriko.implementation.extensions.clampWithin
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
@@ -26,7 +26,6 @@ internal class Paddle(
         initialPosition = initialPosition,
         initialSize = SceneSize(Width, Height),
     )
-
     private lateinit var stateManager: StateManager
     private lateinit var viewportManager: ViewportManager
 

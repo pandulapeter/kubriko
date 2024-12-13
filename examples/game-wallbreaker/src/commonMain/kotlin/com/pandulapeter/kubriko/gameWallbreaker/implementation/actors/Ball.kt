@@ -14,6 +14,7 @@ import com.pandulapeter.kubriko.gameWallbreaker.implementation.WallbreakerGameMa
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerAudioManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
 import com.pandulapeter.kubriko.implementation.extensions.constrainedWithin
+import com.pandulapeter.kubriko.implementation.extensions.min
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -66,7 +67,7 @@ internal class Ball(
         } else {
             if (!isGameOver) {
                 body.position = body.position.constrainedWithin(viewportTopLeft, viewportBottomRight)
-                val speed = InitialSpeed + SpeedIncrement * scoreManager.score.value
+                val speed = min(InitialSpeed + SpeedIncrement * scoreManager.score.value, MaximumSpeed)
                 val nextPosition = body.position + SceneOffset(speed * baseSpeedX, speed * baseSpeedY) * deltaTimeInMillis
                 var shouldPlayEdgeBounceSoundEffect = false
                 if (nextPosition.x < viewportTopLeft.x || nextPosition.x > viewportBottomRight.x) {
@@ -166,6 +167,7 @@ internal class Ball(
     companion object {
         private val InitialSpeed = 0.6f.sceneUnit
         private val SpeedIncrement = 0.005f.sceneUnit
+        private val MaximumSpeed = 1.8f.sceneUnit
         private val Radius = 20f.sceneUnit
     }
 }

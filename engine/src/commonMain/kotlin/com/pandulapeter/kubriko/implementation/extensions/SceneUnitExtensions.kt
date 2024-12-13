@@ -12,6 +12,6 @@ fun SceneUnit.clamp(
 
 val SceneUnit.abs get() = abs(raw).sceneUnit
 
-fun min(a: SceneUnit, b: SceneUnit) = min(a.raw, b.raw)
+fun min(a: SceneUnit, b: SceneUnit) = min(a.raw, b.raw).sceneUnit
 
-fun max(a: SceneUnit, b: SceneUnit) = min(a.raw, b.raw)
+fun max(a: SceneUnit, b: SceneUnit) = min(a.raw, b.raw).sceneUnit
