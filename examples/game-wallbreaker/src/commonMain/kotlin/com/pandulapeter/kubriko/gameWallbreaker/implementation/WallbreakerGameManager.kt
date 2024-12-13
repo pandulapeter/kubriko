@@ -1,6 +1,11 @@
 package com.pandulapeter.kubriko.gameWallbreaker.implementation
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.Unique
@@ -8,6 +13,7 @@ import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Ball
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Brick
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Paddle
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
+import com.pandulapeter.kubriko.implementation.extensions.Invisible
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -22,12 +28,18 @@ import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-internal class WallbreakerGameManager : Manager(), KeyboardInputAware, Unique, Group {
+internal class WallbreakerGameManager(
+    private val stateManager: StateManager,
+) : Manager(), KeyboardInputAware, Unique, Group {
 
     private lateinit var actorManager: ActorManager
     private lateinit var metadataManager: MetadataManager
     private lateinit var scoreManager: WallbreakerScoreManager
-    private lateinit var stateManager: StateManager
+
+    @Composable
+    override fun getModifier(layerIndex: Int?) = Modifier.pointerHoverIcon(
+        icon = if (stateManager.isRunning.collectAsState().value) PointerIcon.Invisible else PointerIcon.Default
+    )
 
     override val actors = listOf(
         SmoothPixelationShader(),
@@ -39,7 +51,6 @@ internal class WallbreakerGameManager : Manager(), KeyboardInputAware, Unique, G
         actorManager = kubriko.require()
         metadataManager = kubriko.require()
         scoreManager = kubriko.require()
-        stateManager = kubriko.require()
         initializeScene()
         stateManager.isFocused
             .filterNot { it }

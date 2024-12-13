@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko.pointerInput.implementation
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventType
@@ -59,6 +60,7 @@ internal class PointerInputManagerImpl : PointerInputManager() {
     }
 
     // TODO: Offset issues with fixed aspect ratio
+    @Composable
     override fun getOverlayModifier() = Modifier.pointerInput(Unit) {
         awaitPointerEventScope {
             while (true) {

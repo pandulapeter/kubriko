@@ -70,7 +70,7 @@ internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
     private val persistenceManager = PersistenceManager.newInstance(fileName = "kubrikoWallbreaker")
     val wallbreakerScoreManager = WallbreakerScoreManager(persistenceManager)
     val wallbreakerUserPreferencesManager = WallbreakerUserPreferencesManager(persistenceManager)
-    val wallbreakerGameManager = WallbreakerGameManager()
+    val wallbreakerGameManager = WallbreakerGameManager(stateManager)
     val kubriko = Kubriko.newInstance(
         stateManager,
         ViewportManager.newInstance(

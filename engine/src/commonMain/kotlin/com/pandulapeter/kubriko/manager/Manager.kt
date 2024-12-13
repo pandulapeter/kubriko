@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko.manager
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
 import kotlinx.coroutines.CoroutineScope
@@ -17,12 +18,16 @@ abstract class Manager {
         private set
     private val autoInitializingLazyProperties = mutableListOf<AutoInitializingLazy<*>>()
 
+    @Composable
     internal fun getOverlayModifierInternal() = getOverlayModifier()
 
+    @Composable
     protected open fun getOverlayModifier(): Modifier? = null
 
+    @Composable
     internal fun getModifierInternal(layerIndex: Int?) = getModifier(layerIndex)
 
+    @Composable
     protected open fun getModifier(layerIndex: Int?): Modifier? = null
 
     internal fun initializeInternal(kubriko: Kubriko) {
