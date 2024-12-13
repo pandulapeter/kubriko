@@ -25,5 +25,7 @@ internal class WallbreakerScoreManager(
         }.launchIn(scope)
     }
 
+    fun resetScore() = _score.update { 0 }
+
     fun incrementScore() = _score.update { currentValue -> currentValue + 1 }
 }

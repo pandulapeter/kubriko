@@ -5,6 +5,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Ball
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Brick
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
 import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -23,12 +24,29 @@ internal class WallbreakerGameManager : Manager(), KeyboardInputAware, Unique {
 
     private lateinit var actorManager: ActorManager
     private lateinit var metadataManager: MetadataManager
+    private lateinit var scoreManager: WallbreakerScoreManager
     private lateinit var stateManager: StateManager
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = kubriko.require()
         metadataManager = kubriko.require()
+        scoreManager = kubriko.require()
         stateManager = kubriko.require()
+       initializeScene()
+        stateManager.isFocused
+            .filterNot { it }
+            .onEach { stateManager.updateIsRunning(false) }
+            .launchIn(scope)
+    }
+
+    override fun onKeyReleased(key: Key) {
+        if (key == Key.Escape) {
+            stateManager.updateIsRunning(!stateManager.isRunning.value)
+        }
+    }
+
+    private fun initializeScene() {
+        actorManager.removeAll()
         val allBricks = (-8..1).flatMap { y ->
             (-4..4).map { x ->
                 Brick(
@@ -41,15 +59,15 @@ internal class WallbreakerGameManager : Manager(), KeyboardInputAware, Unique {
             }
         }
         actorManager.add(allBricks + Ball() + SmoothPixelationShader() + VignetteShader() + ChromaticAberrationShader() + this)
-        stateManager.isFocused
-            .filterNot { it }
-            .onEach { stateManager.updateIsRunning(false) }
-            .launchIn(scope)
     }
 
-    override fun onKeyReleased(key: Key) {
-        if (key == Key.Escape) {
-            stateManager.updateIsRunning(!stateManager.isRunning.value)
-        }
+    fun pauseGame() = stateManager.updateIsRunning(false)
+
+    fun resumeGame() = stateManager.updateIsRunning(true)
+
+    fun restartGame() {
+        initializeScene()
+        scoreManager.resetScore()
+        resumeGame()
     }
 }

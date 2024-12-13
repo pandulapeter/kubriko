@@ -10,9 +10,6 @@ import androidx.compose.animation.slideOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,7 +22,6 @@ import kubriko.examples.game_wallbreaker.generated.resources.Res
 import kubriko.examples.game_wallbreaker.generated.resources.ic_pause
 import kubriko.examples.game_wallbreaker.generated.resources.pause
 import kubriko.examples.game_wallbreaker.generated.resources.score
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -43,15 +39,11 @@ internal fun GameOverlay(
         Box(
             modifier = Modifier.fillMaxSize().padding(16.dp),
         ) {
-            FloatingActionButton(
-                modifier = Modifier.size(40.dp),
-                onClick = onPauseButtonPressed,
-            ) {
-                Icon(
-                    painter = painterResource(Res.drawable.ic_pause),
-                    contentDescription = stringResource(Res.string.pause),
-                )
-            }
+            SmallButton(
+                onButtonPressed = onPauseButtonPressed,
+                icon = Res.drawable.ic_pause,
+                contentDescription = Res.string.pause,
+            )
         }
     }
     AnimatedVisibility(

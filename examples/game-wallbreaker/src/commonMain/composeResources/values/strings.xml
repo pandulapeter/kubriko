@@ -1,7 +1,8 @@
 <resources>
 
-    <string name="game_paused">Game paused</string>
-    <string name="play">Play</string>
+    <string name="new_game">New Game</string>
+    <string name="restart">Restart</string>
+    <string name="resume">Resume</string>
     <string name="pause">Pause</string>
     <string name="score">Highscore: %1$d\nScore: %2$d</string>
     <string name="sound_effects_enable">Enable sound effects</string>
