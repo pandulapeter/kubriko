@@ -84,18 +84,18 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
 
     override fun preloadSounds(uris: Collection<String>) = uris.forEach(::preloadSound)
 
+    // TODO: Sometimes doesn't work...?
     override fun playSound(uri: String) {
         clips[uri].let { clip ->
-            if (clip == null) {
-                coroutineScope.launch(Dispatchers.Default) {
+            coroutineScope.launch(Dispatchers.Default) {
+                if (clip == null) {
                     preloadSound(uri)
                     do {
                         delay(50)
                     } while (isActive && clips[uri] == null)
                     playSound(uri)
-                }
-            } else {
-                coroutineScope.launch(Dispatchers.Default) {
+                } else {
+                    clip.stop()
                     clip.framePosition = 0
                     clip.start()
                 }

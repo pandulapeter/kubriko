@@ -20,8 +20,11 @@ internal class WallbreakerAudioManager(
 
     override fun onInitialize(kubriko: Kubriko) {
         audioPlaybackManager.preloadSound(
-            Res.getUri(PATH_SOUND_EFFECT_EDGE_BOUNCE),
             Res.getUri(PATH_SOUND_EFFECT_BRICK_POP),
+            Res.getUri(PATH_SOUND_EFFECT_EDGE_BOUNCE),
+            Res.getUri(PATH_SOUND_EFFECT_GAME_OVER),
+            Res.getUri(PATH_SOUND_EFFECT_LEVEL_CLEARED),
+            Res.getUri(PATH_SOUND_EFFECT_PADDLE_HIT),
         )
         combine(
             stateManager.isFocused,
