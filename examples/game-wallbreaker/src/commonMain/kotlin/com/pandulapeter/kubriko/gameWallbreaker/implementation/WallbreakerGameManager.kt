@@ -14,11 +14,9 @@ import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Brick
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Paddle
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerAudioManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
-import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
-import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shader.collection.ChromaticAberrationShader
@@ -35,11 +33,10 @@ internal class WallbreakerGameManager(
     private val stateManager: StateManager,
 ) : Manager(), KeyboardInputAware, Unique, Group {
 
-    private lateinit var actorManager: ActorManager
-    private lateinit var audioManager: WallbreakerAudioManager
-    private lateinit var metadataManager: MetadataManager
-    private lateinit var pointerInputManager: PointerInputManager
-    private lateinit var scoreManager: WallbreakerScoreManager
+    private val actorManager by manager<ActorManager>()
+    private val audioManager by manager<WallbreakerAudioManager>()
+    private val pointerInputManager by manager<PointerInputManager>()
+    private val scoreManager by manager<WallbreakerScoreManager>()
     private val paddle = Paddle()
     private val _isGameOver = MutableStateFlow(true)
     val isGameOver = _isGameOver.asStateFlow()
@@ -57,11 +54,6 @@ internal class WallbreakerGameManager(
     )
 
     override fun onInitialize(kubriko: Kubriko) {
-        actorManager = kubriko.require()
-        audioManager = kubriko.require()
-        metadataManager = kubriko.require()
-        pointerInputManager = kubriko.require()
-        scoreManager = kubriko.require()
         initializeScene()
         stateManager.isFocused
             .filterNot { it }

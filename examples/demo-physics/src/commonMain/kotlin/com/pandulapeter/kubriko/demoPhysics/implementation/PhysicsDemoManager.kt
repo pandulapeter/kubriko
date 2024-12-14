@@ -8,7 +8,6 @@ import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicChain
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicCircle
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicPolygon
 import com.pandulapeter.kubriko.implementation.extensions.cos
-import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.implementation.extensions.sin
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
@@ -42,16 +41,13 @@ internal class PhysicsDemoManager(
 
     private val _actionType = MutableStateFlow(ActionType.SHAPE)
     val actionType = _actionType.asStateFlow()
-    private lateinit var actorManager: ActorManager
-    private lateinit var serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>
-    private lateinit var viewportManager: ViewportManager
+    private val actorManager by manager<ActorManager>()
+    private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
+    private val viewportManager by manager<ViewportManager>()
     private val _shouldShowLoadingIndicator = MutableStateFlow(true)
     val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
-        actorManager = kubriko.require()
-        serializationManager = kubriko.require()
-        viewportManager = kubriko.require()
         actorManager.add(this)
         actorManager.allActors
             .filter { it.size > 1 }

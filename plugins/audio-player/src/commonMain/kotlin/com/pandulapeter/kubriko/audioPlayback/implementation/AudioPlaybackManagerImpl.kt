@@ -9,13 +9,12 @@ import kotlinx.coroutines.flow.onEach
 
 internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
 
-    private lateinit var audioPlayer: AudioPlayer
+    private val audioPlayer by autoInitializingLazy { createAudioPlayer(scope) }
     private var musicUri: String? = null
     private var shouldLoopMusic = false
     private var soundUrisToPreload = mutableListOf<String>()
 
     override fun onInitialize(kubriko: Kubriko) {
-        audioPlayer = createAudioPlayer(scope)
         val stateManager = kubriko.require<StateManager>()
         musicUri?.let {
             if (stateManager.isFocused.value) {

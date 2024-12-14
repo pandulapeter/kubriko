@@ -2,8 +2,6 @@ package com.pandulapeter.kubriko.shader.implementation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
@@ -14,7 +12,7 @@ import kotlinx.coroutines.flow.map
 
 internal class ShaderManagerImpl : ShaderManager() {
 
-    private lateinit var actorManager: ActorManager
+    private val actorManager by manager<ActorManager>()
     private val shaders by autoInitializingLazy {
         actorManager.allActors.map { allActors ->
             allActors
@@ -30,8 +28,4 @@ internal class ShaderManagerImpl : ShaderManager() {
         .fold<Shader<*>, Modifier>(Modifier) { compoundModifier, shader ->
             compoundModifier then Modifier.runtimeShader(shader)
         } else Modifier
-
-    override fun onInitialize(kubriko: Kubriko) {
-        actorManager = kubriko.require()
-    }
 }

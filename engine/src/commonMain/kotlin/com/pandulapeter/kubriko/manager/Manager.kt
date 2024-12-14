@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 abstract class Manager {
@@ -17,6 +18,7 @@ abstract class Manager {
     protected lateinit var scope: CoroutineScope
         private set
     private val autoInitializingLazyProperties = mutableListOf<AutoInitializingLazy<*>>()
+    private val autoInitializingLazyManagers = mutableListOf<LazyManager<*>>()
 
     @Composable
     internal fun getOverlayModifierInternal() = getOverlayModifier()
@@ -33,6 +35,8 @@ abstract class Manager {
     internal fun initializeInternal(kubriko: Kubriko) {
         if (!isInitialized) {
             scope = kubriko as CoroutineScope
+            autoInitializingLazyManagers.forEach { it.initialize(kubriko) }
+            autoInitializingLazyManagers.clear()
             onInitialize(kubriko)
             autoInitializingLazyProperties.forEach { it.initialize() }
             autoInitializingLazyProperties.clear()
@@ -68,6 +72,25 @@ abstract class Manager {
 
         fun initialize() {
             value
+        }
+
+        override fun getValue(thisRef: Manager, property: KProperty<*>) = value
+    }
+
+    protected inline fun <reified T : Manager> manager(): ReadOnlyProperty<Manager, T> = manager(T::class)
+
+    protected fun <T : Manager> manager(managerType: KClass<T>): ReadOnlyProperty<Manager, T> = LazyManager(managerType)
+
+    private inner class LazyManager<T : Manager>(private val managerType: KClass<T>) : ReadOnlyProperty<Manager, T> {
+
+        private lateinit var value: T
+
+        init {
+            autoInitializingLazyManagers.add(this)
+        }
+
+        fun initialize(kubriko: Kubriko) {
+            value = kubriko.require(managerType)
         }
 
         override fun getValue(thisRef: Manager, property: KProperty<*>) = value

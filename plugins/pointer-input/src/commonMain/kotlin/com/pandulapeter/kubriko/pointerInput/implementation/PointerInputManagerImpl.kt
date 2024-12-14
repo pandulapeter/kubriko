@@ -8,7 +8,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
@@ -24,10 +23,9 @@ import kotlinx.coroutines.flow.onEach
 internal class PointerInputManagerImpl(
     private val isActiveAboveViewport: Boolean,
 ) : PointerInputManager() {
-
     // TODO: Implement multi-touch support
-    private lateinit var actorManager: ActorManager
-    private lateinit var stateManager: StateManager
+    private val actorManager by manager<ActorManager>()
+    private val stateManager by manager<StateManager>()
     private val pointerInputAwareActors by autoInitializingLazy {
         actorManager.allActors.map { it.filterIsInstance<PointerInputAware>() }.asStateFlow(emptyList())
     }
@@ -46,8 +44,6 @@ internal class PointerInputManagerImpl(
     }
 
     override fun onInitialize(kubriko: Kubriko) {
-        actorManager = kubriko.require<ActorManager>()
-        stateManager = kubriko.require<StateManager>()
         stateManager.isFocused
             .filterNot { it }
             .onEach { isPointerPressed.value = false }

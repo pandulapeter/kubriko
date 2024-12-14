@@ -1,8 +1,6 @@
 package com.pandulapeter.kubriko.physics.implementation
 
-import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.implementation.extensions.rad
-import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
@@ -23,8 +21,8 @@ internal class PhysicsManagerImpl(
     gravity: SceneOffset,
 ) : PhysicsManager() {
     private val gravity = Vec2(gravity.x, gravity.y)
-    private lateinit var actorManager: ActorManager
-    private lateinit var stateManager: StateManager
+    private val actorManager by manager<ActorManager>()
+    private val stateManager by manager<StateManager>()
     private val rigidBodies by lazy {
         actorManager.allActors
             .map { it.filterIsInstance<RigidBody>().map { it.physicsBody } }
@@ -36,11 +34,6 @@ internal class PhysicsManagerImpl(
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
     }
     private val arbiters = mutableListOf<Arbiter>()
-
-    override fun onInitialize(kubriko: Kubriko) {
-        actorManager = kubriko.require()
-        stateManager = kubriko.require()
-    }
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
         if (stateManager.isRunning.value && deltaTimeInMillis > 0) {

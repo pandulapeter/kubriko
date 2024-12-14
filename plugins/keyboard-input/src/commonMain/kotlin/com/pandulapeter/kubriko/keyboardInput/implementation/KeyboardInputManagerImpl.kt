@@ -16,27 +16,26 @@ import kotlin.coroutines.coroutineContext
 
 internal class KeyboardInputManagerImpl : KeyboardInputManager() {
 
-    private lateinit var actorManager: ActorManager
-    private lateinit var stateManager: StateManager
+    private val actorManager by manager<ActorManager>()
+    private val stateManager by manager<StateManager>()
     private var activeKeysCache = mutableSetOf<Key>()
-    private lateinit var keyboardEventHandler: KeyboardEventHandler
+    private val keyboardEventHandler by autoInitializingLazy {
+        createKeyboardEventHandler(
+            onKeyPressed = ::onKeyPressed,
+            onKeyReleased = ::onKeyReleased,
+            coroutineScope = scope,
+        )
+    }
     private val keyboardInputAwareActors by autoInitializingLazy {
         actorManager.allActors.map { it.filterIsInstance<KeyboardInputAware>() }.asStateFlow(emptyList())
     }
     private var hasSentEmptyMap = false
 
     override fun onInitialize(kubriko: Kubriko) {
-        actorManager = kubriko.require<ActorManager>()
-        stateManager = kubriko.require<StateManager>()
         stateManager.isFocused
             .filterNot { it }
             .onEach { activeKeysCache.forEach(::onKeyReleased) }
             .launchIn(scope)
-        keyboardEventHandler = createKeyboardEventHandler(
-            onKeyPressed = ::onKeyPressed,
-            onKeyReleased = ::onKeyReleased,
-            coroutineScope = scope,
-        )
         keyboardEventHandler.startListening()
     }
 
