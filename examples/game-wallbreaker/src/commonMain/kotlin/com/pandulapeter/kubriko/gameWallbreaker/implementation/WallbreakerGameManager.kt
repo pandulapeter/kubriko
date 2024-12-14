@@ -40,8 +40,18 @@ internal class WallbreakerGameManager(
     private val paddle = Paddle()
     private val _isGameOver = MutableStateFlow(true)
     val isGameOver = _isGameOver.asStateFlow()
-
-    override val actors = listOf(
+    private val bricks = (-8..1).flatMap { y ->
+        (-4..4).map { x ->
+            Brick(
+                position = SceneOffset(
+                    x = Brick.Width * x,
+                    y = Brick.Height * y,
+                ),
+                hue = (0..360).random().toFloat(),
+            )
+        }
+    }
+    override val actors = bricks + listOf(
         paddle,
         SmoothPixelationShader(),
         VignetteShader(),
@@ -76,21 +86,9 @@ internal class WallbreakerGameManager(
         }
     }
 
-    // TODO: Only the bricks, the ball and the paddle hsould be reset
     private fun initializeScene() {
         _isGameOver.value = false
-        val allBricks = (-8..1).flatMap { y ->
-            (-4..4).map { x ->
-                Brick(
-                    position = SceneOffset(
-                        x = Brick.Width * x,
-                        y = Brick.Height * y,
-                    ),
-                    hue = (0..360).random().toFloat(),
-                )
-            }
-        }
-        actorManager.add(allBricks + Ball(paddle) + this)
+        actorManager.add(listOf(Ball(paddle), this))
     }
 
     fun pauseGame() = stateManager.updateIsRunning(false)
