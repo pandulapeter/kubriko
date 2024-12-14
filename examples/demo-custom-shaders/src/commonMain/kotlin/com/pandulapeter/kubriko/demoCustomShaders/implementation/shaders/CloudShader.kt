@@ -2,7 +2,7 @@ package com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
-import com.pandulapeter.kubriko.implementation.extensions.require
+import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
@@ -135,7 +135,7 @@ internal class CloudShader(
     private lateinit var metadataManager: MetadataManager
 
     override fun onAdded(kubriko: Kubriko) {
-        metadataManager = kubriko.require()
+        metadataManager = kubriko.get()
     }
 
     override fun update(deltaTimeInMillis: Float) {

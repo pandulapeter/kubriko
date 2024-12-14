@@ -90,7 +90,7 @@ abstract class Manager {
         }
 
         fun initialize(kubriko: Kubriko) {
-            value = kubriko.require(managerType)
+            value = kubriko.get(managerType)
         }
 
         override fun getValue(thisRef: Manager, property: KProperty<*>) = value

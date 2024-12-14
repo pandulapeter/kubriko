@@ -9,7 +9,7 @@ import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.implementation.extensions.clampWithin
-import com.pandulapeter.kubriko.implementation.extensions.require
+import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.StateManager
@@ -30,8 +30,8 @@ internal class Paddle(
     private lateinit var viewportManager: ViewportManager
 
     override fun onAdded(kubriko: Kubriko) {
-        stateManager = kubriko.require()
-        viewportManager = kubriko.require()
+        stateManager = kubriko.get()
+        viewportManager = kubriko.get()
     }
 
     override fun DrawScope.draw() {

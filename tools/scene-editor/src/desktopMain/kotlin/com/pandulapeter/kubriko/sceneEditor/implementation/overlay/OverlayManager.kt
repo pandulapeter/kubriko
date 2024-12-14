@@ -14,12 +14,11 @@ import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.extensions.minus
-import com.pandulapeter.kubriko.implementation.extensions.require
+import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.implementation.extensions.transformForViewport
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.ViewportManager
-import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -32,14 +31,14 @@ import kotlin.math.min
 internal class OverlayManager(
     private val editorController: EditorController,
 ) : Manager(), Dynamic, Overlay, Unique {
-    private val gameViewportManager by lazy { editorController.kubriko.require<ViewportManager>() }
+    private val gameViewportManager by lazy { editorController.kubriko.get<ViewportManager>() }
     private val colorBack = Color.Black.copy(alpha = 0.25f)
     private val colorFront = Color.White.copy(alpha = 0.75f)
     override val overlayDrawingOrder = Float.MIN_VALUE
     private var alpha = 0f
 
     override fun onInitialize(kubriko: Kubriko) {
-        kubriko.require<ActorManager>().add(this)
+        kubriko.get<ActorManager>().add(this)
         combine(
             editorController.selectedUpdatableActor,
             editorController.selectedTypeId,

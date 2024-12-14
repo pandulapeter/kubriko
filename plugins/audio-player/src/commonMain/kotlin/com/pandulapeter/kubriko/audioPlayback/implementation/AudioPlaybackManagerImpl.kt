@@ -2,7 +2,7 @@ package com.pandulapeter.kubriko.audioPlayback.implementation
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
-import com.pandulapeter.kubriko.implementation.extensions.require
+import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.manager.StateManager
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -15,7 +15,7 @@ internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
     private var soundUrisToPreload = mutableListOf<String>()
 
     override fun onInitialize(kubriko: Kubriko) {
-        val stateManager = kubriko.require<StateManager>()
+        val stateManager = kubriko.get<StateManager>()
         musicUri?.let {
             if (stateManager.isFocused.value) {
                 audioPlayer.playMusic(it, shouldLoopMusic)

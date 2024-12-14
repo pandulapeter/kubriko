@@ -10,7 +10,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.implementation.extensions.minus
-import com.pandulapeter.kubriko.implementation.extensions.require
+import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.implementation.extensions.transformForViewport
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
@@ -24,9 +24,9 @@ import kotlinx.coroutines.flow.update
 
 internal class DebugMenuManager(gameKubriko: Kubriko) : Manager(), Overlay, Unique {
 
-    private val gameActorManager by lazy { gameKubriko.require<ActorManager>() }
-    private val gameMetadataManager by lazy { gameKubriko.require<MetadataManager>() }
-    private val gameViewportManager by lazy { gameKubriko.require<ViewportManager>() }
+    private val gameActorManager by lazy { gameKubriko.get<ActorManager>() }
+    private val gameMetadataManager by lazy { gameKubriko.get<MetadataManager>() }
+    private val gameViewportManager by lazy { gameKubriko.get<ViewportManager>() }
     private val isDebugOverlayEnabled = MutableStateFlow(false)
     private val debugColor = Color.Cyan
     override val overlayDrawingOrder = Float.MIN_VALUE
@@ -47,7 +47,7 @@ internal class DebugMenuManager(gameKubriko: Kubriko) : Manager(), Overlay, Uniq
     }
 
     override fun onInitialize(kubriko: Kubriko) {
-        kubriko.require<ActorManager>().add(this)
+        kubriko.get<ActorManager>().add(this)
     }
 
     fun onIsDebugOverlayEnabledChanged() = isDebugOverlayEnabled.update { currentValue -> !currentValue }

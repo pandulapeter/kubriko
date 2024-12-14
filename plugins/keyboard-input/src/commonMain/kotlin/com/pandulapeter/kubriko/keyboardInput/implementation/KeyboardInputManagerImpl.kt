@@ -2,7 +2,6 @@ package com.pandulapeter.kubriko.keyboardInput.implementation
 
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.implementation.extensions.require
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -12,7 +11,6 @@ import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlin.coroutines.coroutineContext
 
 internal class KeyboardInputManagerImpl : KeyboardInputManager() {
 

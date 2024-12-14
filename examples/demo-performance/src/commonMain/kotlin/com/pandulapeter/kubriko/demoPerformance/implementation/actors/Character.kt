@@ -7,7 +7,7 @@ import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.implementation.extensions.cos
 import com.pandulapeter.kubriko.implementation.extensions.rad
-import com.pandulapeter.kubriko.implementation.extensions.require
+import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.implementation.extensions.sin
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -29,9 +29,9 @@ class Character private constructor(state: State) : Unique, Dynamic, Positionabl
     private lateinit var viewportManager: ViewportManager
 
     override fun onAdded(kubriko: Kubriko) {
-        actorManager = kubriko.require()
-        stateManager = kubriko.require()
-        viewportManager = kubriko.require()
+        actorManager = kubriko.get()
+        stateManager = kubriko.get()
+        viewportManager = kubriko.get()
     }
 
     private var acc = 0f

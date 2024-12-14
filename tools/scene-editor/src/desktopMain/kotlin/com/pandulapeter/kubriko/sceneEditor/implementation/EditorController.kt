@@ -4,7 +4,7 @@ import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.implementation.extensions.isWithin
-import com.pandulapeter.kubriko.implementation.extensions.require
+import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -42,11 +42,11 @@ internal class EditorController(
 ) : CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
-    private val actorManager = kubriko.require<ActorManager>()
-    val viewportManager = kubriko.require<ViewportManager>()
-    val keyboardInputManager = kubriko.require<KeyboardInputManager>()
-    val serializationManager = kubriko.require<SerializationManager<EditableMetadata<*>, Editable<*>>>()
-    private val userPreferences = UserPreferences(kubriko.require())
+    private val actorManager = kubriko.get<ActorManager>()
+    val viewportManager = kubriko.get<ViewportManager>()
+    val keyboardInputManager = kubriko.get<KeyboardInputManager>()
+    val serializationManager = kubriko.get<SerializationManager<EditableMetadata<*>, Editable<*>>>()
+    private val userPreferences = UserPreferences(kubriko.get())
     private val editorActors = listOf(
         GridOverlay(viewportManager),
         KeyboardInputListener(viewportManager, ::navigateBack),

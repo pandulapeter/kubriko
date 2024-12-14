@@ -16,12 +16,7 @@ interface Kubriko {
     /**
      * TODO: Documentation + nullability
      */
-    fun <T : Manager> get(managerType: KClass<T>): T?
-
-    /**
-     * TODO: Documentation + nullability
-     */
-    fun <T : Manager> require(managerType: KClass<T>): T
+    fun <T : Manager> get(managerType: KClass<T>): T
 
     /**
      * TODO: Documentation

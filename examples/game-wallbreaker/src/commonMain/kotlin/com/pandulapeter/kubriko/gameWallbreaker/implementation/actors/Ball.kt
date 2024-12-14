@@ -15,7 +15,7 @@ import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.Wallbrea
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
 import com.pandulapeter.kubriko.implementation.extensions.constrainedWithin
 import com.pandulapeter.kubriko.implementation.extensions.min
-import com.pandulapeter.kubriko.implementation.extensions.require
+import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
@@ -57,12 +57,12 @@ internal class Ball(
     }
 
     override fun onAdded(kubriko: Kubriko) {
-        actorManager = kubriko.require()
-        audioManager = kubriko.require()
-        gameManager = kubriko.require()
-        scoreManager = kubriko.require()
-        stateManager = kubriko.require()
-        viewportManager = kubriko.require()
+        actorManager = kubriko.get()
+        audioManager = kubriko.get()
+        gameManager = kubriko.get()
+        scoreManager = kubriko.get()
+        stateManager = kubriko.get()
+        viewportManager = kubriko.get()
     }
 
     override fun update(deltaTimeInMillis: Float) {

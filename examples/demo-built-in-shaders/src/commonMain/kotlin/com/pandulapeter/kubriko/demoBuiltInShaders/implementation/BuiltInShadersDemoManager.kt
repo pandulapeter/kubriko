@@ -2,7 +2,7 @@ package com.pandulapeter.kubriko.demoBuiltInShaders.implementation
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.demoBuiltInShaders.implementation.actors.ColorfulBox
-import com.pandulapeter.kubriko.implementation.extensions.require
+import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.implementation.extensions.times
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -16,7 +16,7 @@ import com.pandulapeter.kubriko.types.SceneOffset
 internal class BuiltInShadersDemoManager : Manager() {
 
     override fun onInitialize(kubriko: Kubriko) {
-        kubriko.require<ActorManager>().add(
+        kubriko.get<ActorManager>().add(
             (-5..5).flatMap { y ->
                 (-5..5).map { x ->
                     ColorfulBox(

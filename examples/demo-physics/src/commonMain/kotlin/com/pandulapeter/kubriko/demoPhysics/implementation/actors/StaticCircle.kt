@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.implementation.extensions.require
+import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
@@ -27,7 +27,7 @@ internal class StaticCircle private constructor(state: State) : RigidBody, Visib
     private lateinit var viewportManager: ViewportManager
 
     override fun onAdded(kubriko: Kubriko) {
-        viewportManager = kubriko.require()
+        viewportManager = kubriko.get()
     }
 
     override fun DrawScope.draw() {

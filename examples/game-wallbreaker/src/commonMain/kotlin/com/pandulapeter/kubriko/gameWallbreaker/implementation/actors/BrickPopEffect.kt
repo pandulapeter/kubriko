@@ -7,7 +7,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.implementation.extensions.require
+import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.Scale
@@ -28,8 +28,8 @@ internal class BrickPopEffect(
     private var alpha = 1f
 
     override fun onAdded(kubriko: Kubriko) {
-        actorManager = kubriko.require()
-        viewportManager = kubriko.require()
+        actorManager = kubriko.get()
+        viewportManager = kubriko.get()
     }
 
     override fun update(deltaTimeInMillis: Float) {
