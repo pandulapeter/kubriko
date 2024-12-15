@@ -38,6 +38,7 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.PhysicsManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
+import com.pandulapeter.kubriko.shared.ExampleStateHolder
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
@@ -112,9 +113,7 @@ fun PhysicsDemo(
     }
 }
 
-sealed interface PhysicsDemoStateHolder {
-    fun dispose()
-}
+sealed interface PhysicsDemoStateHolder : ExampleStateHolder
 
 fun createPhysicsDemoStateHolder(): PhysicsDemoStateHolder = PhysicsDemoStateHolderImpl()
 

@@ -10,6 +10,7 @@ import com.pandulapeter.kubriko.demoBuiltInShaders.implementation.BuiltInShaders
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.shader.ShaderManager
+import com.pandulapeter.kubriko.shared.ExampleStateHolder
 
 @Composable
 fun BuiltInShadersDemo(
@@ -23,9 +24,7 @@ fun BuiltInShadersDemo(
     )
 }
 
-sealed interface BuiltInShadersDemoStateHolder {
-    fun dispose()
-}
+sealed interface BuiltInShadersDemoStateHolder : ExampleStateHolder
 
 fun createBuiltInShadersDemoStateHolder(): BuiltInShadersDemoStateHolder = BuiltInShadersDemoStateHolderImpl()
 
@@ -38,5 +37,5 @@ internal class BuiltInShadersDemoStateHolderImpl : BuiltInShadersDemoStateHolder
         BuiltInShadersDemoManager()
     )
 
-    override fun dispose()  = kubriko.dispose()
+    override fun dispose() = kubriko.dispose()
 }

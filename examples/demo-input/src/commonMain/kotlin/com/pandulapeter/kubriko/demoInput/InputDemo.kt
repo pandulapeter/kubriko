@@ -9,6 +9,7 @@ import com.pandulapeter.kubriko.demoInput.implementation.InputDemoManager
 import com.pandulapeter.kubriko.demoInput.implementation.ui.Keyboard
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
+import com.pandulapeter.kubriko.shared.ExampleStateHolder
 
 @Composable
 fun InputDemo(
@@ -26,9 +27,7 @@ fun InputDemo(
     )
 }
 
-sealed interface InputDemoStateHolder {
-    fun dispose()
-}
+sealed interface InputDemoStateHolder : ExampleStateHolder
 
 fun createInputDemoStateHolder(): InputDemoStateHolder = InputDemoStateHolderImpl()
 

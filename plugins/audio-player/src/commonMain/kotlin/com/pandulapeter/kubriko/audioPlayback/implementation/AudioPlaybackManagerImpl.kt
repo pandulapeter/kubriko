@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.onEach
 
 internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
 
+    // TODO: Due to the caching mechanism the same sound cannot be played multiple times simultaneously
     private val audioPlayer by autoInitializingLazy { createAudioPlayer(scope) }
     private var musicUri: String? = null
     private var shouldLoopMusic = false

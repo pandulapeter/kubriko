@@ -23,6 +23,7 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.persistence.PersistenceManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shader.ShaderManager
+import com.pandulapeter.kubriko.shared.ExampleStateHolder
 
 /**
  * Music: https://opengameart.org/content/cyberpunk-moonlight-sonata
@@ -58,13 +59,11 @@ fun WallbreakerGame(
     }
 }
 
-sealed interface WallbreakerGameStateHolder {
-    fun dispose()
-}
+sealed interface WallbreakerGameStateHolder : ExampleStateHolder
 
 fun createWallbreakerGameStateHolder(): WallbreakerGameStateHolder = WallbreakerGameStateHolderImpl()
 
-internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
+private class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
     val stateManager = StateManager.newInstance(shouldAutoStart = false)
     private val audioPlaybackManager = AudioPlaybackManager.newInstance()
     private val persistenceManager = PersistenceManager.newInstance(fileName = "kubrikoWallbreaker")

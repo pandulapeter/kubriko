@@ -35,4 +35,8 @@
     <string name="game_wallbreaker">Wallbreaker</string>
     <string name="game_wallbreaker_subtitle">Break bricks with a bouncing ball and paddle</string>
 
+    <!-- Space Squadron -->
+    <string name="game_space_squadron">Space Squadron</string>
+    <string name="game_space_squadron_subtitle">Use your space ship to defend from alien invaders</string>
+
 </resources>

@@ -12,6 +12,7 @@ kotlin {
             implementation(projects.examples.demoInput)
             implementation(projects.examples.demoPerformance)
             implementation(projects.examples.demoPhysics)
+            implementation(projects.examples.gameSpaceSquadron)
             implementation(projects.examples.gameWallbreaker)
             implementation(compose.components.resources)
             implementation(compose.material3)

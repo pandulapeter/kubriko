@@ -55,9 +55,13 @@ import com.pandulapeter.kubriko.demoPerformance.createPerformanceDemoStateHolder
 import com.pandulapeter.kubriko.demoPhysics.PhysicsDemo
 import com.pandulapeter.kubriko.demoPhysics.PhysicsDemoStateHolder
 import com.pandulapeter.kubriko.demoPhysics.createPhysicsDemoStateHolder
+import com.pandulapeter.kubriko.gameSpaceSquadron.SpaceSquadronGame
+import com.pandulapeter.kubriko.gameSpaceSquadron.SpaceSquadronGameStateHolder
+import com.pandulapeter.kubriko.gameSpaceSquadron.createSpaceSquadronGameStateHolder
 import com.pandulapeter.kubriko.gameWallbreaker.WallbreakerGame
 import com.pandulapeter.kubriko.gameWallbreaker.WallbreakerGameStateHolder
 import com.pandulapeter.kubriko.gameWallbreaker.createWallbreakerGameStateHolder
+import com.pandulapeter.kubriko.shared.ExampleStateHolder
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.back
 import kubriko.app.generated.resources.ic_back
@@ -69,7 +73,7 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
-private val currentDemoStateHolders = mutableStateOf(emptyList<Any>())
+private val currentDemoStateHolders = mutableStateOf(emptyList<ExampleStateHolder>())
 
 @Composable
 internal fun ShowcaseContent(
@@ -119,21 +123,16 @@ internal fun ShowcaseContent(
                 ShowcaseEntry.WALLBREAKER -> WallbreakerGame(
                     stateHolder = getOrCreateState(currentDemoStateHolders, ::createWallbreakerGameStateHolder)
                 )
+
+                ShowcaseEntry.SPACE_SQUADRON -> SpaceSquadronGame(
+                    stateHolder = getOrCreateState(currentDemoStateHolders, ::createSpaceSquadronGameStateHolder)
+                )
             }
             DisposableEffect(type) {
                 onDispose {
                     if (getSelectedShowcaseEntry() != selectedShowcaseEntry) {
                         stateHolderType.let { type ->
-                            currentDemoStateHolders.value.filter { type.isInstance(it) }.forEach {
-                                when (it) {
-                                    is BuiltInShadersDemoStateHolder -> it.dispose()
-                                    is CustomShadersDemoStateHolder -> it.dispose()
-                                    is InputDemoStateHolder -> it.dispose()
-                                    is PerformanceDemoStateHolder -> it.dispose()
-                                    is PhysicsDemoStateHolder -> it.dispose()
-                                    is WallbreakerGameStateHolder -> it.dispose()
-                                }
-                            }
+                            currentDemoStateHolders.value.filter { type.isInstance(it) }.forEach { it.dispose() }
                             currentDemoStateHolders.value = currentDemoStateHolders.value.filterNot { type.isInstance(it) }
                         }
                     }
@@ -222,8 +221,8 @@ internal fun ShowcaseContent(
     }
 }
 
-private inline fun <reified T : Any> getOrCreateState(
-    stateHolders: MutableState<List<Any>>,
+private inline fun <reified T : ExampleStateHolder> getOrCreateState(
+    stateHolders: MutableState<List<ExampleStateHolder>>,
     creator: () -> T
 ): T = stateHolders.value.filterIsInstance<T>().firstOrNull() ?: creator().also { stateHolders.value += it }
 
@@ -234,6 +233,7 @@ private val ShowcaseEntry.stateHolderType
         ShowcaseEntry.INPUT -> InputDemoStateHolder::class
         ShowcaseEntry.PERFORMANCE -> PerformanceDemoStateHolder::class
         ShowcaseEntry.PHYSICS -> PhysicsDemoStateHolder::class
+        ShowcaseEntry.SPACE_SQUADRON -> SpaceSquadronGameStateHolder::class
         ShowcaseEntry.WALLBREAKER -> WallbreakerGameStateHolder::class
     }
 

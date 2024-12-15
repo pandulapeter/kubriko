@@ -6,6 +6,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
+            api(projects.examples.shared)
             implementation(projects.engine)
             implementation(projects.tools.debugMenu)
             implementation(projects.tools.sceneEditor)

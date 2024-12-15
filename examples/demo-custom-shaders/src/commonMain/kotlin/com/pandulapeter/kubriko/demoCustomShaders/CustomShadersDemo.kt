@@ -26,6 +26,7 @@ import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.Fractal
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.GradientShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.WarpShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.ControlsContainer
+import com.pandulapeter.kubriko.shared.ExampleStateHolder
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -78,9 +79,7 @@ fun CustomShadersDemo(
     }
 }
 
-sealed interface CustomShadersDemoStateHolder {
-    fun dispose()
-}
+sealed interface CustomShadersDemoStateHolder : ExampleStateHolder
 
 fun createCustomShadersDemoStateHolder(): CustomShadersDemoStateHolder = CustomShadersDemoStateHolderImpl()
 

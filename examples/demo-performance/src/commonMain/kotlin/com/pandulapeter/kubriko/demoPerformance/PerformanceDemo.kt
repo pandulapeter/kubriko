@@ -30,6 +30,7 @@ import com.pandulapeter.kubriko.demoPerformance.implementation.sceneJson
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
+import com.pandulapeter.kubriko.shared.ExampleStateHolder
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.serialization.json.Json
 
@@ -65,9 +66,7 @@ fun PerformanceDemo(
     }
 }
 
-sealed interface PerformanceDemoStateHolder {
-    fun dispose()
-}
+sealed interface PerformanceDemoStateHolder : ExampleStateHolder
 
 fun createPerformanceDemoStateHolder(): PerformanceDemoStateHolder = PerformanceDemoStateHolderImpl()
 

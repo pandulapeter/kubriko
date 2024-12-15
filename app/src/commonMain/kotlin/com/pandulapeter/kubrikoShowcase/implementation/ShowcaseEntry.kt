@@ -12,6 +12,8 @@ import kubriko.app.generated.resources.demo_performance_subtitle
 import kubriko.app.generated.resources.demo_physics
 import kubriko.app.generated.resources.demo_physics_subtitle
 import kubriko.app.generated.resources.demos
+import kubriko.app.generated.resources.game_space_squadron
+import kubriko.app.generated.resources.game_space_squadron_subtitle
 import kubriko.app.generated.resources.game_wallbreaker
 import kubriko.app.generated.resources.game_wallbreaker_subtitle
 import kubriko.app.generated.resources.games
@@ -51,6 +53,11 @@ internal enum class ShowcaseEntry(
         type = ShowcaseEntryType.GAME,
         titleStringResource = Res.string.game_wallbreaker,
         subtitleStringResource = Res.string.game_wallbreaker_subtitle,
+    ),
+    SPACE_SQUADRON(
+        type = ShowcaseEntryType.GAME,
+        titleStringResource = Res.string.game_space_squadron,
+        subtitleStringResource = Res.string.game_space_squadron_subtitle,
     ),
 }
 

@@ -5,6 +5,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
+            api(projects.examples.shared)
             implementation(projects.engine)
             implementation(projects.plugins.audioPlayer)
             implementation(projects.plugins.collision)
