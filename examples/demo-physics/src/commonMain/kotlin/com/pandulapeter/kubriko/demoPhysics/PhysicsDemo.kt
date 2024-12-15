@@ -1,18 +1,8 @@
 package com.pandulapeter.kubriko.demoPhysics
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -39,6 +29,8 @@ import com.pandulapeter.kubriko.physics.PhysicsManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.shared.ExampleStateHolder
+import com.pandulapeter.kubriko.shared.ui.FloatingButton
+import com.pandulapeter.kubriko.shared.ui.LoadingOverlay
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
@@ -50,7 +42,6 @@ import kubriko.examples.demo_physics.generated.resources.ic_chain
 import kubriko.examples.demo_physics.generated.resources.ic_explosion
 import kubriko.examples.demo_physics.generated.resources.ic_shape
 import kubriko.examples.demo_physics.generated.resources.shape
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -71,43 +62,27 @@ fun PhysicsDemo(
                 modifier = Modifier.fillMaxSize(),
                 kubriko = stateHolder.kubriko,
             ) {
-                AnimatedVisibility(
-                    visible = stateHolder.physicsDemoManager.shouldShowLoadingIndicator.collectAsState().value,
-                    enter = fadeIn(animationSpec = tween(durationMillis = 0)),
-                    exit = fadeOut(animationSpec = tween(durationMillis = 1000)),
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(16.dp),
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp).align(Alignment.BottomStart),
-                            strokeWidth = 3.dp,
-                        )
-                    }
-                }
+                LoadingOverlay(
+                    shouldShowLoadingIndicator = stateHolder.physicsDemoManager.shouldShowLoadingIndicator.collectAsState().value,
+                )
                 PlatformSpecificContent()
-                FloatingActionButton(
-                    modifier = Modifier.padding(16.dp).size(40.dp).align(Alignment.BottomEnd),
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    onClick = stateHolder.physicsDemoManager::changeSelectedActionType,
-                ) {
-                    Icon(
-                        painter = painterResource(
-                            when (selectedActionType.value) {
-                                ActionType.SHAPE -> Res.drawable.ic_shape
-                                ActionType.CHAIN -> Res.drawable.ic_chain
-                                ActionType.EXPLOSION -> Res.drawable.ic_explosion
-                            }
-                        ),
-                        contentDescription = stringResource(
-                            when (selectedActionType.value) {
-                                ActionType.SHAPE -> Res.string.shape
-                                ActionType.CHAIN -> Res.string.chain
-                                ActionType.EXPLOSION -> Res.string.explosion
-                            }
-                        ),
+                FloatingButton(
+                    modifier = Modifier.padding(16.dp).align(Alignment.BottomEnd),
+                    icon = when (selectedActionType.value) {
+                        ActionType.SHAPE -> Res.drawable.ic_shape
+                        ActionType.CHAIN -> Res.drawable.ic_chain
+                        ActionType.EXPLOSION -> Res.drawable.ic_explosion
+                    },
+                    onButtonPressed = stateHolder.physicsDemoManager::changeSelectedActionType,
+                    contentDescription = stringResource(
+                        when (selectedActionType.value) {
+                            ActionType.SHAPE -> Res.string.shape
+                            ActionType.CHAIN -> Res.string.chain
+                            ActionType.EXPLOSION -> Res.string.explosion
+                        }
+                    ),
+
                     )
-                }
             }
         }
     }

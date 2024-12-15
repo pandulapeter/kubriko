@@ -5,6 +5,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
+            api(compose.components.resources)
             implementation(compose.material3)
         }
     }

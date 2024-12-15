@@ -22,6 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.shared.ui.LargeButton
+import com.pandulapeter.kubriko.shared.ui.SmallButton
 import kubriko.examples.game_wallbreaker.generated.resources.Res
 import kubriko.examples.game_wallbreaker.generated.resources.ic_music_off
 import kubriko.examples.game_wallbreaker.generated.resources.ic_music_on

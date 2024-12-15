@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.gameWallbreaker.implementation.ui
+package com.pandulapeter.kubriko.shared.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -17,7 +17,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun LargeButton(
+fun LargeButton(
     modifier: Modifier = Modifier,
     title: StringResource,
     icon: DrawableResource,

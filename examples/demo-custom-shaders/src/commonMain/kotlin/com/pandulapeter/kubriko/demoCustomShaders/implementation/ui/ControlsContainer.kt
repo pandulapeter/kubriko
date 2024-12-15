@@ -10,14 +10,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -35,12 +32,12 @@ import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.Clo
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.FractalControls
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.GradientControls
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.WarpControls
+import com.pandulapeter.kubriko.shared.ui.FloatingButton
 import kotlinx.collections.immutable.PersistentMap
 import kubriko.examples.demo_custom_shaders.generated.resources.Res
 import kubriko.examples.demo_custom_shaders.generated.resources.collapse_controls
 import kubriko.examples.demo_custom_shaders.generated.resources.expand_controls
 import kubriko.examples.demo_custom_shaders.generated.resources.ic_brush
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 private val MaximumWidth = 300.dp
@@ -115,15 +112,11 @@ internal fun ControlsContainer(
                 }
             }
         }
-        FloatingActionButton(
-            modifier = Modifier.size(40.dp).align(Alignment.BottomEnd),
-            containerColor = MaterialTheme.colorScheme.primary,
-            onClick = { onIsExpandedChanged(!state.second) },
-        ) {
-            Icon(
-                painter = painterResource(Res.drawable.ic_brush),
-                contentDescription = stringResource(if (state.second) Res.string.collapse_controls else Res.string.expand_controls),
-            )
-        }
+        FloatingButton(
+            modifier = Modifier.align(Alignment.BottomEnd),
+            icon = Res.drawable.ic_brush,
+            contentDescription = stringResource(if (state.second) Res.string.collapse_controls else Res.string.expand_controls),
+            onButtonPressed = { onIsExpandedChanged(!state.second) },
+        )
     }
 }

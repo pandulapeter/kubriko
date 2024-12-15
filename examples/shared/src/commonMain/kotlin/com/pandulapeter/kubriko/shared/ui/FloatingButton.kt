@@ -1,28 +1,28 @@
-package com.pandulapeter.kubriko.gameWallbreaker.implementation.ui
+package com.pandulapeter.kubriko.shared.ui
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun SmallButton(
+fun FloatingButton(
     modifier: Modifier = Modifier,
     icon: DrawableResource,
+    contentDescription: String? = null,
     onButtonPressed: () -> Unit,
-    contentDescription: StringResource?,
 ) = FloatingActionButton(
     modifier = modifier.size(40.dp),
+    containerColor = MaterialTheme.colorScheme.primary,
     onClick = onButtonPressed,
 ) {
     Icon(
         painter = painterResource(icon),
-        contentDescription = contentDescription?.let { stringResource(it) },
+        contentDescription = contentDescription,
     )
 }
