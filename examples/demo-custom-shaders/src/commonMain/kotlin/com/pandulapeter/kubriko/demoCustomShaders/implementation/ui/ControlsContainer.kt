@@ -1,6 +1,8 @@
 package com.pandulapeter.kubriko.demoCustomShaders.implementation.ui
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -20,8 +22,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -58,8 +62,12 @@ internal fun ControlsContainer(
 ) = Box(
     modifier = modifier,
 ) {
+    val cardAlpha: Float by animateFloatAsState(
+        targetValue = if (state.second == ControlsState.COLLAPSED) 0f else 1f,
+        animationSpec = tween(),
+    )
     Card(
-        modifier = Modifier.padding(16.dp),
+        modifier = Modifier.padding(16.dp).alpha(cardAlpha),
         colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         AnimatedContent(
@@ -84,16 +92,22 @@ internal fun ControlsContainer(
         modifier = Modifier.align(Alignment.BottomEnd),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        FloatingButton(
-            icon = Res.drawable.ic_code,
-            contentDescription = stringResource(if (state.second == ControlsState.EXPANDED_CODE) Res.string.hide_code else Res.string.show_code),
-            onButtonPressed = { onIsExpandedChanged(if (state.second == ControlsState.EXPANDED_CODE) ControlsState.COLLAPSED else ControlsState.EXPANDED_CODE) },
-        )
-        FloatingButton(
-            icon = Res.drawable.ic_brush,
-            contentDescription = stringResource(if (state.second == ControlsState.EXPANDED_CONTROLS) Res.string.collapse_controls else Res.string.expand_controls),
-            onButtonPressed = { onIsExpandedChanged(if (state.second == ControlsState.EXPANDED_CONTROLS) ControlsState.COLLAPSED else ControlsState.EXPANDED_CONTROLS) },
-        )
+        (state.second == ControlsState.EXPANDED_CODE).let { isSelected ->
+            FloatingButton(
+                icon = Res.drawable.ic_code,
+                isSelected = isSelected,
+                contentDescription = stringResource(if (isSelected) Res.string.hide_code else Res.string.show_code),
+                onButtonPressed = { onIsExpandedChanged(if (isSelected) ControlsState.COLLAPSED else ControlsState.EXPANDED_CODE) },
+            )
+        }
+        (state.second == ControlsState.EXPANDED_CONTROLS).let { isSelected ->
+            FloatingButton(
+                icon = Res.drawable.ic_brush,
+                isSelected = isSelected,
+                contentDescription = stringResource(if (isSelected) Res.string.collapse_controls else Res.string.expand_controls),
+                onButtonPressed = { onIsExpandedChanged(if (isSelected) ControlsState.COLLAPSED else ControlsState.EXPANDED_CONTROLS) },
+            )
+        }
     }
 }
 

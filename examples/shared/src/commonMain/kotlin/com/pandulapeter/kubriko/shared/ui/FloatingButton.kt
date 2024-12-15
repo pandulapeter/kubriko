@@ -2,6 +2,7 @@ package com.pandulapeter.kubriko.shared.ui
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -14,11 +15,12 @@ import org.jetbrains.compose.resources.painterResource
 fun FloatingButton(
     modifier: Modifier = Modifier,
     icon: DrawableResource,
+    isSelected: Boolean = false,
     contentDescription: String? = null,
     onButtonPressed: () -> Unit,
 ) = FloatingActionButton(
     modifier = modifier.size(40.dp),
-    containerColor = MaterialTheme.colorScheme.primary,
+    containerColor = if (isSelected) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary,
     onClick = onButtonPressed,
 ) {
     Icon(
