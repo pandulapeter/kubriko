@@ -1,13 +1,11 @@
 package com.pandulapeter.kubriko.gameSpaceSquadron
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.collision.CollisionManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.SpaceSquadronBackgroundManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.SpaceSquadronGameManager
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
@@ -23,9 +21,11 @@ fun SpaceSquadronGame(
     stateHolder: SpaceSquadronGameStateHolder = createSpaceSquadronGameStateHolder(),
 ) {
     stateHolder as SpaceSquadronGameStateHolderImpl
-    Box {
+    KubrikoViewport(
+        modifier = modifier,
+        kubriko = stateHolder.backgroundKubriko,
+    ) {
         KubrikoViewport(
-            modifier = modifier.background(Color.Black),
             kubriko = stateHolder.kubriko,
         )
     }
@@ -37,6 +37,10 @@ fun createSpaceSquadronGameStateHolder(): SpaceSquadronGameStateHolder = SpaceSq
 
 private class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
     val stateManager = StateManager.newInstance(shouldAutoStart = false)
+    val backgroundKubriko = Kubriko.newInstance(
+        ShaderManager.newInstance(),
+        SpaceSquadronBackgroundManager()
+    )
     val kubriko = Kubriko.newInstance(
         stateManager,
         ViewportManager.newInstance(
@@ -45,7 +49,6 @@ private class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
             )
         ),
         CollisionManager.newInstance(),
-        ShaderManager.newInstance(),
         KeyboardInputManager.newInstance(),
         PointerInputManager.newInstance(isActiveAboveViewport = true),
         SpaceSquadronGameManager(),
