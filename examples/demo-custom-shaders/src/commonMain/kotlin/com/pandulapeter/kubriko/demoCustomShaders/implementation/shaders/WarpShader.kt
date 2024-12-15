@@ -8,7 +8,7 @@ import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
 /**
- * David Hoskins
+ * Credit: David Hoskins
  * https://www.shadertoy.com/view/4tjSDt
  */
 internal class WarpShader(
@@ -18,31 +18,7 @@ internal class WarpShader(
     override var state = initialState
         private set
     override val cache = Shader.Cache()
-    override val code = """
-    uniform float2 ${Shader.RESOLUTION};
-    uniform float $TIME;
-    uniform float $SPEED;
-
-    vec4 main(in float2 fragCoord)
-    {
-        float s = 0.0, v = 0.0;
-        vec2 uv = (fragCoord / ${Shader.RESOLUTION}.xy) * 2.0 - 1.;
-        float time = ($TIME-2.0)*$SPEED;
-        vec3 col = vec3(0);
-        vec3 init = vec3(sin(time * .0032)*.3, .35 - cos(time * .005)*.3, time * 0.002);
-        for (int r = 0; r < 100; r++) 
-        {
-            vec3 p = init + s * vec3(uv, 0.05);
-            p.z = fract(p.z);
-            // Thanks to Kali's little chaotic loop...
-            for (int i=0; i < 10; i++)	p = abs(p * 2.04) / dot(p, p) - .9;
-            v += pow(dot(p, p), .7) * .06;
-            col +=  vec3(v * 0.2+.4, 12.-s*2., .1 + v * 1.) * v * 0.00003;
-            s += .025;
-        }
-        return vec4(clamp(col, 0.0, 1.0), 1.0);
-    }
-""".trimIndent()
+    override val code = CODE.trimIndent()
     private lateinit var metadataManager: MetadataManager
 
     override fun onAdded(kubriko: Kubriko) {
@@ -71,5 +47,32 @@ internal class WarpShader(
     companion object {
         private const val TIME = "time"
         private const val SPEED = "speed"
+        const val CODE = """
+// Credit: David Hoskins
+// https://www.shadertoy.com/view/4tjSDt
+
+uniform float2 ${Shader.RESOLUTION};
+uniform float $TIME;
+uniform float $SPEED;
+
+vec4 main(in float2 fragCoord)
+{
+    float s = 0.0, v = 0.0;
+    vec2 uv = (fragCoord / ${Shader.RESOLUTION}.xy) * 2.0 - 1.;
+    float time = ($TIME-2.0)*$SPEED;
+    vec3 col = vec3(0);
+    vec3 init = vec3(sin(time * .0032)*.3, .35 - cos(time * .005)*.3, time * 0.002);
+    for (int r = 0; r < 100; r++) 
+    {
+        vec3 p = init + s * vec3(uv, 0.05);
+        p.z = fract(p.z);
+        for (int i=0; i < 10; i++)	p = abs(p * 2.04) / dot(p, p) - .9;
+        v += pow(dot(p, p), .7) * .06;
+        col +=  vec3(v * 0.2+.4, 12.-s*2., .1 + v * 1.) * v * 0.00003;
+        s += .025;
+    }
+    return vec4(clamp(col, 0.0, 1.0), 1.0);
+}
+"""
     }
 }

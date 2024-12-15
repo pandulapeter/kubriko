@@ -8,7 +8,7 @@ import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
 /**
- * Yutaka Sato
+ * Credit: Yutaka Sato
  * https://x.com/notargs/status/1250468645030858753
  */
 internal class FractalShader(
@@ -18,30 +18,7 @@ internal class FractalShader(
     override var state = initialState
         private set
     override val cache = Shader.Cache()
-    override val code = """
-    uniform float2 ${Shader.RESOLUTION};
-    uniform float $TIME;
-    uniform float $SPEED;
-    uniform int $RED;
-    uniform int $GREEN;
-    uniform int $BLUE;
-    
-    float f(float3 p) {
-        p.z -= $TIME * $SPEED;
-        float a = p.z * .1;
-        p.xy *= mat2(cos(a), sin(a), -sin(a), cos(a));
-        return .1 - length(cos(p.xy) + sin(p.yz));
-    }
-    
-    half4 main(float2 fragcoord) { 
-        float3 d = .5 - fragcoord.xy1 / ${Shader.RESOLUTION}.y;
-        float3 p=float3(0);
-        for (int i = 0; i < 32; i++) {
-          p += f(p) * d;
-        }
-        return ((sin(p) + float3($RED, $GREEN, $BLUE)) / length(p)).xyz1;
-    }
-""".trimIndent()
+    override val code = CODE.trimIndent()
     private lateinit var metadataManager: MetadataManager
 
     override fun onAdded(kubriko: Kubriko) {
@@ -79,5 +56,32 @@ internal class FractalShader(
         private const val RED = "red"
         private const val GREEN = "green"
         private const val BLUE = "blue"
+        const val CODE = """
+// Credit: Yutaka Sato
+// https://x.com/notargs/status/1250468645030858753
+
+uniform float2 ${Shader.RESOLUTION};
+uniform float $TIME;
+uniform float $SPEED;
+uniform int $RED;
+uniform int $GREEN;
+uniform int $BLUE;
+
+float f(float3 p) {
+    p.z -= $TIME * $SPEED;
+    float a = p.z * .1;
+    p.xy *= mat2(cos(a), sin(a), -sin(a), cos(a));
+    return .1 - length(cos(p.xy) + sin(p.yz));
+}
+
+half4 main(float2 fragcoord) { 
+    float3 d = .5 - fragcoord.xy1 / ${Shader.RESOLUTION}.y;
+    float3 p=float3(0);
+    for (int i = 0; i < 32; i++) {
+      p += f(p) * d;
+    }
+    return ((sin(p) + float3($RED, $GREEN, $BLUE)) / length(p)).xyz1;
+}
+"""
     }
 }

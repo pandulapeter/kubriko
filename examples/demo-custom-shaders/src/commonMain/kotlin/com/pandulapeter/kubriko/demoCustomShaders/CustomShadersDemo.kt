@@ -26,6 +26,7 @@ import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.Fractal
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.GradientShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.WarpShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.ControlsContainer
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.ControlsState
 import com.pandulapeter.kubriko.shared.ExampleStateHolder
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,7 +41,7 @@ fun CustomShadersDemo(
 ) {
     stateHolder as CustomShadersDemoStateHolderImpl
     val selectedDemoType = stateHolder.selectedDemoType.collectAsState().value
-    val areControlsExpanded = stateHolder.areControlsExpanded.collectAsState().value
+    val controlsState = stateHolder.controlsState.collectAsState().value
     Column(
         modifier = modifier.fillMaxSize(),
     ) {
@@ -71,8 +72,8 @@ fun CustomShadersDemo(
             }
             ControlsContainer(
                 modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
-                state = selectedDemoType to areControlsExpanded,
-                onIsExpandedChanged = stateHolder::onAreControlsEnabledChanged,
+                state = selectedDemoType to controlsState,
+                onIsExpandedChanged = stateHolder::onControlsStateChanged,
                 demoHolders = stateHolder.demoHolders,
             )
         }
@@ -94,12 +95,12 @@ internal class CustomShadersDemoStateHolderImpl : CustomShadersDemoStateHolder {
     }.toPersistentMap()
     private val _selectedDemoType = MutableStateFlow(CustomShaderDemoType.FRACTAL)
     val selectedDemoType = _selectedDemoType.asStateFlow()
-    private val _areControlsExpanded = MutableStateFlow(false)
-    val areControlsExpanded = _areControlsExpanded.asStateFlow()
+    private val _controlsState = MutableStateFlow(ControlsState.COLLAPSED)
+    val controlsState = _controlsState.asStateFlow()
 
     fun onSelectedDemoTypeChanged(selectedDemoType: CustomShaderDemoType) = _selectedDemoType.update { selectedDemoType }
 
-    fun onAreControlsEnabledChanged(areControlsExpanded: Boolean) = _areControlsExpanded.update { areControlsExpanded }
+    fun onControlsStateChanged(controlsState: ControlsState) = _controlsState.update { controlsState }
 
     override fun dispose() = demoHolders.values.forEach { it.kubriko.dispose() }
 }
