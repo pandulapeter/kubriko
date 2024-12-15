@@ -29,15 +29,68 @@ internal class SpaceBackgroundShader(
     
     const int volumeSteps = 15;
     const float stepSize = 0.12;
-    const float zoom = 0.5;
-    const float tile = 1;
+    const float zoom = 0.43;
+    const float tile = 1.133;
     const float brightness = 0.0015;
     const float darkMatter = 0.2;
     const float distanceFade = 0.8;
     const float saturation = 0.55;
     
-    vec4 main(in vec2 fragCoord)
+    const int MAX_ITER = 20;
+    const vec3 NOISE_SCALE = vec3(8.3e-3, 0.3e-3, 0.11);
+    const vec3 NOISE_BASE = vec3(1.3e5, 4.7e5, 2.9e5);
+    
+    float field(vec3 p, float s, int iter)
     {
+        float accum = s / 4.0;
+        float mag = 0.0;
+        float prev = 0.0;
+        float tw = 0.0;
+    
+        for (int i = 0; i < MAX_ITER; ++i)
+        {
+            if (i >= iter) // drop from the loop if the number of iterations has been completed - workaround for GLSL loop index limitation
+            {
+                break;
+            }
+            float mag = dot(p, p);
+            p = abs(p) / mag + vec3(-0.5, -0.4, -1.487);
+            float w = exp(-float(i) / 5.0);
+            accum += w * exp(-9.025 * pow(abs(mag - prev), 2.2));
+            tw += w;
+            prev = mag;
+        }
+        return max(0.0, 5.2 * accum / tw - 0.65);
+    }
+    
+    vec4 shader2(in vec2 fragCoord)
+    {
+      
+        vec2 uv2 = 2.0 * fragCoord / ${ShaderManager.RESOLUTION}.xy - 1.0;
+        vec2 uvs = uv2 * ${ShaderManager.RESOLUTION}.xy / max(${ShaderManager.RESOLUTION}.x, ${ShaderManager.RESOLUTION}.y);
+        vec3 p = vec3(uvs / 2.5, 0.0) + vec3(0.8, -1.3, 0.0);
+        
+        float freqs[4];
+        freqs[0] = 0.45;
+        freqs[1] = 0.4;
+        freqs[2] = 0.15;
+        freqs[3] = 0.9;
+    
+        float t = field(p, freqs[2], 13);
+    
+        vec3 p2 = vec3(uvs / 4.0, 4.0) + vec3(2.0, -1.3, -1.0);        
+        float t2 = field(p2, freqs[3], 18);
+        vec4 c2 = mix(0.5, 0.2, 1.0 - exp((abs(uv2.x) - 1.0) * 6.0)) * vec4(5.5 * t2 * t2 * t2, 2.1 * t2 * t2, 2.2 * t2 * freqs[0], t2);
+    
+        vec4 starColour = vec4(0.0);
+    
+        const float brightness = 1.0;
+        vec4 colour = mix(freqs[3] - 0.3, 1.0, 1.0 - exp((abs(uv2.x) - 1.0) * 6.0)) * vec4(1.5 * freqs[2] * t * t * t, 1.2 * freqs[1] * t * t, freqs[3] * t, 1.0) + c2 + starColour;
+    
+        return vec4(brightness * colour.xyz, 1.0);
+    }
+    
+    vec4 shader1(in vec2 fragCoord) {
         vec2 uv = fragCoord.xy / float2(${ShaderManager.RESOLUTION}.x, ${ShaderManager.RESOLUTION}.x);
         vec3 dir = vec3(uv * zoom, 10.0);
         float time = $TIME * $SPEED + 0.25;
@@ -78,6 +131,11 @@ internal class SpaceBackgroundShader(
         // Color adjustment
         accumulatedColor = mix(vec3(length(accumulatedColor)), accumulatedColor, saturation);
         return vec4(accumulatedColor * 0.01, 1.0);
+    }
+    
+    vec4 main(in vec2 fragCoord)
+    {
+        return mix(shader1(fragCoord), shader2(fragCoord), 0.6);
     }
 """.trimIndent()
     override val cache = Shader.Cache()
