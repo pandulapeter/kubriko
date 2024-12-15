@@ -8,8 +8,8 @@ import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
 /**
- * Pablo Roman Andrioli
  * https://www.shadertoy.com/view/XlfGRj
+ * https://www.shadertoy.com/view/cdj3DW
  */
 internal class SpaceBackgroundShader(
     initialState: State = State(),
@@ -133,7 +133,7 @@ internal class SpaceBackgroundShader(
     
     vec4 main(in vec2 fragCoord)
     {
-        return mix(shader1(fragCoord), shader2(fragCoord), 0.6);
+        return mix(shader1(fragCoord), shader2(fragCoord), 0.4);
     }
 """.trimIndent()
     override val cache = Shader.Cache()
@@ -143,8 +143,11 @@ internal class SpaceBackgroundShader(
         metadataManager = kubriko.get()
     }
 
+    private var time = 0f
+
     override fun update(deltaTimeInMillis: Float) {
-        state = state.copy(time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f)
+        time += deltaTimeInMillis
+        state = state.copy(time = time / 1000f)
     }
 
     fun updateState(state: State) {
