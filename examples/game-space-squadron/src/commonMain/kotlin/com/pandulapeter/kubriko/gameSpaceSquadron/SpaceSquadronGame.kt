@@ -1,7 +1,9 @@
 package com.pandulapeter.kubriko.gameSpaceSquadron
 
+import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.collision.CollisionManager
@@ -22,7 +24,7 @@ fun SpaceSquadronGame(
 ) {
     stateHolder as SpaceSquadronGameStateHolderImpl
     KubrikoViewport(
-        modifier = modifier,
+        modifier = modifier.background(Color.Black),
         kubriko = stateHolder.backgroundKubriko,
     ) {
         KubrikoViewport(
@@ -45,7 +47,7 @@ private class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
         stateManager,
         ViewportManager.newInstance(
             aspectRatioMode = ViewportManager.AspectRatioMode.FitVertical(
-                height = 1200.sceneUnit,
+                height = 1280.sceneUnit,
             )
         ),
         CollisionManager.newInstance(),
