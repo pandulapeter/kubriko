@@ -4,33 +4,33 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.manager.MetadataManager
+import com.pandulapeter.kubriko.shader.ContentShader
 import com.pandulapeter.kubriko.shader.Shader
-import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
 class RippleShader(
     initialState: State = State(),
     override val layerIndex: Int? = null,
-) : Shader<RippleShader.State>, Dynamic {
+) : ContentShader<RippleShader.State>, Dynamic {
     override var state = initialState
         private set
     override val cache = Shader.Cache()
     override val code = """
-    uniform float2 ${ShaderManager.RESOLUTION};
-    uniform shader ${ShaderManager.CONTENT};
+    uniform float2 ${Shader.RESOLUTION};
+    uniform shader ${ContentShader.CONTENT};
     uniform float $TIME;
     uniform float $SPEED;
     
     half4 main(float2 fragCoord) {
-        float scale = 1 / ${ShaderManager.RESOLUTION}.x;
+        float scale = 1 / ${Shader.RESOLUTION}.x;
         float2 scaledCoord = fragCoord * scale;
-        float2 center = ${ShaderManager.RESOLUTION} * 0.5 * scale;
+        float2 center = ${Shader.RESOLUTION} * 0.5 * scale;
         float dist = distance(scaledCoord, center);
         float2 dir = scaledCoord - center;
         float sin = sin(dist * 70 - $TIME * $SPEED);
         float2 offset = dir * sin;
         float2 textCoord = scaledCoord + offset / 30;
-        return ${ShaderManager.CONTENT}.eval(textCoord / scale);
+        return ${ContentShader.CONTENT}.eval(textCoord / scale);
     }
 """.trimIndent()
     private lateinit var metadataManager: MetadataManager

@@ -5,7 +5,6 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shader.Shader
-import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
 /**
@@ -20,7 +19,7 @@ internal class CloudShader(
         private set
     override val cache = Shader.Cache()
     override val code = """
-    uniform float2 ${ShaderManager.RESOLUTION};
+    uniform float2 ${Shader.RESOLUTION};
     uniform float $SCALE;
     uniform float $SPEED;
     uniform float $DARK;
@@ -34,7 +33,6 @@ internal class CloudShader(
     uniform float $SKY_2_RED;
     uniform float $SKY_2_GREEN;
     uniform float $SKY_2_BLUE;
-    uniform shader ${ShaderManager.CONTENT};
     
     const mat2 m = mat2( 1.6,  1.2, -1.2,  1.6 );
 
@@ -67,8 +65,8 @@ internal class CloudShader(
     }
 
     half4 main(in float2 fragCoord ) {
-        float2 p = fragCoord.xy / ${ShaderManager.RESOLUTION}.xy;
-    	float2 uv = p*float2(${ShaderManager.RESOLUTION}.x/${ShaderManager.RESOLUTION}.y,1.0);    
+        float2 p = fragCoord.xy / ${Shader.RESOLUTION}.xy;
+    	float2 uv = p*float2(${Shader.RESOLUTION}.x/${Shader.RESOLUTION}.y,1.0);    
         float time = $TIME * $SPEED;
         float q = fbm(uv * $SCALE * 0.5);
         
@@ -84,7 +82,7 @@ internal class CloudShader(
         }
         
     	float f = 0.0;
-        uv = p*float2(${ShaderManager.RESOLUTION}.x/${ShaderManager.RESOLUTION}.y,1.0);
+        uv = p*float2(${Shader.RESOLUTION}.x/${Shader.RESOLUTION}.y,1.0);
     	uv *= $SCALE;
         uv -= q - time;
         weight = 0.7;
@@ -98,7 +96,7 @@ internal class CloudShader(
         
         float c = 0.0;
         time = $TIME * $SPEED * 2.0;
-        uv = p*float2(${ShaderManager.RESOLUTION}.x/${ShaderManager.RESOLUTION}.y,1.0);
+        uv = p*float2(${Shader.RESOLUTION}.x/${Shader.RESOLUTION}.y,1.0);
     	uv *= $SCALE*2.0;
         uv -= q - time;
         weight = 0.4;
@@ -110,7 +108,7 @@ internal class CloudShader(
         
         float c1 = 0.0;
         time = $TIME * $SPEED * 3.0;
-        uv = p*float2(${ShaderManager.RESOLUTION}.x/${ShaderManager.RESOLUTION}.y,1.0);
+        uv = p*float2(${Shader.RESOLUTION}.x/${Shader.RESOLUTION}.y,1.0);
     	uv *= $SCALE*3.0;
         uv -= q - time;
         weight = 0.4;

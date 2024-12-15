@@ -5,7 +5,6 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shader.Shader
-import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
 /**
@@ -20,15 +19,14 @@ internal class GradientShader(
         private set
     override val cache = Shader.Cache()
     override val code = """
-    uniform float2 ${ShaderManager.RESOLUTION};
-    uniform shader ${ShaderManager.CONTENT};
+    uniform float2 ${Shader.RESOLUTION};
     uniform float $TIME;
     uniform float $SPEED;
     uniform float $DARK;
     uniform float $FREQUENCY;
     
     float4 main(float2 fragCoord) {
-        float2 uv = fragCoord/${ShaderManager.RESOLUTION}.xy;
+        float2 uv = fragCoord/${Shader.RESOLUTION}.xy;
 
         // Time varying pixel color
         float3 col = (1.0 - $DARK) + $DARK * sin($TIME*$SPEED+uv.xxx*$FREQUENCY+float3(1,2,4));

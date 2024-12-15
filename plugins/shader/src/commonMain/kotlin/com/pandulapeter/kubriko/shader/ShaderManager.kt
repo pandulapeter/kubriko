@@ -8,10 +8,9 @@ import com.pandulapeter.kubriko.shader.implementation.ShaderManagerImpl
  */
 abstract class ShaderManager : Manager() {
 
+    abstract val areShadersSupported: Boolean
+
     companion object {
         fun newInstance(): ShaderManager = ShaderManagerImpl()
-
-        const val CONTENT = "content"
-        const val RESOLUTION = "resolution"
     }
 }

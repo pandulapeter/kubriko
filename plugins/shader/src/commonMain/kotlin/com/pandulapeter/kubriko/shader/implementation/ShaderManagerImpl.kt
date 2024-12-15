@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.map
 
 internal class ShaderManagerImpl : ShaderManager() {
 
+    override val areShadersSupported = com.pandulapeter.kubriko.shader.implementation.extensions.areShadersSupported
     private val actorManager by manager<ActorManager>()
     private val shaders by autoInitializingLazy {
         actorManager.allActors.map { allActors ->

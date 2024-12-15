@@ -5,7 +5,6 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shader.Shader
-import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
 /**
@@ -20,13 +19,12 @@ internal class FractalShader(
         private set
     override val cache = Shader.Cache()
     override val code = """
-    uniform float2 ${ShaderManager.RESOLUTION};
+    uniform float2 ${Shader.RESOLUTION};
     uniform float $TIME;
     uniform float $SPEED;
     uniform int $RED;
     uniform int $GREEN;
     uniform int $BLUE;
-    uniform shader ${ShaderManager.CONTENT};
     
     float f(float3 p) {
         p.z -= $TIME * $SPEED;
@@ -36,7 +34,7 @@ internal class FractalShader(
     }
     
     half4 main(float2 fragcoord) { 
-        float3 d = .5 - fragcoord.xy1 / ${ShaderManager.RESOLUTION}.y;
+        float3 d = .5 - fragcoord.xy1 / ${Shader.RESOLUTION}.y;
         float3 p=float3(0);
         for (int i = 0; i < 32; i++) {
           p += f(p) * d;

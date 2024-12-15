@@ -1,23 +1,23 @@
 package com.pandulapeter.kubriko.shader.collection
 
+import com.pandulapeter.kubriko.shader.ContentShader
 import com.pandulapeter.kubriko.shader.Shader
-import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
 data class VignetteShader(
     override var state: State = State(),
     override val layerIndex: Int? = null,
-) : Shader<VignetteShader.State> {
+) : ContentShader<VignetteShader.State> {
     override val cache = Shader.Cache()
     override val code = """
-    uniform float2 ${ShaderManager.RESOLUTION};
-    uniform shader ${ShaderManager.CONTENT}; 
+    uniform float2 ${Shader.RESOLUTION};
+    uniform shader ${ContentShader.CONTENT}; 
     uniform float $INTENSITY;
     uniform float $DECAY_FACTOR;
 
     half4 main(vec2 fragCoord) {
-        vec2 uv = fragCoord.xy / ${ShaderManager.RESOLUTION}.xy;
-        half4 color = ${ShaderManager.CONTENT}.eval(fragCoord);
+        vec2 uv = fragCoord.xy / ${Shader.RESOLUTION}.xy;
+        half4 color = ${ContentShader.CONTENT}.eval(fragCoord);
         uv *=  1.0 - uv.yx;
         float vig = clamp(uv.x*uv.y * $INTENSITY, 0., 1.);
         vig = pow(vig, $DECAY_FACTOR);

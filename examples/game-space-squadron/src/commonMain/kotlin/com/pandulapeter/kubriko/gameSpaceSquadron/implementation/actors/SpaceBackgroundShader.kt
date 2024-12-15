@@ -5,7 +5,6 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shader.Shader
-import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
 /**
@@ -19,10 +18,9 @@ internal class SpaceBackgroundShader(
     override var state = initialState
         private set
     override val code = """
-    uniform float2 ${ShaderManager.RESOLUTION};
+    uniform float2 ${Shader.RESOLUTION};
     uniform float $TIME;
     uniform float $SPEED;
-    uniform shader ${ShaderManager.CONTENT};
     
     const int starDensity = 18;
     const float formuParam = 0.73;
@@ -66,8 +64,8 @@ internal class SpaceBackgroundShader(
     vec4 shader2(in vec2 fragCoord)
     {
       
-        vec2 uv2 = 2.0 * fragCoord / ${ShaderManager.RESOLUTION}.xy - 1.0;
-        vec2 uvs = uv2 * ${ShaderManager.RESOLUTION}.xy / max(${ShaderManager.RESOLUTION}.x, ${ShaderManager.RESOLUTION}.y);
+        vec2 uv2 = 2.0 * fragCoord / ${Shader.RESOLUTION}.xy - 1.0;
+        vec2 uvs = uv2 * ${Shader.RESOLUTION}.xy / max(${Shader.RESOLUTION}.x, ${Shader.RESOLUTION}.y);
         vec3 p = vec3(uvs / 2.5, 0.0) + vec3(0.8, -1.3, 0.0);
         
         float freqs[4];
@@ -91,7 +89,7 @@ internal class SpaceBackgroundShader(
     }
     
     vec4 shader1(in vec2 fragCoord) {
-        vec2 uv = fragCoord.xy / float2(${ShaderManager.RESOLUTION}.x, ${ShaderManager.RESOLUTION}.x);
+        vec2 uv = fragCoord.xy / float2(${Shader.RESOLUTION}.x, ${Shader.RESOLUTION}.x);
         vec3 dir = vec3(uv * zoom, 10.0);
         float time = $TIME * $SPEED + 0.25;
     

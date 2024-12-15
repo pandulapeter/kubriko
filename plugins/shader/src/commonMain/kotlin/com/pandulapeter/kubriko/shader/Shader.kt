@@ -19,4 +19,8 @@ interface Shader<T : Shader.State> : LayerAware {
         internal var runtimeShader: Any? = null
         internal var uniformProvider: ShaderUniformProvider? = null
     }
+
+    companion object {
+        const val RESOLUTION = "resolution"
+    }
 }

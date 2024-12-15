@@ -1,8 +1,8 @@
 package com.pandulapeter.kubriko.shader.collection
 
 import androidx.compose.ui.geometry.Offset
+import com.pandulapeter.kubriko.shader.ContentShader
 import com.pandulapeter.kubriko.shader.Shader
-import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
 /**
@@ -12,11 +12,11 @@ import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformPr
 class ComicShader(
     override var state: State = State(),
     override val layerIndex: Int? = null,
-) : Shader<ComicShader.State> {
+) : ContentShader<ComicShader.State> {
     override val cache = Shader.Cache()
     override val code = """
-    uniform float2 ${ShaderManager.RESOLUTION};
-    uniform shader ${ShaderManager.CONTENT};
+    uniform float2 ${Shader.RESOLUTION};
+    uniform shader ${ContentShader.CONTENT};
     uniform float2 $FOCUS_POINT;
     
     float tileSize = 12;
@@ -27,7 +27,7 @@ class ComicShader(
     half3 baseColor = half3(0, 0, 0);
     
     half4 main(vec2 fragcoord) {
-      float maxDimension = max(${ShaderManager.RESOLUTION}.x, ${ShaderManager.RESOLUTION}.y);
+      float maxDimension = max(${Shader.RESOLUTION}.x, ${Shader.RESOLUTION}.y);
       float focalSizeCutoff = maxDimension / 2;
       float focalChromaticCutoff = maxDimension;
       vec2 focalPoint = $FOCUS_POINT.xy;
@@ -42,7 +42,7 @@ class ComicShader(
     
       // Take a sample of the source's color from the center of the tile.
       vec2 sampleCoord = tileOrigin + tileCenter;
-      half4 sampleColor = ${ShaderManager.CONTENT}.eval(sampleCoord);
+      half4 sampleColor = ${ContentShader.CONTENT}.eval(sampleCoord);
     
       // Modulate the size of the dot by the mouse position.
       float distanceFromFocus = distance(fragcoord, focalPoint.xy);

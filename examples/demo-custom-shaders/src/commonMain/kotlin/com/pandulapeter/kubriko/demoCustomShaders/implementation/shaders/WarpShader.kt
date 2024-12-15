@@ -5,7 +5,6 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shader.Shader
-import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
 /**
@@ -20,15 +19,14 @@ internal class WarpShader(
         private set
     override val cache = Shader.Cache()
     override val code = """
-    uniform float2 ${ShaderManager.RESOLUTION};
+    uniform float2 ${Shader.RESOLUTION};
     uniform float $TIME;
     uniform float $SPEED;
-    uniform shader ${ShaderManager.CONTENT};
 
     vec4 main(in float2 fragCoord)
     {
         float s = 0.0, v = 0.0;
-        vec2 uv = (fragCoord / ${ShaderManager.RESOLUTION}.xy) * 2.0 - 1.;
+        vec2 uv = (fragCoord / ${Shader.RESOLUTION}.xy) * 2.0 - 1.;
         float time = ($TIME-2.0)*$SPEED;
         vec3 col = vec3(0);
         vec3 init = vec3(sin(time * .0032)*.3, .35 - cos(time * .005)*.3, time * 0.002);

@@ -6,23 +6,29 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.asComposeRenderEffect
+import com.pandulapeter.kubriko.shader.ContentShader
 import com.pandulapeter.kubriko.shader.Shader
-import com.pandulapeter.kubriko.shader.ShaderManager
 
 internal actual fun <T : Shader.State> shader(
     shader: Shader<T>,
     size: Size,
 ): androidx.compose.ui.graphics.RenderEffect? {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        val runtimeShader = (shader.cache.runtimeShader as? RuntimeShader) ?: RuntimeShader(shader.code).also { shader.cache.runtimeShader = it}
-        val shaderUniformProvider = (shader.cache.uniformProvider as? ShaderUniformProviderImpl) ?: ShaderUniformProviderImpl(runtimeShader).also { shader.cache.uniformProvider = it }
-        return RenderEffect.createRuntimeShaderEffect(
+        val runtimeShader = (shader.cache.runtimeShader as? RuntimeShader) ?: RuntimeShader(shader.code).also { shader.cache.runtimeShader = it }
+        val shaderUniformProvider =
+            (shader.cache.uniformProvider as? ShaderUniformProviderImpl) ?: ShaderUniformProviderImpl(runtimeShader).also { shader.cache.uniformProvider = it }
+        return (if (shader is ContentShader<*>) RenderEffect.createRuntimeShaderEffect(
             runtimeShader.apply {
                 with(shader.state) { shaderUniformProvider.applyUniforms() }
                 shaderUniformProvider.updateResolution(size)
             },
-            ShaderManager.CONTENT,
-        ).asComposeRenderEffect()
+            ContentShader.CONTENT,
+        ) else RenderEffect.createShaderEffect(
+            runtimeShader.apply {
+                with(shader.state) { shaderUniformProvider.applyUniforms() }
+                shaderUniformProvider.updateResolution(size)
+            },
+        )).asComposeRenderEffect()
     } else {
         return null
     }
@@ -33,7 +39,7 @@ private class ShaderUniformProviderImpl(
     private val runtimeShader: RuntimeShader,
 ) : ShaderUniformProvider {
 
-    fun updateResolution(size: Size) = uniform(ShaderManager.RESOLUTION, size.width, size.height)
+    fun updateResolution(size: Size) = uniform(Shader.RESOLUTION, size.width, size.height)
 
     override fun uniform(name: String, value: Int) = runtimeShader.setIntUniform(name, value)
 
