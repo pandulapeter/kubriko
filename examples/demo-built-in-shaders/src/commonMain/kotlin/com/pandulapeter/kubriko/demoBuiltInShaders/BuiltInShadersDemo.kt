@@ -11,6 +11,7 @@ import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shared.ExampleStateHolder
+import com.pandulapeter.kubriko.types.SceneSize
 
 @Composable
 fun BuiltInShadersDemo(
@@ -32,7 +33,7 @@ internal class BuiltInShadersDemoStateHolderImpl : BuiltInShadersDemoStateHolder
     val kubriko = Kubriko.newInstance(
         ShaderManager.newInstance(),
         ViewportManager.newInstance(
-            aspectRatioMode = ViewportManager.AspectRatioMode.Stretched(1000.sceneUnit, 1000.sceneUnit),
+            aspectRatioMode = ViewportManager.AspectRatioMode.Stretched(SceneSize(1000.sceneUnit, 1000.sceneUnit)),
         ),
         BuiltInShadersDemoManager()
     )

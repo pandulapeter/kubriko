@@ -88,12 +88,12 @@ fun InternalViewport(
                         scaleFactorMultiplier.update {
                             when (val aspectRatioMode = aspectRatioMode) {
                                 ViewportManager.AspectRatioMode.Dynamic -> Scale.Unit
-                                is ViewportManager.AspectRatioMode.FitHorizontal -> (maxWidth.toPx() / aspectRatioMode.defaultWidth.raw).let { Scale(it, it) }
-                                is ViewportManager.AspectRatioMode.FitVertical -> (maxHeight.toPx() / aspectRatioMode.defaultHeight.raw).let { Scale(it, it) }
-                                is ViewportManager.AspectRatioMode.Fixed -> (maxWidth.toPx() / aspectRatioMode.defaultWidth.raw).let { Scale(it, it) }
+                                is ViewportManager.AspectRatioMode.FitHorizontal -> (maxWidth.toPx() / aspectRatioMode.width.raw).let { Scale(it, it) }
+                                is ViewportManager.AspectRatioMode.FitVertical -> (maxHeight.toPx() / aspectRatioMode.height.raw).let { Scale(it, it) }
+                                is ViewportManager.AspectRatioMode.Fixed -> (maxWidth.toPx() / aspectRatioMode.width.raw).let { Scale(it, it) }
                                 is ViewportManager.AspectRatioMode.Stretched -> Scale(
-                                    horizontal = maxWidth.toPx() / aspectRatioMode.defaultWidth.raw,
-                                    vertical = maxHeight.toPx() / aspectRatioMode.defaultHeight.raw,
+                                    horizontal = maxWidth.toPx() / aspectRatioMode.size.width.raw,
+                                    vertical = maxHeight.toPx() / aspectRatioMode.size.height.raw,
                                 )
                             }
                         }

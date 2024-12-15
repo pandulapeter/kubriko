@@ -3,11 +3,11 @@ package com.pandulapeter.kubriko.manager
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.implementation.manager.ViewportManagerImpl
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.coroutines.flow.StateFlow
 
@@ -37,22 +37,21 @@ abstract class ViewportManager : Manager() {
         data object Dynamic : AspectRatioMode()
 
         data class FitHorizontal(
-            val defaultWidth: SceneUnit,
+            val width: SceneUnit,
         ) : AspectRatioMode()
 
         data class FitVertical(
-            val defaultHeight: SceneUnit,
+            val height: SceneUnit,
         ) : AspectRatioMode()
 
         data class Fixed(
             val ratio: Float,
-            val defaultWidth: SceneUnit,
+            val width: SceneUnit,
             val alignment: Alignment = Alignment.Center,
         ) : AspectRatioMode()
 
         data class Stretched(
-            val defaultWidth: SceneUnit,
-            val defaultHeight: SceneUnit,
+            val size: SceneSize,
         ) : AspectRatioMode()
     }
 

@@ -10,7 +10,7 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.CollisionDetector
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.WallbreakerGameManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerGameManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerAudioManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
 import com.pandulapeter.kubriko.implementation.extensions.constrainedWithin

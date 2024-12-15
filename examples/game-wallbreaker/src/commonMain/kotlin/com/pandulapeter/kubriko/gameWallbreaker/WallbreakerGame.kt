@@ -10,7 +10,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
 import com.pandulapeter.kubriko.collision.CollisionManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.WallbreakerGameManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerGameManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerAudioManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerUserPreferencesManager
@@ -75,7 +75,7 @@ private class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
         ViewportManager.newInstance(
             aspectRatioMode = ViewportManager.AspectRatioMode.Fixed(
                 ratio = 1f,
-                defaultWidth = 1200.sceneUnit,
+                width = 1200.sceneUnit,
             )
         ),
         CollisionManager.newInstance(),

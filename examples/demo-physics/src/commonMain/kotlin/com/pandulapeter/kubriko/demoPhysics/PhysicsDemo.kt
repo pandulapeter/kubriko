@@ -129,7 +129,7 @@ internal class PhysicsDemoStateHolderImpl : PhysicsDemoStateHolder {
     val physicsDemoManager by lazy { PhysicsDemoManager(sceneJson = sceneJson) }
     val kubriko by lazy {
         Kubriko.newInstance(
-            ViewportManager.newInstance(aspectRatioMode = ViewportManager.AspectRatioMode.FitVertical(defaultHeight = 1920.sceneUnit)),
+            ViewportManager.newInstance(aspectRatioMode = ViewportManager.AspectRatioMode.FitVertical(height = 1920.sceneUnit)),
             PhysicsManager.newInstance(),
             PointerInputManager.newInstance(),
             physicsDemoManager,

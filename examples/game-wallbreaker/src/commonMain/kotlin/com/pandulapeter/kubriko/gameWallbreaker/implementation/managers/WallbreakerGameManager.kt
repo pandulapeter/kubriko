@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.gameWallbreaker.implementation
+package com.pandulapeter.kubriko.gameWallbreaker.implementation.managers
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -12,8 +12,6 @@ import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Ball
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Brick
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Paddle
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerAudioManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
