@@ -2,6 +2,7 @@ package com.pandulapeter.kubriko.manager
 
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.implementation.manager.ViewportManagerImpl
@@ -19,8 +20,7 @@ abstract class ViewportManager : Manager() {
     abstract val cameraPosition: StateFlow<SceneOffset> // Center of the viewport
     abstract val size: StateFlow<Size>
     abstract val scaleFactor: StateFlow<Scale>
-
-    // TODO: Support rotation
+    abstract val insetPadding: StateFlow<Rect> // TODO: Needs to be tested
     abstract val topLeft: StateFlow<SceneOffset>
     abstract val bottomRight: StateFlow<SceneOffset>
 

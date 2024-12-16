@@ -35,6 +35,7 @@ internal class Paddle(
     )
     private lateinit var stateManager: StateManager
     private lateinit var viewportManager: ViewportManager
+    private var previousPointerPosition: SceneOffset? = null
 
     override fun onAdded(kubriko: Kubriko) {
         stateManager = kubriko.get()
@@ -53,13 +54,26 @@ internal class Paddle(
         )
     }
 
+    override fun onPointerPress(screenOffset: Offset) {
+        previousPointerPosition = screenOffset.toSceneOffset(viewportManager)
+    }
+
+    // TODO: Controls should be improved
     override fun onPointerOffsetChanged(screenOffset: Offset) {
         if (stateManager.isRunning.value) {
-            body.position = SceneOffset(
-                x = screenOffset.toSceneOffset(viewportManager).x,
-                y = body.position.y,
-            ).clampWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value)
+            val currentPointerPosition = screenOffset.toSceneOffset(viewportManager)
+            previousPointerPosition?.let { previousPointerPosition ->
+                body.position = SceneOffset(
+                    x = body.position.x + currentPointerPosition.x - previousPointerPosition.x,
+                    y = body.position.y,
+                ).clampWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value)
+            }
+            previousPointerPosition = currentPointerPosition
         }
+    }
+
+    override fun onPointerReleased(screenOffset: Offset) {
+        previousPointerPosition = null
     }
 
     private var moveInNextStep = SceneUnit.Zero
@@ -85,7 +99,7 @@ internal class Paddle(
                 x = body.position.x + moveInNextStep * deltaTimeInMillis,
                 y = body.position.y,
             ).clampWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value)
-            moveInNextStep= SceneUnit.Zero
+            moveInNextStep = SceneUnit.Zero
         }
     }
 

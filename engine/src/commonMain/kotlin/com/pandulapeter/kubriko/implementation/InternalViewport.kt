@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -14,10 +15,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -36,6 +39,7 @@ import kotlinx.coroutines.isActive
 fun InternalViewport(
     modifier: Modifier = Modifier,
     getKubriko: () -> Kubriko,
+    windowInsets: WindowInsets,
     overlay: @Composable BoxScope.() -> Unit,
 ) {
     // Enforce and cache the internal implementation
@@ -48,6 +52,20 @@ fun InternalViewport(
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     LaunchedEffect(lifecycle) { lifecycle.addObserver(observer) }
     DisposableEffect(lifecycle) { onDispose { lifecycle.removeObserver(observer) } }
+
+    // Inset handling
+    val density = LocalDensity.current
+    val layoutDirection = LocalLayoutDirection.current
+    LaunchedEffect(windowInsets) {
+        kubrikoImpl.viewportManager.updateInsetPadding(
+            Rect(
+                left = windowInsets.getLeft(density, layoutDirection).toFloat(),
+                top = windowInsets.getTop(density).toFloat(),
+                right = windowInsets.getRight(density, layoutDirection).toFloat(),
+                bottom = windowInsets.getBottom(density).toFloat(),
+            )
+        )
+    }
 
     // Game loop
     val gameTime = remember { mutableStateOf(0L) }

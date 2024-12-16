@@ -1,6 +1,7 @@
 package com.pandulapeter.kubriko.implementation.manager
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import com.pandulapeter.kubriko.implementation.extensions.div
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
@@ -22,18 +23,19 @@ internal class ViewportManagerImpl(
     private val maximumScaleFactor: Float,
     val viewportEdgeBuffer: SceneUnit,
 ) : ViewportManager() {
-
     private val _cameraPosition = MutableStateFlow(SceneOffset.Zero)
     override val cameraPosition = _cameraPosition.asStateFlow()
     private val _size = MutableStateFlow(Size.Zero)
     override val size = _size.asStateFlow()
     var scaleFactorMultiplier = MutableStateFlow(Scale.Unit)
-    private var _scaleFactor = MutableStateFlow(Scale(initialScaleFactor, initialScaleFactor))
+    private val _scaleFactor = MutableStateFlow(Scale(initialScaleFactor, initialScaleFactor))
     override val scaleFactor by autoInitializingLazy {
         combine(_scaleFactor, scaleFactorMultiplier) { scaleFactor, scaleFactorMultiplier ->
             scaleFactor * scaleFactorMultiplier
         }.asStateFlow(Scale.Unit)
     }
+    private val _insetPadding = MutableStateFlow(Rect(Offset.Zero, Offset.Zero))
+    override val insetPadding = _insetPadding.asStateFlow()
     override val topLeft by autoInitializingLazy {
         combine(cameraPosition, size, scaleFactor) { viewportCenter, viewportSize, scaleFactor ->
             Offset.Zero.toSceneOffset(
@@ -74,4 +76,6 @@ internal class ViewportManagerImpl(
     }
 
     fun updateSize(size: Size) = _size.update { size }
+
+    fun updateInsetPadding(insetPadding: Rect) = _insetPadding.update { insetPadding }
 }
