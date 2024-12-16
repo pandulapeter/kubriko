@@ -17,6 +17,7 @@ internal class WallbreakerAudioManager(
     private val wallbreakerUserPreferencesManager: WallbreakerUserPreferencesManager
 ) : Manager() {
     private var hasStartedMusic = false
+    private val soundUrisToPlay = mutableSetOf<String>()
 
     override fun onInitialize(kubriko: Kubriko) {
         audioPlaybackManager.preloadSound(
@@ -50,6 +51,11 @@ internal class WallbreakerAudioManager(
         }.launchIn(scope)
     }
 
+    override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
+        soundUrisToPlay.forEach { audioPlaybackManager.playSound(Res.getUri(it)) }
+        soundUrisToPlay.clear()
+    }
+
     fun playBrickPopSoundEffect() = playSoundEffect(PATH_SOUND_EFFECT_BRICK_POP)
 
     fun playEdgeBounceSoundEffect() = playSoundEffect(PATH_SOUND_EFFECT_EDGE_BOUNCE)
@@ -62,7 +68,7 @@ internal class WallbreakerAudioManager(
 
     private fun playSoundEffect(uri: String) {
         if (wallbreakerUserPreferencesManager.areSoundEffectsEnabled.value) {
-            audioPlaybackManager.playSound(Res.getUri(uri))
+            soundUrisToPlay.add(uri)
         }
     }
 
