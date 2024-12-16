@@ -1,10 +1,14 @@
 package com.pandulapeter.kubriko.gameWallbreaker
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
@@ -33,26 +37,30 @@ fun WallbreakerGame(
     stateHolder: WallbreakerGameStateHolder = createWallbreakerGameStateHolder(),
 ) {
     stateHolder as WallbreakerGameStateHolderImpl
-    KubrikoViewport(
-        modifier = modifier.background(Color.Black),
-        kubriko = stateHolder.kubriko,
+    Box(
+        modifier = modifier.fillMaxSize().background(Color.Black),
     ) {
-        PauseMenuOverlay(
-            isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value,
-            shouldShowResumeButton = !stateHolder.wallbreakerGameManager.isGameOver.collectAsState().value,
-            onResumeButtonPressed = stateHolder.wallbreakerGameManager::resumeGame,
-            onRestartButtonPressed = stateHolder.wallbreakerGameManager::restartGame,
-            areSoundEffectsEnabled = stateHolder.wallbreakerUserPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
-            onSoundEffectsToggled = stateHolder.wallbreakerUserPreferencesManager::onAreSoundEffectsEnabledChanged,
-            isMusicEnabled = stateHolder.wallbreakerUserPreferencesManager.isMusicEnabled.collectAsState().value,
-            onMusicToggled = stateHolder.wallbreakerUserPreferencesManager::onIsMusicEnabledChanged,
-        )
-        GameOverlay(
-            isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value,
-            score = stateHolder.wallbreakerScoreManager.score.collectAsState().value,
-            highScore = stateHolder.wallbreakerScoreManager.highScore.collectAsState().value,
-            onPauseButtonPressed = stateHolder.wallbreakerGameManager::pauseGame,
-        )
+        KubrikoViewport(
+            modifier = modifier.background(Color.Black).border(width = 2.dp, color = Color.DarkGray),
+            kubriko = stateHolder.kubriko,
+        ) {
+            PauseMenuOverlay(
+                isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value,
+                shouldShowResumeButton = !stateHolder.wallbreakerGameManager.isGameOver.collectAsState().value,
+                onResumeButtonPressed = stateHolder.wallbreakerGameManager::resumeGame,
+                onRestartButtonPressed = stateHolder.wallbreakerGameManager::restartGame,
+                areSoundEffectsEnabled = stateHolder.wallbreakerUserPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
+                onSoundEffectsToggled = stateHolder.wallbreakerUserPreferencesManager::onAreSoundEffectsEnabledChanged,
+                isMusicEnabled = stateHolder.wallbreakerUserPreferencesManager.isMusicEnabled.collectAsState().value,
+                onMusicToggled = stateHolder.wallbreakerUserPreferencesManager::onIsMusicEnabledChanged,
+            )
+            GameOverlay(
+                isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value,
+                score = stateHolder.wallbreakerScoreManager.score.collectAsState().value,
+                highScore = stateHolder.wallbreakerScoreManager.highScore.collectAsState().value,
+                onPauseButtonPressed = stateHolder.wallbreakerGameManager::pauseGame,
+            )
+        }
     }
 }
 
