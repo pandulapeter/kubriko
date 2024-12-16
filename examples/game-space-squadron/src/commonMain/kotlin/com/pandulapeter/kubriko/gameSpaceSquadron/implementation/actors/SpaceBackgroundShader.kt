@@ -2,6 +2,7 @@ package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
+import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shader.Shader
@@ -14,7 +15,7 @@ import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformPr
 internal class SpaceBackgroundShader(
     initialState: State = State(),
     override val layerIndex: Int? = null,
-) : Shader<SpaceBackgroundShader.State>, Dynamic {
+) : Shader<SpaceBackgroundShader.State>, Dynamic, Unique {
     override var state = initialState
         private set
     override val code = CODE

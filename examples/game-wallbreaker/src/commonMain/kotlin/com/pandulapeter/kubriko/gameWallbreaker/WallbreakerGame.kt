@@ -1,19 +1,17 @@
 package com.pandulapeter.kubriko.gameWallbreaker
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
 import com.pandulapeter.kubriko.collision.CollisionManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerAudioManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerBackgroundManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerGameManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerUserPreferencesManager
@@ -37,11 +35,12 @@ fun WallbreakerGame(
     stateHolder: WallbreakerGameStateHolder = createWallbreakerGameStateHolder(),
 ) {
     stateHolder as WallbreakerGameStateHolderImpl
-    Box(
+    KubrikoViewport(
         modifier = modifier.fillMaxSize().background(Color.Black),
+        kubriko = stateHolder.backgroundKubriko,
     ) {
         KubrikoViewport(
-            modifier = modifier.background(Color.Black).border(width = 2.dp, color = Color.DarkGray),
+            modifier = modifier.background(Color.Black),
             kubriko = stateHolder.kubriko,
         ) {
             PauseMenuOverlay(
@@ -75,6 +74,10 @@ private class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
     val wallbreakerScoreManager = WallbreakerScoreManager(persistenceManager)
     val wallbreakerUserPreferencesManager = WallbreakerUserPreferencesManager(persistenceManager)
     val wallbreakerGameManager = WallbreakerGameManager(stateManager)
+    val backgroundKubriko = Kubriko.newInstance(
+        ShaderManager.newInstance(),
+        WallbreakerBackgroundManager(),
+    )
     val kubriko = Kubriko.newInstance(
         stateManager,
         ViewportManager.newInstance(
