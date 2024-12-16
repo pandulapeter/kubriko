@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
+import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.implementation.extensions.clampWithin
@@ -21,11 +22,12 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.collections.immutable.ImmutableSet
 
 internal class Paddle(
     initialPosition: SceneOffset = SceneOffset(0.sceneUnit, 550.sceneUnit),
-) : Visible, Collidable, PointerInputAware, KeyboardInputAware {
+) : Visible, Collidable, PointerInputAware, KeyboardInputAware, Dynamic {
 
     override val body = RectangleBody(
         initialPosition = initialPosition,
@@ -60,30 +62,36 @@ internal class Paddle(
         }
     }
 
+    private var moveInNextStep = SceneUnit.Zero
+
     override fun handleActiveKeys(activeKeys: ImmutableSet<Key>) {
         if (stateManager.isRunning.value) {
             val hasLeft = activeKeys.hasLeft
             val hasRight = activeKeys.hasRight
             if (hasLeft xor hasRight) {
                 if (hasLeft) {
-                    body.position = SceneOffset(
-                        x = body.position.x - Speed,
-                        y = body.position.y,
-                    ).clampWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value)
+                    moveInNextStep = -Speed
                 }
                 if (hasRight) {
-                    body.position = SceneOffset(
-                        x = body.position.x + Speed,
-                        y = body.position.y,
-                    ).clampWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value)
+                    moveInNextStep = Speed
                 }
             }
+        }
+    }
+
+    override fun update(deltaTimeInMillis: Float) {
+        if (moveInNextStep != SceneUnit.Zero) {
+            body.position = SceneOffset(
+                x = body.position.x + moveInNextStep * deltaTimeInMillis,
+                y = body.position.y,
+            ).clampWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value)
+            moveInNextStep= SceneUnit.Zero
         }
     }
 
     companion object {
         val Width = 200.sceneUnit
         val Height = 40.sceneUnit
-        val Speed = 15.sceneUnit
+        val Speed = 2.sceneUnit
     }
 }

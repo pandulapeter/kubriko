@@ -100,7 +100,7 @@ internal class WallbreakerGameManager(
 
     private fun initializeScene() {
         _isGameOver.value = false
-        actorManager.add(listOf(Ball(paddle), this))
+        actorManager.add(listOf(this, Ball(paddle)))
     }
 
     fun pauseGame() = stateManager.updateIsRunning(false)
