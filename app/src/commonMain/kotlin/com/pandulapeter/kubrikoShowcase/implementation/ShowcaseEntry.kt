@@ -24,6 +24,16 @@ internal enum class ShowcaseEntry(
     val titleStringResource: StringResource,
     val subtitleStringResource: StringResource,
 ) {
+    WALLBREAKER(
+        type = ShowcaseEntryType.GAME,
+        titleStringResource = Res.string.game_wallbreaker,
+        subtitleStringResource = Res.string.game_wallbreaker_subtitle,
+    ),
+    SPACE_SQUADRON(
+        type = ShowcaseEntryType.GAME,
+        titleStringResource = Res.string.game_space_squadron,
+        subtitleStringResource = Res.string.game_space_squadron_subtitle,
+    ),
     BUILT_IN_SHADERS(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_built_in_shaders,
@@ -49,25 +59,15 @@ internal enum class ShowcaseEntry(
         titleStringResource = Res.string.demo_physics,
         subtitleStringResource = Res.string.demo_physics_subtitle,
     ),
-    WALLBREAKER(
-        type = ShowcaseEntryType.GAME,
-        titleStringResource = Res.string.game_wallbreaker,
-        subtitleStringResource = Res.string.game_wallbreaker_subtitle,
-    ),
-    SPACE_SQUADRON(
-        type = ShowcaseEntryType.GAME,
-        titleStringResource = Res.string.game_space_squadron,
-        subtitleStringResource = Res.string.game_space_squadron_subtitle,
-    ),
 }
 
 internal enum class ShowcaseEntryType(
     val titleStringResource: StringResource,
 ) {
-    DEMO(
-        titleStringResource = Res.string.demos,
-    ),
     GAME(
         titleStringResource = Res.string.games,
+    ),
+    DEMO(
+        titleStringResource = Res.string.demos,
     ),
 }
