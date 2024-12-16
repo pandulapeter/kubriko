@@ -12,11 +12,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
@@ -37,6 +44,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -44,9 +52,6 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.demoContentShaders.ContentShadersDemo
 import com.pandulapeter.kubriko.demoContentShaders.ContentShadersDemoStateHolder
 import com.pandulapeter.kubriko.demoContentShaders.createContentShadersDemoStateHolder
-import com.pandulapeter.kubriko.demoShaderAnimations.ShaderAnimationsDemo
-import com.pandulapeter.kubriko.demoShaderAnimations.ShaderAnimationsDemoStateHolder
-import com.pandulapeter.kubriko.demoShaderAnimations.createShaderAnimationsDemoStateHolder
 import com.pandulapeter.kubriko.demoInput.InputDemo
 import com.pandulapeter.kubriko.demoInput.InputDemoStateHolder
 import com.pandulapeter.kubriko.demoInput.createInputDemoStateHolder
@@ -56,6 +61,9 @@ import com.pandulapeter.kubriko.demoPerformance.createPerformanceDemoStateHolder
 import com.pandulapeter.kubriko.demoPhysics.PhysicsDemo
 import com.pandulapeter.kubriko.demoPhysics.PhysicsDemoStateHolder
 import com.pandulapeter.kubriko.demoPhysics.createPhysicsDemoStateHolder
+import com.pandulapeter.kubriko.demoShaderAnimations.ShaderAnimationsDemo
+import com.pandulapeter.kubriko.demoShaderAnimations.ShaderAnimationsDemoStateHolder
+import com.pandulapeter.kubriko.demoShaderAnimations.createShaderAnimationsDemoStateHolder
 import com.pandulapeter.kubriko.gameSpaceSquadron.SpaceSquadronGame
 import com.pandulapeter.kubriko.gameSpaceSquadron.SpaceSquadronGameStateHolder
 import com.pandulapeter.kubriko.gameSpaceSquadron.createSpaceSquadronGameStateHolder
@@ -78,14 +86,13 @@ private val currentDemoStateHolders = mutableStateOf(emptyList<ExampleStateHolde
 
 @Composable
 internal fun ShowcaseContent(
-    modifier: Modifier = Modifier,
     shouldUseCompactUi: Boolean,
     allShowcaseEntries: List<ShowcaseEntry>,
     getSelectedShowcaseEntry: () -> ShowcaseEntry?,
     selectedShowcaseEntry: ShowcaseEntry?,
     onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
 ) = Scaffold(
-    modifier = modifier,
+    contentWindowInsets = WindowInsets(0, 0, 0, 0),
     topBar = {
         HeaderWrapper(
             shouldUseCompactUi = shouldUseCompactUi,
@@ -100,33 +107,42 @@ internal fun ShowcaseContent(
     ) {
         @Composable
         fun ShowcaseEntry.content() {
+            val modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right))
             when (this) {
-                ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemo(
-                    stateHolder = getOrCreateState(currentDemoStateHolders, ::createContentShadersDemoStateHolder)
-                )
-
-                ShowcaseEntry.SHADER_ANIMATIONS -> ShaderAnimationsDemo(
-                    stateHolder = getOrCreateState(currentDemoStateHolders, ::createShaderAnimationsDemoStateHolder)
-                )
-
-                ShowcaseEntry.INPUT -> InputDemo(
-                    stateHolder = getOrCreateState(currentDemoStateHolders, ::createInputDemoStateHolder)
-                )
-
-                ShowcaseEntry.PERFORMANCE -> PerformanceDemo(
-                    stateHolder = getOrCreateState(currentDemoStateHolders, ::createPerformanceDemoStateHolder)
-                )
-
-                ShowcaseEntry.PHYSICS -> PhysicsDemo(
-                    stateHolder = getOrCreateState(currentDemoStateHolders, ::createPhysicsDemoStateHolder)
-                )
 
                 ShowcaseEntry.WALLBREAKER -> WallbreakerGame(
-                    stateHolder = getOrCreateState(currentDemoStateHolders, ::createWallbreakerGameStateHolder)
+                    modifier = modifier,
+                    stateHolder = getOrCreateState(currentDemoStateHolders, ::createWallbreakerGameStateHolder),
                 )
 
                 ShowcaseEntry.SPACE_SQUADRON -> SpaceSquadronGame(
-                    stateHolder = getOrCreateState(currentDemoStateHolders, ::createSpaceSquadronGameStateHolder)
+                    modifier = modifier,
+                    stateHolder = getOrCreateState(currentDemoStateHolders, ::createSpaceSquadronGameStateHolder),
+                )
+
+                ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemo(
+                    modifier = modifier,
+                    stateHolder = getOrCreateState(currentDemoStateHolders, ::createContentShadersDemoStateHolder),
+                )
+
+                ShowcaseEntry.INPUT -> InputDemo(
+                    modifier = modifier,
+                    stateHolder = getOrCreateState(currentDemoStateHolders, ::createInputDemoStateHolder),
+                )
+
+                ShowcaseEntry.PERFORMANCE -> PerformanceDemo(
+                    modifier = modifier,
+                    stateHolder = getOrCreateState(currentDemoStateHolders, ::createPerformanceDemoStateHolder),
+                )
+
+                ShowcaseEntry.PHYSICS -> PhysicsDemo(
+                    modifier = modifier,
+                    stateHolder = getOrCreateState(currentDemoStateHolders, ::createPhysicsDemoStateHolder),
+                )
+
+                ShowcaseEntry.SHADER_ANIMATIONS -> ShaderAnimationsDemo(
+                    modifier = modifier,
+                    stateHolder = getOrCreateState(currentDemoStateHolders, ::createShaderAnimationsDemoStateHolder),
                 )
             }
             DisposableEffect(type) {
@@ -149,6 +165,7 @@ internal fun ShowcaseContent(
             ) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
+                    contentPadding = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom).asPaddingValues(),
                     state = lazyListState,
                 ) {
                     item("welcome") {
@@ -176,7 +193,11 @@ internal fun ShowcaseContent(
             Row(
                 modifier = Modifier.fillMaxSize(),
             ) {
-                Spacer(modifier = Modifier.width(200.dp))
+                Spacer(
+                    modifier = Modifier.width(
+                        200.dp + WindowInsets.safeDrawing.only(WindowInsetsSides.Left).asPaddingValues().calculateStartPadding(LocalLayoutDirection.current)
+                    )
+                )
                 Crossfade(
                     modifier = Modifier.weight(1f),
                     targetState = selectedShowcaseEntry,
@@ -188,7 +209,9 @@ internal fun ShowcaseContent(
                 modifier = Modifier.fillMaxSize()
             ) {
                 Surface(
-                    modifier = Modifier.width(200.dp).fillMaxHeight(),
+                    modifier = Modifier.width(
+                        200.dp + WindowInsets.safeDrawing.only(WindowInsetsSides.Left).asPaddingValues().calculateStartPadding(LocalLayoutDirection.current)
+                    ).fillMaxHeight(),
                     tonalElevation = when (isSystemInDarkTheme()) {
                         true -> 4.dp
                         false -> 0.dp
@@ -200,6 +223,7 @@ internal fun ShowcaseContent(
                 ) {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
+                        contentPadding = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom).asPaddingValues(),
                         state = lazyListState,
                     ) {
                         item {
@@ -285,6 +309,7 @@ private fun Header(
     onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
 ) = TopAppBar(
     modifier = modifier,
+    windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top),
     title = {
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -371,6 +396,7 @@ private fun MenuItem(
         .background(
             color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
         )
+        .padding(WindowInsets.safeDrawing.only(WindowInsetsSides.Left).asPaddingValues())
         .padding(
             horizontal = 16.dp,
             vertical = 8.dp,
@@ -398,7 +424,8 @@ private fun MenuCategoryLabel(
         .padding(
             horizontal = 16.dp,
             vertical = 4.dp,
-        ),
+        )
+        .padding(WindowInsets.safeDrawing.only(WindowInsetsSides.Left).asPaddingValues()),
     color = MaterialTheme.colorScheme.primary,
     fontWeight = FontWeight.Bold,
     style = MaterialTheme.typography.labelSmall,

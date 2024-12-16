@@ -36,17 +36,20 @@ internal class EtherShader(
     data class State(
         val time: Float = 0f,
         val speed: Float = 2f,
+        val focus: Float = 2.5f,
     ) : Shader.State {
 
         override fun ShaderUniformProvider.applyUniforms() {
             uniform(TIME, time)
             uniform(SPEED, speed)
+            uniform(FOCUS, focus)
         }
     }
 
     companion object {
         private const val TIME = "time"
         private const val SPEED = "speed"
+        private const val FOCUS = "focus"
         const val CODE = """
 // Credit: nimitz
 // https://www.shadertoy.com/view/MsjSW3
@@ -54,6 +57,7 @@ internal class EtherShader(
 uniform float2 ${Shader.RESOLUTION};
 uniform float $TIME;
 uniform float $SPEED;
+uniform float $FOCUS;
 
 mat2 m(float a) {
     float c = cos(a), s = sin(a);
@@ -70,9 +74,9 @@ float map(vec3 p) {
 }
 
 vec4 main(in vec2 fragCoord) {
-    vec2 p = fragCoord.xy / ${Shader.RESOLUTION}.y - vec2(0.9, 0.5);
+    vec2 p = fragCoord.xy / ${Shader.RESOLUTION}.xy - vec2(0.5, 0.5);
     vec3 cl = vec3(0.0);
-    float d = 2.5;
+    float d = $FOCUS;
 
     for (int i = 0; i <= 5; i++) {
         vec3 pos = vec3(0.0, 0.0, 5.0) + normalize(vec3(p, -1.0)) * d;

@@ -1,5 +1,7 @@
 package com.pandulapeter.kubriko.demoPerformance
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -29,7 +31,7 @@ fun PerformanceDemo(
 ) {
     stateHolder as PerformanceDemoStateHolderImpl
     DebugMenu(
-        contentModifier = modifier,
+        debugMenuModifier = modifier,
         kubriko = stateHolder.kubriko,
     ) {
         KubrikoViewport(
@@ -38,7 +40,11 @@ fun PerformanceDemo(
             LoadingOverlay(
                 shouldShowLoadingIndicator = stateHolder.performanceDemoManager.shouldShowLoadingIndicator.collectAsState().value,
             )
-            PlatformSpecificContent()
+            Box(
+                modifier = modifier.fillMaxSize(),
+            ) {
+                PlatformSpecificContent()
+            }
         }
     }
 }

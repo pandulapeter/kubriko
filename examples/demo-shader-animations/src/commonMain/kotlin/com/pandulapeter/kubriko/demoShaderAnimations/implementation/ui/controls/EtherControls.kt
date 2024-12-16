@@ -15,4 +15,10 @@ internal fun EtherControls(
         onValueChanged = { onEtherShaderStateChanged(etherShaderState.copy(speed = it)) },
         valueRange = 0f..10f,
     )
+    FloatSlider(
+        title = "Focus",
+        value = etherShaderState.focus,
+        onValueChanged = { onEtherShaderStateChanged(etherShaderState.copy(focus = it)) },
+        valueRange = 0f..6.5f,
+    )
 }

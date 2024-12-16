@@ -1,6 +1,7 @@
 package com.pandulapeter.kubriko.gameSpaceSquadron
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,10 +25,11 @@ fun SpaceSquadronGame(
 ) {
     stateHolder as SpaceSquadronGameStateHolderImpl
     KubrikoViewport(
-        modifier = modifier.background(Color.Black),
+        modifier = Modifier.fillMaxSize().background(Color.Black),
         kubriko = stateHolder.backgroundKubriko,
     ) {
         KubrikoViewport(
+            modifier = modifier,
             kubriko = stateHolder.kubriko,
         )
     }

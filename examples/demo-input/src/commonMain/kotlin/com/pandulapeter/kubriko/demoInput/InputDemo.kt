@@ -17,13 +17,12 @@ fun InputDemo(
     stateHolder: InputDemoStateHolder = createInputDemoStateHolder(),
 ) {
     stateHolder as InputDemoStateHolderImpl
+    KubrikoViewport(
+        kubriko = stateHolder.kubriko,
+    )
     Keyboard(
         modifier = modifier,
         activeKeys = stateHolder.inputDemoManager.activeKeys.collectAsState().value,
-    )
-    KubrikoViewport(
-        modifier = modifier,
-        kubriko = stateHolder.kubriko,
     )
 }
 

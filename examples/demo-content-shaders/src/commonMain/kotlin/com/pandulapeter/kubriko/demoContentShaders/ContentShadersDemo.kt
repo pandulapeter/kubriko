@@ -20,7 +20,7 @@ fun ContentShadersDemo(
 ) {
     stateHolder as ContentShadersDemoStateHolderImpl
     KubrikoViewport(
-        modifier = modifier.background(Color.Black),
+        modifier = Modifier.background(Color.Black),
         kubriko = stateHolder.kubriko,
     )
 }

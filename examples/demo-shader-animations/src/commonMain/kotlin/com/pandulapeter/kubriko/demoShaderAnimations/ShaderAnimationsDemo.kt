@@ -43,7 +43,7 @@ fun ShaderAnimationsDemo(
     val selectedDemoType = stateHolder.selectedDemoType.collectAsState().value
     val controlsState = stateHolder.controlsState.collectAsState().value
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
     ) {
         ScrollableTabRow(
             edgePadding = 0.dp,
@@ -72,7 +72,7 @@ fun ShaderAnimationsDemo(
                 )
             }
             ControlsContainer(
-                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                modifier = modifier.align(Alignment.BottomEnd).padding(16.dp),
                 state = selectedDemoType to controlsState,
                 onIsExpandedChanged = stateHolder::onControlsStateChanged,
                 shaderAnimationDemoHolders = stateHolder.shaderAnimationDemoHolders,

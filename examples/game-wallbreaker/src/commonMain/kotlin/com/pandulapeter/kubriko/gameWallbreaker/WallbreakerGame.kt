@@ -36,7 +36,7 @@ fun WallbreakerGame(
 ) {
     stateHolder as WallbreakerGameStateHolderImpl
     KubrikoViewport(
-        modifier = modifier.fillMaxSize().background(Color.Black),
+        modifier = Modifier.fillMaxSize().background(Color.Black),
         kubriko = stateHolder.backgroundKubriko,
     ) {
         KubrikoViewport(
