@@ -13,7 +13,6 @@ internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
     private val audioPlayer by autoInitializingLazy { createAudioPlayer(scope) }
     private var musicUri: String? = null
     private var shouldLoopMusic = false
-    private var soundUrisToPreload = mutableListOf<String>()
 
     override fun onInitialize(kubriko: Kubriko) {
         val stateManager = kubriko.get<StateManager>()
@@ -23,7 +22,6 @@ internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
             }
             musicUri = null
         }
-        audioPlayer.preloadSounds(soundUrisToPreload.distinct())
         stateManager.isFocused
             .onEach { isFocused ->
                 if (!isFocused) {
@@ -53,19 +51,5 @@ internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
         musicUri = null
     }
 
-    override fun preloadSound(vararg uri: String) = preloadSound(uri.toList())
-
-    override fun preloadSound(uris: List<String>) {
-        if (isInitialized) {
-            audioPlayer.preloadSounds(uris)
-        } else {
-            soundUrisToPreload.addAll(uris)
-        }
-    }
-
     override fun playSound(uri: String) = audioPlayer.playSound(uri)
-
-    override fun unloadSound(vararg uri: String) = unloadSound(uri.toList())
-
-    override fun unloadSound(uris: List<String>) = audioPlayer.unloadSounds(uris)
 }

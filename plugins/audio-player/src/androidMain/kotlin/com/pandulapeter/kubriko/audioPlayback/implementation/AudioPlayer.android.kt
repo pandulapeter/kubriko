@@ -20,18 +20,17 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
                 .build()
         )
         .build()
-    private val soundsIds = mutableMapOf<String, Int>()
     private var mediaPlayer: MediaPlayer? = null
 
-    private fun preloadSound(uri: String) {
-        coroutineScope.launch(Dispatchers.IO) {
-            if (soundsIds[uri] == null) {
-                soundsIds[uri] = soundPool.load(context.getFileDescriptor(uri), 1)
+    private fun Context.getFileDescriptor(uri: String) = assets.openFd(uri.removePrefix("file:///android_asset/"))
+
+    init {
+        soundPool.setOnLoadCompleteListener { _, soundId, _ ->
+            coroutineScope.launch(Dispatchers.Default) {
+                soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
             }
         }
     }
-
-    private fun Context.getFileDescriptor(uri: String) = assets.openFd(uri.removePrefix("file:///android_asset/"))
 
     override fun playMusic(uri: String, shouldLoop: Boolean) {
         coroutineScope.launch(Dispatchers.IO) {
@@ -70,38 +69,14 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
         }
     }
 
-    override fun preloadSounds(uris: Collection<String>) = uris.forEach(::preloadSound)
-
     override fun playSound(uri: String) {
-        soundsIds[uri].let { soundId ->
-            if (soundId == null) {
-                soundPool.setOnLoadCompleteListener { _, _, _ ->
-                    soundPool.setOnLoadCompleteListener(null)
-                    playSound(uri)
-                }
-                preloadSound(uri)
-            } else {
-                coroutineScope.launch(Dispatchers.Default) {
-                    soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
-                }
-            }
+        coroutineScope.launch(Dispatchers.IO) {
+            soundPool.load(context.getFileDescriptor(uri), 1)
         }
-    }
-
-    override fun unloadSounds(uris: Collection<String>) = uris.forEach { uri ->
-        soundsIds[uri]?.unload()
-        soundsIds.remove(uri)
     }
 
     override fun dispose() {
         stopMusic()
-        soundsIds.values.forEach { it.unload() }
-        soundsIds.clear()
         soundPool.release()
-    }
-
-    private fun Int.unload() {
-        soundPool.stop(this)
-        soundPool.unload(this)
     }
 }

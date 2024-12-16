@@ -16,15 +16,7 @@ abstract class AudioPlaybackManager : Manager() {
 
     abstract fun stopMusic()
 
-    abstract fun preloadSound(vararg uri: String)
-
-    abstract fun preloadSound(uris: List<String>)
-
     abstract fun playSound(uri: String)
-
-    abstract fun unloadSound(vararg uri: String)
-
-    abstract fun unloadSound(uris: List<String>)
 
     companion object {
         fun newInstance(): AudioPlaybackManager = AudioPlaybackManagerImpl()

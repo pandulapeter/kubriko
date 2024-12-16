@@ -3,24 +3,12 @@ package com.pandulapeter.kubriko.audioPlayback.implementation
 import kotlinx.browser.document
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.w3c.dom.Audio
 import org.w3c.dom.HTMLAudioElement
 
 internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object : AudioPlayer {
-    private val audioElements = mutableMapOf<String, HTMLAudioElement>()
     private var audio: Audio? = null
-
-    private fun preloadSound(uri: String) {
-        coroutineScope.launch(Dispatchers.Default) {
-            if (audioElements[uri] == null) {
-                audioElements[uri] = (document.createElement("audio") as HTMLAudioElement).apply {
-                    src = uri
-                }
-            }
-        }
-    }
 
     override fun playMusic(uri: String, shouldLoop: Boolean) {
         stopMusic()
@@ -56,35 +44,16 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
         }
     }
 
-    override fun preloadSounds(uris: Collection<String>) = uris.forEach(::preloadSound)
-
     override fun playSound(uri: String) {
-        audioElements[uri].let { audioElement ->
-            if (audioElement == null) {
-                coroutineScope.launch(Dispatchers.Default) {
-                    preloadSound(uri)
-                    do {
-                        delay(50)
-                    } while (audioElements[uri] == null)
-                    playSound(uri)
-                }
-            } else {
-                coroutineScope.launch(Dispatchers.Default) {
-                    audioElement.play()
-                }
-            }
+        coroutineScope.launch(Dispatchers.Default) {
+            (document.createElement("audio") as HTMLAudioElement).apply {
+                src = uri
+            }.play()
         }
-    }
-
-    override fun unloadSounds(uris: Collection<String>) = uris.forEach { uri ->
-        audioElements[uri]?.unload()
-        audioElements.remove(uri)
     }
 
     override fun dispose() {
         stopMusic()
-        audioElements.values.forEach { it.unload() }
-        audioElements.clear()
     }
 
     private fun HTMLAudioElement.unload() {

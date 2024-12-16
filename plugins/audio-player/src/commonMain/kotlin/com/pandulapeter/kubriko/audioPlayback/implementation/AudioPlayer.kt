@@ -12,11 +12,7 @@ internal interface AudioPlayer {
 
     fun stopMusic()
 
-    fun preloadSounds(uris: Collection<String>)
-
     fun playSound(uri: String)
-
-    fun unloadSounds(uris: Collection<String>)
 
     fun dispose()
 }
