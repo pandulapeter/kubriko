@@ -23,8 +23,8 @@ import com.pandulapeter.kubriko.demoCustomShaders.implementation.CustomShaderDem
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.DemoHolder
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.CloudShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.EtherShader
-import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.NoodleShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.GradientShader
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.NoodleShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.WarpShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.ControlsContainer
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.ControlsState

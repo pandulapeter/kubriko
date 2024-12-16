@@ -4,19 +4,21 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.CollisionDetector
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerGameManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerAudioManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerGameManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
 import com.pandulapeter.kubriko.implementation.extensions.constrainedWithin
-import com.pandulapeter.kubriko.implementation.extensions.min
 import com.pandulapeter.kubriko.implementation.extensions.get
+import com.pandulapeter.kubriko.implementation.extensions.min
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
+import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
@@ -30,7 +32,7 @@ internal class Ball(
         x = paddle.body.position.x,
         y = paddle.body.position.y - paddle.body.pivot.y - Radius
     ),
-) : Visible, Dynamic, CollisionDetector, PointerInputAware {
+) : Visible, Dynamic, CollisionDetector, PointerInputAware, KeyboardInputAware {
 
     override val collidableTypes = listOf<KClass<out Collidable>>(Brick::class, Paddle::class)
     override val body = CircleBody(
@@ -113,6 +115,13 @@ internal class Ball(
 
     override fun onPointerReleased(screenOffset: Offset) {
         if (stateManager.isRunning.value && state == State.POSITIONING) {
+            state = State.LAUNCHED
+            audioManager.playPaddleHitSoundEffect()
+        }
+    }
+
+    override fun onKeyPressed(key: Key) {
+        if (stateManager.isRunning.value && state != State.GAME_OVER && key == Key.Spacebar) {
             state = State.LAUNCHED
             audioManager.playPaddleHitSoundEffect()
         }

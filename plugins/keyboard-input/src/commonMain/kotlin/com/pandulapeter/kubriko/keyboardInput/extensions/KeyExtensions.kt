@@ -33,25 +33,25 @@ val Set<Key>.zoomState
         else -> KeyboardZoomState.NONE
     }
 
-private val Set<Key>.hasLeft get() = contains(Key.DirectionLeft) || contains(Key.A)
+val Set<Key>.hasLeft get() = contains(Key.DirectionLeft) || contains(Key.A)
 
-private val Set<Key>.hasUpLeft get() = contains(Key.DirectionUpLeft) || (contains(Key.DirectionUp) && contains(Key.DirectionLeft)) || ((contains(Key.W) && contains(Key.A)))
+val Set<Key>.hasUpLeft get() = contains(Key.DirectionUpLeft) || (contains(Key.DirectionUp) && contains(Key.DirectionLeft)) || ((contains(Key.W) && contains(Key.A)))
 
-private val Set<Key>.hasUp get() = contains(Key.DirectionUp) || contains(Key.W)
+val Set<Key>.hasUp get() = contains(Key.DirectionUp) || contains(Key.W)
 
-private val Set<Key>.hasUpRight get() = contains(Key.DirectionUpRight) || (contains(Key.DirectionUp) && contains(Key.DirectionRight)) || ((contains(Key.W) && contains(Key.D)))
+val Set<Key>.hasUpRight get() = contains(Key.DirectionUpRight) || (contains(Key.DirectionUp) && contains(Key.DirectionRight)) || ((contains(Key.W) && contains(Key.D)))
 
-private val Set<Key>.hasRight get() = contains(Key.DirectionRight) || contains(Key.D)
+val Set<Key>.hasRight get() = contains(Key.DirectionRight) || contains(Key.D)
 
-private val Set<Key>.hasDownRight get() = contains(Key.DirectionDownRight) || (contains(Key.DirectionDown) && contains(Key.DirectionRight)) || ((contains(Key.S) && contains(Key.D)))
+val Set<Key>.hasDownRight get() = contains(Key.DirectionDownRight) || (contains(Key.DirectionDown) && contains(Key.DirectionRight)) || ((contains(Key.S) && contains(Key.D)))
 
-private val Set<Key>.hasDown get() = contains(Key.DirectionDown) || contains(Key.S)
+val Set<Key>.hasDown get() = contains(Key.DirectionDown) || contains(Key.S)
 
-private val Set<Key>.hasDownLeft get() = contains(Key.DirectionDownLeft) || (contains(Key.DirectionDown) && contains(Key.DirectionLeft)) || ((contains(Key.S) && contains(Key.A)))
+val Set<Key>.hasDownLeft get() = contains(Key.DirectionDownLeft) || (contains(Key.DirectionDown) && contains(Key.DirectionLeft)) || ((contains(Key.S) && contains(Key.A)))
 
-private val Set<Key>.hasZoomIn get() = contains(Key.Plus) || contains(Key.Equals) || contains(Key.NumPadAdd) || contains(Key.ZoomIn)
+val Set<Key>.hasZoomIn get() = contains(Key.Plus) || contains(Key.Equals) || contains(Key.NumPadAdd) || contains(Key.ZoomIn)
 
-private val Set<Key>.hasZoomOut get() = contains(Key.Minus) || contains(Key.NumPadSubtract) || contains(Key.ZoomOut)
+val Set<Key>.hasZoomOut get() = contains(Key.Minus) || contains(Key.NumPadSubtract) || contains(Key.ZoomOut)
 
 // TODO
 val Key.displayName
