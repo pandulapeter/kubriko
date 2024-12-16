@@ -11,13 +11,13 @@
     <string name="welcome_subtitle">A short introduction and general overview</string>
     <string name="welcome_message">Welcome!\n\nThis is the Showcase app for the Kubriko game engine.</string>
 
-    <!-- Built-in Shaders -->
-    <string name="demo_built_in_shaders">Built-in Shaders</string>
-    <string name="demo_built_in_shaders_subtitle">Playground for testing the built-in content shaders</string>
+    <!-- Content Shaders -->
+    <string name="demo_content_shaders">Content Shaders</string>
+    <string name="demo_content_shaders_subtitle">Playground for testing various shader effects</string>
 
-    <!-- Custom Shaders -->
-    <string name="demo_custom_shaders">Custom shaders</string>
-    <string name="demo_custom_shaders_subtitle">Examples for fullscreen shader effects</string>
+    <!-- Shader Animations -->
+    <string name="demo_shader_animations">Shader Animations</string>
+    <string name="demo_shader_animations_subtitle">Examples for SGSL shaders overlays</string>
 
     <!-- Input -->
     <string name="demo_input">Input</string>

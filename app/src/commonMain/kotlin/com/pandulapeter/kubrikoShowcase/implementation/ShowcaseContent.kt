@@ -40,12 +40,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.demoBuiltInShaders.BuiltInShadersDemo
-import com.pandulapeter.kubriko.demoBuiltInShaders.BuiltInShadersDemoStateHolder
-import com.pandulapeter.kubriko.demoBuiltInShaders.createBuiltInShadersDemoStateHolder
-import com.pandulapeter.kubriko.demoCustomShaders.CustomShadersDemo
-import com.pandulapeter.kubriko.demoCustomShaders.CustomShadersDemoStateHolder
-import com.pandulapeter.kubriko.demoCustomShaders.createCustomShadersDemoStateHolder
+import com.pandulapeter.kubriko.demoContentShaders.ContentShadersDemo
+import com.pandulapeter.kubriko.demoContentShaders.ContentShadersDemoStateHolder
+import com.pandulapeter.kubriko.demoContentShaders.createContentShadersDemoStateHolder
+import com.pandulapeter.kubriko.demoShaderAnimations.ShaderAnimationsDemo
+import com.pandulapeter.kubriko.demoShaderAnimations.ShaderAnimationsDemoStateHolder
+import com.pandulapeter.kubriko.demoShaderAnimations.createShaderAnimationsDemoStateHolder
 import com.pandulapeter.kubriko.demoInput.InputDemo
 import com.pandulapeter.kubriko.demoInput.InputDemoStateHolder
 import com.pandulapeter.kubriko.demoInput.createInputDemoStateHolder
@@ -100,12 +100,12 @@ internal fun ShowcaseContent(
         @Composable
         fun ShowcaseEntry.content() {
             when (this) {
-                ShowcaseEntry.BUILT_IN_SHADERS -> BuiltInShadersDemo(
-                    stateHolder = getOrCreateState(currentDemoStateHolders, ::createBuiltInShadersDemoStateHolder)
+                ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemo(
+                    stateHolder = getOrCreateState(currentDemoStateHolders, ::createContentShadersDemoStateHolder)
                 )
 
-                ShowcaseEntry.CUSTOM_SHADERS -> CustomShadersDemo(
-                    stateHolder = getOrCreateState(currentDemoStateHolders, ::createCustomShadersDemoStateHolder)
+                ShowcaseEntry.SHADER_ANIMATIONS -> ShaderAnimationsDemo(
+                    stateHolder = getOrCreateState(currentDemoStateHolders, ::createShaderAnimationsDemoStateHolder)
                 )
 
                 ShowcaseEntry.INPUT -> InputDemo(
@@ -228,8 +228,8 @@ private inline fun <reified T : ExampleStateHolder> getOrCreateState(
 
 private val ShowcaseEntry.stateHolderType
     get() = when (this) {
-        ShowcaseEntry.BUILT_IN_SHADERS -> BuiltInShadersDemoStateHolder::class
-        ShowcaseEntry.CUSTOM_SHADERS -> CustomShadersDemoStateHolder::class
+        ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemoStateHolder::class
+        ShowcaseEntry.SHADER_ANIMATIONS -> ShaderAnimationsDemoStateHolder::class
         ShowcaseEntry.INPUT -> InputDemoStateHolder::class
         ShowcaseEntry.PERFORMANCE -> PerformanceDemoStateHolder::class
         ShowcaseEntry.PHYSICS -> PhysicsDemoStateHolder::class

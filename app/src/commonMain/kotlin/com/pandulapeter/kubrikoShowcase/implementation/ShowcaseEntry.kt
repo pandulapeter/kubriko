@@ -1,10 +1,10 @@
 package com.pandulapeter.kubrikoShowcase.implementation
 
 import kubriko.app.generated.resources.Res
-import kubriko.app.generated.resources.demo_built_in_shaders
-import kubriko.app.generated.resources.demo_built_in_shaders_subtitle
-import kubriko.app.generated.resources.demo_custom_shaders
-import kubriko.app.generated.resources.demo_custom_shaders_subtitle
+import kubriko.app.generated.resources.demo_content_shaders
+import kubriko.app.generated.resources.demo_content_shaders_subtitle
+import kubriko.app.generated.resources.demo_shader_animations
+import kubriko.app.generated.resources.demo_shader_animations_subtitle
 import kubriko.app.generated.resources.demo_input
 import kubriko.app.generated.resources.demo_input_subtitle
 import kubriko.app.generated.resources.demo_performance
@@ -34,15 +34,10 @@ internal enum class ShowcaseEntry(
         titleStringResource = Res.string.game_space_squadron,
         subtitleStringResource = Res.string.game_space_squadron_subtitle,
     ),
-    BUILT_IN_SHADERS(
+    CONTENT_SHADERS(
         type = ShowcaseEntryType.DEMO,
-        titleStringResource = Res.string.demo_built_in_shaders,
-        subtitleStringResource = Res.string.demo_built_in_shaders_subtitle,
-    ),
-    CUSTOM_SHADERS(
-        type = ShowcaseEntryType.DEMO,
-        titleStringResource = Res.string.demo_custom_shaders,
-        subtitleStringResource = Res.string.demo_custom_shaders_subtitle,
+        titleStringResource = Res.string.demo_content_shaders,
+        subtitleStringResource = Res.string.demo_content_shaders_subtitle,
     ),
     INPUT(
         type = ShowcaseEntryType.DEMO,
@@ -58,6 +53,11 @@ internal enum class ShowcaseEntry(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_physics,
         subtitleStringResource = Res.string.demo_physics_subtitle,
+    ),
+    SHADER_ANIMATIONS(
+        type = ShowcaseEntryType.DEMO,
+        titleStringResource = Res.string.demo_shader_animations,
+        subtitleStringResource = Res.string.demo_shader_animations_subtitle,
     ),
 }
 

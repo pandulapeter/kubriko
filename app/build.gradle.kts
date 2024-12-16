@@ -7,11 +7,11 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.examples.demoBuiltInShaders)
-            implementation(projects.examples.demoCustomShaders)
+            implementation(projects.examples.demoContentShaders)
             implementation(projects.examples.demoInput)
             implementation(projects.examples.demoPerformance)
             implementation(projects.examples.demoPhysics)
+            implementation(projects.examples.demoShaderAnimations)
             implementation(projects.examples.gameSpaceSquadron)
             implementation(projects.examples.gameWallbreaker)
             implementation(compose.components.resources)

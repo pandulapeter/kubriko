@@ -18,11 +18,11 @@ dependencyResolutionManagement {
 include(
     ":app",
     ":engine",
-    ":examples:demo-built-in-shaders",
-    ":examples:demo-custom-shaders",
+    ":examples:demo-content-shaders",
     ":examples:demo-input",
     ":examples:demo-performance",
     ":examples:demo-physics",
+    ":examples:demo-shader-animations",
     ":examples:game-space-squadron",
     ":examples:game-wallbreaker",
     ":examples:shared",
