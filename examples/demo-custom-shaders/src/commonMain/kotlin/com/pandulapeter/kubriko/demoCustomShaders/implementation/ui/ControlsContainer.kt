@@ -6,6 +6,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -117,6 +118,7 @@ private fun Code(
 ) = Text(
     modifier = Modifier
         .verticalScroll(rememberScrollState())
+        .horizontalScroll(rememberScrollState())
         .padding(
             horizontal = 16.dp,
             vertical = 8.dp,

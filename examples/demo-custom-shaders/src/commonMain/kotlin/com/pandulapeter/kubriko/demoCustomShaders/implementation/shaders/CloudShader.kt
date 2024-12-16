@@ -115,7 +115,8 @@ float noise(in float2 p) {
     float2 b = a - o + K2;
     float2 c = a - 1.0 + 2.0*K2;
     float3 h = max(0.5-float3(dot(a,a), dot(b,b), dot(c,c) ), 0.0 );
-    float3 n = h*h*h*h*float3( dot(a,hash(i+0.0)), dot(b,hash(i+o)), dot(c,hash(i+1.0)));
+    float3 dotH = float3(dot(a,hash(i+0.0)), dot(b,hash(i+o)), dot(c,hash(i+1.0)));
+    float3 n = h * h * h * h * dotH;
     return dot(n, float3(70.0));	
 }
 
@@ -177,11 +178,14 @@ half4 main(in float2 fragCoord) {
         weight *= 0.6;
     }
     c += c1;
-    float3 skyColor = mix(float3($SKY_1_RED, $SKY_1_GREEN, $SKY_1_BLUE), float3($SKY_2_RED, $SKY_2_GREEN, $SKY_2_BLUE), p.y);
+    float3 skyColor1 = float3($SKY_1_RED, $SKY_1_GREEN, $SKY_1_BLUE);
+    float3 skyColor2 = float3($SKY_2_RED, $SKY_2_GREEN, $SKY_2_BLUE);
+    float3 skyColor = mix(skyColor1, skyColor2, p.y);
     float3 cloudColor = float3(1.1, 1.1, 0.9) * clamp(($DARK + $LIGHT*c), 0.0, 1.0);
     f = $COVER + $ALPHA*f*r;
-    float3 result = mix(skyColor, clamp(0.5 * skyColor + cloudColor, 0.0, 1.0), clamp(f + c, 0.0, 1.0));
-    return float4( result, 1.0 );
+    float3 mergedCloudColor = clamp(0.5 * skyColor + cloudColor, 0.0, 1.0);
+    float3 result = mix(skyColor, mergedCloudColor, clamp(f + c, 0.0, 1.0));
+    return float4(result, 1.0);
 }
 """
     }
