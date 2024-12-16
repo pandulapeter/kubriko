@@ -23,7 +23,7 @@ import com.pandulapeter.kubriko.demoCustomShaders.implementation.CustomShaderDem
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.DemoHolder
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.CloudShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.EtherShader
-import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.FractalShader
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.NoodleShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.GradientShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.WarpShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.ControlsContainer
@@ -89,7 +89,7 @@ internal class CustomShadersDemoStateHolderImpl : CustomShadersDemoStateHolder {
     val demoHolders = CustomShaderDemoType.entries.associateWith {
         when (it) {
             CustomShaderDemoType.GRADIENT -> DemoHolder(GradientShader()) { shader, state -> shader.updateState(state) }
-            CustomShaderDemoType.FRACTAL -> DemoHolder(FractalShader()) { shader, state -> shader.updateState(state) }
+            CustomShaderDemoType.NOODLE -> DemoHolder(NoodleShader()) { shader, state -> shader.updateState(state) }
             CustomShaderDemoType.ETHER -> DemoHolder(EtherShader()) { shader, state -> shader.updateState(state) }
             CustomShaderDemoType.CLOUD -> DemoHolder(CloudShader()) { shader, state -> shader.updateState(state) }
             CustomShaderDemoType.WARP -> DemoHolder(WarpShader()) { shader, state -> shader.updateState(state) }

@@ -13,11 +13,11 @@
 
     <!-- Built-in Shaders -->
     <string name="demo_built_in_shaders">Built-in Shaders</string>
-    <string name="demo_built_in_shaders_subtitle">Playground for testing the built-in shader effects</string>
+    <string name="demo_built_in_shaders_subtitle">Playground for testing the built-in content shaders</string>
 
     <!-- Custom Shaders -->
     <string name="demo_custom_shaders">Custom shaders</string>
-    <string name="demo_custom_shaders_subtitle">Examples for fullscreen shader animations</string>
+    <string name="demo_custom_shaders_subtitle">Examples for fullscreen shader effects</string>
 
     <!-- Input -->
     <string name="demo_input">Input</string>
@@ -33,7 +33,7 @@
 
     <!-- Wallbreaker -->
     <string name="game_wallbreaker">Wallbreaker</string>
-    <string name="game_wallbreaker_subtitle">Break bricks with a bouncing ball and paddle</string>
+    <string name="game_wallbreaker_subtitle">Break bricks with a bouncing ball and a paddle</string>
 
     <!-- Space Squadron -->
     <string name="game_space_squadron">Space Squadron</string>

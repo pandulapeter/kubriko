@@ -11,10 +11,10 @@ import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformPr
  * Credit: Yutaka Sato
  * https://x.com/notargs/status/1250468645030858753
  */
-internal class FractalShader(
+internal class NoodleShader(
     initialState: State = State(),
     override val layerIndex: Int? = null,
-) : Shader<FractalShader.State>, Dynamic {
+) : Shader<NoodleShader.State>, Dynamic {
     override var state = initialState
         private set
     override val cache = Shader.Cache()

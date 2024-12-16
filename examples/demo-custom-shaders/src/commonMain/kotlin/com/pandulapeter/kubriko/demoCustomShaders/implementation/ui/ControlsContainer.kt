@@ -35,12 +35,12 @@ import com.pandulapeter.kubriko.demoCustomShaders.implementation.CustomShadersDe
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.DemoHolder
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.CloudShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.EtherShader
-import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.FractalShader
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.NoodleShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.GradientShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.WarpShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.CloudControls
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.EtherControls
-import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.FractalControls
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.NoodleControls
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.GradientControls
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.WarpControls
 import com.pandulapeter.kubriko.shared.ui.FloatingButton
@@ -130,7 +130,7 @@ private fun Code(
     ),
     text = when (demoType) {
         CustomShaderDemoType.GRADIENT -> GradientShader.CODE
-        CustomShaderDemoType.FRACTAL -> FractalShader.CODE
+        CustomShaderDemoType.NOODLE -> NoodleShader.CODE
         CustomShaderDemoType.ETHER -> EtherShader.CODE
         CustomShaderDemoType.CLOUD -> CloudShader.CODE
         CustomShaderDemoType.WARP -> WarpShader.CODE
@@ -161,19 +161,19 @@ private fun Controls(
             )
         }
 
-        CustomShaderDemoType.FRACTAL -> {
-            manager as CustomShadersDemoManager<FractalShader, FractalShader.State>
-            FractalControls(
-                fractalShaderState = manager.shaderState.collectAsState().value,
-                onFractalShaderStateChanged = manager::setState,
-            )
-        }
-
         CustomShaderDemoType.ETHER -> {
             manager as CustomShadersDemoManager<EtherShader, EtherShader.State>
             EtherControls(
                 etherShaderState = manager.shaderState.collectAsState().value,
                 onEtherShaderStateChanged = manager::setState,
+            )
+        }
+
+        CustomShaderDemoType.NOODLE -> {
+            manager as CustomShadersDemoManager<NoodleShader, NoodleShader.State>
+            NoodleControls(
+                noodleShaderState = manager.shaderState.collectAsState().value,
+                onNoodleShaderStateChanged = manager::setState,
             )
         }
 
