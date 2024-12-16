@@ -1,11 +1,14 @@
 package com.pandulapeter.kubriko.shared.ui
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,10 +23,11 @@ import org.jetbrains.compose.resources.stringResource
 fun LargeButton(
     modifier: Modifier = Modifier,
     title: StringResource,
-    icon: DrawableResource,
+    icon: DrawableResource? = null,
     onButtonPressed: () -> Unit,
 ) = FloatingActionButton(
     modifier = modifier.height(40.dp),
+    containerColor = if (isSystemInDarkTheme()) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary,
     onClick = onButtonPressed,
 ) {
     Row(
@@ -31,12 +35,14 @@ fun LargeButton(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            painter = painterResource(icon),
-            contentDescription = stringResource(title),
-        )
+        icon?.let {
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = stringResource(title),
+            )
+        }
         Text(
-            modifier = Modifier.padding(end = 4.dp),
+            modifier = Modifier.padding(end = 8.dp, start = if (icon == null) 8.dp else 0.dp),
             text = stringResource(title),
         )
     }

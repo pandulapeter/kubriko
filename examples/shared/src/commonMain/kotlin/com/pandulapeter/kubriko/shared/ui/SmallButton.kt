@@ -1,8 +1,11 @@
 package com.pandulapeter.kubriko.shared.ui
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -19,6 +22,7 @@ fun SmallButton(
     contentDescription: StringResource?,
 ) = FloatingActionButton(
     modifier = modifier.size(40.dp),
+    containerColor = if (isSystemInDarkTheme()) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary,
     onClick = onButtonPressed,
 ) {
     Icon(

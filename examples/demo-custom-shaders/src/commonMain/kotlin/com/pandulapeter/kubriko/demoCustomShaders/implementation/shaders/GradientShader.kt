@@ -48,7 +48,7 @@ internal class GradientShader(
         private const val TIME = "time"
         private const val SPEED = "speed"
         private const val DARK = "dark"
-        private const val FREQUENCY = "stg"
+        private const val FREQUENCY = "frequency"
         const val CODE = """
 uniform float2 ${Shader.RESOLUTION};
 uniform float $TIME;
@@ -58,8 +58,8 @@ uniform float $FREQUENCY;
 
 float4 main(float2 fragCoord) {
     float2 uv = fragCoord/${Shader.RESOLUTION}.xy;
-    float3 col = (1.0 - $DARK) + $DARK * sin($TIME*$SPEED+uv.xxx*$FREQUENCY+float3(1,2,4));
-    return float4(col,1.0);
+    float3 color = (1.0 - $DARK) + $DARK * sin($TIME * $SPEED + uv.xxx * $FREQUENCY + float3(1,2,4));
+    return float4(color, 1.0);
 }
 """
     }

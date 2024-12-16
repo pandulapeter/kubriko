@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -99,7 +100,11 @@ fun DebugMenu(
         ) {
             FloatingActionButton(
                 modifier = Modifier.size(40.dp).align(Alignment.TopStart),
-                containerColor = MaterialTheme.colorScheme.primary,
+                containerColor = if (isSystemInDarkTheme()) {
+                    if (isDebugMenuVisible.value) MaterialTheme.colorScheme.primary else FloatingActionButtonDefaults.containerColor
+                } else {
+                    if (isDebugMenuVisible.value) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary
+                },
                 onClick = { isDebugMenuVisible.value = !isDebugMenuVisible.value },
             ) {
                 Icon(
