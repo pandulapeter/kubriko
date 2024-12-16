@@ -87,13 +87,13 @@ fun createCustomShadersDemoStateHolder(): CustomShadersDemoStateHolder = CustomS
 internal class CustomShadersDemoStateHolderImpl : CustomShadersDemoStateHolder {
     val demoHolders = CustomShaderDemoType.entries.associateWith {
         when (it) {
+            CustomShaderDemoType.GRADIENT -> DemoHolder(GradientShader()) { shader, state -> shader.updateState(state) }
             CustomShaderDemoType.FRACTAL -> DemoHolder(FractalShader()) { shader, state -> shader.updateState(state) }
             CustomShaderDemoType.CLOUD -> DemoHolder(CloudShader()) { shader, state -> shader.updateState(state) }
             CustomShaderDemoType.WARP -> DemoHolder(WarpShader()) { shader, state -> shader.updateState(state) }
-            CustomShaderDemoType.GRADIENT -> DemoHolder(GradientShader()) { shader, state -> shader.updateState(state) }
         }
     }.toPersistentMap()
-    private val _selectedDemoType = MutableStateFlow(CustomShaderDemoType.FRACTAL)
+    private val _selectedDemoType = MutableStateFlow(CustomShaderDemoType.entries.first())
     val selectedDemoType = _selectedDemoType.asStateFlow()
     private val _controlsState = MutableStateFlow(ControlsState.COLLAPSED)
     val controlsState = _controlsState.asStateFlow()

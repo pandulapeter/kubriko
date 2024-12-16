@@ -9,18 +9,7 @@ data class SmoothPixelationShader(
     override val layerIndex: Int? = null,
 ) : ContentShader<SmoothPixelationShader.State> {
     override val cache = Shader.Cache()
-    override val code = """
-    uniform float2 ${Shader.RESOLUTION};
-    uniform shader ${ContentShader.CONTENT}; 
-    uniform float $PIXEL_SIZE;
-
-    vec4 main(vec2 fragCoord) {
-        vec2 uv = fragCoord.xy / ${Shader.RESOLUTION}.xy;
-        float factor = (abs(sin(${Shader.RESOLUTION}.y * (uv.y - 0.5) / $PIXEL_SIZE)) + abs(sin(${Shader.RESOLUTION}.x * (uv.x - 0.5) / $PIXEL_SIZE))) / 2.0;
-        half4 color = ${ContentShader.CONTENT}.eval(fragCoord);
-        return half4(factor * color.rgb, color.a); 
-    }
-""".trimIndent()
+    override val code = CODE
 
     data class State(
         val pixelSize: Float = 2f,
@@ -33,5 +22,17 @@ data class SmoothPixelationShader(
 
     companion object {
         private const val PIXEL_SIZE = "pixelSize"
+        private const val CODE = """
+uniform float2 ${Shader.RESOLUTION};
+uniform shader ${ContentShader.CONTENT}; 
+uniform float $PIXEL_SIZE;
+
+vec4 main(vec2 fragCoord) {
+    vec2 uv = fragCoord.xy / ${Shader.RESOLUTION}.xy;
+    float factor = (abs(sin(${Shader.RESOLUTION}.y * (uv.y - 0.5) / $PIXEL_SIZE)) + abs(sin(${Shader.RESOLUTION}.x * (uv.x - 0.5) / $PIXEL_SIZE))) / 2.0;
+    half4 color = ${ContentShader.CONTENT}.eval(fragCoord);
+    return half4(factor * color.rgb, color.a); 
+}
+"""
     }
 }

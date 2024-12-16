@@ -10,8 +10,8 @@ import org.jetbrains.compose.resources.StringResource
 internal enum class CustomShaderDemoType(
     val nameStringResource: StringResource,
 ) {
+    GRADIENT(nameStringResource = Res.string.gradient),
     FRACTAL(nameStringResource = Res.string.fractal),
     CLOUD(nameStringResource = Res.string.clouds),
     WARP(nameStringResource = Res.string.warp),
-    GRADIENT(nameStringResource = Res.string.gradient),
 }

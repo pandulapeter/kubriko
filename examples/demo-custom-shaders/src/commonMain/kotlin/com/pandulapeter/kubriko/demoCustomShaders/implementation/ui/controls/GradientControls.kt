@@ -16,7 +16,7 @@ internal fun GradientControls(
         valueRange = 0f..8f,
     )
     FloatSlider(
-        title = "Satur",
+        title = "Dark",
         value = gradientShaderState.dark,
         onValueChanged = { onGradientShaderStateChanged(gradientShaderState.copy(dark = it)) },
         valueRange = 0f..0.5f,

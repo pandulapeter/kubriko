@@ -14,7 +14,7 @@ internal actual fun <T : Shader.State> shader(
     size: Size,
 ): RenderEffect? {
     val runtimeShaderBuilder =
-        (shader.cache.runtimeShader as? RuntimeShaderBuilder) ?: RuntimeShaderBuilder(RuntimeEffect.makeForShader(shader.code)).also { shader.cache.runtimeShader = it }
+        (shader.cache.runtimeShader as? RuntimeShaderBuilder) ?: RuntimeShaderBuilder(RuntimeEffect.makeForShader(shader.code.trimIndent())).also { shader.cache.runtimeShader = it }
     val shaderUniformProvider =
         (shader.cache.uniformProvider as? ShaderUniformProviderImpl) ?: ShaderUniformProviderImpl(runtimeShaderBuilder).also { shader.cache.uniformProvider = it }
     return (if (shader is ContentShader<*>) ImageFilter.makeRuntimeShader(

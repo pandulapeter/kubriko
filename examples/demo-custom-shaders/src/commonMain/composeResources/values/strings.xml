@@ -4,9 +4,9 @@
     <string name="collapse_controls">Collapse controls</string>
     <string name="show_code">Show code</string>
     <string name="hide_code">Hide code</string>
-    <string name="clouds">Clouds</string>
-    <string name="fractal">Fractal</string>
-    <string name="warp">Warp</string>
     <string name="gradient">Gradient</string>
+    <string name="fractal">Fractal</string>
+    <string name="clouds">Clouds</string>
+    <string name="warp">Warp</string>
 
 </resources>

@@ -14,7 +14,7 @@ internal class GradientShader(
     override var state = initialState
         private set
     override val cache = Shader.Cache()
-    override val code = CODE.trimIndent()
+    override val code = CODE
     private lateinit var metadataManager: MetadataManager
 
     override fun onAdded(kubriko: Kubriko) {
