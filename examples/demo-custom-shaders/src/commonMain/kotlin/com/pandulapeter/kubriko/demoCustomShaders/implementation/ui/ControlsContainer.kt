@@ -34,10 +34,12 @@ import com.pandulapeter.kubriko.demoCustomShaders.implementation.CustomShaderDem
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.CustomShadersDemoManager
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.DemoHolder
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.CloudShader
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.EtherShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.FractalShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.GradientShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.shaders.WarpShader
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.CloudControls
+import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.EtherControls
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.FractalControls
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.GradientControls
 import com.pandulapeter.kubriko.demoCustomShaders.implementation.ui.controls.WarpControls
@@ -121,17 +123,17 @@ private fun Code(
         .horizontalScroll(rememberScrollState())
         .padding(
             horizontal = 16.dp,
-            vertical = 8.dp,
         ),
     style = MaterialTheme.typography.labelSmall.copy(
         fontWeight = FontWeight.Light,
         fontFamily = FontFamily.Monospace,
     ),
     text = when (demoType) {
+        CustomShaderDemoType.GRADIENT -> GradientShader.CODE
         CustomShaderDemoType.FRACTAL -> FractalShader.CODE
+        CustomShaderDemoType.ETHER -> EtherShader.CODE
         CustomShaderDemoType.CLOUD -> CloudShader.CODE
         CustomShaderDemoType.WARP -> WarpShader.CODE
-        CustomShaderDemoType.GRADIENT -> GradientShader.CODE
     }
 )
 
@@ -151,11 +153,27 @@ private fun Controls(
 ) {
     @file:Suppress("UNCHECKED_CAST")
     when (demoType) {
+        CustomShaderDemoType.GRADIENT -> {
+            manager as CustomShadersDemoManager<GradientShader, GradientShader.State>
+            GradientControls(
+                gradientShaderState = manager.shaderState.collectAsState().value,
+                onGradientShaderStateChanged = manager::setState,
+            )
+        }
+
         CustomShaderDemoType.FRACTAL -> {
             manager as CustomShadersDemoManager<FractalShader, FractalShader.State>
             FractalControls(
                 fractalShaderState = manager.shaderState.collectAsState().value,
                 onFractalShaderStateChanged = manager::setState,
+            )
+        }
+
+        CustomShaderDemoType.ETHER -> {
+            manager as CustomShadersDemoManager<EtherShader, EtherShader.State>
+            EtherControls(
+                etherShaderState = manager.shaderState.collectAsState().value,
+                onEtherShaderStateChanged = manager::setState,
             )
         }
 
@@ -172,14 +190,6 @@ private fun Controls(
             WarpControls(
                 warpShaderState = manager.shaderState.collectAsState().value,
                 onWarpShaderStateChanged = manager::setState,
-            )
-        }
-
-        CustomShaderDemoType.GRADIENT -> {
-            manager as CustomShadersDemoManager<GradientShader, GradientShader.State>
-            GradientControls(
-                gradientShaderState = manager.shaderState.collectAsState().value,
-                onGradientShaderStateChanged = manager::setState,
             )
         }
     }
