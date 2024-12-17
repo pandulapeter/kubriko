@@ -58,7 +58,7 @@ uniform float $FREQUENCY;
 
 float4 main(float2 fragCoord) {
     float2 uv = fragCoord/${Shader.RESOLUTION}.xy;
-    float3 color = (1.0 - $DARK) + $DARK * sin($TIME * $SPEED + uv.xxx * $FREQUENCY + float3(1,2,4));
+    float3 color = (1.0 - $DARK) + $DARK * sin($TIME * $SPEED + uv.xyx * $FREQUENCY + float3(1,2,4));
     return float4(color, 1.0);
 }
 """
