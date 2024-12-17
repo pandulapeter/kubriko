@@ -1,9 +1,7 @@
 package com.pandulapeter.kubriko.gameWallbreaker
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -20,6 +18,7 @@ import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.Wallbrea
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.GameOverlay
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.PauseMenuBackground
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.PauseMenuOverlay
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerTheme
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.StateManager
@@ -36,7 +35,7 @@ import com.pandulapeter.kubriko.shared.ExampleStateHolder
 fun WallbreakerGame(
     modifier: Modifier = Modifier,
     stateHolder: WallbreakerGameStateHolder = createWallbreakerGameStateHolder(),
-) {
+) = WallbreakerTheme {
     stateHolder as WallbreakerGameStateHolderImpl
     val isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value
     KubrikoViewport(
@@ -71,6 +70,7 @@ fun WallbreakerGame(
         )
     }
 }
+
 
 sealed interface WallbreakerGameStateHolder : ExampleStateHolder
 

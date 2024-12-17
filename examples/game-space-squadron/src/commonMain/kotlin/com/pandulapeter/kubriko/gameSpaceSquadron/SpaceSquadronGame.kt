@@ -14,6 +14,7 @@ import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.collision.CollisionManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.SpaceSquadronBackgroundManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.SpaceSquadronGameManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.SpaceSquadronTheme
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.StateManager
@@ -30,7 +31,7 @@ fun SpaceSquadronGame(
     modifier: Modifier = Modifier,
     stateHolder: SpaceSquadronGameStateHolder = createSpaceSquadronGameStateHolder(),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
-) {
+) = SpaceSquadronTheme {
     stateHolder as SpaceSquadronGameStateHolderImpl
     KubrikoViewport(
         modifier = Modifier.fillMaxSize().background(Color.Black),
