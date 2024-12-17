@@ -17,6 +17,9 @@ import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.demoPhysics.implementation.ActionType
 import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoManager
 import com.pandulapeter.kubriko.demoPhysics.implementation.PlatformSpecificContent
+import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicBox
+import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicChain
+import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicCircle
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticBox
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticCircle
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticPolygon
@@ -126,6 +129,21 @@ internal class PhysicsDemoStateHolderImpl : PhysicsDemoStateHolder {
                     )
                 )
             },
+        ),
+        EditableMetadata(
+            typeId = "dynamicBox",
+            deserializeState = { serializedState -> json.decodeFromString<DynamicBox.State>(serializedState) },
+            instantiate = { DynamicBox.State(body = RectangleBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit))) },
+        ),
+        EditableMetadata(
+            typeId = "dynamicChain",
+            deserializeState = { serializedState -> json.decodeFromString<DynamicChain.State>(serializedState) },
+            instantiate = { DynamicChain.State(linkCount = 20, initialCenterOffset = it) },
+        ),
+        EditableMetadata(
+            typeId = "dynamicCircle",
+            deserializeState = { serializedState -> json.decodeFromString<DynamicCircle.State>(serializedState) },
+            instantiate = { DynamicCircle.State(body = CircleBody(initialPosition = it, initialRadius = 20.sceneUnit)) },
         ),
     )
     val physicsDemoManager by lazy { PhysicsDemoManager(sceneJson = sceneJson) }

@@ -10,6 +10,7 @@ import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
 import com.pandulapeter.kubriko.types.SceneOffset
 
+// TODO: Expose to the editor
 internal class DynamicPolygon(
     initialOffset: SceneOffset,
     shape: Polygon,

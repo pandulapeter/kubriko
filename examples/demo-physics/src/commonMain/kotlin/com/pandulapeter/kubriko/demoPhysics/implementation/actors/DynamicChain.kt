@@ -11,8 +11,8 @@ import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.implementation.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.implementation.extensions.get
+import com.pandulapeter.kubriko.implementation.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
@@ -22,19 +22,23 @@ import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.physics.joints.JointToBody
 import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
+import com.pandulapeter.kubriko.sceneEditor.Editable
+import com.pandulapeter.kubriko.serialization.integration.Serializable
+import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneOffset
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
-internal class DynamicChain(
-    private val linkCount: Int,
-    initialCenterOffset: SceneOffset
-) : Group, Dynamic, Visible {
-    private val chainLinks = (0..linkCount).map { linkIndex ->
+// TODO: Something is off with the Editor preview
+internal class DynamicChain private constructor(state: State) : Group, Dynamic, Visible, Editable<DynamicChain> {
+    private val chainLinks = (0..state.linkCount).map { linkIndex ->
         ChainLink(
             initialPosition = SceneOffset(
-                x = initialCenterOffset.x + LinkDistance * (linkCount / 2) - (LinkDistance * linkIndex),
-                y = initialCenterOffset.y,
+                x = state.initialCenterOffset.x + LinkDistance * (state.linkCount / 2) - (LinkDistance * linkIndex),
+                y = state.initialCenterOffset.y,
             )
         )
     }
@@ -59,6 +63,10 @@ internal class DynamicChain(
     override val drawingOrder = -1f
     private val offset = SceneOffset(ChainLink.Radius * 2, ChainLink.Radius * 2)
 
+    init {
+        refreshBodySize()
+    }
+
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
         viewportManager = kubriko.get()
@@ -68,13 +76,17 @@ internal class DynamicChain(
         if (chainLinks.none { it.body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) }) {
             actorManager.remove(this)
         } else {
-            val left = chainLinks.minOf { it.body.position.x } - offset.x
-            val top = chainLinks.minOf { it.body.position.y } - offset.y
-            val right = chainLinks.maxOf { it.body.position.x } + offset.x
-            val bottom = chainLinks.maxOf { it.body.position.y } + offset.y
-            body.position = SceneOffset(left, top)
-            body.size = SceneSize(right - left, bottom - top)
+           refreshBodySize()
         }
+    }
+
+    private fun refreshBodySize() {
+        val left = chainLinks.minOf { it.body.position.x } - offset.x
+        val top = chainLinks.minOf { it.body.position.y } - offset.y
+        val right = chainLinks.maxOf { it.body.position.x } + offset.x
+        val bottom = chainLinks.maxOf { it.body.position.y } + offset.y
+        body.position = SceneOffset(left, top)
+        body.size = SceneSize(right - left, bottom - top)
     }
 
     private val strokeOutline = Stroke(
@@ -88,7 +100,7 @@ internal class DynamicChain(
 
     override fun DrawScope.draw() {
         if (chainLinks.size >= 2) {
-            val path =  Path().apply {
+            val path = Path().apply {
                 val firstPoint = chainLinks.first().body.position - chainLinks.first().body.pivot - body.position + offset / 2
                 moveTo(firstPoint.x.raw, firstPoint.y.raw)
                 for (i in 1 until chainLinks.size) {
@@ -101,7 +113,7 @@ internal class DynamicChain(
                 lineTo(lastPoint.x.raw, lastPoint.y.raw)
             }
             drawPath(
-                path =path,
+                path = path,
                 color = Color.Black,
                 style = strokeOutline,
             )
@@ -113,6 +125,23 @@ internal class DynamicChain(
         }
     }
 
+    override fun save() = State(
+        linkCount = chainLinks.size,
+        initialCenterOffset = body.position,
+    )
+
+    @kotlinx.serialization.Serializable
+    data class State(
+        @SerialName("linkCount") val linkCount: Int = 0,
+        @SerialName("initialCenterOffset") val initialCenterOffset: SerializableSceneOffset = SceneOffset.Zero,
+    ) : Serializable.State<DynamicChain> {
+
+        override fun restore() = DynamicChain(this)
+
+        override fun serialize() = Json.encodeToString(this)
+    }
+
+    // The only reason for this Actor to be Visible is for the debug menu overlay
     private class ChainLink(
         initialPosition: SceneOffset,
     ) : RigidBody, Visible, Dynamic {
@@ -134,19 +163,7 @@ internal class DynamicChain(
             body.rotation = physicsBody.orientation
         }
 
-        override fun DrawScope.draw() {
-//            drawCircle(
-//                color = Color.LightGray,
-//                radius = Radius.raw,
-//                center = body.size.center.raw,
-//            )
-//            drawCircle(
-//                color = Color.Black,
-//                radius = Radius.raw,
-//                center = body.size.center.raw,
-//                style = Stroke(),
-//            )
-        }
+        override fun DrawScope.draw() = Unit
 
         companion object {
             val Radius = 12f.sceneUnit

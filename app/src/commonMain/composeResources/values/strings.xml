@@ -11,32 +11,32 @@
     <string name="welcome_subtitle">A short introduction and general overview</string>
     <string name="welcome_message">Welcome!\n\nThis is the Showcase app for the Kubriko game engine.</string>
 
-    <!-- Content Shaders -->
-    <string name="demo_content_shaders">Content Shaders</string>
-    <string name="demo_content_shaders_subtitle">Playground for testing various shader effects</string>
-
-    <!-- Shader Animations -->
-    <string name="demo_shader_animations">Shader Animations</string>
-    <string name="demo_shader_animations_subtitle">Examples for SGSL shaders overlays</string>
-
-    <!-- Input -->
-    <string name="demo_input">Input</string>
-    <string name="demo_input_subtitle">Playground for testing keyboard and pointer input</string>
-
-    <!-- Performance -->
-    <string name="demo_performance">Performance</string>
-    <string name="demo_performance_subtitle">Stress test using a large number of dynamic actors</string>
-
-    <!-- Physics -->
-    <string name="demo_physics">Physics</string>
-    <string name="demo_physics_subtitle">Rigid body collisions, chains, explosions</string>
-
-    <!-- Wallbreaker -->
+    <!-- Game - Wallbreaker -->
     <string name="game_wallbreaker">Wallbreaker</string>
     <string name="game_wallbreaker_subtitle">Break bricks with a bouncing ball and a paddle</string>
 
-    <!-- Space Squadron -->
+    <!-- Game - Space Squadron -->
     <string name="game_space_squadron">Space Squadron</string>
     <string name="game_space_squadron_subtitle">Use your space ship to defend from alien invaders</string>
+
+    <!-- Demo - Content Shaders -->
+    <string name="demo_content_shaders">Content Shaders</string>
+    <string name="demo_content_shaders_subtitle">Playground for testing various shader effects</string>
+
+    <!-- Demo - Input -->
+    <string name="demo_input">Input</string>
+    <string name="demo_input_subtitle">Playground for testing keyboard and pointer input</string>
+
+    <!-- Demo - Performance -->
+    <string name="demo_performance">Performance</string>
+    <string name="demo_performance_subtitle">Stress test using a large number of dynamic actors</string>
+
+    <!-- Demo - Physics -->
+    <string name="demo_physics">Physics</string>
+    <string name="demo_physics_subtitle">Rigid body collisions, chains, explosions</string>
+
+    <!-- Demo - Shader Animations -->
+    <string name="demo_shader_animations">Shader Animations</string>
+    <string name="demo_shader_animations_subtitle">Examples for dynamic SGSL shader overlays</string>
 
 </resources>

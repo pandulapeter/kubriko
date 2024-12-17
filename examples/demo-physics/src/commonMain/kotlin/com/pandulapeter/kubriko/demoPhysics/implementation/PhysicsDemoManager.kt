@@ -2,6 +2,8 @@ package com.pandulapeter.kubriko.demoPhysics.implementation
 
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.body.CircleBody
+import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicBox
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicChain
@@ -77,10 +79,10 @@ internal class PhysicsDemoManager(
             )
 
             ActionType.CHAIN -> actorManager.add(
-                DynamicChain(
+                DynamicChain.State(
                     linkCount = (10..20).random(),
                     initialCenterOffset = pointerSceneOffset,
-                )
+                ).restore()
             )
 
             ActionType.EXPLOSION -> Unit // TODO: Explosion
@@ -106,20 +108,24 @@ internal class PhysicsDemoManager(
 
     private fun createDynamicBox(
         pointerSceneOffset: SceneOffset,
-    ) = DynamicBox(
-        size = SceneSize(
-            width = (60..120).random().toFloat().sceneUnit,
-            height = (60..120).random().toFloat().sceneUnit,
-        ),
-        initialOffset = pointerSceneOffset,
-    )
+    ) = DynamicBox.State(
+        body = RectangleBody(
+            initialSize = SceneSize(
+                width = (60..120).random().toFloat().sceneUnit,
+                height = (60..120).random().toFloat().sceneUnit,
+            ),
+            initialPosition = pointerSceneOffset,
+        )
+    ).restore()
 
     private fun createDynamicCircle(
         pointerSceneOffset: SceneOffset,
-    ) = DynamicCircle(
-        radius = (30..60).random().toFloat().sceneUnit,
-        initialOffset = pointerSceneOffset,
-    )
+    ) = DynamicCircle.State(
+        body = CircleBody(
+            initialRadius = (30..60).random().toFloat().sceneUnit,
+            initialPosition = pointerSceneOffset,
+        )
+    ).restore()
 
     private fun createDynamicPolygon(
         pointerSceneOffset: SceneOffset,
