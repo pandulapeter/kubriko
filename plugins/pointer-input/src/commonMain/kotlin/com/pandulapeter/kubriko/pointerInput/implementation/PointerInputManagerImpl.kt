@@ -82,7 +82,7 @@ internal class PointerInputManagerImpl(
         viewportOffset.value = coordinates.positionInRoot()
     } else Modifier.pointerInputHandlingModifier()
 
-    // TODO: MOVE event is sent even after Release on Android
+    // TODO: MOVE event is sent even after Release on touch screens
     private fun Modifier.pointerInputHandlingModifier() = pointerInput(Unit) {
         awaitPointerEventScope {
             while (true) {

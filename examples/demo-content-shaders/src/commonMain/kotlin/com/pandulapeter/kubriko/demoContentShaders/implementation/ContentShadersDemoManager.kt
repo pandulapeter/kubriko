@@ -17,8 +17,8 @@ internal class ContentShadersDemoManager : Manager() {
 
     override fun onInitialize(kubriko: Kubriko) {
         kubriko.get<ActorManager>().add(
-            (-5..5).flatMap { y ->
-                (-5..5).map { x ->
+            (-10..10).flatMap { y ->
+                (-10..10).map { x ->
                     ColorfulBox(
                         initialPosition = SceneOffset(
                             x = x * 100.sceneUnit,

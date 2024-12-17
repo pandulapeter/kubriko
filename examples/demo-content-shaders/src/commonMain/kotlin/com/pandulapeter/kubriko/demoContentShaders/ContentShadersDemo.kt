@@ -20,7 +20,7 @@ fun ContentShadersDemo(
 ) {
     stateHolder as ContentShadersDemoStateHolderImpl
     KubrikoViewport(
-        modifier = Modifier.background(Color.Black),
+        modifier = modifier.background(Color.Black),
         kubriko = stateHolder.kubriko,
     )
 }
@@ -33,7 +33,7 @@ internal class ContentShadersDemoStateHolderImpl : ContentShadersDemoStateHolder
     val kubriko = Kubriko.newInstance(
         ShaderManager.newInstance(),
         ViewportManager.newInstance(
-            aspectRatioMode = ViewportManager.AspectRatioMode.Stretched(SceneSize(1000.sceneUnit, 1000.sceneUnit)),
+            aspectRatioMode = ViewportManager.AspectRatioMode.Stretched(SceneSize(2000.sceneUnit, 2000.sceneUnit)),
         ),
         ContentShadersDemoManager()
     )
