@@ -111,14 +111,14 @@ internal fun ShowcaseContent(
             when (this) {
 
                 ShowcaseEntry.WALLBREAKER -> WallbreakerGame(
-                    modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Right)),
+                    modifier = modifier,
                     stateHolder = getOrCreateState(currentDemoStateHolders, ::createWallbreakerGameStateHolder),
-                    windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Right),
                 )
 
                 ShowcaseEntry.SPACE_SQUADRON -> SpaceSquadronGame(
-                    modifier = modifier,
+                    modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Right)),
                     stateHolder = getOrCreateState(currentDemoStateHolders, ::createSpaceSquadronGameStateHolder),
+                    windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom),
                 )
 
                 ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemo(

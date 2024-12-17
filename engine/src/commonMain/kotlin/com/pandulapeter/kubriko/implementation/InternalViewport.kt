@@ -197,4 +197,5 @@ private fun Layer(
     }
 }
 
+// TODO: Probably shouldn't be necessary
 private const val CLIPPING_BORDER = 20f

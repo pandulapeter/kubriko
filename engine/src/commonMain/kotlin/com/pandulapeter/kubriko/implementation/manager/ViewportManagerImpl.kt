@@ -27,7 +27,7 @@ internal class ViewportManagerImpl(
     override val cameraPosition = _cameraPosition.asStateFlow()
     private val _size = MutableStateFlow(Size.Zero)
     override val size = _size.asStateFlow()
-    var scaleFactorMultiplier = MutableStateFlow(Scale.Unit)
+    val scaleFactorMultiplier = MutableStateFlow(Scale.Unit)
     private val _scaleFactor = MutableStateFlow(Scale(initialScaleFactor, initialScaleFactor))
     override val scaleFactor by autoInitializingLazy {
         combine(_scaleFactor, scaleFactorMultiplier) { scaleFactor, scaleFactorMultiplier ->
@@ -77,8 +77,5 @@ internal class ViewportManagerImpl(
 
     fun updateSize(size: Size) = _size.update { size }
 
-    fun updateInsetPadding(insetPadding: Rect) = _insetPadding.update {
-        println("INSET_PADDING = ${insetPadding}")
-        insetPadding
-    }
+    fun updateInsetPadding(insetPadding: Rect) = _insetPadding.update { insetPadding }
 }

@@ -35,7 +35,7 @@ internal class BrickPopEffect(
     override fun update(deltaTimeInMillis: Float) {
         alpha -= 0.005f * deltaTimeInMillis
         body.scale = Scale.Unit * alpha
-        viewportManager.setScaleFactor(1f + (-10..10).random().toFloat() / 1500f)
+        viewportManager.setScaleFactor(1f + (-10..10).random().toFloat() / 1200f)
         if (alpha <= 0) {
             viewportManager.setScaleFactor(1f)
             actorManager.remove(this)

@@ -1,7 +1,9 @@
 package com.pandulapeter.kubriko.gameSpaceSquadron
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,6 +24,7 @@ import com.pandulapeter.kubriko.shared.ExampleStateHolder
 fun SpaceSquadronGame(
     modifier: Modifier = Modifier,
     stateHolder: SpaceSquadronGameStateHolder = createSpaceSquadronGameStateHolder(),
+    windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as SpaceSquadronGameStateHolderImpl
     KubrikoViewport(
@@ -31,6 +34,7 @@ fun SpaceSquadronGame(
         KubrikoViewport(
             modifier = modifier,
             kubriko = stateHolder.kubriko,
+            windowInsets = windowInsets,
         )
     }
 }
@@ -49,7 +53,7 @@ private class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
         stateManager,
         ViewportManager.newInstance(
             aspectRatioMode = ViewportManager.AspectRatioMode.FitVertical(
-                height = 1280.sceneUnit,
+                height = ViewportHeight,
             )
         ),
         CollisionManager.newInstance(),
@@ -60,3 +64,5 @@ private class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
 
     override fun dispose() = kubriko.dispose()
 }
+
+internal val ViewportHeight = 1280.sceneUnit

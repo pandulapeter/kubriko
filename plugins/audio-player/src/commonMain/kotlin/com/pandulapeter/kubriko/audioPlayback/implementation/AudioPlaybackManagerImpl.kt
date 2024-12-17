@@ -47,9 +47,15 @@ internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
     override fun pauseMusic() = audioPlayer.pauseMusic()
 
     override fun stopMusic() {
-        audioPlayer.stopMusic()
+        if (isInitialized) {
+            audioPlayer.stopMusic()
+        }
         musicUri = null
     }
 
-    override fun playSound(uri: String) = audioPlayer.playSound(uri)
+    override fun playSound(uri: String) {
+        if (isInitialized) {
+            audioPlayer.playSound(uri)
+        }
+    }
 }

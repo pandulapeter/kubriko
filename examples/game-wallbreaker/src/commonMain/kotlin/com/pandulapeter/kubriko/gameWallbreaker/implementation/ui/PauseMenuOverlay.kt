@@ -8,7 +8,6 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.shared.ui.LargeButton
@@ -41,6 +39,7 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 internal fun PauseMenuOverlay(
+    gameAreaModifier: Modifier,
     isGameRunning: Boolean,
     shouldShowResumeButton: Boolean,
     onResumeButtonPressed: () -> Unit,
@@ -49,10 +48,9 @@ internal fun PauseMenuOverlay(
     onSoundEffectsToggled: () -> Unit,
     isMusicEnabled: Boolean,
     onMusicToggled: () -> Unit,
+) = Box(
+    modifier = gameAreaModifier,
 ) {
-    Background(
-        isVisible = !isGameRunning,
-    )
     UserPreferenceControls(
         isVisible = !isGameRunning,
         areSoundEffectsEnabled = areSoundEffectsEnabled,
@@ -65,19 +63,6 @@ internal fun PauseMenuOverlay(
         shouldShowResumeButton = shouldShowResumeButton,
         onResumeButtonPressed = onResumeButtonPressed,
         onRestartButtonPressed = onRestartButtonPressed,
-    )
-}
-
-@Composable
-private fun Background(
-    isVisible: Boolean,
-) = AnimatedVisibility(
-    visible = isVisible,
-    enter = fadeIn(),
-    exit = fadeOut(),
-) {
-    Box(
-        modifier = Modifier.fillMaxSize().background(color = Color.Black.copy(0.5f)),
     )
 }
 

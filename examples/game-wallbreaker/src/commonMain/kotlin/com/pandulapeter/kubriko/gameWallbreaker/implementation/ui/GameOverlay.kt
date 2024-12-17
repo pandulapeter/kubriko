@@ -29,6 +29,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun GameOverlay(
+    gameAreaModifier: Modifier,
     isGameRunning: Boolean,
     score: Int,
     highScore: Int,
@@ -44,7 +45,7 @@ internal fun GameOverlay(
         exit = scaleOut() + slideOut { IntOffset(0, -it.height) } + fadeOut(),
     ) {
         Box(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
+            modifier = gameAreaModifier.fillMaxSize().padding(16.dp),
         ) {
             SmallButton(
                 onButtonPressed = onPauseButtonPressed,
@@ -59,7 +60,7 @@ internal fun GameOverlay(
         exit = scaleOut() + slideOut { IntOffset(0, -it.height) } + fadeOut(),
     ) {
         Box(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
+            modifier = gameAreaModifier.fillMaxSize().padding(16.dp),
         ) {
             Text(
                 modifier = Modifier.align(Alignment.TopEnd),
