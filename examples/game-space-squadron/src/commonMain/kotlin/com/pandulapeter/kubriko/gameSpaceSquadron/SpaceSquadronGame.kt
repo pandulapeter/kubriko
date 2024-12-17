@@ -1,10 +1,12 @@
 package com.pandulapeter.kubriko.gameSpaceSquadron
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.Kubriko
@@ -19,6 +21,9 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shader.ShaderManager
 import com.pandulapeter.kubriko.shared.ExampleStateHolder
+import kubriko.examples.game_space_squadron.generated.resources.Res
+import kubriko.examples.game_space_squadron.generated.resources.img_logo
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun SpaceSquadronGame(
@@ -35,7 +40,13 @@ fun SpaceSquadronGame(
             modifier = modifier,
             kubriko = stateHolder.kubriko,
             windowInsets = windowInsets,
-        )
+        ) {
+            Image(
+                modifier = Modifier.align(Alignment.Center),
+                painter = painterResource(Res.drawable.img_logo),
+                contentDescription = null,
+            )
+        }
     }
 }
 
