@@ -9,6 +9,7 @@ import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
 /**
+ * Credit: Kali, jurnip
  * https://www.shadertoy.com/view/XlfGRj
  * https://www.shadertoy.com/view/cdj3DW
  */

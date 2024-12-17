@@ -5,12 +5,16 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.manager.MetadataManager
+import com.pandulapeter.kubriko.shader.ContentShader
 import com.pandulapeter.kubriko.shader.Shader
+import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader
+import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader.Companion
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
 /**
- * Credit:  deusnovus
+ * Credit: deusnovus, Manel Martos Roldán
  * https://www.shadertoy.com/view/7ldGWf
+ * https://github.com/manuel-martos/Photo-FX
  */
 internal class FogShader(
     initialState: State = State(),
@@ -36,23 +40,30 @@ internal class FogShader(
     data class State(
         val time: Float = 0f,
         val speed: Float = 0.01f,
+        val brightness: Float = 0.35f,
+        val pixelSize: Float = 2f,
     ) : Shader.State {
 
         override fun ShaderUniformProvider.applyUniforms() {
             uniform(TIME, time)
             uniform(SPEED, speed)
+            uniform(BRIGHTNESS, brightness)
+            uniform(PIXEL_SIZE, pixelSize)
         }
     }
 
     companion object {
         private const val TIME = "time"
         private const val SPEED = "speed"
+        private const val BRIGHTNESS = "brightness"
+        private const val PIXEL_SIZE = "pixelSize"
         private const val CODE = """
 uniform float2 ${Shader.RESOLUTION};
 uniform float $TIME;
 uniform float $SPEED;
+uniform float $BRIGHTNESS;
+uniform float $PIXEL_SIZE;
 
-const vec3 fogColor = vec3(0.3, 0.3, 0.3);
 const vec3 backgroundColor = vec3(0.0, 0.0, 0.0);
 const float zoom = 2.0;
 const int octaves = 4;
@@ -88,6 +99,12 @@ float fractal_brownian_motion(vec2 coord) {
 	return value + 0.2;
 }
 
+vec4 smoothPixelation(vec2 fragCoord, vec4 color) {
+    vec2 uv = fragCoord.xy / ${Shader.RESOLUTION}.xy;
+    float factor = (abs(sin(${Shader.RESOLUTION}.y * (uv.y - 0.5) / $PIXEL_SIZE)) + abs(sin(${Shader.RESOLUTION}.x * (uv.x - 0.5) / $PIXEL_SIZE))) / 2.0;
+    return half4(factor * color.rgb, color.a); 
+}
+
 float4 main(in vec2 fragCoord)
 {
     vec2 st = fragCoord.xy / ${Shader.RESOLUTION}.xy;
@@ -95,7 +112,7 @@ float4 main(in vec2 fragCoord)
     vec2 pos = vec2(st * zoom);
 	vec2 motion = vec2(fractal_brownian_motion(pos + vec2($TIME * -0.5, $TIME * -0.3)));
 	float final = fractal_brownian_motion(pos + motion) * intensity;
-    return vec4(mix(backgroundColor, fogColor, final), 1.0);
+    return smoothPixelation(fragCoord, vec4(mix(backgroundColor, vec3($BRIGHTNESS, $BRIGHTNESS, $BRIGHTNESS), final), 1.0));
 }
 """
     }
