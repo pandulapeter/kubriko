@@ -4,6 +4,10 @@ import com.pandulapeter.kubriko.shader.ContentShader
 import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
+/**
+ * Credit: Manel Martos Roldán
+ * https://github.com/manuel-martos/Photo-FX
+ */
 data class ChromaticAberrationShader(
     override var state: State = State(),
     override val layerIndex: Int? = null,

@@ -8,6 +8,10 @@ import com.pandulapeter.kubriko.shader.ContentShader
 import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
+/**
+ * Credit: Juraj Kusnier
+ * https://github.com/jurajkusnier/agsl-fun
+ */
 class RippleShader(
     initialState: State = State(),
     override val layerIndex: Int? = null,

@@ -6,7 +6,8 @@ import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
 
 /**
- * Credit: https://gist.github.com/zach-klippenstein/f92f7d59c1bdabcda67a3aed51a3fe3a
+ * Credit: Zach Klippenstein
+ * https://gist.github.com/zach-klippenstein/f92f7d59c1bdabcda67a3aed51a3fe3a
  */
 // TODO: Extract parameters
 class ComicShader(
