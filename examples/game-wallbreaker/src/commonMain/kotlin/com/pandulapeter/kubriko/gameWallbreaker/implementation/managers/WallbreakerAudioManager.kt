@@ -28,7 +28,6 @@ internal class WallbreakerAudioManager(
         }.onEach { (isFocused, isMusicEnabled) ->
             if (isMusicEnabled) {
                 if (isFocused) {
-                    // TODO: Sometimes the music starts even if it's disabled
                     if (hasStartedMusic) {
                         audioPlaybackManager.resumeMusic()
                     } else {

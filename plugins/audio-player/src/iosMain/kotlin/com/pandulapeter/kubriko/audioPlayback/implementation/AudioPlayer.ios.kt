@@ -10,18 +10,23 @@ import platform.Foundation.NSURL
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object : AudioPlayer {
     private var musicPlayer: AVAudioPlayer? = null
+    private var shouldPlayMusic = false
 
     override fun playMusic(uri: String, shouldLoop: Boolean) {
         stopMusic()
+        shouldPlayMusic = true
         coroutineScope.launch(Dispatchers.Default) {
             musicPlayer = AVAudioPlayer(NSURL.URLWithString(URLString = uri)!!, error = null).apply {
                 prepareToPlay()
-                play()
+            }
+            if (shouldPlayMusic) {
+                resumeMusic()
             }
         }
     }
 
     override fun resumeMusic() {
+        shouldPlayMusic = true
         musicPlayer?.run {
             if (!isPlaying()) {
                 play()
@@ -30,6 +35,7 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
     }
 
     override fun pauseMusic() {
+        shouldPlayMusic = false
         musicPlayer?.run {
             if (isPlaying()) {
                 pause()
@@ -38,6 +44,7 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
     }
 
     override fun stopMusic() {
+        shouldPlayMusic = false
         musicPlayer?.stop()
         musicPlayer = null
     }

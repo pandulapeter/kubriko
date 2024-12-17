@@ -21,6 +21,7 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
         )
         .build()
     private var mediaPlayer: MediaPlayer? = null
+    private var shouldPlayMusic = false
 
     private fun Context.getFileDescriptor(uri: String) = assets.openFd(uri.removePrefix("file:///android_asset/"))
 
@@ -33,6 +34,7 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
     }
 
     override fun playMusic(uri: String, shouldLoop: Boolean) {
+        shouldPlayMusic = true
         coroutineScope.launch(Dispatchers.IO) {
             mediaPlayer = MediaPlayer().apply {
                 val fileDescriptor = context.getFileDescriptor(uri)
@@ -49,19 +51,24 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
                     setOnCompletionListener { stopMusic() }
                 }
             }
-            mediaPlayer?.start()
+            if (shouldPlayMusic) {
+                resumeMusic()
+            }
         }
     }
 
     override fun resumeMusic() {
+        shouldPlayMusic = true
         mediaPlayer?.start()
     }
 
     override fun pauseMusic() {
+        shouldPlayMusic = false
         mediaPlayer?.pause()
     }
 
     override fun stopMusic() {
+        shouldPlayMusic = false
         mediaPlayer?.run {
             stop()
             release()
