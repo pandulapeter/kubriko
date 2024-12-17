@@ -130,7 +130,7 @@ float fbm(float2 n) {
     return total;
 }
 
-half4 main(in float2 fragCoord) {
+vec4 main(in float2 fragCoord) {
     float2 p = fragCoord.xy / ${Shader.RESOLUTION}.xy;
     float2 uv = p*float2(${Shader.RESOLUTION}.x/${Shader.RESOLUTION}.y,1.0);    
     float time = $TIME * $SPEED;
@@ -185,7 +185,7 @@ half4 main(in float2 fragCoord) {
     f = $COVER + $ALPHA*f*r;
     float3 mergedCloudColor = clamp(0.5 * skyColor + cloudColor, 0.0, 1.0);
     float3 result = mix(skyColor, mergedCloudColor, clamp(f + c, 0.0, 1.0));
-    return float4(result, 1.0);
+    return result.xyz1;
 }
 """
     }

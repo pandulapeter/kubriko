@@ -74,8 +74,8 @@ float f(float3 p) {
     return .1 - length(cos(p.xy) + sin(p.yz));
 }
 
-half4 main(float2 fragcoord) { 
-    float3 d = .5 - fragcoord.xy1 / ${Shader.RESOLUTION}.y;
+vec4 main(float2 fragCoord) { 
+    float3 d = .5 - fragCoord.xy1 / ${Shader.RESOLUTION}.y;
     float3 p=float3(0);
     for (int i = 0; i < 32; i++) {
       p += f(p) * d;
