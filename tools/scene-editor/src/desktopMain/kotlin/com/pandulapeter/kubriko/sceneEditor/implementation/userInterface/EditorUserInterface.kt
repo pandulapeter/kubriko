@@ -83,6 +83,7 @@ internal fun EditorUserInterface(
                                     kubriko = editorController.kubriko,
                                 ) {
                                     EditorOverlay(
+                                        // TODO: Migrate to PonterInputAware
                                         modifier = Modifier
                                             .fillMaxSize()
                                             .handleMouseClick(

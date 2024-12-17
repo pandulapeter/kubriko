@@ -48,24 +48,24 @@ internal class PointerInputManagerImpl(
             .filterNot { it }
             .onEach { isPointerPressed.value = false }
             .launchIn(scope)
+        isPointerPressed
+            .onEach { isPointerPressed ->
+                pointerScreenOffset.value?.let { pointerOffset ->
+                    if (isPointerPressed) {
+                        if (stateManager.isFocused.value) {
+                            pointerInputAwareActors.value.forEach { it.onPointerPressed(pointerOffset) }
+                        }
+                    } else {
+                        pointerInputAwareActors.value.forEach { it.onPointerReleased(pointerOffset) }
+                    }
+                }
+            }
+            .launchIn(scope)
         pointerScreenOffset
             .filterNotNull()
             .onEach { pointerOffset ->
                 if (stateManager.isFocused.value) {
                     pointerInputAwareActors.value.forEach { it.onPointerOffsetChanged(pointerOffset) }
-                }
-            }
-            .launchIn(scope)
-        isPointerPressed
-            .onEach { isPointerPressed ->
-                pointerScreenOffset.value?.let { pointerOffset ->
-                    if (stateManager.isFocused.value) {
-                        if (isPointerPressed) {
-                            pointerInputAwareActors.value.forEach { it.onPointerPress(pointerOffset) }
-                        } else {
-                            pointerInputAwareActors.value.forEach { it.onPointerReleased(pointerOffset) }
-                        }
-                    }
                 }
             }
             .launchIn(scope)
@@ -82,16 +82,13 @@ internal class PointerInputManagerImpl(
         viewportOffset.value = coordinates.positionInRoot()
     } else Modifier.pointerInputHandlingModifier()
 
-    private fun Modifier.pointerInputHandlingModifier() = this.pointerInput(Unit) {
+    // TODO: MOVE event is sent even after Release on Android
+    private fun Modifier.pointerInputHandlingModifier() = pointerInput(Unit) {
         awaitPointerEventScope {
             while (true) {
                 val event = awaitPointerEvent()
                 event.changes.first().position.let { position ->
                     when (event.type) {
-                        PointerEventType.Move -> {
-                            rawPointerOffset.value = position
-                        }
-
                         PointerEventType.Press -> {
                             rawPointerOffset.value = position
                             isPointerPressed.value = true
@@ -100,6 +97,21 @@ internal class PointerInputManagerImpl(
                         PointerEventType.Release -> {
                             rawPointerOffset.value = position
                             isPointerPressed.value = false
+                        }
+
+                        PointerEventType.Move -> {
+                            rawPointerOffset.value = position
+                        }
+
+                        PointerEventType.Exit -> {
+                            rawPointerOffset.value = null
+                            if (stateManager.isFocused.value) {
+                                pointerInputAwareActors.value.forEach { it.onPointerExit() }
+                            }
+                        }
+
+                        PointerEventType.Enter -> {
+                            rawPointerOffset.value = position
                         }
                     }
                 }

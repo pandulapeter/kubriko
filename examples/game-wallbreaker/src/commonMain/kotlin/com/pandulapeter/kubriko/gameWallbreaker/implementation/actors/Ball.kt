@@ -107,7 +107,7 @@ internal class Ball(
         }
     }
 
-    override fun onPointerPress(screenOffset: Offset) {
+    override fun onPointerPressed(screenOffset: Offset) {
         if (stateManager.isRunning.value && state == State.UNINITIALIZED) {
             state = State.POSITIONING
         }

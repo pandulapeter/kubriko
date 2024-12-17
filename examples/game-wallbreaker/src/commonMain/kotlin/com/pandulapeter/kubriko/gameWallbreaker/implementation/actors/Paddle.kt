@@ -54,25 +54,24 @@ internal class Paddle(
         )
     }
 
-    override fun onPointerPress(screenOffset: Offset) {
-        previousPointerPosition = screenOffset.toSceneOffset(viewportManager)
-    }
-
-    // TODO: Controls should be improved
     override fun onPointerOffsetChanged(screenOffset: Offset) {
+        val currentPointerPosition = screenOffset.toSceneOffset(viewportManager)
         if (stateManager.isRunning.value) {
-            val currentPointerPosition = screenOffset.toSceneOffset(viewportManager)
             previousPointerPosition?.let { previousPointerPosition ->
                 body.position = SceneOffset(
                     x = body.position.x + currentPointerPosition.x - previousPointerPosition.x,
                     y = body.position.y,
                 ).clampWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value)
             }
-            previousPointerPosition = currentPointerPosition
         }
+        previousPointerPosition = currentPointerPosition
     }
 
     override fun onPointerReleased(screenOffset: Offset) {
+        previousPointerPosition = null
+    }
+
+    override fun onPointerExit() {
         previousPointerPosition = null
     }
 

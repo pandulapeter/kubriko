@@ -35,7 +35,7 @@ internal class InputDemoManager : Manager(), KeyboardInputAware, PointerInputAwa
         pointerOffset = screenOffset
     }
 
-    override fun onPointerPress(screenOffset: Offset) {
+    override fun onPointerPressed(screenOffset: Offset) {
         isPointerBeingPressed = true
     }
 
