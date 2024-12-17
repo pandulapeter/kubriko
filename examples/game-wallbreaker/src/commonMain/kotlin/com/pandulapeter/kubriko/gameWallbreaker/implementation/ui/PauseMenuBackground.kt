@@ -19,6 +19,6 @@ internal fun PauseMenuBackground(
     exit = fadeOut(),
 ) {
     Box(
-        modifier = Modifier.fillMaxSize().background(color = Color.Black.copy(0.5f)),
+        modifier = Modifier.fillMaxSize().background(color = Color.Black.copy(0.8f)),
     )
 }
