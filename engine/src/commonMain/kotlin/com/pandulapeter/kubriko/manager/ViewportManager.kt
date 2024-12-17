@@ -20,7 +20,7 @@ abstract class ViewportManager : Manager() {
     abstract val cameraPosition: StateFlow<SceneOffset> // Center of the viewport
     abstract val size: StateFlow<Size>
     abstract val scaleFactor: StateFlow<Scale>
-    abstract val insetPadding: StateFlow<Rect> // TODO: Needs to be tested
+    abstract val insetPadding: StateFlow<Rect>
     abstract val topLeft: StateFlow<SceneOffset>
     abstract val bottomRight: StateFlow<SceneOffset>
 

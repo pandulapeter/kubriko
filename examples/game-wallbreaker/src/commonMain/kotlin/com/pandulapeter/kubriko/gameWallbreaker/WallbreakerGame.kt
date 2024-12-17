@@ -1,7 +1,9 @@
 package com.pandulapeter.kubriko.gameWallbreaker
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -33,6 +35,7 @@ import com.pandulapeter.kubriko.shared.ExampleStateHolder
 fun WallbreakerGame(
     modifier: Modifier = Modifier,
     stateHolder: WallbreakerGameStateHolder = createWallbreakerGameStateHolder(),
+    windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as WallbreakerGameStateHolderImpl
     KubrikoViewport(
@@ -42,6 +45,7 @@ fun WallbreakerGame(
         KubrikoViewport(
             modifier = modifier.background(Color.Black),
             kubriko = stateHolder.kubriko,
+            windowInsets = windowInsets,
         ) {
             PauseMenuOverlay(
                 isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value,

@@ -97,7 +97,6 @@ fun InternalViewport(
                     .aspectRatio(ratio = aspectRatioMode.ratio)
             }.clipToBounds()
         ) {
-            val density = LocalDensity.current
             LaunchedEffect(maxWidth, maxHeight) {
                 with(density) {
                     kubrikoImpl.viewportManager.run {
