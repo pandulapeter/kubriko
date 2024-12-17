@@ -12,6 +12,7 @@ import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Ball
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Brick
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Paddle
+import com.pandulapeter.kubriko.implementation.extensions.Invisible
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
@@ -58,7 +59,7 @@ internal class WallbreakerGameManager(
 
     @Composable
     override fun getModifier(layerIndex: Int?) = Modifier.pointerHoverIcon(
-        icon = if (stateManager.isRunning.collectAsState().value) PointerIcon.Crosshair else PointerIcon.Default
+        icon = if (stateManager.isRunning.collectAsState().value) PointerIcon.Invisible else PointerIcon.Default
     )
 
     override fun onInitialize(kubriko: Kubriko) {
