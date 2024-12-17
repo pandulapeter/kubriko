@@ -52,10 +52,10 @@ uniform float2 ${Shader.RESOLUTION};
 uniform float $TIME;
 uniform float $SPEED;
 
-const int starDensity = 18;
+const int starDensity = 16;
 const float formuParam = 0.73;
 
-const int volumeSteps = 15;
+const int volumeSteps = 10;
 const float stepSize = 0.12;
 const float zoom = 0.43;
 const float tile = 1.133;

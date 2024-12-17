@@ -1,8 +1,6 @@
 package com.pandulapeter.kubriko.implementation.extensions
 
 import androidx.compose.ui.input.pointer.PointerIcon
-import com.pandulapeter.kubriko.ActivityHolder
 
-internal actual val pointerIconInvisible: PointerIcon by lazy {
-    PointerIcon(android.view.PointerIcon.getSystemIcon(ActivityHolder.currentActivity.value!!, android.view.PointerIcon.TYPE_NULL))
-}
+// Can't implement invisible cursor because AndroidPointerIconType is internal to Compose
+internal actual val pointerIconInvisible: PointerIcon = PointerIcon.Default
