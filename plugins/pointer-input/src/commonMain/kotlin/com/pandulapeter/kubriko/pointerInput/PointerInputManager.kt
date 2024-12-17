@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
  */
 abstract class PointerInputManager : Manager() {
 
+    abstract val isPointerPressed: StateFlow<Boolean>
     abstract val pointerScreenOffset: StateFlow<Offset?>
 
     companion object {

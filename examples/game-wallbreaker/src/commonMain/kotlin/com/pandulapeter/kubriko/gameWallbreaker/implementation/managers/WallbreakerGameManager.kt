@@ -17,7 +17,6 @@ import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
-import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shader.collection.ChromaticAberrationShader
 import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader
 import com.pandulapeter.kubriko.shader.collection.VignetteShader
@@ -34,7 +33,6 @@ internal class WallbreakerGameManager(
 
     private val actorManager by manager<ActorManager>()
     private val audioManager by manager<WallbreakerAudioManager>()
-    private val pointerInputManager by manager<PointerInputManager>()
     private val scoreManager by manager<WallbreakerScoreManager>()
     private val paddle = Paddle()
     private val _isGameOver = MutableStateFlow(true)
@@ -67,9 +65,6 @@ internal class WallbreakerGameManager(
         stateManager.isFocused
             .filterNot { it }
             .onEach { stateManager.updateIsRunning(false) }
-            .launchIn(scope)
-        stateManager.isRunning
-            .onEach { pointerInputManager.pointerScreenOffset.value?.let(paddle::onPointerOffsetChanged) }
             .launchIn(scope)
         scoreManager.score
             .onEach { if (actorManager.allActors.value.filterIsInstance<Brick>().isEmpty()) onLevelCleared() }

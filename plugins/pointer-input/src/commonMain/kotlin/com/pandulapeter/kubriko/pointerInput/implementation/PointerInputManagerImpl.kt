@@ -15,10 +15,10 @@ import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNot
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 
 internal class PointerInputManagerImpl(
     private val isActiveAboveViewport: Boolean,
@@ -30,7 +30,7 @@ internal class PointerInputManagerImpl(
         actorManager.allActors.map { it.filterIsInstance<PointerInputAware>() }.asStateFlow(emptyList())
     }
     private val rawPointerOffset = MutableStateFlow<Offset?>(null)
-    private val isPointerPressed = MutableStateFlow(false)
+    override val isPointerPressed = MutableStateFlow(false)
     private val rootOffset = MutableStateFlow(Offset.Zero)
     private val viewportOffset = MutableStateFlow(Offset.Zero)
     override val pointerScreenOffset by autoInitializingLazy {
@@ -48,27 +48,6 @@ internal class PointerInputManagerImpl(
             .filterNot { it }
             .onEach { isPointerPressed.value = false }
             .launchIn(scope)
-        isPointerPressed
-            .onEach { isPointerPressed ->
-                pointerScreenOffset.value?.let { pointerOffset ->
-                    if (isPointerPressed) {
-                        if (stateManager.isFocused.value) {
-                            pointerInputAwareActors.value.forEach { it.onPointerPressed(pointerOffset) }
-                        }
-                    } else {
-                        pointerInputAwareActors.value.forEach { it.onPointerReleased(pointerOffset) }
-                    }
-                }
-            }
-            .launchIn(scope)
-        pointerScreenOffset
-            .filterNotNull()
-            .onEach { pointerOffset ->
-                if (stateManager.isFocused.value) {
-                    pointerInputAwareActors.value.forEach { it.onPointerOffsetChanged(pointerOffset) }
-                }
-            }
-            .launchIn(scope)
     }
 
     @Composable
@@ -82,7 +61,6 @@ internal class PointerInputManagerImpl(
         viewportOffset.value = coordinates.positionInRoot()
     } else Modifier.pointerInputHandlingModifier()
 
-    // TODO: MOVE event is sent even after Release on touch screens
     private fun Modifier.pointerInputHandlingModifier() = pointerInput(Unit) {
         awaitPointerEventScope {
             while (true) {
@@ -90,28 +68,31 @@ internal class PointerInputManagerImpl(
                 event.changes.first().position.let { position ->
                     when (event.type) {
                         PointerEventType.Press -> {
-                            rawPointerOffset.value = position
-                            isPointerPressed.value = true
-                        }
-
-                        PointerEventType.Release -> {
-                            rawPointerOffset.value = position
-                            isPointerPressed.value = false
-                        }
-
-                        PointerEventType.Move -> {
-                            rawPointerOffset.value = position
-                        }
-
-                        PointerEventType.Exit -> {
-                            rawPointerOffset.value = null
+                            rawPointerOffset.update { position }
+                            isPointerPressed.update { true }
                             if (stateManager.isFocused.value) {
-                                pointerInputAwareActors.value.forEach { it.onPointerExit() }
+                                pointerInputAwareActors.value.forEach { it.onPointerPressed(position) }
                             }
                         }
 
-                        PointerEventType.Enter -> {
-                            rawPointerOffset.value = position
+                        PointerEventType.Release -> {
+                            rawPointerOffset.update { position }
+                            isPointerPressed.update { false }
+                            pointerInputAwareActors.value.forEach { it.onPointerReleased(position) }
+                        }
+
+                        PointerEventType.Move -> {
+                            rawPointerOffset.update { position }
+                            if (stateManager.isFocused.value) {
+                                pointerInputAwareActors.value.forEach { it.onPointerOffsetChanged(position) }
+                            }
+                        }
+
+                        PointerEventType.Exit -> {
+                            rawPointerOffset.update { null }
+                            if (stateManager.isFocused.value) {
+                                pointerInputAwareActors.value.forEach { it.onPointerExit() }
+                            }
                         }
                     }
                 }

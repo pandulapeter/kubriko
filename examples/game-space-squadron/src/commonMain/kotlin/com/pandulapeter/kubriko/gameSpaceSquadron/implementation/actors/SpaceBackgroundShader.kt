@@ -35,7 +35,7 @@ internal class SpaceBackgroundShader(
 
     data class State(
         val time: Float = 0f,
-        val speed: Float = 0.01f,
+        val speed: Float = 0.003f,
     ) : Shader.State {
 
         override fun ShaderUniformProvider.applyUniforms() {
