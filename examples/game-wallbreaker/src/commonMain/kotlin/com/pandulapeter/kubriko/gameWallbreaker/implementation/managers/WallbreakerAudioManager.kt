@@ -14,7 +14,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 internal class WallbreakerAudioManager(
     private val stateManager: StateManager,
     private val audioPlaybackManager: AudioPlaybackManager,
-    private val wallbreakerUserPreferencesManager: WallbreakerUserPreferencesManager
+    private val userPreferencesManager: WallbreakerUserPreferencesManager
 ) : Manager() {
     private var hasStartedMusic = false
     private val soundUrisToPlay = mutableSetOf<String>()
@@ -22,7 +22,7 @@ internal class WallbreakerAudioManager(
     override fun onInitialize(kubriko: Kubriko) {
         combine(
             stateManager.isFocused,
-            wallbreakerUserPreferencesManager.isMusicEnabled,
+            userPreferencesManager.isMusicEnabled,
         ) { isFocused, isMusicEnabled ->
             isFocused to isMusicEnabled
         }.onEach { (isFocused, isMusicEnabled) ->
@@ -32,7 +32,7 @@ internal class WallbreakerAudioManager(
                         audioPlaybackManager.resumeMusic()
                     } else {
                         audioPlaybackManager.playMusic(
-                            uri = Res.getUri(PATH_MUSIC),
+                            uri = Res.getUri("files/music/music.mp3"),
                             shouldLoop = true,
                         )
                         hasStartedMusic = true
@@ -49,28 +49,19 @@ internal class WallbreakerAudioManager(
         soundUrisToPlay.clear()
     }
 
-    fun playBrickPopSoundEffect() = playSoundEffect(PATH_SOUND_EFFECT_BRICK_POP)
+    fun playBrickPopSoundEffect() = playSoundEffect("files/sounds/brick_pop.wav")
 
-    fun playEdgeBounceSoundEffect() = playSoundEffect(PATH_SOUND_EFFECT_EDGE_BOUNCE)
+    fun playEdgeBounceSoundEffect() = playSoundEffect("files/sounds/edge_bounce.wav")
 
-    fun playGameOverSoundEffect() = playSoundEffect(PATH_SOUND_EFFECT_GAME_OVER)
+    fun playGameOverSoundEffect() = playSoundEffect("files/sounds/game_over.wav")
 
-    fun playLevelClearedSoundEffect() = playSoundEffect(PATH_SOUND_EFFECT_LEVEL_CLEARED)
+    fun playLevelClearedSoundEffect() = playSoundEffect("files/sounds/level_cleared.wav")
 
-    fun playPaddleHitSoundEffect() = playSoundEffect(PATH_SOUND_EFFECT_PADDLE_HIT)
+    fun playPaddleHitSoundEffect() = playSoundEffect("files/sounds/paddle_hit.wav")
 
     private fun playSoundEffect(uri: String) {
-        if (wallbreakerUserPreferencesManager.areSoundEffectsEnabled.value) {
+        if (userPreferencesManager.areSoundEffectsEnabled.value) {
             soundUrisToPlay.add(uri)
         }
-    }
-
-    companion object {
-        private const val PATH_SOUND_EFFECT_BRICK_POP = "files/sounds/brick_pop.wav"
-        private const val PATH_SOUND_EFFECT_EDGE_BOUNCE = "files/sounds/edge_bounce.wav"
-        private const val PATH_SOUND_EFFECT_GAME_OVER = "files/sounds/game_over.wav"
-        private const val PATH_SOUND_EFFECT_LEVEL_CLEARED = "files/sounds/level_cleared.wav"
-        private const val PATH_SOUND_EFFECT_PADDLE_HIT = "files/sounds/paddle_hit.wav"
-        private const val PATH_MUSIC = "files/music/music.mp3"
     }
 }

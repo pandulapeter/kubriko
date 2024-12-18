@@ -15,9 +15,9 @@ import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.Wallbrea
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerGameManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerUserPreferencesManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.GameOverlay
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.PauseMenuBackground
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.PauseMenuOverlay
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerGameOverlay
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerPauseMenuBackground
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerPauseMenuOverlay
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerTheme
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
@@ -46,27 +46,27 @@ fun WallbreakerGame(
             modifier = modifier.background(Color.Black),
             kubriko = stateHolder.kubriko,
         ) {
-            PauseMenuBackground(
+            WallbreakerPauseMenuBackground(
                 isVisible = !isGameRunning,
             )
         }
-        PauseMenuOverlay(
+        WallbreakerPauseMenuOverlay(
             gameAreaModifier = modifier,
             isGameRunning = isGameRunning,
-            shouldShowResumeButton = !stateHolder.wallbreakerGameManager.isGameOver.collectAsState().value,
-            onResumeButtonPressed = stateHolder.wallbreakerGameManager::resumeGame,
-            onRestartButtonPressed = stateHolder.wallbreakerGameManager::restartGame,
-            areSoundEffectsEnabled = stateHolder.wallbreakerUserPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
-            onSoundEffectsToggled = stateHolder.wallbreakerUserPreferencesManager::onAreSoundEffectsEnabledChanged,
-            isMusicEnabled = stateHolder.wallbreakerUserPreferencesManager.isMusicEnabled.collectAsState().value,
-            onMusicToggled = stateHolder.wallbreakerUserPreferencesManager::onIsMusicEnabledChanged,
+            shouldShowResumeButton = !stateHolder.gameManager.isGameOver.collectAsState().value,
+            onResumeButtonPressed = stateHolder.gameManager::resumeGame,
+            onRestartButtonPressed = stateHolder.gameManager::restartGame,
+            areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
+            onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
+            isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
+            onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
         )
-        GameOverlay(
+        WallbreakerGameOverlay(
             gameAreaModifier = modifier,
             isGameRunning = isGameRunning,
-            score = stateHolder.wallbreakerScoreManager.score.collectAsState().value,
-            highScore = stateHolder.wallbreakerScoreManager.highScore.collectAsState().value,
-            onPauseButtonPressed = stateHolder.wallbreakerGameManager::pauseGame,
+            score = stateHolder.scoreManager.score.collectAsState().value,
+            highScore = stateHolder.scoreManager.highScore.collectAsState().value,
+            onPauseButtonPressed = stateHolder.gameManager::pauseGame,
         )
     }
 }
@@ -77,12 +77,12 @@ sealed interface WallbreakerGameStateHolder : ExampleStateHolder
 fun createWallbreakerGameStateHolder(): WallbreakerGameStateHolder = WallbreakerGameStateHolderImpl()
 
 private class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
-    val stateManager = StateManager.newInstance(shouldAutoStart = false)
     private val audioPlaybackManager = AudioPlaybackManager.newInstance()
+    val stateManager = StateManager.newInstance(shouldAutoStart = false)
     private val persistenceManager = PersistenceManager.newInstance(fileName = "kubrikoWallbreaker")
-    val wallbreakerScoreManager = WallbreakerScoreManager(persistenceManager)
-    val wallbreakerUserPreferencesManager = WallbreakerUserPreferencesManager(persistenceManager)
-    val wallbreakerGameManager = WallbreakerGameManager(stateManager)
+    val scoreManager = WallbreakerScoreManager(persistenceManager)
+    val userPreferencesManager = WallbreakerUserPreferencesManager(persistenceManager)
+    val gameManager = WallbreakerGameManager(stateManager)
     val backgroundKubriko = Kubriko.newInstance(
         ShaderManager.newInstance(),
         WallbreakerBackgroundManager(),
@@ -100,11 +100,11 @@ private class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
         KeyboardInputManager.newInstance(),
         PointerInputManager.newInstance(isActiveAboveViewport = true),
         persistenceManager,
-        wallbreakerScoreManager,
-        wallbreakerUserPreferencesManager,
+        scoreManager,
+        userPreferencesManager,
         audioPlaybackManager,
-        WallbreakerAudioManager(stateManager, audioPlaybackManager, wallbreakerUserPreferencesManager),
-        wallbreakerGameManager,
+        WallbreakerAudioManager(stateManager, audioPlaybackManager, userPreferencesManager),
+        gameManager,
     )
 
     override fun dispose() = kubriko.dispose()

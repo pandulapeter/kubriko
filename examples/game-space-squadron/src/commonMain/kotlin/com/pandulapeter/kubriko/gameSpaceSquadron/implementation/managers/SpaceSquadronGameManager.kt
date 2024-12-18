@@ -37,7 +37,7 @@ internal class SpaceSquadronGameManager : Manager(), Visible, Unique {
             val bottomRight = insetPadding.bottomRight.toSceneOffset(viewportManager)
             body.position = SceneOffset(
                 x = topLeft.x - bottomRight.x,
-                y = ViewportHeight / 2 + topLeft.y - bottomRight.y,
+                y = ViewportHeight / 2 + topLeft.y - bottomRight.y - 20.sceneUnit,
             )
         }
     }

@@ -1,0 +1,10 @@
+<resources>
+
+    <string name="new_game">New Game</string>
+    <string name="pause">Pause</string>
+    <string name="sound_effects_enable">Enable sound effects</string>
+    <string name="sound_effects_disable">Disable sound effects</string>
+    <string name="music_enable">Enable music</string>
+    <string name="music_disable">Disable music</string>
+
+</resources>
