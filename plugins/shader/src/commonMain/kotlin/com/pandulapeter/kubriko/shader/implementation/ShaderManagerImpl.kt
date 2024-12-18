@@ -5,7 +5,7 @@ import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
-import com.pandulapeter.kubriko.shader.implementation.extensions.runtimeShader
+import com.pandulapeter.kubriko.shader.implementation.extensions.shader
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.map
@@ -27,6 +27,6 @@ internal class ShaderManagerImpl : ShaderManager() {
     override fun getModifier(layerIndex: Int?) = if (isInitialized) shaders.value
         .filter { it.layerIndex == layerIndex }
         .fold<Shader<*>, Modifier>(Modifier) { compoundModifier, shader ->
-            compoundModifier then Modifier.runtimeShader(shader)
+            compoundModifier then Modifier.shader(shader)
         } else Modifier
 }

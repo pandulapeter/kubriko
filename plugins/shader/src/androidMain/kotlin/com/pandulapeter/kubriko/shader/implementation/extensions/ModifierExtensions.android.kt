@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.asComposeRenderEffect
 import com.pandulapeter.kubriko.shader.ContentShader
 import com.pandulapeter.kubriko.shader.Shader
 
-internal actual fun <T : Shader.State> shader(
+internal actual fun <T : Shader.State> createRenderEffect(
     shader: Shader<T>,
     size: Size,
 ): androidx.compose.ui.graphics.RenderEffect? {

@@ -9,7 +9,7 @@ import org.jetbrains.skia.ImageFilter
 import org.jetbrains.skia.RuntimeEffect
 import org.jetbrains.skia.RuntimeShaderBuilder
 
-internal actual fun <T : Shader.State> shader(
+internal actual fun <T : Shader.State> createRenderEffect(
     shader: Shader<T>,
     size: Size,
 ): RenderEffect? {

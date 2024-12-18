@@ -6,14 +6,14 @@ import androidx.compose.ui.graphics.RenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import com.pandulapeter.kubriko.shader.Shader
 
-internal fun <T : Shader.State> Modifier.runtimeShader(
+fun <T : Shader.State> Modifier.shader(
     shader: Shader<T>,
 ) = this then graphicsLayer {
     clip = true
-    renderEffect = shader(shader, size)
+    renderEffect = createRenderEffect(shader, size)
 }
 
-internal expect fun <T : Shader.State> shader(
+internal expect fun <T : Shader.State> createRenderEffect(
     shader: Shader<T>,
     size: Size,
 ): RenderEffect?
