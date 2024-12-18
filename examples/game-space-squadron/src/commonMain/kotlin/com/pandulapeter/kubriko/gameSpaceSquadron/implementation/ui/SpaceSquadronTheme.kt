@@ -14,8 +14,8 @@ internal fun SpaceSquadronTheme(
     content: @Composable () -> Unit,
 ) = MaterialTheme(
     colorScheme = darkColorScheme(
-        primaryContainer = Color.LightGray,
-        primary = Color.LightGray,
+        primaryContainer = Color(0xcfe1eaf3),
+        primary = Color(0xcfe1eaf3),
         onPrimary = Color.Black,
     ),
     shapes = Shapes(

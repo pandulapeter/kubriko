@@ -1,6 +1,5 @@
 package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers
 
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
@@ -42,8 +41,5 @@ internal class SpaceSquadronGameManager : Manager(), Visible, Unique {
         }
     }
 
-    override fun DrawScope.draw() = drawRect(
-        color = Color.White,
-        size = body.size.raw,
-    )
+    override fun DrawScope.draw() = Unit
 }

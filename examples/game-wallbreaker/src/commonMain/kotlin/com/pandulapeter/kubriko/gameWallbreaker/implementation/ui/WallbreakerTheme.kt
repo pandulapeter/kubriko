@@ -14,8 +14,8 @@ internal fun WallbreakerTheme(
     content: @Composable () -> Unit,
 ) = MaterialTheme(
     colorScheme = darkColorScheme(
-        primaryContainer = Color.LightGray,
-        primary = Color.LightGray,
+        primaryContainer = Color(0xcfd5e3bf),
+        primary = Color(0xcfd5e3bf),
         onPrimary = Color.Black,
     ),
     shapes = Shapes(
