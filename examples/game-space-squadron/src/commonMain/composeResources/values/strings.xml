@@ -6,5 +6,7 @@
     <string name="sound_effects_disable">Disable sound effects</string>
     <string name="music_enable">Enable music</string>
     <string name="music_disable">Disable music</string>
+    <string name="fullscreen_enter">Enter fullscreen mode</string>
+    <string name="fullscreen_exit">Exit fullscreen mode</string>
 
 </resources>

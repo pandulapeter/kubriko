@@ -35,6 +35,8 @@ fun SpaceSquadronGame(
     modifier: Modifier = Modifier,
     stateHolder: SpaceSquadronGameStateHolder = createSpaceSquadronGameStateHolder(),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
+    isInFullscreenMode: Boolean? = null,
+    onFullscreenModeToggled: () -> Unit = {},
 ) = SpaceSquadronTheme {
     stateHolder as SpaceSquadronGameStateHolderImpl
     KubrikoViewport(
@@ -54,6 +56,8 @@ fun SpaceSquadronGame(
             onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
             isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
             onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
+            isInFullscreenMode = isInFullscreenMode,
+            onFullscreenModeToggled = onFullscreenModeToggled,
         )
     }
 }

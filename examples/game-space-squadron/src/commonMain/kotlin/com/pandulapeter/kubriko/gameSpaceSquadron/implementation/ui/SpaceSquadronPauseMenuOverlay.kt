@@ -22,6 +22,10 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.shared.ui.LargeButton
 import com.pandulapeter.kubriko.shared.ui.SmallButton
 import kubriko.examples.game_space_squadron.generated.resources.Res
+import kubriko.examples.game_space_squadron.generated.resources.fullscreen_enter
+import kubriko.examples.game_space_squadron.generated.resources.fullscreen_exit
+import kubriko.examples.game_space_squadron.generated.resources.ic_fullscreen_enter
+import kubriko.examples.game_space_squadron.generated.resources.ic_fullscreen_exit
 import kubriko.examples.game_space_squadron.generated.resources.ic_music_off
 import kubriko.examples.game_space_squadron.generated.resources.ic_music_on
 import kubriko.examples.game_space_squadron.generated.resources.ic_play
@@ -44,6 +48,8 @@ internal fun SpaceSquadronPauseMenuOverlay(
     onSoundEffectsToggled: () -> Unit,
     isMusicEnabled: Boolean,
     onMusicToggled: () -> Unit,
+    isInFullscreenMode: Boolean?,
+    onFullscreenModeToggled: () -> Unit,
 ) = Box(
     modifier = gameAreaModifier,
 ) {
@@ -53,6 +59,8 @@ internal fun SpaceSquadronPauseMenuOverlay(
         onSoundEffectsToggled = onSoundEffectsToggled,
         isMusicEnabled = isMusicEnabled,
         onMusicToggled = onMusicToggled,
+        isInFullscreenMode = isInFullscreenMode,
+        onFullscreenModeToggled = onFullscreenModeToggled,
     )
     TitleScreen(
         isVisible = !isGameRunning,
@@ -67,6 +75,8 @@ private fun UserPreferenceControls(
     onSoundEffectsToggled: () -> Unit,
     isMusicEnabled: Boolean,
     onMusicToggled: () -> Unit,
+    isInFullscreenMode: Boolean?,
+    onFullscreenModeToggled: () -> Unit,
 ) = AnimatedVisibility(
     visible = isVisible,
     enter = fadeIn() + slideIn { IntOffset(0, it.height) } + scaleIn(),
@@ -84,12 +94,18 @@ private fun UserPreferenceControls(
                 icon = if (areSoundEffectsEnabled) Res.drawable.ic_sound_effects_on else Res.drawable.ic_sound_effects_off,
                 contentDescription = if (areSoundEffectsEnabled) Res.string.sound_effects_disable else Res.string.sound_effects_enable,
             )
-
             SmallButton(
                 onButtonPressed = onMusicToggled,
                 icon = if (isMusicEnabled) Res.drawable.ic_music_on else Res.drawable.ic_music_off,
                 contentDescription = if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable,
             )
+            isInFullscreenMode?.let {
+                SmallButton(
+                    onButtonPressed = onFullscreenModeToggled,
+                    icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
+                    contentDescription = if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter,
+                )
+            }
         }
     }
 }

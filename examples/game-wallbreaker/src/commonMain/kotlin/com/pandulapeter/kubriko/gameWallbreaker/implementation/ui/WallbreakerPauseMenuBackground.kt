@@ -19,6 +19,6 @@ internal fun WallbreakerPauseMenuBackground(
     exit = fadeOut(),
 ) {
     Box(
-        modifier = Modifier.fillMaxSize().background(color = Color.Black.copy(0.8f)),
+        modifier = Modifier.fillMaxSize().background(color = Color.Black.copy(0.6f)),
     )
 }

@@ -91,14 +91,18 @@ internal fun ShowcaseContent(
     getSelectedShowcaseEntry: () -> ShowcaseEntry?,
     selectedShowcaseEntry: ShowcaseEntry?,
     onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
+    isInFullscreenMode: Boolean,
+    onFullscreenModeToggled: () -> Unit,
 ) = Scaffold(
     contentWindowInsets = WindowInsets(0, 0, 0, 0),
     topBar = {
-        HeaderWrapper(
-            shouldUseCompactUi = shouldUseCompactUi,
-            selectedShowcaseEntry = selectedShowcaseEntry,
-            onShowcaseEntrySelected = onShowcaseEntrySelected,
-        )
+        if (!isInFullscreenMode) {
+            HeaderWrapper(
+                shouldUseCompactUi = shouldUseCompactUi,
+                selectedShowcaseEntry = selectedShowcaseEntry,
+                onShowcaseEntrySelected = onShowcaseEntrySelected,
+            )
+        }
     }
 ) { paddingValues ->
     val lazyListState = rememberLazyListState()
@@ -113,12 +117,16 @@ internal fun ShowcaseContent(
                 ShowcaseEntry.WALLBREAKER -> WallbreakerGame(
                     modifier = modifier,
                     stateHolder = getOrCreateState(currentDemoStateHolders, ::createWallbreakerGameStateHolder),
+                    isInFullscreenMode = isInFullscreenMode,
+                    onFullscreenModeToggled = onFullscreenModeToggled,
                 )
 
                 ShowcaseEntry.SPACE_SQUADRON -> SpaceSquadronGame(
                     modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Right)),
                     stateHolder = getOrCreateState(currentDemoStateHolders, ::createSpaceSquadronGameStateHolder),
                     windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom),
+                    isInFullscreenMode = isInFullscreenMode,
+                    onFullscreenModeToggled = onFullscreenModeToggled,
                 )
 
                 ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemo(
@@ -158,7 +166,9 @@ internal fun ShowcaseContent(
             }
         }
 
-        if (shouldUseCompactUi) {
+        if (isInFullscreenMode) {
+            selectedShowcaseEntry?.content()
+        } else if (shouldUseCompactUi) {
             AnimatedVisibility(
                 visible = selectedShowcaseEntry == null,
                 enter = fadeIn(),

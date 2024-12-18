@@ -35,6 +35,8 @@ import com.pandulapeter.kubriko.shared.ExampleStateHolder
 fun WallbreakerGame(
     modifier: Modifier = Modifier,
     stateHolder: WallbreakerGameStateHolder = createWallbreakerGameStateHolder(),
+    isInFullscreenMode: Boolean? = null,
+    onFullscreenModeToggled: () -> Unit = {},
 ) = WallbreakerTheme {
     stateHolder as WallbreakerGameStateHolderImpl
     val isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value
@@ -60,6 +62,8 @@ fun WallbreakerGame(
             onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
             isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
             onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
+            isInFullscreenMode = isInFullscreenMode,
+            onFullscreenModeToggled = onFullscreenModeToggled,
         )
         WallbreakerGameOverlay(
             gameAreaModifier = modifier,

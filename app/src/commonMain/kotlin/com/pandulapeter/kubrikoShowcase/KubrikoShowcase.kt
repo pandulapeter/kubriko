@@ -8,10 +8,11 @@ import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseContent
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseTheme
 
-private val selectedShowcaseEntry = mutableStateOf<ShowcaseEntry?>(null)
-
 @Composable
-fun KubrikoShowcase() = ShowcaseTheme {
+fun KubrikoShowcase(
+    isInFullscreenMode: Boolean,
+    onFullscreenModeToggled: () -> Unit,
+) = ShowcaseTheme {
     BoxWithConstraints {
         ShowcaseContent(
             shouldUseCompactUi = maxWidth <= 600.dp,
@@ -19,6 +20,10 @@ fun KubrikoShowcase() = ShowcaseTheme {
             getSelectedShowcaseEntry = { selectedShowcaseEntry.value },
             selectedShowcaseEntry = selectedShowcaseEntry.value,
             onShowcaseEntrySelected = { selectedShowcaseEntry.value = it },
+            isInFullscreenMode = isInFullscreenMode,
+            onFullscreenModeToggled = onFullscreenModeToggled,
         )
     }
 }
+
+private val selectedShowcaseEntry = mutableStateOf<ShowcaseEntry?>(null)
