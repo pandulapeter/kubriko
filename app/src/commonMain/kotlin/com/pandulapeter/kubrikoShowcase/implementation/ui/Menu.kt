@@ -32,7 +32,9 @@ internal fun LazyListScope.menu(
 ) = allShowcaseEntries.groupBy { it.type }.let { groups ->
     groups.forEach { (type, entries) ->
         item(type.name) {
-            MenuCategoryLabel(title = type.titleStringResource)
+            MenuCategoryLabel(
+                title = type.titleStringResource,
+            )
         }
         items(
             items = entries,
@@ -50,12 +52,13 @@ internal fun LazyListScope.menu(
 
 @Composable
 internal fun MenuItem(
+    modifier: Modifier = Modifier,
     isSelected: Boolean,
     title: StringResource,
     subtitle: StringResource,
     onSelected: () -> Unit,
 ) = Column(
-    modifier = Modifier
+    modifier = modifier
         .fillMaxWidth()
         .selectable(
             selected = isSelected,
@@ -85,9 +88,10 @@ internal fun MenuItem(
 
 @Composable
 private fun MenuCategoryLabel(
+    modifier: Modifier = Modifier,
     title: StringResource,
 ) = Text(
-    modifier = Modifier
+    modifier = modifier
         .fillMaxWidth()
         .padding(
             horizontal = 16.dp,

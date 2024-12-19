@@ -45,24 +45,28 @@ internal fun TopBar(
         false -> 2.dp
     },
 ) {
-    if (shouldUseCompactUi) {
-        Crossfade(
-            targetState = selectedShowcaseEntry
-        ) { showcaseEntry ->
+    Crossfade(
+        targetState = shouldUseCompactUi,
+    ) { shouldUseCompactUi ->
+        if (shouldUseCompactUi) {
+            Crossfade(
+                targetState = selectedShowcaseEntry
+            ) { showcaseEntry ->
+                Header(
+                    modifier = Modifier.fillMaxWidth(),
+                    shouldUseCompactUi = shouldUseCompactUi,
+                    selectedShowcaseEntry = showcaseEntry,
+                    onShowcaseEntrySelected = onShowcaseEntrySelected,
+                )
+            }
+        } else {
             Header(
                 modifier = Modifier.fillMaxWidth(),
                 shouldUseCompactUi = shouldUseCompactUi,
-                selectedShowcaseEntry = showcaseEntry,
+                selectedShowcaseEntry = selectedShowcaseEntry,
                 onShowcaseEntrySelected = onShowcaseEntrySelected,
             )
         }
-    } else {
-        Header(
-            modifier = Modifier.fillMaxWidth(),
-            shouldUseCompactUi = shouldUseCompactUi,
-            selectedShowcaseEntry = selectedShowcaseEntry,
-            onShowcaseEntrySelected = onShowcaseEntrySelected,
-        )
     }
 }
 

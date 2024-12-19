@@ -1,13 +1,19 @@
 package com.pandulapeter.kubrikoShowcase.implementation.ui
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -16,6 +22,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -23,6 +30,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -46,108 +54,40 @@ internal fun ShowcaseContent(
     onFullscreenModeToggled: () -> Unit,
 ) = Scaffold(
     contentWindowInsets = WindowInsets(0, 0, 0, 0),
-    topBar = {
-        if (!isInFullscreenMode) {
-            TopBar(
-                shouldUseCompactUi = shouldUseCompactUi,
-                selectedShowcaseEntry = selectedShowcaseEntry,
-                onShowcaseEntrySelected = onShowcaseEntrySelected,
-            )
-        }
-    }
 ) { paddingValues ->
     val lazyListState = rememberLazyListState()
+    val topBarHeight = TopBarHeight + WindowInsets.safeDrawing.only(WindowInsetsSides.Top).asPaddingValues().calculateTopPadding()
     Box(
-        modifier = Modifier.fillMaxSize().padding(paddingValues)
+        modifier = Modifier.fillMaxSize().padding(paddingValues),
     ) {
-        if (isInFullscreenMode) FullscreenContent(
-            selectedShowcaseEntry = selectedShowcaseEntry,
-            shouldUseCompactUi = shouldUseCompactUi,
-            isInFullscreenMode = isInFullscreenMode,
-            onFullscreenModeToggled = onFullscreenModeToggled,
-            getSelectedShowcaseEntry = getSelectedShowcaseEntry,
-        ) else if (shouldUseCompactUi) CompactContent(
-            lazyListState = lazyListState,
-            allShowcaseEntries = allShowcaseEntries,
-            onShowcaseEntrySelected = onShowcaseEntrySelected,
-            selectedShowcaseEntry = selectedShowcaseEntry,
-            shouldUseCompactUi = shouldUseCompactUi,
-            isInFullscreenMode = isInFullscreenMode,
-            onFullscreenModeToggled = onFullscreenModeToggled,
-            getSelectedShowcaseEntry = getSelectedShowcaseEntry,
-        ) else ExpandedContent(
-            lazyListState = lazyListState,
-            allShowcaseEntries = allShowcaseEntries,
-            onShowcaseEntrySelected = onShowcaseEntrySelected,
-            selectedShowcaseEntry = selectedShowcaseEntry,
-            shouldUseCompactUi = shouldUseCompactUi,
-            isInFullscreenMode = isInFullscreenMode,
-            onFullscreenModeToggled = onFullscreenModeToggled,
-            getSelectedShowcaseEntry = getSelectedShowcaseEntry,
-        )
-    }
-}
-
-@Composable
-private fun FullscreenContent(
-    selectedShowcaseEntry: ShowcaseEntry?,
-    shouldUseCompactUi: Boolean,
-    isInFullscreenMode: Boolean,
-    onFullscreenModeToggled: () -> Unit,
-    getSelectedShowcaseEntry: () -> ShowcaseEntry?,
-) {
-    selectedShowcaseEntry?.exampleScreen(
-        shouldUseCompactUi = shouldUseCompactUi,
-        isInFullscreenMode = isInFullscreenMode,
-        onFullscreenModeToggled = onFullscreenModeToggled,
-        getSelectedShowcaseEntry = getSelectedShowcaseEntry,
-    )
-}
-
-@Composable
-private fun CompactContent(
-    lazyListState: LazyListState,
-    allShowcaseEntries: List<ShowcaseEntry>,
-    onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
-    selectedShowcaseEntry: ShowcaseEntry?,
-    shouldUseCompactUi: Boolean,
-    isInFullscreenMode: Boolean,
-    onFullscreenModeToggled: () -> Unit,
-    getSelectedShowcaseEntry: () -> ShowcaseEntry?,
-) {
-    AnimatedVisibility(
-        visible = selectedShowcaseEntry == null,
-        enter = fadeIn(),
-        exit = fadeOut(),
-    ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom).asPaddingValues(),
-            state = lazyListState,
-        ) {
-            item("welcome") {
-                WelcomeScreen()
+        Column {
+            AnimatedVisibility(
+                visible = !isInFullscreenMode,
+            ) {
+                Spacer(modifier = Modifier.height(topBarHeight))
             }
-            menu(
+            ExpandedContent(
+                lazyListState = lazyListState,
                 allShowcaseEntries = allShowcaseEntries,
-                selectedShowcaseEntry = selectedShowcaseEntry,
                 onShowcaseEntrySelected = onShowcaseEntrySelected,
-            )
-        }
-    }
-    AnimatedVisibility(
-        visible = selectedShowcaseEntry != null,
-        enter = slideIn { IntOffset(0, it.height / 10) },
-        exit = slideOut { IntOffset(0, it.height / 10) },
-    ) {
-        Crossfade(
-            targetState = selectedShowcaseEntry,
-        ) { showcaseEntry ->
-            showcaseEntry?.exampleScreen(
-                shouldUseCompactUi = shouldUseCompactUi,
+                selectedShowcaseEntry = selectedShowcaseEntry,
                 isInFullscreenMode = isInFullscreenMode,
+                shouldUseCompactUi = shouldUseCompactUi,
                 onFullscreenModeToggled = onFullscreenModeToggled,
                 getSelectedShowcaseEntry = getSelectedShowcaseEntry,
+            )
+        }
+        AnimatedVisibility(
+            modifier = Modifier.padding(bottom = 8.dp),
+            visible = !isInFullscreenMode,
+            enter = fadeIn() + slideIn { IntOffset(0, -it.height) },
+            exit = slideOut { IntOffset(0, -it.height) } + fadeOut(),
+        ) {
+            TopBar(
+                modifier = Modifier.height(topBarHeight),
+                shouldUseCompactUi = shouldUseCompactUi,
+                selectedShowcaseEntry = selectedShowcaseEntry,
+                onShowcaseEntrySelected = onShowcaseEntrySelected,
             )
         }
     }
@@ -163,17 +103,24 @@ private fun ExpandedContent(
     isInFullscreenMode: Boolean,
     onFullscreenModeToggled: () -> Unit,
     getSelectedShowcaseEntry: () -> ShowcaseEntry?,
-) {
+) = Box {
+    val shouldShowSideMenu = !shouldUseCompactUi && !isInFullscreenMode
+    val sideMenuWidth = SideMenuWidth + WindowInsets.safeDrawing.only(WindowInsetsSides.Left).asPaddingValues().calculateStartPadding(LocalLayoutDirection.current)
     Row(
         modifier = Modifier.fillMaxSize(),
     ) {
-        Spacer(
-            modifier = Modifier.width(
-                200.dp + WindowInsets.safeDrawing.only(WindowInsetsSides.Left).asPaddingValues().calculateStartPadding(LocalLayoutDirection.current)
-            )
-        )
-        Crossfade(
+        AnimatedVisibility(
+            visible = shouldShowSideMenu,
+        ) {
+            Spacer(modifier = Modifier.width(sideMenuWidth).background(MaterialTheme.colorScheme.surface))
+        }
+        val compactTransitionSpec: AnimatedContentTransitionScope<ShowcaseEntry?>.() -> ContentTransform =
+            { fadeIn() + slideIn { IntOffset(0, if (targetState == null) -it.height / 10 else it.height / 10) } togetherWith fadeOut() }
+        val expandedTransitionSpec: AnimatedContentTransitionScope<ShowcaseEntry?>.() -> ContentTransform =
+            { fadeIn() togetherWith fadeOut() }
+        AnimatedContent(
             modifier = Modifier.weight(1f),
+            transitionSpec = if (shouldUseCompactUi) compactTransitionSpec else expandedTransitionSpec,
             targetState = selectedShowcaseEntry,
         ) { showcaseEntry ->
             showcaseEntry?.exampleScreen(
@@ -181,16 +128,25 @@ private fun ExpandedContent(
                 isInFullscreenMode = isInFullscreenMode,
                 onFullscreenModeToggled = onFullscreenModeToggled,
                 getSelectedShowcaseEntry = getSelectedShowcaseEntry,
-            ) ?: WelcomeScreen()
+            ) ?: CompactContent(
+                lazyListState = lazyListState,
+                allShowcaseEntries = allShowcaseEntries,
+                onShowcaseEntrySelected = onShowcaseEntrySelected,
+                selectedShowcaseEntry = selectedShowcaseEntry,
+                shouldUseCompactUi = shouldUseCompactUi,
+            )
         }
     }
-    Row(
-        modifier = Modifier.fillMaxSize()
+    AnimatedVisibility(
+        visible = shouldShowSideMenu,
+        enter = fadeIn() + slideIn { IntOffset(-it.width, 0) },
+        exit = slideOut { IntOffset(-it.width, 0) } + fadeOut(),
     ) {
         Surface(
-            modifier = Modifier.width(
-                200.dp + WindowInsets.safeDrawing.only(WindowInsetsSides.Left).asPaddingValues().calculateStartPadding(LocalLayoutDirection.current)
-            ).fillMaxHeight(),
+            modifier = Modifier
+                .padding(end = 8.dp)
+                .width(sideMenuWidth)
+                .fillMaxHeight(),
             tonalElevation = when (isSystemInDarkTheme()) {
                 true -> 4.dp
                 false -> 0.dp
@@ -222,3 +178,44 @@ private fun ExpandedContent(
         }
     }
 }
+
+@Composable
+private fun CompactContent(
+    lazyListState: LazyListState,
+    allShowcaseEntries: List<ShowcaseEntry>,
+    onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
+    selectedShowcaseEntry: ShowcaseEntry?,
+    shouldUseCompactUi: Boolean,
+) = Crossfade(
+    targetState = !shouldUseCompactUi,
+) { shouldUseExpandedUi ->
+    if (shouldUseExpandedUi) {
+        WelcomeScreen(
+            modifier = Modifier.fillMaxSize(),
+        )
+    } else {
+        AnimatedVisibility(
+            visible = selectedShowcaseEntry == null,
+            enter = fadeIn(),
+            exit = fadeOut(),
+        ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom).asPaddingValues(),
+                state = lazyListState,
+            ) {
+                item("welcome") {
+                    WelcomeScreen()
+                }
+                menu(
+                    allShowcaseEntries = allShowcaseEntries,
+                    selectedShowcaseEntry = selectedShowcaseEntry,
+                    onShowcaseEntrySelected = onShowcaseEntrySelected,
+                )
+            }
+        }
+    }
+}
+
+private val TopBarHeight = 64.dp
+private val SideMenuWidth = 192.dp
