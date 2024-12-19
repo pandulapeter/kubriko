@@ -111,9 +111,14 @@ internal fun ShowcaseContent(
     ) {
         @Composable
         fun ShowcaseEntry.content() {
-            val modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right))
+            val modifier = Modifier.windowInsetsPadding(
+                if (isInFullscreenMode) {
+                    WindowInsets.safeDrawing
+                } else {
+                    WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right)
+                }
+            )
             when (this) {
-
                 ShowcaseEntry.WALLBREAKER -> WallbreakerGame(
                     modifier = modifier,
                     stateHolder = getOrCreateState(currentDemoStateHolders, ::createWallbreakerGameStateHolder),
@@ -122,9 +127,19 @@ internal fun ShowcaseContent(
                 )
 
                 ShowcaseEntry.SPACE_SQUADRON -> SpaceSquadronGame(
-                    modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Right)),
+                    modifier = Modifier.windowInsetsPadding(
+                        if (isInFullscreenMode || shouldUseCompactUi) {
+                            WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
+                        } else {
+                            WindowInsets.safeDrawing.only(WindowInsetsSides.Right)
+                        }
+                    ),
                     stateHolder = getOrCreateState(currentDemoStateHolders, ::createSpaceSquadronGameStateHolder),
-                    windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom),
+                    windowInsets = if (isInFullscreenMode) {
+                        WindowInsets.safeDrawing.only(WindowInsetsSides.Vertical)
+                    } else {
+                        WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)
+                    },
                     isInFullscreenMode = isInFullscreenMode,
                     onFullscreenModeToggled = onFullscreenModeToggled,
                 )

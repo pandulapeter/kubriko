@@ -2,6 +2,7 @@ package com.pandulapeter.kubrikoShowcase
 
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.CanvasBasedWindow
 import kotlinx.browser.document
@@ -10,6 +11,7 @@ import org.w3c.dom.events.Event
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     CanvasBasedWindow(title = "Kubriko") {
+        val isInFullscreenMode = remember { mutableStateOf(false) }
         DisposableEffect(Unit) {
             val listener: (Event) -> Unit = {
                 if (isInFullscreenMode.value) {
@@ -36,5 +38,3 @@ fun main() {
         )
     }
 }
-
-private val isInFullscreenMode = mutableStateOf(false)

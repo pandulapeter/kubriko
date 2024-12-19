@@ -21,6 +21,7 @@ fun main() = application {
     val coroutineScope = rememberCoroutineScope()
     val previousBounds = remember { mutableStateOf<Rectangle?>(null) }
     val previousWindowPlacement = remember { mutableStateOf<WindowPlacement?>(null) }
+    val isInFullscreenMode = remember { mutableStateOf(false) }
     Window(
         onCloseRequest = ::exitApplication,
         state = windowState,
@@ -67,5 +68,3 @@ fun main() = application {
         defaultSceneFolderPath = "../examples/demo-physics/src/commonMain/composeResources/files/scenes"
     )
 }
-
-private val isInFullscreenMode = mutableStateOf(false)

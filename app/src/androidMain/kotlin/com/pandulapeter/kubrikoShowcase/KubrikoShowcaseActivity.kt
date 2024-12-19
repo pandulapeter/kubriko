@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 
 class KubrikoShowcaseActivity : ComponentActivity() {
 
+    // TODO: Hide status bar and navigation bar in fullscreen mode
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
