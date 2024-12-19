@@ -1,32 +1,21 @@
 package com.pandulapeter.kubriko.gameWallbreaker.implementation.ui
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideIn
-import androidx.compose.animation.slideOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.shared.ui.LargeButton
 import com.pandulapeter.kubriko.shared.ui.SmallButton
@@ -65,62 +54,51 @@ internal fun WallbreakerPauseMenuOverlay(
 ) = Box(
     modifier = gameAreaModifier,
 ) {
-    UserPreferenceControls(
-        isVisible = !isGameRunning,
-        areSoundEffectsEnabled = areSoundEffectsEnabled,
-        onSoundEffectsToggled = onSoundEffectsToggled,
-        isMusicEnabled = isMusicEnabled,
-        onMusicToggled = onMusicToggled,
-        isInFullscreenMode = isInFullscreenMode,
-        onFullscreenModeToggled = onFullscreenModeToggled,
-    )
     TitleScreen(
         isVisible = !isGameRunning,
         shouldShowResumeButton = shouldShowResumeButton,
         onResumeButtonPressed = onResumeButtonPressed,
         onRestartButtonPressed = onRestartButtonPressed,
+        userPreferenceControls = {
+            UserPreferenceControls(
+                areSoundEffectsEnabled = areSoundEffectsEnabled,
+                onSoundEffectsToggled = onSoundEffectsToggled,
+                isMusicEnabled = isMusicEnabled,
+                onMusicToggled = onMusicToggled,
+                isInFullscreenMode = isInFullscreenMode,
+                onFullscreenModeToggled = onFullscreenModeToggled,
+            )
+        }
     )
 }
 
 @Composable
 private fun UserPreferenceControls(
-    isVisible: Boolean,
     areSoundEffectsEnabled: Boolean,
     onSoundEffectsToggled: () -> Unit,
     isMusicEnabled: Boolean,
     onMusicToggled: () -> Unit,
     isInFullscreenMode: Boolean?,
     onFullscreenModeToggled: () -> Unit,
-) = AnimatedVisibility(
-    visible = isVisible,
-    enter = fadeIn() + slideIn { IntOffset(0, it.height) } + scaleIn(),
-    exit = scaleOut() + slideOut { IntOffset(0, it.height) } + fadeOut(),
+) = Row(
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
 ) {
-    Box(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-    ) {
-        Row(
-            modifier = Modifier.align(Alignment.BottomEnd),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            SmallButton(
-                onButtonPressed = onSoundEffectsToggled,
-                icon = if (areSoundEffectsEnabled) Res.drawable.ic_sound_effects_on else Res.drawable.ic_sound_effects_off,
-                contentDescription = if (areSoundEffectsEnabled) Res.string.sound_effects_disable else Res.string.sound_effects_enable,
-            )
-            SmallButton(
-                onButtonPressed = onMusicToggled,
-                icon = if (isMusicEnabled) Res.drawable.ic_music_on else Res.drawable.ic_music_off,
-                contentDescription = if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable,
-            )
-            isInFullscreenMode?.let {
-                SmallButton(
-                    onButtonPressed = onFullscreenModeToggled,
-                    icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
-                    contentDescription = if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter,
-                )
-            }
-        }
+    SmallButton(
+        onButtonPressed = onSoundEffectsToggled,
+        icon = if (areSoundEffectsEnabled) Res.drawable.ic_sound_effects_on else Res.drawable.ic_sound_effects_off,
+        contentDescription = if (areSoundEffectsEnabled) Res.string.sound_effects_disable else Res.string.sound_effects_enable,
+    )
+    SmallButton(
+        onButtonPressed = onMusicToggled,
+        icon = if (isMusicEnabled) Res.drawable.ic_music_on else Res.drawable.ic_music_off,
+        contentDescription = if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable,
+    )
+    isInFullscreenMode?.let {
+        SmallButton(
+            onButtonPressed = onFullscreenModeToggled,
+            icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
+            contentDescription = if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter,
+        )
     }
 }
 
@@ -130,39 +108,32 @@ private fun TitleScreen(
     shouldShowResumeButton: Boolean,
     onResumeButtonPressed: () -> Unit,
     onRestartButtonPressed: () -> Unit,
+    userPreferenceControls: @Composable () -> Unit,
 ) = AnimatedVisibility(
     visible = isVisible,
     enter = fadeIn() + scaleIn(),
     exit = scaleOut() + fadeOut(),
 ) {
     val rememberedShouldShowResumeButton = remember { shouldShowResumeButton } // TODO: Buggy after orientation change
-    val infiniteTransition = rememberInfiniteTransition()
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 0.9f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 800, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
         Column(
             modifier = Modifier.align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Image(
                 painter = painterResource(Res.drawable.img_logo),
                 contentDescription = null,
             )
             LargeButton(
-                modifier = Modifier.scale(scale),
+                modifier = Modifier.width(136.dp),
                 onButtonPressed = if (rememberedShouldShowResumeButton) onResumeButtonPressed else onRestartButtonPressed,
                 icon = Res.drawable.ic_play,
                 title = if (rememberedShouldShowResumeButton) Res.string.resume else Res.string.new_game,
             )
+            userPreferenceControls()
         }
     }
 }
