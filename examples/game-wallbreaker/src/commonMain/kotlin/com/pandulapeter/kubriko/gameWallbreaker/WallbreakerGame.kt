@@ -41,7 +41,9 @@ fun WallbreakerGame(
     stateHolder as WallbreakerGameStateHolderImpl
     val isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value
     KubrikoViewport(
-        modifier = Modifier.fillMaxSize().background(Color.Black),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(if (stateHolder.shaderManager.areShadersSupported) Color.Black else Color.DarkGray),
         kubriko = stateHolder.backgroundKubriko,
     ) {
         KubrikoViewport(
@@ -85,6 +87,7 @@ private class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
     val stateManager = StateManager.newInstance(shouldAutoStart = false)
     private val persistenceManager = PersistenceManager.newInstance(fileName = "kubrikoWallbreaker")
     val scoreManager = WallbreakerScoreManager(persistenceManager)
+    val shaderManager = ShaderManager.newInstance()
     val userPreferencesManager = WallbreakerUserPreferencesManager(persistenceManager)
     val gameManager = WallbreakerGameManager(stateManager)
     val backgroundKubriko = Kubriko.newInstance(
@@ -100,7 +103,7 @@ private class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
             )
         ),
         CollisionManager.newInstance(),
-        ShaderManager.newInstance(),
+        shaderManager,
         KeyboardInputManager.newInstance(),
         PointerInputManager.newInstance(isActiveAboveViewport = true),
         persistenceManager,

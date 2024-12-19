@@ -38,6 +38,7 @@ fun PerformanceDemo(
             kubriko = stateHolder.kubriko,
         ) {
             LoadingOverlay(
+                modifier = modifier,
                 shouldShowLoadingIndicator = stateHolder.performanceDemoManager.shouldShowLoadingIndicator.collectAsState().value,
             )
             Box(

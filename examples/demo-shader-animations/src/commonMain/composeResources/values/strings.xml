@@ -1,5 +1,6 @@
 <resources>
 
+    <string name="shaders_not_supported">Shaders are only supported on or above Android 13</string>
     <string name="expand_controls">Expand controls</string>
     <string name="collapse_controls">Collapse controls</string>
     <string name="show_code">Show code</string>

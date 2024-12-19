@@ -182,7 +182,7 @@ internal class Ball(
     override fun DrawScope.draw() {
         if (state != State.GAME_OVER) {
             drawCircle(
-                color = Color.LightGray,
+                color = Color.White,
                 radius = Radius.raw,
                 center = body.pivot.raw,
             )

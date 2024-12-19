@@ -65,6 +65,7 @@ fun PhysicsDemo(
                 kubriko = stateHolder.kubriko,
             ) {
                 LoadingOverlay(
+                    modifier = modifier,
                     shouldShowLoadingIndicator = stateHolder.physicsDemoManager.shouldShowLoadingIndicator.collectAsState().value,
                 )
                 Box(

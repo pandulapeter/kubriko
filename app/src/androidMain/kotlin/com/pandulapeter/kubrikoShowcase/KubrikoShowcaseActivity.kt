@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.update
 
 class KubrikoShowcaseActivity : ComponentActivity() {
 
+    // TODO: Splash theme
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

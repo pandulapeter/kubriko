@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun LoadingOverlay(
+    modifier: Modifier = Modifier,
     shouldShowLoadingIndicator: Boolean,
 ) = AnimatedVisibility(
     visible = shouldShowLoadingIndicator,
@@ -28,7 +29,7 @@ fun LoadingOverlay(
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(16.dp),
     ) {
         CircularProgressIndicator(
-            modifier = Modifier.size(24.dp).align(Alignment.BottomStart),
+            modifier = modifier.size(24.dp).align(Alignment.BottomStart),
             strokeWidth = 3.dp,
         )
     }

@@ -5,12 +5,13 @@ import com.pandulapeter.kubriko.shader.Shader
 import com.pandulapeter.kubriko.shader.ShaderManager
 
 internal class ShaderAnimationDemoHolder<SHADER : Shader<STATE>, STATE : Shader.State>(
+    shaderManager: ShaderManager,
     shader: SHADER,
     updater: (SHADER, STATE) -> Unit,
 ) {
     val manager = ShaderAnimationsDemoManager(shader, updater)
     val kubriko = Kubriko.newInstance(
-        ShaderManager.newInstance(),
+        shaderManager,
         manager,
     )
 }
