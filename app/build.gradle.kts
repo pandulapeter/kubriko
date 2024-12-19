@@ -19,6 +19,7 @@ kotlin {
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.core.splashScreen)
             implementation(libs.google.material)
         }
         val desktopMain by getting {

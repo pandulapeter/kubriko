@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="GameTheme" parent="GameThemeBase" />
+    <style name="KubrikoTheme" parent="KubrikoThemeBase" />
+
+    <style name="SplashTheme" parent="SplashThemeBase" />
 
 </resources>

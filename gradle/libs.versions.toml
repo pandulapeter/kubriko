@@ -3,6 +3,7 @@ android-compileSdk = "35"
 android-minSdk = "29"
 android-targetSdk = "35"
 androidx-activity = "1.9.3" # https://developer.android.com/jetpack/androidx/releases/activity
+androidx-core-splashScreen = "1.0.1" # https://developer.android.com/jetpack/androidx/releases/core
 androidx-lifecycle = "2.8.4" # https://developer.android.com/jetpack/androidx/releases/lifecycle
 compose-plugin = "1.7.1" # https://github.com/JetBrains/compose-multiplatform/releases
 google-material = "1.12.0" # https://github.com/material-components/material-components-android/releases
@@ -14,6 +15,7 @@ kotlinx-serialization = "1.7.3" # https://github.com/Kotlin/kotlinx.serializatio
 
 [libraries]
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity" }
+androidx-core-splashScreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-core-splashScreen" }
 androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 google-material = { group = "com.google.android.material", name = "material", version.ref = "google-material" }
 gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "gradle" }

@@ -1,10 +1,13 @@
 package com.pandulapeter.kubrikoShowcase
 
+import android.animation.Animator
 import android.os.Bundle
+import android.view.animation.AccelerateInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.collectAsState
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -16,8 +19,8 @@ import kotlinx.coroutines.flow.update
 
 class KubrikoShowcaseActivity : ComponentActivity() {
 
-    // TODO: Splash theme
     override fun onCreate(savedInstanceState: Bundle?) {
+        handleSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
@@ -36,6 +39,23 @@ class KubrikoShowcaseActivity : ComponentActivity() {
                 onFullscreenModeToggled = { isInFullscreenMode.update { currentValue -> !currentValue } },
             )
         }
+    }
+
+    private fun handleSplashScreen() = installSplashScreen().setOnExitAnimationListener { splashScreen ->
+        splashScreen.view.animate()
+            .scaleX(2f)
+            .scaleY(2f)
+            .alpha(0f)
+            .setInterpolator(AccelerateInterpolator())
+            .setListener(
+                object : Animator.AnimatorListener {
+                    override fun onAnimationStart(animator: Animator) = Unit
+                    override fun onAnimationEnd(animator: Animator) = splashScreen.remove()
+                    override fun onAnimationCancel(animator: Animator) = Unit
+                    override fun onAnimationRepeat(animator: Animator) = Unit
+                }
+            )
+            .start()
     }
 }
 
