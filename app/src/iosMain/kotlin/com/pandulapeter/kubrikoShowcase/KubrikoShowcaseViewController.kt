@@ -4,7 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.window.ComposeUIViewController
 
 // TODO: Hide status bar in fullscreen mode
-fun GameViewController() = ComposeUIViewController {
+fun KubrikoShowcaseViewController() = ComposeUIViewController {
     KubrikoShowcase(
         isInFullscreenMode = isInFullscreenMode.value,
         onFullscreenModeToggled = { isInFullscreenMode.value = !isInFullscreenMode.value },
