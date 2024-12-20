@@ -8,6 +8,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
@@ -20,9 +21,10 @@ fun SmallButton(
     icon: DrawableResource,
     onButtonPressed: () -> Unit,
     contentDescription: StringResource?,
+    containerColor: Color? = null,
 ) = FloatingActionButton(
     modifier = modifier.size(40.dp),
-    containerColor = if (isSystemInDarkTheme()) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary,
+    containerColor = containerColor ?: if (isSystemInDarkTheme()) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary,
     onClick = onButtonPressed,
 ) {
     Icon(

@@ -51,6 +51,7 @@ internal fun WallbreakerGameOverlay(
                 onButtonPressed = onPauseButtonPressed,
                 icon = Res.drawable.ic_pause,
                 contentDescription = Res.string.pause,
+                containerColor = createButtonColor(0.5f),
             )
         }
     }

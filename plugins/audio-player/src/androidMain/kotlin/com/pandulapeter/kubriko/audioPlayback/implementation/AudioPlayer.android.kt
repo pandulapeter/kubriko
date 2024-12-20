@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object : AudioPlayer {
+    // TODO: Sometimes throws an NPE
     private val context by lazy { ActivityHolder.currentActivity.value!!.applicationContext }
     private val soundPool = SoundPool.Builder()
         .setMaxStreams(10)
