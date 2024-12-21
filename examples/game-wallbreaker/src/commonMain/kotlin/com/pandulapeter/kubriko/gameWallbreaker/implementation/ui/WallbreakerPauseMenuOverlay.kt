@@ -78,6 +78,7 @@ internal fun WallbreakerPauseMenuOverlay(
                 painter = painterResource(Res.drawable.img_logo),
                 contentDescription = null,
             )
+            // TODO: Incorrect content color in dark mode
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
