@@ -6,6 +6,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,13 +23,18 @@ fun SmallButton(
     onButtonPressed: () -> Unit,
     contentDescription: StringResource?,
     containerColor: Color? = null,
-) = FloatingActionButton(
-    modifier = modifier.size(40.dp),
-    containerColor = containerColor ?: if (isSystemInDarkTheme()) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary,
-    onClick = onButtonPressed,
+    contentColor: Color? = null,
 ) {
-    Icon(
-        painter = painterResource(icon),
-        contentDescription = contentDescription?.let { stringResource(it) },
-    )
+    val resolvedContainerColor = containerColor ?: if (isSystemInDarkTheme()) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary
+    FloatingActionButton(
+        modifier = modifier.size(40.dp),
+        containerColor = resolvedContainerColor,
+        contentColor = contentColor ?: MaterialTheme.colorScheme.onPrimary,
+        onClick = onButtonPressed,
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = contentDescription?.let { stringResource(it) },
+        )
+    }
 }
