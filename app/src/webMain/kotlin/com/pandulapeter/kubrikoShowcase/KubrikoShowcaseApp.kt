@@ -13,14 +13,20 @@ fun main() {
     CanvasBasedWindow(title = "Kubriko") {
         val isInFullscreenMode = remember { mutableStateOf(false) }
         DisposableEffect(Unit) {
-            val listener: (Event) -> Unit = {
+            val fullscreenListener: (Event) -> Unit = {
                 if (isInFullscreenMode.value) {
                     isInFullscreenMode.value = document.fullscreenElement != null
                 }
             }
-            document.addEventListener("fullscreenchange", listener)
+            val loadingScreen = document.querySelector(".loadingScreen")
+            val loadingListener: (Event) -> Unit = {
+                loadingScreen?.remove()
+            }
+            document.addEventListener(EVENT_FULLSCREEN_CHANGE, fullscreenListener)
+            document.addEventListener(EVENT_LOADING_DONE, loadingListener)
             onDispose {
-                document.removeEventListener("fullscreenchange", listener)
+                document.removeEventListener(EVENT_FULLSCREEN_CHANGE, fullscreenListener)
+                document.removeEventListener(EVENT_LOADING_DONE, loadingListener)
             }
         }
         KubrikoShowcase(
@@ -38,3 +44,6 @@ fun main() {
         )
     }
 }
+
+private const val EVENT_FULLSCREEN_CHANGE = "fullscreenchange"
+private const val EVENT_LOADING_DONE = "load"
