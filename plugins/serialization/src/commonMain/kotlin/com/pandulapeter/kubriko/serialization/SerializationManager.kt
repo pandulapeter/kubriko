@@ -1,8 +1,6 @@
 package com.pandulapeter.kubriko.serialization
 
 import com.pandulapeter.kubriko.serialization.implementation.SerializationManagerImpl
-import com.pandulapeter.kubriko.serialization.integration.Serializable
-import com.pandulapeter.kubriko.serialization.integration.SerializableMetadata
 import com.pandulapeter.kubriko.manager.Manager
 import kotlinx.collections.immutable.ImmutableSet
 import kotlin.reflect.KClass

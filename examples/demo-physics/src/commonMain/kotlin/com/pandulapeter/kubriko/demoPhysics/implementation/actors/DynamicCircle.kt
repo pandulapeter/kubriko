@@ -8,7 +8,7 @@ import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
 import com.pandulapeter.kubriko.sceneEditor.Editable
-import com.pandulapeter.kubriko.serialization.integration.Serializable
+import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableCircleBody
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString

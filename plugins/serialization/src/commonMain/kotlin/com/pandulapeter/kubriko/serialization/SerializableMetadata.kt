@@ -1,9 +1,8 @@
-package com.pandulapeter.kubriko.serialization.integration
+package com.pandulapeter.kubriko.serialization
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
-import com.pandulapeter.kubriko.serialization.SerializationManager
-import com.pandulapeter.kubriko.serialization.integration.SerializableMetadata.Companion.invoke
+import com.pandulapeter.kubriko.serialization.SerializableMetadata.Companion.invoke
 import kotlin.reflect.KClass
 
 // TODO: Revisit documentation, rename class if needed.

@@ -1,8 +1,8 @@
 package com.pandulapeter.kubriko.serialization.implementation
 
 import com.pandulapeter.kubriko.serialization.SerializationManager
-import com.pandulapeter.kubriko.serialization.integration.Serializable
-import com.pandulapeter.kubriko.serialization.integration.SerializableMetadata
+import com.pandulapeter.kubriko.serialization.Serializable
+import com.pandulapeter.kubriko.serialization.SerializableMetadata
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.SerializationException
