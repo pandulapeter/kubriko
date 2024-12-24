@@ -14,6 +14,7 @@ kotlin {
             implementation(projects.plugins.persistence)
             implementation(projects.plugins.pointerInput)
             implementation(projects.plugins.shaders)
+            implementation(projects.plugins.sprites)
             implementation(compose.components.resources)
             implementation(compose.material3)
         }

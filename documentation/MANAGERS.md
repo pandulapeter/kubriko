@@ -18,7 +18,7 @@ Read the KDoc comments of the linked files for more information.
 - [KeyboardInputManager](https://github.com/pandulapeter/kubriko/blob/main/plugins/keyboard-input/src/commonMain/kotlin/com/pandulapeter/kubriko/keyboardInput/KeyboardInputManager.kt)
 
 ## Particles plugin
-Coming soon...
+- [ParticleManager](https://github.com/pandulapeter/kubriko/blob/main/plugins/particles/src/commonMain/kotlin/com/pandulapeter/kubriko/particles/ParticleManager.kt)
 
 ## Persistence plugin
 - [PersistenceManager](https://github.com/pandulapeter/kubriko/blob/main/plugins/persistence/src/commonMain/kotlin/com/pandulapeter/kubriko/persistence/PersistenceManager.kt)
@@ -36,4 +36,4 @@ Coming soon...
 - [ShaderManager](https://github.com/pandulapeter/kubriko/blob/main/plugins/shaders/src/commonMain/kotlin/com/pandulapeter/kubriko/shaders/ShaderManager.kt)
 
 ## Sprites plugin
-Coming soon...
+- [SpriteManager](https://github.com/pandulapeter/kubriko/blob/main/plugins/sprites/src/commonMain/kotlin/com/pandulapeter/kubriko/sprites/SpriteManager.kt)

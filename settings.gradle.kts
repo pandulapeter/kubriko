@@ -35,6 +35,7 @@ include(
     ":plugins:pointer-input",
     ":plugins:serialization",
     ":plugins:shaders",
+    ":plugins:sprites",
     ":tools:debug-menu",
     ":tools:scene-editor",
 )

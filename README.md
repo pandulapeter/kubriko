@@ -55,11 +55,11 @@ The following folders are worth mentioning:
 - [tools](https://github.com/pandulapeter/kubriko/tree/main/tools) - Extensions that can be useful during development such as the Scene Editor.
 
 ## 📜 Artifacts
-The following is the complete list of all Kubriko dependencies hosted on MavenCentral.
+The following is the complete list of all Kubriko dependencies hosted on [MavenCentral](https://repo1.maven.org/maven2/io/github/pandulapeter/kubriko/).
 
-- Engine:
+- Engine
     - `io.github.pandulapeter.kubriko:engine`
-- Plugins: 
+- Plugins
     - `io.github.pandulapeter.kubriko:plugins:audio-player`
     - `io.github.pandulapeter.kubriko:plugins:collision`
     - `io.github.pandulapeter.kubriko:plugins:keyboard-input`
@@ -70,7 +70,7 @@ The following is the complete list of all Kubriko dependencies hosted on MavenCe
     - `io.github.pandulapeter.kubriko:plugins:serialization`
     - `io.github.pandulapeter.kubriko:plugins:shaders`
     - `io.github.pandulapeter.kubriko:plugins:sprites`
-- Tools: 
+- Tools
     - `io.github.pandulapeter.kubriko:tools:debug-menu`
     - `io.github.pandulapeter.kubriko:tools:scene-editor`
 

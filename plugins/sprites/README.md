@@ -1,0 +1,1 @@
+TODO: Documentation for the Sprites plugin
