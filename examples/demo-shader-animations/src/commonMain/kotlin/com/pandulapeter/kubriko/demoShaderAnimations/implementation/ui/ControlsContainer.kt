@@ -129,10 +129,10 @@ private fun Code(
         fontFamily = FontFamily.Monospace,
     ),
     text = when (demoType) {
+        ShaderAnimationDemoType.CLOUD -> CloudShader.CODE
+        ShaderAnimationDemoType.ETHER -> EtherShader.CODE
         ShaderAnimationDemoType.GRADIENT -> GradientShader.CODE
         ShaderAnimationDemoType.NOODLE -> NoodleShader.CODE
-        ShaderAnimationDemoType.ETHER -> EtherShader.CODE
-        ShaderAnimationDemoType.CLOUD -> CloudShader.CODE
         ShaderAnimationDemoType.WARP -> WarpShader.CODE
     }
 )
@@ -153,11 +153,11 @@ private fun Controls(
 ) {
     @file:Suppress("UNCHECKED_CAST")
     when (demoType) {
-        ShaderAnimationDemoType.GRADIENT -> {
-            manager as ShaderAnimationsDemoManager<GradientShader, GradientShader.State>
-            GradientControls(
-                gradientShaderState = manager.shaderState.collectAsState().value,
-                onGradientShaderStateChanged = manager::setState,
+        ShaderAnimationDemoType.CLOUD -> {
+            manager as ShaderAnimationsDemoManager<CloudShader, CloudShader.State>
+            CloudControls(
+                cloudShaderState = manager.shaderState.collectAsState().value,
+                onCloudShaderStateChanged = manager::setState,
             )
         }
 
@@ -169,19 +169,19 @@ private fun Controls(
             )
         }
 
+        ShaderAnimationDemoType.GRADIENT -> {
+            manager as ShaderAnimationsDemoManager<GradientShader, GradientShader.State>
+            GradientControls(
+                gradientShaderState = manager.shaderState.collectAsState().value,
+                onGradientShaderStateChanged = manager::setState,
+            )
+        }
+
         ShaderAnimationDemoType.NOODLE -> {
             manager as ShaderAnimationsDemoManager<NoodleShader, NoodleShader.State>
             NoodleControls(
                 noodleShaderState = manager.shaderState.collectAsState().value,
                 onNoodleShaderStateChanged = manager::setState,
-            )
-        }
-
-        ShaderAnimationDemoType.CLOUD -> {
-            manager as ShaderAnimationsDemoManager<CloudShader, CloudShader.State>
-            CloudControls(
-                cloudShaderState = manager.shaderState.collectAsState().value,
-                onCloudShaderStateChanged = manager::setState,
             )
         }
 

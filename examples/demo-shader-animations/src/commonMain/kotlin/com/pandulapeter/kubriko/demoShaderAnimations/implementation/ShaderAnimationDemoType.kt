@@ -11,9 +11,9 @@ import org.jetbrains.compose.resources.StringResource
 internal enum class ShaderAnimationDemoType(
     val nameStringResource: StringResource,
 ) {
-    GRADIENT(nameStringResource = Res.string.gradient),
-    ETHER(nameStringResource = Res.string.ether),
-    NOODLE(nameStringResource = Res.string.noodle),
     CLOUD(nameStringResource = Res.string.clouds),
+    ETHER(nameStringResource = Res.string.ether),
+    GRADIENT(nameStringResource = Res.string.gradient),
+    NOODLE(nameStringResource = Res.string.noodle),
     WARP(nameStringResource = Res.string.warp),
 }

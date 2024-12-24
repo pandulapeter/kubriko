@@ -106,10 +106,10 @@ internal class ShaderAnimationsDemoStateHolderImpl : ShaderAnimationsDemoStateHo
     val shaderManager = ShaderManager.newInstance()
     val shaderAnimationDemoHolders = ShaderAnimationDemoType.entries.associateWith {
         when (it) {
+            ShaderAnimationDemoType.CLOUD -> ShaderAnimationDemoHolder(CloudShader()) { shader, state -> shader.updateState(state) }
+            ShaderAnimationDemoType.ETHER -> ShaderAnimationDemoHolder(EtherShader()) { shader, state -> shader.updateState(state) }
             ShaderAnimationDemoType.GRADIENT -> ShaderAnimationDemoHolder(GradientShader()) { shader, state -> shader.updateState(state) }
             ShaderAnimationDemoType.NOODLE -> ShaderAnimationDemoHolder(NoodleShader()) { shader, state -> shader.updateState(state) }
-            ShaderAnimationDemoType.ETHER -> ShaderAnimationDemoHolder(EtherShader()) { shader, state -> shader.updateState(state) }
-            ShaderAnimationDemoType.CLOUD -> ShaderAnimationDemoHolder(CloudShader()) { shader, state -> shader.updateState(state) }
             ShaderAnimationDemoType.WARP -> ShaderAnimationDemoHolder(WarpShader()) { shader, state -> shader.updateState(state) }
         }
     }.toPersistentMap()
