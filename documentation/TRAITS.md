@@ -19,6 +19,9 @@ Read the KDoc comments of the linked files for more information.
 ## Keyboard Input plugin
 - [KeyboardInputAware](https://github.com/pandulapeter/kubriko/blob/main/plugins/keyboard-input/src/commonMain/kotlin/com/pandulapeter/kubriko/keyboardInput/KeyboardInputAware.kt)
 
+## Particles plugin
+Coming soon...
+
 ## Physics plugin
 - [Joint](https://github.com/pandulapeter/kubriko/blob/main/plugins/physics/src/commonMain/kotlin/com/pandulapeter/kubriko/physics/Joint.kt)
 - [RigidBody](https://github.com/pandulapeter/kubriko/blob/main/plugins/physics/src/commonMain/kotlin/com/pandulapeter/kubriko/physics/RigidBody.kt)
@@ -35,3 +38,6 @@ Read the KDoc comments of the linked files for more information.
 
 ## Scene Editor tool
 - [Editable](https://github.com/pandulapeter/kubriko/blob/main/tools/scene-editor/src/commonMain/kotlin/com/pandulapeter/kubriko/sceneEditor/Editable.kt)
+
+## Sprites plugin
+Coming soon...

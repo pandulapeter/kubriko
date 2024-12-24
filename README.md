@@ -12,8 +12,8 @@ Kubriko aims to offer a lightweight, scalable, and easy-to-use solution for crea
 It achieves this goal by exposing a [Composable](https://www.jetbrains.com/compose-multiplatform/) that can be embedded into [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html) projects.
 
 The engine is highly modular, because its core functionality can be extended in a granular fashion using different plugins.
-It covers most needs of simple games from viewport scaling and object management, through persistence, input handling and audio playback, all the way to shaders and physics simulation.
-It also comes with a Scene Editor and a number of other tools that can be useful during development.
+These plugins cover most needs of simple games from viewport scaling and object management, through persistence, input handling and audio playback, all the way to shaders and physics simulation.
+Kubriko also comes with a Scene Editor and a number of other tools that can be useful during development.
 
 The tech stack is also easy to extend by creating custom plugins, and the low-level integration makes it possible to communicate with platform API-s in a straightforward way.
 
@@ -52,3 +52,27 @@ The following folders are worth mentioning:
 - [examples](https://github.com/pandulapeter/kubriko/tree/main/examples) - Contains the implementation of the games and demos of the showcase app.
 - [plugins](https://github.com/pandulapeter/kubriko/tree/main/plugins) - These modules can be used to extend the functionality of Kubriko.
 - [tools](https://github.com/pandulapeter/kubriko/tree/main/tools) - Extensions that can be useful during development such as the Scene Editor.
+
+## 💻 Artifacts
+The following is the complete list of all Kubriko dependencies hosted on MavenCentral.
+
+- `io.github.pandulapeter.kubriko:engine`
+- `io.github.pandulapeter.kubriko:plugins:audio-player`
+- `io.github.pandulapeter.kubriko:plugins:collision`
+- `io.github.pandulapeter.kubriko:plugins:keyboard-input`
+- `io.github.pandulapeter.kubriko:plugins:particles`
+- `io.github.pandulapeter.kubriko:plugins:persistence`
+- `io.github.pandulapeter.kubriko:plugins:physics`
+- `io.github.pandulapeter.kubriko:plugins:pointer-input`
+- `io.github.pandulapeter.kubriko:plugins:serialization`
+- `io.github.pandulapeter.kubriko:plugins:shader`
+- `io.github.pandulapeter.kubriko:plugins:sprite`
+- `io.github.pandulapeter.kubriko:plugins:sprites`
+- `io.github.pandulapeter.kubriko:tools:debug-menu`
+- `io.github.pandulapeter.kubriko:tools:scene-editor`
+
+The latest version is:
+
+[![](https://maven-badges.herokuapp.com/maven-central/io.github.pandulapeter.kubriko/engine/badge.svg?style=flat)](https://repo1.maven.org/maven2/io/github/pandulapeter/kubriko/)
+
+Please note that the above artifacts are not yet public.
