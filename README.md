@@ -3,7 +3,7 @@
 
 *A 2D game engine based on Compose Multiplatform*
 
-<img src="documentation/images/logo.png" width="20%"  alt="Kubriko logo"/>
+<img src="documentation/images/logo.png" width="128px"  alt="Kubriko logo"/>
 
 This repository contains the source code of the engine and its plugins / tooling, as well as the Kubriko Showcase application that demonstrates the engine's capabilities.
 
@@ -23,20 +23,20 @@ Clone this repository and run the `app` module for the supported targets (Androi
 Once the project reaches a more mature stage of development, I plan to publish the showcase app in relevant stores for all platforms.
 For now only the web version is available, in the link below.
 
-[<img src="documentation/images/badge_android_coming_soon.png" alt="Download for Android" width="16%" />](#)
-[<img src="documentation/images/badge_ios_coming_soon.png" alt="Download for iOS" width="16%" />](#)
-[<img src="documentation/images/badge_windows_coming_soon.png" alt="Download for Windows" width="16%" />](#)
-[<img src="documentation/images/badge_macos_coming_soon.png" alt="Download for macOS" width="16%" />](#)
-[<img src="documentation/images/badge_linux_coming_soon.png" alt="Download for Linux" width="16%" />](#)
-[<img src="documentation/images/badge_web.png" alt="Download for Web" width="16%" />](https://pandulapeter.github.io/kubriko/)
+[<img src="documentation/images/badge_android_coming_soon.png" alt="Download for Android" height="32px" />](#)
+[<img src="documentation/images/badge_ios_coming_soon.png" alt="Download for iOS" height="32px" />](#)
+[<img src="documentation/images/badge_windows_coming_soon.png" alt="Download for Windows" height="32px" />](#)
+[<img src="documentation/images/badge_macos_coming_soon.png" alt="Download for macOS" height="32px" />](#)
+[<img src="documentation/images/badge_linux_coming_soon.png" alt="Download for Linux" height="32px" />](#)
+[<img src="documentation/images/badge_web.png" alt="Download for Web" height="32px" />](https://pandulapeter.github.io/kubriko/)
 
 ## 📚 Learning
 The [Documentation](https://github.com/pandulapeter/kubriko/tree/main/documentation) page contains a high-level introduction to Kubriko's main systems, as well as links to further resources.
 
 Tutorials in the form of videos are coming soon, once the public API gets finalized, and a few more demo games are ready.
 
-[<img src="documentation/images/badge_documentation.png" alt="Documentation" width="20%" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md)
-[<img src="documentation/images/badge_youtube_coming_soon.png" alt="YouTube" width="20%" />](#)
+[<img src="documentation/images/badge_documentation.png" alt="Documentation" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md)
+[<img src="documentation/images/badge_youtube_coming_soon.png" alt="YouTube" height="32px" />](#)
 
 Another way to learn about the engine is to explore this repository, and understand how the various examples are implemented.
 
