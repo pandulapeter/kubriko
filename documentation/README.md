@@ -36,7 +36,9 @@ Specifying these explicitly will override the default implementation.
 
 Managers can reference each other and should use their lifecycle functions to control the game state.
 
-The complete list of Managers that come with the engine and its plugins can be fond [here](https://github.com/pandulapeter/kubriko/blob/main/documentation/MANAGERS.md).
+The complete list of Managers that come with the engine and its plugins can be found in the following page:
+
+[<img src="images/badge_managers.png" alt="Managers" height="36px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/MANAGERS.md)
 
 ### 🎭 Actors
 Implementations of [Actor](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/Actor.kt) represent objects or responsibilities within the game. They can be added or removed any time (using Managers) and control in-game objects or perform special tasks.
@@ -52,7 +54,9 @@ Traits are interfaces implemented by Actors that extend the Actor's capabilities
 
 The Actor interface on its own only provides lifecycle callbacks, so Traits are important to make Actors do anything noteworthy, such as draw themselves using the [Visible](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Visible.kt) Trait, or react to the game loop using the [Dynamic](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Dynamic.kt) Trait.
 
-The complete list of Traits that come with the engine and its plugins can be fond [here](https://github.com/pandulapeter/kubriko/blob/main/documentation/TRAITS.md).
+The complete list of Traits that come with the engine and its plugins can be found in the following page:
+
+[<img src="images/badge_actor_traits.png" alt="Actor Traits" height="36px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/TRAITS.md)
 
 ### ➕ Plugins
 The Kubriko engine itself only contains the bare minimum feature set for displaying and managing simple Actors on the viewport.
