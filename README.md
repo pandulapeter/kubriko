@@ -1,15 +1,17 @@
 # Kubriko
-*A 2D game engine based on Compose Multiplatform* - **Early development phase**
+**Early development phase**
 
-<img src="documentation/logo.png" width="20%" />
+*A 2D game engine based on Compose Multiplatform*
+
+<img src="documentation/images/logo.png" width="20%"  alt="Kubriko logo"/>
 
 This repository contains the source code of the engine and its plugins / tooling, as well as the Kubriko Showcase application that demonstrates the engine's capabilities.
 
-## Scope
+## Overview
 Kubriko aims to offer a lightweight, scalable, and easy-to-use solution for creating simple 2D games for **Android**, **Desktop** (Windows, Linux, MacOS), **iOS** and **Web**.
 It achieves this goal by exposing a [Composable](https://www.jetbrains.com/compose-multiplatform/) that can be embedded into [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html) projects.
 
-The engine is highly modular, because its core functionality can be extended in a granular fashion using the different plugins.
+The engine is highly modular, because its core functionality can be extended in a granular fashion using different plugins.
 It covers most needs of simple games from viewport scaling and object management, through persistence, input handling and audio playback, all the way to shaders and physics simulation.
 It also comes with a Scene Editor and a number of other tools that can be useful during development.
 
@@ -19,7 +21,14 @@ The tech stack is also easy to extend by creating custom plugins, and the low-le
 Clone this repository and run the `app` module for the supported targets (Android, Desktop, iOS, Web) to check out what the engine is capable of.
 
 Once the project reaches a more mature stage of development, I plan to publish the showcase app in relevant stores for all platforms.
-For now only the web version is available [here](http://pandulapeter.github.io/kubriko).
+For now only the web version is available in the link below.
+
+[<img src="documentation/images/badge_android_coming_soon.png" alt="Download for Android" width="16%" />](#)
+[<img src="documentation/images/badge_ios_coming_soon.png" alt="Download for iOS" width="16%" />](#)
+[<img src="documentation/images/badge_windows_coming_soon.png" alt="Download for Windows" width="16%" />](#)
+[<img src="documentation/images/badge_macos_coming_soon.png" alt="Download for macOS" width="16%" />](#)
+[<img src="documentation/images/badge_linux_coming_soon.png" alt="Download for Linux" width="16%" />](#)
+[<img src="documentation/images/badge_web.png" alt="Download for Web" width="16%" />](https://pandulapeter.github.io/kubriko/)
 
 ## Latest release
 All releases will appear under the [Releases](https://github.com/pandulapeter/kubriko/releases) page.
@@ -34,7 +43,7 @@ Each top-level folder / module has its own Readme file that contains high-level 
 Classes and functions exposed in the public API are documented using KDoc.
 
 The following folders are worth mentioning:
-- [app](https://github.com/pandulapeter/kubriko/tree/main/app) - The menu system for the showcase application. It ties together the modules located in the `examples` folder.
+- [app](https://github.com/pandulapeter/kubriko/tree/main/app) - The menu system for the showcase app. It ties together the modules located in the `examples` folder.
 - [engine](https://github.com/pandulapeter/kubriko/tree/main/engine) - Defines the core components of Kubriko.
 - [examples](https://github.com/pandulapeter/kubriko/tree/main/examples) - Contains the implementation of the games and demos of the showcase app.
 - [plugins](https://github.com/pandulapeter/kubriko/tree/main/plugins) - These modules can be used to extend the functionality of Kubriko.
