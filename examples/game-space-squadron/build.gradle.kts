@@ -10,6 +10,7 @@ kotlin {
             implementation(projects.plugins.audioPlayer)
             implementation(projects.plugins.collision)
             implementation(projects.plugins.keyboardInput)
+            implementation(projects.plugins.particles)
             implementation(projects.plugins.persistence)
             implementation(projects.plugins.pointerInput)
             implementation(projects.plugins.shaders)

@@ -29,6 +29,7 @@ include(
     ":plugins:audio-player",
     ":plugins:collision",
     ":plugins:keyboard-input",
+    ":plugins:particles",
     ":plugins:persistence",
     ":plugins:physics",
     ":plugins:pointer-input",

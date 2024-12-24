@@ -54,22 +54,25 @@ The following folders are worth mentioning:
 - [plugins](https://github.com/pandulapeter/kubriko/tree/main/plugins) - These modules can be used to extend the functionality of Kubriko.
 - [tools](https://github.com/pandulapeter/kubriko/tree/main/tools) - Extensions that can be useful during development such as the Scene Editor.
 
-## 💻 Artifacts
+## 📜 Artifacts
 The following is the complete list of all Kubriko dependencies hosted on MavenCentral.
 
-- `io.github.pandulapeter.kubriko:engine`
-- `io.github.pandulapeter.kubriko:plugins:audio-player`
-- `io.github.pandulapeter.kubriko:plugins:collision`
-- `io.github.pandulapeter.kubriko:plugins:keyboard-input`
-- `io.github.pandulapeter.kubriko:plugins:particles`
-- `io.github.pandulapeter.kubriko:plugins:persistence`
-- `io.github.pandulapeter.kubriko:plugins:physics`
-- `io.github.pandulapeter.kubriko:plugins:pointer-input`
-- `io.github.pandulapeter.kubriko:plugins:serialization`
-- `io.github.pandulapeter.kubriko:plugins:shaders`
-- `io.github.pandulapeter.kubriko:plugins:sprites`
-- `io.github.pandulapeter.kubriko:tools:debug-menu`
-- `io.github.pandulapeter.kubriko:tools:scene-editor`
+- Engine:
+    - `io.github.pandulapeter.kubriko:engine`
+- Plugins: 
+    - `io.github.pandulapeter.kubriko:plugins:audio-player`
+    - `io.github.pandulapeter.kubriko:plugins:collision`
+    - `io.github.pandulapeter.kubriko:plugins:keyboard-input`
+    - `io.github.pandulapeter.kubriko:plugins:particles`
+    - `io.github.pandulapeter.kubriko:plugins:persistence`
+    - `io.github.pandulapeter.kubriko:plugins:physics`
+    - `io.github.pandulapeter.kubriko:plugins:pointer-input`
+    - `io.github.pandulapeter.kubriko:plugins:serialization`
+    - `io.github.pandulapeter.kubriko:plugins:shaders`
+    - `io.github.pandulapeter.kubriko:plugins:sprites`
+- Tools: 
+    - `io.github.pandulapeter.kubriko:tools:debug-menu`
+    - `io.github.pandulapeter.kubriko:tools:scene-editor`
 
 The latest version is:
 
