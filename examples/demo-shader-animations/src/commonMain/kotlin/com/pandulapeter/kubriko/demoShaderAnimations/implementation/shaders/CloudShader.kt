@@ -4,8 +4,8 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.manager.MetadataManager
-import com.pandulapeter.kubriko.shader.Shader
-import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
+import com.pandulapeter.kubriko.shaders.Shader
+import com.pandulapeter.kubriko.shaders.implementation.extensions.ShaderUniformProvider
 
 /**
  * Credit: drift

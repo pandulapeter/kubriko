@@ -29,7 +29,7 @@ import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.Nood
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.WarpShader
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.ControlsContainer
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.ControlsState
-import com.pandulapeter.kubriko.shader.ShaderManager
+import com.pandulapeter.kubriko.shaders.ShaderManager
 import com.pandulapeter.kubriko.shared.ExampleStateHolder
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow

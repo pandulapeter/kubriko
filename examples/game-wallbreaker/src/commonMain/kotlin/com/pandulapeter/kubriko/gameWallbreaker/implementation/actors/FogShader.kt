@@ -5,11 +5,8 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.manager.MetadataManager
-import com.pandulapeter.kubriko.shader.ContentShader
-import com.pandulapeter.kubriko.shader.Shader
-import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader
-import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader.Companion
-import com.pandulapeter.kubriko.shader.implementation.extensions.ShaderUniformProvider
+import com.pandulapeter.kubriko.shaders.Shader
+import com.pandulapeter.kubriko.shaders.implementation.extensions.ShaderUniformProvider
 
 /**
  * Credit: deusnovus, Manel Martos Roldán

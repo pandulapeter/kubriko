@@ -32,8 +32,8 @@ Coming soon...
 ## Serialization plugin
 - [SerializationManager](https://github.com/pandulapeter/kubriko/blob/main/plugins/serialization/src/commonMain/kotlin/com/pandulapeter/kubriko/serialization/SerializationManager.kt)
 
-## Shader plugin
-- [ShaderManager](https://github.com/pandulapeter/kubriko/blob/main/plugins/shader/src/commonMain/kotlin/com/pandulapeter/kubriko/shader/ShaderManager.kt)
+## Shaders plugin
+- [ShaderManager](https://github.com/pandulapeter/kubriko/blob/main/plugins/shaders/src/commonMain/kotlin/com/pandulapeter/kubriko/shaders/ShaderManager.kt)
 
 ## Sprites plugin
 Coming soon...

@@ -31,13 +31,14 @@ For now only the web version is available, in the link below.
 [<img src="documentation/images/badge_web.png" alt="Download for Web" width="16%" />](https://pandulapeter.github.io/kubriko/)
 
 ## 📚 Learning
-The [Documentation](https://github.com/pandulapeter/kubriko/tree/main/documentation) page contains a high-level introduction to Kubriko's main systems, and contains links to further resources.
+The [Documentation](https://github.com/pandulapeter/kubriko/tree/main/documentation) page contains a high-level introduction to Kubriko's main systems, as well as links to further resources.
+
 Tutorials in the form of videos are coming soon, once the public API gets finalized, and a few more demo games are ready.
 
 [<img src="documentation/images/badge_documentation.png" alt="Documentation" width="20%" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md)
 [<img src="documentation/images/badge_youtube_coming_soon.png" alt="YouTube" width="20%" />](#)
 
-Another way for understanding the engine is exploring this repository, and checking out how the various examples are implemented.
+Another way to learn about the engine is to explore this repository, and understand how the various examples are implemented.
 
 ## 🏗️ Project structure
 This repository also serves as the documentation of the engine's feature set.
@@ -65,8 +66,7 @@ The following is the complete list of all Kubriko dependencies hosted on MavenCe
 - `io.github.pandulapeter.kubriko:plugins:physics`
 - `io.github.pandulapeter.kubriko:plugins:pointer-input`
 - `io.github.pandulapeter.kubriko:plugins:serialization`
-- `io.github.pandulapeter.kubriko:plugins:shader`
-- `io.github.pandulapeter.kubriko:plugins:sprite`
+- `io.github.pandulapeter.kubriko:plugins:shaders`
 - `io.github.pandulapeter.kubriko:plugins:sprites`
 - `io.github.pandulapeter.kubriko:tools:debug-menu`
 - `io.github.pandulapeter.kubriko:tools:scene-editor`

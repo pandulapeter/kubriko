@@ -17,7 +17,7 @@ import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.demoContentShaders.implementation.ContentShadersDemoManager
 import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ViewportManager
-import com.pandulapeter.kubriko.shader.ShaderManager
+import com.pandulapeter.kubriko.shaders.ShaderManager
 import com.pandulapeter.kubriko.shared.ExampleStateHolder
 import com.pandulapeter.kubriko.types.SceneSize
 import kubriko.examples.demo_content_shaders.generated.resources.Res

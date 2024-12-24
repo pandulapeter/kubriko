@@ -7,7 +7,7 @@ kotlin {
         commonMain.dependencies {
             api(projects.examples.shared)
             implementation(projects.engine)
-            implementation(projects.plugins.shader)
+            implementation(projects.plugins.shaders)
             implementation(compose.components.resources)
             implementation(compose.material3)
         }

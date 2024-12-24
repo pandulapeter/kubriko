@@ -1,8 +1,8 @@
 package com.pandulapeter.kubriko.demoShaderAnimations.implementation
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.shader.Shader
-import com.pandulapeter.kubriko.shader.ShaderManager
+import com.pandulapeter.kubriko.shaders.Shader
+import com.pandulapeter.kubriko.shaders.ShaderManager
 
 internal class ShaderAnimationDemoHolder<SHADER : Shader<STATE>, STATE : Shader.State>(
     shader: SHADER,

@@ -12,7 +12,7 @@ kotlin {
             implementation(projects.plugins.keyboardInput)
             implementation(projects.plugins.persistence)
             implementation(projects.plugins.pointerInput)
-            implementation(projects.plugins.shader)
+            implementation(projects.plugins.shaders)
             implementation(compose.components.resources)
             implementation(compose.material3)
         }

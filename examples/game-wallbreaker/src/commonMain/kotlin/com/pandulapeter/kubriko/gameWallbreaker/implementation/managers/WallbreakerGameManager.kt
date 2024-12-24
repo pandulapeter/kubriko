@@ -17,9 +17,9 @@ import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
-import com.pandulapeter.kubriko.shader.collection.ChromaticAberrationShader
-import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader
-import com.pandulapeter.kubriko.shader.collection.VignetteShader
+import com.pandulapeter.kubriko.shaders.collection.ChromaticAberrationShader
+import com.pandulapeter.kubriko.shaders.collection.SmoothPixelationShader
+import com.pandulapeter.kubriko.shaders.collection.VignetteShader
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

@@ -33,7 +33,7 @@ include(
     ":plugins:physics",
     ":plugins:pointer-input",
     ":plugins:serialization",
-    ":plugins:shader",
+    ":plugins:shaders",
     ":tools:debug-menu",
     ":tools:scene-editor",
 )

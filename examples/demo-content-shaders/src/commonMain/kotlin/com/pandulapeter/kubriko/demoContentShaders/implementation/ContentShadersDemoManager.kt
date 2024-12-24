@@ -7,10 +7,10 @@ import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
 import com.pandulapeter.kubriko.implementation.extensions.times
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
-import com.pandulapeter.kubriko.shader.collection.ChromaticAberrationShader
-import com.pandulapeter.kubriko.shader.collection.RippleShader
-import com.pandulapeter.kubriko.shader.collection.SmoothPixelationShader
-import com.pandulapeter.kubriko.shader.collection.VignetteShader
+import com.pandulapeter.kubriko.shaders.collection.ChromaticAberrationShader
+import com.pandulapeter.kubriko.shaders.collection.RippleShader
+import com.pandulapeter.kubriko.shaders.collection.SmoothPixelationShader
+import com.pandulapeter.kubriko.shaders.collection.VignetteShader
 import com.pandulapeter.kubriko.types.SceneOffset
 
 internal class ContentShadersDemoManager : Manager() {

@@ -32,9 +32,9 @@ Coming soon...
 ## Serialization plugin
 - [Serializable](https://github.com/pandulapeter/kubriko/blob/main/plugins/serialization/src/commonMain/kotlin/com/pandulapeter/kubriko/serialization/Serializable.kt)
 
-## Shader plugin
-- [ContentShader](https://github.com/pandulapeter/kubriko/blob/main/plugins/shader/src/commonMain/kotlin/com/pandulapeter/kubriko/shader/ContentShader.kt)
-- [Shader](https://github.com/pandulapeter/kubriko/blob/main/plugins/shader/src/commonMain/kotlin/com/pandulapeter/kubriko/shader/Shader.kt)
+## Shaders plugin
+- [ContentShader](https://github.com/pandulapeter/kubriko/blob/main/plugins/shaders/src/commonMain/kotlin/com/pandulapeter/kubriko/shaders/ContentShader.kt)
+- [Shader](https://github.com/pandulapeter/kubriko/blob/main/plugins/shaders/src/commonMain/kotlin/com/pandulapeter/kubriko/shaders/Shader.kt)
 
 ## Scene Editor tool
 - [Editable](https://github.com/pandulapeter/kubriko/blob/main/tools/scene-editor/src/commonMain/kotlin/com/pandulapeter/kubriko/sceneEditor/Editable.kt)
