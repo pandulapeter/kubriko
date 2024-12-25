@@ -26,26 +26,36 @@ class CircleBody(
 ), ComplexBody {
     var radius = initialRadius.clamp(min = SceneUnit.Zero)
         set(value) {
-            field = value.clamp(min = SceneUnit.Zero)
-            pivot = pivot.clamp(min = SceneOffset.Zero, max = size.bottomRight)
-            isAxisAlignedBoundingBoxDirty = true
+            val newValue = value.clamp(min = SceneUnit.Zero)
+            if (field != newValue) {
+                field = newValue
+                pivot = pivot.clamp(min = SceneOffset.Zero, max = size.bottomRight)
+                isAxisAlignedBoundingBoxDirty = true
+            }
         }
     override val size get() = SceneSize(radius * 2, radius * 2)
     override var pivot = initialPivot.clamp(SceneOffset.Zero, size.bottomRight)
         set(value) {
-            field = value.clamp(SceneOffset.Zero, size.bottomRight)
-            isAxisAlignedBoundingBoxDirty = true
+            val newValue = value.clamp(SceneOffset.Zero, size.bottomRight)
+            if (field != newValue) {
+                field = newValue
+                isAxisAlignedBoundingBoxDirty = true
+            }
         }
     override var scale = initialScale
         set(value) {
-            field = value
-            isAxisAlignedBoundingBoxDirty = true
+            if (field != value) {
+                field = value
+                isAxisAlignedBoundingBoxDirty = true
+            }
         }
     override var rotation = initialRotation
         set(value) {
-            field = value
-            if (pivot != size.center || scale.horizontal != scale.vertical) {
-                isAxisAlignedBoundingBoxDirty = true
+            if (field != value) {
+                field = value
+                if (pivot != size.center || scale.horizontal != scale.vertical) {
+                    isAxisAlignedBoundingBoxDirty = true
+                }
             }
         }
 

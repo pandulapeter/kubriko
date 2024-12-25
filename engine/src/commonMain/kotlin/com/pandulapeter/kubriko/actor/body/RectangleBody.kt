@@ -24,24 +24,33 @@ class RectangleBody(
 ), ComplexBody {
     override var size = initialSize
         set(value) {
-            field = value
-            pivot = pivot.clamp(min = SceneOffset.Zero, max = value.bottomRight)
-            isAxisAlignedBoundingBoxDirty = true
+            if (field != value) {
+                field = value
+                pivot = pivot.clamp(min = SceneOffset.Zero, max = value.bottomRight)
+                isAxisAlignedBoundingBoxDirty = true
+            }
         }
     override var pivot = initialPivot.clamp(min = SceneOffset.Zero, max = size.bottomRight)
         set(value) {
-            field = value.clamp(min = SceneOffset.Zero, max = size.bottomRight)
-            isAxisAlignedBoundingBoxDirty = true
+            val newValue = value.clamp(min = SceneOffset.Zero, max = size.bottomRight)
+            if (field != newValue) {
+                field = newValue
+                isAxisAlignedBoundingBoxDirty = true
+            }
         }
     override var scale = initialScale
         set(value) {
-            field = value
-            isAxisAlignedBoundingBoxDirty = true
+            if (field != value) {
+                field = value
+                isAxisAlignedBoundingBoxDirty = true
+            }
         }
     override var rotation = initialRotation
         set(value) {
-            field = value
-            isAxisAlignedBoundingBoxDirty = true
+            if (field != value) {
+                field = value
+                isAxisAlignedBoundingBoxDirty = true
+            }
         }
 
     override fun createAxisAlignedBoundingBox() = arrayOf(

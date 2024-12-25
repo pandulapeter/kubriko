@@ -7,8 +7,10 @@ open class PointBody(
 ) : Body {
     override var position = initialPosition
         set(value) {
-            field = value
-            isAxisAlignedBoundingBoxDirty = true
+            if (field != value) {
+                field = value
+                isAxisAlignedBoundingBoxDirty = true
+            }
         }
     protected var isAxisAlignedBoundingBoxDirty = false
     private var _axisAlignedBoundingBox: AxisAlignedBoundingBox? = null
