@@ -45,10 +45,10 @@ abstract class Manager {
     }
 
     @Composable
-    internal fun ComposableInternal() = Composable()
+    internal fun ComposableInternal(insetPaddingModifier: Modifier) = Composable(insetPaddingModifier)
 
     @Composable
-    protected open fun Composable() = Unit
+    protected open fun Composable(insetPaddingModifier: Modifier) = Unit
 
     protected open fun onInitialize(kubriko: Kubriko) = Unit
 

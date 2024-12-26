@@ -2,6 +2,7 @@ package com.pandulapeter.kubriko.sprites.implementation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import com.pandulapeter.kubriko.sprites.SpriteManager
 import kotlinx.collections.immutable.persistentMapOf
@@ -25,7 +26,7 @@ internal class SpriteManagerImpl : SpriteManager() {
     }
 
     @Composable
-    override fun Composable() {
+    override fun Composable(insetPaddingModifier: Modifier) {
         val newCache = mutableMapOf<DrawableResource, ImageBitmap?>()
         cache.value.let { cache ->
             cache.keys.forEach { key ->

@@ -1,11 +1,17 @@
 package com.pandulapeter.kubriko.demoPerformance.implementation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
+import com.pandulapeter.kubriko.shared.ui.LoadingOverlay
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,7 +31,7 @@ internal class PerformanceDemoManager(
     private val actorManager by manager<ActorManager>()
     private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
     private val _shouldShowLoadingIndicator = MutableStateFlow(true)
-    val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
+    private val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager.allActors
@@ -37,6 +43,19 @@ internal class PerformanceDemoManager(
             .launchIn(scope)
         sceneJson?.filter { it.isNotBlank() }?.onEach(::processJson)?.launchIn(scope)
         loadMap()
+    }
+
+    @Composable
+    override fun Composable(insetPaddingModifier: Modifier) {
+        LoadingOverlay(
+            modifier = insetPaddingModifier,
+            shouldShowLoadingIndicator = shouldShowLoadingIndicator.collectAsState().value,
+        )
+        Box(
+            modifier = insetPaddingModifier.fillMaxSize(),
+        ) {
+            PlatformSpecificContent()
+        }
     }
 
     @OptIn(ExperimentalResourceApi::class)

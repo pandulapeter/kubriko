@@ -1,5 +1,14 @@
 package com.pandulapeter.kubriko.implementation.manager
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.withTransform
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.traits.Dynamic
@@ -7,15 +16,17 @@ import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.Identifiable
 import com.pandulapeter.kubriko.actor.traits.LayerAware
 import com.pandulapeter.kubriko.actor.traits.Overlay
-import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.implementation.KubrikoImpl
 import com.pandulapeter.kubriko.implementation.extensions.distinctUntilChangedWithDelay
 import com.pandulapeter.kubriko.implementation.extensions.div
+import com.pandulapeter.kubriko.implementation.extensions.fold
 import com.pandulapeter.kubriko.implementation.extensions.isWithinViewportBounds
+import com.pandulapeter.kubriko.implementation.extensions.minus
+import com.pandulapeter.kubriko.implementation.extensions.transformForViewport
+import com.pandulapeter.kubriko.implementation.extensions.transformViewport
 import com.pandulapeter.kubriko.manager.ActorManager
-import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.collections.immutable.ImmutableList
@@ -35,12 +46,13 @@ internal class ActorManagerImpl(
     private val invisibleActorMinimumRefreshTimeInMillis: Long, // TODO: Feels hacky
 ) : ActorManager() {
 
-    private lateinit var metadataManager: MetadataManager
+    private lateinit var metadataManager: MetadataManagerImpl
     private lateinit var viewportManager: ViewportManagerImpl
     private lateinit var stateManager: StateManager
     private val _allActors = MutableStateFlow<ImmutableList<Actor>>(initialActors.toPersistentList())
     override val allActors = _allActors.asStateFlow()
-    val layerIndices by autoInitializingLazy {
+    private lateinit var kubrikoImpl: KubrikoImpl
+    private val layerIndices by autoInitializingLazy {
         _allActors.map { actors -> actors.filterIsInstance<LayerAware>().groupBy { it.layerIndex }.keys.sortedByDescending { it }.toImmutableList() }
             .asStateFlow(persistentListOf())
     }
@@ -50,7 +62,7 @@ internal class ActorManagerImpl(
     private val visibleActors by autoInitializingLazy {
         _allActors.map { actors -> actors.filterIsInstance<Visible>().sortedByDescending { it.drawingOrder }.toImmutableList() }.asStateFlow(persistentListOf())
     }
-    val overlayActors by autoInitializingLazy {
+    private val overlayActors by autoInitializingLazy {
         _allActors.map { actors -> actors.filterIsInstance<Overlay>().sortedByDescending { it.overlayDrawingOrder }.toImmutableList() }.asStateFlow(persistentListOf())
     }
     override val visibleActorsWithinViewport by lazy {
@@ -74,7 +86,8 @@ internal class ActorManagerImpl(
     }
 
     override fun onInitialize(kubriko: Kubriko) {
-        metadataManager = (kubriko as KubrikoImpl).metadataManager
+        kubrikoImpl = kubriko as KubrikoImpl
+        metadataManager = kubriko.metadataManager
         stateManager = kubriko.stateManager
         viewportManager = kubriko.viewportManager
     }
@@ -121,5 +134,73 @@ internal class ActorManagerImpl(
         val currentActors = _allActors.value
         _allActors.update { persistentListOf() }
         currentActors.forEach { it.onRemoved() }
+    }
+
+    @Composable
+    override fun Composable(insetPaddingModifier: Modifier) = Box(
+        modifier = kubrikoImpl.managers.mapNotNull { it.getModifierInternal(null) }.toImmutableList().fold()
+    ) {
+        val gameTime = metadataManager.gameTimeInMilliseconds.collectAsState().value
+        layerIndices.value.forEach { layerIndex ->
+            Layer(
+                gameTime = gameTime,
+                layerIndex = layerIndex,
+            )
+        }
+    }
+
+    @Composable
+    private fun Layer(
+        gameTime: Long,
+        layerIndex: Int?,
+    ) = viewportManager.cameraPosition.value.let { viewportCenter ->
+        Canvas(
+            modifier = if (layerIndex == null) {
+                Modifier.fillMaxSize().clipToBounds()
+            } else {
+                kubrikoImpl.managers.mapNotNull { it.getModifierInternal(layerIndex) }.toImmutableList().fold()
+            },
+            onDraw = {
+                @Suppress("UNUSED_EXPRESSION") gameTime  // This line invalidates the Canvas, causing a refresh on every frame
+                withTransform(
+                    transformBlock = {
+                        transformViewport(
+                            viewportCenter = viewportCenter,
+                            shiftedViewportOffset = (viewportManager.size.value / 2f) - viewportCenter,
+                            viewportScaleFactor = viewportManager.scaleFactor.value,
+                        )
+                    },
+                    drawBlock = {
+                        visibleActorsWithinViewport.value
+                            .filter { it.isVisible && it.layerIndex == layerIndex }
+                            .forEach { visible ->
+                                withTransform(
+                                    transformBlock = { visible.transformForViewport(this) },
+                                    drawBlock = {
+                                        with(visible) {
+                                            clipRect(
+                                                left = -ACTOR_CLIPPING_BORDER,
+                                                top = -ACTOR_CLIPPING_BORDER,
+                                                right = body.size.width.raw + ACTOR_CLIPPING_BORDER,
+                                                bottom = body.size.height.raw + ACTOR_CLIPPING_BORDER,
+                                            ) {
+                                                draw()
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+                    }
+                )
+                overlayActors.value
+                    .filter { it.layerIndex == layerIndex }
+                    .forEach { with(it) { drawToViewport() } }
+            }
+        )
+    }
+
+    companion object {
+        // TODO: Probably shouldn't be necessary
+        private const val ACTOR_CLIPPING_BORDER = 20f
     }
 }

@@ -49,7 +49,7 @@ internal class KubrikoImpl(
     }
 
     private inline fun <reified T : Manager> Collection<Manager>.addIfNeeded(creator: () -> T) =
-        if (none { T::class.isInstance(it) }) this + creator() else this
+        if (none { T::class.isInstance(it) }) toMutableList().apply { add(0, creator()) } else this
 
     @Suppress("UNCHECKED_CAST")
     private inline fun <reified T : Manager, TI : T> requireAndVerify(name: String) =

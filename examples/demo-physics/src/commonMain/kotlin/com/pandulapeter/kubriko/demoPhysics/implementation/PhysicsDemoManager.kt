@@ -1,6 +1,14 @@
 package com.pandulapeter.kubriko.demoPhysics.implementation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.body.RectangleBody
@@ -22,6 +30,8 @@ import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
+import com.pandulapeter.kubriko.shared.ui.FloatingButton
+import com.pandulapeter.kubriko.shared.ui.LoadingOverlay
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
@@ -34,8 +44,15 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kubriko.examples.demo_physics.generated.resources.Res
+import kubriko.examples.demo_physics.generated.resources.chain
+import kubriko.examples.demo_physics.generated.resources.explosion
+import kubriko.examples.demo_physics.generated.resources.ic_chain
+import kubriko.examples.demo_physics.generated.resources.ic_explosion
+import kubriko.examples.demo_physics.generated.resources.ic_shape
+import kubriko.examples.demo_physics.generated.resources.shape
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.MissingResourceException
+import org.jetbrains.compose.resources.stringResource
 
 internal class PhysicsDemoManager(
     private val sceneJson: MutableStateFlow<String>?,
@@ -47,7 +64,7 @@ internal class PhysicsDemoManager(
     private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
     private val viewportManager by manager<ViewportManager>()
     private val _shouldShowLoadingIndicator = MutableStateFlow(true)
-    val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
+    private val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager.add(this)
@@ -62,7 +79,37 @@ internal class PhysicsDemoManager(
         loadMap()
     }
 
-    fun changeSelectedActionType() = _actionType.update { currentActionType ->
+    @Composable
+    override fun Composable(insetPaddingModifier: Modifier) {
+        LoadingOverlay(
+            modifier = insetPaddingModifier,
+            shouldShowLoadingIndicator = shouldShowLoadingIndicator.collectAsState().value,
+        )
+        Box(
+            modifier = insetPaddingModifier.fillMaxSize(),
+        ) {
+            PlatformSpecificContent()
+            val selectedActionType = actionType.collectAsState()
+            FloatingButton(
+                modifier = Modifier.padding(16.dp).align(Alignment.BottomEnd),
+                icon = when (selectedActionType.value) {
+                    ActionType.SHAPE -> Res.drawable.ic_shape
+                    ActionType.CHAIN -> Res.drawable.ic_chain
+                    ActionType.EXPLOSION -> Res.drawable.ic_explosion
+                },
+                onButtonPressed = ::changeSelectedActionType,
+                contentDescription = stringResource(
+                    when (selectedActionType.value) {
+                        ActionType.SHAPE -> Res.string.shape
+                        ActionType.CHAIN -> Res.string.chain
+                        ActionType.EXPLOSION -> Res.string.explosion
+                    }
+                ),
+            )
+        }
+    }
+
+    private fun changeSelectedActionType() = _actionType.update { currentActionType ->
         val values = ActionType.entries
         val nextIndex = (currentActionType.ordinal + 1) % values.size
         values[nextIndex]

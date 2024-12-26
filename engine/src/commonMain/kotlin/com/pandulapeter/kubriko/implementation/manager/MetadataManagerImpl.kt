@@ -13,6 +13,8 @@ internal class MetadataManagerImpl : MetadataManager() {
     private lateinit var stateManager: StateManager
     private val _fps = MutableStateFlow(0f)
     override val fps = _fps.asStateFlow()
+    private val _gameTimeInMilliseconds = MutableStateFlow(0L)
+    override val gameTimeInMilliseconds = _gameTimeInMilliseconds.asStateFlow()
     private val _runtimeInMilliseconds = MutableStateFlow(0L)
     override val runtimeInMilliseconds = _runtimeInMilliseconds.asStateFlow()
     private var lastFpsUpdateTimestamp = 0L
@@ -27,6 +29,7 @@ internal class MetadataManagerImpl : MetadataManager() {
                 (currentValue + deltaTimeInMillis).toLong()
             }
         }
+        _gameTimeInMilliseconds.update { gameTimeNanos / 1000000 }
         if (gameTimeNanos - lastFpsUpdateTimestamp >= 1000000000L) {
             _fps.update { currentValue ->
                 if (deltaTimeInMillis == 0f) currentValue else 1000f / deltaTimeInMillis

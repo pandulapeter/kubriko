@@ -53,7 +53,6 @@ fun PhysicsDemo(
     stateHolder: PhysicsDemoStateHolder = createPhysicsDemoStateHolder(),
 ) {
     stateHolder as PhysicsDemoStateHolderImpl
-    val selectedActionType = stateHolder.physicsDemoManager.actionType.collectAsState()
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -63,33 +62,7 @@ fun PhysicsDemo(
         ) {
             KubrikoViewport(
                 kubriko = stateHolder.kubriko,
-            ) {
-                LoadingOverlay(
-                    modifier = modifier,
-                    shouldShowLoadingIndicator = stateHolder.physicsDemoManager.shouldShowLoadingIndicator.collectAsState().value,
-                )
-                Box(
-                    modifier = modifier.fillMaxSize(),
-                ) {
-                    PlatformSpecificContent()
-                    FloatingButton(
-                        modifier = Modifier.padding(16.dp).align(Alignment.BottomEnd),
-                        icon = when (selectedActionType.value) {
-                            ActionType.SHAPE -> Res.drawable.ic_shape
-                            ActionType.CHAIN -> Res.drawable.ic_chain
-                            ActionType.EXPLOSION -> Res.drawable.ic_explosion
-                        },
-                        onButtonPressed = stateHolder.physicsDemoManager::changeSelectedActionType,
-                        contentDescription = stringResource(
-                            when (selectedActionType.value) {
-                                ActionType.SHAPE -> Res.string.shape
-                                ActionType.CHAIN -> Res.string.chain
-                                ActionType.EXPLOSION -> Res.string.explosion
-                            }
-                        ),
-                    )
-                }
-            }
+            )
         }
     }
 }

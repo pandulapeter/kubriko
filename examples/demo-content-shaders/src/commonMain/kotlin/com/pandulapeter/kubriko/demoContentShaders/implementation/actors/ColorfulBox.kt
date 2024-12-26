@@ -21,7 +21,7 @@ internal class ColorfulBox(
 
     override fun update(deltaTimeInMillis: Float) {
         hue += deltaTimeInMillis / 10f
-        if (hue > 360f) {
+        while (hue > 360f) {
             hue -= 360f
         }
     }

@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 abstract class MetadataManager : Manager() {
 
     abstract val fps: StateFlow<Float>
+    abstract val gameTimeInMilliseconds: StateFlow<Long>
     abstract val runtimeInMilliseconds: StateFlow<Long>
 
     companion object {

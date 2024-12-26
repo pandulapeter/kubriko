@@ -45,36 +45,35 @@ fun WallbreakerGame(
             .fillMaxSize()
             .background(if (stateHolder.shaderManager.areShadersSupported) Color.Black else Color.DarkGray),
         kubriko = stateHolder.backgroundKubriko,
+    )
+    KubrikoViewport(
+        modifier = modifier.background(Color.Black),
+        kubriko = stateHolder.kubriko,
     ) {
-        KubrikoViewport(
-            modifier = modifier.background(Color.Black),
-            kubriko = stateHolder.kubriko,
-        ) {
-            WallbreakerPauseMenuBackground(
-                isVisible = !isGameRunning,
-            )
-        }
-        WallbreakerPauseMenuOverlay(
-            gameAreaModifier = modifier,
-            isGameRunning = isGameRunning,
-            shouldShowResumeButton = !stateHolder.gameManager.isGameOver.collectAsState().value,
-            onResumeButtonPressed = stateHolder.gameManager::resumeGame,
-            onRestartButtonPressed = stateHolder.gameManager::restartGame,
-            areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
-            onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
-            isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
-            onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
-            isInFullscreenMode = isInFullscreenMode,
-            onFullscreenModeToggled = onFullscreenModeToggled,
-        )
-        WallbreakerGameOverlay(
-            gameAreaModifier = modifier,
-            isGameRunning = isGameRunning,
-            score = stateHolder.scoreManager.score.collectAsState().value,
-            highScore = stateHolder.scoreManager.highScore.collectAsState().value,
-            onPauseButtonPressed = stateHolder.gameManager::pauseGame,
+        WallbreakerPauseMenuBackground(
+            isVisible = !isGameRunning,
         )
     }
+    WallbreakerPauseMenuOverlay(
+        gameAreaModifier = modifier,
+        isGameRunning = isGameRunning,
+        shouldShowResumeButton = !stateHolder.gameManager.isGameOver.collectAsState().value,
+        onResumeButtonPressed = stateHolder.gameManager::resumeGame,
+        onRestartButtonPressed = stateHolder.gameManager::restartGame,
+        areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
+        onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
+        isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
+        onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
+        isInFullscreenMode = isInFullscreenMode,
+        onFullscreenModeToggled = onFullscreenModeToggled,
+    )
+    WallbreakerGameOverlay(
+        gameAreaModifier = modifier,
+        isGameRunning = isGameRunning,
+        score = stateHolder.scoreManager.score.collectAsState().value,
+        highScore = stateHolder.scoreManager.highScore.collectAsState().value,
+        onPauseButtonPressed = stateHolder.gameManager::pauseGame,
+    )
 }
 
 
