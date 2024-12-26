@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.stateIn
 
 internal class PhysicsManagerImpl(
     gravity: SceneOffset,
+    private val simulationSpeed: Float,
 ) : PhysicsManager() {
     private val gravity = Vec2(gravity.x, gravity.y)
     private val actorManager by manager<ActorManager>()
@@ -39,7 +40,7 @@ internal class PhysicsManagerImpl(
         if (stateManager.isRunning.value && deltaTimeInMillis > 0) {
             arbiters.clear()
             broadPhaseCheck()
-            semiImplicit(deltaTimeInMillis / 100f)
+            semiImplicit(deltaTimeInMillis * simulationSpeed / 100f)
             for (contact in arbiters) {
                 contact.penetrationResolution()
             }

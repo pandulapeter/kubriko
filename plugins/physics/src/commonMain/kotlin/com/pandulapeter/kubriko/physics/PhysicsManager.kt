@@ -13,8 +13,10 @@ abstract class PhysicsManager : Manager() {
     companion object {
         fun newInstance(
             gravity: SceneOffset = SceneOffset(0f.sceneUnit, 9.81f.sceneUnit),
+            simulationSpeed: Float = 1f,
         ): PhysicsManager = PhysicsManagerImpl(
             gravity = gravity,
+            simulationSpeed = simulationSpeed,
         )
     }
 }
