@@ -13,10 +13,10 @@ internal class MetadataManagerImpl : MetadataManager() {
     private lateinit var stateManager: StateManager
     private val _fps = MutableStateFlow(0f)
     override val fps = _fps.asStateFlow()
-    private val _gameTimeInMilliseconds = MutableStateFlow(0L)
-    override val gameTimeInMilliseconds = _gameTimeInMilliseconds.asStateFlow()
-    private val _runtimeInMilliseconds = MutableStateFlow(0L)
-    override val runtimeInMilliseconds = _runtimeInMilliseconds.asStateFlow()
+    private val _totalRuntimeInMilliseconds = MutableStateFlow(0L)
+    override val totalRuntimeInMilliseconds = _totalRuntimeInMilliseconds.asStateFlow()
+    private val _activeRuntimeInMilliseconds = MutableStateFlow(0L)
+    override val activeRuntimeInMilliseconds = _activeRuntimeInMilliseconds.asStateFlow()
     private var lastFpsUpdateTimestamp = 0L
 
     override fun onInitialize(kubriko: Kubriko) {
@@ -25,11 +25,11 @@ internal class MetadataManagerImpl : MetadataManager() {
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
         if (stateManager.isRunning.value) {
-            _runtimeInMilliseconds.update { currentValue ->
+            _activeRuntimeInMilliseconds.update { currentValue ->
                 (currentValue + deltaTimeInMillis).toLong()
             }
         }
-        _gameTimeInMilliseconds.update { gameTimeNanos / 1000000 }
+        _totalRuntimeInMilliseconds.update { gameTimeNanos / 1000000 }
         if (gameTimeNanos - lastFpsUpdateTimestamp >= 1000000000L) {
             _fps.update { currentValue ->
                 if (deltaTimeInMillis == 0f) currentValue else 1000f / deltaTimeInMillis

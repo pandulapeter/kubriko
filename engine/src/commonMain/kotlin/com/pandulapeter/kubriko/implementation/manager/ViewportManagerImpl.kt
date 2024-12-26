@@ -3,8 +3,12 @@ package com.pandulapeter.kubriko.implementation.manager
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.traits.InsetPaddingAware
 import com.pandulapeter.kubriko.implementation.extensions.div
+import com.pandulapeter.kubriko.implementation.extensions.get
 import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
+import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -12,6 +16,9 @@ import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlin.math.max
 import kotlin.math.min
@@ -55,6 +62,17 @@ internal class ViewportManagerImpl(
         }.asStateFlow(SceneOffset.Zero)
     }
 
+    override fun onInitialize(kubriko: Kubriko) {
+        combine(
+            insetPadding,
+            kubriko.get<ActorManager>().allActors.map { it.filterIsInstance<InsetPaddingAware>() }
+        ) { insetPadding, insetPaddingAwareActors ->
+            insetPaddingAwareActors.forEach {
+                it.onInsetPaddingChanged(insetPadding)
+            }
+        }.launchIn(scope)
+    }
+
     override fun addToCameraPosition(offset: Offset) = _cameraPosition.update { currentValue ->
         currentValue - SceneOffset(offset / scaleFactor.value)
     }
@@ -77,6 +95,5 @@ internal class ViewportManagerImpl(
 
     fun updateSize(size: Size) = _size.update { size }
 
-    // TODO: Introduce WindowInsetAware Trait
     fun updateInsetPadding(insetPadding: Rect) = _insetPadding.update { insetPadding }
 }

@@ -67,7 +67,7 @@ internal class ActorManagerImpl(
     }
     override val visibleActorsWithinViewport by lazy {
         combine(
-            metadataManager.runtimeInMilliseconds.distinctUntilChangedWithDelay(invisibleActorMinimumRefreshTimeInMillis),
+            metadataManager.activeRuntimeInMilliseconds.distinctUntilChangedWithDelay(invisibleActorMinimumRefreshTimeInMillis),
             visibleActors,
             viewportManager.size,
             viewportManager.cameraPosition,
@@ -138,9 +138,9 @@ internal class ActorManagerImpl(
 
     @Composable
     override fun Composable(insetPaddingModifier: Modifier) = Box(
-        modifier = kubrikoImpl.managers.mapNotNull { it.getModifierInternal(null) }.toImmutableList().fold()
+        modifier = kubrikoImpl.managers.mapNotNull { it.getModifierInternal(null) }.toImmutableList().fold(),
     ) {
-        val gameTime = metadataManager.gameTimeInMilliseconds.collectAsState().value
+        val gameTime = metadataManager.totalRuntimeInMilliseconds.collectAsState().value
         layerIndices.value.forEach { layerIndex ->
             Layer(
                 gameTime = gameTime,

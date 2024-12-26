@@ -23,7 +23,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.shared.ui.SmallButton
 import kubriko.examples.game_wallbreaker.generated.resources.Res
@@ -48,7 +47,7 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 internal fun WallbreakerPauseMenuOverlay(
-    gameAreaModifier: Modifier,
+    modifier: Modifier,
     isGameRunning: Boolean,
     shouldShowResumeButton: Boolean,
     onResumeButtonPressed: () -> Unit,
@@ -60,7 +59,7 @@ internal fun WallbreakerPauseMenuOverlay(
     isInFullscreenMode: Boolean?,
     onFullscreenModeToggled: () -> Unit,
 ) = AnimatedVisibility(
-    modifier = gameAreaModifier,
+    modifier = modifier,
     visible = !isGameRunning,
     enter = fadeIn() + scaleIn(),
     exit = scaleOut() + fadeOut(),

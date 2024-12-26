@@ -69,9 +69,8 @@ fun InternalViewport(
         kubrikoImpl.initialize()
         while (isActive) {
             withFrameNanos { gameTimeInNanos ->
-                val previousGameTimeNanos = kubrikoImpl.metadataManager.gameTimeInMilliseconds.value * 1000000L
+                val previousGameTimeNanos = kubrikoImpl.metadataManager.totalRuntimeInMilliseconds.value * 1000000L
                 val deltaTimeInMillis = (gameTimeInNanos - previousGameTimeNanos) / 1000000f
-                println(deltaTimeInMillis)
                 kubrikoImpl.managers.forEach { it.onUpdateInternal(deltaTimeInMillis, gameTimeInNanos) }
             }
         }

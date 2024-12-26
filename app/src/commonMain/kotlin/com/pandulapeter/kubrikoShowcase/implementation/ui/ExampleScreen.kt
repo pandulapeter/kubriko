@@ -4,12 +4,10 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.demoContentShaders.ContentShadersDemo
 import com.pandulapeter.kubriko.demoContentShaders.ContentShadersDemoStateHolder
 import com.pandulapeter.kubriko.demoContentShaders.createContentShadersDemoStateHolder
@@ -37,73 +35,56 @@ import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 private val currentDemoStateHolders = mutableStateOf(emptyList<ExampleStateHolder>())
 
 @Composable
-internal fun ShowcaseEntry.exampleScreen(
+internal fun ShowcaseEntry.ExampleScreen(
     shouldUseCompactUi: Boolean,
     isInFullscreenMode: Boolean,
     onFullscreenModeToggled: () -> Unit,
     getSelectedShowcaseEntry: () -> ShowcaseEntry?,
 ) {
-    val modifier = Modifier.windowInsetsPadding(
-        if (isInFullscreenMode) {
-            WindowInsets.safeDrawing
-        } else {
-            WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right)
-        }
-    )
+    val windowInsets = when {
+        isInFullscreenMode -> WindowInsets.safeDrawing
+        shouldUseCompactUi -> WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
+        else -> WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right)
+    }
+
     when (this) {
         ShowcaseEntry.WALLBREAKER -> WallbreakerGame(
-            modifier = modifier,
             stateHolder = getOrCreateState(currentDemoStateHolders, ::createWallbreakerGameStateHolder),
+            windowInsets = windowInsets,
             isInFullscreenMode = isInFullscreenMode,
             onFullscreenModeToggled = onFullscreenModeToggled,
         )
 
         ShowcaseEntry.SPACE_SQUADRON -> SpaceSquadronGame(
-            modifier = Modifier.windowInsetsPadding(
-                if (isInFullscreenMode || shouldUseCompactUi) {
-                    WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
-                } else {
-                    WindowInsets.safeDrawing.only(WindowInsetsSides.Right)
-                }
-            ),
             stateHolder = getOrCreateState(currentDemoStateHolders, ::createSpaceSquadronGameStateHolder),
-            windowInsets = if (isInFullscreenMode) {
-                WindowInsets.safeDrawing.only(WindowInsetsSides.Vertical)
-            } else {
-                WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)
-            },
+            windowInsets = windowInsets,
             isInFullscreenMode = isInFullscreenMode,
             onFullscreenModeToggled = onFullscreenModeToggled,
         )
 
         ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemo(
-            modifier = modifier,
             stateHolder = getOrCreateState(currentDemoStateHolders, ::createContentShadersDemoStateHolder),
         )
 
         ShowcaseEntry.INPUT -> InputDemo(
-            modifier = modifier,
             stateHolder = getOrCreateState(currentDemoStateHolders, ::createInputDemoStateHolder),
         )
 
         ShowcaseEntry.PERFORMANCE -> PerformanceDemo(
-            modifier = modifier,
             stateHolder = getOrCreateState(currentDemoStateHolders, ::createPerformanceDemoStateHolder),
         )
 
         ShowcaseEntry.PHYSICS -> PhysicsDemo(
-            modifier = modifier,
             stateHolder = getOrCreateState(currentDemoStateHolders, ::createPhysicsDemoStateHolder),
         )
 
         ShowcaseEntry.SHADER_ANIMATIONS -> ShaderAnimationsDemo(
-            modifier = modifier,
             stateHolder = getOrCreateState(currentDemoStateHolders, ::createShaderAnimationsDemoStateHolder),
         )
     }
     DisposableEffect(type) {
         onDispose {
-            if (getSelectedShowcaseEntry() != this@exampleScreen) {
+            if (getSelectedShowcaseEntry() != this@ExampleScreen) {
                 stateHolderType.let { type ->
                     currentDemoStateHolders.value.filter { type.isInstance(it) }.forEach { it.dispose() }
                     currentDemoStateHolders.value = currentDemoStateHolders.value.filterNot { type.isInstance(it) }

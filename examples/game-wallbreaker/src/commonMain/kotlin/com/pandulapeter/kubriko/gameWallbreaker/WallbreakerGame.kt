@@ -1,7 +1,10 @@
 package com.pandulapeter.kubriko.gameWallbreaker
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -33,8 +36,8 @@ import com.pandulapeter.kubriko.shared.ExampleStateHolder
  */
 @Composable
 fun WallbreakerGame(
-    modifier: Modifier = Modifier,
     stateHolder: WallbreakerGameStateHolder = createWallbreakerGameStateHolder(),
+    windowInsets: WindowInsets = WindowInsets.safeDrawing,
     isInFullscreenMode: Boolean? = null,
     onFullscreenModeToggled: () -> Unit = {},
 ) = WallbreakerTheme {
@@ -47,15 +50,16 @@ fun WallbreakerGame(
         kubriko = stateHolder.backgroundKubriko,
     )
     KubrikoViewport(
-        modifier = modifier.background(Color.Black),
+        modifier = Modifier.windowInsetsPadding(windowInsets).background(Color.Black),
         kubriko = stateHolder.kubriko,
+        windowInsets = windowInsets,
     ) {
         WallbreakerPauseMenuBackground(
             isVisible = !isGameRunning,
         )
     }
     WallbreakerPauseMenuOverlay(
-        gameAreaModifier = modifier,
+        modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
         isGameRunning = isGameRunning,
         shouldShowResumeButton = !stateHolder.gameManager.isGameOver.collectAsState().value,
         onResumeButtonPressed = stateHolder.gameManager::resumeGame,
@@ -68,7 +72,7 @@ fun WallbreakerGame(
         onFullscreenModeToggled = onFullscreenModeToggled,
     )
     WallbreakerGameOverlay(
-        gameAreaModifier = modifier,
+        gameAreaModifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
         isGameRunning = isGameRunning,
         score = stateHolder.scoreManager.score.collectAsState().value,
         highScore = stateHolder.scoreManager.highScore.collectAsState().value,

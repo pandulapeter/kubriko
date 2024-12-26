@@ -123,7 +123,7 @@ private fun ExpandedContent(
             transitionSpec = if (shouldUseCompactUi) compactTransitionSpec else expandedTransitionSpec,
             targetState = selectedShowcaseEntry,
         ) { showcaseEntry ->
-            showcaseEntry?.exampleScreen(
+            showcaseEntry?.ExampleScreen(
                 shouldUseCompactUi = shouldUseCompactUi,
                 isInFullscreenMode = isInFullscreenMode,
                 onFullscreenModeToggled = onFullscreenModeToggled,

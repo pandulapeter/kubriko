@@ -34,7 +34,6 @@ import com.pandulapeter.kubriko.sprites.SpriteManager
  */
 @Composable
 fun SpaceSquadronGame(
-    modifier: Modifier = Modifier,
     stateHolder: SpaceSquadronGameStateHolder = createSpaceSquadronGameStateHolder(),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     isInFullscreenMode: Boolean? = null,
@@ -44,24 +43,22 @@ fun SpaceSquadronGame(
     KubrikoViewport(
         modifier = Modifier.fillMaxSize().background(Color.Black),
         kubriko = stateHolder.backgroundKubriko,
-    ) {
-        KubrikoViewport(
-            modifier = modifier,
-            kubriko = stateHolder.kubriko,
-            windowInsets = windowInsets,
-        )
-        SpaceSquadronPauseMenuOverlay(
-            gameAreaModifier = modifier.windowInsetsPadding(windowInsets),
-            isGameRunning = false,
-            onNewGameButtonPressed = { stateHolder.stateManager.updateIsRunning(true) },
-            areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
-            onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
-            isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
-            onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
-            isInFullscreenMode = isInFullscreenMode,
-            onFullscreenModeToggled = onFullscreenModeToggled,
-        )
-    }
+    )
+    KubrikoViewport(
+        kubriko = stateHolder.kubriko,
+        windowInsets = windowInsets,
+    )
+    SpaceSquadronPauseMenuOverlay(
+        modifier = Modifier.windowInsetsPadding(windowInsets),
+        isGameRunning = false,
+        onNewGameButtonPressed = { stateHolder.stateManager.updateIsRunning(true) },
+        areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
+        onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
+        isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
+        onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
+        isInFullscreenMode = isInFullscreenMode,
+        onFullscreenModeToggled = onFullscreenModeToggled,
+    )
 }
 
 sealed interface SpaceSquadronGameStateHolder : ExampleStateHolder

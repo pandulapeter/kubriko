@@ -27,7 +27,7 @@ class RippleShader(
     }
 
     override fun update(deltaTimeInMillis: Float) {
-        state = state.copy(time = (metadataManager.runtimeInMilliseconds.value % 100000L) / 1000f)
+        state = state.copy(time = (metadataManager.activeRuntimeInMilliseconds.value % 100000L) / 1000f)
     }
 
     data class State(

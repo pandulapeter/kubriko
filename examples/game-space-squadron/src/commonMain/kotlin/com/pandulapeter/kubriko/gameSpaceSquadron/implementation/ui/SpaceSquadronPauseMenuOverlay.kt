@@ -37,7 +37,7 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 internal fun SpaceSquadronPauseMenuOverlay(
-    gameAreaModifier: Modifier,
+    modifier: Modifier,
     isGameRunning: Boolean,
     onNewGameButtonPressed: () -> Unit,
     areSoundEffectsEnabled: Boolean,
@@ -47,7 +47,7 @@ internal fun SpaceSquadronPauseMenuOverlay(
     isInFullscreenMode: Boolean?,
     onFullscreenModeToggled: () -> Unit,
 ) = Box(
-    modifier = gameAreaModifier,
+    modifier = modifier,
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),

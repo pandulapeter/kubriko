@@ -34,7 +34,7 @@ internal class DebugMenuManager(gameKubriko: Kubriko) : Manager(), Overlay, Uniq
         gameMetadataManager.fps,
         gameActorManager.allActors,
         gameActorManager.visibleActorsWithinViewport,
-        gameMetadataManager.runtimeInMilliseconds,
+        gameMetadataManager.activeRuntimeInMilliseconds,
         isDebugOverlayEnabled,
     ) { fps, allActors, visibleActorsWithinViewport, runtimeInMilliseconds, isDebugOverlayEnabled ->
         DebugMenuMetadata(
