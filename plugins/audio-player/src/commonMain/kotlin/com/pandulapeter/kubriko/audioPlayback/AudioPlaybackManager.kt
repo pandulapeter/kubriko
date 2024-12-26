@@ -8,6 +8,9 @@ import com.pandulapeter.kubriko.manager.Manager
  */
 abstract class AudioPlaybackManager : Manager() {
 
+    // TODO: Add ability to preload sounds
+    // TODO: Add ability to play multiple music tracks
+
     abstract fun playMusic(uri: String, shouldLoop: Boolean)
 
     abstract fun resumeMusic()

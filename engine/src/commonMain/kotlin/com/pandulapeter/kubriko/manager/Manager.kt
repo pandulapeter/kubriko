@@ -44,6 +44,12 @@ abstract class Manager {
         }
     }
 
+    @Composable
+    internal fun ComposableInternal() = Composable()
+
+    @Composable
+    protected open fun Composable() = Unit
+
     protected open fun onInitialize(kubriko: Kubriko) = Unit
 
     internal fun onUpdateInternal(deltaTimeInMillis: Float, gameTimeNanos: Long) = onUpdate(deltaTimeInMillis, gameTimeNanos)

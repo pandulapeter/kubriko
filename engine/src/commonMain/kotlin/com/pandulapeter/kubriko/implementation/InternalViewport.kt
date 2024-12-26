@@ -121,6 +121,11 @@ fun InternalViewport(
                 gameTime = gameTime.value,
                 getKubriko = { kubrikoImpl },
             )
+
+            // Allow Managers to provide their own Composable functions
+            kubrikoImpl.managers.forEach { it.ComposableInternal() }
+
+            // TODO: Deprecated in favor of Manager Composables
             overlay()
         }
     }

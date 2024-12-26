@@ -27,6 +27,7 @@ import com.pandulapeter.kubriko.persistence.PersistenceManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shaders.ShaderManager
 import com.pandulapeter.kubriko.shared.ExampleStateHolder
+import com.pandulapeter.kubriko.sprites.SpriteManager
 
 /**
  * Music: https://freesound.org/people/Andrewkn/sounds/474864/
@@ -52,7 +53,7 @@ fun SpaceSquadronGame(
         SpaceSquadronPauseMenuOverlay(
             gameAreaModifier = modifier.windowInsetsPadding(windowInsets),
             isGameRunning = false,
-            onNewGameButtonPressed = {},
+            onNewGameButtonPressed = { stateHolder.stateManager.updateIsRunning(true) },
             areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
             onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
             isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
@@ -90,6 +91,7 @@ private class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
         audioPlaybackManager,
         persistenceManager,
         userPreferencesManager,
+        SpriteManager.newInstance(),
         SpaceSquadronAudioManager(stateManager, audioPlaybackManager, userPreferencesManager),
     )
 
