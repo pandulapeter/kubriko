@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
+import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorNumberInput
 import com.pandulapeter.kubriko.types.SceneSize
 

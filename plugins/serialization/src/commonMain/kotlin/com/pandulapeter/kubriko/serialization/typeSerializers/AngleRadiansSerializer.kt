@@ -1,6 +1,6 @@
 package com.pandulapeter.kubriko.serialization.typeSerializers
 
-import com.pandulapeter.kubriko.implementation.extensions.rad
+import com.pandulapeter.kubriko.extensions.rad
 import com.pandulapeter.kubriko.types.AngleRadians
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer

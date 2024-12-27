@@ -1,12 +1,11 @@
 package com.pandulapeter.kubriko.audioPlayback
 
-import com.pandulapeter.kubriko.audioPlayback.implementation.AudioPlaybackManagerImpl
 import com.pandulapeter.kubriko.manager.Manager
 
 /**
  * TODO: Documentation
  */
-abstract class AudioPlaybackManager : Manager() {
+sealed class AudioPlaybackManager : Manager() {
 
     // TODO: Add ability to preload sounds
     // TODO: Add ability to play multiple music tracks

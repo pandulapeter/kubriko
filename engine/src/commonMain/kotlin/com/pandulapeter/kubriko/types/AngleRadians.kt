@@ -1,6 +1,6 @@
 package com.pandulapeter.kubriko.types
 
-import com.pandulapeter.kubriko.implementation.extensions.rad
+import com.pandulapeter.kubriko.extensions.rad
 import kotlin.jvm.JvmInline
 import kotlin.math.PI
 

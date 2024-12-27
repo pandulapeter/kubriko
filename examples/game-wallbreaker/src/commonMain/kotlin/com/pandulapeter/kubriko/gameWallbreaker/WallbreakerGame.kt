@@ -22,7 +22,7 @@ import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerGam
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerPauseMenuBackground
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerPauseMenuOverlay
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerTheme
-import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
+import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager

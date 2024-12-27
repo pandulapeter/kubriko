@@ -12,7 +12,7 @@ import com.pandulapeter.kubriko.demoPerformance.implementation.actors.BoxWithCir
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.Character
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.MovingBox
 import com.pandulapeter.kubriko.demoPerformance.implementation.sceneJson
-import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
+import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.shared.ExampleStateHolder

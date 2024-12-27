@@ -10,10 +10,10 @@ import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
-import com.pandulapeter.kubriko.implementation.extensions.clampWithin
-import com.pandulapeter.kubriko.implementation.extensions.get
-import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
-import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
+import com.pandulapeter.kubriko.extensions.clampWithin
+import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.extensions.toSceneOffset
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.keyboardInput.extensions.hasLeft
 import com.pandulapeter.kubriko.keyboardInput.extensions.hasRight

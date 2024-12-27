@@ -1,6 +1,5 @@
 package com.pandulapeter.kubriko.serialization
 
-import com.pandulapeter.kubriko.serialization.implementation.SerializationManagerImpl
 import com.pandulapeter.kubriko.manager.Manager
 import kotlinx.collections.immutable.ImmutableSet
 import kotlin.reflect.KClass
@@ -8,7 +7,7 @@ import kotlin.reflect.KClass
 /**
  * TODO: Documentation
  */
-abstract class SerializationManager<MD : SerializableMetadata<out T>, out T : Serializable<out T>> : Manager() {
+sealed class SerializationManager<MD : SerializableMetadata<out T>, out T : Serializable<out T>> : Manager() {
 
     abstract val registeredTypeIds: ImmutableSet<String>
 

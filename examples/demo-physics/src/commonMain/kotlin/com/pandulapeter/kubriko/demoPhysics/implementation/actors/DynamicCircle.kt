@@ -5,8 +5,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.CircleBody
-import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
-import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
+import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
+import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableCircleBody

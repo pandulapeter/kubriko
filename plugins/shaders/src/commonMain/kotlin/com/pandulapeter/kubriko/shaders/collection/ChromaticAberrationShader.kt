@@ -2,7 +2,7 @@ package com.pandulapeter.kubriko.shaders.collection
 
 import com.pandulapeter.kubriko.shaders.ContentShader
 import com.pandulapeter.kubriko.shaders.Shader
-import com.pandulapeter.kubriko.shaders.implementation.extensions.ShaderUniformProvider
+import com.pandulapeter.kubriko.shaders.extensions.ShaderUniformProvider
 
 /**
  * Credit: Manel Martos Roldán

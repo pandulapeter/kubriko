@@ -12,9 +12,9 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.InsetPaddingAware
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.gameSpaceSquadron.ViewportHeight
-import com.pandulapeter.kubriko.implementation.extensions.get
-import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
-import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
+import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sprites.SpriteManager
 import com.pandulapeter.kubriko.types.SceneOffset

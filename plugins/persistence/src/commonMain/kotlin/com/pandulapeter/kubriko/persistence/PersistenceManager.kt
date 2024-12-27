@@ -1,13 +1,12 @@
 package com.pandulapeter.kubriko.persistence
 
 import com.pandulapeter.kubriko.manager.Manager
-import com.pandulapeter.kubriko.persistence.implementation.PersistenceManagerImpl
 import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * TODO: Documentation
  */
-abstract class PersistenceManager : Manager() {
+sealed class PersistenceManager : Manager() {
 
     abstract fun boolean(
         key: String,

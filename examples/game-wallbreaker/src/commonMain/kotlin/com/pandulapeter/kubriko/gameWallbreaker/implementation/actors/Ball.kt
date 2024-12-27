@@ -14,10 +14,10 @@ import com.pandulapeter.kubriko.collision.CollisionDetector
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerAudioManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerGameManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
-import com.pandulapeter.kubriko.implementation.extensions.constrainedWithin
-import com.pandulapeter.kubriko.implementation.extensions.get
-import com.pandulapeter.kubriko.implementation.extensions.min
-import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
+import com.pandulapeter.kubriko.extensions.constrainedWithin
+import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.extensions.min
+import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager

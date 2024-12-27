@@ -3,8 +3,8 @@ package com.pandulapeter.kubriko.demoPhysics.implementation.actors
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.implementation.extensions.isWithinViewportBounds
-import com.pandulapeter.kubriko.implementation.extensions.get
+import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
+import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody

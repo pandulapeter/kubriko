@@ -2,7 +2,7 @@ package com.pandulapeter.kubriko.physics
 
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.collision.Collidable
-import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
+import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
 
 interface RigidBody : Positionable, Collidable {
 

@@ -1,6 +1,6 @@
 package com.pandulapeter.kubriko.types
 
-import com.pandulapeter.kubriko.implementation.extensions.deg
+import com.pandulapeter.kubriko.extensions.deg
 import kotlin.jvm.JvmInline
 
 /**

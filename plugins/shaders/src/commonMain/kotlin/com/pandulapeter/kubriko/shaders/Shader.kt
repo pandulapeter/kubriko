@@ -1,7 +1,7 @@
 package com.pandulapeter.kubriko.shaders
 
 import com.pandulapeter.kubriko.actor.traits.LayerAware
-import com.pandulapeter.kubriko.shaders.implementation.extensions.ShaderUniformProvider
+import com.pandulapeter.kubriko.shaders.extensions.ShaderUniformProvider
 
 //TODO: Documentation
 interface Shader<T : Shader.State> : LayerAware {

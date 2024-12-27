@@ -3,7 +3,7 @@ package com.pandulapeter.kubriko.shaders.collection
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.shaders.ContentShader
 import com.pandulapeter.kubriko.shaders.Shader
-import com.pandulapeter.kubriko.shaders.implementation.extensions.ShaderUniformProvider
+import com.pandulapeter.kubriko.shaders.extensions.ShaderUniformProvider
 
 /**
  * Credit: Zach Klippenstein

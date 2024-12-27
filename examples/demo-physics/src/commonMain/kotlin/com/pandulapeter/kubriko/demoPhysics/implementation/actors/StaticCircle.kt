@@ -5,11 +5,11 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.implementation.extensions.get
+import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
-import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
-import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Circle
+import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
+import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableCircleBody

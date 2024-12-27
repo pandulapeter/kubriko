@@ -1,6 +1,6 @@
 package com.pandulapeter.kubriko.types
 
-import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
+import com.pandulapeter.kubriko.extensions.sceneUnit
 import kotlin.jvm.JvmInline
 
 /**

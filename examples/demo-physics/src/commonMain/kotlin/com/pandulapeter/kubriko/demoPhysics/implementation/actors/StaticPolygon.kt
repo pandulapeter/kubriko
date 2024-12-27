@@ -8,11 +8,11 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.PolygonBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.implementation.extensions.rad
+import com.pandulapeter.kubriko.extensions.rad
 import com.pandulapeter.kubriko.physics.RigidBody
-import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
-import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
-import com.pandulapeter.kubriko.physics.implementation.physics.math.Vec2
+import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
+import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
+import com.pandulapeter.kubriko.physics.implementation.math.Vec2
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.Serializable

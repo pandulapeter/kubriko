@@ -1,11 +1,11 @@
 package com.pandulapeter.kubriko.implementation
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.implementation.extensions.get
-import com.pandulapeter.kubriko.implementation.manager.ActorManagerImpl
-import com.pandulapeter.kubriko.implementation.manager.MetadataManagerImpl
-import com.pandulapeter.kubriko.implementation.manager.StateManagerImpl
-import com.pandulapeter.kubriko.implementation.manager.ViewportManagerImpl
+import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.manager.ActorManagerImpl
+import com.pandulapeter.kubriko.manager.MetadataManagerImpl
+import com.pandulapeter.kubriko.manager.StateManagerImpl
+import com.pandulapeter.kubriko.manager.ViewportManagerImpl
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager

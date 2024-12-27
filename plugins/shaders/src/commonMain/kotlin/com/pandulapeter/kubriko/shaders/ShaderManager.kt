@@ -1,12 +1,11 @@
 package com.pandulapeter.kubriko.shaders
 
 import com.pandulapeter.kubriko.manager.Manager
-import com.pandulapeter.kubriko.shaders.implementation.ShaderManagerImpl
 
 /**
  * TODO: Documentation
  */
-abstract class ShaderManager : Manager() {
+sealed class ShaderManager : Manager() {
 
     abstract val areShadersSupported: Boolean
 

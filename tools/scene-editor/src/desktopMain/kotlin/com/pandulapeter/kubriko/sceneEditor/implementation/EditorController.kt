@@ -3,9 +3,9 @@ package com.pandulapeter.kubriko.sceneEditor.implementation
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.collision.implementation.extensions.isWithin
-import com.pandulapeter.kubriko.implementation.extensions.get
-import com.pandulapeter.kubriko.implementation.extensions.toSceneOffset
+import com.pandulapeter.kubriko.collision.extensions.isWithin
+import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.extensions.toSceneOffset
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager

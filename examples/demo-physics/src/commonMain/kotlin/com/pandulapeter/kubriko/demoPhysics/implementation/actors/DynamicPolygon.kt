@@ -6,8 +6,8 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.PolygonBody
-import com.pandulapeter.kubriko.physics.implementation.physics.dynamics.Body
-import com.pandulapeter.kubriko.physics.implementation.physics.geometry.Polygon
+import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
+import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
 import com.pandulapeter.kubriko.types.SceneOffset
 
 // TODO: Expose to the editor

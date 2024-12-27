@@ -12,7 +12,7 @@ import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Ball
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Brick
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Paddle
-import com.pandulapeter.kubriko.implementation.extensions.Invisible
+import com.pandulapeter.kubriko.extensions.Invisible
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager

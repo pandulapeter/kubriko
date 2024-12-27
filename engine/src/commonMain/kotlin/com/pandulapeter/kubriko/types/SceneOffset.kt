@@ -1,7 +1,7 @@
 package com.pandulapeter.kubriko.types
 
 import androidx.compose.ui.geometry.Offset
-import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
+import com.pandulapeter.kubriko.extensions.sceneUnit
 import kotlin.jvm.JvmInline
 
 /**

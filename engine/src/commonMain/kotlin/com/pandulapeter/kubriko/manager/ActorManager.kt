@@ -2,14 +2,13 @@ package com.pandulapeter.kubriko.manager
 
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.implementation.manager.ActorManagerImpl
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.StateFlow
 
 /**
  * TODO: Documentation
  */
-abstract class ActorManager : Manager() {
+sealed class ActorManager : Manager() {
 
     abstract val allActors: StateFlow<ImmutableList<Actor>>
     abstract val visibleActorsWithinViewport: StateFlow<ImmutableList<Visible>>

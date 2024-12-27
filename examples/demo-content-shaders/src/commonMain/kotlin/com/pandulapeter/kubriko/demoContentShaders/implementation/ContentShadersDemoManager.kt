@@ -2,9 +2,9 @@ package com.pandulapeter.kubriko.demoContentShaders.implementation
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.demoContentShaders.implementation.actors.ColorfulBox
-import com.pandulapeter.kubriko.implementation.extensions.get
-import com.pandulapeter.kubriko.implementation.extensions.sceneUnit
-import com.pandulapeter.kubriko.implementation.extensions.times
+import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.extensions.times
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.shaders.collection.ChromaticAberrationShader

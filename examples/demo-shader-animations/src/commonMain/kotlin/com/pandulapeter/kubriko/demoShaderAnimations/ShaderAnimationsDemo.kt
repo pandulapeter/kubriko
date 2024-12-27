@@ -6,10 +6,13 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -41,8 +44,8 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ShaderAnimationsDemo(
-    modifier: Modifier = Modifier,
     stateHolder: ShaderAnimationsDemoStateHolder = createShaderAnimationsDemoStateHolder(),
+    windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as ShaderAnimationsDemoStateHolderImpl
     if (stateHolder.shaderManager.areShadersSupported) {
@@ -78,7 +81,7 @@ fun ShaderAnimationsDemo(
                     )
                 }
                 ControlsContainer(
-                    modifier = modifier.align(Alignment.BottomEnd).padding(16.dp),
+                    modifier = Modifier.windowInsetsPadding(windowInsets).align(Alignment.BottomEnd).padding(16.dp),
                     state = selectedDemoType to controlsState,
                     onIsExpandedChanged = stateHolder::onControlsStateChanged,
                     shaderAnimationDemoHolders = stateHolder.shaderAnimationDemoHolders,
@@ -87,7 +90,7 @@ fun ShaderAnimationsDemo(
         }
     } else {
         Box(
-            modifier = modifier.fillMaxSize().padding(16.dp)
+            modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets).padding(16.dp)
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(0.75f).align(Alignment.Center),

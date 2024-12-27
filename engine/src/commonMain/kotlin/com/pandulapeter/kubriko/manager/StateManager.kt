@@ -1,13 +1,12 @@
 package com.pandulapeter.kubriko.manager
 
 import com.pandulapeter.kubriko.implementation.getDefaultFocusDebounce
-import com.pandulapeter.kubriko.implementation.manager.StateManagerImpl
 import kotlinx.coroutines.flow.StateFlow
 
 /**
  * TODO: Documentation
  */
-abstract class StateManager : Manager() {
+sealed class StateManager : Manager() {
 
     abstract val isFocused: StateFlow<Boolean>
     abstract val isRunning: StateFlow<Boolean>

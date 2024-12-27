@@ -1,12 +1,11 @@
 package com.pandulapeter.kubriko.manager
 
-import com.pandulapeter.kubriko.implementation.manager.MetadataManagerImpl
 import kotlinx.coroutines.flow.StateFlow
 
 /**
  * TODO: Documentation
  */
-abstract class MetadataManager : Manager() {
+sealed class MetadataManager : Manager() {
 
     abstract val fps: StateFlow<Float>
     abstract val totalRuntimeInMilliseconds: StateFlow<Long>

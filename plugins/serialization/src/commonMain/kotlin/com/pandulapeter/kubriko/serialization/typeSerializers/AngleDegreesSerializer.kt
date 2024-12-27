@@ -1,6 +1,6 @@
 package com.pandulapeter.kubriko.serialization.typeSerializers
 
-import com.pandulapeter.kubriko.implementation.extensions.deg
+import com.pandulapeter.kubriko.extensions.deg
 import com.pandulapeter.kubriko.types.AngleDegrees
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer

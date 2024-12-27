@@ -13,7 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.implementation.extensions.toHSV
+import com.pandulapeter.kubriko.extensions.toHSV
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorText
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.ColorEditorMode
 
