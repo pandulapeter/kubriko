@@ -20,17 +20,13 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.debugMenu.DebugMenu
-import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
-import com.pandulapeter.kubriko.sceneEditor.implementation.MAXIMUM_SCALE_FACTOR
-import com.pandulapeter.kubriko.sceneEditor.implementation.MINIMUM_SCALE_FACTOR
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseClick
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseDrag
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseMove
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseZoom
 import com.pandulapeter.kubriko.sceneEditor.implementation.overlay.EditorOverlay
-import com.pandulapeter.kubriko.sceneEditor.implementation.overlay.OverlayManager
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.fileManagerRow.FileManagerRow
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceBrowserColumn.InstanceBrowserColumn
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.InstanceManagerColumn
@@ -81,34 +77,33 @@ internal fun EditorUserInterface(
                                         .fillMaxSize()
                                         .background(MaterialTheme.colorScheme.surfaceVariant),
                                     kubriko = editorController.kubriko,
-                                ) {
-                                    EditorOverlay(
-                                        // TODO: Migrate to PonterInputAware
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .handleMouseClick(
-                                                getSelectedActor = editorController::getSelectedActor,
-                                                getMouseSceneOffset = editorController::getMouseWorldCoordinates,
-                                                onLeftClick = editorController::onLeftClick,
-                                                onRightClick = editorController::onRightClick,
-                                            )
-                                            .handleMouseMove(
-                                                onMouseMove = editorController::onMouseMove,
-                                            )
-                                            .handleMouseZoom(
-                                                viewportManager = editorController.viewportManager,
-                                            )
-                                            .handleMouseDrag(
-                                                keyboardInputManager = editorController.keyboardInputManager,
-                                                viewportManager = editorController.viewportManager,
-                                                getSelectedActor = editorController::getSelectedActor,
-                                                getMouseSceneOffset = editorController::getMouseWorldCoordinates,
-                                                notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
-                                            ),
-                                        editorController = editorController,
-                                        overlayKubriko = overlayKubriko,
-                                    )
-                                }
+                                )
+                                EditorOverlay(
+                                    // TODO: Migrate to PonterInputAware
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .handleMouseClick(
+                                            getSelectedActor = editorController::getSelectedActor,
+                                            getMouseSceneOffset = editorController::getMouseWorldCoordinates,
+                                            onLeftClick = editorController::onLeftClick,
+                                            onRightClick = editorController::onRightClick,
+                                        )
+                                        .handleMouseMove(
+                                            onMouseMove = editorController::onMouseMove,
+                                        )
+                                        .handleMouseZoom(
+                                            viewportManager = editorController.viewportManager,
+                                        )
+                                        .handleMouseDrag(
+                                            keyboardInputManager = editorController.keyboardInputManager,
+                                            viewportManager = editorController.viewportManager,
+                                            getSelectedActor = editorController::getSelectedActor,
+                                            getMouseSceneOffset = editorController::getMouseWorldCoordinates,
+                                            notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
+                                        ),
+                                    editorController = editorController,
+                                    overlayKubriko = overlayKubriko,
+                                )
                             }
                         }
                         InstanceManagerColumn(

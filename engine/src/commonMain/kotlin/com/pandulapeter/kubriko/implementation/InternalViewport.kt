@@ -35,7 +35,6 @@ fun InternalViewport(
     modifier: Modifier = Modifier,
     getKubriko: () -> Kubriko,
     windowInsets: WindowInsets,
-    overlay: @Composable BoxScope.() -> Unit, // TODO: REMOVE THIS
 ) {
     // Enforce and cache the internal implementation
     val kubrikoImpl = remember {
@@ -116,9 +115,6 @@ fun InternalViewport(
 
             // Allow Managers to provide their own Composable functions
             kubrikoImpl.managers.forEach { it.ComposableInternal(Modifier.windowInsetsPadding(windowInsets)) }
-
-            // TODO: Deprecated in favor of Manager Composables
-            overlay()
         }
 
         // Allow Managers to provide their own Composable functions

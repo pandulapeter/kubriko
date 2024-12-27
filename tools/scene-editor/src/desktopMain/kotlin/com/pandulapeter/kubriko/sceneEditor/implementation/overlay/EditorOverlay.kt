@@ -26,20 +26,19 @@ internal fun EditorOverlay(
     KubrikoViewport(
         modifier = modifier,
         kubriko = overlayKubriko,
+    )
+    AnimatedVisibility(
+        visible = editorController.shouldShowLoadingIndicator.collectAsState().value,
+        enter = fadeIn(),
+        exit = fadeOut(),
     ) {
-        AnimatedVisibility(
-            visible = editorController.shouldShowLoadingIndicator.collectAsState().value,
-            enter = fadeIn(),
-            exit = fadeOut(),
+        Box(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
         ) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp).align(Alignment.BottomStart),
-                    strokeWidth = 3.dp,
-                )
-            }
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp).align(Alignment.BottomStart),
+                strokeWidth = 3.dp,
+            )
         }
     }
 }
