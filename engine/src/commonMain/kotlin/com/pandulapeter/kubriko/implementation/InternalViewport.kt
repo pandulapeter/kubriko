@@ -22,6 +22,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.KubrikoImpl
 import com.pandulapeter.kubriko.extensions.fold
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.Scale
@@ -119,5 +120,8 @@ fun InternalViewport(
             // TODO: Deprecated in favor of Manager Composables
             overlay()
         }
+
+        // Allow Managers to provide their own Composable functions
+        kubrikoImpl.managers.forEach { it.OverlayComposableInternal(Modifier.windowInsetsPadding(windowInsets)) }
     }
 }

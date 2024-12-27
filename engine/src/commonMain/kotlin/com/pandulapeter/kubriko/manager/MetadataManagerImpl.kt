@@ -1,7 +1,7 @@
 package com.pandulapeter.kubriko.manager
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.implementation.KubrikoImpl
+import com.pandulapeter.kubriko.KubrikoImpl
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -11,6 +11,7 @@ internal class MetadataManagerImpl : MetadataManager() {
     private lateinit var stateManager: StateManager
     private val _fps = MutableStateFlow(0f)
     override val fps = _fps.asStateFlow()
+    private var startTimeInMilliseconds = 0L
     private val _totalRuntimeInMilliseconds = MutableStateFlow(0L)
     override val totalRuntimeInMilliseconds = _totalRuntimeInMilliseconds.asStateFlow()
     private val _activeRuntimeInMilliseconds = MutableStateFlow(0L)
@@ -27,7 +28,10 @@ internal class MetadataManagerImpl : MetadataManager() {
                 (currentValue + deltaTimeInMillis).toLong()
             }
         }
-        _totalRuntimeInMilliseconds.update { gameTimeNanos / 1000000 }
+        if (startTimeInMilliseconds == 0L) {
+            // TODO: startTimeInMilliseconds = gameTimeNanos
+        }
+        _totalRuntimeInMilliseconds.update { gameTimeNanos / 1000000 - startTimeInMilliseconds }
         if (gameTimeNanos - lastFpsUpdateTimestamp >= 1000000000L) {
             _fps.update { currentValue ->
                 if (deltaTimeInMillis == 0f) currentValue else 1000f / deltaTimeInMillis

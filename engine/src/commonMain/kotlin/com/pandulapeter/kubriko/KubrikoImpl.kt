@@ -1,7 +1,7 @@
-package com.pandulapeter.kubriko.implementation
+package com.pandulapeter.kubriko
 
-import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.implementation.disposePlatformSpecificComponents
 import com.pandulapeter.kubriko.manager.ActorManagerImpl
 import com.pandulapeter.kubriko.manager.MetadataManagerImpl
 import com.pandulapeter.kubriko.manager.StateManagerImpl

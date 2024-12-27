@@ -1,7 +1,6 @@
 package com.pandulapeter.kubriko
 
 import com.pandulapeter.kubriko.Kubriko.Companion.newInstance
-import com.pandulapeter.kubriko.implementation.KubrikoImpl
 import com.pandulapeter.kubriko.manager.Manager
 import kotlin.reflect.KClass
 
@@ -11,7 +10,7 @@ import kotlin.reflect.KClass
  * Use the static [newInstance] function to instantiate a [Kubriko] implementation.
  * Provide that instance to the [KubrikoViewport] Composable to draw the game world.
  */
-interface Kubriko {
+sealed interface Kubriko {
 
     /**
      * TODO: Documentation + nullability

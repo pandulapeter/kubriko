@@ -18,7 +18,7 @@ import com.pandulapeter.kubriko.actor.traits.LayerAware
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.implementation.KubrikoImpl
+import com.pandulapeter.kubriko.KubrikoImpl
 import com.pandulapeter.kubriko.extensions.distinctUntilChangedWithDelay
 import com.pandulapeter.kubriko.extensions.div
 import com.pandulapeter.kubriko.extensions.fold
