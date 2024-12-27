@@ -88,5 +88,9 @@ internal class ViewportManagerImpl(
 
     fun updateSize(size: Size) = _size.update { size }
 
-    fun updateInsetPadding(insetPadding: Rect) = _insetPadding.update { insetPadding }
+    fun updateInsetPadding(insetPadding: Rect) {
+        if (insetPadding != this.insetPadding.value) {
+            _insetPadding.update { insetPadding }
+        }
+    }
 }

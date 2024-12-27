@@ -1,7 +1,6 @@
 package com.pandulapeter.kubriko.implementation
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
@@ -52,16 +51,14 @@ fun InternalViewport(
     // Inset handling
     val density = LocalDensity.current
     val layoutDirection = LocalLayoutDirection.current
-    LaunchedEffect(windowInsets) {
-        kubrikoImpl.viewportManager.updateInsetPadding(
-            Rect(
-                left = windowInsets.getLeft(density, layoutDirection).toFloat(),
-                top = windowInsets.getTop(density).toFloat(),
-                right = windowInsets.getRight(density, layoutDirection).toFloat(),
-                bottom = windowInsets.getBottom(density).toFloat(),
-            )
+    kubrikoImpl.viewportManager.updateInsetPadding(
+        Rect(
+            left = windowInsets.getLeft(density, layoutDirection).toFloat(),
+            top = windowInsets.getTop(density).toFloat(),
+            right = windowInsets.getRight(density, layoutDirection).toFloat(),
+            bottom = windowInsets.getBottom(density).toFloat(),
         )
-    }
+    )
 
     // Game loop
     initializePlatformSpecificComponents()

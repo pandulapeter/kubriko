@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko.sprites
 
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.IntOffset
@@ -46,7 +47,10 @@ class AnimatedSprite(
         }
     }
 
-    fun draw(scope: DrawScope) {
+    fun draw(
+        scope: DrawScope,
+        colorFilter: ColorFilter? = null,
+    ) {
         getImageBitmap()?.let {
             val x = imageIndex.roundToInt() / framesPerColumn
             val y = imageIndex.roundToInt() % framesPerColumn
@@ -54,6 +58,7 @@ class AnimatedSprite(
                 image = it,
                 srcOffset = IntOffset(frameSize.width * x, frameSize.height * y),
                 srcSize = frameSize,
+                colorFilter = colorFilter,
             )
         }
     }
