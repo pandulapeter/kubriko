@@ -1,19 +1,11 @@
 package com.pandulapeter.kubriko.gameWallbreaker.implementation.managers
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.pointerHoverIcon
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Ball
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Brick
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Paddle
-import com.pandulapeter.kubriko.extensions.Invisible
-import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
@@ -23,17 +15,17 @@ import com.pandulapeter.kubriko.shaders.collection.VignetteShader
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 internal class WallbreakerGameManager(
     private val stateManager: StateManager,
-) : Manager(), KeyboardInputAware, Unique, Group {
+) : Manager(), Unique, Group {
 
     private val actorManager by manager<ActorManager>()
     private val audioManager by manager<WallbreakerAudioManager>()
     private val scoreManager by manager<WallbreakerScoreManager>()
+    private val uiManager by manager<WallbreakerUIManager>()
     private val paddle = Paddle()
     private val _isGameOver = MutableStateFlow(true)
     val isGameOver = _isGameOver.asStateFlow()
@@ -48,50 +40,21 @@ internal class WallbreakerGameManager(
             )
         }
     }
-    override val actors = bricks + listOf(
-        paddle,
-        SmoothPixelationShader(),
-        VignetteShader(),
-        ChromaticAberrationShader(),
-    )
-
-    @Composable
-    override fun getModifier(layerIndex: Int?) = Modifier.pointerHoverIcon(
-        icon = if (stateManager.isRunning.collectAsState().value) PointerIcon.Invisible else PointerIcon.Default
-    )
+    override val actors by lazy {
+        bricks + listOf(
+            paddle,
+            SmoothPixelationShader(),
+            VignetteShader(),
+            ChromaticAberrationShader(),
+            uiManager,
+        )
+    }
 
     override fun onInitialize(kubriko: Kubriko) {
         initializeScene()
-        stateManager.isFocused
-            .filterNot { it }
-            .onEach { stateManager.updateIsRunning(false) }
-            .launchIn(scope)
         scoreManager.score
             .onEach { if (actorManager.allActors.value.filterIsInstance<Brick>().isEmpty()) onLevelCleared() }
             .launchIn(scope)
-    }
-
-    override fun onKeyReleased(key: Key) {
-        when (key) {
-            Key.Escape -> {
-                stateManager.updateIsRunning(!stateManager.isRunning.value)
-                if (isGameOver.value) {
-                    restartGame()
-                }
-            }
-
-            Key.Spacebar, Key.Enter -> {
-                if (!stateManager.isRunning.value) {
-                    if (isGameOver.value) {
-                        restartGame()
-                    } else {
-                        resumeGame()
-                    }
-                }
-            }
-
-            else -> Unit
-        }
     }
 
     private fun initializeScene() {

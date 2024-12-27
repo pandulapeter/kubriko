@@ -13,16 +13,16 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
 import com.pandulapeter.kubriko.collision.CollisionManager
+import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerAudioManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerBackgroundManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerGameManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerUIManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerUserPreferencesManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerGameOverlay
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerPauseMenuBackground
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerPauseMenuOverlay
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerTheme
-import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
@@ -53,11 +53,7 @@ fun WallbreakerGame(
         modifier = Modifier.windowInsetsPadding(windowInsets).background(Color.Black),
         kubriko = stateHolder.kubriko,
         windowInsets = windowInsets,
-    ) {
-        WallbreakerPauseMenuBackground(
-            isVisible = !isGameRunning,
-        )
-    }
+    )
     WallbreakerPauseMenuOverlay(
         modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
         isGameRunning = isGameRunning,
@@ -115,6 +111,7 @@ private class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
         audioPlaybackManager,
         WallbreakerAudioManager(stateManager, audioPlaybackManager, userPreferencesManager),
         gameManager,
+        WallbreakerUIManager(stateManager),
     )
 
     override fun dispose() = kubriko.dispose()
