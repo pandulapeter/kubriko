@@ -20,10 +20,7 @@ internal class ColorfulBox(
     )
 
     override fun update(deltaTimeInMillis: Float) {
-        hue += deltaTimeInMillis / 10f
-        while (hue > 360f) {
-            hue -= 360f
-        }
+        hue = (hue + deltaTimeInMillis / 10f) % 360f
     }
 
     override fun DrawScope.draw() = drawRect(
