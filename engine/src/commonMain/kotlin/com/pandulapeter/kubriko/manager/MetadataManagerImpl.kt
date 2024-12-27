@@ -29,9 +29,9 @@ internal class MetadataManagerImpl : MetadataManager() {
             }
         }
         if (startTimeInMilliseconds == 0L) {
-            // TODO: startTimeInMilliseconds = gameTimeNanos
+            startTimeInMilliseconds = gameTimeNanos / 1000000
         }
-        _totalRuntimeInMilliseconds.update { gameTimeNanos / 1000000 - startTimeInMilliseconds }
+        _totalRuntimeInMilliseconds.update { (gameTimeNanos - startTimeInMilliseconds) / 1000000 }
         if (gameTimeNanos - lastFpsUpdateTimestamp >= 1000000000L) {
             _fps.update { currentValue ->
                 if (deltaTimeInMillis == 0f) currentValue else 1000f / deltaTimeInMillis
