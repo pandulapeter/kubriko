@@ -4,9 +4,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.traits.InsetPaddingAware
+import com.pandulapeter.kubriko.KubrikoImpl
 import com.pandulapeter.kubriko.extensions.div
-import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.toSceneOffset
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -15,7 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlin.math.max
 import kotlin.math.min
@@ -27,6 +26,7 @@ internal class ViewportManagerImpl(
     private val maximumScaleFactor: Float,
     val viewportEdgeBuffer: SceneUnit,
 ) : ViewportManager() {
+    private lateinit var actorManager: ActorManagerImpl
     private val _cameraPosition = MutableStateFlow(SceneOffset.Zero)
     override val cameraPosition = _cameraPosition.asStateFlow()
     private val _size = MutableStateFlow(Size.Zero)
@@ -60,13 +60,9 @@ internal class ViewportManagerImpl(
     }
 
     override fun onInitialize(kubriko: Kubriko) {
-        combine(
-            insetPadding,
-            kubriko.get<ActorManager>().allActors.map { it.filterIsInstance<InsetPaddingAware>() }
-        ) { insetPadding, insetPaddingAwareActors ->
-            insetPaddingAwareActors.forEach {
-                it.onInsetPaddingChanged(insetPadding)
-            }
+        actorManager = (kubriko as KubrikoImpl).actorManager
+        insetPadding.onEach { insetPadding ->
+            actorManager.insetPaddingAwareActors.value.forEach { it.onInsetPaddingChanged(insetPadding) }
         }.launchIn(scope)
     }
 
