@@ -14,11 +14,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
-internal class PhysicsManagerImpl(
-    gravity: SceneOffset,
-    private val simulationSpeed: Float,
-) : PhysicsManager() {
-    private val gravity = Vec2(gravity.x, gravity.y)
+internal class PhysicsManagerImpl : PhysicsManager() {
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
     private val rigidBodies by lazy {
@@ -32,6 +28,13 @@ internal class PhysicsManagerImpl(
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
     }
     private val arbiters = mutableListOf<Arbiter>()
+    override var gravity: SceneOffset
+        get() = super.gravity
+        set(value) {
+            super.gravity = value
+            actualGravity = Vec2(gravity.x, gravity.y)
+        }
+    private var actualGravity = Vec2(gravity.x, gravity.y)
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
         if (stateManager.isRunning.value && deltaTimeInMillis > 0) {
@@ -65,7 +68,7 @@ internal class PhysicsManagerImpl(
             }
             applyLinearDrag(b)
             if (b.affectedByGravity) {
-                b.velocity.add(gravity.scalar(dt))
+                b.velocity.add(actualGravity.scalar(dt))
             }
             b.velocity.add(b.force.scalar(b.invMass).scalar(dt))
             b.angularVelocity += dt * b.invInertia * b.torque
