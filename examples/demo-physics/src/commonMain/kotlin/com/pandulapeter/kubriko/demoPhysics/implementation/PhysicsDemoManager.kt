@@ -61,12 +61,12 @@ import org.jetbrains.compose.resources.stringResource
 
 internal class PhysicsDemoManager(
     private val sceneJson: MutableStateFlow<String>?,
-    private val physicsManager: PhysicsManager,
 ) : Manager(), PointerInputAware, Unique {
 
     private val _actionType = MutableStateFlow(ActionType.SHAPE)
     private val actionType = _actionType.asStateFlow()
     private val actorManager by manager<ActorManager>()
+    private val physicsManager by manager<PhysicsManager>()
     private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
     private val viewportManager by manager<ViewportManager>()
     private val _shouldShowLoadingIndicator = MutableStateFlow(true)

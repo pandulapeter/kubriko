@@ -33,7 +33,7 @@ internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
     override fun onDispose() = audioPlayer.dispose()
 
     override fun playMusic(uri: String, shouldLoop: Boolean) {
-        if (isInitialized) {
+        if (isInitialized.value) {
             audioPlayer.playMusic(uri, shouldLoop)
         } else {
             musicUri = uri
@@ -46,14 +46,14 @@ internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
     override fun pauseMusic() = audioPlayer.pauseMusic()
 
     override fun stopMusic() {
-        if (isInitialized) {
+        if (isInitialized.value) {
             audioPlayer.stopMusic()
         }
         musicUri = null
     }
 
     override fun playSound(uri: String) {
-        if (isInitialized) {
+        if (isInitialized.value) {
             audioPlayer.playSound(uri)
         }
     }

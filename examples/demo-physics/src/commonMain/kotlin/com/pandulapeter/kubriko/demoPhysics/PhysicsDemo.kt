@@ -150,13 +150,6 @@ internal class PhysicsDemoStateHolderImpl : PhysicsDemoStateHolder {
             },
         ),
     )
-    private val physicsManager = PhysicsManager.newInstance()
-    private val physicsDemoManager by lazy {
-        PhysicsDemoManager(
-            sceneJson = sceneJson,
-            physicsManager = physicsManager,
-        )
-    }
     val kubriko by lazy {
         Kubriko.newInstance(
             ViewportManager.newInstance(
@@ -164,9 +157,9 @@ internal class PhysicsDemoStateHolderImpl : PhysicsDemoStateHolder {
                     height = 1920.sceneUnit
                 )
             ),
-            physicsManager,
+            PhysicsManager.newInstance(),
             PointerInputManager.newInstance(),
-            physicsDemoManager,
+            PhysicsDemoManager(sceneJson = sceneJson),
             serializationManager,
         )
     }

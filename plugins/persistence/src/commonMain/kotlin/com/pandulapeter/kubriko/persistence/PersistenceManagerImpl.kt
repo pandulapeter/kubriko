@@ -58,7 +58,7 @@ internal class PersistenceManagerImpl(
         ?: PersistedPropertyWrapper.Generic(key, defaultValue, serializer, deserializer).initialize()).flow as MutableStateFlow<T>
 
     private fun <T> PersistedPropertyWrapper<T>.initialize() = this.also { wrapper ->
-        if (isInitialized) {
+        if (isInitialized.value) {
             scope.launch(Dispatchers.Default) {
                 wrapper.load(keyValuePersistenceManager)
                 wrapper.flow.onEach { wrapper.save(keyValuePersistenceManager) }.launchIn(scope)

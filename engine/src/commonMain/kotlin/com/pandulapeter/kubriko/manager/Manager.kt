@@ -1,11 +1,14 @@
 package com.pandulapeter.kubriko.manager
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
@@ -13,8 +16,8 @@ import kotlin.reflect.KProperty
 
 abstract class Manager {
 
-    protected var isInitialized = false
-        private set
+    private val _isInitialized = MutableStateFlow(false)
+    protected val isInitialized = _isInitialized.asStateFlow()
     protected lateinit var scope: CoroutineScope
         private set
     private val autoInitializingLazyProperties = mutableListOf<AutoInitializingLazy<*>>()
@@ -33,19 +36,23 @@ abstract class Manager {
     protected open fun getModifier(layerIndex: Int?): Modifier? = null
 
     internal fun initializeInternal(kubriko: Kubriko) {
-        if (!isInitialized) {
+        if (!isInitialized.value) {
             scope = kubriko as CoroutineScope
             autoInitializingLazyManagers.forEach { it.initialize(kubriko) }
             autoInitializingLazyManagers.clear()
             onInitialize(kubriko)
             autoInitializingLazyProperties.forEach { it.initialize() }
             autoInitializingLazyProperties.clear()
-            isInitialized = true
+            _isInitialized.value = true
         }
     }
 
     @Composable
-    internal fun ComposableInternal(insetPaddingModifier: Modifier) = Composable(insetPaddingModifier)
+    internal fun ComposableInternal(insetPaddingModifier: Modifier) {
+        if (isInitialized.collectAsState().value) {
+            Composable(insetPaddingModifier)
+        }
+    }
 
     @Composable
     protected open fun Composable(insetPaddingModifier: Modifier) = Unit
@@ -57,7 +64,7 @@ abstract class Manager {
     protected open fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) = Unit
 
     internal fun onDisposeInternal() {
-        if (isInitialized) {
+        if (isInitialized.value) {
             onDispose()
         }
     }
