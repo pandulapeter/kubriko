@@ -45,12 +45,6 @@ abstract class Manager {
     }
 
     @Composable
-    internal fun OverlayComposableInternal(insetPaddingModifier: Modifier) = OverlayComposable(insetPaddingModifier)
-
-    @Composable
-    protected open fun OverlayComposable(insetPaddingModifier: Modifier) = Unit
-
-    @Composable
     internal fun ComposableInternal(insetPaddingModifier: Modifier) = Composable(insetPaddingModifier)
 
     @Composable

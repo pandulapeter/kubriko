@@ -113,8 +113,5 @@ fun InternalViewport(
             // Allow Managers to provide their own Composable functions
             kubrikoImpl.managers.forEach { it.ComposableInternal(Modifier.windowInsetsPadding(windowInsets)) }
         }
-
-        // Allow Managers to provide their own Composable functions
-        kubrikoImpl.managers.forEach { it.OverlayComposableInternal(Modifier.windowInsetsPadding(windowInsets)) }
     }
 }

@@ -40,6 +40,7 @@ fun SpaceSquadronGame(
     onFullscreenModeToggled: () -> Unit = {},
 ) = SpaceSquadronTheme {
     stateHolder as SpaceSquadronGameStateHolderImpl
+    // TODO: Move background into the Composable function of a Manager class
     KubrikoViewport(
         modifier = Modifier.fillMaxSize().background(Color.Black),
         kubriko = stateHolder.backgroundKubriko,
