@@ -40,10 +40,10 @@ abstract class Manager {
             scope = kubriko as CoroutineScope
             autoInitializingLazyManagers.forEach { it.initialize(kubriko) }
             autoInitializingLazyManagers.clear()
+            _isInitialized.value = true
             onInitialize(kubriko)
             autoInitializingLazyProperties.forEach { it.initialize() }
             autoInitializingLazyProperties.clear()
-            _isInitialized.value = true
         }
     }
 

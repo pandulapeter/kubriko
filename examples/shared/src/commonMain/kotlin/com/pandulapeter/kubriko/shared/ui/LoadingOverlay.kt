@@ -20,17 +20,33 @@ import androidx.compose.ui.unit.dp
 fun LoadingOverlay(
     modifier: Modifier = Modifier,
     shouldShowLoadingIndicator: Boolean,
-) = AnimatedVisibility(
-    visible = shouldShowLoadingIndicator,
-    enter = fadeIn(animationSpec = tween(durationMillis = 0)),
-    exit = fadeOut(animationSpec = tween(durationMillis = 1000)),
+    content: @Composable (() -> Unit)? = null,
 ) {
-    Box(
-        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(16.dp),
+    if (content != null) {
+        AnimatedVisibility(
+            visible = !shouldShowLoadingIndicator,
+            enter = fadeIn(animationSpec = tween(durationMillis = 0)),
+            exit = fadeOut(animationSpec = tween(durationMillis = 1000)),
+        ) {
+            Box(
+                modifier = modifier,
+            ) {
+                content()
+            }
+        }
+    }
+    AnimatedVisibility(
+        visible = shouldShowLoadingIndicator,
+        enter = fadeIn(animationSpec = tween(durationMillis = 0)),
+        exit = fadeOut(animationSpec = tween(durationMillis = 1000)),
     ) {
-        CircularProgressIndicator(
-            modifier = modifier.size(24.dp).align(Alignment.BottomStart),
-            strokeWidth = 3.dp,
-        )
+        Box(
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(16.dp),
+        ) {
+            CircularProgressIndicator(
+                modifier = modifier.size(24.dp).align(Alignment.BottomStart),
+                strokeWidth = 3.dp,
+            )
+        }
     }
 }

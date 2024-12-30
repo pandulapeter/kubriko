@@ -1,10 +1,13 @@
 package com.pandulapeter.kubriko.demoPerformance.implementation
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
@@ -46,13 +49,13 @@ internal class PerformanceDemoManager(
     }
 
     @Composable
-    override fun Composable(insetPaddingModifier: Modifier) {
-        LoadingOverlay(
-            modifier = insetPaddingModifier,
-            shouldShowLoadingIndicator = shouldShowLoadingIndicator.collectAsState().value,
-        )
-        Box(
-            modifier = insetPaddingModifier.fillMaxSize(),
+    override fun Composable(insetPaddingModifier: Modifier) = LoadingOverlay(
+        modifier = insetPaddingModifier,
+        shouldShowLoadingIndicator = shouldShowLoadingIndicator.collectAsState().value,
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            horizontalAlignment = Alignment.End,
         ) {
             PlatformSpecificContent()
         }

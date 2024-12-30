@@ -1,8 +1,9 @@
 package com.pandulapeter.kubriko.demoPhysics.implementation
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -40,9 +41,11 @@ import com.pandulapeter.kubriko.shared.ui.ShaderSlider
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -76,6 +79,7 @@ internal class PhysicsDemoManager(
         actorManager.add(this)
         actorManager.allActors
             .filter { it.size > 1 }
+            .distinctUntilChanged()
             .onEach {
                 delay(100)
                 _shouldShowLoadingIndicator.update { false }
@@ -86,23 +90,30 @@ internal class PhysicsDemoManager(
     }
 
     @Composable
-    override fun Composable(insetPaddingModifier: Modifier) {
-        LoadingOverlay(
-            modifier = insetPaddingModifier,
-            shouldShowLoadingIndicator = shouldShowLoadingIndicator.collectAsState().value,
-        )
-        Box(
-            modifier = insetPaddingModifier.fillMaxSize(),
+    override fun Composable(insetPaddingModifier: Modifier) = LoadingOverlay(
+        modifier = insetPaddingModifier,
+        shouldShowLoadingIndicator = shouldShowLoadingIndicator.collectAsState().value,
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.End,
         ) {
             PlatformSpecificContent()
+            Spacer(
+                modifier = Modifier.weight(1f),
+            )
             val selectedActionType = actionType.collectAsState()
             Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp).align(Alignment.BottomCenter),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                Spacer(
+                    modifier = Modifier.weight(1f),
+                )
                 ShaderSlider(
-                    modifier = Modifier.weight(0.5f),
+                    modifier = Modifier.weight(1f),
                     value = physicsManager.simulationSpeed.collectAsState().value,
                     onValueChanged = {
                         physicsManager.simulationSpeed.value = it
@@ -134,27 +145,30 @@ internal class PhysicsDemoManager(
         values[nextIndex]
     }
 
-    override fun onPointerReleased(screenOffset: Offset) =
-        screenOffset.toSceneOffset(viewportManager).let { pointerSceneOffset ->
-            when (actionType.value) {
-                ActionType.SHAPE -> actorManager.add(
-                    when (ShapeType.entries.random()) {
-                        ShapeType.BOX -> createDynamicBox(pointerSceneOffset)
-                        ShapeType.CIRCLE -> createDynamicCircle(pointerSceneOffset)
-                        ShapeType.POLYGON -> createDynamicPolygon(pointerSceneOffset)
-                    }
-                )
+    override fun onPointerReleased(screenOffset: Offset) {
+        if (!shouldShowLoadingIndicator.value) {
+            screenOffset.toSceneOffset(viewportManager).let { pointerSceneOffset ->
+                when (actionType.value) {
+                    ActionType.SHAPE -> actorManager.add(
+                        when (ShapeType.entries.random()) {
+                            ShapeType.BOX -> createDynamicBox(pointerSceneOffset)
+                            ShapeType.CIRCLE -> createDynamicCircle(pointerSceneOffset)
+                            ShapeType.POLYGON -> createDynamicPolygon(pointerSceneOffset)
+                        }
+                    )
 
-                ActionType.CHAIN -> actorManager.add(
-                    DynamicChain.State(
-                        linkCount = (10..20).random(),
-                        initialCenterOffset = pointerSceneOffset,
-                    ).restore()
-                )
+                    ActionType.CHAIN -> actorManager.add(
+                        DynamicChain.State(
+                            linkCount = (10..20).random(),
+                            initialCenterOffset = pointerSceneOffset,
+                        ).restore()
+                    )
 
-                ActionType.EXPLOSION -> Unit // TODO: Explosion
+                    ActionType.EXPLOSION -> Unit // TODO: Explosion
+                }
             }
         }
+    }
 
     @OptIn(ExperimentalResourceApi::class)
     private fun loadMap() = scope.launch {
