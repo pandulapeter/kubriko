@@ -11,17 +11,22 @@ class AnimatedSprite(
     private val getImageBitmap: () -> ImageBitmap?,
     private val frameSize: IntSize,
     private val frameCount: Int,
-    private val framesPerColumn: Int, // TODO: Support different orientations
+    private val framesPerRow: Int, // TODO: Support different orientations
     private val framesPerSecond: Float = 60f,
 ) {
-    private var imageIndex = 0f
+    private var _imageIndex = 0f
+    var imageIndex
+        get() = _imageIndex.roundToInt()
+        set(value) {
+            _imageIndex = value.toFloat()
+        }
 
     fun stepForward(
         deltaTimeInMillis: Float,
         speed: Float = 1f,
         shouldLoop: Boolean = true,
     ) {
-        imageIndex += (speed * framesPerSecond * deltaTimeInMillis) / 1000
+        _imageIndex += (speed * framesPerSecond * deltaTimeInMillis) / 1000
         normalizeImageIndex(shouldLoop)
     }
 
@@ -30,19 +35,16 @@ class AnimatedSprite(
         speed: Float = 1f,
         shouldLoop: Boolean = true,
     ) {
-        imageIndex -= (speed * framesPerSecond * deltaTimeInMillis) / 1000
+        _imageIndex -= (speed * framesPerSecond * deltaTimeInMillis) / 1000
         normalizeImageIndex(shouldLoop)
     }
 
     private fun normalizeImageIndex(shouldLoop: Boolean) {
-        if (imageIndex >= frameCount || imageIndex < 0) {
-            imageIndex = if (shouldLoop) {
-                imageIndex % frameCount
+        if (_imageIndex >= frameCount || _imageIndex < 0) {
+            _imageIndex = if (shouldLoop) {
+                _imageIndex % frameCount
             } else {
-                if (imageIndex < 0) 0f else frameCount.toFloat()
-            }
-            if (imageIndex < 0) {
-                imageIndex += frameCount
+                if (_imageIndex < 0) 0f else frameCount - 1f
             }
         }
     }
@@ -52,8 +54,8 @@ class AnimatedSprite(
         colorFilter: ColorFilter? = null,
     ) {
         getImageBitmap()?.let {
-            val x = imageIndex.roundToInt() / framesPerColumn
-            val y = imageIndex.roundToInt() % framesPerColumn
+            val x = _imageIndex.roundToInt() % framesPerRow
+            val y = _imageIndex.roundToInt() / framesPerRow
             scope.drawImage(
                 image = it,
                 srcOffset = IntOffset(frameSize.width * x, frameSize.height * y),

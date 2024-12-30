@@ -2,6 +2,7 @@ package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors
 
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
@@ -12,9 +13,11 @@ import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.extensions.toSceneOffset
 import com.pandulapeter.kubriko.gameSpaceSquadron.ViewportHeight
+import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sprites.AnimatedSprite
 import com.pandulapeter.kubriko.sprites.SpriteManager
+import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -27,15 +30,15 @@ internal class Ship : Visible, Dynamic, InsetPaddingAware {
     private lateinit var viewportManager: ViewportManager
     private val animatedSprite = AnimatedSprite(
         getImageBitmap = { spriteManager.loadSprite(Res.drawable.sprite_ship) },
-        frameSize = IntSize(130, 146),
+        frameSize = IntSize(128, 144),
         frameCount = 23,
-        framesPerColumn = 4,
-        framesPerSecond = 10f,
+        framesPerRow = 8,
+        framesPerSecond = 60f,
     )
     override val body = RectangleBody(
         initialSize = SceneSize(
-            width = 130.sceneUnit,
-            height = 146.sceneUnit,
+            width = 128.sceneUnit,
+            height = 144.sceneUnit,
         ),
     )
 
@@ -57,7 +60,22 @@ internal class Ship : Visible, Dynamic, InsetPaddingAware {
         ) - offset
     }
 
-    override fun update(deltaTimeInMillis: Float) = animatedSprite.stepForward(deltaTimeInMillis)
+    private var isAnimatingForward = true
+
+    override fun update(deltaTimeInMillis: Float) {
+        if (isAnimatingForward) {
+            animatedSprite.stepForward(deltaTimeInMillis)
+            if (animatedSprite.imageIndex == 22) {
+                isAnimatingForward = false
+            }
+        } else {
+            animatedSprite.stepBackwards(deltaTimeInMillis)
+            if (animatedSprite.imageIndex == 0) {
+                isAnimatingForward = true
+                body.scale = Scale(-body.scale.horizontal, body.scale.vertical)
+            }
+        }
+    }
 
     override fun DrawScope.draw() = animatedSprite.draw(this)
 }
