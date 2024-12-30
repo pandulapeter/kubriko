@@ -24,16 +24,16 @@ abstract class Manager {
     private val autoInitializingLazyManagers = mutableListOf<LazyManager<*>>()
 
     @Composable
-    internal fun getOverlayModifierInternal() = getOverlayModifier()
+    internal fun processOverlayModifierInternal(modifier: Modifier) = processOverlayModifier(modifier)
 
     @Composable
-    protected open fun getOverlayModifier(): Modifier? = null
+    protected open fun processOverlayModifier(modifier: Modifier): Modifier = modifier
 
     @Composable
-    internal fun getModifierInternal(layerIndex: Int?) = getModifier(layerIndex)
+    internal fun processModifierInternal(modifier: Modifier, layerIndex: Int?) = processModifier(modifier, layerIndex)
 
     @Composable
-    protected open fun getModifier(layerIndex: Int?): Modifier? = null
+    protected open fun processModifier(modifier: Modifier, layerIndex: Int?): Modifier = modifier
 
     internal fun initializeInternal(kubriko: Kubriko) {
         if (!isInitialized.value) {

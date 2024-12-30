@@ -49,15 +49,15 @@ internal class PointerInputManagerImpl(
     }
 
     @Composable
-    override fun getOverlayModifier() = if (isActiveAboveViewport) Modifier
+    override fun processOverlayModifier(modifier: Modifier) = if (isActiveAboveViewport) modifier
         .onGloballyPositioned { coordinates ->
             rootOffset.value = coordinates.positionInRoot()
-        }.pointerInputHandlingModifier() else null
+        }.pointerInputHandlingModifier() else modifier
 
     @Composable
-    override fun getModifier(layerIndex: Int?) = if (isActiveAboveViewport) Modifier.onGloballyPositioned { coordinates ->
+    override fun processModifier(modifier: Modifier, layerIndex: Int?) = if (isActiveAboveViewport) modifier.onGloballyPositioned { coordinates ->
         viewportOffset.value = coordinates.positionInRoot()
-    } else Modifier.pointerInputHandlingModifier()
+    } else modifier.pointerInputHandlingModifier()
 
     private fun Modifier.pointerInputHandlingModifier() = pointerInput(Unit) {
         awaitPointerEventScope {

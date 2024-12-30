@@ -10,19 +10,18 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.withTransform
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.KubrikoImpl
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.Identifiable
+import com.pandulapeter.kubriko.actor.traits.InsetPaddingAware
 import com.pandulapeter.kubriko.actor.traits.LayerAware
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.KubrikoImpl
-import com.pandulapeter.kubriko.actor.traits.InsetPaddingAware
 import com.pandulapeter.kubriko.extensions.distinctUntilChangedWithDelay
 import com.pandulapeter.kubriko.extensions.div
-import com.pandulapeter.kubriko.extensions.fold
 import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.extensions.minus
 import com.pandulapeter.kubriko.extensions.transformForViewport
@@ -62,7 +61,8 @@ internal class ActorManagerImpl(
         _allActors.map { actors -> actors.filterIsInstance<Visible>().sortedByDescending { it.drawingOrder }.toImmutableList() }.asStateFlow(persistentListOf())
     }
     private val overlayActors by autoInitializingLazy {
-        _allActors.map { actors -> actors.filterIsInstance<Overlay>().sortedByDescending { it.overlayDrawingOrder }.toImmutableList() }.asStateFlow(persistentListOf())
+        _allActors.map { actors -> actors.filterIsInstance<Overlay>().sortedByDescending { it.overlayDrawingOrder }.toImmutableList() }
+            .asStateFlow(persistentListOf())
     }
     internal val insetPaddingAwareActors by autoInitializingLazy {
         _allActors.map { actors -> actors.filterIsInstance<InsetPaddingAware>().toImmutableList() }.asStateFlow(persistentListOf())
@@ -141,7 +141,9 @@ internal class ActorManagerImpl(
 
     @Composable
     override fun Composable(insetPaddingModifier: Modifier) = Box(
-        modifier = kubrikoImpl.managers.mapNotNull { it.getModifierInternal(null) }.toImmutableList().fold(),
+        modifier = kubrikoImpl.managers.fold(Modifier.fillMaxSize().clipToBounds()) { modifierToProcess, manager ->
+            manager.processModifierInternal(modifierToProcess, null)
+        }
     ) {
         val gameTime = metadataManager.totalRuntimeInMilliseconds.collectAsState().value
         layerIndices.value.forEach { layerIndex ->
@@ -161,7 +163,9 @@ internal class ActorManagerImpl(
             modifier = if (layerIndex == null) {
                 Modifier.fillMaxSize().clipToBounds()
             } else {
-                kubrikoImpl.managers.mapNotNull { it.getModifierInternal(layerIndex) }.toImmutableList().fold()
+                kubrikoImpl.managers.fold(Modifier.fillMaxSize().clipToBounds()) { modifierToProcess, manager ->
+                    manager.processModifierInternal(modifierToProcess, layerIndex)
+                }
             },
             onDraw = {
                 @Suppress("UNUSED_EXPRESSION") gameTime  // This line invalidates the Canvas, causing a refresh on every frame

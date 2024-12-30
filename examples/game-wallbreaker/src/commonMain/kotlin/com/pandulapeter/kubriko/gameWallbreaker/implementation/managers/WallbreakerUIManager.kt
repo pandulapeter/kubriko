@@ -24,7 +24,7 @@ internal class WallbreakerUIManager(
     private val gameManager by manager<WallbreakerGameManager>()
 
     @Composable
-    override fun getModifier(layerIndex: Int?) = Modifier.pointerHoverIcon(
+    override fun processModifier(modifier: Modifier, layerIndex: Int?) = modifier.pointerHoverIcon(
         icon = if (stateManager.isRunning.collectAsState().value) PointerIcon.Invisible else PointerIcon.Default
     )
 

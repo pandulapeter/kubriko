@@ -22,9 +22,13 @@ internal class ShaderManagerImpl : ShaderManager() {
     }
 
     @Composable
-    override fun getModifier(layerIndex: Int?) = if (isInitialized.value) shaders.value
-        .filter { it.layerIndex == layerIndex }
-        .fold<Shader<*>, Modifier>(Modifier) { compoundModifier, shader ->
-            compoundModifier then Modifier.shader(shader)
-        } else Modifier
+    override fun processModifier(modifier: Modifier, layerIndex: Int?) = if (isInitialized.value) {
+        shaders.value
+            .filter { it.layerIndex == layerIndex }
+            .fold(modifier) { compoundModifier, shader ->
+                compoundModifier then Modifier.shader(shader)
+            }
+    } else {
+        modifier
+    }
 }
