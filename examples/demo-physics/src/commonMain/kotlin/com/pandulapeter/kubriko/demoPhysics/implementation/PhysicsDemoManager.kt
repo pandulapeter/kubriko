@@ -1,7 +1,10 @@
 package com.pandulapeter.kubriko.demoPhysics.implementation
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -24,6 +27,7 @@ import com.pandulapeter.kubriko.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.physics.PhysicsManager
 import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
 import com.pandulapeter.kubriko.physics.implementation.math.Vec2
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
@@ -32,6 +36,7 @@ import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.shared.ui.FloatingButton
 import com.pandulapeter.kubriko.shared.ui.LoadingOverlay
+import com.pandulapeter.kubriko.shared.ui.ShaderSlider
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
@@ -56,10 +61,11 @@ import org.jetbrains.compose.resources.stringResource
 
 internal class PhysicsDemoManager(
     private val sceneJson: MutableStateFlow<String>?,
+    private val physicsManager: PhysicsManager,
 ) : Manager(), PointerInputAware, Unique {
 
     private val _actionType = MutableStateFlow(ActionType.SHAPE)
-    val actionType = _actionType.asStateFlow()
+    private val actionType = _actionType.asStateFlow()
     private val actorManager by manager<ActorManager>()
     private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
     private val viewportManager by manager<ViewportManager>()
@@ -90,22 +96,35 @@ internal class PhysicsDemoManager(
         ) {
             PlatformSpecificContent()
             val selectedActionType = actionType.collectAsState()
-            FloatingButton(
-                modifier = Modifier.padding(16.dp).align(Alignment.BottomEnd),
-                icon = when (selectedActionType.value) {
-                    ActionType.SHAPE -> Res.drawable.ic_shape
-                    ActionType.CHAIN -> Res.drawable.ic_chain
-                    ActionType.EXPLOSION -> Res.drawable.ic_explosion
-                },
-                onButtonPressed = ::changeSelectedActionType,
-                contentDescription = stringResource(
-                    when (selectedActionType.value) {
-                        ActionType.SHAPE -> Res.string.shape
-                        ActionType.CHAIN -> Res.string.chain
-                        ActionType.EXPLOSION -> Res.string.explosion
-                    }
-                ),
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.dp).align(Alignment.BottomCenter),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ShaderSlider(
+                    modifier = Modifier.weight(0.5f),
+                    value = physicsManager.simulationSpeed.collectAsState().value,
+                    onValueChanged = {
+                        physicsManager.simulationSpeed.value = it
+                    },
+                    valueRange = 0f..2f,
+                )
+                FloatingButton(
+                    icon = when (selectedActionType.value) {
+                        ActionType.SHAPE -> Res.drawable.ic_shape
+                        ActionType.CHAIN -> Res.drawable.ic_chain
+                        ActionType.EXPLOSION -> Res.drawable.ic_explosion
+                    },
+                    onButtonPressed = ::changeSelectedActionType,
+                    contentDescription = stringResource(
+                        when (selectedActionType.value) {
+                            ActionType.SHAPE -> Res.string.shape
+                            ActionType.CHAIN -> Res.string.chain
+                            ActionType.EXPLOSION -> Res.string.explosion
+                        }
+                    ),
+                )
+            }
         }
     }
 
@@ -115,26 +134,27 @@ internal class PhysicsDemoManager(
         values[nextIndex]
     }
 
-    override fun onPointerReleased(screenOffset: Offset) = screenOffset.toSceneOffset(viewportManager).let { pointerSceneOffset ->
-        when (actionType.value) {
-            ActionType.SHAPE -> actorManager.add(
-                when (ShapeType.entries.random()) {
-                    ShapeType.BOX -> createDynamicBox(pointerSceneOffset)
-                    ShapeType.CIRCLE -> createDynamicCircle(pointerSceneOffset)
-                    ShapeType.POLYGON -> createDynamicPolygon(pointerSceneOffset)
-                }
-            )
+    override fun onPointerReleased(screenOffset: Offset) =
+        screenOffset.toSceneOffset(viewportManager).let { pointerSceneOffset ->
+            when (actionType.value) {
+                ActionType.SHAPE -> actorManager.add(
+                    when (ShapeType.entries.random()) {
+                        ShapeType.BOX -> createDynamicBox(pointerSceneOffset)
+                        ShapeType.CIRCLE -> createDynamicCircle(pointerSceneOffset)
+                        ShapeType.POLYGON -> createDynamicPolygon(pointerSceneOffset)
+                    }
+                )
 
-            ActionType.CHAIN -> actorManager.add(
-                DynamicChain.State(
-                    linkCount = (10..20).random(),
-                    initialCenterOffset = pointerSceneOffset,
-                ).restore()
-            )
+                ActionType.CHAIN -> actorManager.add(
+                    DynamicChain.State(
+                        linkCount = (10..20).random(),
+                        initialCenterOffset = pointerSceneOffset,
+                    ).restore()
+                )
 
-            ActionType.EXPLOSION -> Unit // TODO: Explosion
+                ActionType.EXPLOSION -> Unit // TODO: Explosion
+            }
         }
-    }
 
     @OptIn(ExperimentalResourceApi::class)
     private fun loadMap() = scope.launch {

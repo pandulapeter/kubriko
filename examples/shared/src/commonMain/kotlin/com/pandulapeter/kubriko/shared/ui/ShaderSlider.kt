@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui
+package com.pandulapeter.kubriko.shared.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.hoverable
@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun ShaderSlider(
+fun ShaderSlider(
     modifier: Modifier = Modifier,
     value: Float,
     onValueChanged: (Float) -> Unit,

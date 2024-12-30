@@ -10,11 +10,15 @@ import com.pandulapeter.kubriko.physics.implementation.collision.bodies.Collisio
 import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.PhysicalBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.math.Vec2
 import com.pandulapeter.kubriko.types.SceneOffset
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
-internal class PhysicsManagerImpl : PhysicsManager() {
+internal class PhysicsManagerImpl(
+    initialGravity: SceneOffset,
+    initialSimulationSpeed: Float,
+) : PhysicsManager() {
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
     private val rigidBodies by lazy {
@@ -28,19 +32,17 @@ internal class PhysicsManagerImpl : PhysicsManager() {
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
     }
     private val arbiters = mutableListOf<Arbiter>()
-    override var gravity: SceneOffset
-        get() = super.gravity
-        set(value) {
-            super.gravity = value
-            actualGravity = Vec2(gravity.x, gravity.y)
-        }
-    private var actualGravity = Vec2(gravity.x, gravity.y)
+    override val gravity = MutableStateFlow(initialGravity)
+    private val actualGravity by autoInitializingLazy {
+        gravity.map { Vec2(it.x, it.y) }.asStateFlow(Vec2(initialGravity.x, initialGravity.y))
+    }
+    override val simulationSpeed = MutableStateFlow(initialSimulationSpeed)
 
     override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
         if (stateManager.isRunning.value && deltaTimeInMillis > 0) {
             arbiters.clear()
             broadPhaseCheck()
-            semiImplicit(deltaTimeInMillis * simulationSpeed / 100f)
+            semiImplicit(deltaTimeInMillis * simulationSpeed.value / 100f)
             for (contact in arbiters) {
                 contact.penetrationResolution()
             }
@@ -68,7 +70,7 @@ internal class PhysicsManagerImpl : PhysicsManager() {
             }
             applyLinearDrag(b)
             if (b.affectedByGravity) {
-                b.velocity.add(actualGravity.scalar(dt))
+                b.velocity.add(actualGravity.value.scalar(dt))
             }
             b.velocity.add(b.force.scalar(b.invMass).scalar(dt))
             b.angularVelocity += dt * b.invInertia * b.torque
