@@ -10,14 +10,24 @@ After cloning the repository and opening it in your preferred IDE ([Android Stud
 
 For any configuration / tooling issues check out the official documentation for [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform-intro.html#learn-key-concepts).
 
+## Pre-built apps
+The pre-built Kubriko Showcase application can be downloaded from the following links:
+
+[<img src="../documentation/images/badge_android_coming_soon.png" alt="Download for Android" height="33px" />](#)
+[<img src="../documentation/images/badge_ios_coming_soon.png" alt="Download for iOS" height="33px" />](#)
+[<img src="../documentation/images/badge_windows_coming_soon.png" alt="Download for Windows" height="33px" />](#)
+[<img src="../documentation/images/badge_macos_coming_soon.png" alt="Download for macOS" height="33px" />](#)
+[<img src="../documentation/images/badge_linux_coming_soon.png" alt="Download for Linux" height="33px" />](#)
+[<img src="../documentation/images/badge_web.png" alt="Download for Web" height="33px" />](https://pandulapeter.github.io/kubriko/)
+
 ## Implementation
-The showcase app contains an ever-expanding list of Games and Demos that are embedded into a nice and scalable menu system.
+The showcase app contains an ever-expanding list of games and demos that are embedded into a nice and scalable menu system.
 Check out how effortlessly Kubriko handles resizing the window!
 
 This module only ties together the various examples implemented under the different modules of the [examples](https://github.com/pandulapeter/kubriko/tree/main/examples) folder.
 
 Due to the nature of this app, it does contain some solutions that should not be necessary under normal circumstances.
-Most games will probably not need to be embedded into wrappers, and will probably not support this many Kubriko instances in parallel.
+Most games will probably not need to be embedded into a menu system, and will probably not support this many Kubriko instances in parallel.
 
 As a result, the `app` module itself might not be a good source for learning the best practices of using the engine.
-However, the individual modules within the `examples` folder mentioned above are!
+However, the individual modules within the `examples` folder (linked above) are!
