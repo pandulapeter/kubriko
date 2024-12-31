@@ -67,7 +67,7 @@ Expand the sections below to see the complete list of all Kubriko dependencies h
 
 
 - `io.github.pandulapeter.kubriko:plugins:audio-player`
- - `io.github.pandulapeter.kubriko:plugins:collision`
+- `io.github.pandulapeter.kubriko:plugins:collision`
 - `io.github.pandulapeter.kubriko:plugins:keyboard-input`
 - `io.github.pandulapeter.kubriko:plugins:particles`
 - `io.github.pandulapeter.kubriko:plugins:persistence`
@@ -90,3 +90,8 @@ Expand the sections below to see the complete list of all Kubriko dependencies h
 The latest version is:
 
 [![](https://maven-badges.herokuapp.com/maven-central/io.github.pandulapeter.kubriko/engine/badge.svg?style=flat)](https://repo1.maven.org/maven2/io/github/pandulapeter/kubriko/)
+
+## 🤝 Contributing
+All help in making Kubriko a better engine is welcome!
+- For improvement ideas or bug reports simply create a [new issue](https://github.com/pandulapeter/kubriko/issues/new). Make sure to provide as many details as possible and use the correct labels.
+- For code contributions use the [project board](https://github.com/users/pandulapeter/projects/11) to make sure that the issue you want to fix is not already being worked on. Please leave a comment as well so that the issue can be assigned to you! After that fork the project, commit your changes, push them to the repository, and create a [pull request](https://github.com/pandulapeter/kubriko/compare). 
