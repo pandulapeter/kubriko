@@ -9,7 +9,15 @@
     <!-- Welcome -->
     <string name="welcome">Welcome</string>
     <string name="welcome_subtitle">A short introduction and general overview</string>
-    <string name="welcome_message">Welcome!\n\nThis is the Showcase app for the Kubriko game engine.</string>
+    <string name="welcome_message">Welcome!\n\nThis is the Showcase app for the Kubriko game engine - a lightweight, scalable, and easy-to-use solution for creating simple 2D games for Android, Desktop (Windows, Linux, MacOS), iOS and Web.</string>
+    <string name="welcome_show_more">Show more</string>
+    <string name="welcome_engine_details">Kubriko is based on Compose Multiplatform, and can easily be integrated into such projects. The main goal of developing it was to offer an intuitive library, written 100% in Kotlin, that works seamlessly on the target platforms listed above.</string>
+    <string name="welcome_additional_information">For more information, check out the GitHub repository and the YouTube tutorials:</string>
+    <string name="welcome_github">Repository</string>
+    <string name="welcome_youtube">Tutorials</string>
+    <string name="welcome_app_details">This Showcase application contains a number of games and demos to present what the engine is capable of.</string>
+    <string name="welcome_app_details_call_to_action_collapsed">Check them out using the menu below!</string>
+    <string name="welcome_app_details_call_to_action_expanded">Check them out using the menu on the left!</string>
 
     <!-- Game - Wallbreaker -->
     <string name="game_wallbreaker">Wallbreaker</string>

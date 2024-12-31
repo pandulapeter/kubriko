@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -22,14 +23,18 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -186,12 +191,14 @@ private fun CompactContent(
     onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
     selectedShowcaseEntry: ShowcaseEntry?,
     shouldUseCompactUi: Boolean,
+    welcomeScreenScrollState: ScrollState = rememberScrollState(),
 ) = Crossfade(
     targetState = !shouldUseCompactUi,
 ) { shouldUseExpandedUi ->
     if (shouldUseExpandedUi) {
         WelcomeScreen(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().verticalScroll(welcomeScreenScrollState).windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right)),
+            shouldUseCompactUi = false,
         )
     } else {
         AnimatedVisibility(
@@ -205,13 +212,19 @@ private fun CompactContent(
                 state = lazyListState,
             ) {
                 item("welcome") {
-                    WelcomeScreen()
+                    WelcomeScreen(
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
+                        shouldUseCompactUi = true,
+                    )
                 }
                 menu(
                     allShowcaseEntries = allShowcaseEntries,
                     selectedShowcaseEntry = selectedShowcaseEntry,
                     onShowcaseEntrySelected = onShowcaseEntrySelected,
                 )
+                item("spacer") {
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
         }
     }
