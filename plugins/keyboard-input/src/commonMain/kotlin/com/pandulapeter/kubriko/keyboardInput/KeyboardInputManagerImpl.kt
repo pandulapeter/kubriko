@@ -38,7 +38,7 @@ internal class KeyboardInputManagerImpl : KeyboardInputManager() {
 
     override fun isKeyPressed(key: Key) = activeKeysCache.contains(key)
 
-    override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
+    override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
         if (activeKeysCache.isNotEmpty() && stateManager.isFocused.value) {
             hasSentEmptyMap = false
             activeKeysCache.toImmutableSet().let { activeKeys ->

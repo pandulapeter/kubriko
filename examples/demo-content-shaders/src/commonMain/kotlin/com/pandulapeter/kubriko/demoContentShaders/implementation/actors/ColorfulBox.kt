@@ -19,8 +19,8 @@ internal class ColorfulBox(
         initialSize = SceneSize(width = 100.sceneUnit, height = 100.sceneUnit),
     )
 
-    override fun update(deltaTimeInMillis: Float) {
-        hue = (hue + deltaTimeInMillis / 10f) % 360f
+    override fun update(deltaTimeInMilliseconds: Float) {
+        hue = (hue + deltaTimeInMilliseconds / 10f) % 360f
     }
 
     override fun DrawScope.draw() = drawRect(

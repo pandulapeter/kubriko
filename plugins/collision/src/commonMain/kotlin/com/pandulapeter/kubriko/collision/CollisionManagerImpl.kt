@@ -24,7 +24,7 @@ internal class CollisionManagerImpl : CollisionManager() {
         }.asStateFlow(persistentListOf())
     }
 
-    override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
+    override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
         collisionDetectors.value.forEach { collisionDetector ->
             collisionDetector.collidableTypes.forEach { collidableType ->
                 collidables.value

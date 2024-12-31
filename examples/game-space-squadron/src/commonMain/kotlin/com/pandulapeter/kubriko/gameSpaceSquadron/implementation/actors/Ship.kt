@@ -62,14 +62,14 @@ internal class Ship : Visible, Dynamic, InsetPaddingAware {
 
     private var isAnimatingForward = true
 
-    override fun update(deltaTimeInMillis: Float) {
+    override fun update(deltaTimeInMilliseconds: Float) {
         if (isAnimatingForward) {
-            animatedSprite.stepForward(deltaTimeInMillis)
+            animatedSprite.stepForward(deltaTimeInMilliseconds)
             if (animatedSprite.imageIndex == 22) {
                 isAnimatingForward = false
             }
         } else {
-            animatedSprite.stepBackwards(deltaTimeInMillis)
+            animatedSprite.stepBackwards(deltaTimeInMilliseconds)
             if (animatedSprite.imageIndex == 0) {
                 isAnimatingForward = true
                 body.scale = Scale(-body.scale.horizontal, body.scale.vertical)

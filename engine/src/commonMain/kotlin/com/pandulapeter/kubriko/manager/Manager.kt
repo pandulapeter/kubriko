@@ -59,9 +59,9 @@ abstract class Manager {
 
     protected open fun onInitialize(kubriko: Kubriko) = Unit
 
-    internal fun onUpdateInternal(deltaTimeInMillis: Float, gameTimeNanos: Long) = onUpdate(deltaTimeInMillis, gameTimeNanos)
+    internal fun onUpdateInternal(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) = onUpdate(deltaTimeInMilliseconds, gameTimeMilliseconds)
 
-    protected open fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) = Unit
+    protected open fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) = Unit
 
     internal fun onDisposeInternal() {
         if (isInitialized.value) {

@@ -34,23 +34,14 @@ fun InternalViewport(
     windowInsets: WindowInsets,
 ) {
     // Enforce and cache the internal implementation
-    val kubrikoImpl = remember {
-        getKubriko() as? KubrikoImpl
-            ?: throw IllegalStateException("Custom Kubriko implementations are not supported. Use Kubriko.newInstance() to instantiate Kubriko.")
-    }
+    val kubrikoImpl = remember { getKubriko() as? KubrikoImpl ?: throw IllegalStateException("Custom Kubriko implementations are not supported. Use Kubriko.newInstance() to instantiate Kubriko.") }
 
     // Focus handling
-    val observer = remember {
-        LifecycleEventObserver { source, _ ->
-            kubrikoImpl.stateManager.updateFocus(
-                source.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
-            )
-        }
-    }
+    val lifecycleObserver = remember { LifecycleEventObserver { source, _ -> kubrikoImpl.stateManager.updateFocus(source.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) } }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     DisposableEffect(lifecycle) {
-        lifecycle.addObserver(observer)
-        onDispose { lifecycle.removeObserver(observer) }
+        lifecycle.addObserver(lifecycleObserver)
+        onDispose { lifecycle.removeObserver(lifecycleObserver) }
     }
 
     // Inset handling
@@ -70,15 +61,9 @@ fun InternalViewport(
     LaunchedEffect(Unit) {
         kubrikoImpl.initialize()
         while (isActive) {
-            withFrameNanos { gameTimeInNanos ->
-                val previousGameTimeNanos =
-                    kubrikoImpl.metadataManager.totalRuntimeInMilliseconds.value * 1000000L
-                val deltaTimeInMillis = (gameTimeInNanos - previousGameTimeNanos) / 1000000f
-                kubrikoImpl.managers.forEach {
-                    it.onUpdateInternal(
-                        deltaTimeInMillis,
-                        gameTimeInNanos
-                    )
+            withFrameNanos { frameTimeInNanoseconds ->
+                (frameTimeInNanoseconds / 1000000f - kubrikoImpl.metadataManager.totalRuntimeInMilliseconds.value).let { deltaTimeInMilliseconds ->
+                    kubrikoImpl.managers.forEach { it.onUpdateInternal(deltaTimeInMilliseconds, frameTimeInNanoseconds) }
                 }
             }
         }
@@ -96,10 +81,7 @@ fun InternalViewport(
                 is ViewportManager.AspectRatioMode.FitHorizontal,
                 is ViewportManager.AspectRatioMode.FitVertical,
                 is ViewportManager.AspectRatioMode.Stretched -> modifier
-
-                is ViewportManager.AspectRatioMode.Fixed -> modifier
-                    .align(aspectRatioMode.alignment)
-                    .aspectRatio(ratio = aspectRatioMode.ratio)
+                is ViewportManager.AspectRatioMode.Fixed -> modifier.align(aspectRatioMode.alignment).aspectRatio(ratio = aspectRatioMode.ratio)
             }.clipToBounds()
         ) {
             LaunchedEffect(maxWidth, maxHeight) {
@@ -110,18 +92,9 @@ fun InternalViewport(
                         scaleFactorMultiplier.update {
                             when (val aspectRatioMode = aspectRatioMode) {
                                 ViewportManager.AspectRatioMode.Dynamic -> Scale.Unit
-                                is ViewportManager.AspectRatioMode.FitHorizontal -> (maxWidth.toPx() / aspectRatioMode.width.raw).let {
-                                    Scale(it, it)
-                                }
-
-                                is ViewportManager.AspectRatioMode.FitVertical -> (maxHeight.toPx() / aspectRatioMode.height.raw).let {
-                                    Scale(it, it)
-                                }
-
-                                is ViewportManager.AspectRatioMode.Fixed -> (maxWidth.toPx() / aspectRatioMode.width.raw).let {
-                                    Scale(it, it)
-                                }
-
+                                is ViewportManager.AspectRatioMode.FitHorizontal -> (maxWidth.toPx() / aspectRatioMode.width.raw).let { Scale(it, it) }
+                                is ViewportManager.AspectRatioMode.FitVertical -> (maxHeight.toPx() / aspectRatioMode.height.raw).let { Scale(it, it) }
+                                is ViewportManager.AspectRatioMode.Fixed -> (maxWidth.toPx() / aspectRatioMode.width.raw).let { Scale(it, it) }
                                 is ViewportManager.AspectRatioMode.Stretched -> Scale(
                                     horizontal = maxWidth.toPx() / aspectRatioMode.size.width.raw,
                                     vertical = maxHeight.toPx() / aspectRatioMode.size.height.raw,

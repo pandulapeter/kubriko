@@ -67,7 +67,7 @@ internal class Ball(
         viewportManager = kubriko.get()
     }
 
-    override fun update(deltaTimeInMillis: Float) {
+    override fun update(deltaTimeInMilliseconds: Float) {
         val viewportTopLeft = viewportManager.topLeft.value
         val viewportBottomRight = viewportManager.bottomRight.value
         when (state) {
@@ -81,7 +81,7 @@ internal class Ball(
             State.LAUNCHED -> {
                 body.position = body.position.constrainedWithin(viewportTopLeft, viewportBottomRight)
                 val speed = min(InitialSpeed + SpeedIncrement * scoreManager.score.value, MaximumSpeed)
-                val nextPosition = body.position + SceneOffset(speed * baseSpeedX, speed * baseSpeedY) * deltaTimeInMillis
+                val nextPosition = body.position + SceneOffset(speed * baseSpeedX, speed * baseSpeedY) * deltaTimeInMilliseconds
                 var shouldPlayEdgeBounceSoundEffect = false
                 if (nextPosition.x < viewportTopLeft.x || nextPosition.x > viewportBottomRight.x) {
                     baseSpeedX *= -1

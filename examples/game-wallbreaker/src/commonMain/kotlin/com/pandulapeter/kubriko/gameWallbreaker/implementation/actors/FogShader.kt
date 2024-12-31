@@ -29,8 +29,8 @@ internal class FogShader(
 
     private var time = 0f
 
-    override fun update(deltaTimeInMillis: Float) {
-        time += deltaTimeInMillis
+    override fun update(deltaTimeInMilliseconds: Float) {
+        time += deltaTimeInMilliseconds
         state = state.copy(time = time / 1000f)
     }
 

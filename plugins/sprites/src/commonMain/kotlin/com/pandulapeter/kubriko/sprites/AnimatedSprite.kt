@@ -22,20 +22,20 @@ class AnimatedSprite(
         }
 
     fun stepForward(
-        deltaTimeInMillis: Float,
+        deltaTimeInMilliseconds: Float,
         speed: Float = 1f,
         shouldLoop: Boolean = true,
     ) {
-        _imageIndex += (speed * framesPerSecond * deltaTimeInMillis) / 1000
+        _imageIndex += (speed * framesPerSecond * deltaTimeInMilliseconds) / 1000
         normalizeImageIndex(shouldLoop)
     }
 
     fun stepBackwards(
-        deltaTimeInMillis: Float,
+        deltaTimeInMilliseconds: Float,
         speed: Float = 1f,
         shouldLoop: Boolean = true,
     ) {
-        _imageIndex -= (speed * framesPerSecond * deltaTimeInMillis) / 1000
+        _imageIndex -= (speed * framesPerSecond * deltaTimeInMilliseconds) / 1000
         normalizeImageIndex(shouldLoop)
     }
 

@@ -32,8 +32,8 @@ internal class BrickPopEffect(
         viewportManager = kubriko.get()
     }
 
-    override fun update(deltaTimeInMillis: Float) {
-        alpha -= 0.005f * deltaTimeInMillis
+    override fun update(deltaTimeInMilliseconds: Float) {
+        alpha -= 0.005f * deltaTimeInMilliseconds
         body.scale = Scale.Unit * alpha
         viewportManager.setScaleFactor(1f + (-10..10).random().toFloat() / 1200f)
         if (alpha <= 0) {

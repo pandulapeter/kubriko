@@ -92,10 +92,10 @@ internal class Paddle(
         }
     }
 
-    override fun update(deltaTimeInMillis: Float) {
+    override fun update(deltaTimeInMilliseconds: Float) {
         if (moveInNextStep != SceneUnit.Zero) {
             body.position = SceneOffset(
-                x = body.position.x + moveInNextStep * deltaTimeInMillis,
+                x = body.position.x + moveInNextStep * deltaTimeInMilliseconds,
                 y = body.position.y,
             ).clampWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value)
             moveInNextStep = SceneUnit.Zero

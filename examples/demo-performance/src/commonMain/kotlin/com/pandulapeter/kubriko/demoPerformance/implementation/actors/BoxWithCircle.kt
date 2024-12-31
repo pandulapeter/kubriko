@@ -35,8 +35,8 @@ class BoxWithCircle private constructor(state: State) : Visible, Dynamic, Editab
     override val layerIndex = 0
     override var drawingOrder = 0f
 
-    override fun update(deltaTimeInMillis: Float) {
-        body.rotation += 0.001f.rad * deltaTimeInMillis * (if (isRotatingClockwise) 1 else -1)
+    override fun update(deltaTimeInMilliseconds: Float) {
+        body.rotation += 0.001f.rad * deltaTimeInMilliseconds * (if (isRotatingClockwise) 1 else -1)
     }
 
     override fun DrawScope.draw() {

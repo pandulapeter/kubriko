@@ -51,14 +51,14 @@ internal class OverlayManager(
         }.launchIn(scope)
     }
 
-    override fun update(deltaTimeInMillis: Float) {
+    override fun update(deltaTimeInMilliseconds: Float) {
         if (editorController.selectedUpdatableActor.value.first == null) {
             if (alpha > 0) {
-                alpha = max(0f, alpha - deltaTimeInMillis * HIGHLIGHT_BACKGROUND_FADE_SPEED)
+                alpha = max(0f, alpha - deltaTimeInMilliseconds * HIGHLIGHT_BACKGROUND_FADE_SPEED)
             }
         } else {
             if (alpha < HIGHLIGHT_BACKGROUND_ALPHA) {
-                alpha = min(HIGHLIGHT_BACKGROUND_ALPHA, alpha + deltaTimeInMillis * HIGHLIGHT_BACKGROUND_FADE_SPEED)
+                alpha = min(HIGHLIGHT_BACKGROUND_ALPHA, alpha + deltaTimeInMilliseconds * HIGHLIGHT_BACKGROUND_FADE_SPEED)
             }
         }
         editorController.previewOverlayActor?.body?.position = editorController.mouseSceneOffset.value

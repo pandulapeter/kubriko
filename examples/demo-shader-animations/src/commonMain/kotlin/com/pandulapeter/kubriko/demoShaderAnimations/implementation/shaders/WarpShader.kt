@@ -25,7 +25,7 @@ internal class WarpShader(
         metadataManager = kubriko.get()
     }
 
-    override fun update(deltaTimeInMillis: Float) {
+    override fun update(deltaTimeInMilliseconds: Float) {
         state = state.copy(time = (metadataManager.activeRuntimeInMilliseconds.value % 100000L) / 1000f)
     }
 

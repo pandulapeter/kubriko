@@ -36,12 +36,12 @@ internal class MovingBox private constructor(state: State) : Visible, Dynamic, E
         body.scale = ((5..16).random() / 10f).let { Scale(it, it) }
     }
 
-    override fun update(deltaTimeInMillis: Float) {
-        body.rotation += 0.001f.rad * deltaTimeInMillis * (if (isRotatingClockwise) 1 else -1)
+    override fun update(deltaTimeInMilliseconds: Float) {
+        body.rotation += 0.001f.rad * deltaTimeInMilliseconds * (if (isRotatingClockwise) 1 else -1)
         if (isGrowing) {
-            body.scale += deltaTimeInMillis * 0.001f
+            body.scale += deltaTimeInMilliseconds * 0.001f
         } else {
-            body.scale -= deltaTimeInMillis * 0.001f
+            body.scale -= deltaTimeInMilliseconds * 0.001f
         }
         if (body.scale.horizontal >= 1.6f) {
             isGrowing = false

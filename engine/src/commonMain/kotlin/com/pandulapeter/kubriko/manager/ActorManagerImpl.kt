@@ -94,13 +94,13 @@ internal class ActorManagerImpl(
         viewportManager = kubriko.viewportManager
     }
 
-    override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
+    override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
         if (stateManager.isRunning.value) {
             dynamicActors.value
                 //.filter { if (it !is Positionable) true else it.body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) }
                 .forEach {
                     // TODO: Reduce update frequency for Positionable Dynamic actors that are not within the viewport
-                    it.update(deltaTimeInMillis)
+                    it.update(deltaTimeInMilliseconds)
                 }
         }
     }

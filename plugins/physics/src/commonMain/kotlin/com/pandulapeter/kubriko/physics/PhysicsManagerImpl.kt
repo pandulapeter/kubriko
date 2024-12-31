@@ -38,11 +38,11 @@ internal class PhysicsManagerImpl(
     }
     override val simulationSpeed = MutableStateFlow(initialSimulationSpeed)
 
-    override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
-        if (stateManager.isRunning.value && deltaTimeInMillis > 0) {
+    override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
+        if (stateManager.isRunning.value && deltaTimeInMilliseconds > 0) {
             arbiters.clear()
             broadPhaseCheck()
-            semiImplicit(deltaTimeInMillis * simulationSpeed.value / 100f)
+            semiImplicit(deltaTimeInMilliseconds * simulationSpeed.value / 100f)
             for (contact in arbiters) {
                 contact.penetrationResolution()
             }

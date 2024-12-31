@@ -44,7 +44,7 @@ internal class WallbreakerAudioManager(
         }.launchIn(scope)
     }
 
-    override fun onUpdate(deltaTimeInMillis: Float, gameTimeNanos: Long) {
+    override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
         soundUrisToPlay.forEach { audioPlaybackManager.playSound(Res.getUri(it)) }
         soundUrisToPlay.clear()
     }
