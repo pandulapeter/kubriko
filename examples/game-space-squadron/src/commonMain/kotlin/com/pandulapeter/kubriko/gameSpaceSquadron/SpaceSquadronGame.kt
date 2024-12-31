@@ -13,13 +13,14 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
 import com.pandulapeter.kubriko.collision.CollisionManager
+import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.SpaceSquadronAudioManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.SpaceSquadronBackgroundManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.SpaceSquadronGameManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.SpaceSquadronUIManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.SpaceSquadronUserPreferencesManager
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.SpaceSquadronPauseMenuOverlay
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.SpaceSquadronMenuOverlay
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.SpaceSquadronTheme
-import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
@@ -40,7 +41,6 @@ fun SpaceSquadronGame(
     onFullscreenModeToggled: () -> Unit = {},
 ) = SpaceSquadronTheme {
     stateHolder as SpaceSquadronGameStateHolderImpl
-    // TODO: Move background into the Composable function of a Manager class
     KubrikoViewport(
         modifier = Modifier.fillMaxSize().background(Color.Black),
         kubriko = stateHolder.backgroundKubriko,
@@ -49,10 +49,12 @@ fun SpaceSquadronGame(
         kubriko = stateHolder.kubriko,
         windowInsets = windowInsets,
     )
-    SpaceSquadronPauseMenuOverlay(
+    SpaceSquadronMenuOverlay(
         modifier = Modifier.windowInsetsPadding(windowInsets),
-        isGameRunning = false,
-        onNewGameButtonPressed = { stateHolder.stateManager.updateIsRunning(true) },
+        isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value,
+        onPlayButtonPressed = { stateHolder.stateManager.updateIsRunning(true) },
+        onPauseButtonPressed = { stateHolder.stateManager.updateIsRunning(false) },
+        onInfoButtonPressed = { }, // TODO
         areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
         onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
         isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
@@ -90,6 +92,7 @@ private class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
         persistenceManager,
         userPreferencesManager,
         SpriteManager.newInstance(),
+        SpaceSquadronUIManager(stateManager),
         SpaceSquadronAudioManager(stateManager, audioPlaybackManager, userPreferencesManager),
     )
 
