@@ -17,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.shared.ui.LargeButton
 import kubriko.app.generated.resources.Res
@@ -84,10 +85,11 @@ internal fun WelcomeScreen(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = if (shouldUseCompactUi) Arrangement.Center else Arrangement.Start,
         ) {
+            val uriHandler = LocalUriHandler.current
             LargeButton(
                 icon = Res.drawable.ic_github,
                 title = Res.string.welcome_github,
-                onButtonPressed = {}, // TODO
+                onButtonPressed = { uriHandler.openUri("https://github.com/pandulapeter/kubriko") },
             )
             Spacer(
                 modifier = Modifier.width(8.dp),
@@ -95,6 +97,7 @@ internal fun WelcomeScreen(
             LargeButton(
                 icon = Res.drawable.ic_youtube,
                 title = Res.string.welcome_youtube,
+                isEnabled = false,
                 onButtonPressed = {}, // TODO
             )
         }

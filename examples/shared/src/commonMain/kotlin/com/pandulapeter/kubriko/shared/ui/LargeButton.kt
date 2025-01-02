@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
@@ -24,9 +25,10 @@ fun LargeButton(
     modifier: Modifier = Modifier,
     title: StringResource,
     icon: DrawableResource? = null,
+    isEnabled: Boolean = true,
     onButtonPressed: () -> Unit,
 ) = FloatingActionButton(
-    modifier = modifier.height(40.dp),
+    modifier = modifier.height(40.dp).alpha(if (isEnabled) 1f else 0.5f),
     containerColor = if (isSystemInDarkTheme()) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary,
     onClick = onButtonPressed,
 ) {
