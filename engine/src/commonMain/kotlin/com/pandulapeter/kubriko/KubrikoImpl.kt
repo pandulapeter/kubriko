@@ -1,16 +1,15 @@
 package com.pandulapeter.kubriko
 
 import com.pandulapeter.kubriko.extensions.get
-import com.pandulapeter.kubriko.implementation.disposePlatformSpecificComponents
-import com.pandulapeter.kubriko.manager.ActorManagerImpl
-import com.pandulapeter.kubriko.manager.MetadataManagerImpl
-import com.pandulapeter.kubriko.manager.StateManagerImpl
-import com.pandulapeter.kubriko.manager.ViewportManagerImpl
 import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.ActorManagerImpl
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
+import com.pandulapeter.kubriko.manager.MetadataManagerImpl
 import com.pandulapeter.kubriko.manager.StateManager
+import com.pandulapeter.kubriko.manager.StateManagerImpl
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.manager.ViewportManagerImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -48,19 +47,15 @@ internal class KubrikoImpl(
         }
     }
 
-    private inline fun <reified T : Manager> Collection<Manager>.addIfNeeded(creator: () -> T) =
-        if (none { T::class.isInstance(it) }) toMutableList().apply { add(0, creator()) } else this
+    private inline fun <reified T : Manager> Collection<Manager>.addIfNeeded(creator: () -> T) = if (none { T::class.isInstance(it) }) toMutableList().apply { add(0, creator()) } else this
 
     @Suppress("UNCHECKED_CAST")
-    private inline fun <reified T : Manager, TI : T> requireAndVerify(name: String) =
-        get<T>() as? TI ?: throw IllegalStateException("Custom implementations of the $name interface are not supported. Use $name.newInstance() to instantiate $name.")
+    private inline fun <reified T : Manager, TI : T> requireAndVerify(name: String) = get<T>() as? TI ?: throw IllegalStateException("Custom implementations of the $name interface are not supported. Use $name.newInstance() to instantiate $name.")
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : Manager> get(managerType: KClass<T>) =
-        managers.firstOrNull { managerType.isInstance(it) } as? T ?: throw IllegalStateException("$managerType has not been registered as a Manager in Kubriko.newInstance()")
+    override fun <T : Manager> get(managerType: KClass<T>) = managers.firstOrNull { managerType.isInstance(it) } as? T ?: throw IllegalStateException("$managerType has not been registered as a Manager in Kubriko.newInstance()")
 
     override fun dispose() {
-        disposePlatformSpecificComponents()
         managers.forEach { it.onDisposeInternal() }
         cancel()
     }

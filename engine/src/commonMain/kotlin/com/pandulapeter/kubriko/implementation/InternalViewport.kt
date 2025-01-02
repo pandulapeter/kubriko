@@ -57,7 +57,6 @@ fun InternalViewport(
     )
 
     // Game loop
-    initializePlatformSpecificComponents()
     LaunchedEffect(Unit) {
         kubrikoImpl.initialize()
         while (isActive) {
@@ -81,6 +80,7 @@ fun InternalViewport(
                 is ViewportManager.AspectRatioMode.FitHorizontal,
                 is ViewportManager.AspectRatioMode.FitVertical,
                 is ViewportManager.AspectRatioMode.Stretched -> modifier
+
                 is ViewportManager.AspectRatioMode.Fixed -> modifier.align(aspectRatioMode.alignment).aspectRatio(ratio = aspectRatioMode.ratio)
             }.clipToBounds()
         ) {
