@@ -21,12 +21,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.shared.ui.LargeButton
 import kubriko.app.generated.resources.Res
@@ -43,8 +41,8 @@ import kubriko.app.generated.resources.welcome_engine_details
 import kubriko.app.generated.resources.welcome_hide_details
 import kubriko.app.generated.resources.welcome_learning
 import kubriko.app.generated.resources.welcome_message
-import kubriko.app.generated.resources.welcome_repository
 import kubriko.app.generated.resources.welcome_more_details
+import kubriko.app.generated.resources.welcome_repository
 import kubriko.app.generated.resources.welcome_tutorials
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -64,7 +62,6 @@ internal fun WelcomeScreen(
         style = MaterialTheme.typography.bodySmall,
         text = stringResource(Res.string.welcome_message),
     )
-    val shouldShowMoreInfo = remember { mutableStateOf(false) }
     AnimatedVisibility(
         visible = !shouldUseCompactUi || shouldShowMoreInfo.value,
         enter = fadeIn() + expandVertically(expandFrom = Alignment.CenterVertically),
@@ -154,3 +151,5 @@ internal fun WelcomeScreen(
         text = stringResource(if (shouldUseCompactUi) Res.string.welcome_app_details_call_to_action_collapsed else Res.string.welcome_app_details_call_to_action_expanded),
     )
 }
+
+private val shouldShowMoreInfo = mutableStateOf(false)

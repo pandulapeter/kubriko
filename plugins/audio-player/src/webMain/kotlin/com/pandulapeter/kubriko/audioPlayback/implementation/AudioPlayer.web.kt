@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import kotlinx.browser.document
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.w3c.dom.Audio
 import org.w3c.dom.HTMLAudioElement
@@ -31,9 +32,12 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
     }
 
     override fun pauseMusic() {
-        audio?.run {
-            if (!paused) {
-                pause()
+        coroutineScope.launch(Dispatchers.Default) {
+            audio?.run {
+                if (!paused) {
+                    delay(50)
+                    pause()
+                }
             }
         }
     }

@@ -21,13 +21,10 @@ internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
         if (audioPlayer == null && isInitialized.value) {
             audioPlayer = createAudioPlayer(scope)
             musicUri?.let {
-                if (stateManager.isFocused.value) {
+                if (stateManager.isFocused.value && !shouldPauseMusicAfterInitialization) {
                     audioPlayer?.playMusic(it, shouldLoopMusic)
-                    if (shouldPauseMusicAfterInitialization) {
-                        pauseMusic()
-                    }
+                    musicUri = null
                 }
-                musicUri = null
             }
             stateManager.isFocused
                 .onEach { isFocused ->
@@ -40,6 +37,7 @@ internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
     }
 
     override fun onDispose() {
+        musicUri = null
         audioPlayer?.dispose()
         audioPlayer = null
     }
@@ -56,7 +54,13 @@ internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
     }
 
     override fun resumeMusic() {
-        audioPlayer?.resumeMusic()
+        musicUri.let { musicUri ->
+            if (musicUri == null) {
+                audioPlayer?.resumeMusic()
+            } else {
+                playMusic(musicUri, shouldLoopMusic)
+            }
+        }
     }
 
     override fun pauseMusic() {
