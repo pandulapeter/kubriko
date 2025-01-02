@@ -33,5 +33,3 @@ internal actual fun ByteArray.toImageBitmap(resourceDensity: Int, targetDensity:
 
     return targetImage.toComposeImageBitmap()
 }
-
-internal actual fun String.processUri() = substringAfter("!/")

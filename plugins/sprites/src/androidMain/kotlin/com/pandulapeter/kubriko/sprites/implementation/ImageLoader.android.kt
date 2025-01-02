@@ -13,5 +13,3 @@ internal actual fun ByteArray.toImageBitmap(resourceDensity: Int, targetDensity:
     }
     return BitmapFactory.decodeByteArray(this, 0, size, options).asImageBitmap()
 }
-
-internal actual fun String.processUri() = removePrefix("file:///android_asset/")

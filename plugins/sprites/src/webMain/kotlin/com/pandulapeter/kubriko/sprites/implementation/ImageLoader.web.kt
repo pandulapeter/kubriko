@@ -2,7 +2,6 @@ package com.pandulapeter.kubriko.sprites.implementation
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
-import kotlinx.browser.window
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.Paint
 import org.jetbrains.skia.Rect
@@ -18,7 +17,6 @@ internal actual fun ByteArray.toImageBitmap(resourceDensity: Int, targetDensity:
         val targetW = image.width * scale
         val srcRect = Rect.Companion.makeWH(image.width.toFloat(), image.height.toFloat())
         val dstRect = Rect.Companion.makeWH(targetW, targetH)
-
         targetImage = Surface.makeRasterN32Premul(targetW.toInt(), targetH.toInt()).run {
             val paint = Paint().apply { isAntiAlias = true }
             canvas.drawImageRect(image, srcRect, dstRect, SamplingMode.LINEAR, paint, true)
@@ -28,11 +26,4 @@ internal actual fun ByteArray.toImageBitmap(resourceDensity: Int, targetDensity:
         targetImage = image
     }
     return targetImage.toComposeImageBitmap()
-}
-
-internal actual fun String.processUri() : String {
-    val location = window.location
-    val origin = location.origin
-    val pathName = location.pathname
-    return removePrefix(origin + pathName).removePrefix(origin).removePrefix("./")
 }

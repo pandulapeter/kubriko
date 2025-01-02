@@ -21,6 +21,8 @@ class AnimatedSprite(
             _imageIndex = value.toFloat()
         }
 
+    // TODO: Support reverse by adding a step function
+
     fun stepForward(
         deltaTimeInMilliseconds: Float,
         speed: Float = 1f,

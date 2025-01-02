@@ -10,7 +10,7 @@ After cloning the repository and opening it in your preferred IDE ([Android Stud
 
 For any configuration / tooling issues check out the official documentation for [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform-intro.html#learn-key-concepts).
 
-## Pre-built apps
+## Pre-built binaries
 The pre-built Kubriko Showcase application can be downloaded from the following links:
 
 [<img src="../documentation/images/badge_android_coming_soon.png" alt="Download for Android" height="33px" />](#)
