@@ -23,13 +23,15 @@ import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.sprite_ship
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 internal class Ship : Visible, Dynamic, InsetPaddingAware {
 
     private lateinit var spriteManager: SpriteManager
     private lateinit var viewportManager: ViewportManager
+    @OptIn(ExperimentalResourceApi::class)
     private val animatedSprite = AnimatedSprite(
-        getImageBitmap = { spriteManager.loadSprite(Res.drawable.sprite_ship) },
+        getImageBitmap = { spriteManager.loadSprite(Res.getUri("drawable/sprite_ship.png")) },
         frameSize = IntSize(128, 144),
         frameCount = 23,
         framesPerRow = 8,

@@ -2,7 +2,6 @@ package com.pandulapeter.kubriko.sprites
 
 import androidx.compose.ui.graphics.ImageBitmap
 import com.pandulapeter.kubriko.manager.Manager
-import org.jetbrains.compose.resources.DrawableResource
 
 /**
  * TODO: Documentation
@@ -11,9 +10,9 @@ sealed class SpriteManager : Manager() {
 
     // TODO: Add ability to preload sprites
 
-    abstract fun loadSprite(drawableResource: DrawableResource): ImageBitmap?
+    abstract fun loadSprite(uri: String): ImageBitmap?
 
-    abstract fun unloadSprite(drawableResource: DrawableResource)
+    abstract fun unloadSprite(uri: String)
 
     companion object {
         fun newInstance(): SpriteManager = SpriteManagerImpl()
