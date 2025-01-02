@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko.audioPlayback.implementation
 
+import androidx.compose.runtime.Composable
 import javazoom.jl.player.FactoryRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -12,7 +13,7 @@ import java.io.FileInputStream
 import java.net.URI
 import javax.sound.sampled.AudioSystem
 
-
+@Composable
 internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object : AudioPlayer {
     private var musicPlayer: MusicPlayer? = null
     private var musicPlayingJob: Job? = null

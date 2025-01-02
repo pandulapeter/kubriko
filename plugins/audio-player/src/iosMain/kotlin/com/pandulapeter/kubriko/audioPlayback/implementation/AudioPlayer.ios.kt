@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko.audioPlayback.implementation
 
+import androidx.compose.runtime.Composable
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -8,6 +9,7 @@ import platform.AVFAudio.AVAudioPlayer
 import platform.Foundation.NSURL
 
 @OptIn(ExperimentalForeignApi::class)
+@Composable
 internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object : AudioPlayer {
     private var musicPlayer: AVAudioPlayer? = null
     private var shouldPlayMusic = false

@@ -1,60 +1,80 @@
 package com.pandulapeter.kubriko.audioPlayback
 
-import com.pandulapeter.kubriko.Kubriko
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import com.pandulapeter.kubriko.audioPlayback.implementation.AudioPlayer
 import com.pandulapeter.kubriko.audioPlayback.implementation.createAudioPlayer
-import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.manager.StateManager
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 internal class AudioPlaybackManagerImpl : AudioPlaybackManager() {
 
-    private val audioPlayer by autoInitializingLazy { createAudioPlayer(scope) }
+    private var audioPlayer: AudioPlayer? = null
     private var musicUri: String? = null
     private var shouldLoopMusic = false
+    private var shouldPauseMusicAfterInitialization = false
+    private val stateManager by manager<StateManager>()
 
-    override fun onInitialize(kubriko: Kubriko) {
-        val stateManager = kubriko.get<StateManager>()
-        musicUri?.let {
-            if (stateManager.isFocused.value) {
-                audioPlayer.playMusic(it, shouldLoopMusic)
-            }
-            musicUri = null
-        }
-        stateManager.isFocused
-            .onEach { isFocused ->
-                if (!isFocused) {
-                    pauseMusic()
+    @Composable
+    override fun Composable(insetPaddingModifier: Modifier) {
+        if (audioPlayer == null && isInitialized.value) {
+            audioPlayer = createAudioPlayer(scope)
+            musicUri?.let {
+                if (stateManager.isFocused.value) {
+                    audioPlayer?.playMusic(it, shouldLoopMusic)
+                    if (shouldPauseMusicAfterInitialization) {
+                        pauseMusic()
+                    }
                 }
+                musicUri = null
             }
-            .launchIn(scope)
+            stateManager.isFocused
+                .onEach { isFocused ->
+                    if (!isFocused) {
+                        pauseMusic()
+                    }
+                }
+                .launchIn(scope)
+        }
     }
 
-    override fun onDispose() = audioPlayer.dispose()
+    override fun onDispose() {
+        audioPlayer?.dispose()
+        audioPlayer = null
+    }
 
     override fun playMusic(uri: String, shouldLoop: Boolean) {
-        if (isInitialized.value) {
-            audioPlayer.playMusic(uri, shouldLoop)
-        } else {
-            musicUri = uri
-            shouldLoopMusic = shouldLoop
+        audioPlayer.let { audioPlayer ->
+            if (audioPlayer != null) {
+                audioPlayer.playMusic(uri, shouldLoop)
+            } else {
+                musicUri = uri
+                shouldLoopMusic = shouldLoop
+            }
         }
     }
 
-    override fun resumeMusic() = audioPlayer.resumeMusic()
+    override fun resumeMusic() {
+        audioPlayer?.resumeMusic()
+    }
 
-    override fun pauseMusic() = audioPlayer.pauseMusic()
+    override fun pauseMusic() {
+        audioPlayer.let { audioPlayer ->
+            if (audioPlayer == null) {
+                shouldPauseMusicAfterInitialization = true
+            } else {
+                audioPlayer.pauseMusic()
+            }
+        }
+    }
 
     override fun stopMusic() {
-        if (isInitialized.value) {
-            audioPlayer.stopMusic()
-        }
+        audioPlayer?.stopMusic()
         musicUri = null
     }
 
     override fun playSound(uri: String) {
-        if (isInitialized.value) {
-            audioPlayer.playSound(uri)
-        }
+        audioPlayer?.playSound(uri)
     }
 }

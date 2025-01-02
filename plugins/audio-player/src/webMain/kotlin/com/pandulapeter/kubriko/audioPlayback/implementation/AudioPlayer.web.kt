@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko.audioPlayback.implementation
 
+import androidx.compose.runtime.Composable
 import kotlinx.browser.document
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -7,6 +8,7 @@ import kotlinx.coroutines.launch
 import org.w3c.dom.Audio
 import org.w3c.dom.HTMLAudioElement
 
+@Composable
 internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object : AudioPlayer {
     private var audio: Audio? = null
 

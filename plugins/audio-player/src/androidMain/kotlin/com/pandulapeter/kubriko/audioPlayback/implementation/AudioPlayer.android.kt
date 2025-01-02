@@ -4,14 +4,15 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.SoundPool
-import com.pandulapeter.kubriko.ActivityHolder
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+@Composable
 internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object : AudioPlayer {
-    // TODO: Sometimes throws an NPE
-    private val context by lazy { ActivityHolder.currentActivity.value!!.applicationContext }
+    private val context = LocalContext.current
     private val soundPool = SoundPool.Builder()
         .setMaxStreams(10)
         .setAudioAttributes(

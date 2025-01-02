@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko.audioPlayback.implementation
 
+import androidx.compose.runtime.Composable
 import kotlinx.coroutines.CoroutineScope
 
 internal interface AudioPlayer {
@@ -17,4 +18,5 @@ internal interface AudioPlayer {
     fun dispose()
 }
 
+@Composable
 internal expect fun createAudioPlayer(coroutineScope: CoroutineScope): AudioPlayer
