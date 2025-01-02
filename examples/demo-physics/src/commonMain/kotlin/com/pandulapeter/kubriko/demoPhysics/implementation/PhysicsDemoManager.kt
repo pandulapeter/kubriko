@@ -27,6 +27,7 @@ import com.pandulapeter.kubriko.extensions.sin
 import com.pandulapeter.kubriko.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
+import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.PhysicsManager
 import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
@@ -47,6 +48,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -69,6 +71,7 @@ internal class PhysicsDemoManager(
     private val _actionType = MutableStateFlow(ActionType.SHAPE)
     private val actionType = _actionType.asStateFlow()
     private val actorManager by manager<ActorManager>()
+    private val stateManager by manager<StateManager>()
     private val physicsManager by manager<PhysicsManager>()
     private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
     private val viewportManager by manager<ViewportManager>()
@@ -76,6 +79,9 @@ internal class PhysicsDemoManager(
     private val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
+        stateManager.isFocused
+            .onEach(stateManager::updateIsRunning)
+            .launchIn(scope)
         actorManager.add(this)
         actorManager.allActors
             .filter { it.size > 1 }
