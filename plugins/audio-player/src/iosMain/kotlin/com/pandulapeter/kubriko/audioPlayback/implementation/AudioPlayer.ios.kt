@@ -12,6 +12,7 @@ import platform.Foundation.NSURL
 @Composable
 internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object : AudioPlayer {
     private var musicPlayer: AVAudioPlayer? = null
+    private var previousAudioReference: AVAudioPlayer? = null
     private var shouldPlayMusic = false
 
     override fun playMusic(uri: String, shouldLoop: Boolean) {
@@ -51,10 +52,9 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
         musicPlayer = null
     }
 
-
     override fun playSound(uri: String) {
         coroutineScope.launch(Dispatchers.Default) {
-            AVAudioPlayer(NSURL.URLWithString(URLString = uri)!!, error = null).apply {
+            previousAudioReference = AVAudioPlayer(NSURL.URLWithString(URLString = uri)!!, error = null).apply {
                 prepareToPlay()
                 play()
             }
@@ -62,5 +62,8 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
 
     }
 
-    override fun dispose() = stopMusic()
+    override fun dispose() {
+        stopMusic()
+        previousAudioReference = null
+    }
 }
