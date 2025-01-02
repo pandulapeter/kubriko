@@ -1,8 +1,10 @@
 package com.pandulapeter.kubriko.persistence.implementation
 
+import androidx.compose.runtime.Composable
 import platform.Foundation.NSUserDefaults
 import platform.Foundation.setValue
 
+@Composable
 internal actual fun createKeyValuePersistenceManager(fileName: String) = object : KeyValuePersistenceManager {
 
     private val preferences by lazy { NSUserDefaults.standardUserDefaults }

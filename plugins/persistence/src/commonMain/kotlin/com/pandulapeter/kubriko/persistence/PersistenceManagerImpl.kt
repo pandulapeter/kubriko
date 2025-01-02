@@ -1,6 +1,8 @@
 package com.pandulapeter.kubriko.persistence
 
-import com.pandulapeter.kubriko.Kubriko
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import com.pandulapeter.kubriko.persistence.implementation.KeyValuePersistenceManager
 import com.pandulapeter.kubriko.persistence.implementation.PersistedPropertyWrapper
 import com.pandulapeter.kubriko.persistence.implementation.createKeyValuePersistenceManager
 import kotlinx.coroutines.Dispatchers
@@ -10,16 +12,21 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 internal class PersistenceManagerImpl(
-    fileName: String,
+    private val fileName: String,
 ) : PersistenceManager() {
-    private val keyValuePersistenceManager by lazy { createKeyValuePersistenceManager(fileName = fileName) }
+    private var keyValuePersistenceManager: KeyValuePersistenceManager? = null
     private val stateFlowMap = mutableMapOf<String, PersistedPropertyWrapper<*>>()
 
-    override fun onInitialize(kubriko: Kubriko) {
-        scope.launch(Dispatchers.Default) {
-            stateFlowMap.values.forEach { wrapper ->
-                wrapper.load(keyValuePersistenceManager)
-                wrapper.flow.onEach { wrapper.save(keyValuePersistenceManager) }.launchIn(scope)
+    @Composable
+    override fun Composable(insetPaddingModifier: Modifier) {
+        if (keyValuePersistenceManager == null && isInitialized.value) {
+            keyValuePersistenceManager = createKeyValuePersistenceManager(fileName = fileName).also { keyValuePersistenceManager ->
+                scope.launch(Dispatchers.Default) {
+                    stateFlowMap.values.forEach { wrapper ->
+                        wrapper.load(keyValuePersistenceManager)
+                        wrapper.flow.onEach { wrapper.save(keyValuePersistenceManager) }.launchIn(scope)
+                    }
+                }
             }
         }
     }
@@ -58,7 +65,7 @@ internal class PersistenceManagerImpl(
         ?: PersistedPropertyWrapper.Generic(key, defaultValue, serializer, deserializer).initialize()).flow as MutableStateFlow<T>
 
     private fun <T> PersistedPropertyWrapper<T>.initialize() = this.also { wrapper ->
-        if (isInitialized.value) {
+        keyValuePersistenceManager?.let { keyValuePersistenceManager ->
             scope.launch(Dispatchers.Default) {
                 wrapper.load(keyValuePersistenceManager)
                 wrapper.flow.onEach { wrapper.save(keyValuePersistenceManager) }.launchIn(scope)

@@ -1,7 +1,9 @@
 package com.pandulapeter.kubriko.persistence.implementation
 
+import androidx.compose.runtime.Composable
 import kotlinx.browser.localStorage
 
+@Composable
 internal actual fun createKeyValuePersistenceManager(fileName: String) = object : KeyValuePersistenceManager {
 
     private val preferences by lazy { localStorage }

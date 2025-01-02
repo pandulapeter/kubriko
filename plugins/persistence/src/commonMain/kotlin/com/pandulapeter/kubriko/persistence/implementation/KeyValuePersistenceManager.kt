@@ -1,5 +1,7 @@
 package com.pandulapeter.kubriko.persistence.implementation
 
+import androidx.compose.runtime.Composable
+
 internal interface KeyValuePersistenceManager {
 
     fun getBoolean(key: String, defaultValue: Boolean): Boolean
@@ -19,4 +21,5 @@ internal interface KeyValuePersistenceManager {
     fun putString(key: String, value: String)
 }
 
+@Composable
 internal expect fun createKeyValuePersistenceManager(fileName: String): KeyValuePersistenceManager

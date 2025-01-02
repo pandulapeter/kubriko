@@ -1,11 +1,13 @@
 package com.pandulapeter.kubriko.persistence.implementation
 
 import android.content.Context
-import com.pandulapeter.kubriko.ActivityHolder
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 
+@Composable
 internal actual fun createKeyValuePersistenceManager(fileName: String) = object : KeyValuePersistenceManager {
 
-    private val preferences by lazy { ActivityHolder.currentActivity.value!!.applicationContext.getSharedPreferences(fileName, Context.MODE_PRIVATE) }
+    private val preferences = LocalContext.current.applicationContext.getSharedPreferences(fileName, Context.MODE_PRIVATE)
 
     override fun getBoolean(key: String, defaultValue: Boolean) = preferences.getBoolean(key, defaultValue)
 
