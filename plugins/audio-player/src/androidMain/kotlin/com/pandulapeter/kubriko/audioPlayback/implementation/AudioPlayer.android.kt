@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object : AudioPlayer {
-    private val context = LocalContext.current
+    private val context = LocalContext.current.applicationContext
     private val soundPool = SoundPool.Builder()
         .setMaxStreams(10)
         .setAudioAttributes(

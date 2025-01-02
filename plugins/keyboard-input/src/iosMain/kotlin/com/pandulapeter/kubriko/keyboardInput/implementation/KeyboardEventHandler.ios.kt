@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko.keyboardInput.implementation
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.input.key.Key
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
@@ -10,12 +11,12 @@ import platform.UIKit.UIPressesEvent
 import platform.UIKit.UIView
 
 @OptIn(ExperimentalForeignApi::class)
+@Composable
 internal actual fun createKeyboardEventHandler(
     onKeyPressed: (Key) -> Unit,
     onKeyReleased: (Key) -> Unit,
     coroutineScope: CoroutineScope,
 ): KeyboardEventHandler = object : KeyboardEventHandler {
-
     private val inputView = object : UIView(CGRectMake(0.0, 0.0, 0.0, 0.0)) {
 
         override fun canBecomeFirstResponder() = true
@@ -51,6 +52,9 @@ internal actual fun createKeyboardEventHandler(
     override fun startListening() = Unit
 
     override fun stopListening() = inputView.removeFromSuperview()
+
+    @Composable
+    override fun isValid() = true
 }
 
 private fun UIPress.toKey() = key?.keyCode()?.run { Key(this) }

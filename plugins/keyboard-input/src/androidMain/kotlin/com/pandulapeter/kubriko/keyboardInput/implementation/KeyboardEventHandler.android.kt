@@ -3,12 +3,12 @@ package com.pandulapeter.kubriko.keyboardInput.implementation
 import android.app.Activity
 import android.view.KeyEvent
 import android.view.View
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.input.key.Key
-import com.pandulapeter.kubriko.ActivityHolder
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -18,33 +18,13 @@ import kotlinx.coroutines.launch
 private const val DEBOUNCE_TIME_MILLIS = 70L
 
 // TODO: Needs to be improved.
+@Composable
 internal actual fun createKeyboardEventHandler(
     onKeyPressed: (Key) -> Unit,
     onKeyReleased: (Key) -> Unit,
     coroutineScope: CoroutineScope,
 ): KeyboardEventHandler = object : KeyboardEventHandler {
     private val isActive = MutableStateFlow(false)
-    private var currentActivity: Activity? = null
-
-    init {
-        ActivityHolder.currentActivity.filterNotNull().onEach { activity ->
-            if (isActive.value) {
-                currentActivity?.window?.decorView?.rootView?.removeOnUnhandledKeyEventListener(keyListener)
-                activity.window.decorView.rootView.addOnUnhandledKeyEventListener(keyListener)
-            }
-            currentActivity = activity
-        }.launchIn(coroutineScope)
-        isActive.onEach { isActive ->
-            currentActivity?.let { activity ->
-                if (isActive) {
-                    activity.window.decorView.rootView.addOnUnhandledKeyEventListener(keyListener)
-                } else {
-                    activity.window.decorView.rootView.removeOnUnhandledKeyEventListener(keyListener)
-                }
-            }
-        }.launchIn(coroutineScope)
-    }
-
     private val keyReleasedTimestamps = mutableMapOf<Key, Long>()
     private val keyListener = View.OnUnhandledKeyEventListener { _, event ->
         event.toKey()?.let { key ->
@@ -66,6 +46,22 @@ internal actual fun createKeyboardEventHandler(
                 else -> true
             }
         } ?: false
+    }
+    private var currentActivity = LocalContext.current as? Activity
+
+    @Composable
+    override fun isValid() = currentActivity === LocalContext.current
+
+    init {
+        isActive.onEach { isActive ->
+            currentActivity?.let { activity ->
+                if (isActive) {
+                    activity.window.decorView.rootView.addOnUnhandledKeyEventListener(keyListener)
+                } else {
+                    activity.window.decorView.rootView.removeOnUnhandledKeyEventListener(keyListener)
+                }
+            }
+        }.launchIn(coroutineScope)
     }
 
     override fun startListening() {
@@ -89,7 +85,11 @@ internal actual fun createKeyboardEventHandler(
         isActive.update { true }
     }
 
-    override fun stopListening() = isActive.update { false }
+    override fun stopListening() {
+        isActive.update { false }
+        currentActivity?.window?.decorView?.rootView?.removeOnUnhandledKeyEventListener(keyListener)
+        currentActivity = null
+    }
 }
 
 private fun KeyEvent.toKey() = keyMap[keyCode]

@@ -1,7 +1,10 @@
 package com.pandulapeter.kubriko.keyboardInput
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.keyboardInput.implementation.KeyboardEventHandler
 import com.pandulapeter.kubriko.keyboardInput.implementation.createKeyboardEventHandler
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
@@ -16,13 +19,7 @@ internal class KeyboardInputManagerImpl : KeyboardInputManager() {
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
     private var activeKeysCache = mutableSetOf<Key>()
-    private val keyboardEventHandler by autoInitializingLazy {
-        createKeyboardEventHandler(
-            onKeyPressed = ::onKeyPressed,
-            onKeyReleased = ::onKeyReleased,
-            coroutineScope = scope,
-        )
-    }
+    private var keyboardEventHandler: KeyboardEventHandler? = null
     private val keyboardInputAwareActors by autoInitializingLazy {
         actorManager.allActors.map { it.filterIsInstance<KeyboardInputAware>() }.asStateFlow(emptyList())
     }
@@ -33,7 +30,21 @@ internal class KeyboardInputManagerImpl : KeyboardInputManager() {
             .filterNot { it }
             .onEach { activeKeysCache.forEach(::onKeyReleased) }
             .launchIn(scope)
-        keyboardEventHandler.startListening()
+    }
+
+    @Composable
+    override fun Composable(insetPaddingModifier: Modifier) {
+        if (keyboardEventHandler?.isValid() == false) {
+            keyboardEventHandler?.stopListening()
+            keyboardEventHandler = null
+        }
+        if (keyboardEventHandler == null && isInitialized.value) {
+            keyboardEventHandler = createKeyboardEventHandler(
+                onKeyPressed = ::onKeyPressed,
+                onKeyReleased = ::onKeyReleased,
+                coroutineScope = scope,
+            ).also { it.startListening() }
+        }
     }
 
     override fun isKeyPressed(key: Key) = activeKeysCache.contains(key)
@@ -54,7 +65,10 @@ internal class KeyboardInputManagerImpl : KeyboardInputManager() {
         }
     }
 
-    override fun onDispose() = keyboardEventHandler.stopListening()
+    override fun onDispose() {
+        keyboardEventHandler?.stopListening()
+        keyboardEventHandler = null
+    }
 
     private fun onKeyPressed(key: Key) {
         if (!activeKeysCache.contains(key) && stateManager.isFocused.value) {

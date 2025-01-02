@@ -1,17 +1,18 @@
 package com.pandulapeter.kubriko.keyboardInput.implementation
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.input.key.Key
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 
+@Composable
 internal actual fun createKeyboardEventHandler(
     onKeyPressed: (Key) -> Unit,
     onKeyReleased: (Key) -> Unit,
     coroutineScope: CoroutineScope,
 ): KeyboardEventHandler = object : KeyboardEventHandler {
-
     private val pressedKeys = mutableSetOf<String>() // Track keys that are currently pressed
     private val keyDownListener: (Event) -> Unit = { event ->
         (event as? KeyboardEvent)?.let { keyboardEvent ->
@@ -38,6 +39,9 @@ internal actual fun createKeyboardEventHandler(
         window.removeEventListener("keyup", keyUpListener)
         pressedKeys.clear()
     }
+
+    @Composable
+    override fun isValid() = true
 }
 
 fun mapKeyboardEventCodeToKey(code: String): Key {
