@@ -6,7 +6,7 @@
 This repository contains the source code of the engine and its plugins / tooling, as well as the Kubriko Showcase application that demonstrates the engine's capabilities.
 
 ## 🎮 Overview
-Kubriko aims to offer a lightweight, scalable, and easy-to-use solution for creating simple 2D games for **Android**, **Desktop** (Windows, Linux, MacOS), **iOS** and **Web**.
+Kubriko aims to offer a lightweight, scalable, and easy-to-use solution for creating simple 2D games for **Android**, **Desktop** (Windows, Linux, macOS), **iOS** and **Web**.
 It achieves this goal by exposing a [Composable](https://www.jetbrains.com/compose-multiplatform/) that can easily be embedded into [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html) projects.
 
 The engine is highly modular, because its core functionality can be extended in a granular fashion using different plugins.
