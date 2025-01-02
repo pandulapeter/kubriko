@@ -141,9 +141,9 @@ internal class ActorManagerImpl(
 
     @Composable
     override fun Composable(insetPaddingModifier: Modifier) = Box(
-        modifier = kubrikoImpl.managers.fold(Modifier.fillMaxSize().clipToBounds()) { modifierToProcess, manager ->
+        modifier = if (isInitialized.value) kubrikoImpl.managers.fold(Modifier.fillMaxSize().clipToBounds()) { modifierToProcess, manager ->
             manager.processModifierInternal(modifierToProcess, null)
-        }
+        } else Modifier.fillMaxSize().clipToBounds(),
     ) {
         val gameTime = metadataManager.totalRuntimeInMilliseconds.collectAsState().value
         layerIndices.value.forEach { layerIndex ->
