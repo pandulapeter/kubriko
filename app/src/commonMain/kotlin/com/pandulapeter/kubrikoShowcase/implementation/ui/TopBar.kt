@@ -18,7 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,6 +44,7 @@ import kubriko.app.generated.resources.img_logo
 import kubriko.app.generated.resources.kubriko_showcase
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import kotlin.math.roundToInt
 
 @Composable
 internal fun TopBar(
@@ -62,20 +63,36 @@ internal fun TopBar(
         false -> 2.dp
     },
 ) {
-    AnimatedVisibility(
-        visible = selectedShowcaseEntry == null,
-        enter = fadeIn() + slideIn { IntOffset(it.width / 2, 0) },
-        exit = slideOut { IntOffset(it.width / 2, 0) } + fadeOut(),
+    Box(
+        modifier = Modifier.fillMaxSize(),
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
+        AnimatedVisibility(
+            visible = selectedShowcaseEntry == null,
+            enter = fadeIn() + slideIn { IntOffset((it.width * 0.5f).roundToInt(), 0) },
+            exit = slideOut { IntOffset((it.width * 0.75f).roundToInt(), 0) } + fadeOut(),
         ) {
-            Image(
-                modifier = Modifier.size(144.dp).align(Alignment.BottomEnd),
-                contentScale = ContentScale.Crop,
-                alignment = Alignment.BottomEnd,
-                painter = painterResource(Res.drawable.img_logo),
-                contentDescription = null,
+            Box(
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                Image(
+                    modifier = Modifier.size(144.dp).align(Alignment.BottomEnd),
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.BottomEnd,
+                    painter = painterResource(Res.drawable.img_logo),
+                    contentDescription = null,
+                )
+            }
+        }
+        AnimatedVisibility(
+            visible = selectedShowcaseEntry == null,
+            enter = fadeIn(),
+            exit = fadeOut(),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .windowInsetsTopHeight(WindowInsets.safeDrawing)
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.75f)),
             )
         }
     }
