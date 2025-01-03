@@ -1,28 +1,15 @@
-package com.pandulapeter.kubrikoShowcase.implementation.ui
+package com.pandulapeter.kubriko.shared.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import kubriko.app.generated.resources.Res
-import kubriko.app.generated.resources.public_sans_regular
+import kubriko.examples.shared.generated.resources.Res
+import kubriko.examples.shared.generated.resources.public_sans_regular
 import org.jetbrains.compose.resources.Font
 
 @Composable
-internal fun ShowcaseTheme(
-    content: @Composable () -> Unit
-) = MaterialTheme(
-    colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme(),
-    typography = ShowcaseTypography(),
-    content = content,
-)
-
-@Composable
-private fun ShowcaseTypography() = Typography().run {
+internal fun KubrikoTypography() = Typography().run {
     val fontFamily = PublicSansRegularFontFamily()
     copy(
         displayLarge = displayLarge.copy(fontFamily = fontFamily),

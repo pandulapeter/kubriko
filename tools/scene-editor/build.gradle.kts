@@ -11,6 +11,7 @@ kotlin {
         }
         val desktopMain by getting {
             dependencies {
+                implementation(projects.examples.shared)
                 implementation(projects.plugins.collision)
                 implementation(projects.plugins.keyboardInput)
                 implementation(projects.plugins.persistence)

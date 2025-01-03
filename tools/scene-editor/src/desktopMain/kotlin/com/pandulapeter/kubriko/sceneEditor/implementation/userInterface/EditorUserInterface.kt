@@ -31,6 +31,7 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceBrowserColumn.InstanceBrowserColumn
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.InstanceManagerColumn
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.metadataRow.MetadataRow
+import com.pandulapeter.kubriko.shared.ui.theme.KubrikoTheme
 
 private val fileManagerRowHeight = 32.dp
 private val metadataRowHeight = 32.dp
