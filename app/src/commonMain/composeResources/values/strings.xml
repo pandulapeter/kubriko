@@ -12,7 +12,7 @@
     <string name="welcome_message">The Kubriko game engine is a lightweight, scalable, and easy-to-use solution for creating simple, 2D games that target the Android, Desktop (Windows, Linux, macOS), iOS, or Web platforms.</string>
     <string name="welcome_more_details">More details</string>
     <string name="welcome_hide_details">Hide details</string>
-    <string name="welcome_engine_details">Kubriko is based on Compose Multiplatform, and is written 100% in Kotlin. As a result, it can be integrated seamlessly into any Compose project. For more information, check out the GitHub repository:</string>
+    <string name="welcome_engine_details">Kubriko is based on Compose Multiplatform, and is written 100% in Kotlin. As a result, it can seamlessly be integrated into any Compose project. For more information, check out the GitHub repository:</string>
     <string name="welcome_repository">Repository</string>
     <string name="welcome_learning">To learn more about using the engine, read the documentation, or watch the tutorials on YouTube:</string>
     <string name="welcome_documentation">Documentation</string>
