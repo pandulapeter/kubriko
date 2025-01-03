@@ -15,6 +15,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -73,14 +74,16 @@ internal fun MenuItem(
             vertical = 8.dp,
         ),
 ) {
+    val contentColor = if (isSelected) contentColorFor(MaterialTheme.colorScheme.primaryContainer) else LocalContentColor.current
     Text(
         modifier = Modifier.fillMaxWidth(),
+        color = contentColor,
         style = MaterialTheme.typography.labelLarge,
         text = stringResource(title),
     )
     Text(
         modifier = Modifier.fillMaxWidth(),
-        color = LocalContentColor.current.copy(alpha = 0.75f),
+        color = contentColor.copy(alpha = 0.75f),
         style = MaterialTheme.typography.labelSmall,
         text = stringResource(subtitle),
     )
@@ -98,7 +101,7 @@ private fun MenuCategoryLabel(
             vertical = 4.dp,
         )
         .padding(WindowInsets.safeDrawing.only(WindowInsetsSides.Left).asPaddingValues()),
-    color = MaterialTheme.colorScheme.primary,
+    color = MaterialTheme.colorScheme.secondary,
     fontWeight = FontWeight.Bold,
     style = MaterialTheme.typography.labelSmall,
     text = stringResource(title),

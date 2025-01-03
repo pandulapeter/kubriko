@@ -3,9 +3,9 @@ package com.pandulapeter.kubriko.shared.ui
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -19,17 +19,17 @@ fun FloatingButton(
     isSelected: Boolean = false,
     contentDescription: String? = null,
     onButtonPressed: () -> Unit,
-) = FloatingActionButton(
-    modifier = modifier.size(40.dp),
-    containerColor = if (isSystemInDarkTheme()) {
-        if (isSelected) MaterialTheme.colorScheme.primary else FloatingActionButtonDefaults.containerColor
-    } else {
-        if (isSelected) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary
-    },
-    onClick = onButtonPressed,
 ) {
-    Icon(
-        painter = painterResource(icon),
-        contentDescription = contentDescription,
-    )
+    val containerColor = if (isSelected) MaterialTheme.colorScheme.surface else if (isSystemInDarkTheme()) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.primary
+    FloatingActionButton(
+        modifier = modifier.size(40.dp),
+        containerColor = containerColor,
+        onClick = onButtonPressed,
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            tint = contentColorFor(containerColor),
+            contentDescription = contentDescription,
+        )
+    }
 }

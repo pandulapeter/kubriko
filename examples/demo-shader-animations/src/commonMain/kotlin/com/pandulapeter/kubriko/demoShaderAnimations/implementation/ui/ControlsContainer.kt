@@ -69,8 +69,12 @@ internal fun ControlsContainer(
         targetValue = if (state.second == ControlsState.COLLAPSED) 0f else 1f,
         animationSpec = tween(),
     )
+    val cardEndPaddingMultiplier: Float by animateFloatAsState(
+        targetValue = if (state.second == ControlsState.EXPANDED_CODE) 1f else 0f,
+        animationSpec = tween(),
+    )
     Card(
-        modifier = Modifier.padding(16.dp).alpha(cardAlpha),
+        modifier = Modifier.padding(16.dp).alpha(cardAlpha).padding(end = 48.dp * cardEndPaddingMultiplier),
         colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         AnimatedContent(
