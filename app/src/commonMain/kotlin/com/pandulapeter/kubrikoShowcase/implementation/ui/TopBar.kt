@@ -1,13 +1,24 @@
 package com.pandulapeter.kubrikoShowcase.implementation.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideOut
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -16,14 +27,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.back
 import kubriko.app.generated.resources.ic_back
+import kubriko.app.generated.resources.img_logo
 import kubriko.app.generated.resources.kubriko_showcase
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -45,6 +62,23 @@ internal fun TopBar(
         false -> 2.dp
     },
 ) {
+    AnimatedVisibility(
+        visible = selectedShowcaseEntry == null,
+        enter = fadeIn() + slideIn { IntOffset(it.width / 2, 0) },
+        exit = slideOut { IntOffset(it.width / 2, 0) } + fadeOut(),
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            Image(
+                modifier = Modifier.size(144.dp).align(Alignment.BottomEnd),
+                contentScale = ContentScale.Crop,
+                alignment = Alignment.BottomEnd,
+                painter = painterResource(Res.drawable.img_logo),
+                contentDescription = null,
+            )
+        }
+    }
     Crossfade(
         targetState = shouldUseCompactUi,
     ) { shouldUseCompactUi ->
@@ -80,11 +114,13 @@ private fun Header(
 ) = TopAppBar(
     modifier = modifier,
     windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top),
+    colors = TopAppBarDefaults.topAppBarColors().copy(containerColor = Color.Transparent),
     title = {
         Column(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
+                modifier = Modifier.fillMaxWidth(),
                 text = stringResource(
                     resource = if (shouldUseCompactUi && selectedShowcaseEntry != null) {
                         selectedShowcaseEntry.titleStringResource

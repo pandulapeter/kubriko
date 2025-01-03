@@ -63,33 +63,35 @@ internal class PointerInputManagerImpl(
         awaitPointerEventScope {
             while (true) {
                 val event = awaitPointerEvent()
-                event.changes.first().position.let { position ->
-                    when (event.type) {
-                        PointerEventType.Press -> {
-                            rawPointerOffset.update { position }
-                            isPointerPressed.update { true }
-                            if (stateManager.isFocused.value) {
-                                pointerInputAwareActors.value.forEach { it.onPointerPressed(position) }
+                if (isInitialized.value) {
+                    event.changes.first().position.let { position ->
+                        when (event.type) {
+                            PointerEventType.Press -> {
+                                rawPointerOffset.update { position }
+                                isPointerPressed.update { true }
+                                if (stateManager.isFocused.value) {
+                                    pointerInputAwareActors.value.forEach { it.onPointerPressed(position) }
+                                }
                             }
-                        }
 
-                        PointerEventType.Release -> {
-                            rawPointerOffset.update { position }
-                            isPointerPressed.update { false }
-                            pointerInputAwareActors.value.forEach { it.onPointerReleased(position) }
-                        }
-
-                        PointerEventType.Move -> {
-                            rawPointerOffset.update { position }
-                            if (stateManager.isFocused.value) {
-                                pointerInputAwareActors.value.forEach { it.onPointerOffsetChanged(position) }
+                            PointerEventType.Release -> {
+                                rawPointerOffset.update { position }
+                                isPointerPressed.update { false }
+                                pointerInputAwareActors.value.forEach { it.onPointerReleased(position) }
                             }
-                        }
 
-                        PointerEventType.Exit -> {
-                            rawPointerOffset.update { null }
-                            if (stateManager.isFocused.value) {
-                                pointerInputAwareActors.value.forEach { it.onPointerExit() }
+                            PointerEventType.Move -> {
+                                rawPointerOffset.update { position }
+                                if (stateManager.isFocused.value) {
+                                    pointerInputAwareActors.value.forEach { it.onPointerOffsetChanged(position) }
+                                }
+                            }
+
+                            PointerEventType.Exit -> {
+                                rawPointerOffset.update { null }
+                                if (stateManager.isFocused.value) {
+                                    pointerInputAwareActors.value.forEach { it.onPointerExit() }
+                                }
                             }
                         }
                     }
