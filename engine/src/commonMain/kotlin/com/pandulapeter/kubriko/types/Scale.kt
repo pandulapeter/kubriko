@@ -16,6 +16,11 @@ value class Scale(private val raw: Size) {
 
     constructor(horizontal: Float, vertical: Float) : this(Size(horizontal, vertical))
 
+    fun copy(horizontal: Float = this.horizontal, vertical: Float = this.vertical) = Scale(
+        horizontal = horizontal,
+        vertical = vertical,
+    )
+
     operator fun plus(other: Scale): Scale = Scale(
         horizontal = horizontal + other.horizontal,
         vertical = vertical + other.vertical,

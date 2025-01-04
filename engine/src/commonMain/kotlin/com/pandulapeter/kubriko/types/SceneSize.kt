@@ -18,6 +18,11 @@ value class SceneSize(val raw: Size) {
 
     constructor(width: SceneUnit, height: SceneUnit) : this(Size(width.raw, height.raw))
 
+    fun copy(width: SceneUnit = this.width, height: SceneUnit = this.height) = SceneSize(
+        width = width,
+        height = height,
+    )
+
     operator fun plus(other: SceneSize): SceneSize = SceneSize(
         width = width + other.width,
         height = height + other.height,

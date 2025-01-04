@@ -14,12 +14,15 @@ class AnimatedSprite(
     private val framesPerRow: Int, // TODO: Support different orientations
     private val framesPerSecond: Float = 60f,
 ) {
+    val isLoaded get() = getImageBitmap() != null
     private var _imageIndex = 0f
     var imageIndex
         get() = _imageIndex.roundToInt()
         set(value) {
             _imageIndex = value.toFloat()
         }
+    val isLastFrame get() = imageIndex == frameCount - 1
+    val isFirstFrame get() = imageIndex == 0
 
     // TODO: Support reverse by adding a step function
 
@@ -42,7 +45,7 @@ class AnimatedSprite(
     }
 
     private fun normalizeImageIndex(shouldLoop: Boolean) {
-        if (_imageIndex >= frameCount || _imageIndex < 0) {
+        if (imageIndex >= frameCount || imageIndex < 0) {
             _imageIndex = if (shouldLoop) {
                 _imageIndex % frameCount
             } else {

@@ -16,6 +16,11 @@ value class SceneOffset(val raw: Offset) {
 
     constructor(x: SceneUnit, y: SceneUnit) : this(Offset(x.raw, y.raw))
 
+    fun copy(x: SceneUnit = this.x, y: SceneUnit = this.y) = SceneOffset(
+        x = x,
+        y = y,
+    )
+
     operator fun plus(other: SceneOffset): SceneOffset = SceneOffset(raw + other.raw)
 
     operator fun minus(other: SceneOffset): SceneOffset = SceneOffset(raw - other.raw)

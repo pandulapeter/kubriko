@@ -106,7 +106,7 @@ internal class ActorManagerImpl(
     }
 
     private fun flattenActors(actors: List<Actor>): List<Actor> = actors.flatMap { actor ->
-        if (actor is Group) flattenActors(actor.actors) + actor
+        if (actor is Group) flattenActors(actor.actors.filterNot { it === actor }) + actor
         else listOf(actor)
     }
 
