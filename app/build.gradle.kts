@@ -44,9 +44,12 @@ compose.desktop {
     application {
         mainClass = "com.pandulapeter.kubrikoShowcase.KubrikoShowcaseAppKt"
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.pandulapeter.kubrikoShowcase"
             packageVersion = "1.0.0"
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            macOS { iconFile.set(project.file("icon.icns")) }
+            windows { iconFile.set(project.file("icon.ico")) }
+            linux { iconFile.set(project.file("icon.png")) }
             buildTypes.release.proguard {
                 configurationFiles.from(project.file("proguard-rules.pro"))
                 isEnabled.set(true)
