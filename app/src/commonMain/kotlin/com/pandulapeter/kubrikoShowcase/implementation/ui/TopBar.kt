@@ -2,6 +2,9 @@ package com.pandulapeter.kubrikoShowcase.implementation.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.EaseIn
+import androidx.compose.animation.core.EaseOut
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
@@ -40,6 +43,7 @@ import kubriko.app.generated.resources.back
 import kubriko.app.generated.resources.ic_back
 import kubriko.app.generated.resources.img_logo
 import kubriko.app.generated.resources.kubriko_showcase
+import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
@@ -61,10 +65,11 @@ internal fun TopBar(
         false -> 2.dp
     },
 ) {
+    val imageBitmap = imageResource(Res.drawable.img_logo)
     AnimatedVisibility(
-        visible = selectedShowcaseEntry == null,
-        enter = fadeIn() + slideIn { IntOffset((it.width * 0.5f).roundToInt(), 0) },
-        exit = slideOut { IntOffset((it.width * 0.75f).roundToInt(), 0) } + fadeOut(),
+        visible = selectedShowcaseEntry == null && imageBitmap.width > 1,
+        enter = fadeIn() + slideIn(animationSpec = tween(easing = EaseOut)) { IntOffset((it.width * 0.5f).roundToInt(), 0) },
+        exit = slideOut(animationSpec = tween(easing = EaseIn)) { IntOffset((it.width * 0.75f).roundToInt(), 0) } + fadeOut(),
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -73,7 +78,7 @@ internal fun TopBar(
                 modifier = Modifier.size(144.dp).align(Alignment.BottomEnd),
                 contentScale = ContentScale.Crop,
                 alignment = Alignment.BottomEnd,
-                painter = painterResource(Res.drawable.img_logo),
+                bitmap = imageBitmap,
                 contentDescription = null,
             )
         }
