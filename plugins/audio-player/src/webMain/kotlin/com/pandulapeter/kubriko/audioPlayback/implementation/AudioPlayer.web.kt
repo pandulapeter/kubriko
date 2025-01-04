@@ -35,7 +35,7 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
         coroutineScope.launch(Dispatchers.Default) {
             audio?.run {
                 if (!paused) {
-                    delay(50)
+                    delay(100)
                     pause()
                 }
             }
