@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun KubrikoTheme(
@@ -12,7 +13,11 @@ fun KubrikoTheme(
 ) = MaterialTheme(
     colorScheme = if (isSystemInDarkTheme()) darkScheme else lightScheme,
     typography = KubrikoTypography(),
-    content = content
+    content = {
+        if (KubrikoTypography().bodyMedium.fontSize > 0.sp) {
+            content()
+        }
+    }
 )
 
 private val lightScheme = lightColorScheme(

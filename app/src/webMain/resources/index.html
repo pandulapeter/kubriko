@@ -4,18 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kubriko</title>
+    <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="shortcut icon" href="favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Kubriko Showcase" />
+    <link rel="manifest" href="site.webmanifest" />
     <script src="skiko.js"></script>
     <style>
-    .loadingScreen {
-        position: absolute;
-        z-index: 5;
-    }
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas#ComposeTarget {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+        }
+
+        .loadingScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #6060AA;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 5;
+        }
+
+        .loadingScreen img {
+            width: 100px; /* Adjust icon size */
+            height: 100px;
+        }
     </style>
 </head>
 <body>
 <div>
     <canvas id="ComposeTarget"></canvas>
-    <div class="loadingScreen">Loading...</div>
+    <div class="loadingScreen">
+        <img src="logo.png" alt="Loading...">
+    </div>
 </div>
 <script src="app.js"></script>
 </body>
