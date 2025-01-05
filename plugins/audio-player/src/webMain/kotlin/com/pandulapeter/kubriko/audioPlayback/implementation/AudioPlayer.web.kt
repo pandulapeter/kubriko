@@ -19,30 +19,39 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
     private var isPlaying = false
     private var pausedAt = 0.0
     private var startedAt = 0.0
+    private var musicUri: String? = null
     private var shouldLoop = false
     private var playJob: Job? = null
 
     override fun playMusic(uri: String, shouldLoop: Boolean) {
         stopMusic()
+        musicUri = uri
         this.shouldLoop = shouldLoop
         playJob = coroutineScope.launch(Dispatchers.Default) {
             val response = window.fetch(uri).await<Response>()
             val arrayBuffer = response.arrayBuffer().await<ArrayBuffer>()
             audioBuffer = audioContext.decodeAudioData(arrayBuffer).await()
+            musicUri = null
             resumeMusic()
         }
     }
 
     override fun resumeMusic() {
         if (!isPlaying) {
-            sourceNode = audioContext.createBufferSource().apply {
-                buffer = audioBuffer
-                loop = shouldLoop
-                connect(audioContext.destination)
+            musicUri.let { musicUri ->
+                if (musicUri != null) {
+                    playMusic(musicUri, shouldLoop)
+                } else {
+                    sourceNode = audioContext.createBufferSource().apply {
+                        buffer = audioBuffer
+                        loop = shouldLoop
+                        connect(audioContext.destination)
+                    }
+                    startedAt = audioContext.currentTime - pausedAt
+                    sourceNode?.start(0.0, pausedAt)
+                    isPlaying = true
+                }
             }
-            startedAt = audioContext.currentTime - pausedAt
-            sourceNode?.start(0.0, pausedAt)
-            isPlaying = true
         }
         playJob = null
     }
@@ -65,6 +74,7 @@ internal actual fun createAudioPlayer(coroutineScope: CoroutineScope) = object :
         isPlaying = false
         pausedAt = 0.0
         startedAt = 0.0
+        musicUri = null
     }
 
     override fun playSound(uri: String) {
