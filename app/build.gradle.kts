@@ -24,6 +24,7 @@ kotlin {
         }
         val desktopMain by getting {
             dependencies {
+                implementation(projects.engine)
                 implementation(compose.desktop.currentOs)
             }
         }

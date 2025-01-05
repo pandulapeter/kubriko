@@ -7,9 +7,11 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalDensity
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
+import com.pandulapeter.kubriko.pointerInput.implementation.setPointerPosition
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNot
@@ -48,16 +50,31 @@ internal class PointerInputManagerImpl(
             .launchIn(scope)
     }
 
-    @Composable
-    override fun processOverlayModifier(modifier: Modifier) = if (isActiveAboveViewport) modifier
-        .onGloballyPositioned { coordinates ->
-            rootOffset.value = coordinates.positionInRoot()
-        }.pointerInputHandlingModifier() else modifier
+    private var densityMultiplier = 1f
+
+    override fun movePointer(offset: Offset) = setPointerPosition(
+        offset = offset + if (isActiveAboveViewport) viewportOffset.value else viewportOffset.value,
+        densityMultiplier = densityMultiplier,
+    )
 
     @Composable
-    override fun processModifier(modifier: Modifier, layerIndex: Int?) = if (isActiveAboveViewport) modifier.onGloballyPositioned { coordinates ->
+    override fun processOverlayModifier(modifier: Modifier) = modifier.onGloballyPositioned { coordinates ->
+        rootOffset.value = coordinates.positionInRoot()
+    }.run {
+        if (isActiveAboveViewport) pointerInputHandlingModifier() else this
+    }
+
+    @Composable
+    override fun processModifier(modifier: Modifier, layerIndex: Int?) = modifier.onGloballyPositioned { coordinates ->
         viewportOffset.value = coordinates.positionInRoot()
-    } else modifier.pointerInputHandlingModifier()
+    }.run {
+        if (isActiveAboveViewport) this else pointerInputHandlingModifier()
+    }
+
+    @Composable
+    override fun Composable(insetPaddingModifier: Modifier) {
+        densityMultiplier = 1 / LocalDensity.current.density
+    }
 
     private fun Modifier.pointerInputHandlingModifier() = pointerInput(Unit) {
         awaitPointerEventScope {

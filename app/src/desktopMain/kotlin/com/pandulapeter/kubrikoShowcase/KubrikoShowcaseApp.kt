@@ -10,6 +10,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.pandulapeter.kubriko.demoPerformance.PerformanceDemoSceneEditor
 import com.pandulapeter.kubriko.demoPhysics.PhysicsDemoSceneEditor
+import com.pandulapeter.kubriko.implementation.windowState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.awt.Dimension
@@ -17,7 +18,7 @@ import java.awt.Rectangle
 import java.awt.event.WindowStateListener
 
 fun main() = application {
-    val windowState = rememberWindowState()
+    windowState = rememberWindowState()
     val coroutineScope = rememberCoroutineScope()
     val previousBounds = remember { mutableStateOf<Rectangle?>(null) }
     val previousWindowPlacement = remember { mutableStateOf<WindowPlacement?>(null) }

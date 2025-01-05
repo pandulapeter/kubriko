@@ -1,6 +1,7 @@
 package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.center
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.PointBody
@@ -17,6 +18,7 @@ import com.pandulapeter.kubriko.keyboardInput.extensions.directionState
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
+import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.collections.immutable.ImmutableSet
@@ -24,23 +26,32 @@ import kotlinx.collections.immutable.ImmutableSet
 internal class ShipDestination : Positionable, PointerInputAware, KeyboardInputAware, Dynamic {
 
     override val body = PointBody()
+    private lateinit var pointerInputManager: PointerInputManager
     private lateinit var stateManager: StateManager
     private lateinit var viewportManager: ViewportManager
     private var previousPointerPosition: SceneOffset? = null
 
     override fun onAdded(kubriko: Kubriko) {
+        pointerInputManager = kubriko.get()
         stateManager = kubriko.get()
         viewportManager = kubriko.get()
     }
+
+    private var previousPointerOffset = SceneOffset.Zero
 
     override fun onPointerOffsetChanged(screenOffset: Offset) {
         val currentPointerPosition = screenOffset.toSceneOffset(viewportManager)
         if (stateManager.isRunning.value) {
             previousPointerPosition?.let { previousPointerPosition ->
-                body.position = (body.position + currentPointerPosition - previousPointerPosition).clampWithin(
-                    topLeft = viewportManager.topLeft.value,
-                    bottomRight = viewportManager.bottomRight.value
-                )
+                val offset = currentPointerPosition - previousPointerPosition
+                if (offset.x != -previousPointerOffset.x) {
+                    previousPointerOffset = offset
+                    body.position = (body.position + offset).clampWithin(
+                        topLeft = viewportManager.topLeft.value,
+                        bottomRight = viewportManager.bottomRight.value,
+                    )
+                    pointerInputManager.movePointer(viewportManager.size.value.center)
+                }
             }
         }
         previousPointerPosition = currentPointerPosition

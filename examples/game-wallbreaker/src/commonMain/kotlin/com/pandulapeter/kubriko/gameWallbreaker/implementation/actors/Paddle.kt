@@ -1,6 +1,7 @@
 package com.pandulapeter.kubriko.gameWallbreaker.implementation.actors
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -20,6 +21,7 @@ import com.pandulapeter.kubriko.keyboardInput.extensions.hasRight
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
+import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -33,13 +35,38 @@ internal class Paddle(
         initialPosition = initialPosition,
         initialSize = SceneSize(Width, Height),
     )
+    private lateinit var pointerInputManager: PointerInputManager
     private lateinit var stateManager: StateManager
     private lateinit var viewportManager: ViewportManager
     private var previousPointerPosition: SceneOffset? = null
 
     override fun onAdded(kubriko: Kubriko) {
+        pointerInputManager = kubriko.get()
         stateManager = kubriko.get()
         viewportManager = kubriko.get()
+    }
+
+    private var previousPointerOffset = SceneOffset.Zero
+
+    override fun onPointerOffsetChanged(screenOffset: Offset) {
+        val currentPointerPosition = screenOffset.toSceneOffset(viewportManager)
+        if (stateManager.isRunning.value) {
+            previousPointerPosition?.let { previousPointerPosition ->
+                val offset = currentPointerPosition - previousPointerPosition
+                if (offset.x != -previousPointerOffset.x) {
+                    previousPointerOffset = offset
+                    body.position = SceneOffset(
+                        x = body.position.x + offset.x,
+                        y = body.position.y,
+                    ).clampWithin(
+                        topLeft = viewportManager.topLeft.value,
+                        bottomRight = viewportManager.bottomRight.value,
+                    )
+                    pointerInputManager.movePointer(viewportManager.size.value.center)
+                }
+            }
+        }
+        previousPointerPosition = currentPointerPosition
     }
 
     override fun DrawScope.draw() {
@@ -52,19 +79,6 @@ internal class Paddle(
             size = body.size.raw,
             style = Stroke(),
         )
-    }
-
-    override fun onPointerOffsetChanged(screenOffset: Offset) {
-        val currentPointerPosition = screenOffset.toSceneOffset(viewportManager)
-        if (stateManager.isRunning.value) {
-            previousPointerPosition?.let { previousPointerPosition ->
-                body.position = SceneOffset(
-                    x = body.position.x + currentPointerPosition.x - previousPointerPosition.x,
-                    y = body.position.y,
-                ).clampWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value)
-            }
-        }
-        previousPointerPosition = currentPointerPosition
     }
 
     override fun onPointerReleased(screenOffset: Offset) {
