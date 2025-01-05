@@ -152,7 +152,7 @@ internal class Ship : Visible, Dynamic, InsetPaddingAware, Group {
     }
 
     companion object {
-        private val MaxSpeed = 20.sceneUnit
+        private val MaxSpeed = 16.sceneUnit
         private val MinDistanceForAnimation = 3.sceneUnit
     }
 }
