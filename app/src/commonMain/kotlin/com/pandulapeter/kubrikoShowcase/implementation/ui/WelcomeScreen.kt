@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.LocalContentColor
@@ -36,6 +37,7 @@ import kubriko.app.generated.resources.ic_youtube
 import kubriko.app.generated.resources.welcome_app_details
 import kubriko.app.generated.resources.welcome_app_details_call_to_action_collapsed
 import kubriko.app.generated.resources.welcome_app_details_call_to_action_expanded
+import kubriko.app.generated.resources.welcome_license
 import kubriko.app.generated.resources.welcome_documentation
 import kubriko.app.generated.resources.welcome_engine_details
 import kubriko.app.generated.resources.welcome_hide_details
@@ -106,7 +108,19 @@ internal fun WelcomeScreen(
                     onButtonPressed = {}, // TODO
                 )
             }
+            Text(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                style = MaterialTheme.typography.bodySmall,
+                text = stringResource(Res.string.welcome_license),
+            )
         }
+    }
+    AnimatedVisibility(
+        visible = !shouldUseCompactUi,
+        enter = fadeIn() + expandVertically(expandFrom = Alignment.CenterVertically),
+        exit = shrinkVertically(shrinkTowards = Alignment.CenterVertically) + fadeOut(),
+    ) {
+       Spacer(modifier = Modifier.height(2.dp))
     }
     AnimatedVisibility(
         visible = shouldUseCompactUi,
@@ -143,12 +157,7 @@ internal fun WelcomeScreen(
     Text(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         style = MaterialTheme.typography.bodySmall,
-        text = stringResource(Res.string.welcome_app_details),
-    )
-    Text(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        style = MaterialTheme.typography.bodySmall,
-        text = stringResource(if (shouldUseCompactUi) Res.string.welcome_app_details_call_to_action_collapsed else Res.string.welcome_app_details_call_to_action_expanded),
+        text = stringResource(Res.string.welcome_app_details) + stringResource(if (shouldUseCompactUi) Res.string.welcome_app_details_call_to_action_collapsed else Res.string.welcome_app_details_call_to_action_expanded),
     )
 }
 
