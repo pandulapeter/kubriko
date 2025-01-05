@@ -9,8 +9,10 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.InsetPaddingAware
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.extensions.abs
 import com.pandulapeter.kubriko.extensions.distanceTo
 import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.extensions.min
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.extensions.toSceneOffset
 import com.pandulapeter.kubriko.gameSpaceSquadron.ViewportHeight
@@ -30,13 +32,7 @@ internal class Ship : Visible, Dynamic, InsetPaddingAware, Group {
 
     private lateinit var spriteManager: SpriteManager
     private lateinit var viewportManager: ViewportManager
-    private val animatedSprite = AnimatedSprite(
-        getImageBitmap = { spriteManager.loadSprite(Res.drawable.sprite_ship) },
-        frameSize = IntSize(128, 144),
-        frameCount = 23,
-        framesPerRow = 8,
-        framesPerSecond = 60f,
-    )
+    private val shipAnimationWrapper by lazy { ShipAnimationWrapper(spriteManager) }
     override val body = RectangleBody(
         initialSize = SceneSize(
             width = 128.sceneUnit,
@@ -69,23 +65,10 @@ internal class Ship : Visible, Dynamic, InsetPaddingAware, Group {
 
     override fun update(deltaTimeInMilliseconds: Float) {
         val previousX = body.position.x
-        speed = shipDestination.body.position.distanceTo(body.position) * 0.05f + 0.5f.sceneUnit
+        speed = min(shipDestination.body.position.distanceTo(body.position) * 0.03f + 0.5f.sceneUnit, MaxSpeed)
         moveTowards(shipDestination.body.position, speed)
-        if (body.position.x < previousX) {
-            if (!animatedSprite.isLastFrame) {
-                animatedSprite.stepForward(deltaTimeInMilliseconds, shouldLoop = false)
-            }
-            body.scale = Scale(1f, 1f)
-        } else if (body.position.x > previousX) {
-            if (!animatedSprite.isLastFrame) {
-                animatedSprite.stepForward(deltaTimeInMilliseconds, shouldLoop = false)
-            }
-            body.scale = Scale(-1f, 1f)
-        } else {
-            if (!animatedSprite.isFirstFrame) {
-                animatedSprite.stepBackwards(deltaTimeInMilliseconds, shouldLoop = false)
-            }
-        }
+        shipAnimationWrapper.update(deltaTimeInMilliseconds, previousX, body.position.x)
+        body.scale = Scale(shipAnimationWrapper.horizontalScale, 1f)
     }
 
     private fun moveTowards(target: SceneOffset, speed: SceneUnit) {
@@ -112,9 +95,64 @@ internal class Ship : Visible, Dynamic, InsetPaddingAware, Group {
         }
     }
 
-    override fun DrawScope.draw() = animatedSprite.draw(this)
+    override fun DrawScope.draw() = shipAnimationWrapper.draw(this)
+
+    private class ShipAnimationWrapper(
+        spriteManager: SpriteManager
+    ) {
+        private val animatedSprite = AnimatedSprite(
+            getImageBitmap = { spriteManager.loadSprite(Res.drawable.sprite_ship) },
+            frameSize = IntSize(128, 144),
+            frameCount = 23,
+            framesPerRow = 8,
+            framesPerSecond = 60f,
+        )
+
+        var horizontalScale = 1f
+            private set
+
+        fun update(deltaTimeInMilliseconds: Float, previousX: SceneUnit, currentX: SceneUnit) {
+            val distance = (previousX - currentX).abs
+            val animationSpeed = deltaTimeInMilliseconds * distance.raw * 0.2f
+            if (distance < MinDistanceForAnimation) {
+                // Not moving
+                if (!animatedSprite.isFirstFrame) {
+                    animatedSprite.stepBackwards(deltaTimeInMilliseconds * 0.8f)
+                }
+            } else if (currentX < previousX) {
+                // Moving left
+                if (horizontalScale == -1f) {
+                    if (animatedSprite.isFirstFrame) {
+                        horizontalScale = 1f
+                    } else {
+                        animatedSprite.stepBackwards(animationSpeed)
+                    }
+                } else {
+                    if (!animatedSprite.isLastFrame) {
+                        animatedSprite.stepForward(animationSpeed)
+                    }
+                }
+            } else if (currentX > previousX) {
+                // Moving right
+                if (horizontalScale == 1f) {
+                    if (animatedSprite.isFirstFrame) {
+                        horizontalScale= -1f
+                    } else {
+                        animatedSprite.stepBackwards(animationSpeed)
+                    }
+                } else {
+                    if (!animatedSprite.isLastFrame) {
+                        animatedSprite.stepForward(animationSpeed)
+                    }
+                }
+            }
+        }
+
+        fun draw(drawScope: DrawScope) = animatedSprite.draw(drawScope)
+    }
 
     companion object {
-        private val Speed = 16.sceneUnit
+        private val MaxSpeed = 20.sceneUnit
+        private val MinDistanceForAnimation = 3.sceneUnit
     }
 }
