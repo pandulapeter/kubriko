@@ -19,10 +19,18 @@
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="Logo" translatesAutoresizingMaskIntoConstraints="NO" id="j8D-aV-3TW">
                                 <rect key="frame" x="76" y="362" width="240" height="128"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="240" id="bh6-Ze-aHf"/>
+                                    <constraint firstAttribute="height" constant="128" id="q9P-2I-Llm"/>
+                                </constraints>
                             </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
                         <color key="backgroundColor" red="0.37647058823529411" green="0.37647058823529411" blue="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="j8D-aV-3TW" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="ELa-Vq-51K"/>
+                            <constraint firstItem="j8D-aV-3TW" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="n3Z-dV-VSg"/>
+                        </constraints>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
