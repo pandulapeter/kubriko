@@ -54,5 +54,12 @@ internal class SpaceSquadronAudioManager(
 
     companion object {
         private const val URI_MUSIC = "files/music/music.mp3"
+
+        fun getMusicUrisToPreload() = listOf(
+            URI_MUSIC,
+        ).map { Res.getUri(it) }
+
+        fun getSoundUrisToPreload() = listOf<String>(
+        ).map { Res.getUri(it) }
     }
 }

@@ -12,7 +12,11 @@ sealed class SpriteManager : Manager() {
 
     abstract fun getLoadingProgress(drawableResources: Collection<DrawableResource>): Flow<Float>
 
-    abstract fun load(drawableResource: DrawableResource): ImageBitmap?
+    abstract fun preload(vararg drawableResources: DrawableResource)
+
+    abstract fun preload(drawableResources: Collection<DrawableResource>)
+
+    abstract fun get(drawableResource: DrawableResource): ImageBitmap?
 
     abstract fun unload(drawableResource: DrawableResource)
 

@@ -9,6 +9,7 @@ import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -19,11 +20,17 @@ internal class SoundManagerImpl : SoundManager() {
     @Composable
     override fun Composable(insetPaddingModifier: Modifier) {
         if (soundPlayer == null && isInitialized.value) {
-            soundPlayer = createSoundPlayer()
+            soundPlayer = createSoundPlayer().also { soundPlayer ->
+                scope.launch {
+                    cache.value.keys.forEach { uri ->
+                        soundPlayer.preload(uri)?.let { sound -> addToCache(uri, sound) }
+                    }
+                }
+            }
         }
     }
 
-    override fun getLoadingProgress(uris: Collection<String>) = cache.map { cache ->
+    override fun getLoadingProgress(uris: Collection<String>) = if (uris.isEmpty()) flowOf(1f) else cache.map { cache ->
         cache.filter { (key, _) -> key in uris }.count { (_, value) -> value != null }.toFloat() / uris.size
     }
 

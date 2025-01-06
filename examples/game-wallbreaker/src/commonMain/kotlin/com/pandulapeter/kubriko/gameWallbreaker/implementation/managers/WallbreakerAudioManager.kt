@@ -24,13 +24,6 @@ internal class WallbreakerAudioManager(
 
     @OptIn(FlowPreview::class)
     override fun onInitialize(kubriko: Kubriko) {
-        soundManager.preload(
-            URI_SOUND_BRICK_POP,
-            URI_SOUND_EDGE_BOUNCE,
-            URI_SOUND_GAME_OVER,
-            URI_SOUND_LEVEL_CLEARED,
-            URI_SOUND_PADDLE_HIT,
-        )
         combine(
             stateManager.isFocused.debounce(100),
             userPreferencesManager.isMusicEnabled,
@@ -76,5 +69,17 @@ internal class WallbreakerAudioManager(
         private const val URI_SOUND_GAME_OVER = "files/sounds/game_over.wav"
         private const val URI_SOUND_LEVEL_CLEARED = "files/sounds/level_cleared.wav"
         private const val URI_SOUND_PADDLE_HIT = "files/sounds/paddle_hit.wav"
+
+        fun getMusicUrisToPreload() = listOf(
+            URI_MUSIC,
+        ).map { Res.getUri(it) }
+
+        fun getSoundUrisToPreload() = listOf(
+            URI_SOUND_BRICK_POP,
+            URI_SOUND_EDGE_BOUNCE,
+            URI_SOUND_GAME_OVER,
+            URI_SOUND_LEVEL_CLEARED,
+            URI_SOUND_PADDLE_HIT,
+        ).map { Res.getUri(it) }
     }
 }

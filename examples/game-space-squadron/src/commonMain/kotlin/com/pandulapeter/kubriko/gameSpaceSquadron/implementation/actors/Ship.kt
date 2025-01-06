@@ -102,7 +102,7 @@ internal class Ship : Visible, Dynamic, InsetPaddingAware, Group {
         spriteManager: SpriteManager
     ) {
         private val animatedSprite = AnimatedSprite(
-            getImageBitmap = { spriteManager.load(Res.drawable.sprite_ship) },
+            getImageBitmap = { spriteManager.get(Res.drawable.sprite_ship) },
             frameSize = IntSize(128, 144),
             frameCount = 23,
             framesPerRow = 8,
