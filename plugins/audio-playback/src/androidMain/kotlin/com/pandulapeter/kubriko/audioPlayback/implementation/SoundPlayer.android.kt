@@ -15,7 +15,7 @@ internal actual fun createSoundPlayer() = object : SoundPlayer {
     private val context = LocalContext.current.applicationContext
     private var preloadListeners = mutableListOf<PreloadListener>()
     private val soundPool = SoundPool.Builder()
-        .setMaxStreams(10)
+        .setMaxStreams(SIMULTANEOUSLY_PLAYED_INSTANCE_LIMIT)
         .setAudioAttributes(
             AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_GAME)
@@ -64,3 +64,5 @@ internal actual fun createSoundPlayer() = object : SoundPlayer {
 private interface PreloadListener {
     fun onSampleLoaded(sampleId: Int)
 }
+
+private const val SIMULTANEOUSLY_PLAYED_INSTANCE_LIMIT = 5
