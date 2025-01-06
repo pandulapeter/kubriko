@@ -10,6 +10,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -54,75 +55,66 @@ internal fun WelcomeScreen(
     modifier: Modifier = Modifier,
     shouldUseCompactUi: Boolean,
 ) = Column(
-    modifier = modifier
-        .fillMaxWidth()
-        .padding(vertical = 16.dp),
-    verticalArrangement = Arrangement.spacedBy(8.dp),
+    modifier = modifier.padding(vertical = 16.dp),
 ) {
     Text(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         style = MaterialTheme.typography.bodySmall,
         text = stringResource(Res.string.welcome_message),
     )
-    AnimatedVisibility(
-        visible = !shouldUseCompactUi || shouldShowMoreInfo.value,
-        enter = fadeIn() + expandVertically(expandFrom = Alignment.CenterVertically),
-        exit = shrinkVertically(shrinkTowards = Alignment.CenterVertically) + fadeOut(),
-    ) {
-        val uriHandler = LocalUriHandler.current
-        Column(
-            modifier = Modifier.padding(top = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+    Column {
+        AnimatedVisibility(
+            visible = !shouldUseCompactUi || shouldShowMoreInfo.value,
+            enter = fadeIn() + expandVertically(expandFrom = Alignment.CenterVertically),
+            exit = shrinkVertically(shrinkTowards = Alignment.CenterVertically) + fadeOut(),
         ) {
-            Text(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                style = MaterialTheme.typography.bodySmall,
-                text = stringResource(Res.string.welcome_engine_details),
-            )
-            LargeButton(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                icon = Res.drawable.ic_github,
-                title = Res.string.welcome_repository,
-                onButtonPressed = { uriHandler.openUri("https://github.com/pandulapeter/kubriko") },
-            )
-            Text(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                style = MaterialTheme.typography.bodySmall,
-                text = stringResource(Res.string.welcome_learning),
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            val uriHandler = LocalUriHandler.current
+            Column(
+                modifier = Modifier.padding(top = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                LargeButton(
-                    icon = Res.drawable.ic_documentation,
-                    title = Res.string.welcome_documentation,
-                    onButtonPressed = { uriHandler.openUri("https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md") },
-                )
-                Spacer(
-                    modifier = Modifier.width(8.dp),
+                Text(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    text = stringResource(Res.string.welcome_engine_details),
                 )
                 LargeButton(
-                    icon = Res.drawable.ic_youtube,
-                    title = Res.string.welcome_tutorials,
-                    isEnabled = false,
-                    onButtonPressed = {}, // TODO
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    icon = Res.drawable.ic_github,
+                    title = Res.string.welcome_repository,
+                    onButtonPressed = { uriHandler.openUri("https://github.com/pandulapeter/kubriko") },
+                )
+                Text(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    text = stringResource(Res.string.welcome_learning),
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    LargeButton(
+                        icon = Res.drawable.ic_documentation,
+                        title = Res.string.welcome_documentation,
+                        onButtonPressed = { uriHandler.openUri("https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md") },
+                    )
+                    LargeButton(
+                        icon = Res.drawable.ic_youtube,
+                        title = Res.string.welcome_tutorials,
+                        isEnabled = false,
+                        onButtonPressed = {}, // TODO
+                    )
+                }
+                Text(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    text = stringResource(Res.string.welcome_license),
                 )
             }
-            Text(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                style = MaterialTheme.typography.bodySmall,
-                text = stringResource(Res.string.welcome_license),
-            )
         }
     }
     AnimatedVisibility(
-        visible = !shouldUseCompactUi,
-        enter = fadeIn() + expandVertically(expandFrom = Alignment.CenterVertically),
-        exit = shrinkVertically(shrinkTowards = Alignment.CenterVertically) + fadeOut(),
-    ) {
-       Spacer(modifier = Modifier.height(2.dp))
-    }
-    AnimatedVisibility(
+        modifier = Modifier.padding(top = 8.dp),
         visible = shouldUseCompactUi,
         enter = fadeIn() + expandVertically(expandFrom = Alignment.CenterVertically),
         exit = shrinkVertically(shrinkTowards = Alignment.CenterVertically) + fadeOut(),
@@ -155,7 +147,7 @@ internal fun WelcomeScreen(
         }
     }
     Text(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 8.dp),
         style = MaterialTheme.typography.bodySmall,
         text = stringResource(Res.string.welcome_app_details) + stringResource(if (shouldUseCompactUi) Res.string.welcome_app_details_call_to_action_collapsed else Res.string.welcome_app_details_call_to_action_expanded),
     )

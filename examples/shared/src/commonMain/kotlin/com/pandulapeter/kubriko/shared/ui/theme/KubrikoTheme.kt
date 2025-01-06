@@ -1,5 +1,8 @@
 package com.pandulapeter.kubriko.shared.ui.theme
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -14,24 +17,29 @@ fun KubrikoTheme(
     colorScheme = if (isSystemInDarkTheme()) darkScheme else lightScheme,
     typography = KubrikoTypography(),
     content = {
-        if (KubrikoTypography().bodyMedium.fontSize > 0.sp) {
+        // Fade in the UI after the font is loaded
+        AnimatedVisibility(
+            visible = KubrikoTypography().bodyMedium.fontSize > 0.sp,
+            enter = fadeIn(),
+            exit = fadeOut(),
+        ) {
             content()
         }
     }
 )
 
 private val lightScheme = lightColorScheme(
-    primary = KubrikoColors.brandDark,
-    onPrimary = KubrikoColors.onBrandDark,
-    primaryContainer =KubrikoColors.brandDark,
-    onPrimaryContainer = KubrikoColors.onBrandDark,
-    secondary = KubrikoColors.brandDark,
+    primary = KubrikoColors.brandPrimary,
+    onPrimary = KubrikoColors.onBrandPrimary,
+    primaryContainer = KubrikoColors.brandPrimary,
+    onPrimaryContainer = KubrikoColors.onBrandPrimary,
+    secondary = KubrikoColors.brandPrimary,
 )
 
 private val darkScheme = darkColorScheme(
-    primary = KubrikoColors.brandDark,
-    onPrimary = KubrikoColors.onBrandDark,
-    primaryContainer =KubrikoColors.brandDark,
-    onPrimaryContainer = KubrikoColors.onBrandDark,
-    secondary = KubrikoColors.brandLight,
+    primary = KubrikoColors.brandPrimary,
+    onPrimary = KubrikoColors.onBrandPrimary,
+    primaryContainer = KubrikoColors.brandPrimary,
+    onPrimaryContainer = KubrikoColors.onBrandPrimary,
+    secondary = KubrikoColors.brandSecondary,
 )

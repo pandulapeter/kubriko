@@ -1,6 +1,7 @@
 package com.pandulapeter.kubrikoShowcase.implementation.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -73,6 +74,7 @@ internal fun MenuItem(
             horizontal = 16.dp,
             vertical = 8.dp,
         ),
+    verticalArrangement = Arrangement.spacedBy(2.dp),
 ) {
     val contentColor = if (isSelected) contentColorFor(MaterialTheme.colorScheme.primaryContainer) else LocalContentColor.current
     Text(
