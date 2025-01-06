@@ -101,6 +101,7 @@ fun WallbreakerGame(
                 stateHolder.audioManager.playClickSoundEffect()
                 onFullscreenModeToggled()
             },
+            onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
         )
         WallbreakerGameOverlay(
             gameAreaModifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
@@ -108,6 +109,7 @@ fun WallbreakerGame(
             score = stateHolder.scoreManager.score.collectAsState().value,
             highScore = stateHolder.scoreManager.highScore.collectAsState().value,
             onPauseButtonPressed = stateHolder.gameManager::pauseGame,
+            onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
         )
     }
 }

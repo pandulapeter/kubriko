@@ -34,6 +34,7 @@ internal fun WallbreakerGameOverlay(
     score: Int,
     highScore: Int,
     onPauseButtonPressed: () -> Unit,
+    onButtonHover: () -> Unit,
 ) {
     val shouldShowScore = remember { mutableStateOf(false) }
     if (score > 0) {
@@ -47,11 +48,12 @@ internal fun WallbreakerGameOverlay(
         Box(
             modifier = gameAreaModifier.fillMaxSize().padding(16.dp),
         ) {
-            SmallButton(
+            WallbreakerButton(
                 onButtonPressed = onPauseButtonPressed,
                 icon = Res.drawable.ic_pause,
                 contentDescription = Res.string.pause,
                 containerColor = createButtonColor(0.5f),
+                onPointerEnter = onButtonHover,
             )
         }
     }

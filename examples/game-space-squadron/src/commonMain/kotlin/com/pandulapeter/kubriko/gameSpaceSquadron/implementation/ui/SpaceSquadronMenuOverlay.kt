@@ -22,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.shared.ui.LargeButton
-import com.pandulapeter.kubriko.shared.ui.SmallButton
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.fullscreen_enter
 import kubriko.examples.game_space_squadron.generated.resources.fullscreen_exit
@@ -58,6 +57,7 @@ internal fun SpaceSquadronMenuOverlay(
     onMusicToggled: () -> Unit,
     isInFullscreenMode: Boolean?,
     onFullscreenModeToggled: () -> Unit,
+    onButtonHover: () -> Unit,
 ) = Box(
     modifier = modifier,
 ) {
@@ -67,10 +67,11 @@ internal fun SpaceSquadronMenuOverlay(
         enter = fadeIn() + scaleIn(),
         exit = scaleOut() + fadeOut(),
     ) {
-        SmallButton(
+        SpaceSquadronIconButton(
             onButtonPressed = onPauseButtonPressed,
             icon = Res.drawable.ic_pause,
             contentDescription = Res.string.pause,
+            onPointerEnter = onButtonHover,
         )
     }
     Column(
@@ -87,6 +88,7 @@ internal fun SpaceSquadronMenuOverlay(
         ) {
             Title(
                 onPlayButtonPressed = onPlayButtonPressed,
+                onButtonHover = onButtonHover,
             )
         }
         AnimatedVisibility(
@@ -105,6 +107,7 @@ internal fun SpaceSquadronMenuOverlay(
                 onMusicToggled = onMusicToggled,
                 isInFullscreenMode = isInFullscreenMode,
                 onFullscreenModeToggled = onFullscreenModeToggled,
+                onButtonHover = onButtonHover,
             )
         }
     }
@@ -113,6 +116,7 @@ internal fun SpaceSquadronMenuOverlay(
 @Composable
 private fun Title(
     onPlayButtonPressed: () -> Unit,
+    onButtonHover: () -> Unit,
 ) = Box(
     modifier = Modifier.fillMaxWidth(),
 ) {
@@ -128,10 +132,11 @@ private fun Title(
             painter = painterResource(Res.drawable.img_logo),
             contentDescription = null,
         )
-        LargeButton(
+        SpaceSquadronButton(
             onButtonPressed = onPlayButtonPressed,
             icon = Res.drawable.ic_play,
             title = Res.string.play,
+            onPointerEnter = onButtonHover,
         )
     }
 }
@@ -145,29 +150,34 @@ private fun UserPreferenceControls(
     onMusicToggled: () -> Unit,
     isInFullscreenMode: Boolean?,
     onFullscreenModeToggled: () -> Unit,
+    onButtonHover: () -> Unit,
 ) = Row(
     horizontalArrangement = Arrangement.spacedBy(8.dp),
 ) {
-    SmallButton(
+    SpaceSquadronIconButton(
         onButtonPressed = onInfoButtonPressed,
         icon = Res.drawable.ic_information,
         contentDescription = Res.string.information,
+        onPointerEnter = onButtonHover,
     )
-    SmallButton(
+    SpaceSquadronIconButton(
         onButtonPressed = onSoundEffectsToggled,
         icon = if (areSoundEffectsEnabled) Res.drawable.ic_sound_effects_on else Res.drawable.ic_sound_effects_off,
         contentDescription = if (areSoundEffectsEnabled) Res.string.sound_effects_disable else Res.string.sound_effects_enable,
+        onPointerEnter = onButtonHover,
     )
-    SmallButton(
+    SpaceSquadronIconButton(
         onButtonPressed = onMusicToggled,
         icon = if (isMusicEnabled) Res.drawable.ic_music_on else Res.drawable.ic_music_off,
         contentDescription = if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable,
+        onPointerEnter = onButtonHover,
     )
     isInFullscreenMode?.let {
-        SmallButton(
+        SpaceSquadronIconButton(
             onButtonPressed = onFullscreenModeToggled,
             icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
             contentDescription = if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter,
+            onPointerEnter = onButtonHover,
         )
     }
 }

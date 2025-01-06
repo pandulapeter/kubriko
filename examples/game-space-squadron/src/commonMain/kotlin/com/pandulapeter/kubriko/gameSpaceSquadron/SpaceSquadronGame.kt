@@ -104,6 +104,7 @@ fun SpaceSquadronGame(
                     stateHolder.audioManager.playButtonToggleSoundEffect()
                     onFullscreenModeToggled()
                 },
+                onButtonHover = stateHolder.audioManager::playButtonHoverSoundEffect,
             )
         }
     }

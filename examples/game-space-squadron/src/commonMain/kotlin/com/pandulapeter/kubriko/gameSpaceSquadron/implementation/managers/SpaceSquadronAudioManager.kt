@@ -50,6 +50,10 @@ internal class SpaceSquadronAudioManager(
 
     fun playButtonToggleSoundEffect() = playSoundEffect(URI_SOUND_BUTTON_TOGGLE)
 
+    fun playButtonHoverSoundEffect() = playSoundEffect(URI_SOUND_BUTTON_HOVER)
+
+    fun playShootSoundEffect() = playSoundEffect(URI_SOUND_SHOOT)
+
     private fun playSoundEffect(uri: String) {
         if (userPreferencesManager.areSoundEffectsEnabled.value) {
             soundUrisToPlay.add(uri)
@@ -60,6 +64,8 @@ internal class SpaceSquadronAudioManager(
         private const val URI_MUSIC = "files/music/music.mp3"
         private const val URI_SOUND_BUTTON_PLAY = "files/sounds/button_play.wav"
         private const val URI_SOUND_BUTTON_TOGGLE = "files/sounds/button_toggle.wav"
+        private const val URI_SOUND_BUTTON_HOVER = "files/sounds/button_hover.wav"
+        private const val URI_SOUND_SHOOT = "files/sounds/shoot.wav"
 
         fun getMusicUrisToPreload() = listOf(
             URI_MUSIC,
@@ -68,6 +74,8 @@ internal class SpaceSquadronAudioManager(
         fun getSoundUrisToPreload() = listOf(
             URI_SOUND_BUTTON_PLAY,
             URI_SOUND_BUTTON_TOGGLE,
+            URI_SOUND_BUTTON_HOVER,
+            URI_SOUND_SHOOT,
         ).map { Res.getUri(it) }
     }
 }
