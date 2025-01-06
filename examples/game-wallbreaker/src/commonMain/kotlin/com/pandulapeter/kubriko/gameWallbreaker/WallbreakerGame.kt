@@ -91,13 +91,16 @@ fun WallbreakerGame(
             shouldShowResumeButton = !stateHolder.gameManager.isGameOver.collectAsState().value,
             onResumeButtonPressed = stateHolder.gameManager::resumeGame,
             onRestartButtonPressed = stateHolder.gameManager::restartGame,
-            onInfoButtonPressed = { }, // TODO
+            onInfoButtonPressed = { stateHolder.audioManager.playClickSoundEffect() }, // TODO
             areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
             onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
             isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
             onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
             isInFullscreenMode = isInFullscreenMode,
-            onFullscreenModeToggled = onFullscreenModeToggled,
+            onFullscreenModeToggled = {
+                stateHolder.audioManager.playClickSoundEffect()
+                onFullscreenModeToggled()
+            },
         )
         WallbreakerGameOverlay(
             gameAreaModifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
@@ -122,6 +125,7 @@ private class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
     val userPreferencesManager = WallbreakerUserPreferencesManager(persistenceManager)
     val gameManager = WallbreakerGameManager(stateManager)
     val loadingManager = WallbreakerLoadingManager()
+    val audioManager = WallbreakerAudioManager(stateManager, userPreferencesManager)
     private val musicManager = MusicManager.newInstance()
     private val soundManager = SoundManager.newInstance()
     val backgroundKubriko = Kubriko.newInstance(
@@ -148,7 +152,7 @@ private class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
         userPreferencesManager,
         musicManager,
         soundManager,
-        WallbreakerAudioManager(stateManager, userPreferencesManager),
+        audioManager,
         gameManager,
         WallbreakerUIManager(stateManager),
     )

@@ -12,13 +12,18 @@ internal class SpaceSquadronGameManager : Manager() {
 
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
+    private val audioManager by manager<SpaceSquadronAudioManager>()
 
     override fun onInitialize(kubriko: Kubriko) = kubriko.get<ActorManager>().add(Ship())
 
     fun playGame() {
+        audioManager.playButtonPlaySoundEffect()
         actorManager.allActors.value.filterIsInstance<ShipDestination>().firstOrNull()?.resetPointerTracking()
         stateManager.updateIsRunning(true)
     }
 
-    fun pauseGame() = stateManager.updateIsRunning(false)
+    fun pauseGame() {
+        audioManager.playButtonToggleSoundEffect()
+        stateManager.updateIsRunning(false)
+    }
 }

@@ -64,7 +64,11 @@ fun SpaceSquadronGame(
         exit = fadeOut(),
     ) {
         Box(
-            modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets).padding(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.75f))
+                .windowInsetsPadding(windowInsets)
+                .padding(16.dp),
         ) {
             LoadingIndicator(
                 modifier = Modifier.align(Alignment.BottomStart)
@@ -90,13 +94,16 @@ fun SpaceSquadronGame(
                 isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value,
                 onPlayButtonPressed = stateHolder.gameManager::playGame,
                 onPauseButtonPressed = stateHolder.gameManager::pauseGame,
-                onInfoButtonPressed = { }, // TODO
+                onInfoButtonPressed = { stateHolder.audioManager.playButtonToggleSoundEffect() }, // TODO
                 areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
                 onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
                 isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
                 onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
                 isInFullscreenMode = isInFullscreenMode,
-                onFullscreenModeToggled = onFullscreenModeToggled,
+                onFullscreenModeToggled = {
+                    stateHolder.audioManager.playButtonToggleSoundEffect()
+                    onFullscreenModeToggled()
+                },
             )
         }
     }
@@ -113,6 +120,7 @@ private class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
     val loadingManager = SpaceSquadronLoadingManager()
     private val musicManager = MusicManager.newInstance()
     private val soundManager = SoundManager.newInstance()
+    val audioManager = SpaceSquadronAudioManager(stateManager, userPreferencesManager)
     val gameManager = SpaceSquadronGameManager()
     val spriteManager = SpriteManager.newInstance()
     val backgroundKubriko = Kubriko.newInstance(
@@ -140,7 +148,7 @@ private class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
         spriteManager,
         gameManager,
         SpaceSquadronUIManager(stateManager),
-        SpaceSquadronAudioManager(stateManager, userPreferencesManager),
+        audioManager,
     )
 
     override fun dispose() {

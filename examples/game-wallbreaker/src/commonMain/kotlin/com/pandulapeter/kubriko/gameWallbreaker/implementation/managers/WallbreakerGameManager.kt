@@ -62,7 +62,10 @@ internal class WallbreakerGameManager(
         actorManager.add(listOf(Ball(paddle), this))
     }
 
-    fun pauseGame() = stateManager.updateIsRunning(false)
+    fun pauseGame() {
+        audioManager.playClickSoundEffect()
+        stateManager.updateIsRunning(false)
+    }
 
     private fun onLevelCleared() {
         audioManager.playLevelClearedSoundEffect()
@@ -76,6 +79,7 @@ internal class WallbreakerGameManager(
     }
 
     fun resumeGame() {
+        audioManager.playClickSoundEffect()
         paddle.resetPointerTracking()
         stateManager.updateIsRunning(true)
     }

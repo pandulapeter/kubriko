@@ -56,6 +56,8 @@ internal class WallbreakerAudioManager(
 
     fun playPaddleHitSoundEffect() = playSoundEffect(URI_SOUND_PADDLE_HIT)
 
+    fun playClickSoundEffect() = playSoundEffect(URI_SOUND_CLICK)
+
     private fun playSoundEffect(uri: String) {
         if (userPreferencesManager.areSoundEffectsEnabled.value) {
             soundUrisToPlay.add(uri)
@@ -69,6 +71,7 @@ internal class WallbreakerAudioManager(
         private const val URI_SOUND_GAME_OVER = "files/sounds/game_over.wav"
         private const val URI_SOUND_LEVEL_CLEARED = "files/sounds/level_cleared.wav"
         private const val URI_SOUND_PADDLE_HIT = "files/sounds/paddle_hit.wav"
+        private const val URI_SOUND_CLICK = "files/sounds/click.wav"
 
         fun getMusicUrisToPreload() = listOf(
             URI_MUSIC,
@@ -80,6 +83,7 @@ internal class WallbreakerAudioManager(
             URI_SOUND_GAME_OVER,
             URI_SOUND_LEVEL_CLEARED,
             URI_SOUND_PADDLE_HIT,
+            URI_SOUND_CLICK,
         ).map { Res.getUri(it) }
     }
 }

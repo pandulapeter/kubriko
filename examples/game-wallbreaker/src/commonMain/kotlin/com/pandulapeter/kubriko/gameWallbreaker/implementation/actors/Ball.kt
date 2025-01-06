@@ -121,7 +121,7 @@ internal class Ball(
     }
 
     override fun onKeyPressed(key: Key) {
-        if (stateManager.isRunning.value && state != State.GAME_OVER && key == Key.Spacebar) {
+        if (stateManager.isRunning.value && state != State.GAME_OVER && key == Key.Spacebar && state != State.LAUNCHED) {
             state = State.LAUNCHED
             audioManager.playPaddleHitSoundEffect()
         }
