@@ -2,6 +2,7 @@ package com.pandulapeter.kubriko.demoPhysics
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
@@ -39,7 +40,7 @@ fun PhysicsDemo(
 ) {
     stateHolder as PhysicsDemoStateHolderImpl
     DebugMenu(
-        debugMenuModifier = modifier,
+        debugMenuModifier = modifier.windowInsetsPadding(windowInsets),
         kubriko = stateHolder.kubriko,
     ) {
         KubrikoViewport(

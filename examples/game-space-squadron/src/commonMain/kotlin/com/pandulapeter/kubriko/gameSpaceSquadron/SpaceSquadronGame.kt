@@ -131,8 +131,8 @@ private class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
             )
         ),
         CollisionManager.newInstance(),
-        PointerInputManager.newInstance(isActiveAboveViewport = true),
         KeyboardInputManager.newInstance(),
+        PointerInputManager.newInstance(isActiveAboveViewport = true),
         persistenceManager,
         userPreferencesManager,
         musicManager,

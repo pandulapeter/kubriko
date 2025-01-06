@@ -2,6 +2,7 @@ package com.pandulapeter.kubriko.demoPerformance
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
@@ -29,7 +30,7 @@ fun PerformanceDemo(
 ) {
     stateHolder as PerformanceDemoStateHolderImpl
     DebugMenu(
-        debugMenuModifier = modifier,
+        debugMenuModifier = modifier.windowInsetsPadding(windowInsets),
         kubriko = stateHolder.kubriko,
     ) {
         KubrikoViewport(
