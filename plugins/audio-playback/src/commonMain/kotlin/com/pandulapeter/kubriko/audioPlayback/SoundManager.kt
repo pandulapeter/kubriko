@@ -20,6 +20,10 @@ sealed class SoundManager : Manager() {
     abstract fun unload(uri: String)
 
     companion object {
-        fun newInstance(): SoundManager = SoundManagerImpl()
+        fun newInstance(
+            maximumSimultaneousStreamsOfTheSameSound: Int = 5,
+        ): SoundManager = SoundManagerImpl(
+            maximumSimultaneousStreamsOfTheSameSound = maximumSimultaneousStreamsOfTheSameSound,
+        )
     }
 }

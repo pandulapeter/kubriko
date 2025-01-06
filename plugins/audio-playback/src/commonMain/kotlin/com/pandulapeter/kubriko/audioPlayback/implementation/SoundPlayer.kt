@@ -14,4 +14,4 @@ internal interface SoundPlayer {
 }
 
 @Composable
-internal expect fun createSoundPlayer(): SoundPlayer
+internal expect fun createSoundPlayer(maximumSimultaneousStreamsOfTheSameSound: Int): SoundPlayer

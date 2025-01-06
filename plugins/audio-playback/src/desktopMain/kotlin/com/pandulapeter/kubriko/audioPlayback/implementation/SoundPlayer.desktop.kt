@@ -9,7 +9,9 @@ import java.net.URI
 import javax.sound.sampled.AudioSystem
 
 @Composable
-internal actual fun createSoundPlayer() = object : SoundPlayer {
+internal actual fun createSoundPlayer(
+    maximumSimultaneousStreamsOfTheSameSound: Int, // TODO: On Desktop, due to the issue below, this limit is not applied
+) = object : SoundPlayer {
 
     // Couldn't figure out how to re-use cached Clips, so preloading on desktop is not supported
     override suspend fun preload(uri: String) = uri

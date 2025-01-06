@@ -8,11 +8,13 @@ import org.w3c.dom.HTMLAudioElement
 
 @Suppress("UNCHECKED_CAST")
 @Composable
-internal actual fun createSoundPlayer() = object : SoundPlayer {
+internal actual fun createSoundPlayer(
+    maximumSimultaneousStreamsOfTheSameSound: Int,
+) = object : SoundPlayer {
 
     override suspend fun preload(uri: String) = withContext(Dispatchers.Default) {
         buildList {
-            repeat(SIMULTANEOUSLY_PLAYED_INSTANCE_LIMIT) {
+            repeat(maximumSimultaneousStreamsOfTheSameSound) {
                 add(
                     (document.createElement("audio") as HTMLAudioElement).apply {
                         src = uri
@@ -42,5 +44,3 @@ internal actual fun createSoundPlayer() = object : SoundPlayer {
 
     override suspend fun dispose() = Unit
 }
-
-private const val SIMULTANEOUSLY_PLAYED_INSTANCE_LIMIT = 5

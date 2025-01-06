@@ -7,28 +7,39 @@ import kotlinx.coroutines.withContext
 import platform.AVFAudio.AVAudioPlayer
 import platform.Foundation.NSURL
 
+@Suppress("UNCHECKED_CAST")
 @OptIn(ExperimentalForeignApi::class)
 @Composable
-internal actual fun createSoundPlayer() = object : SoundPlayer {
+internal actual fun createSoundPlayer(
+    maximumSimultaneousStreamsOfTheSameSound: Int,
+) = object : SoundPlayer {
 
     override suspend fun preload(uri: String) = withContext(Dispatchers.Default) {
-        AVAudioPlayer(NSURL.URLWithString(URLString = uri)!!, error = null).apply {
-            prepareToPlay()
+        buildList {
+            repeat(maximumSimultaneousStreamsOfTheSameSound) {
+                add(
+                    AVAudioPlayer(NSURL.URLWithString(URLString = uri)!!, error = null).apply {
+                        prepareToPlay()
+                    }
+                )
+            }
         }
     }
 
     override suspend fun play(sound: Any) = withContext(Dispatchers.Default) {
-        sound as AVAudioPlayer
+        sound as List<AVAudioPlayer>
         var wasSoundPlayed: Boolean
         do {
-            wasSoundPlayed = sound.play()
+            wasSoundPlayed = sound.firstOrNull { !it.playing }?.play() == true
         } while (!wasSoundPlayed)
     }
 
     override suspend fun dispose(sound: Any) {
-        sound as AVAudioPlayer
-        if (sound.isPlaying()) {
-            sound.stop()
+        sound as List<AVAudioPlayer>
+        sound.forEach {
+            if (it.isPlaying()) {
+                it.stop()
+            }
         }
     }
 

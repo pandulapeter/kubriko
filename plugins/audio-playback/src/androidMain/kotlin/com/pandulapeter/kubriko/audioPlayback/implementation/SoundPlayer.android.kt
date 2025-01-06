@@ -11,11 +11,13 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 @Composable
-internal actual fun createSoundPlayer() = object : SoundPlayer {
+internal actual fun createSoundPlayer(
+    maximumSimultaneousStreamsOfTheSameSound: Int,
+) = object : SoundPlayer {
     private val context = LocalContext.current.applicationContext
     private var preloadListeners = mutableListOf<PreloadListener>()
     private val soundPool = SoundPool.Builder()
-        .setMaxStreams(SIMULTANEOUSLY_PLAYED_INSTANCE_LIMIT)
+        .setMaxStreams(maximumSimultaneousStreamsOfTheSameSound)
         .setAudioAttributes(
             AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_GAME)
@@ -64,5 +66,3 @@ internal actual fun createSoundPlayer() = object : SoundPlayer {
 private interface PreloadListener {
     fun onSampleLoaded(sampleId: Int)
 }
-
-private const val SIMULTANEOUSLY_PLAYED_INSTANCE_LIMIT = 5

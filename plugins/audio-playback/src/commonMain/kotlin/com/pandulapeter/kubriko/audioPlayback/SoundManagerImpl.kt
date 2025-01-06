@@ -13,14 +13,16 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-internal class SoundManagerImpl : SoundManager() {
+internal class SoundManagerImpl(
+    private val maximumSimultaneousStreamsOfTheSameSound: Int,
+) : SoundManager() {
     private val cache = MutableStateFlow(persistentMapOf<String, Any?>())
     private var soundPlayer: SoundPlayer? = null
 
     @Composable
     override fun Composable(insetPaddingModifier: Modifier) {
         if (soundPlayer == null && isInitialized.value) {
-            soundPlayer = createSoundPlayer().also { soundPlayer ->
+            soundPlayer = createSoundPlayer(maximumSimultaneousStreamsOfTheSameSound).also { soundPlayer ->
                 scope.launch {
                     cache.value.keys.forEach { uri ->
                         soundPlayer.preload(uri)?.let { sound -> addToCache(uri, sound) }
