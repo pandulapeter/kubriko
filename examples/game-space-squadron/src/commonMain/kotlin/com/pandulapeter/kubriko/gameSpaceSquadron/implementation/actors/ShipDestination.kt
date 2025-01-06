@@ -46,7 +46,8 @@ internal class ShipDestination : Positionable, PointerInputAware, KeyboardInputA
                 val offset = currentPointerPosition - previousPointerPosition
                 if (offset.x != -previousPointerOffset.x) {
                     previousPointerOffset = offset
-                    body.position = (body.position + offset).clampWithin(
+                    // TODO: Clamp within maximum playable area, considering window insets as well
+                    body.position = (body.position + offset * 2).clampWithin(
                         topLeft = viewportManager.topLeft.value,
                         bottomRight = viewportManager.bottomRight.value,
                     )
@@ -94,6 +95,6 @@ internal class ShipDestination : Positionable, PointerInputAware, KeyboardInputA
     }
 
     companion object {
-        val Speed = 2.sceneUnit
+        val Speed = 3.sceneUnit
     }
 }
