@@ -39,6 +39,13 @@ internal class ShipDestination : Positionable, PointerInputAware, KeyboardInputA
 
     private var previousPointerOffset = SceneOffset.Zero
 
+    fun resetPointerTracking() {
+        viewportManager.size.value.center.let { center ->
+            pointerInputManager.movePointer(center)
+            previousPointerPosition = null
+        }
+    }
+
     override fun onPointerOffsetChanged(screenOffset: Offset) {
         val currentPointerPosition = screenOffset.toSceneOffset(viewportManager)
         if (stateManager.isRunning.value) {

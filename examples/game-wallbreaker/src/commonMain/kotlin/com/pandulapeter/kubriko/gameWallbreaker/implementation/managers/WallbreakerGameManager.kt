@@ -75,7 +75,10 @@ internal class WallbreakerGameManager(
         stateManager.updateIsRunning(false)
     }
 
-    fun resumeGame() = stateManager.updateIsRunning(true)
+    fun resumeGame() {
+        paddle.resetPointerTracking()
+        stateManager.updateIsRunning(true)
+    }
 
     fun restartGame() {
         actorManager.remove(actorManager.allActors.value.let { it.filterIsInstance<Brick>() + it.filterIsInstance<Ball>() + it.filterIsInstance<Paddle>() })

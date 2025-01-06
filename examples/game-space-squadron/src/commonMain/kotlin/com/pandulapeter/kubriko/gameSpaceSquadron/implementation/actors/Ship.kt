@@ -137,7 +137,7 @@ internal class Ship : Visible, Dynamic, InsetPaddingAware, Group {
                 // Moving right
                 if (horizontalScale == 1f) {
                     if (animatedSprite.isFirstFrame) {
-                        horizontalScale= -1f
+                        horizontalScale = -1f
                     } else {
                         animatedSprite.stepBackwards(animationSpeed)
                     }

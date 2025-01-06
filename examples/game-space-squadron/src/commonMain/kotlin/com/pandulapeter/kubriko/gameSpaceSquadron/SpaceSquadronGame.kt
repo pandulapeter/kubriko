@@ -88,8 +88,8 @@ fun SpaceSquadronGame(
             SpaceSquadronMenuOverlay(
                 modifier = Modifier.windowInsetsPadding(windowInsets),
                 isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value,
-                onPlayButtonPressed = { stateHolder.stateManager.updateIsRunning(true) },
-                onPauseButtonPressed = { stateHolder.stateManager.updateIsRunning(false) },
+                onPlayButtonPressed = stateHolder.gameManager::playGame,
+                onPauseButtonPressed = stateHolder.gameManager::pauseGame,
                 onInfoButtonPressed = { }, // TODO
                 areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
                 onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
@@ -113,6 +113,7 @@ private class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
     val loadingManager = SpaceSquadronLoadingManager()
     private val musicManager = MusicManager.newInstance()
     private val soundManager = SoundManager.newInstance()
+    val gameManager = SpaceSquadronGameManager()
     val spriteManager = SpriteManager.newInstance()
     val backgroundKubriko = Kubriko.newInstance(
         ShaderManager.newInstance(),
@@ -130,14 +131,14 @@ private class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
             )
         ),
         CollisionManager.newInstance(),
-        KeyboardInputManager.newInstance(),
         PointerInputManager.newInstance(isActiveAboveViewport = true),
-        SpaceSquadronGameManager(),
+        KeyboardInputManager.newInstance(),
         persistenceManager,
         userPreferencesManager,
         musicManager,
         soundManager,
         spriteManager,
+        gameManager,
         SpaceSquadronUIManager(stateManager),
         SpaceSquadronAudioManager(stateManager, userPreferencesManager),
     )

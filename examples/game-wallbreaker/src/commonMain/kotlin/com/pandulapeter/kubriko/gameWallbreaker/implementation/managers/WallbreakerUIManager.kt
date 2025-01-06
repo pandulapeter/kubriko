@@ -38,9 +38,14 @@ internal class WallbreakerUIManager(
     override fun onKeyReleased(key: Key) {
         when (key) {
             Key.Escape -> {
-                stateManager.updateIsRunning(!stateManager.isRunning.value)
-                if (gameManager.isGameOver.value) {
-                    gameManager.restartGame()
+                if (stateManager.isRunning.value) {
+                    gameManager.pauseGame()
+                } else {
+                    if (gameManager.isGameOver.value) {
+                        gameManager.restartGame()
+                    } else {
+                        gameManager.resumeGame()
+                    }
                 }
             }
 

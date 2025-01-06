@@ -22,6 +22,8 @@ internal class SpaceSquadronUIManager(
     private val stateManager: StateManager,
 ) : Manager(), KeyboardInputAware, Unique {
 
+    private val gameManager by manager<SpaceSquadronGameManager>()
+
     override fun onInitialize(kubriko: Kubriko) {
         kubriko.get<ActorManager>().add(this)
         stateManager.isFocused
@@ -37,11 +39,15 @@ internal class SpaceSquadronUIManager(
 
     override fun onKeyReleased(key: Key) {
         when (key) {
-            Key.Escape -> stateManager.updateIsRunning(!stateManager.isRunning.value)
+            Key.Escape -> if (stateManager.isRunning.value) {
+                gameManager.pauseGame()
+            } else {
+                gameManager.playGame()
+            }
 
             Key.Spacebar, Key.Enter -> {
                 if (!stateManager.isRunning.value) {
-                    stateManager.updateIsRunning(!stateManager.isRunning.value)
+                    gameManager.playGame()
                 }
             }
 
