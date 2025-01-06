@@ -1,5 +1,7 @@
 package com.pandulapeter.kubriko.demoPerformance
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
@@ -23,6 +25,7 @@ import kotlinx.serialization.json.Json
 fun PerformanceDemo(
     modifier: Modifier = Modifier,
     stateHolder: PerformanceDemoStateHolder = createPerformanceDemoStateHolder(),
+    windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as PerformanceDemoStateHolderImpl
     DebugMenu(
@@ -31,6 +34,7 @@ fun PerformanceDemo(
     ) {
         KubrikoViewport(
             kubriko = stateHolder.kubriko,
+            windowInsets = windowInsets,
         )
     }
 }

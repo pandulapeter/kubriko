@@ -1,5 +1,7 @@
 package com.pandulapeter.kubriko.demoPhysics
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
@@ -33,6 +35,7 @@ import kotlinx.serialization.json.Json
 fun PhysicsDemo(
     modifier: Modifier = Modifier,
     stateHolder: PhysicsDemoStateHolder = createPhysicsDemoStateHolder(),
+    windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as PhysicsDemoStateHolderImpl
     DebugMenu(
@@ -41,6 +44,7 @@ fun PhysicsDemo(
     ) {
         KubrikoViewport(
             kubriko = stateHolder.kubriko,
+            windowInsets = windowInsets,
         )
     }
 }

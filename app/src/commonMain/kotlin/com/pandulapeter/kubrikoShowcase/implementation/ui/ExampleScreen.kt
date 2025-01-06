@@ -72,10 +72,12 @@ internal fun ShowcaseEntry.ExampleScreen(
 
         ShowcaseEntry.PERFORMANCE -> PerformanceDemo(
             stateHolder = getOrCreateState(currentDemoStateHolders, ::createPerformanceDemoStateHolder),
+            windowInsets = windowInsets,
         )
 
         ShowcaseEntry.PHYSICS -> PhysicsDemo(
             stateHolder = getOrCreateState(currentDemoStateHolders, ::createPhysicsDemoStateHolder),
+            windowInsets = windowInsets,
         )
 
         ShowcaseEntry.SHADER_ANIMATIONS -> ShaderAnimationsDemo(
