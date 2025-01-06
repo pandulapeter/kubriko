@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
@@ -33,7 +34,7 @@ internal fun SpaceSquadronButton(
     onButtonPressed: () -> Unit,
     onPointerEnter: (() -> Unit),
 ) {
-    val alpha = remember { mutableStateOf(0.7f) }
+    val alpha = remember { mutableStateOf(0.8f) }
     FloatingActionButton(
         modifier = modifier
             .height(40.dp)
@@ -49,14 +50,14 @@ internal fun SpaceSquadronButton(
                             }
 
                             PointerEventType.Exit -> {
-                                alpha.value = 0.7f
+                                alpha.value = 0.8f
                             }
                         }
                     }
                 }
             },
         containerColor = if (isSystemInDarkTheme()) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary,
-        contentColor = MaterialTheme.colorScheme.onPrimary,
+        contentColor = if (alpha.value == 0.8f) MaterialTheme.colorScheme.onPrimary else Color.White,
         onClick = onButtonPressed,
     ) {
         Row(

@@ -29,9 +29,9 @@ internal fun SpaceSquadronTheme(
     content: @Composable () -> Unit,
 ) = MaterialTheme(
     colorScheme = darkColorScheme(
-        primaryContainer = Color(0xcfe1eaf3),
-        primary = Color(0xcfe1eaf3),
-        onPrimary = Color.Black,
+        primaryContainer = Color(0xff9cabb3),
+        primary = Color(0xff9cabb3),
+        onPrimary = Color(0xff24262e),
     ),
     typography = SpaceSquadronTypography(),
     shapes = Shapes(
@@ -44,7 +44,10 @@ internal fun SpaceSquadronTheme(
 ) {
     CompositionLocalProvider(
         LocalIndication provides ripple(color = Color.White),
-        LocalRippleConfiguration provides RippleConfiguration(color = Color.White, rippleAlpha = RippleAlpha(0.16f, 0.1f, 0.08f, 0.5f))
+        LocalRippleConfiguration provides RippleConfiguration(
+            color = Color.White,
+            rippleAlpha = RippleAlpha(0.2f, 0.2f, 0.2f, 0.2f),
+        )
     ) {
         content()
     }
