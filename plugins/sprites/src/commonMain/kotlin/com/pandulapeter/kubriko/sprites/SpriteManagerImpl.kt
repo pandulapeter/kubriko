@@ -25,14 +25,14 @@ internal class SpriteManagerImpl : SpriteManager() {
         cache.filter { (key, _) -> key in drawableResources }.count { (_, value) -> value != null }.toFloat() / drawableResources.size
     }
 
-    override fun loadSprite(drawableResource: DrawableResource): ImageBitmap? {
+    override fun load(drawableResource: DrawableResource): ImageBitmap? {
         if (!cache.value.containsKey(drawableResource)) {
             cache.value = cache.value.put(drawableResource, null)
         }
         return cache.value[drawableResource]
     }
 
-    override fun unloadSprite(drawableResource: DrawableResource) {
+    override fun unload(drawableResource: DrawableResource) {
         cache.value = cache.value.remove(drawableResource)
     }
 

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -66,6 +67,7 @@ abstract class Manager {
     internal fun onDisposeInternal() {
         if (isInitialized.value) {
             onDispose()
+            _isInitialized.update { false }
         }
     }
 

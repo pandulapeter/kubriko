@@ -1,10 +1,13 @@
 package com.pandulapeter.kubriko.gameWallbreaker.implementation.managers
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
+import com.pandulapeter.kubriko.audioPlayback.MusicManager
+import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kubriko.examples.game_wallbreaker.generated.resources.Res
@@ -13,55 +16,65 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 @OptIn(ExperimentalResourceApi::class)
 internal class WallbreakerAudioManager(
     private val stateManager: StateManager,
-    private val audioPlaybackManager: AudioPlaybackManager,
     private val userPreferencesManager: WallbreakerUserPreferencesManager
 ) : Manager() {
-    private var hasStartedMusic = false
+    private val musicManager by manager<MusicManager>()
+    private val soundManager by manager<SoundManager>()
     private val soundUrisToPlay = mutableSetOf<String>()
 
+    @OptIn(FlowPreview::class)
     override fun onInitialize(kubriko: Kubriko) {
+        soundManager.preload(
+            URI_SOUND_BRICK_POP,
+            URI_SOUND_EDGE_BOUNCE,
+            URI_SOUND_GAME_OVER,
+            URI_SOUND_LEVEL_CLEARED,
+            URI_SOUND_PADDLE_HIT,
+        )
         combine(
-            stateManager.isFocused,
+            stateManager.isFocused.debounce(100),
             userPreferencesManager.isMusicEnabled,
         ) { isFocused, isMusicEnabled ->
             isFocused to isMusicEnabled
         }.onEach { (isFocused, isMusicEnabled) ->
-            if (isMusicEnabled) {
-                if (isFocused) {
-                    if (hasStartedMusic) {
-                        audioPlaybackManager.resumeMusic()
-                    } else {
-                        audioPlaybackManager.playMusic(
-                            uri = Res.getUri("files/music/music.mp3"),
-                            shouldLoop = true,
-                        )
-                        hasStartedMusic = true
-                    }
-                }
+            if (isMusicEnabled && isFocused) {
+                musicManager.play(
+                    uri = Res.getUri(URI_MUSIC),
+                    shouldLoop = true,
+                )
             } else {
-                audioPlaybackManager.pauseMusic()
+                musicManager.pause(Res.getUri(URI_MUSIC))
             }
         }.launchIn(scope)
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
-        soundUrisToPlay.forEach { audioPlaybackManager.playSound(Res.getUri(it)) }
+        soundUrisToPlay.forEach { soundManager.play(Res.getUri(it)) }
         soundUrisToPlay.clear()
     }
 
-    fun playBrickPopSoundEffect() = playSoundEffect("files/sounds/brick_pop.wav")
+    fun playBrickPopSoundEffect() = playSoundEffect(URI_SOUND_BRICK_POP)
 
-    fun playEdgeBounceSoundEffect() = playSoundEffect("files/sounds/edge_bounce.wav")
+    fun playEdgeBounceSoundEffect() = playSoundEffect(URI_SOUND_EDGE_BOUNCE)
 
-    fun playGameOverSoundEffect() = playSoundEffect("files/sounds/game_over.wav")
+    fun playGameOverSoundEffect() = playSoundEffect(URI_SOUND_GAME_OVER)
 
-    fun playLevelClearedSoundEffect() = playSoundEffect("files/sounds/level_cleared.wav")
+    fun playLevelClearedSoundEffect() = playSoundEffect(URI_SOUND_LEVEL_CLEARED)
 
-    fun playPaddleHitSoundEffect() = playSoundEffect("files/sounds/paddle_hit.wav")
+    fun playPaddleHitSoundEffect() = playSoundEffect(URI_SOUND_PADDLE_HIT)
 
     private fun playSoundEffect(uri: String) {
         if (userPreferencesManager.areSoundEffectsEnabled.value) {
             soundUrisToPlay.add(uri)
         }
+    }
+
+    companion object {
+        private const val URI_MUSIC = "files/music/music.mp3"
+        private const val URI_SOUND_BRICK_POP = "files/sounds/brick_pop.wav"
+        private const val URI_SOUND_EDGE_BOUNCE = "files/sounds/edge_bounce.wav"
+        private const val URI_SOUND_GAME_OVER = "files/sounds/game_over.wav"
+        private const val URI_SOUND_LEVEL_CLEARED = "files/sounds/level_cleared.wav"
+        private const val URI_SOUND_PADDLE_HIT = "files/sounds/paddle_hit.wav"
     }
 }

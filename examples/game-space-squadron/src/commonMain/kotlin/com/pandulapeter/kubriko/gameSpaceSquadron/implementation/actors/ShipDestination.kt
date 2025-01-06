@@ -47,7 +47,7 @@ internal class ShipDestination : Positionable, PointerInputAware, KeyboardInputA
                 if (offset.x != -previousPointerOffset.x) {
                     previousPointerOffset = offset
                     // TODO: Clamp within maximum playable area, considering window insets as well
-                    body.position = (body.position + offset * 2).clampWithin(
+                    body.position = (body.position + offset * MOUSE_MOVEMENT_SPEED).clampWithin(
                         topLeft = viewportManager.topLeft.value,
                         bottomRight = viewportManager.bottomRight.value,
                     )
@@ -72,15 +72,15 @@ internal class ShipDestination : Positionable, PointerInputAware, KeyboardInputA
         if (stateManager.isRunning.value) {
             moveInNextStep = when (activeKeys.directionState) {
                 KeyboardDirectionState.NONE -> SceneOffset.Zero
-                KeyboardDirectionState.LEFT -> SceneOffset(-Speed, SceneUnit.Zero)
-                KeyboardDirectionState.UP_LEFT -> SceneOffset(-Speed, -Speed)
-                KeyboardDirectionState.UP -> SceneOffset(SceneUnit.Zero, -Speed)
-                KeyboardDirectionState.UP_RIGHT -> SceneOffset(Speed, -Speed)
-                KeyboardDirectionState.RIGHT -> SceneOffset(Speed, SceneUnit.Zero)
-                KeyboardDirectionState.DOWN_RIGHT -> SceneOffset(Speed, Speed)
-                KeyboardDirectionState.DOWN -> SceneOffset(SceneUnit.Zero, Speed)
-                KeyboardDirectionState.DOWN_LEFT -> SceneOffset(-Speed, Speed)
-            }.normalize() * Speed
+                KeyboardDirectionState.LEFT -> SceneOffset(-KeyboardMovementSpeed, SceneUnit.Zero)
+                KeyboardDirectionState.UP_LEFT -> SceneOffset(-KeyboardMovementSpeed, -KeyboardMovementSpeed)
+                KeyboardDirectionState.UP -> SceneOffset(SceneUnit.Zero, -KeyboardMovementSpeed)
+                KeyboardDirectionState.UP_RIGHT -> SceneOffset(KeyboardMovementSpeed, -KeyboardMovementSpeed)
+                KeyboardDirectionState.RIGHT -> SceneOffset(KeyboardMovementSpeed, SceneUnit.Zero)
+                KeyboardDirectionState.DOWN_RIGHT -> SceneOffset(KeyboardMovementSpeed, KeyboardMovementSpeed)
+                KeyboardDirectionState.DOWN -> SceneOffset(SceneUnit.Zero, KeyboardMovementSpeed)
+                KeyboardDirectionState.DOWN_LEFT -> SceneOffset(-KeyboardMovementSpeed, KeyboardMovementSpeed)
+            }.normalize() * KeyboardMovementSpeed
         }
     }
 
@@ -95,6 +95,7 @@ internal class ShipDestination : Positionable, PointerInputAware, KeyboardInputA
     }
 
     companion object {
-        val Speed = 3.sceneUnit
+        const val MOUSE_MOVEMENT_SPEED = 1.5f
+        val KeyboardMovementSpeed = 3.sceneUnit
     }
 }

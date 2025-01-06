@@ -7,7 +7,7 @@ kotlin {
         commonMain.dependencies {
             api(projects.examples.shared)
             implementation(projects.engine)
-            implementation(projects.plugins.audioPlayer)
+            implementation(projects.plugins.audioPlayback)
             implementation(projects.plugins.collision)
             implementation(projects.plugins.keyboardInput)
             implementation(projects.plugins.persistence)

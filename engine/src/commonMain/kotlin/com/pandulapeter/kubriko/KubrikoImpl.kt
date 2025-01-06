@@ -11,9 +11,12 @@ import com.pandulapeter.kubriko.manager.StateManagerImpl
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.manager.ViewportManagerImpl
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 
 internal class KubrikoImpl(
@@ -55,8 +58,9 @@ internal class KubrikoImpl(
     @Suppress("UNCHECKED_CAST")
     override fun <T : Manager> get(managerType: KClass<T>) = managers.firstOrNull { managerType.isInstance(it) } as? T ?: throw IllegalStateException("$managerType has not been registered as a Manager in Kubriko.newInstance()")
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun dispose() {
-        managers.forEach { it.onDisposeInternal() }
+        GlobalScope.launch { managers.forEach { it.onDisposeInternal() } }
         cancel()
     }
 }

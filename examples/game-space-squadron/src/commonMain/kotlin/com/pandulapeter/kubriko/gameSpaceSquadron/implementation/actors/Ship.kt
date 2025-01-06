@@ -66,6 +66,7 @@ internal class Ship : Visible, Dynamic, InsetPaddingAware, Group {
     override fun update(deltaTimeInMilliseconds: Float) {
         val previousX = body.position.x
         speed = min(shipDestination.body.position.distanceTo(body.position) * 0.03f + 0.5f.sceneUnit, MaxSpeed)
+        // TODO: Implement momentum
         moveTowards(shipDestination.body.position, speed)
         shipAnimationWrapper.update(deltaTimeInMilliseconds, previousX, body.position.x)
         body.scale = Scale(shipAnimationWrapper.horizontalScale, 1f)
@@ -101,7 +102,7 @@ internal class Ship : Visible, Dynamic, InsetPaddingAware, Group {
         spriteManager: SpriteManager
     ) {
         private val animatedSprite = AnimatedSprite(
-            getImageBitmap = { spriteManager.loadSprite(Res.drawable.sprite_ship) },
+            getImageBitmap = { spriteManager.load(Res.drawable.sprite_ship) },
             frameSize = IntSize(128, 144),
             frameCount = 23,
             framesPerRow = 8,

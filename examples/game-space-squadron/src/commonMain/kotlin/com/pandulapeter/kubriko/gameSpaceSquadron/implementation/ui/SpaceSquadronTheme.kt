@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.orbitron
 import org.jetbrains.compose.resources.Font
@@ -34,6 +35,9 @@ internal fun SpaceSquadronTheme(
     ),
     content = content
 )
+
+@Composable
+internal fun isFontLoaded() = SpaceSquadronTypography().bodyMedium.fontSize > 1.sp
 
 private val Shape: CornerBasedShape = RoundedCornerShape(
     topStart = CornerSize(50),

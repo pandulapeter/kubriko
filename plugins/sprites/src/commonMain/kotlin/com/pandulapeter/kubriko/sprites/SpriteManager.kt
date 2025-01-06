@@ -12,9 +12,9 @@ sealed class SpriteManager : Manager() {
 
     abstract fun getLoadingProgress(drawableResources: Collection<DrawableResource>): Flow<Float>
 
-    abstract fun loadSprite(drawableResource: DrawableResource): ImageBitmap?
+    abstract fun load(drawableResource: DrawableResource): ImageBitmap?
 
-    abstract fun unloadSprite(drawableResource: DrawableResource)
+    abstract fun unload(drawableResource: DrawableResource)
 
     companion object {
         fun newInstance(): SpriteManager = SpriteManagerImpl()

@@ -11,7 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
-import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
+import com.pandulapeter.kubriko.audioPlayback.MusicManager
+import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.collision.CollisionManager
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.SpaceSquadronAudioManager
@@ -69,7 +70,6 @@ sealed interface SpaceSquadronGameStateHolder : ExampleStateHolder
 fun createSpaceSquadronGameStateHolder(): SpaceSquadronGameStateHolder = SpaceSquadronGameStateHolderImpl()
 
 private class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
-    private val audioPlaybackManager = AudioPlaybackManager.newInstance()
     val stateManager = StateManager.newInstance(shouldAutoStart = false)
     private val persistenceManager = PersistenceManager.newInstance(fileName = "kubrikoSpaceSquadron")
     val userPreferencesManager = SpaceSquadronUserPreferencesManager(persistenceManager)
@@ -88,15 +88,19 @@ private class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
         KeyboardInputManager.newInstance(),
         PointerInputManager.newInstance(isActiveAboveViewport = true),
         SpaceSquadronGameManager(),
-        audioPlaybackManager,
+        MusicManager.newInstance(),
+        SoundManager.newInstance(),
         persistenceManager,
         userPreferencesManager,
         SpriteManager.newInstance(),
         SpaceSquadronUIManager(stateManager),
-        SpaceSquadronAudioManager(stateManager, audioPlaybackManager, userPreferencesManager),
+        SpaceSquadronAudioManager(stateManager, userPreferencesManager),
     )
 
-    override fun dispose() = kubriko.dispose()
+    override fun dispose() {
+        kubriko.dispose()
+        backgroundKubriko.dispose()
+    }
 }
 
 internal val ViewportHeight = 1280.sceneUnit

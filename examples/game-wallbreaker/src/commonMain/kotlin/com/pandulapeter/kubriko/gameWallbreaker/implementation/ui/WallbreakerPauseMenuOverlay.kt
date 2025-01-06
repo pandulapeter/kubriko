@@ -52,6 +52,7 @@ internal fun WallbreakerPauseMenuOverlay(
     shouldShowResumeButton: Boolean,
     onResumeButtonPressed: () -> Unit,
     onRestartButtonPressed: () -> Unit,
+    onInfoButtonPressed: () -> Unit,
     areSoundEffectsEnabled: Boolean,
     onSoundEffectsToggled: () -> Unit,
     isMusicEnabled: Boolean,
@@ -97,7 +98,7 @@ internal fun WallbreakerPauseMenuOverlay(
                     containerColor = createButtonColor(0f),
                 )
                 SmallButton(
-                    onButtonPressed = {}, // TODO
+                    onButtonPressed = onInfoButtonPressed,
                     icon = Res.drawable.ic_information,
                     contentDescription = Res.string.information,
                     containerColor = createButtonColor(0.2f),

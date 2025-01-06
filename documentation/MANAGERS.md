@@ -8,8 +8,9 @@ Read the KDoc comments of the linked files for more information.
 - [StateManager](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/manager/StateManager.kt)
 - [ViewportManager](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/manager/ViewportManager.kt)
 
-## Audio Player plugin
-- [AudioPlaybackManager](https://github.com/pandulapeter/kubriko/blob/main/plugins/audio-player/src/commonMain/kotlin/com/pandulapeter/kubriko/audioPlayback/AudioPlaybackManager.kt)
+## Audio Playback plugin
+- [MusicManager](https://github.com/pandulapeter/kubriko/blob/main/plugins/audio-playback/src/commonMain/kotlin/com/pandulapeter/kubriko/audioPlayback/MusicManager.kt)
+- [SoundManager](https://github.com/pandulapeter/kubriko/blob/main/plugins/audio-playback/src/commonMain/kotlin/com/pandulapeter/kubriko/audioPlayback/SoundManager.kt)
 
 ## Collision plugin
 - [CollisionManager](https://github.com/pandulapeter/kubriko/blob/main/plugins/collision/src/commonMain/kotlin/com/pandulapeter/kubriko/collision/CollisionManager.kt)

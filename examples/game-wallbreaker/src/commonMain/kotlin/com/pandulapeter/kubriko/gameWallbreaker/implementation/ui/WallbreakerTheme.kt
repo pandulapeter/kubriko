@@ -43,10 +43,10 @@ private val Shape: CornerBasedShape = RoundedCornerShape(
     bottomEnd = CornerSize(0),
 )
 
-internal fun createButtonColor(hue: Float) = Color.hsv(hue * 360, 0.3f, 1f)
-
 @Composable
-internal fun isFontLoaded() = WallbreakerTypography().bodyMedium.fontSize > 0.sp
+internal fun isFontLoaded() = WallbreakerTypography().bodyMedium.fontSize > 1.sp
+
+internal fun createButtonColor(hue: Float) = Color.hsv(hue * 360, 0.3f, 1f)
 
 @Composable
 private fun WallbreakerTypography() = Typography().run {

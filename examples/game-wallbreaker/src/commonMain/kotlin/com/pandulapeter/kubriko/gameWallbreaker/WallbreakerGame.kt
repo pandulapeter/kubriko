@@ -16,7 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
-import com.pandulapeter.kubriko.audioPlayback.AudioPlaybackManager
+import com.pandulapeter.kubriko.audioPlayback.MusicManager
+import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.collision.CollisionManager
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerAudioManager
@@ -75,6 +76,7 @@ fun WallbreakerGame(
             shouldShowResumeButton = !stateHolder.gameManager.isGameOver.collectAsState().value,
             onResumeButtonPressed = stateHolder.gameManager::resumeGame,
             onRestartButtonPressed = stateHolder.gameManager::restartGame,
+            onInfoButtonPressed = { }, // TODO
             areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
             onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
             isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
@@ -98,7 +100,6 @@ sealed interface WallbreakerGameStateHolder : ExampleStateHolder
 fun createWallbreakerGameStateHolder(): WallbreakerGameStateHolder = WallbreakerGameStateHolderImpl()
 
 private class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
-    private val audioPlaybackManager = AudioPlaybackManager.newInstance()
     val stateManager = StateManager.newInstance(shouldAutoStart = false)
     private val persistenceManager = PersistenceManager.newInstance(fileName = "kubrikoWallbreaker")
     val scoreManager = WallbreakerScoreManager(persistenceManager)
@@ -124,11 +125,15 @@ private class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
         persistenceManager,
         scoreManager,
         userPreferencesManager,
-        audioPlaybackManager,
-        WallbreakerAudioManager(stateManager, audioPlaybackManager, userPreferencesManager),
+        MusicManager.newInstance(),
+        SoundManager.newInstance(),
+        WallbreakerAudioManager(stateManager, userPreferencesManager),
         gameManager,
         WallbreakerUIManager(stateManager),
     )
 
-    override fun dispose() = kubriko.dispose()
+    override fun dispose() {
+        backgroundKubriko.dispose()
+        kubriko.dispose()
+    }
 }

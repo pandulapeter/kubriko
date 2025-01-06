@@ -73,4 +73,9 @@ internal class PersistenceManagerImpl(
         }
         stateFlowMap[key] = wrapper
     }
+
+    override fun onDispose() {
+        keyValuePersistenceManager = null
+        stateFlowMap.clear()
+    }
 }

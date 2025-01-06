@@ -206,6 +206,10 @@ internal class ActorManagerImpl(
         )
     }
 
+    override fun onDispose() {
+        _allActors.value = persistentListOf()
+    }
+
     companion object {
         // TODO: Probably shouldn't be necessary
         private const val ACTOR_CLIPPING_BORDER = 20f

@@ -12,13 +12,25 @@ import com.pandulapeter.kubriko.types.SceneSize
 
 internal class Brick(
     position: SceneOffset,
-    val hue: Float,
 ) : Visible, Collidable {
     override val body = RectangleBody(
         initialPosition = position,
         initialSize = SceneSize(Width, Height),
     )
-    private val color = Color.hsv(hue, 0.3f, 1f)
+    var hue = randomHue()
+        private set(value) {
+            field = value
+            color = createColor()
+        }
+    private var color = createColor()
+
+    fun randomizeHue() {
+        hue = randomHue()
+    }
+
+    private fun randomHue() = (0..360).random().toFloat()
+
+    private fun createColor() = Color.hsv(hue, 0.3f, 1f)
 
     override fun DrawScope.draw() {
         drawRect(

@@ -36,7 +36,6 @@ internal class WallbreakerGameManager(
                     x = Brick.Width * x,
                     y = Brick.Height * y,
                 ),
-                hue = (0..360).random().toFloat(),
             )
         }
     }
@@ -59,6 +58,7 @@ internal class WallbreakerGameManager(
 
     private fun initializeScene() {
         _isGameOver.value = false
+        bricks.forEach { it.randomizeHue() }
         actorManager.add(listOf(Ball(paddle), this))
     }
 

@@ -26,7 +26,7 @@ include(
     ":examples:game-space-squadron",
     ":examples:game-wallbreaker",
     ":examples:shared",
-    ":plugins:audio-player",
+    ":plugins:audio-playback",
     ":plugins:collision",
     ":plugins:keyboard-input",
     ":plugins:particles",

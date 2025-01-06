@@ -19,7 +19,7 @@ fun KubrikoTheme(
     content = {
         // Fade in the UI after the font is loaded
         AnimatedVisibility(
-            visible = KubrikoTypography().bodyMedium.fontSize > 0.sp,
+            visible = KubrikoTypography().bodyMedium.fontSize > 1.sp,
             enter = fadeIn(),
             exit = fadeOut(),
         ) {
