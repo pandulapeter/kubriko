@@ -1,12 +1,14 @@
 package com.pandulapeter.kubriko.sprites
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import com.pandulapeter.kubriko.sprites.implementation.toImageBitmap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentMap
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.DensityQualifier
 import org.jetbrains.compose.resources.DrawableResource
@@ -17,7 +19,11 @@ import org.jetbrains.compose.resources.getSystemResourceEnvironment
 
 internal class SpriteManagerImpl : SpriteManager() {
 
-    private val cache = mutableStateOf(persistentMapOf<DrawableResource, ImageBitmap?>())
+    private val cache = MutableStateFlow(persistentMapOf<DrawableResource, ImageBitmap?>())
+
+    override fun getLoadingProgress(drawableResources: Collection<DrawableResource>) = cache.map { cache ->
+        cache.filter { (key, _) -> key in drawableResources }.count { (_, value) -> value != null }.toFloat() / drawableResources.size
+    }
 
     override fun loadSprite(drawableResource: DrawableResource): ImageBitmap? {
         if (!cache.value.containsKey(drawableResource)) {
@@ -32,7 +38,7 @@ internal class SpriteManagerImpl : SpriteManager() {
 
     @Composable
     override fun Composable(insetPaddingModifier: Modifier) {
-        cache.value
+        cache.collectAsState().value // This line ensures that this Composable is invoked every time the cache is changed
         scope.launch {
             val newCache = mutableMapOf<DrawableResource, ImageBitmap?>()
             cache.value.let { cache ->

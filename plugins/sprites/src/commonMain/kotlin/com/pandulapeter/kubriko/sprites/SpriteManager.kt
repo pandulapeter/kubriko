@@ -2,6 +2,7 @@ package com.pandulapeter.kubriko.sprites
 
 import androidx.compose.ui.graphics.ImageBitmap
 import com.pandulapeter.kubriko.manager.Manager
+import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.DrawableResource
 
 /**
@@ -9,7 +10,7 @@ import org.jetbrains.compose.resources.DrawableResource
  */
 sealed class SpriteManager : Manager() {
 
-    // TODO: Add ability to preload sprites
+    abstract fun getLoadingProgress(drawableResources: Collection<DrawableResource>): Flow<Float>
 
     abstract fun loadSprite(drawableResource: DrawableResource): ImageBitmap?
 
