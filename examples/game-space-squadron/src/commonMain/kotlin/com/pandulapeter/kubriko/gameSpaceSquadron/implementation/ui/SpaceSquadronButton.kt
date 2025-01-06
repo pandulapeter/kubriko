@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
@@ -30,11 +29,11 @@ import org.jetbrains.compose.resources.stringResource
 internal fun SpaceSquadronButton(
     modifier: Modifier = Modifier,
     title: StringResource,
-    icon: DrawableResource? = null,
+    icon: DrawableResource,
     onButtonPressed: () -> Unit,
     onPointerEnter: (() -> Unit),
 ) {
-    val alpha = remember { mutableStateOf(0.8f) }
+    val alpha = remember { mutableStateOf(IDLE_BUTTON_ALPHA) }
     FloatingActionButton(
         modifier = modifier
             .height(40.dp)
@@ -49,15 +48,19 @@ internal fun SpaceSquadronButton(
                                 onPointerEnter()
                             }
 
+                            PointerEventType.Press -> {
+                                alpha.value = 1f
+                            }
+
                             PointerEventType.Exit -> {
-                                alpha.value = 0.8f
+                                alpha.value = IDLE_BUTTON_ALPHA
                             }
                         }
                     }
                 }
             },
         containerColor = if (isSystemInDarkTheme()) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary,
-        contentColor = if (alpha.value == 0.8f) MaterialTheme.colorScheme.onPrimary else Color.White,
+        contentColor = if (alpha.value == IDLE_BUTTON_ALPHA) MaterialTheme.colorScheme.onPrimary else Color.White,
         onClick = onButtonPressed,
     ) {
         Row(
@@ -65,16 +68,16 @@ internal fun SpaceSquadronButton(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            icon?.let {
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = stringResource(title),
-                )
-            }
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = stringResource(title),
+            )
             Text(
-                modifier = Modifier.padding(end = 8.dp, start = if (icon == null) 8.dp else 0.dp),
+                modifier = Modifier.padding(end = 8.dp),
                 text = stringResource(title),
             )
         }
     }
 }
+
+internal const val IDLE_BUTTON_ALPHA = 0.7f

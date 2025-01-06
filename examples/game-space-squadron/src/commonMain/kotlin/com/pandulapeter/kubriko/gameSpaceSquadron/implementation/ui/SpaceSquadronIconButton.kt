@@ -28,7 +28,7 @@ internal fun SpaceSquadronIconButton(
     onPointerEnter: (() -> Unit),
     contentDescription: StringResource?,
 ) {
-    val alpha = remember { mutableStateOf(0.8f) }
+    val alpha = remember { mutableStateOf(IDLE_BUTTON_ALPHA) }
     FloatingActionButton(
         modifier = modifier
             .size(40.dp)
@@ -42,16 +42,19 @@ internal fun SpaceSquadronIconButton(
                                 alpha.value = 1f
                                 onPointerEnter()
                             }
+                            PointerEventType.Press -> {
+                                alpha.value = 1f
+                            }
 
                             PointerEventType.Exit -> {
-                                alpha.value = 0.8f
+                                alpha.value = IDLE_BUTTON_ALPHA
                             }
                         }
                     }
                 }
             },
         containerColor = if (isSystemInDarkTheme()) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary,
-        contentColor = if (alpha.value == 0.8f) MaterialTheme.colorScheme.onPrimary else Color.White,
+        contentColor = if (alpha.value == IDLE_BUTTON_ALPHA) MaterialTheme.colorScheme.onPrimary else Color.White,
         onClick = onButtonPressed,
     ) {
         Icon(

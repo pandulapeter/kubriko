@@ -11,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import kubriko.examples.game_wallbreaker.generated.resources.Res
 import kubriko.examples.game_wallbreaker.generated.resources.kanit_regular
 import org.jetbrains.compose.resources.Font
@@ -42,9 +41,6 @@ private val Shape: CornerBasedShape = RoundedCornerShape(
     bottomStart = CornerSize(0),
     bottomEnd = CornerSize(0),
 )
-
-@Composable
-internal fun isFontLoaded() = WallbreakerTypography().bodyMedium.fontSize > 1.sp
 
 internal fun createButtonColor(hue: Float) = Color.hsv(hue * 360, 0.3f, 1f)
 
