@@ -6,11 +6,11 @@ internal interface SoundPlayer {
 
     suspend fun preload(uri: String) : Any?
 
-    suspend fun play(sound: Any)
+    suspend fun play(cachedSound: Any)
 
-    suspend fun dispose(sound: Any)
+    fun dispose(cachedSound: Any)
 
-    suspend fun dispose()
+    fun dispose()
 }
 
 @Composable

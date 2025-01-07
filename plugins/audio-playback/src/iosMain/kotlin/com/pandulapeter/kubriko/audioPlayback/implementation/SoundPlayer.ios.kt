@@ -34,7 +34,7 @@ internal actual fun createSoundPlayer(
         } while (!wasSoundPlayed)
     }
 
-    override suspend fun dispose(sound: Any) {
+    override fun dispose(sound: Any) {
         sound as List<AVAudioPlayer>
         sound.forEach {
             if (it.isPlaying()) {
@@ -43,5 +43,5 @@ internal actual fun createSoundPlayer(
         }
     }
 
-    override suspend fun dispose() = Unit
+    override fun dispose() = Unit
 }

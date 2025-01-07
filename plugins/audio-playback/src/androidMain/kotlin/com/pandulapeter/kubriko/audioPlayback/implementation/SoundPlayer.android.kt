@@ -54,13 +54,13 @@ internal actual fun createSoundPlayer(
         }
     }
 
-    override suspend fun dispose(sound: Any) {
-        sound as Int
-        soundPool.stop(sound)
-        soundPool.unload(sound)
+    override fun dispose(cachedSound: Any) {
+        cachedSound as Int
+        soundPool.stop(cachedSound)
+        soundPool.unload(cachedSound)
     }
 
-    override suspend fun dispose() = soundPool.release()
+    override fun dispose() = soundPool.release()
 }
 
 private interface PreloadListener {

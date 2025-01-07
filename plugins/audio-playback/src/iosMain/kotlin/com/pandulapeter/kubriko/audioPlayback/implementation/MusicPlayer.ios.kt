@@ -19,11 +19,11 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
         }
     }
 
-    override suspend fun play(music: Any, shouldLoop: Boolean) {
-        music as AVAudioPlayer
-        music.setNumberOfLoops(if (shouldLoop) NSIntegerMax else 0)
-        if (!music.isPlaying()) {
-            music.play()
+    override suspend fun play(cachedMusic: Any, shouldLoop: Boolean) {
+        cachedMusic as AVAudioPlayer
+        cachedMusic.setNumberOfLoops(if (shouldLoop) NSIntegerMax else 0)
+        if (!cachedMusic.isPlaying()) {
+            cachedMusic.play()
         }
     }
 
@@ -36,14 +36,14 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
         }
     }
 
-    override suspend fun stop(music: Any) {
+    override fun stop(music: Any) {
         music as AVAudioPlayer
         if (music.isPlaying()) {
             music.stop()
         }
     }
 
-    override suspend fun dispose(music: Any) = stop(music)
+    override fun dispose(music: Any) = stop(music)
 
-    override suspend fun dispose() = Unit
+    override fun dispose() = Unit
 }

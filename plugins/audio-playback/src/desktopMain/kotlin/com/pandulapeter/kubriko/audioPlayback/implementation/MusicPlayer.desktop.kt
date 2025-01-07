@@ -26,23 +26,23 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
         )
     }
 
-    override suspend fun play(music: Any, shouldLoop: Boolean) {
-        (music as DesktopMusicPlayer).play(coroutineScope, shouldLoop)
+    override suspend fun play(cachedMusic: Any, shouldLoop: Boolean) {
+        (cachedMusic as DesktopMusicPlayer).play(coroutineScope, shouldLoop)
     }
 
-    override fun isPlaying(music: Any) = (music as DesktopMusicPlayer).isPlaying
+    override fun isPlaying(cachedMusic: Any) = (cachedMusic as DesktopMusicPlayer).isPlaying
 
-    override fun pause(music: Any) {
-        (music as DesktopMusicPlayer).pause()
+    override fun pause(cachedMusic: Any) {
+        (cachedMusic as DesktopMusicPlayer).pause()
     }
 
-    override suspend fun stop(music: Any) {
-        (music as DesktopMusicPlayer).stop()
+    override fun stop(cachedMusic: Any) {
+        (cachedMusic as DesktopMusicPlayer).stop()
     }
 
-    override suspend fun dispose(music: Any) {
-        (music as DesktopMusicPlayer).close()
+    override fun dispose(cachedMusic: Any) {
+        (cachedMusic as DesktopMusicPlayer).close()
     }
 
-    override suspend fun dispose() = audioDevice.flush()
+    override fun dispose() = audioDevice.flush()
 }

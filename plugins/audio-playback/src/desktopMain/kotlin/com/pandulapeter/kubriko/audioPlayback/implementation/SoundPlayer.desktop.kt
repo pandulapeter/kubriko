@@ -31,7 +31,7 @@ internal actual fun createSoundPlayer(
     }
 
     // TODO: Stop the Clip
-    override suspend fun dispose(sound: Any) = Unit
+    override fun dispose(cachedSound: Any) = Unit
 
-    override suspend fun dispose() = Unit
+    override fun dispose() = Unit
 }

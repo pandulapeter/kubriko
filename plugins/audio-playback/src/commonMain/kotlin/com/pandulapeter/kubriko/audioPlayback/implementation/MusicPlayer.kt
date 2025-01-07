@@ -7,17 +7,17 @@ internal interface MusicPlayer {
 
     suspend fun preload(uri: String): Any?
 
-    suspend fun play(music: Any, shouldLoop: Boolean)
+    suspend fun play(cachedMusic: Any, shouldLoop: Boolean)
 
-    fun isPlaying(music: Any): Boolean
+    fun isPlaying(cachedMusic: Any): Boolean
 
-    fun pause(music: Any)
+    fun pause(cachedMusic: Any)
 
-    suspend fun stop(music: Any)
+    fun stop(cachedMusic: Any)
 
-    suspend fun dispose(music: Any)
+    fun dispose(cachedMusic: Any)
 
-    suspend fun dispose()
+    fun dispose()
 }
 
 @Composable

@@ -31,9 +31,9 @@ internal actual fun createSoundPlayer(
         }
     }
 
-    override suspend fun dispose(sound: Any) {
-        sound as List<HTMLAudioElement>
-        sound.forEach {
+    override fun dispose(cachedSound: Any) {
+        cachedSound as List<HTMLAudioElement>
+        cachedSound.forEach {
             if (!it.paused) {
                 it.pause()
             }
@@ -42,5 +42,5 @@ internal actual fun createSoundPlayer(
         }
     }
 
-    override suspend fun dispose() = Unit
+    override fun dispose() = Unit
 }

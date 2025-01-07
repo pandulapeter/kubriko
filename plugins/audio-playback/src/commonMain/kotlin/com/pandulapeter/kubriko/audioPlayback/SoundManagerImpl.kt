@@ -7,7 +7,6 @@ import com.pandulapeter.kubriko.audioPlayback.implementation.createSoundPlayer
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -78,16 +77,12 @@ internal class SoundManagerImpl(
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun onDispose() {
-        // Using the manager scope is not correct here, since it will get cancelled soon.
-        GlobalScope.launch {
-            soundPlayer?.let { soundPlayer ->
-                cache.value.values.filterNotNull().forEach { sound -> soundPlayer.dispose(sound) }
-                soundPlayer.dispose()
-            }
-            cache.value = persistentMapOf()
-            soundPlayer = null
+        soundPlayer?.let { soundPlayer ->
+            cache.value.values.filterNotNull().forEach { sound -> soundPlayer.dispose(sound) }
+            soundPlayer.dispose()
         }
+        cache.value = persistentMapOf()
+        soundPlayer = null
     }
 }
