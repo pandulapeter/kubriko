@@ -4,12 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.audioPlayback.implementation.MusicPlayer
 import com.pandulapeter.kubriko.audioPlayback.implementation.createMusicPlayer
+import com.pandulapeter.kubriko.audioPlayback.implementation.onManagerDisposed
 import com.pandulapeter.kubriko.manager.StateManager
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentMap
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
@@ -102,17 +100,9 @@ internal class MusicManagerImpl : MusicManager() {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun onDispose() {
-        // We cannot use the Manager scope to do the cleanup, as it will get cancelled shortly after this function is called
-        // However, the cleanup needs to be done on a background thread (it blocks the desktop UI otherwise)
-        GlobalScope.launch(Dispatchers.Default) {
-            musicPlayer?.let { musicPlayer ->
-                cache.value.values.filterNotNull().forEach { music -> musicPlayer.dispose(music) }
-                musicPlayer.dispose()
-            }
-            cache.value = persistentMapOf()
-            musicPlayer = null
-        }
+        musicPlayer?.onManagerDisposed(cache.value)
+        musicPlayer = null
+        cache.value = persistentMapOf()
     }
 }
