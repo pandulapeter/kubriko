@@ -1,3 +1,3 @@
 package com.pandulapeter.kubriko.shared.ui
 
-internal actual val fontLoadingDelay = 100L
+internal actual val fontLoadingDelay = 500L

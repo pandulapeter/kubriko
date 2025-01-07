@@ -12,19 +12,17 @@ import androidx.compose.runtime.Composable
 @Composable
 fun KubrikoTheme(
     content: @Composable () -> Unit
-) = MaterialTheme(
-    colorScheme = if (isSystemInDarkTheme()) darkScheme else lightScheme,
-    typography = KubrikoTypography(),
-    content = {
-        AnimatedVisibility(
-            visible = isKubrikoFontLoaded(),
-            enter = fadeIn(),
-            exit = fadeOut(),
-        ) {
-            content()
-        }
-    }
-)
+) = AnimatedVisibility(
+    visible = isKubrikoFontLoaded(),
+    enter = fadeIn(),
+    exit = fadeOut(),
+) {
+    MaterialTheme(
+        colorScheme = if (isSystemInDarkTheme()) darkScheme else lightScheme,
+        typography = KubrikoTypography(),
+        content = content,
+    )
+}
 
 private val lightScheme = lightColorScheme(
     primary = KubrikoColors.brandPrimary,
