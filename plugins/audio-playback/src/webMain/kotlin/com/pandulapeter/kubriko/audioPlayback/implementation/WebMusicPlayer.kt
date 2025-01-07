@@ -40,6 +40,7 @@ internal class WebMusicPlayer(
                     it.disconnect()
                     it.buffer = null
                 }
+                audioContext?.suspend()
                 audioContext?.close()
                 audioContext = AudioContext().apply {
                     sourceNode = createBufferSource().apply {
@@ -73,17 +74,24 @@ internal class WebMusicPlayer(
             it.buffer = null
         }
         sourceNode = null
-        audioBuffer = null
+        audioContext?.suspend()
         audioContext?.close()
         audioContext = null
         pausedAt = 0.0
         startedAt = 0.0
+    }
+
+    fun dispose() {
+        stop()
+        audioBuffer = null
+        audioContext = null
     }
 }
 
 internal external class AudioContext {
     fun decodeAudioData(audioData: ArrayBuffer): Promise<AudioBuffer>
     fun createBufferSource(): AudioBufferSourceNode
+    fun suspend()
     fun close()
     val destination: AudioNode
     val currentTime: Double

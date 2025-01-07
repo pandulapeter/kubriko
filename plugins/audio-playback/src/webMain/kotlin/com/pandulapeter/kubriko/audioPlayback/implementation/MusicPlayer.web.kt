@@ -32,15 +32,16 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
     override fun stop(cachedMusic: Any) = (cachedMusic as WebMusicPlayer).stop()
 
     override fun dispose(cachedMusic: Any) {
-        stop(cachedMusic)
+        cachedMusic as WebMusicPlayer
+        cachedMusic.dispose()
         // Sometimes on the Chrome Android the first attempt doesn't stop the music
         val handler: () -> JsAny? = {
-            stop(cachedMusic)
+            cachedMusic.dispose()
             null
         }
         window.setTimeout(
             handler = handler,
-            timeout = 200,
+            timeout = 250,
         )
     }
 

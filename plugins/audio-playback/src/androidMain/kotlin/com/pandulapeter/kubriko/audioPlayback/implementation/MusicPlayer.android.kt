@@ -52,6 +52,7 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
 
     override fun pause(cachedMusic: Any) = (cachedMusic as MediaPlayer).pause()
 
+    // TODO: Stream cannot be restarted after stop
     override fun stop(cachedMusic: Any) = (cachedMusic as MediaPlayer).stop()
 
     override fun dispose(cachedMusic: Any) {

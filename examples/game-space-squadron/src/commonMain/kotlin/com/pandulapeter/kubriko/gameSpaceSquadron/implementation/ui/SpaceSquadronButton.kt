@@ -48,11 +48,6 @@ internal fun SpaceSquadronButton(
                                 onPointerEnter()
                             }
 
-                            PointerEventType.Press -> {
-                                alpha.value = 1f
-                            }
-
-                            PointerEventType.Release,
                             PointerEventType.Exit -> {
                                 alpha.value = IDLE_BUTTON_ALPHA
                             }

@@ -36,6 +36,7 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
         }
     }
 
+    // TODO: Works like a pause, not a stop
     override fun stop(music: Any) {
         music as AVAudioPlayer
         if (music.isPlaying()) {

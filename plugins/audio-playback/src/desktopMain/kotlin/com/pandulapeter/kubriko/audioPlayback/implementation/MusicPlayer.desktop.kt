@@ -41,7 +41,7 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
     }
 
     override fun dispose(cachedMusic: Any) {
-        (cachedMusic as DesktopMusicPlayer).close()
+        (cachedMusic as DesktopMusicPlayer).stop()
     }
 
     override fun dispose() = audioDevice.flush()

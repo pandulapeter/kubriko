@@ -58,19 +58,16 @@ internal class DesktopMusicPlayer(
 
     @Throws(JavaLayerException::class)
     private fun playFrame(): Boolean {
-        var currentFrame = 1
-        var ret = true
-        while (currentFrame-- > 0) {
-            ret = decodeFrame()
-        }
-        if (!ret) {
+        val hasNextFrame = decodeFrame()
+        if (!hasNextFrame) {
             synchronized(this) {
                 close()
             }
         }
-        return ret
+        return hasNextFrame
     }
 
+    // TODO: Doesn't work as stop, it just pauses the stream
     fun stop() {
         pause()
         musicPlayingJob?.cancel()
