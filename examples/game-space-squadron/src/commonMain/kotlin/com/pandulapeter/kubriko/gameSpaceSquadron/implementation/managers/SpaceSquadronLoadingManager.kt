@@ -6,6 +6,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.isSpaceSquadronFontLoaded
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.sprites.SpriteManager
 import kubriko.examples.game_space_squadron.generated.resources.Res
@@ -46,7 +47,8 @@ internal class SpaceSquadronLoadingManager : Manager() {
             && spriteManager.getLoadingProgress(spriteResources).collectAsState(0f).value == 1f
 
     @Composable
-    private fun areMenuResourcesLoaded() = vectorResource(Res.drawable.ic_fullscreen_enter).defaultWidth > 1.dp
+    private fun areMenuResourcesLoaded() = isSpaceSquadronFontLoaded()
+            && vectorResource(Res.drawable.ic_fullscreen_enter).defaultWidth > 1.dp
             && vectorResource(Res.drawable.ic_fullscreen_exit).defaultWidth > 1.dp
             && vectorResource(Res.drawable.ic_information).defaultWidth > 1.dp
             && vectorResource(Res.drawable.ic_music_off).defaultWidth > 1.dp

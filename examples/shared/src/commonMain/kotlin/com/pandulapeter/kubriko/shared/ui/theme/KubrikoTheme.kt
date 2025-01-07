@@ -8,7 +8,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.sp
 
 @Composable
 fun KubrikoTheme(
@@ -17,9 +16,8 @@ fun KubrikoTheme(
     colorScheme = if (isSystemInDarkTheme()) darkScheme else lightScheme,
     typography = KubrikoTypography(),
     content = {
-        // Fade in the UI after the font is loaded
         AnimatedVisibility(
-            visible = KubrikoTypography().bodyMedium.fontSize > 1.sp,
+            visible = isKubrikoFontLoaded(),
             enter = fadeIn(),
             exit = fadeOut(),
         ) {

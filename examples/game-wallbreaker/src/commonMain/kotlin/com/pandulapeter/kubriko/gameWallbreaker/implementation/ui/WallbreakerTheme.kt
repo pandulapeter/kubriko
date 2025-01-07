@@ -67,6 +67,9 @@ private fun WallbreakerTypography() = Typography().run {
 }
 
 @Composable
+internal fun isWallbreakerFontLoaded() = !KanitRegularFontFamily().toString().contains("emptyFont")
+
+@Composable
 private fun KanitRegularFontFamily() = FontFamily(
     Font(Res.font.kanit_regular, weight = FontWeight.Normal),
 )

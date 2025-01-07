@@ -31,6 +31,9 @@ internal fun KubrikoTypography() = Typography().run {
 }
 
 @Composable
+internal fun isKubrikoFontLoaded() = !PublicSansRegularFontFamily().toString().contains("emptyFont")
+
+@Composable
 private fun PublicSansRegularFontFamily() = FontFamily(
     Font(Res.font.public_sans_regular, weight = FontWeight.Normal),
 )

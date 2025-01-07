@@ -82,6 +82,9 @@ private fun SpaceSquadronTypography() = Typography().run {
 }
 
 @Composable
+internal fun isSpaceSquadronFontLoaded() = !OrbitronFontFamily().toString().contains("emptyFont")
+
+@Composable
 private fun OrbitronFontFamily() = FontFamily(
     Font(Res.font.orbitron, weight = FontWeight.Normal),
 )
