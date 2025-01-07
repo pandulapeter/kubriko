@@ -14,7 +14,7 @@ internal class WebMusicPlayer(
     private val uri: String,
     onPreloadReady: (WebMusicPlayer) -> Unit,
 ) {
-    private val audioContext = AudioContext()
+    private var audioContext: AudioContext? = null
     private var audioBuffer: AudioBuffer? = null
     private var sourceNode: AudioBufferSourceNode? = null
     var isPlaying = false
@@ -27,7 +27,7 @@ internal class WebMusicPlayer(
         scope.launch(Dispatchers.Default) {
             val response = window.fetch(uri).await<Response>()
             val arrayBuffer = response.arrayBuffer().await<ArrayBuffer>()
-            audioBuffer = audioContext.decodeAudioData(arrayBuffer).await()
+            audioBuffer = AudioContext().decodeAudioData(arrayBuffer).await()
             onPreloadReady(this@WebMusicPlayer)
         }
     }
@@ -35,23 +35,31 @@ internal class WebMusicPlayer(
     fun play(shouldLoop: Boolean) {
         if (playJob == null && !isPlaying) {
             playJob = scope.launch(Dispatchers.Default) {
-                sourceNode = audioContext.createBufferSource().apply {
-                    buffer = audioBuffer
-                    connect(audioContext.destination)
+                sourceNode?.let {
+                    it.stop()
+                    it.disconnect()
+                    it.buffer = null
                 }
-                startedAt = audioContext.currentTime - pausedAt
-                sourceNode?.start(0.0, pausedAt)
+                audioContext?.close()
+                audioContext = AudioContext().apply {
+                    sourceNode = createBufferSource().apply {
+                        buffer = audioBuffer
+                        connect(destination)
+                        start(0.0, pausedAt)
+                        loop = shouldLoop
+                    }
+                    startedAt = currentTime - pausedAt
+                }
                 isPlaying = true
             }
         }
-        sourceNode?.loop = shouldLoop
     }
 
     fun pause() {
         playJob?.cancel()
         playJob = null
         if (isPlaying) {
-            pausedAt = audioContext.currentTime - startedAt
+            pausedAt = (audioContext?.currentTime ?: 0.0) - startedAt
         }
         sourceNode?.stop()
         isPlaying = false
@@ -59,9 +67,15 @@ internal class WebMusicPlayer(
 
     fun stop() {
         pause()
-        audioBuffer = null
-        sourceNode?.disconnect()
+        sourceNode?.let {
+            it.stop()
+            it.disconnect()
+            it.buffer = null
+        }
         sourceNode = null
+        audioBuffer = null
+        audioContext?.close()
+        audioContext = null
         pausedAt = 0.0
         startedAt = 0.0
     }
@@ -70,6 +84,7 @@ internal class WebMusicPlayer(
 internal external class AudioContext {
     fun decodeAudioData(audioData: ArrayBuffer): Promise<AudioBuffer>
     fun createBufferSource(): AudioBufferSourceNode
+    fun close()
     val destination: AudioNode
     val currentTime: Double
 }

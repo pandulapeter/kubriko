@@ -1,6 +1,7 @@
 package com.pandulapeter.kubriko.audioPlayback.implementation
 
 import androidx.compose.runtime.Composable
+import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -30,7 +31,18 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
 
     override fun stop(cachedMusic: Any) = (cachedMusic as WebMusicPlayer).stop()
 
-    override fun dispose(cachedMusic: Any) = stop(cachedMusic)
+    override fun dispose(cachedMusic: Any) {
+        stop(cachedMusic)
+        // Sometimes on the Chrome Android the first attempt doesn't stop the music
+        val handler: () -> JsAny? = {
+            stop(cachedMusic)
+            null
+        }
+        window.setTimeout(
+            handler = handler,
+            timeout = 200,
+        )
+    }
 
     override fun dispose() = Unit
 }
