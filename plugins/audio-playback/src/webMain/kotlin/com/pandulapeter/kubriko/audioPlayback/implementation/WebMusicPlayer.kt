@@ -33,8 +33,8 @@ internal class WebMusicPlayer(
     }
 
     fun play(shouldLoop: Boolean) {
-        playJob = scope.launch(Dispatchers.Default) {
-            if (!isPlaying) {
+        if (playJob == null && !isPlaying) {
+            playJob = scope.launch(Dispatchers.Default) {
                 sourceNode = audioContext.createBufferSource().apply {
                     buffer = audioBuffer
                     connect(audioContext.destination)
@@ -49,6 +49,7 @@ internal class WebMusicPlayer(
 
     fun pause() {
         playJob?.cancel()
+        playJob = null
         if (isPlaying) {
             pausedAt = audioContext.currentTime - startedAt
         }

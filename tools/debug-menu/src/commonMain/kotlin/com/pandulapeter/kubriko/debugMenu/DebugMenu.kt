@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,9 +48,20 @@ import org.jetbrains.compose.resources.stringResource
 
 object DebugMenu {
 
-    internal val isDebugMenuVisible = mutableStateOf(false)
+    private val _isDebugMenuVisible = mutableStateOf(false)
+    internal val isDebugMenuVisible = _isDebugMenuVisible as State<Boolean>
     private val _isDebugOverlayEnabled = MutableStateFlow(false)
     internal val isDebugOverlayEnabled = _isDebugOverlayEnabled.asStateFlow()
+    private val _logs = mutableStateOf(emptyList<String>())
+    internal val logs = _logs as State<List<String>>
+
+    fun log(message: String) {
+        _logs.value = logs.value + message
+    }
+
+    internal fun onIsDebugMenuVisibleChanged() {
+        _isDebugMenuVisible.value = !isDebugMenuVisible.value
+    }
 
     internal fun onIsDebugOverlayEnabledChanged() = _isDebugOverlayEnabled.update { !it }
 }
@@ -126,7 +138,7 @@ fun DebugMenu(
                 } else {
                     if (DebugMenu.isDebugMenuVisible.value) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary
                 },
-                onClick = { DebugMenu.isDebugMenuVisible.value = !DebugMenu.isDebugMenuVisible.value },
+                onClick = DebugMenu::onIsDebugMenuVisibleChanged,
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.ic_debug),

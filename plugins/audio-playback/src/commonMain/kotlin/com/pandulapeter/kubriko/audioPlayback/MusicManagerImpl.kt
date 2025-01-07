@@ -68,10 +68,10 @@ internal class MusicManagerImpl : MusicManager() {
     }
 
     override fun play(uri: String, shouldLoop: Boolean) {
-        scope.launch {
-            musicPlayer?.let { musicPlayer ->
-                if (!isPlaying(uri)) {
-                    val cachedSound = cache.value[uri]
+        musicPlayer?.let { musicPlayer ->
+            if (!isPlaying(uri)) {
+                val cachedSound = cache.value[uri]
+                scope.launch {
                     if (cachedSound == null) {
                         musicPlayer.preload(uri)?.let { music ->
                             addToCache(uri, music)
