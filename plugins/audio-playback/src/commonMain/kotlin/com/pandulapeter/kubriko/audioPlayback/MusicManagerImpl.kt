@@ -86,12 +86,16 @@ internal class MusicManagerImpl : MusicManager() {
     }
 
     override fun pause(uri: String) {
-        cache.value[uri]?.let { music -> musicPlayer?.pause(music) }
+        if (isPlaying(uri)) {
+            cache.value[uri]?.let { music -> musicPlayer?.pause(music) }
+        }
     }
 
     override fun stop(uri: String) {
-        scope.launch {
-            cache.value[uri]?.let { music -> musicPlayer?.stop(music) }
+        if (isPlaying(uri)) {
+            scope.launch {
+                cache.value[uri]?.let { music -> musicPlayer?.stop(music) }
+            }
         }
     }
 

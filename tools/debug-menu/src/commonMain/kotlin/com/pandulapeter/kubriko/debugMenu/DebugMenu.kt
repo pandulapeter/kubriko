@@ -36,11 +36,23 @@ import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuMetadata
 import com.pandulapeter.kubriko.debugMenu.implementation.ui.DebugMenuContents
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.manager.ViewportManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kubriko.tools.debug_menu.generated.resources.Res
 import kubriko.tools.debug_menu.generated.resources.debug_menu
 import kubriko.tools.debug_menu.generated.resources.ic_debug
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+
+object DebugMenu {
+
+    internal val isDebugMenuVisible = mutableStateOf(false)
+    private val _isDebugOverlayEnabled = MutableStateFlow(false)
+    internal val isDebugOverlayEnabled = _isDebugOverlayEnabled.asStateFlow()
+
+    internal fun onIsDebugOverlayEnabledChanged() = _isDebugOverlayEnabled.update { !it }
+}
 
 /**
  * TODO: Documentation
@@ -65,7 +77,6 @@ fun DebugMenu(
             debugMenuManager,
         )
     }
-    val isDebugMenuVisible = remember { mutableStateOf(false) }
     if (isEnabled) {
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -80,12 +91,13 @@ fun DebugMenu(
                 )
             }
             AnimatedVisibility(
-                visible = isDebugMenuVisible.value,
+                visible = DebugMenu.isDebugMenuVisible.value,
             ) {
                 Surface(
                     modifier = Modifier
                         .defaultMinSize(
-                            minWidth = 180.dp + WindowInsets.safeDrawing.only(WindowInsetsSides.Right).asPaddingValues().calculateRightPadding(LocalLayoutDirection.current)
+                            minWidth = 180.dp + WindowInsets.safeDrawing.only(WindowInsetsSides.Right).asPaddingValues()
+                                .calculateRightPadding(LocalLayoutDirection.current)
                         ).fillMaxHeight(),
                     tonalElevation = when (isSystemInDarkTheme()) {
                         true -> 4.dp
@@ -99,7 +111,7 @@ fun DebugMenu(
                     DebugMenuContents(
                         modifier = debugMenuModifier,
                         debugMenuMetadata = debugMenuManager.debugMenuMetadata.collectAsState(DebugMenuMetadata()).value,
-                        onIsDebugOverlayEnabledChanged = debugMenuManager::onIsDebugOverlayEnabledChanged,
+                        onIsDebugOverlayEnabledChanged = DebugMenu::onIsDebugOverlayEnabledChanged,
                     )
                 }
             }
@@ -110,11 +122,11 @@ fun DebugMenu(
             FloatingActionButton(
                 modifier = Modifier.size(40.dp).align(Alignment.TopStart),
                 containerColor = if (isSystemInDarkTheme()) {
-                    if (isDebugMenuVisible.value) MaterialTheme.colorScheme.primary else FloatingActionButtonDefaults.containerColor
+                    if (DebugMenu.isDebugMenuVisible.value) MaterialTheme.colorScheme.primary else FloatingActionButtonDefaults.containerColor
                 } else {
-                    if (isDebugMenuVisible.value) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary
+                    if (DebugMenu.isDebugMenuVisible.value) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary
                 },
-                onClick = { isDebugMenuVisible.value = !isDebugMenuVisible.value },
+                onClick = { DebugMenu.isDebugMenuVisible.value = !DebugMenu.isDebugMenuVisible.value },
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.ic_debug),

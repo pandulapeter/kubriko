@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.drawscope.withTransform
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
+import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.extensions.minus
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.transformForViewport
@@ -27,7 +28,6 @@ internal class DebugMenuManager(gameKubriko: Kubriko) : Manager(), Overlay, Uniq
     private val gameActorManager by lazy { gameKubriko.get<ActorManager>() }
     private val gameMetadataManager by lazy { gameKubriko.get<MetadataManager>() }
     private val gameViewportManager by lazy { gameKubriko.get<ViewportManager>() }
-    private val isDebugOverlayEnabled = MutableStateFlow(false)
     private val debugColor = Color.Cyan
     override val overlayDrawingOrder = Float.MIN_VALUE
     val debugMenuMetadata = combine(
@@ -35,7 +35,7 @@ internal class DebugMenuManager(gameKubriko: Kubriko) : Manager(), Overlay, Uniq
         gameActorManager.allActors,
         gameActorManager.visibleActorsWithinViewport,
         gameMetadataManager.activeRuntimeInMilliseconds,
-        isDebugOverlayEnabled,
+        DebugMenu.isDebugOverlayEnabled,
     ) { fps, allActors, visibleActorsWithinViewport, runtimeInMilliseconds, isDebugOverlayEnabled ->
         DebugMenuMetadata(
             fps = fps,
@@ -50,10 +50,8 @@ internal class DebugMenuManager(gameKubriko: Kubriko) : Manager(), Overlay, Uniq
         kubriko.get<ActorManager>().add(this)
     }
 
-    fun onIsDebugOverlayEnabledChanged() = isDebugOverlayEnabled.update { currentValue -> !currentValue }
-
     override fun DrawScope.drawToViewport() {
-        if (isDebugOverlayEnabled.value) {
+        if (DebugMenu.isDebugOverlayEnabled.value) {
             gameViewportManager.cameraPosition.value.let { viewportCenter ->
                 gameViewportManager.scaleFactor.value.let { scaleFactor ->
                     withTransform(
