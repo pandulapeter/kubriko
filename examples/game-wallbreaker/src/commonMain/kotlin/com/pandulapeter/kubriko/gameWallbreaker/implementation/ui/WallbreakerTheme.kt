@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import com.pandulapeter.kubriko.shared.ui.isFontFamilyLoaded
 import kubriko.examples.game_wallbreaker.generated.resources.Res
 import kubriko.examples.game_wallbreaker.generated.resources.kanit_regular
 import org.jetbrains.compose.resources.Font
@@ -67,7 +68,7 @@ private fun WallbreakerTypography() = Typography().run {
 }
 
 @Composable
-internal fun isWallbreakerFontLoaded() = !KanitRegularFontFamily().toString().contains("emptyFont")
+internal fun isWallbreakerFontLoaded() = isFontFamilyLoaded(KanitRegularFontFamily())
 
 @Composable
 private fun KanitRegularFontFamily() = FontFamily(

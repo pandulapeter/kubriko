@@ -4,6 +4,7 @@ import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import com.pandulapeter.kubriko.shared.ui.isFontFamilyLoaded
 import kubriko.examples.shared.generated.resources.Res
 import kubriko.examples.shared.generated.resources.public_sans_regular
 import org.jetbrains.compose.resources.Font
@@ -31,7 +32,7 @@ internal fun KubrikoTypography() = Typography().run {
 }
 
 @Composable
-internal fun isKubrikoFontLoaded() = !PublicSansRegularFontFamily().toString().contains("emptyFont")
+internal fun isKubrikoFontLoaded() = isFontFamilyLoaded(PublicSansRegularFontFamily())
 
 @Composable
 private fun PublicSansRegularFontFamily() = FontFamily(
