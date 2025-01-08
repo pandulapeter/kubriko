@@ -8,6 +8,7 @@ kotlin {
             api(projects.examples.shared)
             implementation(projects.engine)
             implementation(projects.plugins.audioPlayback)
+            implementation(compose.components.resources)
             implementation(compose.material3)
         }
     }

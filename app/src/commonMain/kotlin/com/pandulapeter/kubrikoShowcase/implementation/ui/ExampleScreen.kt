@@ -67,6 +67,7 @@ internal fun ShowcaseEntry.ExampleScreen(
 
         ShowcaseEntry.AUDIO -> AudioDemo(
             stateHolder = getOrCreateState(currentDemoStateHolders, ::createAudioDemoStateHolder),
+            windowInsets = windowInsets,
         )
 
         ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemo(
