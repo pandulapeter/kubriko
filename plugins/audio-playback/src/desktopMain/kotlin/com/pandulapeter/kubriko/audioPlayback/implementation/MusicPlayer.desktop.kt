@@ -1,7 +1,6 @@
 package com.pandulapeter.kubriko.audioPlayback.implementation
 
 import androidx.compose.runtime.Composable
-import javazoom.jl.player.FactoryRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -10,8 +9,6 @@ import java.net.URI
 
 @Composable
 internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object : MusicPlayer {
-
-    private val audioDevice by lazy { FactoryRegistry.systemRegistry().createAudioDevice() }
 
     override suspend fun preload(uri: String) = withContext(Dispatchers.IO) {
         DesktopMusicPlayer(
@@ -22,7 +19,6 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
                     FileInputStream(resolvedUri.toString())
                 }
             },
-            audioDevice = audioDevice,
         )
     }
 
@@ -41,8 +37,8 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
     }
 
     override fun dispose(cachedMusic: Any) {
-        (cachedMusic as DesktopMusicPlayer).stop()
+        (cachedMusic as DesktopMusicPlayer).dispose()
     }
 
-    override fun dispose() = audioDevice.flush()
+    override fun dispose() = Unit
 }

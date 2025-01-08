@@ -6,6 +6,7 @@ import javazoom.jl.decoder.Decoder
 import javazoom.jl.decoder.JavaLayerException
 import javazoom.jl.decoder.SampleBuffer
 import javazoom.jl.player.AudioDevice
+import javazoom.jl.player.FactoryRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -16,8 +17,8 @@ import java.io.InputStream
 
 internal class DesktopMusicPlayer(
     inputStream: InputStream?,
-    private val audioDevice: AudioDevice,
 ) {
+    private val audioDevice = FactoryRegistry.systemRegistry().createAudioDevice()
     private val bitstream = Bitstream(inputStream)
     private var closed = false
     private val decoder = Decoder()
@@ -72,6 +73,11 @@ internal class DesktopMusicPlayer(
         pause()
         musicPlayingJob?.cancel()
         musicPlayingJob = null
+    }
+
+    fun dispose() {
+        stop()
+        audioDevice.flush()
     }
 
     @Synchronized
