@@ -7,6 +7,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
+            implementation(projects.examples.demoAudio)
             implementation(projects.examples.demoContentShaders)
             implementation(projects.examples.demoInput)
             implementation(projects.examples.demoPerformance)

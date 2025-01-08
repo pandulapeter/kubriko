@@ -1,6 +1,8 @@
 package com.pandulapeter.kubrikoShowcase.implementation
 
 import kubriko.app.generated.resources.Res
+import kubriko.app.generated.resources.demo_audio
+import kubriko.app.generated.resources.demo_audio_subtitle
 import kubriko.app.generated.resources.demo_content_shaders
 import kubriko.app.generated.resources.demo_content_shaders_subtitle
 import kubriko.app.generated.resources.demo_shader_animations
@@ -33,6 +35,11 @@ internal enum class ShowcaseEntry(
         type = ShowcaseEntryType.GAME,
         titleStringResource = Res.string.game_space_squadron,
         subtitleStringResource = Res.string.game_space_squadron_subtitle,
+    ),
+    AUDIO(
+        type = ShowcaseEntryType.DEMO,
+        titleStringResource = Res.string.demo_audio,
+        subtitleStringResource = Res.string.demo_audio_subtitle,
     ),
     CONTENT_SHADERS(
         type = ShowcaseEntryType.DEMO,

@@ -8,6 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import com.pandulapeter.kubriko.demoAudio.AudioDemo
+import com.pandulapeter.kubriko.demoAudio.AudioDemoStateHolder
+import com.pandulapeter.kubriko.demoAudio.createAudioDemoStateHolder
 import com.pandulapeter.kubriko.demoContentShaders.ContentShadersDemo
 import com.pandulapeter.kubriko.demoContentShaders.ContentShadersDemoStateHolder
 import com.pandulapeter.kubriko.demoContentShaders.createContentShadersDemoStateHolder
@@ -62,6 +65,10 @@ internal fun ShowcaseEntry.ExampleScreen(
             onFullscreenModeToggled = onFullscreenModeToggled,
         )
 
+        ShowcaseEntry.AUDIO -> AudioDemo(
+            stateHolder = getOrCreateState(currentDemoStateHolders, ::createAudioDemoStateHolder),
+        )
+
         ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemo(
             stateHolder = getOrCreateState(currentDemoStateHolders, ::createContentShadersDemoStateHolder),
         )
@@ -105,6 +112,7 @@ private val ShowcaseEntry.stateHolderType
     get() = when (this) {
         ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemoStateHolder::class
         ShowcaseEntry.SHADER_ANIMATIONS -> ShaderAnimationsDemoStateHolder::class
+        ShowcaseEntry.AUDIO -> AudioDemoStateHolder::class
         ShowcaseEntry.INPUT -> InputDemoStateHolder::class
         ShowcaseEntry.PERFORMANCE -> PerformanceDemoStateHolder::class
         ShowcaseEntry.PHYSICS -> PhysicsDemoStateHolder::class

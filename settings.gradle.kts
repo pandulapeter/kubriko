@@ -18,6 +18,7 @@ dependencyResolutionManagement {
 include(
     ":app",
     ":engine",
+    ":examples:demo-audio",
     ":examples:demo-content-shaders",
     ":examples:demo-input",
     ":examples:demo-performance",
