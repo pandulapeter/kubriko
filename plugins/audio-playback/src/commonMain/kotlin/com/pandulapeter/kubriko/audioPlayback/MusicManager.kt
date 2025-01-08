@@ -17,7 +17,7 @@ sealed class MusicManager : Manager() {
 
     abstract fun isPlaying(uri: String) : Boolean
 
-    abstract fun play(uri: String, shouldLoop: Boolean)
+    abstract fun play(uri: String, shouldLoop: Boolean = true)
 
     abstract fun pause(uri: String)
 

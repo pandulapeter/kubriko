@@ -3,5 +3,7 @@
     <string name="play">Play</string>
     <string name="pause">Pause</string>
     <string name="stop">Stop</string>
+    <string name="loop_on">Loop: on</string>
+    <string name="loop_off">Loop: off</string>
 
 </resources>
