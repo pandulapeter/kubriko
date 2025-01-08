@@ -7,8 +7,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
@@ -79,34 +81,36 @@ internal class AudioDemoManager : Manager() {
         title: String,
         musicUri: String,
         isPlaying: Boolean,
-    ) = Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Text(
-            text = title,
-        )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+    ) = Card {
+        Column(
+            modifier = Modifier.padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            ControlButton(
-                icon = if (isPlaying) Res.drawable.ic_pause else Res.drawable.ic_play,
-                contentDescription = if (isPlaying) Res.string.pause else Res.string.play,
-                onClick = { if (isPlaying) musicManager.pause(musicUri) else musicManager.play(musicUri) },
+            Text(
+                modifier = Modifier.padding(horizontal = 8.dp),
+                text = title,
             )
-            ControlButton(
-                icon = Res.drawable.ic_stop,
-                contentDescription = Res.string.stop,
-                isEnabled = isPlaying,
-                onClick = { musicManager.stop(musicUri) },
-            )
-            ControlButton(
-                icon = Res.drawable.ic_loop_on,
-                contentDescription = Res.string.loop_on,
-                isEnabled = false,
-                onClick = {},
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ControlButton(
+                    icon = if (isPlaying) Res.drawable.ic_pause else Res.drawable.ic_play,
+                    contentDescription = if (isPlaying) Res.string.pause else Res.string.play,
+                    onClick = { if (isPlaying) musicManager.pause(musicUri) else musicManager.play(musicUri) },
+                )
+                ControlButton(
+                    icon = Res.drawable.ic_stop,
+                    contentDescription = Res.string.stop,
+                    isEnabled = isPlaying,
+                    onClick = { musicManager.stop(musicUri) },
+                )
+                ControlButton(
+                    icon = Res.drawable.ic_loop_on,
+                    contentDescription = Res.string.loop_on,
+                    isEnabled = false,
+                    onClick = {},
+                )
+            }
         }
     }
 
@@ -118,6 +122,7 @@ internal class AudioDemoManager : Manager() {
         onClick: () -> Unit,
     ) = Image(
         modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
             .clickable(enabled = isEnabled, onClick = onClick)
             .padding(8.dp)
             .alpha(if (isEnabled) 1f else 0.5f),
