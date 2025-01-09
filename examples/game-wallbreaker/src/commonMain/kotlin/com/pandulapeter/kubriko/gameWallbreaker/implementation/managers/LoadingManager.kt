@@ -22,12 +22,12 @@ import kubriko.examples.game_wallbreaker.generated.resources.img_logo
 import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.vectorResource
 
-internal class WallbreakerLoadingManager : Manager() {
+internal class LoadingManager : Manager() {
 
     private val musicManager by manager<MusicManager>()
     private val soundManager by manager<SoundManager>()
-    private val musicUris = WallbreakerAudioManager.getMusicUrisToPreload()
-    private val soundUris = WallbreakerAudioManager.getSoundUrisToPreload()
+    private val musicUris = AudioManager.getMusicUrisToPreload()
+    private val soundUris = AudioManager.getSoundUrisToPreload()
 
     override fun onInitialize(kubriko: Kubriko) {
         musicManager.preload(musicUris)

@@ -10,5 +10,13 @@
     <string name="music_disable">Disable music</string>
     <string name="fullscreen_enter">Enter fullscreen mode</string>
     <string name="fullscreen_exit">Exit fullscreen mode</string>
+    <string name="information_contents">Controls:
+ - Move the paddle with the mouse, the touch screen, or by pressing the Left / Right or A / D keys.
+ - Release the ball by tapping / clicking anywhere, or by pressing the Spacebar key.
+
+Attribution:
+ - Music: "Cyberpunk Moonlight Sonata" by Joth on opengameart.org
+ - Sound effects: CC0 assets from freesound.org
+ - Icons: materialdesignicons.com</string>
 
 </resources>

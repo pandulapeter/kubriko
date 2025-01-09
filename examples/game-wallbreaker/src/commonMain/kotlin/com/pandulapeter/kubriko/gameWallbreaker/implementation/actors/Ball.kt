@@ -11,9 +11,9 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.CollisionDetector
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerAudioManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerGameManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.AudioManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.GameplayManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.ScoreManager
 import com.pandulapeter.kubriko.extensions.constrainedWithin
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.min
@@ -43,9 +43,9 @@ internal class Ball(
     private var baseSpeedX = 1
     private var baseSpeedY = -1
     private lateinit var actorManager: ActorManager
-    private lateinit var audioManager: WallbreakerAudioManager
-    private lateinit var gameManager: WallbreakerGameManager
-    private lateinit var scoreManager: WallbreakerScoreManager
+    private lateinit var audioManager: AudioManager
+    private lateinit var gameManager: GameplayManager
+    private lateinit var scoreManager: ScoreManager
     private lateinit var stateManager: StateManager
     private lateinit var viewportManager: ViewportManager
     private var isCollidingWithPaddle = false

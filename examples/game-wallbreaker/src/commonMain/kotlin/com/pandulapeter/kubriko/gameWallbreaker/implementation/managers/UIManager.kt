@@ -9,19 +9,24 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.extensions.Invisible
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerPauseMenuBackground
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.PauseMenuBackground
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 
-internal class WallbreakerUIManager(
+internal class UIManager(
     private val stateManager: StateManager,
 ) : Manager(), KeyboardInputAware, Unique {
-
-    private val gameManager by manager<WallbreakerGameManager>()
+    private val audioManager by manager<AudioManager>()
+    private val gameManager by manager<GameplayManager>()
+    private val _isInfoDialogVisible = MutableStateFlow(false)
+    val isInfoDialogVisible = _isInfoDialogVisible.asStateFlow()
 
     @Composable
     override fun processModifier(modifier: Modifier, layerIndex: Int?) = modifier.pointerHoverIcon(
@@ -64,7 +69,9 @@ internal class WallbreakerUIManager(
     }
 
     @Composable
-    override fun Composable(insetPaddingModifier: Modifier) = WallbreakerPauseMenuBackground(
+    override fun Composable(insetPaddingModifier: Modifier) = PauseMenuBackground(
         isVisible = !stateManager.isRunning.collectAsState().value,
     )
+
+    fun onInfoDialogVisibilityChanged() = _isInfoDialogVisible.update { !it.also { if (it) audioManager.playClickSoundEffect() } }
 }

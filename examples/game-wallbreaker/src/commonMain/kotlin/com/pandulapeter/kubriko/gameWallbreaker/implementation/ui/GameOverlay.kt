@@ -20,7 +20,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.shared.ui.SmallButton
 import kubriko.examples.game_wallbreaker.generated.resources.Res
 import kubriko.examples.game_wallbreaker.generated.resources.ic_pause
 import kubriko.examples.game_wallbreaker.generated.resources.pause
@@ -28,7 +27,7 @@ import kubriko.examples.game_wallbreaker.generated.resources.score
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun WallbreakerGameOverlay(
+internal fun GameOverlay(
     gameAreaModifier: Modifier,
     isGameRunning: Boolean,
     score: Int,
@@ -48,7 +47,7 @@ internal fun WallbreakerGameOverlay(
         Box(
             modifier = gameAreaModifier.fillMaxSize().padding(16.dp),
         ) {
-            WallbreakerButton(
+            WallbreakerIconButton(
                 onButtonPressed = onPauseButtonPressed,
                 icon = Res.drawable.ic_pause,
                 contentDescription = Res.string.pause,

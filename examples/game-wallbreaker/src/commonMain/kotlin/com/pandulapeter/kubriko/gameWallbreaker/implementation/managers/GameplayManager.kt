@@ -18,14 +18,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-internal class WallbreakerGameManager(
+internal class GameplayManager(
     private val stateManager: StateManager,
 ) : Manager(), Unique, Group {
 
     private val actorManager by manager<ActorManager>()
-    private val audioManager by manager<WallbreakerAudioManager>()
-    private val scoreManager by manager<WallbreakerScoreManager>()
-    private val uiManager by manager<WallbreakerUIManager>()
+    private val audioManager by manager<AudioManager>()
+    private val scoreManager by manager<ScoreManager>()
+    private val uiManager by manager<UIManager>()
     private val paddle = Paddle()
     private val _isGameOver = MutableStateFlow(true)
     val isGameOver = _isGameOver.asStateFlow()
@@ -79,15 +79,23 @@ internal class WallbreakerGameManager(
     }
 
     fun resumeGame() {
-        audioManager.playClickSoundEffect()
-        paddle.resetPointerTracking()
-        stateManager.updateIsRunning(true)
+        if (uiManager.isInfoDialogVisible.value) {
+            uiManager.onInfoDialogVisibilityChanged()
+        } else {
+            audioManager.playClickSoundEffect()
+            paddle.resetPointerTracking()
+            stateManager.updateIsRunning(true)
+        }
     }
 
     fun restartGame() {
-        actorManager.remove(actorManager.allActors.value.let { it.filterIsInstance<Brick>() + it.filterIsInstance<Ball>() + it.filterIsInstance<Paddle>() })
-        initializeScene()
-        scoreManager.resetScore()
-        resumeGame()
+        if (uiManager.isInfoDialogVisible.value) {
+            uiManager.onInfoDialogVisibilityChanged()
+        } else {
+            actorManager.remove(actorManager.allActors.value.let { it.filterIsInstance<Brick>() + it.filterIsInstance<Ball>() + it.filterIsInstance<Paddle>() })
+            initializeScene()
+            scoreManager.resetScore()
+            resumeGame()
+        }
     }
 }

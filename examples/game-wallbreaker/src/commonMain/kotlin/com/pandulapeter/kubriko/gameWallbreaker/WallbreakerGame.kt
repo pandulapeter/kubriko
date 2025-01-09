@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,14 +26,15 @@ import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.collision.CollisionManager
 import com.pandulapeter.kubriko.extensions.sceneUnit
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerAudioManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerBackgroundManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerGameManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerLoadingManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerScoreManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerUIManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.WallbreakerUserPreferencesManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerGameOverlay
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.AudioManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.BackgroundAnimationManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.GameplayManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.LoadingManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.ScoreManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.UIManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.UserPreferencesManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.GameOverlay
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.InfoDialogOverlay
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerPauseMenuOverlay
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerTheme
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
@@ -91,7 +94,10 @@ fun WallbreakerGame(
             shouldShowResumeButton = !stateHolder.gameManager.isGameOver.collectAsState().value,
             onResumeButtonPressed = stateHolder.gameManager::resumeGame,
             onRestartButtonPressed = stateHolder.gameManager::restartGame,
-            onInfoButtonPressed = { stateHolder.audioManager.playClickSoundEffect() }, // TODO
+            onInfoButtonPressed = {
+                stateHolder.audioManager.playClickSoundEffect()
+                stateHolder.uiManager.onInfoDialogVisibilityChanged()
+            },
             areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
             onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
             isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
@@ -103,13 +109,18 @@ fun WallbreakerGame(
             },
             onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
         )
-        WallbreakerGameOverlay(
+        GameOverlay(
             gameAreaModifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
             isGameRunning = isGameRunning,
             score = stateHolder.scoreManager.score.collectAsState().value,
             highScore = stateHolder.scoreManager.highScore.collectAsState().value,
             onPauseButtonPressed = stateHolder.gameManager::pauseGame,
             onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
+        )
+        InfoDialogOverlay(
+            modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
+            isVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
+            onInfoDialogClosed = stateHolder.uiManager::onInfoDialogVisibilityChanged,
         )
     }
 }
@@ -122,20 +133,21 @@ fun createWallbreakerGameStateHolder(): WallbreakerGameStateHolder = Wallbreaker
 private class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
     val stateManager = StateManager.newInstance(shouldAutoStart = false)
     private val persistenceManager = PersistenceManager.newInstance(fileName = "kubrikoWallbreaker")
-    val scoreManager = WallbreakerScoreManager(persistenceManager)
+    val scoreManager = ScoreManager(persistenceManager)
     val shaderManager = ShaderManager.newInstance()
-    val userPreferencesManager = WallbreakerUserPreferencesManager(persistenceManager)
-    val gameManager = WallbreakerGameManager(stateManager)
-    val loadingManager = WallbreakerLoadingManager()
-    val audioManager = WallbreakerAudioManager(stateManager, userPreferencesManager)
+    val userPreferencesManager = UserPreferencesManager(persistenceManager)
+    val gameManager = GameplayManager(stateManager)
+    val loadingManager = LoadingManager()
+    val audioManager = AudioManager(stateManager, userPreferencesManager)
     private val musicManager = MusicManager.newInstance()
     private val soundManager = SoundManager.newInstance()
+    val uiManager = UIManager(stateManager)
     val backgroundKubriko = Kubriko.newInstance(
         ShaderManager.newInstance(),
         musicManager,
         soundManager,
         loadingManager,
-        WallbreakerBackgroundManager(),
+        BackgroundAnimationManager(),
     )
     val kubriko = Kubriko.newInstance(
         stateManager,
@@ -156,7 +168,7 @@ private class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
         soundManager,
         audioManager,
         gameManager,
-        WallbreakerUIManager(stateManager),
+        uiManager,
     )
 
     override fun dispose() {

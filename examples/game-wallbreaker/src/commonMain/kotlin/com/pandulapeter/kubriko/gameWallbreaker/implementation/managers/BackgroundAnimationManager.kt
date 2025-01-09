@@ -6,7 +6,7 @@ import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 
-internal class WallbreakerBackgroundManager : Manager() {
+internal class BackgroundAnimationManager : Manager() {
 
     override fun onInitialize(kubriko: Kubriko) = kubriko.get<ActorManager>().add(FogShader())
 }

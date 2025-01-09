@@ -21,7 +21,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun WallbreakerButton(
+internal fun WallbreakerIconButton(
     modifier: Modifier = Modifier,
     icon: DrawableResource,
     onButtonPressed: () -> Unit,

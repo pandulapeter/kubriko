@@ -11,9 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
 @Composable
-internal fun WallbreakerPauseMenuBackground(
+internal fun PauseMenuBackground(
     isVisible: Boolean,
 ) = AnimatedVisibility(
+    modifier = Modifier,
     visible = isVisible,
     enter = fadeIn(),
     exit = fadeOut(),
