@@ -64,12 +64,19 @@ internal fun GameOverlay(
         Box(
             modifier = gameAreaModifier.fillMaxSize().padding(16.dp),
         ) {
-            Text(
+            WallbreakerCard(
                 modifier = Modifier.align(Alignment.TopEnd),
-                text = stringResource(Res.string.score, highScore, score),
-                color = Color.White,
-                textAlign = TextAlign.End,
-            )
+            ) {
+                Text(
+                    modifier = Modifier.padding(
+                        horizontal = 16.dp,
+                        vertical = 8.dp,
+                    ),
+                    text = stringResource(Res.string.score, highScore, score),
+                    color = Color.White,
+                    textAlign = TextAlign.End,
+                )
+            }
         }
     }
 }

@@ -121,6 +121,7 @@ fun WallbreakerGame(
             modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
             isVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
             onInfoDialogClosed = stateHolder.uiManager::onInfoDialogVisibilityChanged,
+            onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
         )
     }
 }
