@@ -18,6 +18,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.shared.ui.isFontFamilyLoaded
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.orbitron
@@ -35,11 +36,11 @@ internal fun SpaceSquadronTheme(
     ),
     typography = SpaceSquadronTypography(),
     shapes = Shapes(
-        extraSmall = Shape,
-        small = Shape,
-        medium = Shape,
-        large = Shape,
-        extraLarge = Shape,
+        extraSmall = SpaceSquadronUIElementShape,
+        small = SpaceSquadronUIElementShape,
+        medium = SpaceSquadronUIElementShape,
+        large = SpaceSquadronUIElementShape,
+        extraLarge = SpaceSquadronUIElementShape,
     ),
 ) {
     CompositionLocalProvider(
@@ -53,11 +54,11 @@ internal fun SpaceSquadronTheme(
     }
 }
 
-private val Shape: CornerBasedShape = RoundedCornerShape(
-    topStart = CornerSize(50),
+internal val SpaceSquadronUIElementShape: CornerBasedShape = RoundedCornerShape(
+    topStart = CornerSize(16.dp),
     topEnd = CornerSize(0),
     bottomStart = CornerSize(0),
-    bottomEnd = CornerSize(50),
+    bottomEnd = CornerSize(16.dp),
 )
 
 @Composable

@@ -6,7 +6,6 @@ import com.pandulapeter.kubriko.audioPlayback.implementation.SoundPlayer
 import com.pandulapeter.kubriko.audioPlayback.implementation.createSoundPlayer
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentMap
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -20,7 +19,7 @@ internal class SoundManagerImpl(
 
     @Composable
     override fun Composable(insetPaddingModifier: Modifier) {
-        if (soundPlayer == null && isInitialized.value) {
+        if (soundPlayer == null) {
             soundPlayer = createSoundPlayer(maximumSimultaneousStreamsOfTheSameSound).also { soundPlayer ->
                 scope.launch {
                     cache.value.keys.forEach { uri ->

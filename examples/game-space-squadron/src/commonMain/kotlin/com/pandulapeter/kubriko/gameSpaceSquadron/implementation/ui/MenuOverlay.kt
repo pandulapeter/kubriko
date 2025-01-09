@@ -115,7 +115,10 @@ internal fun SpaceSquadronMenuOverlay(
             Column(
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .background(Color.Black.copy(alpha = 0.5f))
+                    .background(
+                        color = Color.Black.copy(alpha = 0.5f),
+                        shape = SpaceSquadronUIElementShape,
+                    )
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
             ) {

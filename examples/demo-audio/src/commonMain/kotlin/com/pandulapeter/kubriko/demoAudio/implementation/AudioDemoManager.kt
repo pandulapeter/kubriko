@@ -23,6 +23,12 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.manager.Manager
+import com.pandulapeter.kubriko.manager.StateManager
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kubriko.examples.demo_audio.generated.resources.Res
 import kubriko.examples.demo_audio.generated.resources.ic_loop_on
 import kubriko.examples.demo_audio.generated.resources.ic_pause
@@ -42,13 +48,20 @@ import org.jetbrains.compose.resources.stringResource
 internal class AudioDemoManager : Manager() {
 
     private val musicManager by manager<MusicManager>()
+    private val stateManager by manager<StateManager>()
     private var isTrack1Playing = mutableStateOf(false)
     private var isTrack2Playing = mutableStateOf(false)
     private val track1Uri = Res.getUri(URI_MUSIC_1)
     private val track2Uri = Res.getUri(URI_MUSIC_2)
 
+    @OptIn(FlowPreview::class)
     override fun onInitialize(kubriko: Kubriko) {
         musicManager.preload(track1Uri, track2Uri)
+        stateManager.isFocused
+            .filter { it }
+            .debounce(100)
+            .onEach { musicManager.play(track1Uri) }
+            .launchIn(scope)
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {

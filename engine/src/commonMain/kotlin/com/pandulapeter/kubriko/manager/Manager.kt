@@ -66,8 +66,8 @@ abstract class Manager {
 
     internal fun onDisposeInternal() {
         if (isInitialized.value) {
-            onDispose()
             _isInitialized.update { false }
+            onDispose()
         }
     }
 

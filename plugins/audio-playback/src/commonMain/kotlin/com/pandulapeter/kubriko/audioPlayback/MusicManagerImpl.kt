@@ -9,6 +9,7 @@ import com.pandulapeter.kubriko.manager.StateManager
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -22,7 +23,7 @@ internal class MusicManagerImpl : MusicManager() {
 
     @Composable
     override fun Composable(insetPaddingModifier: Modifier) {
-        if (musicPlayer == null && isInitialized.value) {
+        if (musicPlayer == null) {
             musicPlayer = createMusicPlayer(scope).also { soundPlayer ->
                 scope.launch {
                     cache.value.keys.forEach { uri ->
@@ -31,11 +32,8 @@ internal class MusicManagerImpl : MusicManager() {
                 }
             }
             stateManager.isFocused
-                .onEach { isFocused ->
-                    if (!isFocused) {
-                        cache.value.keys.forEach(::pause)
-                    }
-                }
+                .filterNot { it }
+                .onEach { cache.value.keys.forEach(::pause) }
                 .launchIn(scope)
         }
     }
