@@ -14,15 +14,21 @@ import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 
-internal class SpaceSquadronUIManager(
+internal class UIManager(
     private val stateManager: StateManager,
 ) : Manager(), KeyboardInputAware, Unique {
 
-    private val gameManager by manager<SpaceSquadronGameManager>()
+    private val audioManager by manager<AudioManager>()
+    private val gameManager by manager<GameplayManager>()
+    private val _isInfoDialogVisible = MutableStateFlow(false)
+    val isInfoDialogVisible = _isInfoDialogVisible.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         kubriko.get<ActorManager>().add(this)
@@ -42,11 +48,15 @@ internal class SpaceSquadronUIManager(
             Key.Escape -> if (stateManager.isRunning.value) {
                 gameManager.pauseGame()
             } else {
-                gameManager.playGame()
+                if (isInfoDialogVisible.value) {
+                    toggleInfoDialogVisibility()
+                } else {
+                    gameManager.playGame()
+                }
             }
 
             Key.Spacebar, Key.Enter -> {
-                if (!stateManager.isRunning.value) {
+                if (!stateManager.isRunning.value && !isInfoDialogVisible.value) {
                     gameManager.playGame()
                 }
             }
@@ -54,4 +64,6 @@ internal class SpaceSquadronUIManager(
             else -> Unit
         }
     }
+
+    fun toggleInfoDialogVisibility() = _isInfoDialogVisible.update { !it.also { if (it) audioManager.playButtonToggleSoundEffect() } }
 }

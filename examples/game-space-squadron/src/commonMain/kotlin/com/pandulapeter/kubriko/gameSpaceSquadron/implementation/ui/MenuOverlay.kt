@@ -8,6 +8,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,15 +17,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.shared.ui.LargeButton
+import androidx.compose.ui.unit.sp
 import kubriko.examples.game_space_squadron.generated.resources.Res
+import kubriko.examples.game_space_squadron.generated.resources.back
 import kubriko.examples.game_space_squadron.generated.resources.fullscreen_enter
 import kubriko.examples.game_space_squadron.generated.resources.fullscreen_exit
+import kubriko.examples.game_space_squadron.generated.resources.ic_back
 import kubriko.examples.game_space_squadron.generated.resources.ic_fullscreen_enter
 import kubriko.examples.game_space_squadron.generated.resources.ic_fullscreen_exit
 import kubriko.examples.game_space_squadron.generated.resources.ic_information
@@ -36,6 +43,7 @@ import kubriko.examples.game_space_squadron.generated.resources.ic_sound_effects
 import kubriko.examples.game_space_squadron.generated.resources.ic_sound_effects_on
 import kubriko.examples.game_space_squadron.generated.resources.img_logo
 import kubriko.examples.game_space_squadron.generated.resources.information
+import kubriko.examples.game_space_squadron.generated.resources.information_contents
 import kubriko.examples.game_space_squadron.generated.resources.music_disable
 import kubriko.examples.game_space_squadron.generated.resources.music_enable
 import kubriko.examples.game_space_squadron.generated.resources.pause
@@ -43,11 +51,13 @@ import kubriko.examples.game_space_squadron.generated.resources.play
 import kubriko.examples.game_space_squadron.generated.resources.sound_effects_disable
 import kubriko.examples.game_space_squadron.generated.resources.sound_effects_enable
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun SpaceSquadronMenuOverlay(
     modifier: Modifier,
-    isGameRunning: Boolean,
+    isVisible: Boolean,
+    shouldShowInfoText: Boolean,
     onPlayButtonPressed: () -> Unit,
     onPauseButtonPressed: () -> Unit,
     onInfoButtonPressed: () -> Unit,
@@ -63,16 +73,59 @@ internal fun SpaceSquadronMenuOverlay(
 ) {
     AnimatedVisibility(
         modifier = Modifier.padding(16.dp),
-        visible = isGameRunning,
+        visible = !isVisible && !shouldShowInfoText,
         enter = fadeIn() + scaleIn(),
         exit = scaleOut() + fadeOut(),
     ) {
-        SpaceSquadronIconButton(
+        SpaceSquadronButton(
             onButtonPressed = onPauseButtonPressed,
             icon = Res.drawable.ic_pause,
-            contentDescription = Res.string.pause,
+            title = Res.string.pause,
             onPointerEnter = onButtonHover,
         )
+    }
+    AnimatedVisibility(
+        modifier = Modifier.padding(16.dp),
+        visible = shouldShowInfoText,
+        enter = fadeIn() + scaleIn(),
+        exit = scaleOut() + fadeOut(),
+    ) {
+        SpaceSquadronButton(
+            onButtonPressed = onInfoButtonPressed,
+            icon = Res.drawable.ic_back,
+            title = Res.string.back,
+            onPointerEnter = onButtonHover,
+        )
+    }
+    AnimatedVisibility(
+        modifier = Modifier.padding(16.dp),
+        visible = shouldShowInfoText,
+        enter = fadeIn() + scaleIn(),
+        exit = scaleOut() + fadeOut(),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .padding(
+                    top = 72.dp,
+                    bottom = 16.dp,
+                )
+        ) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+            ) {
+                Text(
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    text = stringResource(Res.string.information_contents)
+                )
+            }
+        }
     }
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -82,7 +135,7 @@ internal fun SpaceSquadronMenuOverlay(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            visible = !isGameRunning,
+            visible = isVisible && !shouldShowInfoText,
             enter = fadeIn() + slideIn { IntOffset(0, -it.height) },
             exit = slideOut { IntOffset(0, -it.height) } + fadeOut(),
         ) {
@@ -95,7 +148,7 @@ internal fun SpaceSquadronMenuOverlay(
             modifier = Modifier
                 .align(Alignment.End)
                 .padding(16.dp),
-            visible = !isGameRunning,
+            visible = isVisible && !shouldShowInfoText,
             enter = fadeIn() + slideIn { IntOffset(0, it.height * 8) },
             exit = slideOut { IntOffset(0, it.height * 8) } + fadeOut(),
         ) {
@@ -136,6 +189,7 @@ private fun Title(
             onButtonPressed = onPlayButtonPressed,
             icon = Res.drawable.ic_play,
             title = Res.string.play,
+            shouldShowTitle = true,
             onPointerEnter = onButtonHover,
         )
     }
@@ -154,29 +208,29 @@ private fun UserPreferenceControls(
 ) = Row(
     horizontalArrangement = Arrangement.spacedBy(8.dp),
 ) {
-    SpaceSquadronIconButton(
+    SpaceSquadronButton(
         onButtonPressed = onInfoButtonPressed,
         icon = Res.drawable.ic_information,
-        contentDescription = Res.string.information,
+        title = Res.string.information,
         onPointerEnter = onButtonHover,
     )
-    SpaceSquadronIconButton(
+    SpaceSquadronButton(
         onButtonPressed = onSoundEffectsToggled,
         icon = if (areSoundEffectsEnabled) Res.drawable.ic_sound_effects_on else Res.drawable.ic_sound_effects_off,
-        contentDescription = if (areSoundEffectsEnabled) Res.string.sound_effects_disable else Res.string.sound_effects_enable,
+        title = if (areSoundEffectsEnabled) Res.string.sound_effects_disable else Res.string.sound_effects_enable,
         onPointerEnter = onButtonHover,
     )
-    SpaceSquadronIconButton(
+    SpaceSquadronButton(
         onButtonPressed = onMusicToggled,
         icon = if (isMusicEnabled) Res.drawable.ic_music_on else Res.drawable.ic_music_off,
-        contentDescription = if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable,
+        title = if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable,
         onPointerEnter = onButtonHover,
     )
     isInFullscreenMode?.let {
-        SpaceSquadronIconButton(
+        SpaceSquadronButton(
             onButtonPressed = onFullscreenModeToggled,
             icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
-            contentDescription = if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter,
+            title = if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter,
             onPointerEnter = onButtonHover,
         )
     }

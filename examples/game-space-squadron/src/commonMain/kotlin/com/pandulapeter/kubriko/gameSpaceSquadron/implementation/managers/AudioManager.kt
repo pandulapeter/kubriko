@@ -14,9 +14,9 @@ import kubriko.examples.game_space_squadron.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 @OptIn(ExperimentalResourceApi::class)
-internal class SpaceSquadronAudioManager(
+internal class AudioManager(
     private val stateManager: StateManager,
-    private val userPreferencesManager: SpaceSquadronUserPreferencesManager
+    private val userPreferencesManager: UserPreferencesManager
 ) : Manager() {
     private val musicManager by manager<MusicManager>()
     private val soundManager by manager<SoundManager>()

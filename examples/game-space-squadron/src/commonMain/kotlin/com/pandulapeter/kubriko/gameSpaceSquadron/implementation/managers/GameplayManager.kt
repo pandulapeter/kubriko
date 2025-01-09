@@ -8,11 +8,11 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 
-internal class SpaceSquadronGameManager : Manager() {
+internal class GameplayManager : Manager() {
 
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
-    private val audioManager by manager<SpaceSquadronAudioManager>()
+    private val audioManager by manager<AudioManager>()
 
     override fun onInitialize(kubriko: Kubriko) = kubriko.get<ActorManager>().add(Ship())
 

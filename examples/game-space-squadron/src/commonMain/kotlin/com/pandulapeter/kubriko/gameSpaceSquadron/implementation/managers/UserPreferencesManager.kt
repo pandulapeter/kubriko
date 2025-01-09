@@ -5,10 +5,10 @@ import com.pandulapeter.kubriko.persistence.PersistenceManager
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-internal class SpaceSquadronUserPreferencesManager(
+internal class UserPreferencesManager(
     persistenceManager: PersistenceManager,
 ) : Manager() {
-    private val audioManager by manager<SpaceSquadronAudioManager>()
+    private val audioManager by manager<AudioManager>()
     private val _areSoundEffectsEnabled = persistenceManager.boolean("areSoundEffectsEnabled", true)
     val areSoundEffectsEnabled = _areSoundEffectsEnabled.asStateFlow()
 

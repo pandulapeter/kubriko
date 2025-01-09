@@ -80,7 +80,7 @@ internal class GameplayManager(
 
     fun resumeGame() {
         if (uiManager.isInfoDialogVisible.value) {
-            uiManager.onInfoDialogVisibilityChanged()
+            uiManager.toggleInfoDialogVisibility()
         } else {
             audioManager.playClickSoundEffect()
             paddle.resetPointerTracking()
@@ -90,7 +90,7 @@ internal class GameplayManager(
 
     fun restartGame() {
         if (uiManager.isInfoDialogVisible.value) {
-            uiManager.onInfoDialogVisibilityChanged()
+            uiManager.toggleInfoDialogVisibility()
         } else {
             actorManager.remove(actorManager.allActors.value.let { it.filterIsInstance<Brick>() + it.filterIsInstance<Ball>() + it.filterIsInstance<Paddle>() })
             initializeScene()

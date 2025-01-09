@@ -24,12 +24,12 @@ import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.collision.CollisionManager
 import com.pandulapeter.kubriko.extensions.sceneUnit
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.SpaceSquadronAudioManager
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.SpaceSquadronBackgroundManager
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.SpaceSquadronGameManager
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.SpaceSquadronLoadingManager
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.SpaceSquadronUIManager
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.SpaceSquadronUserPreferencesManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.BackgroundAnimationManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.LoadingManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.UIManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.UserPreferencesManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.SpaceSquadronMenuOverlay
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.SpaceSquadronTheme
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
@@ -91,10 +91,14 @@ fun SpaceSquadronGame(
         ) {
             SpaceSquadronMenuOverlay(
                 modifier = Modifier.windowInsetsPadding(windowInsets),
-                isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value,
+                isVisible = !stateHolder.stateManager.isRunning.collectAsState().value,
+                shouldShowInfoText = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
                 onPlayButtonPressed = stateHolder.gameManager::playGame,
                 onPauseButtonPressed = stateHolder.gameManager::pauseGame,
-                onInfoButtonPressed = { stateHolder.audioManager.playButtonToggleSoundEffect() }, // TODO
+                onInfoButtonPressed = {
+                    stateHolder.audioManager.playButtonToggleSoundEffect()
+                    stateHolder.uiManager.toggleInfoDialogVisibility()
+                },
                 areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
                 onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
                 isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
@@ -117,20 +121,21 @@ fun createSpaceSquadronGameStateHolder(): SpaceSquadronGameStateHolder = SpaceSq
 private class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
     val stateManager = StateManager.newInstance(shouldAutoStart = false)
     private val persistenceManager = PersistenceManager.newInstance(fileName = "kubrikoSpaceSquadron")
-    val userPreferencesManager = SpaceSquadronUserPreferencesManager(persistenceManager)
-    val loadingManager = SpaceSquadronLoadingManager()
+    val userPreferencesManager = UserPreferencesManager(persistenceManager)
+    val loadingManager = LoadingManager()
     private val musicManager = MusicManager.newInstance()
     private val soundManager = SoundManager.newInstance()
-    val audioManager = SpaceSquadronAudioManager(stateManager, userPreferencesManager)
-    val gameManager = SpaceSquadronGameManager()
+    val audioManager = AudioManager(stateManager, userPreferencesManager)
+    val gameManager = GameplayManager()
     val spriteManager = SpriteManager.newInstance()
+    val uiManager = UIManager(stateManager)
     val backgroundKubriko = Kubriko.newInstance(
         ShaderManager.newInstance(),
         musicManager,
         soundManager,
         spriteManager,
         loadingManager,
-        SpaceSquadronBackgroundManager()
+        BackgroundAnimationManager()
     )
     val kubriko = Kubriko.newInstance(
         stateManager,
@@ -148,7 +153,7 @@ private class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
         soundManager,
         spriteManager,
         gameManager,
-        SpaceSquadronUIManager(stateManager),
+        uiManager,
         audioManager,
     )
 

@@ -45,9 +45,9 @@ import kubriko.examples.game_wallbreaker.generated.resources.sound_effects_enabl
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-internal fun WallbreakerPauseMenuOverlay(
+internal fun MenuOverlay(
     modifier: Modifier,
-    isGameRunning: Boolean,
+    isVisible: Boolean,
     shouldShowResumeButton: Boolean,
     onResumeButtonPressed: () -> Unit,
     onRestartButtonPressed: () -> Unit,
@@ -61,7 +61,7 @@ internal fun WallbreakerPauseMenuOverlay(
     onButtonHover: () -> Unit,
 ) = AnimatedVisibility(
     modifier = modifier,
-    visible = !isGameRunning,
+    visible = isVisible,
     enter = fadeIn() + scaleIn(),
     exit = scaleOut() + fadeOut(),
 ) {
@@ -90,7 +90,7 @@ internal fun WallbreakerPauseMenuOverlay(
                         repeatMode = RepeatMode.Reverse
                     )
                 )
-                WallbreakerIconButton(
+                WallbreakerButton(
                     modifier = Modifier.scale(scale),
                     onButtonPressed = if (shouldShowResumeButton) onResumeButtonPressed else onRestartButtonPressed,
                     icon = Res.drawable.ic_play,
@@ -98,21 +98,21 @@ internal fun WallbreakerPauseMenuOverlay(
                     containerColor = createButtonColor(0f),
                     onPointerEnter = onButtonHover,
                 )
-                WallbreakerIconButton(
+                WallbreakerButton(
                     onButtonPressed = onInfoButtonPressed,
                     icon = Res.drawable.ic_information,
                     contentDescription = Res.string.information,
                     containerColor = createButtonColor(0.2f),
                     onPointerEnter = onButtonHover,
                 )
-                WallbreakerIconButton(
+                WallbreakerButton(
                     onButtonPressed = onSoundEffectsToggled,
                     icon = if (areSoundEffectsEnabled) Res.drawable.ic_sound_effects_on else Res.drawable.ic_sound_effects_off,
                     contentDescription = if (areSoundEffectsEnabled) Res.string.sound_effects_disable else Res.string.sound_effects_enable,
                     containerColor = createButtonColor(0.4f),
                     onPointerEnter = onButtonHover,
                 )
-                WallbreakerIconButton(
+                WallbreakerButton(
                     onButtonPressed = onMusicToggled,
                     icon = if (isMusicEnabled) Res.drawable.ic_music_on else Res.drawable.ic_music_off,
                     contentDescription = if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable,
@@ -120,7 +120,7 @@ internal fun WallbreakerPauseMenuOverlay(
                     onPointerEnter = onButtonHover,
                 )
                 isInFullscreenMode?.let {
-                    WallbreakerIconButton(
+                    WallbreakerButton(
                         onButtonPressed = onFullscreenModeToggled,
                         icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
                         contentDescription = if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter,

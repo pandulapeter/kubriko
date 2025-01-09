@@ -14,8 +14,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,7 +33,7 @@ import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.UIManage
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.UserPreferencesManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.GameOverlay
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.InfoDialogOverlay
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerPauseMenuOverlay
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.MenuOverlay
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerTheme
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.StateManager
@@ -88,15 +86,15 @@ fun WallbreakerGame(
             kubriko = stateHolder.kubriko,
             windowInsets = windowInsets,
         )
-        WallbreakerPauseMenuOverlay(
+        MenuOverlay(
             modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
-            isGameRunning = isGameRunning,
+            isVisible = !isGameRunning,
             shouldShowResumeButton = !stateHolder.gameManager.isGameOver.collectAsState().value,
             onResumeButtonPressed = stateHolder.gameManager::resumeGame,
             onRestartButtonPressed = stateHolder.gameManager::restartGame,
             onInfoButtonPressed = {
                 stateHolder.audioManager.playClickSoundEffect()
-                stateHolder.uiManager.onInfoDialogVisibilityChanged()
+                stateHolder.uiManager.toggleInfoDialogVisibility()
             },
             areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
             onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
@@ -120,7 +118,7 @@ fun WallbreakerGame(
         InfoDialogOverlay(
             modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
             isVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
-            onInfoDialogClosed = stateHolder.uiManager::onInfoDialogVisibilityChanged,
+            onInfoDialogClosed = stateHolder.uiManager::toggleInfoDialogVisibility,
             onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
         )
     }

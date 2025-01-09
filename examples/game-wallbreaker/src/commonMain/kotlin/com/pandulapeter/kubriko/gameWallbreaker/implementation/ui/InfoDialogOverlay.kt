@@ -60,7 +60,7 @@ internal fun InfoDialogOverlay(
                 modifier = Modifier
                     .padding(16.dp)
                     .align(Alignment.Center)
-                    .fillMaxWidth(0.75f),
+                    .fillMaxWidth(0.7f),
             ) {
                 Column(
                     modifier = Modifier
@@ -82,7 +82,7 @@ internal fun InfoDialogOverlay(
         Box(
             modifier = Modifier.fillMaxSize().padding(16.dp),
         ) {
-            WallbreakerIconButton(
+            WallbreakerButton(
                 onButtonPressed = onInfoDialogClosed,
                 icon = Res.drawable.ic_close,
                 contentDescription = Res.string.close,

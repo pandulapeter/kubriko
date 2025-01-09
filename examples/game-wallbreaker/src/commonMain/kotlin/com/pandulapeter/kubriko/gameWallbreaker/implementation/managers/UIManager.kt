@@ -55,7 +55,7 @@ internal class UIManager(
             }
 
             Key.Spacebar, Key.Enter -> {
-                if (!stateManager.isRunning.value) {
+                if (!stateManager.isRunning.value && !isInfoDialogVisible.value) {
                     if (gameManager.isGameOver.value) {
                         gameManager.restartGame()
                     } else {
@@ -73,5 +73,5 @@ internal class UIManager(
         isVisible = !stateManager.isRunning.collectAsState().value,
     )
 
-    fun onInfoDialogVisibilityChanged() = _isInfoDialogVisible.update { !it.also { if (it) audioManager.playClickSoundEffect() } }
+    fun toggleInfoDialogVisibility() = _isInfoDialogVisible.update { !it.also { if (it) audioManager.playClickSoundEffect() } }
 }

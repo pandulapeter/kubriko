@@ -30,6 +30,7 @@ internal fun SpaceSquadronButton(
     modifier: Modifier = Modifier,
     title: StringResource,
     icon: DrawableResource,
+    shouldShowTitle: Boolean = false,
     onButtonPressed: () -> Unit,
     onPointerEnter: (() -> Unit),
 ) {
@@ -59,18 +60,25 @@ internal fun SpaceSquadronButton(
         contentColor = if (alpha.value == IDLE_BUTTON_ALPHA) MaterialTheme.colorScheme.onPrimary else Color.White,
         onClick = onButtonPressed,
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        if (shouldShowTitle) {
+            Row(
+                modifier = Modifier.padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    painter = painterResource(icon),
+                    contentDescription = stringResource(title),
+                )
+                Text(
+                    modifier = Modifier.padding(end = 8.dp),
+                    text = stringResource(title),
+                )
+            }
+        } else {
             Icon(
                 painter = painterResource(icon),
                 contentDescription = stringResource(title),
-            )
-            Text(
-                modifier = Modifier.padding(end = 8.dp),
-                text = stringResource(title),
             )
         }
     }

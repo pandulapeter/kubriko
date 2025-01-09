@@ -2,6 +2,7 @@
 
     <string name="play">Play</string>
     <string name="pause">Pause</string>
+    <string name="back">Back</string>
     <string name="information">Information</string>
     <string name="sound_effects_enable">Enable sound effects</string>
     <string name="sound_effects_disable">Disable sound effects</string>
@@ -9,5 +10,14 @@
     <string name="music_disable">Disable music</string>
     <string name="fullscreen_enter">Enter fullscreen mode</string>
     <string name="fullscreen_exit">Exit fullscreen mode</string>
+    <string name="information_contents">Controls:
+ - Move the ship with the mouse, the touch screen, or by using the Up / Left / Down / Right  or W / A / S / D keys.
+ - Shoot the ball by touching the screen / clicking anywhere, or by pressing the Spacebar key.
+ - Press the Esc key to pause / resume the game.
+
+Attribution:
+ - Music: "Ambient Space Texture" by Andrewkn on freesound.org
+ - Sound effects: CC0 assets from freesound.org
+ - Icons: materialdesignicons.com</string>
 
 </resources>

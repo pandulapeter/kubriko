@@ -24,13 +24,13 @@ import kubriko.examples.game_space_squadron.generated.resources.sprite_ship
 import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.vectorResource
 
-internal class SpaceSquadronLoadingManager : Manager() {
+internal class LoadingManager : Manager() {
 
     private val musicManager by manager<MusicManager>()
     private val soundManager by manager<SoundManager>()
     private val spriteManager by manager<SpriteManager>()
-    private val musicUris = SpaceSquadronAudioManager.getMusicUrisToPreload()
-    private val soundUris = SpaceSquadronAudioManager.getSoundUrisToPreload()
+    private val musicUris = AudioManager.getMusicUrisToPreload()
+    private val soundUris = AudioManager.getSoundUrisToPreload()
     private val spriteResources = listOf(Res.drawable.sprite_ship)
 
     override fun onInitialize(kubriko: Kubriko) {

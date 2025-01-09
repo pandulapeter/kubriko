@@ -47,7 +47,7 @@ internal fun GameOverlay(
         Box(
             modifier = gameAreaModifier.fillMaxSize().padding(16.dp),
         ) {
-            WallbreakerIconButton(
+            WallbreakerButton(
                 onButtonPressed = onPauseButtonPressed,
                 icon = Res.drawable.ic_pause,
                 contentDescription = Res.string.pause,
