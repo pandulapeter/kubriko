@@ -1,5 +1,5 @@
 plugins {
-    id("kubriko-library")
+    id("kubriko-compose-library")
 }
 
 kotlin {
@@ -7,6 +7,7 @@ kotlin {
         commonMain.dependencies {
             api(compose.foundation)
             api(compose.runtime)
+            api(libs.kotlinx.coroutines)
             api(libs.kotlinx.immutable)
             implementation(libs.androidx.lifecycle.runtime.compose)
         }

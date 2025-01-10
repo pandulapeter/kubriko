@@ -19,14 +19,15 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuMetadata
+import com.pandulapeter.kubriko.logger.Logger
 import kotlin.math.roundToInt
 
 @Composable
 internal fun DebugMenuContents(
     modifier: Modifier = Modifier,
     debugMenuMetadata: DebugMenuMetadata,
+    logs: List<Logger.Entry>,
     onIsDebugOverlayEnabledChanged: () -> Unit,
 ) = LazyColumn(
     modifier = modifier.width(100.dp).padding(vertical = 8.dp),
@@ -73,13 +74,13 @@ internal fun DebugMenuContents(
         Spacer(modifier = Modifier.height(4.dp))
     }
     itemsIndexed(
-        items = DebugMenu.logs.value,
+        items = logs,
         key = { index, _ -> "log_$index" }
-    ) { _, message ->
+    ) { _, entry ->
         Text(
             modifier = Modifier.padding(horizontal = 8.dp).padding(top = 2.dp),
             style = TextStyle.Default.copy(fontSize = 10.sp),
-            text = message,
+            text = entry.message,
         )
     }
 }

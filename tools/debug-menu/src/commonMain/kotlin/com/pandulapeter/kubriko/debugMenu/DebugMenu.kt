@@ -36,6 +36,7 @@ import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuManager
 import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuMetadata
 import com.pandulapeter.kubriko.debugMenu.implementation.ui.DebugMenuContents
 import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.manager.ViewportManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -52,12 +53,16 @@ object DebugMenu {
     internal val isDebugMenuVisible = _isDebugMenuVisible as State<Boolean>
     private val _isDebugOverlayEnabled = MutableStateFlow(false)
     internal val isDebugOverlayEnabled = _isDebugOverlayEnabled.asStateFlow()
-    private val _logs = mutableStateOf(emptyList<String>())
-    internal val logs = _logs as State<List<String>>
 
-    fun log(message: String) {
-        _logs.value = logs.value + message
-    }
+    fun log(
+        message: String,
+        source: String? = null,
+    ) = Logger.log(
+        message = message,
+        source = source,
+    )
+
+    fun clearLogs() = Logger.clearLogs()
 
     internal fun onIsDebugMenuVisibleChanged() {
         _isDebugMenuVisible.value = !isDebugMenuVisible.value
@@ -123,6 +128,7 @@ fun DebugMenu(
                     DebugMenuContents(
                         modifier = debugMenuModifier,
                         debugMenuMetadata = debugMenuManager.debugMenuMetadata.collectAsState(DebugMenuMetadata()).value,
+                        logs = Logger.logs.collectAsState().value,
                         onIsDebugOverlayEnabledChanged = DebugMenu::onIsDebugOverlayEnabledChanged,
                     )
                 }

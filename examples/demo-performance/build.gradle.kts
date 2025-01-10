@@ -1,5 +1,5 @@
 plugins {
-    id("kubriko-library")
+    id("kubriko-compose-library")
     alias(libs.plugins.kotlin.serialization)
 }
 

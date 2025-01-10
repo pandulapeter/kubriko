@@ -38,5 +38,6 @@ include(
     ":plugins:shaders",
     ":plugins:sprites",
     ":tools:debug-menu",
+    ":tools:logger",
     ":tools:scene-editor",
 )

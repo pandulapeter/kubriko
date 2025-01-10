@@ -1,5 +1,5 @@
 plugins {
-    id("kubriko-library")
+    id("kubriko-compose-library")
 }
 
 kotlin {
@@ -7,6 +7,7 @@ kotlin {
         commonMain.dependencies {
             api(projects.engine)
             implementation(projects.examples.shared)
+            implementation(projects.tools.logger)
             implementation(compose.components.resources)
             implementation(compose.material3)
         }

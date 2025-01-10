@@ -23,11 +23,15 @@ gradlePlugin {
     plugins {
         register("library") {
             id = "kubriko-library"
-            implementationClass = "com.pandulapeter.kubriko.buildLogic.plugins.MultiplatformLibraryPlugin"
+            implementationClass = "com.pandulapeter.kubriko.buildLogic.plugins.LibraryPlugin"
+        }
+        register("compose-library") {
+            id = "kubriko-compose-library"
+            implementationClass = "com.pandulapeter.kubriko.buildLogic.plugins.ComposeLibraryPlugin"
         }
         register("application") {
             id = "kubriko-application"
-            implementationClass = "com.pandulapeter.kubriko.buildLogic.plugins.MultiplatformApplicationPlugin"
+            implementationClass = "com.pandulapeter.kubriko.buildLogic.plugins.ApplicationPlugin"
         }
     }
 }
