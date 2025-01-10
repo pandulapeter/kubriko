@@ -2,12 +2,11 @@ package com.pandulapeter.kubriko.debugMenu.implementation.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -16,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuMetadata
@@ -65,24 +63,10 @@ internal fun DebugMenuContents(
         }
     }
     item("logsHeader") {
-        Text(
-            modifier = Modifier.padding(horizontal = 8.dp),
-            style = TextStyle.Default.copy(fontSize = 10.sp),
-            fontWeight = FontWeight.Bold,
-            text = "Logs",
-        )
-        Spacer(modifier = Modifier.height(4.dp))
+        LogsHeader()
     }
-    itemsIndexed(
+    items(
         items = logs,
-        key = { index, _ -> "log_$index" }
-    ) { _, entry ->
-        Text(
-            modifier = Modifier.padding(horizontal = 8.dp).padding(top = 2.dp),
-            style = TextStyle.Default.copy(fontSize = 10.sp),
-            text = entry.source.let { source ->
-                if (source == null) entry.message else "${entry.source}: ${entry.message}"
-            }
-        )
-    }
+        key = { "log_${it.id}" }
+    ) { LogEntry(entry = it) }
 }

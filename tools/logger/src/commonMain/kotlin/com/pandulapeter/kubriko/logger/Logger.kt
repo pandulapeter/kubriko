@@ -4,9 +4,10 @@ import com.pandulapeter.kubriko.logger.implementation.getCurrentTimestamp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 object Logger {
-
     private val _logs = MutableStateFlow(emptyList<Entry>())
     val logs = _logs.asStateFlow()
     var entryLimit = 100
@@ -20,6 +21,7 @@ object Logger {
         }
 
     data class Entry(
+        val id: String,
         val message: String,
         val details: String?,
         val source: String?,
@@ -33,6 +35,7 @@ object Logger {
         HIGH;
     }
 
+    @OptIn(ExperimentalUuidApi::class)
     fun log(
         message: String,
         details: String? = null,
@@ -42,6 +45,7 @@ object Logger {
         buildList {
             add(
                 Entry(
+                    id = Uuid.random().toString(),
                     message = message,
                     details = details,
                     source = source,

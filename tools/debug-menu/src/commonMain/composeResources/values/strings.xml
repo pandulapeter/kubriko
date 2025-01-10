@@ -1,5 +1,10 @@
 <resources>
 
     <string name="debug_menu">Debug Menu</string>
+    <string name="logs">Logs</string>
+    <string name="log_priority_low">L</string>
+    <string name="log_priority_medium">M</string>
+    <string name="log_priority_high">H</string>
+    <string name="filter_logs">Filter logs</string>
 
 </resources>
