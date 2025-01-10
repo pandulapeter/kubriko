@@ -6,8 +6,8 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(projects.engine)
-            implementation(projects.examples.shared)
             implementation(projects.tools.logger)
+            implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)
             implementation(compose.material3)
         }

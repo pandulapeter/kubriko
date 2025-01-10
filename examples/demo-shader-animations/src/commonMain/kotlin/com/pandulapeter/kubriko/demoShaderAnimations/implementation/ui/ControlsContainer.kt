@@ -43,7 +43,7 @@ import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.NoodleControls
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.GradientControls
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.WarpControls
-import com.pandulapeter.kubriko.shared.ui.FloatingButton
+import com.pandulapeter.kubriko.uiComponents.FloatingButton
 import kotlinx.collections.immutable.PersistentMap
 import kubriko.examples.demo_shader_animations.generated.resources.Res
 import kubriko.examples.demo_shader_animations.generated.resources.collapse_controls

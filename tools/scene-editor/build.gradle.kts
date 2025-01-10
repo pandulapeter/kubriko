@@ -11,12 +11,12 @@ kotlin {
         }
         val desktopMain by getting {
             dependencies {
-                implementation(projects.examples.shared)
                 implementation(projects.plugins.collision)
                 implementation(projects.plugins.keyboardInput)
                 implementation(projects.plugins.persistence)
                 implementation(projects.plugins.pointerInput)
                 implementation(projects.tools.debugMenu)
+                implementation(projects.tools.uiComponents)
                 implementation(compose.material3)
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlin.reflect)

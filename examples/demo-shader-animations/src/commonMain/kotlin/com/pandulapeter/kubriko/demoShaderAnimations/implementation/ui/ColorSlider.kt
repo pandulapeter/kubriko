@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.shared.ui.ShaderSlider
+import com.pandulapeter.kubriko.uiComponents.ShaderSlider
 
 @Composable
 internal fun ColorSlider(

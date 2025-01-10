@@ -15,8 +15,8 @@ kotlin {
             implementation(projects.examples.demoShaderAnimations)
             implementation(projects.examples.gameSpaceSquadron)
             implementation(projects.examples.gameWallbreaker)
+            implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)
-            implementation(compose.material3)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)

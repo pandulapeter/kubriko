@@ -2,7 +2,7 @@ package com.pandulapeter.kubriko.demoPerformance.implementation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import com.pandulapeter.kubriko.shared.ui.LargeButton
+import com.pandulapeter.kubriko.uiComponents.LargeButton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kubriko.examples.demo_performance.generated.resources.Res
 import kubriko.examples.demo_performance.generated.resources.close_scene_editor

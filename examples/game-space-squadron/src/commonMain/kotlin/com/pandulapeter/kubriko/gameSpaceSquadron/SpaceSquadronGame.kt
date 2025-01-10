@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -38,9 +40,8 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.persistence.PersistenceManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shaders.ShaderManager
-import com.pandulapeter.kubriko.shared.ExampleStateHolder
-import com.pandulapeter.kubriko.shared.ui.LoadingIndicator
 import com.pandulapeter.kubriko.sprites.SpriteManager
+import com.pandulapeter.kubriko.shared.ExampleStateHolder
 
 /**
  * Music: https://freesound.org/people/Andrewkn/sounds/474864/
@@ -70,8 +71,9 @@ fun SpaceSquadronGame(
                 .windowInsetsPadding(windowInsets)
                 .padding(16.dp),
         ) {
-            LoadingIndicator(
-                modifier = Modifier.align(Alignment.BottomStart)
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.BottomStart).size(24.dp),
+                strokeWidth = 3.dp,
             )
         }
     }

@@ -40,4 +40,5 @@ include(
     ":tools:debug-menu",
     ":tools:logger",
     ":tools:scene-editor",
+    ":tools:ui-components",
 )

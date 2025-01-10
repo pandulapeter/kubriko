@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import com.pandulapeter.kubriko.shared.ui.isFontFamilyLoaded
+import com.pandulapeter.kubriko.uiComponents.utilities.isFontFamilyLoaded
 import kubriko.examples.game_wallbreaker.generated.resources.Res
 import kubriko.examples.game_wallbreaker.generated.resources.kanit_regular
 import org.jetbrains.compose.resources.Font

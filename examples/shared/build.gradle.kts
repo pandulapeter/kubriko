@@ -1,14 +1,5 @@
 plugins {
-    id("kubriko-compose-library")
-}
-
-kotlin {
-    sourceSets {
-        commonMain.dependencies {
-            api(compose.components.resources)
-            implementation(compose.material3)
-        }
-    }
+    id("kubriko-library")
 }
 
 android {

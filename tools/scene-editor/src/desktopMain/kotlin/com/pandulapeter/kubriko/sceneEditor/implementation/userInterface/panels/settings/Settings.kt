@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorText
-import com.pandulapeter.kubriko.shared.ui.theme.KubrikoTheme
+import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 
 @Composable
 internal fun Settings(

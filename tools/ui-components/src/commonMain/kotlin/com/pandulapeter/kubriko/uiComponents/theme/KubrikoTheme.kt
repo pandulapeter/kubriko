@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.shared.ui.theme
+package com.pandulapeter.kubriko.uiComponents.theme
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn

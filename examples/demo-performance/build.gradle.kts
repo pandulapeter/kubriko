@@ -10,12 +10,9 @@ kotlin {
             implementation(projects.engine)
             implementation(projects.tools.debugMenu)
             implementation(projects.tools.sceneEditor)
+            implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)
-            implementation(compose.material3)
             implementation(libs.kotlinx.serialization)
-        }
-        desktopMain.dependencies {
-            implementation(compose.material3)
         }
     }
 }

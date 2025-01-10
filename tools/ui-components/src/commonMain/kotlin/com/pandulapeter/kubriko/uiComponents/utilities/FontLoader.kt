@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.shared.ui
+package com.pandulapeter.kubriko.uiComponents.utilities
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontFamily

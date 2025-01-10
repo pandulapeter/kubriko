@@ -2,7 +2,7 @@ package com.pandulapeter.kubriko.demoPhysics.implementation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import com.pandulapeter.kubriko.shared.ui.LargeButton
+import com.pandulapeter.kubriko.uiComponents.LargeButton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kubriko.examples.demo_physics.generated.resources.Res
 import kubriko.examples.demo_physics.generated.resources.close_scene_editor

@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.shared.ui
+package com.pandulapeter.kubriko.uiComponents
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator

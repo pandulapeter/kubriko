@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.shared.ui
+package com.pandulapeter.kubriko.uiComponents
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.hoverable

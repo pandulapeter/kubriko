@@ -13,8 +13,8 @@ kotlin {
             implementation(projects.plugins.persistence)
             implementation(projects.plugins.pointerInput)
             implementation(projects.plugins.shaders)
+            implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)
-            implementation(compose.material3)
         }
     }
 }
