@@ -11,7 +11,8 @@ internal class StateManagerImpl(
     val shouldAutoStart: Boolean,
     focusDebounce: Long,
     isLoggingEnabled: Boolean,
-) : StateManager(isLoggingEnabled) {
+    instanceNameForLogging: String?,
+) : StateManager(isLoggingEnabled, instanceNameForLogging) {
     private val _isFocused = MutableStateFlow(true)
     override val isFocused by autoInitializingLazy { _isFocused.debounce(focusDebounce).asStateFlow(true) }
     private val _isRunning = MutableStateFlow(false)

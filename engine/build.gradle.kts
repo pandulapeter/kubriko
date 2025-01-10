@@ -9,7 +9,7 @@ kotlin {
             api(compose.runtime)
             api(libs.kotlinx.coroutines)
             api(libs.kotlinx.immutable)
-            implementation(projects.tools.logger)
+            api(projects.tools.logger)
             implementation(libs.androidx.lifecycle.runtime.compose)
         }
     }

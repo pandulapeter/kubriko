@@ -26,7 +26,8 @@ internal class ViewportManagerImpl(
     private val maximumScaleFactor: Float,
     val viewportEdgeBuffer: SceneUnit,
     isLoggingEnabled: Boolean,
-) : ViewportManager(isLoggingEnabled) {
+    instanceNameForLogging: String?,
+) : ViewportManager(isLoggingEnabled, instanceNameForLogging) {
     private lateinit var actorManager: ActorManagerImpl
     private val _cameraPosition = MutableStateFlow(SceneOffset.Zero)
     override val cameraPosition = _cameraPosition.asStateFlow()

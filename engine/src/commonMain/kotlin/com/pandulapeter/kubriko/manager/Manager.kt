@@ -42,6 +42,10 @@ abstract class Manager(
 
     internal fun initializeInternal(kubriko: Kubriko) {
         if (!isInitialized.value) {
+            log(
+                message = "Initializing...",
+                importance = Logger.Importance.LOW,
+            )
             scope = kubriko as CoroutineScope
             autoInitializingLazyManagers.forEach { it.initialize(kubriko) }
             autoInitializingLazyManagers.clear()
@@ -49,6 +53,10 @@ abstract class Manager(
             onInitialize(kubriko)
             autoInitializingLazyProperties.forEach { it.initialize() }
             autoInitializingLazyProperties.clear()
+            log(
+                message = "Initialized.",
+                importance = Logger.Importance.MEDIUM,
+            )
         }
     }
 
@@ -70,8 +78,16 @@ abstract class Manager(
 
     internal fun onDisposeInternal() {
         if (isInitialized.value) {
+            log(
+                message = "Disposing...",
+                importance = Logger.Importance.LOW,
+            )
             _isInitialized.update { false }
             onDispose()
+            log(
+                message = "Disposed.",
+                importance = Logger.Importance.MEDIUM,
+            )
         }
     }
 
@@ -100,15 +116,17 @@ abstract class Manager(
 
     protected fun <T : Manager> manager(managerType: KClass<T>): ReadOnlyProperty<Manager, T> = LazyManager(managerType)
 
-    private fun log(
+    protected fun log(
         message: String,
         details: String? = null,
+        importance: Logger.Importance = Logger.Importance.HIGH,
     ) {
         if (isLoggingEnabled) {
             Logger.log(
                 message = message,
                 details = details,
-                source = "${this::class.simpleName}@${instanceNameForLogging ?: toString().substringAfterLast('@')}"
+                source = "${this::class.simpleName}@${instanceNameForLogging ?: toString().substringAfterLast('@')}",
+                importance = importance,
             )
         }
     }

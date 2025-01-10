@@ -16,7 +16,8 @@ import kotlin.math.roundToLong
 
 internal class MetadataManagerImpl(
     isLoggingEnabled: Boolean,
-) : MetadataManager(isLoggingEnabled) {
+    instanceNameForLogging: String?,
+) : MetadataManager(isLoggingEnabled, instanceNameForLogging) {
     private lateinit var stateManager: StateManager
     private val _fps = MutableStateFlow(0f)
     override val fps = _fps.asStateFlow()

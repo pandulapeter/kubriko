@@ -6,7 +6,6 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(projects.engine)
-            implementation(projects.tools.logger)
         }
     }
 }

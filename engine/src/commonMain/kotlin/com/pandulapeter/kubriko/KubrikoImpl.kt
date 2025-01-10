@@ -25,10 +25,30 @@ internal class KubrikoImpl(
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
     val managers = manager.toSet()
-        .addIfNeeded { ActorManager.newInstance() }
-        .addIfNeeded { MetadataManager.newInstance() }
-        .addIfNeeded { StateManager.newInstance() }
-        .addIfNeeded { ViewportManager.newInstance() }
+        .addIfNeeded {
+            ActorManager.newInstance(
+                isLoggingEnabled = isLoggingEnabled,
+                instanceNameForLogging = instanceNameForLogging,
+            )
+        }
+        .addIfNeeded {
+            MetadataManager.newInstance(
+                isLoggingEnabled = isLoggingEnabled,
+                instanceNameForLogging = instanceNameForLogging,
+            )
+        }
+        .addIfNeeded {
+            StateManager.newInstance(
+                isLoggingEnabled = isLoggingEnabled,
+                instanceNameForLogging = instanceNameForLogging,
+            )
+        }
+        .addIfNeeded {
+            ViewportManager.newInstance(
+                isLoggingEnabled = isLoggingEnabled,
+                instanceNameForLogging = instanceNameForLogging,
+            )
+        }
         .distinctBy { it::class }
     val actorManager = requireAndVerify<ActorManager, ActorManagerImpl>("ActorManager")
     val metadataManager = requireAndVerify<MetadataManager, MetadataManagerImpl>("MetadataManager")
@@ -44,6 +64,7 @@ internal class KubrikoImpl(
         log(
             message = "Kubriko instance created with ${managers.size} Managers.",
             details = managers.joinToString { it::class.simpleName.orEmpty() },
+            importance = Logger.Importance.HIGH,
         )
     }
 
@@ -53,7 +74,7 @@ internal class KubrikoImpl(
         if (stateManager.shouldAutoStart) {
             stateManager.updateIsRunning(true)
         }
-        log("Kubriko initialization completed.")
+        log("Initialized.")
     }
 
     private inline fun <reified T : Manager> Collection<Manager>.addIfNeeded(creator: () -> T) =
@@ -71,18 +92,23 @@ internal class KubrikoImpl(
         log("Disposing Manager instances...")
         managers.forEach { it.onDisposeInternal() }
         cancel()
-        log("Kubriko disposal completed.")
+        log(
+            message = "Disposed.",
+            importance = Logger.Importance.HIGH,
+        )
     }
 
     private fun log(
         message: String,
         details: String? = null,
+        importance: Logger.Importance = Logger.Importance.LOW,
     ) {
         if (isLoggingEnabled) {
             Logger.log(
                 message = message,
                 details = details,
-                source = "Kubriko@${instanceNameForLogging ?: toString().substringAfterLast('@')}"
+                source = "Kubriko@${instanceNameForLogging ?: toString().substringAfterLast('@')}",
+                importance = importance,
             )
         }
     }

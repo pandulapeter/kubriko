@@ -43,8 +43,8 @@ internal class ActorManagerImpl(
     initialActors: List<Actor>,
     private val invisibleActorMinimumRefreshTimeInMillis: Long, // TODO: Feels hacky
     isLoggingEnabled: Boolean,
-) : ActorManager(isLoggingEnabled) {
-
+    instanceNameForLogging: String?,
+) : ActorManager(isLoggingEnabled, instanceNameForLogging) {
     private lateinit var metadataManager: MetadataManagerImpl
     private lateinit var viewportManager: ViewportManagerImpl
     private lateinit var stateManager: StateManager

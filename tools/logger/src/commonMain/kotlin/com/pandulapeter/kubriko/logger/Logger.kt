@@ -24,12 +24,20 @@ object Logger {
         val details: String?,
         val source: String?,
         val timestamp: Long,
+        val importance: Importance,
     )
+
+    enum class Importance {
+        LOW,
+        MEDIUM,
+        HIGH;
+    }
 
     fun log(
         message: String,
         details: String? = null,
         source: String? = null,
+        importance: Importance = Importance.HIGH,
     ) = _logs.update {
         buildList {
             add(
@@ -37,7 +45,8 @@ object Logger {
                     message = message,
                     details = details,
                     source = source,
-                    timestamp = getCurrentTimestamp()
+                    timestamp = getCurrentTimestamp(),
+                    importance = importance,
                 )
             )
             addAll(it)

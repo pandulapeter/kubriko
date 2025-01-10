@@ -52,8 +52,13 @@ sealed interface ContentShadersDemoStateHolder : ExampleStateHolder
 
 fun createContentShadersDemoStateHolder(): ContentShadersDemoStateHolder = ContentShadersDemoStateHolderImpl()
 
+private const val LOG_TAG = "ContentShaders"
+
 internal class ContentShadersDemoStateHolderImpl : ContentShadersDemoStateHolder {
-    val shaderManager = ShaderManager.newInstance()
+    val shaderManager = ShaderManager.newInstance(
+        isLoggingEnabled = true,
+        instanceNameForLogging = LOG_TAG,
+    )
     val kubriko = Kubriko.newInstance(
         shaderManager,
         ViewportManager.newInstance(
@@ -61,7 +66,7 @@ internal class ContentShadersDemoStateHolderImpl : ContentShadersDemoStateHolder
         ),
         ContentShadersDemoManager(),
         isLoggingEnabled = true,
-        instanceNameForLogging = "ContentShaders",
+        instanceNameForLogging = LOG_TAG,
     )
 
     override fun dispose() = kubriko.dispose()

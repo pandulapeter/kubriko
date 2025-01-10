@@ -8,7 +8,10 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * TODO: Documentation
  */
-sealed class ActorManager(isLoggingEnabled: Boolean) : Manager(isLoggingEnabled) {
+sealed class ActorManager(
+    isLoggingEnabled: Boolean,
+    instanceNameForLogging: String?,
+) : Manager(isLoggingEnabled, instanceNameForLogging) {
 
     abstract val allActors: StateFlow<ImmutableList<Actor>>
     abstract val visibleActorsWithinViewport: StateFlow<ImmutableList<Visible>>
@@ -28,10 +31,12 @@ sealed class ActorManager(isLoggingEnabled: Boolean) : Manager(isLoggingEnabled)
             initialActors: List<Actor> = emptyList(),
             invisibleActorMinimumRefreshTimeInMillis: Long = 100,
             isLoggingEnabled: Boolean = false,
+            instanceNameForLogging: String? = null,
         ): ActorManager = ActorManagerImpl(
             initialActors = initialActors,
             invisibleActorMinimumRefreshTimeInMillis = invisibleActorMinimumRefreshTimeInMillis,
             isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = instanceNameForLogging,
         )
     }
 }

@@ -6,7 +6,10 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * TODO: Documentation
  */
-sealed class StateManager(isLoggingEnabled: Boolean) : Manager(isLoggingEnabled) {
+sealed class StateManager(
+    isLoggingEnabled: Boolean,
+    instanceNameForLogging: String?,
+) : Manager(isLoggingEnabled, instanceNameForLogging) {
 
     abstract val isFocused: StateFlow<Boolean>
     abstract val isRunning: StateFlow<Boolean>
@@ -18,10 +21,12 @@ sealed class StateManager(isLoggingEnabled: Boolean) : Manager(isLoggingEnabled)
             shouldAutoStart: Boolean = true,
             focusDebounce: Long = getDefaultFocusDebounce(),
             isLoggingEnabled: Boolean = false,
+            instanceNameForLogging: String? = null,
         ): StateManager = StateManagerImpl(
             shouldAutoStart = shouldAutoStart,
             focusDebounce = focusDebounce,
             isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = instanceNameForLogging,
         )
     }
 }

@@ -30,13 +30,24 @@ sealed interface AudioDemoStateHolder : ExampleStateHolder
 
 fun createAudioDemoStateHolder(): AudioDemoStateHolder = AudioDemoStateHolderImpl()
 
+private const val LOG_TAG = "Audio"
+
 internal class AudioDemoStateHolderImpl : AudioDemoStateHolder {
-    val kubriko = Kubriko.newInstance(
-        MusicManager.newInstance(),
-        SoundManager.newInstance(),
-        AudioDemoManager(),
+    private val musicManager = MusicManager.newInstance(
         isLoggingEnabled = true,
-        instanceNameForLogging = "Audio",
+        instanceNameForLogging = LOG_TAG,
+    )
+    private val soundManager = SoundManager.newInstance(
+        isLoggingEnabled = true,
+        instanceNameForLogging = LOG_TAG,
+    )
+    private val audioDemoManager = AudioDemoManager()
+    val kubriko = Kubriko.newInstance(
+        musicManager,
+        soundManager,
+        audioDemoManager,
+        isLoggingEnabled = true,
+        instanceNameForLogging = LOG_TAG,
     )
 
     override fun dispose() = kubriko.dispose()
