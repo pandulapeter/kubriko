@@ -7,15 +7,20 @@ import com.pandulapeter.kubriko.manager.Manager
  * TODO: Documentation
  */
 // TODO: Introduce a custom type instead of relying on Key
-sealed class KeyboardInputManager(isLoggingEnabled: Boolean) : Manager(isLoggingEnabled) {
+sealed class KeyboardInputManager(
+    isLoggingEnabled: Boolean,
+    instanceNameForLogging: String?,
+) : Manager(isLoggingEnabled, instanceNameForLogging) {
 
     abstract fun isKeyPressed(key: Key): Boolean
 
     companion object {
         fun newInstance(
             isLoggingEnabled: Boolean = false,
+            instanceNameForLogging: String? = null,
         ): KeyboardInputManager = KeyboardInputManagerImpl(
             isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = instanceNameForLogging,
         )
     }
 }

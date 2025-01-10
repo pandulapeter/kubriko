@@ -14,7 +14,8 @@ import kotlinx.coroutines.launch
 internal class SoundManagerImpl(
     private val maximumSimultaneousStreamsOfTheSameSound: Int,
     isLoggingEnabled: Boolean,
-) : SoundManager(isLoggingEnabled) {
+    instanceNameForLogging: String?,
+) : SoundManager(isLoggingEnabled, instanceNameForLogging) {
     private val cache = MutableStateFlow(persistentMapOf<String, Any?>())
     private var soundPlayer: SoundPlayer? = null
 

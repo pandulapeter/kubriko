@@ -80,7 +80,9 @@ internal fun DebugMenuContents(
         Text(
             modifier = Modifier.padding(horizontal = 8.dp).padding(top = 2.dp),
             style = TextStyle.Default.copy(fontSize = 10.sp),
-            text = entry.message,
+            text = entry.source.let { source ->
+                if (source == null) entry.message else "${entry.source}: ${entry.message}"
+            }
         )
     }
 }

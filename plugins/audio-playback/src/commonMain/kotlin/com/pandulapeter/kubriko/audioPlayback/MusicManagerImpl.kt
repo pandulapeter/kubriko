@@ -18,7 +18,8 @@ import kotlinx.coroutines.launch
 
 internal class MusicManagerImpl(
     isLoggingEnabled: Boolean,
-) : MusicManager(isLoggingEnabled) {
+    instanceNameForLogging: String?,
+) : MusicManager(isLoggingEnabled, instanceNameForLogging) {
     private val cache = MutableStateFlow(persistentMapOf<String, Any?>())
     private var musicPlayer: MusicPlayer? = null
     private val stateManager by manager<StateManager>()

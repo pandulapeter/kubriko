@@ -8,7 +8,10 @@ import org.jetbrains.compose.resources.DrawableResource
 /**
  * TODO: Documentation
  */
-sealed class SpriteManager(isLoggingEnabled: Boolean) : Manager(isLoggingEnabled) {
+sealed class SpriteManager(
+    isLoggingEnabled: Boolean,
+    instanceNameForLogging: String?,
+) : Manager(isLoggingEnabled, instanceNameForLogging) {
 
     abstract fun getLoadingProgress(drawableResources: Collection<DrawableResource>): Flow<Float>
 
@@ -23,8 +26,10 @@ sealed class SpriteManager(isLoggingEnabled: Boolean) : Manager(isLoggingEnabled
     companion object {
         fun newInstance(
             isLoggingEnabled: Boolean = false,
+            instanceNameForLogging: String? = null,
         ): SpriteManager = SpriteManagerImpl(
             isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = instanceNameForLogging,
         )
     }
 }

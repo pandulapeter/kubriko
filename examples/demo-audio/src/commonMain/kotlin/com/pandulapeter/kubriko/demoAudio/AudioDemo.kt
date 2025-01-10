@@ -35,6 +35,8 @@ internal class AudioDemoStateHolderImpl : AudioDemoStateHolder {
         MusicManager.newInstance(),
         SoundManager.newInstance(),
         AudioDemoManager(),
+        isLoggingEnabled = true,
+        instanceNameForLogging = "Audio",
     )
 
     override fun dispose() = kubriko.dispose()

@@ -112,11 +112,35 @@ internal class ShaderAnimationsDemoStateHolderImpl : ShaderAnimationsDemoStateHo
     val shaderManager = ShaderManager.newInstance()
     val shaderAnimationDemoHolders = ShaderAnimationDemoType.entries.associateWith {
         when (it) {
-            ShaderAnimationDemoType.CLOUD -> ShaderAnimationDemoHolder(CloudShader()) { shader, state -> shader.updateState(state) }
-            ShaderAnimationDemoType.ETHER -> ShaderAnimationDemoHolder(EtherShader()) { shader, state -> shader.updateState(state) }
-            ShaderAnimationDemoType.GRADIENT -> ShaderAnimationDemoHolder(GradientShader()) { shader, state -> shader.updateState(state) }
-            ShaderAnimationDemoType.NOODLE -> ShaderAnimationDemoHolder(NoodleShader()) { shader, state -> shader.updateState(state) }
-            ShaderAnimationDemoType.WARP -> ShaderAnimationDemoHolder(WarpShader()) { shader, state -> shader.updateState(state) }
+            ShaderAnimationDemoType.CLOUD -> ShaderAnimationDemoHolder(
+                shader = CloudShader(),
+                updater = { shader, state -> shader.updateState(state) },
+                nameForLogging = "cloud"
+            )
+
+            ShaderAnimationDemoType.ETHER -> ShaderAnimationDemoHolder(
+                shader = EtherShader(),
+                updater = { shader, state -> shader.updateState(state) },
+                nameForLogging = "ether"
+            )
+
+            ShaderAnimationDemoType.GRADIENT -> ShaderAnimationDemoHolder(
+                shader = GradientShader(),
+                updater = { shader, state -> shader.updateState(state) },
+                nameForLogging = "gradient"
+            )
+
+            ShaderAnimationDemoType.NOODLE -> ShaderAnimationDemoHolder(
+                shader = NoodleShader(),
+                updater = { shader, state -> shader.updateState(state) },
+                nameForLogging = "noodle"
+            )
+
+            ShaderAnimationDemoType.WARP -> ShaderAnimationDemoHolder(
+                shader = WarpShader(),
+                updater = { shader, state -> shader.updateState(state) },
+                nameForLogging = "warp"
+            )
         }
     }.toPersistentMap()
     private val _selectedDemoType = MutableStateFlow(ShaderAnimationDemoType.entries.first())

@@ -38,9 +38,11 @@ class EditableMetadata<T : Editable<T>>(
         fun newSerializationManagerInstance(
             vararg editableMetadata: EditableMetadata<*>,
             isLoggingEnabled: Boolean = false,
+            instanceNameForLogging: String? = null,
         ) = SerializationManager.newInstance<EditableMetadata<*>, Editable<*>>(
             serializableMetadata = editableMetadata,
             isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = instanceNameForLogging,
         )
 
         /**

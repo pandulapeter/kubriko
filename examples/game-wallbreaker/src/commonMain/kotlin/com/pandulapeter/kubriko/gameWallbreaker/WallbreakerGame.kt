@@ -149,6 +149,8 @@ private class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
         soundManager,
         loadingManager,
         BackgroundAnimationManager(),
+        isLoggingEnabled = true,
+        instanceNameForLogging = "WB-Background",
     )
     val kubriko = Kubriko.newInstance(
         stateManager,
@@ -170,6 +172,8 @@ private class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
         audioManager,
         gameManager,
         uiManager,
+        isLoggingEnabled = true,
+        instanceNameForLogging = "WB-Main",
     )
 
     override fun dispose() {

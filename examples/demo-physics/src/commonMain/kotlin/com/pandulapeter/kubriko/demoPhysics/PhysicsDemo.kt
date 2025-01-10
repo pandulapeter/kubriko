@@ -166,6 +166,8 @@ internal class PhysicsDemoStateHolderImpl : PhysicsDemoStateHolder {
             PointerInputManager.newInstance(),
             PhysicsDemoManager(sceneJson = sceneJson),
             serializationManager,
+            isLoggingEnabled = true,
+            instanceNameForLogging = "Physics",
         )
     }
 

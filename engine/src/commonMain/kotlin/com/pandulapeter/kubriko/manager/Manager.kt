@@ -18,8 +18,8 @@ import kotlin.reflect.KProperty
 
 abstract class Manager(
     initialIsLoggingEnabled: Boolean = false,
+    private val instanceNameForLogging: String? = null,
 ) {
-
     private val _isInitialized = MutableStateFlow(false)
     protected val isInitialized = _isInitialized.asStateFlow()
     protected lateinit var scope: CoroutineScope
@@ -108,7 +108,7 @@ abstract class Manager(
             Logger.log(
                 message = message,
                 details = details,
-                source = "Manager_$this" // TODO
+                source = "${this::class.simpleName}@${instanceNameForLogging ?: toString().substringAfterLast('@')}"
             )
         }
     }

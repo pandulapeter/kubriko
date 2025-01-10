@@ -23,7 +23,8 @@ import kotlinx.coroutines.flow.update
 internal class PointerInputManagerImpl(
     private val isActiveAboveViewport: Boolean,
     isLoggingEnabled: Boolean,
-) : PointerInputManager(isLoggingEnabled) {
+    instanceNameForLogging: String?,
+) : PointerInputManager(isLoggingEnabled, instanceNameForLogging) {
     // TODO: Implement multi-touch support
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()

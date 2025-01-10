@@ -40,8 +40,8 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.persistence.PersistenceManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shaders.ShaderManager
-import com.pandulapeter.kubriko.sprites.SpriteManager
 import com.pandulapeter.kubriko.shared.ExampleStateHolder
+import com.pandulapeter.kubriko.sprites.SpriteManager
 
 /**
  * Music: https://freesound.org/people/Andrewkn/sounds/474864/
@@ -137,7 +137,9 @@ private class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
         soundManager,
         spriteManager,
         loadingManager,
-        BackgroundAnimationManager()
+        BackgroundAnimationManager(),
+        isLoggingEnabled = true,
+        instanceNameForLogging = "SS-Background",
     )
     val kubriko = Kubriko.newInstance(
         stateManager,
@@ -157,6 +159,8 @@ private class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
         gameManager,
         uiManager,
         audioManager,
+        isLoggingEnabled = true,
+        instanceNameForLogging = "SS-Main",
     )
 
     override fun dispose() {

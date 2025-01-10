@@ -7,7 +7,10 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * TODO: Documentation
  */
-sealed class PointerInputManager(isLoggingEnabled: Boolean) : Manager(isLoggingEnabled) {
+sealed class PointerInputManager(
+    isLoggingEnabled: Boolean,
+    instanceNameForLogging: String?,
+) : Manager(isLoggingEnabled, instanceNameForLogging) {
 
     abstract val isPointerPressed: StateFlow<Boolean>
     abstract val pointerScreenOffset: StateFlow<Offset?>
@@ -19,9 +22,11 @@ sealed class PointerInputManager(isLoggingEnabled: Boolean) : Manager(isLoggingE
         fun newInstance(
             isActiveAboveViewport: Boolean = false,
             isLoggingEnabled: Boolean = false,
+            instanceNameForLogging: String? = null,
         ): PointerInputManager = PointerInputManagerImpl(
             isActiveAboveViewport = isActiveAboveViewport,
             isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = instanceNameForLogging,
         )
     }
 }

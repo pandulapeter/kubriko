@@ -28,9 +28,11 @@ open class SerializableMetadata<T : Serializable<T>>(
         fun newSerializationManagerInstance(
             vararg serializableMetadata: SerializableMetadata<*>,
             isLoggingEnabled: Boolean = false,
+            instanceNameForLogging: String? = null,
         ) = SerializationManager.newInstance<SerializableMetadata<*>, Serializable<*>>(
             serializableMetadata = serializableMetadata,
             isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = instanceNameForLogging,
         )
 
         /**

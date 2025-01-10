@@ -63,7 +63,7 @@ internal class PerformanceDemoStateHolderImpl : PerformanceDemoStateHolder {
             instantiate = { MovingBox.State(body = RectangleBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit))) }
         ),
     )
-    val performanceDemoManager by lazy { PerformanceDemoManager(sceneJson = sceneJson) }
+    private val performanceDemoManager by lazy { PerformanceDemoManager(sceneJson = sceneJson) }
     val kubriko by lazy {
         Kubriko.newInstance(
             ViewportManager.newInstance(
@@ -72,6 +72,8 @@ internal class PerformanceDemoStateHolderImpl : PerformanceDemoStateHolder {
             ),
             performanceDemoManager,
             serializationManager,
+            isLoggingEnabled = true,
+            instanceNameForLogging = "Performance",
         )
     }
 

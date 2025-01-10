@@ -36,6 +36,8 @@ internal class InputDemoStateHolderImpl : InputDemoStateHolder {
         PointerInputManager.newInstance(),
         KeyboardInputManager.newInstance(),
         inputDemoManager,
+        isLoggingEnabled = true,
+        instanceNameForLogging = "Input",
     )
 
     override fun dispose() = kubriko.dispose()

@@ -8,7 +8,8 @@ import kotlinx.coroutines.flow.map
 
 internal class CollisionManagerImpl(
     isLoggingEnabled: Boolean,
-) : CollisionManager(isLoggingEnabled) {
+    instanceNameForLogging: String?,
+) : CollisionManager(isLoggingEnabled, instanceNameForLogging) {
     private val actorManager by manager<ActorManager>()
     private val collisionDetectors by autoInitializingLazy {
         actorManager.allActors.map { allActors ->

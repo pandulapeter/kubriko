@@ -16,7 +16,8 @@ import kotlinx.coroutines.flow.onEach
 
 internal class KeyboardInputManagerImpl(
     isLoggingEnabled: Boolean,
-) : KeyboardInputManager(isLoggingEnabled) {
+    instanceNameForLogging: String?,
+) : KeyboardInputManager(isLoggingEnabled, instanceNameForLogging) {
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
     private var activeKeysCache = mutableSetOf<Key>()

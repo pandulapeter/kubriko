@@ -6,7 +6,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 /**
  * TODO: Documentation
  */
-sealed class PersistenceManager(isLoggingEnabled: Boolean) : Manager(isLoggingEnabled) {
+sealed class PersistenceManager(
+    isLoggingEnabled: Boolean,
+    instanceNameForLogging: String?,
+) : Manager(isLoggingEnabled, instanceNameForLogging) {
 
     abstract fun boolean(
         key: String,
@@ -39,9 +42,11 @@ sealed class PersistenceManager(isLoggingEnabled: Boolean) : Manager(isLoggingEn
         fun newInstance(
             fileName: String = "kubrikoPreferences",
             isLoggingEnabled: Boolean = false,
+            instanceNameForLogging: String? = null,
         ): PersistenceManager = PersistenceManagerImpl(
             fileName = fileName,
             isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = instanceNameForLogging,
         )
     }
 }

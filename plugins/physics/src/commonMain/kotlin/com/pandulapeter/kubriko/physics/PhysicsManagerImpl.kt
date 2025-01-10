@@ -19,7 +19,8 @@ internal class PhysicsManagerImpl(
     initialGravity: SceneOffset,
     initialSimulationSpeed: Float,
     isLoggingEnabled: Boolean,
-) : PhysicsManager(isLoggingEnabled) {
+    instanceNameForLogging: String?,
+) : PhysicsManager(isLoggingEnabled, instanceNameForLogging) {
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
     private val rigidBodies by lazy {

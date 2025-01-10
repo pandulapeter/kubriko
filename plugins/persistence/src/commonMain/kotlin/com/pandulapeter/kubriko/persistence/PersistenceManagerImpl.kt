@@ -14,7 +14,8 @@ import kotlinx.coroutines.launch
 internal class PersistenceManagerImpl(
     private val fileName: String,
     isLoggingEnabled: Boolean,
-) : PersistenceManager(isLoggingEnabled) {
+    instanceNameForLogging: String?,
+) : PersistenceManager(isLoggingEnabled, instanceNameForLogging) {
     private var keyValuePersistenceManager: KeyValuePersistenceManager? = null
     private val stateFlowMap = mutableMapOf<String, PersistedPropertyWrapper<*>>()
 

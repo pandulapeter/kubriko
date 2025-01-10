@@ -59,7 +59,9 @@ internal class ContentShadersDemoStateHolderImpl : ContentShadersDemoStateHolder
         ViewportManager.newInstance(
             aspectRatioMode = ViewportManager.AspectRatioMode.Stretched(SceneSize(2000.sceneUnit, 2000.sceneUnit)),
         ),
-        ContentShadersDemoManager()
+        ContentShadersDemoManager(),
+        isLoggingEnabled = true,
+        instanceNameForLogging = "ContentShaders",
     )
 
     override fun dispose() = kubriko.dispose()

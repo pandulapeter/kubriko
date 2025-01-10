@@ -20,6 +20,7 @@ import kotlin.reflect.KClass
 internal class KubrikoImpl(
     vararg manager: Manager,
     override var isLoggingEnabled: Boolean,
+    private val instanceNameForLogging: String?,
 ) : Kubriko, CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
@@ -40,7 +41,6 @@ internal class KubrikoImpl(
         metadataManager.initializeInternal(this)
         stateManager.initializeInternal(this)
         viewportManager.initializeInternal(this)
-
         log(
             message = "Kubriko instance created with ${managers.size} Managers.",
             details = managers.joinToString { it::class.simpleName.orEmpty() },
@@ -82,7 +82,7 @@ internal class KubrikoImpl(
             Logger.log(
                 message = message,
                 details = details,
-                source = "Kubriko_$this"
+                source = "Kubriko@${instanceNameForLogging ?: toString().substringAfterLast('@')}"
             )
         }
     }

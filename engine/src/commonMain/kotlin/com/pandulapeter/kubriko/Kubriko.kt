@@ -33,9 +33,11 @@ sealed interface Kubriko {
         fun newInstance(
             vararg manager: Manager,
             isLoggingEnabled: Boolean = false,
+            instanceNameForLogging: String? = null,
         ): Kubriko = KubrikoImpl(
             manager = manager,
             isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = instanceNameForLogging,
         )
     }
 }
