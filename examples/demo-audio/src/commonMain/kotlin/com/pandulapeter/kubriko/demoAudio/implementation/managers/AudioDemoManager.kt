@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.demoAudio.implementation
+package com.pandulapeter.kubriko.demoAudio.implementation.managers
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable

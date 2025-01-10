@@ -25,7 +25,6 @@ import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.vectorResource
 
 internal class LoadingManager : Manager() {
-
     private val musicManager by manager<MusicManager>()
     private val soundManager by manager<SoundManager>()
     private val spriteManager by manager<SpriteManager>()

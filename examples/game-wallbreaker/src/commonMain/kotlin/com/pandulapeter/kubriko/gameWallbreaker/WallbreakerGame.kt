@@ -20,34 +20,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
-import com.pandulapeter.kubriko.audioPlayback.MusicManager
-import com.pandulapeter.kubriko.audioPlayback.SoundManager
-import com.pandulapeter.kubriko.collision.CollisionManager
-import com.pandulapeter.kubriko.extensions.sceneUnit
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.AudioManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.BackgroundAnimationManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.GameplayManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.LoadingManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.ScoreManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.UIManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.UserPreferencesManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.WallbreakerGameStateHolder
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.WallbreakerGameStateHolderImpl
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.GameOverlay
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.InfoDialogOverlay
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.MenuOverlay
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerTheme
-import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
-import com.pandulapeter.kubriko.manager.StateManager
-import com.pandulapeter.kubriko.manager.ViewportManager
-import com.pandulapeter.kubriko.persistence.PersistenceManager
-import com.pandulapeter.kubriko.pointerInput.PointerInputManager
-import com.pandulapeter.kubriko.shaders.ShaderManager
-import com.pandulapeter.kubriko.shared.ExampleStateHolder
 
-/**
- * Music: https://opengameart.org/content/cyberpunk-moonlight-sonata
- */
+fun createWallbreakerGameStateHolder(): WallbreakerGameStateHolder = WallbreakerGameStateHolderImpl()
+
 @Composable
 fun WallbreakerGame(
     stateHolder: WallbreakerGameStateHolder = createWallbreakerGameStateHolder(),
@@ -57,7 +39,7 @@ fun WallbreakerGame(
 ) = WallbreakerTheme {
     stateHolder as WallbreakerGameStateHolderImpl
     val isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value
-    val isGameLoaded = stateHolder.loadingManager.isGameLoaded()
+    val isGameLoaded = stateHolder.backgroundLoadingManager.isGameLoaded()
     KubrikoViewport(
         modifier = Modifier
             .fillMaxSize()
@@ -91,9 +73,9 @@ fun WallbreakerGame(
         MenuOverlay(
             modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
             isVisible = !isGameRunning,
-            shouldShowResumeButton = !stateHolder.gameManager.isGameOver.collectAsState().value,
-            onResumeButtonPressed = stateHolder.gameManager::resumeGame,
-            onRestartButtonPressed = stateHolder.gameManager::restartGame,
+            shouldShowResumeButton = !stateHolder.gameplayManager.isGameOver.collectAsState().value,
+            onResumeButtonPressed = stateHolder.gameplayManager::resumeGame,
+            onRestartButtonPressed = stateHolder.gameplayManager::restartGame,
             onInfoButtonPressed = {
                 stateHolder.audioManager.playClickSoundEffect()
                 stateHolder.uiManager.toggleInfoDialogVisibility()
@@ -114,7 +96,7 @@ fun WallbreakerGame(
             isGameRunning = isGameRunning,
             score = stateHolder.scoreManager.score.collectAsState().value,
             highScore = stateHolder.scoreManager.highScore.collectAsState().value,
-            onPauseButtonPressed = stateHolder.gameManager::pauseGame,
+            onPauseButtonPressed = stateHolder.gameplayManager::pauseGame,
             onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
         )
         InfoDialogOverlay(
@@ -123,61 +105,5 @@ fun WallbreakerGame(
             onInfoDialogClosed = stateHolder.uiManager::toggleInfoDialogVisibility,
             onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
         )
-    }
-}
-
-
-sealed interface WallbreakerGameStateHolder : ExampleStateHolder
-
-fun createWallbreakerGameStateHolder(): WallbreakerGameStateHolder = WallbreakerGameStateHolderImpl()
-
-private class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
-    val stateManager = StateManager.newInstance(shouldAutoStart = false)
-    private val persistenceManager = PersistenceManager.newInstance(fileName = "kubrikoWallbreaker")
-    val scoreManager = ScoreManager(persistenceManager)
-    val shaderManager = ShaderManager.newInstance()
-    val userPreferencesManager = UserPreferencesManager(persistenceManager)
-    val gameManager = GameplayManager(stateManager)
-    val loadingManager = LoadingManager()
-    val audioManager = AudioManager(stateManager, userPreferencesManager)
-    private val musicManager = MusicManager.newInstance()
-    private val soundManager = SoundManager.newInstance()
-    val uiManager = UIManager(stateManager)
-    val backgroundKubriko = Kubriko.newInstance(
-        ShaderManager.newInstance(),
-        musicManager,
-        soundManager,
-        loadingManager,
-        BackgroundAnimationManager(),
-        isLoggingEnabled = true,
-        instanceNameForLogging = "WB-Background",
-    )
-    val kubriko = Kubriko.newInstance(
-        stateManager,
-        ViewportManager.newInstance(
-            aspectRatioMode = ViewportManager.AspectRatioMode.Fixed(
-                ratio = 1f,
-                width = 1200.sceneUnit,
-            )
-        ),
-        CollisionManager.newInstance(),
-        shaderManager,
-        KeyboardInputManager.newInstance(),
-        PointerInputManager.newInstance(isActiveAboveViewport = true),
-        persistenceManager,
-        scoreManager,
-        userPreferencesManager,
-        musicManager,
-        soundManager,
-        audioManager,
-        gameManager,
-        uiManager,
-        isLoggingEnabled = true,
-        instanceNameForLogging = "WB-Main",
-    )
-
-    override fun dispose() {
-        backgroundKubriko.dispose()
-        kubriko.dispose()
     }
 }

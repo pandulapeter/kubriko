@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.demoPhysics.implementation
+package com.pandulapeter.kubriko.demoPhysics.implementation.managers
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +17,8 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Unique
+import com.pandulapeter.kubriko.demoPhysics.implementation.ui.ActionType
+import com.pandulapeter.kubriko.demoPhysics.implementation.PlatformSpecificContent
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicBox
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicChain
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicCircle

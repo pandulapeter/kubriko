@@ -20,32 +20,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
-import com.pandulapeter.kubriko.audioPlayback.MusicManager
-import com.pandulapeter.kubriko.audioPlayback.SoundManager
-import com.pandulapeter.kubriko.collision.CollisionManager
 import com.pandulapeter.kubriko.extensions.sceneUnit
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.BackgroundAnimationManager
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.LoadingManager
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.UIManager
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.UserPreferencesManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.SpaceSquadronGameStateHolder
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.SpaceSquadronGameStateHolderImpl
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.SpaceSquadronMenuOverlay
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.SpaceSquadronTheme
-import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
-import com.pandulapeter.kubriko.manager.StateManager
-import com.pandulapeter.kubriko.manager.ViewportManager
-import com.pandulapeter.kubriko.persistence.PersistenceManager
-import com.pandulapeter.kubriko.pointerInput.PointerInputManager
-import com.pandulapeter.kubriko.shaders.ShaderManager
-import com.pandulapeter.kubriko.shared.ExampleStateHolder
-import com.pandulapeter.kubriko.sprites.SpriteManager
 
-/**
- * Music: https://freesound.org/people/Andrewkn/sounds/474864/
- */
+fun createSpaceSquadronGameStateHolder(): SpaceSquadronGameStateHolder = SpaceSquadronGameStateHolderImpl()
+
 @Composable
 fun SpaceSquadronGame(
     stateHolder: SpaceSquadronGameStateHolder = createSpaceSquadronGameStateHolder(),
@@ -54,7 +37,7 @@ fun SpaceSquadronGame(
     onFullscreenModeToggled: () -> Unit = {},
 ) = SpaceSquadronTheme {
     stateHolder as SpaceSquadronGameStateHolderImpl
-    val isGameLoaded = stateHolder.loadingManager.isGameLoaded()
+    val isGameLoaded = stateHolder.backgroundLoadingManager.isGameLoaded()
     KubrikoViewport(
         modifier = Modifier.fillMaxSize().background(Color.Black),
         kubriko = stateHolder.backgroundKubriko,
@@ -95,8 +78,8 @@ fun SpaceSquadronGame(
                 modifier = Modifier.windowInsetsPadding(windowInsets),
                 isVisible = !stateHolder.stateManager.isRunning.collectAsState().value,
                 shouldShowInfoText = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
-                onPlayButtonPressed = stateHolder.gameManager::playGame,
-                onPauseButtonPressed = stateHolder.gameManager::pauseGame,
+                onPlayButtonPressed = stateHolder.gameplayManager::playGame,
+                onPauseButtonPressed = stateHolder.gameplayManager::pauseGame,
                 onInfoButtonPressed = {
                     stateHolder.audioManager.playButtonToggleSoundEffect()
                     stateHolder.uiManager.toggleInfoDialogVisibility()
@@ -113,59 +96,6 @@ fun SpaceSquadronGame(
                 onButtonHover = stateHolder.audioManager::playButtonHoverSoundEffect,
             )
         }
-    }
-}
-
-sealed interface SpaceSquadronGameStateHolder : ExampleStateHolder
-
-fun createSpaceSquadronGameStateHolder(): SpaceSquadronGameStateHolder = SpaceSquadronGameStateHolderImpl()
-
-private class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
-    val stateManager = StateManager.newInstance(shouldAutoStart = false)
-    private val persistenceManager = PersistenceManager.newInstance(fileName = "kubrikoSpaceSquadron")
-    val userPreferencesManager = UserPreferencesManager(persistenceManager)
-    val loadingManager = LoadingManager()
-    private val musicManager = MusicManager.newInstance()
-    private val soundManager = SoundManager.newInstance()
-    val audioManager = AudioManager(stateManager, userPreferencesManager)
-    val gameManager = GameplayManager()
-    val spriteManager = SpriteManager.newInstance()
-    val uiManager = UIManager(stateManager)
-    val backgroundKubriko = Kubriko.newInstance(
-        ShaderManager.newInstance(),
-        musicManager,
-        soundManager,
-        spriteManager,
-        loadingManager,
-        BackgroundAnimationManager(),
-        isLoggingEnabled = true,
-        instanceNameForLogging = "SS-Background",
-    )
-    val kubriko = Kubriko.newInstance(
-        stateManager,
-        ViewportManager.newInstance(
-            aspectRatioMode = ViewportManager.AspectRatioMode.FitVertical(
-                height = ViewportHeight,
-            )
-        ),
-        CollisionManager.newInstance(),
-        KeyboardInputManager.newInstance(),
-        PointerInputManager.newInstance(isActiveAboveViewport = true),
-        persistenceManager,
-        userPreferencesManager,
-        musicManager,
-        soundManager,
-        spriteManager,
-        gameManager,
-        uiManager,
-        audioManager,
-        isLoggingEnabled = true,
-        instanceNameForLogging = "SS-Main",
-    )
-
-    override fun dispose() {
-        kubriko.dispose()
-        backgroundKubriko.dispose()
     }
 }
 

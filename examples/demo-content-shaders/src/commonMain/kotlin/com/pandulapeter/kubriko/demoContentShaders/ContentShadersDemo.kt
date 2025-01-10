@@ -12,17 +12,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
-import com.pandulapeter.kubriko.demoContentShaders.implementation.ContentShadersDemoManager
-import com.pandulapeter.kubriko.extensions.sceneUnit
-import com.pandulapeter.kubriko.manager.ViewportManager
-import com.pandulapeter.kubriko.shaders.ShaderManager
-import com.pandulapeter.kubriko.shared.ExampleStateHolder
-import com.pandulapeter.kubriko.types.SceneSize
+import com.pandulapeter.kubriko.demoContentShaders.implementation.ContentShadersDemoStateHolder
+import com.pandulapeter.kubriko.demoContentShaders.implementation.ContentShadersDemoStateHolderImpl
 import kubriko.examples.demo_content_shaders.generated.resources.Res
 import kubriko.examples.demo_content_shaders.generated.resources.shaders_not_supported
 import org.jetbrains.compose.resources.stringResource
+
+fun createContentShadersDemoStateHolder(): ContentShadersDemoStateHolder = ContentShadersDemoStateHolderImpl()
 
 @Composable
 fun ContentShadersDemo(
@@ -46,28 +43,4 @@ fun ContentShadersDemo(
             )
         }
     }
-}
-
-sealed interface ContentShadersDemoStateHolder : ExampleStateHolder
-
-fun createContentShadersDemoStateHolder(): ContentShadersDemoStateHolder = ContentShadersDemoStateHolderImpl()
-
-private const val LOG_TAG = "ContentShaders"
-
-internal class ContentShadersDemoStateHolderImpl : ContentShadersDemoStateHolder {
-    val shaderManager = ShaderManager.newInstance(
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
-    )
-    val kubriko = Kubriko.newInstance(
-        shaderManager,
-        ViewportManager.newInstance(
-            aspectRatioMode = ViewportManager.AspectRatioMode.Stretched(SceneSize(2000.sceneUnit, 2000.sceneUnit)),
-        ),
-        ContentShadersDemoManager(),
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
-    )
-
-    override fun dispose() = kubriko.dispose()
 }

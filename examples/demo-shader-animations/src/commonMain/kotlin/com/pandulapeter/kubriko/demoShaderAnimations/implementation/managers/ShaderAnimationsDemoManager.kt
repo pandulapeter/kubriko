@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.demoShaderAnimations.implementation
+package com.pandulapeter.kubriko.demoShaderAnimations.implementation.managers
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.extensions.get

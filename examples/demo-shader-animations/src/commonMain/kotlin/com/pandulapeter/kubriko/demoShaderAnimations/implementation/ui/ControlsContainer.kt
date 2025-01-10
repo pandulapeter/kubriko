@@ -31,7 +31,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationDemoType
-import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationsDemoManager
+import com.pandulapeter.kubriko.demoShaderAnimations.implementation.managers.ShaderAnimationsDemoManager
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationDemoHolder
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.CloudShader
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.EtherShader
@@ -89,7 +89,7 @@ internal fun ControlsContainer(
                 )
 
                 ControlsState.EXPANDED_CONTROLS -> Controls(
-                    manager = shaderAnimationDemoHolders[targetState.first]!!.manager,
+                    manager = shaderAnimationDemoHolders[targetState.first]!!.shaderAnimationsDemoManager,
                     demoType = targetState.first,
                 )
             }

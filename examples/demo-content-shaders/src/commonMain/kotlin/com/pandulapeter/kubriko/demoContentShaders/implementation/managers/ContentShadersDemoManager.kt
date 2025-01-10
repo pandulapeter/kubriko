@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.demoContentShaders.implementation
+package com.pandulapeter.kubriko.demoContentShaders.implementation.managers
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.demoContentShaders.implementation.actors.ColorfulBox

@@ -2,8 +2,9 @@ package com.pandulapeter.kubriko.demoPerformance
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceDemoManager
+import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceDemoStateHolderImpl
 import com.pandulapeter.kubriko.demoPerformance.implementation.isSceneEditorVisible
+import com.pandulapeter.kubriko.demoPerformance.implementation.managers.PerformanceDemoManager
 import com.pandulapeter.kubriko.demoPerformance.implementation.sceneJson
 import com.pandulapeter.kubriko.sceneEditor.SceneEditor
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode

@@ -2,8 +2,9 @@ package com.pandulapeter.kubriko.demoPhysics
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoManager
+import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoStateHolderImpl
 import com.pandulapeter.kubriko.demoPhysics.implementation.isSceneEditorVisible
+import com.pandulapeter.kubriko.demoPhysics.implementation.managers.PhysicsDemoManager
 import com.pandulapeter.kubriko.demoPhysics.implementation.sceneJson
 import com.pandulapeter.kubriko.sceneEditor.SceneEditor
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode

@@ -5,12 +5,11 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
-import com.pandulapeter.kubriko.audioPlayback.MusicManager
-import com.pandulapeter.kubriko.audioPlayback.SoundManager
-import com.pandulapeter.kubriko.demoAudio.implementation.AudioDemoManager
-import com.pandulapeter.kubriko.shared.ExampleStateHolder
+import com.pandulapeter.kubriko.demoAudio.implementation.AudioDemoStateHolder
+import com.pandulapeter.kubriko.demoAudio.implementation.AudioDemoStateHolderImpl
+
+fun createAudioDemoStateHolder(): AudioDemoStateHolder = AudioDemoStateHolderImpl()
 
 @Composable
 fun AudioDemo(
@@ -24,31 +23,4 @@ fun AudioDemo(
         kubriko = stateHolder.kubriko,
         windowInsets = windowInsets,
     )
-}
-
-sealed interface AudioDemoStateHolder : ExampleStateHolder
-
-fun createAudioDemoStateHolder(): AudioDemoStateHolder = AudioDemoStateHolderImpl()
-
-private const val LOG_TAG = "Audio"
-
-internal class AudioDemoStateHolderImpl : AudioDemoStateHolder {
-    private val musicManager = MusicManager.newInstance(
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
-    )
-    private val soundManager = SoundManager.newInstance(
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
-    )
-    private val audioDemoManager = AudioDemoManager()
-    val kubriko = Kubriko.newInstance(
-        musicManager,
-        soundManager,
-        audioDemoManager,
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
-    )
-
-    override fun dispose() = kubriko.dispose()
 }

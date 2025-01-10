@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.demoInput.implementation
+package com.pandulapeter.kubriko.demoInput.implementation.managers
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color

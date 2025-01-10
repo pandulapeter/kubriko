@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.demoPerformance.implementation
+package com.pandulapeter.kubriko.demoPerformance.implementation.managers
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.demoPerformance.implementation.PlatformSpecificContent
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.sceneEditor.Editable
