@@ -11,8 +11,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 sealed class PhysicsManager(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
-) : Manager(isLoggingEnabled, instanceNameForLogging) {
-
+) : Manager(
+    isLoggingEnabled = isLoggingEnabled,
+    instanceNameForLogging = instanceNameForLogging,
+    classNameForLogging = "PhysicsManager",
+) {
     abstract val gravity: MutableStateFlow<SceneOffset>
     abstract val simulationSpeed: MutableStateFlow<Float>
 

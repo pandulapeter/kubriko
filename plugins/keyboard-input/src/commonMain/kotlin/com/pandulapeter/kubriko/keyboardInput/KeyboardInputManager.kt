@@ -10,7 +10,11 @@ import com.pandulapeter.kubriko.manager.Manager
 sealed class KeyboardInputManager(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
-) : Manager(isLoggingEnabled, instanceNameForLogging) {
+) : Manager(
+    isLoggingEnabled = isLoggingEnabled,
+    instanceNameForLogging = instanceNameForLogging,
+    classNameForLogging = "KeyboardInputManager",
+) {
 
     abstract fun isKeyPressed(key: Key): Boolean
 

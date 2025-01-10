@@ -8,8 +8,11 @@ import com.pandulapeter.kubriko.manager.Manager
 sealed class ShaderManager(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
-) : Manager(isLoggingEnabled, instanceNameForLogging) {
-
+) : Manager(
+    isLoggingEnabled = isLoggingEnabled,
+    instanceNameForLogging = instanceNameForLogging,
+    classNameForLogging = "ShaderManager",
+) {
     abstract val areShadersSupported: Boolean
 
     companion object {

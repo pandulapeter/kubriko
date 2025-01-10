@@ -9,8 +9,11 @@ import kotlinx.coroutines.flow.StateFlow
 sealed class StateManager(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
-) : Manager(isLoggingEnabled, instanceNameForLogging) {
-
+) : Manager(
+    isLoggingEnabled = isLoggingEnabled,
+    instanceNameForLogging = instanceNameForLogging,
+    classNameForLogging = "StateManager",
+) {
     abstract val isFocused: StateFlow<Boolean>
     abstract val isRunning: StateFlow<Boolean>
 

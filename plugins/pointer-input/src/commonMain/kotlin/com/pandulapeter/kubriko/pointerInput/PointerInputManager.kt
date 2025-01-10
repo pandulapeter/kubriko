@@ -10,8 +10,11 @@ import kotlinx.coroutines.flow.StateFlow
 sealed class PointerInputManager(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
-) : Manager(isLoggingEnabled, instanceNameForLogging) {
-
+) : Manager(
+    isLoggingEnabled = isLoggingEnabled,
+    instanceNameForLogging = instanceNameForLogging,
+    classNameForLogging = "PointerInputManager",
+) {
     abstract val isPointerPressed: StateFlow<Boolean>
     abstract val pointerScreenOffset: StateFlow<Offset?>
 

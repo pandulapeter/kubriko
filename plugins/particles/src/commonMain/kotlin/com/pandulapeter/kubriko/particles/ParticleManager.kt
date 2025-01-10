@@ -8,7 +8,11 @@ import com.pandulapeter.kubriko.manager.Manager
 sealed class ParticleManager(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
-) : Manager(isLoggingEnabled, instanceNameForLogging) {
+) : Manager(
+    isLoggingEnabled = isLoggingEnabled,
+    instanceNameForLogging = instanceNameForLogging,
+    classNameForLogging = "ParticleManager",
+) {
 
     companion object {
         fun newInstance(

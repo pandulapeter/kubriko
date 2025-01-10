@@ -10,7 +10,11 @@ import kotlinx.coroutines.flow.Flow
 sealed class MusicManager(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
-) : Manager(isLoggingEnabled, instanceNameForLogging) {
+) : Manager(
+    isLoggingEnabled = isLoggingEnabled,
+    instanceNameForLogging = instanceNameForLogging,
+    classNameForLogging = "MusicManager",
+) {
 
     abstract fun getLoadingProgress(uris: Collection<String>): Flow<Float>
 

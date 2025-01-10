@@ -17,8 +17,9 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 abstract class Manager(
-    initialIsLoggingEnabled: Boolean = false,
+    protected var isLoggingEnabled: Boolean = false,
     private val instanceNameForLogging: String? = null,
+    private val classNameForLogging: String? = null,
 ) {
     private val _isInitialized = MutableStateFlow(false)
     protected val isInitialized = _isInitialized.asStateFlow()
@@ -26,7 +27,6 @@ abstract class Manager(
         private set
     private val autoInitializingLazyProperties = mutableListOf<AutoInitializingLazy<*>>()
     private val autoInitializingLazyManagers = mutableListOf<LazyManager<*>>()
-    protected var isLoggingEnabled = initialIsLoggingEnabled
 
     @Composable
     internal fun processOverlayModifierInternal(modifier: Modifier) = processOverlayModifier(modifier)
@@ -122,10 +122,12 @@ abstract class Manager(
         importance: Logger.Importance = Logger.Importance.HIGH,
     ) {
         if (isLoggingEnabled) {
+            val className = classNameForLogging ?: this::class.simpleName
+            val instanceName = instanceNameForLogging ?: toString().substringAfterLast('@')
             Logger.log(
                 message = message,
                 details = details,
-                source = "${this::class.simpleName}@${instanceNameForLogging ?: toString().substringAfterLast('@')}",
+                source = "$className@$instanceName",
                 importance = importance,
             )
         }

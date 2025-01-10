@@ -11,8 +11,11 @@ import kotlinx.coroutines.flow.StateFlow
 sealed class ActorManager(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
-) : Manager(isLoggingEnabled, instanceNameForLogging) {
-
+) : Manager(
+    isLoggingEnabled = isLoggingEnabled,
+    instanceNameForLogging = instanceNameForLogging,
+    classNameForLogging = "ActorManager",
+) {
     abstract val allActors: StateFlow<ImmutableList<Actor>>
     abstract val visibleActorsWithinViewport: StateFlow<ImmutableList<Visible>>
 

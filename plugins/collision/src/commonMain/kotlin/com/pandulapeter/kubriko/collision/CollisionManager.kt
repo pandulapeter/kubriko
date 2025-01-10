@@ -8,7 +8,11 @@ import com.pandulapeter.kubriko.manager.Manager
 sealed class CollisionManager(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
-) : Manager(isLoggingEnabled, instanceNameForLogging) {
+) : Manager(
+    isLoggingEnabled = isLoggingEnabled,
+    instanceNameForLogging = instanceNameForLogging,
+    classNameForLogging = "CollisionManager",
+) {
 
     companion object {
         fun newInstance(

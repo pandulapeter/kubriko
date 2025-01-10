@@ -9,7 +9,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 sealed class PersistenceManager(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
-) : Manager(isLoggingEnabled, instanceNameForLogging) {
+) : Manager(
+    isLoggingEnabled = isLoggingEnabled,
+    instanceNameForLogging = instanceNameForLogging,
+    classNameForLogging = "PersistenceManager",
+) {
 
     abstract fun boolean(
         key: String,

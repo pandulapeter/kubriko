@@ -10,8 +10,11 @@ import kotlin.reflect.KClass
 sealed class SerializationManager<MD : SerializableMetadata<out T>, out T : Serializable<out T>>(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
-) : Manager(isLoggingEnabled, instanceNameForLogging) {
-
+) : Manager(
+    isLoggingEnabled = isLoggingEnabled,
+    instanceNameForLogging = instanceNameForLogging,
+    classNameForLogging = "SerializationManager",
+) {
     abstract val registeredTypeIds: ImmutableSet<String>
 
     abstract fun getTypeId(type: KClass<out @UnsafeVariance T>): String?

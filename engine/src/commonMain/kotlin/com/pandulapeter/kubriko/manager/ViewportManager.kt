@@ -17,8 +17,11 @@ import kotlinx.coroutines.flow.StateFlow
 sealed class ViewportManager(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
-) : Manager(isLoggingEnabled, instanceNameForLogging) {
-
+) : Manager(
+    isLoggingEnabled = isLoggingEnabled,
+    instanceNameForLogging = instanceNameForLogging,
+    classNameForLogging = "ViewportManager",
+) {
     abstract val cameraPosition: StateFlow<SceneOffset> // Center of the viewport
     abstract val size: StateFlow<Size>
     abstract val scaleFactor: StateFlow<Scale>
