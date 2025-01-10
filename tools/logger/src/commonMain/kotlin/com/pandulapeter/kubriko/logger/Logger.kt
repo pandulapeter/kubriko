@@ -9,6 +9,15 @@ object Logger {
 
     private val _logs = MutableStateFlow(emptyList<Entry>())
     val logs = _logs.asStateFlow()
+    var entryLimit = 100
+        set(value) {
+            if (value >= 0) {
+                field = value
+                _logs.update {
+                    it.take(value)
+                }
+            }
+        }
 
     data class Entry(
         val message: String,
@@ -32,7 +41,7 @@ object Logger {
                 )
             )
             addAll(it)
-        }
+        }.take(entryLimit)
     }
 
     fun clearLogs() = _logs.update { emptyList() }
