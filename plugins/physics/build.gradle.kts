@@ -7,6 +7,7 @@ kotlin {
         commonMain.dependencies {
             api(projects.engine)
             api(projects.plugins.collision)
+            implementation(projects.tools.logger)
         }
     }
 }

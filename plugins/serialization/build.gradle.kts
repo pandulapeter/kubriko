@@ -8,6 +8,7 @@ kotlin {
         commonMain.dependencies {
             api(projects.engine)
             api(libs.kotlinx.serialization)
+            implementation(projects.tools.logger)
         }
     }
 }

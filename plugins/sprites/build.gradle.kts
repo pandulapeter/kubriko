@@ -7,6 +7,7 @@ kotlin {
         commonMain.dependencies {
             api(projects.engine)
             api(compose.components.resources)
+            implementation(projects.tools.logger)
         }
     }
 }
