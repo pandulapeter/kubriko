@@ -12,19 +12,27 @@ object Logger {
 
     data class Entry(
         val message: String,
+        val details: String?,
         val source: String?,
         val timestamp: Long,
     )
 
     fun log(
         message: String,
+        details: String? = null,
         source: String? = null,
     ) = _logs.update {
-        it + Entry(
-            message = message,
-            source = source,
-            timestamp = getCurrentTimestamp()
-        )
+        buildList {
+            add(
+                Entry(
+                    message = message,
+                    details = details,
+                    source = source,
+                    timestamp = getCurrentTimestamp()
+                )
+            )
+            addAll(it)
+        }
     }
 
     fun clearLogs() = _logs.update { emptyList() }

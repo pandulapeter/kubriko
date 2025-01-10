@@ -1,6 +1,7 @@
 package com.pandulapeter.kubriko
 
 import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ActorManagerImpl
 import com.pandulapeter.kubriko.manager.Manager
@@ -18,6 +19,7 @@ import kotlin.reflect.KClass
 
 internal class KubrikoImpl(
     vararg manager: Manager,
+    private val isLoggingEnabled: Boolean,
 ) : Kubriko, CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
@@ -38,25 +40,50 @@ internal class KubrikoImpl(
         metadataManager.initializeInternal(this)
         stateManager.initializeInternal(this)
         viewportManager.initializeInternal(this)
+
+        logIfNeeded(
+            message = "Kubriko instance created with ${managers.size} Managers.",
+            details = managers.joinToString { it::class.simpleName.orEmpty() },
+        )
     }
 
     internal fun initialize() {
+        logIfNeeded("Initializing Manager instances...")
         managers.forEach { it.initializeInternal(this) }
         if (stateManager.shouldAutoStart) {
             stateManager.updateIsRunning(true)
         }
+        logIfNeeded("Kubriko initialization completed.")
     }
 
-    private inline fun <reified T : Manager> Collection<Manager>.addIfNeeded(creator: () -> T) = if (none { T::class.isInstance(it) }) toMutableList().apply { add(0, creator()) } else this
+    private inline fun <reified T : Manager> Collection<Manager>.addIfNeeded(creator: () -> T) =
+        if (none { T::class.isInstance(it) }) toMutableList().apply { add(0, creator()) } else this
 
     @Suppress("UNCHECKED_CAST")
-    private inline fun <reified T : Manager, TI : T> requireAndVerify(name: String) = get<T>() as? TI ?: throw IllegalStateException("Custom implementations of the $name interface are not supported. Use $name.newInstance() to instantiate $name.")
+    private inline fun <reified T : Manager, TI : T> requireAndVerify(name: String) = get<T>() as? TI
+        ?: throw IllegalStateException("Custom implementations of the $name interface are not supported. Use $name.newInstance() to instantiate $name.")
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : Manager> get(managerType: KClass<T>) = managers.firstOrNull { managerType.isInstance(it) } as? T ?: throw IllegalStateException("$managerType has not been registered as a Manager in Kubriko.newInstance()")
+    override fun <T : Manager> get(managerType: KClass<T>) = managers.firstOrNull { managerType.isInstance(it) } as? T
+        ?: throw IllegalStateException("$managerType has not been registered as a Manager in Kubriko.newInstance()")
 
     override fun dispose() {
+        logIfNeeded("Disposing Manager instances...")
         managers.forEach { it.onDisposeInternal() }
         cancel()
+        logIfNeeded("Kubriko disposal completed.")
+    }
+
+    private fun logIfNeeded(
+        message: String,
+        details: String? = null,
+    ) {
+        if (isLoggingEnabled) {
+            Logger.log(
+                message = message,
+                details = details,
+                source = "Kubriko_$this"
+            )
+        }
     }
 }
