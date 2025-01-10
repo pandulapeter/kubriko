@@ -3,9 +3,9 @@ package com.pandulapeter.kubriko.sceneEditor
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata.Companion.invoke
-import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.serialization.SerializableMetadata
+import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlin.reflect.KClass
 
@@ -37,8 +37,10 @@ class EditableMetadata<T : Editable<T>>(
          */
         fun newSerializationManagerInstance(
             vararg editableMetadata: EditableMetadata<*>,
+            isLoggingEnabled: Boolean = false,
         ) = SerializationManager.newInstance<EditableMetadata<*>, Editable<*>>(
-            serializableMetadata = editableMetadata
+            serializableMetadata = editableMetadata,
+            isLoggingEnabled = isLoggingEnabled,
         )
 
         /**

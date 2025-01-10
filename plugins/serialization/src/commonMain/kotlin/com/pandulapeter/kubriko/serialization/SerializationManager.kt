@@ -7,7 +7,7 @@ import kotlin.reflect.KClass
 /**
  * TODO: Documentation
  */
-sealed class SerializationManager<MD : SerializableMetadata<out T>, out T : Serializable<out T>> : Manager() {
+sealed class SerializationManager<MD : SerializableMetadata<out T>, out T : Serializable<out T>>(isLoggingEnabled: Boolean) : Manager(isLoggingEnabled) {
 
     abstract val registeredTypeIds: ImmutableSet<String>
 
@@ -26,8 +26,10 @@ sealed class SerializationManager<MD : SerializableMetadata<out T>, out T : Seri
          */
         fun <MD : SerializableMetadata<out T>, T : Serializable<out T>> newInstance(
             vararg serializableMetadata: MD,
+            isLoggingEnabled: Boolean = false,
         ): SerializationManager<MD, T> = SerializationManagerImpl(
             serializableMetadata = serializableMetadata,
+            isLoggingEnabled = isLoggingEnabled,
         )
     }
 }

@@ -18,8 +18,9 @@ import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.getDrawableResourceBytes
 import org.jetbrains.compose.resources.getSystemResourceEnvironment
 
-internal class SpriteManagerImpl : SpriteManager() {
-
+internal class SpriteManagerImpl(
+    isLoggingEnabled: Boolean,
+) : SpriteManager(isLoggingEnabled) {
     private val cache = MutableStateFlow(persistentMapOf<DrawableResource, ImageBitmap?>())
 
     override fun getLoadingProgress(drawableResources: Collection<DrawableResource>) = if (drawableResources.isEmpty()) flowOf(1f) else cache.map { cache ->

@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * TODO: Documentation
  */
-sealed class ViewportManager : Manager() {
+sealed class ViewportManager(isLoggingEnabled: Boolean) : Manager(isLoggingEnabled) {
 
     abstract val cameraPosition: StateFlow<SceneOffset> // Center of the viewport
     abstract val size: StateFlow<Size>
@@ -61,12 +61,14 @@ sealed class ViewportManager : Manager() {
             minimumScaleFactor: Float = 0.2f,
             maximumScaleFactor: Float = 5f,
             viewportEdgeBuffer: SceneUnit = 0f.sceneUnit,
+            isLoggingEnabled: Boolean = false,
         ): ViewportManager = ViewportManagerImpl(
             aspectRatioMode = aspectRatioMode,
             initialScaleFactor = initialScaleFactor,
             minimumScaleFactor = minimumScaleFactor,
             maximumScaleFactor = maximumScaleFactor,
             viewportEdgeBuffer = viewportEdgeBuffer,
+            isLoggingEnabled = isLoggingEnabled,
         )
     }
 }

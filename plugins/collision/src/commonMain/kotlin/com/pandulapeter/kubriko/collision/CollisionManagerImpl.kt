@@ -6,8 +6,9 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.map
 
-internal class CollisionManagerImpl : CollisionManager() {
-
+internal class CollisionManagerImpl(
+    isLoggingEnabled: Boolean,
+) : CollisionManager(isLoggingEnabled) {
     private val actorManager by manager<ActorManager>()
     private val collisionDetectors by autoInitializingLazy {
         actorManager.allActors.map { allActors ->

@@ -16,7 +16,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
-internal class MusicManagerImpl : MusicManager() {
+internal class MusicManagerImpl(
+    isLoggingEnabled: Boolean,
+) : MusicManager(isLoggingEnabled) {
     private val cache = MutableStateFlow(persistentMapOf<String, Any?>())
     private var musicPlayer: MusicPlayer? = null
     private val stateManager by manager<StateManager>()

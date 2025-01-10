@@ -18,7 +18,8 @@ import kotlinx.coroutines.flow.stateIn
 internal class PhysicsManagerImpl(
     initialGravity: SceneOffset,
     initialSimulationSpeed: Float,
-) : PhysicsManager() {
+    isLoggingEnabled: Boolean,
+) : PhysicsManager(isLoggingEnabled) {
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
     private val rigidBodies by lazy {

@@ -9,7 +9,8 @@ import kotlin.reflect.KClass
 
 internal class SerializationManagerImpl<MD : SerializableMetadata<out T>, out T : Serializable<out T>>(
     vararg serializableMetadata: MD,
-) : SerializationManager<MD, T>() {
+    isLoggingEnabled: Boolean,
+) : SerializationManager<MD, T>(isLoggingEnabled) {
     private val typeIdsToMetadata = serializableMetadata.associateBy { registration -> registration.typeId }.toImmutableMap()
     private val typeIdsToDeserializers = serializableMetadata.associate { registration -> registration.typeId to registration.deserializeState }.toImmutableMap()
     private val typeResolvers = serializableMetadata.associate { registration -> registration.type to registration.typeId }.toImmutableMap()

@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.update
 internal class StateManagerImpl(
     val shouldAutoStart: Boolean,
     focusDebounce: Long,
-) : StateManager() {
-
+    isLoggingEnabled: Boolean,
+) : StateManager(isLoggingEnabled) {
     private val _isFocused = MutableStateFlow(true)
     override val isFocused by autoInitializingLazy { _isFocused.debounce(focusDebounce).asStateFlow(true) }
     private val _isRunning = MutableStateFlow(false)

@@ -8,7 +8,7 @@ import org.jetbrains.compose.resources.DrawableResource
 /**
  * TODO: Documentation
  */
-sealed class SpriteManager : Manager() {
+sealed class SpriteManager(isLoggingEnabled: Boolean) : Manager(isLoggingEnabled) {
 
     abstract fun getLoadingProgress(drawableResources: Collection<DrawableResource>): Flow<Float>
 
@@ -21,6 +21,10 @@ sealed class SpriteManager : Manager() {
     abstract fun unload(drawableResource: DrawableResource)
 
     companion object {
-        fun newInstance(): SpriteManager = SpriteManagerImpl()
+        fun newInstance(
+            isLoggingEnabled: Boolean = false,
+        ): SpriteManager = SpriteManagerImpl(
+            isLoggingEnabled = isLoggingEnabled,
+        )
     }
 }

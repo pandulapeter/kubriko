@@ -5,13 +5,17 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * TODO: Documentation
  */
-sealed class MetadataManager : Manager() {
+sealed class MetadataManager(isLoggingEnabled: Boolean) : Manager(isLoggingEnabled) {
 
     abstract val fps: StateFlow<Float>
     abstract val totalRuntimeInMilliseconds: StateFlow<Long>
     abstract val activeRuntimeInMilliseconds: StateFlow<Long>
 
     companion object {
-        fun newInstance(): MetadataManager = MetadataManagerImpl()
+        fun newInstance(
+            isLoggingEnabled: Boolean = false,
+        ): MetadataManager = MetadataManagerImpl(
+            isLoggingEnabled = isLoggingEnabled,
+        )
     }
 }

@@ -5,9 +5,13 @@ import com.pandulapeter.kubriko.manager.Manager
 /**
  * TODO: Documentation
  */
-sealed class ParticleManager : Manager() {
+sealed class ParticleManager(isLoggingEnabled: Boolean) : Manager(isLoggingEnabled) {
 
     companion object {
-        fun newInstance(): ParticleManager = ParticleManagerImpl()
+        fun newInstance(
+            isLoggingEnabled: Boolean = false,
+        ): ParticleManager = ParticleManagerImpl(
+            isLoggingEnabled = isLoggingEnabled,
+        )
     }
 }

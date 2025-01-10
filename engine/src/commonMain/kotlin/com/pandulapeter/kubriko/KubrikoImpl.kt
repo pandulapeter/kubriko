@@ -19,7 +19,7 @@ import kotlin.reflect.KClass
 
 internal class KubrikoImpl(
     vararg manager: Manager,
-    private val isLoggingEnabled: Boolean,
+    override var isLoggingEnabled: Boolean,
 ) : Kubriko, CoroutineScope {
 
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
@@ -41,19 +41,19 @@ internal class KubrikoImpl(
         stateManager.initializeInternal(this)
         viewportManager.initializeInternal(this)
 
-        logIfNeeded(
+        log(
             message = "Kubriko instance created with ${managers.size} Managers.",
             details = managers.joinToString { it::class.simpleName.orEmpty() },
         )
     }
 
     internal fun initialize() {
-        logIfNeeded("Initializing Manager instances...")
+        log("Initializing Manager instances...")
         managers.forEach { it.initializeInternal(this) }
         if (stateManager.shouldAutoStart) {
             stateManager.updateIsRunning(true)
         }
-        logIfNeeded("Kubriko initialization completed.")
+        log("Kubriko initialization completed.")
     }
 
     private inline fun <reified T : Manager> Collection<Manager>.addIfNeeded(creator: () -> T) =
@@ -68,13 +68,13 @@ internal class KubrikoImpl(
         ?: throw IllegalStateException("$managerType has not been registered as a Manager in Kubriko.newInstance()")
 
     override fun dispose() {
-        logIfNeeded("Disposing Manager instances...")
+        log("Disposing Manager instances...")
         managers.forEach { it.onDisposeInternal() }
         cancel()
-        logIfNeeded("Kubriko disposal completed.")
+        log("Kubriko disposal completed.")
     }
 
-    private fun logIfNeeded(
+    private fun log(
         message: String,
         details: String? = null,
     ) {

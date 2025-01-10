@@ -42,7 +42,8 @@ import kotlin.uuid.Uuid
 internal class ActorManagerImpl(
     initialActors: List<Actor>,
     private val invisibleActorMinimumRefreshTimeInMillis: Long, // TODO: Feels hacky
-) : ActorManager() {
+    isLoggingEnabled: Boolean,
+) : ActorManager(isLoggingEnabled) {
 
     private lateinit var metadataManager: MetadataManagerImpl
     private lateinit var viewportManager: ViewportManagerImpl

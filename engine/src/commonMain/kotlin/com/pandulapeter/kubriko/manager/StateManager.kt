@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * TODO: Documentation
  */
-sealed class StateManager : Manager() {
+sealed class StateManager(isLoggingEnabled: Boolean) : Manager(isLoggingEnabled) {
 
     abstract val isFocused: StateFlow<Boolean>
     abstract val isRunning: StateFlow<Boolean>
@@ -17,9 +17,11 @@ sealed class StateManager : Manager() {
         fun newInstance(
             shouldAutoStart: Boolean = true,
             focusDebounce: Long = getDefaultFocusDebounce(),
+            isLoggingEnabled: Boolean = false,
         ): StateManager = StateManagerImpl(
             shouldAutoStart = shouldAutoStart,
             focusDebounce = focusDebounce,
+            isLoggingEnabled = isLoggingEnabled,
         )
     }
 }

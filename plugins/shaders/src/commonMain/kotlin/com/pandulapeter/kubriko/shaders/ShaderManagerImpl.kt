@@ -8,8 +8,9 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.map
 
-internal class ShaderManagerImpl : ShaderManager() {
-
+internal class ShaderManagerImpl(
+    isLoggingEnabled: Boolean
+) : ShaderManager(isLoggingEnabled) {
     override val areShadersSupported = com.pandulapeter.kubriko.shaders.extensions.areShadersSupported
     private val actorManager by manager<ActorManager>()
     private val shaders by autoInitializingLazy {

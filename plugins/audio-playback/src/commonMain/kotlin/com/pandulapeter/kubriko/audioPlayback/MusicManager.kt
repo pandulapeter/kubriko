@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
  * TODO: Documentation
  */
 // TODO: Add API to control the volume
-sealed class MusicManager : Manager() {
+sealed class MusicManager(isLoggingEnabled: Boolean) : Manager(isLoggingEnabled) {
 
     abstract fun getLoadingProgress(uris: Collection<String>): Flow<Float>
 
@@ -26,6 +26,10 @@ sealed class MusicManager : Manager() {
     abstract fun unload(uri: String)
 
     companion object {
-        fun newInstance(): MusicManager = MusicManagerImpl()
+        fun newInstance(
+            isLoggingEnabled: Boolean = false,
+        ): MusicManager = MusicManagerImpl(
+            isLoggingEnabled = isLoggingEnabled,
+        )
     }
 }

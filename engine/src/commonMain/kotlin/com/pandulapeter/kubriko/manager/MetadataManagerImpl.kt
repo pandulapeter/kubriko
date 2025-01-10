@@ -14,8 +14,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlin.math.roundToLong
 
-internal class MetadataManagerImpl : MetadataManager() {
-
+internal class MetadataManagerImpl(
+    isLoggingEnabled: Boolean,
+) : MetadataManager(isLoggingEnabled) {
     private lateinit var stateManager: StateManager
     private val _fps = MutableStateFlow(0f)
     override val fps = _fps.asStateFlow()

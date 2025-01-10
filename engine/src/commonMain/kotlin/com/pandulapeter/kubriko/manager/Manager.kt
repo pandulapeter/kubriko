@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.logger.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +16,9 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
-abstract class Manager {
+abstract class Manager(
+    initialIsLoggingEnabled: Boolean = false,
+) {
 
     private val _isInitialized = MutableStateFlow(false)
     protected val isInitialized = _isInitialized.asStateFlow()
@@ -23,6 +26,7 @@ abstract class Manager {
         private set
     private val autoInitializingLazyProperties = mutableListOf<AutoInitializingLazy<*>>()
     private val autoInitializingLazyManagers = mutableListOf<LazyManager<*>>()
+    protected var isLoggingEnabled = initialIsLoggingEnabled
 
     @Composable
     internal fun processOverlayModifierInternal(modifier: Modifier) = processOverlayModifier(modifier)
@@ -95,6 +99,19 @@ abstract class Manager {
     protected inline fun <reified T : Manager> manager(): ReadOnlyProperty<Manager, T> = manager(T::class)
 
     protected fun <T : Manager> manager(managerType: KClass<T>): ReadOnlyProperty<Manager, T> = LazyManager(managerType)
+
+    private fun log(
+        message: String,
+        details: String? = null,
+    ) {
+        if (isLoggingEnabled) {
+            Logger.log(
+                message = message,
+                details = details,
+                source = "Manager_$this" // TODO
+            )
+        }
+    }
 
     private inner class LazyManager<T : Manager>(private val managerType: KClass<T>) : ReadOnlyProperty<Manager, T> {
 

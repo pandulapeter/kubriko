@@ -1,3 +1,5 @@
 package com.pandulapeter.kubriko.particles
 
-internal class ParticleManagerImpl : ParticleManager()
+internal class ParticleManagerImpl(
+    isLoggingEnabled: Boolean,
+) : ParticleManager(isLoggingEnabled)
