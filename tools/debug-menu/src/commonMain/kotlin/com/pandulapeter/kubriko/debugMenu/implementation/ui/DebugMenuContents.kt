@@ -1,8 +1,5 @@
 package com.pandulapeter.kubriko.debugMenu.implementation.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,22 +16,18 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuMetadata
 import com.pandulapeter.kubriko.logger.Logger
-import kotlinx.coroutines.launch
 import kubriko.tools.debug_menu.generated.resources.Res
 import kubriko.tools.debug_menu.generated.resources.collision_masks
 import kubriko.tools.debug_menu.generated.resources.logs_empty
@@ -47,11 +40,12 @@ internal fun DebugMenuContents(
     debugMenuMetadata: DebugMenuMetadata,
     logs: List<Logger.Entry>,
     onIsDebugOverlayEnabledChanged: () -> Unit,
+    shouldUseVerticalLayout: Boolean,
     lazyListState: LazyListState = rememberLazyListState(),
 ) = LazyColumn(
     modifier = Modifier
         .width(100.dp)
-        .windowInsetsPadding(windowInsets.only(WindowInsetsSides.Right)),
+        .windowInsetsPadding(windowInsets.only(if (shouldUseVerticalLayout) WindowInsetsSides.Right else WindowInsetsSides.Horizontal)),
     verticalArrangement = Arrangement.spacedBy(4.dp),
     contentPadding = windowInsets.only(WindowInsetsSides.Vertical).asPaddingValues(),
     state = lazyListState,

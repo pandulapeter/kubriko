@@ -1,10 +1,12 @@
 package com.pandulapeter.kubriko.debugMenu
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -12,6 +14,8 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -107,13 +111,12 @@ object DebugMenu {
 fun DebugMenu(
     modifier: Modifier = Modifier,
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
-    contentModifier: Modifier = Modifier,
     kubriko: Kubriko,
     isEnabled: Boolean = true,
     buttonAlignment: Alignment? = Alignment.TopEnd,
     applyTheme: @Composable (@Composable () -> Unit) -> Unit = { KubrikoTheme(it) },
     gameCanvas: @Composable BoxScope.() -> Unit,
-) = Box(
+) = BoxWithConstraints(
     modifier = modifier,
 ) {
     // TODO: Should be persisted with Kubriko
@@ -126,62 +129,63 @@ fun DebugMenu(
     }
     if (isEnabled) {
         val isVisible = DebugMenu.isVisible.collectAsState().value
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Box(
-                modifier = Modifier.weight(1f),
-            ) {
-                gameCanvas()
-                KubrikoViewport(
-                    kubriko = debugMenuKubriko,
-                )
-                if (buttonAlignment != null) {
-                    Box(
-                        modifier = contentModifier.fillMaxSize().padding(16.dp),
+        AnimatedContent(
+            targetState = maxWidth < maxHeight,
+        ) { isColumn ->
+            if (isColumn) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    GameContainer(
+                        modifier = Modifier.weight(1f),
+                        gameCanvas = gameCanvas,
+                        debugMenuKubriko = debugMenuKubriko,
+                        buttonAlignment = buttonAlignment,
+                        isVisible = isVisible,
+                    )
+                    AnimatedVisibility(
+                        visible = isVisible,
                     ) {
-                        FloatingActionButton(
-                            modifier = Modifier.size(40.dp).align(buttonAlignment),
-                            containerColor = if (isSystemInDarkTheme()) {
-                                if (isVisible) MaterialTheme.colorScheme.primary else FloatingActionButtonDefaults.containerColor
-                            } else {
-                                if (isVisible) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary
-                            },
-                            onClick = DebugMenu::toggleVisibility,
+                        Box(
+                            modifier = Modifier.height(
+                                220.dp + windowInsets.only(WindowInsetsSides.Bottom).asPaddingValues()
+                                    .calculateRightPadding(LocalLayoutDirection.current)
+                            ),
                         ) {
-                            Icon(
-                                painter = painterResource(if (isVisible) Res.drawable.ic_debug_on else Res.drawable.ic_debug_off),
-                                contentDescription = stringResource(Res.string.debug_menu),
+                            DebugMenuContainer(
+                                modifier = Modifier.fillMaxWidth(),
+                                debugMenuManager = debugMenuManager,
+                                windowInsets = windowInsets,
+                                shouldUseVerticalLayout = false,
+                                applyTheme = applyTheme,
                             )
                         }
                     }
                 }
-            }
-            AnimatedVisibility(
-                visible = isVisible,
-            ) {
-                applyTheme {
-                    Surface(
-                        modifier = Modifier
-                            .defaultMinSize(
-                                minWidth = 180.dp + windowInsets.only(WindowInsetsSides.Right).asPaddingValues()
-                                    .calculateRightPadding(LocalLayoutDirection.current)
-                            ).fillMaxHeight(),
-                        tonalElevation = when (isSystemInDarkTheme()) {
-                            true -> 4.dp
-                            false -> 0.dp
-                        },
-                        shadowElevation = when (isSystemInDarkTheme()) {
-                            true -> 4.dp
-                            false -> 2.dp
-                        },
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    GameContainer(
+                        modifier = Modifier.weight(1f),
+                        gameCanvas = gameCanvas,
+                        debugMenuKubriko = debugMenuKubriko,
+                        buttonAlignment = buttonAlignment,
+                        isVisible = isVisible,
+                    )
+                    AnimatedVisibility(
+                        visible = isVisible,
                     ) {
-                        DebugMenuContents(
+                        DebugMenuContainer(
+                            modifier = Modifier
+                                .defaultMinSize(
+                                    minWidth = 180.dp + windowInsets.only(WindowInsetsSides.Right).asPaddingValues()
+                                        .calculateRightPadding(LocalLayoutDirection.current)
+                                ).fillMaxHeight(),
+                            debugMenuManager = debugMenuManager,
                             windowInsets = windowInsets,
-                            debugMenuMetadata = debugMenuManager.debugMenuMetadata.collectAsState(DebugMenuMetadata()).value,
-                            logs = DebugMenu.logs.collectAsState(emptyList()).value,
-                            onIsDebugOverlayEnabledChanged = DebugMenu::onIsDebugOverlayEnabledChanged,
+                            shouldUseVerticalLayout = true,
+                            applyTheme = applyTheme,
                         )
                     }
                 }
@@ -189,5 +193,70 @@ fun DebugMenu(
         }
     } else {
         gameCanvas()
+    }
+}
+
+@Composable
+private fun GameContainer(
+    modifier: Modifier,
+    gameCanvas: @Composable BoxScope.() -> Unit,
+    debugMenuKubriko: Kubriko,
+    buttonAlignment: Alignment?,
+    isVisible: Boolean,
+) = Box(
+    modifier = modifier,
+) {
+    gameCanvas()
+    KubrikoViewport(
+        kubriko = debugMenuKubriko,
+    )
+    if (buttonAlignment != null) {
+        Box(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+        ) {
+            FloatingActionButton(
+                modifier = Modifier.size(40.dp).align(buttonAlignment),
+                containerColor = if (isSystemInDarkTheme()) {
+                    if (isVisible) MaterialTheme.colorScheme.primary else FloatingActionButtonDefaults.containerColor
+                } else {
+                    if (isVisible) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary
+                },
+                onClick = DebugMenu::toggleVisibility,
+            ) {
+                Icon(
+                    painter = painterResource(if (isVisible) Res.drawable.ic_debug_on else Res.drawable.ic_debug_off),
+                    contentDescription = stringResource(Res.string.debug_menu),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DebugMenuContainer(
+    modifier: Modifier,
+    debugMenuManager: DebugMenuManager,
+    windowInsets: WindowInsets,
+    shouldUseVerticalLayout: Boolean,
+    applyTheme: @Composable (@Composable () -> Unit) -> Unit,
+) = applyTheme {
+    Surface(
+        modifier = modifier,
+        tonalElevation = when (isSystemInDarkTheme()) {
+            true -> 4.dp
+            false -> 0.dp
+        },
+        shadowElevation = when (isSystemInDarkTheme()) {
+            true -> 4.dp
+            false -> 2.dp
+        },
+    ) {
+        DebugMenuContents(
+            windowInsets = windowInsets,
+            debugMenuMetadata = debugMenuManager.debugMenuMetadata.collectAsState(DebugMenuMetadata()).value,
+            logs = DebugMenu.logs.collectAsState(emptyList()).value,
+            onIsDebugOverlayEnabledChanged = DebugMenu::onIsDebugOverlayEnabledChanged,
+            shouldUseVerticalLayout = shouldUseVerticalLayout,
+        )
     }
 }
