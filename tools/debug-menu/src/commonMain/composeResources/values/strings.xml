@@ -1,6 +1,6 @@
 <resources>
 
-    <string name="debug_menu">Debug Menu</string>
+    <string name="debug_menu">Toggle debug menu</string>
     <string name="logs">Logs</string>
     <string name="log_priority_low">Low priority</string>
     <string name="log_priority_medium">Medium priority</string>

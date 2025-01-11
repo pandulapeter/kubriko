@@ -20,8 +20,10 @@ fun PerformanceDemo(
 ) {
     stateHolder as PerformanceDemoStateHolderImpl
     DebugMenu(
+        modifier = modifier,
         debugMenuModifier = modifier.windowInsetsPadding(windowInsets),
         kubriko = stateHolder.kubriko,
+        buttonAlignment = null,
     ) {
         KubrikoViewport(
             kubriko = stateHolder.kubriko,

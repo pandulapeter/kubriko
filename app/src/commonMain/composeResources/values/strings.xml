@@ -5,6 +5,7 @@
     <string name="back">Back</string>
     <string name="demos">Demos</string>
     <string name="games">Games</string>
+    <string name="debug_menu">Toggle debug menu</string>
 
     <!-- Welcome -->
     <string name="welcome">Welcome</string>

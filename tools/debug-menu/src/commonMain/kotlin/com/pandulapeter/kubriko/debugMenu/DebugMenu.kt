@@ -22,9 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,20 +36,22 @@ import com.pandulapeter.kubriko.debugMenu.implementation.ui.DebugMenuContents
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kubriko.tools.debug_menu.generated.resources.Res
 import kubriko.tools.debug_menu.generated.resources.debug_menu
-import kubriko.tools.debug_menu.generated.resources.ic_debug
+import kubriko.tools.debug_menu.generated.resources.ic_debug_off
+import kubriko.tools.debug_menu.generated.resources.ic_debug_on
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 object DebugMenu {
 
-    private val _isDebugMenuVisible = mutableStateOf(false)
-    internal val isDebugMenuVisible = _isDebugMenuVisible as State<Boolean>
+    private val _isVisible = MutableStateFlow(false)
+    val isVisible = _isVisible.asStateFlow()
     private val _isDebugOverlayEnabled = MutableStateFlow(false)
     internal val isDebugOverlayEnabled = _isDebugOverlayEnabled.asStateFlow()
     private val _isLowPriorityEnabled = MutableStateFlow(true)
@@ -88,8 +88,8 @@ object DebugMenu {
 
     fun clearLogs() = Logger.clearLogs()
 
-    internal fun onIsDebugMenuVisibleChanged() {
-        _isDebugMenuVisible.value = !isDebugMenuVisible.value
+    fun toggleVisibility() {
+        _isVisible.value = !isVisible.value
     }
 
     internal fun onIsDebugOverlayEnabledChanged() = _isDebugOverlayEnabled.update { !it }
@@ -104,7 +104,6 @@ object DebugMenu {
 /**
  * TODO: Documentation
  */
-// TODO: Make this Composable configurable)
 @Composable
 fun DebugMenu(
     modifier: Modifier = Modifier,
@@ -112,6 +111,8 @@ fun DebugMenu(
     contentModifier: Modifier = Modifier,
     kubriko: Kubriko,
     isEnabled: Boolean = true,
+    buttonAlignment: Alignment? = Alignment.TopEnd,
+    theme: @Composable (@Composable () -> Unit) -> Unit = { KubrikoTheme(it) },
     gameCanvas: @Composable BoxScope.() -> Unit,
 ) = Box(
     modifier = modifier,
@@ -125,6 +126,7 @@ fun DebugMenu(
         )
     }
     if (isEnabled) {
+        val isVisible = DebugMenu.isVisible.collectAsState().value
         Row(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -136,50 +138,54 @@ fun DebugMenu(
                 KubrikoViewport(
                     kubriko = debugMenuKubriko,
                 )
-            }
-            AnimatedVisibility(
-                visible = DebugMenu.isDebugMenuVisible.value,
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .defaultMinSize(
-                            minWidth = 180.dp + WindowInsets.safeDrawing.only(WindowInsetsSides.Right).asPaddingValues()
-                                .calculateRightPadding(LocalLayoutDirection.current)
-                        ).fillMaxHeight(),
-                    tonalElevation = when (isSystemInDarkTheme()) {
-                        true -> 4.dp
-                        false -> 0.dp
-                    },
-                    shadowElevation = when (isSystemInDarkTheme()) {
-                        true -> 4.dp
-                        false -> 2.dp
-                    },
-                ) {
-                    DebugMenuContents(
-                        modifier = debugMenuModifier,
-                        debugMenuMetadata = debugMenuManager.debugMenuMetadata.collectAsState(DebugMenuMetadata()).value,
-                        logs = DebugMenu.logs.collectAsState(emptyList()).value,
-                        onIsDebugOverlayEnabledChanged = DebugMenu::onIsDebugOverlayEnabledChanged,
-                    )
+                if (buttonAlignment != null) {
+                    Box(
+                        modifier = contentModifier.fillMaxSize().padding(16.dp),
+                    ) {
+                        FloatingActionButton(
+                            modifier = Modifier.size(40.dp).align(buttonAlignment),
+                            containerColor = if (isSystemInDarkTheme()) {
+                                if (isVisible) MaterialTheme.colorScheme.primary else FloatingActionButtonDefaults.containerColor
+                            } else {
+                                if (isVisible) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary
+                            },
+                            onClick = DebugMenu::toggleVisibility,
+                        ) {
+                            Icon(
+                                painter = painterResource(if (isVisible) Res.drawable.ic_debug_on else Res.drawable.ic_debug_off),
+                                contentDescription = stringResource(Res.string.debug_menu),
+                            )
+                        }
+                    }
                 }
             }
-        }
-        Box(
-            modifier = contentModifier.fillMaxSize().padding(16.dp),
-        ) {
-            FloatingActionButton(
-                modifier = Modifier.size(40.dp).align(Alignment.TopStart),
-                containerColor = if (isSystemInDarkTheme()) {
-                    if (DebugMenu.isDebugMenuVisible.value) MaterialTheme.colorScheme.primary else FloatingActionButtonDefaults.containerColor
-                } else {
-                    if (DebugMenu.isDebugMenuVisible.value) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary
-                },
-                onClick = DebugMenu::onIsDebugMenuVisibleChanged,
+            AnimatedVisibility(
+                visible = isVisible,
             ) {
-                Icon(
-                    painter = painterResource(Res.drawable.ic_debug),
-                    contentDescription = stringResource(Res.string.debug_menu)
-                )
+                theme {
+                    Surface(
+                        modifier = Modifier
+                            .defaultMinSize(
+                                minWidth = 180.dp + WindowInsets.safeDrawing.only(WindowInsetsSides.Right).asPaddingValues()
+                                    .calculateRightPadding(LocalLayoutDirection.current)
+                            ).fillMaxHeight(),
+                        tonalElevation = when (isSystemInDarkTheme()) {
+                            true -> 4.dp
+                            false -> 0.dp
+                        },
+                        shadowElevation = when (isSystemInDarkTheme()) {
+                            true -> 4.dp
+                            false -> 2.dp
+                        },
+                    ) {
+                        DebugMenuContents(
+                            modifier = debugMenuModifier,
+                            debugMenuMetadata = debugMenuManager.debugMenuMetadata.collectAsState(DebugMenuMetadata()).value,
+                            logs = DebugMenu.logs.collectAsState(emptyList()).value,
+                            onIsDebugOverlayEnabledChanged = DebugMenu::onIsDebugOverlayEnabledChanged,
+                        )
+                    }
+                }
             }
         }
     } else {

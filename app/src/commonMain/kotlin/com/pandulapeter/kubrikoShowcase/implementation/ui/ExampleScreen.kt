@@ -74,10 +74,12 @@ internal fun ShowcaseEntry.ExampleScreen(
 
         ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemo(
             stateHolder = getOrCreateState(currentDemoStateHolders, ::createContentShadersDemoStateHolder),
+            windowInsets = windowInsets,
         )
 
         ShowcaseEntry.INPUT -> InputDemo(
             stateHolder = getOrCreateState(currentDemoStateHolders, ::createInputDemoStateHolder),
+            windowInsets = windowInsets,
         )
 
         ShowcaseEntry.PERFORMANCE -> PerformanceDemo(
@@ -92,6 +94,7 @@ internal fun ShowcaseEntry.ExampleScreen(
 
         ShowcaseEntry.SHADER_ANIMATIONS -> ShaderAnimationsDemo(
             stateHolder = getOrCreateState(currentDemoStateHolders, ::createShaderAnimationsDemoStateHolder),
+            windowInsets = windowInsets,
         )
     }
     DisposableEffect(type) {

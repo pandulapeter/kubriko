@@ -8,6 +8,7 @@ kotlin {
             api(projects.engine)
             implementation(projects.plugins.keyboardInput)
             implementation(projects.plugins.pointerInput)
+            implementation(projects.tools.debugMenu)
             implementation(compose.material3)
         }
     }

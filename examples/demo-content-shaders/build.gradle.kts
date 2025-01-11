@@ -7,6 +7,7 @@ kotlin {
         commonMain.dependencies {
             api(projects.engine)
             implementation(projects.plugins.shaders)
+            implementation(projects.tools.debugMenu)
             implementation(compose.components.resources)
             implementation(compose.material3)
         }

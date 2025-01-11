@@ -14,6 +14,7 @@ kotlin {
             implementation(projects.plugins.pointerInput)
             implementation(projects.plugins.shaders)
             implementation(projects.plugins.sprites)
+            implementation(projects.tools.debugMenu)
             implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)
         }

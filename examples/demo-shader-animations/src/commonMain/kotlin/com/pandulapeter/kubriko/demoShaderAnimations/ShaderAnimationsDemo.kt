@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
+import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationDemoType
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationsDemoStateHolder
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationsDemoStateHolderImpl
@@ -36,6 +37,7 @@ fun createShaderAnimationsDemoStateHolder(): ShaderAnimationsDemoStateHolder = S
 
 @Composable
 fun ShaderAnimationsDemo(
+    modifier: Modifier = Modifier,
     stateHolder: ShaderAnimationsDemoStateHolder = createShaderAnimationsDemoStateHolder(),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
@@ -44,7 +46,7 @@ fun ShaderAnimationsDemo(
         val selectedDemoType = stateHolder.selectedDemoType.collectAsState().value
         val controlsState = stateHolder.controlsState.collectAsState().value
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = modifier.fillMaxSize(),
         ) {
             ScrollableTabRow(
                 edgePadding = 0.dp,
@@ -69,10 +71,17 @@ fun ShaderAnimationsDemo(
                     targetState = selectedDemoType,
                     transitionSpec = { fadeIn() togetherWith fadeOut() },
                 ) { demoType ->
-                    KubrikoViewport(
-                        modifier = Modifier.fillMaxSize(),
-                        kubriko = stateHolder.shaderAnimationDemoHolders[demoType]!!.kubriko,
-                    )
+                    val kubriko = stateHolder.shaderAnimationDemoHolders[demoType]!!.kubriko
+                    DebugMenu(
+                        debugMenuModifier = modifier.windowInsetsPadding(windowInsets),
+                        kubriko = kubriko,
+                        buttonAlignment = null,
+                    ) {
+                        KubrikoViewport(
+                            modifier = Modifier.fillMaxSize(),
+                            kubriko = kubriko,
+                        )
+                    }
                 }
                 ControlsContainer(
                     modifier = Modifier.windowInsetsPadding(windowInsets).align(Alignment.BottomEnd).padding(16.dp),

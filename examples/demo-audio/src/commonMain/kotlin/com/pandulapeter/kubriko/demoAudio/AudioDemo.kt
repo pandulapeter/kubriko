@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.KubrikoViewport
+import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.demoAudio.implementation.AudioDemoStateHolder
 import com.pandulapeter.kubriko.demoAudio.implementation.AudioDemoStateHolderImpl
 
@@ -18,9 +19,16 @@ fun AudioDemo(
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as AudioDemoStateHolderImpl
-    KubrikoViewport(
-        modifier = modifier.windowInsetsPadding(windowInsets),
+    DebugMenu(
+        modifier = modifier,
+        debugMenuModifier = modifier.windowInsetsPadding(windowInsets),
         kubriko = stateHolder.kubriko,
-        windowInsets = windowInsets,
-    )
+        buttonAlignment = null,
+    ) {
+        KubrikoViewport(
+            modifier = modifier.windowInsetsPadding(windowInsets),
+            kubriko = stateHolder.kubriko,
+            windowInsets = windowInsets,
+        )
+    }
 }

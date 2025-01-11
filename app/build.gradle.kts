@@ -15,6 +15,7 @@ kotlin {
             implementation(projects.examples.demoShaderAnimations)
             implementation(projects.examples.gameSpaceSquadron)
             implementation(projects.examples.gameWallbreaker)
+            implementation(projects.tools.debugMenu)
             implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)
         }

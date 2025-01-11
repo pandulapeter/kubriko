@@ -7,12 +7,15 @@ import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,10 +41,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.back
+import kubriko.app.generated.resources.debug_menu
 import kubriko.app.generated.resources.ic_back
+import kubriko.app.generated.resources.ic_debug_off
+import kubriko.app.generated.resources.ic_debug_on
 import kubriko.app.generated.resources.img_logo
 import kubriko.app.generated.resources.kubriko_showcase
 import org.jetbrains.compose.resources.imageResource
@@ -120,27 +128,45 @@ private fun Header(
     windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top),
     colors = TopAppBarDefaults.topAppBarColors().copy(containerColor = Color.Transparent),
     title = {
-        Column(
+        Row(
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text = stringResource(
-                    resource = if (shouldUseCompactUi && selectedShowcaseEntry != null) {
-                        selectedShowcaseEntry.titleStringResource
-                    } else {
-                        Res.string.kubriko_showcase
-                    }
-                ),
-            )
-            if (shouldUseCompactUi && selectedShowcaseEntry != null) {
+            Column(
+                modifier = Modifier.weight(1f),
+            ) {
                 Text(
-                    color = LocalContentColor.current.copy(alpha = 0.75f),
-                    style = MaterialTheme.typography.titleSmall,
-                    text = stringResource(selectedShowcaseEntry.subtitleStringResource),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(
+                        resource = if (shouldUseCompactUi && selectedShowcaseEntry != null) {
+                            selectedShowcaseEntry.titleStringResource
+                        } else {
+                            Res.string.kubriko_showcase
+                        }
+                    ),
                 )
+                if (shouldUseCompactUi && selectedShowcaseEntry != null) {
+                    Text(
+                        color = LocalContentColor.current.copy(alpha = 0.75f),
+                        style = MaterialTheme.typography.titleSmall,
+                        text = stringResource(selectedShowcaseEntry.subtitleStringResource),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            AnimatedVisibility(
+                visible = selectedShowcaseEntry != null,
+                enter = fadeIn() + scaleIn(),
+                exit = scaleOut() + fadeOut(),
+            ) {
+                IconButton(
+                    onClick = DebugMenu::toggleVisibility,
+                ) {
+                    Icon(
+                        painter = painterResource(if (DebugMenu.isVisible.collectAsState().value) Res.drawable.ic_debug_on else Res.drawable.ic_debug_off),
+                        contentDescription = stringResource(Res.string.debug_menu),
+                    )
+                }
             }
         }
     },

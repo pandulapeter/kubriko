@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
+import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.WallbreakerGameStateHolder
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.WallbreakerGameStateHolderImpl
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.GameOverlay
@@ -32,78 +33,88 @@ fun createWallbreakerGameStateHolder(): WallbreakerGameStateHolder = Wallbreaker
 
 @Composable
 fun WallbreakerGame(
+    modifier: Modifier = Modifier,
     stateHolder: WallbreakerGameStateHolder = createWallbreakerGameStateHolder(),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     isInFullscreenMode: Boolean? = null,
     onFullscreenModeToggled: () -> Unit = {},
 ) = WallbreakerTheme {
     stateHolder as WallbreakerGameStateHolderImpl
-    val isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value
-    val isGameLoaded = stateHolder.backgroundLoadingManager.isGameLoaded()
-    KubrikoViewport(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(if (stateHolder.shaderManager.areShadersSupported) Color.Black else Color.DarkGray),
-        kubriko = stateHolder.backgroundKubriko,
-    )
-    AnimatedVisibility(
-        visible = !isGameLoaded,
-        enter = fadeIn(),
-        exit = fadeOut(),
+    DebugMenu(
+        modifier = modifier,
+        debugMenuModifier = Modifier.windowInsetsPadding(windowInsets),
+        kubriko = stateHolder.kubriko,
+        buttonAlignment = null,
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets).padding(16.dp),
+        val isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value
+        val isGameLoaded = stateHolder.backgroundLoadingManager.isGameLoaded()
+        KubrikoViewport(
+            modifier = modifier
+                .fillMaxSize()
+                .background(if (stateHolder.shaderManager.areShadersSupported) Color.Black else Color.DarkGray),
+            kubriko = stateHolder.backgroundKubriko,
+        )
+        AnimatedVisibility(
+            modifier = modifier,
+            visible = !isGameLoaded,
+            enter = fadeIn(),
+            exit = fadeOut(),
         ) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.BottomStart).size(24.dp),
-                strokeWidth = 3.dp,
+            Box(
+                modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets).padding(16.dp),
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.BottomStart).size(24.dp),
+                    strokeWidth = 3.dp,
+                )
+            }
+        }
+        AnimatedVisibility(
+            modifier = modifier,
+            visible = isGameLoaded,
+            enter = fadeIn() + scaleIn(initialScale = 0.88f),
+            exit = scaleOut(targetScale = 0.88f) + fadeOut(),
+        ) {
+            KubrikoViewport(
+                modifier = Modifier.windowInsetsPadding(windowInsets).background(Color.Black),
+                kubriko = stateHolder.kubriko,
+                windowInsets = windowInsets,
+            )
+            MenuOverlay(
+                modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
+                isVisible = !isGameRunning,
+                shouldShowResumeButton = !stateHolder.gameplayManager.isGameOver.collectAsState().value,
+                onResumeButtonPressed = stateHolder.gameplayManager::resumeGame,
+                onRestartButtonPressed = stateHolder.gameplayManager::restartGame,
+                onInfoButtonPressed = {
+                    stateHolder.audioManager.playClickSoundEffect()
+                    stateHolder.uiManager.toggleInfoDialogVisibility()
+                },
+                areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
+                onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
+                isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
+                onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
+                isInFullscreenMode = isInFullscreenMode,
+                onFullscreenModeToggled = {
+                    stateHolder.audioManager.playClickSoundEffect()
+                    onFullscreenModeToggled()
+                },
+                onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
+            )
+            GameOverlay(
+                gameAreaModifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
+                isGameRunning = isGameRunning,
+                score = stateHolder.scoreManager.score.collectAsState().value,
+                highScore = stateHolder.scoreManager.highScore.collectAsState().value,
+                onPauseButtonPressed = stateHolder.gameplayManager::pauseGame,
+                onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
+            )
+            InfoDialogOverlay(
+                modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
+                isVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
+                onInfoDialogClosed = stateHolder.uiManager::toggleInfoDialogVisibility,
+                onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
             )
         }
-    }
-    AnimatedVisibility(
-        visible = isGameLoaded,
-        enter = fadeIn() + scaleIn(initialScale = 0.88f),
-        exit = scaleOut(targetScale = 0.88f) + fadeOut(),
-    ) {
-        KubrikoViewport(
-            modifier = Modifier.windowInsetsPadding(windowInsets).background(Color.Black),
-            kubriko = stateHolder.kubriko,
-            windowInsets = windowInsets,
-        )
-        MenuOverlay(
-            modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
-            isVisible = !isGameRunning,
-            shouldShowResumeButton = !stateHolder.gameplayManager.isGameOver.collectAsState().value,
-            onResumeButtonPressed = stateHolder.gameplayManager::resumeGame,
-            onRestartButtonPressed = stateHolder.gameplayManager::restartGame,
-            onInfoButtonPressed = {
-                stateHolder.audioManager.playClickSoundEffect()
-                stateHolder.uiManager.toggleInfoDialogVisibility()
-            },
-            areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
-            onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
-            isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
-            onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
-            isInFullscreenMode = isInFullscreenMode,
-            onFullscreenModeToggled = {
-                stateHolder.audioManager.playClickSoundEffect()
-                onFullscreenModeToggled()
-            },
-            onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
-        )
-        GameOverlay(
-            gameAreaModifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
-            isGameRunning = isGameRunning,
-            score = stateHolder.scoreManager.score.collectAsState().value,
-            highScore = stateHolder.scoreManager.highScore.collectAsState().value,
-            onPauseButtonPressed = stateHolder.gameplayManager::pauseGame,
-            onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
-        )
-        InfoDialogOverlay(
-            modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
-            isVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
-            onInfoDialogClosed = stateHolder.uiManager::toggleInfoDialogVisibility,
-            onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
-        )
     }
 }

@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
+import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.SpaceSquadronGameStateHolder
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.SpaceSquadronGameStateHolderImpl
@@ -31,70 +32,79 @@ fun createSpaceSquadronGameStateHolder(): SpaceSquadronGameStateHolder = SpaceSq
 
 @Composable
 fun SpaceSquadronGame(
+    modifier: Modifier = Modifier,
     stateHolder: SpaceSquadronGameStateHolder = createSpaceSquadronGameStateHolder(),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     isInFullscreenMode: Boolean? = null,
     onFullscreenModeToggled: () -> Unit = {},
 ) = SpaceSquadronTheme {
     stateHolder as SpaceSquadronGameStateHolderImpl
-    val isGameLoaded = stateHolder.backgroundLoadingManager.isGameLoaded()
-    KubrikoViewport(
-        modifier = Modifier.fillMaxSize().background(Color.Black),
-        kubriko = stateHolder.backgroundKubriko,
-    )
-    AnimatedVisibility(
-        visible = !isGameLoaded,
-        enter = fadeIn(),
-        exit = fadeOut(),
+    DebugMenu(
+        modifier = modifier,
+        debugMenuModifier = modifier.windowInsetsPadding(windowInsets),
+        kubriko = stateHolder.kubriko,
+        buttonAlignment = null,
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.75f))
-                .windowInsetsPadding(windowInsets)
-                .padding(16.dp),
-        ) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.BottomStart).size(24.dp),
-                strokeWidth = 3.dp,
-            )
-        }
-    }
-    AnimatedVisibility(
-        visible = isGameLoaded,
-        enter = fadeIn() + scaleIn(initialScale = 0.88f),
-        exit = scaleOut(targetScale = 0.88f) + fadeOut(),
-    ) {
+        val isGameLoaded = stateHolder.backgroundLoadingManager.isGameLoaded()
         KubrikoViewport(
-            kubriko = stateHolder.kubriko,
-            windowInsets = windowInsets,
+            modifier = modifier.fillMaxSize().background(Color.Black),
+            kubriko = stateHolder.backgroundKubriko,
         )
         AnimatedVisibility(
-            visible = isGameLoaded,
-            enter = fadeIn() + scaleIn(),
-            exit = scaleOut() + fadeOut(),
+            modifier = modifier,
+            visible = !isGameLoaded,
+            enter = fadeIn(),
+            exit = fadeOut(),
         ) {
-            SpaceSquadronMenuOverlay(
-                modifier = Modifier.windowInsetsPadding(windowInsets),
-                isVisible = !stateHolder.stateManager.isRunning.collectAsState().value,
-                shouldShowInfoText = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
-                onPlayButtonPressed = stateHolder.gameplayManager::playGame,
-                onPauseButtonPressed = stateHolder.gameplayManager::pauseGame,
-                onInfoButtonPressed = {
-                    stateHolder.audioManager.playButtonToggleSoundEffect()
-                    stateHolder.uiManager.toggleInfoDialogVisibility()
-                },
-                areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
-                onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
-                isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
-                onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
-                isInFullscreenMode = isInFullscreenMode,
-                onFullscreenModeToggled = {
-                    stateHolder.audioManager.playButtonToggleSoundEffect()
-                    onFullscreenModeToggled()
-                },
-                onButtonHover = stateHolder.audioManager::playButtonHoverSoundEffect,
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.75f))
+                    .windowInsetsPadding(windowInsets)
+                    .padding(16.dp),
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.BottomStart).size(24.dp),
+                    strokeWidth = 3.dp,
+                )
+            }
+        }
+        AnimatedVisibility(
+            visible = isGameLoaded,
+            enter = fadeIn() + scaleIn(initialScale = 0.88f),
+            exit = scaleOut(targetScale = 0.88f) + fadeOut(),
+        ) {
+            KubrikoViewport(
+                kubriko = stateHolder.kubriko,
+                windowInsets = windowInsets,
             )
+            AnimatedVisibility(
+                visible = isGameLoaded,
+                enter = fadeIn() + scaleIn(),
+                exit = scaleOut() + fadeOut(),
+            ) {
+                SpaceSquadronMenuOverlay(
+                    modifier = Modifier.windowInsetsPadding(windowInsets),
+                    isVisible = !stateHolder.stateManager.isRunning.collectAsState().value,
+                    shouldShowInfoText = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
+                    onPlayButtonPressed = stateHolder.gameplayManager::playGame,
+                    onPauseButtonPressed = stateHolder.gameplayManager::pauseGame,
+                    onInfoButtonPressed = {
+                        stateHolder.audioManager.playButtonToggleSoundEffect()
+                        stateHolder.uiManager.toggleInfoDialogVisibility()
+                    },
+                    areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
+                    onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
+                    isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
+                    onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
+                    isInFullscreenMode = isInFullscreenMode,
+                    onFullscreenModeToggled = {
+                        stateHolder.audioManager.playButtonToggleSoundEffect()
+                        onFullscreenModeToggled()
+                    },
+                    onButtonHover = stateHolder.audioManager::playButtonHoverSoundEffect,
+                )
+            }
         }
     }
 }
