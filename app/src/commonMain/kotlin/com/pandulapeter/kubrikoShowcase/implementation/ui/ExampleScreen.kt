@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import com.pandulapeter.kubriko.actor.traits.Disposable
 import com.pandulapeter.kubriko.demoAudio.AudioDemo
 import com.pandulapeter.kubriko.demoAudio.createAudioDemoStateHolder
 import com.pandulapeter.kubriko.demoAudio.implementation.AudioDemoStateHolder
@@ -32,10 +33,11 @@ import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.SpaceSquadronGa
 import com.pandulapeter.kubriko.gameWallbreaker.WallbreakerGame
 import com.pandulapeter.kubriko.gameWallbreaker.createWallbreakerGameStateHolder
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.WallbreakerGameStateHolder
-import com.pandulapeter.kubriko.shared.ExampleStateHolder
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 
-private val currentDemoStateHolders = mutableStateOf(emptyList<ExampleStateHolder>())
+// StateHolders are in fact Disposable Actors. Definitely not a standard way of using the Actor interface.
+// But the other option would have been to introduce a new module that all the examples depend on, which felt wasteful.
+private val currentDemoStateHolders = mutableStateOf(emptyList<Disposable>())
 
 @Composable
 internal fun ShowcaseEntry.ExampleScreen(
@@ -104,8 +106,8 @@ internal fun ShowcaseEntry.ExampleScreen(
     }
 }
 
-private inline fun <reified T : ExampleStateHolder> getOrCreateState(
-    stateHolders: MutableState<List<ExampleStateHolder>>,
+private inline fun <reified T : Disposable> getOrCreateState(
+    stateHolders: MutableState<List<Disposable>>,
     creator: () -> T
 ): T = stateHolders.value.filterIsInstance<T>().firstOrNull() ?: creator().also { stateHolders.value += it }
 

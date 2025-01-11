@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko.demoShaderAnimations.implementation
 
+import com.pandulapeter.kubriko.actor.traits.Disposable
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.CloudShader
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.EtherShader
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.GradientShader
@@ -7,13 +8,12 @@ import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.Nood
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.WarpShader
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.ControlsState
 import com.pandulapeter.kubriko.shaders.ShaderManager
-import com.pandulapeter.kubriko.shared.ExampleStateHolder
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-sealed interface ShaderAnimationsDemoStateHolder : ExampleStateHolder
+sealed interface ShaderAnimationsDemoStateHolder : Disposable
 
 internal class ShaderAnimationsDemoStateHolderImpl : ShaderAnimationsDemoStateHolder {
     val shaderManager = ShaderManager.newInstance()

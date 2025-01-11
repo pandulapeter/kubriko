@@ -1,14 +1,14 @@
 package com.pandulapeter.kubriko.demoContentShaders.implementation
 
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.traits.Disposable
 import com.pandulapeter.kubriko.demoContentShaders.implementation.managers.ContentShadersDemoManager
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.shaders.ShaderManager
-import com.pandulapeter.kubriko.shared.ExampleStateHolder
 import com.pandulapeter.kubriko.types.SceneSize
 
-sealed interface ContentShadersDemoStateHolder : ExampleStateHolder
+sealed interface ContentShadersDemoStateHolder : Disposable
 
 internal class ContentShadersDemoStateHolderImpl : ContentShadersDemoStateHolder {
     private val viewportManager = ViewportManager.newInstance(

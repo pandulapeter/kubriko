@@ -1,6 +1,7 @@
 package com.pandulapeter.kubriko.gameWallbreaker.implementation
 
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.traits.Disposable
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.collision.CollisionManager
@@ -18,9 +19,8 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.persistence.PersistenceManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shaders.ShaderManager
-import com.pandulapeter.kubriko.shared.ExampleStateHolder
 
-sealed interface WallbreakerGameStateHolder : ExampleStateHolder
+sealed interface WallbreakerGameStateHolder : Disposable
 
 internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
     private val sharedMusicManager = MusicManager.newInstance(

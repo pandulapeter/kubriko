@@ -1,12 +1,12 @@
 package com.pandulapeter.kubriko.demoAudio.implementation
 
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.traits.Disposable
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.demoAudio.implementation.managers.AudioDemoManager
-import com.pandulapeter.kubriko.shared.ExampleStateHolder
 
-sealed interface AudioDemoStateHolder : ExampleStateHolder
+sealed interface AudioDemoStateHolder : Disposable
 
 internal class AudioDemoStateHolderImpl : AudioDemoStateHolder {
     private val musicManager = MusicManager.newInstance(
