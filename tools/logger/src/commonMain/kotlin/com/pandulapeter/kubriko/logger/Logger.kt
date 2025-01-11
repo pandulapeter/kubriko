@@ -10,7 +10,7 @@ import kotlin.uuid.Uuid
 object Logger {
     private val _logs = MutableStateFlow(emptyList<Entry>())
     val logs = _logs.asStateFlow()
-    var entryLimit = 100
+    var entryLimit = 1000
         set(value) {
             if (value >= 0) {
                 field = value
