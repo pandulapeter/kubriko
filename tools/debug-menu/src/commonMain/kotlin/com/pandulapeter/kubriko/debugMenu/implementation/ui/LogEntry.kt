@@ -11,9 +11,10 @@ import com.pandulapeter.kubriko.logger.Logger
 
 @Composable
 internal fun LogEntry(
+    modifier: Modifier = Modifier,
     entry: Logger.Entry
 ) = Text(
-    modifier = Modifier
+    modifier = modifier
         .padding(horizontal = 8.dp)
         .padding(top = 2.dp),
     style = TextStyle.Default.copy(fontSize = 10.sp),

@@ -21,6 +21,9 @@ import androidx.compose.ui.unit.sp
 import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuMetadata
 import com.pandulapeter.kubriko.logger.Logger
+import kubriko.tools.debug_menu.generated.resources.Res
+import kubriko.tools.debug_menu.generated.resources.logs_empty
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
 @Composable
@@ -80,5 +83,21 @@ internal fun DebugMenuContents(
     items(
         items = logs,
         key = { "log_${it.id}" }
-    ) { LogEntry(entry = it) }
+    ) {
+        LogEntry(
+            modifier = Modifier.animateItem(),
+            entry = it
+        )
+    }
+    if (logs.isEmpty()) {
+        item("logsEmptyState") {
+            Text(
+                modifier = Modifier.animateItem()
+                    .padding(horizontal = 8.dp)
+                    .padding(top = 2.dp),
+                style = TextStyle.Default.copy(fontSize = 10.sp),
+                text = stringResource(Res.string.logs_empty)
+            )
+        }
+    }
 }
