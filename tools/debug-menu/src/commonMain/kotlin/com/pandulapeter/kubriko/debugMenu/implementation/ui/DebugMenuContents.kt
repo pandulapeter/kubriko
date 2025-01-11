@@ -11,12 +11,14 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuMetadata
 import com.pandulapeter.kubriko.logger.Logger
 import kotlin.math.roundToInt
@@ -63,7 +65,17 @@ internal fun DebugMenuContents(
         }
     }
     item("logsHeader") {
-        LogsHeader()
+        // TODO
+        LogsHeader(
+            isLowPriorityEnabled = DebugMenu.isLowPriorityEnabled.collectAsState().value,
+            onLowPriorityToggled = DebugMenu::onLowPriorityToggled,
+            isMediumPriorityEnabled = DebugMenu.isMediumPriorityEnabled.collectAsState().value,
+            onMediumPriorityToggled = DebugMenu::onMediumPriorityToggled,
+            isHighPriorityEnabled = DebugMenu.isHighPriorityEnabled.collectAsState().value,
+            onHighPriorityToggled = DebugMenu::onHighPriorityToggled,
+            areFiltersApplied = false,
+            onFiltersClicked = {},
+        )
     }
     items(
         items = logs,

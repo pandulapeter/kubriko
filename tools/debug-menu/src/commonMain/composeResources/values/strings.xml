@@ -2,9 +2,9 @@
 
     <string name="debug_menu">Debug Menu</string>
     <string name="logs">Logs</string>
-    <string name="log_priority_low">L</string>
-    <string name="log_priority_medium">M</string>
-    <string name="log_priority_high">H</string>
+    <string name="log_priority_low">Low priority</string>
+    <string name="log_priority_medium">Medium priority</string>
+    <string name="log_priority_high">High priority</string>
     <string name="filter_logs">Filter logs</string>
 
 </resources>

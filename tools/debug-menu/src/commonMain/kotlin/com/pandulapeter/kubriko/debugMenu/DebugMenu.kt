@@ -40,6 +40,7 @@ import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.manager.ViewportManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kubriko.tools.debug_menu.generated.resources.Res
 import kubriko.tools.debug_menu.generated.resources.debug_menu
@@ -53,6 +54,29 @@ object DebugMenu {
     internal val isDebugMenuVisible = _isDebugMenuVisible as State<Boolean>
     private val _isDebugOverlayEnabled = MutableStateFlow(false)
     internal val isDebugOverlayEnabled = _isDebugOverlayEnabled.asStateFlow()
+    private val _isLowPriorityEnabled = MutableStateFlow(true)
+    internal val isLowPriorityEnabled = _isLowPriorityEnabled.asStateFlow()
+    private val _isMediumPriorityEnabled = MutableStateFlow(true)
+    internal val isMediumPriorityEnabled = _isMediumPriorityEnabled.asStateFlow()
+    private val _isHighPriorityEnabled = MutableStateFlow(true)
+    internal val isHighPriorityEnabled = _isHighPriorityEnabled.asStateFlow()
+    internal val logs = combine(
+        Logger.logs,
+        isLowPriorityEnabled,
+        isMediumPriorityEnabled,
+        isHighPriorityEnabled,
+    ) { logs,
+        isLowPriorityEnabled,
+        isMediumPriorityEnabled,
+        isHighPriorityEnabled ->
+        logs.filter {
+            when (it.importance) {
+                Logger.Importance.LOW -> isLowPriorityEnabled
+                Logger.Importance.MEDIUM -> isMediumPriorityEnabled
+                Logger.Importance.HIGH -> isHighPriorityEnabled
+            }
+        }
+    }
 
     fun log(
         message: String,
@@ -69,6 +93,12 @@ object DebugMenu {
     }
 
     internal fun onIsDebugOverlayEnabledChanged() = _isDebugOverlayEnabled.update { !it }
+
+    internal fun onLowPriorityToggled() = _isLowPriorityEnabled.update { !it }
+
+    internal fun onMediumPriorityToggled() = _isMediumPriorityEnabled.update { !it }
+
+    internal fun onHighPriorityToggled() = _isHighPriorityEnabled.update { !it }
 }
 
 /**
@@ -128,7 +158,7 @@ fun DebugMenu(
                     DebugMenuContents(
                         modifier = debugMenuModifier,
                         debugMenuMetadata = debugMenuManager.debugMenuMetadata.collectAsState(DebugMenuMetadata()).value,
-                        logs = Logger.logs.collectAsState().value,
+                        logs = DebugMenu.logs.collectAsState(emptyList()).value,
                         onIsDebugOverlayEnabledChanged = DebugMenu::onIsDebugOverlayEnabledChanged,
                     )
                 }
