@@ -7,12 +7,12 @@ androidx-core-splashScreen = "1.0.1" # https://developer.android.com/jetpack/and
 androidx-lifecycle = "2.8.4" # https://developer.android.com/jetpack/androidx/releases/lifecycle
 compose-plugin = "1.7.3" # https://github.com/JetBrains/compose-multiplatform/releases
 google-material = "1.12.0" # https://github.com/material-components/material-components-android/releases
-gradle = "8.7.3" # https://developer.android.com/build/releases/gradle-plugin
+gradle = "8.8.0" # https://developer.android.com/build/releases/gradle-plugin
 jlayer = "1.0.3" # https://github.com/umjammer/jlayer/releases
 kotlin = "2.1.0" # https://kotlinlang.org/docs/releases.html
 kotlinx-coroutines = "1.10.1" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinx-immutable = "0.3.8" # https://github.com/Kotlin/kotlinx.collections.immutable/releases
-kotlinx-serialization = "1.7.3" # https://github.com/Kotlin/kotlinx.serialization/releases
+kotlinx-serialization = "1.8.0" # https://github.com/Kotlin/kotlinx.serialization/releases
 
 [libraries]
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity" }
