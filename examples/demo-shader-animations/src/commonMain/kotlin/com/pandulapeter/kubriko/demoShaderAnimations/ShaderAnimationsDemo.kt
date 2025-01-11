@@ -73,7 +73,7 @@ fun ShaderAnimationsDemo(
                 ) { demoType ->
                     val kubriko = stateHolder.shaderAnimationDemoHolders[demoType]!!.kubriko
                     DebugMenu(
-                        debugMenuModifier = modifier.windowInsetsPadding(windowInsets),
+                        windowInsets = windowInsets,
                         kubriko = kubriko,
                         buttonAlignment = null,
                     ) {

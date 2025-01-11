@@ -42,7 +42,7 @@ fun WallbreakerGame(
     stateHolder as WallbreakerGameStateHolderImpl
     DebugMenu(
         modifier = modifier,
-        debugMenuModifier = Modifier.windowInsetsPadding(windowInsets),
+        windowInsets = windowInsets,
         kubriko = stateHolder.kubriko,
         buttonAlignment = null,
     ) {

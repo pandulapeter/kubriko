@@ -23,7 +23,7 @@ fun InputDemo(
     stateHolder as InputDemoStateHolderImpl
     DebugMenu(
         modifier = modifier,
-        debugMenuModifier = modifier.windowInsetsPadding(windowInsets),
+        windowInsets = windowInsets,
         kubriko = stateHolder.kubriko,
         buttonAlignment = null,
     ) {

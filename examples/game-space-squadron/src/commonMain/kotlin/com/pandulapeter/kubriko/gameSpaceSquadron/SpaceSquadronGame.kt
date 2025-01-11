@@ -41,7 +41,7 @@ fun SpaceSquadronGame(
     stateHolder as SpaceSquadronGameStateHolderImpl
     DebugMenu(
         modifier = modifier,
-        debugMenuModifier = modifier.windowInsetsPadding(windowInsets),
+        windowInsets = windowInsets,
         kubriko = stateHolder.kubriko,
         buttonAlignment = null,
     ) {

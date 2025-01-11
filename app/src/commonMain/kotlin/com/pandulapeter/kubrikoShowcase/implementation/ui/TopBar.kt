@@ -129,7 +129,8 @@ private fun Header(
     colors = TopAppBarDefaults.topAppBarColors().copy(containerColor = Color.Transparent),
     title = {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
                 modifier = Modifier.weight(1f),

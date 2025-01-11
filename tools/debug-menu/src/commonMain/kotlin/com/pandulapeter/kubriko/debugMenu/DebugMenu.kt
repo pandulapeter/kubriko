@@ -49,7 +49,6 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 object DebugMenu {
-
     private val _isVisible = MutableStateFlow(false)
     val isVisible = _isVisible.asStateFlow()
     private val _isDebugOverlayEnabled = MutableStateFlow(false)
@@ -107,12 +106,12 @@ object DebugMenu {
 @Composable
 fun DebugMenu(
     modifier: Modifier = Modifier,
-    debugMenuModifier: Modifier = Modifier,
+    windowInsets: WindowInsets = WindowInsets.safeDrawing,
     contentModifier: Modifier = Modifier,
     kubriko: Kubriko,
     isEnabled: Boolean = true,
     buttonAlignment: Alignment? = Alignment.TopEnd,
-    theme: @Composable (@Composable () -> Unit) -> Unit = { KubrikoTheme(it) },
+    applyTheme: @Composable (@Composable () -> Unit) -> Unit = { KubrikoTheme(it) },
     gameCanvas: @Composable BoxScope.() -> Unit,
 ) = Box(
     modifier = modifier,
@@ -162,11 +161,11 @@ fun DebugMenu(
             AnimatedVisibility(
                 visible = isVisible,
             ) {
-                theme {
+                applyTheme {
                     Surface(
                         modifier = Modifier
                             .defaultMinSize(
-                                minWidth = 180.dp + WindowInsets.safeDrawing.only(WindowInsetsSides.Right).asPaddingValues()
+                                minWidth = 180.dp + windowInsets.only(WindowInsetsSides.Right).asPaddingValues()
                                     .calculateRightPadding(LocalLayoutDirection.current)
                             ).fillMaxHeight(),
                         tonalElevation = when (isSystemInDarkTheme()) {
@@ -179,7 +178,7 @@ fun DebugMenu(
                         },
                     ) {
                         DebugMenuContents(
-                            modifier = debugMenuModifier,
+                            windowInsets = windowInsets,
                             debugMenuMetadata = debugMenuManager.debugMenuMetadata.collectAsState(DebugMenuMetadata()).value,
                             logs = DebugMenu.logs.collectAsState(emptyList()).value,
                             onIsDebugOverlayEnabledChanged = DebugMenu::onIsDebugOverlayEnabledChanged,

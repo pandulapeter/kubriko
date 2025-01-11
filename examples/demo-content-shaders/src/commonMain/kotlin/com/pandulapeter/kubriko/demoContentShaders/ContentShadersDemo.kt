@@ -34,7 +34,7 @@ fun ContentShadersDemo(
     stateHolder as ContentShadersDemoStateHolderImpl
     DebugMenu(
         modifier = modifier,
-        debugMenuModifier = modifier.windowInsetsPadding(windowInsets),
+        windowInsets = windowInsets,
         kubriko = stateHolder.kubriko,
         buttonAlignment = null,
     ) {

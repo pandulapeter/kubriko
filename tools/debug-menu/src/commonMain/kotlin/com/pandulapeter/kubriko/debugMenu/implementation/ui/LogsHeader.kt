@@ -7,15 +7,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kubriko.tools.debug_menu.generated.resources.Res
 import kubriko.tools.debug_menu.generated.resources.filter_logs
 import kubriko.tools.debug_menu.generated.resources.ic_filter_off
@@ -26,9 +25,9 @@ import kubriko.tools.debug_menu.generated.resources.ic_log_filter_low_off
 import kubriko.tools.debug_menu.generated.resources.ic_log_filter_low_on
 import kubriko.tools.debug_menu.generated.resources.ic_log_filter_medium_off
 import kubriko.tools.debug_menu.generated.resources.ic_log_filter_medium_on
-import kubriko.tools.debug_menu.generated.resources.log_priority_high
-import kubriko.tools.debug_menu.generated.resources.log_priority_low
-import kubriko.tools.debug_menu.generated.resources.log_priority_medium
+import kubriko.tools.debug_menu.generated.resources.log_importance_high
+import kubriko.tools.debug_menu.generated.resources.log_importance_low
+import kubriko.tools.debug_menu.generated.resources.log_importance_medium
 import kubriko.tools.debug_menu.generated.resources.logs
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
@@ -52,24 +51,26 @@ internal fun LogsHeader(
     verticalAlignment = Alignment.CenterVertically,
 ) {
     Text(
-        modifier = Modifier.weight(1f).padding(end = 8.dp),
-        style = TextStyle.Default.copy(fontSize = 10.sp),
+        modifier = Modifier
+            .weight(1f)
+            .padding(end = 8.dp),
+        style = MaterialTheme.typography.bodySmall,
         fontWeight = FontWeight.Bold,
         text = stringResource(Res.string.logs),
     )
     Icon(
         drawableResource = if (isLowPriorityEnabled) Res.drawable.ic_log_filter_low_on else Res.drawable.ic_log_filter_low_off,
-        stringResource = Res.string.log_priority_low,
+        stringResource = Res.string.log_importance_low,
         onClick = onLowPriorityToggled,
     )
     Icon(
         drawableResource = if (isMediumPriorityEnabled) Res.drawable.ic_log_filter_medium_on else Res.drawable.ic_log_filter_medium_off,
-        stringResource = Res.string.log_priority_medium,
+        stringResource = Res.string.log_importance_medium,
         onClick = onMediumPriorityToggled,
     )
     Icon(
         drawableResource = if (isHighPriorityEnabled) Res.drawable.ic_log_filter_high_on else Res.drawable.ic_log_filter_high_off,
-        stringResource = Res.string.log_priority_high,
+        stringResource = Res.string.log_importance_high,
         onClick = onHighPriorityToggled,
     )
     Icon(

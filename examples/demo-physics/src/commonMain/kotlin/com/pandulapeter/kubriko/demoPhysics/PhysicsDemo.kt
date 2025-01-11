@@ -21,7 +21,7 @@ fun PhysicsDemo(
     stateHolder as PhysicsDemoStateHolderImpl
     DebugMenu(
         modifier = modifier,
-        debugMenuModifier = modifier.windowInsetsPadding(windowInsets),
+        windowInsets = windowInsets,
         kubriko = stateHolder.kubriko,
         buttonAlignment = null,
     ) {

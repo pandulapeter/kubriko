@@ -21,7 +21,7 @@ fun AudioDemo(
     stateHolder as AudioDemoStateHolderImpl
     DebugMenu(
         modifier = modifier,
-        debugMenuModifier = modifier.windowInsetsPadding(windowInsets),
+        windowInsets = windowInsets,
         kubriko = stateHolder.kubriko,
         buttonAlignment = null,
     ) {

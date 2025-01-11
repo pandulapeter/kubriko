@@ -1,10 +1,11 @@
 <resources>
 
     <string name="debug_menu">Toggle debug menu</string>
+    <string name="collision_masks">Collision masks</string>
     <string name="logs">Logs</string>
-    <string name="log_priority_low">Low priority</string>
-    <string name="log_priority_medium">Medium priority</string>
-    <string name="log_priority_high">High priority</string>
+    <string name="log_importance_low">Low importance</string>
+    <string name="log_importance_medium">Medium importance</string>
+    <string name="log_importance_high">High importance</string>
     <string name="filter_logs">Filter logs</string>
     <string name="logs_empty">No log entries found.</string>
 
