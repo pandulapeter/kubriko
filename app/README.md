@@ -25,6 +25,7 @@ The showcase app contains an ever-expanding list of games and demos that are emb
 Check out how effortlessly Kubriko handles resizing the window!
 
 This module only ties together the various examples implemented under the different modules of the [examples](https://github.com/pandulapeter/kubriko/tree/main/examples) folder.
+It also contains the UI for the Welcome screen, but the examples behind all the other menu items are implemented in the submodules mentioned above.
 
 Due to the nature of this app, it does contain some solutions that should not be necessary under normal circumstances.
 Most games will probably not need to be embedded into a menu system, and will probably not support this many Kubriko instances in parallel.
