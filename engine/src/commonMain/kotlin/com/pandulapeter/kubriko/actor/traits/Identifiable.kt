@@ -9,6 +9,7 @@ import com.pandulapeter.kubriko.actor.Actor
  * [Identifiable] is meant for [Actor]s that want to be referenced by other classes in a more abstract way.
  * Searching for an [Actor] by name might return multiple results.
  */
+// TODO: Is this really necessary?
 interface Identifiable : Actor {
 
     /**

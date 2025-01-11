@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.drawscope.withTransform
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoImpl
 import com.pandulapeter.kubriko.actor.Actor
+import com.pandulapeter.kubriko.actor.traits.Disposable
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.Identifiable
@@ -129,7 +130,10 @@ internal class ActorManagerImpl(
         _allActors.update { currentActors ->
             currentActors.filterNot { it in flattenedActors }.toImmutableList()
         }
-        flattenedActors.forEach { it.onRemoved() }
+        flattenedActors.forEach {
+            (it as? Disposable)?.dispose()
+            it.onRemoved()
+        }
     }
 
     override fun remove(actors: Collection<Actor>) = remove(actors = actors.toTypedArray())

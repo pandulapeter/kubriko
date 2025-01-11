@@ -3,6 +3,7 @@ This page lists all the Traits provided by Kubriko.
 Read the KDoc comments of the linked files for more information.
 
 ## Engine
+- [Disposable](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Disposable.kt)
 - [Dynamic](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Dynamic.kt)
 - [Group](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Group.kt)
 - [Identifiable](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Identifiable.kt)

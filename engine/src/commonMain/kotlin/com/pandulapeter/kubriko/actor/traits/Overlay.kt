@@ -16,7 +16,7 @@ interface Overlay : LayerAware {
     val overlayDrawingOrder: Float get() = 0f
 
     /**
-     * Invoked by [Kubriko] to draw using the viewport drawing [scope].
+     * Invoked by [Kubriko] to draw using the viewport drawing scope.
      */
     fun DrawScope.drawToViewport()
 }
