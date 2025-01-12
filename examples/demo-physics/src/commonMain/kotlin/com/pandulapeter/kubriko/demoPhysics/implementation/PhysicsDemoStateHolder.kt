@@ -4,7 +4,6 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.body.PolygonBody
 import com.pandulapeter.kubriko.actor.body.RectangleBody
-import com.pandulapeter.kubriko.actor.traits.Disposable
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicBox
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicChain
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicCircle
@@ -19,12 +18,13 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.PhysicsManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
+import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.serialization.json.Json
 
-sealed interface PhysicsDemoStateHolder : Disposable
+sealed interface PhysicsDemoStateHolder : StateHolder
 
 internal class PhysicsDemoStateHolderImpl : PhysicsDemoStateHolder {
     private val json = Json { ignoreUnknownKeys = true }
@@ -101,7 +101,7 @@ internal class PhysicsDemoStateHolderImpl : PhysicsDemoStateHolder {
     private val physicsDemoManager by lazy {
         PhysicsDemoManager(sceneJson = sceneJson)
     }
-    val kubriko by lazy {
+    override val kubriko by lazy {
         Kubriko.newInstance(
             viewportManager,
             physicsManager,

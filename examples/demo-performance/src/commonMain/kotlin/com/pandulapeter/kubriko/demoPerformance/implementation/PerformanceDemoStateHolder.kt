@@ -3,7 +3,6 @@ package com.pandulapeter.kubriko.demoPerformance.implementation
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.PointBody
 import com.pandulapeter.kubriko.actor.body.RectangleBody
-import com.pandulapeter.kubriko.actor.traits.Disposable
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.BoxWithCircle
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.Character
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.MovingBox
@@ -11,10 +10,11 @@ import com.pandulapeter.kubriko.demoPerformance.implementation.managers.Performa
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
+import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.serialization.json.Json
 
-sealed interface PerformanceDemoStateHolder : Disposable
+sealed interface PerformanceDemoStateHolder : StateHolder
 
 internal class PerformanceDemoStateHolderImpl : PerformanceDemoStateHolder {
     private val json = Json { ignoreUnknownKeys = true }
@@ -50,7 +50,7 @@ internal class PerformanceDemoStateHolderImpl : PerformanceDemoStateHolder {
             instanceNameForLogging = LOG_TAG,
         )
     }
-    val kubriko by lazy {
+    override val kubriko by lazy {
         Kubriko.newInstance(
             viewportManager,
             performanceDemoManager,

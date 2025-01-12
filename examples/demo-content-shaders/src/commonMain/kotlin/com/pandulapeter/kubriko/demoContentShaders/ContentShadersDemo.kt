@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
-import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.demoContentShaders.implementation.ContentShadersDemoStateHolder
 import com.pandulapeter.kubriko.demoContentShaders.implementation.ContentShadersDemoStateHolderImpl
 import kubriko.examples.demo_content_shaders.generated.resources.Res
@@ -32,27 +31,25 @@ fun ContentShadersDemo(
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as ContentShadersDemoStateHolderImpl
-    DebugMenu(
-        modifier = modifier,
-        windowInsets = windowInsets,
-        kubriko = stateHolder.kubriko,
-        buttonAlignment = null,
-    ) {
-        if (stateHolder.shaderManager.areShadersSupported) {
-            KubrikoViewport(
-                modifier = Modifier.background(Color.Black),
-                kubriko = stateHolder.kubriko,
+    if (stateHolder.shaderManager.areShadersSupported) {
+        KubrikoViewport(
+            modifier = modifier.background(Color.Black),
+            kubriko = stateHolder.kubriko,
+        )
+    } else {
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .windowInsetsPadding(windowInsets)
+                .padding(16.dp),
+        ) {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth(0.75f)
+                    .align(Alignment.Center),
+                textAlign = TextAlign.Center,
+                text = stringResource(Res.string.shaders_not_supported),
             )
-        } else {
-            Box(
-                modifier = modifier.fillMaxSize().padding(16.dp)
-            ) {
-                Text(
-                    modifier = Modifier.fillMaxWidth(0.75f).align(Alignment.Center),
-                    textAlign = TextAlign.Center,
-                    text = stringResource(Res.string.shaders_not_supported),
-                )
-            }
         }
     }
 }

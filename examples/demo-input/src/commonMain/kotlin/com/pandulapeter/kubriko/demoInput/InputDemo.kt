@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.KubrikoViewport
-import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.demoInput.implementation.InputDemoStateHolder
 import com.pandulapeter.kubriko.demoInput.implementation.InputDemoStateHolderImpl
 import com.pandulapeter.kubriko.demoInput.implementation.ui.Keyboard
@@ -21,18 +20,12 @@ fun InputDemo(
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as InputDemoStateHolderImpl
-    DebugMenu(
+    KubrikoViewport(
         modifier = modifier,
-        windowInsets = windowInsets,
         kubriko = stateHolder.kubriko,
-        buttonAlignment = null,
-    ) {
-        KubrikoViewport(
-            kubriko = stateHolder.kubriko,
-        )
-        Keyboard(
-            modifier = modifier,
-            activeKeys = stateHolder.inputDemoManager.activeKeys.collectAsState().value,
-        )
-    }
+    )
+    Keyboard(
+        modifier = modifier.windowInsetsPadding(windowInsets),
+        activeKeys = stateHolder.inputDemoManager.activeKeys.collectAsState().value,
+    )
 }

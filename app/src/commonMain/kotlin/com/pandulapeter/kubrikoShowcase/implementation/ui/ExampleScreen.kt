@@ -1,14 +1,10 @@
 package com.pandulapeter.kubrikoShowcase.implementation.ui
 
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import com.pandulapeter.kubriko.actor.traits.Disposable
 import com.pandulapeter.kubriko.demoAudio.AudioDemo
 import com.pandulapeter.kubriko.demoAudio.createAudioDemoStateHolder
 import com.pandulapeter.kubriko.demoAudio.implementation.AudioDemoStateHolder
@@ -33,67 +29,60 @@ import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.SpaceSquadronGa
 import com.pandulapeter.kubriko.gameWallbreaker.WallbreakerGame
 import com.pandulapeter.kubriko.gameWallbreaker.createWallbreakerGameStateHolder
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.WallbreakerGameStateHolder
+import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 
-// StateHolders are in fact Disposable Actors. Definitely not a standard way of using the Actor interface.
-// But the other option would have been to introduce a new module that all the examples depend on, which felt wasteful.
-private val currentDemoStateHolders = mutableStateOf(emptyList<Disposable>())
+private val stateHolders = mutableStateOf(emptyList<StateHolder>())
 
 @Composable
 internal fun ShowcaseEntry.ExampleScreen(
-    shouldUseCompactUi: Boolean,
+    windowInsets: WindowInsets,
     isInFullscreenMode: Boolean,
     onFullscreenModeToggled: () -> Unit,
     getSelectedShowcaseEntry: () -> ShowcaseEntry?,
 ) {
-    val windowInsets = when {
-        isInFullscreenMode -> WindowInsets.safeDrawing
-        shouldUseCompactUi -> WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
-        else -> WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right)
-    }
-
     when (this) {
         ShowcaseEntry.WALLBREAKER -> WallbreakerGame(
-            stateHolder = getOrCreateState(currentDemoStateHolders, ::createWallbreakerGameStateHolder),
+            stateHolder = getOrCreateState(stateHolders, ::createWallbreakerGameStateHolder),
             windowInsets = windowInsets,
             isInFullscreenMode = isInFullscreenMode,
             onFullscreenModeToggled = onFullscreenModeToggled,
         )
 
         ShowcaseEntry.SPACE_SQUADRON -> SpaceSquadronGame(
-            stateHolder = getOrCreateState(currentDemoStateHolders, ::createSpaceSquadronGameStateHolder),
+            stateHolder = getOrCreateState(stateHolders, ::createSpaceSquadronGameStateHolder),
             windowInsets = windowInsets,
             isInFullscreenMode = isInFullscreenMode,
             onFullscreenModeToggled = onFullscreenModeToggled,
         )
 
         ShowcaseEntry.AUDIO -> AudioDemo(
-            stateHolder = getOrCreateState(currentDemoStateHolders, ::createAudioDemoStateHolder),
+            stateHolder = getOrCreateState(stateHolders, ::createAudioDemoStateHolder),
             windowInsets = windowInsets,
         )
 
         ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemo(
-            stateHolder = getOrCreateState(currentDemoStateHolders, ::createContentShadersDemoStateHolder),
+            stateHolder = getOrCreateState(stateHolders, ::createContentShadersDemoStateHolder),
             windowInsets = windowInsets,
         )
 
         ShowcaseEntry.INPUT -> InputDemo(
-            stateHolder = getOrCreateState(currentDemoStateHolders, ::createInputDemoStateHolder),
+            stateHolder = getOrCreateState(stateHolders, ::createInputDemoStateHolder),
             windowInsets = windowInsets,
         )
 
         ShowcaseEntry.PERFORMANCE -> PerformanceDemo(
-            stateHolder = getOrCreateState(currentDemoStateHolders, ::createPerformanceDemoStateHolder),
+            stateHolder = getOrCreateState(stateHolders, ::createPerformanceDemoStateHolder),
             windowInsets = windowInsets,
         )
 
         ShowcaseEntry.PHYSICS -> PhysicsDemo(
-            stateHolder = getOrCreateState(currentDemoStateHolders, ::createPhysicsDemoStateHolder),
+            stateHolder = getOrCreateState(stateHolders, ::createPhysicsDemoStateHolder),
             windowInsets = windowInsets,
         )
 
         ShowcaseEntry.SHADER_ANIMATIONS -> ShaderAnimationsDemo(
-            stateHolder = getOrCreateState(currentDemoStateHolders, ::createShaderAnimationsDemoStateHolder),
+            stateHolder = getOrCreateState(stateHolders, ::createShaderAnimationsDemoStateHolder),
             windowInsets = windowInsets,
         )
     }
@@ -101,16 +90,27 @@ internal fun ShowcaseEntry.ExampleScreen(
         onDispose {
             if (getSelectedShowcaseEntry() != this@ExampleScreen) {
                 stateHolderType.let { type ->
-                    currentDemoStateHolders.value.filter { type.isInstance(it) }.forEach { it.dispose() }
-                    currentDemoStateHolders.value = currentDemoStateHolders.value.filterNot { type.isInstance(it) }
+                    stateHolders.value.filter { type.isInstance(it) }.forEach { it.dispose() }
+                    stateHolders.value = stateHolders.value.filterNot { type.isInstance(it) }
                 }
             }
         }
     }
 }
 
-private inline fun <reified T : Disposable> getOrCreateState(
-    stateHolders: MutableState<List<Disposable>>,
+internal fun ShowcaseEntry.getStateHolder() = when (this) {
+    ShowcaseEntry.WALLBREAKER -> getOrCreateState(stateHolders, ::createWallbreakerGameStateHolder)
+    ShowcaseEntry.SPACE_SQUADRON -> getOrCreateState(stateHolders, ::createSpaceSquadronGameStateHolder)
+    ShowcaseEntry.AUDIO -> getOrCreateState(stateHolders, ::createAudioDemoStateHolder)
+    ShowcaseEntry.CONTENT_SHADERS -> getOrCreateState(stateHolders, ::createContentShadersDemoStateHolder)
+    ShowcaseEntry.INPUT -> getOrCreateState(stateHolders, ::createInputDemoStateHolder)
+    ShowcaseEntry.PERFORMANCE -> getOrCreateState(stateHolders, ::createPerformanceDemoStateHolder)
+    ShowcaseEntry.PHYSICS -> getOrCreateState(stateHolders, ::createPhysicsDemoStateHolder)
+    ShowcaseEntry.SHADER_ANIMATIONS -> getOrCreateState(stateHolders, ::createShaderAnimationsDemoStateHolder)
+}
+
+private inline fun <reified T : StateHolder> getOrCreateState(
+    stateHolders: MutableState<List<StateHolder>>,
     creator: () -> T
 ): T = stateHolders.value.filterIsInstance<T>().firstOrNull() ?: creator().also { stateHolders.value += it }
 

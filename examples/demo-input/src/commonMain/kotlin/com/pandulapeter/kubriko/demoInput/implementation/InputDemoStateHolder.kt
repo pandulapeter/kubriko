@@ -1,12 +1,12 @@
 package com.pandulapeter.kubriko.demoInput.implementation
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.traits.Disposable
 import com.pandulapeter.kubriko.demoInput.implementation.managers.InputDemoManager
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
+import com.pandulapeter.kubriko.shared.StateHolder
 
-sealed interface InputDemoStateHolder : Disposable
+sealed interface InputDemoStateHolder : StateHolder
 
 internal class InputDemoStateHolderImpl : InputDemoStateHolder {
     private val pointerInputManager = PointerInputManager.newInstance(
@@ -18,7 +18,7 @@ internal class InputDemoStateHolderImpl : InputDemoStateHolder {
         instanceNameForLogging = LOG_TAG,
     )
     val inputDemoManager = InputDemoManager()
-    val kubriko = Kubriko.newInstance(
+    override val kubriko = Kubriko.newInstance(
         pointerInputManager,
         keyboardInputManager,
         inputDemoManager,

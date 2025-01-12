@@ -1,12 +1,12 @@
 package com.pandulapeter.kubriko.demoAudio.implementation
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.traits.Disposable
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.demoAudio.implementation.managers.AudioDemoManager
+import com.pandulapeter.kubriko.shared.StateHolder
 
-sealed interface AudioDemoStateHolder : Disposable
+sealed interface AudioDemoStateHolder : StateHolder
 
 internal class AudioDemoStateHolderImpl : AudioDemoStateHolder {
     private val musicManager = MusicManager.newInstance(
@@ -18,7 +18,7 @@ internal class AudioDemoStateHolderImpl : AudioDemoStateHolder {
         instanceNameForLogging = LOG_TAG,
     )
     private val audioDemoManager = AudioDemoManager()
-    val kubriko = Kubriko.newInstance(
+    override val kubriko = Kubriko.newInstance(
         musicManager,
         soundManager,
         audioDemoManager,

@@ -111,7 +111,7 @@ object DebugMenu {
 fun DebugMenu(
     modifier: Modifier = Modifier,
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
-    kubriko: Kubriko,
+    kubriko: Kubriko?,
     isEnabled: Boolean = true,
     buttonAlignment: Alignment? = Alignment.TopEnd,
     applyTheme: @Composable (@Composable () -> Unit) -> Unit = { KubrikoTheme(it) },
@@ -119,15 +119,14 @@ fun DebugMenu(
 ) = BoxWithConstraints(
     modifier = modifier,
 ) {
-    // TODO: Should be persisted with Kubriko
-    val debugMenuManager = remember { DebugMenuManager(kubriko) }
-    val debugMenuKubriko = remember {
-        Kubriko.newInstance(
-            kubriko.get<ViewportManager>(),
-            debugMenuManager,
-        )
-    }
-    if (isEnabled) {
+    if (isEnabled && kubriko != null) {
+        val debugMenuManager = remember(kubriko) { DebugMenuManager(kubriko) }
+        val debugMenuKubriko = remember(debugMenuManager) {
+            Kubriko.newInstance(
+                kubriko.get<ViewportManager>(),
+                debugMenuManager,
+            )
+        }
         val isVisible = DebugMenu.isVisible.collectAsState().value
         AnimatedContent(
             targetState = maxWidth < maxHeight,

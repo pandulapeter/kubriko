@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
-import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationDemoType
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationsDemoStateHolder
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationsDemoStateHolderImpl
@@ -71,17 +70,10 @@ fun ShaderAnimationsDemo(
                     targetState = selectedDemoType,
                     transitionSpec = { fadeIn() togetherWith fadeOut() },
                 ) { demoType ->
-                    val kubriko = stateHolder.shaderAnimationDemoHolders[demoType]!!.kubriko
-                    DebugMenu(
-                        windowInsets = windowInsets,
-                        kubriko = kubriko,
-                        buttonAlignment = null,
-                    ) {
-                        KubrikoViewport(
-                            modifier = Modifier.fillMaxSize(),
-                            kubriko = kubriko,
-                        )
-                    }
+                    KubrikoViewport(
+                        modifier = Modifier.fillMaxSize(),
+                        kubriko = stateHolder.shaderAnimationDemoHolders[demoType]!!.kubriko,
+                    )
                 }
                 ControlsContainer(
                     modifier = Modifier.windowInsetsPadding(windowInsets).align(Alignment.BottomEnd).padding(16.dp),
