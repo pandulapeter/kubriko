@@ -36,6 +36,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun LogsHeader(
+    modifier: Modifier = Modifier,
     isLowPriorityEnabled: Boolean,
     onLowPriorityToggled: () -> Unit,
     isMediumPriorityEnabled: Boolean,
@@ -45,7 +46,7 @@ internal fun LogsHeader(
     areFiltersApplied: Boolean,
     onFiltersClicked: () -> Unit,
 ) = Row(
-    modifier = Modifier
+    modifier = modifier
         .fillMaxWidth()
         .padding(horizontal = 8.dp),
     verticalAlignment = Alignment.CenterVertically,

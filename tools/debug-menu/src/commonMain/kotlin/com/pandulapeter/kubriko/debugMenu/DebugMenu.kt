@@ -147,8 +147,7 @@ fun DebugMenu(
                     ) {
                         Box(
                             modifier = Modifier.height(
-                                220.dp + windowInsets.only(WindowInsetsSides.Bottom).asPaddingValues()
-                                    .calculateRightPadding(LocalLayoutDirection.current)
+                                140.dp + windowInsets.only(WindowInsetsSides.Bottom).asPaddingValues().calculateRightPadding(LocalLayoutDirection.current)
                             ),
                         ) {
                             DebugMenuContainer(
