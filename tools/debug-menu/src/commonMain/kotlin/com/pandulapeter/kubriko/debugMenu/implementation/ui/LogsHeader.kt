@@ -10,13 +10,18 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.logger.Logger
 import kubriko.tools.debug_menu.generated.resources.Res
+import kubriko.tools.debug_menu.generated.resources.clear_logs
 import kubriko.tools.debug_menu.generated.resources.filter_logs
+import kubriko.tools.debug_menu.generated.resources.ic_clear
 import kubriko.tools.debug_menu.generated.resources.ic_filter_off
 import kubriko.tools.debug_menu.generated.resources.ic_filter_on
 import kubriko.tools.debug_menu.generated.resources.ic_log_filter_high_off
@@ -80,18 +85,26 @@ internal fun LogsHeader(
         stringResource = Res.string.filter_logs,
         onClick = onFiltersClicked,
     )
+    Icon(
+        isEnabled = Logger.logs.collectAsState().value.isNotEmpty(),
+        drawableResource = Res.drawable.ic_clear,
+        stringResource = Res.string.clear_logs,
+        onClick = Logger::clearLogs,
+    )
 }
 
 @Composable
 private fun Icon(
     isSmall: Boolean = false,
+    isEnabled: Boolean = true,
     drawableResource: DrawableResource,
     stringResource: StringResource,
     onClick: () -> Unit,
 ) = Image(
     modifier = Modifier
         .size(24.dp)
-        .clickable(onClick = onClick)
+        .clickable(enabled = isEnabled, onClick = onClick)
+        .alpha(if (isEnabled) 1f else 0.5f)
         .padding(if (isSmall) 4.dp else 2.dp),
     colorFilter = ColorFilter.tint(LocalContentColor.current),
     painter = painterResource(drawableResource),
