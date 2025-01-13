@@ -15,7 +15,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
@@ -73,7 +72,6 @@ internal fun EditorUserInterface(
                             DebugMenu(
                                 kubriko = editorController.kubriko,
                                 isEnabled = editorController.isDebugMenuEnabled.collectAsState().value,
-                                buttonAlignment = Alignment.BottomStart,
                             ) {
                                 KubrikoViewport(
                                     modifier = Modifier

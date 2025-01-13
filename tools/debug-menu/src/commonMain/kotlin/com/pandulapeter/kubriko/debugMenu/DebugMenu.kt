@@ -1,6 +1,5 @@
 package com.pandulapeter.kubriko.debugMenu
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -81,16 +80,6 @@ object DebugMenu {
         }
     }
 
-    fun log(
-        message: String,
-        source: String? = null,
-    ) = Logger.log(
-        message = message,
-        source = source,
-    )
-
-    fun clearLogs() = Logger.clearLogs()
-
     fun toggleVisibility() {
         _isVisible.value = !isVisible.value
     }
@@ -113,7 +102,7 @@ fun DebugMenu(
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     kubriko: Kubriko?,
     isEnabled: Boolean = true,
-    buttonAlignment: Alignment? = Alignment.TopEnd,
+    buttonAlignment: Alignment? = Alignment.TopStart,
     applyTheme: @Composable (@Composable () -> Unit) -> Unit = { KubrikoTheme(it) },
     gameCanvas: @Composable BoxScope.() -> Unit,
 ) = BoxWithConstraints(
@@ -128,64 +117,51 @@ fun DebugMenu(
             )
         }
         val isVisible = DebugMenu.isVisible.collectAsState().value
-        AnimatedContent(
-            targetState = maxWidth < maxHeight,
-        ) { isColumn ->
-            if (isColumn) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
+        val isColumn = maxWidth < maxHeight
+        Column(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            Row(
+                modifier = Modifier.weight(1f),
+            ) {
+                GameContainer(
+                    modifier = Modifier.weight(1f),
+                    gameCanvas = gameCanvas,
+                    debugMenuKubriko = debugMenuKubriko,
+                    buttonAlignment = buttonAlignment,
+                    isVisible = isVisible,
+                )
+                AnimatedVisibility(
+                    visible = isVisible && !isColumn,
                 ) {
-                    GameContainer(
-                        modifier = Modifier.weight(1f),
-                        gameCanvas = gameCanvas,
-                        debugMenuKubriko = debugMenuKubriko,
-                        buttonAlignment = buttonAlignment,
-                        isVisible = isVisible,
+                    DebugMenuContainer(
+                        modifier = Modifier
+                            .defaultMinSize(
+                                minWidth = 180.dp + windowInsets.only(WindowInsetsSides.Right).asPaddingValues()
+                                    .calculateRightPadding(LocalLayoutDirection.current)
+                            ).fillMaxHeight(),
+                        debugMenuManager = debugMenuManager,
+                        windowInsets = windowInsets,
+                        shouldUseVerticalLayout = true,
+                        applyTheme = applyTheme,
                     )
-                    AnimatedVisibility(
-                        visible = isVisible,
-                    ) {
-                        Box(
-                            modifier = Modifier.height(
-                                140.dp + windowInsets.only(WindowInsetsSides.Bottom).asPaddingValues().calculateRightPadding(LocalLayoutDirection.current)
-                            ),
-                        ) {
-                            DebugMenuContainer(
-                                modifier = Modifier.fillMaxWidth(),
-                                debugMenuManager = debugMenuManager,
-                                windowInsets = windowInsets,
-                                shouldUseVerticalLayout = false,
-                                applyTheme = applyTheme,
-                            )
-                        }
-                    }
                 }
-            } else {
-                Row(
-                    modifier = Modifier.fillMaxSize(),
+            }
+            AnimatedVisibility(
+                visible = isVisible && isColumn,
+            ) {
+                Box(
+                    modifier = Modifier.height(
+                        140.dp + windowInsets.asPaddingValues().calculateBottomPadding()
+                    ),
                 ) {
-                    GameContainer(
-                        modifier = Modifier.weight(1f),
-                        gameCanvas = gameCanvas,
-                        debugMenuKubriko = debugMenuKubriko,
-                        buttonAlignment = buttonAlignment,
-                        isVisible = isVisible,
+                    DebugMenuContainer(
+                        modifier = Modifier.fillMaxWidth(),
+                        debugMenuManager = debugMenuManager,
+                        windowInsets = windowInsets,
+                        shouldUseVerticalLayout = false,
+                        applyTheme = applyTheme,
                     )
-                    AnimatedVisibility(
-                        visible = isVisible,
-                    ) {
-                        DebugMenuContainer(
-                            modifier = Modifier
-                                .defaultMinSize(
-                                    minWidth = 180.dp + windowInsets.only(WindowInsetsSides.Right).asPaddingValues()
-                                        .calculateRightPadding(LocalLayoutDirection.current)
-                                ).fillMaxHeight(),
-                            debugMenuManager = debugMenuManager,
-                            windowInsets = windowInsets,
-                            shouldUseVerticalLayout = true,
-                            applyTheme = applyTheme,
-                        )
-                    }
                 }
             }
         }
