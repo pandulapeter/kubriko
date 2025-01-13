@@ -26,11 +26,12 @@ internal fun LogEntry(
     }
 )
 
+// TODO: Allow consumers to override this behavior
 @Composable
 private fun getColor(source: String?) = if (source == null) LocalContentColor.current else Color.hsv(
     hue = source.toHue(),
-    saturation = 0.8f,
-    value = if (isSystemInDarkTheme()) 0.9f else 0.7f,
+    saturation = 0.2f,
+    value = if (isSystemInDarkTheme()) 0.9f else 0.6f,
 )
 
 private fun String.toHue(): Float {
