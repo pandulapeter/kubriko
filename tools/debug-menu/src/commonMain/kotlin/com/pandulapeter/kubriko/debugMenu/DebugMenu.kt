@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
@@ -129,6 +130,7 @@ fun DebugMenu(
                     gameCanvas = gameCanvas,
                     debugMenuKubriko = debugMenuKubriko,
                     buttonAlignment = buttonAlignment,
+                    windowInsets = windowInsets,
                     isVisible = isVisible,
                 )
                 AnimatedVisibility(
@@ -174,6 +176,7 @@ fun DebugMenu(
 private fun GameContainer(
     modifier: Modifier,
     gameCanvas: @Composable BoxScope.() -> Unit,
+    windowInsets: WindowInsets,
     debugMenuKubriko: Kubriko,
     buttonAlignment: Alignment?,
     isVisible: Boolean,
@@ -182,6 +185,7 @@ private fun GameContainer(
 ) {
     gameCanvas()
     KubrikoViewport(
+        modifier = Modifier.windowInsetsPadding(windowInsets),
         kubriko = debugMenuKubriko,
     )
     if (buttonAlignment != null) {
