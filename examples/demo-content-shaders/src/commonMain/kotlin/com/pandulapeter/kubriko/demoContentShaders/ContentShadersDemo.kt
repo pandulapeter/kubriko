@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,7 +35,7 @@ fun ContentShadersDemo(
     if (stateHolder.shaderManager.areShadersSupported) {
         KubrikoViewport(
             modifier = modifier.background(Color.Black),
-            kubriko = stateHolder.kubriko,
+            kubriko = stateHolder.kubriko.collectAsState().value,
         )
     } else {
         Box(

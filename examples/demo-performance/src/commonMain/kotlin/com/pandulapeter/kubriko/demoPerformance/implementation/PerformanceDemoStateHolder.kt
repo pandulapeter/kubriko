@@ -12,6 +12,8 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.types.SceneSize
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.Json
 
 sealed interface PerformanceDemoStateHolder : StateHolder
@@ -50,17 +52,20 @@ internal class PerformanceDemoStateHolderImpl : PerformanceDemoStateHolder {
             instanceNameForLogging = LOG_TAG,
         )
     }
-    override val kubriko by lazy {
-        Kubriko.newInstance(
-            viewportManager,
-            performanceDemoManager,
-            serializationManager,
-            isLoggingEnabled = true,
-            instanceNameForLogging = LOG_TAG,
+    private val _kubriko by lazy {
+        MutableStateFlow(
+            Kubriko.newInstance(
+                viewportManager,
+                performanceDemoManager,
+                serializationManager,
+                isLoggingEnabled = true,
+                instanceNameForLogging = LOG_TAG,
+            )
         )
     }
+    override val kubriko get() = _kubriko.asStateFlow()
 
-    override fun dispose() = kubriko.dispose()
+    override fun dispose() = kubriko.value.dispose()
 }
 
 private const val LOG_TAG = "Performance"

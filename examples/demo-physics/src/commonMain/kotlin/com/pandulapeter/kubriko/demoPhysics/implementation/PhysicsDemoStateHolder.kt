@@ -22,6 +22,8 @@ import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.Json
 
 sealed interface PhysicsDemoStateHolder : StateHolder
@@ -101,19 +103,22 @@ internal class PhysicsDemoStateHolderImpl : PhysicsDemoStateHolder {
     private val physicsDemoManager by lazy {
         PhysicsDemoManager(sceneJson = sceneJson)
     }
-    override val kubriko by lazy {
-        Kubriko.newInstance(
-            viewportManager,
-            physicsManager,
-            pointerInputManager,
-            physicsDemoManager,
-            serializationManager,
-            isLoggingEnabled = true,
-            instanceNameForLogging = LOG_TAG,
+    private val _kubriko by lazy {
+        MutableStateFlow(
+            Kubriko.newInstance(
+                viewportManager,
+                physicsManager,
+                pointerInputManager,
+                physicsDemoManager,
+                serializationManager,
+                isLoggingEnabled = true,
+                instanceNameForLogging = LOG_TAG,
+            )
         )
     }
+    override val kubriko get() = _kubriko.asStateFlow()
 
-    override fun dispose() = kubriko.dispose()
+    override fun dispose() = kubriko.value.dispose()
 }
 
 private const val LOG_TAG = "Physics"

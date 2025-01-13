@@ -70,7 +70,7 @@ fun WallbreakerGame(
     ) {
         KubrikoViewport(
             modifier = Modifier.windowInsetsPadding(windowInsets).background(Color.Black),
-            kubriko = stateHolder.kubriko,
+            kubriko = stateHolder.kubriko.collectAsState().value,
             windowInsets = windowInsets,
         )
         MenuOverlay(

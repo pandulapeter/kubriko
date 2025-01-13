@@ -12,6 +12,7 @@ import com.pandulapeter.kubriko.shared.StateHolder
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
 sealed interface ShaderAnimationsDemoStateHolder : StateHolder
@@ -55,7 +56,7 @@ internal class ShaderAnimationsDemoStateHolderImpl : ShaderAnimationsDemoStateHo
     val selectedDemoType = _selectedDemoType.asStateFlow()
     private val _controlsState = MutableStateFlow(ControlsState.COLLAPSED)
     val controlsState = _controlsState.asStateFlow()
-    override val kubriko: Kubriko? = null // TODO
+    override val kubriko =  selectedDemoType.map { shaderAnimationDemoHolders[it]?.kubriko }
 
     fun onSelectedDemoTypeChanged(selectedDemoType: ShaderAnimationDemoType) = _selectedDemoType.update { selectedDemoType }
 

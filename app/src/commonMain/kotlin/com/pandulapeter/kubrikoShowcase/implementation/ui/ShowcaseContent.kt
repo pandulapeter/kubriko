@@ -39,6 +39,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntOffset
@@ -136,8 +137,7 @@ private fun ExpandedContent(
                 else -> WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right)
             }
             DebugMenu(
-//                kubriko = showcaseEntry?.getStateHolder()?.kubriko?.collectAsState()?.value,
-                kubriko = showcaseEntry?.getStateHolder()?.kubriko,
+                kubriko = showcaseEntry?.getStateHolder()?.kubriko?.collectAsState(null)?.value,
                 windowInsets = windowInsets,
                 buttonAlignment = null,
             ) {

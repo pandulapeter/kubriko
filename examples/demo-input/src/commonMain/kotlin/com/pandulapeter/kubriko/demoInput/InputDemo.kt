@@ -22,7 +22,7 @@ fun InputDemo(
     stateHolder as InputDemoStateHolderImpl
     KubrikoViewport(
         modifier = modifier,
-        kubriko = stateHolder.kubriko,
+        kubriko = stateHolder.kubriko.collectAsState().value,
     )
     Keyboard(
         modifier = modifier.windowInsetsPadding(windowInsets),

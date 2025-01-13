@@ -19,6 +19,8 @@ import com.pandulapeter.kubriko.persistence.PersistenceManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shaders.ShaderManager
 import com.pandulapeter.kubriko.shared.StateHolder
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 sealed interface WallbreakerGameStateHolder : StateHolder
 
@@ -86,28 +88,31 @@ internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    override val kubriko = Kubriko.newInstance(
-        sharedMusicManager,
-        sharedSoundManager,
-        stateManager,
-        viewportManager,
-        collisionManager,
-        shaderManager,
-        keyboardInputManager,
-        pointerInputManager,
-        persistenceManager,
-        scoreManager,
-        userPreferencesManager,
-        audioManager,
-        gameplayManager,
-        uiManager,
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
+    private val _kubriko = MutableStateFlow(
+        Kubriko.newInstance(
+            sharedMusicManager,
+            sharedSoundManager,
+            stateManager,
+            viewportManager,
+            collisionManager,
+            shaderManager,
+            keyboardInputManager,
+            pointerInputManager,
+            persistenceManager,
+            scoreManager,
+            userPreferencesManager,
+            audioManager,
+            gameplayManager,
+            uiManager,
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG,
+        )
     )
+    override val kubriko = _kubriko.asStateFlow()
 
     override fun dispose() {
         backgroundKubriko.dispose()
-        kubriko.dispose()
+        kubriko.value.dispose()
     }
 }
 

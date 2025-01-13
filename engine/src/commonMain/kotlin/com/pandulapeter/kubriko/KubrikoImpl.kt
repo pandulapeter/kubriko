@@ -68,13 +68,18 @@ internal class KubrikoImpl(
         )
     }
 
+    private var isInitialized = false
+
     internal fun initialize() {
-        log("Initializing Manager instances...")
-        managers.forEach { it.initializeInternal(this) }
-        if (stateManager.shouldAutoStart) {
-            stateManager.updateIsRunning(true)
+        if (!isInitialized) {
+            log("Initializing Manager instances...")
+            managers.forEach { it.initializeInternal(this) }
+            if (stateManager.shouldAutoStart) {
+                stateManager.updateIsRunning(true)
+            }
+            isInitialized = true
+            log("Initialized.")
         }
-        log("Initialized.")
     }
 
     private inline fun <reified T : Manager> Collection<Manager>.addIfNeeded(creator: () -> T) =
@@ -92,6 +97,7 @@ internal class KubrikoImpl(
         log("Disposing Manager instances...")
         managers.forEach { it.onDisposeInternal() }
         cancel()
+        isInitialized = false
         log(
             message = "Disposed.",
             importance = Logger.Importance.HIGH,

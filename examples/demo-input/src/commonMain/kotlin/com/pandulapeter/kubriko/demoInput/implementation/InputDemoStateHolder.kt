@@ -5,6 +5,8 @@ import com.pandulapeter.kubriko.demoInput.implementation.managers.InputDemoManag
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shared.StateHolder
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 sealed interface InputDemoStateHolder : StateHolder
 
@@ -18,15 +20,18 @@ internal class InputDemoStateHolderImpl : InputDemoStateHolder {
         instanceNameForLogging = LOG_TAG,
     )
     val inputDemoManager = InputDemoManager()
-    override val kubriko = Kubriko.newInstance(
-        pointerInputManager,
-        keyboardInputManager,
-        inputDemoManager,
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
+    private val _kubriko = MutableStateFlow(
+        Kubriko.newInstance(
+            pointerInputManager,
+            keyboardInputManager,
+            inputDemoManager,
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG,
+        )
     )
+    override val kubriko = _kubriko.asStateFlow()
 
-    override fun dispose() = kubriko.dispose()
+    override fun dispose() = kubriko.value.dispose()
 }
 
 private const val LOG_TAG = "Input"

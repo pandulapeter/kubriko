@@ -7,6 +7,8 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.shaders.ShaderManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.types.SceneSize
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 sealed interface ContentShadersDemoStateHolder : StateHolder
 
@@ -21,15 +23,18 @@ internal class ContentShadersDemoStateHolderImpl : ContentShadersDemoStateHolder
         instanceNameForLogging = LOG_TAG,
     )
     private val contentShadersDemoManager = ContentShadersDemoManager()
-    override val kubriko = Kubriko.newInstance(
-        viewportManager,
-        shaderManager,
-        contentShadersDemoManager,
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
+    private val _kubriko = MutableStateFlow(
+        Kubriko.newInstance(
+            viewportManager,
+            shaderManager,
+            contentShadersDemoManager,
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG,
+        )
     )
+    override val kubriko = _kubriko.asStateFlow()
 
-    override fun dispose() = kubriko.dispose()
+    override fun dispose() = kubriko.value.dispose()
 }
 
 private const val LOG_TAG = "ContentShaders"

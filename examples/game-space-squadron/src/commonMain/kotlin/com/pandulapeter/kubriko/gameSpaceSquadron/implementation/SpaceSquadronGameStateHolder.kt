@@ -19,6 +19,8 @@ import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shaders.ShaderManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.sprites.SpriteManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 sealed interface SpaceSquadronGameStateHolder : StateHolder
 
@@ -86,26 +88,29 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    override val kubriko = Kubriko.newInstance(
-        sharedMusicManager,
-        sharedSoundManager,
-        sharedSpriteManager,
-        stateManager,
-        viewportManager,
-        collisionManager,
-        keyboardInputManager,
-        pointerInputManager,
-        persistenceManager,
-        userPreferencesManager,
-        gameplayManager,
-        uiManager,
-        audioManager,
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
+    private val _kubriko = MutableStateFlow(
+        Kubriko.newInstance(
+            sharedMusicManager,
+            sharedSoundManager,
+            sharedSpriteManager,
+            stateManager,
+            viewportManager,
+            collisionManager,
+            keyboardInputManager,
+            pointerInputManager,
+            persistenceManager,
+            userPreferencesManager,
+            gameplayManager,
+            uiManager,
+            audioManager,
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG,
+        )
     )
+    override val kubriko = _kubriko.asStateFlow()
 
     override fun dispose() {
-        kubriko.dispose()
+        kubriko.value.dispose()
         backgroundKubriko.dispose()
     }
 }

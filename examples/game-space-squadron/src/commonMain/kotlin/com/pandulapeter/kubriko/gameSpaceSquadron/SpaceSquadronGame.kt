@@ -68,7 +68,7 @@ fun SpaceSquadronGame(
         exit = scaleOut(targetScale = 0.88f) + fadeOut(),
     ) {
         KubrikoViewport(
-            kubriko = stateHolder.kubriko,
+            kubriko = stateHolder.kubriko.collectAsState().value,
             windowInsets = windowInsets,
         )
         AnimatedVisibility(
