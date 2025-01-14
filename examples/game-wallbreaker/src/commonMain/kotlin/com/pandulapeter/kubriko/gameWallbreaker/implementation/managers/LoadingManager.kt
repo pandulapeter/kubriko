@@ -1,14 +1,17 @@
 package com.pandulapeter.kubriko.gameWallbreaker.implementation.managers
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.isWallbreakerFontLoaded
+import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageBitmap
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
+import kotlinx.coroutines.flow.map
 import kubriko.examples.game_wallbreaker.generated.resources.Res
 import kubriko.examples.game_wallbreaker.generated.resources.ic_fullscreen_enter
 import kubriko.examples.game_wallbreaker.generated.resources.ic_fullscreen_exit
@@ -27,6 +30,8 @@ internal class LoadingManager : Manager() {
     private val soundManager by manager<SoundManager>()
     private val musicUris = AudioManager.getMusicUrisToPreload()
     private val soundUris = AudioManager.getSoundUrisToPreload()
+    private val areMusicResourcesLoaded by autoInitializingLazy { musicManager.getLoadingProgress(musicUris).map { it == 1f }.asStateFlow(false) }
+    private val areSoundResourcesLoaded by autoInitializingLazy { soundManager.getLoadingProgress(soundUris).map { it == 1f }.asStateFlow(false) }
 
     override fun onInitialize(kubriko: Kubriko) {
         musicManager.preload(musicUris)
@@ -34,10 +39,16 @@ internal class LoadingManager : Manager() {
     }
 
     @Composable
-    fun isGameLoaded() = isInitialized.collectAsState().value
-            && areMenuResourcesLoaded()
-            && musicManager.getLoadingProgress(musicUris).collectAsState(0f).value == 1f
-            && soundManager.getLoadingProgress(soundUris).collectAsState(0f).value == 1f
+    fun isGameLoaded(): Boolean {
+        SideEffect {
+            // TODO: Removing this side effect breaks the app...
+            Logger.log("Preload recomposition")
+        }
+        return isInitialized.collectAsState().value
+                && areMenuResourcesLoaded()
+                && areMusicResourcesLoaded.collectAsState().value
+                && areSoundResourcesLoaded.collectAsState().value
+    }
 
     @Composable
     private fun areMenuResourcesLoaded() = isWallbreakerFontLoaded()
