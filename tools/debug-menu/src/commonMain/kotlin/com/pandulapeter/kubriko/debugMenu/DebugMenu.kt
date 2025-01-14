@@ -40,8 +40,8 @@ import com.pandulapeter.kubriko.debugMenu.implementation.ui.DebugMenuContents
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.persistence.PersistenceManager
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
@@ -53,15 +53,31 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 object DebugMenu {
-    private val _isVisible = MutableStateFlow(false)
+    internal val persistenceManager = PersistenceManager.newInstance(fileName = "kubrikoDebugMenu")
+    private val _isVisible = persistenceManager.boolean(
+        key = "isVisible",
+        defaultValue = false,
+    )
     val isVisible = _isVisible.asStateFlow()
-    private val _isDebugOverlayEnabled = MutableStateFlow(false)
+    private val _isDebugOverlayEnabled = persistenceManager.boolean(
+        key = "isDebugOverlayEnabled",
+        defaultValue = false,
+    )
     internal val isDebugOverlayEnabled = _isDebugOverlayEnabled.asStateFlow()
-    private val _isLowPriorityEnabled = MutableStateFlow(true)
+    private val _isLowPriorityEnabled = persistenceManager.boolean(
+        key = "isLowPriorityEnabled",
+        defaultValue = true,
+    )
     internal val isLowPriorityEnabled = _isLowPriorityEnabled.asStateFlow()
-    private val _isMediumPriorityEnabled = MutableStateFlow(true)
+    private val _isMediumPriorityEnabled = persistenceManager.boolean(
+        key = "isMediumPriorityEnabled",
+        defaultValue = true,
+    )
     internal val isMediumPriorityEnabled = _isMediumPriorityEnabled.asStateFlow()
-    private val _isHighPriorityEnabled = MutableStateFlow(true)
+    private val _isHighPriorityEnabled = persistenceManager.boolean(
+        key = "isHighPriorityEnabled",
+        defaultValue = true,
+    )
     internal val isHighPriorityEnabled = _isHighPriorityEnabled.asStateFlow()
     internal val logs = combine(
         Logger.logs,
@@ -115,6 +131,7 @@ fun DebugMenu(
             Kubriko.newInstance(
                 kubriko.get<ViewportManager>(),
                 debugMenuManager,
+                DebugMenu.persistenceManager,
             )
         }
         val isVisible = DebugMenu.isVisible.collectAsState().value
