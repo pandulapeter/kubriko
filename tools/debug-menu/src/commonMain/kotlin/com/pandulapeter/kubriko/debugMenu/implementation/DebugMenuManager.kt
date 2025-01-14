@@ -10,8 +10,8 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.debugMenu.DebugMenu
-import com.pandulapeter.kubriko.extensions.minus
 import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.extensions.minus
 import com.pandulapeter.kubriko.extensions.transformForViewport
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
@@ -19,11 +19,11 @@ import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.update
 
-internal class DebugMenuManager(gameKubriko: Kubriko) : Manager(), Overlay, Unique {
+internal class DebugMenuManager(
+    private val gameKubriko: Kubriko,
+) : Manager(), Overlay, Unique {
 
     private val gameActorManager by lazy { gameKubriko.get<ActorManager>() }
     private val gameMetadataManager by lazy { gameKubriko.get<MetadataManager>() }
@@ -38,6 +38,7 @@ internal class DebugMenuManager(gameKubriko: Kubriko) : Manager(), Overlay, Uniq
         DebugMenu.isDebugOverlayEnabled,
     ) { fps, allActors, visibleActorsWithinViewport, runtimeInMilliseconds, isDebugOverlayEnabled ->
         DebugMenuMetadata(
+            kubrikoInstanceName = gameKubriko.instanceName,
             fps = fps,
             totalActorCount = allActors.count(),
             visibleActorWithinViewportCount = visibleActorsWithinViewport.count(),

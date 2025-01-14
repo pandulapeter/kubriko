@@ -79,6 +79,11 @@ object DebugMenu {
         defaultValue = true,
     )
     internal val isHighPriorityEnabled = _isHighPriorityEnabled.asStateFlow()
+    private val _filter = persistenceManager.string(
+        key = "filter",
+        defaultValue = "",
+    )
+    val filter = _filter.asStateFlow()
     internal val logs = combine(
         Logger.logs,
         isLowPriorityEnabled,
@@ -108,6 +113,8 @@ object DebugMenu {
     internal fun onMediumPriorityToggled() = _isMediumPriorityEnabled.update { !it }
 
     internal fun onHighPriorityToggled() = _isHighPriorityEnabled.update { !it }
+
+    fun onFilterUpdated(newFilter: String) = _filter.update { newFilter }
 }
 
 /**
@@ -171,7 +178,7 @@ fun DebugMenu(
             ) {
                 Box(
                     modifier = Modifier.height(
-                        140.dp + windowInsets.asPaddingValues().calculateBottomPadding()
+                        160.dp + windowInsets.asPaddingValues().calculateBottomPadding()
                     ),
                 ) {
                     DebugMenuContainer(

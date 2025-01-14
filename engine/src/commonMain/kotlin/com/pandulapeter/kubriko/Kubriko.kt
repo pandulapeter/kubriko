@@ -13,6 +13,7 @@ import kotlin.reflect.KClass
 sealed interface Kubriko {
 
     var isLoggingEnabled: Boolean
+    val instanceName: String
 
     /**
      * TODO: Documentation + nullability

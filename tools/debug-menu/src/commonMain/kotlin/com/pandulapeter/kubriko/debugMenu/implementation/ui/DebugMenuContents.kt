@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -81,8 +80,8 @@ internal fun DebugMenuContents(
                 onMediumPriorityToggled = DebugMenu::onMediumPriorityToggled,
                 isHighPriorityEnabled = DebugMenu.isHighPriorityEnabled.collectAsState().value,
                 onHighPriorityToggled = DebugMenu::onHighPriorityToggled,
-                areFiltersApplied = false, // TODO
-                onFiltersClicked = {},
+                areFiltersApplied = DebugMenu.filter.collectAsState().value.isNotEmpty(),
+                onFiltersClicked = {}, // TODO
             )
         }
     }
@@ -119,8 +118,8 @@ internal fun DebugMenuContents(
                     onMediumPriorityToggled = DebugMenu::onMediumPriorityToggled,
                     isHighPriorityEnabled = DebugMenu.isHighPriorityEnabled.collectAsState().value,
                     onHighPriorityToggled = DebugMenu::onHighPriorityToggled,
-                    areFiltersApplied = false, // TODO
-                    onFiltersClicked = {},
+                    areFiltersApplied = DebugMenu.filter.collectAsState().value.isNotEmpty(),
+                    onFiltersClicked = {}, // TODO
                 )
             }
         }
@@ -156,10 +155,10 @@ private fun Metadata(
         .padding(horizontal = 8.dp)
         .padding(bottom = 2.dp),
     style = MaterialTheme.typography.labelSmall,
-    text = "FPS: ${debugMenuMetadata.fps.roundToInt()}\n" +
-            "Total Actors: ${debugMenuMetadata.totalActorCount}\n" +
-            "Visible within viewport: ${debugMenuMetadata.visibleActorWithinViewportCount}\n" +
-            "Play time in seconds: ${debugMenuMetadata.playTimeInSeconds}"
+    text = "Kubriko: ${debugMenuMetadata.kubrikoInstanceName}\n" +
+            "FPS: ${debugMenuMetadata.fps.roundToInt()}\n" +
+            "Actors: ${debugMenuMetadata.visibleActorWithinViewportCount}/${debugMenuMetadata.totalActorCount}\n" +
+            "Play time: ${debugMenuMetadata.playTimeInSeconds}"
 )
 
 @Composable

@@ -22,7 +22,7 @@ internal class KubrikoImpl(
     override var isLoggingEnabled: Boolean,
     private val instanceNameForLogging: String?,
 ) : Kubriko, CoroutineScope {
-
+    override val instanceName = instanceNameForLogging ?: toString().substringAfterLast('@')
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
     val managers = manager.toSet()
         .addIfNeeded {
@@ -113,7 +113,7 @@ internal class KubrikoImpl(
             Logger.log(
                 message = message,
                 details = details,
-                source = "Kubriko@${instanceNameForLogging ?: toString().substringAfterLast('@')}",
+                source = "Kubriko@$instanceName",
                 importance = importance,
             )
         }
