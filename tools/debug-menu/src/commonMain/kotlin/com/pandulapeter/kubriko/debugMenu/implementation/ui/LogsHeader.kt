@@ -1,7 +1,12 @@
 package com.pandulapeter.kubriko.debugMenu.implementation.ui
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,7 +22,9 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.logger.Logger
+import com.pandulapeter.kubriko.uiComponents.TextInput
 import kubriko.tools.debug_menu.generated.resources.Res
 import kubriko.tools.debug_menu.generated.resources.clear_logs
 import kubriko.tools.debug_menu.generated.resources.filter_logs
@@ -49,48 +56,78 @@ internal fun LogsHeader(
     isHighPriorityEnabled: Boolean,
     onHighPriorityToggled: () -> Unit,
     areFiltersApplied: Boolean,
-    onFiltersClicked: () -> Unit,
-) = Row(
-    modifier = modifier
-        .fillMaxWidth()
-        .padding(horizontal = 8.dp),
-    verticalAlignment = Alignment.CenterVertically,
-) {
-    Text(
-        modifier = Modifier
-            .weight(1f)
-            .padding(end = 8.dp),
-        style = MaterialTheme.typography.bodySmall,
-        fontWeight = FontWeight.Bold,
-        text = stringResource(Res.string.logs),
-    )
-    Icon(
-        drawableResource = if (isLowPriorityEnabled) Res.drawable.ic_log_filter_low_on else Res.drawable.ic_log_filter_low_off,
-        stringResource = Res.string.log_importance_low,
-        onClick = onLowPriorityToggled,
-    )
-    Icon(
-        drawableResource = if (isMediumPriorityEnabled) Res.drawable.ic_log_filter_medium_on else Res.drawable.ic_log_filter_medium_off,
-        stringResource = Res.string.log_importance_medium,
-        onClick = onMediumPriorityToggled,
-    )
-    Icon(
-        drawableResource = if (isHighPriorityEnabled) Res.drawable.ic_log_filter_high_on else Res.drawable.ic_log_filter_high_off,
-        stringResource = Res.string.log_importance_high,
-        onClick = onHighPriorityToggled,
-    )
-    Icon(
-        isSmall = true,
-        drawableResource = if (areFiltersApplied) Res.drawable.ic_filter_on else Res.drawable.ic_filter_off,
-        stringResource = Res.string.filter_logs,
-        onClick = onFiltersClicked,
-    )
-    Icon(
-        isEnabled = Logger.logs.collectAsState().value.isNotEmpty(),
-        drawableResource = Res.drawable.ic_clear,
-        stringResource = Res.string.clear_logs,
-        onClick = Logger::clearLogs,
-    )
+) = AnimatedContent(
+    targetState = DebugMenu.isEditingFilter.collectAsState().value,
+    transitionSpec = { fadeIn() togetherWith fadeOut() },
+) { isEditingFilter ->
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (isEditingFilter) {
+            Box(
+                modifier = Modifier.weight(1f),
+            ) {
+                val filterText = DebugMenu.filter.collectAsState().value
+                TextInput(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = filterText,
+                    onValueChanged = DebugMenu::onFilterUpdated,
+                )
+                if (filterText.isEmpty()) {
+                    Text(
+                        modifier = Modifier.fillMaxWidth().alpha(0.5f),
+                        style = MaterialTheme.typography.bodySmall,
+                        text = stringResource(Res.string.filter_logs),
+                    )
+                }
+            }
+            Icon(
+                isSmall = true,
+                drawableResource = if (areFiltersApplied) Res.drawable.ic_filter_on else Res.drawable.ic_filter_off,
+                stringResource = Res.string.filter_logs,
+                onClick = DebugMenu::toggleIsEditingFilter,
+            )
+        } else {
+            Text(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp),
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold,
+                text = stringResource(Res.string.logs),
+            )
+            Icon(
+                drawableResource = if (isLowPriorityEnabled) Res.drawable.ic_log_filter_low_on else Res.drawable.ic_log_filter_low_off,
+                stringResource = Res.string.log_importance_low,
+                onClick = onLowPriorityToggled,
+            )
+            Icon(
+                drawableResource = if (isMediumPriorityEnabled) Res.drawable.ic_log_filter_medium_on else Res.drawable.ic_log_filter_medium_off,
+                stringResource = Res.string.log_importance_medium,
+                onClick = onMediumPriorityToggled,
+            )
+            Icon(
+                drawableResource = if (isHighPriorityEnabled) Res.drawable.ic_log_filter_high_on else Res.drawable.ic_log_filter_high_off,
+                stringResource = Res.string.log_importance_high,
+                onClick = onHighPriorityToggled,
+            )
+            Icon(
+                isSmall = true,
+                drawableResource = if (areFiltersApplied) Res.drawable.ic_filter_on else Res.drawable.ic_filter_off,
+                stringResource = Res.string.filter_logs,
+                onClick = DebugMenu::toggleIsEditingFilter,
+            )
+            Icon(
+                isEnabled = Logger.logs.collectAsState().value.isNotEmpty(),
+                drawableResource = Res.drawable.ic_clear,
+                stringResource = Res.string.clear_logs,
+                onClick = Logger::clearLogs,
+            )
+        }
+    }
 }
 
 @Composable

@@ -81,7 +81,6 @@ internal fun DebugMenuContents(
                 isHighPriorityEnabled = DebugMenu.isHighPriorityEnabled.collectAsState().value,
                 onHighPriorityToggled = DebugMenu::onHighPriorityToggled,
                 areFiltersApplied = DebugMenu.filter.collectAsState().value.isNotEmpty(),
-                onFiltersClicked = {}, // TODO
             )
         }
     }
@@ -119,7 +118,6 @@ internal fun DebugMenuContents(
                     isHighPriorityEnabled = DebugMenu.isHighPriorityEnabled.collectAsState().value,
                     onHighPriorityToggled = DebugMenu::onHighPriorityToggled,
                     areFiltersApplied = DebugMenu.filter.collectAsState().value.isNotEmpty(),
-                    onFiltersClicked = {}, // TODO
                 )
             }
         }

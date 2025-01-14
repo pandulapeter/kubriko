@@ -42,6 +42,7 @@ import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.persistence.PersistenceManager
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
@@ -83,23 +84,27 @@ object DebugMenu {
         key = "filter",
         defaultValue = "",
     )
-    val filter = _filter.asStateFlow()
+    internal val filter = _filter.asStateFlow()
+    private val _isEditingFilter = MutableStateFlow(false)
+    internal val isEditingFilter = _isEditingFilter.asStateFlow()
     internal val logs = combine(
         Logger.logs,
         isLowPriorityEnabled,
         isMediumPriorityEnabled,
         isHighPriorityEnabled,
+        filter,
     ) { logs,
         isLowPriorityEnabled,
         isMediumPriorityEnabled,
-        isHighPriorityEnabled ->
+        isHighPriorityEnabled,
+        filter ->
         logs.filter {
             when (it.importance) {
                 Logger.Importance.LOW -> isLowPriorityEnabled
                 Logger.Importance.MEDIUM -> isMediumPriorityEnabled
                 Logger.Importance.HIGH -> isHighPriorityEnabled
             }
-        }
+        }.filter { it.source?.contains(filter, true) == true || it.message.contains(filter, true) }
     }
 
     fun toggleVisibility() {
@@ -115,6 +120,8 @@ object DebugMenu {
     internal fun onHighPriorityToggled() = _isHighPriorityEnabled.update { !it }
 
     fun onFilterUpdated(newFilter: String) = _filter.update { newFilter }
+
+    fun toggleIsEditingFilter() = _isEditingFilter.update { !it }
 }
 
 /**

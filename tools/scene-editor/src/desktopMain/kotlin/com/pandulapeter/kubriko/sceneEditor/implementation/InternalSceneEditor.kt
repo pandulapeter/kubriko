@@ -48,6 +48,7 @@ internal fun InternalSceneEditor(
             PointerInputManager.newInstance(),
             PersistenceManager.newInstance(fileName = "kubrikoSceneEditor"),
             serializationManager,
+            instanceNameForLogging = "Editor",
         )
     }
     val isLoadFileChooserOpen = remember { mutableStateOf(false) }

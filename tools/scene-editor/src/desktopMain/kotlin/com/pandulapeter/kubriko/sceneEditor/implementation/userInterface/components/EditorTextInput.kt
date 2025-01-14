@@ -4,14 +4,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.uiComponents.TextInput
 
 @Composable
 internal fun EditorTextInput(
@@ -37,17 +35,10 @@ internal fun EditorTextInput(
         Box(
             modifier = Modifier.weight(1f)
         ) {
-            // TODO: Focusing this fields should take focus away from the EngineCanvas to avoid navigation using the arrow keys.
-            BasicTextField(
+            TextInput(
                 value = value,
                 enabled = enabled,
-                onValueChange = onValueChanged,
-                singleLine = true,
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                textStyle = MaterialTheme.typography.bodySmall.copy(
-                    color = MaterialTheme.colorScheme.onSurface,
-                ),
-                decorationBox = { innerTextField -> innerTextField() }
+                onValueChanged = onValueChanged,
             )
             if (!hint.isNullOrBlank() && value.isEmpty()) {
                 EditorText(
