@@ -2,14 +2,17 @@ package com.pandulapeter.kubriko.gameWallbreaker.implementation.managers
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.isWallbreakerFontLoaded
 import com.pandulapeter.kubriko.manager.Manager
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedFont
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageBitmap
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kubriko.examples.game_wallbreaker.generated.resources.Res
 import kubriko.examples.game_wallbreaker.generated.resources.ic_fullscreen_enter
 import kubriko.examples.game_wallbreaker.generated.resources.ic_fullscreen_exit
@@ -21,6 +24,7 @@ import kubriko.examples.game_wallbreaker.generated.resources.ic_play
 import kubriko.examples.game_wallbreaker.generated.resources.ic_sound_effects_off
 import kubriko.examples.game_wallbreaker.generated.resources.ic_sound_effects_on
 import kubriko.examples.game_wallbreaker.generated.resources.img_logo
+import kubriko.examples.game_wallbreaker.generated.resources.kanit_regular
 
 internal class LoadingManager : Manager() {
 
@@ -36,6 +40,7 @@ internal class LoadingManager : Manager() {
             musicLoadingProgress == 1f && soundLoadingProgress == 1f
         }.asStateFlow(false)
     }
+    private val isFontLoaded = MutableStateFlow(false)
 
     override fun onInitialize(kubriko: Kubriko) {
         musicManager.preload(musicUris)
@@ -48,7 +53,14 @@ internal class LoadingManager : Manager() {
             && areGameResourcesLoaded.collectAsState().value
 
     @Composable
-    private fun areMenuResourcesLoaded() = isWallbreakerFontLoaded()
+    override fun Composable(insetPaddingModifier: Modifier) {
+        if (!isFontLoaded.value) {
+            isFontLoaded.update { preloadedFont(Res.font.kanit_regular).value != null }
+        }
+    }
+
+    @Composable
+    private fun areMenuResourcesLoaded() = isFontLoaded.collectAsState().value
             && preloadedImageVector(Res.drawable.ic_fullscreen_enter).value != null
             && preloadedImageVector(Res.drawable.ic_fullscreen_exit).value != null
             && preloadedImageVector(Res.drawable.ic_information).value != null

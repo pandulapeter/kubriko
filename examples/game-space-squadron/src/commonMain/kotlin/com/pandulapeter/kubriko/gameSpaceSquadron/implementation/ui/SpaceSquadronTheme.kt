@@ -17,7 +17,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.uiComponents.utilities.preloadedFont
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.orbitron
 import org.jetbrains.compose.resources.Font
@@ -81,11 +80,6 @@ private fun SpaceSquadronTypography() = Typography().run {
 }
 
 @Composable
-internal fun isSpaceSquadronFontLoaded() = true // TODO: preloadedFont(Res.font.orbitron).value != null
-
-@Composable
 private fun OrbitronFontFamily() = FontFamily(
-    Font(
-        Res.font.orbitron
-    )
+    Font(Res.font.orbitron)
 )

@@ -10,7 +10,6 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
-import com.pandulapeter.kubriko.uiComponents.utilities.preloadedFont
 import kubriko.examples.game_wallbreaker.generated.resources.Res
 import kubriko.examples.game_wallbreaker.generated.resources.kanit_regular
 import org.jetbrains.compose.resources.Font
@@ -65,9 +64,6 @@ private fun WallbreakerTypography() = Typography().run {
         labelSmall = labelSmall.copy(fontFamily = fontFamily)
     )
 }
-
-@Composable
-internal fun isWallbreakerFontLoaded() = true // TODO: preloadedFont(Res.font.kanit_regular).value != null
 
 @Composable
 private fun KanitRegularFontFamily() = FontFamily(
