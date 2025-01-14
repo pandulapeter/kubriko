@@ -11,6 +11,7 @@ gradle = "8.8.0" # https://developer.android.com/build/releases/gradle-plugin
 jlayer = "1.0.3" # https://github.com/umjammer/jlayer/releases
 kotlin = "2.1.0" # https://kotlinlang.org/docs/releases.html
 kotlinx-coroutines = "1.10.1" # https://github.com/Kotlin/kotlinx.coroutines/releases
+kotlinx-datetime = "0.6.1" # https://github.com/Kotlin/kotlinx-datetime/releases/tag/v0.6.1
 kotlinx-immutable = "0.3.8" # https://github.com/Kotlin/kotlinx.collections.immutable/releases
 kotlinx-serialization = "1.8.0" # https://github.com/Kotlin/kotlinx.serialization/releases
 
@@ -24,6 +25,7 @@ jlayer = { group = "com.github.umjammer", name = "jlayer", version.ref = "jlayer
 kotlin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect" }
 kotlinx-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlinx-immutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version.ref = "kotlinx-immutable" }
 kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 

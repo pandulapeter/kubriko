@@ -10,6 +10,7 @@ kotlin {
             implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)
             implementation(compose.material3)
+            implementation(libs.kotlinx.datetime)
         }
     }
 }

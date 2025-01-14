@@ -1,9 +1,10 @@
 package com.pandulapeter.kubriko.logger
 
-import com.pandulapeter.kubriko.logger.implementation.getCurrentTimestamp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -49,7 +50,7 @@ object Logger {
                     message = message,
                     details = details,
                     source = source,
-                    timestamp = getCurrentTimestamp(),
+                    timestamp = Clock.System.now().toEpochMilliseconds(),
                     importance = importance,
                 )
             )

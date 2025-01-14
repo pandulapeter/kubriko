@@ -10,6 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.logger.Logger
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 @Composable
 internal fun LogEntry(
@@ -22,7 +25,12 @@ internal fun LogEntry(
     style = MaterialTheme.typography.labelSmall,
     color = getColor(entry.source),
     text = entry.source.let { source ->
-        if (source == null) entry.message else "${entry.source}: ${entry.message}"
+        val timestamp = Instant.fromEpochMilliseconds(entry.timestamp).toLocalDateTime(TimeZone.currentSystemDefault()).time.let {
+            "${it.hour}:${it.minute}:${it.second}.${it.nanosecond / 1_000_000}"
+        }
+        val message = if (source == null) entry.message else "${entry.source}: ${entry.message}"
+        val suffix = if (entry.details.isNullOrBlank()) "" else "*"
+        "[$timestamp] $message$suffix"
     }
 )
 
