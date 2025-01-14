@@ -4,11 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.audioPlayback.implementation.SoundPlayer
 import com.pandulapeter.kubriko.audioPlayback.implementation.createSoundPlayer
+import com.pandulapeter.kubriko.logger.Logger
 import kotlinx.collections.immutable.persistentMapOf
-import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 internal class SoundManagerImpl(
@@ -49,10 +50,14 @@ internal class SoundManagerImpl(
         }
     }
 
-    private fun addToCache(key: String, sound: Any?) {
-        cache.value = cache.value.toMutableMap().apply {
-            put(key, sound)
-        }.toPersistentMap()
+    private fun addToCache(uri: String, sound: Any?) {
+        if (sound != null) {
+            log(
+                message = "${uri.substringAfterLast('/')} preloaded.",
+                importance = Logger.Importance.MEDIUM,
+            )
+        }
+        cache.update { it.put(uri, sound) }
     }
 
     override fun play(uri: String) {
@@ -74,7 +79,7 @@ internal class SoundManagerImpl(
     override fun unload(uri: String) {
         scope.launch {
             cache.value[uri]?.let { sound -> soundPlayer?.dispose(sound) }
-            cache.value = cache.value.remove(uri)
+            cache.update { cache.value.remove(uri) }
         }
     }
 
@@ -83,7 +88,7 @@ internal class SoundManagerImpl(
             cache.value.values.filterNotNull().forEach { sound -> soundPlayer.dispose(sound) }
             soundPlayer.dispose()
         }
-        cache.value = persistentMapOf()
+        cache.update { persistentMapOf() }
         soundPlayer = null
     }
 }

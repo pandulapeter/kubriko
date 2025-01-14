@@ -3,11 +3,9 @@ package com.pandulapeter.kubriko.uiComponents.theme
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import com.pandulapeter.kubriko.uiComponents.utilities.isFontFamilyLoaded
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedFont
 import kubriko.tools.ui_components.generated.resources.Res
 import kubriko.tools.ui_components.generated.resources.public_sans_regular
-import org.jetbrains.compose.resources.Font
 
 @Composable
 internal fun KubrikoTypography() = Typography().run {
@@ -32,9 +30,10 @@ internal fun KubrikoTypography() = Typography().run {
 }
 
 @Composable
-internal fun isKubrikoFontLoaded() = isFontFamilyLoaded(PublicSansRegularFontFamily())
+internal fun isKubrikoFontLoaded() = PublicSansRegularFontFamily() != null
 
 @Composable
-private fun PublicSansRegularFontFamily() = FontFamily(
-    Font(Res.font.public_sans_regular, weight = FontWeight.Normal),
-)
+private fun PublicSansRegularFontFamily(): FontFamily? {
+    val font = preloadedFont(Res.font.public_sans_regular)
+    return font.value?.let { FontFamily(it) }
+}

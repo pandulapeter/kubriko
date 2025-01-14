@@ -10,6 +10,7 @@ import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.DensityQualifier
 import org.jetbrains.compose.resources.DrawableResource
@@ -36,26 +37,24 @@ internal class SpriteManagerImpl(
 
     override fun get(drawableResource: DrawableResource): ImageBitmap? {
         if (!cache.value.containsKey(drawableResource)) {
-            cache.value = cache.value.put(drawableResource, null)
+            cache.update { it.put(drawableResource, null) }
         }
         return cache.value[drawableResource]
     }
 
-    override fun unload(drawableResource: DrawableResource) {
-        cache.value = cache.value.remove(drawableResource)
-    }
+    override fun unload(drawableResource: DrawableResource) = cache.update { it.remove(drawableResource) }
 
     @Composable
     override fun Composable(insetPaddingModifier: Modifier) {
         cache.collectAsState().value // This line ensures that this Composable is invoked every time the cache is changed
         scope.launch {
-            val newCache = mutableMapOf<DrawableResource, ImageBitmap?>()
-            cache.value.let { cache ->
+            cache.update { cache ->
+                val newCache = mutableMapOf<DrawableResource, ImageBitmap?>()
                 cache.keys.forEach { key ->
                     newCache[key] = cache[key] ?: loadImage(key)
                 }
+                newCache.toPersistentMap()
             }
-            cache.value = newCache.toPersistentMap()
         }
     }
 
@@ -66,7 +65,5 @@ internal class SpriteManagerImpl(
         null
     }
 
-    override fun onDispose() {
-        cache.value = persistentMapOf()
-    }
+    override fun onDispose() = cache.update { persistentMapOf() }
 }

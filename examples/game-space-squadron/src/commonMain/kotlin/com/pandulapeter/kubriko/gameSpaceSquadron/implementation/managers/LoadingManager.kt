@@ -2,13 +2,14 @@ package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.isSpaceSquadronFontLoaded
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.sprites.SpriteManager
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageBitmap
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.ic_fullscreen_enter
 import kubriko.examples.game_space_squadron.generated.resources.ic_fullscreen_exit
@@ -21,8 +22,6 @@ import kubriko.examples.game_space_squadron.generated.resources.ic_sound_effects
 import kubriko.examples.game_space_squadron.generated.resources.ic_sound_effects_on
 import kubriko.examples.game_space_squadron.generated.resources.img_logo
 import kubriko.examples.game_space_squadron.generated.resources.sprite_ship
-import org.jetbrains.compose.resources.imageResource
-import org.jetbrains.compose.resources.vectorResource
 
 internal class LoadingManager : Manager() {
     private val musicManager by manager<MusicManager>()
@@ -47,14 +46,14 @@ internal class LoadingManager : Manager() {
 
     @Composable
     private fun areMenuResourcesLoaded() = isSpaceSquadronFontLoaded()
-            && vectorResource(Res.drawable.ic_fullscreen_enter).defaultWidth > 1.dp
-            && vectorResource(Res.drawable.ic_fullscreen_exit).defaultWidth > 1.dp
-            && vectorResource(Res.drawable.ic_information).defaultWidth > 1.dp
-            && vectorResource(Res.drawable.ic_music_off).defaultWidth > 1.dp
-            && vectorResource(Res.drawable.ic_music_on).defaultWidth > 1.dp
-            && vectorResource(Res.drawable.ic_pause).defaultWidth > 1.dp
-            && vectorResource(Res.drawable.ic_play).defaultWidth > 1.dp
-            && vectorResource(Res.drawable.ic_sound_effects_off).defaultWidth > 1.dp
-            && vectorResource(Res.drawable.ic_sound_effects_on).defaultWidth > 1.dp
-            && imageResource(Res.drawable.img_logo).width > 1
+            && preloadedImageVector(Res.drawable.ic_fullscreen_enter).value != null
+            && preloadedImageVector(Res.drawable.ic_fullscreen_exit).value != null
+            && preloadedImageVector(Res.drawable.ic_information).value != null
+            && preloadedImageVector(Res.drawable.ic_music_off).value != null
+            && preloadedImageVector(Res.drawable.ic_music_on).value != null
+            && preloadedImageVector(Res.drawable.ic_pause).value != null
+            && preloadedImageVector(Res.drawable.ic_play).value != null
+            && preloadedImageVector(Res.drawable.ic_sound_effects_off).value != null
+            && preloadedImageVector(Res.drawable.ic_sound_effects_on).value != null
+            && preloadedImageBitmap(Res.drawable.img_logo).value != null
 }

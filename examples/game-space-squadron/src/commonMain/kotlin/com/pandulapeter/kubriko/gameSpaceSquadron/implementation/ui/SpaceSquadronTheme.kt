@@ -5,7 +5,6 @@ import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ripple.RippleAlpha
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RippleConfiguration
@@ -17,14 +16,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.uiComponents.utilities.isFontFamilyLoaded
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedFont
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.orbitron
-import org.jetbrains.compose.resources.Font
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SpaceSquadronTheme(
     content: @Composable () -> Unit,
@@ -84,9 +80,10 @@ private fun SpaceSquadronTypography() = Typography().run {
 }
 
 @Composable
-internal fun isSpaceSquadronFontLoaded() = isFontFamilyLoaded(OrbitronFontFamily())
+internal fun isSpaceSquadronFontLoaded() = OrbitronFontFamily() != null
 
 @Composable
-private fun OrbitronFontFamily() = FontFamily(
-    Font(Res.font.orbitron, weight = FontWeight.Normal),
-)
+private fun OrbitronFontFamily(): FontFamily? {
+    val font = preloadedFont(Res.font.orbitron)
+    return font.value?.let { FontFamily(it) }
+}

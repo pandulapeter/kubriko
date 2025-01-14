@@ -5,15 +5,16 @@ import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.audioPlayback.implementation.MusicPlayer
 import com.pandulapeter.kubriko.audioPlayback.implementation.createMusicPlayer
 import com.pandulapeter.kubriko.audioPlayback.implementation.onManagerDisposed
+import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.manager.StateManager
 import kotlinx.collections.immutable.persistentMapOf
-import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 internal class MusicManagerImpl(
@@ -63,9 +64,13 @@ internal class MusicManagerImpl(
     }
 
     private fun addToCache(uri: String, music: Any?) {
-        cache.value = cache.value.toMutableMap().apply {
-            put(uri, music)
-        }.toPersistentMap()
+        if (music != null) {
+            log(
+                message = "${uri.substringAfterLast('/')} preloaded.",
+                importance = Logger.Importance.MEDIUM,
+            )
+        }
+        cache.update { it.put(uri, music) }
     }
 
     override fun play(uri: String, shouldLoop: Boolean) {
@@ -103,13 +108,13 @@ internal class MusicManagerImpl(
     override fun unload(uri: String) {
         scope.launch {
             cache.value[uri]?.let { music -> musicPlayer?.dispose(music) }
-            cache.value = cache.value.remove(uri)
+            cache.update { it.remove(uri) }
         }
     }
 
     override fun onDispose() {
         musicPlayer?.onManagerDisposed(cache.value)
         musicPlayer = null
-        cache.value = persistentMapOf()
+        cache.update { persistentMapOf() }
     }
 }
