@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedFont
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.orbitron
+import org.jetbrains.compose.resources.Font
 
 @Composable
 internal fun SpaceSquadronTheme(
@@ -80,10 +81,11 @@ private fun SpaceSquadronTypography() = Typography().run {
 }
 
 @Composable
-internal fun isSpaceSquadronFontLoaded() = OrbitronFontFamily() != null
+internal fun isSpaceSquadronFontLoaded() = true // TODO: preloadedFont(Res.font.orbitron).value != null
 
 @Composable
-private fun OrbitronFontFamily(): FontFamily? {
-    val font = preloadedFont(Res.font.orbitron)
-    return font.value?.let { FontFamily(it) }
-}
+private fun OrbitronFontFamily() = FontFamily(
+    Font(
+        Res.font.orbitron
+    )
+)

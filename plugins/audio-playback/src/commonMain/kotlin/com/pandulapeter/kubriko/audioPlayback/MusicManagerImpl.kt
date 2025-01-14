@@ -9,6 +9,7 @@ import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.manager.StateManager
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
@@ -44,15 +45,15 @@ internal class MusicManagerImpl(
 
     override fun getLoadingProgress(uris: Collection<String>) = if (uris.isEmpty()) flowOf(1f) else cache.map { cache ->
         cache.filter { (key, _) -> key in uris }.count { (_, value) -> value != null }.toFloat() / uris.size
-    }
+    }.distinctUntilChanged()
 
     override fun preload(vararg uris: String) = preload(uris.toSet())
 
     override fun preload(uris: Collection<String>) {
-        scope.launch {
-            uris.forEach { uri ->
-                if (!cache.value.contains(uri)) {
-                    addToCache(uri, null)
+        uris.forEach { uri ->
+            if (!cache.value.contains(uri)) {
+                addToCache(uri, null)
+                scope.launch {
                     musicPlayer?.preload(uri)?.let { music -> addToCache(uri, music) }
                 }
             }
@@ -64,7 +65,12 @@ internal class MusicManagerImpl(
     }
 
     private fun addToCache(uri: String, music: Any?) {
-        if (music != null) {
+        if (music == null) {
+            log(
+                message = "Preloading ${uri.substringAfterLast('/')}...",
+                importance = Logger.Importance.LOW,
+            )
+        } else {
             log(
                 message = "${uri.substringAfterLast('/')} preloaded.",
                 importance = Logger.Importance.MEDIUM,

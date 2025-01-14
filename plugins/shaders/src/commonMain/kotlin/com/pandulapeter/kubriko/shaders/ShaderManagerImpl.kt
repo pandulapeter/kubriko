@@ -1,6 +1,7 @@
 package com.pandulapeter.kubriko.shaders
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.shaders.extensions.shader
@@ -24,8 +25,8 @@ internal class ShaderManagerImpl(
     }
 
     @Composable
-    override fun processModifier(modifier: Modifier, layerIndex: Int?) = if (isInitialized.value) {
-        shaders.value
+    override fun processModifier(modifier: Modifier, layerIndex: Int?) = if (isInitialized.collectAsState().value) {
+        shaders.collectAsState().value
             .filter { it.layerIndex == layerIndex }
             .fold(modifier) { compoundModifier, shader ->
                 compoundModifier then Modifier.shader(shader)

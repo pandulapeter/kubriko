@@ -7,6 +7,7 @@ import com.pandulapeter.kubriko.audioPlayback.implementation.createSoundPlayer
 import com.pandulapeter.kubriko.logger.Logger
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -35,15 +36,15 @@ internal class SoundManagerImpl(
 
     override fun getLoadingProgress(uris: Collection<String>) = if (uris.isEmpty()) flowOf(1f) else cache.map { cache ->
         cache.filter { (key, _) -> key in uris }.count { (_, value) -> value != null }.toFloat() / uris.size
-    }
+    }.distinctUntilChanged()
 
     override fun preload(vararg uris: String) = preload(uris.toSet())
 
     override fun preload(uris: Collection<String>) {
-        scope.launch {
-            uris.forEach { uri ->
-                if (!cache.value.contains(uri)) {
-                    addToCache(uri, null)
+        uris.forEach { uri ->
+            if (!cache.value.contains(uri)) {
+                addToCache(uri, null)
+                scope.launch {
                     soundPlayer?.preload(uri)?.let { sound -> addToCache(uri, sound) }
                 }
             }

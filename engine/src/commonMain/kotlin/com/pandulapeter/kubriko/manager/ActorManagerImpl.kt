@@ -146,7 +146,7 @@ internal class ActorManagerImpl(
 
     @Composable
     override fun Composable(insetPaddingModifier: Modifier) = Box(
-        modifier = if (isInitialized.value) kubrikoImpl.managers.fold(Modifier.fillMaxSize().clipToBounds()) { modifierToProcess, manager ->
+        modifier = if (isInitialized.collectAsState().value) kubrikoImpl.managers.fold(Modifier.fillMaxSize().clipToBounds()) { modifierToProcess, manager ->
             manager.processModifierInternal(modifierToProcess, null)
         } else Modifier.fillMaxSize().clipToBounds(),
     ) {
