@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,6 +54,9 @@ internal fun DebugMenuContents(
         .windowInsetsPadding(windowInsets.only(if (shouldUseVerticalLayout) WindowInsetsSides.Right else WindowInsetsSides.Horizontal)),
     horizontalArrangement = Arrangement.spacedBy(4.dp),
 ) {
+    LaunchedEffect(debugMenuMetadata != null) {
+        lazyListState.scrollToItem(0)
+    }
     if (!shouldUseVerticalLayout) {
         Column(
             modifier = Modifier

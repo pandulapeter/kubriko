@@ -44,6 +44,11 @@ fun KubrikoViewportWithDebugMenuOverlay(
     Box(
         modifier = modifier,
     ) {
+        // We only need this to initialize the PersistenceManager of InternalDebugMenu so that user settings can get restored.
+        KubrikoViewport(
+            modifier = Modifier.size(0.dp),
+            kubriko = InternalDebugMenu.internalKubriko,
+        )
         kubrikoViewport()
         AnimatedContent(
             targetState = InternalDebugMenu.debugMenuKubriko.collectAsState().value,
