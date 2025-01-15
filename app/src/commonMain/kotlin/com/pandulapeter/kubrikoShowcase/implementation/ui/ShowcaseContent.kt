@@ -5,7 +5,6 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
@@ -64,69 +63,73 @@ internal fun ShowcaseContent(
     activeKubrikoInstance: Kubriko?,
     isInFullscreenMode: Boolean,
     onFullscreenModeToggled: () -> Unit,
-) = Scaffold(
-    contentWindowInsets = WindowInsets(0, 0, 0, 0),
-) { paddingValues ->
-    val lazyListState = rememberLazyListState()
-    val topBarHeight = TopBarHeight + WindowInsets.safeDrawing.only(WindowInsetsSides.Top).asPaddingValues().calculateTopPadding()
-    Box(
-        modifier = Modifier.fillMaxSize().padding(paddingValues),
-    ) {
-        Column {
-            AnimatedVisibility(
-                visible = !isInFullscreenMode,
-            ) {
-                Spacer(modifier = Modifier.height(topBarHeight))
-            }
-            Column(
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                val windowInsets = when {
-                    isInFullscreenMode -> WindowInsets.safeDrawing
-                    shouldUseCompactUi -> WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
-                    else -> WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right)
-                }
-                Row(
-                    modifier = Modifier.weight(1f),
+) = Surface(
+    tonalElevation = if (isSystemInDarkTheme()) 2.dp else 0.dp,
+) {
+    Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+    ) { paddingValues ->
+        val lazyListState = rememberLazyListState()
+        val topBarHeight = TopBarHeight + WindowInsets.safeDrawing.only(WindowInsetsSides.Top).asPaddingValues().calculateTopPadding()
+        Box(
+            modifier = Modifier.fillMaxSize().padding(paddingValues),
+        ) {
+            Column {
+                AnimatedVisibility(
+                    visible = !isInFullscreenMode,
                 ) {
-                    ExpandedContent(
+                    Spacer(modifier = Modifier.height(topBarHeight))
+                }
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    val windowInsets = when {
+                        isInFullscreenMode -> WindowInsets.safeDrawing
+                        shouldUseCompactUi -> WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
+                        else -> WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right)
+                    }
+                    Row(
                         modifier = Modifier.weight(1f),
-                        lazyListState = lazyListState,
-                        allShowcaseEntries = allShowcaseEntries,
-                        onShowcaseEntrySelected = onShowcaseEntrySelected,
-                        activeKubrikoInstance = activeKubrikoInstance,
-                        selectedShowcaseEntry = selectedShowcaseEntry,
-                        windowInsets = windowInsets,
-                        isInFullscreenMode = isInFullscreenMode,
-                        shouldUseCompactUi = shouldUseCompactUi,
-                        onFullscreenModeToggled = onFullscreenModeToggled,
-                        getSelectedShowcaseEntry = getSelectedShowcaseEntry,
-                    )
-                    VerticalDebugMenu(
+                    ) {
+                        ExpandedContent(
+                            modifier = Modifier.weight(1f),
+                            lazyListState = lazyListState,
+                            allShowcaseEntries = allShowcaseEntries,
+                            onShowcaseEntrySelected = onShowcaseEntrySelected,
+                            activeKubrikoInstance = activeKubrikoInstance,
+                            selectedShowcaseEntry = selectedShowcaseEntry,
+                            windowInsets = windowInsets,
+                            isInFullscreenMode = isInFullscreenMode,
+                            shouldUseCompactUi = shouldUseCompactUi,
+                            onFullscreenModeToggled = onFullscreenModeToggled,
+                            getSelectedShowcaseEntry = getSelectedShowcaseEntry,
+                        )
+                        VerticalDebugMenu(
+                            kubriko = activeKubrikoInstance,
+                            isEnabled = !shouldUseCompactUi && activeKubrikoInstance != null,
+                            windowInsets = windowInsets,
+                        )
+                    }
+                    HorizontalDebugMenu(
                         kubriko = activeKubrikoInstance,
-                        isEnabled = !shouldUseCompactUi && activeKubrikoInstance != null,
+                        isEnabled = shouldUseCompactUi && activeKubrikoInstance != null,
                         windowInsets = windowInsets,
                     )
                 }
-                HorizontalDebugMenu(
-                    kubriko = activeKubrikoInstance,
-                    isEnabled = shouldUseCompactUi && activeKubrikoInstance != null,
-                    windowInsets = windowInsets,
+            }
+            AnimatedVisibility(
+                modifier = Modifier.padding(bottom = 8.dp),
+                visible = !isInFullscreenMode,
+                enter = fadeIn() + slideIn { IntOffset(0, -it.height) },
+                exit = slideOut { IntOffset(0, -it.height) } + fadeOut(),
+            ) {
+                TopBar(
+                    modifier = Modifier.height(topBarHeight),
+                    shouldUseCompactUi = shouldUseCompactUi,
+                    selectedShowcaseEntry = selectedShowcaseEntry,
+                    onShowcaseEntrySelected = onShowcaseEntrySelected,
                 )
             }
-        }
-        AnimatedVisibility(
-            modifier = Modifier.padding(bottom = 8.dp),
-            visible = !isInFullscreenMode,
-            enter = fadeIn() + slideIn { IntOffset(0, -it.height) },
-            exit = slideOut { IntOffset(0, -it.height) } + fadeOut(),
-        ) {
-            TopBar(
-                modifier = Modifier.height(topBarHeight),
-                shouldUseCompactUi = shouldUseCompactUi,
-                selectedShowcaseEntry = selectedShowcaseEntry,
-                onShowcaseEntrySelected = onShowcaseEntrySelected,
-            )
         }
     }
 }
@@ -191,8 +194,8 @@ private fun ExpandedContent(
     }
     AnimatedVisibility(
         visible = shouldShowSideMenu,
-        enter = fadeIn() + slideIn(animationSpec = tween()) { IntOffset(-it.width, 0) },
-        exit = slideOut(animationSpec = tween()) { IntOffset(-it.width, 0) } + fadeOut(),
+        enter = fadeIn() + slideIn { IntOffset(-it.width, 0) },
+        exit = slideOut { IntOffset(-it.width, 0) } + fadeOut(),
     ) {
         Surface(
             modifier = Modifier

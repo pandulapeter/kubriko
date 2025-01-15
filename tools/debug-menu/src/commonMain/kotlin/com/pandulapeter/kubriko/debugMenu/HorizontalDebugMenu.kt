@@ -1,7 +1,6 @@
 package com.pandulapeter.kubriko.debugMenu
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -31,8 +30,8 @@ fun HorizontalDebugMenu(
     height: Dp = 160.dp,
 ) = AnimatedVisibility(
     visible = isEnabled && DebugMenu.isVisible.collectAsState().value,
-    enter = expandIn(animationSpec = tween()) + fadeIn(),
-    exit = fadeOut() + shrinkOut(animationSpec = tween()),
+    enter = expandIn() + fadeIn(),
+    exit = fadeOut() + shrinkOut(),
 ) {
     Box(
         modifier = modifier
