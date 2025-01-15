@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kubriko.examples.game_space_squadron.generated.resources.Res
+import kubriko.examples.game_space_squadron.generated.resources.ic_back
 import kubriko.examples.game_space_squadron.generated.resources.ic_fullscreen_enter
 import kubriko.examples.game_space_squadron.generated.resources.ic_fullscreen_exit
 import kubriko.examples.game_space_squadron.generated.resources.ic_information
@@ -75,5 +76,6 @@ internal class LoadingManager : Manager() {
             && preloadedImageVector(Res.drawable.ic_play).value != null
             && preloadedImageVector(Res.drawable.ic_sound_effects_off).value != null
             && preloadedImageVector(Res.drawable.ic_sound_effects_on).value != null
+            && preloadedImageVector(Res.drawable.ic_back).value != null
             && preloadedImageBitmap(Res.drawable.img_logo).value != null
 }
