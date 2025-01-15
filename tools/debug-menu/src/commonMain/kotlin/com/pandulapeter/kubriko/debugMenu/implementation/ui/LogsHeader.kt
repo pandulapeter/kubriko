@@ -59,6 +59,7 @@ internal fun LogsHeader(
 ) = AnimatedContent(
     targetState = InternalDebugMenu.isEditingFilter.collectAsState().value,
     transitionSpec = { fadeIn() togetherWith fadeOut() },
+    contentAlignment = Alignment.Center,
 ) { isEditingFilter ->
     Row(
         modifier = modifier

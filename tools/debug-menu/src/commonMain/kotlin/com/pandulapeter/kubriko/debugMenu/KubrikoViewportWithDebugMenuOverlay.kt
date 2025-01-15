@@ -32,7 +32,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun KubrikoViewportWithDebugMenuOverlay(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     kubriko: Kubriko?,
     kubrikoViewport: @Composable BoxScope.() -> Unit,
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
@@ -52,6 +52,7 @@ fun KubrikoViewportWithDebugMenuOverlay(
         kubrikoViewport()
         AnimatedContent(
             targetState = InternalDebugMenu.debugMenuKubriko.collectAsState().value,
+            contentAlignment = Alignment.Center,
         ) { debugMenuKubriko ->
             if (debugMenuKubriko != null) {
                 KubrikoViewport(

@@ -69,6 +69,7 @@ fun ShaderAnimationsDemo(
                 AnimatedContent(
                     targetState = selectedDemoType,
                     transitionSpec = { fadeIn() togetherWith fadeOut() },
+                    contentAlignment = Alignment.Center,
                 ) { demoType ->
                     KubrikoViewport(
                         modifier = Modifier.fillMaxSize(),

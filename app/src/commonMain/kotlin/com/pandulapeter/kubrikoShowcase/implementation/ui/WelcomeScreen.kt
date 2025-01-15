@@ -119,6 +119,7 @@ internal fun WelcomeScreen(
             targetState = !shouldShowMoreInfo.value,
             transitionSpec = { fadeIn() togetherWith fadeOut() },
             label = "moreInfoButton",
+            contentAlignment = Alignment.TopCenter,
         ) { shouldShowMoreInfoState ->
             Row(
                 modifier = Modifier

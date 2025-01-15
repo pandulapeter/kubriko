@@ -80,6 +80,7 @@ internal fun ControlsContainer(
         AnimatedContent(
             targetState = state,
             transitionSpec = { fadeIn() togetherWith fadeOut() },
+            contentAlignment = Alignment.TopStart,
             label = "transformControls"
         ) { targetState ->
             when (targetState.second) {
