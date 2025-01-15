@@ -7,6 +7,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import com.pandulapeter.kubrikoShowcase.implementation.ui.ShowcaseContent
+import com.pandulapeter.kubrikoShowcase.implementation.ui.getStateHolder
 
 @Composable
 fun KubrikoShowcase(
@@ -19,7 +20,10 @@ fun KubrikoShowcase(
             allShowcaseEntries = ShowcaseEntry.entries,
             getSelectedShowcaseEntry = { selectedShowcaseEntry.value },
             selectedShowcaseEntry = selectedShowcaseEntry.value,
-            onShowcaseEntrySelected = { selectedShowcaseEntry.value = it },
+            onShowcaseEntrySelected = { showcaseEntry ->
+                selectedShowcaseEntry.value?.getStateHolder()?.stopMusic()
+                selectedShowcaseEntry.value = showcaseEntry
+            },
             isInFullscreenMode = isInFullscreenMode,
             onFullscreenModeToggled = onFullscreenModeToggled,
         )

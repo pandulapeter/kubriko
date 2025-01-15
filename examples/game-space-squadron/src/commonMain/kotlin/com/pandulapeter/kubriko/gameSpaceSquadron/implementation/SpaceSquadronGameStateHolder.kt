@@ -109,6 +109,8 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
     )
     override val kubriko = _kubriko.asStateFlow()
 
+    override fun stopMusic() = audioManager.stopMusicBeforeDispose()
+
     override fun dispose() {
         kubriko.value.dispose()
         backgroundKubriko.dispose()

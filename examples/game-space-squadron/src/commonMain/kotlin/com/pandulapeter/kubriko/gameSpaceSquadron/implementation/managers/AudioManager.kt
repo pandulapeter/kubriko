@@ -6,10 +6,14 @@ import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
@@ -21,16 +25,18 @@ internal class AudioManager(
     private val musicManager by manager<MusicManager>()
     private val soundManager by manager<SoundManager>()
     private val soundUrisToPlay = mutableSetOf<String>()
+    private val shouldStopMusic = MutableStateFlow(false)
 
     @OptIn(FlowPreview::class)
     override fun onInitialize(kubriko: Kubriko) {
         combine(
             stateManager.isFocused.debounce(100),
             userPreferencesManager.isMusicEnabled,
-        ) { isFocused, isMusicEnabled ->
-            isFocused to isMusicEnabled
-        }.onEach { (isFocused, isMusicEnabled) ->
-            if (isMusicEnabled && isFocused) {
+            shouldStopMusic,
+        ) { isFocused, isMusicEnabled, shouldStopMusic ->
+            Triple(isFocused, isMusicEnabled, shouldStopMusic)
+        }.distinctUntilChanged().onEach { (isFocused, isMusicEnabled, shouldStopMusic) ->
+            if (isMusicEnabled && isFocused && !shouldStopMusic) {
                 musicManager.play(
                     uri = Res.getUri(URI_MUSIC),
                     shouldLoop = true,
@@ -39,6 +45,10 @@ internal class AudioManager(
                 musicManager.pause(Res.getUri(URI_MUSIC))
             }
         }.launchIn(scope)
+        stateManager.isFocused
+            .filter { it }
+            .onEach { shouldStopMusic.update { false } }
+            .launchIn(scope)
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
@@ -53,6 +63,8 @@ internal class AudioManager(
     fun playButtonHoverSoundEffect() = playSoundEffect(URI_SOUND_BUTTON_HOVER)
 
     fun playShootSoundEffect() = playSoundEffect(URI_SOUND_SHOOT)
+
+    fun stopMusicBeforeDispose() = shouldStopMusic.update { true }
 
     private fun playSoundEffect(uri: String) {
         if (userPreferencesManager.areSoundEffectsEnabled.value) {

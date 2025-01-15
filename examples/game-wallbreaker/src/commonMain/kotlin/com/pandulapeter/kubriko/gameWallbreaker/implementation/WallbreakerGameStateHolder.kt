@@ -110,6 +110,8 @@ internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
     )
     override val kubriko = _kubriko.asStateFlow()
 
+    override fun stopMusic() = audioManager.stopMusicBeforeDispose()
+
     override fun dispose() {
         backgroundKubriko.dispose()
         kubriko.value.dispose()

@@ -58,7 +58,10 @@ internal actual fun createKeyboardEventHandler(
                 if (isActive) {
                     activity.window.decorView.rootView.addOnUnhandledKeyEventListener(keyListener)
                 } else {
-                    activity.window.decorView.rootView.removeOnUnhandledKeyEventListener(keyListener)
+                    try {
+                        activity.window.decorView.rootView.removeOnUnhandledKeyEventListener(keyListener)
+                    } catch (_: ArrayIndexOutOfBoundsException) {
+                    }
                 }
             }
         }.launchIn(coroutineScope)
@@ -87,7 +90,10 @@ internal actual fun createKeyboardEventHandler(
 
     override fun stopListening() {
         isActive.update { false }
-        currentActivity?.window?.decorView?.rootView?.removeOnUnhandledKeyEventListener(keyListener)
+        try {
+            currentActivity?.window?.decorView?.rootView?.removeOnUnhandledKeyEventListener(keyListener)
+        } catch (_: ArrayIndexOutOfBoundsException) {
+        }
         currentActivity = null
     }
 }

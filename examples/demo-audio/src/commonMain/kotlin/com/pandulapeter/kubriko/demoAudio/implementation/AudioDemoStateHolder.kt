@@ -31,6 +31,8 @@ internal class AudioDemoStateHolderImpl : AudioDemoStateHolder {
     )
     override val kubriko = _kubriko.asStateFlow()
 
+    override fun stopMusic() = audioDemoManager.stopMusicBeforeDispose()
+
     override fun dispose() = kubriko.value.dispose()
 }
 

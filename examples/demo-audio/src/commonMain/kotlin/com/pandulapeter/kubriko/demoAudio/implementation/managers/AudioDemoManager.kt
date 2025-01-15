@@ -23,6 +23,13 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.manager.Manager
+import com.pandulapeter.kubriko.manager.StateManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNot
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kubriko.examples.demo_audio.generated.resources.Res
 import kubriko.examples.demo_audio.generated.resources.ic_loop_on
 import kubriko.examples.demo_audio.generated.resources.ic_pause
@@ -41,19 +48,34 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalResourceApi::class)
 internal class AudioDemoManager : Manager() {
     private val musicManager by manager<MusicManager>()
+    private val stateManager by manager<StateManager>()
     private var isTrack1Playing = mutableStateOf(false)
     private var isTrack2Playing = mutableStateOf(false)
     private val track1Uri = Res.getUri(URI_MUSIC_1)
     private val track2Uri = Res.getUri(URI_MUSIC_2)
+    private val shouldStopMusic = MutableStateFlow(false)
 
     override fun onInitialize(kubriko: Kubriko) {
         musicManager.preload(track1Uri, track2Uri)
+        shouldStopMusic
+            .filter { it }
+            .onEach {
+                musicManager.stop(track1Uri)
+                musicManager.stop(track2Uri)
+            }
+            .launchIn(scope)
+        stateManager.isFocused
+            .filter { it }
+            .onEach { shouldStopMusic.update { false } }
+            .launchIn(scope)
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
         isTrack1Playing.value = musicManager.isPlaying(track1Uri)
         isTrack2Playing.value = musicManager.isPlaying(track2Uri)
     }
+
+    fun stopMusicBeforeDispose() = shouldStopMusic.update { true }
 
     @Composable
     override fun Composable(insetPaddingModifier: Modifier) = Box(
