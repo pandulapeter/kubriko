@@ -30,7 +30,7 @@ fun VerticalDebugMenu(
     isEnabled: Boolean = true,
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     debugMenuTheme: @Composable (@Composable () -> Unit) -> Unit = { KubrikoTheme(it) },
-    width: Dp = 180.dp,
+    width: Dp = 192.dp,
 ) = AnimatedVisibility(
     visible = isEnabled && DebugMenu.isVisible.collectAsState().value,
     enter = expandIn(animationSpec = tween()) + fadeIn(),

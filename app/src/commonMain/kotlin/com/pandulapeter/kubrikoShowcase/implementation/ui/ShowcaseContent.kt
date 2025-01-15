@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
@@ -47,7 +48,6 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.debugMenu.HorizontalDebugMenu
 import com.pandulapeter.kubriko.debugMenu.KubrikoViewportWithDebugMenuOverlay
 import com.pandulapeter.kubriko.debugMenu.VerticalDebugMenu
-import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.welcome
@@ -189,8 +189,8 @@ private fun ExpandedContent(
     }
     AnimatedVisibility(
         visible = shouldShowSideMenu,
-        enter = fadeIn() + slideIn { IntOffset(-it.width, 0) },
-        exit = slideOut { IntOffset(-it.width, 0) } + fadeOut(),
+        enter = fadeIn() + slideIn(animationSpec = tween()) { IntOffset(-it.width, 0) },
+        exit = slideOut(animationSpec = tween()) { IntOffset(-it.width, 0) } + fadeOut(),
     ) {
         Surface(
             modifier = Modifier
