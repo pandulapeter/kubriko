@@ -42,7 +42,7 @@ import kotlin.math.roundToInt
 @Composable
 internal fun DebugMenuContents(
     windowInsets: WindowInsets,
-    debugMenuMetadata: DebugMenuMetadata,
+    debugMenuMetadata: DebugMenuMetadata?,
     logs: List<Logger.Entry>,
     onIsDebugOverlayEnabledChanged: () -> Unit,
     shouldUseVerticalLayout: Boolean,
@@ -61,17 +61,19 @@ internal fun DebugMenuContents(
                 .windowInsetsPadding(windowInsets.only(WindowInsetsSides.Bottom)),
             verticalArrangement = Arrangement.SpaceEvenly,
         ) {
-            Metadata(
-                modifier = Modifier.padding(
-                    top = 8.dp,
-                    bottom = 4.dp,
-                ),
-                debugMenuMetadata = debugMenuMetadata,
-            )
-            CollisionMasksSwitch(
-                debugMenuMetadata = debugMenuMetadata,
-                onIsDebugOverlayEnabledChanged = onIsDebugOverlayEnabledChanged,
-            )
+            if (debugMenuMetadata != null) {
+                Metadata(
+                    modifier = Modifier.padding(
+                        top = 8.dp,
+                        bottom = 4.dp,
+                    ),
+                    debugMenuMetadata = debugMenuMetadata,
+                )
+                CollisionMasksSwitch(
+                    debugMenuMetadata = debugMenuMetadata,
+                    onIsDebugOverlayEnabledChanged = onIsDebugOverlayEnabledChanged,
+                )
+            }
             LogsHeader(
                 modifier = Modifier.padding(vertical = 4.dp),
                 isLowPriorityEnabled = InternalDebugMenu.isLowPriorityEnabled.collectAsState().value,
@@ -98,16 +100,18 @@ internal fun DebugMenuContents(
         state = lazyListState,
     ) {
         if (shouldUseVerticalLayout) {
-            item("metadata") {
-                Metadata(
-                    debugMenuMetadata = debugMenuMetadata,
-                )
-            }
-            item("collisionMasksSwitch") {
-                CollisionMasksSwitch(
-                    debugMenuMetadata = debugMenuMetadata,
-                    onIsDebugOverlayEnabledChanged = onIsDebugOverlayEnabledChanged,
-                )
+            if (debugMenuMetadata != null) {
+                item("metadata") {
+                    Metadata(
+                        debugMenuMetadata = debugMenuMetadata,
+                    )
+                }
+                item("collisionMasksSwitch") {
+                    CollisionMasksSwitch(
+                        debugMenuMetadata = debugMenuMetadata,
+                        onIsDebugOverlayEnabledChanged = onIsDebugOverlayEnabledChanged,
+                    )
+                }
             }
             item("logsHeader") {
                 LogsHeader(

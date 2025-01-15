@@ -66,7 +66,7 @@ internal object InternalDebugMenu {
     }
     private val _debugMenuKubriko = MutableStateFlow<Kubriko?>(null)
     val debugMenuKubriko = _debugMenuKubriko.asStateFlow()
-    private val _metadata = MutableStateFlow(DebugMenuMetadata())
+    private val _metadata = MutableStateFlow<DebugMenuMetadata?>(null)
     val metadata = _metadata.asStateFlow()
 
     fun toggleVisibility() {

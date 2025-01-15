@@ -10,11 +10,13 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuContainer
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 
 @Composable
 fun HorizontalDebugMenu(
+    kubriko: Kubriko?,
     isVisible: Boolean = true,
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     debugMenuTheme: @Composable (@Composable () -> Unit) -> Unit = { KubrikoTheme(it) },
@@ -28,6 +30,7 @@ fun HorizontalDebugMenu(
     ) {
         DebugMenuContainer(
             modifier = Modifier.fillMaxWidth(),
+            kubriko = kubriko,
             windowInsets = windowInsets,
             shouldUseVerticalLayout = false,
             debugMenuTheme = debugMenuTheme,

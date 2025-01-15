@@ -12,11 +12,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuContainer
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 
 @Composable
 fun VerticalDebugMenu(
+    kubriko: Kubriko?,
     isVisible: Boolean = true,
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     debugMenuTheme: @Composable (@Composable () -> Unit) -> Unit = { KubrikoTheme(it) },
@@ -29,6 +31,7 @@ fun VerticalDebugMenu(
                 minWidth = 180.dp + windowInsets.only(WindowInsetsSides.Right).asPaddingValues()
                     .calculateRightPadding(LocalLayoutDirection.current)
             ).fillMaxHeight(),
+        kubriko = kubriko,
         windowInsets = windowInsets,
         shouldUseVerticalLayout = true,
         debugMenuTheme = debugMenuTheme,

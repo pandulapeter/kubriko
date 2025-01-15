@@ -4,18 +4,24 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.debugMenu.implementation.ui.DebugMenuContents
 
 @Composable
 internal fun DebugMenuContainer(
     modifier: Modifier,
+    kubriko: Kubriko?,
     windowInsets: WindowInsets,
     shouldUseVerticalLayout: Boolean,
     debugMenuTheme: @Composable (@Composable () -> Unit) -> Unit,
 ) = debugMenuTheme {
+    LaunchedEffect(kubriko) {
+        InternalDebugMenu.setGameKubriko(kubriko)
+    }
     Surface(
         modifier = modifier,
         tonalElevation = when (isSystemInDarkTheme()) {
@@ -29,7 +35,7 @@ internal fun DebugMenuContainer(
     ) {
         DebugMenuContents(
             windowInsets = windowInsets,
-            debugMenuMetadata = InternalDebugMenu.metadata.collectAsState(DebugMenuMetadata()).value,
+            debugMenuMetadata = InternalDebugMenu.metadata.collectAsState().value,
             logs = InternalDebugMenu.logs.collectAsState(emptyList()).value,
             onIsDebugOverlayEnabledChanged = InternalDebugMenu::onIsDebugOverlayEnabledChanged,
             shouldUseVerticalLayout = shouldUseVerticalLayout,
