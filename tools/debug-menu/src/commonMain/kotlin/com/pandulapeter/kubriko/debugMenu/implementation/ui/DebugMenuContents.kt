@@ -30,8 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuMetadata
+import com.pandulapeter.kubriko.debugMenu.implementation.InternalDebugMenu
 import com.pandulapeter.kubriko.logger.Logger
 import kubriko.tools.debug_menu.generated.resources.Res
 import kubriko.tools.debug_menu.generated.resources.collision_masks
@@ -74,13 +74,13 @@ internal fun DebugMenuContents(
             )
             LogsHeader(
                 modifier = Modifier.padding(vertical = 4.dp),
-                isLowPriorityEnabled = DebugMenu.isLowPriorityEnabled.collectAsState().value,
-                onLowPriorityToggled = DebugMenu::onLowPriorityToggled,
-                isMediumPriorityEnabled = DebugMenu.isMediumPriorityEnabled.collectAsState().value,
-                onMediumPriorityToggled = DebugMenu::onMediumPriorityToggled,
-                isHighPriorityEnabled = DebugMenu.isHighPriorityEnabled.collectAsState().value,
-                onHighPriorityToggled = DebugMenu::onHighPriorityToggled,
-                areFiltersApplied = DebugMenu.filter.collectAsState().value.isNotEmpty(),
+                isLowPriorityEnabled = InternalDebugMenu.isLowPriorityEnabled.collectAsState().value,
+                onLowPriorityToggled = InternalDebugMenu::onLowPriorityToggled,
+                isMediumPriorityEnabled = InternalDebugMenu.isMediumPriorityEnabled.collectAsState().value,
+                onMediumPriorityToggled = InternalDebugMenu::onMediumPriorityToggled,
+                isHighPriorityEnabled = InternalDebugMenu.isHighPriorityEnabled.collectAsState().value,
+                onHighPriorityToggled = InternalDebugMenu::onHighPriorityToggled,
+                areFiltersApplied = InternalDebugMenu.filter.collectAsState().value.isNotEmpty(),
             )
         }
     }
@@ -111,13 +111,13 @@ internal fun DebugMenuContents(
             }
             item("logsHeader") {
                 LogsHeader(
-                    isLowPriorityEnabled = DebugMenu.isLowPriorityEnabled.collectAsState().value,
-                    onLowPriorityToggled = DebugMenu::onLowPriorityToggled,
-                    isMediumPriorityEnabled = DebugMenu.isMediumPriorityEnabled.collectAsState().value,
-                    onMediumPriorityToggled = DebugMenu::onMediumPriorityToggled,
-                    isHighPriorityEnabled = DebugMenu.isHighPriorityEnabled.collectAsState().value,
-                    onHighPriorityToggled = DebugMenu::onHighPriorityToggled,
-                    areFiltersApplied = DebugMenu.filter.collectAsState().value.isNotEmpty(),
+                    isLowPriorityEnabled = InternalDebugMenu.isLowPriorityEnabled.collectAsState().value,
+                    onLowPriorityToggled = InternalDebugMenu::onLowPriorityToggled,
+                    isMediumPriorityEnabled = InternalDebugMenu.isMediumPriorityEnabled.collectAsState().value,
+                    onMediumPriorityToggled = InternalDebugMenu::onMediumPriorityToggled,
+                    isHighPriorityEnabled = InternalDebugMenu.isHighPriorityEnabled.collectAsState().value,
+                    onHighPriorityToggled = InternalDebugMenu::onHighPriorityToggled,
+                    areFiltersApplied = InternalDebugMenu.filter.collectAsState().value.isNotEmpty(),
                 )
             }
         }

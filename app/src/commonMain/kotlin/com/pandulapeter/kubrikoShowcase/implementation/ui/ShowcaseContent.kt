@@ -44,7 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.debugMenu.DebugMenu
+import com.pandulapeter.kubriko.debugMenu.KubrikoViewportWithDebugMenu
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.welcome
@@ -136,7 +136,7 @@ private fun ExpandedContent(
                 shouldUseCompactUi -> WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
                 else -> WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right)
             }
-            DebugMenu(
+            KubrikoViewportWithDebugMenu(
                 kubriko = showcaseEntry?.getStateHolder()?.kubriko?.collectAsState(null)?.value,
                 windowInsets = windowInsets,
                 buttonAlignment = null,

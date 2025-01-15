@@ -22,7 +22,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.debugMenu.DebugMenu
+import com.pandulapeter.kubriko.debugMenu.implementation.InternalDebugMenu
 import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.uiComponents.TextInput
 import kubriko.tools.debug_menu.generated.resources.Res
@@ -57,7 +57,7 @@ internal fun LogsHeader(
     onHighPriorityToggled: () -> Unit,
     areFiltersApplied: Boolean,
 ) = AnimatedContent(
-    targetState = DebugMenu.isEditingFilter.collectAsState().value,
+    targetState = InternalDebugMenu.isEditingFilter.collectAsState().value,
     transitionSpec = { fadeIn() togetherWith fadeOut() },
 ) { isEditingFilter ->
     Row(
@@ -70,11 +70,11 @@ internal fun LogsHeader(
             Box(
                 modifier = Modifier.weight(1f),
             ) {
-                val filterText = DebugMenu.filter.collectAsState().value
+                val filterText = InternalDebugMenu.filter.collectAsState().value
                 TextInput(
                     modifier = Modifier.fillMaxWidth(),
                     value = filterText,
-                    onValueChanged = DebugMenu::onFilterUpdated,
+                    onValueChanged = InternalDebugMenu::onFilterUpdated,
                 )
                 if (filterText.isEmpty()) {
                     Text(
@@ -88,7 +88,7 @@ internal fun LogsHeader(
                 isSmall = true,
                 drawableResource = if (areFiltersApplied) Res.drawable.ic_filter_on else Res.drawable.ic_filter_off,
                 stringResource = Res.string.filter_logs,
-                onClick = DebugMenu::toggleIsEditingFilter,
+                onClick = InternalDebugMenu::toggleIsEditingFilter,
             )
         } else {
             Text(
@@ -118,7 +118,7 @@ internal fun LogsHeader(
                 isSmall = true,
                 drawableResource = if (areFiltersApplied) Res.drawable.ic_filter_on else Res.drawable.ic_filter_off,
                 stringResource = Res.string.filter_logs,
-                onClick = DebugMenu::toggleIsEditingFilter,
+                onClick = InternalDebugMenu::toggleIsEditingFilter,
             )
             Icon(
                 isEnabled = Logger.logs.collectAsState().value.isNotEmpty(),

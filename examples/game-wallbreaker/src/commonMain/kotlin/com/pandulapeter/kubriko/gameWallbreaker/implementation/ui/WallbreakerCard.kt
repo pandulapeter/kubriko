@@ -16,7 +16,7 @@ internal fun WallbreakerCard(
 ) = Card(
     modifier = modifier.border(
         width = 1.dp,
-        color = Color.Gray,
+        color = Color.DarkGray,
     ),
     colors = CardDefaults.cardColors().copy(
         containerColor = Color.Black,
