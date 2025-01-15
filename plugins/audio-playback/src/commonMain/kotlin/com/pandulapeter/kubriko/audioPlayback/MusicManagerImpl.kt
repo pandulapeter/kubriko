@@ -87,10 +87,14 @@ internal class MusicManagerImpl(
                     if (cachedSound == null) {
                         musicPlayer.preload(uri)?.let { music ->
                             addToCache(uri, music)
-                            musicPlayer.play(music, shouldLoop)
+                            if (stateManager.isFocused.value && !isPlaying(uri)) {
+                                musicPlayer.play(music, shouldLoop)
+                            }
                         }
                     } else {
-                        musicPlayer.play(cachedSound, shouldLoop)
+                        if (stateManager.isFocused.value && !isPlaying(uri)) {
+                            musicPlayer.play(cachedSound, shouldLoop)
+                        }
                     }
                 }
             }

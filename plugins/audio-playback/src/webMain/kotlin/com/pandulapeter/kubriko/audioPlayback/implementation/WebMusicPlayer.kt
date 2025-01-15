@@ -45,14 +45,16 @@ internal class WebMusicPlayer(
                 audioContext = AudioContext().apply {
                     sourceNode = createBufferSource().apply {
                         buffer = audioBuffer
+                        loop = shouldLoop
                         connect(destination)
                         start(0.0, pausedAt)
-                        loop = shouldLoop
                     }
                     startedAt = currentTime - pausedAt
                 }
                 isPlaying = true
             }
+        } else {
+            sourceNode?.loop = shouldLoop
         }
     }
 
