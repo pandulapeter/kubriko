@@ -2,6 +2,7 @@ package com.pandulapeter.kubrikoShowcase
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
@@ -15,15 +16,17 @@ fun KubrikoShowcase(
     onFullscreenModeToggled: () -> Unit,
 ) = KubrikoTheme {
     BoxWithConstraints {
+        val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
         ShowcaseContent(
-            shouldUseCompactUi = maxWidth <= 600.dp,
+            shouldUseCompactUi = maxWidth <= 720.dp,
             allShowcaseEntries = ShowcaseEntry.entries,
             getSelectedShowcaseEntry = { selectedShowcaseEntry.value },
             selectedShowcaseEntry = selectedShowcaseEntry.value,
             onShowcaseEntrySelected = { showcaseEntry ->
-                selectedShowcaseEntry.value?.getStateHolder()?.stopMusic()
+                activeStateHolder?.stopMusic()
                 selectedShowcaseEntry.value = showcaseEntry
             },
+            activeKubrikoInstance = activeStateHolder?.kubriko?.collectAsState(null)?.value,
             isInFullscreenMode = isInFullscreenMode,
             onFullscreenModeToggled = onFullscreenModeToggled,
         )

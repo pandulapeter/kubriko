@@ -1,5 +1,6 @@
 package com.pandulapeter.kubriko.debugMenu
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -14,10 +15,12 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.debugMenu.implementation.InternalDebugMenu
 import kubriko.tools.debug_menu.generated.resources.Res
@@ -30,36 +33,44 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun KubrikoViewportWithDebugMenuOverlay(
     modifier: Modifier,
+    kubriko: Kubriko?,
     kubrikoViewport: @Composable BoxScope.() -> Unit,
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     buttonAlignment: Alignment? = Alignment.TopStart,
-    isVisible: Boolean,
 ) {
+    LaunchedEffect(kubriko) {
+        InternalDebugMenu.setGameKubriko(kubriko)
+    }
     Box(
         modifier = modifier,
     ) {
         kubrikoViewport()
-        InternalDebugMenu.debugMenuKubriko.collectAsState().value?.let { debugMenuKubriko ->
-            KubrikoViewport(
-                modifier = Modifier.windowInsetsPadding(windowInsets),
-                kubriko = debugMenuKubriko,
-            )
+        AnimatedContent(
+            targetState = InternalDebugMenu.debugMenuKubriko.collectAsState().value,
+        ) { debugMenuKubriko ->
+            if (debugMenuKubriko != null) {
+                KubrikoViewport(
+                    modifier = Modifier.windowInsetsPadding(windowInsets),
+                    kubriko = debugMenuKubriko,
+                )
+            }
         }
         if (buttonAlignment != null) {
             Box(
                 modifier = Modifier.fillMaxSize().padding(16.dp),
             ) {
+                val isDebugMenuVisible = DebugMenu.isVisible.collectAsState().value
                 FloatingActionButton(
                     modifier = Modifier.size(40.dp).align(buttonAlignment),
                     containerColor = if (isSystemInDarkTheme()) {
-                        if (isVisible) MaterialTheme.colorScheme.primary else FloatingActionButtonDefaults.containerColor
+                        if (isDebugMenuVisible) MaterialTheme.colorScheme.primary else FloatingActionButtonDefaults.containerColor
                     } else {
-                        if (isVisible) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary
+                        if (isDebugMenuVisible) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary
                     },
                     onClick = DebugMenu::toggleVisibility,
                 ) {
                     Icon(
-                        painter = painterResource(if (isVisible) Res.drawable.ic_debug_on else Res.drawable.ic_debug_off),
+                        painter = painterResource(if (isDebugMenuVisible) Res.drawable.ic_debug_on else Res.drawable.ic_debug_off),
                         contentDescription = stringResource(Res.string.debug_menu),
                     )
                 }

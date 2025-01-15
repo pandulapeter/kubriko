@@ -32,7 +32,10 @@ internal class DebugMenuManager(
     override val overlayDrawingOrder = Float.MIN_VALUE
 
     override fun onInitialize(kubriko: Kubriko) {
-        kubriko.get<ActorManager>().add(this)
+        kubriko.get<ActorManager>().let {
+            it.removeAll()
+            it.add(this)
+        }
         combine(
             gameMetadataManager.fps,
             gameActorManager.allActors,

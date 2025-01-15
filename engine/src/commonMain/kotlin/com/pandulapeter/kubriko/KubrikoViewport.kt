@@ -18,6 +18,6 @@ fun KubrikoViewport(
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) = InternalViewport(
     modifier = modifier,
-    getKubriko = { kubriko },
+    kubriko = kubriko,
     windowInsets = windowInsets,
 )

@@ -8,12 +8,9 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.debugMenu.implementation.InternalDebugMenu
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 
 /**
@@ -31,11 +28,7 @@ fun KubrikoViewportWithDebugMenu(
 ) = BoxWithConstraints(
     modifier = modifier,
 ) {
-    LaunchedEffect(kubriko) {
-        InternalDebugMenu.setGameKubriko(kubriko)
-    }
     if (kubriko != null && isEnabled) {
-        val isVisible = InternalDebugMenu.isVisible.collectAsState().value
         val isColumn = maxWidth < maxHeight
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -45,21 +38,21 @@ fun KubrikoViewportWithDebugMenu(
             ) {
                 KubrikoViewportWithDebugMenuOverlay(
                     modifier = Modifier.weight(1f),
+                    kubriko = kubriko,
                     kubrikoViewport = kubrikoViewport,
                     buttonAlignment = buttonAlignment,
                     windowInsets = windowInsets,
-                    isVisible = isVisible,
                 )
                 VerticalDebugMenu(
                     kubriko = kubriko,
-                    isVisible = isVisible && !isColumn,
+                    isEnabled = !isColumn,
                     windowInsets = windowInsets,
                     debugMenuTheme = debugMenuTheme,
                 )
             }
             HorizontalDebugMenu(
                 kubriko = kubriko,
-                isVisible = isVisible && isColumn,
+                isEnabled = isColumn,
                 windowInsets = windowInsets,
                 debugMenuTheme = debugMenuTheme,
             )

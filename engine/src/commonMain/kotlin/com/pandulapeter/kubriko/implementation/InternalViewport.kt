@@ -30,14 +30,14 @@ import kotlinx.coroutines.isActive
 @Composable
 fun InternalViewport(
     modifier: Modifier = Modifier,
-    getKubriko: () -> Kubriko,
+    kubriko: Kubriko,
     windowInsets: WindowInsets,
 ) {
     // Enforce and cache the internal implementation
-    val kubrikoImpl = remember { getKubriko() as? KubrikoImpl ?: throw IllegalStateException("Custom Kubriko implementations are not supported. Use Kubriko.newInstance() to instantiate Kubriko.") }
+    val kubrikoImpl = remember(kubriko) { kubriko as? KubrikoImpl ?: throw IllegalStateException("Custom Kubriko implementations are not supported. Use Kubriko.newInstance() to instantiate Kubriko.") }
 
     // Focus handling
-    val lifecycleObserver = remember { LifecycleEventObserver { source, _ -> kubrikoImpl.stateManager.updateFocus(source.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) } }
+    val lifecycleObserver = remember(kubrikoImpl) { LifecycleEventObserver { source, _ -> kubrikoImpl.stateManager.updateFocus(source.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) } }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     DisposableEffect(lifecycle) {
         lifecycle.addObserver(lifecycleObserver)

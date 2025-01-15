@@ -85,13 +85,21 @@ internal object InternalDebugMenu {
 
     fun toggleIsEditingFilter() = _isEditingFilter.update { !it }
 
-    fun setGameKubriko(kubriko: Kubriko?) = _debugMenuKubriko.update {
-        kubriko?.let {
-            Kubriko.newInstance(
-                kubriko.get<ViewportManager>(),
-                DebugMenuManager(kubriko),
-                persistenceManager,
-            )
+    private var previousKubrikoInstanceName: String? = null
+
+    fun setGameKubriko(kubriko: Kubriko?) {
+        if (kubriko?.instanceName != previousKubrikoInstanceName) {
+            previousKubrikoInstanceName = kubriko?.instanceName
+            debugMenuKubriko.value?.dispose()
+            _debugMenuKubriko.update {
+                kubriko?.let {
+                    Kubriko.newInstance(
+                        kubriko.get<ViewportManager>(),
+                        DebugMenuManager(kubriko),
+                        persistenceManager,
+                    )
+                }
+            }
         }
     }
 
