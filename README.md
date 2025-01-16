@@ -30,20 +30,18 @@ You can find the pre-built applications following these links:
 Please note that some of these might not be available / up to date, so the best way is to build the project yourself.
 
 ## 📚 Learning
-The following page gives a short overview of the first steps of creating a Kubriko game from scratch:
+The [Getting started](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED.md) document gives a short overview of the first steps of creating a Kubriko game from scratch.
+
+After setting up your first project, check out the [Documentation](https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md) page, which contains a high-level introduction to Kubriko's main systems, as well as links to further resources.
+
+[Tutorial videos](#) that offer a more practical perspective are also available. These are step by step guides to creating simple games, each introducing more and more advanced concepts from the engine.
 
 [<img src="documentation/images/badge_getting_started.png" alt="Getting started" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED.md)
-
-After setting up your first project, check out the documentation page, which contains a high-level introduction to Kubriko's main systems, as well as links to further resources:
-
 [<img src="documentation/images/badge_documentation.png" alt="Documentation" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md)
-
-Video tutorials that offer a more practical perspective are also available.
-These are step by step guides to creating simple games, each introducing more and more advanced concepts from the engine.
-
 [<img src="documentation/images/badge_tutorial_videos_coming_soon.png" alt="Tutorial videos" height="32px" />](#)
 
 Another way to learn about Kubriko is to explore this repository, and understand how the various examples are implemented.
+
 And the best way, of course, is having fun while creating your very own games!
 
 ## 🏗️ Project structure
