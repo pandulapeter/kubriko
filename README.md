@@ -43,7 +43,8 @@ These are step by step guides to creating simple games, each introducing more an
 
 [<img src="documentation/images/badge_tutorial_videos_coming_soon.png" alt="Tutorial videos" height="32px" />](#)
 
-Another way to learn about Kubriko is to explore this repository, and understand how the various examples are implemented. And the best way, of course, is having fun creating your very own games!
+Another way to learn about Kubriko is to explore this repository, and understand how the various examples are implemented.
+And the best way, of course, is having fun while creating your very own games!
 
 ## 🏗️ Project structure
 Besides hosting the engine's source code, this repository also serves as the documentation for its feature set.
@@ -106,9 +107,10 @@ All help in making Kubriko a better engine is welcome!
 Displaying the [Kubriko logo](https://pandulapeter.github.io/kubriko/documentation/images/logo.png) in games created with the engine, or just mentioning Kubriko somewhere in the credits is highly appreciated!
 Also, if you create anything with Kubriko that you're proud of, don't hesitate to reach out to me via [email](mailto:pandulapeter@gmail.com)!
 
-Kubriko is my pet project, that I'm developing in my free time. If you found it useful, I'm happy to accept donations on the following page:
+Kubriko is my pet project, that I'm developing in my free time. If you found it useful, I'm happy to accept donations on the following pages:
 
 [<img src="documentation/images/badge_coffee.png" alt="Buy me a coffee" height="32px" />](https://buymeacoffee.com/pandulapeter)
+[<img src="documentation/images/badge_sponsor.png" alt="Sponsor on GitHub" height="32px" />](https://github.com/sponsors/pandulapeter/)
 
 Thanks in advance!
 
