@@ -1,5 +1,5 @@
 # Documentation
-This document aims to give a high-level overview of the Kubriko engine's philosophy.
+This document aims to give a high-level overview of the Kubriko engine's general philosophy.
 
 For more detailed information on the various topics check out other Readme files for top-level folders / modules in this repository, and the KDoc comments of the various classes / functions that make up the public API of Kubriko.
 

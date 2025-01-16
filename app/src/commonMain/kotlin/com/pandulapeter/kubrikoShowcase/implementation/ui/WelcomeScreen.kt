@@ -11,6 +11,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -29,6 +31,7 @@ import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.ic_collapse
 import kubriko.app.generated.resources.ic_documentation
 import kubriko.app.generated.resources.ic_expand
+import kubriko.app.generated.resources.ic_getting_started
 import kubriko.app.generated.resources.ic_github
 import kubriko.app.generated.resources.ic_youtube
 import kubriko.app.generated.resources.welcome_app_details
@@ -37,6 +40,7 @@ import kubriko.app.generated.resources.welcome_app_details_call_to_action_expand
 import kubriko.app.generated.resources.welcome_license
 import kubriko.app.generated.resources.welcome_documentation
 import kubriko.app.generated.resources.welcome_engine_details
+import kubriko.app.generated.resources.welcome_getting_started
 import kubriko.app.generated.resources.welcome_hide_details
 import kubriko.app.generated.resources.welcome_learning
 import kubriko.app.generated.resources.welcome_message
@@ -46,6 +50,7 @@ import kubriko.app.generated.resources.welcome_tutorials
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun WelcomeScreen(
     modifier: Modifier = Modifier,
@@ -85,10 +90,16 @@ internal fun WelcomeScreen(
                     style = MaterialTheme.typography.bodySmall,
                     text = stringResource(Res.string.welcome_learning),
                 )
-                Row(
+                FlowRow(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
+                    LargeButton(
+                        icon = Res.drawable.ic_getting_started,
+                        title = Res.string.welcome_getting_started,
+                        onButtonPressed = { uriHandler.openUri("https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED.md") },
+                    )
                     LargeButton(
                         icon = Res.drawable.ic_documentation,
                         title = Res.string.welcome_documentation,
