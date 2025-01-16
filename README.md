@@ -28,15 +28,20 @@ You can find the pre-built applications following the links below.
 [<img src="documentation/images/badge_web.png" alt="Download for Web" height="32px" />](https://pandulapeter.github.io/kubriko/)
 
 ## 📚 Learning
-The documentation page (linked below) contains a high-level introduction to Kubriko's main systems, as well as links to further resources that give more context.
+The following page gives a short overview of the first steps of creating a brand new Kubriko project:
 
-Video tutorials that offer a more practical perspective are also available.
-These are step by step guides to creating simple games, each introducing more and more advanced concepts present in Kubriko.
+[<img src="documentation/images/badge_getting_started.png" alt="Getting started" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED.md)
+
+The documentation page contains a high-level introduction to Kubriko's main systems, as well as links to further resources that give more context.
 
 [<img src="documentation/images/badge_documentation.png" alt="Documentation" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md)
+
+Video tutorials that offer a more practical perspective are also available.
+These are step by step guides to creating simple games, each introducing more and more advanced concepts from the engine.
+
 [<img src="documentation/images/badge_tutorial_videos_coming_soon.png" alt="Tutorial videos" height="32px" />](#)
 
-Another way to learn about the engine is to explore this repository, and understand how the various examples are implemented.
+Another way to learn about Kubriko is to explore this repository, and understand how the various examples are implemented.
 
 ## 🏗️ Project structure
 This repository also serves as the documentation of the engine's feature set.

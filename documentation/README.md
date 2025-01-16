@@ -9,6 +9,7 @@ Using Kubriko requires familiarity with the following concepts:
 - [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html)
 - [Compose](https://developer.android.com/compose)
 - [Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform/)
+- [Setting up the Kubriko dependencies](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED.md)
 
 ## Components of a game
 ### 💙 Kubriko
