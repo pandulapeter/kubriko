@@ -1,11 +1,12 @@
 # Examples
-This folder contains the implementation for the individual demos and games found in the Kubriko Showcase app.
+This folder contains the implementation modules of the individual demos and games found in the Kubriko Showcase app.
 
 ## Implementation
 Each module exposes a single Composable that is embedded into the menu system (located in the [app](https://github.com/pandulapeter/kubriko/tree/main/app)
-module), as well as a StateHolder instance that can be used to persist game state across configuration changes.
+module), as well as a [StateHolder](https://github.com/pandulapeter/kubriko/blob/main/examples/shared/src/commonMain/kotlin/com/pandulapeter/kubriko/shared/StateHolder.kt) instance that can be used to persist game state across configuration changes.
 
 ## Modules
+- [demo-audio](https://github.com/pandulapeter/kubriko/tree/main/examples/demo-auido) - For testing the playback of music and sound effects
 - [demo-content-shaders](https://github.com/pandulapeter/kubriko/tree/main/examples/demo-content-shaders) - Playground for testing various shader effects
 - [demo-input](https://github.com/pandulapeter/kubriko/tree/main/examples/demo-input) - Playground for testing keyboard and pointer input
 - [demo-performance](https://github.com/pandulapeter/kubriko/tree/main/examples/demo-performance) - Stress test using a large number of dynamic actors
