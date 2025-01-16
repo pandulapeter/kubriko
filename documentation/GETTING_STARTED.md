@@ -25,16 +25,86 @@ It might be a good idea to create separate [Run Configurations](https://www.jetb
 
 <img src="images/screenshot_run_configurations.png" width="200px"  />
 
-Make sure you have tested the build process for all of the supported platforms before moving on to the next step.
+Make sure you have tested the build process for all of the platforms that you want to support before moving on to the next step.
 
 ## 2 - Adding the Kubriko engine dependency
-TODO
+Open the `libs.versions.toml` file from the `gradle/wrapper` folder.
+This file is the version catalog for all the third party dependencies of your project.
+
+It already contains a number of dependencies (some of which are unused and can safely be deleted). We need to add Kubriko to the list.
+To do that, first define the version reference by adding a new line to the `[versions]` section:
+
+```toml
+kubriko = "0.0.1"
+```
+
+Use the latest release version of Kubriko that can be found [here](https://github.com/pandulapeter/kubriko/releases).
+Regularly update this version number to get access to the latest features and bug fixes.
+
+Next, define the library reference by adding a new line to the `[libraries]` section:
+
+```toml
+kubriko-engine = { group = "io.github.pandulapeter.kubriko", name = "engine", version.ref = "kubriko" }
+```
+
+After this, we need to reference the library in the game module's `build.gradle.kts` file (by default the module is named `composeApp`):
+
+```kotlin
+kotlin {
+    //...
+    sourceSets {
+        //...
+        commonMain.dependencies {
+            //...
+            implementation(libs.kubriko.engine)
+        }
+    }
+}
+```
+
+Make sure to sync the project after changing the build script.
 
 ## 3 - Integrating KubrikoViewport
+Following the previous step you should be able to access the classes and functions provided by Kubriko (the engine itself only, as we didn't yet add any plugin dependencies).
+Furthermore, you should also be able to see the sources, and more importantly, the KDoc comments of Kubriko's public API.
+
+Let's verify this by replacing the app's main Composable (by default located in the `commonMain` source set's `App.kt` file) with [KubrikoViewport](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/KubrikoViewport.kt).
+While KubrikoViewport is responsible for the game's UI, we also need to provide a [Kubriko](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/Kubriko.kt) instance to it that handles the game state.
+Here's how the `App()` Composable function should look like after all the changes:
+
+```kotlin
+import androidx.compose.runtime.Composable
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.KubrikoViewport
+
+private val kubriko = Kubriko.newInstance()
+
+@Composable
+fun App() = KubrikoViewport(
+    kubriko = kubriko,
+)
+```
+
+Verify that you're able to see the sources for these newly added dependencies.
+More importantly, try running the app to make sure that there are no compilation issues.
+
+If everything went well, you should see an empty screen, as we didn't add anything to the game yet.
+
+A few notes here:
+- The `Kubriko` instance in this example is saved in a static way, practically making it a singleton.
+  This is a lazy solution that should cover simple use cases, and avoid state restoration issues.
+  If you plan on using multiple Kubriko instances or embedding the engine inside a larger app, you might want to come up with a more controlled way of remembering this instance.
+  Don't forget to call `kubriko.dispose()` once the scope of the game is over, to release the resources referenced by the engine. If the scope of the game is the same as the scope of the application (such as in this simple case), disposing is not necessary.
+- `KubrikoViewport` is a Composable and can be embedded into other Composables. It's designed to be responsive and can be resized easily. Creating the menu system of your game in Compose and drawing it over the viewport / embedding the viewport into the menu should work without issues and is an encouraged approach.
+
+## 4 - Adding Actors
 TODO
 
-## 4 - Adding plugins
+## 5 - Adding Managers
 TODO
 
-## 5 - Next steps
+## 6 - Adding plugins
+TODO
+
+## 7 - Next steps
 TODO: Link to the documentation and the tutorial videos.

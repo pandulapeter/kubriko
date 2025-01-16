@@ -117,4 +117,5 @@ Thanks in advance!
 ## ⚖️ License
 This library is published under the Apache License, Version 2.0, which can be found [here](https://github.com/pandulapeter/kubriko/blob/main/LICENSE).
 You can use it in your own projects as it is, for free, without giving credit.
+
 However, if you plan to create derivative works (competing engines / forks), they must be open source as well, and link back to this repository.
