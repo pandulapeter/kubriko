@@ -1,17 +1,17 @@
 # Getting started
 This page guides you through creating an empty project that contains the basic setup for any Kubriko game.
 
-## Creating a Kotlin Multiplatform project
+## 1 - Creating a Kotlin Multiplatform project
 TODO
 
-## Adding the Kubriko engine dependency
+## 2 - Adding the Kubriko engine dependency
 TODO
 
-## Integrating KubrikoViewport
+## 3 - Integrating KubrikoViewport
 TODO
 
-## Adding plugins
+## 4 - Adding plugins
 TODO
 
-## Next steps
+## 5 - Next steps
 TODO: Link to the documentation and the tutorial videos.
