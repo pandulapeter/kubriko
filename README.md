@@ -20,12 +20,12 @@ Clone this repository and run the `app` module for the supported targets (Androi
 
 You can find the pre-built applications following the links below.
 
-[<img src="documentation/images/badge_android_coming_soon.png" alt="Download for Android" height="33px" />](#)
-[<img src="documentation/images/badge_ios_coming_soon.png" alt="Download for iOS" height="33px" />](#)
-[<img src="documentation/images/badge_windows_coming_soon.png" alt="Download for Windows" height="33px" />](#)
-[<img src="documentation/images/badge_macos_coming_soon.png" alt="Download for macOS" height="33px" />](#)
-[<img src="documentation/images/badge_linux_coming_soon.png" alt="Download for Linux" height="33px" />](#)
-[<img src="documentation/images/badge_web.png" alt="Download for Web" height="33px" />](https://pandulapeter.github.io/kubriko/)
+[<img src="documentation/images/badge_android_coming_soon.png" alt="Download for Android" height="32px" />](#)
+[<img src="documentation/images/badge_ios_coming_soon.png" alt="Download for iOS" height="32px" />](#)
+[<img src="documentation/images/badge_windows_coming_soon.png" alt="Download for Windows" height="32px" />](#)
+[<img src="documentation/images/badge_macos_coming_soon.png" alt="Download for macOS" height="32px" />](#)
+[<img src="documentation/images/badge_linux_coming_soon.png" alt="Download for Linux" height="32px" />](#)
+[<img src="documentation/images/badge_web.png" alt="Download for Web" height="32px" />](https://pandulapeter.github.io/kubriko/)
 
 ## 📚 Learning
 The documentation page (linked below) contains a high-level introduction to Kubriko's main systems, as well as links to further resources that give more context.
@@ -33,8 +33,8 @@ The documentation page (linked below) contains a high-level introduction to Kubr
 Video tutorials that offer a more practical perspective are also available.
 These are step by step guides to creating simple games, each introducing more and more advanced concepts present in Kubriko.
 
-[<img src="documentation/images/badge_documentation.png" alt="Documentation" height="33px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md)
-[<img src="documentation/images/badge_youtube_coming_soon.png" alt="YouTube" height="33px" />](#)
+[<img src="documentation/images/badge_documentation.png" alt="Documentation" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md)
+[<img src="documentation/images/badge_tutorial_videos_coming_soon.png" alt="Tutorial videos" height="32px" />](#)
 
 Another way to learn about the engine is to explore this repository, and understand how the various examples are implemented.
 

@@ -39,7 +39,7 @@ fun LargeButton(
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             icon?.let {
