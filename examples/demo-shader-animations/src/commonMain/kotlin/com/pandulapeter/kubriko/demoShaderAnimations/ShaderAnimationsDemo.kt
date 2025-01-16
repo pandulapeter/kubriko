@@ -28,7 +28,10 @@ import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimat
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationsDemoStateHolder
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationsDemoStateHolderImpl
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.ControlsContainer
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import kubriko.examples.demo_shader_animations.generated.resources.Res
+import kubriko.examples.demo_shader_animations.generated.resources.ic_brush
+import kubriko.examples.demo_shader_animations.generated.resources.ic_code
 import kubriko.examples.demo_shader_animations.generated.resources.shaders_not_supported
 import org.jetbrains.compose.resources.stringResource
 
@@ -76,6 +79,8 @@ fun ShaderAnimationsDemo(
                         kubriko = stateHolder.shaderAnimationDemoHolders[demoType]!!.kubriko,
                     )
                 }
+                preloadedImageVector(Res.drawable.ic_code) // TODO
+                preloadedImageVector(Res.drawable.ic_brush) // TODO
                 ControlsContainer(
                     modifier = Modifier.windowInsetsPadding(windowInsets).align(Alignment.BottomEnd).padding(16.dp),
                     state = selectedDemoType to controlsState,

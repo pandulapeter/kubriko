@@ -88,7 +88,9 @@ Expand the sections below to see the complete list of all Kubriko dependencies h
 
 
 - `io.github.pandulapeter.kubriko:tools:debug-menu`
+- `io.github.pandulapeter.kubriko:tools:logger`
 - `io.github.pandulapeter.kubriko:tools:scene-editor`
+- `io.github.pandulapeter.kubriko:tools:ui-components`
 
 </details>
 
