@@ -26,7 +26,7 @@ fun KubrikoShowcase(
     BoxWithConstraints {
         val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
         ShowcaseContent(
-            shouldUseCompactUi = maxWidth <= 720.dp,
+            shouldUseCompactUi = maxWidth <= 680.dp,
             allShowcaseEntries = ShowcaseEntry.entries,
             getSelectedShowcaseEntry = { selectedShowcaseEntry.value },
             selectedShowcaseEntry = selectedShowcaseEntry.value,
