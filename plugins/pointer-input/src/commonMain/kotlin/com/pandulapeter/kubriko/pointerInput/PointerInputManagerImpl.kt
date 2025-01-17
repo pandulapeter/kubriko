@@ -58,17 +58,14 @@ internal class PointerInputManagerImpl(
             .filterNot { it }
             .onEach { isPointerPressed.value = false }
             .launchIn(scope)
-        combine(
-            isPointerPressed,
-            pointerScreenOffset,
-            stateManager.isFocused,
-        ) { isPointerPressed, pointerScreenOffset, isFocused ->
-            Triple(isPointerPressed, pointerScreenOffset, isFocused)
-        }.onEach { (isPointerPressed, pointerScreenOffset, isFocused) ->
-            if (isPointerPressed && pointerScreenOffset != null && isFocused) {
+    }
+
+    override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
+        if (isPointerPressed.value && stateManager.isFocused.value) {
+            pointerScreenOffset.value?.let { pointerScreenOffset ->
                 pointerInputAwareActors.value.forEach { it.handleActivePointers(pointerScreenOffset) }
             }
-        }.launchIn(scope)
+        }
     }
 
     private var densityMultiplier = 1f
