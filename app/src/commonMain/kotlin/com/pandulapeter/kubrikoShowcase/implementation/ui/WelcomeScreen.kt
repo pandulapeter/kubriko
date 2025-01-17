@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.FlowRowOverflow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.uiComponents.LargeButton
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.ic_collapse
+import kubriko.app.generated.resources.ic_discord
 import kubriko.app.generated.resources.ic_documentation
 import kubriko.app.generated.resources.ic_expand
 import kubriko.app.generated.resources.ic_getting_started
@@ -45,11 +47,13 @@ import kubriko.app.generated.resources.ic_youtube
 import kubriko.app.generated.resources.welcome_app_details
 import kubriko.app.generated.resources.welcome_app_details_call_to_action_collapsed
 import kubriko.app.generated.resources.welcome_app_details_call_to_action_expanded
+import kubriko.app.generated.resources.welcome_community
 import kubriko.app.generated.resources.welcome_documentation
 import kubriko.app.generated.resources.welcome_engine_details
 import kubriko.app.generated.resources.welcome_getting_started
 import kubriko.app.generated.resources.welcome_hide_details
-import kubriko.app.generated.resources.welcome_learning
+import kubriko.app.generated.resources.welcome_learning_1
+import kubriko.app.generated.resources.welcome_learning_2
 import kubriko.app.generated.resources.welcome_license
 import kubriko.app.generated.resources.welcome_message
 import kubriko.app.generated.resources.welcome_more_details
@@ -94,14 +98,19 @@ internal fun WelcomeScreen(
                     onButtonPressed = { uriHandler.openUri("https://github.com/pandulapeter/kubriko") },
                 )
                 Text(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     style = MaterialTheme.typography.bodySmall,
-                    text = stringResource(Res.string.welcome_learning),
+                    text = stringResource(Res.string.welcome_learning_1),
                 )
                 FlowRow(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
+                    overflow = FlowRowOverflow.Visible,
                 ) {
                     LargeButton(
                         icon = Res.drawable.ic_getting_started,
@@ -113,9 +122,31 @@ internal fun WelcomeScreen(
                         title = Res.string.welcome_documentation,
                         onButtonPressed = { uriHandler.openUri("https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md") },
                     )
+                }
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    text = stringResource(Res.string.welcome_learning_2),
+                )
+                FlowRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    overflow = FlowRowOverflow.Visible,
+                ) {
                     LargeButton(
                         icon = Res.drawable.ic_youtube,
                         title = Res.string.welcome_tutorials,
+                        isEnabled = false,
+                        onButtonPressed = {}, // TODO
+                    )
+                    LargeButton(
+                        icon = Res.drawable.ic_discord,
+                        title = Res.string.welcome_community,
                         isEnabled = false,
                         onButtonPressed = {}, // TODO
                     )
