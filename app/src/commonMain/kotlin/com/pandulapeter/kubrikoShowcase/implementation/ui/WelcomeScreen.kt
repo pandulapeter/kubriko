@@ -1,3 +1,11 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
 package com.pandulapeter.kubrikoShowcase.implementation.ui
 
 import androidx.compose.animation.AnimatedContent
@@ -37,12 +45,12 @@ import kubriko.app.generated.resources.ic_youtube
 import kubriko.app.generated.resources.welcome_app_details
 import kubriko.app.generated.resources.welcome_app_details_call_to_action_collapsed
 import kubriko.app.generated.resources.welcome_app_details_call_to_action_expanded
-import kubriko.app.generated.resources.welcome_license
 import kubriko.app.generated.resources.welcome_documentation
 import kubriko.app.generated.resources.welcome_engine_details
 import kubriko.app.generated.resources.welcome_getting_started
 import kubriko.app.generated.resources.welcome_hide_details
 import kubriko.app.generated.resources.welcome_learning
+import kubriko.app.generated.resources.welcome_license
 import kubriko.app.generated.resources.welcome_message
 import kubriko.app.generated.resources.welcome_more_details
 import kubriko.app.generated.resources.welcome_repository

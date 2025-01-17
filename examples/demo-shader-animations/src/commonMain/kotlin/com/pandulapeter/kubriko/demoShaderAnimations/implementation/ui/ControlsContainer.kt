@@ -1,3 +1,11 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
 package com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui
 
 import androidx.compose.animation.AnimatedContent
@@ -30,18 +38,18 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationDemoHolder
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationDemoType
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.managers.ShaderAnimationsDemoManager
-import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationDemoHolder
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.CloudShader
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.EtherShader
-import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.NoodleShader
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.GradientShader
+import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.NoodleShader
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.WarpShader
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.CloudControls
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.EtherControls
-import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.NoodleControls
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.GradientControls
+import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.NoodleControls
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.WarpControls
 import com.pandulapeter.kubriko.uiComponents.FloatingButton
 import kotlinx.collections.immutable.PersistentMap

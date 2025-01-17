@@ -1,3 +1,11 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
 package com.pandulapeter.kubriko.demoPerformance.implementation.actors
 
 import androidx.compose.ui.graphics.Color
@@ -14,7 +22,6 @@ import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableRectan
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneUnit
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class BoxWithCircle private constructor(state: State) : Visible, Dynamic, Editable<BoxWithCircle> {

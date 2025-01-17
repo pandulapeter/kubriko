@@ -1,3 +1,11 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
 package com.pandulapeter.kubriko.sceneEditor.implementation.overlay
 
 import androidx.compose.ui.graphics.Color
@@ -13,8 +21,8 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.extensions.minus
 import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.extensions.minus
 import com.pandulapeter.kubriko.extensions.transformForViewport
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager

@@ -1,3 +1,11 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
 package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components
 
 import androidx.compose.foundation.clickable
@@ -6,7 +14,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.RadioButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment

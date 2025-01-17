@@ -1,3 +1,11 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
 package com.pandulapeter.kubriko.demoPerformance.implementation.actors
 
 import com.pandulapeter.kubriko.Kubriko
@@ -6,8 +14,8 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.extensions.cos
-import com.pandulapeter.kubriko.extensions.rad
 import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.extensions.rad
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.extensions.sin
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -18,7 +26,6 @@ import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializablePointBody
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class Character private constructor(state: State) : Unique, Dynamic, Positionable, Editable<Character> {

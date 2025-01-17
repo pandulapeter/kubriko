@@ -1,3 +1,11 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
 package com.pandulapeter.kubrikoShowcase.implementation
 
 import kubriko.app.generated.resources.Res
@@ -5,14 +13,14 @@ import kubriko.app.generated.resources.demo_audio
 import kubriko.app.generated.resources.demo_audio_subtitle
 import kubriko.app.generated.resources.demo_content_shaders
 import kubriko.app.generated.resources.demo_content_shaders_subtitle
-import kubriko.app.generated.resources.demo_shader_animations
-import kubriko.app.generated.resources.demo_shader_animations_subtitle
 import kubriko.app.generated.resources.demo_input
 import kubriko.app.generated.resources.demo_input_subtitle
 import kubriko.app.generated.resources.demo_performance
 import kubriko.app.generated.resources.demo_performance_subtitle
 import kubriko.app.generated.resources.demo_physics
 import kubriko.app.generated.resources.demo_physics_subtitle
+import kubriko.app.generated.resources.demo_shader_animations
+import kubriko.app.generated.resources.demo_shader_animations_subtitle
 import kubriko.app.generated.resources.demos
 import kubriko.app.generated.resources.game_space_squadron
 import kubriko.app.generated.resources.game_space_squadron_subtitle

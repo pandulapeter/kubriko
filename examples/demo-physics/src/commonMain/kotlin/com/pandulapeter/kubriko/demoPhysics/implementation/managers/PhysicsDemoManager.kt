@@ -1,3 +1,11 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
 package com.pandulapeter.kubriko.demoPhysics.implementation.managers
 
 import androidx.compose.foundation.layout.Arrangement
@@ -17,12 +25,12 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Unique
-import com.pandulapeter.kubriko.demoPhysics.implementation.ui.ActionType
 import com.pandulapeter.kubriko.demoPhysics.implementation.PlatformSpecificContent
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicBox
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicChain
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicCircle
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicPolygon
+import com.pandulapeter.kubriko.demoPhysics.implementation.ui.ActionType
 import com.pandulapeter.kubriko.extensions.cos
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.extensions.sin
@@ -38,12 +46,12 @@ import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
-import com.pandulapeter.kubriko.uiComponents.FloatingButton
-import com.pandulapeter.kubriko.uiComponents.LoadingOverlay
-import com.pandulapeter.kubriko.uiComponents.ShaderSlider
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
+import com.pandulapeter.kubriko.uiComponents.FloatingButton
+import com.pandulapeter.kubriko.uiComponents.LoadingOverlay
+import com.pandulapeter.kubriko.uiComponents.ShaderSlider
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

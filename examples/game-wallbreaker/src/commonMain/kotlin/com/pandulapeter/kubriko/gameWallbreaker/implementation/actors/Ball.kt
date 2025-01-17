@@ -1,3 +1,11 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
 package com.pandulapeter.kubriko.gameWallbreaker.implementation.actors
 
 import androidx.compose.ui.geometry.Offset
@@ -11,13 +19,13 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.CollisionDetector
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.AudioManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.GameplayManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.ScoreManager
 import com.pandulapeter.kubriko.extensions.constrainedWithin
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.min
 import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.AudioManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.GameplayManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.ScoreManager
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
