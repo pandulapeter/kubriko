@@ -8,7 +8,6 @@
  */
 package com.pandulapeter.kubriko.uiComponents
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FloatingActionButton
@@ -41,17 +40,12 @@ fun FloatingButton(
         containerColor = containerColor,
         onClick = onButtonPressed,
     ) {
-        val imageVector = preloadedImageVector(icon)
-        AnimatedVisibility(
-            visible = imageVector.value != null,
-        ) {
-            imageVector.value?.let { iconImageVector ->
-                Icon(
-                    imageVector = iconImageVector,
-                    tint = contentColorFor(containerColor),
-                    contentDescription = contentDescription,
-                )
-            }
+        preloadedImageVector(icon).value?.let { iconImageVector ->
+            Icon(
+                imageVector = iconImageVector,
+                tint = contentColorFor(containerColor),
+                contentDescription = contentDescription,
+            )
         }
     }
 }

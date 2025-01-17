@@ -34,7 +34,7 @@ actual fun preloadedFont(
         weight = weight,
         style = style
     )
-    return remember { derivedStateOf { font } }
+    return remember(resource) { derivedStateOf { font } }
 }
 
 @Composable
@@ -42,7 +42,7 @@ actual fun preloadedImageBitmap(
     resource: DrawableResource,
 ): State<ImageBitmap?> {
     val image = imageResource(resource)
-    return remember { derivedStateOf { image } }
+    return remember(resource) { derivedStateOf { image } }
 }
 
 @Composable
@@ -50,5 +50,5 @@ actual fun preloadedImageVector(
     resource: DrawableResource,
 ): State<ImageVector?> {
     val vector = vectorResource(resource)
-    return remember { derivedStateOf { vector } }
+    return remember(resource) { derivedStateOf { vector } }
 }
