@@ -74,28 +74,23 @@ Here's how the `App()` Composable function should look like after all the change
 
 ```kotlin
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
 
-private val kubriko = Kubriko.newInstance()
-
 @Composable
-fun App() = KubrikoViewport(
-    kubriko = kubriko,
-)
+fun App() {
+    val kubriko = remember { Kubriko.newInstance() }
+    KubrikoViewport(
+        kubriko = kubriko,
+    )
+}
 ```
 
-Verify that you're able to see the sources for these newly added dependencies.
+Verify that you're able to see the sources for these newly added components.
 More importantly, try running the app to make sure that there are no compilation issues.
 
 If everything went well, you should see an empty screen, as we didn't add anything to the game yet.
-
-A few notes here:
-- The `Kubriko` instance in this example is saved in a static way, practically making it a singleton.
-  This is a lazy solution that should cover simple use cases, and avoid state restoration issues.
-  If you plan on using multiple Kubriko instances or embedding the engine inside a larger app, you might want to come up with a more controlled way of remembering this instance.
-  Don't forget to call `kubriko.dispose()` once the scope of the game is over, to release the resources referenced by the engine. If the scope of the game is the same as the scope of the application (such as in this simple case), disposing is not necessary.
-- `KubrikoViewport` is a Composable and can be embedded into other Composables. It's designed to be responsive and can be resized easily. Creating the menu system of your game in Compose and drawing it over the viewport / embedding the viewport into the menu should work without issues and is an encouraged approach.
 
 ## 4 - Adding Actors
 TODO
