@@ -1,5 +1,5 @@
 # Documentation
-This document aims to give a high-level overview of the Kubriko engine's general philosophy.
+This page aims to give a high-level overview of the Kubriko engine's general philosophy.
 
 For more detailed information on the various topics check out other Readme files for top-level folders / modules in this repository, and the KDoc comments of the various classes / functions that make up the public API of Kubriko.
 
@@ -39,7 +39,7 @@ Managers can reference each other and should use their lifecycle functions to co
 
 The complete list of Managers that come with the engine and its plugins can be found in the following page:
 
-[<img src="images/badge_managers.png" alt="Managers" height="36px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/MANAGERS.md)
+[<img src="images/badge_managers.png" alt="Managers" height="36px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/LIST_OF_MANAGERS.md)
 
 ### 🎭 Actors
 Implementations of [Actor](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/Actor.kt) represent objects or responsibilities within the game. They can be added or removed any time (using Managers) and control in-game objects or perform special tasks.
@@ -57,7 +57,7 @@ The Actor interface on its own only provides lifecycle callbacks, so Traits are 
 
 The complete list of Traits that come with the engine and its plugins can be found in the following page:
 
-[<img src="images/badge_actor_traits.png" alt="Actor Traits" height="36px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/TRAITS.md)
+[<img src="images/badge_actor_traits.png" alt="Actor Traits" height="36px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/LIST_OF_TRAITS.md)
 
 ### ➕ Plugins
 The Kubriko engine itself only contains the bare minimum feature set for displaying and managing simple Actors on the viewport.

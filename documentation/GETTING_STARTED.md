@@ -102,4 +102,11 @@ TODO
 TODO
 
 ## 7 - Next steps
-TODO: Link to the documentation and the tutorial videos.
+This should cover the basics of what you need to get started developing your first Kubriko game!
+Feel free to play around with the various components, and have fun exploring the possibilities.
+Don't forget to read the KDoc comments of the public API components to get more information about how they are intended to be used.
+If you ever get stuck, check out the resources below:
+
+[<img src="images/badge_documentation.png" alt="Documentation" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md)
+[<img src="images/badge_tutorial_videos_coming_soon.png" alt="Tutorial videos" height="32px" />](#)
+[<img src="images/badge_community_coming_soon.png" alt="Join the community" height="32px" />](#)

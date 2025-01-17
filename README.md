@@ -101,11 +101,6 @@ The latest version is:
 
 [![](https://maven-badges.herokuapp.com/maven-central/io.github.pandulapeter.kubriko/engine/badge.svg?style=flat)](https://repo1.maven.org/maven2/io/github/pandulapeter/kubriko/)
 
-## 🤝 Contributing
-All help in making Kubriko a better engine is welcome!
-- For improvement ideas or bug reports simply create a [new issue](https://github.com/pandulapeter/kubriko/issues/new). Make sure to provide as many details as possible and use the correct labels.
-- For code contributions use the [project board](https://github.com/users/pandulapeter/projects/11) to make sure that the issue you want to fix is not already being worked on. Please leave a comment as well so that the issue can be assigned to you! After that fork the project, commit your changes, push them to the repository, and create a [pull request](https://github.com/pandulapeter/kubriko/compare).
-
 ## 🫶️ Support
 Displaying the [Kubriko logo](https://pandulapeter.github.io/kubriko/documentation/images/logo.png) in games created with the engine, or just mentioning Kubriko somewhere in the credits is highly appreciated!
 Also, if you create anything with Kubriko that you're proud of, don't hesitate to reach out to me via [email](mailto:pandulapeter@gmail.com) or [Discord](#)!
@@ -116,6 +111,11 @@ Kubriko is my pet project, that I'm developing in my free time. If you found it 
 [<img src="documentation/images/badge_sponsor.png" alt="Sponsor on GitHub" height="32px" />](https://github.com/sponsors/pandulapeter/)
 
 Thanks in advance!
+
+## 🤝 Contributing
+All help in making Kubriko a better engine is welcome!
+- For improvement ideas or bug reports simply create a [new issue](https://github.com/pandulapeter/kubriko/issues/new). Make sure to provide as many details as possible and use the correct labels.
+- For code contributions use the [project board](https://github.com/users/pandulapeter/projects/11) to make sure that the issue you want to fix is not already being worked on. Please leave a comment as well so that the issue can be assigned to you! After that fork the project, commit your changes, push them to the repository, and create a [pull request](https://github.com/pandulapeter/kubriko/compare).
 
 ## ⚖️ License
 This library is published under the Apache License, Version 2.0, which can be found [here](https://github.com/pandulapeter/kubriko/blob/main/LICENSE).

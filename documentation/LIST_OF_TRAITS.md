@@ -1,4 +1,4 @@
-# Traits
+# List of Traits
 This page lists all the [Actor](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/Actor.kt) Traits provided by Kubriko.
 Read the KDoc comments of the linked files for more information.
 

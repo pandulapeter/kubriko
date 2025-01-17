@@ -1,4 +1,4 @@
-# Managers
+# List of Managers
 This page lists all the [Managers]((https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/manager/Manager.kt)) provided by Kubriko.
 Read the KDoc comments of the linked files for more information.
 
