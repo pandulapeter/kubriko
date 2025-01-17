@@ -72,7 +72,7 @@ class CircleBody(
         arrayOf(
             transformPoint(SceneOffset.Zero, rotation),
             transformPoint(SceneOffset.Right * size.width, rotation),
-            transformPoint(SceneOffset.Bottom * size.height, rotation),
+            transformPoint(SceneOffset.Down * size.height, rotation),
             transformPoint(size.bottomRight, rotation),
         ).let { corners ->
             AxisAlignedBoundingBox(

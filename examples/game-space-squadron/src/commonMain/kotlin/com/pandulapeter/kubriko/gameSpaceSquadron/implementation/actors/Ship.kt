@@ -8,8 +8,10 @@
  */
 package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
@@ -24,21 +26,28 @@ import com.pandulapeter.kubriko.extensions.min
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.extensions.toSceneOffset
 import com.pandulapeter.kubriko.gameSpaceSquadron.ViewportHeight
+import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
+import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.sprites.AnimatedSprite
 import com.pandulapeter.kubriko.sprites.SpriteManager
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
+import kotlinx.collections.immutable.ImmutableSet
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.sprite_ship
 import kotlin.math.abs
 import kotlin.math.hypot
 
-internal class Ship : Visible, Dynamic, InsetPaddingAware, Group {
+internal class Ship : Visible, Dynamic, InsetPaddingAware, Group, KeyboardInputAware, PointerInputAware {
 
+    private lateinit var actorManager: ActorManager
     private lateinit var spriteManager: SpriteManager
+    private lateinit var metadataManager: MetadataManager
     private lateinit var viewportManager: ViewportManager
     private val shipAnimationWrapper by lazy { ShipAnimationWrapper(spriteManager) }
     override val body = RectangleBody(
@@ -51,7 +60,9 @@ internal class Ship : Visible, Dynamic, InsetPaddingAware, Group {
     override val actors = listOf(shipDestination)
 
     override fun onAdded(kubriko: Kubriko) {
+        actorManager = kubriko.get()
         spriteManager = kubriko.get()
+        metadataManager = kubriko.get()
         viewportManager = kubriko.get()
     }
 
@@ -67,6 +78,25 @@ internal class Ship : Visible, Dynamic, InsetPaddingAware, Group {
             x = (topLeft.x - bottomRight.x) / 2,
             y = (topLeft.y - bottomRight.y) / 2 + ViewportHeight / 2,
         ) - offset
+    }
+
+    override fun handleActivePointers(screenOffset: Offset) = shoot()
+
+    override fun handleActiveKeys(activeKeys: ImmutableSet<Key>) {
+        if (Key.Spacebar in activeKeys) {
+            shoot()
+        }
+    }
+
+    private var lastShotTimestamp = 0L
+
+    private fun shoot() {
+        val currentTimestamp = metadataManager.activeRuntimeInMilliseconds.value
+        val timeSinceLastShot = currentTimestamp - lastShotTimestamp
+        if (timeSinceLastShot > 200) {
+            lastShotTimestamp = currentTimestamp
+            actorManager.add(Bullet(body.position))
+        }
     }
 
     private var speed = SceneUnit.Zero

@@ -58,6 +58,17 @@ internal class PointerInputManagerImpl(
             .filterNot { it }
             .onEach { isPointerPressed.value = false }
             .launchIn(scope)
+        combine(
+            isPointerPressed,
+            pointerScreenOffset,
+            stateManager.isFocused,
+        ) { isPointerPressed, pointerScreenOffset, isFocused ->
+            Triple(isPointerPressed, pointerScreenOffset, isFocused)
+        }.onEach { (isPointerPressed, pointerScreenOffset, isFocused) ->
+            if (isPointerPressed && pointerScreenOffset != null && isFocused) {
+                pointerInputAwareActors.value.forEach { it.handleActivePointers(pointerScreenOffset) }
+            }
+        }.launchIn(scope)
     }
 
     private var densityMultiplier = 1f
@@ -114,10 +125,17 @@ internal class PointerInputManagerImpl(
                                 }
                             }
 
+                            PointerEventType.Enter -> {
+                                rawPointerOffset.update { position }
+                                if (stateManager.isFocused.value) {
+                                    pointerInputAwareActors.value.forEach { it.onPointerEnteringTheViewport() }
+                                }
+                            }
+
                             PointerEventType.Exit -> {
                                 rawPointerOffset.update { null }
                                 if (stateManager.isFocused.value) {
-                                    pointerInputAwareActors.value.forEach { it.onPointerExit() }
+                                    pointerInputAwareActors.value.forEach { it.onPointerLeavingTheViewport() }
                                 }
                             }
                         }

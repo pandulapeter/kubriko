@@ -68,12 +68,12 @@ value class SceneOffset(val raw: Offset) {
     companion object {
         val Zero = SceneOffset(SceneUnit.Zero, SceneUnit.Zero)
         val Left = SceneOffset(-SceneUnit.Unit, SceneUnit.Zero)
-        val TopLeft = SceneOffset(-SceneUnit.Unit, -SceneUnit.Unit)
-        val Top = SceneOffset(SceneUnit.Zero, -SceneUnit.Unit)
-        val TopRight = SceneOffset(SceneUnit.Unit, -SceneUnit.Unit)
+        val UpLeft = SceneOffset(-SceneUnit.Unit, -SceneUnit.Unit)
+        val Up = SceneOffset(SceneUnit.Zero, -SceneUnit.Unit)
+        val UpRight = SceneOffset(SceneUnit.Unit, -SceneUnit.Unit)
         val Right = SceneOffset(SceneUnit.Unit, SceneUnit.Zero)
-        val BottomRight = SceneOffset(SceneUnit.Unit, SceneUnit.Unit)
-        val Bottom = SceneOffset(SceneUnit.Zero, SceneUnit.Unit)
-        val BottomLeft = SceneOffset(-SceneUnit.Unit, SceneUnit.Unit)
+        val DownRight = SceneOffset(SceneUnit.Unit, SceneUnit.Unit)
+        val Down = SceneOffset(SceneUnit.Zero, SceneUnit.Unit)
+        val DownLeft = SceneOffset(-SceneUnit.Unit, SceneUnit.Unit)
     }
 }

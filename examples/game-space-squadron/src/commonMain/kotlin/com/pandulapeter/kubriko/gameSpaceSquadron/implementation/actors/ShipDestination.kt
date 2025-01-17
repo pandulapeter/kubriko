@@ -77,7 +77,7 @@ internal class ShipDestination : Positionable, PointerInputAware, KeyboardInputA
         previousPointerPosition = null
     }
 
-    override fun onPointerExit() {
+    override fun onPointerLeavingTheViewport() {
         previousPointerPosition = null
     }
 

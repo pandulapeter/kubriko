@@ -100,7 +100,7 @@ internal class Paddle(
         previousPointerPosition = null
     }
 
-    override fun onPointerExit() {
+    override fun onPointerLeavingTheViewport() {
         previousPointerPosition = null
     }
 

@@ -14,11 +14,15 @@ import com.pandulapeter.kubriko.actor.Actor
 // TODO: Documentation
 interface PointerInputAware : Actor {
 
-    fun onPointerPressed(screenOffset: Offset) = Unit
+    fun handleActivePointers(screenOffset: Offset) = Unit
 
-    fun onPointerOffsetChanged(screenOffset: Offset) = Unit
+    fun onPointerPressed(screenOffset: Offset) = Unit
 
     fun onPointerReleased(screenOffset: Offset) = Unit
 
-    fun onPointerExit() = Unit
+    fun onPointerOffsetChanged(screenOffset: Offset) = Unit
+
+    fun onPointerEnteringTheViewport() = Unit
+
+    fun onPointerLeavingTheViewport() = Unit
 }

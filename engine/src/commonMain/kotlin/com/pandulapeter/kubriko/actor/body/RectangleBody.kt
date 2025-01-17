@@ -64,7 +64,7 @@ class RectangleBody(
     override fun createAxisAlignedBoundingBox() = arrayOf(
         transformPoint(SceneOffset.Zero),
         transformPoint(SceneOffset.Right * size.width),
-        transformPoint(SceneOffset.Bottom * size.height),
+        transformPoint(SceneOffset.Down * size.height),
         transformPoint(size.bottomRight),
     ).let { corners ->
         AxisAlignedBoundingBox(
