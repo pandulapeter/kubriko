@@ -118,7 +118,7 @@ All help in making Kubriko a better engine is welcome!
 - For code contributions use the [project board](https://github.com/users/pandulapeter/projects/11) to make sure that the issue you want to fix is not already being worked on. Please leave a comment as well so that the issue can be assigned to you! After that fork the project, commit your changes, push them to the repository, and create a [pull request](https://github.com/pandulapeter/kubriko/compare).
 
 ## ⚖️ License
-This library is published under the Apache License, Version 2.0, which can be found [here](https://github.com/pandulapeter/kubriko/blob/main/LICENSE).
-You can use it in your own projects as it is, for free, without giving credit.
+This library is published under the Mozilla Public License Version 2.0, which can be found [here](https://github.com/pandulapeter/kubriko/blob/main/LICENSE).
+You are free to use the Kubriko engine to develop your own proprietary games at no cost and without attribution.
 
-However, if you plan to create derivative works (competing engines / forks), they must be open source as well, and link back to this repository.
+However, if you create derivative works (such as forks or competing engines), these must be open source and include a link back to this repository.
