@@ -46,8 +46,41 @@ android {
     defaultConfig {
         applicationId = "com.pandulapeter.kubrikoShowcase"
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = System.getProperty("SHOWCASE_ANDROID_VERSION_CODE").toInt()
+        versionName = System.getProperty("SHOWCASE_ANDROID_VERSION_NAME")
+    }
+    val internalSigningConfig = "internal"
+    val releaseSigningConfig = "release"
+    signingConfigs {
+        create(internalSigningConfig) {
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+            storeFile = file("internal.keystore")
+            storePassword = "android"
+        }
+        create(releaseSigningConfig) {
+            keyAlias = System.getProperty("SHOWCASE_ANDROID_KEY_ALIAS")
+            keyPassword = System.getProperty("SHOWCASE_ANDROID_KEY_PASSWORD")
+            storeFile = file(System.getProperty("SHOWCASE_ANDROID_STORE_FILE"))
+            storePassword = System.getProperty("SHOWCASE_ANDROID_STORE_PASSWORD")
+        }
+    }
+    buildTypes {
+        debug {
+            isDebuggable = true
+            isMinifyEnabled = false
+            isShrinkResources = false
+            versionNameSuffix = "-debug"
+            applicationIdSuffix = ".debug"
+            signingConfig = signingConfigs.getByName(internalSigningConfig)
+        }
+        release {
+            isDebuggable = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName(releaseSigningConfig)
+        }
     }
 }
 
@@ -56,7 +89,7 @@ compose.desktop {
         mainClass = "com.pandulapeter.kubrikoShowcase.KubrikoShowcaseAppKt"
         nativeDistributions {
             packageName = "com.pandulapeter.kubrikoShowcase"
-            packageVersion = "1.0.0"
+            packageVersion = System.getProperty("SHOWCASE_DEKTOP_VERSION_NAME")
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             macOS { iconFile.set(project.file("icon.icns")) }
             windows { iconFile.set(project.file("icon.ico")) }
