@@ -12,6 +12,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
@@ -26,7 +28,9 @@ import java.awt.Rectangle
 import java.awt.event.WindowStateListener
 
 fun main() = application {
-    windowState = rememberWindowState()
+    windowState = rememberWindowState(
+        size = DpSize(840.dp, 640.dp),
+    )
     val coroutineScope = rememberCoroutineScope()
     val previousBounds = remember { mutableStateOf<Rectangle?>(null) }
     val previousWindowPlacement = remember { mutableStateOf<WindowPlacement?>(null) }
