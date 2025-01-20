@@ -42,7 +42,11 @@ fun LargeButton(
     FloatingActionButton(
         modifier = modifier.height(40.dp).alpha(if (isEnabled) 1f else 0.5f),
         containerColor = if (isSystemInDarkTheme()) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary,
-        onClick = onButtonPressed,
+        onClick = {
+            if (isEnabled) {
+                onButtonPressed()
+            }
+        },
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp),

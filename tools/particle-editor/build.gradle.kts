@@ -22,7 +22,6 @@ kotlin {
             dependencies {
                 implementation(projects.engine)
                 implementation(projects.plugins.particles)
-                implementation(projects.plugins.pointerInput)
                 implementation(projects.tools.uiComponents)
                 implementation(compose.desktop.currentOs)
             }

@@ -26,7 +26,7 @@ import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.particleEditor.implementation.manager.ParticleEditorManager
 import com.pandulapeter.kubriko.particleEditor.implementation.ui.EmitterPropertiesPanel
-import com.pandulapeter.kubriko.pointerInput.PointerInputManager
+import com.pandulapeter.kubriko.particles.ParticleManager
 import java.awt.Dimension
 
 @Composable
@@ -40,7 +40,7 @@ internal fun InternalParticleEditor(
             ViewportManager.newInstance(
                 aspectRatioMode = ViewportManager.AspectRatioMode.Dynamic,
             ),
-            PointerInputManager.newInstance(),
+            ParticleManager.newInstance(),
             particleEditorManager,
             instanceNameForLogging = "ParticleEditor",
         )

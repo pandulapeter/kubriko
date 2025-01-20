@@ -58,11 +58,12 @@ private fun Type(
         modifier = Modifier.padding(horizontal = 8.dp),
         value = emissionRate,
         onValueChanged = onEmissionRateChanged,
-        valueRange = 0f..20f,
+        valueRange = 0f..3f,
     )
     Row(
         modifier = Modifier.fillMaxSize()
             .selectable(
+                enabled = emissionRate > 0f,
                 selected = isEmittingContinuously,
                 onClick = onEmittingContinuouslyChanged,
             ).padding(start = 8.dp)
@@ -76,6 +77,7 @@ private fun Type(
         )
         Switch(
             modifier = Modifier.scale(0.6f).height(24.dp),
+            enabled = emissionRate > 0f,
             checked = isEmittingContinuously,
             onCheckedChange = { onEmittingContinuouslyChanged() },
         )
