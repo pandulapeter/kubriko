@@ -48,6 +48,7 @@ include(
     ":plugins:sprites",
     ":tools:debug-menu",
     ":tools:logger",
+    ":tools:particle-editor",
     ":tools:scene-editor",
     ":tools:ui-components",
 )

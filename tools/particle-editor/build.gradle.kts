@@ -13,26 +13,19 @@ plugins {
 
 kotlin {
     sourceSets {
-        commonMain.dependencies {
-            api(projects.engine)
-            api(projects.plugins.serialization)
-            implementation(compose.components.resources)
-        }
         val desktopMain by getting {
             dependencies {
-                implementation(projects.plugins.collision)
-                implementation(projects.plugins.keyboardInput)
-                implementation(projects.plugins.persistence)
+                implementation(projects.engine)
+                implementation(compose.components.resources)
+                implementation(projects.plugins.particles)
                 implementation(projects.plugins.pointerInput)
-                implementation(projects.tools.debugMenu)
                 implementation(projects.tools.uiComponents)
                 implementation(compose.desktop.currentOs)
-                implementation(libs.kotlin.reflect)
             }
         }
     }
 }
 
 android {
-    namespace = "com.pandulapeter.kubriko.sceneEditor"
+    namespace = "com.pandulapeter.kubriko.particleEditor"
 }

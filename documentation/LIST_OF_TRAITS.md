@@ -21,6 +21,9 @@ Read the KDoc comments of the linked files for more information.
 ## Keyboard Input plugin
 - [KeyboardInputAware](https://github.com/pandulapeter/kubriko/blob/main/plugins/keyboard-input/src/commonMain/kotlin/com/pandulapeter/kubriko/keyboardInput/KeyboardInputAware.kt)
 
+## Particles plugin
+- [ParticleEmitter](https://github.com/pandulapeter/kubriko/blob/main/plugins/particles/src/commonMain/kotlin/com/pandulapeter/kubriko/particles/ParticleEmitter.kt)
+
 ## Physics plugin
 - [Joint](https://github.com/pandulapeter/kubriko/blob/main/plugins/physics/src/commonMain/kotlin/com/pandulapeter/kubriko/physics/Joint.kt)
 - [RigidBody](https://github.com/pandulapeter/kubriko/blob/main/plugins/physics/src/commonMain/kotlin/com/pandulapeter/kubriko/physics/RigidBody.kt)

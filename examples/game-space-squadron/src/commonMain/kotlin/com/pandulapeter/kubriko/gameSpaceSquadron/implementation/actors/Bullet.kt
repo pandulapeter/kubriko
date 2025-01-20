@@ -41,7 +41,7 @@ internal class Bullet(
     }
 
     override fun update(deltaTimeInMilliseconds: Float) {
-        body.position -= SceneOffset.Down * deltaTimeInMilliseconds
+        body.position -= SceneOffset.Down * deltaTimeInMilliseconds * 2f
         if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
             actorManager.remove(this)
         }
