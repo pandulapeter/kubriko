@@ -65,7 +65,7 @@ private fun Type(
         text = stringResource(Res.string.rate, emissionRate),
     )
     ShaderSlider(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 4.dp),
         value = emissionRate,
         onValueChanged = onEmissionRateChanged,
         valueRange = 0f..3f,
@@ -76,8 +76,8 @@ private fun Type(
                 enabled = emissionRate > 0f,
                 selected = isEmittingContinuously,
                 onClick = onEmittingContinuouslyChanged,
-            ).padding(start = 8.dp)
-            .padding(horizontal = 8.dp),
+            )
+            .padding(start = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
@@ -93,7 +93,7 @@ private fun Type(
         )
     }
     LargeButton(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 4.dp),
         title = Res.string.burst,
         isEnabled = !isEmittingContinuously && emissionRate > 0f,
         onButtonPressed = onBurstButtonPressed,

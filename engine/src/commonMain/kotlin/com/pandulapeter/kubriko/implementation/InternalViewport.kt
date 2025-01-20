@@ -79,7 +79,7 @@ fun InternalViewport(
 
     // Game canvas
     Box(
-        modifier = kubrikoImpl.managers.fold(Modifier.fillMaxSize().clipToBounds()) { overlayModifierToProcess, manager ->
+        modifier = kubrikoImpl.managers.fold(modifier.fillMaxSize().clipToBounds()) { overlayModifierToProcess, manager ->
             manager.processOverlayModifierInternal(overlayModifierToProcess)
         }
     ) {
@@ -88,9 +88,10 @@ fun InternalViewport(
                 ViewportManager.AspectRatioMode.Dynamic,
                 is ViewportManager.AspectRatioMode.FitHorizontal,
                 is ViewportManager.AspectRatioMode.FitVertical,
-                is ViewportManager.AspectRatioMode.Stretched -> modifier
-
-                is ViewportManager.AspectRatioMode.Fixed -> modifier.align(aspectRatioMode.alignment).aspectRatio(ratio = aspectRatioMode.ratio)
+                is ViewportManager.AspectRatioMode.Stretched -> Modifier
+                is ViewportManager.AspectRatioMode.Fixed -> Modifier
+                    .align(aspectRatioMode.alignment)
+                    .aspectRatio(ratio = aspectRatioMode.ratio)
             }.clipToBounds()
         ) {
             LaunchedEffect(maxWidth, maxHeight) {

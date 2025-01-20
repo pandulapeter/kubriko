@@ -9,8 +9,6 @@
  */
 package com.pandulapeter.kubriko.demoParticles
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -37,17 +35,13 @@ fun ParticlesDemo(
 ) {
     stateHolder as ParticlesDemoStateHolderImpl
     Row(
-        modifier = Modifier.fillMaxSize(),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = modifier.fillMaxSize(),
     ) {
-        Box(
-            modifier = modifier.weight(1f),
-        ) {
-            KubrikoViewport(
-                kubriko = stateHolder.kubriko.collectAsState().value,
-                windowInsets = windowInsets,
-            )
-        }
+        KubrikoViewport(
+            modifier = Modifier.weight(1f).fillMaxHeight(),
+            kubriko = stateHolder.kubriko.collectAsState().value,
+            windowInsets = windowInsets,
+        )
         VerticalDivider()
         EmitterPropertiesPanel(
             modifier = Modifier.width(240.dp).fillMaxHeight(),
