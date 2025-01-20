@@ -6,7 +6,7 @@ interface ParticleEmitter : Actor {
 
     var particleEmissionMode: Mode
 
-    fun createParticle(): Particle
+    fun createParticle(): Particle<*>
 
     sealed class Mode {
 

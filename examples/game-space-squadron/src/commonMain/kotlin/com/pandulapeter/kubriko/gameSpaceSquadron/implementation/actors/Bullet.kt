@@ -9,30 +9,35 @@
  */
 package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors
 
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Fill
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
+import com.pandulapeter.kubriko.actor.body.PointBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
-import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.particles.Particle
+import com.pandulapeter.kubriko.particles.ParticleEmitter
+import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
+import kotlin.random.Random
 
 internal class Bullet(
-    startingPosition: SceneOffset,
-) : Visible, Dynamic {
-    override val body = CircleBody(
-        initialRadius = 8.sceneUnit,
-        initialPosition = startingPosition,
+    initialPosition: SceneOffset,
+) : Positionable, Dynamic, ParticleEmitter {
+    override val body = PointBody(
+        initialPosition = initialPosition,
     )
-    override val drawingOrder = 1f
     private lateinit var actorManager: ActorManager
     private lateinit var viewportManager: ViewportManager
+    override var particleEmissionMode: ParticleEmitter.Mode = ParticleEmitter.Mode.Continuous(0.4f)
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
@@ -47,9 +52,32 @@ internal class Bullet(
         }
     }
 
-    override fun DrawScope.draw() = drawCircle(
-        color = Color.White,
-        radius = body.radius.raw,
-        center = body.size.center.raw,
+    override fun createParticle() = Particle(
+        payload = Random.nextFloat() * 360f,
+        drawingOrder = 1f,
+        body = CircleBody(
+            initialPosition = body.position,
+            initialRadius = 4.sceneUnit,
+        ),
+        speed = 1f.sceneUnit,
+        direction = AngleRadians.TwoPi * Random.nextFloat(),
+        lifespanInMilliseconds = 300f,
+        processBody = { _, progress ->
+            scale *= (1f - progress / 10f)
+            rotation += AngleRadians.Pi / 20f
+        },
+        drawParticle = { startingHue, body, progress ->
+            drawCircle(
+                color = Color.hsv(
+                    hue = (progress * 360f + startingHue) % 360,
+                    saturation = 0.3f,
+                    value = 1f,
+                ).copy(alpha = 0.8f - progress),
+                radius = 6f,
+                center = body.size.center.raw,
+                style = Fill,
+                blendMode = BlendMode.Lighten,
+            )
+        }
     )
 }

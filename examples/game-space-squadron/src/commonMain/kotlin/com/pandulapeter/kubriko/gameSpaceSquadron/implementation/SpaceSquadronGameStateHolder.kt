@@ -23,6 +23,7 @@ import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.UserPr
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.particles.ParticleManager
 import com.pandulapeter.kubriko.persistence.PersistenceManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shaders.ShaderManager
@@ -82,6 +83,7 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
     )
     val userPreferencesManager = UserPreferencesManager(persistenceManager)
     val audioManager = AudioManager(stateManager, userPreferencesManager)
+    val particleManager = ParticleManager.newInstance()
     val gameplayManager = GameplayManager()
     val uiManager = UIManager(stateManager)
     private val collisionManager = CollisionManager.newInstance(
@@ -109,6 +111,7 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
             pointerInputManager,
             persistenceManager,
             userPreferencesManager,
+            particleManager,
             gameplayManager,
             uiManager,
             audioManager,

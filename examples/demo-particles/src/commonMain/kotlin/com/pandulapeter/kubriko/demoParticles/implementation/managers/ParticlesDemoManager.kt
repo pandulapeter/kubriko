@@ -21,6 +21,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.center
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
@@ -86,13 +89,33 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter, Unique {
         particleEmissionMode = ParticleEmitter.Mode.Burst((emissionRate.value * 100).roundToInt())
     }
 
+    private var counter = 0f
+
     override fun createParticle() = Particle(
+        drawingOrder = counter++,
+        payload = Random.nextFloat() * 360f,
         body = RectangleBody(
             initialSize = SceneSize(10.sceneUnit, 10.sceneUnit),
         ),
-        speed = 5f.sceneUnit,
+        speed = 4f.sceneUnit,
         direction = AngleRadians.TwoPi * Random.nextFloat(),
         lifespanInMilliseconds = lifespan.value,
+        processBody = { _, progress ->
+            scale *= (1f - progress / 10f)
+            rotation += AngleRadians.Pi / 20f
+        },
+        drawParticle = { startingHue, _, progress ->
+            drawCircle(
+                color = Color.hsv(
+                    hue = (progress * 360f + startingHue) % 360,
+                    saturation = 0.8f,
+                    value = 1f,
+                ).copy(alpha = 1f - progress),
+                radius = size.maxDimension * 0.7f,
+                center = size.center,
+                style = Fill,
+            )
+        }
     )
 
     @Composable
