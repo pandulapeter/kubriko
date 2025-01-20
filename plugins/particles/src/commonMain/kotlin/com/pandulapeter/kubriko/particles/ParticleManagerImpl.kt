@@ -32,7 +32,7 @@ internal class ParticleManagerImpl(
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
-        if (stateManager.isRunning.value) {
+        if (stateManager.isRunning.value && deltaTimeInMilliseconds < 1000) {
             actorManager.add(
                 particleEmitters.value.flatMap { emitter ->
                     val particleCount = when (val mode = emitter.particleEmissionMode) {

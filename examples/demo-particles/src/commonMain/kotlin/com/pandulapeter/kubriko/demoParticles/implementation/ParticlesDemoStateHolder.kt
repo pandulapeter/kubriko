@@ -24,17 +24,15 @@ internal class ParticlesDemoStateHolderImpl : ParticlesDemoStateHolder {
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    private val particlesDemoManager = ParticlesDemoManager()
-    private val _kubriko by lazy {
-        MutableStateFlow(
-            Kubriko.newInstance(
-                particleManager,
-                particlesDemoManager,
-                isLoggingEnabled = true,
-                instanceNameForLogging = LOG_TAG,
-            )
+    val particlesDemoManager = ParticlesDemoManager()
+    private val _kubriko = MutableStateFlow(
+        Kubriko.newInstance(
+            particleManager,
+            particlesDemoManager,
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG,
         )
-    }
+    )
     override val kubriko get() = _kubriko.asStateFlow()
 
     override fun dispose() = kubriko.value.dispose()

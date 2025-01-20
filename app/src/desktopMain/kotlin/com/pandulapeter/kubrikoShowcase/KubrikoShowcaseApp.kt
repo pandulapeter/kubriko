@@ -19,7 +19,6 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import com.pandulapeter.kubriko.demoParticles.ParticlesDemoParticleEditor
 import com.pandulapeter.kubriko.demoPerformance.PerformanceDemoSceneEditor
 import com.pandulapeter.kubriko.demoPhysics.PhysicsDemoSceneEditor
 import com.pandulapeter.kubriko.implementation.windowState
@@ -82,5 +81,4 @@ fun main() = application {
     PhysicsDemoSceneEditor(
         defaultSceneFolderPath = "../examples/demo-physics/src/commonMain/composeResources/files/scenes"
     )
-    ParticlesDemoParticleEditor()
 }

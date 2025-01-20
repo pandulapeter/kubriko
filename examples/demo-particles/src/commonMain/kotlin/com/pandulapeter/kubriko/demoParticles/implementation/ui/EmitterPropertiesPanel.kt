@@ -1,4 +1,4 @@
-package com.pandulapeter.kubriko.particleEditor.implementation.ui
+package com.pandulapeter.kubriko.demoParticles.implementation.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,32 +17,32 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.particleEditor.implementation.manager.ParticleEditorManager
+import com.pandulapeter.kubriko.demoParticles.implementation.managers.ParticlesDemoManager
 import com.pandulapeter.kubriko.uiComponents.LargeButton
 import com.pandulapeter.kubriko.uiComponents.ShaderSlider
-import kubriko.tools.particle_editor.generated.resources.Res
-import kubriko.tools.particle_editor.generated.resources.burst
-import kubriko.tools.particle_editor.generated.resources.emit_continuously
-import kubriko.tools.particle_editor.generated.resources.lifespan
-import kubriko.tools.particle_editor.generated.resources.rate
+import kubriko.examples.demo_particles.generated.resources.Res
+import kubriko.examples.demo_particles.generated.resources.burst
+import kubriko.examples.demo_particles.generated.resources.emit_continuously
+import kubriko.examples.demo_particles.generated.resources.lifespan
+import kubriko.examples.demo_particles.generated.resources.rate
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun EmitterPropertiesPanel(
     modifier: Modifier,
-    particleEditorManager: ParticleEditorManager,
+    particlesDemoManager: ParticlesDemoManager,
 ) = LazyColumn(
     modifier = modifier,
 ) {
     item("type") {
         Type(
-            emissionRate = particleEditorManager.emissionRate.collectAsState().value,
-            onEmissionRateChanged = particleEditorManager::setEmissionRate,
-            isEmittingContinuously = particleEditorManager.isEmittingContinuously.collectAsState().value,
-            onEmittingContinuouslyChanged = particleEditorManager::onEmittingContinuouslyChanged,
-            onBurstButtonPressed = particleEditorManager::burst,
-            lifespan = particleEditorManager.lifespan.collectAsState().value,
-            onLifespanChanged = particleEditorManager::setLifespan,
+            emissionRate = particlesDemoManager.emissionRate.collectAsState().value,
+            onEmissionRateChanged = particlesDemoManager::setEmissionRate,
+            isEmittingContinuously = particlesDemoManager.isEmittingContinuously.collectAsState().value,
+            onEmittingContinuouslyChanged = particlesDemoManager::onEmittingContinuouslyChanged,
+            onBurstButtonPressed = particlesDemoManager::burst,
+            lifespan = particlesDemoManager.lifespan.collectAsState().value,
+            onLifespanChanged = particlesDemoManager::setLifespan,
         )
     }
 }
@@ -62,7 +62,7 @@ private fun Type(
 ) {
     Text(
         modifier = Modifier.padding(horizontal = 8.dp),
-        text = stringResource(Res.string.rate, "%.2f".format(emissionRate)),
+        text = stringResource(Res.string.rate, emissionRate),
     )
     ShaderSlider(
         modifier = Modifier.padding(horizontal = 8.dp),
@@ -100,7 +100,7 @@ private fun Type(
     )
     Text(
         modifier = Modifier.padding(horizontal = 8.dp),
-        text = stringResource(Res.string.lifespan, "%.0f".format(lifespan)),
+        text = stringResource(Res.string.lifespan, lifespan),
     )
     ShaderSlider(
         modifier = Modifier.padding(horizontal = 8.dp),

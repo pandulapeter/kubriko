@@ -17,7 +17,6 @@ kotlin {
             api(projects.examples.shared)
             implementation(projects.engine)
             implementation(projects.plugins.particles)
-            implementation(projects.tools.particleEditor)
             implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)
         }
