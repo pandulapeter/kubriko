@@ -7,8 +7,10 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.extensions.cos
 import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.extensions.sin
 import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -25,27 +27,33 @@ class Particle<T : Any>(
     private val drawParticle: DrawScope.(T, ComplexBody, Float) -> Unit,
 ) : Visible, Dynamic {
     private lateinit var actorManager: ActorManager
+    private lateinit var viewportManager: ViewportManager
     private var remainingLifespan = lifespanInMilliseconds
     private var currentProgress = 0f
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
+        viewportManager = kubriko.get()
     }
 
     override fun update(deltaTimeInMilliseconds: Float) {
         // TODO: Move, apply transformations
-        if (speed != SceneUnit.Zero) {
-            body.position = SceneOffset(
-                x = body.position.x + speed * direction.cos,
-                y = body.position.y - speed * direction.sin,
-            )
-        }
-        currentProgress = 1f - (remainingLifespan / lifespanInMilliseconds)
-        if (currentProgress >= 1) {
+        if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
             actorManager.remove(this)
         } else {
-            body.processBody(payload, currentProgress)
-            remainingLifespan -= deltaTimeInMilliseconds
+            if (speed != SceneUnit.Zero) {
+                body.position = SceneOffset(
+                    x = body.position.x + speed * direction.cos,
+                    y = body.position.y - speed * direction.sin,
+                )
+            }
+            currentProgress = 1f - (remainingLifespan / lifespanInMilliseconds)
+            if (currentProgress >= 1) {
+                actorManager.remove(this)
+            } else {
+                body.processBody(payload, currentProgress)
+                remainingLifespan -= deltaTimeInMilliseconds
+            }
         }
     }
 

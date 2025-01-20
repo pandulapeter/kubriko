@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors
 
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Fill
 import com.pandulapeter.kubriko.Kubriko
@@ -37,7 +36,9 @@ internal class Bullet(
     )
     private lateinit var actorManager: ActorManager
     private lateinit var viewportManager: ViewportManager
-    override var particleEmissionMode: ParticleEmitter.Mode = ParticleEmitter.Mode.Continuous(0.4f)
+    override var particleEmissionMode: ParticleEmitter.Mode = ParticleEmitter.Mode.Continuous(
+        emissionsPerMillisecond = 0.1f
+    )
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
@@ -53,7 +54,7 @@ internal class Bullet(
     }
 
     override fun createParticle() = Particle(
-        payload = Random.nextFloat() * 360f,
+        payload = Unit,
         drawingOrder = 1f,
         body = CircleBody(
             initialPosition = body.position,
@@ -61,22 +62,16 @@ internal class Bullet(
         ),
         speed = 1f.sceneUnit,
         direction = AngleRadians.TwoPi * Random.nextFloat(),
-        lifespanInMilliseconds = 300f,
+        lifespanInMilliseconds = 250f,
         processBody = { _, progress ->
-            scale *= (1f - progress / 10f)
-            rotation += AngleRadians.Pi / 20f
+            scale *= (1f - progress / 5f)
         },
-        drawParticle = { startingHue, body, progress ->
+        drawParticle = { _, body, progress ->
             drawCircle(
-                color = Color.hsv(
-                    hue = (progress * 360f + startingHue) % 360,
-                    saturation = 0.3f,
-                    value = 1f,
-                ).copy(alpha = 0.8f - progress),
+                color = Color.White.copy(alpha = 0.8f - progress),
                 radius = 6f,
                 center = body.size.center.raw,
                 style = Fill,
-                blendMode = BlendMode.Lighten,
             )
         }
     )
