@@ -11,10 +11,11 @@ import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.types.AngleRadians
 
-abstract class Particle(
+class Particle(
     override val body: RectangleBody,
-    val speed: Float,
-    val direction: AngleRadians,
+    override val drawingOrder: Float = 0f,
+    private val speed: Float,
+    private val direction: AngleRadians,
 ) : Visible, Dynamic {
 
     private lateinit var actorManager: ActorManager

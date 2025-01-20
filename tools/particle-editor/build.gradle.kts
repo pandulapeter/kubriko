@@ -13,10 +13,14 @@ plugins {
 
 kotlin {
     sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation(compose.components.resources)
+            }
+        }
         val desktopMain by getting {
             dependencies {
                 implementation(projects.engine)
-                implementation(compose.components.resources)
                 implementation(projects.plugins.particles)
                 implementation(projects.plugins.pointerInput)
                 implementation(projects.tools.uiComponents)

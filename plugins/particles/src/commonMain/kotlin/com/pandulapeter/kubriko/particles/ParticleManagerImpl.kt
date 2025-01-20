@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.particles
 
 import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.StateManager
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.map
@@ -21,6 +22,7 @@ internal class ParticleManagerImpl(
 ) : ParticleManager(isLoggingEnabled, instanceNameForLogging) {
 
     private val actorManager by manager<ActorManager>()
+    private val stateManager by manager<StateManager>()
     private val particleEmitters by autoInitializingLazy {
         actorManager.allActors.map { allActors ->
             allActors
@@ -30,12 +32,14 @@ internal class ParticleManagerImpl(
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
-        actorManager.add(
-            particleEmitters.value.filter { it.isEmittingParticles }.flatMap { emitter ->
-                (0..(deltaTimeInMilliseconds * emitter.particleEmissionRate).roundToInt()).map {
-                    emitter.createParticle()
+        if (stateManager.isRunning.value) {
+            actorManager.add(
+                particleEmitters.value.filter { it.particleEmissionRate > 0 }.flatMap { emitter ->
+                    (0..(deltaTimeInMilliseconds * emitter.particleEmissionRate / 1000f).roundToInt()).map {
+                        emitter.createParticle()
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 }
