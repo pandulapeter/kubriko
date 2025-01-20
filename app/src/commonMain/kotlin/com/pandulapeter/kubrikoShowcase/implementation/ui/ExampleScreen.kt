@@ -23,6 +23,9 @@ import com.pandulapeter.kubriko.demoContentShaders.implementation.ContentShaders
 import com.pandulapeter.kubriko.demoInput.InputDemo
 import com.pandulapeter.kubriko.demoInput.createInputDemoStateHolder
 import com.pandulapeter.kubriko.demoInput.implementation.InputDemoStateHolder
+import com.pandulapeter.kubriko.demoParticles.ParticlesDemo
+import com.pandulapeter.kubriko.demoParticles.createParticlesDemoStateHolder
+import com.pandulapeter.kubriko.demoParticles.implementation.ParticlesDemoStateHolder
 import com.pandulapeter.kubriko.demoPerformance.PerformanceDemo
 import com.pandulapeter.kubriko.demoPerformance.createPerformanceDemoStateHolder
 import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceDemoStateHolder
@@ -80,6 +83,11 @@ internal fun ShowcaseEntry.ExampleScreen(
             windowInsets = windowInsets,
         )
 
+        ShowcaseEntry.PARTICLES -> ParticlesDemo(
+            stateHolder = getOrCreateState(stateHolders, ::createParticlesDemoStateHolder),
+            windowInsets = windowInsets,
+        )
+
         ShowcaseEntry.PERFORMANCE -> PerformanceDemo(
             stateHolder = getOrCreateState(stateHolders, ::createPerformanceDemoStateHolder),
             windowInsets = windowInsets,
@@ -113,6 +121,7 @@ internal fun ShowcaseEntry.getStateHolder() = when (this) {
     ShowcaseEntry.AUDIO -> getOrCreateState(stateHolders, ::createAudioDemoStateHolder)
     ShowcaseEntry.CONTENT_SHADERS -> getOrCreateState(stateHolders, ::createContentShadersDemoStateHolder)
     ShowcaseEntry.INPUT -> getOrCreateState(stateHolders, ::createInputDemoStateHolder)
+    ShowcaseEntry.PARTICLES -> getOrCreateState(stateHolders, ::createParticlesDemoStateHolder)
     ShowcaseEntry.PERFORMANCE -> getOrCreateState(stateHolders, ::createPerformanceDemoStateHolder)
     ShowcaseEntry.PHYSICS -> getOrCreateState(stateHolders, ::createPhysicsDemoStateHolder)
     ShowcaseEntry.SHADER_ANIMATIONS -> getOrCreateState(stateHolders, ::createShaderAnimationsDemoStateHolder)
@@ -129,6 +138,7 @@ private val ShowcaseEntry.stateHolderType
         ShowcaseEntry.SHADER_ANIMATIONS -> ShaderAnimationsDemoStateHolder::class
         ShowcaseEntry.AUDIO -> AudioDemoStateHolder::class
         ShowcaseEntry.INPUT -> InputDemoStateHolder::class
+        ShowcaseEntry.PARTICLES -> ParticlesDemoStateHolder::class
         ShowcaseEntry.PERFORMANCE -> PerformanceDemoStateHolder::class
         ShowcaseEntry.PHYSICS -> PhysicsDemoStateHolder::class
         ShowcaseEntry.SPACE_SQUADRON -> SpaceSquadronGameStateHolder::class

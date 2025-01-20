@@ -30,6 +30,7 @@ include(
     ":examples:demo-audio",
     ":examples:demo-content-shaders",
     ":examples:demo-input",
+    ":examples:demo-particles",
     ":examples:demo-performance",
     ":examples:demo-physics",
     ":examples:demo-shader-animations",

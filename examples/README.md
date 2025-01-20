@@ -9,6 +9,7 @@ module), as well as a [StateHolder](https://github.com/pandulapeter/kubriko/blob
 - [demo-audio](https://github.com/pandulapeter/kubriko/tree/main/examples/demo-auido) - For testing the playback of music and sound effects
 - [demo-content-shaders](https://github.com/pandulapeter/kubriko/tree/main/examples/demo-content-shaders) - Playground for testing various shader effects
 - [demo-input](https://github.com/pandulapeter/kubriko/tree/main/examples/demo-input) - Playground for testing keyboard and pointer input
+- [demo-particles](https://github.com/pandulapeter/kubriko/tree/main/examples/demo-particles) - Demo for editing and testing particle effects
 - [demo-performance](https://github.com/pandulapeter/kubriko/tree/main/examples/demo-performance) - Stress test using a large number of dynamic actors
 - [demo-physics](https://github.com/pandulapeter/kubriko/tree/main/examples/demo-physics) - Rigid body collisions, chains, explosions
 - [demo-shader-animations](https://github.com/pandulapeter/kubriko/tree/main/examples/demo-shader-animations) - Examples for dynamic SGSL shader overlays

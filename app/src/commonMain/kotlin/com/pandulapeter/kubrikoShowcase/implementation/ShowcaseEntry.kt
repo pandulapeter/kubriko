@@ -16,6 +16,8 @@ import kubriko.app.generated.resources.demo_content_shaders
 import kubriko.app.generated.resources.demo_content_shaders_subtitle
 import kubriko.app.generated.resources.demo_input
 import kubriko.app.generated.resources.demo_input_subtitle
+import kubriko.app.generated.resources.demo_particles
+import kubriko.app.generated.resources.demo_particles_subtitle
 import kubriko.app.generated.resources.demo_performance
 import kubriko.app.generated.resources.demo_performance_subtitle
 import kubriko.app.generated.resources.demo_physics
@@ -59,6 +61,11 @@ internal enum class ShowcaseEntry(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_input,
         subtitleStringResource = Res.string.demo_input_subtitle,
+    ),
+    PARTICLES(
+        type = ShowcaseEntryType.DEMO,
+        titleStringResource = Res.string.demo_particles,
+        subtitleStringResource = Res.string.demo_particles_subtitle,
     ),
     PERFORMANCE(
         type = ShowcaseEntryType.DEMO,

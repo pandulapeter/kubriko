@@ -56,6 +56,10 @@
     <string name="demo_input">Input</string>
     <string name="demo_input_subtitle">Playground for testing keyboard and pointer input</string>
 
+    <!-- Demo - Particles -->
+    <string name="demo_particles">Particles</string>
+    <string name="demo_particles_subtitle">Demo for editing and testing particle effects</string>
+
     <!-- Demo - Performance -->
     <string name="demo_performance">Performance</string>
     <string name="demo_performance_subtitle">Stress test using a large number of dynamic actors</string>

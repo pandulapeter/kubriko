@@ -19,6 +19,7 @@ kotlin {
             implementation(projects.examples.demoAudio)
             implementation(projects.examples.demoContentShaders)
             implementation(projects.examples.demoInput)
+            implementation(projects.examples.demoParticles)
             implementation(projects.examples.demoPerformance)
             implementation(projects.examples.demoPhysics)
             implementation(projects.examples.demoShaderAnimations)
