@@ -34,21 +34,16 @@ internal class ParticleManagerImpl(
     override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
         if (stateManager.isRunning.value) {
             actorManager.add(
-                particleEmitters.value
-                    .filter { it.particleEmissionRate > 0 && it.particleEmissionMode == ParticleEmitter.EmissionMode.CONTINUOUS }
-                    .flatMap { emitter ->
-                        (0..(deltaTimeInMilliseconds * emitter.particleEmissionRate).roundToInt()).map {
-                            emitter.createParticle()
-                        }
-                    } + particleEmitters.value
-                    .filter { it.particleEmissionRate > 0 && it.particleEmissionMode == ParticleEmitter.EmissionMode.BURST_ACTIVE }
-                    .flatMap { emitter ->
-                        (0..(emitter.particleEmissionRate).roundToInt()).map {
-                            emitter.createParticle()
-                        }.also {
-                            emitter.particleEmissionMode = ParticleEmitter.EmissionMode.BURST_INACTIVE
-                        }
+                particleEmitters.value.flatMap { emitter ->
+                    val particleCount = when (val mode = emitter.particleEmissionMode) {
+                        is ParticleEmitter.Mode.Burst -> mode.emissionsPerBurst.also { emitter.particleEmissionMode = ParticleEmitter.Mode.Inactive }
+                        is ParticleEmitter.Mode.Continuous -> (mode.emissionsPerMillisecond * deltaTimeInMilliseconds).roundToInt()
+                        ParticleEmitter.Mode.Inactive -> 0
                     }
+                    if (particleCount > 0) (0..particleCount).map {
+                        emitter.createParticle()
+                    } else emptyList()
+                }
             )
         }
     }

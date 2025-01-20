@@ -23,6 +23,8 @@ import com.pandulapeter.kubriko.uiComponents.ShaderSlider
 import kubriko.tools.particle_editor.generated.resources.Res
 import kubriko.tools.particle_editor.generated.resources.burst
 import kubriko.tools.particle_editor.generated.resources.emit_continuously
+import kubriko.tools.particle_editor.generated.resources.lifespan
+import kubriko.tools.particle_editor.generated.resources.rate
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -39,6 +41,8 @@ internal fun EmitterPropertiesPanel(
             isEmittingContinuously = particleEditorManager.isEmittingContinuously.collectAsState().value,
             onEmittingContinuouslyChanged = particleEditorManager::onEmittingContinuouslyChanged,
             onBurstButtonPressed = particleEditorManager::burst,
+            lifespan = particleEditorManager.lifespan.collectAsState().value,
+            onLifespanChanged = particleEditorManager::setLifespan,
         )
     }
 }
@@ -50,10 +54,16 @@ private fun Type(
     isEmittingContinuously: Boolean,
     onEmittingContinuouslyChanged: () -> Unit,
     onBurstButtonPressed: () -> Unit,
+    lifespan: Float,
+    onLifespanChanged: (Float) -> Unit,
 ) = Column(
     modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
     verticalArrangement = Arrangement.spacedBy(8.dp),
 ) {
+    Text(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        text = stringResource(Res.string.rate, "%.2f".format(emissionRate)),
+    )
     ShaderSlider(
         modifier = Modifier.padding(horizontal = 8.dp),
         value = emissionRate,
@@ -87,5 +97,15 @@ private fun Type(
         title = Res.string.burst,
         isEnabled = !isEmittingContinuously && emissionRate > 0f,
         onButtonPressed = onBurstButtonPressed,
+    )
+    Text(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        text = stringResource(Res.string.lifespan, "%.0f".format(lifespan)),
+    )
+    ShaderSlider(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        value = lifespan,
+        onValueChanged = onLifespanChanged,
+        valueRange = 100f..1000f,
     )
 }

@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 internal class ParticleEditorManager : Manager(), ParticleEmitter, Unique {
@@ -33,26 +34,34 @@ internal class ParticleEditorManager : Manager(), ParticleEmitter, Unique {
     val emissionRate = _emissionRate.asStateFlow()
     private val _isEmittingContinuously = MutableStateFlow(true)
     val isEmittingContinuously = _isEmittingContinuously.asStateFlow()
-    override val particleEmissionRate get() = emissionRate.value
     override var particleEmissionMode = if (isEmittingContinuously.value) {
-        ParticleEmitter.EmissionMode.CONTINUOUS
+        ParticleEmitter.Mode.Continuous(emissionRate.value)
     } else {
-        ParticleEmitter.EmissionMode.BURST_INACTIVE
+        ParticleEmitter.Mode.Inactive
     }
+    private val _lifespan = MutableStateFlow(500f)
+    val lifespan = _lifespan.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager.add(this)
+        emissionRate.onEach { emissionRate ->
+            if (isEmittingContinuously.value) {
+                particleEmissionMode = ParticleEmitter.Mode.Continuous(emissionRate)
+            }
+        }.launchIn(scope)
         isEmittingContinuously.onEach { isEmittingContinuously ->
-            particleEmissionMode = if (isEmittingContinuously) ParticleEmitter.EmissionMode.CONTINUOUS else ParticleEmitter.EmissionMode.BURST_INACTIVE
+            particleEmissionMode = if (isEmittingContinuously) ParticleEmitter.Mode.Continuous(emissionRate.value) else ParticleEmitter.Mode.Inactive
         }.launchIn(scope)
     }
 
     fun setEmissionRate(emissionRate: Float) = _emissionRate.update { emissionRate }
 
+    fun setLifespan(lifespan: Float) = _lifespan.update { lifespan }
+
     fun onEmittingContinuouslyChanged() = _isEmittingContinuously.update { !it }
 
     fun burst() {
-        particleEmissionMode = ParticleEmitter.EmissionMode.BURST_ACTIVE
+        particleEmissionMode = ParticleEmitter.Mode.Burst((emissionRate.value * 100).roundToInt())
     }
 
     override fun createParticle() = Particle(
@@ -61,6 +70,6 @@ internal class ParticleEditorManager : Manager(), ParticleEmitter, Unique {
         ),
         speed = 5f.sceneUnit,
         direction = AngleRadians.TwoPi * Random.nextFloat(),
-        lifespanInMilliseconds = 1000f,
+        lifespanInMilliseconds = lifespan.value,
     )
 }
