@@ -24,11 +24,10 @@ internal class ParticlesDemoStateHolderImpl : ParticlesDemoStateHolder {
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    val particlesDemoManager = ParticlesDemoManager()
     private val _kubriko = MutableStateFlow(
         Kubriko.newInstance(
             particleManager,
-            particlesDemoManager,
+            ParticlesDemoManager(),
             isLoggingEnabled = true,
             instanceNameForLogging = LOG_TAG,
         )

@@ -12,7 +12,6 @@ package com.pandulapeter.kubriko.debugMenu
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -43,7 +42,7 @@ import org.jetbrains.compose.resources.stringResource
 fun KubrikoViewportWithDebugMenuOverlay(
     modifier: Modifier = Modifier,
     kubriko: Kubriko?,
-    kubrikoViewport: @Composable BoxScope.() -> Unit,
+    kubrikoViewport: @Composable () -> Unit,
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     buttonAlignment: Alignment? = Alignment.TopStart,
 ) {

@@ -173,7 +173,8 @@ private fun Metadata(
     text = "Kubriko: ${debugMenuMetadata.kubrikoInstanceName}\n" +
             "FPS: ${debugMenuMetadata.fps.roundToInt()}\n" +
             "Actors: ${debugMenuMetadata.visibleActorWithinViewportCount}/${debugMenuMetadata.totalActorCount}\n" +
-            "Play time: ${debugMenuMetadata.playTimeInSeconds}"
+            "Play time: ${debugMenuMetadata.playTimeInSeconds}\n" +
+            "Viewport size: ${debugMenuMetadata.viewportSize.width.roundToInt()}*${debugMenuMetadata.viewportSize.height.roundToInt()}"
 )
 
 @Composable

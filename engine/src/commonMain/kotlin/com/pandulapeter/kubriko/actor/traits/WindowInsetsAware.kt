@@ -9,10 +9,10 @@
  */
 package com.pandulapeter.kubriko.actor.traits
 
-import androidx.compose.ui.geometry.Rect
+import androidx.compose.foundation.layout.WindowInsets
 import com.pandulapeter.kubriko.actor.Actor
 
-interface InsetPaddingAware : Actor {
+interface WindowInsetsAware : Actor {
 
-    fun onInsetPaddingChanged(insetPadding: Rect)
+    fun onWindowInsetsChanged(windowInsets: WindowInsets)
 }

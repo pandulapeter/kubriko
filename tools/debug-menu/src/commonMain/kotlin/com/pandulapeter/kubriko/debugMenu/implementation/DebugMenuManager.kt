@@ -47,17 +47,18 @@ internal class DebugMenuManager(
         }
         combine(
             gameMetadataManager.fps,
-            gameActorManager.allActors,
-            gameActorManager.visibleActorsWithinViewport,
+            combine(gameActorManager.allActors,gameActorManager.visibleActorsWithinViewport) { all, visible -> all to visible},
             gameMetadataManager.activeRuntimeInMilliseconds,
+            gameViewportManager.size,
             InternalDebugMenu.isDebugOverlayEnabled,
-        ) { fps, allActors, visibleActorsWithinViewport, runtimeInMilliseconds, isDebugOverlayEnabled ->
+        ) { fps, (allActors, visibleActorsWithinViewport), runtimeInMilliseconds, viewportSize, isDebugOverlayEnabled ->
             DebugMenuMetadata(
                 kubrikoInstanceName = gameKubriko.instanceName,
                 fps = fps,
                 totalActorCount = allActors.count(),
                 visibleActorWithinViewportCount = visibleActorsWithinViewport.count(),
                 playTimeInSeconds = runtimeInMilliseconds / 1000,
+                viewportSize = viewportSize,
                 isDebugOverlayEnabled = isDebugOverlayEnabled,
             )
         }.onEach(InternalDebugMenu::setMetadata).launchIn(scope)

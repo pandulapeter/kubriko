@@ -9,13 +9,29 @@
  */
 package com.pandulapeter.kubriko.demoParticles.implementation.managers
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Unique
+import com.pandulapeter.kubriko.demoParticles.implementation.ui.EmitterPropertiesPanel
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.particles.Particle
 import com.pandulapeter.kubriko.particles.ParticleEmitter
 import com.pandulapeter.kubriko.types.AngleRadians
@@ -32,6 +48,7 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter, Unique {
 
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
+    private val viewportManager by manager<ViewportManager>()
     private val _emissionRate = MutableStateFlow(0.5f)
     val emissionRate = _emissionRate.asStateFlow()
     private val _isEmittingContinuously = MutableStateFlow(true)
@@ -77,4 +94,21 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter, Unique {
         direction = AngleRadians.TwoPi * Random.nextFloat(),
         lifespanInMilliseconds = lifespan.value,
     )
+
+    @Composable
+    override fun Composable(insetPaddingModifier: Modifier) {
+        val windowInsets = viewportManager.windowInsets.collectAsState().value.only(WindowInsetsSides.Right)
+        Box(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            EmitterPropertiesPanel(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .width(240.dp + windowInsets.asPaddingValues().calculateRightPadding(LocalLayoutDirection.current))
+                    .windowInsetsPadding(windowInsets)
+                    .fillMaxHeight(),
+                particlesDemoManager = this@ParticlesDemoManager,
+            )
+        }
+    }
 }

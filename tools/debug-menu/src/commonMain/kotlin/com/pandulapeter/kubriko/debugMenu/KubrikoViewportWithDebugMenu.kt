@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubriko.debugMenu
 
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,7 +32,7 @@ fun KubrikoViewportWithDebugMenu(
     isEnabled: Boolean = true,
     buttonAlignment: Alignment? = Alignment.TopStart,
     debugMenuTheme: @Composable (@Composable () -> Unit) -> Unit = { KubrikoTheme(it) },
-    kubrikoViewport: @Composable BoxScope.() -> Unit,
+    kubrikoViewport: @Composable () -> Unit,
 ) = BoxWithConstraints(
     modifier = modifier,
 ) {

@@ -171,7 +171,6 @@ private fun ExpandedContent(
             Spacer(modifier = Modifier.width(sideMenuWidth).background(MaterialTheme.colorScheme.surface))
         }
         KubrikoViewportWithDebugMenuOverlay(
-            modifier = Modifier.weight(1f),
             kubriko = activeKubrikoInstance,
             kubrikoViewport = {
                 val compactTransitionSpec: AnimatedContentTransitionScope<ShowcaseEntry?>.() -> ContentTransform =

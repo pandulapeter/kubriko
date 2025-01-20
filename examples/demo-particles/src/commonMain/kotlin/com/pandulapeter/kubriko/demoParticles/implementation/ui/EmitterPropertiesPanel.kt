@@ -62,7 +62,7 @@ private fun Type(
 ) {
     Text(
         modifier = Modifier.padding(horizontal = 8.dp),
-        text = stringResource(Res.string.rate, emissionRate),
+        text = stringResource(Res.string.rate, emissionRate.formatToString()),
     )
     ShaderSlider(
         modifier = Modifier.padding(horizontal = 4.dp),
@@ -100,12 +100,16 @@ private fun Type(
     )
     Text(
         modifier = Modifier.padding(horizontal = 8.dp),
-        text = stringResource(Res.string.lifespan, lifespan),
+        text = stringResource(Res.string.lifespan, lifespan.formatToString()),
     )
     ShaderSlider(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 4.dp),
         value = lifespan,
         onValueChanged = onLifespanChanged,
         valueRange = 100f..1000f,
     )
+}
+
+private fun Float.formatToString() = toString().let {
+    it.substringBefore('.') + "." + it.substringAfter('.').take(2)
 }

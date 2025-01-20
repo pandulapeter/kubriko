@@ -22,10 +22,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -55,15 +53,7 @@ fun InternalViewport(
 
     // Inset handling
     val density = LocalDensity.current
-    val layoutDirection = LocalLayoutDirection.current
-    kubrikoImpl.viewportManager.updateInsetPadding(
-        Rect(
-            left = windowInsets.getLeft(density, layoutDirection).toFloat(),
-            top = windowInsets.getTop(density).toFloat(),
-            right = windowInsets.getRight(density, layoutDirection).toFloat(),
-            bottom = windowInsets.getBottom(density).toFloat(),
-        )
-    )
+    kubrikoImpl.viewportManager.updateWindowInsets(windowInsets)
 
     // Game loop
     LaunchedEffect(Unit) {

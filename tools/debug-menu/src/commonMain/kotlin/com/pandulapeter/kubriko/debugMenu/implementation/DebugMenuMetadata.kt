@@ -9,11 +9,14 @@
  */
 package com.pandulapeter.kubriko.debugMenu.implementation
 
+import androidx.compose.ui.geometry.Size
+
 internal data class DebugMenuMetadata(
     val kubrikoInstanceName: String = "",
     val fps: Float = 0f,
     val totalActorCount: Int = 0,
     val visibleActorWithinViewportCount: Int = 0,
     val playTimeInSeconds: Long = 0,
+    val viewportSize: Size = Size.Zero,
     val isDebugOverlayEnabled: Boolean = false,
 )

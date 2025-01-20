@@ -9,21 +9,14 @@
  */
 package com.pandulapeter.kubriko.demoParticles
 
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.demoParticles.implementation.ParticlesDemoStateHolder
 import com.pandulapeter.kubriko.demoParticles.implementation.ParticlesDemoStateHolderImpl
-import com.pandulapeter.kubriko.demoParticles.implementation.ui.EmitterPropertiesPanel
 
 fun createParticlesDemoStateHolder(): ParticlesDemoStateHolder = ParticlesDemoStateHolderImpl()
 
@@ -34,18 +27,9 @@ fun ParticlesDemo(
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as ParticlesDemoStateHolderImpl
-    Row(
-        modifier = modifier.fillMaxSize(),
-    ) {
-        KubrikoViewport(
-            modifier = Modifier.weight(1f).fillMaxHeight(),
-            kubriko = stateHolder.kubriko.collectAsState().value,
-            windowInsets = windowInsets,
-        )
-        VerticalDivider()
-        EmitterPropertiesPanel(
-            modifier = Modifier.width(240.dp).fillMaxHeight(),
-            particlesDemoManager = stateHolder.particlesDemoManager,
-        )
-    }
+    KubrikoViewport(
+        modifier = modifier,
+        kubriko = stateHolder.kubriko.collectAsState().value,
+        windowInsets = windowInsets,
+    )
 }

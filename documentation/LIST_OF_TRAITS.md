@@ -7,12 +7,12 @@ Read the KDoc comments of the linked files for more information.
 - [Dynamic](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Dynamic.kt)
 - [Group](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Group.kt)
 - [Identifiable](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Identifiable.kt)
-- [InsetPaddingAware](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/InsetPaddingAware.kt)
 - [LayerAware](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/LayerAware.kt)
 - [Overlay](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Overlay.kt)
 - [Positionable](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Positionable.kt)
 - [Unique](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Unique.kt)
 - [Visible](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Visible.kt)
+- [WindowInsetsAware](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/WindowInsetsAware.kt)
 
 ## Collision plugin
 - [Collidable](https://github.com/pandulapeter/kubriko/blob/main/plugins/collision/src/commonMain/kotlin/com/pandulapeter/kubriko/collision/Collidable.kt)

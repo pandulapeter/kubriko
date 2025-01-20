@@ -9,8 +9,8 @@
  */
 package com.pandulapeter.kubriko.manager
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoImpl
@@ -49,8 +49,8 @@ internal class ViewportManagerImpl(
             scaleFactor * scaleFactorMultiplier
         }.asStateFlow(Scale.Unit)
     }
-    private val _insetPadding = MutableStateFlow(Rect(Offset.Zero, Offset.Zero))
-    override val insetPadding = _insetPadding.asStateFlow()
+    private val _windowInsets = MutableStateFlow(WindowInsets(0, 0, 0, 0))
+    override val windowInsets = _windowInsets.asStateFlow()
     override val topLeft by autoInitializingLazy {
         combine(cameraPosition, size, scaleFactor) { viewportCenter, viewportSize, scaleFactor ->
             Offset.Zero.toSceneOffset(
@@ -72,8 +72,8 @@ internal class ViewportManagerImpl(
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = (kubriko as KubrikoImpl).actorManager
-        insetPadding.onEach { insetPadding ->
-            actorManager.insetPaddingAwareActors.value.forEach { it.onInsetPaddingChanged(insetPadding) }
+        windowInsets.onEach { windowInsets ->
+            actorManager.windowInsetsAwareActors.value.forEach { it.onWindowInsetsChanged(windowInsets) }
         }.launchIn(scope)
     }
 
@@ -99,9 +99,5 @@ internal class ViewportManagerImpl(
 
     fun updateSize(size: Size) = _size.update { size }
 
-    fun updateInsetPadding(insetPadding: Rect) {
-        if (insetPadding != this.insetPadding.value) {
-            _insetPadding.update { insetPadding }
-        }
-    }
+    fun updateWindowInsets(windowInsets: WindowInsets) = _windowInsets.update { windowInsets }
 }

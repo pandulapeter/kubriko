@@ -25,11 +25,11 @@ import com.pandulapeter.kubriko.actor.traits.Disposable
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.Identifiable
-import com.pandulapeter.kubriko.actor.traits.InsetPaddingAware
 import com.pandulapeter.kubriko.actor.traits.LayerAware
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.actor.traits.WindowInsetsAware
 import com.pandulapeter.kubriko.extensions.distinctUntilChangedWithDelay
 import com.pandulapeter.kubriko.extensions.div
 import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
@@ -75,8 +75,8 @@ internal class ActorManagerImpl(
         _allActors.map { actors -> actors.filterIsInstance<Overlay>().sortedByDescending { it.overlayDrawingOrder }.toImmutableList() }
             .asStateFlow(persistentListOf())
     }
-    internal val insetPaddingAwareActors by autoInitializingLazy {
-        _allActors.map { actors -> actors.filterIsInstance<InsetPaddingAware>().toImmutableList() }.asStateFlow(persistentListOf())
+    internal val windowInsetsAwareActors by autoInitializingLazy {
+        _allActors.map { actors -> actors.filterIsInstance<WindowInsetsAware>().toImmutableList() }.asStateFlow(persistentListOf())
     }
     override val visibleActorsWithinViewport by lazy {
         combine(
@@ -128,7 +128,7 @@ internal class ActorManagerImpl(
         val filteredCurrentActors = currentActors.filterNot { it::class in uniqueNewActorTypes }
         newActors.filterIsInstance<Identifiable>().onEach { if (it.name == null) it.name = Uuid.random().toString() }
         newActors.forEach { it.onAdded(scope as Kubriko) }
-        newActors.filterIsInstance<InsetPaddingAware>().forEach { it.onInsetPaddingChanged(viewportManager.insetPadding.value) }
+        newActors.filterIsInstance<WindowInsetsAware>().forEach { it.onWindowInsetsChanged(viewportManager.windowInsets.value) }
         (filteredCurrentActors + newActors).toImmutableList()
     }
 
