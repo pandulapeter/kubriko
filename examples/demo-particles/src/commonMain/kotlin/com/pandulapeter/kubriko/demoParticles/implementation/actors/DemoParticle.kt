@@ -63,7 +63,9 @@ internal class DemoParticle(
             removeAndCache()
         } else {
             body.scale *= (1f - currentProgress / 20f)
-            body.rotation += AngleRadians.Pi / 20f
+            if (body.scale.horizontal < 0.05f) {
+                removeAndCache()
+            }
             remainingLifespan -= deltaTimeInMilliseconds
         }
     }

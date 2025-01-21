@@ -26,6 +26,7 @@ import kubriko.examples.demo_particles.generated.resources.emit_continuously
 import kubriko.examples.demo_particles.generated.resources.lifespan
 import kubriko.examples.demo_particles.generated.resources.rate
 import org.jetbrains.compose.resources.stringResource
+import kotlin.math.roundToInt
 
 @Composable
 internal fun EmitterPropertiesPanel(
@@ -68,7 +69,7 @@ private fun Type(
         modifier = Modifier.padding(horizontal = 4.dp),
         value = emissionRate,
         onValueChanged = onEmissionRateChanged,
-        valueRange = 0f..3f,
+        valueRange = 0f..0.5f,
     )
     Row(
         modifier = Modifier.fillMaxSize()
@@ -100,13 +101,13 @@ private fun Type(
     )
     Text(
         modifier = Modifier.padding(horizontal = 8.dp),
-        text = stringResource(Res.string.lifespan, lifespan.formatToString()),
+        text = stringResource(Res.string.lifespan, lifespan.roundToInt()),
     )
     ShaderSlider(
         modifier = Modifier.padding(horizontal = 4.dp),
         value = lifespan,
         onValueChanged = onLifespanChanged,
-        valueRange = 100f..1000f,
+        valueRange = 100f..2000f,
     )
 }
 

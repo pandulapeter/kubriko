@@ -39,6 +39,7 @@ internal class Bullet(
     )
     private lateinit var actorManager: ActorManager
     private lateinit var viewportManager: ViewportManager
+    override val drawingOrder = 1f
     override var particleEmissionMode: ParticleEmitter.Mode = ParticleEmitter.Mode.Continuous(
         emissionsPerMillisecond = 0.1f
     )
@@ -114,6 +115,9 @@ internal class Bullet(
                 removeAndCache()
             } else {
                 body.scale *= (1f - currentProgress / 5f)
+                if (body.scale.horizontal < 0.05f) {
+                    removeAndCache()
+                }
                 remainingLifespan -= deltaTimeInMilliseconds
             }
         }
