@@ -69,18 +69,21 @@ class CircleBody(
         }
 
     // TODO: Not precise while rotating
-    override fun createAxisAlignedBoundingBox() = (if (scale.horizontal != scale.vertical || pivot != size.center) rotation else AngleRadians.Zero).let { rotation ->
-        arrayOf(
-            transformPoint(SceneOffset.Zero, rotation),
-            transformPoint(SceneOffset.Right * size.width, rotation),
-            transformPoint(SceneOffset.Down * size.height, rotation),
-            transformPoint(size.bottomRight, rotation),
-        ).let { corners ->
-            AxisAlignedBoundingBox(
-                min = SceneOffset(corners.minOf { it.x }, corners.minOf { it.y }) - pivot + position,
-                max = SceneOffset(corners.maxOf { it.x }, corners.maxOf { it.y }) - pivot + position,
-            )
-        }
+    override fun createAxisAlignedBoundingBox() = if (scale.horizontal == scale.vertical && pivot == size.center) {
+        AxisAlignedBoundingBox(
+            min = SceneOffset.Zero - pivot * scale + position,
+            max = SceneOffset(size.width, size.height) * scale - pivot * scale + position,
+        )
+    } else arrayOf(
+        transformPoint(SceneOffset.Zero, rotation),
+        transformPoint(SceneOffset.Right * size.width, rotation),
+        transformPoint(SceneOffset.Down * size.height, rotation),
+        transformPoint(size.bottomRight, rotation),
+    ).let { corners ->
+        AxisAlignedBoundingBox(
+            min = SceneOffset(corners.minOf { it.x }, corners.minOf { it.y }) - pivot + position,
+            max = SceneOffset(corners.maxOf { it.x }, corners.maxOf { it.y }) - pivot + position,
+        )
     }
 
     private fun transformPoint(point: SceneOffset, rotation: AngleRadians): SceneOffset {
