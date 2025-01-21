@@ -43,7 +43,7 @@ import kotlinx.coroutines.flow.update
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
-internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticle>, Unique {
+internal class ParticlesDemoManager : Manager(), ParticleEmitter<ParticlesDemoManager, DemoParticle>, Unique {
 
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
@@ -59,8 +59,9 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticle>, 
     }
     private val _lifespan = MutableStateFlow(500f)
     val lifespan = _lifespan.asStateFlow()
-    override val particleCache = ParticleEmitter.Cache<DemoParticle> {
-        it.reset(
+
+    override fun createParticleCache() = ParticleEmitter.Cache<ParticlesDemoManager, DemoParticle> { _, particle ->
+        particle.reset(
             initialPosition = SceneOffset.Zero,
             initialHue = Random.nextFloat() * 360f,
             lifespanInMilliseconds = lifespan.value * 6,
@@ -95,7 +96,7 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticle>, 
     }
 
     override fun createParticle() = DemoParticle(
-        particleCache = particleCache,
+        emitter = this,
         initialPosition = SceneOffset.Zero,
         initialHue = Random.nextFloat() * 360f,
         lifespanInMilliseconds = lifespan.value * 6,

@@ -14,9 +14,8 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
-import com.pandulapeter.kubriko.actor.body.PointBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
-import com.pandulapeter.kubriko.actor.traits.Positionable
+import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.extensions.sceneUnit
@@ -33,22 +32,30 @@ import kotlin.random.Random
 
 internal class Bullet(
     initialPosition: SceneOffset,
-) : Positionable, Dynamic, ParticleEmitter<Bullet.BulletParticle> {
-    override val body = PointBody(
+) : Visible, Dynamic, ParticleEmitter<Bullet, Bullet.BulletParticle> {
+    override val body = CircleBody(
         initialPosition = initialPosition,
+        initialRadius = 10f.sceneUnit,
     )
     private lateinit var actorManager: ActorManager
     private lateinit var viewportManager: ViewportManager
     override var particleEmissionMode: ParticleEmitter.Mode = ParticleEmitter.Mode.Continuous(
         emissionsPerMillisecond = 0.1f
     )
-    override val particleCache = ParticleEmitter.Cache<BulletParticle> {
-        it.reset(
-            initialPosition = body.position,
+
+    override fun createParticleCache() = ParticleEmitter.Cache<Bullet, BulletParticle> { emitter, particle ->
+        particle.reset(
+            initialPosition = emitter.body.position,
             speed = 1f.sceneUnit,
             direction = AngleRadians.TwoPi * Random.nextFloat(),
         )
     }
+
+    override fun DrawScope.draw() = drawCircle(
+        radius = body.radius.raw,
+        center = body.size.center.raw,
+        color = Color.White,
+    )
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
@@ -64,19 +71,19 @@ internal class Bullet(
     }
 
     override fun createParticle() = BulletParticle(
-        particleCache = particleCache,
+        emitter = this,
         initialPosition = body.position,
         speed = 1f.sceneUnit,
         direction = AngleRadians.TwoPi * Random.nextFloat(),
     )
 
     class BulletParticle(
-        particleCache: ParticleEmitter.Cache<BulletParticle>,
+        emitter: Bullet,
         initialPosition: SceneOffset,
         speed: SceneUnit,
         direction: AngleRadians,
     ) : Particle<BulletParticle>(
-        cache = particleCache,
+        emitter = emitter,
         speed = speed,
         direction = direction,
     ) {
@@ -94,7 +101,6 @@ internal class Bullet(
             speed: SceneUnit,
             direction: AngleRadians,
         ) {
-            currentProgress = 0f
             remainingLifespan = lifespanInMilliseconds
             body.position = initialPosition
             body.scale = Scale.Unit
@@ -105,7 +111,7 @@ internal class Bullet(
         override fun updateParticle(deltaTimeInMilliseconds: Float) {
             currentProgress = 1f - (remainingLifespan / lifespanInMilliseconds)
             if (currentProgress >= 1) {
-                remove()
+                removeAndCache()
             } else {
                 body.scale *= (1f - currentProgress / 5f)
                 remainingLifespan -= deltaTimeInMilliseconds

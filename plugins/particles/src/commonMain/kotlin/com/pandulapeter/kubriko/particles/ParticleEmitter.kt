@@ -2,22 +2,30 @@ package com.pandulapeter.kubriko.particles
 
 import com.pandulapeter.kubriko.actor.Actor
 
-interface ParticleEmitter<T : Particle<T>> : Actor {
+interface ParticleEmitter<E: ParticleEmitter<E, T>, T : Particle<T>> : Actor {
 
     var particleEmissionMode: Mode
-    val particleCache: Cache<T>
 
     fun createParticle(): T
 
-    class Cache<T : Particle<T>>(
-        private val reuseParticle: (T) -> Unit,
+    fun createParticleCache(): Cache<E, T>
+
+    @Suppress("UNCHECKED_CAST")
+    class Cache<E: ParticleEmitter<E, T>, T : Particle<T>>(
+        private val size: Int = 4000,
+        private val reuseParticle: (emitter: E, T) -> Unit,
     ) {
         private val particles: ArrayDeque<T> = ArrayDeque()
 
-        @Suppress("UNCHECKED_CAST")
-        internal fun push(particle: Particle<T>) = particles.addLast(particle as T)
+        internal fun push(particle: Particle<*>) {
+            if (particles.size < size) {
+                particles.addLast(particle as T)
+            }
+        }
 
-        internal fun pop(): Particle<T>? = particles.removeLastOrNull()?.also(reuseParticle)
+        internal fun pop(emitter: ParticleEmitter<*, *>): Particle<T>? = particles.removeLastOrNull()?.also {
+            reuseParticle(emitter as E, it)
+        }
 
         fun clear() = particles.clear()
     }

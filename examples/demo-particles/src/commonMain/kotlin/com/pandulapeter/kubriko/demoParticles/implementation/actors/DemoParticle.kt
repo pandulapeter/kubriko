@@ -13,23 +13,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import com.pandulapeter.kubriko.actor.body.CircleBody
+import com.pandulapeter.kubriko.demoParticles.implementation.managers.ParticlesDemoManager
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.particles.Particle
-import com.pandulapeter.kubriko.particles.ParticleEmitter
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
 internal class DemoParticle(
-    particleCache: ParticleEmitter.Cache<DemoParticle>,
+    emitter: ParticlesDemoManager,
     initialPosition: SceneOffset,
     private var initialHue: Float,
     private var lifespanInMilliseconds: Float,
     speed: SceneUnit = SceneUnit.Zero,
     direction: AngleRadians = AngleRadians.Zero,
 ) : Particle<DemoParticle>(
-    cache = particleCache,
+    emitter = emitter,
     speed = speed,
     direction = direction,
 ) {
@@ -47,10 +47,10 @@ internal class DemoParticle(
         speed: SceneUnit,
         direction: AngleRadians,
     ) {
-        currentProgress = 0f
         remainingLifespan = lifespanInMilliseconds
         body.position = initialPosition
         body.scale = Scale.Unit
+        body.rotation = AngleRadians.Zero
         this.initialHue = initialHue
         this.lifespanInMilliseconds = lifespanInMilliseconds
         this.speed = speed
@@ -60,7 +60,7 @@ internal class DemoParticle(
     override fun updateParticle(deltaTimeInMilliseconds: Float) {
         currentProgress = 1f - (remainingLifespan / lifespanInMilliseconds)
         if (currentProgress >= 1) {
-            remove()
+            removeAndCache()
         } else {
             body.scale *= (1f - currentProgress / 20f)
             body.rotation += AngleRadians.Pi / 20f

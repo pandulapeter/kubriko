@@ -7,35 +7,31 @@ import com.pandulapeter.kubriko.extensions.cos
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.extensions.sin
-import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
-abstract class Particle<T: Particle<T>>(
-    private val cache: ParticleEmitter.Cache<T>,
+abstract class Particle<T : Particle<T>>(
+    private val emitter: ParticleEmitter<*, T>,
     protected var speed: SceneUnit = SceneUnit.Zero,
     protected var direction: AngleRadians = AngleRadians.Zero,
 ) : Visible, Dynamic {
-    private lateinit var actorManager: ActorManager
+    private lateinit var particleManager: ParticleManagerImpl
     private lateinit var viewportManager: ViewportManager
 
     abstract fun updateParticle(deltaTimeInMilliseconds: Float)
 
     override fun onAdded(kubriko: Kubriko) {
-        actorManager = kubriko.get()
+        particleManager = kubriko.get()
         viewportManager = kubriko.get()
     }
 
-    protected fun remove() {
-        cache.push(this)
-        actorManager.remove(this)
-    }
+    protected fun removeAndCache() = particleManager.remove(emitter, this)
 
     final override fun update(deltaTimeInMilliseconds: Float) {
         if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
-            remove()
+            removeAndCache()
         } else {
             if (speed != SceneUnit.Zero) {
                 body.position = SceneOffset(

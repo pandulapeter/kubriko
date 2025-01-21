@@ -15,6 +15,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.map
 import kotlin.math.roundToInt
+import kotlin.reflect.KClass
 
 internal class ParticleManagerImpl(
     isLoggingEnabled: Boolean,
@@ -26,9 +27,15 @@ internal class ParticleManagerImpl(
     private val particleEmitters by autoInitializingLazy {
         actorManager.allActors.map { allActors ->
             allActors
-                .filterIsInstance<ParticleEmitter<*>>()
+                .filterIsInstance<ParticleEmitter<*, *>>()
                 .toImmutableList()
         }.asStateFlow(persistentListOf())
+    }
+    private val cache = mutableMapOf<KClass<out ParticleEmitter<*, *>>, ParticleEmitter.Cache<*, *>>()
+
+    fun remove(emitter: ParticleEmitter<*, *>, particle: Particle<*>) {
+        (cache[emitter::class] ?: emitter.createParticleCache().also { cache[emitter::class] = it }).push(particle)
+        actorManager.remove(particle)
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
@@ -41,10 +48,12 @@ internal class ParticleManagerImpl(
                         ParticleEmitter.Mode.Inactive -> 0
                     }
                     if (particleCount > 0) (0..particleCount).map {
-                        emitter.particleCache.pop() ?: emitter.createParticle()
+                        cache[emitter::class]?.pop(emitter) ?: emitter.createParticle()
                     } else emptyList()
                 }
             )
         }
     }
+
+    override fun onDispose() = cache.values.forEach { it.clear() }
 }
