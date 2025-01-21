@@ -72,6 +72,8 @@ fun SceneOffset.distanceTo(other: SceneOffset): SceneUnit = (x.raw - other.x.raw
     }
 }
 
+fun SceneOffset.directionTowards(other: SceneOffset): AngleRadians = atan2(other.y.raw - y.raw, other.x.raw - x.raw).rad
+
 fun SceneOffset.length(): SceneUnit = distanceTo(SceneOffset.Zero)
 
 fun SceneOffset.dot(v1: SceneOffset): SceneUnit = (v1.x.raw * x.raw + v1.y.raw * y.raw).sceneUnit

@@ -73,6 +73,8 @@ internal class AudioManager(
 
     fun playShootSoundEffect() = playSoundEffect(URI_SOUND_SHOOT)
 
+    fun playShootAlienSoundEffect() = playSoundEffect(URI_SOUND_SHOOT_ALIEN)
+
     fun stopMusicBeforeDispose() = shouldStopMusic.update { true }
 
     private fun playSoundEffect(uri: String) {
@@ -87,6 +89,7 @@ internal class AudioManager(
         private const val URI_SOUND_BUTTON_TOGGLE = "files/sounds/button_toggle.wav"
         private const val URI_SOUND_BUTTON_HOVER = "files/sounds/button_hover.wav"
         private const val URI_SOUND_SHOOT = "files/sounds/shoot.wav"
+        private const val URI_SOUND_SHOOT_ALIEN = "files/sounds/shoot_alien.wav"
 
         fun getMusicUrisToPreload() = listOf(
             URI_MUSIC,
@@ -97,6 +100,7 @@ internal class AudioManager(
             URI_SOUND_BUTTON_TOGGLE,
             URI_SOUND_BUTTON_HOVER,
             URI_SOUND_SHOOT,
+            URI_SOUND_SHOOT_ALIEN,
         ).map { Res.getUri(it) }
     }
 }
