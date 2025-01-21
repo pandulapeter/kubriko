@@ -26,7 +26,9 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.particles.Particle
 import com.pandulapeter.kubriko.particles.ParticleEmitter
 import com.pandulapeter.kubriko.types.AngleRadians
+import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.random.Random
 
 internal class Bullet(
@@ -40,6 +42,13 @@ internal class Bullet(
     override var particleEmissionMode: ParticleEmitter.Mode = ParticleEmitter.Mode.Continuous(
         emissionsPerMillisecond = 0.1f
     )
+    override val particleCache = ParticleEmitter.Cache<BulletParticle> {
+        it.reset(
+            initialPosition = body.position,
+            speed = 1f.sceneUnit,
+            direction = AngleRadians.TwoPi * Random.nextFloat(),
+        )
+    }
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
@@ -55,14 +64,21 @@ internal class Bullet(
     }
 
     override fun createParticle() = BulletParticle(
+        particleCache = particleCache,
         initialPosition = body.position,
+        speed = 1f.sceneUnit,
+        direction = AngleRadians.TwoPi * Random.nextFloat(),
     )
 
     class BulletParticle(
+        particleCache: ParticleEmitter.Cache<BulletParticle>,
         initialPosition: SceneOffset,
-    ) : Particle(
-        speed = 1f.sceneUnit,
-        direction = AngleRadians.TwoPi * Random.nextFloat(),
+        speed: SceneUnit,
+        direction: AngleRadians,
+    ) : Particle<BulletParticle>(
+        cache = particleCache,
+        speed = speed,
+        direction = direction,
     ) {
         private val lifespanInMilliseconds = 300f
         private var remainingLifespan = lifespanInMilliseconds
@@ -72,6 +88,19 @@ internal class Bullet(
             initialPosition = initialPosition,
             initialRadius = 4.sceneUnit,
         )
+
+        fun reset(
+            initialPosition: SceneOffset,
+            speed: SceneUnit,
+            direction: AngleRadians,
+        ) {
+            currentProgress = 0f
+            remainingLifespan = lifespanInMilliseconds
+            body.position = initialPosition
+            body.scale = Scale.Unit
+            this.speed = speed
+            this.direction = direction
+        }
 
         override fun updateParticle(deltaTimeInMilliseconds: Float) {
             currentProgress = 1f - (remainingLifespan / lifespanInMilliseconds)

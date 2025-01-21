@@ -41,7 +41,7 @@ internal class ParticleManagerImpl(
                         ParticleEmitter.Mode.Inactive -> 0
                     }
                     if (particleCount > 0) (0..particleCount).map {
-                        emitter.createParticle()
+                        emitter.particleCache.pop() ?: emitter.createParticle()
                     } else emptyList()
                 }
             )

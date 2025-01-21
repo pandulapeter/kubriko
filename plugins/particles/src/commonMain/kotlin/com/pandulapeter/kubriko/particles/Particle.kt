@@ -13,7 +13,8 @@ import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
-abstract class Particle(
+abstract class Particle<T: Particle<T>>(
+    private val cache: ParticleEmitter.Cache<T>,
     protected var speed: SceneUnit = SceneUnit.Zero,
     protected var direction: AngleRadians = AngleRadians.Zero,
 ) : Visible, Dynamic {
@@ -27,7 +28,10 @@ abstract class Particle(
         viewportManager = kubriko.get()
     }
 
-    protected fun remove() = actorManager.remove(this)
+    protected fun remove() {
+        cache.push(this)
+        actorManager.remove(this)
+    }
 
     final override fun update(deltaTimeInMilliseconds: Float) {
         if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {

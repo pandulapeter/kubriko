@@ -15,21 +15,47 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.particles.Particle
+import com.pandulapeter.kubriko.particles.ParticleEmitter
 import com.pandulapeter.kubriko.types.AngleRadians
-import kotlin.random.Random
+import com.pandulapeter.kubriko.types.Scale
+import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.SceneUnit
 
 internal class DemoParticle(
-    private val initialHue: Float,
-    private val lifespanInMilliseconds: Float,
-) : Particle(
-    speed = 1.5f.sceneUnit,
-    direction = AngleRadians.TwoPi * Random.nextFloat(),
+    particleCache: ParticleEmitter.Cache<DemoParticle>,
+    initialPosition: SceneOffset,
+    private var initialHue: Float,
+    private var lifespanInMilliseconds: Float,
+    speed: SceneUnit = SceneUnit.Zero,
+    direction: AngleRadians = AngleRadians.Zero,
+) : Particle<DemoParticle>(
+    cache = particleCache,
+    speed = speed,
+    direction = direction,
 ) {
     private var remainingLifespan = lifespanInMilliseconds
     private var currentProgress = 0f
     override val body = CircleBody(
+        initialPosition = initialPosition,
         initialRadius = 10.sceneUnit,
     )
+
+    fun reset(
+        initialPosition: SceneOffset,
+        initialHue: Float,
+        lifespanInMilliseconds: Float,
+        speed: SceneUnit,
+        direction: AngleRadians,
+    ) {
+        currentProgress = 0f
+        remainingLifespan = lifespanInMilliseconds
+        body.position = initialPosition
+        body.scale = Scale.Unit
+        this.initialHue = initialHue
+        this.lifespanInMilliseconds = lifespanInMilliseconds
+        this.speed = speed
+        this.direction = direction
+    }
 
     override fun updateParticle(deltaTimeInMilliseconds: Float) {
         currentProgress = 1f - (remainingLifespan / lifespanInMilliseconds)

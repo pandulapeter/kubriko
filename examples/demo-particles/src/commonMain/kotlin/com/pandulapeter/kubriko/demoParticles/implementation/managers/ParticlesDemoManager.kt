@@ -27,11 +27,14 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.demoParticles.implementation.actors.DemoParticle
 import com.pandulapeter.kubriko.demoParticles.implementation.ui.EmitterPropertiesPanel
+import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.particles.ParticleEmitter
+import com.pandulapeter.kubriko.types.AngleRadians
+import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -56,6 +59,15 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticle>, 
     }
     private val _lifespan = MutableStateFlow(500f)
     val lifespan = _lifespan.asStateFlow()
+    override val particleCache = ParticleEmitter.Cache<DemoParticle> {
+        it.reset(
+            initialPosition = SceneOffset.Zero,
+            initialHue = Random.nextFloat() * 360f,
+            lifespanInMilliseconds = lifespan.value * 6,
+            speed = 1.5f.sceneUnit,
+            direction = AngleRadians.TwoPi * Random.nextFloat(),
+        )
+    }
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager.add(this)
@@ -83,8 +95,12 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticle>, 
     }
 
     override fun createParticle() = DemoParticle(
+        particleCache = particleCache,
+        initialPosition = SceneOffset.Zero,
         initialHue = Random.nextFloat() * 360f,
         lifespanInMilliseconds = lifespan.value * 6,
+        speed = 1.5f.sceneUnit,
+        direction = AngleRadians.TwoPi * Random.nextFloat(),
     )
 
     @Composable
