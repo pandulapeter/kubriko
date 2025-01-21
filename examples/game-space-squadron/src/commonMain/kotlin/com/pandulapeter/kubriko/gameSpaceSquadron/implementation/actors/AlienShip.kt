@@ -15,6 +15,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.extensions.directionTowards
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.sceneUnit
@@ -28,7 +29,7 @@ import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.sprite_alien_ship
 import kotlin.random.Random
 
-internal class AlienShip : Visible, Dynamic {
+internal class AlienShip : Visible, Dynamic, Collidable {
 
     private lateinit var actorManager: ActorManager
     private lateinit var spriteManager: SpriteManager

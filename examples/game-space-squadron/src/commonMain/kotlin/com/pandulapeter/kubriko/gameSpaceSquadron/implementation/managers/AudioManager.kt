@@ -75,6 +75,12 @@ internal class AudioManager(
 
     fun playShootAlienSoundEffect() = playSoundEffect(URI_SOUND_SHOOT_ALIEN)
 
+    fun playShipHitSoundEffect() = playSoundEffect(URI_SOUND_SHIP_HIT)
+
+    fun playExplosionSmallSoundEffect() = playSoundEffect(URI_SOUND_EXPLOSION_SMALL)
+
+    fun playExplosionLargeSoundEffect() = playSoundEffect(URI_SOUND_EXPLOSION_LARGE)
+
     fun stopMusicBeforeDispose() = shouldStopMusic.update { true }
 
     private fun playSoundEffect(uri: String) {
@@ -90,6 +96,9 @@ internal class AudioManager(
         private const val URI_SOUND_BUTTON_HOVER = "files/sounds/button_hover.wav"
         private const val URI_SOUND_SHOOT = "files/sounds/shoot.wav"
         private const val URI_SOUND_SHOOT_ALIEN = "files/sounds/shoot_alien.wav"
+        private const val URI_SOUND_SHIP_HIT = "files/sounds/ship_hit.wav"
+        private const val URI_SOUND_EXPLOSION_SMALL = "files/sounds/explosion_small.wav"
+        private const val URI_SOUND_EXPLOSION_LARGE = "files/sounds/explosion_large.wav"
 
         fun getMusicUrisToPreload() = listOf(
             URI_MUSIC,
@@ -101,6 +110,9 @@ internal class AudioManager(
             URI_SOUND_BUTTON_HOVER,
             URI_SOUND_SHOOT,
             URI_SOUND_SHOOT_ALIEN,
+            URI_SOUND_SHIP_HIT,
+            URI_SOUND_EXPLOSION_SMALL,
+            URI_SOUND_EXPLOSION_LARGE,
         ).map { Res.getUri(it) }
     }
 }

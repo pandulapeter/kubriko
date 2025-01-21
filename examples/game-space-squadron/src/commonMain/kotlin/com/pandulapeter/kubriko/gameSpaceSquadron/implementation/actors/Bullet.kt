@@ -16,6 +16,9 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.collision.Collidable
+import com.pandulapeter.kubriko.collision.CollisionDetector
+import com.pandulapeter.kubriko.extensions.distanceTo
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.extensions.sceneUnit
@@ -32,17 +35,19 @@ import kotlin.random.Random
 
 internal class Bullet(
     initialPosition: SceneOffset,
-) : Visible, Dynamic, ParticleEmitter<Bullet, Bullet.BulletParticle> {
+) : Visible, Dynamic, ParticleEmitter<Bullet, Bullet.BulletParticle>, CollisionDetector {
     override val body = CircleBody(
         initialPosition = initialPosition,
         initialRadius = 10f.sceneUnit,
     )
     private lateinit var actorManager: ActorManager
+    private lateinit var audioManager: AudioManager
     private lateinit var viewportManager: ViewportManager
     override val drawingOrder = 1f
     override var particleEmissionMode: ParticleEmitter.Mode = ParticleEmitter.Mode.Continuous(
         emissionsPerMillisecond = 0.1f
     )
+    override val collidableTypes = listOf(AlienShip::class)
 
     override fun createParticleCache() = ParticleEmitter.Cache<Bullet, BulletParticle> { emitter, particle ->
         particle.reset(
@@ -52,14 +57,9 @@ internal class Bullet(
         )
     }
 
-    override fun DrawScope.draw() = drawCircle(
-        radius = body.radius.raw,
-        center = body.size.center.raw,
-        color = Color.White,
-    )
-
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
+        audioManager = kubriko.get()
         viewportManager = kubriko.get()
         kubriko.get<AudioManager>().playShootSoundEffect()
     }
@@ -71,11 +71,26 @@ internal class Bullet(
         }
     }
 
+    override fun onCollisionDetected(collidables: List<Collidable>) {
+        collidables.forEach { alienShip ->
+            if (body.position.distanceTo(alienShip.body.position) < CollisionLimit) {
+                actorManager.remove(this)
+                audioManager.playExplosionSmallSoundEffect()
+            }
+        }
+    }
+
     override fun createParticle() = BulletParticle(
         emitter = this,
         initialPosition = body.position,
         speed = 1f.sceneUnit,
         direction = AngleRadians.TwoPi * Random.nextFloat(),
+    )
+
+    override fun DrawScope.draw() = drawCircle(
+        radius = body.radius.raw,
+        center = body.size.center.raw,
+        color = Color.White,
     )
 
     class BulletParticle(
@@ -128,5 +143,9 @@ internal class Bullet(
             center = body.size.center.raw,
             style = Fill,
         )
+    }
+
+    companion object {
+        private val CollisionLimit = 64f.sceneUnit
     }
 }

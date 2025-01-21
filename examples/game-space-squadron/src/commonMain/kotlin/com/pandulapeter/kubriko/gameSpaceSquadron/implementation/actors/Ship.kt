@@ -18,6 +18,7 @@ import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.extensions.abs
 import com.pandulapeter.kubriko.extensions.distanceTo
 import com.pandulapeter.kubriko.extensions.get
@@ -42,7 +43,7 @@ import kubriko.examples.game_space_squadron.generated.resources.sprite_ship
 import kotlin.math.abs
 import kotlin.math.hypot
 
-internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputAware {
+internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputAware, Collidable {
 
     private lateinit var actorManager: ActorManager
     private lateinit var gameplayManager: GameplayManager

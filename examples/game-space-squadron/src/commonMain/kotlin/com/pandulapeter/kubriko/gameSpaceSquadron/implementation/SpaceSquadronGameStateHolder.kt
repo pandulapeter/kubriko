@@ -85,7 +85,10 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
     )
     val userPreferencesManager = UserPreferencesManager(persistenceManager)
     val audioManager = AudioManager(stateManager, userPreferencesManager)
-    private val particleManager = ParticleManager.newInstance()
+    private val particleManager = ParticleManager.newInstance(
+        isLoggingEnabled = true,
+        instanceNameForLogging = LOG_TAG,
+    )
     val gameplayManager = GameplayManager(backgroundStateManager)
     val uiManager = UIManager(stateManager)
     private val collisionManager = CollisionManager.newInstance(

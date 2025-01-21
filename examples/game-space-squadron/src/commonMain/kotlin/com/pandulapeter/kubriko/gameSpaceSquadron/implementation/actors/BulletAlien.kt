@@ -16,7 +16,10 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.collision.Collidable
+import com.pandulapeter.kubriko.collision.CollisionDetector
 import com.pandulapeter.kubriko.extensions.cos
+import com.pandulapeter.kubriko.extensions.distanceTo
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.extensions.sceneUnit
@@ -36,17 +39,19 @@ import kotlin.random.Random
 internal class BulletAlien(
     initialPosition: SceneOffset,
     private val direction: AngleRadians,
-) : Visible, Dynamic, ParticleEmitter<BulletAlien, BulletAlien.BulletParticle> {
+) : Visible, Dynamic, ParticleEmitter<BulletAlien, BulletAlien.BulletParticle>, CollisionDetector {
     override val body = CircleBody(
         initialPosition = initialPosition,
         initialRadius = 10f.sceneUnit,
     )
     private lateinit var actorManager: ActorManager
+    private lateinit var audioManager: AudioManager
     private lateinit var viewportManager: ViewportManager
     override val drawingOrder = 1f
     override var particleEmissionMode: ParticleEmitter.Mode = ParticleEmitter.Mode.Continuous(
         emissionsPerMillisecond = 0.1f
     )
+    override val collidableTypes = listOf(Ship::class)
 
     override fun createParticleCache() = ParticleEmitter.Cache<BulletAlien, BulletParticle> { emitter, particle ->
         particle.reset(
@@ -59,11 +64,12 @@ internal class BulletAlien(
     override fun DrawScope.draw() = drawCircle(
         radius = body.radius.raw,
         center = body.size.center.raw,
-        color = Color.Green,
+        color = BulletColor,
     )
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
+        audioManager = kubriko.get()
         viewportManager = kubriko.get()
         kubriko.get<AudioManager>().playShootAlienSoundEffect()
     }
@@ -75,6 +81,15 @@ internal class BulletAlien(
         )
         if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
             actorManager.remove(this)
+        }
+    }
+
+    override fun onCollisionDetected(collidables: List<Collidable>) {
+        collidables.firstOrNull()?.let { ship ->
+            if (body.position.distanceTo(ship.body.position) < CollisionLimit) {
+                audioManager.playShipHitSoundEffect()
+                actorManager.remove(this)
+            }
         }
     }
 
@@ -130,7 +145,7 @@ internal class BulletAlien(
         }
 
         override fun DrawScope.draw() = drawCircle(
-            color = Color.Green.copy(alpha = 0.8f - currentProgress),
+            color = BulletColor.copy(alpha = 0.8f - currentProgress),
             radius = 6f,
             center = body.size.center.raw,
             style = Fill,
@@ -139,5 +154,7 @@ internal class BulletAlien(
 
     companion object {
         private val Speed = 6f.sceneUnit
+        private val CollisionLimit = 64f.sceneUnit
+        private val BulletColor = Color.Yellow
     }
 }
