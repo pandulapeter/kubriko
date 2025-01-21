@@ -26,10 +26,10 @@ internal class FogShader(
     initialState: State = State(),
     override val layerIndex: Int? = null,
 ) : Shader<FogShader.State>, Dynamic, Unique {
-    override var state = initialState
+    override var shaderState = initialState
         private set
-    override val code = CODE
-    override val cache = Shader.Cache()
+    override val shaderCode = CODE
+    override val shaderCache = Shader.Cache()
     private lateinit var metadataManager: MetadataManager
 
     override fun onAdded(kubriko: Kubriko) {
@@ -40,7 +40,7 @@ internal class FogShader(
 
     override fun update(deltaTimeInMilliseconds: Float) {
         time += deltaTimeInMilliseconds
-        state = state.copy(time = time / 1000f)
+        shaderState = shaderState.copy(time = time / 1000f)
     }
 
     data class State(

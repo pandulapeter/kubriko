@@ -15,9 +15,9 @@ import com.pandulapeter.kubriko.shaders.extensions.ShaderUniformProvider
 //TODO: Documentation
 interface Shader<T : Shader.State> : LayerAware {
 
-    val state: T
-    val cache: Cache
-    val code: String
+    val shaderState: T
+    val shaderCache: Cache
+    val shaderCode: String
 
     interface State {
         // TODO: Delegates could be used to simplify this

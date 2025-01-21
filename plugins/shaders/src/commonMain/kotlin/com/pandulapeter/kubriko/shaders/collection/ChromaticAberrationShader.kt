@@ -18,11 +18,11 @@ import com.pandulapeter.kubriko.shaders.extensions.ShaderUniformProvider
  * https://github.com/manuel-martos/Photo-FX
  */
 data class ChromaticAberrationShader(
-    override var state: State = State(),
+    override var shaderState: State = State(),
     override val layerIndex: Int? = null,
 ) : ContentShader<ChromaticAberrationShader.State> {
-    override val cache = Shader.Cache()
-    override val code = CODE
+    override val shaderCache = Shader.Cache()
+    override val shaderCode = CODE
 
     data class State(
         val intensity: Float = 20f,

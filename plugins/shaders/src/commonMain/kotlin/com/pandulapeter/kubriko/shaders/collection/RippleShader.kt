@@ -25,10 +25,10 @@ class RippleShader(
     initialState: State = State(),
     override val layerIndex: Int? = null,
 ) : ContentShader<RippleShader.State>, Dynamic {
-    override var state = initialState
+    override var shaderState = initialState
         private set
-    override val cache = Shader.Cache()
-    override val code = CODE
+    override val shaderCache = Shader.Cache()
+    override val shaderCode = CODE
     private lateinit var metadataManager: MetadataManager
 
     override fun onAdded(kubriko: Kubriko) {
@@ -36,7 +36,7 @@ class RippleShader(
     }
 
     override fun update(deltaTimeInMilliseconds: Float) {
-        state = state.copy(time = (metadataManager.activeRuntimeInMilliseconds.value % 100000L) / 1000f)
+        shaderState = shaderState.copy(time = (metadataManager.activeRuntimeInMilliseconds.value % 100000L) / 1000f)
     }
 
     data class State(

@@ -14,8 +14,8 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
 abstract class Particle(
-    private val speed: SceneUnit = SceneUnit.Zero,
-    private val direction: AngleRadians = AngleRadians.Zero,
+    protected var speed: SceneUnit = SceneUnit.Zero,
+    protected var direction: AngleRadians = AngleRadians.Zero,
 ) : Visible, Dynamic {
     private lateinit var actorManager: ActorManager
     private lateinit var viewportManager: ViewportManager

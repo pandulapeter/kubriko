@@ -2,11 +2,11 @@ package com.pandulapeter.kubriko.particles
 
 import com.pandulapeter.kubriko.actor.Actor
 
-interface ParticleEmitter : Actor {
+interface ParticleEmitter<T: Particle> : Actor {
 
     var particleEmissionMode: Mode
 
-    fun createParticle(): Particle
+    fun createParticle(): T
 
     sealed class Mode {
 

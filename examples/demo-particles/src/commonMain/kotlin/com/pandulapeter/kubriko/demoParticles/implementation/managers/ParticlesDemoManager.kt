@@ -40,7 +40,7 @@ import kotlinx.coroutines.flow.update
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
-internal class ParticlesDemoManager : Manager(), ParticleEmitter, Unique {
+internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticle>, Unique {
 
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()

@@ -24,10 +24,10 @@ internal class NoodleShader(
     initialState: State = State(),
     override val layerIndex: Int? = null,
 ) : Shader<NoodleShader.State>, Dynamic {
-    override var state = initialState
+    override var shaderState = initialState
         private set
-    override val cache = Shader.Cache()
-    override val code = CODE
+    override val shaderCache = Shader.Cache()
+    override val shaderCode = CODE
     private lateinit var metadataManager: MetadataManager
 
     override fun onAdded(kubriko: Kubriko) {
@@ -35,11 +35,11 @@ internal class NoodleShader(
     }
 
     override fun update(deltaTimeInMilliseconds: Float) {
-        state = state.copy(time = (metadataManager.activeRuntimeInMilliseconds.value % 100000L) / 1000f)
+        shaderState = shaderState.copy(time = (metadataManager.activeRuntimeInMilliseconds.value % 100000L) / 1000f)
     }
 
     fun updateState(state: State) {
-        this.state = state.copy(time = this.state.time)
+        this.shaderState = state.copy(time = this.shaderState.time)
     }
 
     data class State(

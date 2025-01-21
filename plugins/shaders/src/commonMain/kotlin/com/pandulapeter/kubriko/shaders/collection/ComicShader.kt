@@ -20,11 +20,11 @@ import com.pandulapeter.kubriko.shaders.extensions.ShaderUniformProvider
  */
 // TODO: Extract parameters
 class ComicShader(
-    override var state: State = State(),
+    override var shaderState: State = State(),
     override val layerIndex: Int? = null,
 ) : ContentShader<ComicShader.State> {
-    override val cache = Shader.Cache()
-    override val code = CODE
+    override val shaderCache = Shader.Cache()
+    override val shaderCode = CODE
 
     data class State(
         val focusPoint: Offset = Offset.Zero,

@@ -28,7 +28,7 @@ internal class ShaderManagerImpl(
         actorManager.allActors.map { allActors ->
             allActors
                 .filterIsInstance<Shader<*>>()
-                .distinctBy { it.state }
+                .distinctBy { it.shaderState }
                 .toImmutableList()
         }.asStateFlow(persistentListOf())
     }

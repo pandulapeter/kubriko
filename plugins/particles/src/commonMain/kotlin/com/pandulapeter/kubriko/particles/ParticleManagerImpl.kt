@@ -26,7 +26,7 @@ internal class ParticleManagerImpl(
     private val particleEmitters by autoInitializingLazy {
         actorManager.allActors.map { allActors ->
             allActors
-                .filterIsInstance<ParticleEmitter>()
+                .filterIsInstance<ParticleEmitter<*>>()
                 .toImmutableList()
         }.asStateFlow(persistentListOf())
     }

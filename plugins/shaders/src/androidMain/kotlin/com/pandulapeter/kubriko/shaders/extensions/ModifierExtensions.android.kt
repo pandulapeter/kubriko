@@ -23,18 +23,18 @@ internal actual fun <T : Shader.State> createRenderEffect(
     size: Size,
 ): androidx.compose.ui.graphics.RenderEffect? {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        val runtimeShader = (shader.cache.runtimeShader as? RuntimeShader) ?: RuntimeShader(shader.code.trimIndent()).also { shader.cache.runtimeShader = it }
+        val runtimeShader = (shader.shaderCache.runtimeShader as? RuntimeShader) ?: RuntimeShader(shader.shaderCode.trimIndent()).also { shader.shaderCache.runtimeShader = it }
         val shaderUniformProvider =
-            (shader.cache.uniformProvider as? ShaderUniformProviderImpl) ?: ShaderUniformProviderImpl(runtimeShader).also { shader.cache.uniformProvider = it }
+            (shader.shaderCache.uniformProvider as? ShaderUniformProviderImpl) ?: ShaderUniformProviderImpl(runtimeShader).also { shader.shaderCache.uniformProvider = it }
         return (if (shader is ContentShader<*>) RenderEffect.createRuntimeShaderEffect(
             runtimeShader.apply {
-                with(shader.state) { shaderUniformProvider.applyUniforms() }
+                with(shader.shaderState) { shaderUniformProvider.applyUniforms() }
                 shaderUniformProvider.updateResolution(size)
             },
             ContentShader.CONTENT,
         ) else RenderEffect.createShaderEffect(
             runtimeShader.apply {
-                with(shader.state) { shaderUniformProvider.applyUniforms() }
+                with(shader.shaderState) { shaderUniformProvider.applyUniforms() }
                 shaderUniformProvider.updateResolution(size)
             },
         )).asComposeRenderEffect()

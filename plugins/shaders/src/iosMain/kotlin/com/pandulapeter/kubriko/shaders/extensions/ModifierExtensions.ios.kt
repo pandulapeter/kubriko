@@ -23,19 +23,19 @@ internal actual fun <T : Shader.State> createRenderEffect(
     size: Size,
 ): RenderEffect? {
     val runtimeShaderBuilder =
-        (shader.cache.runtimeShader as? RuntimeShaderBuilder) ?: RuntimeShaderBuilder(RuntimeEffect.makeForShader(shader.code.trimIndent())).also { shader.cache.runtimeShader = it }
+        (shader.shaderCache.runtimeShader as? RuntimeShaderBuilder) ?: RuntimeShaderBuilder(RuntimeEffect.makeForShader(shader.shaderCode.trimIndent())).also { shader.shaderCache.runtimeShader = it }
     val shaderUniformProvider =
-        (shader.cache.uniformProvider as? ShaderUniformProviderImpl) ?: ShaderUniformProviderImpl(runtimeShaderBuilder).also { shader.cache.uniformProvider = it }
+        (shader.shaderCache.uniformProvider as? ShaderUniformProviderImpl) ?: ShaderUniformProviderImpl(runtimeShaderBuilder).also { shader.shaderCache.uniformProvider = it }
     return (if (shader is ContentShader<*>) ImageFilter.makeRuntimeShader(
         runtimeShaderBuilder = runtimeShaderBuilder.apply {
-            with(shader.state) { shaderUniformProvider.applyUniforms() }
+            with(shader.shaderState) { shaderUniformProvider.applyUniforms() }
             shaderUniformProvider.updateResolution(size)
         },
         shaderName = ContentShader.CONTENT,
         input = null,
     ) else ImageFilter.makeRuntimeShader(
         runtimeShaderBuilder = runtimeShaderBuilder.apply {
-            with(shader.state) { shaderUniformProvider.applyUniforms() }
+            with(shader.shaderState) { shaderUniformProvider.applyUniforms() }
             shaderUniformProvider.updateResolution(size)
         },
         shaderNames = emptyArray(),

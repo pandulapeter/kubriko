@@ -24,7 +24,7 @@ internal class ShaderAnimationsDemoManager<SHADER : Shader<STATE>, STATE : Shade
     private val shader: SHADER,
     private val updater: (SHADER, STATE) -> Unit,
 ) : Manager() {
-    private val _shaderState = MutableStateFlow(shader.state)
+    private val _shaderState = MutableStateFlow(shader.shaderState)
     val shaderState = _shaderState.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {

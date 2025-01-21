@@ -31,7 +31,7 @@ import kotlin.random.Random
 
 internal class Bullet(
     initialPosition: SceneOffset,
-) : Positionable, Dynamic, ParticleEmitter {
+) : Positionable, Dynamic, ParticleEmitter<Bullet.BulletParticle> {
     override val body = PointBody(
         initialPosition = initialPosition,
     )
@@ -54,11 +54,11 @@ internal class Bullet(
         }
     }
 
-    override fun createParticle(): Particle = BulletParticle(
+    override fun createParticle() = BulletParticle(
         initialPosition = body.position,
     )
 
-    private class BulletParticle(
+    class BulletParticle(
         initialPosition: SceneOffset,
     ) : Particle(
         speed = 1f.sceneUnit,
