@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers
 
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.AlienShip
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.Ship
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.ShipDestination
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -22,6 +24,10 @@ internal class GameplayManager(
     private val stateManager by manager<StateManager>()
     private val audioManager by manager<AudioManager>()
     private var isGameOver = true
+
+    override fun onInitialize(kubriko: Kubriko) {
+        actorManager.add(AlienShip())
+    }
 
     fun playGame() {
         if (isGameOver) {

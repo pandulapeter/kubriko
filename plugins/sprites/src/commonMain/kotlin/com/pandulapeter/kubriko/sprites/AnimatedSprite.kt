@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import kotlin.math.floor
 import kotlin.math.roundToInt
 
 class AnimatedSprite(
@@ -26,7 +27,7 @@ class AnimatedSprite(
     val isLoaded get() = getImageBitmap() != null
     private var _imageIndex = 0f
     var imageIndex
-        get() = _imageIndex.roundToInt()
+        get() = floor(_imageIndex).roundToInt()
         set(value) {
             _imageIndex = value.toFloat()
         }
@@ -54,7 +55,7 @@ class AnimatedSprite(
     }
 
     private fun normalizeImageIndex(shouldLoop: Boolean) {
-        if (imageIndex >= frameCount || imageIndex < 0) {
+        if (imageIndex >= frameCount - 1 || imageIndex < 0) {
             _imageIndex = if (shouldLoop) {
                 _imageIndex % frameCount
             } else {
@@ -67,15 +68,17 @@ class AnimatedSprite(
         scope: DrawScope,
         colorFilter: ColorFilter? = null,
     ) {
-        getImageBitmap()?.let {
-            val x = _imageIndex.roundToInt() % framesPerRow
-            val y = _imageIndex.roundToInt() / framesPerRow
-            scope.drawImage(
-                image = it,
-                srcOffset = IntOffset(frameSize.width * x, frameSize.height * y),
-                srcSize = frameSize,
-                colorFilter = colorFilter,
-            )
+        imageIndex.also { imageIndex ->
+            getImageBitmap()?.let {
+                val x = imageIndex % framesPerRow
+                val y = imageIndex / framesPerRow
+                scope.drawImage(
+                    image = it,
+                    srcOffset = IntOffset(frameSize.width * x, frameSize.height * y),
+                    srcSize = frameSize,
+                    colorFilter = colorFilter,
+                )
+            }
         }
     }
 }
