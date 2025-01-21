@@ -49,12 +49,14 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
         instanceNameForLogging = LOG_TAG,
     )
     val backgroundLoadingManager = LoadingManager()
+    private val backgroundStateManager = StateManager.newInstance()
     private val backgroundShaderManager = ShaderManager.newInstance(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG_BACKGROUND,
     )
     private val backgroundAnimationManager = BackgroundAnimationManager()
     val backgroundKubriko = Kubriko.newInstance(
+        backgroundStateManager,
         sharedMusicManager,
         sharedSoundManager,
         sharedSpriteManager,
@@ -84,7 +86,7 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
     val userPreferencesManager = UserPreferencesManager(persistenceManager)
     val audioManager = AudioManager(stateManager, userPreferencesManager)
     private val particleManager = ParticleManager.newInstance()
-    val gameplayManager = GameplayManager()
+    val gameplayManager = GameplayManager(backgroundStateManager)
     val uiManager = UIManager(stateManager)
     private val collisionManager = CollisionManager.newInstance(
         isLoggingEnabled = true,

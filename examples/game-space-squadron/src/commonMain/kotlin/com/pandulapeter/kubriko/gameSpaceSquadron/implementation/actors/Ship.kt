@@ -23,9 +23,11 @@ import com.pandulapeter.kubriko.extensions.distanceTo
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.min
 import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.MetadataManager
+import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.sprites.AnimatedSprite
@@ -43,7 +45,9 @@ import kotlin.math.hypot
 internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputAware {
 
     private lateinit var actorManager: ActorManager
+    private lateinit var gameplayManager: GameplayManager
     private lateinit var spriteManager: SpriteManager
+    private lateinit var stateManager: StateManager
     private lateinit var metadataManager: MetadataManager
     private lateinit var viewportManager: ViewportManager
     private val shipAnimationWrapper by lazy { ShipAnimationWrapper(spriteManager) }
@@ -58,10 +62,18 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
+        gameplayManager = kubriko.get()
         spriteManager = kubriko.get()
+        stateManager = kubriko.get()
         metadataManager = kubriko.get()
         viewportManager = kubriko.get()
+        body.position = SceneOffset(
+            x = SceneUnit.Zero,
+            y = viewportManager.bottomRight.value.y + body.pivot.y,
+        )
     }
+
+    override fun onRemoved() = gameplayManager.onGameOver()
 
     override fun handleActivePointers(screenOffset: Offset) = shoot()
 
@@ -74,11 +86,13 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     private var lastShotTimestamp = 0L
 
     private fun shoot() {
-        val currentTimestamp = metadataManager.activeRuntimeInMilliseconds.value
-        val timeSinceLastShot = currentTimestamp - lastShotTimestamp
-        if (timeSinceLastShot > 200) {
-            lastShotTimestamp = currentTimestamp
-            actorManager.add(Bullet(body.position))
+        if (stateManager.isRunning.value) {
+            val currentTimestamp = metadataManager.activeRuntimeInMilliseconds.value
+            val timeSinceLastShot = currentTimestamp - lastShotTimestamp
+            if (timeSinceLastShot > 200) {
+                lastShotTimestamp = currentTimestamp
+                actorManager.add(Bullet(body.position))
+            }
         }
     }
 

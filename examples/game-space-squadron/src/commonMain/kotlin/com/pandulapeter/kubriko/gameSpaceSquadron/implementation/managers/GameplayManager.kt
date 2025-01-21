@@ -9,30 +9,43 @@
  */
 package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers
 
-import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.Ship
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.ShipDestination
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 
-internal class GameplayManager : Manager() {
-
+internal class GameplayManager(
+    private val backgroundStateManager: StateManager,
+) : Manager() {
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
     private val audioManager by manager<AudioManager>()
-
-    override fun onInitialize(kubriko: Kubriko) = kubriko.get<ActorManager>().add(Ship())
+    private var isGameOver = true
 
     fun playGame() {
-        audioManager.playButtonPlaySoundEffect()
+        if (isGameOver) {
+            isGameOver = false
+            actorManager.add(Ship())
+            audioManager.playButtonPlaySoundEffect()
+        } else {
+            audioManager.playButtonToggleSoundEffect()
+        }
         actorManager.allActors.value.filterIsInstance<ShipDestination>().firstOrNull()?.resetPointerTracking()
+        backgroundStateManager.updateIsRunning(true)
         stateManager.updateIsRunning(true)
     }
 
     fun pauseGame() {
+        if (!isGameOver) {
+            backgroundStateManager.updateIsRunning(false)
+        }
         audioManager.playButtonToggleSoundEffect()
+        stateManager.updateIsRunning(false)
+    }
+
+    fun onGameOver() {
+        isGameOver = true
         stateManager.updateIsRunning(false)
     }
 }
