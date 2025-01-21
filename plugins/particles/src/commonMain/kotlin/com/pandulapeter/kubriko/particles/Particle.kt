@@ -1,8 +1,6 @@
 package com.pandulapeter.kubriko.particles
 
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.ComplexBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.extensions.cos
@@ -14,32 +12,26 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
-import kotlin.math.min
 
-class Particle<T : Any>(
-    private val payload: T,
-    override val body: ComplexBody,
-    override val drawingOrder: Float = 0f,
+abstract class Particle(
     private val speed: SceneUnit = SceneUnit.Zero,
     private val direction: AngleRadians = AngleRadians.Zero,
-    private val lifespanInMilliseconds: Float,
-    private val processBody: ComplexBody.(T, Float) -> Unit = { _, _ -> },
-    private val drawParticle: DrawScope.(T, ComplexBody, Float) -> Unit,
 ) : Visible, Dynamic {
     private lateinit var actorManager: ActorManager
     private lateinit var viewportManager: ViewportManager
-    private var remainingLifespan = lifespanInMilliseconds
-    private var currentProgress = 0f
+
+    abstract fun updateParticle(deltaTimeInMilliseconds: Float)
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
         viewportManager = kubriko.get()
     }
 
-    override fun update(deltaTimeInMilliseconds: Float) {
-        // TODO: Move, apply transformations
+    protected fun remove() = actorManager.remove(this)
+
+    final override fun update(deltaTimeInMilliseconds: Float) {
         if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
-            actorManager.remove(this)
+            remove()
         } else {
             if (speed != SceneUnit.Zero) {
                 body.position = SceneOffset(
@@ -47,15 +39,7 @@ class Particle<T : Any>(
                     y = body.position.y - speed * direction.sin,
                 )
             }
-            currentProgress = 1f - (remainingLifespan / lifespanInMilliseconds)
-            if (currentProgress >= 1) {
-                actorManager.remove(this)
-            } else {
-                body.processBody(payload, currentProgress)
-                remainingLifespan -= deltaTimeInMilliseconds
-            }
+            updateParticle(deltaTimeInMilliseconds)
         }
     }
-
-    override fun DrawScope.draw() = drawParticle(payload,body, min(1f, currentProgress))
 }

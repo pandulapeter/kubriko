@@ -21,24 +21,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.center
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Unique
+import com.pandulapeter.kubriko.demoParticles.implementation.actors.DemoParticle
 import com.pandulapeter.kubriko.demoParticles.implementation.ui.EmitterPropertiesPanel
-import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
-import com.pandulapeter.kubriko.particles.Particle
 import com.pandulapeter.kubriko.particles.ParticleEmitter
-import com.pandulapeter.kubriko.types.AngleRadians
-import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -89,33 +82,9 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter, Unique {
         particleEmissionMode = ParticleEmitter.Mode.Burst((emissionRate.value * 100).roundToInt())
     }
 
-    private var counter = 0f
-
-    override fun createParticle() = Particle(
-        drawingOrder = counter++,
-        payload = Random.nextFloat() * 360f,
-        body = RectangleBody(
-            initialSize = SceneSize(10.sceneUnit, 10.sceneUnit),
-        ),
-        speed = 4f.sceneUnit,
-        direction = AngleRadians.TwoPi * Random.nextFloat(),
-        lifespanInMilliseconds = lifespan.value,
-        processBody = { _, progress ->
-            scale *= (1f - progress / 10f)
-            rotation += AngleRadians.Pi / 20f
-        },
-        drawParticle = { startingHue, _, progress ->
-            drawCircle(
-                color = Color.hsv(
-                    hue = (progress * 360f + startingHue) % 360,
-                    saturation = 0.8f,
-                    value = 1f,
-                ).copy(alpha = 1f - progress),
-                radius = size.maxDimension * 0.7f,
-                center = size.center,
-                style = Fill,
-            )
-        }
+    override fun createParticle() = DemoParticle(
+        initialHue = Random.nextFloat() * 360f,
+        lifespanInMilliseconds = lifespan.value * 6,
     )
 
     @Composable

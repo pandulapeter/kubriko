@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
@@ -53,26 +54,40 @@ internal class Bullet(
         }
     }
 
-    override fun createParticle() = Particle(
-        payload = Unit,
-        drawingOrder = 1f,
-        body = CircleBody(
-            initialPosition = body.position,
-            initialRadius = 4.sceneUnit,
-        ),
+    override fun createParticle(): Particle = BulletParticle(
+        initialPosition = body.position,
+    )
+
+    private class BulletParticle(
+        initialPosition: SceneOffset,
+    ) : Particle(
         speed = 1f.sceneUnit,
         direction = AngleRadians.TwoPi * Random.nextFloat(),
-        lifespanInMilliseconds = 250f,
-        processBody = { _, progress ->
-            scale *= (1f - progress / 5f)
-        },
-        drawParticle = { _, body, progress ->
-            drawCircle(
-                color = Color.White.copy(alpha = 0.8f - progress),
-                radius = 6f,
-                center = body.size.center.raw,
-                style = Fill,
-            )
+    ) {
+        private val lifespanInMilliseconds = 300f
+        private var remainingLifespan = lifespanInMilliseconds
+        private var currentProgress = 0f
+        override val drawingOrder = 1f
+        override val body = CircleBody(
+            initialPosition = initialPosition,
+            initialRadius = 4.sceneUnit,
+        )
+
+        override fun updateParticle(deltaTimeInMilliseconds: Float) {
+            currentProgress = 1f - (remainingLifespan / lifespanInMilliseconds)
+            if (currentProgress >= 1) {
+                remove()
+            } else {
+                body.scale *= (1f - currentProgress / 5f)
+                remainingLifespan -= deltaTimeInMilliseconds
+            }
         }
-    )
+
+        override fun DrawScope.draw() = drawCircle(
+            color = Color.White.copy(alpha = 0.8f - currentProgress),
+            radius = 6f,
+            center = body.size.center.raw,
+            style = Fill,
+        )
+    }
 }
