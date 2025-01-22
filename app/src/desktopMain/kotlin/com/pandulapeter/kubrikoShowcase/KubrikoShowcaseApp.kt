@@ -30,7 +30,7 @@ import java.awt.event.WindowStateListener
 
 fun main() = application {
     windowState = rememberWindowState(
-        size = DpSize(840.dp, 640.dp),
+        size = DpSize(860.dp, 640.dp),
     )
     val coroutineScope = rememberCoroutineScope()
     val previousBounds = remember { mutableStateOf<Rectangle?>(null) }
