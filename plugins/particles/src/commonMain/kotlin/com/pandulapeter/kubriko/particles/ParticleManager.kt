@@ -25,9 +25,11 @@ sealed class ParticleManager(
 
     companion object {
         fun newInstance(
+            cacheSize: Int = 4000,
             isLoggingEnabled: Boolean = false,
             instanceNameForLogging: String? = null,
         ): ParticleManager = ParticleManagerImpl(
+            cacheSize = cacheSize,
             isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = instanceNameForLogging,
         )

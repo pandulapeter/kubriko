@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.particles
 
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
+import com.pandulapeter.kubriko.particles.implementation.Particle
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.map
@@ -18,6 +19,7 @@ import kotlin.math.roundToInt
 import kotlin.reflect.KClass
 
 internal class ParticleManagerImpl(
+    private val cacheSize: Int,
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
 ) : ParticleManager(isLoggingEnabled, instanceNameForLogging) {
@@ -27,31 +29,48 @@ internal class ParticleManagerImpl(
     private val particleEmitters by autoInitializingLazy {
         actorManager.allActors.map { allActors ->
             allActors
-                .filterIsInstance<ParticleEmitter<*, *>>()
+                .filterIsInstance<ParticleEmitter<*>>()
                 .toImmutableList()
         }.asStateFlow(persistentListOf())
     }
-    private val cache = mutableMapOf<KClass<out ParticleEmitter<*, *>>, ParticleEmitter.Cache<*, *>>()
+    private val cache: MutableMap<KClass<out ParticleEmitter.ParticleState>, ArrayDeque<Particle<*>>> = mutableMapOf()
 
-    fun remove(emitter: ParticleEmitter<*, *>, particle: Particle<*>) {
-        (cache[emitter::class] ?: emitter.createParticleCache().also { cache[emitter::class] = it }).push(particle)
-        actorManager.remove(particle)
+    private fun pop(stateKClass: KClass<out ParticleEmitter.ParticleState>): Particle<*>? = cache[stateKClass]?.removeLastOrNull()
+
+    fun addParticleToCache(stateKClass: KClass<out ParticleEmitter.ParticleState>, particle: Particle<*>) {
+        if (cache[stateKClass] == null) {
+            cache[stateKClass] = ArrayDeque()
+        }
+        if ((cache[stateKClass]?.size ?: 0) < cacheSize) {
+            cache[stateKClass]?.addLast(particle)
+        }
     }
+
+    private var particlesToAdd = mutableListOf<Particle<*>>()
 
     override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
         if (stateManager.isRunning.value && deltaTimeInMilliseconds < 1000) {
-            actorManager.add(
-                particleEmitters.value.flatMap { emitter ->
-                    val particleCount = when (val mode = emitter.particleEmissionMode) {
+            particleEmitters.value.forEach { emitter ->
+                repeat(
+                    when (val mode = emitter.particleEmissionMode) {
                         is ParticleEmitter.Mode.Burst -> mode.emissionsPerBurst.also { emitter.particleEmissionMode = ParticleEmitter.Mode.Inactive }
                         is ParticleEmitter.Mode.Continuous -> (mode.emissionsPerMillisecond * deltaTimeInMilliseconds).roundToInt()
                         ParticleEmitter.Mode.Inactive -> 0
                     }
-                    if (particleCount > 0) (0..particleCount).map {
-                        cache[emitter::class]?.pop(emitter) ?: emitter.createParticle()
-                    } else emptyList()
+                ) {
+                    particlesToAdd.add(
+                        pop(emitter.particleStateType)?.also { reusedParticle ->
+                            emitter.reuseParticleInternal(reusedParticle.state)
+                        } ?: Particle(emitter.createParticleState())
+                    )
                 }
-            )
+            }
+            particlesToAdd.let {
+                if (it.isNotEmpty()) {
+                    actorManager.add(it)
+                    particlesToAdd.clear()
+                }
+            }
         }
     }
 

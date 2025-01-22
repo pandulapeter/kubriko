@@ -25,25 +25,21 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Unique
-import com.pandulapeter.kubriko.demoParticles.implementation.actors.DemoParticle
+import com.pandulapeter.kubriko.demoParticles.implementation.actors.DemoParticleState
 import com.pandulapeter.kubriko.demoParticles.implementation.ui.EmitterPropertiesPanel
-import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.particles.ParticleEmitter
-import com.pandulapeter.kubriko.types.AngleRadians
-import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlin.math.roundToInt
-import kotlin.random.Random
 
-internal class ParticlesDemoManager : Manager(), ParticleEmitter<ParticlesDemoManager, DemoParticle>, Unique {
+internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticleState>, Unique {
 
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
@@ -52,6 +48,7 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<ParticlesDemoMa
     val emissionRate = _emissionRate.asStateFlow()
     private val _isEmittingContinuously = MutableStateFlow(true)
     val isEmittingContinuously = _isEmittingContinuously.asStateFlow()
+    override val particleStateType = DemoParticleState::class
     override var particleEmissionMode = if (isEmittingContinuously.value) {
         ParticleEmitter.Mode.Continuous(emissionRate.value)
     } else {
@@ -59,16 +56,6 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<ParticlesDemoMa
     }
     private val _lifespan = MutableStateFlow(500f)
     val lifespan = _lifespan.asStateFlow()
-
-    override fun createParticleCache() = ParticleEmitter.Cache<ParticlesDemoManager, DemoParticle> { _, particle ->
-        particle.reset(
-            initialPosition = SceneOffset.Zero,
-            initialHue = Random.nextFloat() * 360f,
-            lifespanInMilliseconds = lifespan.value * 6,
-            speed = 1.5f.sceneUnit,
-            direction = AngleRadians.TwoPi * Random.nextFloat(),
-        )
-    }
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager.add(this)
@@ -95,14 +82,9 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<ParticlesDemoMa
         particleEmissionMode = ParticleEmitter.Mode.Burst((emissionRate.value * 100).roundToInt())
     }
 
-    override fun createParticle() = DemoParticle(
-        emitter = this,
-        initialPosition = SceneOffset.Zero,
-        initialHue = Random.nextFloat() * 360f,
-        lifespanInMilliseconds = lifespan.value * 6,
-        speed = 1.5f.sceneUnit,
-        direction = AngleRadians.TwoPi * Random.nextFloat(),
-    )
+    override fun createParticleState() = DemoParticleState(lifespan.value * 6)
+
+    override fun reuseParticleState(state: DemoParticleState) = state.reset(lifespan.value * 6)
 
     @Composable
     override fun Composable(insetPaddingModifier: Modifier) {

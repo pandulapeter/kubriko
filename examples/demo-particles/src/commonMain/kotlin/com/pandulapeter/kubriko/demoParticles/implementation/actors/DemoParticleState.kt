@@ -13,66 +13,65 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import com.pandulapeter.kubriko.actor.body.CircleBody
-import com.pandulapeter.kubriko.demoParticles.implementation.managers.ParticlesDemoManager
+import com.pandulapeter.kubriko.extensions.cos
 import com.pandulapeter.kubriko.extensions.sceneUnit
-import com.pandulapeter.kubriko.particles.Particle
+import com.pandulapeter.kubriko.extensions.sin
+import com.pandulapeter.kubriko.particles.ParticleEmitter
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.SceneUnit
+import kotlin.random.Random
 
-internal class DemoParticle(
-    emitter: ParticlesDemoManager,
-    initialPosition: SceneOffset,
-    private var initialHue: Float,
+internal class DemoParticleState(
     private var lifespanInMilliseconds: Float,
-    speed: SceneUnit = SceneUnit.Zero,
-    direction: AngleRadians = AngleRadians.Zero,
-) : Particle<DemoParticle>(
-    emitter = emitter,
-    speed = speed,
-    direction = direction,
-) {
-    private var remainingLifespan = lifespanInMilliseconds
-    private var currentProgress = 0f
+) : ParticleEmitter.ParticleState() {
+
     override val body = CircleBody(
-        initialPosition = initialPosition,
         initialRadius = 10.sceneUnit,
     )
+    private val speed = 1.5f.sceneUnit
+    private var direction = AngleRadians.Zero
+    private var hue = 0f
+    private var remainingLifespan = 0f
+    private var currentProgress = 0f
 
-    fun reset(
-        initialPosition: SceneOffset,
-        initialHue: Float,
-        lifespanInMilliseconds: Float,
-        speed: SceneUnit,
-        direction: AngleRadians,
-    ) {
-        remainingLifespan = lifespanInMilliseconds
-        body.position = initialPosition
-        body.scale = Scale.Unit
-        body.rotation = AngleRadians.Zero
-        this.initialHue = initialHue
-        this.lifespanInMilliseconds = lifespanInMilliseconds
-        this.speed = speed
-        this.direction = direction
+    init {
+        reset(lifespanInMilliseconds)
     }
 
-    override fun updateParticle(deltaTimeInMilliseconds: Float) {
+    fun reset(
+        lifespanInMilliseconds: Float,
+    ) {
+        this.lifespanInMilliseconds = lifespanInMilliseconds
+        remainingLifespan = lifespanInMilliseconds
+        currentProgress = 0f
+        direction = AngleRadians.TwoPi * Random.nextFloat()
+        hue = Random.nextFloat() * 360f
+        body.position = SceneOffset.Zero
+        body.scale = Scale.Unit
+    }
+
+    override fun update(deltaTimeInMilliseconds: Float): Boolean {
         currentProgress = 1f - (remainingLifespan / lifespanInMilliseconds)
         if (currentProgress >= 1) {
-            removeAndCache()
+            return false
         } else {
             body.scale *= (1f - currentProgress / 20f)
             if (body.scale.horizontal < 0.05f) {
-                removeAndCache()
+                return false
             }
+            body.position = SceneOffset(
+                x = body.position.x + speed * direction.cos,
+                y = body.position.y - speed * direction.sin,
+            )
             remainingLifespan -= deltaTimeInMilliseconds
         }
+        return true
     }
 
     override fun DrawScope.draw() = drawCircle(
         color = Color.hsv(
-            hue = (currentProgress * 360f + initialHue) % 360,
+            hue = (currentProgress * 360f + hue) % 360,
             saturation = 0.4f,
             value = 1f,
         ).copy(alpha = 1f - currentProgress),
