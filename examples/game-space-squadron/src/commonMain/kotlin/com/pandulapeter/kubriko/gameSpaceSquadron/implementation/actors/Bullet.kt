@@ -90,7 +90,7 @@ internal class Bullet(
     override fun DrawScope.draw() = drawCircle(
         radius = body.radius.raw,
         center = body.size.center.raw,
-        color = Color.White,
+        color = BulletColor,
     )
 
     class BulletParticle(
@@ -138,7 +138,7 @@ internal class Bullet(
         }
 
         override fun DrawScope.draw() = drawCircle(
-            color = Color.White.copy(alpha = 0.8f - currentProgress),
+            color = BulletColor.copy(alpha = 0.8f - currentProgress),
             radius = 6f,
             center = body.size.center.raw,
             style = Fill,
@@ -146,6 +146,7 @@ internal class Bullet(
     }
 
     companion object {
-        private val CollisionLimit = 64f.sceneUnit
+        private val CollisionLimit = 72f.sceneUnit
+        private val BulletColor = Color(0xff5199a6)
     }
 }

@@ -51,13 +51,19 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     private lateinit var stateManager: StateManager
     private lateinit var metadataManager: MetadataManager
     private lateinit var viewportManager: ViewportManager
-    private val shipAnimationWrapper by lazy { ShipAnimationWrapper(spriteManager) }
     override val body = RectangleBody(
         initialSize = SceneSize(
-            width = 128.sceneUnit,
-            height = 144.sceneUnit,
+            width = 237.sceneUnit,
+            height = 341.sceneUnit,
         ),
+        initialScale = Scale.Unit * 0.5f,
     )
+    private val shipAnimationWrapper by lazy {
+        ShipAnimationWrapper(
+            spriteManager = spriteManager,
+            initialScale = body.scale,
+        )
+    }
     private val shipDestination = ShipDestination()
     override val actors = listOf(shipDestination)
 
@@ -105,7 +111,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         // TODO: Implement momentum
         moveTowards(shipDestination.body.position, speed)
         shipAnimationWrapper.update(deltaTimeInMilliseconds, previousX, body.position.x)
-        body.scale = Scale(shipAnimationWrapper.horizontalScale, 1f)
+        body.scale = Scale(shipAnimationWrapper.horizontalScale, shipAnimationWrapper.verticalScale)
     }
 
     private fun moveTowards(target: SceneOffset, speed: SceneUnit) {
@@ -135,18 +141,20 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     override fun DrawScope.draw() = shipAnimationWrapper.draw(this)
 
     private class ShipAnimationWrapper(
-        spriteManager: SpriteManager
+        spriteManager: SpriteManager,
+        private val initialScale: Scale,
     ) {
         private val animatedSprite = AnimatedSprite(
             getImageBitmap = { spriteManager.get(Res.drawable.sprite_ship) },
-            frameSize = IntSize(128, 144),
-            frameCount = 23,
+            frameSize = IntSize(237, 341),
+            frameCount = 32,
             framesPerRow = 8,
             framesPerSecond = 60f,
         )
 
-        var horizontalScale = 1f
+        var horizontalScale = initialScale.horizontal
             private set
+        val verticalScale = initialScale.vertical
 
         fun update(deltaTimeInMilliseconds: Float, previousX: SceneUnit, currentX: SceneUnit) {
             val distance = (previousX - currentX).abs
@@ -154,13 +162,16 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
             if (distance < MinDistanceForAnimation) {
                 // Not moving
                 if (!animatedSprite.isFirstFrame) {
-                    animatedSprite.stepBackwards(deltaTimeInMilliseconds * 0.8f)
+                    animatedSprite.stepBackwards(
+                        deltaTimeInMilliseconds = deltaTimeInMilliseconds * 0.8f,
+                        speed = 2f,
+                    )
                 }
             } else if (currentX < previousX) {
                 // Moving left
-                if (horizontalScale == -1f) {
+                if (horizontalScale < 0) {
                     if (animatedSprite.isFirstFrame) {
-                        horizontalScale = 1f
+                        horizontalScale = initialScale.horizontal
                     } else {
                         animatedSprite.stepBackwards(animationSpeed)
                     }
@@ -171,15 +182,18 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
                 }
             } else if (currentX > previousX) {
                 // Moving right
-                if (horizontalScale == 1f) {
+                if (horizontalScale > 0) {
                     if (animatedSprite.isFirstFrame) {
-                        horizontalScale = -1f
+                        horizontalScale = -initialScale.horizontal
                     } else {
                         animatedSprite.stepBackwards(animationSpeed)
                     }
                 } else {
                     if (!animatedSprite.isLastFrame) {
-                        animatedSprite.stepForward(animationSpeed)
+                        animatedSprite.stepForward(
+                            deltaTimeInMilliseconds = animationSpeed,
+                            speed = 2f,
+                        )
                     }
                 }
             }

@@ -155,6 +155,6 @@ internal class BulletAlien(
     companion object {
         private val Speed = 6f.sceneUnit
         private val CollisionLimit = 64f.sceneUnit
-        private val BulletColor = Color.Yellow
+        private val BulletColor = Color(0xffc29327)
     }
 }
