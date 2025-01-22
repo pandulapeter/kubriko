@@ -32,7 +32,7 @@ class BulletParticleState(
         initialRadius = 4.sceneUnit,
     )
     override val drawingOrder = 1f
-    private val speed: SceneUnit = 1f.sceneUnit
+    private val speed: SceneUnit = 0.1f.sceneUnit
     private var direction: AngleRadians = AngleRadians.Zero
     private val lifespanInMilliseconds = 300f
     private var remainingLifespan = lifespanInMilliseconds
@@ -67,8 +67,8 @@ class BulletParticleState(
                 return false
             }
             body.position = SceneOffset(
-                x = body.position.x + speed * direction.cos,
-                y = body.position.y - speed * direction.sin,
+                x = body.position.x + speed * direction.cos * deltaTimeInMilliseconds,
+                y = body.position.y - speed * direction.sin * deltaTimeInMilliseconds,
             )
             remainingLifespan -= deltaTimeInMilliseconds
         }

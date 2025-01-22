@@ -29,7 +29,7 @@ internal class DemoParticleState(
     override val body = CircleBody(
         initialRadius = 10.sceneUnit,
     )
-    private val speed = 1.5f.sceneUnit
+    private val speed = 0.3f.sceneUnit
     private var direction = AngleRadians.Zero
     private var hue = 0f
     private var remainingLifespan = 0f
@@ -61,8 +61,8 @@ internal class DemoParticleState(
                 return false
             }
             body.position = SceneOffset(
-                x = body.position.x + speed * direction.cos,
-                y = body.position.y - speed * direction.sin,
+                x = body.position.x + speed * direction.cos * deltaTimeInMilliseconds,
+                y = body.position.y - speed * direction.sin * deltaTimeInMilliseconds,
             )
             remainingLifespan -= deltaTimeInMilliseconds
         }

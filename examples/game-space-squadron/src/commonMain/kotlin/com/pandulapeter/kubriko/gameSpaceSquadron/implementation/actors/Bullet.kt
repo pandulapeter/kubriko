@@ -41,7 +41,7 @@ internal class Bullet(
     override val drawingOrder = 1f
     override val particleStateType = BulletParticleState::class
     override var particleEmissionMode: ParticleEmitter.Mode = ParticleEmitter.Mode.Continuous(
-        emissionsPerMillisecond = 0.1f
+        emissionsPerMillisecond = 0.4f
     )
     override val collidableTypes = listOf(AlienShip::class)
 
