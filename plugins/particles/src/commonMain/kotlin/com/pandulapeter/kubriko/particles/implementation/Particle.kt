@@ -33,7 +33,7 @@ internal class Particle<S : ParticleEmitter.ParticleState>(
 
     override fun onRemoved() = particleManager.addParticleToCache(state::class, this)
 
-    override fun update(deltaTimeInMilliseconds: Float) {
+    override fun update(deltaTimeInMilliseconds: Int) {
         if (!state.update(deltaTimeInMilliseconds)) {
             actorManager.remove(this)
         }

@@ -48,7 +48,7 @@ internal class ParticleManagerImpl(
 
     private var particlesToAdd = mutableListOf<Particle<*>>()
 
-    override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
+    override fun onUpdate(deltaTimeInMilliseconds: Int) {
         if (stateManager.isRunning.value && deltaTimeInMilliseconds < 1000) {
             particleEmitters.value.forEach { emitter ->
                 repeat(

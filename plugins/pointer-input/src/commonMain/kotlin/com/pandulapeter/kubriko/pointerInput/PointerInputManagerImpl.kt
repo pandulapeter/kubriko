@@ -61,7 +61,7 @@ internal class PointerInputManagerImpl(
             .launchIn(scope)
     }
 
-    override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
+    override fun onUpdate(deltaTimeInMilliseconds: Int) {
         if (isPointerPressed.value && stateManager.isFocused.value) {
             pointerScreenOffset.value?.let { pointerScreenOffset ->
                 pointerInputAwareActors.value.forEach { it.handleActivePointers(pointerScreenOffset) }

@@ -77,9 +77,11 @@ internal object InternalDebugMenu {
     val debugMenuKubriko = _debugMenuKubriko.asStateFlow()
     private val _metadata = MutableStateFlow<DebugMenuMetadata?>(null)
     val metadata = _metadata.asStateFlow()
-    val internalKubriko = Kubriko.newInstance(
-        persistenceManager,
-    )
+    val internalKubriko by lazy {
+        Kubriko.newInstance(
+            persistenceManager,
+        )
+    }
 
     fun toggleVisibility() {
         _isVisible.value = !isVisible.value

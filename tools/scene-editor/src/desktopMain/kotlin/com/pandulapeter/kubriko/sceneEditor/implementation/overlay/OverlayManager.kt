@@ -60,7 +60,7 @@ internal class OverlayManager(
         }.launchIn(scope)
     }
 
-    override fun update(deltaTimeInMilliseconds: Float) {
+    override fun update(deltaTimeInMilliseconds: Int) {
         if (editorController.selectedUpdatableActor.value.first == null) {
             if (alpha > 0) {
                 alpha = max(0f, alpha - deltaTimeInMilliseconds * HIGHLIGHT_BACKGROUND_FADE_SPEED)

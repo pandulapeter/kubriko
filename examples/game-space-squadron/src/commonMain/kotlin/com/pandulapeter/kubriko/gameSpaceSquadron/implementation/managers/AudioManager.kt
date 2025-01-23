@@ -60,7 +60,7 @@ internal class AudioManager(
             .launchIn(scope)
     }
 
-    override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
+    override fun onUpdate(deltaTimeInMilliseconds: Int) {
         soundUrisToPlay.forEach { soundManager.play(Res.getUri(it)) }
         soundUrisToPlay.clear()
     }

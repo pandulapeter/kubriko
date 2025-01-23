@@ -78,7 +78,7 @@ internal class AudioDemoManager : Manager() {
             .launchIn(scope)
     }
 
-    override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
+    override fun onUpdate(deltaTimeInMilliseconds: Int) {
         isTrack1Playing.value = musicManager.isPlaying(track1Uri)
         isTrack2Playing.value = musicManager.isPlaying(track2Uri)
     }

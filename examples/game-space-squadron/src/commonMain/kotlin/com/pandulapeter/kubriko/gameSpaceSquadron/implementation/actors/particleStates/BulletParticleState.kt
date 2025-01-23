@@ -57,7 +57,7 @@ class BulletParticleState(
         currentProgress = 0f
     }
 
-    override fun update(deltaTimeInMilliseconds: Float): Boolean {
+    override fun update(deltaTimeInMilliseconds: Int): Boolean {
         currentProgress = 1f - (remainingLifespan / lifespanInMilliseconds)
         if (currentProgress >= 1) {
             return false

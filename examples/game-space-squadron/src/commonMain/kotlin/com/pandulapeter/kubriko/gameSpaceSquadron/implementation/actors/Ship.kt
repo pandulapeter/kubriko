@@ -42,6 +42,7 @@ import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.sprite_ship
 import kotlin.math.abs
 import kotlin.math.hypot
+import kotlin.math.roundToInt
 
 internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputAware, Collidable {
 
@@ -105,7 +106,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
 
     private var speed = SceneUnit.Zero
 
-    override fun update(deltaTimeInMilliseconds: Float) {
+    override fun update(deltaTimeInMilliseconds: Int) {
         val previousX = body.position.x
         speed = min(shipDestination.body.position.distanceTo(body.position) * 0.03f + 0.5f.sceneUnit, MaxSpeed)
         // TODO: Implement momentum
@@ -156,14 +157,14 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
             private set
         val verticalScale = initialScale.vertical
 
-        fun update(deltaTimeInMilliseconds: Float, previousX: SceneUnit, currentX: SceneUnit) {
+        fun update(deltaTimeInMilliseconds: Int, previousX: SceneUnit, currentX: SceneUnit) {
             val distance = (previousX - currentX).abs
-            val animationSpeed = deltaTimeInMilliseconds * distance.raw * 0.2f
+            val animationSpeed = (deltaTimeInMilliseconds * distance.raw * 0.2f).roundToInt()
             if (distance < MinDistanceForAnimation) {
                 // Not moving
                 if (!animatedSprite.isFirstFrame) {
                     animatedSprite.stepBackwards(
-                        deltaTimeInMilliseconds = deltaTimeInMilliseconds * 0.8f,
+                        deltaTimeInMilliseconds = deltaTimeInMilliseconds,
                         speed = 2f,
                     )
                 }

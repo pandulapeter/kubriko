@@ -39,7 +39,7 @@ interface ParticleEmitter<S : ParticleEmitter.ParticleState> : Actor {
         abstract val body: ComplexBody
         open val drawingOrder: Float = 0f
 
-        abstract fun update(deltaTimeInMilliseconds: Float): Boolean
+        abstract fun update(deltaTimeInMilliseconds: Int): Boolean
 
         abstract fun DrawScope.draw()
     }

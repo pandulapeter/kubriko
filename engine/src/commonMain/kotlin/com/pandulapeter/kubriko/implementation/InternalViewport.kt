@@ -19,7 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.withFrameNanos
+import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Size
@@ -59,9 +59,12 @@ fun InternalViewport(
     LaunchedEffect(Unit) {
         kubrikoImpl.initialize()
         while (isActive) {
-            withFrameNanos { frameTimeInNanoseconds ->
-                (frameTimeInNanoseconds / 1000000f - kubrikoImpl.metadataManager.totalRuntimeInMilliseconds.value).let { deltaTimeInMilliseconds ->
-                    kubrikoImpl.managers.forEach { it.onUpdateInternal(deltaTimeInMilliseconds, frameTimeInNanoseconds) }
+            withFrameMillis { frameTimeInMilliseconds ->
+                if (kubrikoImpl.metadataManager.totalRuntimeInMilliseconds.value == 0L) {
+                    kubrikoImpl.metadataManager.onUpdateInternal(frameTimeInMilliseconds.toInt())
+                }
+                (frameTimeInMilliseconds - kubrikoImpl.metadataManager.totalRuntimeInMilliseconds.value).toInt().let { deltaTimeInMilliseconds ->
+                    kubrikoImpl.managers.forEach { it.onUpdateInternal(deltaTimeInMilliseconds) }
                 }
             }
         }

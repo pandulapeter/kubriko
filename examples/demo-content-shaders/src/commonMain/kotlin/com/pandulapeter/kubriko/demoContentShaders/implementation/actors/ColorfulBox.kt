@@ -28,7 +28,7 @@ internal class ColorfulBox(
         initialSize = SceneSize(width = 100.sceneUnit, height = 100.sceneUnit),
     )
 
-    override fun update(deltaTimeInMilliseconds: Float) {
+    override fun update(deltaTimeInMilliseconds: Int) {
         hue = (hue + deltaTimeInMilliseconds / 10f) % 360f
     }
 

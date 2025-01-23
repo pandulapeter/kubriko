@@ -49,8 +49,8 @@ internal class PhysicsManagerImpl(
     }
     override val simulationSpeed = MutableStateFlow(initialSimulationSpeed)
 
-    override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
-        if (stateManager.isRunning.value && deltaTimeInMilliseconds > 0 && deltaTimeInMilliseconds < 10000) {
+    override fun onUpdate(deltaTimeInMilliseconds: Int) {
+        if (stateManager.isRunning.value && deltaTimeInMilliseconds > 0) {
             arbiters.clear()
             broadPhaseCheck()
             semiImplicit(deltaTimeInMilliseconds * simulationSpeed.value / 100f)

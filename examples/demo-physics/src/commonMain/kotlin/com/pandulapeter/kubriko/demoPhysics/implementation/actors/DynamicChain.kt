@@ -80,7 +80,7 @@ internal class DynamicChain private constructor(state: State) : Group, Dynamic, 
         viewportManager = kubriko.get()
     }
 
-    override fun update(deltaTimeInMilliseconds: Float) {
+    override fun update(deltaTimeInMilliseconds: Int) {
         if (chainLinks.none { it.body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) }) {
             actorManager.remove(this)
         } else {
@@ -166,7 +166,7 @@ internal class DynamicChain private constructor(state: State) : Group, Dynamic, 
             initialPosition = initialPosition,
         )
 
-        override fun update(deltaTimeInMilliseconds: Float) {
+        override fun update(deltaTimeInMilliseconds: Int) {
             body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
             body.rotation = physicsBody.orientation
         }

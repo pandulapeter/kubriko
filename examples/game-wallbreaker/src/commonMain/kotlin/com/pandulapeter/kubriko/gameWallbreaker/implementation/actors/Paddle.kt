@@ -122,7 +122,7 @@ internal class Paddle(
         }
     }
 
-    override fun update(deltaTimeInMilliseconds: Float) {
+    override fun update(deltaTimeInMilliseconds: Int) {
         if (moveInNextStep != SceneUnit.Zero) {
             body.position = SceneOffset(
                 x = body.position.x + moveInNextStep * deltaTimeInMilliseconds,

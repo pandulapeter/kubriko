@@ -37,7 +37,7 @@ class AnimatedSprite(
     // TODO: Support reverse by adding a step function
 
     fun stepForward(
-        deltaTimeInMilliseconds: Float,
+        deltaTimeInMilliseconds: Int,
         speed: Float = 1f,
         shouldLoop: Boolean = false,
     ) {
@@ -46,7 +46,7 @@ class AnimatedSprite(
     }
 
     fun stepBackwards(
-        deltaTimeInMilliseconds: Float,
+        deltaTimeInMilliseconds: Int,
         speed: Float = 1f,
         shouldLoop: Boolean = false,
     ) {

@@ -29,7 +29,7 @@ internal abstract class BaseDynamicObject : RigidBody, Visible, Dynamic {
         viewportManager = kubriko.get()
     }
 
-    override fun update(deltaTimeInMilliseconds: Float) {
+    override fun update(deltaTimeInMilliseconds: Int) {
         body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
         body.rotation = physicsBody.orientation
         if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {

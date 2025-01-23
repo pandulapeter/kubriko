@@ -52,7 +52,7 @@ internal class Bullet(
         kubriko.get<AudioManager>().playShootSoundEffect()
     }
 
-    override fun update(deltaTimeInMilliseconds: Float) {
+    override fun update(deltaTimeInMilliseconds: Int) {
         body.position -= SceneOffset.Down * deltaTimeInMilliseconds * 2f
         if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
             actorManager.remove(this)

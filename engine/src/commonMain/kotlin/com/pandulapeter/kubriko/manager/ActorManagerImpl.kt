@@ -105,7 +105,7 @@ internal class ActorManagerImpl(
         viewportManager = kubriko.viewportManager
     }
 
-    override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
+    override fun onUpdate(deltaTimeInMilliseconds: Int) {
         if (stateManager.isRunning.value) {
             dynamicActors.value
                 //.filter { if (it !is Positionable) true else it.body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) }

@@ -21,5 +21,5 @@ interface Dynamic : Actor {
      *
      * @param deltaTimeInMilliseconds - The number of milliseconds since the previous frame.
      */
-    fun update(deltaTimeInMilliseconds: Float)
+    fun update(deltaTimeInMilliseconds: Int)
 }

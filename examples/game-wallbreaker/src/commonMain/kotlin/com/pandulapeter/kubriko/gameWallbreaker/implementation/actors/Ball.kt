@@ -76,7 +76,7 @@ internal class Ball(
         viewportManager = kubriko.get()
     }
 
-    override fun update(deltaTimeInMilliseconds: Float) {
+    override fun update(deltaTimeInMilliseconds: Int) {
         val viewportTopLeft = viewportManager.topLeft.value
         val viewportBottomRight = viewportManager.bottomRight.value
         when (state) {

@@ -56,7 +56,7 @@ internal class AlienShip : Visible, Dynamic, Collidable {
         metadataManager = kubriko.get()
     }
 
-    override fun update(deltaTimeInMilliseconds: Float) {
+    override fun update(deltaTimeInMilliseconds: Int) {
         animatedSprite.stepForward(
             deltaTimeInMilliseconds = deltaTimeInMilliseconds,
             shouldLoop = true,

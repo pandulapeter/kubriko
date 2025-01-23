@@ -73,7 +73,7 @@ internal class BulletAlien(
         kubriko.get<AudioManager>().playShootAlienSoundEffect()
     }
 
-    override fun update(deltaTimeInMilliseconds: Float) {
+    override fun update(deltaTimeInMilliseconds: Int) {
         body.position = SceneOffset(
             x = body.position.x + direction.cos * Speed,
             y = body.position.y + direction.sin * Speed,

@@ -44,7 +44,7 @@ class Character private constructor(state: State) : Unique, Dynamic, Positionabl
 
     private var acc = 0f
 
-    override fun update(deltaTimeInMilliseconds: Float) {
+    override fun update(deltaTimeInMilliseconds: Int) {
         acc += deltaTimeInMilliseconds
         (acc / 10000f).rad.let { angle ->
             body.position = SceneOffset(

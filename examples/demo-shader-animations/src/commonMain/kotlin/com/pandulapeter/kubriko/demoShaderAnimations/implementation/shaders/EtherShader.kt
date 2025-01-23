@@ -34,7 +34,7 @@ internal class EtherShader(
         metadataManager = kubriko.get()
     }
 
-    override fun update(deltaTimeInMilliseconds: Float) {
+    override fun update(deltaTimeInMilliseconds: Int) {
         shaderState = shaderState.copy(time = (metadataManager.activeRuntimeInMilliseconds.value % 100000L) / 1000f)
     }
 

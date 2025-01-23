@@ -21,21 +21,18 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
-import kotlin.math.roundToLong
 
 internal class MetadataManagerImpl(
     isLoggingEnabled: Boolean,
-    instanceNameForLogging: String?,
+    private val instanceNameForLogging: String?,
 ) : MetadataManager(isLoggingEnabled, instanceNameForLogging) {
     private lateinit var stateManager: StateManager
     private val _fps = MutableStateFlow(0f)
     override val fps = _fps.asStateFlow()
-    private var startTimeInMilliseconds = 0L
     private val _totalRuntimeInMilliseconds = MutableStateFlow(0L)
     override val totalRuntimeInMilliseconds = _totalRuntimeInMilliseconds.asStateFlow()
     private val _activeRuntimeInMilliseconds = MutableStateFlow(0L)
     override val activeRuntimeInMilliseconds = _activeRuntimeInMilliseconds.asStateFlow()
-    private var lastFpsUpdateTimestamp = 0L
 
     override fun onInitialize(kubriko: Kubriko) {
         stateManager = (kubriko as KubrikoImpl).stateManager
@@ -58,16 +55,10 @@ internal class MetadataManagerImpl(
         }
     }
 
-    override fun onUpdate(deltaTimeInMilliseconds: Float, gameTimeMilliseconds: Long) {
-        if (startTimeInMilliseconds == 0L) {
-            startTimeInMilliseconds = gameTimeMilliseconds
-        }
+    override fun onUpdate(deltaTimeInMilliseconds: Int) {
         if (stateManager.isRunning.value) {
-            _activeRuntimeInMilliseconds.update { currentValue -> currentValue + deltaTimeInMilliseconds.roundToLong() }
+            _activeRuntimeInMilliseconds.update { currentValue -> currentValue + deltaTimeInMilliseconds }
         }
-        _totalRuntimeInMilliseconds.update { currentValue -> currentValue + deltaTimeInMilliseconds.roundToLong() }
-        if (gameTimeMilliseconds - lastFpsUpdateTimestamp >= 100) {
-            lastFpsUpdateTimestamp = gameTimeMilliseconds
-        }
+        _totalRuntimeInMilliseconds.update { currentValue -> currentValue + deltaTimeInMilliseconds }
     }
 }

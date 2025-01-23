@@ -100,7 +100,7 @@ internal class ShipDestination : Positionable, PointerInputAware, KeyboardInputA
         }
     }
 
-    override fun update(deltaTimeInMilliseconds: Float) {
+    override fun update(deltaTimeInMilliseconds: Int) {
         if (moveInNextStep != SceneOffset.Zero) {
             body.position = SceneOffset(
                 x = body.position.x + moveInNextStep.x * deltaTimeInMilliseconds,
