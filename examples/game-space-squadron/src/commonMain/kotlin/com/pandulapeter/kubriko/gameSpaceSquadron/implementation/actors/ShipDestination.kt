@@ -112,6 +112,6 @@ internal class ShipDestination : Positionable, PointerInputAware, KeyboardInputA
 
     companion object {
         const val MOUSE_MOVEMENT_SPEED = 1.5f
-        val KeyboardMovementSpeed = 3.sceneUnit
+        val KeyboardMovementSpeed = 2.sceneUnit
     }
 }

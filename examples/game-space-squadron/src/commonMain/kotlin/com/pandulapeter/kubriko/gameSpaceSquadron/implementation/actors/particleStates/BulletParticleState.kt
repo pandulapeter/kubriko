@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.particleStates
 
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
@@ -80,5 +81,6 @@ class BulletParticleState(
         radius = 6f,
         center = body.size.center.raw,
         style = Fill,
+        blendMode = BlendMode.ColorDodge,
     )
 }
