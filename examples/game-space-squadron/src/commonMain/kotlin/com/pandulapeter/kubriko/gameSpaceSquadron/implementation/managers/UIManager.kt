@@ -35,7 +35,7 @@ internal class UIManager(
 ) : Manager(), KeyboardInputAware, Unique {
 
     private val audioManager by manager<AudioManager>()
-    private val gameManager by manager<GameplayManager>()
+    private val gameplayManager by manager<GameplayManager>()
     private val _isInfoDialogVisible = MutableStateFlow(false)
     val isInfoDialogVisible = _isInfoDialogVisible.asStateFlow()
 
@@ -43,7 +43,7 @@ internal class UIManager(
         kubriko.get<ActorManager>().add(this)
         stateManager.isFocused
             .filterNot { it }
-            .onEach { stateManager.updateIsRunning(false) }
+            .onEach { gameplayManager.pauseGame() }
             .launchIn(scope)
     }
 
@@ -55,18 +55,18 @@ internal class UIManager(
     override fun onKeyReleased(key: Key) {
         when (key) {
             Key.Escape -> if (stateManager.isRunning.value) {
-                gameManager.pauseGame()
+                gameplayManager.pauseGame()
             } else {
                 if (isInfoDialogVisible.value) {
                     toggleInfoDialogVisibility()
                 } else {
-                    gameManager.playGame()
+                    gameplayManager.playGame()
                 }
             }
 
             Key.Spacebar, Key.Enter -> {
                 if (!stateManager.isRunning.value && !isInfoDialogVisible.value) {
-                    gameManager.playGame()
+                    gameplayManager.playGame()
                 }
             }
 
