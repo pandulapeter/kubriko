@@ -9,7 +9,9 @@
  */
 package com.pandulapeter.kubriko.extensions
 
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.fromKeyword
 
-// Can't implement invisible cursor because DarwinCursor is private to Compose
-internal actual val pointerIconInvisible: PointerIcon = PointerIcon.Crosshair
+@OptIn(ExperimentalComposeUiApi::class)
+internal actual val pointerIconInvisible: PointerIcon = PointerIcon.fromKeyword("none")
