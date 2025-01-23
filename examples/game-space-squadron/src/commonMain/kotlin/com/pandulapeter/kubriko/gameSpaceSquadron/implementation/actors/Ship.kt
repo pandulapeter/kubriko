@@ -108,7 +108,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
 
     override fun update(deltaTimeInMilliseconds: Int) {
         val previousX = body.position.x
-        speed = min(shipDestination.body.position.distanceTo(body.position) * 0.03f + 0.5f.sceneUnit, MaxSpeed)
+        speed = min(shipDestination.body.position.distanceTo(body.position) * 0.01f + 0.5f.sceneUnit, MaxSpeed) * deltaTimeInMilliseconds
         // TODO: Implement momentum
         moveTowards(shipDestination.body.position, speed)
         shipAnimationWrapper.update(deltaTimeInMilliseconds, previousX, body.position.x)
@@ -174,7 +174,10 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
                     if (animatedSprite.isFirstFrame) {
                         horizontalScale = initialScale.horizontal
                     } else {
-                        animatedSprite.stepBackwards(animationSpeed)
+                        animatedSprite.stepBackwards(
+                            deltaTimeInMilliseconds = animationSpeed,
+                            speed = 0.5f,
+                        )
                     }
                 } else {
                     if (!animatedSprite.isLastFrame) {
@@ -187,7 +190,10 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
                     if (animatedSprite.isFirstFrame) {
                         horizontalScale = -initialScale.horizontal
                     } else {
-                        animatedSprite.stepBackwards(animationSpeed)
+                        animatedSprite.stepBackwards(
+                            deltaTimeInMilliseconds = animationSpeed,
+                            speed = 0.5f,
+                        )
                     }
                 } else {
                     if (!animatedSprite.isLastFrame) {
@@ -204,7 +210,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     }
 
     companion object {
-        private val MaxSpeed = 16.sceneUnit
+        private val MaxSpeed = 3.sceneUnit
         private val MinDistanceForAnimation = 3.sceneUnit
     }
 }
