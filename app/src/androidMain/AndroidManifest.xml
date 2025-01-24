@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
+<?xml version="1.0" encoding="UTF-8"?><!--
  This file is part of Kubriko.
  Copyright (c) Pandula Péter 2025.
  https://github.com/pandulapeter/kubriko
@@ -12,6 +11,7 @@
 
     <application
         android:allowBackup="true"
+        android:appCategory="game"
         android:icon="@mipmap/ic_launcher"
         android:isGame="true"
         android:label="@string/app_name"
