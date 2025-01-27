@@ -66,9 +66,9 @@ internal actual fun createKeyboardEventHandler(
             currentActivity?.let { activity ->
                 try {
                     if (isActive) {
-                        activity.window.decorView.rootView.addOnUnhandledKeyEventListener(keyListener)
+                        activity.window.decorView.rootView?.addOnUnhandledKeyEventListener(keyListener)
                     } else {
-                        activity.window.decorView.rootView.removeOnUnhandledKeyEventListener(keyListener)
+                        activity.window.decorView.rootView?.removeOnUnhandledKeyEventListener(keyListener)
                     }
                 } catch (_: ArrayIndexOutOfBoundsException) {
                 }
