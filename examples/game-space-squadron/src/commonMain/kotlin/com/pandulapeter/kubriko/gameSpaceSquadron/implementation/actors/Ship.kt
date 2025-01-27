@@ -33,6 +33,7 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.sprites.AnimatedSprite
 import com.pandulapeter.kubriko.sprites.SpriteManager
+import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
@@ -92,6 +93,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     }
 
     private var lastShotTimestamp = 0L
+    private var isMultishootActive = true
 
     private fun shoot() {
         if (stateManager.isRunning.value) {
@@ -99,7 +101,37 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
             val timeSinceLastShot = currentTimestamp - lastShotTimestamp
             if (timeSinceLastShot > 200) {
                 lastShotTimestamp = currentTimestamp
-                actorManager.add(Bullet(body.position))
+                if (isMultishootActive) {
+                    actorManager.add(
+                        Bullet(
+                            initialPosition = body.position,
+                            directionOffset = AngleRadians.Zero,
+                        ),
+                        Bullet(
+                            initialPosition = body.position,
+                            directionOffset = AngleRadians.Pi / 24,
+                        ),
+                        Bullet(
+                            initialPosition = body.position,
+                            directionOffset = -AngleRadians.Pi / 24,
+                        ),
+                        Bullet(
+                            initialPosition = body.position,
+                            directionOffset = AngleRadians.Pi / 12,
+                        ),
+                        Bullet(
+                            initialPosition = body.position,
+                            directionOffset = -AngleRadians.Pi / 12,
+                        ),
+                    )
+                } else {
+                    actorManager.add(
+                        Bullet(
+                            initialPosition = body.position,
+                            directionOffset = AngleRadians.Zero,
+                        )
+                    )
+                }
             }
         }
     }

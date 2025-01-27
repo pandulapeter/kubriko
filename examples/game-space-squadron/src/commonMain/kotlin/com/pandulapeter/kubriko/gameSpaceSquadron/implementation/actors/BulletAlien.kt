@@ -38,7 +38,7 @@ internal class BulletAlien(
 ) : Visible, Dynamic, ParticleEmitter<BulletParticleState>, CollisionDetector {
     override val body = CircleBody(
         initialPosition = initialPosition,
-        initialRadius = 10f.sceneUnit,
+        initialRadius = 5f.sceneUnit,
     )
     private lateinit var actorManager: ActorManager
     private lateinit var audioManager: AudioManager
@@ -74,10 +74,10 @@ internal class BulletAlien(
     }
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        body.position = SceneOffset(
-            x = body.position.x + direction.cos * Speed,
-            y = body.position.y + direction.sin * Speed,
-        )
+        body.position += SceneOffset(
+            x = direction.cos * Speed,
+            y = direction.sin * Speed,
+        ) * deltaTimeInMilliseconds
         if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
             actorManager.remove(this)
         }
@@ -93,7 +93,7 @@ internal class BulletAlien(
     }
 
     companion object {
-        private val Speed = 6f.sceneUnit
+        private val Speed = 0.5f.sceneUnit
         private val CollisionLimit = 64f.sceneUnit
         private val BulletColor = Color(0xffc29327)
     }

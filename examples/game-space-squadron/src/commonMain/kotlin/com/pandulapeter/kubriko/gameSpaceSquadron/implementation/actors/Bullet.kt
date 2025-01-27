@@ -17,24 +17,30 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.CollisionDetector
+import com.pandulapeter.kubriko.extensions.cos
 import com.pandulapeter.kubriko.extensions.distanceTo
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.extensions.sin
+import com.pandulapeter.kubriko.extensions.times
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.particleStates.BulletParticleState
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.particles.ParticleEmitter
+import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 
 internal class Bullet(
     initialPosition: SceneOffset,
+    directionOffset: AngleRadians,
 ) : Visible, Dynamic, ParticleEmitter<BulletParticleState>, CollisionDetector {
     override val body = CircleBody(
         initialPosition = initialPosition,
-        initialRadius = 10f.sceneUnit,
+        initialRadius = 5f.sceneUnit,
     )
+    private val direction = directionOffset - AngleRadians.Pi / 2
     private lateinit var actorManager: ActorManager
     private lateinit var audioManager: AudioManager
     private lateinit var viewportManager: ViewportManager
@@ -53,7 +59,10 @@ internal class Bullet(
     }
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        body.position -= SceneOffset.Down * deltaTimeInMilliseconds * 2f
+        body.position += SceneOffset(
+            x = direction.cos * Speed,
+            y = direction.sin * Speed,
+        ) * deltaTimeInMilliseconds
         if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
             actorManager.remove(this)
         }
@@ -85,6 +94,7 @@ internal class Bullet(
     )
 
     companion object {
+        private val Speed = 1f.sceneUnit
         private val CollisionLimit = 72f.sceneUnit
         private val BulletColor = Color(0xff5199a6)
     }
