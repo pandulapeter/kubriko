@@ -77,7 +77,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         viewportManager = kubriko.get()
         body.position = SceneOffset(
             x = SceneUnit.Zero,
-            y = viewportManager.bottomRight.value.y + body.pivot.y,
+            y = viewportManager.bottomRight.value.y + body.size.height * 4f,
         )
     }
 

@@ -18,12 +18,15 @@ import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.extensions.directionTowards
 import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.MetadataManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sprites.AnimatedSprite
 import com.pandulapeter.kubriko.sprites.SpriteManager
 import com.pandulapeter.kubriko.types.Scale
+import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.sprite_alien_ship
@@ -34,6 +37,7 @@ internal class AlienShip : Visible, Dynamic, Collidable {
     private lateinit var actorManager: ActorManager
     private lateinit var spriteManager: SpriteManager
     private lateinit var metadataManager: MetadataManager
+    private lateinit var viewportManager: ViewportManager
     override val body = RectangleBody(
         initialSize = SceneSize(
             width = 206.sceneUnit,
@@ -49,11 +53,14 @@ internal class AlienShip : Visible, Dynamic, Collidable {
         framesPerSecond = 30f,
     )
     private var lastShotTimestamp = 0L
+    private var speed = 0.25f
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
         spriteManager = kubriko.get()
         metadataManager = kubriko.get()
+        viewportManager = kubriko.get()
+        resetPosition()
     }
 
     override fun update(deltaTimeInMilliseconds: Int) {
@@ -61,7 +68,7 @@ internal class AlienShip : Visible, Dynamic, Collidable {
             deltaTimeInMilliseconds = deltaTimeInMilliseconds,
             shouldLoop = true,
         )
-        if (Random.nextInt(80) == 0) {
+        if (body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) && Random.nextInt(80) == 0) {
             val currentTimestamp = metadataManager.activeRuntimeInMilliseconds.value
             val timeSinceLastShot = currentTimestamp - lastShotTimestamp
             if (timeSinceLastShot > 200) {
@@ -76,6 +83,19 @@ internal class AlienShip : Visible, Dynamic, Collidable {
                 }
             }
         }
+        body.position += SceneOffset.Down * speed * deltaTimeInMilliseconds
+        if (body.position.y > viewportManager.bottomRight.value.y + body.size.height) {
+            resetPosition()
+        }
+    }
+
+    private fun resetPosition() {
+        val left =  viewportManager.topLeft.value.x
+        val right = viewportManager.bottomRight.value.x
+        body.position = SceneOffset(
+            x = left + (right - left) * Random.nextFloat(),
+            y = viewportManager.topLeft.value.y - body.size.height,
+        )
     }
 
     override fun DrawScope.draw() = animatedSprite.draw(this)
