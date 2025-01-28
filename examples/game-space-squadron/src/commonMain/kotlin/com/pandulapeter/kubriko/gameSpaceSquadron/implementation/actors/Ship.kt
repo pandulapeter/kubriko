@@ -25,6 +25,7 @@ import com.pandulapeter.kubriko.extensions.distanceTo
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.min
 import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -44,11 +45,13 @@ import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.sprite_ship
 import kotlin.math.abs
 import kotlin.math.hypot
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputAware, Collidable {
 
     private lateinit var actorManager: ActorManager
+    private lateinit var audioManager: AudioManager
     private lateinit var gameplayManager: GameplayManager
     private lateinit var spriteManager: SpriteManager
     private lateinit var stateManager: StateManager
@@ -78,9 +81,11 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     override val actors = listOf(shipDestination)
     private var lastShotTimestamp = 0L
     private var remainingMultiShootCount = 0
+    private var health = 10
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
+        audioManager = kubriko.get()
         gameplayManager = kubriko.get()
         spriteManager = kubriko.get()
         stateManager = kubriko.get()
@@ -93,7 +98,16 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     }
 
     fun onPowerUpCollected() {
-        remainingMultiShootCount += 10
+        remainingMultiShootCount = min(remainingMultiShootCount + 5, 10)
+    }
+
+    fun onHit() {
+        health-=1
+        if (health <= 0) {
+            audioManager.playExplosionLargeSoundEffect()
+            actorManager.remove(this)
+            gameplayManager.onGameOver()
+        }
     }
 
     override fun onRemoved() = gameplayManager.onGameOver()

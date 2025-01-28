@@ -22,6 +22,7 @@ import com.pandulapeter.kubriko.extensions.distanceTo
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sprites.AnimatedSprite
 import com.pandulapeter.kubriko.sprites.SpriteManager
@@ -32,10 +33,12 @@ import com.pandulapeter.kubriko.types.SceneSize
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.sprite_power_up
 import kotlin.random.Random
+import kotlin.reflect.KClass
 
 internal class PowerUp : Visible, Dynamic, CollisionDetector {
 
     private lateinit var audioManager: AudioManager
+    private lateinit var gameplayManager: GameplayManager
     private lateinit var spriteManager: SpriteManager
     private lateinit var viewportManager: ViewportManager
     override val body = RectangleBody(
@@ -55,10 +58,11 @@ internal class PowerUp : Visible, Dynamic, CollisionDetector {
         framesPerRow = 10,
         framesPerSecond = 30f,
     )
-    override val collidableTypes = listOf(Ship::class)
+    override val collidableTypes = listOf<KClass<out Collidable>>(Ship::class, AlienShip::class)
 
     override fun onAdded(kubriko: Kubriko) {
         audioManager = kubriko.get()
+        gameplayManager = kubriko.get()
         spriteManager = kubriko.get()
         viewportManager = kubriko.get()
         resetPosition()
@@ -79,6 +83,9 @@ internal class PowerUp : Visible, Dynamic, CollisionDetector {
     }
 
     override fun onCollisionDetected(collidables: List<Collidable>) {
+        if (collidables.any { it is AlienShip }) {
+            resetPosition()
+        }
         collidables.filterIsInstance<Ship>().firstOrNull()?.let { ship ->
             if (body.position.distanceTo(ship.body.position) < CollisionLimit) {
                 ship.onPowerUpCollected()
@@ -89,13 +96,15 @@ internal class PowerUp : Visible, Dynamic, CollisionDetector {
     }
 
     private fun resetPosition() {
-        val left = viewportManager.topLeft.value.x
-        val right = viewportManager.bottomRight.value.x
-        body.position = SceneOffset(
-            x = left + (right - left) * Random.nextFloat(),
-            y = viewportManager.topLeft.value.y - body.size.height,
-        )
-        body.rotation = AngleRadians.TwoPi * Random.nextFloat()
+        if (!gameplayManager.isGameOver) {
+            val left = viewportManager.topLeft.value.x
+            val right = viewportManager.bottomRight.value.x
+            body.position = SceneOffset(
+                x = left + (right - left) * Random.nextFloat(),
+                y = viewportManager.topLeft.value.y - body.size.height,
+            )
+            body.rotation = AngleRadians.TwoPi * Random.nextFloat()
+        }
     }
 
     companion object {

@@ -23,8 +23,8 @@ import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.extensions.sin
 import com.pandulapeter.kubriko.extensions.times
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.particleStates.BulletParticleState
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.particleStates.BulletParticleState
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.particles.ParticleEmitter
@@ -68,9 +68,14 @@ internal class Bullet(
     }
 
     override fun onCollisionDetected(collidables: List<Collidable>) {
-        collidables.forEach { alienShip ->
+        var isPlayingExplosion = false
+        collidables.filterIsInstance<AlienShip>().forEach { alienShip ->
             actorManager.remove(this)
-            audioManager.playExplosionSmallSoundEffect()
+            if (!isPlayingExplosion) {
+                audioManager.playExplosionSmallSoundEffect()
+                isPlayingExplosion = true
+            }
+            alienShip.onHit()
         }
     }
 

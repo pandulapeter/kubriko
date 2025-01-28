@@ -24,8 +24,8 @@ import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.extensions.sin
 import com.pandulapeter.kubriko.extensions.times
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.particleStates.BulletParticleState
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.particleStates.BulletParticleState
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.particles.ParticleEmitter
@@ -84,10 +84,11 @@ internal class BulletAlien(
     }
 
     override fun onCollisionDetected(collidables: List<Collidable>) {
-        collidables.firstOrNull()?.let { ship ->
+        collidables.filterIsInstance<Ship>().firstOrNull()?.let { ship ->
             if (body.position.distanceTo(ship.body.position) < CollisionLimit) {
                 audioManager.playShipHitSoundEffect()
                 actorManager.remove(this)
+                ship.onHit()
             }
         }
     }

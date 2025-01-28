@@ -17,26 +17,34 @@ import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
+import com.pandulapeter.kubriko.collision.CollisionDetector
 import com.pandulapeter.kubriko.extensions.directionTowards
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.MetadataManager
+import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sprites.AnimatedSprite
 import com.pandulapeter.kubriko.sprites.SpriteManager
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
+import com.pandulapeter.kubriko.types.SceneUnit
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.sprite_alien_ship
 import kotlin.random.Random
 
-internal class AlienShip : Visible, Dynamic, Collidable {
+internal class AlienShip(
+    private val initialY: SceneUnit,
+) : Visible, Dynamic, Collidable, CollisionDetector {
 
     private lateinit var actorManager: ActorManager
+    private lateinit var gameplayManager: GameplayManager
     private lateinit var spriteManager: SpriteManager
+    private lateinit var stateManager: StateManager
     private lateinit var metadataManager: MetadataManager
     private lateinit var viewportManager: ViewportManager
     override val body = RectangleBody(
@@ -58,14 +66,19 @@ internal class AlienShip : Visible, Dynamic, Collidable {
     )
     private var lastShotTimestamp = 0L
     private var speed = 0.25f
+    override val collidableTypes = listOf(AlienShip::class)
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
+        gameplayManager = kubriko.get()
         spriteManager = kubriko.get()
+        stateManager = kubriko.get()
         metadataManager = kubriko.get()
         viewportManager = kubriko.get()
         resetPosition()
     }
+
+    override fun onCollisionDetected(collidables: List<Collidable>) = resetPosition()
 
     override fun update(deltaTimeInMilliseconds: Int) {
         animatedSprite.stepForward(
@@ -75,7 +88,7 @@ internal class AlienShip : Visible, Dynamic, Collidable {
         if (body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) && Random.nextInt(80) == 0) {
             val currentTimestamp = metadataManager.activeRuntimeInMilliseconds.value
             val timeSinceLastShot = currentTimestamp - lastShotTimestamp
-            if (timeSinceLastShot > 200) {
+            if (timeSinceLastShot > 200 && !gameplayManager.isGameOver) {
                 actorManager.allActors.value.filterIsInstance<Ship>().firstOrNull()?.let { ship ->
                     actorManager.add(
                         BulletAlien(
@@ -94,13 +107,18 @@ internal class AlienShip : Visible, Dynamic, Collidable {
         collisionBody.position = body.position
     }
 
+    fun onHit() = resetPosition()
+
     private fun resetPosition() {
         val left = viewportManager.topLeft.value.x
         val right = viewportManager.bottomRight.value.x
         body.position = SceneOffset(
             x = left + (right - left) * Random.nextFloat(),
-            y = viewportManager.topLeft.value.y - body.size.height,
+            y = viewportManager.topLeft.value.y - body.size.height - initialY,
         )
+        if (gameplayManager.isGameOver && stateManager.isRunning.value) {
+            gameplayManager.pauseGame()
+        }
     }
 
     override fun DrawScope.draw() = animatedSprite.draw(this)

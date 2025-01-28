@@ -39,7 +39,7 @@ internal class CollisionManagerImpl(
         collisionDetectors.value.forEach { collisionDetector ->
             collisionDetector.collidableTypes.forEach { collidableType ->
                 collidables.value
-                    .filter { collidableType.isInstance(it) && collisionDetector.collisionBody.isOverlapping(it.collisionBody) }
+                    .filter { collidableType.isInstance(it) && collisionDetector.collisionBody.isOverlapping(it.collisionBody) && it != collisionDetector }
                     .let {
                         if (it.isNotEmpty()) {
                             collisionDetector.onCollisionDetected(it)
