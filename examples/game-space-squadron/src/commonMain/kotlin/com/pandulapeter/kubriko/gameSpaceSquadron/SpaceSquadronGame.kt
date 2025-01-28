@@ -61,7 +61,7 @@ fun SpaceSquadronGame(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.75f))
+                .background(Color.Black.copy(alpha = 0.25f))
                 .windowInsetsPadding(windowInsets)
                 .padding(16.dp),
         ) {

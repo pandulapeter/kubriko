@@ -40,8 +40,8 @@ internal class PowerUp : Visible, Dynamic, CollisionDetector {
     private lateinit var viewportManager: ViewportManager
     override val body = RectangleBody(
         initialSize = SceneSize(
-            width = 217.sceneUnit,
-            height = 197.sceneUnit,
+            width = 198.sceneUnit,
+            height = 186.sceneUnit,
         ),
         initialScale = Scale.Unit * 0.4f
     )
@@ -50,9 +50,9 @@ internal class PowerUp : Visible, Dynamic, CollisionDetector {
     )
     private val animatedSprite = AnimatedSprite(
         getImageBitmap = { spriteManager.get(Res.drawable.sprite_power_up) },
-        frameSize = IntSize(217, 197),
-        frameCount = 88,
-        framesPerRow = 9,
+        frameSize = IntSize(198, 186),
+        frameCount = 87,
+        framesPerRow = 10,
         framesPerSecond = 30f,
     )
     override val collidableTypes = listOf(Ship::class)

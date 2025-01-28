@@ -22,7 +22,7 @@
     <string name="fullscreen_exit">Exit fullscreen mode</string>
     <string name="information_contents">Controls:
  - Move the ship with the mouse, the touch screen, or by using the Up / Left / Down / Right  or W / A / S / D keys.
- - Shoot the ball by touching the screen / clicking anywhere, or by pressing the Spacebar key.
+ - Fire by touching the screen / clicking anywhere, or by pressing the Spacebar key.
  - Press the Esc key to pause / resume the game.
 
 Attribution:
