@@ -12,4 +12,7 @@ package com.pandulapeter.kubriko.collision
 import com.pandulapeter.kubriko.actor.traits.Positionable
 
 //TODO: Documentation
-interface Collidable : Positionable
+interface Collidable : Positionable {
+
+    val collisionBody get() = body
+}
