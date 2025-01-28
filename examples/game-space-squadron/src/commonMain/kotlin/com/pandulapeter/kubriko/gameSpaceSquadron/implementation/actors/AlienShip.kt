@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
@@ -44,6 +45,9 @@ internal class AlienShip : Visible, Dynamic, Collidable {
             height = 180.sceneUnit,
         ),
         initialScale = Scale.Unit * 0.75f,
+    )
+    override val collisionBody = CircleBody(
+        initialRadius = 70.sceneUnit,
     )
     private val animatedSprite = AnimatedSprite(
         getImageBitmap = { spriteManager.get(Res.drawable.sprite_alien_ship) },
@@ -87,10 +91,11 @@ internal class AlienShip : Visible, Dynamic, Collidable {
         if (body.position.y > viewportManager.bottomRight.value.y + body.size.height) {
             resetPosition()
         }
+        collisionBody.position = body.position
     }
 
     private fun resetPosition() {
-        val left =  viewportManager.topLeft.value.x
+        val left = viewportManager.topLeft.value.x
         val right = viewportManager.bottomRight.value.x
         body.position = SceneOffset(
             x = left + (right - left) * Random.nextFloat(),

@@ -9,9 +9,6 @@
  */
 package com.pandulapeter.kubriko.actor.body
 
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -23,6 +20,4 @@ interface ComplexBody : Body {
     var scale: Scale
     var rotation: AngleRadians
     val size: SceneSize
-
-    fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke)
 }

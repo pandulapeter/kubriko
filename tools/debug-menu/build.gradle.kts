@@ -15,6 +15,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(projects.engine)
+            implementation(projects.plugins.collision)
             implementation(projects.plugins.persistence)
             implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)

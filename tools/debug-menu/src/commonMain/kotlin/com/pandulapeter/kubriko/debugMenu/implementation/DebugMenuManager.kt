@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.drawscope.withTransform
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
+import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.minus
 import com.pandulapeter.kubriko.extensions.transformForViewport
@@ -47,7 +48,7 @@ internal class DebugMenuManager(
         }
         combine(
             gameMetadataManager.fps,
-            combine(gameActorManager.allActors,gameActorManager.visibleActorsWithinViewport) { all, visible -> all to visible},
+            combine(gameActorManager.allActors, gameActorManager.visibleActorsWithinViewport) { all, visible -> all to visible },
             gameMetadataManager.activeRuntimeInMilliseconds,
             gameViewportManager.size,
             InternalDebugMenu.isDebugOverlayEnabled,
@@ -88,9 +89,14 @@ internal class DebugMenuManager(
                                     size = visible.body.axisAlignedBoundingBox.size.raw,
                                     style = stroke,
                                 )
+                                val body = (visible as? Collidable)?.collisionBody ?: visible.body
                                 withTransform(
-                                    transformBlock = { visible.transformForViewport(this) },
-                                    drawBlock = { with(visible.body) { drawDebugBounds(debugColor, stroke) } },
+                                    transformBlock = { body.transformForViewport(this) },
+                                    drawBlock = {
+                                        with(body) {
+                                            drawDebugBounds(debugColor, stroke)
+                                        }
+                                    },
                                 )
                             }
                         },

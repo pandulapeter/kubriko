@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Group
@@ -59,6 +60,13 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
             height = 341.sceneUnit,
         ),
         initialScale = Scale.Unit * 0.5f,
+    )
+    override val collisionBody = CircleBody(
+        initialRadius = 100.sceneUnit,
+        initialScale = Scale(
+            horizontal = 0.6f,
+            vertical = 0.8f,
+        ),
     )
     private val shipAnimationWrapper by lazy {
         ShipAnimationWrapper(
@@ -149,6 +157,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         moveTowards(shipDestination.body.position, speed)
         shipAnimationWrapper.update(deltaTimeInMilliseconds, previousX, body.position.x)
         body.scale = Scale(shipAnimationWrapper.horizontalScale, shipAnimationWrapper.verticalScale)
+        collisionBody.position = body.position
     }
 
     private fun moveTowards(target: SceneOffset, speed: SceneUnit) {

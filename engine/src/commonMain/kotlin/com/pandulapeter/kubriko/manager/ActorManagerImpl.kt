@@ -198,7 +198,7 @@ internal class ActorManagerImpl(
                             .filter { it.isVisible && it.layerIndex == layerIndex }
                             .forEach { visible ->
                                 withTransform(
-                                    transformBlock = { visible.transformForViewport(this) },
+                                    transformBlock = { visible.body.transformForViewport(this) },
                                     drawBlock = {
                                         with(visible) {
                                             clipRect(

@@ -100,7 +100,7 @@ internal class OverlayManager(
                             )
                             if (highlighted is Visible) { // TODO: Handle else branch
                                 withTransform(
-                                    transformBlock = { highlighted.transformForViewport(this) },
+                                    transformBlock = { highlighted.body.transformForViewport(this) },
                                     drawBlock = {
                                         with(highlighted) {
                                             clipRect(
@@ -120,7 +120,7 @@ internal class OverlayManager(
                         } ?: editorController.previewOverlayActor?.let { overlay ->
                             if (overlay is Visible) { // TODO: Handle else branch
                                 withTransform(
-                                    transformBlock = { overlay.transformForViewport(this) },
+                                    transformBlock = { overlay.body.transformForViewport(this) },
                                     drawBlock = {
                                         with(overlay) {
                                             clipRect(

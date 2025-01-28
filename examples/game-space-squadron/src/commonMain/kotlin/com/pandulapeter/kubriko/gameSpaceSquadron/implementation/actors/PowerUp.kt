@@ -18,12 +18,14 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.CollisionDetector
+import com.pandulapeter.kubriko.extensions.distanceTo
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sprites.AnimatedSprite
 import com.pandulapeter.kubriko.sprites.SpriteManager
+import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
@@ -31,7 +33,7 @@ import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.sprite_power_up
 import kotlin.random.Random
 
-internal class PowerUpCell : Visible, Dynamic, CollisionDetector {
+internal class PowerUp : Visible, Dynamic, CollisionDetector {
 
     private lateinit var audioManager: AudioManager
     private lateinit var spriteManager: SpriteManager
@@ -78,9 +80,11 @@ internal class PowerUpCell : Visible, Dynamic, CollisionDetector {
 
     override fun onCollisionDetected(collidables: List<Collidable>) {
         collidables.filterIsInstance<Ship>().firstOrNull()?.let { ship ->
-            ship.onPowerUpCollected()
-            resetPosition()
-            audioManager.playPowerUpSoundEffect()
+            if (body.position.distanceTo(ship.body.position) < CollisionLimit) {
+                ship.onPowerUpCollected()
+                resetPosition()
+                audioManager.playPowerUpSoundEffect()
+            }
         }
     }
 
@@ -91,9 +95,11 @@ internal class PowerUpCell : Visible, Dynamic, CollisionDetector {
             x = left + (right - left) * Random.nextFloat(),
             y = viewportManager.topLeft.value.y - body.size.height,
         )
+        body.rotation = AngleRadians.TwoPi * Random.nextFloat()
     }
 
     companion object {
         private const val SPEED = 0.3f
+        private val CollisionLimit = 64f.sceneUnit
     }
 }

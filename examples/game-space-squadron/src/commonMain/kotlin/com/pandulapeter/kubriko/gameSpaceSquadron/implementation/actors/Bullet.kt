@@ -18,7 +18,6 @@ import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.CollisionDetector
 import com.pandulapeter.kubriko.extensions.cos
-import com.pandulapeter.kubriko.extensions.distanceTo
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.extensions.sceneUnit
@@ -70,10 +69,8 @@ internal class Bullet(
 
     override fun onCollisionDetected(collidables: List<Collidable>) {
         collidables.forEach { alienShip ->
-            if (body.position.distanceTo(alienShip.body.position) < CollisionLimit) {
-                actorManager.remove(this)
-                audioManager.playExplosionSmallSoundEffect()
-            }
+            actorManager.remove(this)
+            audioManager.playExplosionSmallSoundEffect()
         }
     }
 
@@ -95,7 +92,6 @@ internal class Bullet(
 
     companion object {
         private val Speed = 1f.sceneUnit
-        private val CollisionLimit = 72f.sceneUnit
         private val BulletColor = Color(0xff5199a6)
     }
 }
