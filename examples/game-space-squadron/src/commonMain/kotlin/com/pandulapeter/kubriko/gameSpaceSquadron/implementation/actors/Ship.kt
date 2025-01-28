@@ -84,6 +84,10 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         )
     }
 
+    fun onPowerUpCollected() {
+        remainingMultiShootCount += 10
+    }
+
     override fun onRemoved() = gameplayManager.onGameOver()
 
     override fun handleActivePointers(screenOffset: Offset) = shoot()

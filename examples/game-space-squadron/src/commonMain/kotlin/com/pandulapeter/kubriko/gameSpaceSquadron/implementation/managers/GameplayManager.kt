@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.AlienShip
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.PowerUpCell
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.Ship
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.ShipDestination
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -26,7 +27,7 @@ internal class GameplayManager(
     private var isGameOver = true
 
     override fun onInitialize(kubriko: Kubriko) {
-        actorManager.add(AlienShip())
+        actorManager.add(AlienShip(), PowerUpCell())
     }
 
     fun playGame() {
