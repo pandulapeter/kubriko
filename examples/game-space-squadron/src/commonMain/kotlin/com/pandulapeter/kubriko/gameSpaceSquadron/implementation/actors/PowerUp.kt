@@ -101,7 +101,7 @@ internal class PowerUp : Visible, Dynamic, CollisionDetector {
             val right = viewportManager.bottomRight.value.x
             body.position = SceneOffset(
                 x = left + (right - left) * Random.nextFloat(),
-                y = viewportManager.topLeft.value.y - body.size.height,
+                y = viewportManager.topLeft.value.y - body.size.height - 2000.sceneUnit,
             )
             body.rotation = AngleRadians.TwoPi * Random.nextFloat()
         }

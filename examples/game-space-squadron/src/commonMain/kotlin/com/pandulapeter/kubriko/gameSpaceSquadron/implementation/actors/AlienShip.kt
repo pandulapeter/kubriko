@@ -52,7 +52,7 @@ internal class AlienShip(
             width = 206.sceneUnit,
             height = 180.sceneUnit,
         ),
-        initialScale = Scale.Unit * 0.75f,
+        initialScale = StartingScale,
     )
     override val collisionBody = CircleBody(
         initialRadius = 70.sceneUnit,
@@ -67,6 +67,8 @@ internal class AlienShip(
     private var lastShotTimestamp = 0L
     private var speed = 0.25f
     override val collidableTypes = listOf(AlienShip::class)
+    var isShrinking = false
+        private set
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
@@ -104,10 +106,20 @@ internal class AlienShip(
         if (body.position.y > viewportManager.bottomRight.value.y + body.size.height) {
             resetPosition()
         }
+        if (isShrinking ) {
+            body.scale -= ShrinkingSpeed * deltaTimeInMilliseconds
+            if (body.scale.horizontal <= 0f) {
+                resetPosition()
+            }
+        }
         collisionBody.position = body.position
     }
 
-    fun onHit() = resetPosition()
+    fun onHit() {
+        if (!isShrinking) {
+            isShrinking = true
+        }
+    }
 
     private fun resetPosition() {
         val left = viewportManager.topLeft.value.x
@@ -116,10 +128,20 @@ internal class AlienShip(
             x = left + (right - left) * Random.nextFloat(),
             y = viewportManager.topLeft.value.y - body.size.height - initialY,
         )
+        body.scale = StartingScale
+        isShrinking = false
         if (gameplayManager.isGameOver && stateManager.isRunning.value) {
             gameplayManager.pauseGame()
         }
     }
 
     override fun DrawScope.draw() = animatedSprite.draw(this)
+
+    companion object {
+        private val StartingScale = Scale.Unit * 0.75f
+        private val ShrinkingSpeed = Scale(
+            horizontal =0.005f,
+            vertical = 0.005f,
+        )
+    }
 }

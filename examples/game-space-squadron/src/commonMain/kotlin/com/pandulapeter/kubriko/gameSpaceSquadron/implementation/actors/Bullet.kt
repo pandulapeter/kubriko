@@ -69,7 +69,7 @@ internal class Bullet(
 
     override fun onCollisionDetected(collidables: List<Collidable>) {
         var isPlayingExplosion = false
-        collidables.filterIsInstance<AlienShip>().forEach { alienShip ->
+        collidables.filterIsInstance<AlienShip>().filterNot { it.isShrinking }.forEach { alienShip ->
             actorManager.remove(this)
             if (!isPlayingExplosion) {
                 audioManager.playExplosionSmallSoundEffect()
