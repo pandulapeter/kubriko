@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.particleStates
 
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
@@ -35,7 +34,7 @@ class BulletParticleState(
     override val drawingOrder = 1f
     private val speed: SceneUnit = 0.1f.sceneUnit
     private var direction: AngleRadians = AngleRadians.Zero
-    private val lifespanInMilliseconds = 300f
+    private val lifespanInMilliseconds = 100f
     private var remainingLifespan = lifespanInMilliseconds
     private var currentProgress = 0f
 
@@ -63,10 +62,7 @@ class BulletParticleState(
         if (currentProgress >= 1) {
             return false
         } else {
-            body.scale *= (1f - currentProgress / 5f)
-            if (body.scale.horizontal < 0.05f) {
-                return false
-            }
+            body.scale = Scale.Unit * (1 - currentProgress)
             body.position = SceneOffset(
                 x = body.position.x + speed * direction.cos * deltaTimeInMilliseconds,
                 y = body.position.y - speed * direction.sin * deltaTimeInMilliseconds,
@@ -77,10 +73,9 @@ class BulletParticleState(
     }
 
     override fun DrawScope.draw() = drawCircle(
-        color = color.copy(alpha = 0.8f - currentProgress),
+        color = color.copy(alpha = 1 - currentProgress),
         radius = 6f,
         center = body.size.center.raw,
         style = Fill,
-        blendMode = BlendMode.ColorDodge,
     )
 }

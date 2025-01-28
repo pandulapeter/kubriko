@@ -55,19 +55,22 @@ internal class ShipDestination : Positionable, PointerInputAware, KeyboardInputA
         }
     }
 
+    private var offsetFlag = false
+
     override fun onPointerOffsetChanged(screenOffset: Offset) {
         val currentPointerPosition = screenOffset.toSceneOffset(viewportManager)
         if (stateManager.isRunning.value) {
+            offsetFlag = !offsetFlag
             previousPointerPosition?.let { previousPointerPosition ->
                 val offset = currentPointerPosition - previousPointerPosition
-                if (offset.x != -previousPointerOffset.x) {
-                    previousPointerOffset = offset
+                if (offsetFlag) {
                     // TODO: Clamp within maximum playable area, considering window insets as well
                     body.position = (body.position + offset * MOUSE_MOVEMENT_SPEED).clampWithin(
                         topLeft = viewportManager.topLeft.value,
                         bottomRight = viewportManager.bottomRight.value,
                     )
                     pointerInputManager.movePointer(viewportManager.size.value.center)
+                    previousPointerOffset = offset
                 }
             }
         }

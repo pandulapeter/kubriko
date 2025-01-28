@@ -68,6 +68,8 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     }
     private val shipDestination = ShipDestination()
     override val actors = listOf(shipDestination)
+    private var lastShotTimestamp = 0L
+    private var remainingMultiShootCount = 0
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
@@ -78,7 +80,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         viewportManager = kubriko.get()
         body.position = SceneOffset(
             x = SceneUnit.Zero,
-            y = viewportManager.bottomRight.value.y + body.size.height * 4f,
+            y = viewportManager.bottomRight.value.y + body.size.height,
         )
     }
 
@@ -92,16 +94,14 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         }
     }
 
-    private var lastShotTimestamp = 0L
-    private var isMultishootActive = true
-
     private fun shoot() {
         if (stateManager.isRunning.value) {
             val currentTimestamp = metadataManager.activeRuntimeInMilliseconds.value
             val timeSinceLastShot = currentTimestamp - lastShotTimestamp
-            if (timeSinceLastShot > 200) {
+            if (timeSinceLastShot > 250) {
                 lastShotTimestamp = currentTimestamp
-                if (isMultishootActive) {
+                if (remainingMultiShootCount > 0) {
+                    remainingMultiShootCount -= 1
                     actorManager.add(
                         Bullet(
                             initialPosition = body.position,

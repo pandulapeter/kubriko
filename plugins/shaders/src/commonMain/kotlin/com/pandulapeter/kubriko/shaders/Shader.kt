@@ -18,6 +18,7 @@ interface Shader<T : Shader.State> : LayerAware {
     val shaderState: T
     val shaderCache: Cache
     val shaderCode: String
+    override val layerIndex: Int? get() = null
 
     interface State {
         // TODO: Delegates could be used to simplify this
