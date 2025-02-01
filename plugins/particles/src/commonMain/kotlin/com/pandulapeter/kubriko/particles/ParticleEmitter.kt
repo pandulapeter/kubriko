@@ -35,6 +35,7 @@ interface ParticleEmitter<S : ParticleEmitter.ParticleState> : Actor {
         data object Inactive : Mode()
     }
 
+    // TODO: Could be renamed and merged with Particle
     abstract class ParticleState {
         abstract val body: ComplexBody
         open val drawingOrder: Float = 0f

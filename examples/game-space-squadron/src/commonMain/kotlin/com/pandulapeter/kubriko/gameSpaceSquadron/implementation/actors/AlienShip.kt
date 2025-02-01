@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.Kubriko
@@ -106,7 +107,7 @@ internal class AlienShip(
         if (body.position.y > viewportManager.bottomRight.value.y + body.size.height) {
             resetPosition()
         }
-        if (isShrinking ) {
+        if (isShrinking) {
             body.scale -= ShrinkingSpeed * deltaTimeInMilliseconds
             if (body.scale.horizontal <= 0f) {
                 resetPosition()
@@ -118,6 +119,12 @@ internal class AlienShip(
     fun onHit() {
         if (!isShrinking) {
             isShrinking = true
+            actorManager.add(
+                Explosion(
+                    position = body.position,
+                    colors = listOf(Color.Yellow, Color.Gray, Color.LightGray), // TODO
+                )
+            )
         }
     }
 
@@ -140,7 +147,7 @@ internal class AlienShip(
     companion object {
         private val StartingScale = Scale.Unit * 0.75f
         private val ShrinkingSpeed = Scale(
-            horizontal =0.005f,
+            horizontal = 0.005f,
             vertical = 0.005f,
         )
     }

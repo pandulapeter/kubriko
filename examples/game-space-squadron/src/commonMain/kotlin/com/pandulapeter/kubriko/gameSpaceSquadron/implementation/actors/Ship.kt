@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.unit.IntSize
@@ -106,6 +107,12 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         if (health <= 0) {
             audioManager.playExplosionLargeSoundEffect()
             actorManager.remove(this)
+            actorManager.add(
+                Explosion(
+                    position = body.position,
+                    colors = listOf(Color.Gray, Color.LightGray, Color.Red), // TODO
+                )
+            )
             gameplayManager.onGameOver()
         }
     }

@@ -18,12 +18,11 @@ import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.extensions.sin
 import com.pandulapeter.kubriko.particles.ParticleEmitter
 import com.pandulapeter.kubriko.types.AngleRadians
-import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.random.Random
 
-internal class BulletParticleState(
+internal class ExplosionParticleState(
     position: SceneOffset,
     private var color: Color,
 ) : ParticleEmitter.ParticleState() {
@@ -31,10 +30,10 @@ internal class BulletParticleState(
     override val body = CircleBody(
         initialRadius = 4.sceneUnit,
     )
-    override val drawingOrder = 1f
-    private val speed: SceneUnit = 0.1f.sceneUnit
+    override val drawingOrder = -1f
+    private var speed: SceneUnit = 0.1f.sceneUnit
     private var direction: AngleRadians = AngleRadians.Zero
-    private val lifespanInMilliseconds = 100f
+    private val lifespanInMilliseconds = 400f
     private var remainingLifespan = lifespanInMilliseconds
     private var currentProgress = 0f
 
@@ -51,10 +50,10 @@ internal class BulletParticleState(
     ) {
         body.position = position
         this.color = color
-        body.scale = Scale.Unit
         direction = AngleRadians.TwoPi * Random.nextFloat()
         remainingLifespan = lifespanInMilliseconds
         currentProgress = 0f
+        speed = (0.1f + 0.5f * Random.nextFloat()).sceneUnit
     }
 
     override fun update(deltaTimeInMilliseconds: Int): Boolean {
@@ -62,7 +61,6 @@ internal class BulletParticleState(
         if (currentProgress >= 1) {
             return false
         } else {
-            body.scale = Scale.Unit * (1 - currentProgress)
             body.position = SceneOffset(
                 x = body.position.x + speed * direction.cos * deltaTimeInMilliseconds,
                 y = body.position.y - speed * direction.sin * deltaTimeInMilliseconds,

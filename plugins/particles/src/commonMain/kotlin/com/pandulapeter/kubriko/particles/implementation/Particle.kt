@@ -40,5 +40,4 @@ internal class Particle<S : ParticleEmitter.ParticleState>(
     }
 
     override fun DrawScope.draw() = with(state) { draw() }
-
 }
