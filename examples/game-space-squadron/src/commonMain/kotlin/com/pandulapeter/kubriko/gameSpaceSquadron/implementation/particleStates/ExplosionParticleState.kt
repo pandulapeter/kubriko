@@ -18,6 +18,7 @@ import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.extensions.sin
 import com.pandulapeter.kubriko.particles.ParticleEmitter
 import com.pandulapeter.kubriko.types.AngleRadians
+import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.random.Random
@@ -49,6 +50,7 @@ internal class ExplosionParticleState(
         color: Color,
     ) {
         body.position = position
+        body.scale = Scale.Unit
         this.color = color
         direction = AngleRadians.TwoPi * Random.nextFloat()
         remainingLifespan = lifespanInMilliseconds
@@ -58,6 +60,7 @@ internal class ExplosionParticleState(
 
     override fun update(deltaTimeInMilliseconds: Int): Boolean {
         currentProgress = 1f - (remainingLifespan / lifespanInMilliseconds)
+        body.scale = Scale.Unit * (1 - currentProgress)
         if (currentProgress >= 1) {
             return false
         } else {
@@ -71,7 +74,7 @@ internal class ExplosionParticleState(
     }
 
     override fun DrawScope.draw() = drawCircle(
-        color = color.copy(alpha = 1 - currentProgress),
+        color = color,
         radius = 6f,
         center = body.size.center.raw,
         style = Fill,

@@ -122,7 +122,7 @@ internal class AlienShip(
             actorManager.add(
                 Explosion(
                     position = body.position,
-                    colors = listOf(Color.Yellow, Color.Gray, Color.LightGray), // TODO
+                    colors = listOf(Color(0xff748396), Color(0xfffdd461)),
                 )
             )
         }

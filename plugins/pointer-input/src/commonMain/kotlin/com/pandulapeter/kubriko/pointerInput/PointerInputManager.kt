@@ -28,7 +28,7 @@ sealed class PointerInputManager(
     abstract val pointerScreenOffset: StateFlow<Offset?>
 
     // TODO: Only works on Desktop. On macOS it requires accessibility permission
-    abstract fun movePointer(offset: Offset)
+    abstract fun movePointer(offset: Offset): Boolean
 
     companion object {
         fun newInstance(

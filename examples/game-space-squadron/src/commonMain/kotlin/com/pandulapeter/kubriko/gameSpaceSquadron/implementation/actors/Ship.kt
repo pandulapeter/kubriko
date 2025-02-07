@@ -110,7 +110,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
             actorManager.add(
                 Explosion(
                     position = body.position,
-                    colors = listOf(Color.Gray, Color.LightGray, Color.Red), // TODO
+                    colors = listOf(Color(0xff8e8e8e), Color(0xff33feff)),
                 )
             )
             gameplayManager.onGameOver()
@@ -276,7 +276,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     }
 
     companion object {
-        private val MaxSpeed = 3.sceneUnit
+        private val MaxSpeed = 4.sceneUnit
         private val MinDistanceForAnimation = 3.sceneUnit
     }
 }

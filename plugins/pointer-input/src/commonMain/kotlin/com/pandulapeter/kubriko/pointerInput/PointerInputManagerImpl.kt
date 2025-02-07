@@ -71,10 +71,14 @@ internal class PointerInputManagerImpl(
 
     private var densityMultiplier = 1f
 
-    override fun movePointer(offset: Offset) = setPointerPosition(
-        offset = offset + if (isActiveAboveViewport) viewportOffset.value else viewportOffset.value,
-        densityMultiplier = densityMultiplier,
-    )
+    override fun movePointer(offset: Offset) : Boolean {
+        val currentOffset = pointerScreenOffset.value
+        setPointerPosition(
+            offset = offset + if (isActiveAboveViewport) viewportOffset.value else viewportOffset.value,
+            densityMultiplier = densityMultiplier,
+        )
+        return currentOffset != pointerScreenOffset.value
+    }
 
     @Composable
     override fun processOverlayModifier(modifier: Modifier) = modifier.onGloballyPositioned { coordinates ->
