@@ -20,7 +20,7 @@ import kotlin.math.roundToInt
 class AnimatedSprite(
     private val getImageBitmap: () -> ImageBitmap?,
     private val frameSize: IntSize,
-    private val frameCount: Int,
+    val frameCount: Int,
     private val framesPerRow: Int, // TODO: Support different orientations
     private val framesPerSecond: Float = 60f,
 ) {

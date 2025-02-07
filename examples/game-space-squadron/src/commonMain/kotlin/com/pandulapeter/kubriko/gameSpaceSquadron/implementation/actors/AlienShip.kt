@@ -64,7 +64,9 @@ internal class AlienShip(
         frameCount = 91,
         framesPerRow = 9,
         framesPerSecond = 30f,
-    )
+    ).apply {
+        imageIndex = Random.nextInt(frameCount)
+    }
     private var lastShotTimestamp = 0L
     private var speed = 0.25f
     override val collidableTypes = listOf(AlienShip::class)
