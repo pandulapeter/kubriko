@@ -127,6 +127,10 @@ internal class AlienShip(
             )
             if (Random.nextInt(20) == 5) {
                 actorManager.add(PowerUp(body.position))
+            } else {
+                if (Random.nextInt(20) == 5) {
+                    actorManager.add(Shield(body.position))
+                }
             }
         }
     }

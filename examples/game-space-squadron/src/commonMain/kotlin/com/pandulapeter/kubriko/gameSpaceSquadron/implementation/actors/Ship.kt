@@ -82,7 +82,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     override val actors = listOf(shipDestination)
     private var lastShotTimestamp = 0L
     private var remainingMultiShootCount = 0
-    private var health = 10
+    private var health = MAX_HEALTH
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
@@ -102,8 +102,12 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         remainingMultiShootCount = min(remainingMultiShootCount + 5, 10)
     }
 
+    fun onShieldCollected() {
+        health = min(health + 3, MAX_HEALTH)
+    }
+
     fun onHit() {
-        health-=1
+        health -= 1
         if (health <= 0) {
             audioManager.playExplosionLargeSoundEffect()
             actorManager.remove(this)
@@ -276,6 +280,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     }
 
     companion object {
+        private const val MAX_HEALTH = 10
         private val MaxSpeed = 4.sceneUnit
         private val MinDistanceForAnimation = 3.sceneUnit
     }
