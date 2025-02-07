@@ -12,7 +12,6 @@ package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.AlienShip
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.PowerUp
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.Ship
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.ShipDestination
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -34,7 +33,6 @@ internal class GameplayManager(
             AlienShip(initialY = 200.sceneUnit),
             AlienShip(initialY = 300.sceneUnit),
             AlienShip(initialY = 400.sceneUnit),
-            PowerUp(),
         )
     }
 

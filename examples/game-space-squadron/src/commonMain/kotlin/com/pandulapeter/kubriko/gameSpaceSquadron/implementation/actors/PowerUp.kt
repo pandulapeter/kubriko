@@ -23,20 +23,21 @@ import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
+import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sprites.AnimatedSprite
 import com.pandulapeter.kubriko.sprites.SpriteManager
-import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.sprite_power_up
-import kotlin.random.Random
-import kotlin.reflect.KClass
 
-internal class PowerUp : Visible, Dynamic, CollisionDetector {
+internal class PowerUp(
+    position: SceneOffset,
+) : Visible, Dynamic, CollisionDetector {
 
+    private lateinit var actorManager: ActorManager
     private lateinit var audioManager: AudioManager
     private lateinit var gameplayManager: GameplayManager
     private lateinit var spriteManager: SpriteManager
@@ -46,6 +47,7 @@ internal class PowerUp : Visible, Dynamic, CollisionDetector {
             width = 198.sceneUnit,
             height = 186.sceneUnit,
         ),
+        initialPosition = position,
         initialScale = Scale.Unit * 0.4f
     )
     override val collisionBody = CircleBody(
@@ -58,14 +60,14 @@ internal class PowerUp : Visible, Dynamic, CollisionDetector {
         framesPerRow = 10,
         framesPerSecond = 30f,
     )
-    override val collidableTypes = listOf<KClass<out Collidable>>(Ship::class, AlienShip::class)
+    override val collidableTypes = listOf(Ship::class)
 
     override fun onAdded(kubriko: Kubriko) {
+        actorManager = kubriko.get()
         audioManager = kubriko.get()
         gameplayManager = kubriko.get()
         spriteManager = kubriko.get()
         viewportManager = kubriko.get()
-        resetPosition()
     }
 
     override fun DrawScope.draw() = animatedSprite.draw(this)
@@ -77,33 +79,18 @@ internal class PowerUp : Visible, Dynamic, CollisionDetector {
         )
         body.position += SceneOffset.Down * SPEED * deltaTimeInMilliseconds
         if (body.position.y > viewportManager.bottomRight.value.y + body.size.height) {
-            resetPosition()
+            actorManager.remove(this)
         }
         collisionBody.position = body.position
     }
 
     override fun onCollisionDetected(collidables: List<Collidable>) {
-        if (collidables.any { it is AlienShip }) {
-            resetPosition()
-        }
         collidables.filterIsInstance<Ship>().firstOrNull()?.let { ship ->
             if (body.position.distanceTo(ship.body.position) < CollisionLimit) {
                 ship.onPowerUpCollected()
-                resetPosition()
                 audioManager.playPowerUpSoundEffect()
+                actorManager.remove(this)
             }
-        }
-    }
-
-    private fun resetPosition() {
-        if (!gameplayManager.isGameOver) {
-            val left = viewportManager.topLeft.value.x
-            val right = viewportManager.bottomRight.value.x
-            body.position = SceneOffset(
-                x = left + (right - left) * Random.nextFloat(),
-                y = viewportManager.topLeft.value.y - body.size.height - 2000.sceneUnit,
-            )
-            body.rotation = AngleRadians.TwoPi * Random.nextFloat()
         }
     }
 
