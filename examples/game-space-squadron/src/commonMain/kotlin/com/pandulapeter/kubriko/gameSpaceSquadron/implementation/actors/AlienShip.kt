@@ -125,10 +125,10 @@ internal class AlienShip(
                     colors = listOf(Color(0xff748396), Color(0xfffdd461)),
                 )
             )
-            if (Random.nextInt(20) == 5) {
+            if (Random.nextInt(10) == 5) {
                 actorManager.add(PowerUp(body.position))
             } else {
-                if (Random.nextInt(20) == 5) {
+                if (Random.nextInt(10) == 5) {
                     actorManager.add(Shield(body.position))
                 }
             }
