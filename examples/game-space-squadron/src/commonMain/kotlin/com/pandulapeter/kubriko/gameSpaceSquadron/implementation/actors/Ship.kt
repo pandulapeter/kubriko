@@ -28,6 +28,7 @@ import com.pandulapeter.kubriko.extensions.min
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.UIManager
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.MetadataManager
@@ -57,6 +58,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     private lateinit var spriteManager: SpriteManager
     private lateinit var stateManager: StateManager
     private lateinit var metadataManager: MetadataManager
+    private lateinit var uiManager: UIManager
     private lateinit var viewportManager: ViewportManager
     override val body = RectangleBody(
         initialSize = SceneSize(
@@ -82,7 +84,13 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     override val actors = listOf(shipDestination)
     private var lastShotTimestamp = 0L
     private var remainingMultiShootCount = 0
-    private var health = MAX_HEALTH
+    private var health = 0
+        set(value) {
+            if (field != value) {
+                field = value
+                uiManager.updateShipHealth(value)
+            }
+        }
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
@@ -91,11 +99,13 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         spriteManager = kubriko.get()
         stateManager = kubriko.get()
         metadataManager = kubriko.get()
+        uiManager = kubriko.get()
         viewportManager = kubriko.get()
         body.position = SceneOffset(
             x = SceneUnit.Zero,
             y = viewportManager.bottomRight.value.y + body.size.height,
         )
+        health = MAX_HEALTH
     }
 
     fun onPowerUpCollected() {
@@ -108,7 +118,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
 
     fun onHit() {
         health -= 1
-        if (health <= 0) {
+        if (health <= 1) {
             audioManager.playExplosionLargeSoundEffect()
             actorManager.remove(this)
             actorManager.add(
@@ -280,7 +290,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     }
 
     companion object {
-        private const val MAX_HEALTH = 10
+        const val MAX_HEALTH = 10
         private val MaxSpeed = 4.sceneUnit
         private val MinDistanceForAnimation = 3.sceneUnit
     }

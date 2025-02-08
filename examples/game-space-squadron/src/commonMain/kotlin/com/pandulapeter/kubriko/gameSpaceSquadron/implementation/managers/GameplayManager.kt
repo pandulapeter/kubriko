@@ -22,8 +22,8 @@ internal class GameplayManager(
     private val backgroundStateManager: StateManager,
 ) : Manager() {
     private val actorManager by manager<ActorManager>()
-    private val stateManager by manager<StateManager>()
     private val audioManager by manager<AudioManager>()
+    private val stateManager by manager<StateManager>()
     var isGameOver = true
         private set
 
