@@ -97,6 +97,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
                 uiManager.updateShipHealth(value)
             }
         }
+    val isShipAtMaxHealth get() = health == MAX_HEALTH
     private var isShrinking = false
 
     override fun onAdded(kubriko: Kubriko) {
@@ -113,10 +114,11 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
             y = viewportManager.bottomRight.value.y + body.size.height,
         )
         health = MAX_HEALTH
+        uiManager.updateShipMultiShoot(remainingMultiShootCount)
     }
 
     fun onPowerUpCollected() {
-        remainingMultiShootCount = min(remainingMultiShootCount + 5, MAX_MULTI_SHOOT)
+        remainingMultiShootCount = min(remainingMultiShootCount + 6, MAX_MULTI_SHOOT)
     }
 
     fun onShieldCollected() {

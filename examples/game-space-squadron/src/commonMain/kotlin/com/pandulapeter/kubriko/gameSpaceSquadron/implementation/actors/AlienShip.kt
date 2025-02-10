@@ -130,7 +130,9 @@ internal class AlienShip(
             if (Random.nextInt(10) == 5) {
                 actorManager.add(PowerUp(body.position))
             } else {
-                if (Random.nextInt(10) == 5) {
+                val isShipAtMaxHealth = actorManager.allActors.value.filterIsInstance<Ship>().firstOrNull()?.isShipAtMaxHealth == true
+                val arePowerUpsPresent = actorManager.allActors.value.filterIsInstance<Shield>().isNotEmpty()
+                if (Random.nextInt(10) == 5 && !isShipAtMaxHealth && !arePowerUpsPresent) {
                     actorManager.add(Shield(body.position))
                 }
             }

@@ -107,7 +107,7 @@ internal class UIManager(
                 modifier = Modifier
                     .fillMaxWidth(fraction = healthFraction.value)
                     .height(16.dp)
-                    .background(lerp(Color.Red, Color.Green, healthFraction.value).copy(alpha = 0.5f)),
+                    .background(lerp(Color.Red, Color.Magenta, healthFraction.value).copy(alpha = 0.5f)),
             )
             Box(
                 modifier = Modifier
