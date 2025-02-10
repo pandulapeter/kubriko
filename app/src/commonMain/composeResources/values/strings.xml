@@ -26,7 +26,7 @@
     <string name="welcome_engine_details">Kubriko is based on Compose Multiplatform, and is written 100% in Kotlin. As a result, it can seamlessly be integrated into any Compose project.\n\nFor more information, check out the GitHub repository. If you run into any issues / bugs, have feature request ideas, or would like to contribute in any other way, that is the starting point:</string>
     <string name="welcome_repository">Repository</string>
     <string name="welcome_learning_1">To learn more about using the engine, check out how to create a new project and read the documentation.</string>
-    <string name="welcome_learning_2">Watching the step by step tutorial videos is a great way to understand how the simple games in this app are implemented. You can also join our Discord server to discuss more advanced topics with the community, or to promote your creations.</string>
+    <string name="welcome_learning_2">Watching the step by step tutorial videos is a great way to understand how the simple games in this app are implemented. You can also join our Discord server to discuss more advanced topics with the community, or to promote your own creations.</string>
     <string name="welcome_getting_started">Getting started</string>
     <string name="welcome_documentation">Documentation</string>
     <string name="welcome_tutorials">Tutorial videos</string>

@@ -142,8 +142,7 @@ internal fun WelcomeScreen(
                     LargeButton(
                         icon = Res.drawable.ic_youtube,
                         title = Res.string.welcome_tutorials,
-                        isEnabled = false,
-                        onButtonPressed = {}, // TODO
+                        onButtonPressed = { uriHandler.openUri("https://github.com/pandulapeter/kubriko/blob/main/documentation/TUTORIAL_VIDEOS.md") },
                     )
                     LargeButton(
                         icon = Res.drawable.ic_discord,

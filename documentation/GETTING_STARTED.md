@@ -108,5 +108,5 @@ Don't forget to read the KDoc comments of the public API components to get more 
 If you ever get stuck, check out the resources below:
 
 [<img src="images/badge_documentation.png" alt="Documentation" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md)
-[<img src="images/badge_tutorial_videos_coming_soon.png" alt="Tutorial videos" height="32px" />](#)
+[<img src="images/badge_tutorial_videos.png" alt="Tutorial videos" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/TUTORIAL_VIDEOS.md)
 [<img src="images/badge_community_coming_soon.png" alt="Join the community" height="32px" />](#)

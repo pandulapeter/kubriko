@@ -40,11 +40,11 @@ After setting up your first project, check out the [Documentation](https://githu
 
 [Tutorial videos](#) that offer a more practical perspective are also available. These are step by step guides to creating simple games, each introducing more and more advanced concepts from the engine.
 
-You can also join the [Kubriko Discord server](#) to discuss more advanced topics with the community, or to promote your creations.
+You can also join the [Kubriko Discord server](#) to discuss more advanced topics with the community, or to promote your own creations.
 
 [<img src="documentation/images/badge_getting_started.png" alt="Getting started" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED.md)
 [<img src="documentation/images/badge_documentation.png" alt="Documentation" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md)
-[<img src="documentation/images/badge_tutorial_videos_coming_soon.png" alt="Tutorial videos" height="32px" />](#)
+[<img src="documentation/images/badge_tutorial_videos.png" alt="Tutorial videos" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/TUTORIAL_VIDEOS.md)
 [<img src="documentation/images/badge_community_coming_soon.png" alt="Join the community" height="32px" />](#)
 
 Another way to learn about Kubriko is to explore this repository, and understand how the various examples are implemented.
