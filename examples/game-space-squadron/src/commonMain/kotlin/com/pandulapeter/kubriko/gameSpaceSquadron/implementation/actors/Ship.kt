@@ -91,6 +91,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
                 uiManager.updateShipHealth(value)
             }
         }
+    private var isShrinking = false
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
@@ -117,17 +118,18 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     }
 
     fun onHit() {
-        health -= 1
-        if (health <= 1) {
-            audioManager.playExplosionLargeSoundEffect()
-            actorManager.remove(this)
-            actorManager.add(
-                Explosion(
-                    position = body.position,
-                    colors = listOf(Color(0xff8e8e8e), Color(0xff33feff)),
+        if (!isShrinking) {
+            health -= 1
+            if (health <= 1) {
+                isShrinking = true
+                audioManager.playExplosionLargeSoundEffect()
+                actorManager.add(
+                    Explosion(
+                        position = body.position,
+                        colors = listOf(Color(0xff8e8e8e), Color(0xff33feff)),
+                    )
                 )
-            )
-            gameplayManager.onGameOver()
+            }
         }
     }
 
@@ -191,6 +193,13 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         // TODO: Implement momentum
         moveTowards(shipDestination.body.position, speed)
         shipAnimationWrapper.update(deltaTimeInMilliseconds, previousX, body.position.x)
+        if (isShrinking) {
+            shipAnimationWrapper.verticalScale -= SHRINKING_SPEED * deltaTimeInMilliseconds
+            if (shipAnimationWrapper.verticalScale <= 0f) {
+                actorManager.remove(this)
+                gameplayManager.onGameOver()
+            }
+        }
         body.scale = Scale(shipAnimationWrapper.horizontalScale, shipAnimationWrapper.verticalScale)
         collisionBody.position = body.position
     }
@@ -235,7 +244,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
 
         var horizontalScale = initialScale.horizontal
             private set
-        val verticalScale = initialScale.vertical
+        var verticalScale = initialScale.vertical
 
         fun update(deltaTimeInMilliseconds: Int, previousX: SceneUnit, currentX: SceneUnit) {
             val distance = (previousX - currentX).abs
@@ -291,6 +300,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
 
     companion object {
         const val MAX_HEALTH = 10
+        private const val SHRINKING_SPEED = 0.002f
         private val MaxSpeed = 4.sceneUnit
         private val MinDistanceForAnimation = 3.sceneUnit
     }

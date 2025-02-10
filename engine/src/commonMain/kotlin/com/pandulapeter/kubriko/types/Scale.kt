@@ -50,9 +50,12 @@ value class Scale(private val raw: Size) {
         vertical = vertical - other,
     )
 
-    operator fun times(scale: Float): Scale = Scale(raw * scale)
+    operator fun times(scale: Float): Scale = Scale(
+        horizontal = horizontal * scale,
+        vertical = vertical * scale,
+    )
 
-    operator fun times(scale: Int): Scale = Scale(raw * scale.toFloat())
+    operator fun times(scale: Int): Scale = times(scale.toFloat())
 
     operator fun times(scale: Scale): Scale = Scale(
         horizontal = scale.horizontal * horizontal,

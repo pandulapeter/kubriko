@@ -59,5 +59,6 @@ internal class GameplayManager(
 
     fun onGameOver() {
         isGameOver = true
+        pauseGame()
     }
 }

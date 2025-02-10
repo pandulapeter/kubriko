@@ -146,18 +146,12 @@ internal class AlienShip(
         )
         body.scale = StartingScale
         isShrinking = false
-        if (gameplayManager.isGameOver && stateManager.isRunning.value) {
-            gameplayManager.pauseGame()
-        }
     }
 
     override fun DrawScope.draw() = animatedSprite.draw(this)
 
     companion object {
         private val StartingScale = Scale.Unit * 0.75f
-        private val ShrinkingSpeed = Scale(
-            horizontal = 0.005f,
-            vertical = 0.005f,
-        )
+        private val ShrinkingSpeed = Scale.Unit * 0.004f
     }
 }
