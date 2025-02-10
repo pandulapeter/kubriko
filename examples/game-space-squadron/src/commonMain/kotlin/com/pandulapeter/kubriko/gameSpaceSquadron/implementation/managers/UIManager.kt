@@ -17,6 +17,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,7 +27,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.key.Key
@@ -39,6 +42,8 @@ import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.extensions.Invisible
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.Ship
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.SpaceSquadronUIElementShape
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.spaceSquadronUIElementBorder
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
@@ -86,36 +91,54 @@ internal class UIManager(
         exit = slideOut { IntOffset(0, -it.height / 10) } + fadeOut(),
         visible = stateManager.isRunning.collectAsState().value,
     ) {
-        val healthFraction = animateFloatAsState(
-            targetValue = shipHealth.collectAsState().value / Ship.MAX_HEALTH.toFloat(),
-            animationSpec = tween(),
-            label = "animatedHealthBarProgress",
-        )
-        val multiShootFraction = animateFloatAsState(
-            targetValue = multiShoot.collectAsState().value / Ship.MAX_MULTI_SHOOT.toFloat(),
-            animationSpec = tween(),
-            label = "animatedMultiShootBarProgress",
-        )
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .windowInsetsPadding(viewportManager.windowInsets.value)
-                .padding(16.dp)
-                .padding(start = 80.dp),
+                .windowInsetsPadding(viewportManager.windowInsets.value),
         ) {
-            Box(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth(fraction = healthFraction.value)
-                    .height(16.dp)
-                    .background(lerp(Color.Red, Color.Magenta, healthFraction.value).copy(alpha = 0.5f)),
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(fraction = multiShootFraction.value)
-                    .height(16.dp)
-                    .background(lerp(Color.Red, Color.Cyan, multiShootFraction.value).copy(alpha = 0.5f)),
-            )
+                    .fillMaxSize(0.5f)
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+                    .padding(start = 80.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                ProgressBar(
+                    value = shipHealth.collectAsState().value / Ship.MAX_HEALTH.toFloat(),
+                    minColor = Color.Red,
+                    maxColor = Color.Magenta,
+                )
+                ProgressBar(
+                    value = multiShoot.collectAsState().value / Ship.MAX_MULTI_SHOOT.toFloat(),
+                    minColor = Color.Red,
+                    maxColor = Color.Cyan,
+                )
+            }
         }
+    }
+
+    @Composable
+    private fun ProgressBar(
+        value: Float,
+        minColor: Color,
+        maxColor: Color,
+    ) = Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .spaceSquadronUIElementBorder(),
+    ) {
+        val animatedValue = animateFloatAsState(
+            targetValue = value,
+            animationSpec = tween(),
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(fraction = animatedValue.value)
+                .height(12.dp)
+                .clip(SpaceSquadronUIElementShape)
+                .background(lerp(minColor, maxColor, animatedValue.value).copy(alpha = 0.5f)),
+        )
     }
 
     override fun onKeyReleased(key: Key) {

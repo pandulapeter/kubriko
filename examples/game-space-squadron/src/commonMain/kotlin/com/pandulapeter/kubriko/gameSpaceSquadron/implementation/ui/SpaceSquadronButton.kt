@@ -46,6 +46,7 @@ internal fun SpaceSquadronButton(
     val alpha = remember { mutableStateOf(IDLE_BUTTON_ALPHA) }
     FloatingActionButton(
         modifier = modifier
+            .spaceSquadronUIElementBorder()
             .height(40.dp)
             .alpha(alpha.value)
             .pointerInput(Unit) {
