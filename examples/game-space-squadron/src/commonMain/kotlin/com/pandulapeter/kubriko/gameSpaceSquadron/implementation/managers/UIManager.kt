@@ -10,6 +10,8 @@
 package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
@@ -81,21 +83,24 @@ internal class UIManager(
         exit = slideOut { IntOffset(0, -it.height / 10) } + fadeOut(),
         visible = stateManager.isRunning.collectAsState().value,
     ) {
+        val fraction = animateFloatAsState(
+            targetValue = shipHealth.collectAsState().value / Ship.MAX_HEALTH.toFloat(),
+            animationSpec = tween(),
+            label = "animatedHealthBarProgress",
+        )
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(viewportManager.windowInsets.value)
                 .padding(16.dp),
         ) {
-            val fraction = shipHealth.collectAsState().value / Ship.MAX_HEALTH.toFloat()
-            // TODO: Animate
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(fraction = fraction)
+                    .fillMaxWidth(fraction = fraction.value)
                     .height(16.dp)
                     .align(Alignment.TopStart)
                     .padding(start = 80.dp)
-                    .background(lerp(Color.Red, Color.Green, fraction).copy(alpha = 0.5f)),
+                    .background(lerp(Color.Red, Color.Green, fraction.value).copy(alpha = 0.5f)),
             )
         }
     }
