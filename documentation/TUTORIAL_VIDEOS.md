@@ -1,4 +1,7 @@
 # Tutorial videos
+> [!NOTE]  
+> The videos described below have not yet been created. For now I'm only using this page to plan the structure of the video tutorials.
+
 This page contains the YouTube links to the step by step video tutorials created for Kubriko.
 
 ## 1 - Introducing Kubriko
@@ -7,12 +10,13 @@ WIP
 - Key goals
 - Tech stack
 - Supported platforms
+- Learning materials
 
 ## 2 - Project setup (Wallbreaker - Part 1)
 WIP
 - Creating a Kotlin Multiplatform project
 - Adding the Kubriko dependencies
-- Adding the KubrikoCanvas
+- Adding the KubrikoViewport
 - Referencing the Kubriko instance
 
 ## 3 - Managers, Actors, Traits (Wallbreaker - Part 2)
@@ -47,7 +51,16 @@ WIP
 WIP
 - Working with AnimatedSprite
 
-## 9 - Debug menu (Space Squadron - Part 3)
+## 9 - Debug menu and logging (Space Squadron - Part 3)
 WIP
 - Introducing the debug menu tool
+- Demonstrating the logger functionality
 - Finalizing the gameplay
+
+## 10 - Physics (Unknown Game - Part 1)
+WIP
+- Physics plugin
+
+## 11 - Scene Editor (Unknown Game - Part 2)
+WIP
+- Introducing the SceneEditor tool

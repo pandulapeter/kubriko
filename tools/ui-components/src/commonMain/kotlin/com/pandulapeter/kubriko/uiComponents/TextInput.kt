@@ -22,7 +22,7 @@ fun TextInput(
     onValueChanged: (String) -> Unit,
     enabled: Boolean = true,
 ) {
-    // TODO: Focusing this fields should take focus away from KubrikoCanvas to avoid reacting to key presses
+    // TODO: Focusing this fields should take focus away from KubrikoViewport to avoid reacting to key presses
     BasicTextField(
         modifier = modifier,
         value = value,

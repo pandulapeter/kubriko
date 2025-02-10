@@ -5,6 +5,9 @@
 
 This repository contains the source code of the engine and its plugins / tooling, as well as the Kubriko Showcase application that demonstrates the engine's capabilities.
 
+> [!IMPORTANT]  
+> Kubriko is in early stages of development. The API might change and bugs can be present.
+
 ## 🎮 Overview
 Kubriko aims to offer a lightweight, scalable, and easy-to-use solution for creating simple 2D games for **Android**, **Desktop** (Windows, Linux, macOS), **iOS** and **Web**.
 It achieves this goal by exposing a [Composable](https://www.jetbrains.com/compose-multiplatform/) function that can easily be embedded into [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html) projects.
@@ -18,6 +21,9 @@ Kubriko also offers a number of tools, such as a Scene Editor, that can be usefu
 <img src="documentation/images/screenshot_04.png" width="33%" /><img src="documentation/images/screenshot_05.png" width="33%" /><img src="documentation/images/screenshot_06.png" width="33%" />
 
 The tech stack is easy to extend by creating custom plugins, and the low-level integration makes it possible to communicate with platform API-s in a straightforward way.
+
+> [!NOTE]  
+> The Kotlin/Wasm export functionality of Compose Multiplatform is currently in alpha. This also applies to the Web version of games created with Kubriko.
 
 ## 🎨 Showcase app
 Clone this repository and run the `app` module for the supported targets (Android, Desktop, iOS, Web) to check out what the engine is capable of.
@@ -65,6 +71,9 @@ Each top-level folder / module has its own Readme file that contains general inf
 For more details, read the KDoc comments for the classes and functions that are exposed in the public API.
 
 ## 📜 Artifacts
+> [!IMPORTANT]  
+> The artifacts mentioned below are not yet available.
+
 Expand the sections below to see the complete list of all Kubriko dependencies hosted on [MavenCentral](https://repo1.maven.org/maven2/io/github/pandulapeter/kubriko/).
 
 <details>
