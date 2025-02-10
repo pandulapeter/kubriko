@@ -84,6 +84,12 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     override val actors = listOf(shipDestination)
     private var lastShotTimestamp = 0L
     private var remainingMultiShootCount = 0
+        set(value) {
+            if (field != value) {
+                field = value
+                uiManager.updateShipMultiShoot(value)
+            }
+        }
     private var health = 0
         set(value) {
             if (field != value) {
@@ -110,11 +116,11 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     }
 
     fun onPowerUpCollected() {
-        remainingMultiShootCount = min(remainingMultiShootCount + 5, 10)
+        remainingMultiShootCount = min(remainingMultiShootCount + 5, MAX_MULTI_SHOOT)
     }
 
     fun onShieldCollected() {
-        health = min(health + 3, MAX_HEALTH)
+        health = min(health + 2, MAX_HEALTH)
     }
 
     fun onHit() {
@@ -149,7 +155,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
             val timeSinceLastShot = currentTimestamp - lastShotTimestamp
             if (timeSinceLastShot > 250) {
                 lastShotTimestamp = currentTimestamp
-                if (remainingMultiShootCount > 0) {
+                if (remainingMultiShootCount >= 1) {
                     remainingMultiShootCount -= 1
                     actorManager.add(
                         Bullet(
@@ -300,6 +306,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
 
     companion object {
         const val MAX_HEALTH = 10
+        const val MAX_MULTI_SHOOT = 10
         private const val SHRINKING_SPEED = 0.002f
         private val MaxSpeed = 4.sceneUnit
         private val MinDistanceForAnimation = 3.sceneUnit

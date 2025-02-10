@@ -18,6 +18,7 @@ import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,7 +26,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
@@ -61,6 +61,7 @@ internal class UIManager(
     private val _isInfoDialogVisible = MutableStateFlow(false)
     val isInfoDialogVisible = _isInfoDialogVisible.asStateFlow()
     private val shipHealth = MutableStateFlow(0)
+    private val multiShoot = MutableStateFlow(0)
 
     override fun onInitialize(kubriko: Kubriko) {
         kubriko.get<ActorManager>().add(this)
@@ -71,6 +72,8 @@ internal class UIManager(
     }
 
     fun updateShipHealth(shipHealth: Int) = this.shipHealth.update { shipHealth }
+
+    fun updateShipMultiShoot(multiShoot: Int) = this.multiShoot.update { multiShoot }
 
     @Composable
     override fun processModifier(modifier: Modifier, layerIndex: Int?) = modifier.pointerHoverIcon(
@@ -83,24 +86,34 @@ internal class UIManager(
         exit = slideOut { IntOffset(0, -it.height / 10) } + fadeOut(),
         visible = stateManager.isRunning.collectAsState().value,
     ) {
-        val fraction = animateFloatAsState(
+        val healthFraction = animateFloatAsState(
             targetValue = shipHealth.collectAsState().value / Ship.MAX_HEALTH.toFloat(),
             animationSpec = tween(),
             label = "animatedHealthBarProgress",
         )
-        Box(
+        val multiShootFraction = animateFloatAsState(
+            targetValue = multiShoot.collectAsState().value / Ship.MAX_MULTI_SHOOT.toFloat(),
+            animationSpec = tween(),
+            label = "animatedMultiShootBarProgress",
+        )
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(viewportManager.windowInsets.value)
-                .padding(16.dp),
+                .padding(16.dp)
+                .padding(start = 80.dp),
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(fraction = fraction.value)
+                    .fillMaxWidth(fraction = healthFraction.value)
                     .height(16.dp)
-                    .align(Alignment.TopStart)
-                    .padding(start = 80.dp)
-                    .background(lerp(Color.Red, Color.Green, fraction.value).copy(alpha = 0.5f)),
+                    .background(lerp(Color.Red, Color.Green, healthFraction.value).copy(alpha = 0.5f)),
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(fraction = multiShootFraction.value)
+                    .height(16.dp)
+                    .background(lerp(Color.Red, Color.Cyan, multiShootFraction.value).copy(alpha = 0.5f)),
             )
         }
     }
