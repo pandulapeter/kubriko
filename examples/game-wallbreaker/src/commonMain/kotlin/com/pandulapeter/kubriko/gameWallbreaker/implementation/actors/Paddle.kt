@@ -64,13 +64,15 @@ internal class Paddle(
         }
     }
 
+    private var offsetFlag = false
+
     override fun onPointerOffsetChanged(screenOffset: Offset) {
         val currentPointerPosition = screenOffset.toSceneOffset(viewportManager)
         if (stateManager.isRunning.value) {
             previousPointerPosition?.let { previousPointerPosition ->
                 val offset = currentPointerPosition - previousPointerPosition
-                if (offset.x != -previousPointerOffset.x) {
-                    previousPointerOffset = offset
+                offsetFlag = !offsetFlag
+                if (offsetFlag) {
                     body.position = SceneOffset(
                         x = body.position.x + offset.x,
                         y = body.position.y,
@@ -78,7 +80,10 @@ internal class Paddle(
                         topLeft = viewportManager.topLeft.value,
                         bottomRight = viewportManager.bottomRight.value,
                     )
-                    pointerInputManager.movePointer(viewportManager.size.value.center)
+                    if (!pointerInputManager.movePointer(viewportManager.size.value.center)) {
+                        offsetFlag = !offsetFlag
+                    }
+                    previousPointerOffset = offset
                 }
             }
         }
