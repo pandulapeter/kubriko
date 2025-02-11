@@ -20,10 +20,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -36,6 +39,7 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.extensions.Invisible
@@ -54,6 +58,9 @@ import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kubriko.examples.game_space_squadron.generated.resources.Res
+import kubriko.examples.game_space_squadron.generated.resources.score
+import org.jetbrains.compose.resources.stringResource
 
 internal class UIManager(
     private val stateManager: StateManager,
@@ -61,6 +68,7 @@ internal class UIManager(
 
     private val audioManager by manager<AudioManager>()
     private val gameplayManager by manager<GameplayManager>()
+    private val scoreManager by manager<ScoreManager>()
     private val viewportManager by manager<ViewportManager>()
     private val _isInfoDialogVisible = MutableStateFlow(false)
     val isInfoDialogVisible = _isInfoDialogVisible.asStateFlow()
@@ -85,35 +93,59 @@ internal class UIManager(
     )
 
     @Composable
-    override fun Composable(insetPaddingModifier: Modifier) = AnimatedVisibility(
-        enter = fadeIn() + slideIn { IntOffset(0, -it.height / 10) },
-        exit = slideOut { IntOffset(0, -it.height / 10) } + fadeOut(),
-        visible = stateManager.isRunning.collectAsState().value,
+    override fun Composable(insetPaddingModifier: Modifier) = Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(viewportManager.windowInsets.collectAsState().value),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .padding(start = 80.dp)
-                .windowInsetsPadding(viewportManager.windowInsets.value),
+        AnimatedVisibility(
+            enter = fadeIn() + slideIn { IntOffset(0, -it.height / 10) },
+            exit = slideOut { IntOffset(0, -it.height / 10) } + fadeOut(),
+            visible = stateManager.isRunning.collectAsState().value,
         ) {
-            Column(
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth(0.5f)
-                    .align(Alignment.TopEnd),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .padding(start = 80.dp),
             ) {
-                ProgressBar(
-                    value = shipHealth.collectAsState().value / Ship.MAX_HEALTH.toFloat(),
-                    minColor = Color.Red,
-                    maxColor = Color.Magenta,
-                )
-                ProgressBar(
-                    value = multiShoot.collectAsState().value / Ship.MAX_MULTI_SHOOT.toFloat(),
-                    minColor = Color.Red,
-                    maxColor = Color.Cyan,
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(0.5f)
+                        .align(Alignment.TopEnd),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    ProgressBar(
+                        value = shipHealth.collectAsState().value / Ship.MAX_HEALTH.toFloat(),
+                        minColor = Color.Red,
+                        maxColor = Color.Magenta,
+                    )
+                    ProgressBar(
+                        value = multiShoot.collectAsState().value / Ship.MAX_MULTI_SHOOT.toFloat(),
+                        minColor = Color.Red,
+                        maxColor = Color.Cyan,
+                    )
+                }
             }
+        }
+        AnimatedVisibility(
+            modifier = Modifier.align(Alignment.BottomStart),
+            enter = fadeIn() + slideIn { IntOffset(0, it.height / 10) },
+            exit = slideOut { IntOffset(0, it.height / 10) } + fadeOut(),
+            visible = scoreManager.score.collectAsState().value > 0 || stateManager.isRunning.collectAsState().value,
+        ) {
+            Text(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .spaceSquadronUIElementBorder()
+                    .padding(
+                        horizontal = 8.dp,
+                        vertical = 4.dp,
+                    ),
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                color = Color.White,
+                text = stringResource(Res.string.score, scoreManager.highScore.collectAsState().value, scoreManager.score.collectAsState().value),
+            )
         }
     }
 

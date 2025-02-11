@@ -29,5 +29,6 @@ Attribution:
  - Music: "Ambient Space Texture" by Andrewkn on freesound.org
  - Sound effects: CC0 assets from freesound.org
  - Icons: materialdesignicons.com</string>
+    <string name="score">Highscore: %1$d\nScore: %2$d</string>
 
 </resources>

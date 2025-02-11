@@ -18,6 +18,7 @@ import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioM
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.BackgroundAnimationManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.LoadingManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.ScoreManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.UIManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.UserPreferencesManager
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
@@ -83,6 +84,7 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
+    private val scoreManager = ScoreManager(persistenceManager)
     val userPreferencesManager = UserPreferencesManager(persistenceManager)
     val audioManager = AudioManager(stateManager, userPreferencesManager)
     private val particleManager = ParticleManager.newInstance(
@@ -118,6 +120,7 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
             userPreferencesManager,
             particleManager,
             gameplayManager,
+            scoreManager,
             uiManager,
             audioManager,
             isLoggingEnabled = true,

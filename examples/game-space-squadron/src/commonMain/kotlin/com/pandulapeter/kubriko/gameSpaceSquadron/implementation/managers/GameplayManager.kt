@@ -24,6 +24,7 @@ internal class GameplayManager(
     private val actorManager by manager<ActorManager>()
     private val audioManager by manager<AudioManager>()
     private val stateManager by manager<StateManager>()
+    private val scoreManager by manager<ScoreManager>()
     var isGameOver = true
         private set
 
@@ -38,6 +39,7 @@ internal class GameplayManager(
 
     fun playGame() {
         if (isGameOver) {
+            scoreManager.resetScore()
             isGameOver = false
             actorManager.add(Ship())
             audioManager.playButtonPlaySoundEffect()
