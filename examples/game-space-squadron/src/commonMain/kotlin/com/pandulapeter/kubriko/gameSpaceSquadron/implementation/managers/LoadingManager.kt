@@ -38,6 +38,7 @@ import kubriko.examples.game_space_squadron.generated.resources.img_logo
 import kubriko.examples.game_space_squadron.generated.resources.orbitron
 import kubriko.examples.game_space_squadron.generated.resources.sprite_alien_ship
 import kubriko.examples.game_space_squadron.generated.resources.sprite_power_up
+import kubriko.examples.game_space_squadron.generated.resources.sprite_shield
 import kubriko.examples.game_space_squadron.generated.resources.sprite_ship
 
 internal class LoadingManager : Manager() {
@@ -50,6 +51,7 @@ internal class LoadingManager : Manager() {
         Res.drawable.sprite_ship,
         Res.drawable.sprite_alien_ship,
         Res.drawable.sprite_power_up,
+        Res.drawable.sprite_shield,
     )
     private val areGameResourcesLoaded by autoInitializingLazy {
         combine(
