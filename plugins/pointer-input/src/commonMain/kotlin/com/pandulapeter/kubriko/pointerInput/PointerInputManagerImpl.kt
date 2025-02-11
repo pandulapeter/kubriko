@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
@@ -71,7 +72,7 @@ internal class PointerInputManagerImpl(
 
     private var densityMultiplier = 1f
 
-    override fun movePointer(offset: Offset) : Boolean {
+    override fun movePointer(offset: Offset): Boolean {
         val currentOffset = pointerScreenOffset.value
         setPointerPosition(
             offset = offset + if (isActiveAboveViewport) viewportOffset.value else viewportOffset.value,
@@ -99,12 +100,17 @@ internal class PointerInputManagerImpl(
         densityMultiplier = 1 / LocalDensity.current.density
     }
 
+    // TODO: Hacky solution. Why did we suddenly start getting duplicated events?
+    private var previousChange: PointerInputChange? = null
+
     private fun Modifier.pointerInputHandlingModifier() = pointerInput(Unit) {
         awaitPointerEventScope {
             while (true) {
                 val event = awaitPointerEvent()
-                if (isInitialized.value) {
-                    event.changes.first().position.let { position ->
+                val change = event.changes.first()
+                if (isInitialized.value && change.uptimeMillis != previousChange?.uptimeMillis) {
+                    previousChange = change
+                    change.position.let { position ->
                         when (event.type) {
                             PointerEventType.Press -> {
                                 rawPointerOffset.update { position }

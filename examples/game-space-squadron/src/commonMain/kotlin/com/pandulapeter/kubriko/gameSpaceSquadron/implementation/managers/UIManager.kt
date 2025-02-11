@@ -20,7 +20,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -93,15 +92,15 @@ internal class UIManager(
     ) {
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .padding(16.dp)
+                .padding(start = 80.dp)
                 .windowInsetsPadding(viewportManager.windowInsets.value),
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize(0.5f)
-                    .align(Alignment.TopEnd)
-                    .padding(16.dp)
-                    .padding(start = 80.dp),
+                    .fillMaxWidth(0.5f)
+                    .align(Alignment.TopEnd),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 ProgressBar(
