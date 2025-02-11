@@ -23,6 +23,7 @@ import com.pandulapeter.kubriko.extensions.directionTowards
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.MetadataManager
@@ -37,12 +38,14 @@ import com.pandulapeter.kubriko.types.SceneUnit
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.sprite_alien_ship
 import kotlin.random.Random
+import kotlin.reflect.KClass
 
 internal class AlienShip(
     private val initialY: SceneUnit,
 ) : Visible, Dynamic, Collidable, CollisionDetector {
 
     private lateinit var actorManager: ActorManager
+    private lateinit var audioManager: AudioManager
     private lateinit var gameplayManager: GameplayManager
     private lateinit var spriteManager: SpriteManager
     private lateinit var stateManager: StateManager
@@ -69,12 +72,13 @@ internal class AlienShip(
     }
     private var lastShotTimestamp = 0L
     private var speed = 0.25f
-    override val collidableTypes = listOf(AlienShip::class)
+    override val collidableTypes : List<KClass<out Collidable>> = listOf(AlienShip::class, Ship::class)
     var isShrinking = false
         private set
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
+        audioManager = kubriko.get()
         gameplayManager = kubriko.get()
         spriteManager = kubriko.get()
         stateManager = kubriko.get()
@@ -83,7 +87,17 @@ internal class AlienShip(
         resetPosition()
     }
 
-    override fun onCollisionDetected(collidables: List<Collidable>) = resetPosition()
+    override fun onCollisionDetected(collidables: List<Collidable>) {
+        collidables.filterIsInstance<Ship>().firstOrNull()?.onShipCollision() ?: resetPosition()
+    }
+
+    private fun Ship.onShipCollision() {
+        if (!isShrinking) {
+            onHit(true)
+            audioManager.playExplosionSmallSoundEffect()
+            this@AlienShip.onHit(false)
+        }
+    }
 
     override fun update(deltaTimeInMilliseconds: Int) {
         animatedSprite.stepForward(
@@ -118,7 +132,7 @@ internal class AlienShip(
         collisionBody.position = body.position
     }
 
-    fun onHit() {
+    fun onHit(canSpawnPowerup: Boolean) {
         if (!isShrinking) {
             isShrinking = true
             actorManager.add(
@@ -127,13 +141,15 @@ internal class AlienShip(
                     colors = listOf(Color(0xff748396), Color(0xfffdd461)),
                 )
             )
-            if (Random.nextInt(10) == 5) {
-                actorManager.add(PowerUp(body.position))
-            } else {
-                val isShipAtMaxHealth = actorManager.allActors.value.filterIsInstance<Ship>().firstOrNull()?.isShipAtMaxHealth == true
-                val arePowerUpsPresent = actorManager.allActors.value.filterIsInstance<Shield>().isNotEmpty()
-                if (Random.nextInt(10) == 5 && !isShipAtMaxHealth && !arePowerUpsPresent) {
-                    actorManager.add(Shield(body.position))
+            if (canSpawnPowerup) {
+                if (Random.nextInt(10) == 5) {
+                    actorManager.add(PowerUp(body.position))
+                } else {
+                    val isShipAtMaxHealth = actorManager.allActors.value.filterIsInstance<Ship>().firstOrNull()?.isShipAtMaxHealth == true
+                    val arePowerUpsPresent = actorManager.allActors.value.filterIsInstance<Shield>().isNotEmpty()
+                    if (Random.nextInt(10) == 5 && !isShipAtMaxHealth && !arePowerUpsPresent) {
+                        actorManager.add(Shield(body.position))
+                    }
                 }
             }
         }

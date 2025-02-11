@@ -125,9 +125,9 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         health = min(health + 2, MAX_HEALTH)
     }
 
-    fun onHit() {
+    fun onHit(isCollision: Boolean) {
         if (!isShrinking) {
-            health -= 1
+            health -= if (isCollision) 2 else 1
             if (health <= 1) {
                 isShrinking = true
                 audioManager.playExplosionLargeSoundEffect()
@@ -200,13 +200,14 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         speed = min(shipDestination.body.position.distanceTo(body.position) * 0.01f + 0.5f.sceneUnit, MaxSpeed) * deltaTimeInMilliseconds
         // TODO: Implement momentum
         moveTowards(shipDestination.body.position, speed)
-        shipAnimationWrapper.update(deltaTimeInMilliseconds, previousX, body.position.x)
         if (isShrinking) {
             shipAnimationWrapper.verticalScale -= SHRINKING_SPEED * deltaTimeInMilliseconds
             if (shipAnimationWrapper.verticalScale <= 0f) {
                 actorManager.remove(this)
                 gameplayManager.onGameOver()
             }
+        } else {
+            shipAnimationWrapper.update(deltaTimeInMilliseconds, previousX, body.position.x)
         }
         body.scale = Scale(shipAnimationWrapper.horizontalScale, shipAnimationWrapper.verticalScale)
         collisionBody.position = body.position
@@ -253,6 +254,10 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         var horizontalScale = initialScale.horizontal
             private set
         var verticalScale = initialScale.vertical
+            set(value) {
+                field = value
+                horizontalScale = value
+            }
 
         fun update(deltaTimeInMilliseconds: Int, previousX: SceneUnit, currentX: SceneUnit) {
             val distance = (previousX - currentX).abs

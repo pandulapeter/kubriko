@@ -75,7 +75,7 @@ internal class Bullet(
                 audioManager.playExplosionSmallSoundEffect()
                 isPlayingExplosion = true
             }
-            alienShip.onHit()
+            alienShip.onHit(true)
         }
     }
 

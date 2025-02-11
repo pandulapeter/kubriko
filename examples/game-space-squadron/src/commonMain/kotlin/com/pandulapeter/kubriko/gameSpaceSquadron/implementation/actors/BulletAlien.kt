@@ -88,7 +88,7 @@ internal class BulletAlien(
             if (body.position.distanceTo(ship.body.position) < CollisionLimit) {
                 audioManager.playShipHitSoundEffect()
                 actorManager.remove(this)
-                ship.onHit()
+                ship.onHit(false)
             }
         }
     }
