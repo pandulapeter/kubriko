@@ -39,7 +39,6 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.extensions.Invisible
@@ -99,8 +98,8 @@ internal class UIManager(
             .windowInsetsPadding(viewportManager.windowInsets.collectAsState().value),
     ) {
         AnimatedVisibility(
-            enter = fadeIn() + slideIn { IntOffset(0, -it.height / 10) },
-            exit = slideOut { IntOffset(0, -it.height / 10) } + fadeOut(),
+            enter = fadeIn() + slideIn { IntOffset(0, -it.height) },
+            exit = slideOut { IntOffset(0, -it.height) } + fadeOut(),
             visible = stateManager.isRunning.collectAsState().value,
         ) {
             Box(
@@ -130,8 +129,8 @@ internal class UIManager(
         }
         AnimatedVisibility(
             modifier = Modifier.align(Alignment.BottomStart),
-            enter = fadeIn() + slideIn { IntOffset(0, it.height / 10) },
-            exit = slideOut { IntOffset(0, it.height / 10) } + fadeOut(),
+            enter = fadeIn() + slideIn { IntOffset(0, it.height) },
+            exit = slideOut { IntOffset(0, it.height) } + fadeOut(),
             visible = scoreManager.score.collectAsState().value > 0 || stateManager.isRunning.collectAsState().value,
         ) {
             Text(
@@ -142,7 +141,7 @@ internal class UIManager(
                         horizontal = 8.dp,
                         vertical = 4.dp,
                     ),
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                style = MaterialTheme.typography.labelSmall,
                 color = Color.White,
                 text = stringResource(Res.string.score, scoreManager.highScore.collectAsState().value, scoreManager.score.collectAsState().value),
             )
