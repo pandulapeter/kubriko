@@ -71,7 +71,6 @@ internal class AlienShip(
         imageIndex = Random.nextInt(frameCount)
     }
     private var lastShotTimestamp = 0L
-    private var speed = 0.25f
     override val collidableTypes : List<KClass<out Collidable>> = listOf(AlienShip::class, Ship::class)
     var isShrinking = false
         private set
@@ -107,7 +106,7 @@ internal class AlienShip(
         if (body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) && Random.nextInt(80) == 0) {
             val currentTimestamp = metadataManager.activeRuntimeInMilliseconds.value
             val timeSinceLastShot = currentTimestamp - lastShotTimestamp
-            if (timeSinceLastShot > 200 && !gameplayManager.isGameOver) {
+            if (timeSinceLastShot > 200 && !gameplayManager.isGameOver.value) {
                 actorManager.allActors.value.filterIsInstance<Ship>().firstOrNull()?.let { ship ->
                     actorManager.add(
                         BulletAlien(
@@ -119,14 +118,18 @@ internal class AlienShip(
                 }
             }
         }
-        body.position += SceneOffset.Down * speed * deltaTimeInMilliseconds
-        if (body.position.y > viewportManager.bottomRight.value.y + body.size.height) {
+        body.position += SceneOffset.Down * SPEED * deltaTimeInMilliseconds
+        if (body.position.y > viewportManager.bottomRight.value.y + body.size.height && !gameplayManager.isGameOver.value) {
             resetPosition()
         }
         if (isShrinking) {
             body.scale -= ShrinkingSpeed * deltaTimeInMilliseconds
             if (body.scale.horizontal <= 0f) {
                 resetPosition()
+            }
+        } else {
+            if (gameplayManager.isGameOver.value) {
+                isShrinking = true
             }
         }
         collisionBody.position = body.position
@@ -171,5 +174,6 @@ internal class AlienShip(
     companion object {
         private val StartingScale = Scale.Unit * 0.75f
         private val ShrinkingSpeed = Scale.Unit * 0.004f
+        private const val SPEED = 0.25f
     }
 }

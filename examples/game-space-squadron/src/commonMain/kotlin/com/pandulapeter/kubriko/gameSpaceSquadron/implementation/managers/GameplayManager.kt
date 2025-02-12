@@ -17,6 +17,9 @@ import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.ShipDest
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 internal class GameplayManager(
     private val backgroundStateManager: StateManager,
@@ -25,8 +28,8 @@ internal class GameplayManager(
     private val audioManager by manager<AudioManager>()
     private val stateManager by manager<StateManager>()
     private val scoreManager by manager<ScoreManager>()
-    var isGameOver = true
-        private set
+    private val _isGameOver = MutableStateFlow(true)
+    val isGameOver = _isGameOver.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager.add(
@@ -38,9 +41,9 @@ internal class GameplayManager(
     }
 
     fun playGame() {
-        if (isGameOver) {
+        if (isGameOver.value) {
             scoreManager.resetScore()
-            isGameOver = false
+            _isGameOver.update { false }
             actorManager.add(Ship())
             audioManager.playButtonPlaySoundEffect()
         } else {
@@ -52,15 +55,14 @@ internal class GameplayManager(
     }
 
     fun pauseGame() {
-        if (!isGameOver) {
+        if (!isGameOver.value) {
             backgroundStateManager.updateIsRunning(false)
         }
-        audioManager.playButtonToggleSoundEffect()
+        if (stateManager.isRunning.value) {
+            audioManager.playButtonToggleSoundEffect()
+        }
         stateManager.updateIsRunning(false)
     }
 
-    fun onGameOver() {
-        isGameOver = true
-        pauseGame()
-    }
+    fun onGameOver() = _isGameOver.update { true }
 }

@@ -87,7 +87,7 @@ fun SpaceSquadronGame(
         ) {
             SpaceSquadronMenuOverlay(
                 modifier = Modifier.windowInsetsPadding(windowInsets),
-                isVisible = !stateHolder.stateManager.isRunning.collectAsState().value,
+                isVisible = !stateHolder.stateManager.isRunning.collectAsState().value || stateHolder.gameplayManager.isGameOver.collectAsState().value,
                 shouldShowInfoText = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
                 onPlayButtonPressed = stateHolder.gameplayManager::playGame,
                 onPauseButtonPressed = stateHolder.gameplayManager::pauseGame,

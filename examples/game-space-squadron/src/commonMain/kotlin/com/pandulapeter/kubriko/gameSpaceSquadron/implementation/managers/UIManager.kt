@@ -88,7 +88,7 @@ internal class UIManager(
 
     @Composable
     override fun processModifier(modifier: Modifier, layerIndex: Int?) = modifier.pointerHoverIcon(
-        icon = if (stateManager.isRunning.collectAsState().value) PointerIcon.Invisible else PointerIcon.Default
+        icon = if (stateManager.isRunning.collectAsState().value && !gameplayManager.isGameOver.collectAsState().value) PointerIcon.Invisible else PointerIcon.Default
     )
 
     @Composable
@@ -98,20 +98,19 @@ internal class UIManager(
             .windowInsetsPadding(viewportManager.windowInsets.collectAsState().value),
     ) {
         AnimatedVisibility(
-            enter = fadeIn() + slideIn { IntOffset(0, -it.height) },
-            exit = slideOut { IntOffset(0, -it.height) } + fadeOut(),
-            visible = stateManager.isRunning.collectAsState().value,
+            enter = fadeIn() + slideIn { IntOffset(0, it.height) },
+            exit = slideOut { IntOffset(0, it.height) } + fadeOut(),
+            visible = stateManager.isRunning.collectAsState().value && !gameplayManager.isGameOver.collectAsState().value,
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .padding(start = 80.dp),
+                    .fillMaxSize()
+                    .padding(16.dp),
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth(0.5f)
-                        .align(Alignment.TopEnd),
+                        .align(Alignment.BottomStart),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     ProgressBar(
@@ -128,9 +127,9 @@ internal class UIManager(
             }
         }
         AnimatedVisibility(
-            modifier = Modifier.align(Alignment.BottomStart),
-            enter = fadeIn() + slideIn { IntOffset(0, it.height) },
-            exit = slideOut { IntOffset(0, it.height) } + fadeOut(),
+            modifier = Modifier.align(Alignment.TopEnd),
+            enter = fadeIn() + slideIn { IntOffset(0, -it.height) },
+            exit = slideOut { IntOffset(0, -it.height) } + fadeOut(),
             visible = scoreManager.score.collectAsState().value > 0 || stateManager.isRunning.collectAsState().value,
         ) {
             Text(
@@ -173,7 +172,7 @@ internal class UIManager(
 
     override fun onKeyReleased(key: Key) {
         when (key) {
-            Key.Escape -> if (stateManager.isRunning.value) {
+            Key.Escape -> if (stateManager.isRunning.value && !gameplayManager.isGameOver.value) {
                 gameplayManager.pauseGame()
             } else {
                 if (isInfoDialogVisible.value) {
