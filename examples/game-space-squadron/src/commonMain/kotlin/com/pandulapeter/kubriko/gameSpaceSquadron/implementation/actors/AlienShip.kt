@@ -103,7 +103,7 @@ internal class AlienShip(
             deltaTimeInMilliseconds = deltaTimeInMilliseconds,
             shouldLoop = true,
         )
-        if (body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) && Random.nextInt(80) == 0) {
+        if (body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) && Random.nextInt(80) == 0 && deltaTimeInMilliseconds > 0) {
             val currentTimestamp = metadataManager.activeRuntimeInMilliseconds.value
             val timeSinceLastShot = currentTimestamp - lastShotTimestamp
             if (timeSinceLastShot > 200 && !gameplayManager.isGameOver.value) {
@@ -118,21 +118,23 @@ internal class AlienShip(
                 }
             }
         }
-        body.position += SceneOffset.Down * SPEED * deltaTimeInMilliseconds
+        body.position += SceneOffset.Down * SPEED * deltaTimeInMilliseconds * gameplayManager.speedMultiplier.value
         if (body.position.y > viewportManager.bottomRight.value.y + body.size.height && !gameplayManager.isGameOver.value) {
             resetPosition()
         }
         if (isShrinking) {
-            body.scale -= ShrinkingSpeed * deltaTimeInMilliseconds
+            body.scale -= ShrinkingSpeed * deltaTimeInMilliseconds * gameplayManager.scaleMultiplier.value
             if (body.scale.horizontal <= 0f) {
                 resetPosition()
             }
         } else {
+            body.scale = StartingScale * gameplayManager.scaleMultiplier.value
             if (gameplayManager.isGameOver.value) {
                 isShrinking = true
             }
         }
         collisionBody.position = body.position
+        collisionBody.scale = body.scale
     }
 
     fun onHit(canSpawnPowerup: Boolean) {
@@ -165,7 +167,7 @@ internal class AlienShip(
             x = left + (right - left) * Random.nextFloat(),
             y = viewportManager.topLeft.value.y - body.size.height - initialY,
         )
-        body.scale = StartingScale
+        body.scale = StartingScale * gameplayManager.scaleMultiplier.value
         isShrinking = false
     }
 

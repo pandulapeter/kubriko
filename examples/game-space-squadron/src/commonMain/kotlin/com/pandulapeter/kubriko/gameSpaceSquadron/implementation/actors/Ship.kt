@@ -201,7 +201,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         // TODO: Implement momentum
         moveTowards(shipDestination.body.position, speed)
         if (isShrinking) {
-            shipAnimationWrapper.verticalScale -= SHRINKING_SPEED * deltaTimeInMilliseconds
+            shipAnimationWrapper.verticalScale -= SHRINKING_SPEED * deltaTimeInMilliseconds * gameplayManager.scaleMultiplier.value
             if (shipAnimationWrapper.verticalScale <= 0f) {
                 actorManager.remove(this)
                 gameplayManager.onGameOver()
@@ -209,8 +209,9 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         } else {
             shipAnimationWrapper.update(deltaTimeInMilliseconds, previousX, body.position.x)
         }
-        body.scale = Scale(shipAnimationWrapper.horizontalScale, shipAnimationWrapper.verticalScale)
+        body.scale = Scale(shipAnimationWrapper.horizontalScale, shipAnimationWrapper.verticalScale) * gameplayManager.scaleMultiplier.value
         collisionBody.position = body.position
+        collisionBody.scale = body.scale
     }
 
     private fun moveTowards(target: SceneOffset, speed: SceneUnit) {

@@ -48,7 +48,6 @@ internal abstract class Collectable(
     override val body = RectangleBody(
         initialSize = SceneSize(frameSize.width.sceneUnit, frameSize.height.sceneUnit),
         initialPosition = position,
-        initialScale = Scale.Unit * 0.4f
     )
     override val collisionBody = CircleBody(
         initialRadius = 20.sceneUnit,
@@ -81,17 +80,20 @@ internal abstract class Collectable(
             deltaTimeInMilliseconds = deltaTimeInMilliseconds,
             shouldLoop = true,
         )
-        body.position += SceneOffset.Down * SPEED * deltaTimeInMilliseconds
+        body.position += SceneOffset.Down * SPEED * deltaTimeInMilliseconds * gameplayManager.speedMultiplier.value
         if (body.position.y > viewportManager.bottomRight.value.y + body.size.height) {
             actorManager.remove(this)
         }
         collisionBody.position = body.position
+        collisionBody.scale = body.scale
         if (isShrinking) {
             if (body.scale.horizontal <= 0) {
                 actorManager.remove(this)
             } else {
-                body.scale -= Scale.Unit * 0.003f * deltaTimeInMilliseconds
+                body.scale -= Scale.Unit * 0.003f * deltaTimeInMilliseconds * gameplayManager.scaleMultiplier.value
             }
+        } else {
+            body.scale = StartingScale * gameplayManager.scaleMultiplier.value
         }
     }
 
@@ -110,5 +112,6 @@ internal abstract class Collectable(
     companion object {
         private const val SPEED = 0.3f
         private val CollisionLimit = 64f.sceneUnit
+        private val StartingScale = Scale.Unit * 0.4f
     }
 }

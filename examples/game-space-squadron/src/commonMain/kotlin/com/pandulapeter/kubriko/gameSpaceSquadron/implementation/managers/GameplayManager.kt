@@ -17,8 +17,10 @@ import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.ShipDest
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
 internal class GameplayManager(
@@ -28,8 +30,11 @@ internal class GameplayManager(
     private val audioManager by manager<AudioManager>()
     private val stateManager by manager<StateManager>()
     private val scoreManager by manager<ScoreManager>()
+    private val viewportManager by manager<ViewportManager>()
     private val _isGameOver = MutableStateFlow(true)
     val isGameOver = _isGameOver.asStateFlow()
+    val speedMultiplier by lazy { viewportManager.size.map { it.height / 1280f }.asStateFlow(1f) }
+    val scaleMultiplier by lazy { viewportManager.size.map { (it.height + it.width) / 3000f }.asStateFlow(1f) }
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager.add(

@@ -13,7 +13,6 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.collision.CollisionManager
-import com.pandulapeter.kubriko.gameSpaceSquadron.ViewportHeight
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.BackgroundAnimationManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
@@ -68,9 +67,6 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
         instanceNameForLogging = LOG_TAG_BACKGROUND,
     )
     private val viewportManager = ViewportManager.newInstance(
-        aspectRatioMode = ViewportManager.AspectRatioMode.FitVertical(
-            height = ViewportHeight,
-        ),
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )

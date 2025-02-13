@@ -24,6 +24,7 @@ import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.extensions.sin
 import com.pandulapeter.kubriko.extensions.times
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.particleStates.BulletParticleState
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
@@ -42,6 +43,7 @@ internal class Bullet(
     private val direction = directionOffset - AngleRadians.Pi / 2
     private lateinit var actorManager: ActorManager
     private lateinit var audioManager: AudioManager
+    private lateinit var gameplayManager: GameplayManager
     private lateinit var viewportManager: ViewportManager
     override val drawingOrder = 1f
     override val particleStateType = BulletParticleState::class
@@ -53,6 +55,7 @@ internal class Bullet(
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
         audioManager = kubriko.get()
+        gameplayManager = kubriko.get()
         viewportManager = kubriko.get()
         kubriko.get<AudioManager>().playShootSoundEffect()
     }
