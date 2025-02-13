@@ -106,14 +106,12 @@ internal class ActorManagerImpl(
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
-        if (stateManager.isRunning.value) {
             dynamicActors.value
                 //.filter { if (it !is Positionable) true else it.body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) }
                 .forEach {
                     // TODO: Reduce update frequency for Positionable Dynamic actors that are not within the viewport
-                    it.update(deltaTimeInMilliseconds)
+                    it.update(if (stateManager.isRunning.value) deltaTimeInMilliseconds else 0)
                 }
-        }
     }
 
     private fun flattenActors(actors: List<Actor>): List<Actor> = actors.flatMap { actor ->
