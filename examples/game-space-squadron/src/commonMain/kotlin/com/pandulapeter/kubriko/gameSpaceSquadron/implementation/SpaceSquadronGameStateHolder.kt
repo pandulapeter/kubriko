@@ -127,6 +127,12 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
 
     override fun stopMusic() = audioManager.stopMusicBeforeDispose()
 
+    override fun navigateBack() = !stateManager.isRunning.value.also {
+        if (it) {
+            gameplayManager.pauseGame()
+        }
+    }
+
     override fun dispose() {
         kubriko.value.dispose()
         backgroundKubriko.dispose()

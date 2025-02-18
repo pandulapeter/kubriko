@@ -121,6 +121,12 @@ internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
 
     override fun stopMusic() = audioManager.stopMusicBeforeDispose()
 
+    override fun navigateBack() = !stateManager.isRunning.value.also {
+        if (it) {
+            gameplayManager.pauseGame()
+        }
+    }
+
     override fun dispose() {
         backgroundKubriko.dispose()
         kubriko.value.dispose()
