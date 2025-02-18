@@ -11,7 +11,6 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.overlay
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.alphaMultiplier
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawTransform
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -127,7 +126,6 @@ internal class OverlayManager(
                                                 right = body.size.width.raw,
                                                 bottom = body.size.height.raw
                                             ) {
-                                                drawContext.canvas.alphaMultiplier = 0.4f
                                                 draw()
                                             }
                                         }

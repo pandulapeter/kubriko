@@ -61,7 +61,7 @@ internal class MovingBox private constructor(state: State) : Visible, Dynamic, E
         body.position += SceneOffset(
             x = body.rotation.cos.sceneUnit,
             y = -body.rotation.sin.sceneUnit,
-        )
+        ) * deltaTimeInMilliseconds * 0.2f
     }
 
     override fun DrawScope.draw() = drawRect(

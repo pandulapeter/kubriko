@@ -21,6 +21,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.demoPerformance.implementation.PlatformSpecificContent
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
+import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
@@ -42,11 +43,15 @@ internal class PerformanceDemoManager(
 ) : Manager() {
 
     private val actorManager by manager<ActorManager>()
+    private val stateManager by manager<StateManager>()
     private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
     private val _shouldShowLoadingIndicator = MutableStateFlow(true)
     private val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
+        stateManager.isFocused
+            .onEach(stateManager::updateIsRunning)
+            .launchIn(scope)
         actorManager.allActors
             .filter { it.isNotEmpty() }
             .onEach {
