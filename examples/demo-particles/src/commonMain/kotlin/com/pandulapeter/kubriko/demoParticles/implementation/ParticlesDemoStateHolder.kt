@@ -32,7 +32,7 @@ internal class ParticlesDemoStateHolderImpl : ParticlesDemoStateHolder {
             instanceNameForLogging = LOG_TAG,
         )
     )
-    override val kubriko get() = _kubriko.asStateFlow()
+    override val kubriko = _kubriko.asStateFlow()
 
     override fun dispose() = kubriko.value.dispose()
 }

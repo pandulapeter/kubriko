@@ -13,12 +13,16 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import com.pandulapeter.kubrikoShowcase.implementation.ui.ShowcaseContent
 import com.pandulapeter.kubrikoShowcase.implementation.ui.getStateHolder
+import kotlin.coroutines.cancellation.CancellationException
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun KubrikoShowcase(
     isInFullscreenMode: Boolean,
@@ -39,6 +43,16 @@ fun KubrikoShowcase(
             isInFullscreenMode = isInFullscreenMode,
             onFullscreenModeToggled = onFullscreenModeToggled,
         )
+    }
+    BackHandler(selectedShowcaseEntry.value != null) {
+        try {
+            val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
+            if (activeStateHolder?.navigateBack() == false) {
+                activeStateHolder.stopMusic()
+                selectedShowcaseEntry.value = null
+            }
+        } catch (_: CancellationException) {
+        }
     }
 }
 

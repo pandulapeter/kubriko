@@ -27,6 +27,7 @@ kotlinx-serialization = "1.8.0" # https://github.com/Kotlin/kotlinx.serializatio
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity" }
 androidx-core-splashScreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-core-splashScreen" }
 androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
+compose-backhandler = { group = "org.jetbrains.compose.ui", name = "ui-backhandler", version.ref = "compose-plugin" }
 google-material = { group = "com.google.android.material", name = "material", version.ref = "google-material" }
 gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "gradle" }
 jlayer = { group = "com.github.umjammer", name = "jlayer", version.ref = "jlayer" }

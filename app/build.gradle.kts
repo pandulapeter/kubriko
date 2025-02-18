@@ -28,6 +28,7 @@ kotlin {
             implementation(projects.tools.debugMenu)
             implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)
+            implementation(libs.compose.backhandler)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)

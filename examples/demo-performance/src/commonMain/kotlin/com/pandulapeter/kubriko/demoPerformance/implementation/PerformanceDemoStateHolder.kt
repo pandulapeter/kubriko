@@ -72,7 +72,7 @@ internal class PerformanceDemoStateHolderImpl : PerformanceDemoStateHolder {
             )
         )
     }
-    override val kubriko get() = _kubriko.asStateFlow()
+    override val kubriko by lazy { _kubriko.asStateFlow() }
 
     override fun dispose() = kubriko.value.dispose()
 }
