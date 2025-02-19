@@ -18,7 +18,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
@@ -49,7 +48,6 @@ fun AnnoyedPenguinsGame(
     Image(
         modifier = Modifier
             .fillMaxSize()
-            .scale(0.75f)
             .padding(48.dp),
         painter = painterResource(Res.drawable.img_logo),
         contentScale = ContentScale.Inside,
