@@ -26,6 +26,7 @@ import com.pandulapeter.kubriko.extensions.sin
 import com.pandulapeter.kubriko.extensions.times
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.ScoreManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.particleStates.BulletParticleState
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
@@ -44,6 +45,7 @@ internal class BulletAlien(
     private lateinit var actorManager: ActorManager
     private lateinit var audioManager: AudioManager
     private lateinit var gameplayManager: GameplayManager
+    private lateinit var scoreManager: ScoreManager
     private lateinit var viewportManager: ViewportManager
     override val drawingOrder = 1f
     override val particleStateType = BulletParticleState::class
@@ -72,6 +74,7 @@ internal class BulletAlien(
         actorManager = kubriko.get()
         audioManager = kubriko.get()
         gameplayManager = kubriko.get()
+        scoreManager = kubriko.get()
         viewportManager = kubriko.get()
         kubriko.get<AudioManager>().playShootAlienSoundEffect()
     }
@@ -80,7 +83,7 @@ internal class BulletAlien(
         body.position += SceneOffset(
             x = direction.cos * Speed,
             y = direction.sin * Speed,
-        ) * deltaTimeInMilliseconds
+        ) * deltaTimeInMilliseconds * (1 + scoreManager.score.value * 0.05f)
         if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
             actorManager.remove(this)
         }

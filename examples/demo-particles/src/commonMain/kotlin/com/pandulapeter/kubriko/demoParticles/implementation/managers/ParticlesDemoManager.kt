@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
@@ -97,6 +98,7 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticleSta
                     .align(Alignment.CenterEnd)
                     .width(240.dp + windowInsets.asPaddingValues().calculateRightPadding(LocalLayoutDirection.current))
                     .windowInsetsPadding(windowInsets)
+                    .padding(end = 16.dp)
                     .fillMaxHeight(),
                 particlesDemoManager = this@ParticlesDemoManager,
             )
