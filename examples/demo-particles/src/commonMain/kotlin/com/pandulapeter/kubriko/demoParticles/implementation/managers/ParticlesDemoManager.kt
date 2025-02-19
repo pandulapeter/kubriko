@@ -51,7 +51,7 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticleSta
     val isEmittingContinuously = _isEmittingContinuously.asStateFlow()
     override val particleStateType = DemoParticleState::class
     override var particleEmissionMode = if (isEmittingContinuously.value) {
-        ParticleEmitter.Mode.Continuous(emissionRate.value)
+        ParticleEmitter.Mode.Continuous { emissionRate.value }
     } else {
         ParticleEmitter.Mode.Inactive
     }
@@ -60,13 +60,8 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticleSta
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager.add(this)
-        emissionRate.onEach { emissionRate ->
-            if (isEmittingContinuously.value) {
-                particleEmissionMode = ParticleEmitter.Mode.Continuous(emissionRate)
-            }
-        }.launchIn(scope)
         isEmittingContinuously.onEach { isEmittingContinuously ->
-            particleEmissionMode = if (isEmittingContinuously) ParticleEmitter.Mode.Continuous(emissionRate.value) else ParticleEmitter.Mode.Inactive
+            particleEmissionMode = if (isEmittingContinuously) ParticleEmitter.Mode.Continuous { emissionRate.value } else ParticleEmitter.Mode.Inactive
         }.launchIn(scope)
         stateManager.isFocused
             .onEach(stateManager::updateIsRunning)

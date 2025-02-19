@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors
 
 import androidx.compose.ui.unit.IntSize
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.base.Collectable
 import com.pandulapeter.kubriko.types.SceneOffset
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.sprite_power_up

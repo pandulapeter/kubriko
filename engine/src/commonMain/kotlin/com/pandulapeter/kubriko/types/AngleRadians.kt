@@ -48,5 +48,6 @@ value class AngleRadians internal constructor(private val raw: Float) : Comparab
         val Zero = 0f.rad
         val Pi = PI.toFloat().rad
         val TwoPi = Pi * 2
+        val HalfPi = Pi / 2
     }
 }

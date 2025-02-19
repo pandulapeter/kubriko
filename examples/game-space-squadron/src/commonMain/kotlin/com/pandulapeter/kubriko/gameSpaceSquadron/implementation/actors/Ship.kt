@@ -160,32 +160,32 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
                 if (remainingMultiShootCount >= 1) {
                     remainingMultiShootCount -= 1
                     actorManager.add(
-                        Bullet(
+                        BulletPlayer(
                             initialPosition = body.position,
-                            directionOffset = AngleRadians.Zero,
+                            direction = AngleRadians.Zero - AngleRadians.HalfPi,
                         ),
-                        Bullet(
+                        BulletPlayer(
                             initialPosition = body.position,
-                            directionOffset = AngleRadians.Pi / 24,
+                            direction = AngleRadians.Pi / 24 - AngleRadians.HalfPi,
                         ),
-                        Bullet(
+                        BulletPlayer(
                             initialPosition = body.position,
-                            directionOffset = -AngleRadians.Pi / 24,
+                            direction = -AngleRadians.Pi / 24 - AngleRadians.HalfPi,
                         ),
-                        Bullet(
+                        BulletPlayer(
                             initialPosition = body.position,
-                            directionOffset = AngleRadians.Pi / 12,
+                            direction = AngleRadians.Pi / 12 - AngleRadians.HalfPi,
                         ),
-                        Bullet(
+                        BulletPlayer(
                             initialPosition = body.position,
-                            directionOffset = -AngleRadians.Pi / 12,
+                            direction = -AngleRadians.Pi / 12 - AngleRadians.HalfPi,
                         ),
                     )
                 } else {
                     actorManager.add(
-                        Bullet(
+                        BulletPlayer(
                             initialPosition = body.position,
-                            directionOffset = AngleRadians.Zero,
+                            direction = -AngleRadians.HalfPi,
                         )
                     )
                 }

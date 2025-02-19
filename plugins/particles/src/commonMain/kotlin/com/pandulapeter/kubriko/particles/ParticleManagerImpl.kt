@@ -54,7 +54,7 @@ internal class ParticleManagerImpl(
                 repeat(
                     when (val mode = emitter.particleEmissionMode) {
                         is ParticleEmitter.Mode.Burst -> mode.emissionsPerBurst.also { emitter.particleEmissionMode = ParticleEmitter.Mode.Inactive }
-                        is ParticleEmitter.Mode.Continuous -> (mode.emissionsPerMillisecond * deltaTimeInMilliseconds).roundToInt()
+                        is ParticleEmitter.Mode.Continuous -> (mode.getEmissionsPerMillisecond() * deltaTimeInMilliseconds).roundToInt()
                         ParticleEmitter.Mode.Inactive -> 0
                     }
                 ) {

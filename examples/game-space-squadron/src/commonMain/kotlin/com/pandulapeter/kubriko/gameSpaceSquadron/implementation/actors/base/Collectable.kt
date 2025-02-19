@@ -7,7 +7,7 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors
+package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.base
 
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.IntSize
@@ -21,6 +21,7 @@ import com.pandulapeter.kubriko.collision.CollisionDetector
 import com.pandulapeter.kubriko.extensions.distanceTo
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.Ship
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.manager.ActorManager

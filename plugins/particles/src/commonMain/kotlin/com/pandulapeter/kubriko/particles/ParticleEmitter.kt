@@ -28,7 +28,7 @@ interface ParticleEmitter<S : ParticleEmitter.ParticleState> : Actor {
 
     sealed class Mode {
 
-        data class Continuous(val emissionsPerMillisecond: Float) : Mode()
+        data class Continuous(val getEmissionsPerMillisecond: () -> Float) : Mode()
 
         data class Burst(val emissionsPerBurst: Int) : Mode()
 

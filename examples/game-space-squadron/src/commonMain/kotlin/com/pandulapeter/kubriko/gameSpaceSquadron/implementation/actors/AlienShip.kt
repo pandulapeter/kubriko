@@ -109,7 +109,7 @@ internal class AlienShip(
             if (timeSinceLastShot > 200 && !gameplayManager.isGameOver.value) {
                 actorManager.allActors.value.filterIsInstance<Ship>().firstOrNull()?.let { ship ->
                     actorManager.add(
-                        BulletAlien(
+                        BulletEnemy(
                             initialPosition = body.position,
                             direction = body.position.directionTowards(ship.body.position),
                         )
