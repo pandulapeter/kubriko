@@ -78,7 +78,7 @@ fun WallbreakerGame(
         exit = scaleOut(targetScale = 0.88f) + fadeOut(),
     ) {
         KubrikoViewport(
-            modifier = Modifier.windowInsetsPadding(windowInsets).background(Color.Black),
+            modifier = Modifier.windowInsetsPadding(windowInsets).background(Color.White.copy(alpha = 0.05f)),
             kubriko = stateHolder.kubriko.collectAsState().value,
             windowInsets = windowInsets,
         )
