@@ -36,6 +36,7 @@ internal enum class ShowcaseEntry(
     val type: ShowcaseEntryType,
     val titleStringResource: StringResource,
     val subtitleStringResource: StringResource,
+    val isHidden: Boolean = false,
 ) {
     WALLBREAKER(
         type = ShowcaseEntryType.GAME,
@@ -51,31 +52,36 @@ internal enum class ShowcaseEntry(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_audio,
         subtitleStringResource = Res.string.demo_audio_subtitle,
-    ),
-    CONTENT_SHADERS(
-        type = ShowcaseEntryType.DEMO,
-        titleStringResource = Res.string.demo_content_shaders,
-        subtitleStringResource = Res.string.demo_content_shaders_subtitle,
+        isHidden = true,
     ),
     INPUT(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_input,
         subtitleStringResource = Res.string.demo_input_subtitle,
+        isHidden = true,
     ),
     PARTICLES(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_particles,
         subtitleStringResource = Res.string.demo_particles_subtitle,
+        isHidden = true,
     ),
     PERFORMANCE(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_performance,
         subtitleStringResource = Res.string.demo_performance_subtitle,
+        isHidden = true,
     ),
     PHYSICS(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_physics,
         subtitleStringResource = Res.string.demo_physics_subtitle,
+    ),
+    CONTENT_SHADERS(
+        type = ShowcaseEntryType.DEMO,
+        titleStringResource = Res.string.demo_content_shaders,
+        subtitleStringResource = Res.string.demo_content_shaders_subtitle,
+        isHidden = true,
     ),
     SHADER_ANIMATIONS(
         type = ShowcaseEntryType.DEMO,

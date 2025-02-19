@@ -48,7 +48,7 @@ internal fun LazyListScope.menu(
             )
         }
         items(
-            items = entries,
+            items = entries.filterNot { it.isHidden },
             key = { it.name }
         ) { showcaseEntry ->
             MenuItem(
