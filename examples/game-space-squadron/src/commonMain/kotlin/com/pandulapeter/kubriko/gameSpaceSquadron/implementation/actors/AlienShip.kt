@@ -59,7 +59,7 @@ internal class AlienShip(
         initialScale = Scale.Zero,
     )
     override val collisionBody = CircleBody(
-        initialRadius = 70.sceneUnit,
+        initialRadius = 90.sceneUnit,
         initialScale = Scale.Zero,
     )
     private val animatedSprite = AnimatedSprite(
