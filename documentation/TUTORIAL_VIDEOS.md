@@ -37,9 +37,9 @@ WIP
 - Interoperability with Compose
 - Persistence plugin, high score
 
-## 6 - Sounds and content shaders (Wallbreaker - Part 5)
+## 6 - Audio and content shaders (Wallbreaker - Part 5)
 WIP
-- Final touches: AudioPlayback and Shader plugin
+- Final touches: sounds, music and Shader plugin
 
 ## 7 - Shader animations and particle effects (Space Squadron - Part 1)
 WIP
@@ -57,10 +57,12 @@ WIP
 - Demonstrating the logger functionality
 - Finalizing the gameplay
 
-## 10 - Physics (Unknown Game - Part 1)
+## 10 - Physics (Annoyed Penguins - Part 1)
 WIP
-- Physics plugin
+- Physics plugin basic concepts
+- Slingshot controls
 
-## 11 - Scene Editor (Unknown Game - Part 2)
+## 11 - Scene Editor (Annoyed Penguins - Part 2)
 WIP
 - Introducing the SceneEditor tool
+- Working with scene JSON-s
