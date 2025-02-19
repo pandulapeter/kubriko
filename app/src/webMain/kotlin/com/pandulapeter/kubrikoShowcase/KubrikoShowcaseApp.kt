@@ -21,12 +21,23 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.CanvasBasedWindow
 import kotlinx.browser.document
+import kotlinx.browser.window
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import org.w3c.dom.events.Event
+import org.w3c.dom.events.KeyboardEvent
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     CanvasBasedWindow(applyDefaultStyles = false) {
         val isInFullscreenMode = remember { mutableStateOf(false) }
+        val webEscapePressEvent = remember {
+            MutableSharedFlow<Unit>(
+                extraBufferCapacity = 1,
+                onBufferOverflow = BufferOverflow.DROP_OLDEST
+            )
+        }
         DisposableEffect(Unit) {
             val fullscreenListener: (Event) -> Unit = {
                 if (isInFullscreenMode.value) {
@@ -34,6 +45,7 @@ fun main() {
                 }
             }
             document.addEventListener(EVENT_FULLSCREEN_CHANGE, fullscreenListener)
+            window.addEventListener("keyup", createKeyUpListener { webEscapePressEvent.tryEmit(Unit) })
             onDispose { document.removeEventListener(EVENT_FULLSCREEN_CHANGE, fullscreenListener) }
         }
         Box(
@@ -57,7 +69,16 @@ fun main() {
                         }
                     }
                 },
+                webEscapePressEvent = webEscapePressEvent.asSharedFlow(),
             )
+        }
+    }
+}
+
+private fun createKeyUpListener(onEscapeReleased: () -> Unit): (Event) -> Unit = { event ->
+    (event as? KeyboardEvent)?.let { keyboardEvent ->
+        if (keyboardEvent.code == "Escape") {
+            onEscapeReleased()
         }
     }
 }

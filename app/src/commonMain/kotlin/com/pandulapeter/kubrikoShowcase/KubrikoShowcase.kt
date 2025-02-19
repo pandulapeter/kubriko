@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoShowcase
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -20,6 +21,7 @@ import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import com.pandulapeter.kubrikoShowcase.implementation.ui.ShowcaseContent
 import com.pandulapeter.kubrikoShowcase.implementation.ui.getStateHolder
+import kotlinx.coroutines.flow.Flow
 import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -27,7 +29,17 @@ import kotlin.coroutines.cancellation.CancellationException
 fun KubrikoShowcase(
     isInFullscreenMode: Boolean,
     onFullscreenModeToggled: () -> Unit,
+    webEscapePressEvent: Flow<Unit>? = null,
 ) = KubrikoTheme {
+    LaunchedEffect(webEscapePressEvent) {
+        webEscapePressEvent?.collect {
+            val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
+            if (activeStateHolder?.navigateBack() == false) {
+                activeStateHolder.stopMusic()
+                selectedShowcaseEntry.value = null
+            }
+        }
+    }
     BackHandler(isInFullscreenMode) {
         val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
         try {
