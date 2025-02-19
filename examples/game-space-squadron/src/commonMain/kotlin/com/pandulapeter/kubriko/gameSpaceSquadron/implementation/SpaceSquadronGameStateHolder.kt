@@ -127,7 +127,7 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
 
     override fun stopMusic() = audioManager.stopMusicBeforeDispose()
 
-    override fun navigateBack() = (stateManager.isRunning.value || uiManager.isInfoDialogVisible.value).also {
+    override fun navigateBack() = ((stateManager.isRunning.value && !gameplayManager.isGameOver.value) || uiManager.isInfoDialogVisible.value).also {
         if (stateManager.isRunning.value) {
             gameplayManager.pauseGame()
         } else if (uiManager.isInfoDialogVisible.value) {

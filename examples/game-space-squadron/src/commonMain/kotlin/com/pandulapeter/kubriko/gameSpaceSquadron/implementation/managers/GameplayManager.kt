@@ -36,14 +36,12 @@ internal class GameplayManager(
     val speedMultiplier by lazy { viewportManager.size.map { it.height / 1280f }.asStateFlow(1f) }
     val scaleMultiplier by lazy { viewportManager.size.map { (it.height + it.width) / 3000f }.asStateFlow(1f) }
 
-    override fun onInitialize(kubriko: Kubriko) {
-        actorManager.add(
-            AlienShip(initialY = 100.sceneUnit),
-            AlienShip(initialY = 200.sceneUnit),
-            AlienShip(initialY = 300.sceneUnit),
-            AlienShip(initialY = 400.sceneUnit),
-        )
-    }
+    override fun onInitialize(kubriko: Kubriko) = actorManager.add(
+        AlienShip(initialY = 100.sceneUnit),
+        AlienShip(initialY = 200.sceneUnit),
+        AlienShip(initialY = 300.sceneUnit),
+        AlienShip(initialY = 400.sceneUnit),
+    )
 
     fun playGame() {
         if (isGameOver.value) {
@@ -63,7 +61,7 @@ internal class GameplayManager(
         if (!isGameOver.value) {
             backgroundStateManager.updateIsRunning(false)
         }
-        if (stateManager.isRunning.value) {
+        if (stateManager.isRunning.value && !isGameOver.value) {
             audioManager.playButtonToggleSoundEffect()
         }
         stateManager.updateIsRunning(false)

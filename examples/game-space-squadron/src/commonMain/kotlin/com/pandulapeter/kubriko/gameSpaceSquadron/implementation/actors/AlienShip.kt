@@ -56,10 +56,11 @@ internal class AlienShip(
             width = 206.sceneUnit,
             height = 180.sceneUnit,
         ),
-        initialScale = StartingScale,
+        initialScale = Scale.Zero,
     )
     override val collisionBody = CircleBody(
         initialRadius = 70.sceneUnit,
+        initialScale = Scale.Zero,
     )
     private val animatedSprite = AnimatedSprite(
         getImageBitmap = { spriteManager.get(Res.drawable.sprite_alien_ship) },
@@ -71,8 +72,8 @@ internal class AlienShip(
         imageIndex = Random.nextInt(frameCount)
     }
     private var lastShotTimestamp = 0L
-    override val collidableTypes : List<KClass<out Collidable>> = listOf(AlienShip::class, Ship::class)
-    var isShrinking = false
+    override val collidableTypes: List<KClass<out Collidable>> = listOf(AlienShip::class, Ship::class)
+    var isShrinking = true
         private set
 
     override fun onAdded(kubriko: Kubriko) {
@@ -83,7 +84,6 @@ internal class AlienShip(
         stateManager = kubriko.get()
         metadataManager = kubriko.get()
         viewportManager = kubriko.get()
-        resetPosition()
     }
 
     override fun onCollisionDetected(collidables: List<Collidable>) {
@@ -99,39 +99,43 @@ internal class AlienShip(
     }
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        animatedSprite.stepForward(
-            deltaTimeInMilliseconds = deltaTimeInMilliseconds,
-            shouldLoop = true,
-        )
-        if (body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) && Random.nextInt(80) == 0 && deltaTimeInMilliseconds > 0) {
-            val currentTimestamp = metadataManager.activeRuntimeInMilliseconds.value
-            val timeSinceLastShot = currentTimestamp - lastShotTimestamp
-            if (timeSinceLastShot > 200 && !gameplayManager.isGameOver.value) {
-                actorManager.allActors.value.filterIsInstance<Ship>().firstOrNull()?.let { ship ->
-                    actorManager.add(
-                        BulletEnemy(
-                            initialPosition = body.position,
-                            direction = body.position.directionTowards(ship.body.position),
+        if (deltaTimeInMilliseconds > 0) {
+            animatedSprite.stepForward(
+                deltaTimeInMilliseconds = deltaTimeInMilliseconds,
+                shouldLoop = true,
+            )
+            if (body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) && Random.nextInt(80) == 0 && deltaTimeInMilliseconds > 0) {
+                val currentTimestamp = metadataManager.activeRuntimeInMilliseconds.value
+                val timeSinceLastShot = currentTimestamp - lastShotTimestamp
+                if (timeSinceLastShot > 200 && !gameplayManager.isGameOver.value) {
+                    actorManager.allActors.value.filterIsInstance<Ship>().firstOrNull()?.let { ship ->
+                        actorManager.add(
+                            BulletEnemy(
+                                initialPosition = body.position,
+                                direction = body.position.directionTowards(ship.body.position),
+                            )
                         )
-                    )
-                    lastShotTimestamp = currentTimestamp
+                        lastShotTimestamp = currentTimestamp
+                    }
+                }
+            }
+            body.position += SceneOffset.Down * SPEED * deltaTimeInMilliseconds * gameplayManager.speedMultiplier.value
+            if (body.position.y > viewportManager.bottomRight.value.y + body.size.height && !gameplayManager.isGameOver.value) {
+                resetPosition()
+            }
+            if (isShrinking) {
+                body.scale -= ShrinkingSpeed * deltaTimeInMilliseconds * gameplayManager.scaleMultiplier.value
+                if (body.scale.horizontal <= 0f) {
+                    resetPosition()
+                }
+            } else {
+                if (gameplayManager.isGameOver.value) {
+                    isShrinking = true
                 }
             }
         }
-        body.position += SceneOffset.Down * SPEED * deltaTimeInMilliseconds * gameplayManager.speedMultiplier.value
-        if (body.position.y > viewportManager.bottomRight.value.y + body.size.height && !gameplayManager.isGameOver.value) {
-            resetPosition()
-        }
-        if (isShrinking) {
-            body.scale -= ShrinkingSpeed * deltaTimeInMilliseconds * gameplayManager.scaleMultiplier.value
-            if (body.scale.horizontal <= 0f) {
-                resetPosition()
-            }
-        } else {
+        if (!isShrinking) {
             body.scale = StartingScale * gameplayManager.scaleMultiplier.value
-            if (gameplayManager.isGameOver.value) {
-                isShrinking = true
-            }
         }
         collisionBody.position = body.position
         collisionBody.scale = body.scale
