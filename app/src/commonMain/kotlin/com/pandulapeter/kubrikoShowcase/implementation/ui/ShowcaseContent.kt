@@ -43,7 +43,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -255,8 +254,11 @@ private fun CompactContent(
 ) { shouldUseExpandedUi ->
     if (shouldUseExpandedUi) {
         WelcomeScreen(
-            modifier = Modifier.fillMaxSize().verticalScroll(welcomeScreenScrollState)
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right)),
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(welcomeScreenScrollState)
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right))
+                .padding(bottom = 8.dp),
             shouldUseCompactUi = false,
         )
     } else {
@@ -275,8 +277,6 @@ private fun CompactContent(
                         modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
                         shouldUseCompactUi = true,
                     )
-                    HorizontalDivider()
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
                 menu(
                     allShowcaseEntries = allShowcaseEntries,

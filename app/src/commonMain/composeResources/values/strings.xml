@@ -15,6 +15,7 @@
     <string name="back">Back</string>
     <string name="demos">Demos</string>
     <string name="games">Games</string>
+    <string name="tests">Tests</string>
     <string name="debug_menu">Toggle debug menu</string>
 
     <!-- Welcome -->
@@ -48,25 +49,13 @@
     <string name="game_annoyed_penguins">Annoyed Penguins</string>
     <string name="game_annoyed_penguins_subtitle">Slingshot your penguins to a chaotic victory</string>
 
-    <!-- Demo - Audio -->
-    <string name="demo_audio">Audio</string>
-    <string name="demo_audio_subtitle">For testing the playback of music and sound effects</string>
-
     <!-- Demo - Content Shaders -->
     <string name="demo_content_shaders">Content Shaders</string>
     <string name="demo_content_shaders_subtitle">Playground for testing various shader effects</string>
 
-    <!-- Demo - Input -->
-    <string name="demo_input">Input</string>
-    <string name="demo_input_subtitle">Playground for testing keyboard and pointer input</string>
-
     <!-- Demo - Particles -->
     <string name="demo_particles">Particles</string>
     <string name="demo_particles_subtitle">Demo for editing and testing particle effects</string>
-
-    <!-- Demo - Performance -->
-    <string name="demo_performance">Performance</string>
-    <string name="demo_performance_subtitle">Stress test using a large number of dynamic actors</string>
 
     <!-- Demo - Physics -->
     <string name="demo_physics">Physics</string>
@@ -75,5 +64,17 @@
     <!-- Demo - Shader Animations -->
     <string name="demo_shader_animations">Shader Animations</string>
     <string name="demo_shader_animations_subtitle">Examples for dynamic SGSL shader overlays</string>
+
+    <!-- Test - Audio -->
+    <string name="test_audio">Audio</string>
+    <string name="test_audio_subtitle">For testing the playback of music and sound effects</string>
+
+    <!-- Test - Input -->
+    <string name="test_input">Input</string>
+    <string name="test_input_subtitle">Playground for testing keyboard and pointer input</string>
+
+    <!-- Test - Performance -->
+    <string name="test_performance">Performance</string>
+    <string name="test_performance_subtitle">Stress test using a large number of dynamic actors</string>
 
 </resources>

@@ -10,16 +10,10 @@
 package com.pandulapeter.kubrikoShowcase.implementation
 
 import kubriko.app.generated.resources.Res
-import kubriko.app.generated.resources.demo_audio
-import kubriko.app.generated.resources.demo_audio_subtitle
 import kubriko.app.generated.resources.demo_content_shaders
 import kubriko.app.generated.resources.demo_content_shaders_subtitle
-import kubriko.app.generated.resources.demo_input
-import kubriko.app.generated.resources.demo_input_subtitle
 import kubriko.app.generated.resources.demo_particles
 import kubriko.app.generated.resources.demo_particles_subtitle
-import kubriko.app.generated.resources.demo_performance
-import kubriko.app.generated.resources.demo_performance_subtitle
 import kubriko.app.generated.resources.demo_physics
 import kubriko.app.generated.resources.demo_physics_subtitle
 import kubriko.app.generated.resources.demo_shader_animations
@@ -32,14 +26,21 @@ import kubriko.app.generated.resources.game_space_squadron_subtitle
 import kubriko.app.generated.resources.game_wallbreaker
 import kubriko.app.generated.resources.game_wallbreaker_subtitle
 import kubriko.app.generated.resources.games
+import kubriko.app.generated.resources.test_audio
+import kubriko.app.generated.resources.test_audio_subtitle
+import kubriko.app.generated.resources.test_input
+import kubriko.app.generated.resources.test_input_subtitle
+import kubriko.app.generated.resources.test_performance
+import kubriko.app.generated.resources.test_performance_subtitle
+import kubriko.app.generated.resources.tests
 import org.jetbrains.compose.resources.StringResource
 
 internal enum class ShowcaseEntry(
     val type: ShowcaseEntryType,
     val titleStringResource: StringResource,
     val subtitleStringResource: StringResource,
-    val isHidden: Boolean = false,
 ) {
+    // Games
     WALLBREAKER(
         type = ShowcaseEntryType.GAME,
         titleStringResource = Res.string.game_wallbreaker,
@@ -55,45 +56,44 @@ internal enum class ShowcaseEntry(
         titleStringResource = Res.string.game_annoyed_penguins,
         subtitleStringResource = Res.string.game_annoyed_penguins_subtitle,
     ),
-    AUDIO(
-        type = ShowcaseEntryType.DEMO,
-        titleStringResource = Res.string.demo_audio,
-        subtitleStringResource = Res.string.demo_audio_subtitle,
-        isHidden = true,
-    ),
-    INPUT(
-        type = ShowcaseEntryType.DEMO,
-        titleStringResource = Res.string.demo_input,
-        subtitleStringResource = Res.string.demo_input_subtitle,
-        isHidden = true,
-    ),
-    PARTICLES(
-        type = ShowcaseEntryType.DEMO,
-        titleStringResource = Res.string.demo_particles,
-        subtitleStringResource = Res.string.demo_particles_subtitle,
-        isHidden = true,
-    ),
-    PERFORMANCE(
-        type = ShowcaseEntryType.DEMO,
-        titleStringResource = Res.string.demo_performance,
-        subtitleStringResource = Res.string.demo_performance_subtitle,
-        isHidden = true,
-    ),
+
+    // Demos
     PHYSICS(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_physics,
         subtitleStringResource = Res.string.demo_physics_subtitle,
     ),
+    PARTICLES(
+        type = ShowcaseEntryType.DEMO,
+        titleStringResource = Res.string.demo_particles,
+        subtitleStringResource = Res.string.demo_particles_subtitle,
+    ),
     CONTENT_SHADERS(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_content_shaders,
         subtitleStringResource = Res.string.demo_content_shaders_subtitle,
-        isHidden = true,
     ),
     SHADER_ANIMATIONS(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_shader_animations,
         subtitleStringResource = Res.string.demo_shader_animations_subtitle,
+    ),
+
+    // Tests
+    AUDIO(
+        type = ShowcaseEntryType.TEST,
+        titleStringResource = Res.string.test_audio,
+        subtitleStringResource = Res.string.test_audio_subtitle,
+    ),
+    INPUT(
+        type = ShowcaseEntryType.TEST,
+        titleStringResource = Res.string.test_input,
+        subtitleStringResource = Res.string.test_input_subtitle,
+    ),
+    PERFORMANCE(
+        type = ShowcaseEntryType.TEST,
+        titleStringResource = Res.string.test_performance,
+        subtitleStringResource = Res.string.test_performance_subtitle,
     ),
 }
 
@@ -105,5 +105,8 @@ internal enum class ShowcaseEntryType(
     ),
     DEMO(
         titleStringResource = Res.string.demos,
+    ),
+    TEST(
+        titleStringResource = Res.string.tests,
     ),
 }

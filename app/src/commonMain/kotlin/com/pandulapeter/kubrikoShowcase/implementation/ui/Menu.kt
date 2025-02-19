@@ -48,7 +48,7 @@ internal fun LazyListScope.menu(
             )
         }
         items(
-            items = entries.filterNot { it.isHidden },
+            items = entries,
             key = { it.name }
         ) { showcaseEntry ->
             MenuItem(
@@ -109,7 +109,7 @@ private fun MenuCategoryLabel(
         .fillMaxWidth()
         .padding(
             horizontal = 16.dp,
-            vertical = 4.dp,
+            vertical = 8.dp,
         )
         .padding(WindowInsets.safeDrawing.only(WindowInsetsSides.Left).asPaddingValues()),
     color = MaterialTheme.colorScheme.secondary,

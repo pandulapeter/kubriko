@@ -16,16 +16,16 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.examples.demoAudio)
             implementation(projects.examples.demoContentShaders)
-            implementation(projects.examples.demoInput)
             implementation(projects.examples.demoParticles)
-            implementation(projects.examples.demoPerformance)
             implementation(projects.examples.demoPhysics)
             implementation(projects.examples.demoShaderAnimations)
             implementation(projects.examples.gameAnnoyedPenguins)
             implementation(projects.examples.gameSpaceSquadron)
             implementation(projects.examples.gameWallbreaker)
+            implementation(projects.examples.testAudio)
+            implementation(projects.examples.testInput)
+            implementation(projects.examples.testPerformance)
             implementation(projects.tools.debugMenu)
             implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)

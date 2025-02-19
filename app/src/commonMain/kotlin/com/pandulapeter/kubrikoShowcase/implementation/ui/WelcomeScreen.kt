@@ -66,7 +66,10 @@ internal fun WelcomeScreen(
     modifier: Modifier = Modifier,
     shouldUseCompactUi: Boolean,
 ) = Column(
-    modifier = modifier.padding(vertical = 16.dp),
+    modifier = modifier.padding(
+        top = 16.dp,
+        bottom = 8.dp,
+    ),
 ) {
     Text(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),

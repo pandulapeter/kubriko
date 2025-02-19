@@ -14,9 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import com.pandulapeter.kubriko.demoAudio.AudioDemo
-import com.pandulapeter.kubriko.demoAudio.createAudioDemoStateHolder
-import com.pandulapeter.kubriko.demoAudio.implementation.AudioDemoStateHolder
 import com.pandulapeter.kubriko.demoContentShaders.ContentShadersDemo
 import com.pandulapeter.kubriko.demoContentShaders.createContentShadersDemoStateHolder
 import com.pandulapeter.kubriko.demoContentShaders.implementation.ContentShadersDemoStateHolder
@@ -45,6 +42,9 @@ import com.pandulapeter.kubriko.gameWallbreaker.WallbreakerGame
 import com.pandulapeter.kubriko.gameWallbreaker.createWallbreakerGameStateHolder
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.WallbreakerGameStateHolder
 import com.pandulapeter.kubriko.shared.StateHolder
+import com.pandulapeter.kubriko.testAudio.AudioTest
+import com.pandulapeter.kubriko.testAudio.createAudioTestStateHolder
+import com.pandulapeter.kubriko.testAudio.implementation.AudioTestStateHolder
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 
 private val stateHolders = mutableStateOf(emptyList<StateHolder>())
@@ -78,8 +78,8 @@ internal fun ShowcaseEntry.ExampleScreen(
             onFullscreenModeToggled = onFullscreenModeToggled,
         )
 
-        ShowcaseEntry.AUDIO -> AudioDemo(
-            stateHolder = getOrCreateState(stateHolders, ::createAudioDemoStateHolder),
+        ShowcaseEntry.AUDIO -> AudioTest(
+            stateHolder = getOrCreateState(stateHolders, ::createAudioTestStateHolder),
             windowInsets = windowInsets,
         )
 
@@ -129,7 +129,7 @@ internal fun ShowcaseEntry.getStateHolder() = when (this) {
     ShowcaseEntry.WALLBREAKER -> getOrCreateState(stateHolders, ::createWallbreakerGameStateHolder)
     ShowcaseEntry.SPACE_SQUADRON -> getOrCreateState(stateHolders, ::createSpaceSquadronGameStateHolder)
     ShowcaseEntry.ANNOYED_PENGUINS -> getOrCreateState(stateHolders, ::createAnnoyedPenguinsGameStateHolder)
-    ShowcaseEntry.AUDIO -> getOrCreateState(stateHolders, ::createAudioDemoStateHolder)
+    ShowcaseEntry.AUDIO -> getOrCreateState(stateHolders, ::createAudioTestStateHolder)
     ShowcaseEntry.CONTENT_SHADERS -> getOrCreateState(stateHolders, ::createContentShadersDemoStateHolder)
     ShowcaseEntry.INPUT -> getOrCreateState(stateHolders, ::createInputDemoStateHolder)
     ShowcaseEntry.PARTICLES -> getOrCreateState(stateHolders, ::createParticlesDemoStateHolder)
@@ -147,7 +147,7 @@ private val ShowcaseEntry.stateHolderType
     get() = when (this) {
         ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemoStateHolder::class
         ShowcaseEntry.SHADER_ANIMATIONS -> ShaderAnimationsDemoStateHolder::class
-        ShowcaseEntry.AUDIO -> AudioDemoStateHolder::class
+        ShowcaseEntry.AUDIO -> AudioTestStateHolder::class
         ShowcaseEntry.INPUT -> InputDemoStateHolder::class
         ShowcaseEntry.PARTICLES -> ParticlesDemoStateHolder::class
         ShowcaseEntry.PERFORMANCE -> PerformanceDemoStateHolder::class

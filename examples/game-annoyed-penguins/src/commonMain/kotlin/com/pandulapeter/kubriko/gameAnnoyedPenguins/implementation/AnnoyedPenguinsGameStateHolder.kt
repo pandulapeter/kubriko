@@ -96,11 +96,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
 
     override fun stopMusic() = audioManager.stopMusicBeforeDispose()
 
-    override fun navigateBack() = !stateManager.isRunning.value.also {
-        if (it) {
-            // TODO: gameplayManager.pauseGame()
-        }
-    }
+    override fun navigateBack() = false
 
     override fun dispose() = kubriko.value.dispose()
 }

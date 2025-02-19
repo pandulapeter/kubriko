@@ -52,7 +52,6 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.uiComponents.FloatingButton
 import com.pandulapeter.kubriko.uiComponents.LoadingOverlay
-import com.pandulapeter.kubriko.uiComponents.ShaderSlider
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -126,14 +125,6 @@ internal class PhysicsDemoManager(
             ) {
                 Spacer(
                     modifier = Modifier.weight(1f),
-                )
-                ShaderSlider(
-                    modifier = Modifier.weight(1f),
-                    value = physicsManager.simulationSpeed.collectAsState().value,
-                    onValueChanged = {
-                        physicsManager.simulationSpeed.value = it
-                    },
-                    valueRange = 0f..2f,
                 )
                 FloatingButton(
                     icon = when (selectedActionType.value) {
