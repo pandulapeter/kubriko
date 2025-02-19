@@ -23,6 +23,7 @@ kotlin {
             implementation(projects.examples.demoPerformance)
             implementation(projects.examples.demoPhysics)
             implementation(projects.examples.demoShaderAnimations)
+            implementation(projects.examples.gameAnnoyedPenguins)
             implementation(projects.examples.gameSpaceSquadron)
             implementation(projects.examples.gameWallbreaker)
             implementation(projects.tools.debugMenu)

@@ -35,6 +35,9 @@ import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoStateHolde
 import com.pandulapeter.kubriko.demoShaderAnimations.ShaderAnimationsDemo
 import com.pandulapeter.kubriko.demoShaderAnimations.createShaderAnimationsDemoStateHolder
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationsDemoStateHolder
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.AnnoyedPenguinsGame
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.createAnnoyedPenguinsGameStateHolder
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolder
 import com.pandulapeter.kubriko.gameSpaceSquadron.SpaceSquadronGame
 import com.pandulapeter.kubriko.gameSpaceSquadron.createSpaceSquadronGameStateHolder
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.SpaceSquadronGameStateHolder
@@ -63,6 +66,13 @@ internal fun ShowcaseEntry.ExampleScreen(
 
         ShowcaseEntry.SPACE_SQUADRON -> SpaceSquadronGame(
             stateHolder = getOrCreateState(stateHolders, ::createSpaceSquadronGameStateHolder),
+            windowInsets = windowInsets,
+            isInFullscreenMode = isInFullscreenMode,
+            onFullscreenModeToggled = onFullscreenModeToggled,
+        )
+
+        ShowcaseEntry.ANNOYED_PENGUINS -> AnnoyedPenguinsGame(
+            stateHolder = getOrCreateState(stateHolders, ::createAnnoyedPenguinsGameStateHolder),
             windowInsets = windowInsets,
             isInFullscreenMode = isInFullscreenMode,
             onFullscreenModeToggled = onFullscreenModeToggled,
@@ -118,6 +128,7 @@ internal fun ShowcaseEntry.ExampleScreen(
 internal fun ShowcaseEntry.getStateHolder() = when (this) {
     ShowcaseEntry.WALLBREAKER -> getOrCreateState(stateHolders, ::createWallbreakerGameStateHolder)
     ShowcaseEntry.SPACE_SQUADRON -> getOrCreateState(stateHolders, ::createSpaceSquadronGameStateHolder)
+    ShowcaseEntry.ANNOYED_PENGUINS -> getOrCreateState(stateHolders, ::createAnnoyedPenguinsGameStateHolder)
     ShowcaseEntry.AUDIO -> getOrCreateState(stateHolders, ::createAudioDemoStateHolder)
     ShowcaseEntry.CONTENT_SHADERS -> getOrCreateState(stateHolders, ::createContentShadersDemoStateHolder)
     ShowcaseEntry.INPUT -> getOrCreateState(stateHolders, ::createInputDemoStateHolder)
@@ -143,4 +154,5 @@ private val ShowcaseEntry.stateHolderType
         ShowcaseEntry.PHYSICS -> PhysicsDemoStateHolder::class
         ShowcaseEntry.SPACE_SQUADRON -> SpaceSquadronGameStateHolder::class
         ShowcaseEntry.WALLBREAKER -> WallbreakerGameStateHolder::class
+        ShowcaseEntry.ANNOYED_PENGUINS -> AnnoyedPenguinsGameStateHolder::class
     }

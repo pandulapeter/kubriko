@@ -44,6 +44,10 @@
     <string name="game_space_squadron">Space Squadron</string>
     <string name="game_space_squadron_subtitle">Use your space ship to defend from alien invaders</string>
 
+    <!-- Game - Annoyed Penguins -->
+    <string name="game_annoyed_penguins">Annoyed Penguins</string>
+    <string name="game_annoyed_penguins_subtitle">Slingshot your penguins to a chaotic victory</string>
+
     <!-- Demo - Audio -->
     <string name="demo_audio">Audio</string>
     <string name="demo_audio_subtitle">For testing the playback of music and sound effects</string>

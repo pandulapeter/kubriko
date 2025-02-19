@@ -34,6 +34,7 @@ include(
     ":examples:demo-performance",
     ":examples:demo-physics",
     ":examples:demo-shader-animations",
+    ":examples:game-annoyed-penguins",
     ":examples:game-space-squadron",
     ":examples:game-wallbreaker",
     ":examples:shared",
