@@ -28,6 +28,33 @@ fun KubrikoShowcase(
     isInFullscreenMode: Boolean,
     onFullscreenModeToggled: () -> Unit,
 ) = KubrikoTheme {
+    BackHandler(isInFullscreenMode) {
+        val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
+        try {
+            if (activeStateHolder?.navigateBack(
+                    isInFullscreenMode = isInFullscreenMode,
+                    onFullscreenModeToggled = onFullscreenModeToggled,
+                ) == false
+            ) {
+                onFullscreenModeToggled()
+            }
+        } catch (_: CancellationException) {
+        }
+    }
+    BackHandler(!isInFullscreenMode && selectedShowcaseEntry.value != null) {
+        val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
+        try {
+            if (activeStateHolder?.navigateBack(
+                    isInFullscreenMode = isInFullscreenMode,
+                    onFullscreenModeToggled = onFullscreenModeToggled,
+                ) == false
+            ) {
+                activeStateHolder.stopMusic()
+                selectedShowcaseEntry.value = null
+            }
+        } catch (_: CancellationException) {
+        }
+    }
     BoxWithConstraints {
         val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
         ShowcaseContent(
@@ -43,16 +70,6 @@ fun KubrikoShowcase(
             isInFullscreenMode = isInFullscreenMode,
             onFullscreenModeToggled = onFullscreenModeToggled,
         )
-    }
-    BackHandler(selectedShowcaseEntry.value != null) {
-        try {
-            val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
-            if (activeStateHolder?.navigateBack() == false) {
-                activeStateHolder.stopMusic()
-                selectedShowcaseEntry.value = null
-            }
-        } catch (_: CancellationException) {
-        }
     }
 }
 

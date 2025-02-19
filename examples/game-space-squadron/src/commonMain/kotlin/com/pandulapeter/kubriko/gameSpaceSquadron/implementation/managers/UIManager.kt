@@ -172,16 +172,6 @@ internal class UIManager(
 
     override fun onKeyReleased(key: Key) {
         when (key) {
-            Key.Escape -> if (stateManager.isRunning.value && !gameplayManager.isGameOver.value) {
-                gameplayManager.pauseGame()
-            } else {
-                if (isInfoDialogVisible.value) {
-                    toggleInfoDialogVisibility()
-                } else {
-                    gameplayManager.playGame()
-                }
-            }
-
             Key.Spacebar, Key.Enter -> {
                 if (!stateManager.isRunning.value && !isInfoDialogVisible.value) {
                     gameplayManager.playGame()

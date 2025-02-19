@@ -51,18 +51,6 @@ internal class UIManager(
 
     override fun onKeyReleased(key: Key) {
         when (key) {
-            Key.Escape -> {
-                if (stateManager.isRunning.value) {
-                    gameManager.pauseGame()
-                } else {
-                    if (gameManager.isGameOver.value) {
-                        gameManager.restartGame()
-                    } else {
-                        gameManager.resumeGame()
-                    }
-                }
-            }
-
             Key.Spacebar, Key.Enter -> {
                 if (!stateManager.isRunning.value && !isInfoDialogVisible.value) {
                     if (gameManager.isGameOver.value) {

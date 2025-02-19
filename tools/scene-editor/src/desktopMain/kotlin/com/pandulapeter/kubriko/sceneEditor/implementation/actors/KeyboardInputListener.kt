@@ -24,7 +24,7 @@ internal class KeyboardInputListener(
 
     override fun handleActiveKeys(activeKeys: ImmutableSet<Key>) = viewportManager.handleKeys(activeKeys)
 
-    override fun onKeyPressed(key: Key) = handleKeyPressed(
+    override fun onKeyReleased(key: Key) = handleKeyPressed(
         key = key,
         onNavigateBackRequested = navigateBack,
     )
