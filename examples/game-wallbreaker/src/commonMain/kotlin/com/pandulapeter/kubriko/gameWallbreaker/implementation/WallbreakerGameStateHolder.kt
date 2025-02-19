@@ -121,17 +121,11 @@ internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
 
     override fun stopMusic() = audioManager.stopMusicBeforeDispose()
 
-    override fun navigateBack(
-        isInFullscreenMode: Boolean,
-        onFullscreenModeToggled: () -> Unit,
-    ) = (stateManager.isRunning.value || uiManager.isInfoDialogVisible.value || isInFullscreenMode).also {
+    override fun navigateBack() = (stateManager.isRunning.value || uiManager.isInfoDialogVisible.value).also {
         if (stateManager.isRunning.value) {
             gameplayManager.pauseGame()
-        } else if (uiManager.isInfoDialogVisible.value){
+        } else if (uiManager.isInfoDialogVisible.value) {
             uiManager.toggleInfoDialogVisibility()
-        } else if (isInFullscreenMode) {
-            audioManager.playClickSoundEffect()
-            onFullscreenModeToggled()
         }
     }
 

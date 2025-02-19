@@ -70,5 +70,11 @@ internal class ShaderAnimationsDemoStateHolderImpl : ShaderAnimationsDemoStateHo
 
     fun onControlsStateChanged(controlsState: ControlsState) = _controlsState.update { controlsState }
 
+    override fun navigateBack() = (controlsState.value != ControlsState.COLLAPSED).also {
+        if (it) {
+            onControlsStateChanged(ControlsState.COLLAPSED)
+        }
+    }
+
     override fun dispose() = shaderAnimationDemoHolders.values.forEach { it.kubriko.dispose() }
 }

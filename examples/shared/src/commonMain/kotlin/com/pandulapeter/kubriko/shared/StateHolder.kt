@@ -27,10 +27,7 @@ interface StateHolder {
     /**
      * Can be used to hook into back navigation. Returns if the event was consumed.
      */
-    fun navigateBack(
-        isInFullscreenMode: Boolean,
-        onFullscreenModeToggled: () -> Unit,
-    ): Boolean = false
+    fun navigateBack(): Boolean = false
 
     /**
      * Can be used to free up all resources related to the current demo.

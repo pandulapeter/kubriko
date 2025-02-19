@@ -31,11 +31,7 @@ fun KubrikoShowcase(
     BackHandler(isInFullscreenMode) {
         val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
         try {
-            if (activeStateHolder?.navigateBack(
-                    isInFullscreenMode = isInFullscreenMode,
-                    onFullscreenModeToggled = onFullscreenModeToggled,
-                ) == false
-            ) {
+            if (activeStateHolder?.navigateBack() == false) {
                 onFullscreenModeToggled()
             }
         } catch (_: CancellationException) {
@@ -44,11 +40,7 @@ fun KubrikoShowcase(
     BackHandler(!isInFullscreenMode && selectedShowcaseEntry.value != null) {
         val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
         try {
-            if (activeStateHolder?.navigateBack(
-                    isInFullscreenMode = isInFullscreenMode,
-                    onFullscreenModeToggled = onFullscreenModeToggled,
-                ) == false
-            ) {
+            if (activeStateHolder?.navigateBack() == false) {
                 activeStateHolder.stopMusic()
                 selectedShowcaseEntry.value = null
             }

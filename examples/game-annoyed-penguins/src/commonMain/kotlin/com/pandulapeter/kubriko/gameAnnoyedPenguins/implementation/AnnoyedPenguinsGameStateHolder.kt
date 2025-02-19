@@ -96,10 +96,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
 
     override fun stopMusic() = audioManager.stopMusicBeforeDispose()
 
-    override fun navigateBack(
-        isInFullscreenMode: Boolean,
-        onFullscreenModeToggled: () -> Unit,
-    ) = false // TODO
+    override fun navigateBack() = false // TODO
 
     override fun dispose() = kubriko.value.dispose()
 }
