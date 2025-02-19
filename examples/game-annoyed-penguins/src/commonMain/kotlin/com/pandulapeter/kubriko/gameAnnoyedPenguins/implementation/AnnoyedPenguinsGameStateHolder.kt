@@ -13,6 +13,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.AudioManager
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.UserPreferencesManager
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.StateManager
@@ -21,6 +22,7 @@ import com.pandulapeter.kubriko.particles.ParticleManager
 import com.pandulapeter.kubriko.persistence.PersistenceManager
 import com.pandulapeter.kubriko.physics.PhysicsManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
+import com.pandulapeter.kubriko.shaders.ShaderManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.sprites.SpriteManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,13 +52,18 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    val stateManager = StateManager.newInstance(
-        shouldAutoStart = false,
+    private val shaderManager = ShaderManager.newInstance(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    val userPreferencesManager = UserPreferencesManager(persistenceManager)
-    val audioManager = AudioManager(stateManager, userPreferencesManager)
+    private val stateManager = StateManager.newInstance(
+        //TODO shouldAutoStart = false,
+        isLoggingEnabled = true,
+        instanceNameForLogging = LOG_TAG,
+    )
+    private val gameplayManager = GameplayManager()
+    private val userPreferencesManager = UserPreferencesManager(persistenceManager)
+    private val audioManager = AudioManager(stateManager, userPreferencesManager)
     private val particleManager = ParticleManager.newInstance(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
@@ -79,8 +86,10 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
             musicManager,
             soundManager,
             spriteManager,
+            shaderManager,
             stateManager,
             viewportManager,
+            gameplayManager,
             physicsManager,
             keyboardInputManager,
             pointerInputManager,

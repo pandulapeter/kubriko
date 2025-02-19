@@ -22,6 +22,7 @@ kotlin {
             implementation(projects.plugins.particles)
             implementation(projects.plugins.persistence)
             implementation(projects.plugins.pointerInput)
+            implementation(projects.plugins.shaders)
             implementation(projects.plugins.sprites)
             implementation(projects.tools.debugMenu)
             implementation(projects.tools.uiComponents)

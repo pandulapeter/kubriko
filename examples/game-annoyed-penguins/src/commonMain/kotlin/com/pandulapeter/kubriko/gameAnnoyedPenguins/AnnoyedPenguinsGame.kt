@@ -10,7 +10,6 @@
 package com.pandulapeter.kubriko.gameAnnoyedPenguins
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -19,7 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
@@ -50,8 +49,8 @@ fun AnnoyedPenguinsGame(
     Image(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xff6bbfc9))
-            .padding(72.dp),
+            .scale(0.75f)
+            .padding(48.dp),
         painter = painterResource(Res.drawable.img_logo),
         contentScale = ContentScale.Inside,
         contentDescription = null,
