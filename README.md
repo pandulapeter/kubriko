@@ -47,7 +47,7 @@ specific types problems, or to join our Discord server where you can discuss mor
 [<img src="documentation/images/badge_getting_started.png" alt="Getting started" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED.md)
 [<img src="documentation/images/badge_documentation.png" alt="Documentation" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md)
 [<img src="documentation/images/badge_tutorial_videos.png" alt="Tutorial videos" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/TUTORIAL_VIDEOS.md)
-[<img src="documentation/images/badge_community_coming_soon.png" alt="Join the community" height="32px" />](#)
+[<img src="documentation/images/badge_community.png" alt="Join the community" height="32px" />](https://discord.gg/9CqVUGpK)
 
 Another way to learn about Kubriko is to explore this repository and understand how the various examples are implemented.
 
@@ -110,7 +110,7 @@ The latest version is:
 
 ## 🫶️ Support
 Displaying the [Kubriko logo](https://pandulapeter.github.io/kubriko/documentation/images/logo.png) in games created with the engine, or just mentioning Kubriko somewhere in the credits is highly appreciated!
-Also, if you create anything with Kubriko that you're proud of, don't hesitate to reach out to me via [email](mailto:pandulapeter@gmail.com) or [Discord](#)!
+Also, if you create anything with Kubriko that you're proud of, don't hesitate to reach out to me via [email](mailto:pandulapeter@gmail.com) or [Discord](https://discord.gg/9CqVUGpK)!
 
 Kubriko is my pet project, that I'm developing in my free time. If you found it useful, I'm happy to accept donations through the following means:
 

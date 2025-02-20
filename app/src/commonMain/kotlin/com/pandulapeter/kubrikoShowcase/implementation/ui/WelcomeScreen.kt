@@ -145,8 +145,7 @@ internal fun WelcomeScreen(
                     LargeButton(
                         icon = Res.drawable.ic_discord,
                         title = Res.string.welcome_community,
-                        isEnabled = false,
-                        onButtonPressed = {}, // TODO
+                        onButtonPressed = { uriHandler.openUri("https://discord.gg/9CqVUGpK") },
                     )
                 }
                 Text(
