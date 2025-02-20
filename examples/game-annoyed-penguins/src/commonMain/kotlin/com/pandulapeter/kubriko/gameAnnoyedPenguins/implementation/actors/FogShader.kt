@@ -18,9 +18,8 @@ import com.pandulapeter.kubriko.shaders.Shader
 import com.pandulapeter.kubriko.shaders.extensions.ShaderUniformProvider
 
 /**
- * Credit: deusnovus, Manel Martos Roldán
+ * Credit: deusnovus
  * https://www.shadertoy.com/view/7ldGWf
- * https://github.com/manuel-martos/Photo-FX
  */
 internal class FogShader(
     initialState: State = State(),

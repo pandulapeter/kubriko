@@ -13,7 +13,10 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.AudioManager
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.BackgroundAnimationManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.GameplayManager
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.LoadingManager
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.UIManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.UserPreferencesManager
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.StateManager
@@ -32,15 +35,15 @@ sealed interface AnnoyedPenguinsGameStateHolder : StateHolder
 
 internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHolder {
 
-    private val musicManager = MusicManager.newInstance(
+    private val sharedMusicManager = MusicManager.newInstance(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    private val soundManager = SoundManager.newInstance(
+    private val sharedSoundManager = SoundManager.newInstance(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    private val spriteManager = SpriteManager.newInstance(
+    private val sharedSpriteManager = SpriteManager.newInstance(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
@@ -52,16 +55,17 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    private val shaderManager = ShaderManager.newInstance(
+    private val backgroundShaderManager = ShaderManager.newInstance(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
+    val backgroundLoadingManager = LoadingManager()
     private val stateManager = StateManager.newInstance(
-        //TODO shouldAutoStart = false,
+        shouldAutoStart = false,
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    private val gameplayManager = GameplayManager()
+    private val backgroundAnimationManager = BackgroundAnimationManager()
     private val userPreferencesManager = UserPreferencesManager(persistenceManager)
     private val audioManager = AudioManager(stateManager, userPreferencesManager)
     private val particleManager = ParticleManager.newInstance(
@@ -81,15 +85,25 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
+    private val gameplayManager = GameplayManager()
+    private val uiManager = UIManager()
+    val backgroundKubriko = Kubriko.newInstance(
+        sharedMusicManager,
+        sharedSoundManager,
+        sharedSpriteManager,
+        backgroundShaderManager,
+        backgroundAnimationManager,
+        backgroundLoadingManager,
+        isLoggingEnabled = true,
+        instanceNameForLogging = LOG_TAG,
+    )
     private val _kubriko = MutableStateFlow(
         Kubriko.newInstance(
-            musicManager,
-            soundManager,
-            spriteManager,
-            shaderManager,
+            sharedMusicManager,
+            sharedSoundManager,
+            sharedSpriteManager,
             stateManager,
             viewportManager,
-            gameplayManager,
             physicsManager,
             keyboardInputManager,
             pointerInputManager,
@@ -97,6 +111,8 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
             userPreferencesManager,
             particleManager,
             audioManager,
+            gameplayManager,
+            uiManager,
             isLoggingEnabled = true,
             instanceNameForLogging = LOG_TAG,
         )
@@ -107,7 +123,10 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
 
     override fun navigateBack() = false // TODO
 
-    override fun dispose() = kubriko.value.dispose()
+    override fun dispose() {
+        backgroundKubriko.dispose()
+        kubriko.value.dispose()
+    }
 }
 
 private const val LOG_TAG = "AP"

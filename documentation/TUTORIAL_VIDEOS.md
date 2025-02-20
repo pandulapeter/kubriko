@@ -57,12 +57,12 @@ WIP
 - Demonstrating the logger functionality
 - Finalizing the gameplay
 
-## 10 - Physics (Annoyed Penguins - Part 1)
-WIP
-- Physics plugin basic concepts
-- Slingshot controls
-
-## 11 - Scene Editor (Annoyed Penguins - Part 2)
+## 10 - Scene Editor (Annoyed Penguins - Part 1)
 WIP
 - Introducing the SceneEditor tool
 - Working with scene JSON-s
+
+## 11 - Physics (Annoyed Penguins - Part 2)
+WIP
+- Physics plugin basic concepts
+- Slingshot controls

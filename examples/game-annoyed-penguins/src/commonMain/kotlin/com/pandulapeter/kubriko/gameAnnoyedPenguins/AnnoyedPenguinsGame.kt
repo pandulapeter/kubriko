@@ -9,24 +9,29 @@
  */
 package com.pandulapeter.kubriko.gameAnnoyedPenguins
 
-import androidx.compose.foundation.Image
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolder
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolderImpl
-import kubriko.examples.game_annoyed_penguins.generated.resources.Res
-import kubriko.examples.game_annoyed_penguins.generated.resources.img_logo
-import org.jetbrains.compose.resources.painterResource
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.AnnoyedPenguinsTheme
 
 fun createAnnoyedPenguinsGameStateHolder(): AnnoyedPenguinsGameStateHolder = AnnoyedPenguinsGameStateHolderImpl()
 
@@ -40,19 +45,40 @@ fun AnnoyedPenguinsGame(
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     isInFullscreenMode: Boolean? = null,
     onFullscreenModeToggled: () -> Unit = {},
-) = MaterialTheme {
+) = AnnoyedPenguinsTheme {
     stateHolder as AnnoyedPenguinsGameStateHolderImpl
     KubrikoViewport(
-        kubriko = stateHolder.kubriko.collectAsState().value,
+        modifier = modifier.fillMaxSize().background(Color(0xff6bbfc9)),
+        kubriko = stateHolder.backgroundKubriko,
         windowInsets = windowInsets,
     )
-    Image(
-        modifier = Modifier
-            .fillMaxSize()
-            .scale(0.8f)
-            .padding(48.dp),
-        painter = painterResource(Res.drawable.img_logo),
-        contentScale = ContentScale.Inside,
-        contentDescription = null,
-    )
+    val isGameLoaded = stateHolder.backgroundLoadingManager.isGameLoaded()
+    AnimatedVisibility(
+        visible = isGameLoaded,
+        enter = fadeIn() + scaleIn(),
+        exit = scaleOut() + fadeOut(),
+    ) {
+        KubrikoViewport(
+            kubriko = stateHolder.kubriko.value,
+            windowInsets = windowInsets,
+        )
+    }
+    AnimatedVisibility(
+        modifier = modifier,
+        visible = !isGameLoaded,
+        enter = fadeIn(),
+        exit = fadeOut(),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(windowInsets)
+                .padding(16.dp),
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.BottomStart).size(24.dp),
+                strokeWidth = 3.dp,
+            )
+        }
+    }
 }
