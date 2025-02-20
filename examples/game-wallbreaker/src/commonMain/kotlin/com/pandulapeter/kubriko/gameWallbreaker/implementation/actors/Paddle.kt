@@ -74,7 +74,7 @@ internal class Paddle(
                 offsetFlag = !offsetFlag
                 if (offsetFlag) {
                     body.position = SceneOffset(
-                        x = body.position.x + offset.x,
+                        x = body.position.x + offset.x * POINTER_SPEED_MULTIPLIER,
                         y = body.position.y,
                     ).clampWithin(
                         topLeft = viewportManager.topLeft.value,
@@ -138,6 +138,7 @@ internal class Paddle(
     }
 
     companion object {
+        const val POINTER_SPEED_MULTIPLIER = 1.5f
         val Width = 200.sceneUnit
         val Height = 40.sceneUnit
         val Speed = 2.sceneUnit
