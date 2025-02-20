@@ -9,12 +9,7 @@
  */
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers
 
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.MenuOverlay
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 import kotlinx.coroutines.flow.filterNot
@@ -31,9 +26,4 @@ internal class UIManager : Manager() {
             .onEach { stateManager.updateIsRunning(false) }
             .launchIn(scope)
     }
-
-    @Composable
-    override fun Composable(windowInsets: WindowInsets) = MenuOverlay(
-        modifier = Modifier.windowInsetsPadding(windowInsets),
-    )
 }

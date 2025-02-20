@@ -66,8 +66,8 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
         instanceNameForLogging = LOG_TAG,
     )
     private val backgroundAnimationManager = BackgroundAnimationManager()
-    private val userPreferencesManager = UserPreferencesManager(persistenceManager)
-    private val audioManager = AudioManager(stateManager, userPreferencesManager)
+    val userPreferencesManager = UserPreferencesManager(persistenceManager)
+    val audioManager = AudioManager(stateManager, userPreferencesManager)
     private val particleManager = ParticleManager.newInstance(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,

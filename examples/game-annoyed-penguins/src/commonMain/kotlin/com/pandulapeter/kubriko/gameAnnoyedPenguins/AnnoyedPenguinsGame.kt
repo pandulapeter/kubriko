@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,12 +33,10 @@ import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolder
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolderImpl
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.AnnoyedPenguinsTheme
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.MenuOverlay
 
 fun createAnnoyedPenguinsGameStateHolder(): AnnoyedPenguinsGameStateHolder = AnnoyedPenguinsGameStateHolderImpl()
 
-/**
- * Music: https://opengameart.org/content/childrens-march-theme
- */
 @Composable
 fun AnnoyedPenguinsGame(
     modifier: Modifier = Modifier,
@@ -61,6 +60,22 @@ fun AnnoyedPenguinsGame(
         KubrikoViewport(
             kubriko = stateHolder.kubriko.value,
             windowInsets = windowInsets,
+        )
+        MenuOverlay(
+            modifier = Modifier.windowInsetsPadding(windowInsets),
+            onInfoButtonPressed = {
+                // TODO
+                stateHolder.audioManager.playButtonToggleSoundEffect()
+            },
+            areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
+            onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
+            isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
+            onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
+            isInFullscreenMode = isInFullscreenMode,
+            onFullscreenModeToggled = {
+                onFullscreenModeToggled()
+                stateHolder.audioManager.playButtonToggleSoundEffect()
+            }
         )
     }
     AnimatedVisibility(

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ This file is part of Kubriko.
+ Copyright (c) Pandula Péter 2025.
+ https://github.com/pandulapeter/kubriko
+
+ This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ If a copy of the MPL was not distributed with this file, You can obtain one at
+ https://mozilla.org/MPL/2.0/.
+-->
+<resources>
+
+    <string name="back">Back</string>
+    <string name="information">Information</string>
+    <string name="sound_effects_enable">Enable sound effects</string>
+    <string name="sound_effects_disable">Disable sound effects</string>
+    <string name="music_enable">Enable music</string>
+    <string name="music_disable">Disable music</string>
+    <string name="fullscreen_enter">Enter fullscreen mode</string>
+    <string name="fullscreen_exit">Exit fullscreen mode</string>
+    <string name="information_contents">Controls:
+ - Coming soon...
+
+Attribution:
+ - Music: "Children's March Theme" by CleytonKauffman on opengameart.org
+ - Sound effects: CC0 assets from freesound.org
+ - Icons: materialdesignicons.com</string>
+
+</resources>
