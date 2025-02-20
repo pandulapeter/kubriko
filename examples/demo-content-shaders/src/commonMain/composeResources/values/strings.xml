@@ -11,5 +11,9 @@
 <resources>
 
     <string name="shaders_not_supported">Shaders are only supported on or above Android 13</string>
+    <string name="smooth_pixelation">Smooth pixelation</string>
+    <string name="vignette">Vignette</string>
+    <string name="ripple">Ripple</string>
+    <string name="chromatic_aberration">Chromatic aberration</string>
 
 </resources>
