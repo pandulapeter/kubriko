@@ -9,9 +9,9 @@
  */
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
@@ -57,7 +57,7 @@ internal class LoadingManager : Manager() {
             && areGameResourcesLoaded.collectAsState().value
 
     @Composable
-    override fun Composable(insetPaddingModifier: Modifier) {
+    override fun Composable(windowInsets: WindowInsets) {
         if (!isFontLoaded.value) {
             isFontLoaded.update { preloadedFont(Res.font.permanent_marker).value != null }
         }

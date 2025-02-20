@@ -9,9 +9,9 @@
  */
 package com.pandulapeter.kubriko.sprites
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import com.pandulapeter.kubriko.sprites.implementation.toImageBitmap
 import kotlinx.collections.immutable.persistentMapOf
@@ -54,7 +54,7 @@ internal class SpriteManagerImpl(
     override fun unload(drawableResource: DrawableResource) = cache.update { it.remove(drawableResource) }
 
     @Composable
-    override fun Composable(insetPaddingModifier: Modifier) {
+    override fun Composable(windowInsets: WindowInsets) {
         cache.collectAsState().value // This line ensures that this Composable is invoked every time the cache is changed
         scope.launch {
             cache.update { cache ->

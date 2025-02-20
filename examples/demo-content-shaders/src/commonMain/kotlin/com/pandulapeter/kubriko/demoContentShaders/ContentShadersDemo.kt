@@ -44,6 +44,7 @@ fun ContentShadersDemo(
     if (stateHolder.shaderManager.areShadersSupported) {
         KubrikoViewport(
             modifier = modifier.background(Color.Black),
+            windowInsets = windowInsets,
             kubriko = stateHolder.kubriko.collectAsState().value,
         )
     } else {

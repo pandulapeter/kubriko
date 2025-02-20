@@ -20,6 +20,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -50,7 +51,6 @@ import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
-import com.pandulapeter.kubriko.manager.ViewportManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNot
@@ -68,7 +68,6 @@ internal class UIManager(
     private val audioManager by manager<AudioManager>()
     private val gameplayManager by manager<GameplayManager>()
     private val scoreManager by manager<ScoreManager>()
-    private val viewportManager by manager<ViewportManager>()
     private val _isInfoDialogVisible = MutableStateFlow(false)
     val isInfoDialogVisible = _isInfoDialogVisible.asStateFlow()
     private val shipHealth = MutableStateFlow(0)
@@ -92,10 +91,10 @@ internal class UIManager(
     )
 
     @Composable
-    override fun Composable(insetPaddingModifier: Modifier) = Box(
+    override fun Composable(windowInsets: WindowInsets) = Box(
         modifier = Modifier
             .fillMaxSize()
-            .windowInsetsPadding(viewportManager.windowInsets.collectAsState().value),
+            .windowInsetsPadding(windowInsets),
     ) {
         AnimatedVisibility(
             enter = fadeIn() + slideIn { IntOffset(0, it.height) },

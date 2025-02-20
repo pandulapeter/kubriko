@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -91,7 +90,6 @@ fun InternalViewport(
                     kubrikoImpl.viewportManager.run {
                         val newSize = Size(maxWidth.toPx(), maxHeight.toPx())
                         updateSize(newSize)
-                        updateWindowInsets(windowInsets)
                         scaleFactorMultiplier.update {
                             when (val aspectRatioMode = aspectRatioMode) {
                                 ViewportManager.AspectRatioMode.Dynamic -> Scale.Unit
@@ -109,7 +107,7 @@ fun InternalViewport(
             }
 
             // Allow Managers to provide their own Composable functions
-            kubrikoImpl.managers.forEach { it.ComposableInternal(Modifier.windowInsetsPadding(windowInsets)) }
+            kubrikoImpl.managers.forEach { it.ComposableInternal(windowInsets) }
         }
     }
 }

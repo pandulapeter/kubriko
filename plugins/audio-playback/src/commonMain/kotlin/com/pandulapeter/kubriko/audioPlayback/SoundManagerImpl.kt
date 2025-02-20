@@ -9,8 +9,8 @@
  */
 package com.pandulapeter.kubriko.audioPlayback
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.audioPlayback.implementation.SoundPlayer
 import com.pandulapeter.kubriko.audioPlayback.implementation.createSoundPlayer
 import com.pandulapeter.kubriko.logger.Logger
@@ -31,7 +31,7 @@ internal class SoundManagerImpl(
     private var soundPlayer: SoundPlayer? = null
 
     @Composable
-    override fun Composable(insetPaddingModifier: Modifier) {
+    override fun Composable(windowInsets: WindowInsets) {
         if (soundPlayer == null) {
             soundPlayer = createSoundPlayer(maximumSimultaneousStreamsOfTheSameSound).also { soundPlayer ->
                 scope.launch {

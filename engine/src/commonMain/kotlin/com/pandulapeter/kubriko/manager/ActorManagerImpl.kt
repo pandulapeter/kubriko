@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.manager
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -29,7 +30,6 @@ import com.pandulapeter.kubriko.actor.traits.LayerAware
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.actor.traits.WindowInsetsAware
 import com.pandulapeter.kubriko.extensions.distinctUntilChangedWithDelay
 import com.pandulapeter.kubriko.extensions.div
 import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
@@ -75,9 +75,6 @@ internal class ActorManagerImpl(
         _allActors.map { actors -> actors.filterIsInstance<Overlay>().sortedByDescending { it.overlayDrawingOrder }.toImmutableList() }
             .asStateFlow(persistentListOf())
     }
-    internal val windowInsetsAwareActors by autoInitializingLazy {
-        _allActors.map { actors -> actors.filterIsInstance<WindowInsetsAware>().toImmutableList() }.asStateFlow(persistentListOf())
-    }
     override val visibleActorsWithinViewport by lazy {
         combine(
             metadataManager.activeRuntimeInMilliseconds.distinctUntilChangedWithDelay(invisibleActorMinimumRefreshTimeInMillis),
@@ -106,12 +103,12 @@ internal class ActorManagerImpl(
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
-            dynamicActors.value
-                //.filter { if (it !is Positionable) true else it.body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) }
-                .forEach {
-                    // TODO: Reduce update frequency for Positionable Dynamic actors that are not within the viewport
-                    it.update(if (stateManager.isRunning.value) deltaTimeInMilliseconds else 0)
-                }
+        dynamicActors.value
+            //.filter { if (it !is Positionable) true else it.body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) }
+            .forEach {
+                // TODO: Reduce update frequency for Positionable Dynamic actors that are not within the viewport
+                it.update(if (stateManager.isRunning.value) deltaTimeInMilliseconds else 0)
+            }
     }
 
     private fun flattenActors(actors: List<Actor>): List<Actor> = actors.flatMap { actor ->
@@ -126,7 +123,6 @@ internal class ActorManagerImpl(
         val filteredCurrentActors = currentActors.filterNot { it::class in uniqueNewActorTypes }
         newActors.filterIsInstance<Identifiable>().onEach { if (it.name == null) it.name = Uuid.random().toString() }
         newActors.forEach { it.onAdded(scope as Kubriko) }
-        newActors.filterIsInstance<WindowInsetsAware>().forEach { it.onWindowInsetsChanged(viewportManager.windowInsets.value) }
         (filteredCurrentActors + newActors).toImmutableList()
     }
 
@@ -154,7 +150,7 @@ internal class ActorManagerImpl(
     }
 
     @Composable
-    override fun Composable(insetPaddingModifier: Modifier) = Box(
+    override fun Composable(windowInsets: WindowInsets) = Box(
         modifier = if (isInitialized.collectAsState().value) kubrikoImpl.managers.fold(Modifier.clipToBounds()) { modifierToProcess, manager ->
             manager.processModifierInternal(modifierToProcess, null)
         } else Modifier.clipToBounds(),

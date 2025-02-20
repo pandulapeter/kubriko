@@ -9,8 +9,8 @@
  */
 package com.pandulapeter.kubriko.audioPlayback
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.audioPlayback.implementation.MusicPlayer
 import com.pandulapeter.kubriko.audioPlayback.implementation.createMusicPlayer
 import com.pandulapeter.kubriko.audioPlayback.implementation.onManagerDisposed
@@ -36,7 +36,7 @@ internal class MusicManagerImpl(
     private val stateManager by manager<StateManager>()
 
     @Composable
-    override fun Composable(insetPaddingModifier: Modifier) {
+    override fun Composable(windowInsets: WindowInsets) {
         if (musicPlayer == null) {
             musicPlayer = createMusicPlayer(scope).also { soundPlayer ->
                 scope.launch {

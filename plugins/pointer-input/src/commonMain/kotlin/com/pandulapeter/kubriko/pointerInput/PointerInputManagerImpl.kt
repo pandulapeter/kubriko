@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.pointerInput
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -96,7 +97,7 @@ internal class PointerInputManagerImpl(
     }
 
     @Composable
-    override fun Composable(insetPaddingModifier: Modifier) {
+    override fun Composable(windowInsets: WindowInsets) {
         densityMultiplier = 1 / LocalDensity.current.density
     }
 

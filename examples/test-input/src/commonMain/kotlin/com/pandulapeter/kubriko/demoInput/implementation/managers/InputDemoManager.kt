@@ -9,6 +9,11 @@
  */
 package com.pandulapeter.kubriko.demoInput.implementation.managers
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -17,6 +22,7 @@ import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
+import com.pandulapeter.kubriko.demoInput.implementation.ui.Keyboard
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -51,6 +57,12 @@ internal class InputDemoManager : Manager(), KeyboardInputAware, PointerInputAwa
     override fun onPointerReleased(screenOffset: Offset) {
         isPointerBeingPressed = false
     }
+
+    @Composable
+    override fun Composable(windowInsets: WindowInsets) = Keyboard(
+        modifier = Modifier.windowInsetsPadding(windowInsets),
+        activeKeys = activeKeys.collectAsState().value,
+    )
 
     override fun DrawScope.drawToViewport() {
         pointerOffset?.let { pointerOffset ->

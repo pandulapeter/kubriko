@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.gameWallbreaker.implementation.managers
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -66,7 +67,7 @@ internal class UIManager(
     }
 
     @Composable
-    override fun Composable(insetPaddingModifier: Modifier) = PauseMenuBackground(
+    override fun Composable(windowInsets: WindowInsets) = PauseMenuBackground(
         isVisible = !stateManager.isRunning.collectAsState().value,
     )
 

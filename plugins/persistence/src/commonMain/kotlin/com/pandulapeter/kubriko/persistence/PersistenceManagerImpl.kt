@@ -9,8 +9,8 @@
  */
 package com.pandulapeter.kubriko.persistence
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.persistence.implementation.KeyValuePersistenceManager
 import com.pandulapeter.kubriko.persistence.implementation.PersistedPropertyWrapper
 import com.pandulapeter.kubriko.persistence.implementation.createKeyValuePersistenceManager
@@ -29,7 +29,7 @@ internal class PersistenceManagerImpl(
     private val stateFlowMap = mutableMapOf<String, PersistedPropertyWrapper<*>>()
 
     @Composable
-    override fun Composable(insetPaddingModifier: Modifier) {
+    override fun Composable(windowInsets: WindowInsets) {
         if (keyValuePersistenceManager == null && isInitialized.value) {
             keyValuePersistenceManager = createKeyValuePersistenceManager(fileName = fileName).also { keyValuePersistenceManager ->
                 scope.launch(Dispatchers.Default) {

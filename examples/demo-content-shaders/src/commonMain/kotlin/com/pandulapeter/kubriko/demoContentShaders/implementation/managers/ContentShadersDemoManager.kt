@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -97,10 +98,10 @@ internal class ContentShadersDemoManager : Manager() {
     }
 
     @Composable
-    override fun Composable(insetPaddingModifier: Modifier) = Box(
+    override fun Composable(windowInsets: WindowInsets) = Box(
         modifier = Modifier
             .fillMaxSize()
-            .windowInsetsPadding(viewportManager.windowInsets.collectAsState().value)
+            .windowInsetsPadding(windowInsets)
             .padding(16.dp),
     ) {
         Card(

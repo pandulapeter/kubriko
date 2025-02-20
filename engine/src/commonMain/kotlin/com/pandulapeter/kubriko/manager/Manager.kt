@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.manager
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -70,14 +71,14 @@ abstract class Manager(
     }
 
     @Composable
-    internal fun ComposableInternal(insetPaddingModifier: Modifier) {
+    internal fun ComposableInternal(windowInsets: WindowInsets) {
         if (isInitialized.collectAsState().value) {
-            Composable(insetPaddingModifier)
+            Composable(windowInsets)
         }
     }
 
     @Composable
-    protected open fun Composable(insetPaddingModifier: Modifier) = Unit
+    protected open fun Composable(windowInsets: WindowInsets) = Unit
 
     protected open fun onInitialize(kubriko: Kubriko) = Unit
 

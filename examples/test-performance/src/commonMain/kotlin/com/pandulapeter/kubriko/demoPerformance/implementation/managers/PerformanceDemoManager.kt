@@ -10,8 +10,10 @@
 package com.pandulapeter.kubriko.demoPerformance.implementation.managers
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -64,8 +66,8 @@ internal class PerformanceDemoManager(
     }
 
     @Composable
-    override fun Composable(insetPaddingModifier: Modifier) = LoadingOverlay(
-        modifier = insetPaddingModifier,
+    override fun Composable(windowInsets: WindowInsets) = LoadingOverlay(
+        modifier = Modifier.windowInsetsPadding(windowInsets),
         shouldShowLoadingIndicator = shouldShowLoadingIndicator.collectAsState().value,
     ) {
         Column(

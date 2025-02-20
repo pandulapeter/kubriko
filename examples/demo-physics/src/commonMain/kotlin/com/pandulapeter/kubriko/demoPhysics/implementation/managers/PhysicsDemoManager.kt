@@ -13,9 +13,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -104,8 +106,8 @@ internal class PhysicsDemoManager(
     }
 
     @Composable
-    override fun Composable(insetPaddingModifier: Modifier) = LoadingOverlay(
-        modifier = insetPaddingModifier,
+    override fun Composable(windowInsets: WindowInsets) = LoadingOverlay(
+        modifier = Modifier.windowInsetsPadding(windowInsets),
         shouldShowLoadingIndicator = shouldShowLoadingIndicator.collectAsState().value,
     ) {
         Column(

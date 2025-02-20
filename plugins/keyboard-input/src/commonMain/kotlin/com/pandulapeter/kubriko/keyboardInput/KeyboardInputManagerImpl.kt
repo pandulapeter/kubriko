@@ -9,8 +9,8 @@
  */
 package com.pandulapeter.kubriko.keyboardInput
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.keyboardInput.implementation.KeyboardEventHandler
@@ -44,7 +44,7 @@ internal class KeyboardInputManagerImpl(
     }
 
     @Composable
-    override fun Composable(insetPaddingModifier: Modifier) {
+    override fun Composable(windowInsets: WindowInsets) {
         if (keyboardEventHandler?.isValid() == false) {
             keyboardEventHandler?.stopListening()
             keyboardEventHandler = null

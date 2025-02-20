@@ -10,16 +10,14 @@
 package com.pandulapeter.kubriko.demoParticles.implementation.managers
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -83,20 +81,17 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticleSta
     override fun reuseParticleState(state: DemoParticleState) = state.reset(lifespan.value * 6)
 
     @Composable
-    override fun Composable(insetPaddingModifier: Modifier) {
-        val windowInsets = viewportManager.windowInsets.collectAsState().value.only(WindowInsetsSides.Right)
-        Box(
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            EmitterPropertiesPanel(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .width(240.dp + windowInsets.asPaddingValues().calculateRightPadding(LocalLayoutDirection.current))
-                    .windowInsetsPadding(windowInsets)
-                    .padding(end = 16.dp)
-                    .fillMaxHeight(),
-                particlesDemoManager = this@ParticlesDemoManager,
-            )
-        }
+    override fun Composable(windowInsets: WindowInsets) = Box(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        EmitterPropertiesPanel(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .width(240.dp + windowInsets.asPaddingValues().calculateRightPadding(LocalLayoutDirection.current))
+                .windowInsetsPadding(windowInsets)
+                .padding(end = 16.dp)
+                .fillMaxHeight(),
+            particlesDemoManager = this@ParticlesDemoManager,
+        )
     }
 }

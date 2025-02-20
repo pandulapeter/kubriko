@@ -9,12 +9,12 @@
  */
 package com.pandulapeter.kubriko.manager
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
-import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoImpl
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,7 +39,7 @@ internal class MetadataManagerImpl(
     }
 
     @Composable
-    override fun Composable(insetPaddingModifier: Modifier) {
+    override fun Composable(windowInsets: WindowInsets) {
         val frameCount = remember { mutableStateOf(0) }
         val lastUpdateTime = remember { mutableStateOf(0L) }
         LaunchedEffect(Unit) {

@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubriko.manager
 
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import com.pandulapeter.kubriko.Kubriko
@@ -22,8 +21,6 @@ import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlin.math.max
 import kotlin.math.min
@@ -49,8 +46,6 @@ internal class ViewportManagerImpl(
             scaleFactor * scaleFactorMultiplier
         }.asStateFlow(Scale.Unit)
     }
-    private val _windowInsets = MutableStateFlow(WindowInsets(0, 0, 0, 0))
-    override val windowInsets = _windowInsets.asStateFlow()
     override val topLeft by autoInitializingLazy {
         combine(cameraPosition, size, scaleFactor) { viewportCenter, viewportSize, scaleFactor ->
             Offset.Zero.toSceneOffset(
@@ -72,9 +67,6 @@ internal class ViewportManagerImpl(
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager = (kubriko as KubrikoImpl).actorManager
-        windowInsets.onEach { windowInsets ->
-            actorManager.windowInsetsAwareActors.value.forEach { it.onWindowInsetsChanged(windowInsets) }
-        }.launchIn(scope)
     }
 
     override fun addToCameraPosition(offset: Offset) = _cameraPosition.update { currentValue ->
@@ -98,6 +90,4 @@ internal class ViewportManagerImpl(
     }
 
     fun updateSize(size: Size) = _size.update { size }
-
-    fun updateWindowInsets(windowInsets: WindowInsets) = _windowInsets.update { windowInsets }
 }

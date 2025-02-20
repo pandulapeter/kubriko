@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubriko.manager
 
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -34,7 +33,6 @@ sealed class ViewportManager(
     abstract val cameraPosition: StateFlow<SceneOffset> // Center of the viewport
     abstract val size: StateFlow<Size>
     abstract val scaleFactor: StateFlow<Scale>
-    abstract val windowInsets: StateFlow<WindowInsets>
     abstract val topLeft: StateFlow<SceneOffset>
     abstract val bottomRight: StateFlow<SceneOffset>
 
