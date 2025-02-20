@@ -53,7 +53,6 @@ fun InternalViewport(
 
     // Inset handling
     val density = LocalDensity.current
-    kubrikoImpl.viewportManager.updateWindowInsets(windowInsets)
 
     // Game loop
     LaunchedEffect(Unit) {
@@ -92,6 +91,7 @@ fun InternalViewport(
                     kubrikoImpl.viewportManager.run {
                         val newSize = Size(maxWidth.toPx(), maxHeight.toPx())
                         updateSize(newSize)
+                        updateWindowInsets(windowInsets)
                         scaleFactorMultiplier.update {
                             when (val aspectRatioMode = aspectRatioMode) {
                                 ViewportManager.AspectRatioMode.Dynamic -> Scale.Unit

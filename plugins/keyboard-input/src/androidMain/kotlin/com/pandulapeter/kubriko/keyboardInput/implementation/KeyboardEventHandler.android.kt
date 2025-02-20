@@ -71,6 +71,7 @@ internal actual fun createKeyboardEventHandler(
                         activity.window.decorView.rootView?.removeOnUnhandledKeyEventListener(keyListener)
                     }
                 } catch (_: ArrayIndexOutOfBoundsException) {
+                } catch (_: NullPointerException) {
                 }
             }
         }.launchIn(coroutineScope)
