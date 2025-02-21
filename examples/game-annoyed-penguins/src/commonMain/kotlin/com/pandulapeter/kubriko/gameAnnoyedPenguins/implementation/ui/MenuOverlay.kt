@@ -24,7 +24,6 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.uiComponents.SmallButton
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import kubriko.examples.game_annoyed_penguins.generated.resources.fullscreen_enter
 import kubriko.examples.game_annoyed_penguins.generated.resources.fullscreen_exit
@@ -64,23 +63,23 @@ internal fun MenuOverlay(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        SmallButton(
+        AnnoyedPenguinsButton(
             icon = Res.drawable.ic_information,
             contentDescription = Res.string.information,
             onButtonPressed = onInfoButtonPressed,
         )
-        SmallButton(
+        AnnoyedPenguinsButton(
             onButtonPressed = onSoundEffectsToggled,
             icon = if (areSoundEffectsEnabled) Res.drawable.ic_sound_effects_on else Res.drawable.ic_sound_effects_off,
             contentDescription = if (areSoundEffectsEnabled) Res.string.sound_effects_disable else Res.string.sound_effects_enable,
         )
-        SmallButton(
+        AnnoyedPenguinsButton(
             onButtonPressed = onMusicToggled,
             icon = if (isMusicEnabled) Res.drawable.ic_music_on else Res.drawable.ic_music_off,
             contentDescription = if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable,
         )
         isInFullscreenMode?.let {
-            SmallButton(
+            AnnoyedPenguinsButton(
                 onButtonPressed = onFullscreenModeToggled,
                 icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
                 contentDescription = if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter,

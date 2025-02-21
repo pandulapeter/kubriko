@@ -9,14 +9,20 @@
  */
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ripple.RippleAlpha
+import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RippleConfiguration
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -30,6 +36,7 @@ internal fun AnnoyedPenguinsTheme(
 ) = MaterialTheme(
     colorScheme = lightColorScheme(
         primary = Color(0xff456385),
+        onPrimary = Color.White,
     ),
     typography = AnnoyedPenguinsTypography(),
     shapes = Shapes(
@@ -40,8 +47,17 @@ internal fun AnnoyedPenguinsTheme(
         extraLarge = AnnoyedPenguinsUIElementShape,
     ),
 ) {
-    content()
+    CompositionLocalProvider(
+        LocalIndication provides ripple(color = Color.White),
+        LocalRippleConfiguration provides RippleConfiguration(
+            color = Color.White,
+            rippleAlpha = RippleAlpha(0.2f, 0.2f, 0.2f, 0.2f),
+        )
+    ) {
+        content()
+    }
 }
+
 
 internal val AnnoyedPenguinsUIElementShape: CornerBasedShape = RoundedCornerShape(
     topStart = CornerSize(32.dp),

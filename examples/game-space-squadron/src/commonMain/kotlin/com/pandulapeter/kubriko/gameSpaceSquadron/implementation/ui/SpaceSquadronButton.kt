@@ -41,7 +41,7 @@ internal fun SpaceSquadronButton(
     icon: DrawableResource,
     shouldShowTitle: Boolean = false,
     onButtonPressed: () -> Unit,
-    onPointerEnter: (() -> Unit),
+    onPointerEnter: () -> Unit,
 ) {
     val alpha = remember { mutableStateOf(IDLE_BUTTON_ALPHA) }
     FloatingActionButton(
@@ -94,4 +94,4 @@ internal fun SpaceSquadronButton(
     }
 }
 
-internal const val IDLE_BUTTON_ALPHA = 0.7f
+private const val IDLE_BUTTON_ALPHA = 0.7f

@@ -9,14 +9,20 @@
  */
 package com.pandulapeter.kubriko.gameWallbreaker.implementation.ui
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ripple.RippleAlpha
+import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RippleConfiguration
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import kubriko.examples.game_wallbreaker.generated.resources.Res
@@ -40,8 +46,17 @@ internal fun WallbreakerTheme(
         large = Shape,
         extraLarge = Shape,
     ),
-    content = content
-)
+) {
+    CompositionLocalProvider(
+        LocalIndication provides ripple(color = Color.Black),
+        LocalRippleConfiguration provides RippleConfiguration(
+            color = Color.Black,
+            rippleAlpha = RippleAlpha(0.2f, 0.2f, 0.2f, 0.2f),
+        )
+    ) {
+        content()
+    }
+}
 
 private val Shape: CornerBasedShape = RoundedCornerShape(
     topStart = CornerSize(0),
