@@ -21,8 +21,8 @@ internal class Block : DestructiblePhysicsObject() {
 
     override val body = RectangleBody(
         initialSize = SceneSize(
-            width = 100.sceneUnit,
-            height = 100.sceneUnit,
+            width = 192.sceneUnit,
+            height = 192.sceneUnit,
         )
     )
 
@@ -34,7 +34,7 @@ internal class Block : DestructiblePhysicsObject() {
         drawRect(
             color = Color.Black,
             size = body.size.raw,
-            style = Stroke(),
+            style = Stroke(width = 6f),
         )
     }
 }

@@ -9,6 +9,7 @@
  */
 plugins {
     id("kubriko-compose-library")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -25,6 +26,7 @@ kotlin {
             implementation(projects.plugins.shaders)
             implementation(projects.plugins.sprites)
             implementation(projects.tools.debugMenu)
+            implementation(projects.tools.sceneEditor)
             implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)
         }

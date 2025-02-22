@@ -11,6 +11,7 @@
 <resources>
 
     <string name="back">Back</string>
+    <string name="pause">Pause</string>
     <string name="information">Information</string>
     <string name="sound_effects_enable">Enable sound effects</string>
     <string name="sound_effects_disable">Disable sound effects</string>

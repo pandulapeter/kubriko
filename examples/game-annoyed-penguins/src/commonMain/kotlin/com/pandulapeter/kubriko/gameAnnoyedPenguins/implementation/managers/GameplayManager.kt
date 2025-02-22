@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Block
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Penguin
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +32,7 @@ internal class GameplayManager : Manager() {
                 actorManager.removeAll()
                 when (it) {
                     "1" -> actorManager.add(Block())
+                    "2" -> actorManager.add(Penguin())
                 }
             }
             .launchIn(scope)

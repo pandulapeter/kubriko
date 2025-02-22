@@ -36,8 +36,13 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolder
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolderImpl
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.AnnoyedPenguinsButton
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.AnnoyedPenguinsTheme
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.MenuOverlay
+import kubriko.examples.game_annoyed_penguins.generated.resources.Res
+import kubriko.examples.game_annoyed_penguins.generated.resources.ic_pause
+import kubriko.examples.game_annoyed_penguins.generated.resources.pause
+import org.jetbrains.compose.resources.stringResource
 
 fun createAnnoyedPenguinsGameStateHolder(): AnnoyedPenguinsGameStateHolder = AnnoyedPenguinsGameStateHolderImpl()
 
@@ -58,8 +63,8 @@ fun AnnoyedPenguinsGame(
     val isGameLoaded = stateHolder.backgroundLoadingManager.isGameLoaded()
     AnimatedVisibility(
         visible = isGameLoaded,
-        enter = fadeIn() + scaleIn(),
-        exit = scaleOut() + fadeOut(),
+        enter = fadeIn() + scaleIn(initialScale = 0.88f),
+        exit = scaleOut(targetScale = 0.88f) + fadeOut(),
     ) {
         AnimatedVisibility(
             visible = stateHolder.stateManager.isRunning.collectAsState().value,
@@ -69,6 +74,16 @@ fun AnnoyedPenguinsGame(
             KubrikoViewport(
                 kubriko = stateHolder.kubriko.value,
                 windowInsets = windowInsets,
+            )
+            AnnoyedPenguinsButton(
+                modifier = Modifier.windowInsetsPadding(windowInsets).padding(16.dp),
+                onButtonPressed = {
+                    stateHolder.sharedAudioManager.playButtonToggleSoundEffect()
+                    stateHolder.stateManager.updateIsRunning(false)
+                },
+                icon = Res.drawable.ic_pause,
+                title = stringResource(Res.string.pause),
+                onPointerEnter = stateHolder.sharedAudioManager::playButtonHoverSoundEffect,
             )
         }
         AnimatedVisibility(
