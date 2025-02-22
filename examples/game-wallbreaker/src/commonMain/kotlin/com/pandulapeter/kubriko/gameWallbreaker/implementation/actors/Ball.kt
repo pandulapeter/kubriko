@@ -199,7 +199,7 @@ internal class Ball(
                 color = Color.Black,
                 radius = Radius.raw,
                 center = body.pivot.raw,
-                style = Stroke(),
+                style = Stroke(width = 3f),
             )
         }
     }

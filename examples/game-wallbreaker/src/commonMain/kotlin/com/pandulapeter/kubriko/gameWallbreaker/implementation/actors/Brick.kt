@@ -49,7 +49,7 @@ internal class Brick(
         drawRect(
             color = Color.Black,
             size = body.size.raw,
-            style = Stroke(),
+            style = Stroke(width = 3f),
         )
     }
 
