@@ -17,4 +17,4 @@ The `engine` module contains all the essential parts needed in a Kubriko game: t
 
 ## Public artifact
 The artifact for this module has the following ID:
-`io.github.pandulapeter:kubriko`
+`io.github.pandulapeter.kubriko:engine`

@@ -15,13 +15,13 @@ import org.gradle.api.Project
 
 internal fun Project.configurePublicArtifact(
     extension: MavenPublishBaseExtension,
-    artifactId: String?,
+    artifactId: String,
 ) = extension.apply {
     publishToMavenCentral(SonatypeHost.S01)
     signAllPublications()
     coordinates(
-        groupId = "io.github.pandulapeter",
-        artifactId = if (artifactId == null) "kubriko" else "kubriko-$artifactId",
+        groupId = "io.github.pandulapeter.kubriko",
+        artifactId = artifactId,
         version = project.version.toString(),
     )
     pom {

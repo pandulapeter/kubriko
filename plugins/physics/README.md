@@ -7,4 +7,4 @@ TODO: Documentation for the Physics plugin
 
 ## Public artifact
 The artifact for this module has the following ID:
-`io.github.pandulapeter:kubriko-physics`
+`io.github.pandulapeter.kubriko:plugin-physics`

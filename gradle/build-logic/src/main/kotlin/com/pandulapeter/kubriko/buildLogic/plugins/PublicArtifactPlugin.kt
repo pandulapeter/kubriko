@@ -31,7 +31,7 @@ class PublicArtifactPlugin : Plugin<Project> {
             extensions.configure<MavenPublishBaseExtension> {
                 configurePublicArtifact(
                     extension = this,
-                    artifactId = extension.artifactId,
+                    artifactId = extension.artifactId.orEmpty(),
                 )
             }
         }
