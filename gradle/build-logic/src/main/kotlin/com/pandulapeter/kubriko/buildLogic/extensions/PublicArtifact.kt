@@ -22,7 +22,7 @@ internal fun Project.configurePublicArtifact(
     coordinates(
         groupId = "io.github.pandulapeter.kubriko",
         artifactId = artifactId,
-        version = project.version.toString(),
+        version = project.rootProject.version.toString(),
     )
     pom {
         name.set("Kubriko")
