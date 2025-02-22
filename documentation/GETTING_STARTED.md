@@ -28,7 +28,7 @@ It might be a good idea to create separate [Run Configurations](https://www.jetb
 Make sure you have tested the build process for all of the platforms that you want to support before moving on to the next step.
 
 ## 2 - Adding the Kubriko engine dependency
-Open the `libs.versions.toml` file from the `gradle/wrapper` folder.
+Open the `libs.versions.toml` file from your project's `gradle` folder.
 This file is the version catalog for all the third party dependencies of your project.
 
 It already contains a number of dependencies (some of which are unused and can safely be deleted). We need to add Kubriko to the list.
@@ -41,13 +41,19 @@ kubriko = "0.0.1"
 Use the latest release version of Kubriko that can be found [here](https://github.com/pandulapeter/kubriko/releases).
 Regularly update this version number to get access to the latest features and bug fixes.
 
+While we're here, we should make sure that the following three versions in your project's `libs.versions.toml` are at least equal to the versions defined for Kubriko.
+Cross reference these dependency versions with their counterparts from [here](https://github.com/pandulapeter/kubriko/blob/main/gradle/libs.versions.toml) and update where necessary.
+- `android-compileSdk` (only if your project supports Android)
+- `android-minSdk` (only if your project supports Android)
+- `compose-multiplatform`
+
 Next, define the library reference by adding a new line to the `[libraries]` section:
 
 ```toml
 kubriko-engine = { group = "io.github.pandulapeter.kubriko", name = "engine", version.ref = "kubriko" }
 ```
 
-After this, we need to reference the library in the game module's `build.gradle.kts` file (by default the module is named `composeApp`):
+After this we need to reference the library in the game module's `build.gradle.kts` file (by default the module is named `composeApp`):
 
 ```kotlin
 kotlin {

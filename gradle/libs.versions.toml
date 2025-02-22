@@ -13,7 +13,7 @@ android-targetSdk = "35"
 androidx-activity = "1.10.0" # https://developer.android.com/jetpack/androidx/releases/activity
 androidx-core-splashScreen = "1.0.1" # https://developer.android.com/jetpack/androidx/releases/core
 androidx-lifecycle = "2.9.0-alpha03" # https://developer.android.com/jetpack/androidx/releases/lifecycle
-compose-plugin = "1.8.0-alpha03" # https://github.com/JetBrains/compose-multiplatform/releases
+compose-multiplatform = "1.8.0-alpha03" # https://github.com/JetBrains/compose-multiplatform/releases
 google-material = "1.12.0" # https://github.com/material-components/material-components-android/releases
 gradle = "8.8.1" # https://developer.android.com/build/releases/gradle-plugin
 jlayer = "1.0.3" # https://github.com/umjammer/jlayer/releases
@@ -28,7 +28,7 @@ vanniktech-publish = "0.30.0" # https://github.com/vanniktech/gradle-maven-publi
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity" }
 androidx-core-splashScreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-core-splashScreen" }
 androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
-compose-backhandler = { group = "org.jetbrains.compose.ui", name = "ui-backhandler", version.ref = "compose-plugin" }
+compose-backhandler = { group = "org.jetbrains.compose.ui", name = "ui-backhandler", version.ref = "compose-multiplatform" }
 google-material = { group = "com.google.android.material", name = "material", version.ref = "google-material" }
 gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "gradle" }
 jlayer = { group = "com.github.umjammer", name = "jlayer", version.ref = "jlayer" }
@@ -43,7 +43,7 @@ vanniktech-publish = { group = "com.vanniktech", name = "gradle-maven-publish-pl
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "gradle" }
 androidLibrary = { id = "com.android.library", version.ref = "gradle" }
-compose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
+compose = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
