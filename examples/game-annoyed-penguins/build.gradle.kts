@@ -29,6 +29,7 @@ kotlin {
             implementation(projects.tools.sceneEditor)
             implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)
+            implementation(libs.kotlinx.serialization)
         }
     }
 }

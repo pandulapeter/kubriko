@@ -21,6 +21,7 @@ kotlin {
         commonMain.dependencies {
             api(projects.engine)
             api(projects.plugins.serialization)
+            api(libs.kotlinx.serialization)
             implementation(compose.components.resources)
         }
         val desktopMain by getting {
