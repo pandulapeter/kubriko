@@ -75,7 +75,8 @@ fun AnnoyedPenguinsGame(
             onFullscreenModeToggled = {
                 onFullscreenModeToggled()
                 stateHolder.audioManager.playButtonToggleSoundEffect()
-            }
+            },
+            onPointerEnter = stateHolder.audioManager::playButtonHoverSoundEffect,
         )
     }
     AnimatedVisibility(

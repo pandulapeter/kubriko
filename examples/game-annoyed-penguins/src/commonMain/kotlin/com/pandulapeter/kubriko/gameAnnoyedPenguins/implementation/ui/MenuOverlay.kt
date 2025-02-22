@@ -52,6 +52,7 @@ internal fun MenuOverlay(
     onMusicToggled: () -> Unit,
     isInFullscreenMode: Boolean?,
     onFullscreenModeToggled: () -> Unit,
+    onPointerEnter: () -> Unit = {},
 ) = Column(
     modifier = modifier
         .fillMaxSize()
@@ -67,22 +68,26 @@ internal fun MenuOverlay(
             icon = Res.drawable.ic_information,
             contentDescription = Res.string.information,
             onButtonPressed = onInfoButtonPressed,
+            onPointerEnter = onPointerEnter,
         )
         AnnoyedPenguinsButton(
             onButtonPressed = onSoundEffectsToggled,
             icon = if (areSoundEffectsEnabled) Res.drawable.ic_sound_effects_on else Res.drawable.ic_sound_effects_off,
             contentDescription = if (areSoundEffectsEnabled) Res.string.sound_effects_disable else Res.string.sound_effects_enable,
+            onPointerEnter = onPointerEnter,
         )
         AnnoyedPenguinsButton(
             onButtonPressed = onMusicToggled,
             icon = if (isMusicEnabled) Res.drawable.ic_music_on else Res.drawable.ic_music_off,
             contentDescription = if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable,
+            onPointerEnter = onPointerEnter,
         )
         isInFullscreenMode?.let {
             AnnoyedPenguinsButton(
                 onButtonPressed = onFullscreenModeToggled,
                 icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
                 contentDescription = if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter,
+                onPointerEnter = onPointerEnter,
             )
         }
     }

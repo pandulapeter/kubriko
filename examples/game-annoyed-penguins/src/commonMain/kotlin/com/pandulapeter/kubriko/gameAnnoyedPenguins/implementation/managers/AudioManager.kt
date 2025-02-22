@@ -67,6 +67,8 @@ internal class AudioManager(
 
     fun playButtonToggleSoundEffect() = playSoundEffect(URI_SOUND_BUTTON_TOGGLE)
 
+    fun playButtonHoverSoundEffect() = playSoundEffect(URI_SOUND_BUTTON_HOVER)
+
     fun stopMusicBeforeDispose() = shouldStopMusic.update { true }
 
     private fun playSoundEffect(uri: String) {
@@ -78,6 +80,7 @@ internal class AudioManager(
     companion object {
         private const val URI_MUSIC = "files/music/music.mp3"
         private const val URI_SOUND_BUTTON_TOGGLE = "files/sounds/button_toggle.wav"
+        private const val URI_SOUND_BUTTON_HOVER = "files/sounds/button_hover.wav"
 
         fun getMusicUrisToPreload() = listOf(
             URI_MUSIC,
@@ -85,6 +88,7 @@ internal class AudioManager(
 
         fun getSoundUrisToPreload() = listOf(
             URI_SOUND_BUTTON_TOGGLE,
+            URI_SOUND_BUTTON_HOVER,
         ).map { Res.getUri(it) }
     }
 }

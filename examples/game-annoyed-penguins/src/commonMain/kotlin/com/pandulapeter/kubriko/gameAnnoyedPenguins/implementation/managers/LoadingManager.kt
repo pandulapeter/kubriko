@@ -36,7 +36,7 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.ic_sound_effec
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_sound_effects_on
 import kubriko.examples.game_annoyed_penguins.generated.resources.img_logo
 import kubriko.examples.game_annoyed_penguins.generated.resources.permanent_marker
-import org.jetbrains.compose.resources.DrawableResource
+import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_penguin
 
 internal class LoadingManager : Manager() {
     private val musicManager by manager<MusicManager>()
@@ -44,7 +44,7 @@ internal class LoadingManager : Manager() {
     private val spriteManager by manager<SpriteManager>()
     private val musicUris = AudioManager.getMusicUrisToPreload()
     private val soundUris = AudioManager.getSoundUrisToPreload()
-    private val spriteResources = listOf<DrawableResource>()
+    private val spriteResources = listOf(Res.drawable.sprite_penguin)
     private val areGameResourcesLoaded by autoInitializingLazy {
         combine(
             musicManager.getLoadingProgress(musicUris),

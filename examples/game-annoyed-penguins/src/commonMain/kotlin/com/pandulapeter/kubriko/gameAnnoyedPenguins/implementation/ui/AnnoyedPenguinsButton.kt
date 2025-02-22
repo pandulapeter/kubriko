@@ -29,7 +29,7 @@ internal fun AnnoyedPenguinsButton(
     contentDescription: StringResource,
     icon: DrawableResource,
     onButtonPressed: () -> Unit,
-    onPointerEnter: () -> Unit = {},
+    onPointerEnter: () -> Unit,
 ) {
     FloatingActionButton(
         modifier = modifier
