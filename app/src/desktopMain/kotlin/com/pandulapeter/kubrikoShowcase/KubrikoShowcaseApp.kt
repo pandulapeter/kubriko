@@ -21,6 +21,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.pandulapeter.kubriko.demoPerformance.PerformanceDemoSceneEditor
 import com.pandulapeter.kubriko.demoPhysics.PhysicsDemoSceneEditor
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.AnnoyedPenguinsGameSceneEditor
 import com.pandulapeter.kubriko.implementation.windowState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -75,10 +76,13 @@ fun main() = application {
             },
         )
     }
-    PerformanceDemoSceneEditor(
-        defaultSceneFolderPath = "../examples/demo-performance/src/commonMain/composeResources/files/scenes"
+    AnnoyedPenguinsGameSceneEditor(
+        defaultSceneFolderPath = "../examples/game-annoyed-penguins/src/commonMain/composeResources/files/scenes"
     )
     PhysicsDemoSceneEditor(
         defaultSceneFolderPath = "../examples/demo-physics/src/commonMain/composeResources/files/scenes"
+    )
+    PerformanceDemoSceneEditor(
+        defaultSceneFolderPath = "../examples/test-performance/src/commonMain/composeResources/files/scenes"
     )
 }

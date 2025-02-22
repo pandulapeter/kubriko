@@ -25,102 +25,154 @@ import com.pandulapeter.kubriko.particles.ParticleManager
 import com.pandulapeter.kubriko.persistence.PersistenceManager
 import com.pandulapeter.kubriko.physics.PhysicsManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
+import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.shaders.ShaderManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.sprites.SpriteManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.serialization.json.Json
 
 sealed interface AnnoyedPenguinsGameStateHolder : StateHolder
 
 internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHolder {
 
-    private val sharedMusicManager = MusicManager.newInstance(
+    private val json = Json { ignoreUnknownKeys = true }
+    val serializationManager = EditableMetadata.newSerializationManagerInstance(
+//        EditableMetadata(
+//            typeId = "penguin",
+//            deserializeState = { serializedState -> json.decodeFromString<StaticBox.State>(serializedState) },
+//            instantiate = { StaticBox.State(body = RectangleBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit))) },
+//        ),
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    private val sharedSoundManager = SoundManager.newInstance(
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
-    )
-    private val sharedSpriteManager = SpriteManager.newInstance(
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
-    )
-    private val sharedPersistenceManager = PersistenceManager.newInstance(
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
-    )
-    private val viewportManager = ViewportManager.newInstance(
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
-    )
-    private val backgroundShaderManager = ShaderManager.newInstance(
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
-    )
-    val backgroundLoadingManager = LoadingManager()
-    val stateManager = StateManager.newInstance(
-        shouldAutoStart = false,
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
-    )
-    private val backgroundAnimationManager = BackgroundAnimationManager()
-    val sharedUserPreferencesManager = UserPreferencesManager()
-    val sharedAudioManager = AudioManager()
-    private val particleManager = ParticleManager.newInstance(
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
-    )
-    private val keyboardInputManager = KeyboardInputManager.newInstance(
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
-    )
-    private val physicsManager = PhysicsManager.newInstance(
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
-    )
-    private val pointerInputManager = PointerInputManager.newInstance(
-        isActiveAboveViewport = true,
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
-    )
-    val gameplayManager = GameplayManager()
-    val uiManager = UIManager()
-    val backgroundKubriko = Kubriko.newInstance(
-        sharedPersistenceManager,
-        sharedUserPreferencesManager,
-        sharedAudioManager,
-        sharedMusicManager,
-        sharedSoundManager,
-        sharedSpriteManager,
-        backgroundShaderManager,
-        backgroundAnimationManager,
-        backgroundLoadingManager,
-        isLoggingEnabled = true,
-        instanceNameForLogging = LOG_TAG,
-    )
-    private val _kubriko = MutableStateFlow(
-        Kubriko.newInstance(
-            sharedMusicManager,
-            sharedSoundManager,
-            sharedSpriteManager,
-            stateManager,
-            viewportManager,
-            physicsManager,
-            keyboardInputManager,
-            pointerInputManager,
-            sharedPersistenceManager,
-            sharedUserPreferencesManager,
-            particleManager,
-            sharedAudioManager,
-            gameplayManager,
-            uiManager,
+    private val sharedMusicManager by lazy {
+        MusicManager.newInstance(
             isLoggingEnabled = true,
             instanceNameForLogging = LOG_TAG,
         )
-    )
-    override val kubriko = _kubriko.asStateFlow()
+    }
+    private val sharedSoundManager by lazy {
+        SoundManager.newInstance(
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG,
+        )
+    }
+    private val sharedSpriteManager by lazy {
+        SpriteManager.newInstance(
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG,
+        )
+    }
+    private val sharedPersistenceManager by lazy {
+        PersistenceManager.newInstance(
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG,
+        )
+    }
+    private val viewportManager by lazy {
+        ViewportManager.newInstance(
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG,
+        )
+    }
+    private val backgroundShaderManager by lazy {
+        ShaderManager.newInstance(
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG,
+        )
+    }
+    val backgroundLoadingManager by lazy {
+        LoadingManager()
+    }
+    val stateManager by lazy {
+        StateManager.newInstance(
+            shouldAutoStart = false,
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG,
+        )
+    }
+    private val backgroundAnimationManager by lazy {
+        BackgroundAnimationManager()
+    }
+    val sharedUserPreferencesManager by lazy {
+        UserPreferencesManager()
+    }
+    val sharedAudioManager by lazy {
+        AudioManager()
+    }
+    private val particleManager by lazy {
+        ParticleManager.newInstance(
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG,
+        )
+    }
+    private val keyboardInputManager by lazy {
+        KeyboardInputManager.newInstance(
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG,
+        )
+    }
+    private val physicsManager by lazy {
+        PhysicsManager.newInstance(
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG,
+        )
+    }
+    private val pointerInputManager by lazy {
+        PointerInputManager.newInstance(
+            isActiveAboveViewport = true,
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG,
+        )
+    }
+    val gameplayManager by lazy {
+        GameplayManager()
+    }
+    val uiManager by lazy {
+        UIManager()
+    }
+    val backgroundKubriko by lazy {
+        Kubriko.newInstance(
+            sharedPersistenceManager,
+            sharedUserPreferencesManager,
+            sharedAudioManager,
+            sharedMusicManager,
+            sharedSoundManager,
+            sharedSpriteManager,
+            backgroundShaderManager,
+            backgroundAnimationManager,
+            backgroundLoadingManager,
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG,
+        )
+    }
+    private val _kubriko by lazy {
+        MutableStateFlow(
+            Kubriko.newInstance(
+                sharedMusicManager,
+                sharedSoundManager,
+                sharedSpriteManager,
+                stateManager,
+                viewportManager,
+                physicsManager,
+                keyboardInputManager,
+                pointerInputManager,
+                sharedPersistenceManager,
+                sharedUserPreferencesManager,
+                particleManager,
+                sharedAudioManager,
+                gameplayManager,
+                uiManager,
+                isLoggingEnabled = true,
+                instanceNameForLogging = LOG_TAG,
+            )
+        )
+    }
+    override val kubriko by lazy {
+        _kubriko.asStateFlow()
+    }
 
     override fun stopMusic() = sharedAudioManager.stopMusicBeforeDispose()
 

@@ -85,6 +85,8 @@ internal class PhysicsDemoStateHolderImpl : PhysicsDemoStateHolder {
             deserializeState = { serializedState -> json.decodeFromString<DynamicCircle.State>(serializedState) },
             instantiate = { DynamicCircle.State(body = CircleBody(initialPosition = it, initialRadius = 20.sceneUnit)) },
         ),
+        isLoggingEnabled = true,
+        instanceNameForLogging = LOG_TAG,
     )
 
     // The properties below are lazily initialized because we don't need them when we only run the Scene Editor

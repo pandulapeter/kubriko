@@ -68,7 +68,8 @@ internal fun MenuOverlay(
     onMusicToggled: () -> Unit,
     isInFullscreenMode: Boolean?,
     onFullscreenModeToggled: () -> Unit,
-    onPointerEnter: () -> Unit = {},
+    playToggleSoundEffect: () -> Unit = {},
+    playHoverSoundEffect: () -> Unit = {},
     shouldUseLandscapeLayout: Boolean,
     isInfoDialogVisible: Boolean,
     onLevelSelected: (String) -> Unit,
@@ -82,7 +83,7 @@ internal fun MenuOverlay(
         InfoDialog(
             modifier = modifier,
             onInfoButtonPressed = onInfoButtonPressed,
-            onPointerEnter = onPointerEnter,
+            onPointerEnter = playHoverSoundEffect,
         )
     }
     AnimatedVisibility(
@@ -106,26 +107,26 @@ internal fun MenuOverlay(
                     icon = Res.drawable.ic_information,
                     title = stringResource(Res.string.information),
                     onButtonPressed = onInfoButtonPressed,
-                    onPointerEnter = onPointerEnter,
+                    onPointerEnter = playHoverSoundEffect,
                 )
                 AnnoyedPenguinsButton(
                     onButtonPressed = onSoundEffectsToggled,
                     icon = if (areSoundEffectsEnabled) Res.drawable.ic_sound_effects_on else Res.drawable.ic_sound_effects_off,
                     title = stringResource(if (areSoundEffectsEnabled) Res.string.sound_effects_disable else Res.string.sound_effects_enable),
-                    onPointerEnter = onPointerEnter,
+                    onPointerEnter = playHoverSoundEffect,
                 )
                 AnnoyedPenguinsButton(
                     onButtonPressed = onMusicToggled,
                     icon = if (isMusicEnabled) Res.drawable.ic_music_on else Res.drawable.ic_music_off,
                     title = stringResource(if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable),
-                    onPointerEnter = onPointerEnter,
+                    onPointerEnter = playHoverSoundEffect,
                 )
                 isInFullscreenMode?.let {
                     AnnoyedPenguinsButton(
                         onButtonPressed = onFullscreenModeToggled,
                         icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
                         title = stringResource(if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter),
-                        onPointerEnter = onPointerEnter,
+                        onPointerEnter = playHoverSoundEffect,
                     )
                 }
             }
@@ -163,9 +164,13 @@ internal fun MenuOverlay(
                                         icon = Res.drawable.ic_play,
                                         shouldShowTitle = true,
                                         title = if (currentLevel == "$index") stringResource(Res.string.resume) else stringResource(Res.string.level, index),
-                                        onPointerEnter = onPointerEnter,
+                                        onPointerEnter = playHoverSoundEffect,
                                     )
                                 }
+                                PlatformSpecificContent(
+                                    playHoverSoundEffect = playHoverSoundEffect,
+                                    playToggleSoundEffect = playToggleSoundEffect,
+                                )
                             }
                             if (shouldUseLandscapeLayout) {
                                 Row(

@@ -108,7 +108,8 @@ fun AnnoyedPenguinsGame(
                         onFullscreenModeToggled()
                         stateHolder.sharedAudioManager.playButtonToggleSoundEffect()
                     },
-                    onPointerEnter = stateHolder.sharedAudioManager::playButtonHoverSoundEffect,
+                    playToggleSoundEffect = stateHolder.sharedAudioManager::playButtonToggleSoundEffect,
+                    playHoverSoundEffect = stateHolder.sharedAudioManager::playButtonHoverSoundEffect,
                     isInfoDialogVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
                     onLevelSelected = { level ->
                         stateHolder.sharedAudioManager.playButtonToggleSoundEffect()
