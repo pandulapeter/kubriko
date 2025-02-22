@@ -47,10 +47,10 @@ internal class LoadingManager : Manager() {
     private val spriteResources = listOf(Res.drawable.sprite_penguin)
     private val areGameResourcesLoaded by autoInitializingLazy {
         combine(
-            musicManager.getLoadingProgress(musicUris),
             soundManager.getLoadingProgress(soundUris),
             spriteManager.getLoadingProgress(spriteResources),
-        ) { musicLoadingProgress, soundLoadingProgress, spriteLoadingProgress ->
+            musicManager.getLoadingProgress(musicUris),
+        ) { soundLoadingProgress, spriteLoadingProgress, musicLoadingProgress ->
             musicLoadingProgress == 1f && soundLoadingProgress == 1f && spriteLoadingProgress == 1f
         }.asStateFlow(false)
     }
