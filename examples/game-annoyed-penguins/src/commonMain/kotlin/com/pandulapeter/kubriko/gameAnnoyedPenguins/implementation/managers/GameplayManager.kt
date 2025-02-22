@@ -32,6 +32,8 @@ internal class GameplayManager : Manager() {
     private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
     private val _currentLevel = MutableStateFlow<String?>(null)
     val currentLevel = _currentLevel.asStateFlow()
+    private val _isLoadingLevel = MutableStateFlow(false)
+    val isLoadingLevel = _isLoadingLevel.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         _currentLevel
@@ -41,16 +43,14 @@ internal class GameplayManager : Manager() {
 
     @OptIn(ExperimentalResourceApi::class)
     private fun loadScene(sceneName: String?) = scope.launch {
+        _isLoadingLevel.update { true }
+        actorManager.removeAll()
         try {
             val json = Res.readBytes("files/scenes/$sceneName").decodeToString()
-            processJson(json)
+            actorManager.add(serializationManager.deserializeActors(json))
+            _isLoadingLevel.update { false }
         } catch (_: MissingResourceException) {
         }
-    }
-
-    private fun processJson(json: String) {
-        actorManager.removeAll()
-        actorManager.add(serializationManager.deserializeActors(json))
     }
 
     fun setCurrentLevel(level: String) = _currentLevel.update { level }

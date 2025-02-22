@@ -73,10 +73,16 @@ fun AnnoyedPenguinsGame(
             enter = slideIn { IntOffset(0, it.height) },
             exit = slideOut { IntOffset(0, it.height) },
         ) {
-            KubrikoViewport(
-                kubriko = stateHolder.kubriko.value,
-                windowInsets = windowInsets,
-            )
+            AnimatedVisibility(
+                visible = !stateHolder.gameplayManager.isLoadingLevel.collectAsState().value,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                KubrikoViewport(
+                    kubriko = stateHolder.kubriko.value,
+                    windowInsets = windowInsets,
+                )
+            }
             AnnoyedPenguinsButton(
                 modifier = Modifier.windowInsetsPadding(windowInsets).padding(16.dp),
                 onButtonPressed = {
@@ -126,7 +132,7 @@ fun AnnoyedPenguinsGame(
     }
     AnimatedVisibility(
         modifier = modifier,
-        visible = !isGameLoaded,
+        visible = !isGameLoaded || stateHolder.gameplayManager.isLoadingLevel.collectAsState().value,
         enter = fadeIn(),
         exit = fadeOut(),
     ) {
