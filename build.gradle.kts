@@ -7,7 +7,7 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-version = "0.0.1"
+version = "0.0.2"
 "SHOWCASE_ANDROID_VERSION_NAME" set "1.0.0"
 "SHOWCASE_ANDROID_VERSION_CODE" set 1
 "SHOWCASE_ANDROID_KEY_ALIAS" set "androiddebugkey"
