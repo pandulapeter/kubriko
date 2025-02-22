@@ -66,7 +66,7 @@ fun AnnoyedPenguinsGame(
             MenuOverlay(
                 modifier = Modifier.windowInsetsPadding(windowInsets),
                 onInfoButtonPressed = {
-                    // TODO
+                    stateHolder.uiManager.toggleInfoDialogVisibility()
                     stateHolder.audioManager.playButtonToggleSoundEffect()
                 },
                 areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
@@ -79,6 +79,7 @@ fun AnnoyedPenguinsGame(
                     stateHolder.audioManager.playButtonToggleSoundEffect()
                 },
                 onPointerEnter = stateHolder.audioManager::playButtonHoverSoundEffect,
+                isInfoDialogVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
                 shouldUseLandscapeLayout = maxWidth > maxHeight,
             )
         }

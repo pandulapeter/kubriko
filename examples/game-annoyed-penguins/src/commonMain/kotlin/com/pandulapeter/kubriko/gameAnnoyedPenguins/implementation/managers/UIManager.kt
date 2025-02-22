@@ -12,13 +12,18 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 
 internal class UIManager : Manager() {
 
     private val stateManager by manager<StateManager>()
+    private val _isInfoDialogVisible = MutableStateFlow(false)
+    val isInfoDialogVisible = _isInfoDialogVisible.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         stateManager.isFocused
@@ -26,4 +31,6 @@ internal class UIManager : Manager() {
             .onEach { stateManager.updateIsRunning(false) }
             .launchIn(scope)
     }
+
+    fun toggleInfoDialogVisibility() = _isInfoDialogVisible.update { !it }
 }

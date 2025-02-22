@@ -19,7 +19,9 @@
     <string name="fullscreen_enter">Enter fullscreen mode</string>
     <string name="fullscreen_exit">Exit fullscreen mode</string>
     <string name="information_contents">Controls:
- - Coming soon...
+ - Drag the pointer (mouse or touch) from the slingshot to launch the penguins.
+ - Drag the pointer (mouse or touch) from anywhere else or use the Up / Left / Down / Right  or W / A / S / D keys to pan the viewport.
+ - Use the two-finger pinch gesture, the mouse wheel, or the +/- keys to zoom in / out.
 
 Attribution:
  - Music: "Children's March Theme" by CleytonKauffman on opengameart.org

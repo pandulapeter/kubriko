@@ -86,7 +86,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
         instanceNameForLogging = LOG_TAG,
     )
     private val gameplayManager = GameplayManager()
-    private val uiManager = UIManager()
+    val uiManager = UIManager()
     val backgroundKubriko = Kubriko.newInstance(
         sharedMusicManager,
         sharedSoundManager,
@@ -121,7 +121,12 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
 
     override fun stopMusic() = audioManager.stopMusicBeforeDispose()
 
-    override fun navigateBack() = false // TODO
+    override fun navigateBack() =  uiManager.isInfoDialogVisible.value.also {
+        if (uiManager.isInfoDialogVisible.value) {
+            audioManager.playButtonToggleSoundEffect()
+            uiManager.toggleInfoDialogVisibility()
+        }
+    }
 
     override fun dispose() {
         backgroundKubriko.dispose()
