@@ -16,6 +16,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -61,23 +62,26 @@ fun AnnoyedPenguinsGame(
             kubriko = stateHolder.kubriko.value,
             windowInsets = windowInsets,
         )
-        MenuOverlay(
-            modifier = Modifier.windowInsetsPadding(windowInsets),
-            onInfoButtonPressed = {
-                // TODO
-                stateHolder.audioManager.playButtonToggleSoundEffect()
-            },
-            areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
-            onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
-            isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
-            onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
-            isInFullscreenMode = isInFullscreenMode,
-            onFullscreenModeToggled = {
-                onFullscreenModeToggled()
-                stateHolder.audioManager.playButtonToggleSoundEffect()
-            },
-            onPointerEnter = stateHolder.audioManager::playButtonHoverSoundEffect,
-        )
+        BoxWithConstraints {
+            MenuOverlay(
+                modifier = Modifier.windowInsetsPadding(windowInsets),
+                onInfoButtonPressed = {
+                    // TODO
+                    stateHolder.audioManager.playButtonToggleSoundEffect()
+                },
+                areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
+                onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
+                isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
+                onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
+                isInFullscreenMode = isInFullscreenMode,
+                onFullscreenModeToggled = {
+                    onFullscreenModeToggled()
+                    stateHolder.audioManager.playButtonToggleSoundEffect()
+                },
+                onPointerEnter = stateHolder.audioManager::playButtonHoverSoundEffect,
+                shouldUseLandscapeLayout = maxWidth > maxHeight,
+            )
+        }
     }
     AnimatedVisibility(
         modifier = modifier,

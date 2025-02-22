@@ -25,5 +25,7 @@ Attribution:
  - Music: "Children's March Theme" by CleytonKauffman on opengameart.org
  - Sound effects: CC0 assets from freesound.org
  - Icons: materialdesignicons.com</string>
+    <string name="resume">Resume</string>
+    <string name="level">Level %1$d</string>
 
 </resources>
