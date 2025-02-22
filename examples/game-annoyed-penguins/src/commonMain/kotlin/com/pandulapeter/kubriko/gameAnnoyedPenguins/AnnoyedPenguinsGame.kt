@@ -36,9 +36,11 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolder
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolderImpl
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.AnnoyedPenguinsButton
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.AnnoyedPenguinsTheme
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.MenuOverlay
+import kotlinx.collections.immutable.toImmutableList
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_pause
 import kubriko.examples.game_annoyed_penguins.generated.resources.pause
@@ -95,6 +97,7 @@ fun AnnoyedPenguinsGame(
                 MenuOverlay(
                     modifier = Modifier.windowInsetsPadding(windowInsets),
                     currentLevel = stateHolder.gameplayManager.currentLevel.collectAsState().value,
+                    allLevels = GameplayManager.AllLevels.keys.toImmutableList(),
                     onInfoButtonPressed = {
                         stateHolder.uiManager.toggleInfoDialogVisibility()
                         stateHolder.sharedAudioManager.playButtonToggleSoundEffect()

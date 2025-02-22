@@ -12,19 +12,16 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.pandulapeter.kubriko.actor.body.RectangleBody
-import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base.DestructiblePhysicsObject
-import com.pandulapeter.kubriko.types.SceneSize
+import com.pandulapeter.kubriko.serialization.Serializable
+import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableRectangleBody
+import kotlinx.serialization.json.Json
 
-internal class Block : DestructiblePhysicsObject() {
+internal class Block(
+    state: State,
+) : DestructiblePhysicsObject<Block>() {
 
-    override val body = RectangleBody(
-        initialSize = SceneSize(
-            width = 192.sceneUnit,
-            height = 192.sceneUnit,
-        )
-    )
+    override val body = state.body
 
     override fun DrawScope.draw() {
         drawRect(
@@ -36,5 +33,19 @@ internal class Block : DestructiblePhysicsObject() {
             size = body.size.raw,
             style = Stroke(width = 6f),
         )
+    }
+
+    override fun save() = State(
+        body = body,
+    )
+
+    @kotlinx.serialization.Serializable
+    data class State(
+        val body: SerializableRectangleBody,
+    ) : Serializable.State<Block> {
+
+        override fun restore() = Block(this)
+
+        override fun serialize() = Json.encodeToString(this)
     }
 }

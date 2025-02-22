@@ -10,5 +10,6 @@
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base
 
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.sceneEditor.Editable
 
-internal abstract class DestructiblePhysicsObject : Visible
+internal abstract class DestructiblePhysicsObject<T: DestructiblePhysicsObject<T>> : Visible, Editable<T>

@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import kubriko.examples.game_annoyed_penguins.generated.resources.back
 import kubriko.examples.game_annoyed_penguins.generated.resources.fullscreen_enter
@@ -48,7 +49,6 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.ic_sound_effec
 import kubriko.examples.game_annoyed_penguins.generated.resources.img_logo
 import kubriko.examples.game_annoyed_penguins.generated.resources.information
 import kubriko.examples.game_annoyed_penguins.generated.resources.information_contents
-import kubriko.examples.game_annoyed_penguins.generated.resources.level
 import kubriko.examples.game_annoyed_penguins.generated.resources.music_disable
 import kubriko.examples.game_annoyed_penguins.generated.resources.music_enable
 import kubriko.examples.game_annoyed_penguins.generated.resources.resume
@@ -61,6 +61,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun MenuOverlay(
     modifier: Modifier = Modifier,
     currentLevel: String?,
+    allLevels: ImmutableList<String>,
     onInfoButtonPressed: () -> Unit,
     areSoundEffectsEnabled: Boolean,
     onSoundEffectsToggled: () -> Unit,
@@ -158,12 +159,12 @@ internal fun MenuOverlay(
                         ) {
                             @Composable
                             fun levelItems() {
-                                (1..3).forEach { index ->
+                                allLevels.forEach { level ->
                                     AnnoyedPenguinsButton(
-                                        onButtonPressed = { onLevelSelected("$index") },
+                                        onButtonPressed = { onLevelSelected(level) },
                                         icon = Res.drawable.ic_play,
                                         shouldShowTitle = true,
-                                        title = if (currentLevel == "$index") stringResource(Res.string.resume) else stringResource(Res.string.level, index),
+                                        title = if (currentLevel == level) stringResource(Res.string.resume) else level,
                                         onPointerEnter = playHoverSoundEffect,
                                     )
                                 }

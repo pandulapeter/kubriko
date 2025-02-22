@@ -10,8 +10,11 @@
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation
 
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
+import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Block
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.BackgroundAnimationManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.GameplayManager
@@ -29,6 +32,7 @@ import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.shaders.ShaderManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.sprites.SpriteManager
+import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.Json
@@ -39,11 +43,11 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
 
     private val json = Json { ignoreUnknownKeys = true }
     val serializationManager = EditableMetadata.newSerializationManagerInstance(
-//        EditableMetadata(
-//            typeId = "penguin",
-//            deserializeState = { serializedState -> json.decodeFromString<StaticBox.State>(serializedState) },
-//            instantiate = { StaticBox.State(body = RectangleBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit))) },
-//        ),
+        EditableMetadata(
+            typeId = "block",
+            deserializeState = { serializedState -> json.decodeFromString<Block.State>(serializedState) },
+            instantiate = { Block.State(body = RectangleBody(initialPosition = it, initialSize = SceneSize(128.sceneUnit, 128.sceneUnit))) },
+        ),
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
@@ -163,6 +167,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
                 sharedUserPreferencesManager,
                 particleManager,
                 sharedAudioManager,
+                serializationManager,
                 gameplayManager,
                 uiManager,
                 isLoggingEnabled = true,

@@ -10,33 +10,56 @@
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Block
-import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Penguin
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
+import com.pandulapeter.kubriko.sceneEditor.Editable
+import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
+import com.pandulapeter.kubriko.serialization.SerializationManager
+import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kubriko.examples.game_annoyed_penguins.generated.resources.Res
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.MissingResourceException
 
 internal class GameplayManager : Manager() {
 
     private val actorManager by manager<ActorManager>()
+    private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
     private val _currentLevel = MutableStateFlow<String?>(null)
     val currentLevel = _currentLevel.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         _currentLevel
-            .onEach {
-                actorManager.removeAll()
-                when (it) {
-                    "1" -> actorManager.add(Block())
-                    "2" -> actorManager.add(Penguin())
-                }
-            }
+            .onEach { loadScene(AllLevels[it]) }
             .launchIn(scope)
     }
 
+    @OptIn(ExperimentalResourceApi::class)
+    private fun loadScene(sceneName: String?) = scope.launch {
+        try {
+            val json = Res.readBytes("files/scenes/$sceneName").decodeToString()
+            processJson(json)
+        } catch (_: MissingResourceException) {
+        }
+    }
+
+    private fun processJson(json: String) {
+        actorManager.removeAll()
+        actorManager.add(serializationManager.deserializeActors(json))
+    }
+
     fun setCurrentLevel(level: String) = _currentLevel.update { level }
+
+    companion object {
+        val AllLevels = persistentMapOf(
+            "Level 1" to "level_1.json",
+            "Level 2" to "level_2.json",
+            "Level 3" to "level_3.json",
+        )
+    }
 }
