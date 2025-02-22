@@ -25,6 +25,7 @@ internal class BulletPlayer(
     playSoundEffect = { playShootSoundEffect() },
     bulletColor = Color(0xff5199a6),
     bulletBaseSpeed = 1.sceneUnit,
+    speedIncrement = { 1 + it * 0.025f },
 ) {
     override val collidableTypes = listOf(AlienShip::class)
 

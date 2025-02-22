@@ -112,7 +112,7 @@ internal abstract class Collectable(
 
     companion object {
         private const val SPEED = 0.3f
-        private val CollisionLimit = 64f.sceneUnit
+        private val CollisionLimit = 72f.sceneUnit
         private val StartingScale = Scale.Unit * 0.4f
     }
 }

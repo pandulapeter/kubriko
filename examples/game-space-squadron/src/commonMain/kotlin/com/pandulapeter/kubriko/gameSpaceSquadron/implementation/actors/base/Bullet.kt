@@ -40,6 +40,7 @@ internal abstract class Bullet(
     private val playSoundEffect: AudioManager.() -> Unit,
     private val bulletColor: Color,
     private val bulletBaseSpeed: SceneUnit,
+    private val speedIncrement: (Int) -> Float,
 ) : Visible, Dynamic, ParticleEmitter<BulletParticleState>, CollisionDetector {
     override val body = CircleBody(
         initialPosition = initialPosition,
@@ -69,7 +70,7 @@ internal abstract class Bullet(
         body.position += Offset(
             x = direction.cos,
             y = direction.sin,
-        ) * bulletBaseSpeed * deltaTimeInMilliseconds * (1 + scoreManager.score.value * 0.05f)
+        ) * bulletBaseSpeed * deltaTimeInMilliseconds * speedIncrement(scoreManager.score.value)
         if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
             actorManager.remove(this)
         }
