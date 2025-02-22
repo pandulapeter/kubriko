@@ -14,3 +14,7 @@ Check out the [documentation](https://github.com/pandulapeter/kubriko/blob/main/
 
 ## Scope
 The `engine` module contains all the essential parts needed in a Kubriko game: the bare minimum feature set for drawing the viewport, dealing with state, and managing actors. All other features should be added through [plugins](https://github.com/pandulapeter/kubriko/tree/main/plugins) or custom components.
+
+## Public artifact
+The artifact for this module has the following ID:
+`io.github.pandulapeter:kubriko`
