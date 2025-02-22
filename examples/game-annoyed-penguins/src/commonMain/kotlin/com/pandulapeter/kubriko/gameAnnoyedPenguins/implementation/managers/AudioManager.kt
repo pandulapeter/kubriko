@@ -27,8 +27,9 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 @OptIn(ExperimentalResourceApi::class)
-internal class AudioManager : Manager() {
-    private val stateManager by manager<StateManager>()
+internal class AudioManager(
+    private val stateManager: StateManager,
+) : Manager() {
     private val userPreferencesManager by manager<UserPreferencesManager>()
     private val musicManager by manager<MusicManager>()
     private val soundManager by manager<SoundManager>()

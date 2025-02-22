@@ -104,7 +104,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
         UserPreferencesManager()
     }
     val sharedAudioManager by lazy {
-        AudioManager()
+        AudioManager(stateManager)
     }
     private val particleManager by lazy {
         ParticleManager.newInstance(
