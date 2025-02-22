@@ -44,7 +44,7 @@ Regularly update this version number to get access to the latest features and bu
 Next, define the library reference by adding a new line to the `[libraries]` section:
 
 ```toml
-kubriko-engine = { group = "io.github.pandulapeter.kubriko", name = "engine", version.ref = "kubriko" }
+kubriko = { group = "io.github.pandulapeter", name = "kubriko", version.ref = "kubriko" }
 ```
 
 After this, we need to reference the library in the game module's `build.gradle.kts` file (by default the module is named `composeApp`):
@@ -56,7 +56,7 @@ kotlin {
         //...
         commonMain.dependencies {
             //...
-            implementation(libs.kubriko.engine)
+            implementation(libs.kubriko)
         }
     }
 }

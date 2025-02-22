@@ -12,10 +12,6 @@ plugins {
     id("kubriko-public-artifact")
 }
 
-artifactMetadata {
-    artifactId = "engine"
-}
-
 kotlin {
     sourceSets {
         commonMain.dependencies {

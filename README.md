@@ -72,39 +72,39 @@ Expand the sections below to see the complete list of all Kubriko dependencies h
 <summary>Engine</summary>
 
 
-- `io.github.pandulapeter.kubriko:engine`
+- `io.github.pandulapeter:kubriko`
 
 </details>
 <details>
 <summary>Plugins</summary>
 
 
-- `io.github.pandulapeter.kubriko:plugin-audio-playback`
-- `io.github.pandulapeter.kubriko:plugin-collision`
-- `io.github.pandulapeter.kubriko:plugin-keyboard-input`
-- `io.github.pandulapeter.kubriko:plugin-particles`
-- `io.github.pandulapeter.kubriko:plugin-persistence`
-- `io.github.pandulapeter.kubriko:plugin-physics`
-- `io.github.pandulapeter.kubriko:plugin-pointer-input`
-- `io.github.pandulapeter.kubriko:plugin-serialization`
-- `io.github.pandulapeter.kubriko:plugin-shaders`
-- `io.github.pandulapeter.kubriko:plugin-sprites`
+- `io.github.pandulapeter:kubriko-audio-playback`
+- `io.github.pandulapeter:kubriko-collision`
+- `io.github.pandulapeter:kubriko-keyboard-input`
+- `io.github.pandulapeter:kubriko-particles`
+- `io.github.pandulapeter:kubriko-persistence`
+- `io.github.pandulapeter:kubriko-physics`
+- `io.github.pandulapeter:kubriko-pointer-input`
+- `io.github.pandulapeter:kubriko-serialization`
+- `io.github.pandulapeter:kubriko-shaders`
+- `io.github.pandulapeter:kubriko-sprites`
 
 </details>
 <details>
 <summary>Tools</summary>
 
 
-- `io.github.pandulapeter.kubriko:tool-debug-menu`
-- `io.github.pandulapeter.kubriko:tool-logger`
-- `io.github.pandulapeter.kubriko:tool-scene-editor`
-- `io.github.pandulapeter.kubriko:tool-ui-components`
+- `io.github.pandulapeter:kubriko-debug-menu`
+- `io.github.pandulapeter:kubriko-logger`
+- `io.github.pandulapeter:kubriko-scene-editor`
+- `io.github.pandulapeter:kubriko-ui-components`
 
 </details>
 
 The latest version is:
 
-[![](https://maven-badges.herokuapp.com/maven-central/io.github.pandulapeter.kubriko/engine/badge.svg?style=flat)](https://repo1.maven.org/maven2/io/github/pandulapeter/kubriko/)
+[![](https://maven-badges.herokuapp.com/maven-central/io.github.pandulapeter/kubriko/badge.svg?style=flat)](https://repo1.maven.org/maven2/io/github/pandulapeter/kubriko/)
 
 ## 🫶️ Support
 Displaying the [Kubriko logo](https://pandulapeter.github.io/kubriko/documentation/images/logo.png) in games created with the engine, or just mentioning Kubriko somewhere in the credits is highly appreciated!
