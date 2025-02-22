@@ -17,7 +17,7 @@ internal fun Project.configurePublicArtifact(
     extension: MavenPublishBaseExtension,
     artifactId: String?,
 ) = extension.apply {
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    publishToMavenCentral(SonatypeHost.S01)
     signAllPublications()
     coordinates(
         groupId = "io.github.pandulapeter",
