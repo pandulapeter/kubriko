@@ -65,8 +65,6 @@ Besides hosting the engine's source code, this repository also serves as the doc
 For more details, read the KDoc comments for the classes and functions that are exposed in the public API.
 
 ## 📜 Artifacts
-> [!IMPORTANT]
-> The artifacts mentioned below are not yet available.
 
 Expand the sections below to see the complete list of all Kubriko dependencies hosted on [MavenCentral](https://repo1.maven.org/maven2/io/github/pandulapeter/kubriko/).
 
