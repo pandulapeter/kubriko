@@ -22,6 +22,7 @@ kotlin {
             api(projects.engine)
             implementation(projects.plugins.collision)
             implementation(projects.plugins.persistence)
+            implementation(projects.tools.logger)
             implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)
             implementation(compose.material3)

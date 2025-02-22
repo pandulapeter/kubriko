@@ -20,6 +20,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(projects.engine)
+            implementation(projects.tools.logger)
         }
         desktopMain.dependencies {
             implementation(libs.jlayer)
