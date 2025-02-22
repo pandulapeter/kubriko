@@ -45,12 +45,7 @@ internal fun AnnoyedPenguinsButton(
                     while (true) {
                         val event = awaitPointerEvent()
                         when (event.type) {
-                            PointerEventType.Enter -> {
-                                onPointerEnter()
-                            }
-
-                            PointerEventType.Exit -> {
-                            }
+                            PointerEventType.Enter -> onPointerEnter()
                         }
                     }
                 }

@@ -47,7 +47,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    private val persistenceManager = PersistenceManager.newInstance(
+    private val sharedPersistenceManager = PersistenceManager.newInstance(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
@@ -60,14 +60,14 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
         instanceNameForLogging = LOG_TAG,
     )
     val backgroundLoadingManager = LoadingManager()
-    private val stateManager = StateManager.newInstance(
+    val stateManager = StateManager.newInstance(
         shouldAutoStart = false,
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
     private val backgroundAnimationManager = BackgroundAnimationManager()
-    val userPreferencesManager = UserPreferencesManager(persistenceManager)
-    val audioManager = AudioManager(stateManager, userPreferencesManager)
+    val sharedUserPreferencesManager = UserPreferencesManager()
+    val sharedAudioManager = AudioManager()
     private val particleManager = ParticleManager.newInstance(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
@@ -85,9 +85,12 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    private val gameplayManager = GameplayManager()
+    val gameplayManager = GameplayManager()
     val uiManager = UIManager()
     val backgroundKubriko = Kubriko.newInstance(
+        sharedPersistenceManager,
+        sharedUserPreferencesManager,
+        sharedAudioManager,
         sharedMusicManager,
         sharedSoundManager,
         sharedSpriteManager,
@@ -107,10 +110,10 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
             physicsManager,
             keyboardInputManager,
             pointerInputManager,
-            persistenceManager,
-            userPreferencesManager,
+            sharedPersistenceManager,
+            sharedUserPreferencesManager,
             particleManager,
-            audioManager,
+            sharedAudioManager,
             gameplayManager,
             uiManager,
             isLoggingEnabled = true,
@@ -119,11 +122,14 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
     )
     override val kubriko = _kubriko.asStateFlow()
 
-    override fun stopMusic() = audioManager.stopMusicBeforeDispose()
+    override fun stopMusic() = sharedAudioManager.stopMusicBeforeDispose()
 
-    override fun navigateBack() =  uiManager.isInfoDialogVisible.value.also {
-        if (uiManager.isInfoDialogVisible.value) {
-            audioManager.playButtonToggleSoundEffect()
+    override fun navigateBack() = (stateManager.isRunning.value || uiManager.isInfoDialogVisible.value).also {
+        if (stateManager.isRunning.value) {
+            sharedAudioManager.playButtonToggleSoundEffect()
+            stateManager.updateIsRunning(false)
+        } else if (uiManager.isInfoDialogVisible.value) {
+            sharedAudioManager.playButtonToggleSoundEffect()
             uiManager.toggleInfoDialogVisibility()
         }
     }

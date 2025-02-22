@@ -51,6 +51,7 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.information_co
 import kubriko.examples.game_annoyed_penguins.generated.resources.level
 import kubriko.examples.game_annoyed_penguins.generated.resources.music_disable
 import kubriko.examples.game_annoyed_penguins.generated.resources.music_enable
+import kubriko.examples.game_annoyed_penguins.generated.resources.resume
 import kubriko.examples.game_annoyed_penguins.generated.resources.sound_effects_disable
 import kubriko.examples.game_annoyed_penguins.generated.resources.sound_effects_enable
 import org.jetbrains.compose.resources.painterResource
@@ -59,6 +60,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun MenuOverlay(
     modifier: Modifier = Modifier,
+    currentLevel: String?,
     onInfoButtonPressed: () -> Unit,
     areSoundEffectsEnabled: Boolean,
     onSoundEffectsToggled: () -> Unit,
@@ -69,12 +71,13 @@ internal fun MenuOverlay(
     onPointerEnter: () -> Unit = {},
     shouldUseLandscapeLayout: Boolean,
     isInfoDialogVisible: Boolean,
+    onLevelSelected: (String) -> Unit,
     levelSelectorScrollState: ScrollState = rememberScrollState(),
 ) {
     AnimatedVisibility(
         visible = isInfoDialogVisible,
-        enter = slideIn { IntOffset(0, it.height) },
-        exit = slideOut { IntOffset(0, it.height) },
+        enter = slideIn { IntOffset(0, -it.height) },
+        exit = slideOut { IntOffset(0, -it.height) },
     ) {
         InfoDialog(
             modifier = modifier,
@@ -84,8 +87,8 @@ internal fun MenuOverlay(
     }
     AnimatedVisibility(
         visible = !isInfoDialogVisible,
-        enter = slideIn { IntOffset(0, -it.height) },
-        exit = slideOut { IntOffset(0, -it.height) },
+        enter = slideIn { IntOffset(0, it.height) },
+        exit = slideOut { IntOffset(0, it.height) },
     ) {
         Column(
             modifier = modifier.fillMaxSize(),
@@ -153,14 +156,16 @@ internal fun MenuOverlay(
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             @Composable
-                            fun levelItems() = (1..3).toList().forEach { index ->
-                                AnnoyedPenguinsButton(
-                                    onButtonPressed = {},
-                                    icon = Res.drawable.ic_play,
-                                    shouldShowTitle = true,
-                                    title = stringResource(Res.string.level, index),
-                                    onPointerEnter = onPointerEnter,
-                                )
+                            fun levelItems() {
+                                (1..3).forEach { index ->
+                                    AnnoyedPenguinsButton(
+                                        onButtonPressed = { onLevelSelected("$index") },
+                                        icon = Res.drawable.ic_play,
+                                        shouldShowTitle = true,
+                                        title = if (currentLevel == "$index") stringResource(Res.string.resume) else stringResource(Res.string.level, index),
+                                        onPointerEnter = onPointerEnter,
+                                    )
+                                }
                             }
                             if (shouldUseLandscapeLayout) {
                                 Row(
