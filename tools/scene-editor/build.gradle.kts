@@ -9,6 +9,11 @@
  */
 plugins {
     id("kubriko-compose-library")
+    id("kubriko-public-artifact")
+}
+
+artifactMetadata {
+    artifactId = "tool-scene-editor"
 }
 
 kotlin {

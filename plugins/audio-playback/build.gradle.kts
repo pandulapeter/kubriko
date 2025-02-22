@@ -9,6 +9,11 @@
  */
 plugins {
     id("kubriko-compose-library")
+    id("kubriko-public-artifact")
+}
+
+artifactMetadata {
+    artifactId = "plugin-audio-playback"
 }
 
 kotlin {

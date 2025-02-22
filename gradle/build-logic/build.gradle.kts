@@ -24,8 +24,9 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 dependencies {
-     implementation(libs.gradle)
-     implementation(libs.kotlin)
+    implementation(libs.gradle)
+    implementation(libs.kotlin)
+    implementation(libs.vanniktech.publish)
 }
 
 gradlePlugin {
@@ -37,6 +38,10 @@ gradlePlugin {
         register("compose-library") {
             id = "kubriko-compose-library"
             implementationClass = "com.pandulapeter.kubriko.buildLogic.plugins.ComposeLibraryPlugin"
+        }
+        register("public-artifact") {
+            id = "kubriko-public-artifact"
+            implementationClass = "com.pandulapeter.kubriko.buildLogic.plugins.PublicArtifactPlugin"
         }
         register("application") {
             id = "kubriko-application"

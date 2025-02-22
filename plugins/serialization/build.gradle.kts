@@ -10,6 +10,11 @@
 plugins {
     id("kubriko-compose-library")
     alias(libs.plugins.kotlin.serialization)
+    id("kubriko-public-artifact")
+}
+
+artifactMetadata {
+    artifactId = "plugin-serialization"
 }
 
 kotlin {

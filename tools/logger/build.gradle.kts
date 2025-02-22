@@ -9,6 +9,11 @@
  */
 plugins {
     id("kubriko-library")
+    id("kubriko-public-artifact")
+}
+
+artifactMetadata {
+    artifactId = "tool-logger"
 }
 
 kotlin {

@@ -81,26 +81,26 @@ Expand the sections below to see the complete list of all Kubriko dependencies h
 <summary>Plugins</summary>
 
 
-- `io.github.pandulapeter.kubriko:plugins:audio-player`
-- `io.github.pandulapeter.kubriko:plugins:collision`
-- `io.github.pandulapeter.kubriko:plugins:keyboard-input`
-- `io.github.pandulapeter.kubriko:plugins:particles`
-- `io.github.pandulapeter.kubriko:plugins:persistence`
-- `io.github.pandulapeter.kubriko:plugins:physics`
-- `io.github.pandulapeter.kubriko:plugins:pointer-input`
-- `io.github.pandulapeter.kubriko:plugins:serialization`
-- `io.github.pandulapeter.kubriko:plugins:shaders`
-- `io.github.pandulapeter.kubriko:plugins:sprites`
+- `io.github.pandulapeter.kubriko:plugin-audio-playback`
+- `io.github.pandulapeter.kubriko:plugin-collision`
+- `io.github.pandulapeter.kubriko:plugin-keyboard-input`
+- `io.github.pandulapeter.kubriko:plugin-particles`
+- `io.github.pandulapeter.kubriko:plugin-persistence`
+- `io.github.pandulapeter.kubriko:plugin-physics`
+- `io.github.pandulapeter.kubriko:plugin-pointer-input`
+- `io.github.pandulapeter.kubriko:plugin-serialization`
+- `io.github.pandulapeter.kubriko:plugin-shaders`
+- `io.github.pandulapeter.kubriko:plugin-sprites`
 
 </details>
 <details>
 <summary>Tools</summary>
 
 
-- `io.github.pandulapeter.kubriko:tools:debug-menu`
-- `io.github.pandulapeter.kubriko:tools:logger`
-- `io.github.pandulapeter.kubriko:tools:scene-editor`
-- `io.github.pandulapeter.kubriko:tools:ui-components`
+- `io.github.pandulapeter.kubriko:tool-debug-menu`
+- `io.github.pandulapeter.kubriko:tool-logger`
+- `io.github.pandulapeter.kubriko:tool-scene-editor`
+- `io.github.pandulapeter.kubriko:tool-ui-components`
 
 </details>
 

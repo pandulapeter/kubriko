@@ -22,6 +22,7 @@ kotlinx-coroutines = "1.10.1" # https://github.com/Kotlin/kotlinx.coroutines/rel
 kotlinx-datetime = "0.6.1" # https://github.com/Kotlin/kotlinx-datetime/releases/tag/v0.6.1
 kotlinx-immutable = "0.3.8" # https://github.com/Kotlin/kotlinx.collections.immutable/releases
 kotlinx-serialization = "1.8.0" # https://github.com/Kotlin/kotlinx.serialization/releases
+vanniktech-publish = "0.30.0" # https://github.com/vanniktech/gradle-maven-publish-plugin/releases
 
 [libraries]
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity" }
@@ -37,6 +38,7 @@ kotlinx-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutin
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlinx-immutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version.ref = "kotlinx-immutable" }
 kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+vanniktech-publish = { group = "com.vanniktech", name = "gradle-maven-publish-plugin", version.ref = "vanniktech-publish" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "gradle" }
@@ -45,3 +47,4 @@ compose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+vanniktech-publish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech-publish" }
