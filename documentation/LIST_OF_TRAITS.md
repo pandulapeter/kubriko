@@ -12,7 +12,6 @@ Read the KDoc comments of the linked files for more information.
 - [Positionable](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Positionable.kt)
 - [Unique](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Unique.kt)
 - [Visible](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Visible.kt)
-- [WindowInsetsAware](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/WindowInsetsAware.kt)
 
 ## Collision plugin
 - [Collidable](https://github.com/pandulapeter/kubriko/blob/main/plugins/collision/src/commonMain/kotlin/com/pandulapeter/kubriko/collision/Collidable.kt)

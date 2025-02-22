@@ -75,7 +75,7 @@ Following the previous step you should be able to access the classes and functio
 Furthermore, you should also be able to see the sources, and more importantly, the KDoc comments of Kubriko's public API.
 
 Let's verify this by replacing the app's main Composable (by default located in the `commonMain` source set's `App.kt` file) with [KubrikoViewport](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/KubrikoViewport.kt).
-While KubrikoViewport is responsible for the game's UI, we also need to provide a [Kubriko](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/Kubriko.kt) instance to it that handles the game state.
+While `KubrikoViewport` is responsible for the game's UI, we also need to provide a [Kubriko](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/Kubriko.kt) instance to it that handles the game state.
 Here's how the `App()` Composable function should look like after all the changes:
 
 ```kotlin
@@ -83,8 +83,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
+@Preview
 fun App() {
     val kubriko = remember { Kubriko.newInstance() }
     KubrikoViewport(
@@ -98,16 +100,100 @@ More importantly, try running the app to make sure that there are no compilation
 
 If everything went well, you should see an empty screen, as we didn't add anything to the game yet.
 
-## 4 - Adding Actors
-TODO
+## 4 - Creating an Actor
+Implementations of the [Actor](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/Actor.kt) interface are responsible for playing well-defined roles in your game. For example, in a platformer, the main character (that's controlled by the player) should be an Actor. But so should every enemy NPC, every platform that the character can jump on, and even the small graphical details such as the trees and clouds in the background.
+
+Actors are meant to implement one or more interfaces, called Traits, that define what they are capable of (every Trait extends the `Actor` interface). For the purposes of this demo, we will use the [Visible](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Visible.kt) Trait which will allow our Actor to draw onto the scene. Visible Actors need to have bodies that define their position and size of the area they can draw to (and can also be used to transform the Actor's drawing canvas by rotation or scaling).
+
+Let's create a brand new class for our first Actor, which will be a red ball.
+
+```kotlin
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import com.pandulapeter.kubriko.actor.body.CircleBody
+import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.extensions.sceneUnit
+
+class Ball : Visible {
+    override val body = CircleBody(
+        initialRadius = 100.sceneUnit,
+    )
+
+    override fun DrawScope.draw() {
+        drawCircle(
+            color = Color.Red,
+            radius = body.radius.raw,
+            center = body.size.center.raw,
+        )
+        drawCircle(
+            color = Color.Black,
+            radius = body.radius.raw,
+            center = body.size.center.raw,
+            style = Stroke(),
+        )
+    }
+}
+```
+
+Note that the coordinate system within the game world is measured in SceneUnits. This is important because for more complex games we don't want to confuse world coordinates with scene coordinates.
+While this is not relevant for our current example (as this game's viewport won't support zooming in or out), the API still enforces the distinction.
+
+As we didn't specify an `initialPosition` for our `CircleBody`, it will get spawned at the origin of the coordinate system.
+
+> [!IMPORTANT]  
+> The origin point of Kubriko's coordinate system is the center of the Composable, NOT any of its corners. This way it's easier to keep the important part of the window in focus if it gets resized.   
+
+The `draw()` function simply draws a red circle with a black outline. The coordinates here are relative to the `body`, so whenever we want to move our ball, we just have to update its body's position (no need to change anything in the `draw()` function).
 
 ## 5 - Adding Managers
+Subclasses of [Manager](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/manager/Manager.kt) are responsible for dealing with the high-level aspects of games such as loading stuff, playing music, keeping score, or manipulating the lower-level Actors.
+Managers are there for the entire lifecycle of the `Kubriko` instance, while Actors can be added or removed any time (by using [ActorManager](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/manager/ActorManager.kt)). Managers can also communicate directly with each other by having references to other `Manager` instances.
+
+Our really simple game already has four built-in Managers out of the box (more on that later), but to start introducing custom functionality for our gameplay, we might want to create and add a fifth one.
+
+Let's create a new class called `GameplayManager` that's responsible for adding the `Ball` to the scene:
+
+```kotlin
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.Manager
+
+class GameplayManager : Manager() {
+    
+    private val actorManager by manager<ActorManager>()
+
+    override fun onInitialize(kubriko: Kubriko) {
+        actorManager.add(Ball())
+    }
+}
+```
+
+Our new manager references the built-in `ActorManager`, and notifies it to add a new `Ball` instance when the game starts (the `onInitialize()` function only gets called once, right before `KubrikoViewport` becomes visible for the first time).
+
+> [!WARNING]  
+> Do not try to use `Manager` references before `onInitialize()` is called.
+
+While our `Manager` is now ready, it needs to be registered with the `Kubriko` instance before it can start doing its job. To do this, let's update just one line in the implementation we have for the `App` Composable:
+
+```kotlin
+val kubriko = remember { Kubriko.newInstance(GameplayManager()) }
+```
+
+Any number of Managers can be registered simply by enlisting them in the `Kubriko.newInstance()` function.
+
+You can run the game to see how the red ball is now displayed in the middle of the window! 
+
+## 6 - Setting things in motion
 TODO
 
-## 6 - Adding plugins
+## 7 - Adding plugins
 TODO
 
-## 7 - Next steps
+## 8 - Menus
+TODO (draw on top of the KubrikoCanvas, or use Managers)
+
+## 9 - Next steps
 This should cover the basics of what you need to get started developing your first Kubriko game!
 Feel free to play around with the various components, and have fun exploring the possibilities.
 Don't forget to read the KDoc comments of the public API components to get more information about how they are intended to be used.
