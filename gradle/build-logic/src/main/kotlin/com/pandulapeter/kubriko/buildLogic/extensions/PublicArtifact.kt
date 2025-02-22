@@ -19,7 +19,7 @@ internal fun Project.configurePublicArtifact(
 ) = extension.apply {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
     signAllPublications()
-    coordinates(project.group.toString(), artifactId, project.version.toString())
+    coordinates("io.github.pandulapeter.kubriko", artifactId, project.version.toString())
     pom {
         name.set("Kubriko")
         description.set("Compose Multiplatform game engine for 2D Android, iOS, Desktop, and Web projects.")
