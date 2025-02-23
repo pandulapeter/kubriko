@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.audioPlayback.implementation.SoundPlayer
 import com.pandulapeter.kubriko.audioPlayback.implementation.createSoundPlayer
 import com.pandulapeter.kubriko.logger.Logger
+import com.pandulapeter.kubriko.manager.StateManager
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -29,6 +30,7 @@ internal class SoundManagerImpl(
 ) : SoundManager(isLoggingEnabled, instanceNameForLogging) {
     private val cache = MutableStateFlow(persistentMapOf<String, Any?>())
     private var soundPlayer: SoundPlayer? = null
+    private val stateManager by manager<StateManager>()
 
     @Composable
     override fun Composable(windowInsets: WindowInsets) {
@@ -72,15 +74,17 @@ internal class SoundManagerImpl(
 
     override fun play(uri: String) {
         scope.launch {
-            soundPlayer?.let { soundPlayer ->
-                val cachedSound = cache.value[uri]
-                if (cachedSound == null) {
-                    soundPlayer.preload(uri)?.let { sound ->
-                        addToCache(uri, sound)
-                        soundPlayer.play(sound)
+            if (stateManager.isFocused.value) {
+                soundPlayer?.let { soundPlayer ->
+                    val cachedSound = cache.value[uri]
+                    if (cachedSound == null) {
+                        soundPlayer.preload(uri)?.let { sound ->
+                            addToCache(uri, sound)
+                            soundPlayer.play(sound)
+                        }
+                    } else {
+                        soundPlayer.play(cachedSound)
                     }
-                } else {
-                    soundPlayer.play(cachedSound)
                 }
             }
         }
