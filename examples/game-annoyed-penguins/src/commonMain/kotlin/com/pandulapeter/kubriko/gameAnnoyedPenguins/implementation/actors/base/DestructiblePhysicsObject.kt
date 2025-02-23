@@ -31,10 +31,12 @@ internal abstract class DestructiblePhysicsObject<T: DestructiblePhysicsObject<T
     }
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
-        body.rotation = physicsBody.orientation
-        if (deltaTimeInMilliseconds > 0 && !body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
-            actorManager.remove(this)
+        if (deltaTimeInMilliseconds > 0) {
+            body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
+            body.rotation = physicsBody.orientation
+            if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
+                actorManager.remove(this)
+            }
         }
     }
 }
