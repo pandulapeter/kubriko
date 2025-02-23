@@ -327,40 +327,42 @@ Now that we can ask the dimensions of the screen from `ViewportManager`, let's m
 private var previousPosition = body.position
 
 override fun update(deltaTimeInMilliseconds: Int) {
-  if (!viewportManager.size.value.isEmpty()) {
-    val viewportTopLeft = viewportManager.topLeft.value
-    val viewportBottomRight = viewportManager.bottomRight.value
-    val offset = SceneOffset(
-      x = horizontalSpeed,
-      y = verticalSpeed,
-    )
-    val nextPosition = (body.position + offset * deltaTimeInMilliseconds).constrainedWithin(
-      topLeft = viewportTopLeft,
-      bottomRight = viewportBottomRight,
-    )
-    var shouldJumpBackToPreviousPosition = false
-    if (nextPosition.x <= viewportTopLeft.x || nextPosition.x >= viewportBottomRight.x) {
-      shouldJumpBackToPreviousPosition = true
-      horizontalSpeed *= -1
-    }
-    if (nextPosition.y <= viewportTopLeft.y || nextPosition.y >= viewportBottomRight.y) {
-      shouldJumpBackToPreviousPosition = true
-      verticalSpeed *= -1
-    }
-    if (shouldJumpBackToPreviousPosition) {
-      body.position = previousPosition
-    }
-    previousPosition = body.position
-    body.position = nextPosition
+  val viewportTopLeft = viewportManager.topLeft.value
+  val viewportBottomRight = viewportManager.bottomRight.value
+  val offset = SceneOffset(
+    x = horizontalSpeed,
+    y = verticalSpeed,
+  )
+  val nextPosition = (body.position + offset * deltaTimeInMilliseconds).constrainedWithin(
+    topLeft = viewportTopLeft,
+    bottomRight = viewportBottomRight,
+  )
+  var shouldJumpBackToPreviousPosition = false
+  if (nextPosition.x <= viewportTopLeft.x || nextPosition.x >= viewportBottomRight.x) {
+    shouldJumpBackToPreviousPosition = true
+    horizontalSpeed *= -1
   }
+  if (nextPosition.y <= viewportTopLeft.y || nextPosition.y >= viewportBottomRight.y) {
+    shouldJumpBackToPreviousPosition = true
+    verticalSpeed *= -1
+  }
+  if (shouldJumpBackToPreviousPosition) {
+    body.position = previousPosition
+  }
+  previousPosition = body.position
+  body.position = nextPosition
 }
 ```
 
 Okay, let's see what's going on here. First we've created an instance variable that holds the position of the Body from the previous frame. This is useful because
 whenever the ball is on the edge of the screen, we should bounce it back to its previous position to prevent it from getting stuck. 
 
-In the `update()` function first we check that the viewport dimensions are valid. The first frame might get executed before everything is properly set up, and we
-don't want this to affect our gameplay logic.
+In the `update()` function first we make sure that the next position of the ball is within the viewport bounds by using the `constrainedWithin()` extension function.
+But then we test this position against the edges of the screen, and only move the `Body` to it if there was no collision. However, if the ball reached one of the edges,
+we move it back to its previous position as mentioned before, and flip the relevant component of the speed vector.
+
+Run the app now to see how the bouncing works! Testing it on desktop or web is especially useful, since you can check how seamlessly the game responds to changing the
+window size at runtime.
 
 ## 7 - Adding plugins
 
