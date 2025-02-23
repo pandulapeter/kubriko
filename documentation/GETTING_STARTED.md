@@ -84,6 +84,27 @@ kotlin {
 }
 ```
 
+If your project supports Android, we should also update a couple of other lines in this file to ensure compatibility with some of Kubriko's features:
+
+```kotlin
+kotlin {
+    androidTarget {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
+    }
+    //...
+}
+//...
+android {
+    //..
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+}
+```
+
 Make sure to sync the project after changing the build script.
 
 ## 3 - Integrating KubrikoViewport
@@ -384,7 +405,7 @@ changing the window size at runtime.
 
 ## 7 - Adding plugins
 
-TODO
+TODO (add some interactive components using SpriteManager and PointerInputManager)
 
 ## 8 - Menus
 
