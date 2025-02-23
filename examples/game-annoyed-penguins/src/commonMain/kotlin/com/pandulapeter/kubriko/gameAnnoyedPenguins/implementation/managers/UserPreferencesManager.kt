@@ -14,9 +14,10 @@ import com.pandulapeter.kubriko.persistence.PersistenceManager
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-internal class UserPreferencesManager : Manager() {
+internal class UserPreferencesManager(
+    persistenceManager: PersistenceManager,
+) : Manager() {
     private val audioManager by manager<AudioManager>()
-    private val persistenceManager by manager<PersistenceManager>()
     private val _areSoundEffectsEnabled by lazy { persistenceManager.boolean("areSoundEffectsEnabled", true) }
     val areSoundEffectsEnabled by lazy { _areSoundEffectsEnabled.asStateFlow() }
 

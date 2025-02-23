@@ -10,6 +10,8 @@
 package com.pandulapeter.kubriko.gameAnnoyedPenguins
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -28,8 +30,10 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -63,42 +67,49 @@ fun AnnoyedPenguinsGame(
         windowInsets = windowInsets,
     )
     val isGameLoaded = stateHolder.backgroundLoadingManager.isGameLoaded()
+    val isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value
+    val isGameFocused = stateHolder.stateManager.isFocused.collectAsState().value
+    val isLoadingLevel = stateHolder.gameplayManager.isLoadingLevel.collectAsState().value
     AnimatedVisibility(
         visible = isGameLoaded,
         enter = fadeIn() + scaleIn(initialScale = 0.88f),
         exit = scaleOut(targetScale = 0.88f) + fadeOut(),
     ) {
-        KubrikoViewport(
-            kubriko = stateHolder.audioPlayerKubriko,
-        )
         AnimatedVisibility(
-            visible = stateHolder.stateManager.isRunning.collectAsState().value,
-            enter = slideIn { IntOffset(0, it.height) },
-            exit = slideOut { IntOffset(0, it.height) },
+            visible = !isLoadingLevel,
+            enter = fadeIn(),
+            exit = fadeOut(),
         ) {
-            AnimatedVisibility(
-                visible = !stateHolder.gameplayManager.isLoadingLevel.collectAsState().value,
-                enter = fadeIn(),
-                exit = fadeOut(),
-            ) {
-                KubrikoViewport(
-                    kubriko = stateHolder.kubriko.value,
-                    windowInsets = windowInsets,
-                )
-            }
+            val gameAlpha by animateFloatAsState(
+                targetValue = if (isGameRunning) 1f else 0.1f,
+                animationSpec = tween(),
+            )
+            KubrikoViewport(
+                modifier = Modifier.alpha(gameAlpha),
+                kubriko = stateHolder.kubriko.value,
+                windowInsets = windowInsets,
+            )
+        }
+        AnimatedVisibility(
+            visible = isGameRunning,
+            enter = slideIn { IntOffset(0, -it.height) },
+            exit = slideOut { IntOffset(0, -it.height) },
+        ) {
             AnnoyedPenguinsButton(
-                modifier = Modifier.windowInsetsPadding(windowInsets).padding(16.dp),
+                modifier = Modifier
+                    .windowInsetsPadding(windowInsets)
+                    .padding(16.dp),
                 onButtonPressed = {
-                    stateHolder.sharedAudioManager.playButtonToggleSoundEffect()
+                    stateHolder.audioManager.playButtonToggleSoundEffect()
                     stateHolder.stateManager.updateIsRunning(false)
                 },
                 icon = Res.drawable.ic_pause,
                 title = stringResource(Res.string.pause),
-                onPointerEnter = stateHolder.sharedAudioManager::playButtonHoverSoundEffect,
+                onPointerEnter = stateHolder.audioManager::playButtonHoverSoundEffect,
             )
         }
         AnimatedVisibility(
-            visible = !stateHolder.stateManager.isRunning.collectAsState().value,
+            visible = !isGameRunning,
             enter = slideIn { IntOffset(0, -it.height) },
             exit = slideOut { IntOffset(0, -it.height) },
         ) {
@@ -109,22 +120,22 @@ fun AnnoyedPenguinsGame(
                     allLevels = GameplayManager.AllLevels.keys.toImmutableList(),
                     onInfoButtonPressed = {
                         stateHolder.uiManager.toggleInfoDialogVisibility()
-                        stateHolder.sharedAudioManager.playButtonToggleSoundEffect()
+                        stateHolder.audioManager.playButtonToggleSoundEffect()
                     },
-                    areSoundEffectsEnabled = stateHolder.audioPlayerStateManager.isRunning.collectAsState().value && stateHolder.sharedUserPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
+                    areSoundEffectsEnabled = isGameFocused && stateHolder.sharedUserPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
                     onSoundEffectsToggled = stateHolder.sharedUserPreferencesManager::onAreSoundEffectsEnabledChanged,
-                    isMusicEnabled = stateHolder.audioPlayerStateManager.isRunning.collectAsState().value && stateHolder.sharedUserPreferencesManager.isMusicEnabled.collectAsState().value,
+                    isMusicEnabled = isGameFocused && stateHolder.sharedUserPreferencesManager.isMusicEnabled.collectAsState().value,
                     onMusicToggled = stateHolder.sharedUserPreferencesManager::onIsMusicEnabledChanged,
                     isInFullscreenMode = isInFullscreenMode,
                     onFullscreenModeToggled = {
                         onFullscreenModeToggled()
-                        stateHolder.sharedAudioManager.playButtonToggleSoundEffect()
+                        stateHolder.audioManager.playButtonToggleSoundEffect()
                     },
-                    playToggleSoundEffect = stateHolder.sharedAudioManager::playButtonToggleSoundEffect,
-                    playHoverSoundEffect = stateHolder.sharedAudioManager::playButtonHoverSoundEffect,
+                    playToggleSoundEffect = stateHolder.audioManager::playButtonToggleSoundEffect,
+                    playHoverSoundEffect = stateHolder.audioManager::playButtonHoverSoundEffect,
                     isInfoDialogVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
                     onLevelSelected = { level ->
-                        stateHolder.sharedAudioManager.playButtonToggleSoundEffect()
+                        stateHolder.audioManager.playButtonToggleSoundEffect()
                         stateHolder.gameplayManager.setCurrentLevel(level)
                         stateHolder.stateManager.updateIsRunning(true)
                     },
@@ -135,7 +146,7 @@ fun AnnoyedPenguinsGame(
     }
     AnimatedVisibility(
         modifier = modifier,
-        visible = !isGameLoaded || stateHolder.gameplayManager.isLoadingLevel.collectAsState().value,
+        visible = !isGameLoaded || isLoadingLevel,
         enter = fadeIn(),
         exit = fadeOut(),
     ) {

@@ -16,6 +16,7 @@ import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -43,13 +44,16 @@ internal class GameplayManager : Manager() {
 
     @OptIn(ExperimentalResourceApi::class)
     private fun loadScene(sceneName: String?) = scope.launch {
-        _isLoadingLevel.update { true }
-        actorManager.removeAll()
-        try {
-            val json = Res.readBytes("files/scenes/$sceneName").decodeToString()
-            actorManager.add(serializationManager.deserializeActors(json))
-            _isLoadingLevel.update { false }
-        } catch (_: MissingResourceException) {
+        if (sceneName != null) {
+            _isLoadingLevel.update { true }
+            delay(300) // Gives time for the fade animation to hide the previous level
+            actorManager.removeAll()
+            try {
+                val json = Res.readBytes("files/scenes/$sceneName").decodeToString()
+                actorManager.add(serializationManager.deserializeActors(json))
+                _isLoadingLevel.update { false }
+            } catch (_: MissingResourceException) {
+            }
         }
     }
 

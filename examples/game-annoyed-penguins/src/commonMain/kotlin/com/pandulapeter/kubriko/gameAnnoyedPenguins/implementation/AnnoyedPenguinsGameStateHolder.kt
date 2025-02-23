@@ -75,7 +75,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
             instanceNameForLogging = LOG_TAG,
         )
     }
-    private val sharedPersistenceManager by lazy {
+    private val persistenceManager by lazy {
         PersistenceManager.newInstance(
             isLoggingEnabled = true,
             instanceNameForLogging = LOG_TAG,
@@ -107,16 +107,10 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
         BackgroundAnimationManager()
     }
     val sharedUserPreferencesManager by lazy {
-        UserPreferencesManager()
+        UserPreferencesManager(persistenceManager)
     }
-    val audioPlayerStateManager by lazy {
-        StateManager.newInstance(
-            isLoggingEnabled = true,
-            instanceNameForLogging = LOG_TAG_AUDIO,
-        )
-    }
-    val sharedAudioManager by lazy {
-        AudioManager(audioPlayerStateManager)
+    val audioManager by lazy {
+        AudioManager(stateManager)
     }
     private val particleManager by lazy {
         ParticleManager.newInstance(
@@ -161,22 +155,10 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
             instanceNameForLogging = LOG_TAG_BACKGROUND,
         )
     }
-    val audioPlayerKubriko by lazy {
-        Kubriko.newInstance(
-            sharedPersistenceManager,
-            sharedUserPreferencesManager,
-            audioPlayerStateManager,
-            sharedMusicManager,
-            sharedSoundManager,
-            sharedAudioManager,
-            isLoggingEnabled = true,
-            instanceNameForLogging = LOG_TAG_AUDIO,
-        )
-    }
     private val _kubriko by lazy {
         MutableStateFlow(
             Kubriko.newInstance(
-                sharedPersistenceManager,
+                persistenceManager,
                 sharedUserPreferencesManager,
                 sharedMusicManager,
                 sharedSoundManager,
@@ -187,7 +169,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
                 keyboardInputManager,
                 pointerInputManager,
                 particleManager,
-                sharedAudioManager,
+                audioManager,
                 serializationManager,
                 gameplayManager,
                 uiManager,
@@ -200,14 +182,14 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
         _kubriko.asStateFlow()
     }
 
-    override fun stopMusic() = sharedAudioManager.stopMusicBeforeDispose()
+    override fun stopMusic() = audioManager.stopMusicBeforeDispose()
 
     override fun navigateBack() = (stateManager.isRunning.value || uiManager.isInfoDialogVisible.value).also {
         if (stateManager.isRunning.value) {
-            sharedAudioManager.playButtonToggleSoundEffect()
+            audioManager.playButtonToggleSoundEffect()
             stateManager.updateIsRunning(false)
         } else if (uiManager.isInfoDialogVisible.value) {
-            sharedAudioManager.playButtonToggleSoundEffect()
+            audioManager.playButtonToggleSoundEffect()
             uiManager.toggleInfoDialogVisibility()
         }
     }
