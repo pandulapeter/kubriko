@@ -62,7 +62,9 @@ fun InternalViewport(
                     kubrikoImpl.metadataManager.onUpdateInternal(frameTimeInMilliseconds.toInt())
                 }
                 (frameTimeInMilliseconds - kubrikoImpl.metadataManager.totalRuntimeInMilliseconds.value).toInt().let { deltaTimeInMilliseconds ->
-                    kubrikoImpl.managers.forEach { it.onUpdateInternal(deltaTimeInMilliseconds) }
+                    if (!kubrikoImpl.viewportManager.size.value.isEmpty()) {
+                        kubrikoImpl.managers.forEach { it.onUpdateInternal(deltaTimeInMilliseconds) }
+                    }
                 }
             }
         }
