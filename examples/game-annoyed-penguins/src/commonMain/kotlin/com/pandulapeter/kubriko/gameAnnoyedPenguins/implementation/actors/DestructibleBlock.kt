@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base.DestructiblePhysicsObject
 import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
@@ -20,7 +21,7 @@ import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableRectan
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
 
-internal class DestructibleBlock(
+internal class DestructibleBlock private constructor(
     state: State,
 ) : DestructiblePhysicsObject<DestructibleBlock>() {
 
@@ -55,7 +56,7 @@ internal class DestructibleBlock(
 
     @kotlinx.serialization.Serializable
     data class State(
-        @SerialName("body") val body: SerializableRectangleBody,
+        @SerialName("body") val body: SerializableRectangleBody = RectangleBody(),
     ) : Serializable.State<DestructibleBlock> {
 
         override fun restore() = DestructibleBlock(this)

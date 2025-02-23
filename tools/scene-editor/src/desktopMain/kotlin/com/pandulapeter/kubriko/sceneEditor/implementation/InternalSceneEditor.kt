@@ -31,6 +31,7 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.overlay.OverlayManage
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.EditorUserInterface
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.Settings
 import com.pandulapeter.kubriko.serialization.SerializationManager
+import com.pandulapeter.kubriko.sprites.SpriteManager
 import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame
@@ -53,6 +54,7 @@ internal fun InternalSceneEditor(
                 maximumScaleFactor = MAXIMUM_SCALE_FACTOR,
             ),
             StateManager.newInstance(shouldAutoStart = false),
+            SpriteManager.newInstance(),
             KeyboardInputManager.newInstance(),
             PointerInputManager.newInstance(),
             PersistenceManager.newInstance(fileName = "kubrikoSceneEditor"),

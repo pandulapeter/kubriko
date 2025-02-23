@@ -10,12 +10,14 @@
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation
 
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.DestructibleBlock
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Ground
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Penguin
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.BackgroundAnimationManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.GameplayManager
@@ -53,6 +55,11 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
             typeId = "ground",
             deserializeState = { serializedState -> json.decodeFromString<Ground.State>(serializedState) },
             instantiate = { Ground.State(body = RectangleBody(initialPosition = it, initialSize = SceneSize(128.sceneUnit, 128.sceneUnit))) },
+        ),
+        EditableMetadata(
+            typeId = "penguin",
+            deserializeState = { serializedState -> json.decodeFromString<Penguin.State>(serializedState) },
+            instantiate = { Penguin.State(body = CircleBody(initialPosition = it, initialRadius = 128.sceneUnit)) },
         ),
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,

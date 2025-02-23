@@ -30,6 +30,7 @@ kotlin {
                 implementation(projects.plugins.keyboardInput)
                 implementation(projects.plugins.persistence)
                 implementation(projects.plugins.pointerInput)
+                implementation(projects.plugins.sprites)
                 implementation(projects.tools.debugMenu)
                 implementation(projects.tools.uiComponents)
                 implementation(compose.desktop.currentOs)
