@@ -100,7 +100,7 @@ internal class KubrikoImpl(
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : Manager> get(managerType: KClass<T>) = managers.firstOrNull { managerType.isInstance(it) } as? T
-        ?: throw IllegalStateException("$managerType has not been registered as a Manager in Kubriko.newInstance()")
+        ?: throw IllegalStateException("${managerType.simpleName} has not been registered in Kubriko.newInstance().")
 
     override fun dispose() {
         log("Disposing Manager instances...")

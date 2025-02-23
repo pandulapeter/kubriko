@@ -180,6 +180,7 @@ internal fun MenuOverlay(
                                         .padding(horizontal = 16.dp)
                                         .padding(bottom = 16.dp),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     levelItems()
                                 }
@@ -190,6 +191,7 @@ internal fun MenuOverlay(
                                         .padding(horizontal = 16.dp)
                                         .padding(bottom = 16.dp),
                                     verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
                                 ) {
                                     levelItems()
                                 }

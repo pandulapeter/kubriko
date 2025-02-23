@@ -68,6 +68,9 @@ fun AnnoyedPenguinsGame(
         enter = fadeIn() + scaleIn(initialScale = 0.88f),
         exit = scaleOut(targetScale = 0.88f) + fadeOut(),
     ) {
+        KubrikoViewport(
+            kubriko = stateHolder.audioPlayerKubriko,
+        )
         AnimatedVisibility(
             visible = stateHolder.stateManager.isRunning.collectAsState().value,
             enter = slideIn { IntOffset(0, it.height) },
@@ -95,7 +98,7 @@ fun AnnoyedPenguinsGame(
             )
         }
         AnimatedVisibility(
-            visible = !stateHolder.stateManager.isRunning.collectAsState().value,
+            visible = stateHolder.audioPlayerStateManager.isRunning.collectAsState().value && !stateHolder.stateManager.isRunning.collectAsState().value,
             enter = slideIn { IntOffset(0, -it.height) },
             exit = slideOut { IntOffset(0, -it.height) },
         ) {

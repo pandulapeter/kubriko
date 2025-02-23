@@ -84,7 +84,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
     private val backgroundShaderManager by lazy {
         ShaderManager.newInstance(
             isLoggingEnabled = true,
-            instanceNameForLogging = LOG_TAG,
+            instanceNameForLogging = LOG_TAG_BACKGROUND,
         )
     }
     val backgroundLoadingManager by lazy {
@@ -103,8 +103,14 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
     val sharedUserPreferencesManager by lazy {
         UserPreferencesManager()
     }
+    val audioPlayerStateManager by lazy {
+        StateManager.newInstance(
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG_AUDIO,
+        )
+    }
     val sharedAudioManager by lazy {
-        AudioManager(stateManager)
+        AudioManager(audioPlayerStateManager)
     }
     private val particleManager by lazy {
         ParticleManager.newInstance(
@@ -139,9 +145,6 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
     }
     val backgroundKubriko by lazy {
         Kubriko.newInstance(
-            sharedPersistenceManager,
-            sharedUserPreferencesManager,
-            sharedAudioManager,
             sharedMusicManager,
             sharedSoundManager,
             sharedSpriteManager,
@@ -149,12 +152,26 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
             backgroundAnimationManager,
             backgroundLoadingManager,
             isLoggingEnabled = true,
-            instanceNameForLogging = LOG_TAG,
+            instanceNameForLogging = LOG_TAG_BACKGROUND,
+        )
+    }
+    val audioPlayerKubriko by lazy {
+        Kubriko.newInstance(
+            sharedPersistenceManager,
+            sharedUserPreferencesManager,
+            audioPlayerStateManager,
+            sharedMusicManager,
+            sharedSoundManager,
+            sharedAudioManager,
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG_AUDIO,
         )
     }
     private val _kubriko by lazy {
         MutableStateFlow(
             Kubriko.newInstance(
+                sharedPersistenceManager,
+                sharedUserPreferencesManager,
                 sharedMusicManager,
                 sharedSoundManager,
                 sharedSpriteManager,
@@ -163,8 +180,6 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
                 physicsManager,
                 keyboardInputManager,
                 pointerInputManager,
-                sharedPersistenceManager,
-                sharedUserPreferencesManager,
                 particleManager,
                 sharedAudioManager,
                 serializationManager,
@@ -198,3 +213,5 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
 }
 
 private const val LOG_TAG = "AP"
+private const val LOG_TAG_BACKGROUND = "$LOG_TAG-Background"
+private const val LOG_TAG_AUDIO = "$LOG_TAG-Audio"

@@ -33,8 +33,12 @@ abstract class Manager(
 ) {
     private val _isInitialized = MutableStateFlow(false)
     protected val isInitialized = _isInitialized.asStateFlow()
-    protected lateinit var scope: CoroutineScope
-        private set
+    private lateinit var _scope: CoroutineScope
+    protected val scope get() = try {
+        _scope
+    } catch (_: RuntimeException) {
+        throw IllegalStateException("Cannot use the scope of ${this::class.simpleName} until the Manager has been initialized. Make sure it's added to Kubriko and the connected KubrikoViewport is visible.")
+    }
     private val autoInitializingLazyProperties = mutableListOf<AutoInitializingLazy<*>>()
     private val autoInitializingLazyManagers = mutableListOf<LazyManager<*>>()
 
@@ -56,7 +60,7 @@ abstract class Manager(
                 message = "Initializing...",
                 importance = Logger.Importance.LOW,
             )
-            scope = kubriko as CoroutineScope
+            _scope = kubriko as CoroutineScope
             autoInitializingLazyManagers.forEach { it.initialize(kubriko) }
             autoInitializingLazyManagers.clear()
             _isInitialized.value = true
@@ -155,6 +159,10 @@ abstract class Manager(
             value = kubriko.get(managerType)
         }
 
-        override fun getValue(thisRef: Manager, property: KProperty<*>) = value
+        override fun getValue(thisRef: Manager, property: KProperty<*>) = try {
+            value
+        } catch (_: RuntimeException) {
+            throw IllegalStateException("${managerType.simpleName} has not been registered in Kubriko.newInstance(), or you're trying to access it before this Manager has been initialized.")
+        }
     }
 }
