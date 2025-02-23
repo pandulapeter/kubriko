@@ -32,7 +32,7 @@ internal abstract class BaseDynamicObject : RigidBody, Visible, Dynamic {
     override fun update(deltaTimeInMilliseconds: Int) {
         body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
         body.rotation = physicsBody.orientation
-        if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
+        if (deltaTimeInMilliseconds > 0 && !body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
             actorManager.remove(this)
         }
     }

@@ -9,7 +9,32 @@
  */
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base
 
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
+import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.sceneEditor.Editable
+import com.pandulapeter.kubriko.types.SceneOffset
 
-internal abstract class DestructiblePhysicsObject<T: DestructiblePhysicsObject<T>> : Visible, Editable<T>
+internal abstract class DestructiblePhysicsObject<T: DestructiblePhysicsObject<T>> : Visible, Editable<T>, RigidBody, Dynamic {
+
+    private lateinit var actorManager: ActorManager
+    private lateinit var viewportManager: ViewportManager
+
+    override fun onAdded(kubriko: Kubriko) {
+        actorManager = kubriko.get()
+        viewportManager = kubriko.get()
+    }
+
+    override fun update(deltaTimeInMilliseconds: Int) {
+        body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
+        body.rotation = physicsBody.orientation
+        if (deltaTimeInMilliseconds > 0 && !body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
+            actorManager.remove(this)
+        }
+    }
+}

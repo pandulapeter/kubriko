@@ -13,15 +13,29 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base.DestructiblePhysicsObject
+import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
+import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
 import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableRectangleBody
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
 
-internal class Block(
+internal class DestructibleBlock(
     state: State,
-) : DestructiblePhysicsObject<Block>() {
+) : DestructiblePhysicsObject<DestructibleBlock>() {
 
     override val body = state.body
+    override val physicsBody = Body(
+        shape = Polygon(
+            halfWidth = body.size.width / 2,
+            halfHeight = body.size.height / 2,
+        ),
+        x = body.position.x,
+        y = body.position.y,
+    ).apply {
+        restitution = 0.5f
+        orientation = body.rotation
+    }
 
     override fun DrawScope.draw() {
         drawRect(
@@ -41,10 +55,10 @@ internal class Block(
 
     @kotlinx.serialization.Serializable
     data class State(
-        val body: SerializableRectangleBody,
-    ) : Serializable.State<Block> {
+        @SerialName("body") val body: SerializableRectangleBody,
+    ) : Serializable.State<DestructibleBlock> {
 
-        override fun restore() = Block(this)
+        override fun restore() = DestructibleBlock(this)
 
         override fun serialize() = Json.encodeToString(this)
     }
