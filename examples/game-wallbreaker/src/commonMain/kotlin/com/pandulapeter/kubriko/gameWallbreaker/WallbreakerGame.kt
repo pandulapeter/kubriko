@@ -92,9 +92,9 @@ fun WallbreakerGame(
                 stateHolder.audioManager.playClickSoundEffect()
                 stateHolder.uiManager.toggleInfoDialogVisibility()
             },
-            areSoundEffectsEnabled = stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
+            areSoundEffectsEnabled = stateHolder.stateManager.isFocused.collectAsState().value && stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
             onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
-            isMusicEnabled = stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
+            isMusicEnabled = stateHolder.stateManager.isFocused.collectAsState().value && stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
             onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
             isInFullscreenMode = isInFullscreenMode,
             onFullscreenModeToggled = {

@@ -72,7 +72,7 @@ internal class AudioManager(
     fun stopMusicBeforeDispose() = shouldStopMusic.update { true }
 
     private fun playSoundEffect(uri: String) {
-        if (userPreferencesManager.areSoundEffectsEnabled.value) {
+        if (userPreferencesManager.areSoundEffectsEnabled.value && stateManager.isFocused.value) {
             soundUrisToPlay.add(uri)
         }
     }

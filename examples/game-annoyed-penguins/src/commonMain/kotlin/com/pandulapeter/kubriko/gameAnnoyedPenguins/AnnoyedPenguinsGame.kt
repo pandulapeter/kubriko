@@ -98,7 +98,7 @@ fun AnnoyedPenguinsGame(
             )
         }
         AnimatedVisibility(
-            visible = stateHolder.audioPlayerStateManager.isRunning.collectAsState().value && !stateHolder.stateManager.isRunning.collectAsState().value,
+            visible = !stateHolder.stateManager.isRunning.collectAsState().value,
             enter = slideIn { IntOffset(0, -it.height) },
             exit = slideOut { IntOffset(0, -it.height) },
         ) {
@@ -111,9 +111,9 @@ fun AnnoyedPenguinsGame(
                         stateHolder.uiManager.toggleInfoDialogVisibility()
                         stateHolder.sharedAudioManager.playButtonToggleSoundEffect()
                     },
-                    areSoundEffectsEnabled = stateHolder.sharedUserPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
+                    areSoundEffectsEnabled = stateHolder.audioPlayerStateManager.isRunning.collectAsState().value && stateHolder.sharedUserPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
                     onSoundEffectsToggled = stateHolder.sharedUserPreferencesManager::onAreSoundEffectsEnabledChanged,
-                    isMusicEnabled = stateHolder.sharedUserPreferencesManager.isMusicEnabled.collectAsState().value,
+                    isMusicEnabled = stateHolder.audioPlayerStateManager.isRunning.collectAsState().value && stateHolder.sharedUserPreferencesManager.isMusicEnabled.collectAsState().value,
                     onMusicToggled = stateHolder.sharedUserPreferencesManager::onIsMusicEnabledChanged,
                     isInFullscreenMode = isInFullscreenMode,
                     onFullscreenModeToggled = {
