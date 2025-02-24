@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
@@ -48,6 +49,9 @@ internal fun SpaceSquadronButton(
         modifier = modifier
             .spaceSquadronUIElementBorder()
             .height(40.dp)
+            .run {
+                if (shouldShowTitle) this else width(40.dp)
+            }
             .alpha(alpha.value)
             .pointerInput(Unit) {
                 awaitPointerEventScope {
@@ -81,7 +85,6 @@ internal fun SpaceSquadronButton(
                     contentDescription = stringResource(title),
                 )
                 Text(
-                    modifier = Modifier.padding(end = 8.dp),
                     text = stringResource(title),
                 )
             }

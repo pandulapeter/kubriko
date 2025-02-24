@@ -109,7 +109,7 @@ internal class UIManager(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth(0.5f)
-                        .align(Alignment.BottomStart),
+                        .align(Alignment.BottomEnd),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     ProgressBar(
@@ -126,14 +126,18 @@ internal class UIManager(
             }
         }
         AnimatedVisibility(
-            modifier = Modifier.align(Alignment.TopEnd),
-            enter = fadeIn() + slideIn { IntOffset(0, -it.height) },
-            exit = slideOut { IntOffset(0, -it.height) } + fadeOut(),
+            modifier = Modifier.align(Alignment.BottomStart),
+            enter = fadeIn() + slideIn { IntOffset(0, it.height) },
+            exit = slideOut { IntOffset(0, it.height) } + fadeOut(),
             visible = scoreManager.score.collectAsState().value > 0,
         ) {
             Text(
                 modifier = Modifier
                     .padding(16.dp)
+                    .background(
+                        color = Color.Black.copy(alpha = 0.75f),
+                        shape = SpaceSquadronUIElementShape,
+                    )
                     .spaceSquadronUIElementBorder()
                     .padding(
                         horizontal = 8.dp,

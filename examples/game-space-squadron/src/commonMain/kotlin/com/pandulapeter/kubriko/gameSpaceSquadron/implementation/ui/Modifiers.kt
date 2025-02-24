@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
 
 internal fun Modifier.spaceSquadronUIElementBorder() = border(
-    width = 1.dp,
-    brush = SolidColor(Color.Gray.copy(alpha = 0.4f)),
+    width = 2.dp,
+    brush = SolidColor(Color.DarkGray),
     shape = SpaceSquadronUIElementShape,
 )

@@ -38,9 +38,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.back
+import kubriko.examples.game_space_squadron.generated.resources.close_confirmation_positive
 import kubriko.examples.game_space_squadron.generated.resources.fullscreen_enter
 import kubriko.examples.game_space_squadron.generated.resources.fullscreen_exit
 import kubriko.examples.game_space_squadron.generated.resources.ic_back
+import kubriko.examples.game_space_squadron.generated.resources.ic_exit
 import kubriko.examples.game_space_squadron.generated.resources.ic_fullscreen_enter
 import kubriko.examples.game_space_squadron.generated.resources.ic_fullscreen_exit
 import kubriko.examples.game_space_squadron.generated.resources.ic_information
@@ -128,10 +130,12 @@ internal fun SpaceSquadronMenuOverlay(
                         color = Color.Black.copy(alpha = 0.75f),
                         shape = SpaceSquadronUIElementShape,
                     )
+                    .spaceSquadronUIElementBorder()
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
             ) {
                 Text(
+                    modifier = Modifier.padding(horizontal = 8.dp),
                     color = Color.White,
                     fontSize = 12.sp,
                     text = stringResource(Res.string.information_contents)
@@ -197,13 +201,25 @@ private fun Title(
             painter = painterResource(Res.drawable.img_logo),
             contentDescription = null,
         )
-        SpaceSquadronButton(
-            onButtonPressed = onPlayButtonPressed,
-            icon = Res.drawable.ic_play,
-            title = Res.string.play,
-            shouldShowTitle = true,
-            onPointerEnter = onButtonHover,
-        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            SpaceSquadronButton(
+                onButtonPressed = onPlayButtonPressed,
+                icon = Res.drawable.ic_play,
+                title = Res.string.play,
+                shouldShowTitle = true,
+                onPointerEnter = onButtonHover,
+            )
+            SpaceSquadronButton(
+                onButtonPressed = onPlayButtonPressed,
+                icon = Res.drawable.ic_exit,
+                title = Res.string.close_confirmation_positive,
+                shouldShowTitle = true,
+                onPointerEnter = onButtonHover,
+            )
+        }
     }
 }
 
