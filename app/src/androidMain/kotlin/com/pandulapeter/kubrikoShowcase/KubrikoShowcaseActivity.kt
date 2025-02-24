@@ -45,6 +45,7 @@ class KubrikoShowcaseActivity : ComponentActivity() {
         setContent {
             KubrikoShowcase(
                 isInFullscreenMode = isInFullscreenMode.collectAsState().value,
+                getIsInFullscreenMode = { isInFullscreenMode.value },
                 onFullscreenModeToggled = { isInFullscreenMode.update { currentValue -> !currentValue } },
             )
         }

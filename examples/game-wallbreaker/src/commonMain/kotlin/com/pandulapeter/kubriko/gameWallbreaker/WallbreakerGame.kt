@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.WallbreakerGameStateHolder
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.WallbreakerGameStateHolderImpl
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.CloseConfirmationDialogOverlay
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.GameOverlay
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.InfoDialogOverlay
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.MenuOverlay
@@ -82,9 +83,13 @@ fun WallbreakerGame(
             kubriko = stateHolder.kubriko.collectAsState().value,
             windowInsets = windowInsets,
         )
+        val isFocused = stateHolder.stateManager.isFocused.collectAsState().value
+        val isInfoDialogVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value
+        val isCloseConfirmationDialogVisible = stateHolder.uiManager.isCloseConfirmationDialogVisible.collectAsState().value
         MenuOverlay(
             modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
             isVisible = !isGameRunning,
+            isActive = !isInfoDialogVisible && !isCloseConfirmationDialogVisible,
             shouldShowResumeButton = !stateHolder.gameplayManager.isGameOver.collectAsState().value,
             onResumeButtonPressed = stateHolder.gameplayManager::resumeGame,
             onRestartButtonPressed = stateHolder.gameplayManager::restartGame,
@@ -92,9 +97,13 @@ fun WallbreakerGame(
                 stateHolder.audioManager.playClickSoundEffect()
                 stateHolder.uiManager.toggleInfoDialogVisibility()
             },
-            areSoundEffectsEnabled = stateHolder.stateManager.isFocused.collectAsState().value && stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
+            onExitButtonPressed = {
+                stateHolder.audioManager.playClickSoundEffect()
+                stateHolder.uiManager.toggleCloseConfirmationDialogVisibility()
+            },
+            areSoundEffectsEnabled = isFocused && stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
             onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
-            isMusicEnabled = stateHolder.stateManager.isFocused.collectAsState().value && stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
+            isMusicEnabled = isFocused && stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
             onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
             isInFullscreenMode = isInFullscreenMode,
             onFullscreenModeToggled = {
@@ -117,8 +126,18 @@ fun WallbreakerGame(
         )
         InfoDialogOverlay(
             modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
-            isVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
+            isVisible = isInfoDialogVisible,
             onInfoDialogClosed = stateHolder.uiManager::toggleInfoDialogVisibility,
+            onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
+        )
+        CloseConfirmationDialogOverlay(
+            modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
+            isVisible = isCloseConfirmationDialogVisible,
+            onCloseConfirmed = {
+                stateHolder.audioManager.playClickSoundEffect()
+                stateHolder.backNavigationIntent.tryEmit(Unit)
+            },
+            onCloseCancelled = stateHolder.uiManager::toggleCloseConfirmationDialogVisibility,
             onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
         )
     }

@@ -16,6 +16,7 @@ import androidx.compose.ui.window.ComposeUIViewController
 fun KubrikoShowcaseViewController() = ComposeUIViewController {
     KubrikoShowcase(
         isInFullscreenMode = isInFullscreenMode.value,
+        getIsInFullscreenMode = { isInFullscreenMode.value },
         onFullscreenModeToggled = { isInFullscreenMode.value = !isInFullscreenMode.value },
     )
 }

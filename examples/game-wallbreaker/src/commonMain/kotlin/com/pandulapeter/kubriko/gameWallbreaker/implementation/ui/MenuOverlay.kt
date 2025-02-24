@@ -9,17 +9,12 @@
  */
 package com.pandulapeter.kubriko.gameWallbreaker.implementation.ui
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,8 +29,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 import kubriko.examples.game_wallbreaker.generated.resources.Res
+import kubriko.examples.game_wallbreaker.generated.resources.close_confirmation_positive
 import kubriko.examples.game_wallbreaker.generated.resources.fullscreen_enter
 import kubriko.examples.game_wallbreaker.generated.resources.fullscreen_exit
+import kubriko.examples.game_wallbreaker.generated.resources.ic_exit
 import kubriko.examples.game_wallbreaker.generated.resources.ic_fullscreen_enter
 import kubriko.examples.game_wallbreaker.generated.resources.ic_fullscreen_exit
 import kubriko.examples.game_wallbreaker.generated.resources.ic_information
@@ -57,10 +54,12 @@ import org.jetbrains.compose.resources.painterResource
 internal fun MenuOverlay(
     modifier: Modifier,
     isVisible: Boolean,
+    isActive: Boolean,
     shouldShowResumeButton: Boolean,
     onResumeButtonPressed: () -> Unit,
     onRestartButtonPressed: () -> Unit,
     onInfoButtonPressed: () -> Unit,
+    onExitButtonPressed: () -> Unit,
     areSoundEffectsEnabled: Boolean,
     onSoundEffectsToggled: () -> Unit,
     isMusicEnabled: Boolean,
@@ -68,11 +67,9 @@ internal fun MenuOverlay(
     isInFullscreenMode: Boolean?,
     onFullscreenModeToggled: () -> Unit,
     onButtonHover: () -> Unit,
-) = AnimatedVisibility(
+) = WallbreakerAnimatedVisibility(
     modifier = modifier,
     visible = isVisible,
-    enter = fadeIn() + scaleIn(),
-    exit = scaleOut() + fadeOut(),
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -80,7 +77,7 @@ internal fun MenuOverlay(
         Column(
             modifier = Modifier.align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Image(
                 modifier = Modifier.padding(horizontal = 16.dp),
@@ -100,32 +97,43 @@ internal fun MenuOverlay(
                     )
                 )
                 WallbreakerButton(
-                    modifier = Modifier.scale(scale),
+                    modifier = if (isActive) Modifier.scale(scale) else Modifier,
                     onButtonPressed = if (shouldShowResumeButton) onResumeButtonPressed else onRestartButtonPressed,
                     icon = Res.drawable.ic_play,
                     contentDescription = Res.string.play,
-                    containerColor = createButtonColor(0f),
+                    containerColor = createButtonColor(0.3f),
                     onPointerEnter = onButtonHover,
                 )
                 WallbreakerButton(
                     onButtonPressed = onInfoButtonPressed,
                     icon = Res.drawable.ic_information,
                     contentDescription = Res.string.information,
-                    containerColor = createButtonColor(0.2f),
+                    containerColor = createButtonColor(0.45f),
                     onPointerEnter = onButtonHover,
                 )
+                WallbreakerButton(
+                    onButtonPressed = onExitButtonPressed,
+                    icon = Res.drawable.ic_exit,
+                    contentDescription = Res.string.close_confirmation_positive,
+                    containerColor = createButtonColor(0.6f),
+                    onPointerEnter = onButtonHover,
+                )
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 WallbreakerButton(
                     onButtonPressed = onSoundEffectsToggled,
                     icon = if (areSoundEffectsEnabled) Res.drawable.ic_sound_effects_on else Res.drawable.ic_sound_effects_off,
                     contentDescription = if (areSoundEffectsEnabled) Res.string.sound_effects_disable else Res.string.sound_effects_enable,
-                    containerColor = createButtonColor(0.4f),
+                    containerColor = createButtonColor(0.75f),
                     onPointerEnter = onButtonHover,
                 )
                 WallbreakerButton(
                     onButtonPressed = onMusicToggled,
                     icon = if (isMusicEnabled) Res.drawable.ic_music_on else Res.drawable.ic_music_off,
                     contentDescription = if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable,
-                    containerColor = createButtonColor(0.6f),
+                    containerColor = createButtonColor(0.9f),
                     onPointerEnter = onButtonHover,
                 )
                 isInFullscreenMode?.let {
@@ -133,7 +141,7 @@ internal fun MenuOverlay(
                         onButtonPressed = onFullscreenModeToggled,
                         icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
                         contentDescription = if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter,
-                        containerColor = createButtonColor(0.8f),
+                        containerColor = createButtonColor(0.05f),
                         onPointerEnter = onButtonHover,
                     )
                 }

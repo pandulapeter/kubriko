@@ -56,6 +56,7 @@ fun main() = application {
         window.minimumSize = Dimension(400, 400)
         KubrikoShowcase(
             isInFullscreenMode = isInFullscreenMode.value,
+            getIsInFullscreenMode = { isInFullscreenMode.value },
             onFullscreenModeToggled = {
                 isInFullscreenMode.value = !isInFullscreenMode.value
                 if (isInFullscreenMode.value) {

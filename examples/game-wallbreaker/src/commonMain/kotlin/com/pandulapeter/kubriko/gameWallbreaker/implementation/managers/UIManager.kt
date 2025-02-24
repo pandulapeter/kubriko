@@ -37,6 +37,8 @@ internal class UIManager(
     private val gameManager by manager<GameplayManager>()
     private val _isInfoDialogVisible = MutableStateFlow(false)
     val isInfoDialogVisible = _isInfoDialogVisible.asStateFlow()
+    private val _isCloseConfirmationDialogVisible = MutableStateFlow(false)
+    val isCloseConfirmationDialogVisible = _isCloseConfirmationDialogVisible.asStateFlow()
 
     @Composable
     override fun processModifier(modifier: Modifier, layerIndex: Int?) = modifier.pointerHoverIcon(
@@ -72,4 +74,6 @@ internal class UIManager(
     )
 
     fun toggleInfoDialogVisibility() = _isInfoDialogVisible.update { !it.also { if (it) audioManager.playClickSoundEffect() } }
+
+    fun toggleCloseConfirmationDialogVisibility() = _isCloseConfirmationDialogVisible.update { !it.also { audioManager.playClickSoundEffect() } }
 }

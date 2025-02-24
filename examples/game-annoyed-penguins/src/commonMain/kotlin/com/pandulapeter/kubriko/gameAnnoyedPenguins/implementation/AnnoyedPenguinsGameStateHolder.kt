@@ -36,6 +36,8 @@ import com.pandulapeter.kubriko.shaders.ShaderManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.sprites.SpriteManager
 import com.pandulapeter.kubriko.types.SceneSize
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.Json
@@ -201,7 +203,15 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
 
     override fun stopMusic() = audioManager.stopMusicBeforeDispose()
 
-    override fun navigateBack() = (stateManager.isRunning.value || uiManager.isInfoDialogVisible.value || gameplayManager.currentLevel.value != null).also {
+    override val backNavigationIntent = MutableSharedFlow<Unit>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+
+    override fun navigateBack(
+        isInFullscreenMode: Boolean,
+        onFullscreenModeToggled: () -> Unit,
+    ) = true.also {
         if (stateManager.isRunning.value) {
             audioManager.playButtonToggleSoundEffect()
             stateManager.updateIsRunning(false)
@@ -209,7 +219,13 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
             audioManager.playButtonToggleSoundEffect()
             uiManager.toggleInfoDialogVisibility()
         } else if (gameplayManager.currentLevel.value != null) {
+            audioManager.playButtonToggleSoundEffect()
             stateManager.updateIsRunning(true)
+        } else if (isInFullscreenMode) {
+            audioManager.playButtonToggleSoundEffect()
+            onFullscreenModeToggled()
+        } else {
+            // TODO: Dismiss close confirmation dialog
         }
     }
 

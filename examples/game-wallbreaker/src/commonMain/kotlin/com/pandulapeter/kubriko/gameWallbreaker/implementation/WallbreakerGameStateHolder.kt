@@ -28,6 +28,8 @@ import com.pandulapeter.kubriko.persistence.PersistenceManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shaders.ShaderManager
 import com.pandulapeter.kubriko.shared.StateHolder
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -121,13 +123,26 @@ internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
 
     override fun stopMusic() = audioManager.stopMusicBeforeDispose()
 
-    override fun navigateBack() = (stateManager.isRunning.value || uiManager.isInfoDialogVisible.value || gameplayManager.isGameStarted).also {
+    override val backNavigationIntent = MutableSharedFlow<Unit>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+
+    override fun navigateBack(
+        isInFullscreenMode: Boolean,
+        onFullscreenModeToggled: () -> Unit,
+    ) = true.also {
         if (stateManager.isRunning.value) {
             gameplayManager.pauseGame()
         } else if (uiManager.isInfoDialogVisible.value) {
             uiManager.toggleInfoDialogVisibility()
         } else if (gameplayManager.isGameStarted) {
             gameplayManager.resumeGame()
+        } else if (isInFullscreenMode) {
+            audioManager.playClickSoundEffect()
+            onFullscreenModeToggled()
+        } else {
+            uiManager.toggleCloseConfirmationDialogVisibility()
         }
     }
 

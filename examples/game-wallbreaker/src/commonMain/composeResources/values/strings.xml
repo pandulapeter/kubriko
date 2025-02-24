@@ -14,7 +14,6 @@
     <string name="information">Information</string>
     <string name="pause">Pause</string>
     <string name="close">Close</string>
-    <string name="score">Highscore: %1$d\nScore: %2$d</string>
     <string name="sound_effects_enable">Enable sound effects</string>
     <string name="sound_effects_disable">Disable sound effects</string>
     <string name="music_enable">Enable music</string>
@@ -30,5 +29,10 @@ Attribution:
  - Music: "Cyberpunk Moonlight Sonata" by Joth on opengameart.org
  - Sound effects: CC0 assets from freesound.org
  - Icons: materialdesignicons.com</string>
+    <string name="score">Score: %1$d</string>
+    <string name="highscore">Highscore: %1$d</string>
+    <string name="close_confirmation">Are you sure you want to close Wallbreaker?</string>
+    <string name="close_confirmation_positive">Close</string>
+    <string name="close_confirmation_negative">Cancel</string>
 
 </resources>

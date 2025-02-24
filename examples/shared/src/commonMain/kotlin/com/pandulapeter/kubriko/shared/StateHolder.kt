@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.shared
 
 import com.pandulapeter.kubriko.Kubriko
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 interface StateHolder {
 
@@ -20,6 +21,11 @@ interface StateHolder {
     val kubriko: Flow<Kubriko?>
 
     /**
+     * Used for navigating back
+     */
+    val backNavigationIntent: Flow<Unit> get() = emptyFlow()
+
+    /**
      * The music would stop after dispose() is called, but, due to the crossfade transition, that might be just a bit too late.
      */
     fun stopMusic() = Unit
@@ -27,7 +33,10 @@ interface StateHolder {
     /**
      * Can be used to hook into back navigation. Returns if the event was consumed.
      */
-    fun navigateBack(): Boolean = false
+    fun navigateBack(
+        isInFullscreenMode: Boolean,
+        onFullscreenModeToggled: () -> Unit,
+    ): Boolean = false
 
     /**
      * Can be used to free up all resources related to the current demo.

@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kubriko.examples.game_wallbreaker.generated.resources.Res
 import kubriko.examples.game_wallbreaker.generated.resources.ic_close
+import kubriko.examples.game_wallbreaker.generated.resources.ic_exit
 import kubriko.examples.game_wallbreaker.generated.resources.ic_fullscreen_enter
 import kubriko.examples.game_wallbreaker.generated.resources.ic_fullscreen_exit
 import kubriko.examples.game_wallbreaker.generated.resources.ic_information
@@ -71,6 +72,7 @@ internal class LoadingManager : Manager() {
 
     @Composable
     private fun areMenuResourcesLoaded() = isFontLoaded.collectAsState().value
+            && preloadedImageVector(Res.drawable.ic_exit).value != null
             && preloadedImageVector(Res.drawable.ic_fullscreen_enter).value != null
             && preloadedImageVector(Res.drawable.ic_fullscreen_exit).value != null
             && preloadedImageVector(Res.drawable.ic_information).value != null

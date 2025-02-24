@@ -70,7 +70,10 @@ internal class ShaderAnimationsDemoStateHolderImpl : ShaderAnimationsDemoStateHo
 
     fun onControlsStateChanged(controlsState: ControlsState) = _controlsState.update { controlsState }
 
-    override fun navigateBack() = (controlsState.value != ControlsState.COLLAPSED).also {
+    override fun navigateBack(
+        isInFullscreenMode: Boolean,
+        onFullscreenModeToggled: () -> Unit,
+    ) = (controlsState.value != ControlsState.COLLAPSED).also {
         if (it) {
             onControlsStateChanged(ControlsState.COLLAPSED)
         }

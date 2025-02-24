@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.unit.dp
@@ -22,37 +23,37 @@ import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import com.pandulapeter.kubrikoShowcase.implementation.ui.ShowcaseContent
 import com.pandulapeter.kubrikoShowcase.implementation.ui.getStateHolder
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun KubrikoShowcase(
     isInFullscreenMode: Boolean,
+    getIsInFullscreenMode: () -> Boolean,
     onFullscreenModeToggled: () -> Unit,
     webEscapePressEvent: Flow<Unit>? = null,
 ) = KubrikoTheme {
     LaunchedEffect(webEscapePressEvent) {
         webEscapePressEvent?.collect {
             val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
-            if (activeStateHolder?.navigateBack() == false) {
+            if (activeStateHolder?.navigateBack(
+                isInFullscreenMode = isInFullscreenMode,
+                onFullscreenModeToggled = onFullscreenModeToggled,
+            ) == false) {
                 activeStateHolder.stopMusic()
                 selectedShowcaseEntry.value = null
             }
         }
     }
-    BackHandler(isInFullscreenMode) {
+    BackHandler(selectedShowcaseEntry.value != null) {
         val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
         try {
-            if (activeStateHolder?.navigateBack() == false) {
-                onFullscreenModeToggled()
-            }
-        } catch (_: CancellationException) {
-        }
-    }
-    BackHandler(!isInFullscreenMode && selectedShowcaseEntry.value != null) {
-        val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
-        try {
-            if (activeStateHolder?.navigateBack() == false) {
+            if (activeStateHolder?.navigateBack(
+                isInFullscreenMode = getIsInFullscreenMode(),
+                onFullscreenModeToggled = onFullscreenModeToggled,
+            ) == false) {
                 activeStateHolder.stopMusic()
                 selectedShowcaseEntry.value = null
             }
@@ -61,6 +62,12 @@ fun KubrikoShowcase(
     }
     BoxWithConstraints {
         val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
+        val scope = rememberCoroutineScope()
+        LaunchedEffect(activeStateHolder) {
+            activeStateHolder?.backNavigationIntent?.onEach {
+                selectedShowcaseEntry.value = null
+            }?.launchIn(scope)
+        }
         ShowcaseContent(
             shouldUseCompactUi = maxWidth <= 680.dp,
             allShowcaseEntries = ShowcaseEntry.entries,

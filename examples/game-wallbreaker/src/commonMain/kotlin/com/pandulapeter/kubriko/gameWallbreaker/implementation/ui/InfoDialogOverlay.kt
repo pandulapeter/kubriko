@@ -12,8 +12,6 @@ package com.pandulapeter.kubriko.gameWallbreaker.implementation.ui
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.background
@@ -24,11 +22,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kubriko.examples.game_wallbreaker.generated.resources.Res
@@ -54,13 +54,12 @@ internal fun InfoDialogOverlay(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.75f)),
+                .background(Color.Black.copy(alpha = 0.75f))
+                .pointerInput(Unit) {},
         )
     }
-    AnimatedVisibility(
+    WallbreakerAnimatedVisibility(
         visible = isVisible,
-        enter = fadeIn() + scaleIn(),
-        exit = scaleOut() + fadeOut(),
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -77,6 +76,7 @@ internal fun InfoDialogOverlay(
                         .padding(16.dp),
                 ) {
                     Text(
+                        color = MaterialTheme.colorScheme.primary,
                         text = stringResource(Res.string.information_contents),
                     )
                 }
@@ -85,8 +85,8 @@ internal fun InfoDialogOverlay(
     }
     AnimatedVisibility(
         visible = isVisible,
-        enter = fadeIn() + slideIn { IntOffset(0, -it.height) } + scaleIn(),
-        exit = scaleOut() + slideOut { IntOffset(0, -it.height) } + fadeOut(),
+        enter = fadeIn() + slideIn { IntOffset(0, -it.height) },
+        exit = slideOut { IntOffset(0, -it.height) } + fadeOut(),
     ) {
         Box(
             modifier = Modifier.fillMaxSize().padding(16.dp),

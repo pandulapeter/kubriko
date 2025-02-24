@@ -29,6 +29,8 @@ import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shaders.ShaderManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.sprites.SpriteManager
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -126,19 +128,32 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
 
     override fun stopMusic() = audioManager.stopMusicBeforeDispose()
 
-    override fun navigateBack() = ((stateManager.isRunning.value && !gameplayManager.isGameOver.value) || uiManager.isInfoDialogVisible.value || gameplayManager.isGameStarted).also {
-        if (stateManager.isRunning.value) {
+    override val backNavigationIntent = MutableSharedFlow<Unit>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+
+    override fun navigateBack(
+        isInFullscreenMode: Boolean,
+        onFullscreenModeToggled: () -> Unit,
+    ) = true.also {
+        if (stateManager.isRunning.value && !gameplayManager.isGameOver.value) {
             gameplayManager.pauseGame()
         } else if (uiManager.isInfoDialogVisible.value) {
             uiManager.toggleInfoDialogVisibility()
-        } else {
+        } else if (gameplayManager.isGameStarted) {
             gameplayManager.playGame()
+        } else if (isInFullscreenMode) {
+            audioManager.playButtonToggleSoundEffect()
+            onFullscreenModeToggled()
+        } else {
+            // TODO: Dismiss close confirmation dialog
         }
     }
 
     override fun dispose() {
-        kubriko.value.dispose()
         backgroundKubriko.dispose()
+        kubriko.value.dispose()
     }
 }
 

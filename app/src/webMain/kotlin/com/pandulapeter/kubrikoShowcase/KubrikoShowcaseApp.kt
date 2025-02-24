@@ -59,6 +59,7 @@ fun main() {
         ) {
             KubrikoShowcase(
                 isInFullscreenMode = isInFullscreenMode.value,
+                getIsInFullscreenMode = { isInFullscreenMode.value },
                 onFullscreenModeToggled = {
                     isInFullscreenMode.value = !isInFullscreenMode.value
                     if (isInFullscreenMode.value) {

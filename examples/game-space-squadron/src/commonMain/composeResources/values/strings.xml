@@ -30,5 +30,8 @@ Attribution:
  - Sound effects: CC0 assets from freesound.org
  - Icons: materialdesignicons.com</string>
     <string name="score">Highscore: %1$d\nScore: %2$d</string>
+    <string name="close_confirmation">Are you sure you want to leave Space Squadron?</string>
+    <string name="close_confirmation_positive">Leave</string>
+    <string name="close_confirmation_negative">Cancel</string>
 
 </resources>
