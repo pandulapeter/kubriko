@@ -15,5 +15,6 @@
     <string name="vignette">Vignette</string>
     <string name="ripple">Ripple</string>
     <string name="chromatic_aberration">Chromatic aberration</string>
+    <string name="comic">Comic</string>
 
 </resources>

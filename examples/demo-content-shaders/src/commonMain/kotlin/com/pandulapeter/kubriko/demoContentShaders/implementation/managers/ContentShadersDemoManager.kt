@@ -35,8 +35,9 @@ import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.extensions.times
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
-import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.shaders.Shader
 import com.pandulapeter.kubriko.shaders.collection.ChromaticAberrationShader
+import com.pandulapeter.kubriko.shaders.collection.ComicShader
 import com.pandulapeter.kubriko.shaders.collection.RippleShader
 import com.pandulapeter.kubriko.shaders.collection.SmoothPixelationShader
 import com.pandulapeter.kubriko.shaders.collection.VignetteShader
@@ -46,6 +47,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kubriko.examples.demo_content_shaders.generated.resources.Res
 import kubriko.examples.demo_content_shaders.generated.resources.chromatic_aberration
+import kubriko.examples.demo_content_shaders.generated.resources.comic
 import kubriko.examples.demo_content_shaders.generated.resources.ripple
 import kubriko.examples.demo_content_shaders.generated.resources.smooth_pixelation
 import kubriko.examples.demo_content_shaders.generated.resources.vignette
@@ -56,11 +58,11 @@ internal class ContentShadersDemoManager : Manager() {
 
     private val state = MutableStateFlow(State())
     private val actorManager by manager<ActorManager>()
-    private val viewportManager by manager<ViewportManager>()
     private val smoothPixelationShader by lazy { SmoothPixelationShader() }
     private val vignetteShader by lazy { VignetteShader() }
     private val rippleShader by lazy { RippleShader() }
     private val chromaticAberrationShader by lazy { ChromaticAberrationShader() }
+    private val comicShader by lazy { ComicShader() }
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager.add(
@@ -77,7 +79,7 @@ internal class ContentShadersDemoManager : Manager() {
             }
         )
         state.onEach { state ->
-            actorManager.remove(smoothPixelationShader, vignetteShader, rippleShader, chromaticAberrationShader)
+            actorManager.remove(actorManager.allActors.value.filterIsInstance<Shader<*>>())
             actorManager.add(
                 buildList {
                     if (state.isSmoothPixelationShaderEnabled) {
@@ -85,6 +87,9 @@ internal class ContentShadersDemoManager : Manager() {
                     }
                     if (state.isVignetteShaderEnabled) {
                         add(vignetteShader)
+                    }
+                    if (state.isComicShaderEnabled) {
+                        add(comicShader)
                     }
                     if (state.isRippleShaderEnabled) {
                         add(rippleShader)
@@ -124,14 +129,9 @@ internal class ContentShadersDemoManager : Manager() {
         modifier = modifier,
     ) {
         Toggle(
-            name = Res.string.smooth_pixelation,
-            isChecked = state.isSmoothPixelationShaderEnabled,
-            onCheckedChanged = { onStateChanged(state.copy(isSmoothPixelationShaderEnabled = !state.isSmoothPixelationShaderEnabled)) }
-        )
-        Toggle(
-            name = Res.string.vignette,
-            isChecked = state.isVignetteShaderEnabled,
-            onCheckedChanged = { onStateChanged(state.copy(isVignetteShaderEnabled = !state.isVignetteShaderEnabled)) }
+            name = Res.string.chromatic_aberration,
+            isChecked = state.isChromaticAberrationShaderEnabled,
+            onCheckedChanged = { onStateChanged(state.copy(isChromaticAberrationShaderEnabled = !state.isChromaticAberrationShaderEnabled)) }
         )
         Toggle(
             name = Res.string.ripple,
@@ -139,9 +139,19 @@ internal class ContentShadersDemoManager : Manager() {
             onCheckedChanged = { onStateChanged(state.copy(isRippleShaderEnabled = !state.isRippleShaderEnabled)) }
         )
         Toggle(
-            name = Res.string.chromatic_aberration,
-            isChecked = state.isChromaticAberrationShaderEnabled,
-            onCheckedChanged = { onStateChanged(state.copy(isChromaticAberrationShaderEnabled = !state.isChromaticAberrationShaderEnabled)) }
+            name = Res.string.comic,
+            isChecked = state.isComicShaderEnabled,
+            onCheckedChanged = { onStateChanged(state.copy(isComicShaderEnabled = !state.isComicShaderEnabled)) }
+        )
+        Toggle(
+            name = Res.string.vignette,
+            isChecked = state.isVignetteShaderEnabled,
+            onCheckedChanged = { onStateChanged(state.copy(isVignetteShaderEnabled = !state.isVignetteShaderEnabled)) }
+        )
+        Toggle(
+            name = Res.string.smooth_pixelation,
+            isChecked = state.isSmoothPixelationShaderEnabled,
+            onCheckedChanged = { onStateChanged(state.copy(isSmoothPixelationShaderEnabled = !state.isSmoothPixelationShaderEnabled)) }
         )
     }
 
@@ -175,6 +185,7 @@ internal class ContentShadersDemoManager : Manager() {
     private data class State(
         val isSmoothPixelationShaderEnabled: Boolean = false,
         val isVignetteShaderEnabled: Boolean = true,
+        val isComicShaderEnabled: Boolean = false,
         val isRippleShaderEnabled: Boolean = true,
         val isChromaticAberrationShaderEnabled: Boolean = true,
     )
