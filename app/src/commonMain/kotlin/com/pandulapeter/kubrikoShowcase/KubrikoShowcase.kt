@@ -74,8 +74,10 @@ fun KubrikoShowcase(
             getSelectedShowcaseEntry = { selectedShowcaseEntry.value },
             selectedShowcaseEntry = selectedShowcaseEntry.value,
             onShowcaseEntrySelected = { showcaseEntry ->
-                activeStateHolder?.stopMusic()
-                selectedShowcaseEntry.value = showcaseEntry
+                if (showcaseEntry?.getStateHolder() != activeStateHolder) {
+                    activeStateHolder?.stopMusic()
+                    selectedShowcaseEntry.value = showcaseEntry
+                }
             },
             activeKubrikoInstance = activeStateHolder?.kubriko?.collectAsState(null)?.value,
             isInFullscreenMode = isInFullscreenMode,
