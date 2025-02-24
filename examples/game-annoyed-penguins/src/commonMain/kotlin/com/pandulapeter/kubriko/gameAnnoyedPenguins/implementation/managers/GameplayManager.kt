@@ -10,8 +10,10 @@
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers
 
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.GradualBlurShader
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
+import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
@@ -30,15 +32,20 @@ import org.jetbrains.compose.resources.MissingResourceException
 internal class GameplayManager : Manager() {
 
     private val actorManager by manager<ActorManager>()
+    private val stateManager by manager<StateManager>()
     private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
     private val _currentLevel = MutableStateFlow<String?>(null)
     val currentLevel = _currentLevel.asStateFlow()
     private val _isLoadingLevel = MutableStateFlow(false)
     val isLoadingLevel = _isLoadingLevel.asStateFlow()
+    private val blurShader = GradualBlurShader()
 
     override fun onInitialize(kubriko: Kubriko) {
         _currentLevel
             .onEach { loadScene(AllLevels[it]) }
+            .launchIn(scope)
+        stateManager.isRunning
+            .onEach { if (it) actorManager.remove(blurShader) else actorManager.add(blurShader) }
             .launchIn(scope)
     }
 

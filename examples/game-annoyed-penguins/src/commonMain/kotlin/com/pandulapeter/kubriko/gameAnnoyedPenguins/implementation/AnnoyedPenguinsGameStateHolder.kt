@@ -100,6 +100,12 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
             instanceNameForLogging = LOG_TAG_BACKGROUND,
         )
     }
+    private val shaderManager by lazy {
+        ShaderManager.newInstance(
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG_BACKGROUND,
+        )
+    }
     val backgroundLoadingManager by lazy {
         LoadingManager()
     }
@@ -117,7 +123,10 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
         UserPreferencesManager(persistenceManager)
     }
     val audioManager by lazy {
-        AudioManager(stateManager)
+        AudioManager(
+            stateManager = stateManager,
+            userPreferencesManager = sharedUserPreferencesManager,
+        )
     }
     private val particleManager by lazy {
         ParticleManager.newInstance(
@@ -179,6 +188,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
                 audioManager,
                 serializationManager,
                 gameplayManager,
+                shaderManager,
                 uiManager,
                 isLoggingEnabled = true,
                 instanceNameForLogging = LOG_TAG,

@@ -26,7 +26,7 @@ open class BlurShader(
     data class State(
         val blurHorizontal: Float = 20f,
         val blurVertical: Float = 20f,
-        val mode: Mode = Mode.DECAL,
+        val mode: Mode = Mode.CLAMP,
     ) : Shader.State {
 
         override fun ShaderUniformProvider.applyUniforms() = Unit

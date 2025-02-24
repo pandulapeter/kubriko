@@ -81,7 +81,7 @@ fun AnnoyedPenguinsGame(
             exit = fadeOut(),
         ) {
             val gameAlpha by animateFloatAsState(
-                targetValue = if (isGameRunning) 1f else 0.1f,
+                targetValue = if (isGameRunning) 1f else 0.4f,
                 animationSpec = tween(),
             )
             KubrikoViewport(

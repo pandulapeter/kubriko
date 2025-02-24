@@ -29,8 +29,8 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 @OptIn(ExperimentalResourceApi::class)
 internal class AudioManager(
     private val stateManager: StateManager,
+    private val userPreferencesManager: UserPreferencesManager,
 ) : Manager() {
-    private val userPreferencesManager by manager<UserPreferencesManager>()
     private val musicManager by manager<MusicManager>()
     private val soundManager by manager<SoundManager>()
     private val soundUrisToPlay = mutableSetOf<String>()
