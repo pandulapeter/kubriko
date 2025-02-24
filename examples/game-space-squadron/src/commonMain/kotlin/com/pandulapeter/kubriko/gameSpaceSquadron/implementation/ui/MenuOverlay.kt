@@ -19,6 +19,7 @@ import androidx.compose.animation.slideOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -178,11 +179,16 @@ private fun Title(
             .padding(top = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Image(
+        BoxWithConstraints(
             modifier = Modifier.weight(1f),
-            painter = painterResource(Res.drawable.img_logo),
-            contentDescription = null,
-        )
+        ) {
+            if (maxHeight > 72.dp) {
+                Image(
+                    painter = painterResource(Res.drawable.img_logo),
+                    contentDescription = null,
+                )
+            }
+        }
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
