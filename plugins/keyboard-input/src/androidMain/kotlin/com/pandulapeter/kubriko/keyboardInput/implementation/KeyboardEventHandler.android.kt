@@ -36,7 +36,7 @@ internal actual fun createKeyboardEventHandler(
     private val isActive = MutableStateFlow(false)
     private val keyReleasedTimestamps = mutableMapOf<Key, Long>()
     private val keyListener = View.OnUnhandledKeyEventListener { _, event ->
-        event.toKey()?.let { key ->
+        event?.toKey()?.let { key ->
             when (event.action) {
                 KeyEvent.ACTION_DOWN -> {
                     if (keyReleasedTimestamps.containsKey(key)) {
@@ -63,12 +63,12 @@ internal actual fun createKeyboardEventHandler(
 
     init {
         isActive.onEach { isActive ->
-            currentActivity?.let { activity ->
+            currentActivity?.window?.decorView?.rootView?.let { view ->
                 try {
                     if (isActive) {
-                        activity.window.decorView.rootView?.addOnUnhandledKeyEventListener(keyListener)
+                        view.addOnUnhandledKeyEventListener(keyListener)
                     } else {
-                        activity.window.decorView.rootView?.removeOnUnhandledKeyEventListener(keyListener)
+                        view.removeOnUnhandledKeyEventListener(keyListener)
                     }
                 } catch (_: ArrayIndexOutOfBoundsException) {
                 } catch (_: NullPointerException) {
