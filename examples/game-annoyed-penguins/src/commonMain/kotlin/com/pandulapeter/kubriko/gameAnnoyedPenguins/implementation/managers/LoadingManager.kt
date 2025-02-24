@@ -25,14 +25,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_back
-import kubriko.examples.game_annoyed_penguins.generated.resources.ic_exit
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_fullscreen_enter
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_fullscreen_exit
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_information
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_music_off
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_music_on
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_pause
-import kubriko.examples.game_annoyed_penguins.generated.resources.ic_play
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_sound_effects_off
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_sound_effects_on
 import kubriko.examples.game_annoyed_penguins.generated.resources.img_logo
@@ -78,14 +76,12 @@ internal class LoadingManager : Manager() {
     @Composable
     private fun areMenuResourcesLoaded() = isFontLoaded.collectAsState().value
             && preloadedImageVector(Res.drawable.ic_back).value != null
-            && preloadedImageVector(Res.drawable.ic_exit).value != null
             && preloadedImageVector(Res.drawable.ic_fullscreen_enter).value != null
             && preloadedImageVector(Res.drawable.ic_fullscreen_exit).value != null
             && preloadedImageVector(Res.drawable.ic_information).value != null
             && preloadedImageVector(Res.drawable.ic_music_off).value != null
             && preloadedImageVector(Res.drawable.ic_music_on).value != null
             && preloadedImageVector(Res.drawable.ic_pause).value != null
-            && preloadedImageVector(Res.drawable.ic_play).value != null
             && preloadedImageVector(Res.drawable.ic_sound_effects_off).value != null
             && preloadedImageVector(Res.drawable.ic_sound_effects_on).value != null
             && preloadedImageBitmap(Res.drawable.img_logo).value != null

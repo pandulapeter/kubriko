@@ -46,7 +46,7 @@ internal fun CloseConfirmationDialog(
             .padding(16.dp)
             .background(
                 shape = CircleShape,
-                color = Color.White.copy(alpha = 0.75f)
+                color = Color.White.copy(alpha = 0.9f)
             )
             .border(
                 shape = CircleShape,

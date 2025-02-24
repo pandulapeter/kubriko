@@ -40,13 +40,11 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import kubriko.examples.game_annoyed_penguins.generated.resources.close_confirmation_positive
 import kubriko.examples.game_annoyed_penguins.generated.resources.fullscreen_enter
 import kubriko.examples.game_annoyed_penguins.generated.resources.fullscreen_exit
-import kubriko.examples.game_annoyed_penguins.generated.resources.ic_exit
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_fullscreen_enter
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_fullscreen_exit
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_information
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_music_off
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_music_on
-import kubriko.examples.game_annoyed_penguins.generated.resources.ic_play
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_sound_effects_off
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_sound_effects_on
 import kubriko.examples.game_annoyed_penguins.generated.resources.img_logo
@@ -167,8 +165,6 @@ internal fun MenuOverlay(
                                 allLevels.forEach { level ->
                                     AnnoyedPenguinsButton(
                                         onButtonPressed = { onLevelSelected(level) },
-                                        icon = Res.drawable.ic_play,
-                                        shouldShowTitle = true,
                                         title = if (currentLevel == level) stringResource(Res.string.resume) else level,
                                         onPointerEnter = playHoverSoundEffect,
                                     )
@@ -179,8 +175,6 @@ internal fun MenuOverlay(
                                 )
                                 AnnoyedPenguinsButton(
                                     onButtonPressed = onCloseButtonPressed,
-                                    icon = Res.drawable.ic_exit,
-                                    shouldShowTitle = true,
                                     title = stringResource(Res.string.close_confirmation_positive),
                                     onPointerEnter = playHoverSoundEffect,
                                 )

@@ -9,8 +9,7 @@
  */
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -19,7 +18,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -32,14 +30,13 @@ internal fun AnnoyedPenguinsButton(
     modifier: Modifier = Modifier,
     title: String,
     icon: DrawableResource? = null,
-    shouldShowTitle: Boolean = icon == null,
     onButtonPressed: () -> Unit,
     onPointerEnter: () -> Unit,
 ) {
     FloatingActionButton(
         modifier = modifier
             .height(40.dp)
-            .run { if (shouldShowTitle) this else width(40.dp) }
+            .run { if (icon == null) defaultMinSize(minWidth = 96.dp) else width(40.dp) }
             .pointerInput(Unit) {
                 awaitPointerEventScope {
                     while (true) {
@@ -54,28 +51,13 @@ internal fun AnnoyedPenguinsButton(
         contentColor = MaterialTheme.colorScheme.onPrimary,
         onClick = onButtonPressed,
     ) {
-        if (shouldShowTitle) {
-            Row(
-                modifier = Modifier.padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (icon != null) {
-                    Icon(
-                        painter = painterResource(icon),
-                        contentDescription = title,
-                    )
-                }
-                Text(
-                    modifier = Modifier.padding(end = if (icon == null) 0.dp else 8.dp),
-                    text = title,
-                )
-            }
-        } else if (icon != null) {
-            Icon(
-                painter = painterResource(icon),
-                contentDescription = title,
-            )
-        }
+        if (icon == null) Text(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            text = title,
+        )
+        else Icon(
+            painter = painterResource(icon),
+            contentDescription = title,
+        )
     }
 }

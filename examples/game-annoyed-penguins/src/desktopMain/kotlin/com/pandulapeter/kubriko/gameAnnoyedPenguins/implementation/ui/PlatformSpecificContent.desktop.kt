@@ -14,7 +14,6 @@ import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import kubriko.examples.game_annoyed_penguins.generated.resources.editor
-import kubriko.examples.game_annoyed_penguins.generated.resources.ic_editor
 import org.jetbrains.compose.resources.stringResource
 
 internal val isSceneEditorVisible = MutableStateFlow(false)
@@ -30,9 +29,7 @@ internal actual fun PlatformSpecificContent(
             playToggleSoundEffect()
             isSceneEditorVisible.value = !isEditorVisible.value
         },
-        icon = Res.drawable.ic_editor,
         title = stringResource(Res.string.editor),
-        shouldShowTitle = true,
         onPointerEnter = playHoverSoundEffect,
     )
 }
