@@ -19,8 +19,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -117,6 +121,7 @@ internal class ContentShadersDemoManager : Manager() {
     ) {
         Card(
             modifier = Modifier.align(Alignment.BottomEnd),
+            colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surface),
         ) {
             Controls(
                 modifier = Modifier.width(280.dp),
@@ -132,7 +137,7 @@ internal class ContentShadersDemoManager : Manager() {
         state: State,
         onStateChanged: (State) -> Unit,
     ) = Column(
-        modifier = modifier,
+        modifier = modifier.verticalScroll(rememberScrollState()),
     ) {
         Toggle(
             name = Res.string.chromatic_aberration,
@@ -177,8 +182,11 @@ internal class ContentShadersDemoManager : Manager() {
                 selected = isChecked,
                 onClick = onCheckedChanged,
             )
-            .padding(start = 8.dp)
-            .padding(vertical = 4.dp),
+            .padding(
+                start = 16.dp,
+                end = 8.dp,
+            )
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {

@@ -11,8 +11,6 @@ package com.pandulapeter.kubriko.demoParticles.implementation.managers
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -20,7 +18,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Unique
@@ -29,7 +26,6 @@ import com.pandulapeter.kubriko.demoParticles.implementation.ui.EmitterPropertie
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
-import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.particles.ParticleEmitter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,7 +38,6 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticleSta
 
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
-    private val viewportManager by manager<ViewportManager>()
     private val _emissionRate = MutableStateFlow(0.5f)
     val emissionRate = _emissionRate.asStateFlow()
     private val _isEmittingContinuously = MutableStateFlow(true)
@@ -82,15 +77,15 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticleSta
 
     @Composable
     override fun Composable(windowInsets: WindowInsets) = Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(windowInsets)
+            .padding(16.dp),
     ) {
         EmitterPropertiesPanel(
             modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .width(240.dp + windowInsets.asPaddingValues().calculateRightPadding(LocalLayoutDirection.current))
-                .windowInsetsPadding(windowInsets)
-                .padding(end = 16.dp)
-                .fillMaxHeight(),
+                .align(Alignment.BottomEnd)
+                .width(240.dp),
             particlesDemoManager = this@ParticlesDemoManager,
         )
     }

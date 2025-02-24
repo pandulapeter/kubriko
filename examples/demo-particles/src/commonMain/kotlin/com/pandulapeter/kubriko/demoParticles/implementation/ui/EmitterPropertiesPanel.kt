@@ -3,12 +3,16 @@ package com.pandulapeter.kubriko.demoParticles.implementation.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,19 +36,22 @@ import kotlin.math.roundToInt
 internal fun EmitterPropertiesPanel(
     modifier: Modifier,
     particlesDemoManager: ParticlesDemoManager,
-) = LazyColumn(
+) = Card(
     modifier = modifier,
+    colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surface),
 ) {
-    item("type") {
-        Type(
-            emissionRate = particlesDemoManager.emissionRate.collectAsState().value,
-            onEmissionRateChanged = particlesDemoManager::setEmissionRate,
-            isEmittingContinuously = particlesDemoManager.isEmittingContinuously.collectAsState().value,
-            onEmittingContinuouslyChanged = particlesDemoManager::onEmittingContinuouslyChanged,
-            onBurstButtonPressed = particlesDemoManager::burst,
-            lifespan = particlesDemoManager.lifespan.collectAsState().value,
-            onLifespanChanged = particlesDemoManager::setLifespan,
-        )
+    LazyColumn {
+        item("type") {
+            Type(
+                emissionRate = particlesDemoManager.emissionRate.collectAsState().value,
+                onEmissionRateChanged = particlesDemoManager::setEmissionRate,
+                isEmittingContinuously = particlesDemoManager.isEmittingContinuously.collectAsState().value,
+                onEmittingContinuouslyChanged = particlesDemoManager::onEmittingContinuouslyChanged,
+                onBurstButtonPressed = particlesDemoManager::burst,
+                lifespan = particlesDemoManager.lifespan.collectAsState().value,
+                onLifespanChanged = particlesDemoManager::setLifespan,
+            )
+        }
     }
 }
 
@@ -58,19 +65,34 @@ private fun Type(
     lifespan: Float,
     onLifespanChanged: (Float) -> Unit,
 ) = Column(
-    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-    verticalArrangement = Arrangement.spacedBy(8.dp),
+    modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 16.dp),
 ) {
     Text(
-        modifier = Modifier.padding(horizontal = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         text = stringResource(Res.string.rate, emissionRate.formatToString()),
     )
     ShaderSlider(
-        modifier = Modifier.padding(horizontal = 4.dp),
+        modifier = Modifier.padding(horizontal = 8.dp),
         value = emissionRate,
         onValueChanged = onEmissionRateChanged,
         valueRange = 0f..0.5f,
     )
+    Spacer(modifier = Modifier.height(8.dp))
+    Text(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .padding(top = 8.dp),
+        text = stringResource(Res.string.lifespan, lifespan.roundToInt()),
+    )
+    ShaderSlider(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        value = lifespan,
+        onValueChanged = onLifespanChanged,
+        valueRange = 100f..2000f,
+    )
+    Spacer(modifier = Modifier.height(8.dp))
     Row(
         modifier = Modifier.fillMaxSize()
             .selectable(
@@ -78,7 +100,11 @@ private fun Type(
                 selected = isEmittingContinuously,
                 onClick = onEmittingContinuouslyChanged,
             )
-            .padding(start = 8.dp),
+            .padding(vertical = 8.dp)
+            .padding(
+                start = 16.dp,
+                end = 8.dp,
+            ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
@@ -93,21 +119,12 @@ private fun Type(
             onCheckedChange = { onEmittingContinuouslyChanged() },
         )
     }
+    Spacer(modifier = Modifier.height(8.dp))
     LargeButton(
-        modifier = Modifier.padding(horizontal = 4.dp),
+        modifier = Modifier.padding(horizontal = 16.dp).align(Alignment.End),
         title = Res.string.burst,
         isEnabled = !isEmittingContinuously && emissionRate > 0f,
         onButtonPressed = onBurstButtonPressed,
-    )
-    Text(
-        modifier = Modifier.padding(horizontal = 8.dp),
-        text = stringResource(Res.string.lifespan, lifespan.roundToInt()),
-    )
-    ShaderSlider(
-        modifier = Modifier.padding(horizontal = 4.dp),
-        value = lifespan,
-        onValueChanged = onLifespanChanged,
-        valueRange = 100f..2000f,
     )
 }
 

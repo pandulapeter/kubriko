@@ -40,8 +40,14 @@ fun LargeButton(
     onButtonPressed: () -> Unit,
 ) = CompositionLocalProvider(LocalRippleConfiguration provides if (isEnabled) LocalRippleConfiguration.current else null) {
     FloatingActionButton(
-        modifier = modifier.height(40.dp).alpha(if (isEnabled) 1f else 0.5f),
+        modifier = modifier.alpha(if (isEnabled) 1f else 0.5f).height(40.dp),
         containerColor = if (isSystemInDarkTheme()) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary,
+        elevation = if (isEnabled) FloatingActionButtonDefaults.elevation() else FloatingActionButtonDefaults.elevation(
+            defaultElevation = 0.dp,
+            pressedElevation = 0.dp,
+            focusedElevation = 0.dp,
+            hoveredElevation = 0.dp,
+        ),
         onClick = {
             if (isEnabled) {
                 onButtonPressed()
