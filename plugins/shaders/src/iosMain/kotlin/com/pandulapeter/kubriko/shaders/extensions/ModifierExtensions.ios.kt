@@ -20,18 +20,13 @@ import org.jetbrains.skia.ImageFilter
 import org.jetbrains.skia.RuntimeEffect
 import org.jetbrains.skia.RuntimeShaderBuilder
 
+
 internal actual fun <T : Shader.State> createRenderEffect(
     shader: Shader<T>,
     size: Size,
 ): RenderEffect? {
-    val runtimeShaderBuilder =
-        (shader.shaderCache.runtimeShader as? RuntimeShaderBuilder)
-            ?: RuntimeShaderBuilder(RuntimeEffect.makeForShader(shader.shaderCode.trimIndent())).also { shader.shaderCache.runtimeShader = it }
-    val shaderUniformProvider =
-        (shader.shaderCache.uniformProvider as? ShaderUniformProviderImpl)
-            ?: ShaderUniformProviderImpl(runtimeShaderBuilder).also { shader.shaderCache.uniformProvider = it }
-    return (when (shader) {
-        is BlurShader -> ImageFilter.makeBlur(
+    if (shader is BlurShader) {
+        return ImageFilter.makeBlur(
             sigmaX = shader.shaderState.blurHorizontal,
             sigmaY = shader.shaderState.blurVertical,
             mode = when (shader.shaderState.mode) {
@@ -40,26 +35,34 @@ internal actual fun <T : Shader.State> createRenderEffect(
                 BlurShader.Mode.MIRROR -> FilterTileMode.MIRROR
                 BlurShader.Mode.DECAL -> FilterTileMode.DECAL
             },
-        )
+        ).asComposeRenderEffect()
+    } else {
+        val runtimeShaderBuilder =
+            (shader.shaderCache.runtimeShader as? RuntimeShaderBuilder)
+                ?: RuntimeShaderBuilder(RuntimeEffect.makeForShader(shader.shaderCode.trimIndent())).also { shader.shaderCache.runtimeShader = it }
+        val shaderUniformProvider =
+            (shader.shaderCache.uniformProvider as? ShaderUniformProviderImpl)
+                ?: ShaderUniformProviderImpl(runtimeShaderBuilder).also { shader.shaderCache.uniformProvider = it }
+        return (when (shader) {
+            is ContentShader<*> -> ImageFilter.makeRuntimeShader(
+                runtimeShaderBuilder = runtimeShaderBuilder.apply {
+                    with(shader.shaderState) { shaderUniformProvider.applyUniforms() }
+                    shaderUniformProvider.updateResolution(size)
+                },
+                shaderName = ContentShader.CONTENT,
+                input = null,
+            )
 
-        is ContentShader<*> -> ImageFilter.makeRuntimeShader(
-            runtimeShaderBuilder = runtimeShaderBuilder.apply {
-                with(shader.shaderState) { shaderUniformProvider.applyUniforms() }
-                shaderUniformProvider.updateResolution(size)
-            },
-            shaderName = ContentShader.CONTENT,
-            input = null,
-        )
-
-        else -> ImageFilter.makeRuntimeShader(
-            runtimeShaderBuilder = runtimeShaderBuilder.apply {
-                with(shader.shaderState) { shaderUniformProvider.applyUniforms() }
-                shaderUniformProvider.updateResolution(size)
-            },
-            shaderNames = emptyArray(),
-            inputs = emptyArray(),
-        )
-    }).asComposeRenderEffect()
+            else -> ImageFilter.makeRuntimeShader(
+                runtimeShaderBuilder = runtimeShaderBuilder.apply {
+                    with(shader.shaderState) { shaderUniformProvider.applyUniforms() }
+                    shaderUniformProvider.updateResolution(size)
+                },
+                shaderNames = emptyArray(),
+                inputs = emptyArray(),
+            )
+        }).asComposeRenderEffect()
+    }
 }
 
 private class ShaderUniformProviderImpl(
