@@ -21,6 +21,7 @@ import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.ScoreM
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.UIManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.UserPreferencesManager
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
+import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.particles.ParticleManager
@@ -89,6 +90,11 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
         instanceNameForLogging = LOG_TAG,
     )
     val gameplayManager = GameplayManager(backgroundStateManager)
+    private val actorManager = ActorManager.newInstance(
+        shouldUpdateActorsWhileNotRunning = true, // To ensure proper scaling during resize events while paused
+        isLoggingEnabled = true,
+        instanceNameForLogging = LOG_TAG,
+    )
     val uiManager = UIManager(stateManager)
     private val collisionManager = CollisionManager.newInstance(
         isLoggingEnabled = true,
@@ -105,6 +111,7 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
     )
     private val _kubriko = MutableStateFlow(
         Kubriko.newInstance(
+            actorManager,
             sharedMusicManager,
             sharedSoundManager,
             sharedSpriteManager,

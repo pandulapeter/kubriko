@@ -28,6 +28,7 @@ import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.Gamepl
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.ScoreManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.particleStates.BulletParticleState
 import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.particles.ParticleEmitter
 import com.pandulapeter.kubriko.types.AngleRadians
@@ -50,6 +51,7 @@ internal abstract class Bullet(
     protected lateinit var audioManager: AudioManager
     private lateinit var gameplayManager: GameplayManager
     private lateinit var scoreManager: ScoreManager
+    private lateinit var stateManager: StateManager
     private lateinit var viewportManager: ViewportManager
     override val drawingOrder = 1f
     override val particleStateType = BulletParticleState::class
@@ -62,17 +64,20 @@ internal abstract class Bullet(
         audioManager = kubriko.get()
         gameplayManager = kubriko.get()
         scoreManager = kubriko.get()
+        stateManager = kubriko.get()
         viewportManager = kubriko.get()
         audioManager.playSoundEffect()
     }
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        body.position += Offset(
-            x = direction.cos,
-            y = direction.sin,
-        ) * bulletBaseSpeed * deltaTimeInMilliseconds * speedIncrement(scoreManager.score.value)
-        if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
-            actorManager.remove(this)
+        if (stateManager.isRunning.value) {
+            body.position += Offset(
+                x = direction.cos,
+                y = direction.sin,
+            ) * bulletBaseSpeed * deltaTimeInMilliseconds * speedIncrement(scoreManager.score.value)
+            if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
+                actorManager.remove(this)
+            }
         }
     }
 

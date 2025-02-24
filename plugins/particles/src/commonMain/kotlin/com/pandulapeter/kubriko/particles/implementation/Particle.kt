@@ -15,6 +15,7 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.particles.ParticleEmitter
 import com.pandulapeter.kubriko.particles.ParticleManagerImpl
 
@@ -24,18 +25,22 @@ internal class Particle<S : ParticleEmitter.ParticleState>(
     override val body get() = state.body
     override val drawingOrder get() = state.drawingOrder
     private lateinit var actorManager: ActorManager
+    private lateinit var stateManager: StateManager
     private lateinit var particleManager: ParticleManagerImpl
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
+        stateManager = kubriko.get()
         particleManager = kubriko.get()
     }
 
     override fun onRemoved() = particleManager.addParticleToCache(state::class, this)
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        if (!state.update(deltaTimeInMilliseconds)) {
-            actorManager.remove(this)
+        if (stateManager.isRunning.value) {
+            if (!state.update(deltaTimeInMilliseconds)) {
+                actorManager.remove(this)
+            }
         }
     }
 

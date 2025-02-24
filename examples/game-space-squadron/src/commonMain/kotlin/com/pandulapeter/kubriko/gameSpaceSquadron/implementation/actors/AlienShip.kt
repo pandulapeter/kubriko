@@ -99,12 +99,12 @@ internal class AlienShip(
     }
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        if (deltaTimeInMilliseconds > 0) {
+        if (stateManager.isRunning.value) {
             animatedSprite.stepForward(
                 deltaTimeInMilliseconds = deltaTimeInMilliseconds,
                 shouldLoop = true,
             )
-            if (body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) && Random.nextInt(80) == 0 && deltaTimeInMilliseconds > 0) {
+            if (body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) && Random.nextInt(80) == 0 && stateManager.isRunning.value) {
                 val currentTimestamp = metadataManager.activeRuntimeInMilliseconds.value
                 val timeSinceLastShot = currentTimestamp - lastShotTimestamp
                 if (timeSinceLastShot > 200 && !gameplayManager.isGameOver.value) {

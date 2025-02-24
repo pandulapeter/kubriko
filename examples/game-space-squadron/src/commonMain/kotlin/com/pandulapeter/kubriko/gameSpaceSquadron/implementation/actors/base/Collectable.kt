@@ -25,6 +25,7 @@ import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.Ship
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sprites.AnimatedSprite
 import com.pandulapeter.kubriko.sprites.SpriteManager
@@ -44,6 +45,7 @@ internal abstract class Collectable(
     private lateinit var actorManager: ActorManager
     private lateinit var audioManager: AudioManager
     private lateinit var gameplayManager: GameplayManager
+    private lateinit var stateManager: StateManager
     private lateinit var spriteManager: SpriteManager
     private lateinit var viewportManager: ViewportManager
     override val body = RectangleBody(
@@ -70,6 +72,7 @@ internal abstract class Collectable(
         actorManager = kubriko.get()
         audioManager = kubriko.get()
         gameplayManager = kubriko.get()
+        stateManager = kubriko.get()
         spriteManager = kubriko.get()
         viewportManager = kubriko.get()
     }
@@ -77,13 +80,15 @@ internal abstract class Collectable(
     override fun DrawScope.draw() = animatedSprite.draw(this)
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        animatedSprite.stepForward(
-            deltaTimeInMilliseconds = deltaTimeInMilliseconds,
-            shouldLoop = true,
-        )
-        body.position += SceneOffset.Down * SPEED * deltaTimeInMilliseconds * gameplayManager.speedMultiplier.value
-        if (body.position.y > viewportManager.bottomRight.value.y + body.size.height) {
-            actorManager.remove(this)
+        if (stateManager.isRunning.value) {
+            animatedSprite.stepForward(
+                deltaTimeInMilliseconds = deltaTimeInMilliseconds,
+                shouldLoop = true,
+            )
+            body.position += SceneOffset.Down * SPEED * deltaTimeInMilliseconds * gameplayManager.speedMultiplier.value
+            if (body.position.y > viewportManager.bottomRight.value.y + body.size.height) {
+                actorManager.remove(this)
+            }
         }
         collisionBody.position = body.position
         collisionBody.scale = body.scale
