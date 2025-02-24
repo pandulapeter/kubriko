@@ -39,8 +39,8 @@ import org.jetbrains.compose.resources.stringResource
 internal fun SpaceSquadronButton(
     modifier: Modifier = Modifier,
     title: StringResource,
-    icon: DrawableResource,
-    shouldShowTitle: Boolean = false,
+    icon: DrawableResource? = null,
+    shouldShowTitle: Boolean = icon == null,
     onButtonPressed: () -> Unit,
     onPointerEnter: () -> Unit,
 ) {
@@ -80,19 +80,23 @@ internal fun SpaceSquadronButton(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = stringResource(title),
-                )
+                if (icon != null) {
+                    Icon(
+                        painter = painterResource(icon),
+                        contentDescription = stringResource(title),
+                    )
+                }
                 Text(
                     text = stringResource(title),
                 )
             }
         } else {
-            Icon(
-                painter = painterResource(icon),
-                contentDescription = stringResource(title),
-            )
+            if (icon != null) {
+                Icon(
+                    painter = painterResource(icon),
+                    contentDescription = stringResource(title),
+                )
+            }
         }
     }
 }

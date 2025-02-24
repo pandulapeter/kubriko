@@ -80,6 +80,17 @@ fun SpaceSquadronGame(
             windowInsets = windowInsets,
         )
         AnimatedVisibility(
+            visible = stateHolder.uiManager.isCloseConfirmationDialogVisible.collectAsState().value,
+            enter = fadeIn(),
+            exit = fadeOut(),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(0.5f)),
+            )
+        }
+        AnimatedVisibility(
             visible = isGameLoaded,
             enter = fadeIn() + scaleIn(),
             exit = scaleOut() + fadeOut(),
@@ -88,7 +99,13 @@ fun SpaceSquadronGame(
                 modifier = Modifier.windowInsetsPadding(windowInsets),
                 isVisible = !stateHolder.stateManager.isRunning.collectAsState().value || stateHolder.gameplayManager.isGameOver.collectAsState().value,
                 shouldShowInfoText = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
+                shouldCloseConfirmationDialog = stateHolder.uiManager.isCloseConfirmationDialogVisible.collectAsState().value,
                 onPlayButtonPressed = stateHolder.gameplayManager::playGame,
+                onLeaveButtonPressed = stateHolder.uiManager::toggleCloseConfirmationDialogVisibility,
+                onCloseConfirmed = {
+                    stateHolder.audioManager.playButtonToggleSoundEffect()
+                    stateHolder.backNavigationIntent.tryEmit(Unit)
+                },
                 onPauseButtonPressed = stateHolder.gameplayManager::pauseGame,
                 onInfoButtonPressed = {
                     stateHolder.audioManager.playButtonToggleSoundEffect()

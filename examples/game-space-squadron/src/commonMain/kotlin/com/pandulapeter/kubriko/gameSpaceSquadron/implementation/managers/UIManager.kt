@@ -70,6 +70,8 @@ internal class UIManager(
     private val scoreManager by manager<ScoreManager>()
     private val _isInfoDialogVisible = MutableStateFlow(false)
     val isInfoDialogVisible = _isInfoDialogVisible.asStateFlow()
+    private val _isCloseConfirmationDialogVisible = MutableStateFlow(false)
+    val isCloseConfirmationDialogVisible = _isCloseConfirmationDialogVisible.asStateFlow()
     private val shipHealth = MutableStateFlow(0)
     private val multiShoot = MutableStateFlow(0)
 
@@ -129,7 +131,7 @@ internal class UIManager(
             modifier = Modifier.align(Alignment.BottomStart),
             enter = fadeIn() + slideIn { IntOffset(0, it.height) },
             exit = slideOut { IntOffset(0, it.height) } + fadeOut(),
-            visible = scoreManager.score.collectAsState().value > 0,
+            visible = scoreManager.score.collectAsState().value > 0 && !isInfoDialogVisible.collectAsState().value && !isCloseConfirmationDialogVisible.collectAsState().value,
         ) {
             Text(
                 modifier = Modifier
@@ -176,7 +178,7 @@ internal class UIManager(
     override fun onKeyReleased(key: Key) {
         when (key) {
             Key.Spacebar, Key.Enter -> {
-                if (!stateManager.isRunning.value && !isInfoDialogVisible.value) {
+                if (!stateManager.isRunning.value && !isInfoDialogVisible.value && !isCloseConfirmationDialogVisible.value) {
                     gameplayManager.playGame()
                 }
             }
@@ -186,4 +188,6 @@ internal class UIManager(
     }
 
     fun toggleInfoDialogVisibility() = _isInfoDialogVisible.update { !it.also { if (it) audioManager.playButtonToggleSoundEffect() } }
+
+    fun toggleCloseConfirmationDialogVisibility() = _isCloseConfirmationDialogVisible.update { !it.also { audioManager.playButtonToggleSoundEffect() } }
 }

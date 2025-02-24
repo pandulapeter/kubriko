@@ -148,13 +148,13 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
             gameplayManager.pauseGame()
         } else if (uiManager.isInfoDialogVisible.value) {
             uiManager.toggleInfoDialogVisibility()
-        } else if (gameplayManager.isGameStarted) {
+        } else if (gameplayManager.isGameStarted && !uiManager.isCloseConfirmationDialogVisible.value) {
             gameplayManager.playGame()
         } else if (isInFullscreenMode) {
             audioManager.playButtonToggleSoundEffect()
             onFullscreenModeToggled()
         } else {
-            // TODO: Dismiss close confirmation dialog
+            uiManager.toggleCloseConfirmationDialogVisibility()
         }
     }
 

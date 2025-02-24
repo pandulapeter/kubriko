@@ -55,7 +55,7 @@ internal class UIManager(
     override fun onKeyReleased(key: Key) {
         when (key) {
             Key.Spacebar, Key.Enter -> {
-                if (!stateManager.isRunning.value && !isInfoDialogVisible.value) {
+                if (!stateManager.isRunning.value && !isInfoDialogVisible.value && !isCloseConfirmationDialogVisible.value) {
                     if (gameManager.isGameOver.value) {
                         gameManager.restartGame()
                     } else {

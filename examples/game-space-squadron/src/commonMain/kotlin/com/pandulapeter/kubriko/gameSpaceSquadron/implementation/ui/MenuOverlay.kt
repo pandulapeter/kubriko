@@ -17,7 +17,6 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,16 +25,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.back
 import kubriko.examples.game_space_squadron.generated.resources.close_confirmation_positive
@@ -54,7 +48,6 @@ import kubriko.examples.game_space_squadron.generated.resources.ic_sound_effects
 import kubriko.examples.game_space_squadron.generated.resources.ic_sound_effects_on
 import kubriko.examples.game_space_squadron.generated.resources.img_logo
 import kubriko.examples.game_space_squadron.generated.resources.information
-import kubriko.examples.game_space_squadron.generated.resources.information_contents
 import kubriko.examples.game_space_squadron.generated.resources.music_disable
 import kubriko.examples.game_space_squadron.generated.resources.music_enable
 import kubriko.examples.game_space_squadron.generated.resources.pause
@@ -62,14 +55,16 @@ import kubriko.examples.game_space_squadron.generated.resources.play
 import kubriko.examples.game_space_squadron.generated.resources.sound_effects_disable
 import kubriko.examples.game_space_squadron.generated.resources.sound_effects_enable
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun SpaceSquadronMenuOverlay(
     modifier: Modifier,
     isVisible: Boolean,
     shouldShowInfoText: Boolean,
+    shouldCloseConfirmationDialog: Boolean,
     onPlayButtonPressed: () -> Unit,
+    onLeaveButtonPressed: () -> Unit,
+    onCloseConfirmed: () -> Unit,
     onPauseButtonPressed: () -> Unit,
     onInfoButtonPressed: () -> Unit,
     areSoundEffectsEnabled: Boolean,
@@ -84,7 +79,7 @@ internal fun SpaceSquadronMenuOverlay(
 ) {
     AnimatedVisibility(
         modifier = Modifier.padding(16.dp),
-        visible = !isVisible && !shouldShowInfoText,
+        visible = !isVisible && !shouldShowInfoText && !shouldCloseConfirmationDialog,
         enter = fadeIn() + scaleIn(),
         exit = scaleOut() + fadeOut(),
     ) {
@@ -114,34 +109,19 @@ internal fun SpaceSquadronMenuOverlay(
         enter = fadeIn() + scaleIn(),
         exit = scaleOut() + fadeOut(),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-                .padding(
-                    top = 72.dp,
-                    bottom = 16.dp,
-                )
-        ) {
-            Column(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .background(
-                        color = Color.Black.copy(alpha = 0.75f),
-                        shape = SpaceSquadronUIElementShape,
-                    )
-                    .spaceSquadronUIElementBorder()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-            ) {
-                Text(
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    text = stringResource(Res.string.information_contents)
-                )
-            }
-        }
+        InfoDialog()
+    }
+    AnimatedVisibility(
+        modifier = Modifier.padding(16.dp),
+        visible = shouldCloseConfirmationDialog,
+        enter = fadeIn() + scaleIn(),
+        exit = scaleOut() + fadeOut(),
+    ) {
+        CloseConfirmationDialog(
+            onCloseConfirmed = onCloseConfirmed,
+            onCloseCanceled = onLeaveButtonPressed,
+            onButtonHover = onButtonHover,
+        )
     }
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -151,12 +131,13 @@ internal fun SpaceSquadronMenuOverlay(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            visible = isVisible && !shouldShowInfoText,
+            visible = isVisible && !shouldShowInfoText && !shouldCloseConfirmationDialog,
             enter = fadeIn() + slideIn { IntOffset(0, -it.height) },
             exit = slideOut { IntOffset(0, -it.height) } + fadeOut(),
         ) {
             Title(
                 onPlayButtonPressed = onPlayButtonPressed,
+                onLeaveButtonPressed = onLeaveButtonPressed,
                 onButtonHover = onButtonHover,
             )
         }
@@ -164,7 +145,7 @@ internal fun SpaceSquadronMenuOverlay(
             modifier = Modifier
                 .align(Alignment.End)
                 .padding(16.dp),
-            visible = isVisible && !shouldShowInfoText,
+            visible = isVisible && !shouldShowInfoText && !shouldCloseConfirmationDialog,
             enter = fadeIn() + slideIn { IntOffset(0, it.height * 8) },
             exit = slideOut { IntOffset(0, it.height * 8) } + fadeOut(),
         ) {
@@ -185,6 +166,7 @@ internal fun SpaceSquadronMenuOverlay(
 @Composable
 private fun Title(
     onPlayButtonPressed: () -> Unit,
+    onLeaveButtonPressed: () -> Unit,
     onButtonHover: () -> Unit,
 ) = Box(
     modifier = Modifier.fillMaxWidth(),
@@ -213,7 +195,7 @@ private fun Title(
                 onPointerEnter = onButtonHover,
             )
             SpaceSquadronButton(
-                onButtonPressed = onPlayButtonPressed,
+                onButtonPressed = onLeaveButtonPressed,
                 icon = Res.drawable.ic_exit,
                 title = Res.string.close_confirmation_positive,
                 shouldShowTitle = true,

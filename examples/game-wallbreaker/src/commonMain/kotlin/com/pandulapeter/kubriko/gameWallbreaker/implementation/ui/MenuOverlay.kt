@@ -20,7 +20,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -75,7 +77,7 @@ internal fun MenuOverlay(
         modifier = Modifier.fillMaxSize(),
     ) {
         Column(
-            modifier = Modifier.align(Alignment.Center),
+            modifier = Modifier.align(Alignment.Center).padding(top = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -83,6 +85,9 @@ internal fun MenuOverlay(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 painter = painterResource(Res.drawable.img_logo),
                 contentDescription = null,
+            )
+            Spacer(
+                modifier = Modifier.height(8.dp),
             )
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
