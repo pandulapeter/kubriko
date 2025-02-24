@@ -43,7 +43,6 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.extensions.Invisible
-import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.Ship
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.SpaceSquadronUIElementShape
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.spaceSquadronUIElementBorder
@@ -65,6 +64,7 @@ internal class UIManager(
     private val stateManager: StateManager,
 ) : Manager(), KeyboardInputAware, Unique {
 
+    private val actorManager by manager<ActorManager>()
     private val audioManager by manager<AudioManager>()
     private val gameplayManager by manager<GameplayManager>()
     private val scoreManager by manager<ScoreManager>()
@@ -76,7 +76,7 @@ internal class UIManager(
     private val multiShoot = MutableStateFlow(0)
 
     override fun onInitialize(kubriko: Kubriko) {
-        kubriko.get<ActorManager>().add(this)
+        actorManager.add(this)
         stateManager.isFocused
             .filterNot { it }
             .onEach { gameplayManager.pauseGame() }
@@ -178,7 +178,7 @@ internal class UIManager(
     override fun onKeyReleased(key: Key) {
         when (key) {
             Key.Spacebar, Key.Enter -> {
-                if (!stateManager.isRunning.value && !isInfoDialogVisible.value && !isCloseConfirmationDialogVisible.value) {
+                if ((!stateManager.isRunning.value || gameplayManager.isGameOver.value) && !isInfoDialogVisible.value && !isCloseConfirmationDialogVisible.value) {
                     gameplayManager.playGame()
                 }
             }
