@@ -11,10 +11,8 @@ package com.pandulapeter.kubriko.debugMenu
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -41,7 +39,6 @@ fun KubrikoViewportWithDebugMenuOverlay(
     modifier: Modifier = Modifier,
     kubriko: Kubriko?,
     kubrikoViewport: @Composable () -> Unit,
-    windowInsets: WindowInsets = WindowInsets.safeDrawing,
     buttonAlignment: Alignment? = Alignment.TopStart,
 ) {
     DisposableEffect(kubriko) {
@@ -50,9 +47,7 @@ fun KubrikoViewportWithDebugMenuOverlay(
             InternalDebugMenu.clearGameKubriko(kubriko)
         }
     }
-    Box(
-        modifier = modifier,
-    ) {
+    Box {
         // We only need this to initialize the PersistenceManager of InternalDebugMenu so that user settings can get restored.
         KubrikoViewport(
             modifier = Modifier.size(0.dp),
@@ -62,6 +57,7 @@ fun KubrikoViewportWithDebugMenuOverlay(
         val debugMenuKubriko = InternalDebugMenu.debugMenuKubriko.collectAsState().value[kubriko?.instanceName]
         if (debugMenuKubriko != null) {
             KubrikoViewport(
+                modifier = modifier,
                 kubriko = debugMenuKubriko,
             )
         }

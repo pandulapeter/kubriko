@@ -170,6 +170,7 @@ private fun ExpandedContent(
             Spacer(modifier = Modifier.width(sideMenuWidth).background(MaterialTheme.colorScheme.surface))
         }
         KubrikoViewportWithDebugMenuOverlay(
+            modifier = if (selectedShowcaseEntry == ShowcaseEntry.WALLBREAKER) Modifier.windowInsetsPadding(windowInsets) else Modifier,
             kubriko = activeKubrikoInstance,
             kubrikoViewport = {
                 val compactTransitionSpec: AnimatedContentTransitionScope<ShowcaseEntry?>.() -> ContentTransform =
@@ -196,7 +197,6 @@ private fun ExpandedContent(
                 }
             },
             buttonAlignment = null,
-            windowInsets = windowInsets,
         )
     }
     AnimatedVisibility(

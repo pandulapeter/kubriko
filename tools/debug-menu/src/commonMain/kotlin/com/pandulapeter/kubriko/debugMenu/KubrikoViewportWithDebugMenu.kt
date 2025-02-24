@@ -49,7 +49,6 @@ fun KubrikoViewportWithDebugMenu(
                     kubriko = kubriko,
                     kubrikoViewport = kubrikoViewport,
                     buttonAlignment = buttonAlignment,
-                    windowInsets = windowInsets,
                 )
                 VerticalDebugMenu(
                     kubriko = kubriko,
