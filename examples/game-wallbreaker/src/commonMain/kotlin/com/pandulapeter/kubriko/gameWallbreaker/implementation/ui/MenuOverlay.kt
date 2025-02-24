@@ -18,11 +18,10 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -77,78 +76,85 @@ internal fun MenuOverlay(
         modifier = Modifier.fillMaxSize(),
     ) {
         Column(
-            modifier = Modifier.align(Alignment.Center).padding(top = 16.dp),
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(top = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Image(
-                modifier = Modifier.padding(horizontal = 16.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp),
+                alignment = Alignment.BottomCenter,
                 painter = painterResource(Res.drawable.img_logo),
                 contentDescription = null,
             )
-            Spacer(
-                modifier = Modifier.height(8.dp),
-            )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            BoxWithConstraints(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(top = 8.dp),
             ) {
-                val infiniteTransition = rememberInfiniteTransition()
-                val scale by infiniteTransition.animateFloat(
-                    initialValue = 0.95f,
-                    targetValue = 1.05f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(durationMillis = 400, easing = FastOutSlowInEasing),
-                        repeatMode = RepeatMode.Reverse
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    itemVerticalAlignment = Alignment.CenterVertically,
+                    maxItemsInEachRow = if (maxHeight > 128.dp) 3 else 6,
+                ) {
+                    val infiniteTransition = rememberInfiniteTransition()
+                    val scale by infiniteTransition.animateFloat(
+                        initialValue = 0.95f,
+                        targetValue = 1.05f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+                            repeatMode = RepeatMode.Reverse
+                        )
                     )
-                )
-                WallbreakerButton(
-                    modifier = if (isActive) Modifier.scale(scale) else Modifier,
-                    onButtonPressed = if (shouldShowResumeButton) onResumeButtonPressed else onRestartButtonPressed,
-                    icon = Res.drawable.ic_play,
-                    contentDescription = Res.string.play,
-                    containerColor = createButtonColor(0.3f),
-                    onPointerEnter = onButtonHover,
-                )
-                WallbreakerButton(
-                    onButtonPressed = onInfoButtonPressed,
-                    icon = Res.drawable.ic_information,
-                    contentDescription = Res.string.information,
-                    containerColor = createButtonColor(0.45f),
-                    onPointerEnter = onButtonHover,
-                )
-                WallbreakerButton(
-                    onButtonPressed = onExitButtonPressed,
-                    icon = Res.drawable.ic_exit,
-                    contentDescription = Res.string.close_confirmation_positive,
-                    containerColor = createButtonColor(0.6f),
-                    onPointerEnter = onButtonHover,
-                )
-            }
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                WallbreakerButton(
-                    onButtonPressed = onSoundEffectsToggled,
-                    icon = if (areSoundEffectsEnabled) Res.drawable.ic_sound_effects_on else Res.drawable.ic_sound_effects_off,
-                    contentDescription = if (areSoundEffectsEnabled) Res.string.sound_effects_disable else Res.string.sound_effects_enable,
-                    containerColor = createButtonColor(0.75f),
-                    onPointerEnter = onButtonHover,
-                )
-                WallbreakerButton(
-                    onButtonPressed = onMusicToggled,
-                    icon = if (isMusicEnabled) Res.drawable.ic_music_on else Res.drawable.ic_music_off,
-                    contentDescription = if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable,
-                    containerColor = createButtonColor(0.9f),
-                    onPointerEnter = onButtonHover,
-                )
-                isInFullscreenMode?.let {
                     WallbreakerButton(
-                        onButtonPressed = onFullscreenModeToggled,
-                        icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
-                        contentDescription = if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter,
-                        containerColor = createButtonColor(0.05f),
+                        modifier = if (isActive) Modifier.scale(scale) else Modifier,
+                        onButtonPressed = if (shouldShowResumeButton) onResumeButtonPressed else onRestartButtonPressed,
+                        icon = Res.drawable.ic_play,
+                        contentDescription = Res.string.play,
+                        containerColor = createButtonColor(0.3f),
                         onPointerEnter = onButtonHover,
                     )
+                    WallbreakerButton(
+                        onButtonPressed = onInfoButtonPressed,
+                        icon = Res.drawable.ic_information,
+                        contentDescription = Res.string.information,
+                        containerColor = createButtonColor(0.45f),
+                        onPointerEnter = onButtonHover,
+                    )
+                    WallbreakerButton(
+                        onButtonPressed = onExitButtonPressed,
+                        icon = Res.drawable.ic_exit,
+                        contentDescription = Res.string.close_confirmation_positive,
+                        containerColor = createButtonColor(0.6f),
+                        onPointerEnter = onButtonHover,
+                    )
+                    WallbreakerButton(
+                        onButtonPressed = onSoundEffectsToggled,
+                        icon = if (areSoundEffectsEnabled) Res.drawable.ic_sound_effects_on else Res.drawable.ic_sound_effects_off,
+                        contentDescription = if (areSoundEffectsEnabled) Res.string.sound_effects_disable else Res.string.sound_effects_enable,
+                        containerColor = createButtonColor(0.75f),
+                        onPointerEnter = onButtonHover,
+                    )
+                    WallbreakerButton(
+                        onButtonPressed = onMusicToggled,
+                        icon = if (isMusicEnabled) Res.drawable.ic_music_on else Res.drawable.ic_music_off,
+                        contentDescription = if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable,
+                        containerColor = createButtonColor(0.9f),
+                        onPointerEnter = onButtonHover,
+                    )
+                    isInFullscreenMode?.let {
+                        WallbreakerButton(
+                            onButtonPressed = onFullscreenModeToggled,
+                            icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
+                            contentDescription = if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter,
+                            containerColor = createButtonColor(0.05f),
+                            onPointerEnter = onButtonHover,
+                        )
+                    }
                 }
             }
         }
