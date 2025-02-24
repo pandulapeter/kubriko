@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubriko.debugMenu
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -22,7 +21,7 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,8 +44,11 @@ fun KubrikoViewportWithDebugMenuOverlay(
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     buttonAlignment: Alignment? = Alignment.TopStart,
 ) {
-    LaunchedEffect(kubriko) {
+    DisposableEffect(kubriko) {
         InternalDebugMenu.setGameKubriko(kubriko)
+        onDispose {
+            InternalDebugMenu.clearGameKubriko(kubriko)
+        }
     }
     Box(
         modifier = modifier,
@@ -57,16 +59,11 @@ fun KubrikoViewportWithDebugMenuOverlay(
             kubriko = InternalDebugMenu.internalKubriko,
         )
         kubrikoViewport()
-        AnimatedContent(
-            targetState = InternalDebugMenu.debugMenuKubriko.collectAsState().value,
-            contentAlignment = Alignment.Center,
-        ) { debugMenuKubriko ->
-            if (debugMenuKubriko != null) {
-                KubrikoViewport(
-                    // TODO:  modifier = Modifier.windowInsetsPadding(windowInsets),
-                    kubriko = debugMenuKubriko,
-                )
-            }
+        val debugMenuKubriko = InternalDebugMenu.debugMenuKubriko.collectAsState().value[kubriko?.instanceName]
+        if (debugMenuKubriko != null) {
+            KubrikoViewport(
+                kubriko = debugMenuKubriko,
+            )
         }
         if (buttonAlignment != null) {
             Box(

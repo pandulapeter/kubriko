@@ -14,6 +14,8 @@ import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.persistence.PersistenceManager
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -73,7 +75,7 @@ internal object InternalDebugMenu {
             }
         }.filter { it.source?.contains(filter, true) == true || it.message.contains(filter, true) }
     }
-    private val _debugMenuKubriko = MutableStateFlow<Kubriko?>(null)
+    private val _debugMenuKubriko = MutableStateFlow(persistentMapOf<String, Kubriko>())
     val debugMenuKubriko = _debugMenuKubriko.asStateFlow()
     private val _metadata = MutableStateFlow<DebugMenuMetadata?>(null)
     val metadata = _metadata.asStateFlow()
@@ -99,20 +101,23 @@ internal object InternalDebugMenu {
 
     fun toggleIsEditingFilter() = _isEditingFilter.update { !it }
 
-    private var previousKubrikoInstanceName: String? = null
-
     fun setGameKubriko(kubriko: Kubriko?) {
-        if (kubriko?.instanceName != previousKubrikoInstanceName) {
-            previousKubrikoInstanceName = kubriko?.instanceName
-            debugMenuKubriko.value?.dispose()
-            _debugMenuKubriko.update {
-                kubriko?.let {
-                    Kubriko.newInstance(
-                        kubriko.get<ViewportManager>(),
-                        DebugMenuManager(kubriko),
-                    )
-                }
-            }
+        val mutableMap = debugMenuKubriko.value.toMutableMap()
+        if (mutableMap[kubriko?.instanceName] == null && kubriko != null) {
+            mutableMap[kubriko.instanceName] = Kubriko.newInstance(
+                kubriko.get<ViewportManager>(),
+                DebugMenuManager(kubriko),
+            )
+            _debugMenuKubriko.update { mutableMap.toPersistentMap() }
+        }
+    }
+
+    fun clearGameKubriko(kubriko: Kubriko?) {
+        val mutableMap = debugMenuKubriko.value.toMutableMap()
+        mutableMap[kubriko?.instanceName]?.let { debugMenuKubriko ->
+            debugMenuKubriko.dispose()
+            mutableMap.remove(kubriko?.instanceName)
+            _debugMenuKubriko.update { mutableMap.toPersistentMap() }
         }
     }
 
