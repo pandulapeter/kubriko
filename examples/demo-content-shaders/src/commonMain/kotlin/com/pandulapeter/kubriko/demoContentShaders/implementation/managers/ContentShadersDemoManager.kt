@@ -116,7 +116,7 @@ internal class ContentShadersDemoManager : Manager() {
             .padding(16.dp),
     ) {
         Card(
-            modifier = Modifier.align(Alignment.TopEnd),
+            modifier = Modifier.align(Alignment.BottomEnd),
         ) {
             Controls(
                 modifier = Modifier.width(280.dp),
