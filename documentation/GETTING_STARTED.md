@@ -304,10 +304,6 @@ offset with a value composed by the newly added `horizontalSpeed` and `verticalS
 > provides the number of milliseconds that have passed since drawing the previous frame. It is important to multiply any motion's parameters with this value so
 > that we can compensate for changes in the frame rate. Some devices might run our game at 120 FPS, while others only at 90 or 60. Performance-heavy processing
 > can introduce fluctuations in the frame rate even on the same device. Using delta time keeps the gameplay balanced by compensating for these fluctuations.
->
-> Check out the
-> built-in [StateManager](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/manager/StateManager.kt) to
-> pause the game or query the window's focused state.
 
 If you run the game now, you should see that the ball moves diagonally out of the viewport.
 
@@ -394,9 +390,9 @@ reached one of the edges, we move it back to its previous position as mentioned 
 change its movement direction starting with the next frame.
 
 > [!NOTE]
-> While the `ViewportManager` usually deals with screen coordinates, the `topLeft` and `bottomRight` Flows are converted to `SceneOffset` values for
-> convenience.
-> They take into consideration pan and zoom and will always point to the corners of the viewport in the world space.
+> While the `ViewportManager` usually deals with screen coordinates, the values coming from the `topLeft` and `bottomRight` Flows are converted to `SceneOffset`
+> for convenience. This means that they take into consideration pan and zoom and will always point to the world space coordinates that are marked by the top-left
+> and the bottom-right corners of the viewport respectively.
 
 Run the app now to see how the bouncing works! Testing it on desktop or web is especially useful, since you can check how seamlessly the game responds to
 changing the window size at runtime.
@@ -407,7 +403,7 @@ TODO (add some interactive components using SpriteManager and PointerInputManage
 
 ## 8 - Menus
 
-TODO (draw on top of the KubrikoCanvas, or use Managers)
+TODO (StateManager usage, drawing on top of the KubrikoCanvas or using Manager Composables)
 
 ## 9 - Next steps
 
