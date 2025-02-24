@@ -11,10 +11,13 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,6 +31,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
@@ -88,7 +93,7 @@ internal fun MenuOverlay(
         )
     }
     AnimatedVisibility(
-        visible = !isInfoDialogVisible && !isCloseConfirmationDialogVisible,
+        visible = !isInfoDialogVisible,
         enter = slideIn { IntOffset(0, it.height) },
         exit = slideOut { IntOffset(0, it.height) },
     ) {
@@ -208,6 +213,18 @@ internal fun MenuOverlay(
                 }
             }
         }
+    }
+    AnimatedVisibility(
+        visible = isCloseConfirmationDialogVisible,
+        enter = fadeIn(),
+        exit = fadeOut(),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White.copy(alpha = 0.75f))
+                .pointerInput(Unit) {},
+        )
     }
     AnimatedVisibility(
         visible = isCloseConfirmationDialogVisible,

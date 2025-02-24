@@ -9,17 +9,22 @@
  */
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import kubriko.examples.game_annoyed_penguins.generated.resources.close_confirmation
@@ -38,14 +43,28 @@ internal fun CloseConfirmationDialog(
 ) {
     Column(
         modifier = Modifier
+            .padding(16.dp)
+            .background(
+                shape = CircleShape,
+                color = Color.White.copy(alpha = 0.75f)
+            )
+            .border(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primary,
+                width = 2.dp,
+            )
             .align(Alignment.Center)
-            .padding(16.dp),
+            .padding(
+                vertical = 16.dp,
+                horizontal = 48.dp,
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
             color = MaterialTheme.colorScheme.primary,
             text = stringResource(Res.string.close_confirmation),
+            textAlign = TextAlign.Center,
         )
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
