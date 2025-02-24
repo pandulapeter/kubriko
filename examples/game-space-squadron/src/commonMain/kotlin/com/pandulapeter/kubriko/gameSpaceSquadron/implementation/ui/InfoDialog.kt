@@ -31,11 +31,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun InfoDialog() = Box(
     modifier = Modifier
         .fillMaxSize()
-        .padding(horizontal = 16.dp)
-        .padding(
-            top = 72.dp,
-            bottom = 16.dp,
-        )
+        .padding(top = 48.dp)
 ) {
     Column(
         modifier = Modifier
