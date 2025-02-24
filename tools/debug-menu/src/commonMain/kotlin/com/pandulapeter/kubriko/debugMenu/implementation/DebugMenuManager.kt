@@ -25,6 +25,7 @@ import com.pandulapeter.kubriko.extensions.transformForViewport
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
+import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -36,6 +37,7 @@ internal class DebugMenuManager(
     private val gameKubriko: Kubriko,
 ) : Manager(), Overlay, Unique {
     private val gameActorManager by lazy { gameKubriko.get<ActorManager>() }
+    private val gameStateManager by lazy { gameKubriko.get<StateManager>() }
     private val gameMetadataManager by lazy { gameKubriko.get<MetadataManager>() }
     private val gameViewportManager by lazy { gameKubriko.get<ViewportManager>() }
     private val debugColor = Color.Cyan
@@ -62,7 +64,11 @@ internal class DebugMenuManager(
                 viewportSize = viewportSize,
                 isDebugOverlayEnabled = isDebugOverlayEnabled,
             )
-        }.onEach(InternalDebugMenu::setMetadata).launchIn(scope)
+        }.onEach {
+            if (gameStateManager.isFocused.value) {
+                InternalDebugMenu.setMetadata(it)
+            }
+        }.launchIn(scope)
     }
 
     override fun DrawScope.drawToViewport() {
