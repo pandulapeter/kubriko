@@ -86,6 +86,14 @@ fun WallbreakerGame(
         val isFocused = stateHolder.stateManager.isFocused.collectAsState().value
         val isInfoDialogVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value
         val isCloseConfirmationDialogVisible = stateHolder.uiManager.isCloseConfirmationDialogVisible.collectAsState().value
+        GameOverlay(
+            gameAreaModifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
+            isGameRunning = isGameRunning,
+            score = stateHolder.scoreManager.score.collectAsState().value,
+            highScore = stateHolder.scoreManager.highScore.collectAsState().value,
+            onPauseButtonPressed = stateHolder.gameplayManager::pauseGame,
+            onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
+        )
         MenuOverlay(
             modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
             isVisible = !isGameRunning,
@@ -115,14 +123,6 @@ fun WallbreakerGame(
                     stateHolder.audioManager.playHoverSoundEffect()
                 }
             },
-        )
-        GameOverlay(
-            gameAreaModifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
-            isGameRunning = isGameRunning,
-            score = stateHolder.scoreManager.score.collectAsState().value,
-            highScore = stateHolder.scoreManager.highScore.collectAsState().value,
-            onPauseButtonPressed = stateHolder.gameplayManager::pauseGame,
-            onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
         )
         InfoDialogOverlay(
             modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
