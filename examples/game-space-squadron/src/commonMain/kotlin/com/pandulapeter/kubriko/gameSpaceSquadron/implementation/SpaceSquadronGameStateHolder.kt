@@ -71,7 +71,6 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
         instanceNameForLogging = LOG_TAG,
     )
     val stateManager = StateManager.newInstance(
-        shouldAutoStart = false,
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
@@ -127,11 +126,13 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
 
     override fun stopMusic() = audioManager.stopMusicBeforeDispose()
 
-    override fun navigateBack() = ((stateManager.isRunning.value && !gameplayManager.isGameOver.value) || uiManager.isInfoDialogVisible.value).also {
+    override fun navigateBack() = ((stateManager.isRunning.value && !gameplayManager.isGameOver.value) || uiManager.isInfoDialogVisible.value || gameplayManager.isGameStarted).also {
         if (stateManager.isRunning.value) {
             gameplayManager.pauseGame()
         } else if (uiManager.isInfoDialogVisible.value) {
             uiManager.toggleInfoDialogVisibility()
+        } else {
+            gameplayManager.playGame()
         }
     }
 

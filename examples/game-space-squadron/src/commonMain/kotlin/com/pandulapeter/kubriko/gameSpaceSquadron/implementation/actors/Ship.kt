@@ -111,7 +111,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         viewportManager = kubriko.get()
         body.position = SceneOffset(
             x = SceneUnit.Zero,
-            y = viewportManager.bottomRight.value.y + body.size.height,
+            y = viewportManager.bottomRight.value.y * 2f,
         )
         health = MAX_HEALTH
         uiManager.updateShipMultiShoot(remainingMultiShootCount)

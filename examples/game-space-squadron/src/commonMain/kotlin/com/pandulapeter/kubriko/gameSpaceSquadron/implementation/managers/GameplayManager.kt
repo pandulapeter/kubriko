@@ -35,6 +35,7 @@ internal class GameplayManager(
     val isGameOver = _isGameOver.asStateFlow()
     val speedMultiplier by lazy { viewportManager.size.map { it.height / 1280f }.asStateFlow(1f) }
     val scaleMultiplier by lazy { viewportManager.size.map { (it.height + it.width) / 3000f }.asStateFlow(1f) }
+    val isGameStarted get() = actorManager.allActors.value.any { it is Ship }
 
     override fun onInitialize(kubriko: Kubriko) = actorManager.add(
         AlienShip(initialY = 100.sceneUnit),

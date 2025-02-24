@@ -129,7 +129,7 @@ internal class UIManager(
             modifier = Modifier.align(Alignment.TopEnd),
             enter = fadeIn() + slideIn { IntOffset(0, -it.height) },
             exit = slideOut { IntOffset(0, -it.height) } + fadeOut(),
-            visible = scoreManager.score.collectAsState().value > 0 || stateManager.isRunning.collectAsState().value,
+            visible = scoreManager.score.collectAsState().value > 0,
         ) {
             Text(
                 modifier = Modifier

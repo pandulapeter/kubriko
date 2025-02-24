@@ -101,7 +101,11 @@ fun WallbreakerGame(
                 stateHolder.audioManager.playClickSoundEffect()
                 onFullscreenModeToggled()
             },
-            onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
+            onButtonHover = {
+                if (!stateHolder.stateManager.isRunning.value) {
+                    stateHolder.audioManager.playHoverSoundEffect()
+                }
+            },
         )
         GameOverlay(
             gameAreaModifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),

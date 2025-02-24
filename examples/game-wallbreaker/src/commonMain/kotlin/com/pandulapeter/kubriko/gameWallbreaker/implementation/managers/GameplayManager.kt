@@ -38,6 +38,7 @@ internal class GameplayManager(
     private val paddle = Paddle()
     private val _isGameOver = MutableStateFlow(true)
     val isGameOver = _isGameOver.asStateFlow()
+    val isGameStarted get() = actorManager.allActors.value.filterIsInstance<Ball>().firstOrNull()?.isLaunched == true
     private val bricks = (-8..1).flatMap { y ->
         (-4..4).map { x ->
             Brick(

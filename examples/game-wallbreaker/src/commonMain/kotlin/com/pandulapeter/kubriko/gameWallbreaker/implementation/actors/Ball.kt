@@ -59,6 +59,7 @@ internal class Ball(
     private lateinit var viewportManager: ViewportManager
     private var isCollidingWithPaddle = false
     private var state = State.UNINITIALIZED
+    val isLaunched get() = state == State.LAUNCHED
 
     private enum class State {
         UNINITIALIZED,

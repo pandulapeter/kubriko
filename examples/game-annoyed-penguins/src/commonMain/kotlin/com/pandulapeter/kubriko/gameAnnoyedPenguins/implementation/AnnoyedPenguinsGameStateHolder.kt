@@ -201,13 +201,15 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
 
     override fun stopMusic() = audioManager.stopMusicBeforeDispose()
 
-    override fun navigateBack() = (stateManager.isRunning.value || uiManager.isInfoDialogVisible.value).also {
+    override fun navigateBack() = (stateManager.isRunning.value || uiManager.isInfoDialogVisible.value || gameplayManager.currentLevel.value != null).also {
         if (stateManager.isRunning.value) {
             audioManager.playButtonToggleSoundEffect()
             stateManager.updateIsRunning(false)
         } else if (uiManager.isInfoDialogVisible.value) {
             audioManager.playButtonToggleSoundEffect()
             uiManager.toggleInfoDialogVisibility()
+        } else if (gameplayManager.currentLevel.value != null) {
+            stateManager.updateIsRunning(true)
         }
     }
 
@@ -219,4 +221,3 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
 
 private const val LOG_TAG = "AP"
 private const val LOG_TAG_BACKGROUND = "$LOG_TAG-Background"
-private const val LOG_TAG_AUDIO = "$LOG_TAG-Audio"
