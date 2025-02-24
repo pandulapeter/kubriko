@@ -20,7 +20,6 @@ import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -113,44 +112,41 @@ fun AnnoyedPenguinsGame(
             enter = slideIn { IntOffset(0, -it.height) },
             exit = slideOut { IntOffset(0, -it.height) },
         ) {
-            BoxWithConstraints {
-                MenuOverlay(
-                    modifier = Modifier.windowInsetsPadding(windowInsets),
-                    currentLevel = stateHolder.gameplayManager.currentLevel.collectAsState().value,
-                    allLevels = GameplayManager.AllLevels.keys.toImmutableList(),
-                    onInfoButtonPressed = {
-                        stateHolder.audioManager.playButtonToggleSoundEffect()
-                        stateHolder.uiManager.toggleInfoDialogVisibility()
-                    },
-                    onCloseButtonPressed = {
-                        stateHolder.audioManager.playButtonToggleSoundEffect()
-                        stateHolder.uiManager.toggleCloseConfirmationDialogVisibility()
-                    },
-                    onCloseConfirmed = {
-                        stateHolder.audioManager.playButtonToggleSoundEffect()
-                        stateHolder.backNavigationIntent.tryEmit(Unit)
-                    },
-                    areSoundEffectsEnabled = isGameFocused && stateHolder.sharedUserPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
-                    onSoundEffectsToggled = stateHolder.sharedUserPreferencesManager::onAreSoundEffectsEnabledChanged,
-                    isMusicEnabled = isGameFocused && stateHolder.sharedUserPreferencesManager.isMusicEnabled.collectAsState().value,
-                    onMusicToggled = stateHolder.sharedUserPreferencesManager::onIsMusicEnabledChanged,
-                    isInFullscreenMode = isInFullscreenMode,
-                    onFullscreenModeToggled = {
-                        onFullscreenModeToggled()
-                        stateHolder.audioManager.playButtonToggleSoundEffect()
-                    },
-                    playToggleSoundEffect = stateHolder.audioManager::playButtonToggleSoundEffect,
-                    playHoverSoundEffect = stateHolder.audioManager::playButtonHoverSoundEffect,
-                    isInfoDialogVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
-                    isCloseConfirmationDialogVisible = stateHolder.uiManager.isCloseConfirmationDialogVisible.collectAsState().value,
-                    onLevelSelected = { level ->
-                        stateHolder.audioManager.playButtonToggleSoundEffect()
-                        stateHolder.gameplayManager.setCurrentLevel(level)
-                        stateHolder.stateManager.updateIsRunning(true)
-                    },
-                    shouldUseLandscapeLayout = maxWidth > maxHeight,
-                )
-            }
+            MenuOverlay(
+                modifier = Modifier.windowInsetsPadding(windowInsets),
+                currentLevel = stateHolder.gameplayManager.currentLevel.collectAsState().value,
+                allLevels = GameplayManager.AllLevels.keys.toImmutableList(),
+                onInfoButtonPressed = {
+                    stateHolder.audioManager.playButtonToggleSoundEffect()
+                    stateHolder.uiManager.toggleInfoDialogVisibility()
+                },
+                onCloseButtonPressed = {
+                    stateHolder.audioManager.playButtonToggleSoundEffect()
+                    stateHolder.uiManager.toggleCloseConfirmationDialogVisibility()
+                },
+                onCloseConfirmed = {
+                    stateHolder.audioManager.playButtonToggleSoundEffect()
+                    stateHolder.backNavigationIntent.tryEmit(Unit)
+                },
+                areSoundEffectsEnabled = isGameFocused && stateHolder.sharedUserPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
+                onSoundEffectsToggled = stateHolder.sharedUserPreferencesManager::onAreSoundEffectsEnabledChanged,
+                isMusicEnabled = isGameFocused && stateHolder.sharedUserPreferencesManager.isMusicEnabled.collectAsState().value,
+                onMusicToggled = stateHolder.sharedUserPreferencesManager::onIsMusicEnabledChanged,
+                isInFullscreenMode = isInFullscreenMode,
+                onFullscreenModeToggled = {
+                    onFullscreenModeToggled()
+                    stateHolder.audioManager.playButtonToggleSoundEffect()
+                },
+                playToggleSoundEffect = stateHolder.audioManager::playButtonToggleSoundEffect,
+                playHoverSoundEffect = stateHolder.audioManager::playButtonHoverSoundEffect,
+                isInfoDialogVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
+                isCloseConfirmationDialogVisible = stateHolder.uiManager.isCloseConfirmationDialogVisible.collectAsState().value,
+                onLevelSelected = { level ->
+                    stateHolder.audioManager.playButtonToggleSoundEffect()
+                    stateHolder.gameplayManager.setCurrentLevel(level)
+                    stateHolder.stateManager.updateIsRunning(true)
+                },
+            )
         }
     }
     AnimatedVisibility(
