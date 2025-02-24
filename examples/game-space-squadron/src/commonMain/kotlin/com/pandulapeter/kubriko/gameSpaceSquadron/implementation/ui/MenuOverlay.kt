@@ -184,6 +184,7 @@ private fun Title(
         ) {
             if (maxHeight > 72.dp) {
                 Image(
+                    modifier = Modifier.align(Alignment.Center),
                     painter = painterResource(Res.drawable.img_logo),
                     contentDescription = null,
                 )
