@@ -36,6 +36,7 @@ import com.pandulapeter.kubriko.extensions.times
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.shaders.Shader
+import com.pandulapeter.kubriko.shaders.collection.BlurShader
 import com.pandulapeter.kubriko.shaders.collection.ChromaticAberrationShader
 import com.pandulapeter.kubriko.shaders.collection.ComicShader
 import com.pandulapeter.kubriko.shaders.collection.RippleShader
@@ -46,6 +47,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kubriko.examples.demo_content_shaders.generated.resources.Res
+import kubriko.examples.demo_content_shaders.generated.resources.blur
 import kubriko.examples.demo_content_shaders.generated.resources.chromatic_aberration
 import kubriko.examples.demo_content_shaders.generated.resources.comic
 import kubriko.examples.demo_content_shaders.generated.resources.ripple
@@ -60,6 +62,7 @@ internal class ContentShadersDemoManager : Manager() {
     private val actorManager by manager<ActorManager>()
     private val smoothPixelationShader by lazy { SmoothPixelationShader() }
     private val vignetteShader by lazy { VignetteShader() }
+    private val blurShader by lazy { BlurShader() }
     private val rippleShader by lazy { RippleShader() }
     private val chromaticAberrationShader by lazy { ChromaticAberrationShader() }
     private val comicShader by lazy { ComicShader() }
@@ -90,6 +93,9 @@ internal class ContentShadersDemoManager : Manager() {
                     }
                     if (state.isComicShaderEnabled) {
                         add(comicShader)
+                    }
+                    if (state.isBlurShaderEnabled) {
+                        add(blurShader)
                     }
                     if (state.isRippleShaderEnabled) {
                         add(rippleShader)
@@ -139,6 +145,11 @@ internal class ContentShadersDemoManager : Manager() {
             onCheckedChanged = { onStateChanged(state.copy(isRippleShaderEnabled = !state.isRippleShaderEnabled)) }
         )
         Toggle(
+            name = Res.string.blur,
+            isChecked = state.isBlurShaderEnabled,
+            onCheckedChanged = { onStateChanged(state.copy(isBlurShaderEnabled = !state.isBlurShaderEnabled)) }
+        )
+        Toggle(
             name = Res.string.comic,
             isChecked = state.isComicShaderEnabled,
             onCheckedChanged = { onStateChanged(state.copy(isComicShaderEnabled = !state.isComicShaderEnabled)) }
@@ -186,6 +197,7 @@ internal class ContentShadersDemoManager : Manager() {
         val isSmoothPixelationShaderEnabled: Boolean = false,
         val isVignetteShaderEnabled: Boolean = true,
         val isComicShaderEnabled: Boolean = false,
+        val isBlurShaderEnabled: Boolean = false,
         val isRippleShaderEnabled: Boolean = true,
         val isChromaticAberrationShaderEnabled: Boolean = true,
     )

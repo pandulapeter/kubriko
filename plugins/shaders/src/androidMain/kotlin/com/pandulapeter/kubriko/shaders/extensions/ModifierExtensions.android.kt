@@ -11,33 +11,52 @@ package com.pandulapeter.kubriko.shaders.extensions
 
 import android.graphics.RenderEffect
 import android.graphics.RuntimeShader
+import android.graphics.Shader.TileMode
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.asComposeRenderEffect
 import com.pandulapeter.kubriko.shaders.ContentShader
 import com.pandulapeter.kubriko.shaders.Shader
+import com.pandulapeter.kubriko.shaders.collection.BlurShader
 
 internal actual fun <T : Shader.State> createRenderEffect(
     shader: Shader<T>,
     size: Size,
 ): androidx.compose.ui.graphics.RenderEffect? {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        val runtimeShader = (shader.shaderCache.runtimeShader as? RuntimeShader) ?: RuntimeShader(shader.shaderCode.trimIndent()).also { shader.shaderCache.runtimeShader = it }
+        val runtimeShader =
+            (shader.shaderCache.runtimeShader as? RuntimeShader) ?: RuntimeShader(shader.shaderCode.trimIndent()).also { shader.shaderCache.runtimeShader = it }
         val shaderUniformProvider =
-            (shader.shaderCache.uniformProvider as? ShaderUniformProviderImpl) ?: ShaderUniformProviderImpl(runtimeShader).also { shader.shaderCache.uniformProvider = it }
-        return (if (shader is ContentShader<*>) RenderEffect.createRuntimeShaderEffect(
-            runtimeShader.apply {
-                with(shader.shaderState) { shaderUniformProvider.applyUniforms() }
-                shaderUniformProvider.updateResolution(size)
-            },
-            ContentShader.CONTENT,
-        ) else RenderEffect.createShaderEffect(
-            runtimeShader.apply {
-                with(shader.shaderState) { shaderUniformProvider.applyUniforms() }
-                shaderUniformProvider.updateResolution(size)
-            },
-        )).asComposeRenderEffect()
+            (shader.shaderCache.uniformProvider as? ShaderUniformProviderImpl)
+                ?: ShaderUniformProviderImpl(runtimeShader).also { shader.shaderCache.uniformProvider = it }
+        return (when (shader) {
+            is BlurShader -> RenderEffect.createBlurEffect(
+                shader.shaderState.blurHorizontal,
+                shader.shaderState.blurVertical,
+                when (shader.shaderState.mode) {
+                    BlurShader.Mode.CLAMP -> TileMode.CLAMP
+                    BlurShader.Mode.REPEAT -> TileMode.REPEAT
+                    BlurShader.Mode.MIRROR -> TileMode.MIRROR
+                    BlurShader.Mode.DECAL -> TileMode.DECAL
+                },
+            )
+
+            is ContentShader<*> -> RenderEffect.createRuntimeShaderEffect(
+                runtimeShader.apply {
+                    with(shader.shaderState) { shaderUniformProvider.applyUniforms() }
+                    shaderUniformProvider.updateResolution(size)
+                },
+                ContentShader.CONTENT,
+            )
+
+            else -> RenderEffect.createShaderEffect(
+                runtimeShader.apply {
+                    with(shader.shaderState) { shaderUniformProvider.applyUniforms() }
+                    shaderUniformProvider.updateResolution(size)
+                },
+            )
+        }).asComposeRenderEffect()
     } else {
         return null
     }
