@@ -65,6 +65,9 @@ fun KubrikoShowcase(
         val scope = rememberCoroutineScope()
         LaunchedEffect(activeStateHolder) {
             activeStateHolder?.backNavigationIntent?.onEach {
+                if (getIsInFullscreenMode()) {
+                    onFullscreenModeToggled()
+                }
                 selectedShowcaseEntry.value = null
             }?.launchIn(scope)
         }
