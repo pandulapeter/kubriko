@@ -23,6 +23,7 @@ internal class Shield(
     frameSize = IntSize(220, 218),
     frameCount = 70,
     framesPerRow = 9,
+    playCollectionSound = { playShieldSoundEffect() },
 ) {
     override fun Ship.onCollected() = onShieldCollected()
 }

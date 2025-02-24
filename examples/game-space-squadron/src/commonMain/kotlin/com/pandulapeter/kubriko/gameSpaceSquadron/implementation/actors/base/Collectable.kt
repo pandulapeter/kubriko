@@ -40,6 +40,7 @@ internal abstract class Collectable(
     frameSize: IntSize,
     frameCount: Int,
     framesPerRow: Int,
+    private val playCollectionSound: AudioManager.() -> Unit,
 ) : Visible, Dynamic, CollisionDetector {
 
     private lateinit var actorManager: ActorManager
@@ -109,7 +110,7 @@ internal abstract class Collectable(
                 if (body.position.distanceTo(ship.body.position) < CollisionLimit) {
                     ship.onCollected()
                     isShrinking = true
-                    audioManager.playPowerUpSoundEffect()
+                    audioManager.playCollectionSound()
                 }
             }
         }

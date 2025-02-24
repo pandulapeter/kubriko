@@ -23,6 +23,7 @@ internal class PowerUp(
     frameSize = IntSize(198, 186),
     frameCount = 87,
     framesPerRow = 10,
+    playCollectionSound = { playPowerUpSoundEffect() },
 ) {
     override fun Ship.onCollected() = onPowerUpCollected()
 }

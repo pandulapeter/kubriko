@@ -83,6 +83,8 @@ internal class AudioManager(
 
     fun playPowerUpSoundEffect() = playSoundEffect(URI_SOUND_POWER_UP)
 
+    fun playShieldSoundEffect() = playSoundEffect(URI_SOUND_SHIELD)
+
     fun stopMusicBeforeDispose() = shouldStopMusic.update { true }
 
     private fun playSoundEffect(uri: String) {
@@ -102,6 +104,7 @@ internal class AudioManager(
         private const val URI_SOUND_EXPLOSION_SMALL = "files/sounds/explosion_small.wav"
         private const val URI_SOUND_EXPLOSION_LARGE = "files/sounds/explosion_large.wav"
         private const val URI_SOUND_POWER_UP = "files/sounds/power_up.wav"
+        private const val URI_SOUND_SHIELD = "files/sounds/shield.wav"
 
         fun getMusicUrisToPreload() = listOf(
             URI_MUSIC,
@@ -117,6 +120,7 @@ internal class AudioManager(
             URI_SOUND_EXPLOSION_SMALL,
             URI_SOUND_EXPLOSION_LARGE,
             URI_SOUND_POWER_UP,
+            URI_SOUND_SHIELD,
         ).map { Res.getUri(it) }
     }
 }
