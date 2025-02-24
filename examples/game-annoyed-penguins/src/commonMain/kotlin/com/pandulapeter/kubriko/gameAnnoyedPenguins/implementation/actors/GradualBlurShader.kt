@@ -22,8 +22,8 @@ internal class GradualBlurShader : BlurShader(
     override fun update(deltaTimeInMilliseconds: Int) {
         if (shaderState.blurHorizontal < 20f) {
             shaderState = shaderState.copy(
-                blurHorizontal = shaderState.blurHorizontal + 0.1f,
-                blurVertical = shaderState.blurVertical + 0.1f,
+                blurHorizontal = shaderState.blurHorizontal + 0.01f * deltaTimeInMilliseconds,
+                blurVertical = shaderState.blurVertical + 0.01f * deltaTimeInMilliseconds,
             )
         }
     }

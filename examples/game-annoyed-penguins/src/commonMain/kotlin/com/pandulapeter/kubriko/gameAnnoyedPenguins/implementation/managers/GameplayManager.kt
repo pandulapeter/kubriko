@@ -64,6 +64,12 @@ internal class GameplayManager : Manager() {
         }
     }
 
+    override fun onUpdate(deltaTimeInMilliseconds: Int) {
+        if (!stateManager.isRunning.value) {
+            blurShader.update(deltaTimeInMilliseconds)
+        }
+    }
+
     fun setCurrentLevel(level: String) = _currentLevel.update { level }
 
     companion object {

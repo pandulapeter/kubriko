@@ -41,11 +41,13 @@ sealed class ActorManager(
     companion object {
         fun newInstance(
             initialActors: List<Actor> = emptyList(),
+            shouldUpdateActorsWhileNotRunning: Boolean = false,
             invisibleActorMinimumRefreshTimeInMillis: Long = 100,
             isLoggingEnabled: Boolean = false,
             instanceNameForLogging: String? = null,
         ): ActorManager = ActorManagerImpl(
             initialActors = initialActors,
+            shouldUpdateActorsWhileNotRunning = shouldUpdateActorsWhileNotRunning,
             invisibleActorMinimumRefreshTimeInMillis = invisibleActorMinimumRefreshTimeInMillis,
             isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = instanceNameForLogging,

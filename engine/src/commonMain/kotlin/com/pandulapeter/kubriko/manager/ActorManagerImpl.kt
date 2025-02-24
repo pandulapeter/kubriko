@@ -51,6 +51,7 @@ import kotlin.uuid.Uuid
 
 internal class ActorManagerImpl(
     initialActors: List<Actor>,
+    private val shouldUpdateActorsWhileNotRunning: Boolean,
     private val invisibleActorMinimumRefreshTimeInMillis: Long, // TODO: Feels hacky
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
@@ -103,12 +104,14 @@ internal class ActorManagerImpl(
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
-        dynamicActors.value
-            //.filter { if (it !is Positionable) true else it.body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) }
-            .forEach {
-                // TODO: Reduce update frequency for Positionable Dynamic actors that are not within the viewport
-                it.update(if (stateManager.isRunning.value) deltaTimeInMilliseconds else 0)
-            }
+        if (shouldUpdateActorsWhileNotRunning || stateManager.isRunning.value) {
+            dynamicActors.value
+                //.filter { if (it !is Positionable) true else it.body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) }
+                .forEach {
+                    // TODO: Reduce update frequency for Positionable Dynamic actors that are not within the viewport
+                    it.update(deltaTimeInMilliseconds)
+                }
+        }
     }
 
     private fun flattenActors(actors: List<Actor>): List<Actor> = actors.flatMap { actor ->
