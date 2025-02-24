@@ -21,9 +21,12 @@ import kotlinx.coroutines.flow.update
 
 internal class UIManager : Manager() {
 
+    private val audioManager by manager<AudioManager>()
     private val stateManager by manager<StateManager>()
     private val _isInfoDialogVisible = MutableStateFlow(false)
     val isInfoDialogVisible = _isInfoDialogVisible.asStateFlow()
+    private val _isCloseConfirmationDialogVisible = MutableStateFlow(false)
+    val isCloseConfirmationDialogVisible = _isCloseConfirmationDialogVisible.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         stateManager.isFocused
@@ -33,4 +36,6 @@ internal class UIManager : Manager() {
     }
 
     fun toggleInfoDialogVisibility() = _isInfoDialogVisible.update { !it }
+
+    fun toggleCloseConfirmationDialogVisibility() = _isCloseConfirmationDialogVisible.update { !it.also { audioManager.playButtonToggleSoundEffect() } }
 }

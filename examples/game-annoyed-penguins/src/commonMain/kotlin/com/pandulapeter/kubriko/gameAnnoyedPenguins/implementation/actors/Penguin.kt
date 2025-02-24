@@ -52,10 +52,8 @@ internal class Penguin private constructor(
     }
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        if (deltaTimeInMilliseconds > 0) {
-            body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
-            body.rotation = physicsBody.orientation
-        }
+        body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
+        body.rotation = physicsBody.orientation
     }
 
     override fun DrawScope.draw() {

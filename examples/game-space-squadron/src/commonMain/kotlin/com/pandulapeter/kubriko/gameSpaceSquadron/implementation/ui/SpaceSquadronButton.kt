@@ -90,13 +90,11 @@ internal fun SpaceSquadronButton(
                     text = stringResource(title),
                 )
             }
-        } else {
-            if (icon != null) {
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = stringResource(title),
-                )
-            }
+        } else if (icon != null) {
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = stringResource(title),
+            )
         }
     }
 }

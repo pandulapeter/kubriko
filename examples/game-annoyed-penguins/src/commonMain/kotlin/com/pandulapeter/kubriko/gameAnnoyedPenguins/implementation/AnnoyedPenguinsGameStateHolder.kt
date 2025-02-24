@@ -218,14 +218,14 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
         } else if (uiManager.isInfoDialogVisible.value) {
             audioManager.playButtonToggleSoundEffect()
             uiManager.toggleInfoDialogVisibility()
-        } else if (gameplayManager.currentLevel.value != null) {
+        } else if (gameplayManager.currentLevel.value != null && !uiManager.isCloseConfirmationDialogVisible.value) {
             audioManager.playButtonToggleSoundEffect()
             stateManager.updateIsRunning(true)
         } else if (isInFullscreenMode) {
             audioManager.playButtonToggleSoundEffect()
             onFullscreenModeToggled()
         } else {
-            // TODO: Dismiss close confirmation dialog
+            uiManager.toggleCloseConfirmationDialogVisibility()
         }
     }
 

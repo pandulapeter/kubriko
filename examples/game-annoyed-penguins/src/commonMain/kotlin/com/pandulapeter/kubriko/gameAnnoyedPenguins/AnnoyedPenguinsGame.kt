@@ -119,8 +119,16 @@ fun AnnoyedPenguinsGame(
                     currentLevel = stateHolder.gameplayManager.currentLevel.collectAsState().value,
                     allLevels = GameplayManager.AllLevels.keys.toImmutableList(),
                     onInfoButtonPressed = {
-                        stateHolder.uiManager.toggleInfoDialogVisibility()
                         stateHolder.audioManager.playButtonToggleSoundEffect()
+                        stateHolder.uiManager.toggleInfoDialogVisibility()
+                    },
+                    onCloseButtonPressed = {
+                        stateHolder.audioManager.playButtonToggleSoundEffect()
+                        stateHolder.uiManager.toggleCloseConfirmationDialogVisibility()
+                    },
+                    onCloseConfirmed = {
+                        stateHolder.audioManager.playButtonToggleSoundEffect()
+                        stateHolder.backNavigationIntent.tryEmit(Unit)
                     },
                     areSoundEffectsEnabled = isGameFocused && stateHolder.sharedUserPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
                     onSoundEffectsToggled = stateHolder.sharedUserPreferencesManager::onAreSoundEffectsEnabledChanged,
@@ -134,6 +142,7 @@ fun AnnoyedPenguinsGame(
                     playToggleSoundEffect = stateHolder.audioManager::playButtonToggleSoundEffect,
                     playHoverSoundEffect = stateHolder.audioManager::playButtonHoverSoundEffect,
                     isInfoDialogVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
+                    isCloseConfirmationDialogVisible = stateHolder.uiManager.isCloseConfirmationDialogVisible.collectAsState().value,
                     onLevelSelected = { level ->
                         stateHolder.audioManager.playButtonToggleSoundEffect()
                         stateHolder.gameplayManager.setCurrentLevel(level)

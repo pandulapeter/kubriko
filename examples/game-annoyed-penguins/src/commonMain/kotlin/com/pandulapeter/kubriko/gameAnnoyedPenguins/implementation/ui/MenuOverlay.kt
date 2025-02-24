@@ -25,8 +25,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,10 +32,10 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
-import kubriko.examples.game_annoyed_penguins.generated.resources.back
+import kubriko.examples.game_annoyed_penguins.generated.resources.close_confirmation_positive
 import kubriko.examples.game_annoyed_penguins.generated.resources.fullscreen_enter
 import kubriko.examples.game_annoyed_penguins.generated.resources.fullscreen_exit
-import kubriko.examples.game_annoyed_penguins.generated.resources.ic_back
+import kubriko.examples.game_annoyed_penguins.generated.resources.ic_exit
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_fullscreen_enter
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_fullscreen_exit
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_information
@@ -48,7 +46,6 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.ic_sound_effec
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_sound_effects_on
 import kubriko.examples.game_annoyed_penguins.generated.resources.img_logo
 import kubriko.examples.game_annoyed_penguins.generated.resources.information
-import kubriko.examples.game_annoyed_penguins.generated.resources.information_contents
 import kubriko.examples.game_annoyed_penguins.generated.resources.music_disable
 import kubriko.examples.game_annoyed_penguins.generated.resources.music_enable
 import kubriko.examples.game_annoyed_penguins.generated.resources.resume
@@ -63,6 +60,8 @@ internal fun MenuOverlay(
     currentLevel: String?,
     allLevels: ImmutableList<String>,
     onInfoButtonPressed: () -> Unit,
+    onCloseButtonPressed: () -> Unit,
+    onCloseConfirmed: () -> Unit,
     areSoundEffectsEnabled: Boolean,
     onSoundEffectsToggled: () -> Unit,
     isMusicEnabled: Boolean,
@@ -73,6 +72,7 @@ internal fun MenuOverlay(
     playHoverSoundEffect: () -> Unit = {},
     shouldUseLandscapeLayout: Boolean,
     isInfoDialogVisible: Boolean,
+    isCloseConfirmationDialogVisible: Boolean,
     onLevelSelected: (String) -> Unit,
     levelSelectorScrollState: ScrollState = rememberScrollState(),
 ) {
@@ -88,7 +88,7 @@ internal fun MenuOverlay(
         )
     }
     AnimatedVisibility(
-        visible = !isInfoDialogVisible,
+        visible = !isInfoDialogVisible && !isCloseConfirmationDialogVisible,
         enter = slideIn { IntOffset(0, it.height) },
         exit = slideOut { IntOffset(0, it.height) },
     ) {
@@ -158,7 +158,7 @@ internal fun MenuOverlay(
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             @Composable
-                            fun levelItems() {
+                            fun menuItems() {
                                 allLevels.forEach { level ->
                                     AnnoyedPenguinsButton(
                                         onButtonPressed = { onLevelSelected(level) },
@@ -172,6 +172,13 @@ internal fun MenuOverlay(
                                     playHoverSoundEffect = playHoverSoundEffect,
                                     playToggleSoundEffect = playToggleSoundEffect,
                                 )
+                                AnnoyedPenguinsButton(
+                                    onButtonPressed = onCloseButtonPressed,
+                                    icon = Res.drawable.ic_exit,
+                                    shouldShowTitle = true,
+                                    title = stringResource(Res.string.close_confirmation_positive),
+                                    onPointerEnter = playHoverSoundEffect,
+                                )
                             }
                             if (shouldUseLandscapeLayout) {
                                 Row(
@@ -182,7 +189,7 @@ internal fun MenuOverlay(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
-                                    levelItems()
+                                    menuItems()
                                 }
                             } else {
                                 Column(
@@ -193,7 +200,7 @@ internal fun MenuOverlay(
                                     verticalArrangement = Arrangement.spacedBy(8.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                 ) {
-                                    levelItems()
+                                    menuItems()
                                 }
                             }
                         }
@@ -202,32 +209,16 @@ internal fun MenuOverlay(
             }
         }
     }
-}
-
-@Composable
-private fun InfoDialog(
-    modifier: Modifier = Modifier,
-    onInfoButtonPressed: () -> Unit,
-    onPointerEnter: () -> Unit = {},
-) = Box(
-    modifier = modifier.fillMaxSize(),
-) {
-    Text(
-        modifier = Modifier
-            .align(Alignment.Center)
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
-            .padding(bottom = 56.dp),
-        color = MaterialTheme.colorScheme.primary,
-        text = stringResource(Res.string.information_contents),
-    )
-    AnnoyedPenguinsButton(
-        modifier = Modifier
-            .padding(16.dp)
-            .align(Alignment.BottomEnd),
-        icon = Res.drawable.ic_back,
-        title = stringResource(Res.string.back),
-        onButtonPressed = onInfoButtonPressed,
-        onPointerEnter = onPointerEnter,
-    )
+    AnimatedVisibility(
+        visible = isCloseConfirmationDialogVisible,
+        enter = slideIn { IntOffset(0, -it.height) },
+        exit = slideOut { IntOffset(0, -it.height) },
+    ) {
+        CloseConfirmationDialog(
+            modifier = modifier,
+            onCloseConfirmed = onCloseConfirmed,
+            onCloseCancelled = onCloseButtonPressed,
+            onPointerEnter = playHoverSoundEffect,
+        )
+    }
 }

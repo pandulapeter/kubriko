@@ -31,8 +31,8 @@ import org.jetbrains.compose.resources.painterResource
 internal fun AnnoyedPenguinsButton(
     modifier: Modifier = Modifier,
     title: String,
-    icon: DrawableResource,
-    shouldShowTitle: Boolean = false,
+    icon: DrawableResource? = null,
+    shouldShowTitle: Boolean = icon == null,
     onButtonPressed: () -> Unit,
     onPointerEnter: () -> Unit,
 ) {
@@ -60,16 +60,18 @@ internal fun AnnoyedPenguinsButton(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = title,
-                )
+                if (icon != null) {
+                    Icon(
+                        painter = painterResource(icon),
+                        contentDescription = title,
+                    )
+                }
                 Text(
-                    modifier = Modifier.padding(end = 8.dp),
+                    modifier = Modifier.padding(end = if (icon == null) 0.dp else 8.dp),
                     text = title,
                 )
             }
-        } else {
+        } else if (icon != null) {
             Icon(
                 painter = painterResource(icon),
                 contentDescription = title,
