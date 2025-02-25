@@ -9,6 +9,11 @@
  */
 package com.pandulapeter.kubriko.demoParticles.implementation.managers
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,8 +21,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Unique
@@ -27,11 +34,17 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.particles.ParticleEmitter
+import com.pandulapeter.kubriko.uiComponents.FloatingButton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kubriko.examples.demo_particles.generated.resources.Res
+import kubriko.examples.demo_particles.generated.resources.collapse_controls
+import kubriko.examples.demo_particles.generated.resources.expand_controls
+import kubriko.examples.demo_particles.generated.resources.ic_brush
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
 internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticleState>, Unique {
@@ -50,6 +63,7 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticleSta
     }
     private val _lifespan = MutableStateFlow(500f)
     val lifespan = _lifespan.asStateFlow()
+    private val areControlsExpanded = mutableStateOf(false)
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager.add(this)
@@ -82,11 +96,29 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticleSta
             .windowInsetsPadding(windowInsets)
             .padding(16.dp),
     ) {
-        EmitterPropertiesPanel(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .width(240.dp),
-            particlesDemoManager = this@ParticlesDemoManager,
+        AnimatedVisibility(
+            visible = areControlsExpanded.value,
+            enter = fadeIn() + scaleIn(transformOrigin = TransformOrigin(1f, 1f)),
+            exit = scaleOut(transformOrigin = TransformOrigin(1f, 1f)) + fadeOut(),
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                EmitterPropertiesPanel(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 16.dp, bottom = 16.dp)
+                        .width(240.dp),
+                    particlesDemoManager = this@ParticlesDemoManager,
+                )
+            }
+        }
+        FloatingButton(
+            modifier = Modifier.align(Alignment.BottomEnd),
+            icon = Res.drawable.ic_brush,
+            isSelected = areControlsExpanded.value,
+            contentDescription = stringResource(if (areControlsExpanded.value) Res.string.collapse_controls else Res.string.expand_controls),
+            onButtonPressed = { areControlsExpanded.value = !areControlsExpanded.value },
         )
     }
 }

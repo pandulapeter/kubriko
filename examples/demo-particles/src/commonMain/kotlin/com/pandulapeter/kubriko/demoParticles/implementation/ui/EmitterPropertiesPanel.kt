@@ -8,8 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,19 +38,15 @@ internal fun EmitterPropertiesPanel(
 ) = Panel(
     modifier = modifier,
 ) {
-    LazyColumn {
-        item("type") {
-            Type(
-                emissionRate = particlesDemoManager.emissionRate.collectAsState().value,
-                onEmissionRateChanged = particlesDemoManager::setEmissionRate,
-                isEmittingContinuously = particlesDemoManager.isEmittingContinuously.collectAsState().value,
-                onEmittingContinuouslyChanged = particlesDemoManager::onEmittingContinuouslyChanged,
-                onBurstButtonPressed = particlesDemoManager::burst,
-                lifespan = particlesDemoManager.lifespan.collectAsState().value,
-                onLifespanChanged = particlesDemoManager::setLifespan,
-            )
-        }
-    }
+    Type(
+        emissionRate = particlesDemoManager.emissionRate.collectAsState().value,
+        onEmissionRateChanged = particlesDemoManager::setEmissionRate,
+        isEmittingContinuously = particlesDemoManager.isEmittingContinuously.collectAsState().value,
+        onEmittingContinuouslyChanged = particlesDemoManager::onEmittingContinuouslyChanged,
+        onBurstButtonPressed = particlesDemoManager::burst,
+        lifespan = particlesDemoManager.lifespan.collectAsState().value,
+        onLifespanChanged = particlesDemoManager::setLifespan,
+    )
 }
 
 @Composable
@@ -64,6 +61,7 @@ private fun Type(
 ) = Column(
     modifier = Modifier
         .fillMaxWidth()
+        .verticalScroll(rememberScrollState())
         .padding(vertical = 16.dp),
 ) {
     Text(
@@ -118,7 +116,7 @@ private fun Type(
     }
     Spacer(modifier = Modifier.height(8.dp))
     LargeButton(
-        modifier = Modifier.padding(horizontal = 16.dp).align(Alignment.End),
+        modifier = Modifier.padding(horizontal = 16.dp),
         title = Res.string.burst,
         isEnabled = !isEmittingContinuously && emissionRate > 0f,
         onButtonPressed = onBurstButtonPressed,

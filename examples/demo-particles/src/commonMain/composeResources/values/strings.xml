@@ -10,6 +10,8 @@
 -->
 <resources>
 
+    <string name="expand_controls">Expand controls</string>
+    <string name="collapse_controls">Collapse controls</string>
     <string name="emit_continuously">Emit continuously</string>
     <string name="rate">Rate: %1$s</string>
     <string name="burst">Burst</string>

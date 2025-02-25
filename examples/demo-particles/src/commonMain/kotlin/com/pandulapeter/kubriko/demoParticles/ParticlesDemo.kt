@@ -19,6 +19,9 @@ import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.demoParticles.implementation.ParticlesDemoStateHolder
 import com.pandulapeter.kubriko.demoParticles.implementation.ParticlesDemoStateHolderImpl
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
+import kubriko.examples.demo_particles.generated.resources.Res
+import kubriko.examples.demo_particles.generated.resources.ic_brush
 
 fun createParticlesDemoStateHolder(): ParticlesDemoStateHolder = ParticlesDemoStateHolderImpl()
 
@@ -29,6 +32,7 @@ fun ParticlesDemo(
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as ParticlesDemoStateHolderImpl
+    preloadedImageVector(Res.drawable.ic_brush) // TODO: Introduce a loading state
     KubrikoViewport(
         modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest),
         kubriko = stateHolder.kubriko.collectAsState().value,
