@@ -167,7 +167,6 @@ internal fun MenuOverlay(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp)
-                        .padding(bottom = 16.dp)
                         .weight(1f),
                 ) {
                     Column(
