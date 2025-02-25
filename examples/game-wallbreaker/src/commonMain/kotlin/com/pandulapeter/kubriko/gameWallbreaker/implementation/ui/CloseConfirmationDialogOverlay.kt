@@ -93,16 +93,16 @@ internal fun CloseConfirmationDialogOverlay(
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         WallbreakerTextButton(
-                            onButtonPressed = onCloseConfirmed,
-                            onPointerEnter = onButtonHover,
-                            stringResource = Res.string.close_confirmation_positive,
-                            containerColor = createButtonColor(0f),
-                        )
-                        WallbreakerTextButton(
                             onButtonPressed = onCloseCancelled,
                             onPointerEnter = onButtonHover,
                             stringResource = Res.string.close_confirmation_negative,
                             containerColor = createButtonColor(0.3f),
+                        )
+                        WallbreakerTextButton(
+                            onButtonPressed = onCloseConfirmed,
+                            onPointerEnter = onButtonHover,
+                            stringResource = Res.string.close_confirmation_positive,
+                            containerColor = createButtonColor(0f),
                         )
                     }
                 }

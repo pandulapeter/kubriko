@@ -62,13 +62,13 @@ internal fun CloseConfirmationDialog(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             SpaceSquadronButton(
-                onButtonPressed = onCloseConfirmed,
-                title = Res.string.close_confirmation_positive,
+                onButtonPressed = onCloseCanceled,
+                title = Res.string.close_confirmation_negative,
                 onPointerEnter = onButtonHover,
             )
             SpaceSquadronButton(
-                onButtonPressed = onCloseCanceled,
-                title = Res.string.close_confirmation_negative,
+                onButtonPressed = onCloseConfirmed,
+                title = Res.string.close_confirmation_positive,
                 onPointerEnter = onButtonHover,
             )
         }

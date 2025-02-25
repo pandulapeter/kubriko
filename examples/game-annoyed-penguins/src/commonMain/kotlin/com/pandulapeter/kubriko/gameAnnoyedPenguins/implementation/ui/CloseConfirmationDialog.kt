@@ -71,13 +71,13 @@ internal fun CloseConfirmationDialog(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             AnnoyedPenguinsButton(
-                title = stringResource(Res.string.close_confirmation_positive),
-                onButtonPressed = onCloseConfirmed,
+                title = stringResource(Res.string.close_confirmation_negative),
+                onButtonPressed = onCloseCancelled,
                 onPointerEnter = onPointerEnter,
             )
             AnnoyedPenguinsButton(
-                title = stringResource(Res.string.close_confirmation_negative),
-                onButtonPressed = onCloseCancelled,
+                title = stringResource(Res.string.close_confirmation_positive),
+                onButtonPressed = onCloseConfirmed,
                 onPointerEnter = onPointerEnter,
             )
         }
