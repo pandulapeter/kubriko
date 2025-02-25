@@ -11,11 +11,9 @@ package com.pandulapeter.kubriko.demoPhysics.implementation.managers
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
@@ -52,6 +50,7 @@ import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.uiComponents.FloatingButton
+import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.LoadingOverlay
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,6 +63,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kubriko.examples.demo_physics.generated.resources.Res
 import kubriko.examples.demo_physics.generated.resources.chain
+import kubriko.examples.demo_physics.generated.resources.description
 import kubriko.examples.demo_physics.generated.resources.explosion
 import kubriko.examples.demo_physics.generated.resources.ic_chain
 import kubriko.examples.demo_physics.generated.resources.ic_explosion
@@ -110,38 +110,32 @@ internal class PhysicsDemoManager(
     ) {
         Column(
             modifier = Modifier.fillMaxSize().padding(16.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.End,
         ) {
+            InfoPanel(
+                stringResource = Res.string.description,
+            )
             PlatformSpecificContent()
             Spacer(
                 modifier = Modifier.weight(1f),
             )
             val selectedActionType = actionType.collectAsState()
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Spacer(
-                    modifier = Modifier.weight(1f),
-                )
-                FloatingButton(
-                    icon = when (selectedActionType.value) {
-                        ActionType.SHAPE -> Res.drawable.ic_shape
-                        ActionType.CHAIN -> Res.drawable.ic_chain
-                        ActionType.EXPLOSION -> Res.drawable.ic_explosion
-                    },
-                    onButtonPressed = ::changeSelectedActionType,
-                    contentDescription = stringResource(
-                        when (selectedActionType.value) {
-                            ActionType.SHAPE -> Res.string.shape
-                            ActionType.CHAIN -> Res.string.chain
-                            ActionType.EXPLOSION -> Res.string.explosion
-                        }
-                    ),
-                )
-            }
+            FloatingButton(
+                icon = when (selectedActionType.value) {
+                    ActionType.SHAPE -> Res.drawable.ic_shape
+                    ActionType.CHAIN -> Res.drawable.ic_chain
+                    ActionType.EXPLOSION -> Res.drawable.ic_explosion
+                },
+                onButtonPressed = ::changeSelectedActionType,
+                contentDescription = stringResource(
+                    when (selectedActionType.value) {
+                        ActionType.SHAPE -> Res.string.shape
+                        ActionType.CHAIN -> Res.string.chain
+                        ActionType.EXPLOSION -> Res.string.explosion
+                    }
+                ),
+            )
         }
     }
 

@@ -10,8 +10,9 @@
 -->
 <resources>
 
+    <string name="description">In this demo you can test simulating rigid body collisions. Tap / click anywhere to spawn the object that is currently selected. You can change the selection using the button in the bottom right corner of the screen (toggle between random shapes, chains and bombs).</string>
     <string name="shape">Shape</string>
     <string name="chain">Chain</string>
-    <string name="explosion">Explosion</string>
+    <string name="explosion">Bomb</string>
 
 </resources>
