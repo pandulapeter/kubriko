@@ -44,6 +44,15 @@ internal class ContentShadersDemoStateHolderImpl : ContentShadersDemoStateHolder
     override val kubriko = _kubriko.asStateFlow()
 
     override fun dispose() = kubriko.value.dispose()
+
+    override fun navigateBack(
+        isInFullscreenMode: Boolean,
+        onFullscreenModeToggled: () -> Unit,
+    ) = contentShadersDemoManager.areControlsExpanded.value.also {
+        if (it) {
+            contentShadersDemoManager.toggleControlsExpanded()
+        }
+    }
 }
 
 private const val LOG_TAG = "ContentShaders"

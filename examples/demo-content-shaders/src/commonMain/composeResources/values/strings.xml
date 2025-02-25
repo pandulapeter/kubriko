@@ -10,6 +10,7 @@
 -->
 <resources>
 
+    <string name="description">The grid of static, colorful rectangles is made out of regular Actors, but all the post-processing effects that are applied to them is achieved with content shaders. Use the control panel in the bottom right corner of the screen to turn the various shaders on or off.</string>
     <string name="shaders_not_supported">Shaders are only supported on or above Android 13</string>
     <string name="expand_controls">Expand controls</string>
     <string name="collapse_controls">Collapse controls</string>

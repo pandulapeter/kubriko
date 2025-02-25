@@ -18,8 +18,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -31,7 +33,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -52,15 +53,19 @@ import com.pandulapeter.kubriko.shaders.collection.SmoothPixelationShader
 import com.pandulapeter.kubriko.shaders.collection.VignetteShader
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.uiComponents.FloatingButton
+import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.Panel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kubriko.examples.demo_content_shaders.generated.resources.Res
 import kubriko.examples.demo_content_shaders.generated.resources.blur
 import kubriko.examples.demo_content_shaders.generated.resources.chromatic_aberration
 import kubriko.examples.demo_content_shaders.generated.resources.collapse_controls
 import kubriko.examples.demo_content_shaders.generated.resources.comic
+import kubriko.examples.demo_content_shaders.generated.resources.description
 import kubriko.examples.demo_content_shaders.generated.resources.expand_controls
 import kubriko.examples.demo_content_shaders.generated.resources.ic_brush
 import kubriko.examples.demo_content_shaders.generated.resources.ripple
@@ -79,7 +84,8 @@ internal class ContentShadersDemoManager : Manager() {
     private val rippleShader by lazy { RippleShader() }
     private val chromaticAberrationShader by lazy { ChromaticAberrationShader() }
     private val comicShader by lazy { ComicShader() }
-    private val areControlsExpanded = mutableStateOf(false)
+    private val _areControlsExpanded = MutableStateFlow(false)
+    val areControlsExpanded = _areControlsExpanded.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager.add(
@@ -123,40 +129,51 @@ internal class ContentShadersDemoManager : Manager() {
     }
 
     @Composable
-    override fun Composable(windowInsets: WindowInsets) = Box(
+    override fun Composable(windowInsets: WindowInsets) = Column(
         modifier = Modifier
             .fillMaxSize()
             .windowInsetsPadding(windowInsets)
             .padding(16.dp),
     ) {
-        AnimatedVisibility(
-            visible = areControlsExpanded.value,
-            enter = fadeIn() + scaleIn(transformOrigin = TransformOrigin(1f, 1f)),
-            exit = scaleOut(transformOrigin = TransformOrigin(1f, 1f)) + fadeOut(),
+        InfoPanel(
+            stringResource = Res.string.description,
+        )
+        Spacer(
+            modifier = Modifier.weight(1f),
+        )
+        Box(
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
+            val areControlsExpanded = areControlsExpanded.collectAsState().value
+            this@Column.AnimatedVisibility(
+                visible = areControlsExpanded,
+                enter = fadeIn() + scaleIn(transformOrigin = TransformOrigin(1f, 1f)),
+                exit = scaleOut(transformOrigin = TransformOrigin(1f, 1f)) + fadeOut(),
             ) {
-                Panel(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(bottom = 16.dp, end = 16.dp),
+                Box(
+                    modifier = Modifier.fillMaxSize(),
                 ) {
-                    Controls(
-                        modifier = Modifier.width(280.dp),
-                        state = state.collectAsState().value,
-                        onStateChanged = { state.value = it },
-                    )
+                    Panel(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(bottom = 16.dp, end = 16.dp),
+                    ) {
+                        Controls(
+                            modifier = Modifier.width(280.dp),
+                            state = state.collectAsState().value,
+                            onStateChanged = { state.value = it },
+                        )
+                    }
                 }
             }
+            FloatingButton(
+                modifier = Modifier.align(Alignment.BottomEnd),
+                icon = Res.drawable.ic_brush,
+                isSelected = areControlsExpanded,
+                contentDescription = stringResource(if (areControlsExpanded) Res.string.collapse_controls else Res.string.expand_controls),
+                onButtonPressed = ::toggleControlsExpanded,
+            )
         }
-        FloatingButton(
-            modifier = Modifier.align(Alignment.BottomEnd),
-            icon = Res.drawable.ic_brush,
-            isSelected = areControlsExpanded.value,
-            contentDescription = stringResource(if (areControlsExpanded.value) Res.string.collapse_controls else Res.string.expand_controls),
-            onButtonPressed = { areControlsExpanded.value = !areControlsExpanded.value },
-        )
     }
 
     @Composable
@@ -230,6 +247,8 @@ internal class ContentShadersDemoManager : Manager() {
             onCheckedChange = { onCheckedChanged() },
         )
     }
+
+    fun toggleControlsExpanded() = _areControlsExpanded.update { !it }
 
     private data class State(
         val isSmoothPixelationShaderEnabled: Boolean = false,

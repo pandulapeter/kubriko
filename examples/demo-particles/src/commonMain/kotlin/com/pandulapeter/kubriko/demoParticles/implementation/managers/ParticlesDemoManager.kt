@@ -109,8 +109,9 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticleSta
         Box(
             modifier = Modifier.fillMaxWidth(),
         ) {
+            val areControlsExpanded = areControlsExpanded.collectAsState().value
             this@Column.AnimatedVisibility(
-                visible = areControlsExpanded.collectAsState().value,
+                visible = areControlsExpanded,
                 enter = fadeIn() + scaleIn(transformOrigin = TransformOrigin(1f, 1f)),
                 exit = scaleOut(transformOrigin = TransformOrigin(1f, 1f)) + fadeOut(),
             ) {
@@ -129,8 +130,8 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticleSta
             FloatingButton(
                 modifier = Modifier.align(Alignment.BottomEnd),
                 icon = Res.drawable.ic_brush,
-                isSelected = areControlsExpanded.collectAsState().value,
-                contentDescription = stringResource(if (areControlsExpanded.value) Res.string.collapse_controls else Res.string.expand_controls),
+                isSelected = areControlsExpanded,
+                contentDescription = stringResource(if (areControlsExpanded) Res.string.collapse_controls else Res.string.expand_controls),
                 onButtonPressed = ::toggleControlsExpanded,
             )
         }
