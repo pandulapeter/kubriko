@@ -34,7 +34,7 @@
     <string name="welcome_tutorials">Tutorial videos</string>
     <string name="welcome_community">Join the community</string>
     <string name="welcome_license">Kubriko is under active development and will evolve together with the games that are being created with it. It's completely open source and free to use under MPL 2.0.</string>
-    <string name="welcome_app_details">This Showcase app contains a number of games, demos, and tests that present what the engine is capable of.\n\n</string>
+    <string name="welcome_app_details">This Showcase app contains a number of games and demos that present what the engine is capable of.\n\n</string>
     <string name="welcome_app_details_call_to_action_collapsed">Check them out using the menu below!</string>
     <string name="welcome_app_details_call_to_action_expanded">Check them out using the menu on the left!</string>
 

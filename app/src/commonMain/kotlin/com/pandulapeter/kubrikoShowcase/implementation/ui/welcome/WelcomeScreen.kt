@@ -65,6 +65,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun WelcomeScreen(
     modifier: Modifier = Modifier,
     shouldUseCompactUi: Boolean,
+    scrollToTop: () -> Unit,
 ) = Column(
     modifier = modifier.padding(
         top = 16.dp,
@@ -170,7 +171,12 @@ internal fun WelcomeScreen(
         ) { shouldShowMoreInfoState ->
             Row(
                 modifier = Modifier
-                    .clickable { shouldShowMoreInfo.value = shouldShowMoreInfoState }
+                    .clickable {
+                        shouldShowMoreInfo.value = shouldShowMoreInfoState
+                        if (!shouldShowMoreInfoState) {
+                            scrollToTop()
+                        }
+                    }
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,

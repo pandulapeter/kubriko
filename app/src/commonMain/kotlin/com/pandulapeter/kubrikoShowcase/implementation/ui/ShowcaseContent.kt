@@ -50,6 +50,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -61,6 +62,7 @@ import com.pandulapeter.kubriko.debugMenu.KubrikoViewportWithDebugMenuOverlay
 import com.pandulapeter.kubriko.debugMenu.VerticalDebugMenu
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import com.pandulapeter.kubrikoShowcase.implementation.ui.welcome.WelcomeScreen
+import kotlinx.coroutines.launch
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.welcome
 import kubriko.app.generated.resources.welcome_subtitle
@@ -264,6 +266,7 @@ private fun CompactContent(
 ) = Crossfade(
     targetState = !shouldUseCompactUi,
 ) { shouldUseExpandedUi ->
+    val coroutineScope = rememberCoroutineScope()
     if (shouldUseExpandedUi) {
         WelcomeScreen(
             modifier = Modifier
@@ -272,6 +275,11 @@ private fun CompactContent(
                 .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right))
                 .padding(bottom = 8.dp),
             shouldUseCompactUi = false,
+            scrollToTop = {
+                coroutineScope.launch {
+                    lazyListState.animateScrollToItem(0)
+                }
+            },
         )
     } else {
         AnimatedVisibility(
@@ -288,6 +296,11 @@ private fun CompactContent(
                     WelcomeScreen(
                         modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
                         shouldUseCompactUi = true,
+                        scrollToTop = {
+                            coroutineScope.launch {
+                                lazyListState.animateScrollToItem(0)
+                            }
+                        },
                     )
                 }
                 menu(
