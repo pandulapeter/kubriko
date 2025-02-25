@@ -23,12 +23,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun LoadingOverlay(
     modifier: Modifier = Modifier,
     shouldShowLoadingIndicator: Boolean,
+    color: Color = MaterialTheme.colorScheme.background,
     enter: EnterTransition = fadeIn(animationSpec = tween(durationMillis = 0)),
     exit: ExitTransition = fadeOut(animationSpec = tween(durationMillis = 1000)),
     content: @Composable (() -> Unit)? = null,
@@ -54,7 +56,7 @@ fun LoadingOverlay(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .background(color)
                 .padding(16.dp),
         ) {
             LoadingIndicator(

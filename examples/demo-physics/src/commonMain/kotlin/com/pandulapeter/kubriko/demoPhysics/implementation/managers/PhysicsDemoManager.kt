@@ -10,12 +10,14 @@
 package com.pandulapeter.kubriko.demoPhysics.implementation.managers
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -104,12 +106,17 @@ internal class PhysicsDemoManager(
     }
 
     @Composable
-    override fun Composable(windowInsets: WindowInsets) = LoadingOverlay(
-        modifier = Modifier.windowInsetsPadding(windowInsets),
-        shouldShowLoadingIndicator = shouldShowLoadingIndicator.collectAsState().value,
-    ) {
+    override fun Composable(windowInsets: WindowInsets) = Box {
+        LoadingOverlay(
+            modifier = Modifier.windowInsetsPadding(windowInsets),
+            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            shouldShowLoadingIndicator = shouldShowLoadingIndicator.collectAsState().value,
+        )
         Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
+            modifier = Modifier
+                .windowInsetsPadding(windowInsets)
+                .fillMaxSize()
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.End,
         ) {
@@ -117,9 +124,7 @@ internal class PhysicsDemoManager(
                 stringResource = Res.string.description,
             )
             PlatformSpecificContent()
-            Spacer(
-                modifier = Modifier.weight(1f),
-            )
+            Spacer(modifier = Modifier.weight(1f))
             val selectedActionType = actionType.collectAsState()
             FloatingButton(
                 icon = when (selectedActionType.value) {
@@ -138,6 +143,7 @@ internal class PhysicsDemoManager(
             )
         }
     }
+
 
     private fun changeSelectedActionType() = _actionType.update { currentActionType ->
         val values = ActionType.entries
