@@ -9,14 +9,19 @@
  */
 package com.pandulapeter.kubriko.demoPerformance.implementation.managers
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
@@ -27,6 +32,7 @@ import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
+import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.LoadingOverlay
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +43,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kubriko.examples.test_performance.generated.resources.Res
+import kubriko.examples.test_performance.generated.resources.description
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.MissingResourceException
 
@@ -67,16 +74,25 @@ internal class PerformanceTestManager(
     @Composable
     override fun Composable(windowInsets: WindowInsets) = Box {
         LoadingOverlay(
+            color = MaterialTheme.colorScheme.surfaceContainerHighest,
             shouldShowLoadingIndicator = shouldShowLoadingIndicator.collectAsState().value,
         )
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(windowInsets)
                 .padding(16.dp),
-            contentAlignment = Alignment.BottomEnd,
         ) {
-            PlatformSpecificContent()
+            InfoPanel(
+                stringResource = Res.string.description,
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                PlatformSpecificContent()
+            }
         }
     }
 
