@@ -26,8 +26,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,6 +51,7 @@ import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.NoodleControls
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.WarpControls
 import com.pandulapeter.kubriko.uiComponents.FloatingButton
+import com.pandulapeter.kubriko.uiComponents.Panel
 import kotlinx.collections.immutable.PersistentMap
 import kubriko.examples.demo_shader_animations.generated.resources.Res
 import kubriko.examples.demo_shader_animations.generated.resources.collapse_controls
@@ -82,9 +81,11 @@ internal fun ControlsContainer(
         targetValue = if (state.second == ControlsState.EXPANDED_CODE) 1f else 0f,
         animationSpec = tween(),
     )
-    Card(
-        modifier = Modifier.padding(16.dp).alpha(cardAlpha).padding(end = 48.dp * cardEndPaddingMultiplier),
-        colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surface),
+    Panel(
+        modifier = Modifier
+            .padding(16.dp)
+            .alpha(cardAlpha)
+            .padding(end = 48.dp * cardEndPaddingMultiplier),
     ) {
         AnimatedContent(
             targetState = state,

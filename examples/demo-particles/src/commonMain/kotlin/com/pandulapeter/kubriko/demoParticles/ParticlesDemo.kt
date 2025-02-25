@@ -12,10 +12,10 @@ package com.pandulapeter.kubriko.demoParticles
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.demoParticles.implementation.ParticlesDemoStateHolder
 import com.pandulapeter.kubriko.demoParticles.implementation.ParticlesDemoStateHolderImpl
@@ -30,7 +30,7 @@ fun ParticlesDemo(
 ) {
     stateHolder as ParticlesDemoStateHolderImpl
     KubrikoViewport(
-        modifier = modifier.background(Color.Black),
+        modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest),
         kubriko = stateHolder.kubriko.collectAsState().value,
         windowInsets = windowInsets,
     )

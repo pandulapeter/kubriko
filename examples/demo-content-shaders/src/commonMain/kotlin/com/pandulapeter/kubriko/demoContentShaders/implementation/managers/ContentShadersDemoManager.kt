@@ -22,9 +22,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,6 +44,7 @@ import com.pandulapeter.kubriko.shaders.collection.RippleShader
 import com.pandulapeter.kubriko.shaders.collection.SmoothPixelationShader
 import com.pandulapeter.kubriko.shaders.collection.VignetteShader
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.uiComponents.Panel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -119,9 +117,8 @@ internal class ContentShadersDemoManager : Manager() {
             .windowInsetsPadding(windowInsets)
             .padding(16.dp),
     ) {
-        Card(
+        Panel(
             modifier = Modifier.align(Alignment.BottomEnd),
-            colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surface),
         ) {
             Controls(
                 modifier = Modifier.width(280.dp),

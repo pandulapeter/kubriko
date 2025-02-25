@@ -10,16 +10,16 @@
 package com.pandulapeter.kubriko.demoInput.implementation
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.demoInput.implementation.managers.InputDemoManager
+import com.pandulapeter.kubriko.demoInput.implementation.managers.InputTestManager
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-sealed interface InputDemoStateHolder : StateHolder
+sealed interface InputTestStateHolder : StateHolder
 
-internal class InputDemoStateHolderImpl : InputDemoStateHolder {
+internal class InputTestStateHolderImpl : InputTestStateHolder {
     private val pointerInputManager = PointerInputManager.newInstance(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
@@ -28,12 +28,12 @@ internal class InputDemoStateHolderImpl : InputDemoStateHolder {
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    val inputDemoManager = InputDemoManager()
+    private val inputTestManager = InputTestManager()
     private val _kubriko = MutableStateFlow(
         Kubriko.newInstance(
             pointerInputManager,
             keyboardInputManager,
-            inputDemoManager,
+            inputTestManager,
             isLoggingEnabled = true,
             instanceNameForLogging = LOG_TAG,
         )

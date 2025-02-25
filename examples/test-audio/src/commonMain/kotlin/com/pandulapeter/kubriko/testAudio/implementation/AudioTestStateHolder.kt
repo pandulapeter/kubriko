@@ -13,7 +13,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.shared.StateHolder
-import com.pandulapeter.kubriko.testAudio.implementation.managers.AudioDemoManager
+import com.pandulapeter.kubriko.testAudio.implementation.managers.AudioTestManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -28,19 +28,19 @@ internal class AudioTestStateHolderImpl : AudioTestStateHolder {
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    private val audioDemoManager = AudioDemoManager()
+    private val audioTestManager = AudioTestManager()
     private val _kubriko = MutableStateFlow(
         Kubriko.newInstance(
             musicManager,
             soundManager,
-            audioDemoManager,
+            audioTestManager,
             isLoggingEnabled = true,
             instanceNameForLogging = LOG_TAG,
         )
     )
     override val kubriko = _kubriko.asStateFlow()
 
-    override fun stopMusic() = audioDemoManager.stopMusicBeforeDispose()
+    override fun stopMusic() = audioTestManager.stopMusicBeforeDispose()
 
     override fun dispose() = kubriko.value.dispose()
 }

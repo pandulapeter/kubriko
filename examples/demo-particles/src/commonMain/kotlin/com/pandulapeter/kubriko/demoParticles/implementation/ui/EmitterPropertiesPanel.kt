@@ -10,9 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +20,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.demoParticles.implementation.managers.ParticlesDemoManager
 import com.pandulapeter.kubriko.uiComponents.LargeButton
+import com.pandulapeter.kubriko.uiComponents.Panel
 import com.pandulapeter.kubriko.uiComponents.ShaderSlider
 import kubriko.examples.demo_particles.generated.resources.Res
 import kubriko.examples.demo_particles.generated.resources.burst
@@ -36,9 +34,8 @@ import kotlin.math.roundToInt
 internal fun EmitterPropertiesPanel(
     modifier: Modifier,
     particlesDemoManager: ParticlesDemoManager,
-) = Card(
+) = Panel(
     modifier = modifier,
-    colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surface),
 ) {
     LazyColumn {
         item("type") {

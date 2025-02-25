@@ -30,13 +30,10 @@ import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-internal class InputDemoManager : Manager(), KeyboardInputAware, PointerInputAware, Overlay, Unique {
-
-    private val _activeKeys = MutableStateFlow(emptySet<Key>())
-    val activeKeys = _activeKeys.asStateFlow()
+internal class InputTestManager : Manager(), KeyboardInputAware, PointerInputAware, Overlay, Unique {
+    val activeKeys = MutableStateFlow(emptySet<Key>())
     private var pointerOffset: Offset? = null
     private var isPointerBeingPressed = false
 
@@ -44,7 +41,7 @@ internal class InputDemoManager : Manager(), KeyboardInputAware, PointerInputAwa
         kubriko.get<ActorManager>().add(this)
     }
 
-    override fun handleActiveKeys(activeKeys: ImmutableSet<Key>) = _activeKeys.update { activeKeys }
+    override fun handleActiveKeys(activeKeys: ImmutableSet<Key>) = this.activeKeys.update { activeKeys }
 
     override fun onPointerOffsetChanged(screenOffset: Offset) {
         pointerOffset = screenOffset

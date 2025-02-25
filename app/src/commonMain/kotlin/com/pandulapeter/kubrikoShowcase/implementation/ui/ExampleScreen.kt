@@ -17,15 +17,15 @@ import androidx.compose.runtime.mutableStateOf
 import com.pandulapeter.kubriko.demoContentShaders.ContentShadersDemo
 import com.pandulapeter.kubriko.demoContentShaders.createContentShadersDemoStateHolder
 import com.pandulapeter.kubriko.demoContentShaders.implementation.ContentShadersDemoStateHolder
-import com.pandulapeter.kubriko.demoInput.InputDemo
-import com.pandulapeter.kubriko.demoInput.createInputDemoStateHolder
-import com.pandulapeter.kubriko.demoInput.implementation.InputDemoStateHolder
+import com.pandulapeter.kubriko.demoInput.InputTest
+import com.pandulapeter.kubriko.demoInput.createInputTestStateHolder
+import com.pandulapeter.kubriko.demoInput.implementation.InputTestStateHolder
 import com.pandulapeter.kubriko.demoParticles.ParticlesDemo
 import com.pandulapeter.kubriko.demoParticles.createParticlesDemoStateHolder
 import com.pandulapeter.kubriko.demoParticles.implementation.ParticlesDemoStateHolder
-import com.pandulapeter.kubriko.demoPerformance.PerformanceDemo
-import com.pandulapeter.kubriko.demoPerformance.createPerformanceDemoStateHolder
-import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceDemoStateHolder
+import com.pandulapeter.kubriko.demoPerformance.PerformanceTest
+import com.pandulapeter.kubriko.demoPerformance.createPerformanceTestStateHolder
+import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceTestStateHolder
 import com.pandulapeter.kubriko.demoPhysics.PhysicsDemo
 import com.pandulapeter.kubriko.demoPhysics.createPhysicsDemoStateHolder
 import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoStateHolder
@@ -88,8 +88,8 @@ internal fun ShowcaseEntry.ExampleScreen(
             windowInsets = windowInsets,
         )
 
-        ShowcaseEntry.INPUT -> InputDemo(
-            stateHolder = getOrCreateState(stateHolders, ::createInputDemoStateHolder),
+        ShowcaseEntry.INPUT -> InputTest(
+            stateHolder = getOrCreateState(stateHolders, ::createInputTestStateHolder),
             windowInsets = windowInsets,
         )
 
@@ -98,8 +98,8 @@ internal fun ShowcaseEntry.ExampleScreen(
             windowInsets = windowInsets,
         )
 
-        ShowcaseEntry.PERFORMANCE -> PerformanceDemo(
-            stateHolder = getOrCreateState(stateHolders, ::createPerformanceDemoStateHolder),
+        ShowcaseEntry.PERFORMANCE -> PerformanceTest(
+            stateHolder = getOrCreateState(stateHolders, ::createPerformanceTestStateHolder),
             windowInsets = windowInsets,
         )
 
@@ -131,9 +131,9 @@ internal fun ShowcaseEntry.getStateHolder() = when (this) {
     ShowcaseEntry.ANNOYED_PENGUINS -> getOrCreateState(stateHolders, ::createAnnoyedPenguinsGameStateHolder)
     ShowcaseEntry.AUDIO -> getOrCreateState(stateHolders, ::createAudioTestStateHolder)
     ShowcaseEntry.CONTENT_SHADERS -> getOrCreateState(stateHolders, ::createContentShadersDemoStateHolder)
-    ShowcaseEntry.INPUT -> getOrCreateState(stateHolders, ::createInputDemoStateHolder)
+    ShowcaseEntry.INPUT -> getOrCreateState(stateHolders, ::createInputTestStateHolder)
     ShowcaseEntry.PARTICLES -> getOrCreateState(stateHolders, ::createParticlesDemoStateHolder)
-    ShowcaseEntry.PERFORMANCE -> getOrCreateState(stateHolders, ::createPerformanceDemoStateHolder)
+    ShowcaseEntry.PERFORMANCE -> getOrCreateState(stateHolders, ::createPerformanceTestStateHolder)
     ShowcaseEntry.PHYSICS -> getOrCreateState(stateHolders, ::createPhysicsDemoStateHolder)
     ShowcaseEntry.SHADER_ANIMATIONS -> getOrCreateState(stateHolders, ::createShaderAnimationsDemoStateHolder)
 }
@@ -148,9 +148,9 @@ private val ShowcaseEntry.stateHolderType
         ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemoStateHolder::class
         ShowcaseEntry.SHADER_ANIMATIONS -> ShaderAnimationsDemoStateHolder::class
         ShowcaseEntry.AUDIO -> AudioTestStateHolder::class
-        ShowcaseEntry.INPUT -> InputDemoStateHolder::class
+        ShowcaseEntry.INPUT -> InputTestStateHolder::class
         ShowcaseEntry.PARTICLES -> ParticlesDemoStateHolder::class
-        ShowcaseEntry.PERFORMANCE -> PerformanceDemoStateHolder::class
+        ShowcaseEntry.PERFORMANCE -> PerformanceTestStateHolder::class
         ShowcaseEntry.PHYSICS -> PhysicsDemoStateHolder::class
         ShowcaseEntry.SPACE_SQUADRON -> SpaceSquadronGameStateHolder::class
         ShowcaseEntry.WALLBREAKER -> WallbreakerGameStateHolder::class

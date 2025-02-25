@@ -40,10 +40,9 @@ import kubriko.examples.test_performance.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.MissingResourceException
 
-internal class PerformanceDemoManager(
+internal class PerformanceTestManager(
     private val sceneJson: MutableStateFlow<String>?,
 ) : Manager() {
-
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
     private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()

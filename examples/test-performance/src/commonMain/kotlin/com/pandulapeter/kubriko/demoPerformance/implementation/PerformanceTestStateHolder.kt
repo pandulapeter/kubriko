@@ -15,7 +15,7 @@ import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.BoxWithCircle
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.Character
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.MovingBox
-import com.pandulapeter.kubriko.demoPerformance.implementation.managers.PerformanceDemoManager
+import com.pandulapeter.kubriko.demoPerformance.implementation.managers.PerformanceTestManager
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
@@ -25,9 +25,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.Json
 
-sealed interface PerformanceDemoStateHolder : StateHolder
+sealed interface PerformanceTestStateHolder : StateHolder
 
-internal class PerformanceDemoStateHolderImpl : PerformanceDemoStateHolder {
+internal class PerformanceTestStateHolderImpl : PerformanceTestStateHolder {
     private val json = Json { ignoreUnknownKeys = true }
     val serializationManager = EditableMetadata.newSerializationManagerInstance(
         EditableMetadata(
@@ -50,8 +50,8 @@ internal class PerformanceDemoStateHolderImpl : PerformanceDemoStateHolder {
     )
 
     // The properties below are lazily initialized because we don't need them when we only run the Scene Editor
-    private val performanceDemoManager by lazy {
-        PerformanceDemoManager(sceneJson = sceneJson)
+    private val performanceTestManager by lazy {
+        PerformanceTestManager(sceneJson = sceneJson)
     }
     private val viewportManager by lazy {
         ViewportManager.newInstance(
@@ -65,7 +65,7 @@ internal class PerformanceDemoStateHolderImpl : PerformanceDemoStateHolder {
         MutableStateFlow(
             Kubriko.newInstance(
                 viewportManager,
-                performanceDemoManager,
+                performanceTestManager,
                 serializationManager,
                 isLoggingEnabled = true,
                 instanceNameForLogging = LOG_TAG,

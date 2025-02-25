@@ -194,7 +194,7 @@ private fun KeyButton(
                     MaterialTheme.colorScheme.primary
                 }
             } else {
-                MaterialTheme.colorScheme.surfaceVariant
+                MaterialTheme.colorScheme.surface
             }
         )
         .padding(4.dp)

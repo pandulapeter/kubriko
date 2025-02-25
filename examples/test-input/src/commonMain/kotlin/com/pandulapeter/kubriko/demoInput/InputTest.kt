@@ -7,28 +7,30 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko.demoPerformance
+package com.pandulapeter.kubriko.demoInput
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.KubrikoViewport
-import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceDemoStateHolder
-import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceDemoStateHolderImpl
+import com.pandulapeter.kubriko.demoInput.implementation.InputTestStateHolder
+import com.pandulapeter.kubriko.demoInput.implementation.InputTestStateHolderImpl
 
-fun createPerformanceDemoStateHolder(): PerformanceDemoStateHolder = PerformanceDemoStateHolderImpl()
+fun createInputTestStateHolder(): InputTestStateHolder = InputTestStateHolderImpl()
 
 @Composable
-fun PerformanceDemo(
+fun InputTest(
     modifier: Modifier = Modifier,
-    stateHolder: PerformanceDemoStateHolder = createPerformanceDemoStateHolder(),
+    stateHolder: InputTestStateHolder = createInputTestStateHolder(),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
-    stateHolder as PerformanceDemoStateHolderImpl
+    stateHolder as InputTestStateHolderImpl
     KubrikoViewport(
-        modifier = modifier,
+        modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest),
         kubriko = stateHolder.kubriko.collectAsState().value,
         windowInsets = windowInsets,
     )
