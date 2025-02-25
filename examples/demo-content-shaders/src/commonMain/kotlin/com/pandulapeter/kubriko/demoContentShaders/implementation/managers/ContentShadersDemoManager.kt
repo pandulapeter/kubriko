@@ -134,6 +134,7 @@ internal class ContentShadersDemoManager : Manager() {
             .fillMaxSize()
             .windowInsetsPadding(windowInsets)
             .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         InfoPanel(
             stringResource = Res.string.description,

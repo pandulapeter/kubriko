@@ -10,6 +10,7 @@
 -->
 <resources>
 
+    <string name="description">These animations are rendered entirely using shaders, without taking into consideration any of the underlying content. Browse the effect gallery by selecting any of the tabs above. You can adjust various parameters and even see the source code of the shaders by using the buttons in the bottom right corner of the screen.</string>
     <string name="shaders_not_supported">Shaders are only supported on or above Android 13</string>
     <string name="expand_controls">Expand controls</string>
     <string name="collapse_controls">Collapse controls</string>

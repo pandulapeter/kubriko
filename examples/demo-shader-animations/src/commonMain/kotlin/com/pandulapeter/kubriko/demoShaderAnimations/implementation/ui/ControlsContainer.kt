@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -51,10 +52,12 @@ import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.NoodleControls
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.WarpControls
 import com.pandulapeter.kubriko.uiComponents.FloatingButton
+import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.Panel
 import kotlinx.collections.immutable.PersistentMap
 import kubriko.examples.demo_shader_animations.generated.resources.Res
 import kubriko.examples.demo_shader_animations.generated.resources.collapse_controls
+import kubriko.examples.demo_shader_animations.generated.resources.description
 import kubriko.examples.demo_shader_animations.generated.resources.expand_controls
 import kubriko.examples.demo_shader_animations.generated.resources.hide_code
 import kubriko.examples.demo_shader_animations.generated.resources.ic_brush
@@ -70,61 +73,72 @@ internal fun ControlsContainer(
     state: Pair<ShaderAnimationDemoType, ControlsState>,
     onIsExpandedChanged: (ControlsState) -> Unit,
     shaderAnimationDemoHolders: PersistentMap<ShaderAnimationDemoType, ShaderAnimationDemoHolder<*, *>>
-) = Box(
+) = Column(
     modifier = modifier,
+    verticalArrangement = Arrangement.spacedBy(8.dp),
 ) {
-    val cardAlpha: Float by animateFloatAsState(
-        targetValue = if (state.second == ControlsState.COLLAPSED) 0f else 1f,
-        animationSpec = tween(),
+    InfoPanel(
+        stringResource = Res.string.description,
     )
-    val cardEndPaddingMultiplier: Float by animateFloatAsState(
-        targetValue = if (state.second == ControlsState.EXPANDED_CODE) 1f else 0f,
-        animationSpec = tween(),
-    )
-    Panel(
+    Box(
         modifier = Modifier
-            .padding(bottom = 16.dp, end = 16.dp)
-            .alpha(cardAlpha)
-            .padding(end = 48.dp * cardEndPaddingMultiplier),
+            .weight(1f)
+            .fillMaxWidth(),
     ) {
-        AnimatedContent(
-            targetState = state,
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
-            contentAlignment = Alignment.TopStart,
-            label = "transformControls"
-        ) { targetState ->
-            when (targetState.second) {
-                ControlsState.COLLAPSED -> Unit
-                ControlsState.EXPANDED_CODE -> Code(
-                    demoType = targetState.first,
-                )
+        val cardAlpha: Float by animateFloatAsState(
+            targetValue = if (state.second == ControlsState.COLLAPSED) 0f else 1f,
+            animationSpec = tween(),
+        )
+        val cardEndPaddingMultiplier: Float by animateFloatAsState(
+            targetValue = if (state.second == ControlsState.EXPANDED_CODE) 1f else 0f,
+            animationSpec = tween(),
+        )
+        Panel(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 16.dp, end = 16.dp)
+                .alpha(cardAlpha)
+                .padding(end = 48.dp * cardEndPaddingMultiplier),
+        ) {
+            AnimatedContent(
+                targetState = state,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                contentAlignment = Alignment.TopStart,
+                label = "transformControls"
+            ) { targetState ->
+                when (targetState.second) {
+                    ControlsState.COLLAPSED -> Unit
+                    ControlsState.EXPANDED_CODE -> Code(
+                        demoType = targetState.first,
+                    )
 
-                ControlsState.EXPANDED_CONTROLS -> Controls(
-                    manager = shaderAnimationDemoHolders[targetState.first]!!.shaderAnimationsDemoManager,
-                    demoType = targetState.first,
-                )
+                    ControlsState.EXPANDED_CONTROLS -> Controls(
+                        manager = shaderAnimationDemoHolders[targetState.first]!!.shaderAnimationsDemoManager,
+                        demoType = targetState.first,
+                    )
+                }
             }
         }
-    }
-    Row(
-        modifier = Modifier.align(Alignment.BottomEnd),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        (state.second == ControlsState.EXPANDED_CODE).let { isSelected ->
-            FloatingButton(
-                icon = Res.drawable.ic_code,
-                isSelected = isSelected,
-                contentDescription = stringResource(if (isSelected) Res.string.hide_code else Res.string.show_code),
-                onButtonPressed = { onIsExpandedChanged(if (isSelected) ControlsState.COLLAPSED else ControlsState.EXPANDED_CODE) },
-            )
-        }
-        (state.second == ControlsState.EXPANDED_CONTROLS).let { isSelected ->
-            FloatingButton(
-                icon = Res.drawable.ic_brush,
-                isSelected = isSelected,
-                contentDescription = stringResource(if (isSelected) Res.string.collapse_controls else Res.string.expand_controls),
-                onButtonPressed = { onIsExpandedChanged(if (isSelected) ControlsState.COLLAPSED else ControlsState.EXPANDED_CONTROLS) },
-            )
+        Row(
+            modifier = Modifier.align(Alignment.BottomEnd),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            (state.second == ControlsState.EXPANDED_CODE).let { isSelected ->
+                FloatingButton(
+                    icon = Res.drawable.ic_code,
+                    isSelected = isSelected,
+                    contentDescription = stringResource(if (isSelected) Res.string.hide_code else Res.string.show_code),
+                    onButtonPressed = { onIsExpandedChanged(if (isSelected) ControlsState.COLLAPSED else ControlsState.EXPANDED_CODE) },
+                )
+            }
+            (state.second == ControlsState.EXPANDED_CONTROLS).let { isSelected ->
+                FloatingButton(
+                    icon = Res.drawable.ic_brush,
+                    isSelected = isSelected,
+                    contentDescription = stringResource(if (isSelected) Res.string.collapse_controls else Res.string.expand_controls),
+                    onButtonPressed = { onIsExpandedChanged(if (isSelected) ControlsState.COLLAPSED else ControlsState.EXPANDED_CONTROLS) },
+                )
+            }
         }
     }
 }

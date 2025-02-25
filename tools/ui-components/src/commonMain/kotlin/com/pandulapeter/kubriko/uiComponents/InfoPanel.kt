@@ -24,7 +24,10 @@ fun InfoPanel(
     stringResource: StringResource,
 ) = Panel {
     Text(
-        modifier = modifier.padding(8.dp),
+        modifier = modifier.padding(
+            horizontal = 16.dp,
+            vertical = 8.dp,
+        ),
         style = MaterialTheme.typography.bodySmall,
         text = stringResource(stringResource),
     )
