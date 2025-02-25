@@ -21,7 +21,7 @@ The pre-built Kubriko Showcase application can be downloaded from the following 
 [<img src="../documentation/images/badge_web.png" alt="Download for Web" height="33px" />](https://pandulapeter.github.io/kubriko/)
 
 ## Implementation
-The showcase app contains an ever-expanding list of games and demos that are embedded into a nice and scalable menu system.
+The showcase app contains an ever-expanding list of games, demos, and tests that are embedded into a nice and scalable menu system.
 Check out how effortlessly Kubriko handles resizing the window!
 
 This module only ties together the various examples implemented under the different modules of the [examples](https://github.com/pandulapeter/kubriko/tree/main/examples) folder.

@@ -26,6 +26,11 @@ import kubriko.app.generated.resources.game_space_squadron_subtitle
 import kubriko.app.generated.resources.game_wallbreaker
 import kubriko.app.generated.resources.game_wallbreaker_subtitle
 import kubriko.app.generated.resources.games
+import kubriko.app.generated.resources.other
+import kubriko.app.generated.resources.other_about
+import kubriko.app.generated.resources.other_about_subtitle
+import kubriko.app.generated.resources.other_licenses
+import kubriko.app.generated.resources.other_licenses_subtitle
 import kubriko.app.generated.resources.test_audio
 import kubriko.app.generated.resources.test_audio_subtitle
 import kubriko.app.generated.resources.test_input
@@ -95,6 +100,18 @@ internal enum class ShowcaseEntry(
         titleStringResource = Res.string.test_performance,
         subtitleStringResource = Res.string.test_performance_subtitle,
     ),
+
+    // Other
+    ABOUT(
+        type = ShowcaseEntryType.OTHER,
+        titleStringResource = Res.string.other_about,
+        subtitleStringResource = Res.string.other_about_subtitle,
+    ),
+    LICENSES(
+        type = ShowcaseEntryType.OTHER,
+        titleStringResource = Res.string.other_licenses,
+        subtitleStringResource = Res.string.other_licenses_subtitle,
+    ),
 }
 
 internal enum class ShowcaseEntryType(
@@ -108,5 +125,8 @@ internal enum class ShowcaseEntryType(
     ),
     TEST(
         titleStringResource = Res.string.tests,
+    ),
+    OTHER(
+        titleStringResource = Res.string.other,
     ),
 }

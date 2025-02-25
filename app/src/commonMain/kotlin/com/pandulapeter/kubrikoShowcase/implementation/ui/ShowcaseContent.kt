@@ -57,6 +57,7 @@ import com.pandulapeter.kubriko.debugMenu.HorizontalDebugMenu
 import com.pandulapeter.kubriko.debugMenu.KubrikoViewportWithDebugMenuOverlay
 import com.pandulapeter.kubriko.debugMenu.VerticalDebugMenu
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
+import com.pandulapeter.kubrikoShowcase.implementation.ui.welcome.WelcomeScreen
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.welcome
 import kubriko.app.generated.resources.welcome_subtitle
