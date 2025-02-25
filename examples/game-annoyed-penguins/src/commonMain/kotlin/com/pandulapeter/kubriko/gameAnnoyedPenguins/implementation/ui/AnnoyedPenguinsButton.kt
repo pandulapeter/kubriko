@@ -36,7 +36,7 @@ internal fun AnnoyedPenguinsButton(
     FloatingActionButton(
         modifier = modifier
             .height(40.dp)
-            .run { if (icon == null) defaultMinSize(minWidth = 96.dp) else width(40.dp) }
+            .run { if (icon == null) defaultMinSize(minWidth = 72.dp) else width(40.dp) }
             .pointerInput(Unit) {
                 awaitPointerEventScope {
                     while (true) {

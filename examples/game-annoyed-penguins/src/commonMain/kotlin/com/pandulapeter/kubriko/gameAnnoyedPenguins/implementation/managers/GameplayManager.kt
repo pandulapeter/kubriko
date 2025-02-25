@@ -74,9 +74,9 @@ internal class GameplayManager : Manager() {
 
     companion object {
         val AllLevels = persistentMapOf(
-            "Level 1" to "level_1.json",
-            "Level 2" to "level_2.json",
-            "Level 3" to "level_3.json",
+            "Map 1" to "level_1.json",
+            "Map 2" to "level_2.json",
+            "Map 3" to "level_3.json",
         )
     }
 }

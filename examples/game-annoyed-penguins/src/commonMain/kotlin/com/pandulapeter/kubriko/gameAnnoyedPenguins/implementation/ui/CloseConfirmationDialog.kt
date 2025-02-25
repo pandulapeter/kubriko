@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
@@ -71,11 +72,13 @@ internal fun CloseConfirmationDialog(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             AnnoyedPenguinsButton(
+                modifier = Modifier.defaultMinSize(minWidth = 96.dp),
                 title = stringResource(Res.string.close_confirmation_negative),
                 onButtonPressed = onCloseCancelled,
                 onPointerEnter = onPointerEnter,
             )
             AnnoyedPenguinsButton(
+                modifier = Modifier.defaultMinSize(minWidth = 96.dp),
                 title = stringResource(Res.string.close_confirmation_positive),
                 onButtonPressed = onCloseConfirmed,
                 onPointerEnter = onPointerEnter,
