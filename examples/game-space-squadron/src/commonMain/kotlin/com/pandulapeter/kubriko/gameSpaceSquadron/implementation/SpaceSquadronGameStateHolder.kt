@@ -143,18 +143,20 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
     override fun navigateBack(
         isInFullscreenMode: Boolean,
         onFullscreenModeToggled: () -> Unit,
-    ) = true.also {
-        if (stateManager.isRunning.value && !gameplayManager.isGameOver.value) {
-            gameplayManager.pauseGame()
-        } else if (uiManager.isInfoDialogVisible.value) {
-            uiManager.toggleInfoDialogVisibility()
-        } else if (gameplayManager.isGameStarted && !uiManager.isCloseConfirmationDialogVisible.value) {
-            gameplayManager.playGame()
-        } else if (isInFullscreenMode) {
-            audioManager.playButtonToggleSoundEffect()
-            onFullscreenModeToggled()
-        } else {
-            uiManager.toggleCloseConfirmationDialogVisibility()
+    ) = backgroundLoadingManager.isLoadingDone.also {
+        if (it) {
+            if (stateManager.isRunning.value && !gameplayManager.isGameOver.value) {
+                gameplayManager.pauseGame()
+            } else if (uiManager.isInfoDialogVisible.value) {
+                uiManager.toggleInfoDialogVisibility()
+            } else if (gameplayManager.isGameStarted && !uiManager.isCloseConfirmationDialogVisible.value) {
+                gameplayManager.playGame()
+            } else if (isInFullscreenMode) {
+                audioManager.playButtonToggleSoundEffect()
+                onFullscreenModeToggled()
+            } else {
+                uiManager.toggleCloseConfirmationDialogVisibility()
+            }
         }
     }
 

@@ -211,21 +211,23 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
     override fun navigateBack(
         isInFullscreenMode: Boolean,
         onFullscreenModeToggled: () -> Unit,
-    ) = true.also {
-        if (stateManager.isRunning.value) {
-            audioManager.playButtonToggleSoundEffect()
-            stateManager.updateIsRunning(false)
-        } else if (uiManager.isInfoDialogVisible.value) {
-            audioManager.playButtonToggleSoundEffect()
-            uiManager.toggleInfoDialogVisibility()
-        } else if (gameplayManager.currentLevel.value != null && !uiManager.isCloseConfirmationDialogVisible.value) {
-            audioManager.playButtonToggleSoundEffect()
-            stateManager.updateIsRunning(true)
-        } else if (isInFullscreenMode) {
-            audioManager.playButtonToggleSoundEffect()
-            onFullscreenModeToggled()
-        } else {
-            uiManager.toggleCloseConfirmationDialogVisibility()
+    ) = backgroundLoadingManager.isLoadingDone.also {
+        if (it) {
+            if (stateManager.isRunning.value) {
+                audioManager.playButtonToggleSoundEffect()
+                stateManager.updateIsRunning(false)
+            } else if (uiManager.isInfoDialogVisible.value) {
+                audioManager.playButtonToggleSoundEffect()
+                uiManager.toggleInfoDialogVisibility()
+            } else if (gameplayManager.currentLevel.value != null && !uiManager.isCloseConfirmationDialogVisible.value) {
+                audioManager.playButtonToggleSoundEffect()
+                stateManager.updateIsRunning(true)
+            } else if (isInFullscreenMode) {
+                audioManager.playButtonToggleSoundEffect()
+                onFullscreenModeToggled()
+            } else {
+                uiManager.toggleCloseConfirmationDialogVisibility()
+            }
         }
     }
 

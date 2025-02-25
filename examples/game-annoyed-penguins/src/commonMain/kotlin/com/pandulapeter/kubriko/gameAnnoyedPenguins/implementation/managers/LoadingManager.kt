@@ -55,6 +55,8 @@ internal class LoadingManager : Manager() {
         }.asStateFlow(false)
     }
     private val isFontLoaded = MutableStateFlow(false)
+    var isLoadingDone = false
+        private set
 
     override fun onInitialize(kubriko: Kubriko) {
         musicManager.preload(musicUris)
@@ -63,9 +65,11 @@ internal class LoadingManager : Manager() {
     }
 
     @Composable
-    fun isGameLoaded() = isInitialized.collectAsState().value
+    fun isGameLoaded() = (isInitialized.collectAsState().value
             && areMenuResourcesLoaded()
-            && areGameResourcesLoaded.collectAsState().value
+            && areGameResourcesLoaded.collectAsState().value).also {
+        isLoadingDone = it
+    }
 
     @Composable
     override fun Composable(windowInsets: WindowInsets) {

@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.gameWallbreaker.implementation.ui
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +27,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -68,8 +70,10 @@ internal fun WallbreakerTextButton(
     ) {
         Text(
             modifier = Modifier
+                .defaultMinSize(minWidth = 72.dp)
                 .padding(horizontal = 16.dp)
                 .scale(scale.value),
+            textAlign = TextAlign.Center,
             text = stringResource(stringResource),
         )
     }

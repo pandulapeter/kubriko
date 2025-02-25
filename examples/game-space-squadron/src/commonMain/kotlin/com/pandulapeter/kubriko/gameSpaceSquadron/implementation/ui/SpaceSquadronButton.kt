@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -29,6 +30,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
@@ -87,6 +89,8 @@ internal fun SpaceSquadronButton(
                     )
                 }
                 Text(
+                    modifier = Modifier.defaultMinSize(minWidth = if (icon == null) 72.dp else 48.dp),
+                    textAlign = TextAlign.Center,
                     text = stringResource(title),
                 )
             }

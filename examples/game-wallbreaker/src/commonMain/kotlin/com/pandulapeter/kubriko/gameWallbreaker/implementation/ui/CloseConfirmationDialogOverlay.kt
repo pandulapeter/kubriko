@@ -90,7 +90,7 @@ internal fun CloseConfirmationDialogOverlay(
                         text = stringResource(Res.string.close_confirmation),
                     )
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         WallbreakerTextButton(
                             onButtonPressed = onCloseConfirmed,

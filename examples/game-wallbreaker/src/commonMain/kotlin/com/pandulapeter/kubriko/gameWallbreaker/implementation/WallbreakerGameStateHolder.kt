@@ -131,18 +131,20 @@ internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
     override fun navigateBack(
         isInFullscreenMode: Boolean,
         onFullscreenModeToggled: () -> Unit,
-    ) = true.also {
-        if (stateManager.isRunning.value) {
-            gameplayManager.pauseGame()
-        } else if (uiManager.isInfoDialogVisible.value) {
-            uiManager.toggleInfoDialogVisibility()
-        } else if (gameplayManager.isGameStarted) {
-            gameplayManager.resumeGame()
-        } else if (isInFullscreenMode) {
-            audioManager.playClickSoundEffect()
-            onFullscreenModeToggled()
-        } else {
-            uiManager.toggleCloseConfirmationDialogVisibility()
+    ) = backgroundLoadingManager.isLoadingDone.also {
+        if (it) {
+            if (stateManager.isRunning.value) {
+                gameplayManager.pauseGame()
+            } else if (uiManager.isInfoDialogVisible.value) {
+                uiManager.toggleInfoDialogVisibility()
+            } else if (gameplayManager.isGameStarted) {
+                gameplayManager.resumeGame()
+            } else if (isInFullscreenMode) {
+                audioManager.playClickSoundEffect()
+                onFullscreenModeToggled()
+            } else {
+                uiManager.toggleCloseConfirmationDialogVisibility()
+            }
         }
     }
 
