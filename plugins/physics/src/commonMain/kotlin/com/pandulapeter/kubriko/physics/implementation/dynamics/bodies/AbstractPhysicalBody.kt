@@ -89,7 +89,9 @@ abstract class AbstractPhysicalBody : PhysicalBodyInterface {
      * @param impulse Magnitude of impulse vector.
      */
     override fun applyLinearImpulse(impulse: Vec2) {
-        velocity.add(impulse.scalar(invMass))
+        if (density > 0f) {
+            velocity.add(impulse.scalar(invMass))
+        }
     }
 
     /**

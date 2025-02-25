@@ -29,6 +29,7 @@ import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.demoPhysics.implementation.PlatformSpecificContent
+import com.pandulapeter.kubriko.demoPhysics.implementation.actors.Bomb
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicBox
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicChain
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicCircle
@@ -170,7 +171,11 @@ internal class PhysicsDemoManager(
                         ).restore()
                     )
 
-                    ActionType.EXPLOSION -> Unit // TODO: Explosion
+                    ActionType.EXPLOSION -> actorManager.add(
+                        Bomb(
+                            epicenter = pointerSceneOffset,
+                        )
+                    )
                 }
             }
         }

@@ -29,7 +29,7 @@ interface Explosion {
      *
      * @param bodiesToEvaluate Arraylist of bodies in the world to check.
      */
-    fun update(bodiesToEvaluate: ArrayList<TranslatableBody>)
+    fun update(bodiesToEvaluate: Collection<TranslatableBody>)
 
     /**
      * Sets the epicentre to a different coordinate.

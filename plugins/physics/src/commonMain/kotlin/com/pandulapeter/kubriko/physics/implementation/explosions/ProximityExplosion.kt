@@ -44,7 +44,7 @@ class ProximityExplosion
      *
      * @param bodiesToEvaluate Arraylist of bodies in the world to check.
      */
-    override fun update(bodiesToEvaluate: ArrayList<TranslatableBody>) {
+    override fun update(bodiesToEvaluate: Collection<TranslatableBody>) {
         bodiesEffected.clear()
         for (b in bodiesToEvaluate) {
             val blastDist = b.position.minus(epicentre)
