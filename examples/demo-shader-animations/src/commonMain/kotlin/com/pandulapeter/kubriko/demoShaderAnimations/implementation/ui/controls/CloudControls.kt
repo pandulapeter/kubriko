@@ -12,48 +12,58 @@ package com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls
 import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.CloudShader
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.ColorSlider
-import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.FloatSlider
+import com.pandulapeter.kubriko.uiComponents.SmallSliderWithTitle
+import kubriko.examples.demo_shader_animations.generated.resources.Res
+import kubriko.examples.demo_shader_animations.generated.resources.alpha
+import kubriko.examples.demo_shader_animations.generated.resources.cover
+import kubriko.examples.demo_shader_animations.generated.resources.dark
+import kubriko.examples.demo_shader_animations.generated.resources.light
+import kubriko.examples.demo_shader_animations.generated.resources.scale
+import kubriko.examples.demo_shader_animations.generated.resources.sky_1
+import kubriko.examples.demo_shader_animations.generated.resources.sky_2
+import kubriko.examples.demo_shader_animations.generated.resources.speed
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun CloudControls(
     cloudShaderState: CloudShader.State,
     onCloudShaderStateChanged: (CloudShader.State) -> Unit,
 ) {
-    FloatSlider(
-        title = "Scale",
+    SmallSliderWithTitle(
+        title = stringResource(Res.string.scale),
         value = cloudShaderState.scale,
         onValueChanged = { onCloudShaderStateChanged(cloudShaderState.copy(scale = it)) },
         valueRange = 0.5f..5f,
     )
-    FloatSlider(
-        title = "Speed",
+    SmallSliderWithTitle(
+        title = stringResource(Res.string.speed),
         value = cloudShaderState.speed,
         onValueChanged = { onCloudShaderStateChanged(cloudShaderState.copy(speed = it)) },
     )
-    FloatSlider(
-        title = "Dark",
+    SmallSliderWithTitle(
+        title = stringResource(Res.string.dark),
         value = cloudShaderState.dark,
         onValueChanged = { onCloudShaderStateChanged(cloudShaderState.copy(dark = it)) },
     )
-    FloatSlider(
-        title = "Light",
+    SmallSliderWithTitle(
+        title = stringResource(Res.string.light),
         value = cloudShaderState.light,
         onValueChanged = { onCloudShaderStateChanged(cloudShaderState.copy(light = it)) },
     )
-    FloatSlider(
-        title = "Cover",
+    SmallSliderWithTitle(
+        title = stringResource(Res.string.cover),
         value = cloudShaderState.cover,
         onValueChanged = { onCloudShaderStateChanged(cloudShaderState.copy(cover = it)) },
         valueRange = 0f..4f,
     )
-    FloatSlider(
-        title = "Alpha",
+    SmallSliderWithTitle(
+        title = stringResource(Res.string.alpha),
         value = cloudShaderState.alpha,
         onValueChanged = { onCloudShaderStateChanged(cloudShaderState.copy(alpha = it)) },
         valueRange = 0f..10f,
     )
     ColorSlider(
-        title = "Sky 1",
+        title = stringResource(Res.string.sky_1),
         red = cloudShaderState.sky1Red,
         green = cloudShaderState.sky1Green,
         blue = cloudShaderState.sky1Blue,
@@ -69,7 +79,7 @@ internal fun CloudControls(
         valueRange = 0f..1f,
     )
     ColorSlider(
-        title = "Sky 2",
+        title = stringResource(Res.string.sky_2),
         red = cloudShaderState.sky2Red,
         green = cloudShaderState.sky2Green,
         blue = cloudShaderState.sky2Blue,

@@ -17,25 +17,19 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
@@ -55,6 +49,7 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.uiComponents.FloatingButton
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.Panel
+import com.pandulapeter.kubriko.uiComponents.SmallSwitch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -71,7 +66,6 @@ import kubriko.examples.demo_content_shaders.generated.resources.ic_brush
 import kubriko.examples.demo_content_shaders.generated.resources.ripple
 import kubriko.examples.demo_content_shaders.generated.resources.smooth_pixelation
 import kubriko.examples.demo_content_shaders.generated.resources.vignette
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 internal class ContentShadersDemoManager : Manager() {
@@ -160,7 +154,7 @@ internal class ContentShadersDemoManager : Manager() {
                             .padding(bottom = 16.dp, end = 16.dp),
                     ) {
                         Controls(
-                            modifier = Modifier.width(280.dp),
+                            modifier = Modifier.width(220.dp),
                             state = state.collectAsState().value,
                             onStateChanged = { state.value = it },
                         )
@@ -187,65 +181,35 @@ internal class ContentShadersDemoManager : Manager() {
             .verticalScroll(rememberScrollState())
             .padding(bottom = 16.dp),
     ) {
-        Toggle(
-            name = Res.string.chromatic_aberration,
+        SmallSwitch(
+            title = stringResource(Res.string.chromatic_aberration),
             isChecked = state.isChromaticAberrationShaderEnabled,
             onCheckedChanged = { onStateChanged(state.copy(isChromaticAberrationShaderEnabled = !state.isChromaticAberrationShaderEnabled)) }
         )
-        Toggle(
-            name = Res.string.ripple,
+        SmallSwitch(
+            title = stringResource(Res.string.ripple),
             isChecked = state.isRippleShaderEnabled,
             onCheckedChanged = { onStateChanged(state.copy(isRippleShaderEnabled = !state.isRippleShaderEnabled)) }
         )
-        Toggle(
-            name = Res.string.blur,
+        SmallSwitch(
+            title = stringResource(Res.string.blur),
             isChecked = state.isBlurShaderEnabled,
             onCheckedChanged = { onStateChanged(state.copy(isBlurShaderEnabled = !state.isBlurShaderEnabled)) }
         )
-        Toggle(
-            name = Res.string.comic,
+        SmallSwitch(
+            title = stringResource(Res.string.comic),
             isChecked = state.isComicShaderEnabled,
             onCheckedChanged = { onStateChanged(state.copy(isComicShaderEnabled = !state.isComicShaderEnabled)) }
         )
-        Toggle(
-            name = Res.string.vignette,
+        SmallSwitch(
+            title = stringResource(Res.string.vignette),
             isChecked = state.isVignetteShaderEnabled,
             onCheckedChanged = { onStateChanged(state.copy(isVignetteShaderEnabled = !state.isVignetteShaderEnabled)) }
         )
-        Toggle(
-            name = Res.string.smooth_pixelation,
+        SmallSwitch(
+            title = stringResource(Res.string.smooth_pixelation),
             isChecked = state.isSmoothPixelationShaderEnabled,
             onCheckedChanged = { onStateChanged(state.copy(isSmoothPixelationShaderEnabled = !state.isSmoothPixelationShaderEnabled)) }
-        )
-    }
-
-    @Composable
-    private fun Toggle(
-        name: StringResource,
-        isChecked: Boolean,
-        onCheckedChanged: () -> Unit,
-    ) = Row(
-        modifier = Modifier
-            .selectable(
-                selected = isChecked,
-                onClick = onCheckedChanged,
-            )
-            .padding(
-                start = 16.dp,
-                end = 8.dp,
-            )
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Text(
-            modifier = Modifier.weight(1f),
-            text = stringResource(name),
-        )
-        Switch(
-            modifier = Modifier.scale(0.6f).height(24.dp),
-            checked = isChecked,
-            onCheckedChange = { onCheckedChanged() },
         )
     }
 

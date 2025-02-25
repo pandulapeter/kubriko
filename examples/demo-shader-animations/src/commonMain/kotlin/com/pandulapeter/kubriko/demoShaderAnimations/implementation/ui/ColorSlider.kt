@@ -18,7 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.uiComponents.ShaderSlider
+import com.pandulapeter.kubriko.uiComponents.SmallSlider
 
 @Composable
 internal fun ColorSlider(
@@ -39,19 +39,19 @@ internal fun ColorSlider(
         style = MaterialTheme.typography.labelSmall,
         text = title,
     )
-    ShaderSlider(
+    SmallSlider(
         modifier = Modifier.weight(1f),
         value = red,
         onValueChanged = { onValueChanged(it, green, blue) },
         valueRange = valueRange,
     )
-    ShaderSlider(
+    SmallSlider(
         modifier = Modifier.weight(1f),
         value = green,
         onValueChanged = { onValueChanged(red, it, blue) },
         valueRange = valueRange,
     )
-    ShaderSlider(
+    SmallSlider(
         modifier = Modifier.weight(1f),
         value = blue,
         onValueChanged = { onValueChanged(red, green, it) },

@@ -12,7 +12,11 @@ package com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls
 import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.NoodleShader
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.ColorSlider
-import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.FloatSlider
+import com.pandulapeter.kubriko.uiComponents.SmallSliderWithTitle
+import kubriko.examples.demo_shader_animations.generated.resources.Res
+import kubriko.examples.demo_shader_animations.generated.resources.color
+import kubriko.examples.demo_shader_animations.generated.resources.speed
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
 @Composable
@@ -20,14 +24,14 @@ internal fun NoodleControls(
     noodleShaderState: NoodleShader.State,
     onNoodleShaderStateChanged: (NoodleShader.State) -> Unit,
 ) {
-    FloatSlider(
-        title = "Speed",
+    SmallSliderWithTitle(
+        title = stringResource(Res.string.speed),
         value = noodleShaderState.speed,
         onValueChanged = { onNoodleShaderStateChanged(noodleShaderState.copy(speed = it)) },
         valueRange = 0f..20f,
     )
     ColorSlider(
-        title = "Color",
+        title = stringResource(Res.string.color),
         red = noodleShaderState.red.toFloat(),
         green = noodleShaderState.green.toFloat(),
         blue = noodleShaderState.blue.toFloat(),

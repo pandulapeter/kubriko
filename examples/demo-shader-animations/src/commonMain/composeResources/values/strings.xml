@@ -21,5 +21,16 @@
     <string name="noodle">Noodle</string>
     <string name="clouds">Clouds</string>
     <string name="warp">Warp</string>
+    <string name="scale">Scale</string>
+    <string name="speed">Speed</string>
+    <string name="dark">Dark</string>
+    <string name="light">Light</string>
+    <string name="cover">Cover</string>
+    <string name="alpha">Alpha</string>
+    <string name="sky_1">Sky 1</string>
+    <string name="sky_2">Sky 2</string>
+    <string name="focus">Focus</string>
+    <string name="frequency">Freq</string>
+    <string name="color">Color</string>
 
 </resources>

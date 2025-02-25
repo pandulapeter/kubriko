@@ -12,7 +12,10 @@ package com.pandulapeter.kubriko.uiComponents
 import androidx.compose.foundation.background
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -20,14 +23,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShaderSlider(
+fun SmallSlider(
     modifier: Modifier = Modifier,
     value: Float,
     onValueChanged: (Float) -> Unit,
@@ -59,5 +64,30 @@ fun ShaderSlider(
                 thumbTrackGapSize = 0.dp,
             )
         }
+    )
+}
+
+@Composable
+fun SmallSliderWithTitle(
+    modifier: Modifier = Modifier,
+    title: String,
+    value: Float,
+    onValueChanged: (Float) -> Unit,
+    valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
+) = Row(
+    modifier = modifier,
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
+) {
+    Text(
+        modifier = Modifier.defaultMinSize(minWidth = 42.dp),
+        style = MaterialTheme.typography.labelSmall,
+        text = title,
+    )
+    SmallSlider(
+        modifier = Modifier.weight(1f),
+        value = value,
+        onValueChanged = onValueChanged,
+        valueRange = valueRange,
     )
 }
