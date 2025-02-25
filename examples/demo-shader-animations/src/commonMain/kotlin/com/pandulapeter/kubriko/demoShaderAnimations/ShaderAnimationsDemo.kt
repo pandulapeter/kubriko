@@ -88,8 +88,8 @@ fun ShaderAnimationsDemo(
                         kubriko = stateHolder.shaderAnimationDemoHolders[demoType]!!.kubriko,
                     )
                 }
-                preloadedImageVector(Res.drawable.ic_code) // TODO
-                preloadedImageVector(Res.drawable.ic_brush) // TODO
+                preloadedImageVector(Res.drawable.ic_code) // TODO: Introduce a loading state
+                preloadedImageVector(Res.drawable.ic_brush) // TODO: Introduce a loading state
                 ControlsContainer(
                     modifier = Modifier.windowInsetsPadding(windowInsets).align(Alignment.BottomEnd).padding(16.dp),
                     state = selectedDemoType to controlsState,

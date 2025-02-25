@@ -83,7 +83,7 @@ internal fun ControlsContainer(
     )
     Panel(
         modifier = Modifier
-            .padding(16.dp)
+            .padding(bottom = 16.dp, end = 16.dp)
             .alpha(cardAlpha)
             .padding(end = 48.dp * cardEndPaddingMultiplier),
     ) {
