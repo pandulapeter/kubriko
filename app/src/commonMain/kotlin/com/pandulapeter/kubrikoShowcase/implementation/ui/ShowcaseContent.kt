@@ -14,6 +14,8 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
@@ -47,6 +49,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -65,6 +68,7 @@ import kubriko.app.generated.resources.welcome_subtitle
 @Composable
 internal fun ShowcaseContent(
     shouldUseCompactUi: Boolean,
+    shouldUseWideSideMenu: Boolean,
     allShowcaseEntries: List<ShowcaseEntry>,
     getSelectedShowcaseEntry: () -> ShowcaseEntry?,
     selectedShowcaseEntry: ShowcaseEntry?,
@@ -110,6 +114,7 @@ internal fun ShowcaseContent(
                             windowInsets = windowInsets,
                             isInFullscreenMode = isInFullscreenMode,
                             shouldUseCompactUi = shouldUseCompactUi,
+                            shouldUseWideSideMenu = shouldUseWideSideMenu,
                             onFullscreenModeToggled = onFullscreenModeToggled,
                             getSelectedShowcaseEntry = getSelectedShowcaseEntry,
                         )
@@ -153,6 +158,7 @@ private fun ExpandedContent(
     activeKubrikoInstance: Kubriko?,
     windowInsets: WindowInsets,
     shouldUseCompactUi: Boolean,
+    shouldUseWideSideMenu: Boolean,
     isInFullscreenMode: Boolean,
     onFullscreenModeToggled: () -> Unit,
     getSelectedShowcaseEntry: () -> ShowcaseEntry?,
@@ -160,8 +166,13 @@ private fun ExpandedContent(
     modifier = modifier,
 ) {
     val shouldShowSideMenu = !shouldUseCompactUi && !isInFullscreenMode
-    val sideMenuWidth =
-        SideMenuWidth + WindowInsets.safeDrawing.only(WindowInsetsSides.Left).asPaddingValues().calculateStartPadding(LocalLayoutDirection.current)
+    val sideMenuWidth by animateDpAsState(
+        targetValue = (if (shouldUseWideSideMenu) WideSideMenuWidth else ThinSideMenuWidth) + WindowInsets.safeDrawing
+            .only(WindowInsetsSides.Left)
+            .asPaddingValues()
+            .calculateStartPadding(LocalLayoutDirection.current),
+        animationSpec = tween(),
+    )
     Row(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -293,4 +304,5 @@ private fun CompactContent(
 }
 
 private val TopBarHeight = 64.dp
-private val SideMenuWidth = 192.dp
+private val ThinSideMenuWidth = 192.dp
+private val WideSideMenuWidth = 320.dp
