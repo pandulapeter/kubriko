@@ -82,7 +82,7 @@ internal fun TopBar(
 ) {
     val imageBitmap = imageResource(Res.drawable.img_logo)
     AnimatedVisibility(
-        visible = selectedShowcaseEntry == null && imageBitmap.width > 1,
+        visible = selectedShowcaseEntry.shouldShowLogoInHeader && imageBitmap.width > 1,
         enter = fadeIn() + slideIn(animationSpec = tween(easing = EaseOut)) { IntOffset((it.width * 0.5f).roundToInt(), 0) },
         exit = slideOut(animationSpec = tween(easing = EaseIn)) { IntOffset((it.width * 0.75f).roundToInt(), 0) } + fadeOut(),
     ) {
@@ -138,7 +138,7 @@ private fun Header(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(end = if (shouldUseCompactUi && selectedShowcaseEntry != null) 0.dp else 8.dp),
+                .padding(end = if (shouldUseCompactUi && !selectedShowcaseEntry.shouldShowLogoInHeader) 0.dp else 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
@@ -153,7 +153,7 @@ private fun Header(
                 ),
             )
             AnimatedVisibility(
-                visible = selectedShowcaseEntry != null,
+                visible = !selectedShowcaseEntry.shouldShowLogoInHeader,
                 enter = fadeIn() + scaleIn(),
                 exit = scaleOut() + fadeOut(),
             ) {
@@ -181,3 +181,5 @@ private fun Header(
         }
     }
 )
+
+private val ShowcaseEntry?.shouldShowLogoInHeader get() = this == null || this == ShowcaseEntry.ABOUT || this == ShowcaseEntry.LICENSES
