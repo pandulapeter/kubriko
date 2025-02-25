@@ -9,8 +9,12 @@
  */
 package com.pandulapeter.kubriko.demoInput.implementation.managers
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -19,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
@@ -57,7 +62,11 @@ internal class InputTestManager : Manager(), KeyboardInputAware, PointerInputAwa
 
     @Composable
     override fun Composable(windowInsets: WindowInsets) = Keyboard(
-        modifier = Modifier.windowInsetsPadding(windowInsets),
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .horizontalScroll(rememberScrollState())
+            .windowInsetsPadding(windowInsets)
+            .padding(16.dp),
         activeKeys = activeKeys.collectAsState().value,
     )
 

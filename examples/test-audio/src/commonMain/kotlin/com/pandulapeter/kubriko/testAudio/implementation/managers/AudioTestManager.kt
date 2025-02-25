@@ -12,14 +12,15 @@ package com.pandulapeter.kubriko.testAudio.implementation.managers
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -88,26 +89,24 @@ internal class AudioTestManager : Manager() {
     fun stopMusicBeforeDispose() = shouldStopMusic.update { true }
 
     @Composable
-    override fun Composable(windowInsets: WindowInsets) = Box(
+    override fun Composable(windowInsets: WindowInsets) = Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .windowInsetsPadding(windowInsets)
             .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            MusicControls(
-                title = "A Csajod - Átkok",
-                musicUri = track1Uri,
-                isPlaying = isTrack1Playing.value,
-            )
-            MusicControls(
-                title = "A Csajod - Energiavámpír",
-                musicUri = track2Uri,
-                isPlaying = isTrack2Playing.value,
-            )
-        }
+        MusicControls(
+            title = "A Csajod - Átkok",
+            musicUri = track1Uri,
+            isPlaying = isTrack1Playing.value,
+        )
+        MusicControls(
+            title = "A Csajod - Energiavámpír",
+            musicUri = track2Uri,
+            isPlaying = isTrack2Playing.value,
+        )
     }
 
     @Composable

@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.keyboardInput.extensions.displayName
 
@@ -138,11 +137,6 @@ internal fun Keyboard(
                 Key.AltRight,
                 Key.CtrlRight,
             ).map { it.toWrapper(activeKeys) },
-        )
-        Text(
-            modifier = Modifier.padding(top = 16.dp),
-            textAlign = TextAlign.Center,
-            text = activeKeys.joinToString { it.keyCode.toString() },
         )
     }
 }
