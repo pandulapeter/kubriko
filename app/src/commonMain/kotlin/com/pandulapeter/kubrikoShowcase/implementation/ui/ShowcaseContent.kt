@@ -49,6 +49,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -61,6 +62,7 @@ import com.pandulapeter.kubriko.debugMenu.HorizontalDebugMenu
 import com.pandulapeter.kubriko.debugMenu.KubrikoViewportWithDebugMenuOverlay
 import com.pandulapeter.kubriko.debugMenu.VerticalDebugMenu
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
+import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntryType
 import com.pandulapeter.kubrikoShowcase.implementation.ui.welcome.WelcomeScreen
 import kotlinx.coroutines.launch
 import kubriko.app.generated.resources.Res
@@ -232,6 +234,15 @@ private fun ExpandedContent(
                 false -> 2.dp
             },
         ) {
+            val coroutineScope = rememberCoroutineScope()
+            LaunchedEffect(selectedShowcaseEntry) {
+                val itemIndex = selectedShowcaseEntry.itemIndex
+                if (lazyListState.firstVisibleItemIndex > itemIndex || (lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) < itemIndex) {
+                    coroutineScope.launch {
+                        lazyListState.animateScrollToItem(itemIndex)
+                    }
+                }
+            }
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom).asPaddingValues(),
@@ -315,6 +326,15 @@ private fun CompactContent(
         }
     }
 }
+
+private val ShowcaseEntry?.itemIndex
+    get() = when (this?.type) {
+        null -> 0
+        ShowcaseEntryType.GAME -> ShowcaseEntry.entries.indexOf(this) + 2
+        ShowcaseEntryType.DEMO -> ShowcaseEntry.entries.indexOf(this) + 3
+        ShowcaseEntryType.TEST -> ShowcaseEntry.entries.indexOf(this) + 4
+        ShowcaseEntryType.OTHER -> ShowcaseEntry.entries.indexOf(this) + 5
+    }
 
 private val TopBarHeight = 64.dp
 private val ThinSideMenuWidth = 192.dp
