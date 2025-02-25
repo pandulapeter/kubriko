@@ -19,6 +19,8 @@ kotlin {
             implementation(projects.plugins.keyboardInput)
             implementation(projects.plugins.pointerInput)
             implementation(projects.tools.debugMenu)
+            implementation(projects.tools.uiComponents)
+            implementation(compose.components.resources)
             implementation(compose.material3)
         }
     }

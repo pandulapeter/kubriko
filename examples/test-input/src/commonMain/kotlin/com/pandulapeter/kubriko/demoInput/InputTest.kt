@@ -10,15 +10,29 @@
 package com.pandulapeter.kubriko.demoInput
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.demoInput.implementation.InputTestStateHolder
 import com.pandulapeter.kubriko.demoInput.implementation.InputTestStateHolderImpl
+import com.pandulapeter.kubriko.demoInput.implementation.ui.Keyboard
+import com.pandulapeter.kubriko.uiComponents.InfoPanel
+import kubriko.examples.test_input.generated.resources.Res
+import kubriko.examples.test_input.generated.resources.description
 
 fun createInputTestStateHolder(): InputTestStateHolder = InputTestStateHolderImpl()
 
@@ -29,8 +43,29 @@ fun InputTest(
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as InputTestStateHolderImpl
-    KubrikoViewport(
+    Column(
         modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest),
+    ) {
+        Box(
+            modifier = Modifier
+                .windowInsetsPadding(windowInsets)
+                .padding(16.dp),
+        ) {
+            InfoPanel(
+                stringResource = Res.string.description,
+            )
+        }
+        Keyboard(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .horizontalScroll(rememberScrollState())
+                .windowInsetsPadding(windowInsets.only(WindowInsetsSides.Start + WindowInsetsSides.End + WindowInsetsSides.Bottom))
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 16.dp),
+            activeKeys = stateHolder.inputTestManager.activeKeys.collectAsState().value,
+        )
+    }
+    KubrikoViewport(
         kubriko = stateHolder.kubriko.collectAsState().value,
         windowInsets = windowInsets,
     )

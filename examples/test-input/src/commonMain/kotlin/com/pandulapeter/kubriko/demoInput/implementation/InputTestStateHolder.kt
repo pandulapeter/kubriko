@@ -28,7 +28,7 @@ internal class InputTestStateHolderImpl : InputTestStateHolder {
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    private val inputTestManager = InputTestManager()
+    val inputTestManager = InputTestManager()
     private val _kubriko = MutableStateFlow(
         Kubriko.newInstance(
             pointerInputManager,

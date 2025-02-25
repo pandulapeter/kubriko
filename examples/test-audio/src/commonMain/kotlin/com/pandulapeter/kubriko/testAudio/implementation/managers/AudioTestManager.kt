@@ -22,6 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +36,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
+import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.Panel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
@@ -42,11 +44,14 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kubriko.examples.test_audio.generated.resources.Res
+import kubriko.examples.test_audio.generated.resources.description
 import kubriko.examples.test_audio.generated.resources.ic_loop_on
 import kubriko.examples.test_audio.generated.resources.ic_pause
 import kubriko.examples.test_audio.generated.resources.ic_play
 import kubriko.examples.test_audio.generated.resources.ic_stop
 import kubriko.examples.test_audio.generated.resources.loop_on
+import kubriko.examples.test_audio.generated.resources.music_track_1
+import kubriko.examples.test_audio.generated.resources.music_track_2
 import kubriko.examples.test_audio.generated.resources.pause
 import kubriko.examples.test_audio.generated.resources.play
 import kubriko.examples.test_audio.generated.resources.stop
@@ -97,13 +102,16 @@ internal class AudioTestManager : Manager() {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        InfoPanel(
+            stringResource = Res.string.description,
+        )
         MusicControls(
-            title = "A Csajod - Átkok",
+            title = stringResource(Res.string.music_track_1),
             musicUri = track1Uri,
             isPlaying = isTrack1Playing.value,
         )
         MusicControls(
-            title = "A Csajod - Energiavámpír",
+            title = stringResource(Res.string.music_track_2),
             musicUri = track2Uri,
             isPlaying = isTrack2Playing.value,
         )
@@ -120,11 +128,13 @@ internal class AudioTestManager : Manager() {
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
-                modifier = Modifier.padding(horizontal = 8.dp),
+                modifier = Modifier.padding(horizontal = 4.dp),
+                style = MaterialTheme.typography.labelSmall,
                 text = title,
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 ControlButton(
                     icon = if (isPlaying) Res.drawable.ic_pause else Res.drawable.ic_play,
@@ -157,7 +167,6 @@ internal class AudioTestManager : Manager() {
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
             .clickable(enabled = isEnabled, onClick = onClick)
-            .padding(8.dp)
             .alpha(if (isEnabled) 1f else 0.5f),
         colorFilter = ColorFilter.tint(LocalContentColor.current),
         painter = painterResource(icon),
