@@ -47,11 +47,13 @@ import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.Ship
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.SpaceSquadronUIElementShape
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.spaceSquadronUIElementBorder
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
+import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -66,6 +68,7 @@ internal class UIManager(
 
     private val actorManager by manager<ActorManager>()
     private val audioManager by manager<AudioManager>()
+    private val keyboardInputManager by manager<KeyboardInputManager>()
     private val gameplayManager by manager<GameplayManager>()
     private val scoreManager by manager<ScoreManager>()
     private val _isInfoDialogVisible = MutableStateFlow(false)
@@ -74,12 +77,21 @@ internal class UIManager(
     val isCloseConfirmationDialogVisible = _isCloseConfirmationDialogVisible.asStateFlow()
     private val shipHealth = MutableStateFlow(0)
     private val multiShoot = MutableStateFlow(0)
+    private var shouldDismissNextSpacebarRelease = false
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager.add(this)
         stateManager.isFocused
             .filterNot { it }
             .onEach { gameplayManager.pauseGame() }
+            .launchIn(scope)
+        gameplayManager.isGameOver
+            .filter { true }
+            .onEach {
+                if (keyboardInputManager.isKeyPressed(Key.Spacebar)) {
+                    shouldDismissNextSpacebarRelease = true
+                }
+            }
             .launchIn(scope)
     }
 
@@ -178,9 +190,10 @@ internal class UIManager(
     override fun onKeyReleased(key: Key) {
         when (key) {
             Key.Spacebar, Key.Enter -> {
-                if ((!stateManager.isRunning.value || gameplayManager.isGameOver.value) && !isInfoDialogVisible.value && !isCloseConfirmationDialogVisible.value) {
+                if (!shouldDismissNextSpacebarRelease && (!stateManager.isRunning.value || gameplayManager.isGameOver.value) && !isInfoDialogVisible.value && !isCloseConfirmationDialogVisible.value) {
                     gameplayManager.playGame()
                 }
+                shouldDismissNextSpacebarRelease = false
             }
 
             else -> Unit
