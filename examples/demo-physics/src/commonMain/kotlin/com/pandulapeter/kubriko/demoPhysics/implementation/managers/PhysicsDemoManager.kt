@@ -12,10 +12,13 @@ package com.pandulapeter.kubriko.demoPhysics.implementation.managers
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -109,7 +112,6 @@ internal class PhysicsDemoManager(
     @Composable
     override fun Composable(windowInsets: WindowInsets) = Box {
         LoadingOverlay(
-            modifier = Modifier.windowInsetsPadding(windowInsets),
             color = MaterialTheme.colorScheme.surfaceContainerHighest,
             shouldShowLoadingIndicator = shouldShowLoadingIndicator.collectAsState().value,
         )
@@ -124,24 +126,30 @@ internal class PhysicsDemoManager(
             InfoPanel(
                 stringResource = Res.string.description,
             )
-            PlatformSpecificContent()
             Spacer(modifier = Modifier.weight(1f))
             val selectedActionType = actionType.collectAsState()
-            FloatingButton(
-                icon = when (selectedActionType.value) {
-                    ActionType.SHAPE -> Res.drawable.ic_shape
-                    ActionType.CHAIN -> Res.drawable.ic_chain
-                    ActionType.EXPLOSION -> Res.drawable.ic_explosion
-                },
-                onButtonPressed = ::changeSelectedActionType,
-                contentDescription = stringResource(
-                    when (selectedActionType.value) {
-                        ActionType.SHAPE -> Res.string.shape
-                        ActionType.CHAIN -> Res.string.chain
-                        ActionType.EXPLOSION -> Res.string.explosion
-                    }
-                ),
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                PlatformSpecificContent()
+                Spacer(modifier = Modifier.width(8.dp))
+                FloatingButton(
+                    icon = when (selectedActionType.value) {
+                        ActionType.SHAPE -> Res.drawable.ic_shape
+                        ActionType.CHAIN -> Res.drawable.ic_chain
+                        ActionType.EXPLOSION -> Res.drawable.ic_explosion
+                    },
+                    onButtonPressed = ::changeSelectedActionType,
+                    contentDescription = stringResource(
+                        when (selectedActionType.value) {
+                            ActionType.SHAPE -> Res.string.shape
+                            ActionType.CHAIN -> Res.string.chain
+                            ActionType.EXPLOSION -> Res.string.explosion
+                        }
+                    ),
+                )
+            }
         }
     }
 
