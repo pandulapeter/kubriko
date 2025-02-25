@@ -24,10 +24,11 @@ internal class ParticlesDemoStateHolderImpl : ParticlesDemoStateHolder {
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
+    private val particlesDemoManager = ParticlesDemoManager()
     private val _kubriko = MutableStateFlow(
         Kubriko.newInstance(
             particleManager,
-            ParticlesDemoManager(),
+            particlesDemoManager,
             isLoggingEnabled = true,
             instanceNameForLogging = LOG_TAG,
         )
@@ -35,6 +36,15 @@ internal class ParticlesDemoStateHolderImpl : ParticlesDemoStateHolder {
     override val kubriko = _kubriko.asStateFlow()
 
     override fun dispose() = kubriko.value.dispose()
+
+    override fun navigateBack(
+        isInFullscreenMode: Boolean,
+        onFullscreenModeToggled: () -> Unit,
+    ) = particlesDemoManager.areControlsExpanded.value.also {
+        if (it) {
+            particlesDemoManager.toggleControlsExpanded()
+        }
+    }
 }
 
 private const val LOG_TAG = "Particles"

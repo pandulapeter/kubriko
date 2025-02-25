@@ -10,6 +10,7 @@
 -->
 <resources>
 
+    <string name="description">Here you can see a particle effect that spawns simple circle shapes in all directions. The individual particles scale down and fade out as time passes. Use the control panel in the bottom right corner of the screen to modify the parameters or to toggle between continuous and burst emission modes.</string>
     <string name="expand_controls">Expand controls</string>
     <string name="collapse_controls">Collapse controls</string>
     <string name="emit_continuously">Emit continuously</string>
