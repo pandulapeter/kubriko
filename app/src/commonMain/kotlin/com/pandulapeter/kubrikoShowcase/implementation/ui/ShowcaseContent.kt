@@ -235,12 +235,16 @@ private fun ExpandedContent(
             },
         ) {
             val coroutineScope = rememberCoroutineScope()
+            LaunchedEffect(shouldUseCompactUi) {
+                val itemIndex = selectedShowcaseEntry.itemIndex
+                if (lazyListState.firstVisibleItemIndex >= itemIndex || (lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) <= itemIndex) {
+                    coroutineScope.launch { lazyListState.animateScrollToItem(itemIndex) }
+                }
+            }
             LaunchedEffect(selectedShowcaseEntry) {
                 val itemIndex = selectedShowcaseEntry.itemIndex
                 if (lazyListState.firstVisibleItemIndex > itemIndex || (lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) < itemIndex) {
-                    coroutineScope.launch {
-                        lazyListState.animateScrollToItem(itemIndex)
-                    }
+                    coroutineScope.launch { lazyListState.animateScrollToItem(itemIndex) }
                 }
             }
             LazyColumn(
