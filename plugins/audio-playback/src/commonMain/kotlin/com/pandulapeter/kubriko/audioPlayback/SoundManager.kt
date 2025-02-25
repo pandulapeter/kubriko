@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 
 /**
  * TODO: Documentation
+ * NOTE: Wav files only. To keep compatibility with older Android versions, keep bitrate at a maximum of 48k.
  */
 // TODO: Add API to control the volume
 sealed class SoundManager(

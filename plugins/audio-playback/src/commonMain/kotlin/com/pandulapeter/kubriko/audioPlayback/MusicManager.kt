@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 
 /**
  * TODO: Documentation
+ * Note: MP3 files at 320 kbps have been tested. Use other formats at own risk.
  */
 // TODO: Add API to control the volume
 sealed class MusicManager(
