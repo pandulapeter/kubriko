@@ -56,7 +56,7 @@ internal abstract class Bullet(
     override val drawingOrder = 1f
     override val particleStateType = BulletParticleState::class
     override var particleEmissionMode: ParticleEmitter.Mode = ParticleEmitter.Mode.Continuous(
-        getEmissionsPerMillisecond = { 0.1f * (1 + scoreManager.score.value * 0.05f) }
+        getEmissionsPerMillisecond = { 0.15f }
     )
 
     override fun onAdded(kubriko: Kubriko) {
