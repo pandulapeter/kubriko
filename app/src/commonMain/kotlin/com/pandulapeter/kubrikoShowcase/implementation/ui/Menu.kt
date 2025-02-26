@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoShowcase.implementation.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -19,14 +20,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -34,7 +38,9 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoShowcase.BuildConfig
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntryType
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 
@@ -50,6 +56,7 @@ internal fun LazyListScope.menu(
             item(type.name) {
                 MenuCategoryLabel(
                     title = type.titleStringResource,
+                    icon = type.iconDrawableResource,
                 )
             }
             items(
@@ -109,7 +116,8 @@ internal fun MenuItem(
 private fun MenuCategoryLabel(
     modifier: Modifier = Modifier,
     title: StringResource,
-) = Text(
+    icon: DrawableResource,
+) = Row(
     modifier = modifier
         .fillMaxWidth()
         .padding(
@@ -117,8 +125,19 @@ private fun MenuCategoryLabel(
             vertical = 8.dp,
         )
         .padding(WindowInsets.safeDrawing.only(WindowInsetsSides.Left).asPaddingValues()),
-    color = MaterialTheme.colorScheme.secondary,
-    fontWeight = FontWeight.Bold,
-    style = MaterialTheme.typography.labelSmall,
-    text = stringResource(title),
-)
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
+) {
+    Icon(
+        modifier = Modifier.size(20.dp),
+        painter = painterResource(icon),
+        tint = MaterialTheme.colorScheme.primary,
+        contentDescription = stringResource(title),
+    )
+    Text(
+        color = MaterialTheme.colorScheme.primary,
+        fontWeight = FontWeight.Bold,
+        style = MaterialTheme.typography.labelLarge,
+        text = stringResource(title),
+    )
+}

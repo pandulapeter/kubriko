@@ -26,6 +26,10 @@ import kubriko.app.generated.resources.game_space_squadron_subtitle
 import kubriko.app.generated.resources.game_wallbreaker
 import kubriko.app.generated.resources.game_wallbreaker_subtitle
 import kubriko.app.generated.resources.games
+import kubriko.app.generated.resources.ic_demos
+import kubriko.app.generated.resources.ic_games
+import kubriko.app.generated.resources.ic_other
+import kubriko.app.generated.resources.ic_tests
 import kubriko.app.generated.resources.other
 import kubriko.app.generated.resources.other_about
 import kubriko.app.generated.resources.other_about_subtitle
@@ -38,6 +42,7 @@ import kubriko.app.generated.resources.test_input_subtitle
 import kubriko.app.generated.resources.test_performance
 import kubriko.app.generated.resources.test_performance_subtitle
 import kubriko.app.generated.resources.tests
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 
 internal enum class ShowcaseEntry(
@@ -116,17 +121,22 @@ internal enum class ShowcaseEntry(
 
 internal enum class ShowcaseEntryType(
     val titleStringResource: StringResource,
+    val iconDrawableResource: DrawableResource,
 ) {
     GAME(
         titleStringResource = Res.string.games,
+        iconDrawableResource = Res.drawable.ic_games,
     ),
     DEMO(
         titleStringResource = Res.string.demos,
+        iconDrawableResource = Res.drawable.ic_demos,
     ),
     TEST(
         titleStringResource = Res.string.tests,
+        iconDrawableResource = Res.drawable.ic_tests,
     ),
     OTHER(
         titleStringResource = Res.string.other,
+        iconDrawableResource = Res.drawable.ic_other,
     ),
 }

@@ -30,8 +30,12 @@ import kotlinx.coroutines.flow.onEach
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.ic_debug_off
 import kubriko.app.generated.resources.ic_debug_on
+import kubriko.app.generated.resources.ic_demos
+import kubriko.app.generated.resources.ic_games
 import kubriko.app.generated.resources.ic_info_off
 import kubriko.app.generated.resources.ic_info_on
+import kubriko.app.generated.resources.ic_other
+import kubriko.app.generated.resources.ic_tests
 import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -108,5 +112,9 @@ private fun areMenuResourcesLoaded() = preloadedImageVector(Res.drawable.ic_info
         && preloadedImageVector(Res.drawable.ic_info_off).value != null
         && preloadedImageVector(Res.drawable.ic_debug_on).value != null
         && preloadedImageVector(Res.drawable.ic_debug_off).value != null
+        && preloadedImageVector(Res.drawable.ic_demos).value != null
+        && preloadedImageVector(Res.drawable.ic_games).value != null
+        && preloadedImageVector(Res.drawable.ic_other).value != null
+        && preloadedImageVector(Res.drawable.ic_tests).value != null
 
 private val selectedShowcaseEntry = mutableStateOf<ShowcaseEntry?>(null)
