@@ -96,13 +96,13 @@ internal fun CloseConfirmationDialogOverlay(
                             onButtonPressed = onCloseCancelled,
                             onPointerEnter = onButtonHover,
                             stringResource = Res.string.close_confirmation_negative,
-                            containerColor = createButtonColor(0.3f),
+                            containerColor = createButtonColor(0.75f),
                         )
                         WallbreakerTextButton(
                             onButtonPressed = onCloseConfirmed,
                             onPointerEnter = onButtonHover,
                             stringResource = Res.string.close_confirmation_positive,
-                            containerColor = createButtonColor(0f),
+                            containerColor = createButtonColor(0.6f),
                         )
                     }
                 }
