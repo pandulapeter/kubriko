@@ -50,7 +50,7 @@ sealed interface AboutScreenStateHolder : StateHolder
 
 private class AboutScreenStateHolderImpl : AboutScreenStateHolder {
     override val kubriko: Flow<Kubriko?> = emptyFlow()
-    val libraryVersion = BuildConfig.libraryVersion
+    val libraryVersion = BuildConfig.LIBRARY_VERSION
     val platform = MetadataManager.newInstance().platform
 
     override fun dispose() = Unit

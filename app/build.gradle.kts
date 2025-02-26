@@ -7,6 +7,7 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
@@ -112,6 +113,25 @@ buildkonfig {
     packageName = "com.pandulapeter.kubrikoShowcase"
     objectName = "BuildConfig"
     defaultConfigs {
-        buildConfigField(com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING, "libraryVersion", rootProject.version.toString())
+        buildConfigField(
+            type = Type.STRING,
+            name = "LIBRARY_VERSION",
+            value = rootProject.version.toString(),
+            const = true,
+        )
+        buildConfigField(
+            type = Type.BOOLEAN,
+            name = "IS_PRODUCTION_BUILD",
+            value = "false",
+            const = true,
+        )
+    }
+    defaultConfigs("release") {
+        buildConfigField(
+            type = Type.BOOLEAN,
+            name = "IS_PRODUCTION_BUILD",
+            value = "true",
+            const = true,
+        )
     }
 }

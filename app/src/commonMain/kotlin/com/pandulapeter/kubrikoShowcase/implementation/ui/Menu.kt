@@ -31,7 +31,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoShowcase.BuildConfig
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
+import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntryType
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -40,26 +42,29 @@ internal fun LazyListScope.menu(
     allShowcaseEntries: List<ShowcaseEntry>,
     selectedShowcaseEntry: ShowcaseEntry?,
     onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
-) = allShowcaseEntries.groupBy { it.type }.let { groups ->
-    groups.forEach { (type, entries) ->
-        item(type.name) {
-            MenuCategoryLabel(
-                title = type.titleStringResource,
-            )
-        }
-        items(
-            items = entries,
-            key = { it.name }
-        ) { showcaseEntry ->
-            MenuItem(
-                isSelected = selectedShowcaseEntry == showcaseEntry,
-                title = showcaseEntry.titleStringResource,
-                subtitle = showcaseEntry.subtitleStringResource,
-                onSelected = { onShowcaseEntrySelected(showcaseEntry) },
-            )
+) = allShowcaseEntries
+    .filter { if (BuildConfig.IS_PRODUCTION_BUILD) it.type != ShowcaseEntryType.TEST else true }
+    .groupBy { it.type }
+    .let { groups ->
+        groups.forEach { (type, entries) ->
+            item(type.name) {
+                MenuCategoryLabel(
+                    title = type.titleStringResource,
+                )
+            }
+            items(
+                items = entries,
+                key = { it.name }
+            ) { showcaseEntry ->
+                MenuItem(
+                    isSelected = selectedShowcaseEntry == showcaseEntry,
+                    title = showcaseEntry.titleStringResource,
+                    subtitle = showcaseEntry.subtitleStringResource,
+                    onSelected = { onShowcaseEntrySelected(showcaseEntry) },
+                )
+            }
         }
     }
-}
 
 @Composable
 internal fun MenuItem(

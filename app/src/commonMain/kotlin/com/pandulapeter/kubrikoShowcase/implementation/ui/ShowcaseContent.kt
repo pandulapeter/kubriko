@@ -64,6 +64,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.debugMenu.HorizontalDebugMenu
 import com.pandulapeter.kubriko.debugMenu.KubrikoViewportWithDebugMenuOverlay
 import com.pandulapeter.kubriko.debugMenu.VerticalDebugMenu
+import com.pandulapeter.kubrikoShowcase.BuildConfig
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntryType
 import com.pandulapeter.kubrikoShowcase.implementation.ui.welcome.WelcomeScreen
@@ -360,7 +361,7 @@ private fun ShowcaseEntry?.getItemIndex() = when (this?.type) {
     ShowcaseEntryType.GAME -> ShowcaseEntry.entries.indexOf(this) + 2
     ShowcaseEntryType.DEMO -> ShowcaseEntry.entries.indexOf(this) + 3
     ShowcaseEntryType.TEST -> ShowcaseEntry.entries.indexOf(this) + 4
-    ShowcaseEntryType.OTHER -> ShowcaseEntry.entries.indexOf(this) + 5
+    ShowcaseEntryType.OTHER -> ShowcaseEntry.entries.indexOf(this) + if (BuildConfig.IS_PRODUCTION_BUILD) 4 else 5
 }
 
 private val TopBarHeight = 64.dp
