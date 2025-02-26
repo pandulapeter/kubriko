@@ -45,6 +45,7 @@ import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.testAudio.AudioTest
 import com.pandulapeter.kubriko.testAudio.createAudioTestStateHolder
 import com.pandulapeter.kubriko.testAudio.implementation.AudioTestStateHolder
+import com.pandulapeter.kubrikoShowcase.BuildConfig
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import com.pandulapeter.kubrikoShowcase.implementation.ui.about.AboutScreen
 import com.pandulapeter.kubrikoShowcase.implementation.ui.about.AboutScreenStateHolder
@@ -82,11 +83,13 @@ internal fun ShowcaseEntry.ExampleScreen(
             windowInsets = windowInsets,
             isInFullscreenMode = isInFullscreenMode,
             onFullscreenModeToggled = onFullscreenModeToggled,
+            shouldShowSceneEditorIfSupported = !BuildConfig.IS_PRODUCTION_BUILD,
         )
 
         ShowcaseEntry.PHYSICS -> PhysicsDemo(
             stateHolder = getOrCreateState(stateHolders, ::createPhysicsDemoStateHolder),
             windowInsets = windowInsets,
+            shouldShowSceneEditorIfSupported = !BuildConfig.IS_PRODUCTION_BUILD,
         )
 
         ShowcaseEntry.PARTICLES -> ParticlesDemo(

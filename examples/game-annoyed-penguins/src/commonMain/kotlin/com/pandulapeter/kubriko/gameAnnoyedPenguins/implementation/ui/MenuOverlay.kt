@@ -87,6 +87,7 @@ internal fun MenuOverlay(
     isInfoDialogVisible: Boolean,
     isCloseConfirmationDialogVisible: Boolean,
     onLevelSelected: (String) -> Unit,
+    shouldShowSceneEditorIfSupported: Boolean,
     levelSelectorScrollState: ScrollState = rememberScrollState(),
 ) {
     AnimatedVisibility(
@@ -148,10 +149,12 @@ internal fun MenuOverlay(
                                 onButtonPressed = onInfoButtonPressed,
                                 onPointerEnter = playHoverSoundEffect,
                             )
-                            PlatformSpecificContent(
-                                playHoverSoundEffect = playHoverSoundEffect,
-                                playToggleSoundEffect = playToggleSoundEffect,
-                            )
+                            if (shouldShowSceneEditorIfSupported) {
+                                PlatformSpecificContent(
+                                    playHoverSoundEffect = playHoverSoundEffect,
+                                    playToggleSoundEffect = playToggleSoundEffect,
+                                )
+                            }
                         }
                         Spacer(
                             modifier = Modifier

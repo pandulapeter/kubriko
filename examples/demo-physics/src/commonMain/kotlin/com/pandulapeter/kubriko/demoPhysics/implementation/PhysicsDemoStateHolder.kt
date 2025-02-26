@@ -111,7 +111,7 @@ internal class PhysicsDemoStateHolderImpl : PhysicsDemoStateHolder {
             instanceNameForLogging = LOG_TAG,
         )
     }
-    private val physicsDemoManager by lazy {
+    val physicsDemoManager by lazy {
         PhysicsDemoManager(sceneJson = sceneJson)
     }
     private val _kubriko by lazy {
