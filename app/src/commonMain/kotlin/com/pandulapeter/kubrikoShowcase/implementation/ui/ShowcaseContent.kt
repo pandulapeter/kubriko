@@ -131,17 +131,21 @@ internal fun ShowcaseContent(
                             onFullscreenModeToggled = onFullscreenModeToggled,
                             getSelectedShowcaseEntry = getSelectedShowcaseEntry,
                         )
-                        VerticalDebugMenu(
+                        if (!BuildConfig.IS_PRODUCTION_BUILD) {
+                            VerticalDebugMenu(
+                                kubriko = activeKubrikoInstance,
+                                isEnabled = !shouldUseCompactUi && activeKubrikoInstance != null,
+                                windowInsets = windowInsets,
+                            )
+                        }
+                    }
+                    if (!BuildConfig.IS_PRODUCTION_BUILD) {
+                        HorizontalDebugMenu(
                             kubriko = activeKubrikoInstance,
-                            isEnabled = !shouldUseCompactUi && activeKubrikoInstance != null,
+                            isEnabled = shouldUseCompactUi && activeKubrikoInstance != null,
                             windowInsets = windowInsets,
                         )
                     }
-                    HorizontalDebugMenu(
-                        kubriko = activeKubrikoInstance,
-                        isEnabled = shouldUseCompactUi && activeKubrikoInstance != null,
-                        windowInsets = windowInsets,
-                    )
                 }
             }
             AnimatedVisibility(
@@ -231,35 +235,40 @@ private fun ExpandedContent(
         ) {
             Spacer(modifier = Modifier.width(sideMenuWidth).background(MaterialTheme.colorScheme.surface))
         }
-        KubrikoViewportWithDebugMenuOverlay(
-            modifier = if (selectedShowcaseEntry == ShowcaseEntry.WALLBREAKER) Modifier.windowInsetsPadding(windowInsets) else Modifier,
-            kubriko = activeKubrikoInstance,
-            kubrikoViewport = {
-                val compactTransitionSpec: AnimatedContentTransitionScope<ShowcaseEntry?>.() -> ContentTransform =
-                    { fadeIn() + slideIn { IntOffset(0, if (targetState == null) -it.height / 10 else it.height / 10) } togetherWith fadeOut() }
-                val expandedTransitionSpec: AnimatedContentTransitionScope<ShowcaseEntry?>.() -> ContentTransform =
-                    { fadeIn() togetherWith fadeOut() }
-                AnimatedContent(
-                    transitionSpec = if (shouldUseCompactUi) compactTransitionSpec else expandedTransitionSpec,
-                    targetState = selectedShowcaseEntry,
-                    contentAlignment = Alignment.Center,
-                ) { showcaseEntry ->
-                    showcaseEntry?.ExampleScreen(
-                        windowInsets = windowInsets,
-                        isInFullscreenMode = isInFullscreenMode,
-                        onFullscreenModeToggled = onFullscreenModeToggled,
-                        getSelectedShowcaseEntry = getSelectedShowcaseEntry,
-                    ) ?: CompactContent(
-                        lazyListState = collapsedLazyListState,
-                        allShowcaseEntries = allShowcaseEntries,
-                        onShowcaseEntrySelected = onShowcaseEntrySelected,
-                        selectedShowcaseEntry = selectedShowcaseEntry,
-                        shouldUseCompactUi = shouldUseCompactUi,
-                    )
-                }
-            },
-            buttonAlignment = null,
-        )
+        @Composable
+        fun Content() {
+            val compactTransitionSpec: AnimatedContentTransitionScope<ShowcaseEntry?>.() -> ContentTransform =
+                { fadeIn() + slideIn { IntOffset(0, if (targetState == null) -it.height / 10 else it.height / 10) } togetherWith fadeOut() }
+            val expandedTransitionSpec: AnimatedContentTransitionScope<ShowcaseEntry?>.() -> ContentTransform =
+                { fadeIn() togetherWith fadeOut() }
+            AnimatedContent(
+                transitionSpec = if (shouldUseCompactUi) compactTransitionSpec else expandedTransitionSpec,
+                targetState = selectedShowcaseEntry,
+                contentAlignment = Alignment.Center,
+            ) { showcaseEntry ->
+                showcaseEntry?.ExampleScreen(
+                    windowInsets = windowInsets,
+                    isInFullscreenMode = isInFullscreenMode,
+                    onFullscreenModeToggled = onFullscreenModeToggled,
+                    getSelectedShowcaseEntry = getSelectedShowcaseEntry,
+                ) ?: CompactContent(
+                    lazyListState = collapsedLazyListState,
+                    allShowcaseEntries = allShowcaseEntries,
+                    onShowcaseEntrySelected = onShowcaseEntrySelected,
+                    selectedShowcaseEntry = selectedShowcaseEntry,
+                    shouldUseCompactUi = shouldUseCompactUi,
+                )
+            }
+        }
+        if (BuildConfig.IS_PRODUCTION_BUILD) {
+            Content()
+        } else {
+            KubrikoViewportWithDebugMenuOverlay(
+                kubriko = activeKubrikoInstance,
+                kubrikoViewport = { Content() },
+                buttonAlignment = null,
+            )
+        }
     }
     AnimatedVisibility(
         visible = shouldShowSideMenu,

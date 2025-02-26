@@ -48,6 +48,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.debugMenu.DebugMenu
+import com.pandulapeter.kubrikoShowcase.BuildConfig
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntryType
 import kubriko.app.generated.resources.Res
@@ -177,19 +178,21 @@ private fun Header(
                     )
                 }
             }
-            AnimatedVisibility(
-                visible = selectedShowcaseEntry.shouldShowDebugButton,
-                enter = fadeIn() + scaleIn(),
-                exit = scaleOut() + fadeOut(),
-            ) {
-                IconButton(
-                    modifier = Modifier.size(48.dp),
-                    onClick = DebugMenu::toggleVisibility,
+            if (!BuildConfig.IS_PRODUCTION_BUILD) {
+                AnimatedVisibility(
+                    visible = selectedShowcaseEntry.shouldShowDebugButton,
+                    enter = fadeIn() + scaleIn(),
+                    exit = scaleOut() + fadeOut(),
                 ) {
-                    Icon(
-                        painter = painterResource(if (DebugMenu.isVisible.collectAsState().value) Res.drawable.ic_debug_on else Res.drawable.ic_debug_off),
-                        contentDescription = stringResource(Res.string.debug_menu),
-                    )
+                    IconButton(
+                        modifier = Modifier.size(48.dp),
+                        onClick = DebugMenu::toggleVisibility,
+                    ) {
+                        Icon(
+                            painter = painterResource(if (DebugMenu.isVisible.collectAsState().value) Res.drawable.ic_debug_on else Res.drawable.ic_debug_off),
+                            contentDescription = stringResource(Res.string.debug_menu),
+                        )
+                    }
                 }
             }
         }
