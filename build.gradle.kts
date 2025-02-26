@@ -21,6 +21,7 @@ infix fun String.set(value: Any) = System.setProperty(this, value.toString())
 plugins {
     alias(libs.plugins.androidApplication) apply false
     alias(libs.plugins.androidLibrary) apply false
+    alias(libs.plugins.codingfeline.buildkonfig) apply false
     alias(libs.plugins.compose) apply false
     alias(libs.plugins.compose.compiler) apply false
     alias(libs.plugins.kotlin.multiplatform) apply false

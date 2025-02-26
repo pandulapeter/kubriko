@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.shared.StateHolder
+import com.pandulapeter.kubrikoShowcase.BuildConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -36,7 +37,7 @@ internal fun AboutScreen(
         .fillMaxSize()
         .windowInsetsPadding(windowInsets)
         .padding(16.dp),
-    text = "About - Work in progress",
+    text = "About - Work in progress\n\nKubriko version: ${BuildConfig.libraryVersion}",
 )
 
 sealed interface AboutScreenStateHolder : StateHolder

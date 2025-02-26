@@ -11,6 +11,7 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
     id("kubriko-application")
+    alias(libs.plugins.codingfeline.buildkonfig)
 }
 
 kotlin {
@@ -104,5 +105,13 @@ compose.desktop {
                 obfuscate.set(true)
             }
         }
+    }
+}
+
+buildkonfig {
+    packageName = "com.pandulapeter.kubrikoShowcase"
+    objectName = "BuildConfig"
+    defaultConfigs {
+        buildConfigField(com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING, "libraryVersion", rootProject.version.toString())
     }
 }
