@@ -18,6 +18,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import com.pandulapeter.kubrikoShowcase.implementation.ui.ShowcaseContent
@@ -88,11 +89,10 @@ fun KubrikoShowcase(
             activeKubrikoInstance = activeStateHolder?.kubriko?.collectAsState(null)?.value,
             isInFullscreenMode = isInFullscreenMode,
             onFullscreenModeToggled = onFullscreenModeToggled,
-            isInfoPanelVisible = isInfoPanelVisible.value,
-            toggleInfoPanelVisibility = { isInfoPanelVisible.value = !isInfoPanelVisible.value }
+            isInfoPanelVisible = StateHolder.isInfoPanelVisible.value,
+            toggleInfoPanelVisibility = { StateHolder.isInfoPanelVisible.value = !StateHolder.isInfoPanelVisible.value }
         )
     }
 }
 
 private val selectedShowcaseEntry = mutableStateOf<ShowcaseEntry?>(null)
-private val isInfoPanelVisible = mutableStateOf(true)

@@ -9,11 +9,17 @@
  */
 package com.pandulapeter.kubriko.uiComponents
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideOut
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -22,13 +28,20 @@ import org.jetbrains.compose.resources.stringResource
 fun InfoPanel(
     modifier: Modifier = Modifier,
     stringResource: StringResource,
-) = Panel {
-    Text(
-        modifier = modifier.padding(
-            horizontal = 16.dp,
-            vertical = 8.dp,
-        ),
-        style = MaterialTheme.typography.bodySmall,
-        text = stringResource(stringResource),
-    )
+    isVisible: Boolean,
+) = AnimatedVisibility(
+    visible = isVisible,
+    enter = slideIn { IntOffset(0, -it.height) } + fadeIn(),
+    exit = fadeOut() + slideOut { IntOffset(0, -it.height) },
+) {
+    Panel {
+        Text(
+            modifier = modifier.padding(
+                horizontal = 16.dp,
+                vertical = 8.dp,
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            text = stringResource(stringResource),
+        )
+    }
 }

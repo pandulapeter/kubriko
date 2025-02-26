@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.shared
 
+import androidx.compose.runtime.mutableStateOf
 import com.pandulapeter.kubriko.Kubriko
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -42,4 +43,8 @@ interface StateHolder {
      * Can be used to free up all resources related to the current demo.
      */
     fun dispose()
+
+    companion object {
+        val isInfoPanelVisible = mutableStateOf(true)
+    }
 }

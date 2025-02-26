@@ -45,6 +45,7 @@ import com.pandulapeter.kubriko.shaders.collection.ComicShader
 import com.pandulapeter.kubriko.shaders.collection.RippleShader
 import com.pandulapeter.kubriko.shaders.collection.SmoothPixelationShader
 import com.pandulapeter.kubriko.shaders.collection.VignetteShader
+import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.uiComponents.FloatingButton
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
@@ -132,6 +133,7 @@ internal class ContentShadersDemoManager : Manager() {
     ) {
         InfoPanel(
             stringResource = Res.string.description,
+            isVisible = StateHolder.isInfoPanelVisible.value,
         )
         Spacer(
             modifier = Modifier.weight(1f),

@@ -51,6 +51,7 @@ import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.GradientControls
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.NoodleControls
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.WarpControls
+import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.FloatingButton
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.Panel
@@ -79,6 +80,7 @@ internal fun ControlsContainer(
 ) {
     InfoPanel(
         stringResource = Res.string.description,
+        isVisible = StateHolder.isInfoPanelVisible.value,
     )
     Box(
         modifier = Modifier

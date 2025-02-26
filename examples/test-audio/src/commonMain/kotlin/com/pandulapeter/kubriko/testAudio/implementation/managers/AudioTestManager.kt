@@ -36,6 +36,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
+import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.Panel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -104,6 +105,7 @@ internal class AudioTestManager : Manager() {
     ) {
         InfoPanel(
             stringResource = Res.string.description,
+            isVisible = StateHolder.isInfoPanelVisible.value,
         )
         MusicControls(
             title = stringResource(Res.string.music_track_1),

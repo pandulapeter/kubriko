@@ -32,6 +32,7 @@ import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
+import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.LoadingOverlay
 import kotlinx.coroutines.delay
@@ -85,6 +86,7 @@ internal class PerformanceTestManager(
         ) {
             InfoPanel(
                 stringResource = Res.string.description,
+                isVisible = StateHolder.isInfoPanelVisible.value,
             )
             Spacer(modifier = Modifier.weight(1f))
             Row(

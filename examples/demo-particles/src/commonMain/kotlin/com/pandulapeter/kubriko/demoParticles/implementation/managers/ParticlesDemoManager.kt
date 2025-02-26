@@ -38,6 +38,7 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.particles.ParticleEmitter
+import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.FloatingButton
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -106,6 +107,7 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticleSta
     ) {
         InfoPanel(
             stringResource = Res.string.description,
+            isVisible = StateHolder.isInfoPanelVisible.value,
         )
         Spacer(modifier = Modifier.weight(1f))
         Box(

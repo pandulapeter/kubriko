@@ -52,6 +52,7 @@ import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
+import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
@@ -125,6 +126,7 @@ internal class PhysicsDemoManager(
         ) {
             InfoPanel(
                 stringResource = Res.string.description,
+                isVisible = StateHolder.isInfoPanelVisible.value,
             )
             Spacer(modifier = Modifier.weight(1f))
             val selectedActionType = actionType.collectAsState()
