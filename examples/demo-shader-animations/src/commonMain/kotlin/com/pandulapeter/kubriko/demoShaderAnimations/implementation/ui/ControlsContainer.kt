@@ -76,7 +76,6 @@ internal fun ControlsContainer(
     shaderAnimationDemoHolders: PersistentMap<ShaderAnimationDemoType, ShaderAnimationDemoHolder<*, *>>
 ) = Column(
     modifier = modifier,
-    verticalArrangement = Arrangement.spacedBy(8.dp),
 ) {
     InfoPanel(
         stringResource = Res.string.description,

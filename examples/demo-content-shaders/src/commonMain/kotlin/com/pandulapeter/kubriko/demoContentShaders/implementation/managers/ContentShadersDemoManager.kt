@@ -14,7 +14,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -129,7 +128,6 @@ internal class ContentShadersDemoManager : Manager() {
             .fillMaxSize()
             .windowInsetsPadding(windowInsets)
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         InfoPanel(
             stringResource = Res.string.description,

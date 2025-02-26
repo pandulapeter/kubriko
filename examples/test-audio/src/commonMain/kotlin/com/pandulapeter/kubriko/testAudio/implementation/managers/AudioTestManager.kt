@@ -14,8 +14,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -101,7 +103,6 @@ internal class AudioTestManager : Manager() {
             .verticalScroll(rememberScrollState())
             .windowInsetsPadding(windowInsets)
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         InfoPanel(
             stringResource = Res.string.description,
@@ -111,6 +112,9 @@ internal class AudioTestManager : Manager() {
             title = stringResource(Res.string.music_track_1),
             musicUri = track1Uri,
             isPlaying = isTrack1Playing.value,
+        )
+        Spacer(
+            modifier = Modifier.height(8.dp),
         )
         MusicControls(
             title = stringResource(Res.string.music_track_2),
