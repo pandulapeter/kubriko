@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -131,46 +132,55 @@ internal fun MenuOverlay(
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp)
                             .padding(top = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        AnnoyedPenguinsButton(
-                            onButtonPressed = onCloseButtonPressed,
-                            icon = Res.drawable.ic_exit,
-                            title = stringResource(Res.string.close_confirmation_positive),
-                            onPointerEnter = playHoverSoundEffect,
-                        )
-                        PlatformSpecificContent(
-                            playHoverSoundEffect = playHoverSoundEffect,
-                            playToggleSoundEffect = playToggleSoundEffect,
-                        )
-                        Spacer(
-                            modifier = Modifier.weight(1f),
-                        )
-                        AnnoyedPenguinsButton(
-                            icon = Res.drawable.ic_information,
-                            title = stringResource(Res.string.information),
-                            onButtonPressed = onInfoButtonPressed,
-                            onPointerEnter = playHoverSoundEffect,
-                        )
-                        AnnoyedPenguinsButton(
-                            onButtonPressed = onSoundEffectsToggled,
-                            icon = if (areSoundEffectsEnabled) Res.drawable.ic_sound_effects_on else Res.drawable.ic_sound_effects_off,
-                            title = stringResource(if (areSoundEffectsEnabled) Res.string.sound_effects_disable else Res.string.sound_effects_enable),
-                            onPointerEnter = playHoverSoundEffect,
-                        )
-                        AnnoyedPenguinsButton(
-                            onButtonPressed = onMusicToggled,
-                            icon = if (isMusicEnabled) Res.drawable.ic_music_on else Res.drawable.ic_music_off,
-                            title = stringResource(if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable),
-                            onPointerEnter = playHoverSoundEffect,
-                        )
-                        isInFullscreenMode?.let {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
                             AnnoyedPenguinsButton(
-                                onButtonPressed = onFullscreenModeToggled,
-                                icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
-                                title = stringResource(if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter),
+                                onButtonPressed = onCloseButtonPressed,
+                                icon = Res.drawable.ic_exit,
+                                title = stringResource(Res.string.close_confirmation_positive),
                                 onPointerEnter = playHoverSoundEffect,
                             )
+                            AnnoyedPenguinsButton(
+                                icon = Res.drawable.ic_information,
+                                title = stringResource(Res.string.information),
+                                onButtonPressed = onInfoButtonPressed,
+                                onPointerEnter = playHoverSoundEffect,
+                            )
+                            PlatformSpecificContent(
+                                playHoverSoundEffect = playHoverSoundEffect,
+                                playToggleSoundEffect = playToggleSoundEffect,
+                            )
+                        }
+                        Spacer(
+                            modifier = Modifier
+                                .defaultMinSize(minWidth = 6.dp)
+                                .weight(1f),
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            AnnoyedPenguinsButton(
+                                onButtonPressed = onSoundEffectsToggled,
+                                icon = if (areSoundEffectsEnabled) Res.drawable.ic_sound_effects_on else Res.drawable.ic_sound_effects_off,
+                                title = stringResource(if (areSoundEffectsEnabled) Res.string.sound_effects_disable else Res.string.sound_effects_enable),
+                                onPointerEnter = playHoverSoundEffect,
+                            )
+                            AnnoyedPenguinsButton(
+                                onButtonPressed = onMusicToggled,
+                                icon = if (isMusicEnabled) Res.drawable.ic_music_on else Res.drawable.ic_music_off,
+                                title = stringResource(if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable),
+                                onPointerEnter = playHoverSoundEffect,
+                            )
+                            isInFullscreenMode?.let {
+                                AnnoyedPenguinsButton(
+                                    onButtonPressed = onFullscreenModeToggled,
+                                    icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
+                                    title = stringResource(if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter),
+                                    onPointerEnter = playHoverSoundEffect,
+                                )
+                            }
                         }
                     }
                 }
