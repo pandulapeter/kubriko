@@ -23,6 +23,7 @@ import androidx.compose.animation.slideOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +52,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -89,7 +92,8 @@ internal fun ShowcaseContent(
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { paddingValues ->
-        val lazyListState = rememberLazyListState()
+        val collapsedLazyListState = rememberLazyListState()
+        val expandedLazyListState = rememberLazyListState()
         val topBarHeight = TopBarHeight + WindowInsets.safeDrawing.only(WindowInsetsSides.Top).asPaddingValues().calculateTopPadding()
         Box(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
@@ -113,7 +117,8 @@ internal fun ShowcaseContent(
                     ) {
                         ExpandedContent(
                             modifier = Modifier.weight(1f),
-                            lazyListState = lazyListState,
+                            collapsedLazyListState = collapsedLazyListState,
+                            expandedLazyListState = expandedLazyListState,
                             allShowcaseEntries = allShowcaseEntries,
                             onShowcaseEntrySelected = onShowcaseEntrySelected,
                             activeKubrikoInstance = activeKubrikoInstance,
@@ -160,7 +165,8 @@ internal fun ShowcaseContent(
 @Composable
 private fun ExpandedContent(
     modifier: Modifier,
-    lazyListState: LazyListState,
+    collapsedLazyListState: LazyListState,
+    expandedLazyListState: LazyListState,
     allShowcaseEntries: List<ShowcaseEntry>,
     onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
     selectedShowcaseEntry: ShowcaseEntry?,
@@ -182,6 +188,40 @@ private fun ExpandedContent(
             .calculateStartPadding(LocalLayoutDirection.current),
         animationSpec = tween(),
     )
+    val previouslyFocusedShowcaseEntry = remember { mutableStateOf(selectedShowcaseEntry) }
+    val coroutineScope = rememberCoroutineScope()
+    LaunchedEffect(shouldUseCompactUi) {
+        val lazyListState = if (shouldUseCompactUi) collapsedLazyListState else expandedLazyListState
+        val itemIndex = selectedShowcaseEntry.getItemIndex()
+        if (!lazyListState.isScrollInProgress) {
+            if (lazyListState.firstVisibleItemIndex >= itemIndex || (lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) <= itemIndex) {
+                coroutineScope.launch { lazyListState.scrollToItem(itemIndex) }
+            }
+        }
+    }
+    LaunchedEffect(selectedShowcaseEntry) {
+        val lazyListState = if (shouldUseCompactUi) collapsedLazyListState else expandedLazyListState
+        if (!lazyListState.isScrollInProgress) {
+            val itemIndex = (if (shouldUseCompactUi) selectedShowcaseEntry ?: previouslyFocusedShowcaseEntry.value else selectedShowcaseEntry).getItemIndex()
+            if (lazyListState.firstVisibleItemIndex >= itemIndex) {
+                coroutineScope.launch { lazyListState.animateScrollToItem(itemIndex) }
+            } else if ((lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) <= itemIndex && !shouldUseCompactUi) {
+                coroutineScope.launch {
+                    lazyListState.run {
+                        if (selectedShowcaseEntry == ShowcaseEntry.entries.last()) {
+                            animateScrollToItem(itemIndex)
+                        } else {
+                            while (canScrollForward && (layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) <= itemIndex) {
+                                scrollBy(2f)
+                                delay(1)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        previouslyFocusedShowcaseEntry.value = selectedShowcaseEntry
+    }
     Row(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -209,7 +249,7 @@ private fun ExpandedContent(
                         onFullscreenModeToggled = onFullscreenModeToggled,
                         getSelectedShowcaseEntry = getSelectedShowcaseEntry,
                     ) ?: CompactContent(
-                        lazyListState = lazyListState,
+                        lazyListState = collapsedLazyListState,
                         allShowcaseEntries = allShowcaseEntries,
                         onShowcaseEntrySelected = onShowcaseEntrySelected,
                         selectedShowcaseEntry = selectedShowcaseEntry,
@@ -239,28 +279,10 @@ private fun ExpandedContent(
                 false -> 2.dp
             },
         ) {
-            val coroutineScope = rememberCoroutineScope()
-            LaunchedEffect(shouldUseCompactUi) {
-                val itemIndex = selectedShowcaseEntry.itemIndex
-                if (lazyListState.firstVisibleItemIndex >= itemIndex || (lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) <= itemIndex) {
-                    coroutineScope.launch {
-                        delay(100)
-                        lazyListState.animateScrollToItem(itemIndex)
-                    }
-                }
-            }
-            LaunchedEffect(selectedShowcaseEntry) {
-                val itemIndex = selectedShowcaseEntry.itemIndex
-                if (lazyListState.firstVisibleItemIndex >= itemIndex) {
-                    coroutineScope.launch { lazyListState.animateScrollToItem(itemIndex) }
-                } else if ((lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) <= itemIndex) {
-                    coroutineScope.launch { lazyListState.run { animateScrollToItem(firstVisibleItemIndex, layoutInfo.visibleItemsInfo.last().size) } }
-                }
-            }
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom).asPaddingValues(),
-                state = lazyListState,
+                state = expandedLazyListState,
             ) {
                 item {
                     MenuItem(
@@ -300,11 +322,7 @@ private fun CompactContent(
                 .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right))
                 .padding(bottom = 8.dp),
             shouldUseCompactUi = false,
-            scrollToTop = {
-                coroutineScope.launch {
-                    lazyListState.animateScrollToItem(0)
-                }
-            },
+            scrollToTop = { coroutineScope.launch { lazyListState.animateScrollToItem(0) } },
         )
     } else {
         AnimatedVisibility(
@@ -321,11 +339,7 @@ private fun CompactContent(
                     WelcomeScreen(
                         modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
                         shouldUseCompactUi = true,
-                        scrollToTop = {
-                            coroutineScope.launch {
-                                lazyListState.animateScrollToItem(0)
-                            }
-                        },
+                        scrollToTop = { coroutineScope.launch { lazyListState.animateScrollToItem(0) } },
                     )
                 }
                 menu(
@@ -341,14 +355,13 @@ private fun CompactContent(
     }
 }
 
-private val ShowcaseEntry?.itemIndex
-    get() = when (this?.type) {
-        null -> 0
-        ShowcaseEntryType.GAME -> ShowcaseEntry.entries.indexOf(this) + 2
-        ShowcaseEntryType.DEMO -> ShowcaseEntry.entries.indexOf(this) + 3
-        ShowcaseEntryType.TEST -> ShowcaseEntry.entries.indexOf(this) + 4
-        ShowcaseEntryType.OTHER -> ShowcaseEntry.entries.indexOf(this) + 5
-    }
+private fun ShowcaseEntry?.getItemIndex() = when (this?.type) {
+    null -> 0
+    ShowcaseEntryType.GAME -> ShowcaseEntry.entries.indexOf(this) + 2
+    ShowcaseEntryType.DEMO -> ShowcaseEntry.entries.indexOf(this) + 3
+    ShowcaseEntryType.TEST -> ShowcaseEntry.entries.indexOf(this) + 4
+    ShowcaseEntryType.OTHER -> ShowcaseEntry.entries.indexOf(this) + 5
+}
 
 private val TopBarHeight = 64.dp
 private val ThinSideMenuWidth = 192.dp
