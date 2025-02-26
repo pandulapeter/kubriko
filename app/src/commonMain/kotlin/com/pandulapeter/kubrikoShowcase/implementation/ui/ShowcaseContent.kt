@@ -131,7 +131,7 @@ internal fun ShowcaseContent(
                             onFullscreenModeToggled = onFullscreenModeToggled,
                             getSelectedShowcaseEntry = getSelectedShowcaseEntry,
                         )
-                        if (!BuildConfig.IS_PRODUCTION_BUILD) {
+                        if (BuildConfig.IS_DEBUG_MENU_ENABLED) {
                             VerticalDebugMenu(
                                 kubriko = activeKubrikoInstance,
                                 isEnabled = !shouldUseCompactUi && activeKubrikoInstance != null,
@@ -139,7 +139,7 @@ internal fun ShowcaseContent(
                             )
                         }
                     }
-                    if (!BuildConfig.IS_PRODUCTION_BUILD) {
+                    if (BuildConfig.IS_DEBUG_MENU_ENABLED) {
                         HorizontalDebugMenu(
                             kubriko = activeKubrikoInstance,
                             isEnabled = shouldUseCompactUi && activeKubrikoInstance != null,
@@ -260,14 +260,14 @@ private fun ExpandedContent(
                 )
             }
         }
-        if (BuildConfig.IS_PRODUCTION_BUILD) {
-            Content()
-        } else {
+        if (BuildConfig.IS_DEBUG_MENU_ENABLED) {
             KubrikoViewportWithDebugMenuOverlay(
                 kubriko = activeKubrikoInstance,
                 kubrikoViewport = { Content() },
                 buttonAlignment = null,
             )
+        } else {
+            Content()
         }
     }
     AnimatedVisibility(
@@ -370,7 +370,7 @@ private fun ShowcaseEntry?.getItemIndex() = when (this?.type) {
     ShowcaseEntryType.GAME -> ShowcaseEntry.entries.indexOf(this) + 2
     ShowcaseEntryType.DEMO -> ShowcaseEntry.entries.indexOf(this) + 3
     ShowcaseEntryType.TEST -> ShowcaseEntry.entries.indexOf(this) + 4
-    ShowcaseEntryType.OTHER -> ShowcaseEntry.entries.indexOf(this) + if (BuildConfig.IS_PRODUCTION_BUILD) 4 else 5
+    ShowcaseEntryType.OTHER -> ShowcaseEntry.entries.indexOf(this) + if (BuildConfig.ARE_TEST_EXAMPLES_ENABLED) 4 else 5
 }
 
 private val TopBarHeight = 64.dp

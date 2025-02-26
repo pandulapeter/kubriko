@@ -58,7 +58,7 @@ fun AnnoyedPenguinsGame(
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     isInFullscreenMode: Boolean? = null,
     onFullscreenModeToggled: () -> Unit = {},
-    shouldShowSceneEditorIfSupported: Boolean = true,
+    isSceneEditorEnabled: Boolean = true,
 ) = AnnoyedPenguinsTheme {
     stateHolder as AnnoyedPenguinsGameStateHolderImpl
     KubrikoViewport(
@@ -147,7 +147,7 @@ fun AnnoyedPenguinsGame(
                     stateHolder.gameplayManager.setCurrentLevel(level)
                     stateHolder.stateManager.updateIsRunning(true)
                 },
-                shouldShowSceneEditorIfSupported = shouldShowSceneEditorIfSupported,
+                isSceneEditorEnabled = isSceneEditorEnabled,
             )
         }
     }

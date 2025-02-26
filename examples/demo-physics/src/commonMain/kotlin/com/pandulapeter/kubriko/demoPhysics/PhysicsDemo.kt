@@ -28,11 +28,11 @@ fun PhysicsDemo(
     modifier: Modifier = Modifier,
     stateHolder: PhysicsDemoStateHolder = createPhysicsDemoStateHolder(),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
-    shouldShowSceneEditorIfSupported: Boolean = true,
+    isSceneEditorEnabled: Boolean = true,
 ) {
     stateHolder as PhysicsDemoStateHolderImpl
-    LaunchedEffect(shouldShowSceneEditorIfSupported) {
-        if (!shouldShowSceneEditorIfSupported) {
+    LaunchedEffect(isSceneEditorEnabled) {
+        if (!isSceneEditorEnabled) {
             stateHolder.physicsDemoManager.disableSceneEditor()
         }
     }

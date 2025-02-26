@@ -8,6 +8,7 @@
  * https://mozilla.org/MPL/2.0/.
  */
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type
+import com.codingfeline.buildkonfig.gradle.TargetConfigDsl
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
@@ -112,26 +113,62 @@ compose.desktop {
 buildkonfig {
     packageName = "com.pandulapeter.kubrikoShowcase"
     objectName = "BuildConfig"
+
+    val libraryVersionConstantName = "LIBRARY_VERSION"
+    val areTestExamplesEnabledConstantName = "ARE_TEST_EXAMPLES_ENABLED"
+    val isDebugMenuEnabledConstantName = "IS_DEBUG_MENU_ENABLED"
+    val isSceneEditorEnabledConstantName = "IS_SCENE_EDITOR_ENABLED"
+
+    fun TargetConfigDsl.buildConfigFieldStringConstant(
+        name: String,
+        value: String,
+    ) = buildConfigField(
+        type = Type.STRING,
+        name = name,
+        value = value,
+        const = true,
+    )
+
+    fun TargetConfigDsl.buildConfigFieldBooleanConstant(
+        name: String,
+        value: Boolean,
+    ) = buildConfigField(
+        type = Type.BOOLEAN,
+        name = name,
+        value = if (value) "true" else "false",
+        const = true,
+    )
+
     defaultConfigs {
-        buildConfigField(
-            type = Type.STRING,
-            name = "LIBRARY_VERSION",
+        buildConfigFieldStringConstant(
+            name = libraryVersionConstantName,
             value = rootProject.version.toString(),
-            const = true,
         )
-        buildConfigField(
-            type = Type.BOOLEAN,
-            name = "IS_PRODUCTION_BUILD",
-            value = "false",
-            const = true,
+        buildConfigFieldBooleanConstant(
+            name = areTestExamplesEnabledConstantName,
+            value = true,
+        )
+        buildConfigFieldBooleanConstant(
+            name = isDebugMenuEnabledConstantName,
+            value = true,
+        )
+        buildConfigFieldBooleanConstant(
+            name = isSceneEditorEnabledConstantName,
+            value = true,
         )
     }
     defaultConfigs("release") {
-        buildConfigField(
-            type = Type.BOOLEAN,
-            name = "IS_PRODUCTION_BUILD",
-            value = "true",
-            const = true,
+        buildConfigFieldBooleanConstant(
+            name = areTestExamplesEnabledConstantName,
+            value = false,
+        )
+        buildConfigFieldBooleanConstant(
+            name = isDebugMenuEnabledConstantName,
+            value = false,
+        )
+        buildConfigFieldBooleanConstant(
+            name = isSceneEditorEnabledConstantName,
+            value = false,
         )
     }
 }

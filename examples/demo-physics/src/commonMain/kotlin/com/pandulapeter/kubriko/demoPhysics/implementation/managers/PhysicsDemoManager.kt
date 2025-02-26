@@ -93,7 +93,7 @@ internal class PhysicsDemoManager(
     private val viewportManager by manager<ViewportManager>()
     private val _shouldShowLoadingIndicator = MutableStateFlow(true)
     private val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
-    private val shouldShowSceneEditorIfSupported = mutableStateOf(true)
+    private val isSceneEditorEnabled = mutableStateOf(true)
 
     override fun onInitialize(kubriko: Kubriko) {
         stateManager.isFocused
@@ -113,7 +113,7 @@ internal class PhysicsDemoManager(
     }
 
     fun disableSceneEditor() {
-        shouldShowSceneEditorIfSupported.value = false
+        isSceneEditorEnabled.value = false
     }
 
     @Composable
@@ -140,7 +140,7 @@ internal class PhysicsDemoManager(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
             ) {
-                if (shouldShowSceneEditorIfSupported.value) {
+                if (isSceneEditorEnabled.value) {
                     PlatformSpecificContent()
                 }
                 Spacer(modifier = Modifier.width(8.dp))

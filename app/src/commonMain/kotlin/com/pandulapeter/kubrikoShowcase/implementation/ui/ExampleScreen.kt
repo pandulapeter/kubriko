@@ -83,13 +83,13 @@ internal fun ShowcaseEntry.ExampleScreen(
             windowInsets = windowInsets,
             isInFullscreenMode = isInFullscreenMode,
             onFullscreenModeToggled = onFullscreenModeToggled,
-            shouldShowSceneEditorIfSupported = !BuildConfig.IS_PRODUCTION_BUILD,
+            isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
         )
 
         ShowcaseEntry.PHYSICS -> PhysicsDemo(
             stateHolder = getOrCreateState(stateHolders, ::createPhysicsDemoStateHolder),
             windowInsets = windowInsets,
-            shouldShowSceneEditorIfSupported = !BuildConfig.IS_PRODUCTION_BUILD,
+            isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
         )
 
         ShowcaseEntry.PARTICLES -> ParticlesDemo(

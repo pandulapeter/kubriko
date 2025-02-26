@@ -178,7 +178,7 @@ private fun Header(
                     )
                 }
             }
-            if (!BuildConfig.IS_PRODUCTION_BUILD) {
+            if (BuildConfig.IS_DEBUG_MENU_ENABLED) {
                 AnimatedVisibility(
                     visible = selectedShowcaseEntry.shouldShowDebugButton,
                     enter = fadeIn() + scaleIn(),
