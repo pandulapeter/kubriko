@@ -20,9 +20,10 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun KubrikoTheme(
-    content: @Composable () -> Unit
+    areMenuResourcesLoaded: Boolean = true,
+    content: @Composable () -> Unit,
 ) = AnimatedVisibility(
-    visible = isKubrikoFontLoaded(),
+    visible = isKubrikoFontLoaded() && areMenuResourcesLoaded,
     enter = fadeIn(),
     exit = fadeOut(),
 ) {

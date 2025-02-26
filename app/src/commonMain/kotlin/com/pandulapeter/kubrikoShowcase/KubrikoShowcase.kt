@@ -20,12 +20,18 @@ import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import com.pandulapeter.kubrikoShowcase.implementation.ui.ShowcaseContent
 import com.pandulapeter.kubrikoShowcase.implementation.ui.getStateHolder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kubriko.app.generated.resources.Res
+import kubriko.app.generated.resources.ic_debug_off
+import kubriko.app.generated.resources.ic_debug_on
+import kubriko.app.generated.resources.ic_info_off
+import kubriko.app.generated.resources.ic_info_on
 import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -35,7 +41,9 @@ fun KubrikoShowcase(
     getIsInFullscreenMode: () -> Boolean,
     onFullscreenModeToggled: () -> Unit,
     webEscapePressEvent: Flow<Unit>? = null,
-) = KubrikoTheme {
+) = KubrikoTheme(
+    areMenuResourcesLoaded = areMenuResourcesLoaded(),
+) {
     LaunchedEffect(webEscapePressEvent) {
         webEscapePressEvent?.collect {
             val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
@@ -94,5 +102,11 @@ fun KubrikoShowcase(
         )
     }
 }
+
+@Composable
+private fun areMenuResourcesLoaded() = preloadedImageVector(Res.drawable.ic_info_on).value != null
+        && preloadedImageVector(Res.drawable.ic_info_off).value != null
+        && preloadedImageVector(Res.drawable.ic_debug_on).value != null
+        && preloadedImageVector(Res.drawable.ic_debug_off).value != null
 
 private val selectedShowcaseEntry = mutableStateOf<ShowcaseEntry?>(null)

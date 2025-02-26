@@ -31,7 +31,7 @@ fun KubrikoViewportWithDebugMenu(
     kubriko: Kubriko?,
     isEnabled: Boolean = true,
     buttonAlignment: Alignment? = Alignment.TopStart,
-    debugMenuTheme: @Composable (@Composable () -> Unit) -> Unit = { KubrikoTheme(it) },
+    debugMenuTheme: @Composable (@Composable () -> Unit) -> Unit = { KubrikoTheme(content = it) },
     kubrikoViewport: @Composable () -> Unit,
 ) = BoxWithConstraints(
     modifier = modifier,

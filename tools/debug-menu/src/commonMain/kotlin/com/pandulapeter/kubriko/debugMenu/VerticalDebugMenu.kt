@@ -37,7 +37,7 @@ fun VerticalDebugMenu(
     kubriko: Kubriko?,
     isEnabled: Boolean = true,
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
-    debugMenuTheme: @Composable (@Composable () -> Unit) -> Unit = { KubrikoTheme(it) },
+    debugMenuTheme: @Composable (@Composable () -> Unit) -> Unit = { KubrikoTheme(content = it) },
     width: Dp = 192.dp,
 ) = AnimatedVisibility(
     visible = isEnabled && DebugMenu.isVisible.collectAsState().value,
