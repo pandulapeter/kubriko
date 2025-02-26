@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -22,12 +23,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
@@ -36,6 +39,7 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import kotlin.math.max
 
 @Composable
 internal fun SpaceSquadronButton(
@@ -46,7 +50,8 @@ internal fun SpaceSquadronButton(
     onButtonPressed: () -> Unit,
     onPointerEnter: () -> Unit,
 ) {
-    val alpha = remember { mutableStateOf(IDLE_BUTTON_ALPHA) }
+    val isActive = remember { mutableStateOf(false) }
+    val alpha by animateFloatAsState(if (isActive.value) 1f else 0f)
     FloatingActionButton(
         modifier = modifier
             .spaceSquadronUIElementBorder()
@@ -54,26 +59,26 @@ internal fun SpaceSquadronButton(
             .run {
                 if (shouldShowTitle) this else width(40.dp)
             }
-            .alpha(alpha.value)
+            .alpha(max(alpha, 0.7f))
             .pointerInput(Unit) {
                 awaitPointerEventScope {
                     while (true) {
                         val event = awaitPointerEvent()
                         when (event.type) {
                             PointerEventType.Enter -> {
-                                alpha.value = 1f
+                                isActive.value = true
                                 onPointerEnter()
                             }
 
                             PointerEventType.Exit -> {
-                                alpha.value = IDLE_BUTTON_ALPHA
+                                isActive.value = false
                             }
                         }
                     }
                 }
             },
         containerColor = if (isSystemInDarkTheme()) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary,
-        contentColor = if (alpha.value == IDLE_BUTTON_ALPHA) MaterialTheme.colorScheme.onPrimary else Color.White,
+        contentColor = lerp(MaterialTheme.colorScheme.onPrimary, Color.White, alpha),
         onClick = onButtonPressed,
     ) {
         if (shouldShowTitle) {
@@ -102,5 +107,3 @@ internal fun SpaceSquadronButton(
         }
     }
 }
-
-private const val IDLE_BUTTON_ALPHA = 0.7f
