@@ -38,7 +38,7 @@ internal class Bomb(
             x = epicenter.x,
             y = epicenter.y,
         ),
-        proximity = 1000.sceneUnit,
+        proximity = 750.sceneUnit,
     )
 
     override fun onAdded(kubriko: Kubriko) {
