@@ -9,4 +9,11 @@
  */
 package com.pandulapeter.kubriko.implementation
 
+import android.os.Build
+import com.pandulapeter.kubriko.manager.MetadataManager
+
 internal actual fun getDefaultFocusDebounce() = 350L
+
+internal actual fun getPlatform(): MetadataManager.Platform = MetadataManager.Platform.Android(
+    androidSdkVersion = Build.VERSION.SDK_INT,
+)

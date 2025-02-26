@@ -9,4 +9,11 @@
  */
 package com.pandulapeter.kubriko.implementation
 
+import com.pandulapeter.kubriko.manager.MetadataManager
+import kotlinx.browser.window
+
 internal actual fun getDefaultFocusDebounce() = 0L
+
+internal actual fun getPlatform(): MetadataManager.Platform = MetadataManager.Platform.Web(
+    userAgent = window.navigator.userAgent,
+)

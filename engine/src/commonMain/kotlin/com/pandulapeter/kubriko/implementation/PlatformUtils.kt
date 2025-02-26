@@ -9,4 +9,8 @@
  */
 package com.pandulapeter.kubriko.implementation
 
+import com.pandulapeter.kubriko.manager.MetadataManager
+
 internal expect fun getDefaultFocusDebounce(): Long
+
+internal expect fun getPlatform(): MetadataManager.Platform

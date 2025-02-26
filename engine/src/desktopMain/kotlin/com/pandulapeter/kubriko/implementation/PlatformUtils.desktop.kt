@@ -10,7 +10,26 @@
 package com.pandulapeter.kubriko.implementation
 
 import androidx.compose.ui.window.WindowState
+import com.pandulapeter.kubriko.manager.MetadataManager
+import org.apache.commons.lang3.SystemUtils
 
 internal actual fun getDefaultFocusDebounce() = 0L
+
+internal actual fun getPlatform(): MetadataManager.Platform = when {
+    SystemUtils.IS_OS_WINDOWS -> MetadataManager.Platform.Desktop.Windows(
+        windowsVersion = SystemUtils.OS_VERSION,
+        javaVersion = SystemUtils.JAVA_VERSION,
+    )
+
+    SystemUtils.IS_OS_MAC -> MetadataManager.Platform.Desktop.MacOS(
+        macOSVersion = SystemUtils.OS_VERSION,
+        javaVersion = SystemUtils.JAVA_VERSION,
+    )
+
+    else -> MetadataManager.Platform.Desktop.Linux(
+        linuxVersion = SystemUtils.OS_VERSION,
+        javaVersion = SystemUtils.JAVA_VERSION,
+    )
+}
 
 lateinit var windowState: WindowState

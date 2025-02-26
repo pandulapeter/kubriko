@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoImpl
+import com.pandulapeter.kubriko.implementation.getPlatform
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -24,7 +25,7 @@ import kotlinx.coroutines.isActive
 
 internal class MetadataManagerImpl(
     isLoggingEnabled: Boolean,
-    private val instanceNameForLogging: String?,
+    instanceNameForLogging: String?,
 ) : MetadataManager(isLoggingEnabled, instanceNameForLogging) {
     private lateinit var stateManager: StateManager
     private val _fps = MutableStateFlow(0f)
@@ -33,6 +34,7 @@ internal class MetadataManagerImpl(
     override val totalRuntimeInMilliseconds = _totalRuntimeInMilliseconds.asStateFlow()
     private val _activeRuntimeInMilliseconds = MutableStateFlow(0L)
     override val activeRuntimeInMilliseconds = _activeRuntimeInMilliseconds.asStateFlow()
+    override val platform by lazy { getPlatform() }
 
     override fun onInitialize(kubriko: Kubriko) {
         stateManager = (kubriko as KubrikoImpl).stateManager

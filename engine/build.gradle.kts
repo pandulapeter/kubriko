@@ -26,6 +26,9 @@ kotlin {
             api(projects.tools.logger)
             implementation(libs.androidx.lifecycle.runtime.compose)
         }
+        desktopMain.dependencies {
+            implementation(libs.apache.commonsLang3)
+        }
     }
 }
 

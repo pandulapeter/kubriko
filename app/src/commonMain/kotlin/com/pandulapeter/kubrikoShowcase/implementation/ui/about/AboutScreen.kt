@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubrikoShowcase.BuildConfig
 import kotlinx.coroutines.flow.Flow
@@ -32,18 +33,25 @@ internal fun AboutScreen(
     modifier: Modifier = Modifier,
     stateHolder: AboutScreenStateHolder = createAboutScreenStateHolder(),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
-) = Text(
-    modifier = modifier
-        .fillMaxSize()
-        .windowInsetsPadding(windowInsets)
-        .padding(16.dp),
-    text = "About - Work in progress\n\nKubriko version: ${BuildConfig.libraryVersion}",
-)
+) {
+    stateHolder as AboutScreenStateHolderImpl
+    Text(
+        modifier = modifier
+            .fillMaxSize()
+            .windowInsetsPadding(windowInsets)
+            .padding(16.dp),
+        text = "About - Work in progress\n\n" +
+                "Kubriko version: ${stateHolder.libraryVersion}\n" +
+                "Platform: ${stateHolder.platform}",
+    )
+}
 
 sealed interface AboutScreenStateHolder : StateHolder
 
 private class AboutScreenStateHolderImpl : AboutScreenStateHolder {
     override val kubriko: Flow<Kubriko?> = emptyFlow()
+    val libraryVersion = BuildConfig.libraryVersion
+    val platform = MetadataManager.newInstance().platform
 
     override fun dispose() = Unit
 }

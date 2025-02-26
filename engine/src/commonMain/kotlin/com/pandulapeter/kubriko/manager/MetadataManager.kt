@@ -25,6 +25,45 @@ sealed class MetadataManager(
     abstract val fps: StateFlow<Float>
     abstract val totalRuntimeInMilliseconds: StateFlow<Long>
     abstract val activeRuntimeInMilliseconds: StateFlow<Long>
+    abstract val platform: Platform
+
+    /**
+     * Represents the target platform the application is currently running on.
+     */
+    sealed class Platform {
+
+        data class Android(
+            val androidSdkVersion: Int,
+        ) : Platform()
+
+        sealed class Desktop : Platform() {
+
+            abstract val javaVersion: String
+
+            data class MacOS(
+                val macOSVersion: String,
+                override val javaVersion: String,
+            ) : Desktop()
+
+            data class Linux(
+                val linuxVersion: String,
+                override val javaVersion: String,
+            ) : Desktop()
+
+            data class Windows(
+                val windowsVersion: String,
+                override val javaVersion: String,
+            ) : Desktop()
+        }
+
+        data class IOS(
+            val iOSVersion: String,
+        ) : Platform()
+
+        data class Web(
+            val userAgent: String,
+        ) : Platform()
+    }
 
     companion object {
         fun newInstance(
