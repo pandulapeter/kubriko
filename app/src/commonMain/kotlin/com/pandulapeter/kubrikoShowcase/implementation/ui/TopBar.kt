@@ -22,7 +22,6 @@ import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -50,13 +49,17 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
+import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntryType
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.back
 import kubriko.app.generated.resources.debug_menu
 import kubriko.app.generated.resources.ic_back
 import kubriko.app.generated.resources.ic_debug_off
 import kubriko.app.generated.resources.ic_debug_on
+import kubriko.app.generated.resources.ic_info_off
+import kubriko.app.generated.resources.ic_info_on
 import kubriko.app.generated.resources.img_logo
+import kubriko.app.generated.resources.info
 import kubriko.app.generated.resources.kubriko_showcase
 import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.painterResource
@@ -69,6 +72,8 @@ internal fun TopBar(
     shouldUseCompactUi: Boolean,
     selectedShowcaseEntry: ShowcaseEntry?,
     onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
+    isInfoPanelVisible: Boolean,
+    toggleInfoPanelVisibility: () -> Unit,
 ) = Surface(
     modifier = modifier,
     tonalElevation = when (isSystemInDarkTheme()) {
@@ -82,7 +87,7 @@ internal fun TopBar(
 ) {
     val imageBitmap = imageResource(Res.drawable.img_logo)
     AnimatedVisibility(
-        visible = selectedShowcaseEntry.shouldShowLogoInHeader && imageBitmap.width > 1,
+        visible = selectedShowcaseEntry.shouldShowLogo && imageBitmap.width > 1,
         enter = fadeIn() + slideIn(animationSpec = tween(easing = EaseOut)) { IntOffset((it.width * 0.5f).roundToInt(), 0) },
         exit = slideOut(animationSpec = tween(easing = EaseIn)) { IntOffset((it.width * 0.75f).roundToInt(), 0) } + fadeOut(),
     ) {
@@ -110,6 +115,8 @@ internal fun TopBar(
                     shouldUseCompactUi = shouldUseCompactUi,
                     selectedShowcaseEntry = showcaseEntry,
                     onShowcaseEntrySelected = onShowcaseEntrySelected,
+                    isInfoPanelVisible = isInfoPanelVisible,
+                    toggleInfoPanelVisibility = toggleInfoPanelVisibility,
                 )
             }
         } else {
@@ -118,6 +125,8 @@ internal fun TopBar(
                 shouldUseCompactUi = shouldUseCompactUi,
                 selectedShowcaseEntry = selectedShowcaseEntry,
                 onShowcaseEntrySelected = onShowcaseEntrySelected,
+                isInfoPanelVisible = isInfoPanelVisible,
+                toggleInfoPanelVisibility = toggleInfoPanelVisibility,
             )
         }
     }
@@ -130,6 +139,8 @@ private fun Header(
     shouldUseCompactUi: Boolean,
     selectedShowcaseEntry: ShowcaseEntry?,
     onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
+    isInfoPanelVisible: Boolean,
+    toggleInfoPanelVisibility: () -> Unit,
 ) = TopAppBar(
     modifier = modifier,
     windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top),
@@ -138,9 +149,8 @@ private fun Header(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(end = if (shouldUseCompactUi && !selectedShowcaseEntry.shouldShowLogoInHeader) 0.dp else 8.dp),
+                .padding(end = if (shouldUseCompactUi && !selectedShowcaseEntry.shouldShowLogo) 0.dp else 8.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
                 modifier = Modifier.weight(1f),
@@ -153,11 +163,27 @@ private fun Header(
                 ),
             )
             AnimatedVisibility(
-                visible = !selectedShowcaseEntry.shouldShowLogoInHeader,
+                visible = selectedShowcaseEntry.shouldShowInfoButton,
                 enter = fadeIn() + scaleIn(),
                 exit = scaleOut() + fadeOut(),
             ) {
                 IconButton(
+                    modifier = Modifier.size(48.dp),
+                    onClick = toggleInfoPanelVisibility,
+                ) {
+                    Icon(
+                        painter = painterResource(if (isInfoPanelVisible) Res.drawable.ic_info_on else Res.drawable.ic_info_off),
+                        contentDescription = stringResource(Res.string.info),
+                    )
+                }
+            }
+            AnimatedVisibility(
+                visible = selectedShowcaseEntry.shouldShowDebugButton,
+                enter = fadeIn() + scaleIn(),
+                exit = scaleOut() + fadeOut(),
+            ) {
+                IconButton(
+                    modifier = Modifier.size(48.dp),
                     onClick = DebugMenu::toggleVisibility,
                 ) {
                     Icon(
@@ -182,4 +208,8 @@ private fun Header(
     }
 )
 
-private val ShowcaseEntry?.shouldShowLogoInHeader get() = this == null || this == ShowcaseEntry.ABOUT || this == ShowcaseEntry.LICENSES
+private val ShowcaseEntry?.shouldShowLogo get() = this == null || this == ShowcaseEntry.ABOUT || this == ShowcaseEntry.LICENSES
+
+private val ShowcaseEntry?.shouldShowInfoButton get() = this?.type == ShowcaseEntryType.DEMO || this?.type == ShowcaseEntryType.TEST
+
+private val ShowcaseEntry?.shouldShowDebugButton get() = this != null && this.type != ShowcaseEntryType.OTHER

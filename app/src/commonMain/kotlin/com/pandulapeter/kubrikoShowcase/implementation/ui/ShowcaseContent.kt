@@ -80,6 +80,8 @@ internal fun ShowcaseContent(
     activeKubrikoInstance: Kubriko?,
     isInFullscreenMode: Boolean,
     onFullscreenModeToggled: () -> Unit,
+    isInfoPanelVisible: Boolean,
+    toggleInfoPanelVisibility: () -> Unit,
 ) = Surface(
     tonalElevation = if (isSystemInDarkTheme()) 2.dp else 0.dp,
 ) {
@@ -146,6 +148,8 @@ internal fun ShowcaseContent(
                     shouldUseCompactUi = shouldUseCompactUi,
                     selectedShowcaseEntry = selectedShowcaseEntry,
                     onShowcaseEntrySelected = onShowcaseEntrySelected,
+                    isInfoPanelVisible = isInfoPanelVisible,
+                    toggleInfoPanelVisibility = toggleInfoPanelVisibility,
                 )
             }
         }

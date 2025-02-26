@@ -39,9 +39,10 @@ fun KubrikoShowcase(
         webEscapePressEvent?.collect {
             val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
             if (activeStateHolder?.navigateBack(
-                isInFullscreenMode = isInFullscreenMode,
-                onFullscreenModeToggled = onFullscreenModeToggled,
-            ) == false) {
+                    isInFullscreenMode = isInFullscreenMode,
+                    onFullscreenModeToggled = onFullscreenModeToggled,
+                ) == false
+            ) {
                 activeStateHolder.stopMusic()
                 selectedShowcaseEntry.value = null
             }
@@ -51,9 +52,10 @@ fun KubrikoShowcase(
         val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
         try {
             if (activeStateHolder?.navigateBack(
-                isInFullscreenMode = getIsInFullscreenMode(),
-                onFullscreenModeToggled = onFullscreenModeToggled,
-            ) == false) {
+                    isInFullscreenMode = getIsInFullscreenMode(),
+                    onFullscreenModeToggled = onFullscreenModeToggled,
+                ) == false
+            ) {
                 activeStateHolder.stopMusic()
                 selectedShowcaseEntry.value = null
             }
@@ -86,8 +88,11 @@ fun KubrikoShowcase(
             activeKubrikoInstance = activeStateHolder?.kubriko?.collectAsState(null)?.value,
             isInFullscreenMode = isInFullscreenMode,
             onFullscreenModeToggled = onFullscreenModeToggled,
+            isInfoPanelVisible = isInfoPanelVisible.value,
+            toggleInfoPanelVisibility = { isInfoPanelVisible.value = !isInfoPanelVisible.value }
         )
     }
 }
 
 private val selectedShowcaseEntry = mutableStateOf<ShowcaseEntry?>(null)
+private val isInfoPanelVisible = mutableStateOf(true)

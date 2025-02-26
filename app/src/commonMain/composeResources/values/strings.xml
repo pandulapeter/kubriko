@@ -17,6 +17,7 @@
     <string name="games">Games</string>
     <string name="tests">Tests</string>
     <string name="other">Other</string>
+    <string name="info">Toggle info panel</string>
     <string name="debug_menu">Toggle debug menu</string>
 
     <!-- Welcome -->
