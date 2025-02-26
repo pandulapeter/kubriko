@@ -119,7 +119,7 @@ internal fun MenuOverlay(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .scale(0.9f)
-                                .padding(top = 48.dp),
+                                .padding(top = 56.dp),
                             alignment = BiasAlignment(0f, 0.5f),
                             painter = painterResource(Res.drawable.img_logo),
                             contentScale = ContentScale.Inside,

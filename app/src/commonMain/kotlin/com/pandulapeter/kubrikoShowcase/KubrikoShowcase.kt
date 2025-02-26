@@ -74,7 +74,7 @@ fun KubrikoShowcase(
             }?.launchIn(scope)
         }
         ShowcaseContent(
-            shouldUseCompactUi = maxWidth <= 680.dp,
+            shouldUseCompactUi = maxWidth < 640.dp,
             shouldUseWideSideMenu = maxWidth >= 1200.dp,
             allShowcaseEntries = ShowcaseEntry.entries,
             getSelectedShowcaseEntry = { selectedShowcaseEntry.value },

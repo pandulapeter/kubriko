@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -96,64 +97,72 @@ internal fun MenuOverlay(
                     .padding(top = 8.dp),
             ) {
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    itemVerticalAlignment = Alignment.CenterVertically,
-                    maxItemsInEachRow = if (maxHeight > 128.dp) 3 else 6,
+                    maxItemsInEachRow = if (maxHeight < 128.dp) 2 else 1,
                 ) {
-                    val infiniteTransition = rememberInfiniteTransition()
-                    val scale by infiniteTransition.animateFloat(
-                        initialValue = 0.95f,
-                        targetValue = 1.05f,
-                        animationSpec = infiniteRepeatable(
-                            animation = tween(durationMillis = 400, easing = FastOutSlowInEasing),
-                            repeatMode = RepeatMode.Reverse
+                    Row(
+                        modifier = Modifier.padding(horizontal = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        val infiniteTransition = rememberInfiniteTransition()
+                        val scale by infiniteTransition.animateFloat(
+                            initialValue = 0.95f,
+                            targetValue = 1.05f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+                                repeatMode = RepeatMode.Reverse
+                            )
                         )
-                    )
-                    WallbreakerButton(
-                        modifier = if (isActive) Modifier.scale(scale) else Modifier,
-                        onButtonPressed = if (shouldShowResumeButton) onResumeButtonPressed else onRestartButtonPressed,
-                        icon = Res.drawable.ic_play,
-                        contentDescription = Res.string.play,
-                        containerColor = createButtonColor(0.3f),
-                        onPointerEnter = onButtonHover,
-                    )
-                    WallbreakerButton(
-                        onButtonPressed = onInfoButtonPressed,
-                        icon = Res.drawable.ic_information,
-                        contentDescription = Res.string.information,
-                        containerColor = createButtonColor(0.45f),
-                        onPointerEnter = onButtonHover,
-                    )
-                    WallbreakerButton(
-                        onButtonPressed = onExitButtonPressed,
-                        icon = Res.drawable.ic_exit,
-                        contentDescription = Res.string.close_confirmation_positive,
-                        containerColor = createButtonColor(0.6f),
-                        onPointerEnter = onButtonHover,
-                    )
-                    WallbreakerButton(
-                        onButtonPressed = onSoundEffectsToggled,
-                        icon = if (areSoundEffectsEnabled) Res.drawable.ic_sound_effects_on else Res.drawable.ic_sound_effects_off,
-                        contentDescription = if (areSoundEffectsEnabled) Res.string.sound_effects_disable else Res.string.sound_effects_enable,
-                        containerColor = createButtonColor(0.75f),
-                        onPointerEnter = onButtonHover,
-                    )
-                    WallbreakerButton(
-                        onButtonPressed = onMusicToggled,
-                        icon = if (isMusicEnabled) Res.drawable.ic_music_on else Res.drawable.ic_music_off,
-                        contentDescription = if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable,
-                        containerColor = createButtonColor(0.9f),
-                        onPointerEnter = onButtonHover,
-                    )
-                    isInFullscreenMode?.let {
                         WallbreakerButton(
-                            onButtonPressed = onFullscreenModeToggled,
-                            icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
-                            contentDescription = if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter,
-                            containerColor = createButtonColor(0.05f),
+                            modifier = if (isActive) Modifier.scale(scale) else Modifier,
+                            onButtonPressed = if (shouldShowResumeButton) onResumeButtonPressed else onRestartButtonPressed,
+                            icon = Res.drawable.ic_play,
+                            contentDescription = Res.string.play,
+                            containerColor = createButtonColor(0.3f),
                             onPointerEnter = onButtonHover,
                         )
+                        WallbreakerButton(
+                            onButtonPressed = onInfoButtonPressed,
+                            icon = Res.drawable.ic_information,
+                            contentDescription = Res.string.information,
+                            containerColor = createButtonColor(0.45f),
+                            onPointerEnter = onButtonHover,
+                        )
+                        WallbreakerButton(
+                            onButtonPressed = onExitButtonPressed,
+                            icon = Res.drawable.ic_exit,
+                            contentDescription = Res.string.close_confirmation_positive,
+                            containerColor = createButtonColor(0.6f),
+                            onPointerEnter = onButtonHover,
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.padding(horizontal = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        WallbreakerButton(
+                            onButtonPressed = onSoundEffectsToggled,
+                            icon = if (areSoundEffectsEnabled) Res.drawable.ic_sound_effects_on else Res.drawable.ic_sound_effects_off,
+                            contentDescription = if (areSoundEffectsEnabled) Res.string.sound_effects_disable else Res.string.sound_effects_enable,
+                            containerColor = createButtonColor(0.75f),
+                            onPointerEnter = onButtonHover,
+                        )
+                        WallbreakerButton(
+                            onButtonPressed = onMusicToggled,
+                            icon = if (isMusicEnabled) Res.drawable.ic_music_on else Res.drawable.ic_music_off,
+                            contentDescription = if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable,
+                            containerColor = createButtonColor(0.9f),
+                            onPointerEnter = onButtonHover,
+                        )
+                        isInFullscreenMode?.let {
+                            WallbreakerButton(
+                                onButtonPressed = onFullscreenModeToggled,
+                                icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
+                                contentDescription = if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter,
+                                containerColor = createButtonColor(0.05f),
+                                onPointerEnter = onButtonHover,
+                            )
+                        }
                     }
                 }
             }

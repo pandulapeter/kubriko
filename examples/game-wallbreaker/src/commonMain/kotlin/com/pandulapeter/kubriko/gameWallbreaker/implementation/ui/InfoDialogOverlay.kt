@@ -18,7 +18,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -67,8 +66,8 @@ internal fun InfoDialogOverlay(
             WallbreakerCard(
                 modifier = Modifier
                     .padding(16.dp)
-                    .align(Alignment.Center)
-                    .fillMaxWidth(0.7f),
+                    .padding(top = 56.dp)
+                    .align(Alignment.Center),
             ) {
                 Column(
                     modifier = Modifier

@@ -38,9 +38,10 @@ internal fun InfoDialog(
         modifier = Modifier
             .align(Alignment.Center)
             .verticalScroll(rememberScrollState())
+            .padding(vertical = 16.dp)
             .padding(
-                vertical = 16.dp,
-                horizontal = 80.dp,
+                start = 80.dp,
+                end = 16.dp,
             ),
         color = MaterialTheme.colorScheme.primary,
         text = stringResource(Res.string.information_contents),
