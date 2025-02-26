@@ -64,6 +64,7 @@ import com.pandulapeter.kubriko.debugMenu.VerticalDebugMenu
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntryType
 import com.pandulapeter.kubrikoShowcase.implementation.ui.welcome.WelcomeScreen
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.welcome
@@ -242,7 +243,10 @@ private fun ExpandedContent(
             LaunchedEffect(shouldUseCompactUi) {
                 val itemIndex = selectedShowcaseEntry.itemIndex
                 if (lazyListState.firstVisibleItemIndex >= itemIndex || (lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) <= itemIndex) {
-                    coroutineScope.launch { lazyListState.animateScrollToItem(itemIndex) }
+                    coroutineScope.launch {
+                        delay(100)
+                        lazyListState.animateScrollToItem(itemIndex)
+                    }
                 }
             }
             LaunchedEffect(selectedShowcaseEntry) {
