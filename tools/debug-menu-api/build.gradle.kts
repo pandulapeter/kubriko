@@ -13,13 +13,13 @@ plugins {
 }
 
 artifactMetadata {
-    artifactId = "tool-debug-menu-noop"
+    artifactId = "tool-debug-menu-api"
 }
 
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(projects.tools.debugMenuApi)
+            api(projects.engine)
         }
     }
 }

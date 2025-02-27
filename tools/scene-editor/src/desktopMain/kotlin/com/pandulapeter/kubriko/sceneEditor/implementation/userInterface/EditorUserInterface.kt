@@ -28,7 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
-import com.pandulapeter.kubriko.debugMenu.KubrikoViewportWithDebugMenu
+import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseClick
@@ -78,7 +78,7 @@ internal fun EditorUserInterface(
                         Box(
                             modifier = Modifier.weight(1f),
                         ) {
-                            KubrikoViewportWithDebugMenu(
+                            DebugMenu(
                                 kubriko = editorController.kubriko,
                                 isEnabled = editorController.isDebugMenuEnabled.collectAsState().value,
                             ) {

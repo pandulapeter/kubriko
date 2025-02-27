@@ -61,9 +61,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.debugMenu.HorizontalDebugMenu
-import com.pandulapeter.kubriko.debugMenu.KubrikoViewportWithDebugMenuOverlay
-import com.pandulapeter.kubriko.debugMenu.VerticalDebugMenu
+import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubrikoShowcase.BuildConfig
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntryType
@@ -132,7 +130,7 @@ internal fun ShowcaseContent(
                             getSelectedShowcaseEntry = getSelectedShowcaseEntry,
                         )
                         if (BuildConfig.IS_DEBUG_MENU_ENABLED) {
-                            VerticalDebugMenu(
+                            DebugMenu.Vertical(
                                 kubriko = activeKubrikoInstance,
                                 isEnabled = !shouldUseCompactUi && activeKubrikoInstance != null,
                                 windowInsets = windowInsets,
@@ -140,7 +138,7 @@ internal fun ShowcaseContent(
                         }
                     }
                     if (BuildConfig.IS_DEBUG_MENU_ENABLED) {
-                        HorizontalDebugMenu(
+                        DebugMenu.Horizontal(
                             kubriko = activeKubrikoInstance,
                             isEnabled = shouldUseCompactUi && activeKubrikoInstance != null,
                             windowInsets = windowInsets,
@@ -261,7 +259,7 @@ private fun ExpandedContent(
             }
         }
         if (BuildConfig.IS_DEBUG_MENU_ENABLED) {
-            KubrikoViewportWithDebugMenuOverlay(
+            DebugMenu.OverlayOnly(
                 kubriko = activeKubrikoInstance,
                 kubrikoViewport = { Content() },
                 buttonAlignment = null,

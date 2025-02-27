@@ -19,7 +19,7 @@ artifactMetadata {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(projects.engine)
+            api(projects.tools.debugMenuApi)
             implementation(projects.plugins.collision)
             implementation(projects.plugins.persistence)
             implementation(projects.tools.logger)
