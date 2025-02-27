@@ -40,12 +40,14 @@ import kubriko.app.generated.resources.ic_contact
 import kubriko.app.generated.resources.ic_github
 import kubriko.app.generated.resources.ic_privacy_policy
 import kubriko.app.generated.resources.ic_share
+import kubriko.app.generated.resources.ic_website
 import kubriko.app.generated.resources.other_about_contact_me
 import kubriko.app.generated.resources.other_about_content
 import kubriko.app.generated.resources.other_about_privacy_policy
 import kubriko.app.generated.resources.other_about_report_an_issue
 import kubriko.app.generated.resources.other_about_repository
 import kubriko.app.generated.resources.other_about_spread_the_word
+import kubriko.app.generated.resources.other_about_visit_my_website
 import org.jetbrains.compose.resources.stringResource
 
 
@@ -102,6 +104,11 @@ internal fun AboutScreen(
             icon = Res.drawable.ic_share,
             title = Res.string.other_about_spread_the_word,
             onButtonPressed = { },
+        )
+        LargeButton(
+            icon = Res.drawable.ic_website,
+            title = Res.string.other_about_visit_my_website,
+            onButtonPressed = { uriHandler.openUri("https://pandulapeter.github.io/") },
         )
     }
 }

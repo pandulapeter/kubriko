@@ -47,6 +47,7 @@ import kubriko.app.generated.resources.ic_other
 import kubriko.app.generated.resources.ic_privacy_policy
 import kubriko.app.generated.resources.ic_share
 import kubriko.app.generated.resources.ic_tests
+import kubriko.app.generated.resources.ic_website
 import kubriko.app.generated.resources.ic_youtube
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -140,5 +141,6 @@ private fun areMenuResourcesLoaded() = preloadedImageVector(Res.drawable.ic_back
         && preloadedImageVector(Res.drawable.ic_share).value != null
         && preloadedImageVector(Res.drawable.ic_tests).value != null
         && preloadedImageVector(Res.drawable.ic_youtube).value != null
+        && preloadedImageVector(Res.drawable.ic_website).value != null
 
 private val selectedShowcaseEntry = mutableStateOf<ShowcaseEntry?>(null)
