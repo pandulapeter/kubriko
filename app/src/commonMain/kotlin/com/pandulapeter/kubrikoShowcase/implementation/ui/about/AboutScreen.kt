@@ -9,11 +9,17 @@
  */
 package com.pandulapeter.kubrikoShowcase.implementation.ui.about
 
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -24,6 +30,9 @@ import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubrikoShowcase.BuildConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kubriko.app.generated.resources.Res
+import kubriko.app.generated.resources.other_about_content
+import org.jetbrains.compose.resources.stringResource
 
 
 fun createAboutScreenStateHolder(): AboutScreenStateHolder = AboutScreenStateHolderImpl()
@@ -33,17 +42,20 @@ internal fun AboutScreen(
     modifier: Modifier = Modifier,
     stateHolder: AboutScreenStateHolder = createAboutScreenStateHolder(),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
+    scrollState: ScrollState = rememberScrollState(),
 ) {
     stateHolder as AboutScreenStateHolderImpl
-    Text(
+    Column(
         modifier = modifier
             .fillMaxSize()
-            .windowInsetsPadding(windowInsets)
+            .verticalScroll(scrollState)
+            .windowInsetsPadding(windowInsets.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right))
             .padding(16.dp),
-        text = "About - Work in progress\n\n" +
-                "Kubriko version: ${stateHolder.libraryVersion}\n" +
-                "Platform: ${stateHolder.platform}",
-    )
+    ) {
+        Text(
+            text = stringResource(Res.string.other_about_content, stateHolder.libraryVersion, stateHolder.platform),
+        )
+    }
 }
 
 sealed interface AboutScreenStateHolder : StateHolder

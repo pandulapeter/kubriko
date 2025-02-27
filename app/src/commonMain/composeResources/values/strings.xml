@@ -82,9 +82,11 @@
     <!-- Other - About -->
     <string name="other_about">About</string>
     <string name="other_about_subtitle">More information about Kubriko</string>
+    <string name="other_about_content">Work in progress\nKubriko library version: %1$s\nPlatform: %2$s</string>
 
     <!-- Other - Licenses -->
     <string name="other_licenses">Licenses</string>
     <string name="other_licenses_subtitle">List of open source licenses used in this project</string>
+    <string name="other_licenses_content">Work in progress</string>
 
 </resources>

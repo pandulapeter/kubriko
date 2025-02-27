@@ -9,11 +9,17 @@
  */
 package com.pandulapeter.kubrikoShowcase.implementation.ui.licenses
 
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -22,6 +28,9 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.shared.StateHolder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kubriko.app.generated.resources.Res
+import kubriko.app.generated.resources.other_licenses_content
+import org.jetbrains.compose.resources.stringResource
 
 
 fun createLicensesScreenStateHolder(): LicensesScreenStateHolder = LicensesScreenStateHolderImpl()
@@ -31,13 +40,18 @@ internal fun LicensesScreen(
     modifier: Modifier = Modifier,
     stateHolder: LicensesScreenStateHolder = createLicensesScreenStateHolder(),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
-) = Text(
+    scrollState: ScrollState = rememberScrollState(),
+) = Column(
     modifier = modifier
         .fillMaxSize()
-        .windowInsetsPadding(windowInsets)
+        .verticalScroll(scrollState)
+        .windowInsetsPadding(windowInsets.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right))
         .padding(16.dp),
-    text = "Licenses - Work in progress",
-)
+) {
+    Text(
+        text = stringResource(Res.string.other_licenses_content),
+    )
+}
 
 sealed interface LicensesScreenStateHolder : StateHolder
 
