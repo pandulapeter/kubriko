@@ -1,1 +1,3 @@
-TODO: Documentation for the Space Squadron game
+# Space Squadron game
+
+TODO: Documentation

@@ -1,1 +1,3 @@
-TODO: Documentation for the Shader Animations demo
+# Shader Animations demo
+
+TODO: Documentation

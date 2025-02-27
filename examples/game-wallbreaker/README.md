@@ -1,1 +1,3 @@
-TODO: Documentation for the Wallbreaker game
+# Wallbreaker game
+
+TODO: Documentation

@@ -1,1 +1,3 @@
-TODO: Documentation for the Performance demo
+# Performance demo
+
+TODO: Documentation

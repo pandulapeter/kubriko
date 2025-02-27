@@ -1,1 +1,3 @@
-TODO: Documentation for the Annoyed Penguins game
+# Annoyed Penguins game
+
+TODO: Documentation
