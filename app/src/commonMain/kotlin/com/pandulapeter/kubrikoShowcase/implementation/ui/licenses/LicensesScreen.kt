@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -49,6 +50,7 @@ internal fun LicensesScreen(
         .padding(16.dp),
 ) {
     Text(
+        style = MaterialTheme.typography.bodySmall,
         text = stringResource(Res.string.other_licenses_content),
     )
 }

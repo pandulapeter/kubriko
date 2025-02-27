@@ -28,14 +28,23 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kubriko.app.generated.resources.Res
+import kubriko.app.generated.resources.ic_back
+import kubriko.app.generated.resources.ic_collapse
 import kubriko.app.generated.resources.ic_debug_off
 import kubriko.app.generated.resources.ic_debug_on
 import kubriko.app.generated.resources.ic_demos
+import kubriko.app.generated.resources.ic_discord
+import kubriko.app.generated.resources.ic_documentation
+import kubriko.app.generated.resources.ic_expand
 import kubriko.app.generated.resources.ic_games
+import kubriko.app.generated.resources.ic_getting_started
+import kubriko.app.generated.resources.ic_github
 import kubriko.app.generated.resources.ic_info_off
 import kubriko.app.generated.resources.ic_info_on
 import kubriko.app.generated.resources.ic_other
+import kubriko.app.generated.resources.ic_privacy_policy
 import kubriko.app.generated.resources.ic_tests
+import kubriko.app.generated.resources.ic_youtube
 import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -108,13 +117,22 @@ fun KubrikoShowcase(
 }
 
 @Composable
-private fun areMenuResourcesLoaded() = preloadedImageVector(Res.drawable.ic_info_on).value != null
-        && preloadedImageVector(Res.drawable.ic_info_off).value != null
-        && preloadedImageVector(Res.drawable.ic_debug_on).value != null
+private fun areMenuResourcesLoaded() = preloadedImageVector(Res.drawable.ic_back).value != null
+        && preloadedImageVector(Res.drawable.ic_collapse).value != null
         && preloadedImageVector(Res.drawable.ic_debug_off).value != null
+        && preloadedImageVector(Res.drawable.ic_debug_on).value != null
         && preloadedImageVector(Res.drawable.ic_demos).value != null
+        && preloadedImageVector(Res.drawable.ic_discord).value != null
+        && preloadedImageVector(Res.drawable.ic_documentation).value != null
+        && preloadedImageVector(Res.drawable.ic_expand).value != null
         && preloadedImageVector(Res.drawable.ic_games).value != null
+        && preloadedImageVector(Res.drawable.ic_getting_started).value != null
+        && preloadedImageVector(Res.drawable.ic_github).value != null
+        && preloadedImageVector(Res.drawable.ic_info_off).value != null
+        && preloadedImageVector(Res.drawable.ic_info_on).value != null
         && preloadedImageVector(Res.drawable.ic_other).value != null
+        && preloadedImageVector(Res.drawable.ic_privacy_policy).value != null
         && preloadedImageVector(Res.drawable.ic_tests).value != null
+        && preloadedImageVector(Res.drawable.ic_youtube).value != null
 
 private val selectedShowcaseEntry = mutableStateOf<ShowcaseEntry?>(null)

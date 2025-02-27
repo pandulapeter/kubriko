@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoShowcase.implementation.ui.about
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -20,18 +21,23 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shared.StateHolder
+import com.pandulapeter.kubriko.uiComponents.LargeButton
 import com.pandulapeter.kubrikoShowcase.BuildConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kubriko.app.generated.resources.Res
+import kubriko.app.generated.resources.ic_privacy_policy
 import kubriko.app.generated.resources.other_about_content
+import kubriko.app.generated.resources.other_about_privacy_policy
 import org.jetbrains.compose.resources.stringResource
 
 
@@ -51,6 +57,7 @@ internal fun AboutScreen(
             .verticalScroll(scrollState)
             .windowInsetsPadding(windowInsets.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right))
             .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
             text = stringResource(
@@ -59,6 +66,13 @@ internal fun AboutScreen(
                 stateHolder.libraryVersion,
                 stateHolder.platform,
             ),
+            style = MaterialTheme.typography.bodySmall,
+        )
+        val uriHandler = LocalUriHandler.current
+        LargeButton(
+            icon = Res.drawable.ic_privacy_policy,
+            title = Res.string.other_about_privacy_policy,
+            onButtonPressed = { uriHandler.openUri("https://pandulapeter.github.io/legal/privacy_policy-kubriko.html") },
         )
     }
 }
