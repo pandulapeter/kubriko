@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.demoPerformance.implementation
 
+import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.PointBody
 import com.pandulapeter.kubriko.actor.body.RectangleBody
@@ -26,7 +27,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.Json
 
-sealed interface PerformanceDemoStateHolder : StateHolder
+sealed interface PerformanceDemoStateHolder : StateHolder {
+
+    companion object {
+        @Composable
+        fun areResourcesLoaded() = true
+    }
+}
 
 internal class PerformanceDemoStateHolderImpl : PerformanceDemoStateHolder {
     private val json = Json { ignoreUnknownKeys = true }

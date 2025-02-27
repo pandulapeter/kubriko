@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.demoShaderAnimations.implementation
 
+import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.CloudShader
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.EtherShader
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.GradientShader
@@ -17,13 +18,24 @@ import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.Warp
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.ControlsState
 import com.pandulapeter.kubriko.shaders.ShaderManager
 import com.pandulapeter.kubriko.shared.StateHolder
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kubriko.examples.demo_shader_animations.generated.resources.Res
+import kubriko.examples.demo_shader_animations.generated.resources.ic_brush
+import kubriko.examples.demo_shader_animations.generated.resources.ic_code
 
-sealed interface ShaderAnimationsDemoStateHolder : StateHolder
+sealed interface ShaderAnimationsDemoStateHolder : StateHolder {
+
+    companion object {
+        @Composable
+        fun areResourcesLoaded() = preloadedImageVector(Res.drawable.ic_brush).value != null
+                && preloadedImageVector(Res.drawable.ic_code).value != null
+    }
+}
 
 internal class ShaderAnimationsDemoStateHolderImpl : ShaderAnimationsDemoStateHolder {
     val shaderManager = ShaderManager.newInstance()
@@ -64,7 +76,7 @@ internal class ShaderAnimationsDemoStateHolderImpl : ShaderAnimationsDemoStateHo
     val selectedDemoType = _selectedDemoType.asStateFlow()
     private val _controlsState = MutableStateFlow(ControlsState.COLLAPSED)
     val controlsState = _controlsState.asStateFlow()
-    override val kubriko =  selectedDemoType.map { shaderAnimationDemoHolders[it]?.kubriko }
+    override val kubriko = selectedDemoType.map { shaderAnimationDemoHolders[it]?.kubriko }
 
     fun onSelectedDemoTypeChanged(selectedDemoType: ShaderAnimationDemoType) = _selectedDemoType.update { selectedDemoType }
 

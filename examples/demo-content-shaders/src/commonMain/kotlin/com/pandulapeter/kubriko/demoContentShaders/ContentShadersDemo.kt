@@ -28,9 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.demoContentShaders.implementation.ContentShadersDemoStateHolder
 import com.pandulapeter.kubriko.demoContentShaders.implementation.ContentShadersDemoStateHolderImpl
-import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import kubriko.examples.demo_content_shaders.generated.resources.Res
-import kubriko.examples.demo_content_shaders.generated.resources.ic_brush
 import kubriko.examples.demo_content_shaders.generated.resources.shaders_not_supported
 import org.jetbrains.compose.resources.stringResource
 
@@ -44,7 +42,6 @@ fun ContentShadersDemo(
 ) {
     stateHolder as ContentShadersDemoStateHolderImpl
     if (stateHolder.shaderManager.areShadersSupported) {
-        preloadedImageVector(Res.drawable.ic_brush) // TODO: Introduce a loading state
         KubrikoViewport(
             modifier = modifier.background(Color.Black),
             windowInsets = windowInsets,

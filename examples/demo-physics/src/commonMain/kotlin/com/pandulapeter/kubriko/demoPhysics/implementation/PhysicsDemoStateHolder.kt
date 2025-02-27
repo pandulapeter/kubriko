@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.demoPhysics.implementation
 
+import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.body.PolygonBody
@@ -31,11 +32,24 @@ import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.Json
+import kubriko.examples.demo_physics.generated.resources.Res
+import kubriko.examples.demo_physics.generated.resources.ic_chain
+import kubriko.examples.demo_physics.generated.resources.ic_explosion
+import kubriko.examples.demo_physics.generated.resources.ic_shape
 
-sealed interface PhysicsDemoStateHolder : StateHolder
+sealed interface PhysicsDemoStateHolder : StateHolder {
+
+    companion object {
+        @Composable
+        fun areResourcesLoaded() = preloadedImageVector(Res.drawable.ic_chain).value != null
+                && preloadedImageVector(Res.drawable.ic_shape).value != null
+                && preloadedImageVector(Res.drawable.ic_explosion).value != null
+    }
+}
 
 internal class PhysicsDemoStateHolderImpl : PhysicsDemoStateHolder {
     private val json = Json { ignoreUnknownKeys = true }

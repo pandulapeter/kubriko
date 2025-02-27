@@ -9,6 +9,15 @@
  */
 package com.pandulapeter.kubrikoShowcase.implementation
 
+import androidx.compose.runtime.Composable
+import com.pandulapeter.kubriko.demoContentShaders.implementation.ContentShadersDemoStateHolder
+import com.pandulapeter.kubriko.demoParticles.implementation.ParticlesDemoStateHolder
+import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceDemoStateHolder
+import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoStateHolder
+import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationsDemoStateHolder
+import com.pandulapeter.kubriko.testAudio.implementation.AudioTestStateHolder
+import com.pandulapeter.kubriko.testInput.implementation.InputTestStateHolder
+import com.pandulapeter.kubrikoShowcase.implementation.ui.about.AboutScreenStateHolder
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.demo_content_shaders
 import kubriko.app.generated.resources.demo_content_shaders_subtitle
@@ -49,6 +58,7 @@ internal enum class ShowcaseEntry(
     val type: ShowcaseEntryType,
     val titleStringResource: StringResource,
     val subtitleStringResource: StringResource,
+    val areResourcesLoaded: @Composable () -> Boolean = { true },
 ) {
     // Games
     WALLBREAKER(
@@ -72,26 +82,31 @@ internal enum class ShowcaseEntry(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_content_shaders,
         subtitleStringResource = Res.string.demo_content_shaders_subtitle,
+        areResourcesLoaded = { ContentShadersDemoStateHolder.areResourcesLoaded() }
     ),
     PARTICLES(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_particles,
         subtitleStringResource = Res.string.demo_particles_subtitle,
+        areResourcesLoaded = { ParticlesDemoStateHolder.areResourcesLoaded() }
     ),
     PERFORMANCE(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_performance,
         subtitleStringResource = Res.string.demo_performance_subtitle,
+        areResourcesLoaded = { PerformanceDemoStateHolder.areResourcesLoaded() }
     ),
     PHYSICS(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_physics,
         subtitleStringResource = Res.string.demo_physics_subtitle,
+        areResourcesLoaded = { PhysicsDemoStateHolder.areResourcesLoaded() }
     ),
     SHADER_ANIMATIONS(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_shader_animations,
         subtitleStringResource = Res.string.demo_shader_animations_subtitle,
+        areResourcesLoaded = { ShaderAnimationsDemoStateHolder.areResourcesLoaded() }
     ),
 
     // Tests
@@ -99,11 +114,13 @@ internal enum class ShowcaseEntry(
         type = ShowcaseEntryType.TEST,
         titleStringResource = Res.string.test_audio,
         subtitleStringResource = Res.string.test_audio_subtitle,
+        areResourcesLoaded = { AudioTestStateHolder.areResourcesLoaded() }
     ),
     INPUT(
         type = ShowcaseEntryType.TEST,
         titleStringResource = Res.string.test_input,
         subtitleStringResource = Res.string.test_input_subtitle,
+        areResourcesLoaded = { InputTestStateHolder.areResourcesLoaded() }
     ),
 
     // Other
@@ -111,6 +128,7 @@ internal enum class ShowcaseEntry(
         type = ShowcaseEntryType.OTHER,
         titleStringResource = Res.string.other_about,
         subtitleStringResource = Res.string.other_about_subtitle,
+        areResourcesLoaded = { AboutScreenStateHolder.areResourcesLoaded() },
     ),
     LICENSES(
         type = ShowcaseEntryType.OTHER,

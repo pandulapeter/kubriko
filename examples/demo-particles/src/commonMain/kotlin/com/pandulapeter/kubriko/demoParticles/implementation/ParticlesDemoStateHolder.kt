@@ -9,14 +9,24 @@
  */
 package com.pandulapeter.kubriko.demoParticles.implementation
 
+import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.demoParticles.implementation.managers.ParticlesDemoManager
 import com.pandulapeter.kubriko.particles.ParticleManager
 import com.pandulapeter.kubriko.shared.StateHolder
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kubriko.examples.demo_particles.generated.resources.Res
+import kubriko.examples.demo_particles.generated.resources.ic_brush
 
-sealed interface ParticlesDemoStateHolder : StateHolder
+sealed interface ParticlesDemoStateHolder : StateHolder {
+
+    companion object {
+        @Composable
+        fun areResourcesLoaded() = preloadedImageVector(Res.drawable.ic_brush).value != null
+    }
+}
 
 internal class ParticlesDemoStateHolderImpl : ParticlesDemoStateHolder {
 

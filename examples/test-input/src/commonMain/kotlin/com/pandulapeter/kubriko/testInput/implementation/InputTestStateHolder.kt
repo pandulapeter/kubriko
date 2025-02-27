@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.testInput.implementation
 
+import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
@@ -17,7 +18,13 @@ import com.pandulapeter.kubriko.testInput.implementation.managers.InputTestManag
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-sealed interface InputTestStateHolder : StateHolder
+sealed interface InputTestStateHolder : StateHolder {
+
+    companion object {
+        @Composable
+        fun areResourcesLoaded() = true
+    }
+}
 
 internal class InputTestStateHolderImpl : InputTestStateHolder {
     private val pointerInputManager = PointerInputManager.newInstance(

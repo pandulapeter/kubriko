@@ -32,11 +32,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun KubrikoTheme(
-    areMenuResourcesLoaded: Boolean = true,
+    areResourcesLoaded: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     AnimatedVisibility(
-        visible = !isKubrikoFontLoaded() || !areMenuResourcesLoaded,
+        visible = !isKubrikoFontLoaded() || !areResourcesLoaded,
         enter = fadeIn(),
         exit = fadeOut(),
     ) {
@@ -56,7 +56,7 @@ fun KubrikoTheme(
         }
     }
     AnimatedVisibility(
-        visible = isKubrikoFontLoaded() && areMenuResourcesLoaded,
+        visible = isKubrikoFontLoaded() && areResourcesLoaded,
         enter = fadeIn(),
         exit = fadeOut(),
     ) {

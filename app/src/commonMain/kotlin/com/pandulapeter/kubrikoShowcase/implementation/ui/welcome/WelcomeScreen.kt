@@ -34,7 +34,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.LargeButton
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.ic_collapse
 import kubriko.app.generated.resources.ic_discord
@@ -79,7 +81,7 @@ internal fun WelcomeScreen(
     )
     Column {
         AnimatedVisibility(
-            visible = !shouldUseCompactUi || shouldShowMoreInfo.value,
+            visible = !shouldUseCompactUi || WelcomeScreenStateHolder.shouldShowMoreInfo.value,
             enter = fadeIn() + expandVertically(expandFrom = Alignment.CenterVertically),
             exit = shrinkVertically(shrinkTowards = Alignment.CenterVertically) + fadeOut(),
         ) {
@@ -164,7 +166,7 @@ internal fun WelcomeScreen(
         exit = shrinkVertically(shrinkTowards = Alignment.CenterVertically) + fadeOut(),
     ) {
         AnimatedContent(
-            targetState = !shouldShowMoreInfo.value,
+            targetState = !WelcomeScreenStateHolder.shouldShowMoreInfo.value,
             transitionSpec = { fadeIn() togetherWith fadeOut() },
             label = "moreInfoButton",
             contentAlignment = Alignment.TopCenter,
@@ -172,7 +174,7 @@ internal fun WelcomeScreen(
             Row(
                 modifier = Modifier
                     .clickable {
-                        shouldShowMoreInfo.value = shouldShowMoreInfoState
+                        WelcomeScreenStateHolder.shouldShowMoreInfo.value = shouldShowMoreInfoState
                         if (!shouldShowMoreInfoState) {
                             scrollToTop()
                         }
@@ -206,4 +208,16 @@ internal fun WelcomeScreen(
     )
 }
 
-private val shouldShowMoreInfo = mutableStateOf(false)
+internal sealed interface WelcomeScreenStateHolder : StateHolder {
+
+    companion object {
+        val shouldShowMoreInfo = mutableStateOf(false)
+
+        @Composable
+        fun areResourcesLoaded() = preloadedImageVector(Res.drawable.ic_github).value != null
+                && preloadedImageVector(Res.drawable.ic_discord).value != null
+                && preloadedImageVector(Res.drawable.ic_documentation).value != null
+                && preloadedImageVector(Res.drawable.ic_getting_started).value != null
+                && preloadedImageVector(Res.drawable.ic_youtube).value != null
+    }
+}

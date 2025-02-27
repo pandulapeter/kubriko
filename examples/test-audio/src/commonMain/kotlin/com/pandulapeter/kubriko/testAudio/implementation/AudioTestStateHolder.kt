@@ -9,15 +9,33 @@
  */
 package com.pandulapeter.kubriko.testAudio.implementation
 
+import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.testAudio.implementation.managers.AudioTestManager
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kubriko.examples.test_audio.generated.resources.Res
+import kubriko.examples.test_audio.generated.resources.ic_loop_off
+import kubriko.examples.test_audio.generated.resources.ic_loop_on
+import kubriko.examples.test_audio.generated.resources.ic_pause
+import kubriko.examples.test_audio.generated.resources.ic_play
+import kubriko.examples.test_audio.generated.resources.ic_stop
 
-sealed interface AudioTestStateHolder : StateHolder
+sealed interface AudioTestStateHolder : StateHolder {
+
+    companion object {
+        @Composable
+        fun areResourcesLoaded() = preloadedImageVector(Res.drawable.ic_loop_off).value != null
+                && preloadedImageVector(Res.drawable.ic_loop_on).value != null
+                && preloadedImageVector(Res.drawable.ic_pause).value != null
+                && preloadedImageVector(Res.drawable.ic_play).value != null
+                && preloadedImageVector(Res.drawable.ic_stop).value != null
+    }
+}
 
 internal class AudioTestStateHolderImpl : AudioTestStateHolder {
     private val musicManager = MusicManager.newInstance(

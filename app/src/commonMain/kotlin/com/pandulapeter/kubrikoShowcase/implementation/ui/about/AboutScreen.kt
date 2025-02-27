@@ -31,6 +31,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.LargeButton
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import com.pandulapeter.kubrikoShowcase.BuildConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -113,7 +114,17 @@ internal fun AboutScreen(
     }
 }
 
-sealed interface AboutScreenStateHolder : StateHolder
+sealed interface AboutScreenStateHolder : StateHolder {
+
+    companion object {
+        @Composable
+        fun areResourcesLoaded() = preloadedImageVector(Res.drawable.ic_bug).value != null
+                && preloadedImageVector(Res.drawable.ic_contact).value != null
+                && preloadedImageVector(Res.drawable.ic_privacy_policy).value != null
+                && preloadedImageVector(Res.drawable.ic_share).value != null
+                && preloadedImageVector(Res.drawable.ic_website).value != null
+    }
+}
 
 private class AboutScreenStateHolderImpl : AboutScreenStateHolder {
     override val kubriko: Flow<Kubriko?> = emptyFlow()
