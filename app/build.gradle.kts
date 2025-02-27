@@ -16,6 +16,10 @@ plugins {
     alias(libs.plugins.codingfeline.buildkonfig)
 }
 
+fun buildConfigurationValue(key: String) = project.findProperty("showcase.$key").toString()
+
+fun isBuildConfigurationValueEnabled(key: String) = buildConfigurationValue(key) == "true"
+
 kotlin {
     sourceSets {
         commonMain.dependencies {
@@ -53,8 +57,8 @@ android {
     defaultConfig {
         applicationId = "com.pandulapeter.kubrikoShowcase"
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = System.getProperty("SHOWCASE_ANDROID_VERSION_CODE").toInt()
-        versionName = System.getProperty("SHOWCASE_ANDROID_VERSION_NAME")
+        versionCode = buildConfigurationValue("androidVersionCode").toInt()
+        versionName = buildConfigurationValue("androidVersionName")
     }
     val internalSigningConfig = "internal"
     val releaseSigningConfig = "release"
@@ -66,10 +70,10 @@ android {
             storePassword = "android"
         }
         create(releaseSigningConfig) {
-            keyAlias = System.getProperty("SHOWCASE_ANDROID_KEY_ALIAS")
-            keyPassword = System.getProperty("SHOWCASE_ANDROID_KEY_PASSWORD")
-            storeFile = file(System.getProperty("SHOWCASE_ANDROID_STORE_FILE"))
-            storePassword = System.getProperty("SHOWCASE_ANDROID_STORE_PASSWORD")
+            keyAlias = buildConfigurationValue("androidKeyAlias")
+            keyPassword = buildConfigurationValue("androidKeyPassword")
+            storeFile = file(buildConfigurationValue("androidKeystoreFile"))
+            storePassword = buildConfigurationValue("androidKeystorePassword")
         }
     }
     buildTypes {
@@ -96,7 +100,7 @@ compose.desktop {
         mainClass = "com.pandulapeter.kubrikoShowcase.KubrikoShowcaseAppKt"
         nativeDistributions {
             packageName = "com.pandulapeter.kubrikoShowcase"
-            packageVersion = System.getProperty("SHOWCASE_DEKTOP_VERSION_NAME")
+            packageVersion = buildConfigurationValue("androidDesktopVersionName")
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             macOS { iconFile.set(project.file("icon.icns")) }
             windows { iconFile.set(project.file("icon.ico")) }
@@ -114,11 +118,6 @@ buildkonfig {
     packageName = "com.pandulapeter.kubrikoShowcase"
     objectName = "BuildConfig"
 
-    val libraryVersionConstantName = "LIBRARY_VERSION"
-    val areTestExamplesEnabledConstantName = "ARE_TEST_EXAMPLES_ENABLED"
-    val isDebugMenuEnabledConstantName = "IS_DEBUG_MENU_ENABLED"
-    val isSceneEditorEnabledConstantName = "IS_SCENE_EDITOR_ENABLED"
-
     fun TargetConfigDsl.buildConfigFieldStringConstant(
         name: String,
         value: String,
@@ -131,44 +130,30 @@ buildkonfig {
 
     fun TargetConfigDsl.buildConfigFieldBooleanConstant(
         name: String,
-        value: Boolean,
+        key: String,
     ) = buildConfigField(
         type = Type.BOOLEAN,
         name = name,
-        value = if (value) "true" else "false",
+        value = buildConfigurationValue(key),
         const = true,
     )
 
     defaultConfigs {
         buildConfigFieldStringConstant(
-            name = libraryVersionConstantName,
+            name = "LIBRARY_VERSION",
             value = rootProject.version.toString(),
         )
         buildConfigFieldBooleanConstant(
-            name = areTestExamplesEnabledConstantName,
-            value = true,
+            name = "ARE_TEST_EXAMPLES_ENABLED",
+            key = "areTestExamplesEnabled",
         )
         buildConfigFieldBooleanConstant(
-            name = isDebugMenuEnabledConstantName,
-            value = true,
+            name = "IS_DEBUG_MENU_ENABLED",
+            key = "isDebugMenuEnabled",
         )
         buildConfigFieldBooleanConstant(
-            name = isSceneEditorEnabledConstantName,
-            value = true,
-        )
-    }
-    defaultConfigs("release") {
-        buildConfigFieldBooleanConstant(
-            name = areTestExamplesEnabledConstantName,
-            value = false,
-        )
-        buildConfigFieldBooleanConstant(
-            name = isDebugMenuEnabledConstantName,
-            value = false,
-        )
-        buildConfigFieldBooleanConstant(
-            name = isSceneEditorEnabledConstantName,
-            value = false,
+            name = "IS_SCENE_EDITOR_ENABLED",
+            key = "isSceneEditorEnabled",
         )
     }
 }

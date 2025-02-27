@@ -7,16 +7,7 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-version = "0.0.2"
-"SHOWCASE_ANDROID_VERSION_NAME" set "1.0.0"
-"SHOWCASE_ANDROID_VERSION_CODE" set 1
-"SHOWCASE_ANDROID_KEY_ALIAS" set "androiddebugkey"
-"SHOWCASE_ANDROID_KEY_PASSWORD" set "android"
-"SHOWCASE_ANDROID_STORE_FILE" set "internal.keystore"
-"SHOWCASE_ANDROID_STORE_PASSWORD" set "android"
-"SHOWCASE_DEKTOP_VERSION_NAME" set "1.0.0"
-
-infix fun String.set(value: Any) = System.setProperty(this, value.toString())
+version = project.findProperty("library.version").toString()
 
 plugins {
     alias(libs.plugins.androidApplication) apply false
