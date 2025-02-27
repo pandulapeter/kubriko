@@ -24,6 +24,7 @@ These examples demonstrate the usefulness of individual plugins.
 ### Tests
 These examples are used for testing the behavior of certain components.
 - [test-audio](https://github.com/pandulapeter/kubriko/tree/main/examples/test-auido) - For testing the playback of music and sound effects
+- [test-audio-noop](https://github.com/pandulapeter/kubriko/tree/main/examples/test-auido-noop) - Blank implementation of the Audio test.
 - [test-input](https://github.com/pandulapeter/kubriko/tree/main/examples/test-input) - Playground for testing keyboard and pointer input
 
 ### Other

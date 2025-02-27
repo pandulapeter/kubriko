@@ -36,6 +36,7 @@ include(
     ":examples:game-space-squadron",
     ":examples:game-wallbreaker",
     ":examples:test-audio",
+    ":examples:test-audio-noop",
     ":examples:test-input",
     ":examples:shared",
     ":plugins:audio-playback",
