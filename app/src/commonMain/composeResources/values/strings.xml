@@ -59,6 +59,10 @@
     <string name="demo_particles">Particles</string>
     <string name="demo_particles_subtitle">Demo for editing and testing particle effects</string>
 
+    <!-- Demo - Performance -->
+    <string name="demo_performance">Performance</string>
+    <string name="demo_performance_subtitle">Stress test using a large number of dynamic actors</string>
+
     <!-- Demo - Physics -->
     <string name="demo_physics">Physics</string>
     <string name="demo_physics_subtitle">Rigid body collisions, chains, explosions</string>
@@ -74,10 +78,6 @@
     <!-- Test - Input -->
     <string name="test_input">Input</string>
     <string name="test_input_subtitle">Playground for testing keyboard and pointer input</string>
-
-    <!-- Test - Performance -->
-    <string name="test_performance">Performance</string>
-    <string name="test_performance_subtitle">Stress test using a large number of dynamic actors</string>
 
     <!-- Other - About -->
     <string name="other_about">About</string>

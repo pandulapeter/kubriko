@@ -17,15 +17,12 @@ import androidx.compose.runtime.mutableStateOf
 import com.pandulapeter.kubriko.demoContentShaders.ContentShadersDemo
 import com.pandulapeter.kubriko.demoContentShaders.createContentShadersDemoStateHolder
 import com.pandulapeter.kubriko.demoContentShaders.implementation.ContentShadersDemoStateHolder
-import com.pandulapeter.kubriko.demoInput.InputTest
-import com.pandulapeter.kubriko.demoInput.createInputTestStateHolder
-import com.pandulapeter.kubriko.demoInput.implementation.InputTestStateHolder
 import com.pandulapeter.kubriko.demoParticles.ParticlesDemo
 import com.pandulapeter.kubriko.demoParticles.createParticlesDemoStateHolder
 import com.pandulapeter.kubriko.demoParticles.implementation.ParticlesDemoStateHolder
-import com.pandulapeter.kubriko.demoPerformance.PerformanceTest
-import com.pandulapeter.kubriko.demoPerformance.createPerformanceTestStateHolder
-import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceTestStateHolder
+import com.pandulapeter.kubriko.demoPerformance.PerformanceDemo
+import com.pandulapeter.kubriko.demoPerformance.createPerformanceDemoStateHolder
+import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceDemoStateHolder
 import com.pandulapeter.kubriko.demoPhysics.PhysicsDemo
 import com.pandulapeter.kubriko.demoPhysics.createPhysicsDemoStateHolder
 import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoStateHolder
@@ -45,6 +42,9 @@ import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.testAudio.AudioTest
 import com.pandulapeter.kubriko.testAudio.createAudioTestStateHolder
 import com.pandulapeter.kubriko.testAudio.implementation.AudioTestStateHolder
+import com.pandulapeter.kubriko.testInput.InputTest
+import com.pandulapeter.kubriko.testInput.createInputTestStateHolder
+import com.pandulapeter.kubriko.testInput.implementation.InputTestStateHolder
 import com.pandulapeter.kubrikoShowcase.BuildConfig
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import com.pandulapeter.kubrikoShowcase.implementation.ui.about.AboutScreen
@@ -86,10 +86,9 @@ internal fun ShowcaseEntry.ExampleScreen(
             isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
         )
 
-        ShowcaseEntry.PHYSICS -> PhysicsDemo(
-            stateHolder = getOrCreateState(stateHolders, ::createPhysicsDemoStateHolder),
+        ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemo(
+            stateHolder = getOrCreateState(stateHolders, ::createContentShadersDemoStateHolder),
             windowInsets = windowInsets,
-            isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
         )
 
         ShowcaseEntry.PARTICLES -> ParticlesDemo(
@@ -97,9 +96,15 @@ internal fun ShowcaseEntry.ExampleScreen(
             windowInsets = windowInsets,
         )
 
-        ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemo(
-            stateHolder = getOrCreateState(stateHolders, ::createContentShadersDemoStateHolder),
+        ShowcaseEntry.PERFORMANCE -> PerformanceDemo(
+            stateHolder = getOrCreateState(stateHolders, ::createPerformanceDemoStateHolder),
             windowInsets = windowInsets,
+        )
+
+        ShowcaseEntry.PHYSICS -> PhysicsDemo(
+            stateHolder = getOrCreateState(stateHolders, ::createPhysicsDemoStateHolder),
+            windowInsets = windowInsets,
+            isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
         )
 
         ShowcaseEntry.SHADER_ANIMATIONS -> ShaderAnimationsDemo(
@@ -114,11 +119,6 @@ internal fun ShowcaseEntry.ExampleScreen(
 
         ShowcaseEntry.INPUT -> InputTest(
             stateHolder = getOrCreateState(stateHolders, ::createInputTestStateHolder),
-            windowInsets = windowInsets,
-        )
-
-        ShowcaseEntry.PERFORMANCE -> PerformanceTest(
-            stateHolder = getOrCreateState(stateHolders, ::createPerformanceTestStateHolder),
             windowInsets = windowInsets,
         )
 
@@ -148,13 +148,13 @@ internal fun ShowcaseEntry.getStateHolder() = when (this) {
     ShowcaseEntry.WALLBREAKER -> getOrCreateState(stateHolders, ::createWallbreakerGameStateHolder)
     ShowcaseEntry.SPACE_SQUADRON -> getOrCreateState(stateHolders, ::createSpaceSquadronGameStateHolder)
     ShowcaseEntry.ANNOYED_PENGUINS -> getOrCreateState(stateHolders, ::createAnnoyedPenguinsGameStateHolder)
-    ShowcaseEntry.PHYSICS -> getOrCreateState(stateHolders, ::createPhysicsDemoStateHolder)
-    ShowcaseEntry.PARTICLES -> getOrCreateState(stateHolders, ::createParticlesDemoStateHolder)
     ShowcaseEntry.CONTENT_SHADERS -> getOrCreateState(stateHolders, ::createContentShadersDemoStateHolder)
+    ShowcaseEntry.PARTICLES -> getOrCreateState(stateHolders, ::createParticlesDemoStateHolder)
+    ShowcaseEntry.PERFORMANCE -> getOrCreateState(stateHolders, ::createPerformanceDemoStateHolder)
+    ShowcaseEntry.PHYSICS -> getOrCreateState(stateHolders, ::createPhysicsDemoStateHolder)
     ShowcaseEntry.SHADER_ANIMATIONS -> getOrCreateState(stateHolders, ::createShaderAnimationsDemoStateHolder)
     ShowcaseEntry.AUDIO -> getOrCreateState(stateHolders, ::createAudioTestStateHolder)
     ShowcaseEntry.INPUT -> getOrCreateState(stateHolders, ::createInputTestStateHolder)
-    ShowcaseEntry.PERFORMANCE -> getOrCreateState(stateHolders, ::createPerformanceTestStateHolder)
     ShowcaseEntry.ABOUT -> getOrCreateState(stateHolders, ::createAboutScreenStateHolder)
     ShowcaseEntry.LICENSES -> getOrCreateState(stateHolders, ::createLicensesScreenStateHolder)
 }
@@ -169,13 +169,13 @@ private val ShowcaseEntry.stateHolderType
         ShowcaseEntry.WALLBREAKER -> WallbreakerGameStateHolder::class
         ShowcaseEntry.SPACE_SQUADRON -> SpaceSquadronGameStateHolder::class
         ShowcaseEntry.ANNOYED_PENGUINS -> AnnoyedPenguinsGameStateHolder::class
-        ShowcaseEntry.PHYSICS -> PhysicsDemoStateHolder::class
-        ShowcaseEntry.PARTICLES -> ParticlesDemoStateHolder::class
         ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemoStateHolder::class
+        ShowcaseEntry.PARTICLES -> ParticlesDemoStateHolder::class
+        ShowcaseEntry.PERFORMANCE -> PerformanceDemoStateHolder::class
+        ShowcaseEntry.PHYSICS -> PhysicsDemoStateHolder::class
         ShowcaseEntry.SHADER_ANIMATIONS -> ShaderAnimationsDemoStateHolder::class
         ShowcaseEntry.AUDIO -> AudioTestStateHolder::class
         ShowcaseEntry.INPUT -> InputTestStateHolder::class
-        ShowcaseEntry.PERFORMANCE -> PerformanceTestStateHolder::class
         ShowcaseEntry.ABOUT -> AboutScreenStateHolder::class
         ShowcaseEntry.LICENSES -> LicensesScreenStateHolder::class
     }

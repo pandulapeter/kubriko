@@ -35,7 +35,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun InfoPanel(
     modifier: Modifier = Modifier,
-    stringResource: StringResource,
+    text: String,
     isVisible: Boolean,
 ) = Column {
     val fadeOutProgress by animateFloatAsState(if (isVisible) 1f else 0f)
@@ -58,7 +58,7 @@ fun InfoPanel(
                     vertical = 8.dp,
                 ),
                 style = MaterialTheme.typography.bodySmall,
-                text = stringResource(stringResource),
+                text = text,
             )
         }
     }
@@ -66,3 +66,14 @@ fun InfoPanel(
         modifier = Modifier.height(8.dp * fadeOutProgress).fillMaxWidth(),
     )
 }
+
+@Composable
+fun InfoPanel(
+    modifier: Modifier = Modifier,
+    stringResource: StringResource,
+    isVisible: Boolean,
+) = InfoPanel(
+    modifier = modifier,
+    text = stringResource(stringResource),
+    isVisible = isVisible,
+)
