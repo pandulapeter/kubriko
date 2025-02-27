@@ -96,6 +96,7 @@ Expand the sections below to see the complete list of all Kubriko dependencies h
 
 
 - `io.github.pandulapeter.kubriko:tool-debug-menu`
+- `io.github.pandulapeter.kubriko:tool-debug-menu-noop`
 - `io.github.pandulapeter.kubriko:tool-logger`
 - `io.github.pandulapeter.kubriko:tool-scene-editor`
 - `io.github.pandulapeter.kubriko:tool-scene-editor-noop`

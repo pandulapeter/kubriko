@@ -33,7 +33,7 @@ kotlin {
             implementation(projects.examples.demoShaderAnimations)
             implementation(projects.examples.testAudio)
             implementation(projects.examples.testInput)
-            implementation(projects.tools.debugMenu)
+            implementation(if (project.findProperty("showcase.isDebugMenuEnabled") == "true") projects.tools.debugMenu else projects.tools.debugMenuNoop)
             implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)
             implementation(libs.compose.backhandler)

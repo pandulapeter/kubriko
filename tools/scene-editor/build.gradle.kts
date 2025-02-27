@@ -31,7 +31,7 @@ kotlin {
                 implementation(projects.plugins.persistence)
                 implementation(projects.plugins.pointerInput)
                 implementation(projects.plugins.sprites)
-                implementation(projects.tools.debugMenu)
+                implementation(if (project.findProperty("showcase.isDebugMenuEnabled") == "true") projects.tools.debugMenu else projects.tools.debugMenuNoop)
                 implementation(projects.tools.uiComponents)
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlin.reflect)

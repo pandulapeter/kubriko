@@ -25,7 +25,7 @@ kotlin {
             implementation(projects.plugins.pointerInput)
             implementation(projects.plugins.shaders)
             implementation(projects.plugins.sprites)
-            implementation(projects.tools.debugMenu)
+            implementation(if (project.findProperty("showcase.isDebugMenuEnabled") == "true") projects.tools.debugMenu else projects.tools.debugMenuNoop)
             implementation(if (project.findProperty("showcase.isSceneEditorEnabled") == "true") projects.tools.sceneEditor else projects.tools.sceneEditorNoop)
             implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)

@@ -49,6 +49,7 @@ include(
     ":plugins:shaders",
     ":plugins:sprites",
     ":tools:debug-menu",
+    ":tools:debug-menu-noop",
     ":tools:logger",
     ":tools:scene-editor",
     ":tools:scene-editor-noop",
