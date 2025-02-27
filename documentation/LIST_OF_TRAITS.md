@@ -38,4 +38,4 @@ Read the KDoc comments of the linked files for more information.
 - [Shader](https://github.com/pandulapeter/kubriko/blob/main/plugins/shaders/src/commonMain/kotlin/com/pandulapeter/kubriko/shaders/Shader.kt)
 
 ## Scene Editor tool
-- [Editable](https://github.com/pandulapeter/kubriko/blob/main/tools/scene-editor/src/commonMain/kotlin/com/pandulapeter/kubriko/sceneEditor/Editable.kt)
+- [Editable](https://github.com/pandulapeter/kubriko/blob/main/tools/scene-editor-api/src/commonMain/kotlin/com/pandulapeter/kubriko/sceneEditor/Editable.kt)
