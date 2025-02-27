@@ -23,12 +23,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Visible
@@ -109,6 +111,8 @@ internal class PerformanceDemoManager(
                     MiniMap(
                         size = 120.dp,
                         gameTime = metadataManager.totalRuntimeInMilliseconds.filter { it % 19 == 0L }.collectAsState(0L).value,
+                        visibleActorColor = MaterialTheme.colorScheme.primary,
+                        invisibleActorColor = lerp(LocalContentColor.current, MaterialTheme.colorScheme.surface, 0.8f),
                         getAllVisibleActors = { actorManager.allActors.value.filterIsInstance<Visible>() },
                         getAllVisibleActorsWithinViewport = { actorManager.visibleActorsWithinViewport.value },
                     )

@@ -10,6 +10,6 @@
 -->
 <resources>
 
-    <string name="description">This example demonstrates how the engine optimizes the rendering pipeline by only working with the visible subset of the large number of Actors that are present in the scene. On the mini map below, the Actors that are actually rendered are marked as green dots, while all the others are red.</string>
+    <string name="description">This example demonstrates how the engine optimizes the rendering pipeline by only working with the visible subset of the large number of Actors that are present in the scene. On the mini map below, the Actors that are actually rendered are highlighted.</string>
 
 </resources>

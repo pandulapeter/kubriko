@@ -23,6 +23,8 @@ import com.pandulapeter.kubriko.actor.traits.Visible
 internal fun MiniMap(
     size: Dp,
     gameTime: Long,
+    visibleActorColor: Color,
+    invisibleActorColor: Color,
     getAllVisibleActors: () -> List<Visible>,
     getAllVisibleActorsWithinViewport: () -> List<Visible>,
 ) = Canvas(
@@ -40,9 +42,9 @@ internal fun MiniMap(
                 val visibleActorsWithinViewport = getAllVisibleActorsWithinViewport()
                 @Suppress("UNUSED_EXPRESSION") gameTime  // This line invalidates the Canvas, causing a refresh on every frame
                 allVisibleActors.forEachIndexed { index, actor ->
-                    if (index % 4 == 0) {
+                    if (index % 3 == 0) {
                         drawCircle(
-                            color = if (visibleActorsWithinViewport.contains(actor)) Color.Green else Color.Red,
+                            color = if (visibleActorsWithinViewport.contains(actor)) visibleActorColor else invisibleActorColor,
                             radius = 1.5f,
                             center = actor.body.position.raw / 70f,
                         )
