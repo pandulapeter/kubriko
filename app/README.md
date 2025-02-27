@@ -27,7 +27,7 @@ Disabling components is done on the buildscript level so that the unwanted resou
 
 ## Pre-built binaries
 
-The pre-built Kubriko Showcase application can be downloaded from the following links:
+The pre-built Kubriko Showcase application can be accessed using the following links:
 
 [<img src="../documentation/images/badge_android_coming_soon.png" alt="Download for Android" height="33px" />](#)
 [<img src="../documentation/images/badge_ios_coming_soon.png" alt="Download for iOS" height="33px" />](#)
