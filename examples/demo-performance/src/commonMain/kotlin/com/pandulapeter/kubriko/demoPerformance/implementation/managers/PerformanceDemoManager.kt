@@ -9,7 +9,11 @@
  */
 package com.pandulapeter.kubriko.demoPerformance.implementation.managers
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,12 +26,16 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.demoPerformance.implementation.PlatformSpecificContent
+import com.pandulapeter.kubriko.demoPerformance.implementation.ui.MiniMap
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
+import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
@@ -35,7 +43,7 @@ import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.LoadingOverlay
-import kotlinx.coroutines.FlowPreview
+import com.pandulapeter.kubriko.uiComponents.Panel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -53,6 +61,7 @@ internal class PerformanceDemoManager(
     private val sceneJson: MutableStateFlow<String>?,
 ) : Manager() {
     private val actorManager by manager<ActorManager>()
+    private val metadataManager by manager<MetadataManager>()
     private val stateManager by manager<StateManager>()
     private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
     private val _shouldShowLoadingIndicator = MutableStateFlow(true)
@@ -73,7 +82,6 @@ internal class PerformanceDemoManager(
         loadMap()
     }
 
-    @OptIn(FlowPreview::class)
     @Composable
     override fun Composable(windowInsets: WindowInsets) = Box {
         LoadingOverlay(
@@ -90,11 +98,28 @@ internal class PerformanceDemoManager(
                 stringResource = Res.string.description,
                 isVisible = StateHolder.isInfoPanelVisible.value,
             )
+            AnimatedVisibility(
+                visible = actorManager.allActors.collectAsState().value.size > 10,
+                enter = fadeIn() + scaleIn(),
+                exit = scaleOut() + fadeOut(),
+            ) {
+                Panel {
+                    MiniMap(
+                        size = 120.dp,
+                        gameTime = metadataManager.totalRuntimeInMilliseconds.filter { it % 19 == 0L }.collectAsState(0L).value,
+                        getAllVisibleActors = { actorManager.allActors.value.filterIsInstance<Visible>() },
+                        getAllVisibleActorsWithinViewport = { actorManager.visibleActorsWithinViewport.value },
+                    )
+                }
+            }
             Spacer(modifier = Modifier.weight(1f))
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.Bottom,
             ) {
+                Spacer(
+                    modifier = Modifier.weight(1f),
+                )
                 PlatformSpecificContent()
             }
         }

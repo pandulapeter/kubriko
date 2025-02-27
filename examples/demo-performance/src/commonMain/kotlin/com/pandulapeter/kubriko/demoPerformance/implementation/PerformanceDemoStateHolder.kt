@@ -17,6 +17,7 @@ import com.pandulapeter.kubriko.demoPerformance.implementation.actors.Character
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.MovingBox
 import com.pandulapeter.kubriko.demoPerformance.implementation.managers.PerformanceDemoManager
 import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.shared.StateHolder
@@ -50,6 +51,12 @@ internal class PerformanceDemoStateHolderImpl : PerformanceDemoStateHolder {
     )
 
     // The properties below are lazily initialized because we don't need them when we only run the Scene Editor
+    private val actorManager by lazy {
+        ActorManager.newInstance(
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG,
+        )
+    }
     private val performanceDemoManager by lazy {
         PerformanceDemoManager(sceneJson = sceneJson)
     }
@@ -64,6 +71,7 @@ internal class PerformanceDemoStateHolderImpl : PerformanceDemoStateHolder {
     private val _kubriko by lazy {
         MutableStateFlow(
             Kubriko.newInstance(
+                actorManager,
                 viewportManager,
                 performanceDemoManager,
                 serializationManager,

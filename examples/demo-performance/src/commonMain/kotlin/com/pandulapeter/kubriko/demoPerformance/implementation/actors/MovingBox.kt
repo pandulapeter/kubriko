@@ -28,6 +28,7 @@ import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
+import kotlin.random.Random
 
 internal class MovingBox private constructor(state: State) : Visible, Dynamic, Editable<MovingBox> {
     override val body = state.body
@@ -45,7 +46,7 @@ internal class MovingBox private constructor(state: State) : Visible, Dynamic, E
     }
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        body.rotation += 0.001f.rad * deltaTimeInMilliseconds * (if (isRotatingClockwise) 1 else -1)
+        body.rotation += 0.001f.rad * deltaTimeInMilliseconds * (if (isRotatingClockwise) 1 else -1) * Random.nextFloat()
         if (isGrowing) {
             body.scale += deltaTimeInMilliseconds * 0.001f
         } else {
