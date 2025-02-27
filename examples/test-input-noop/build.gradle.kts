@@ -15,13 +15,6 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(projects.examples.shared)
-            implementation(projects.engine)
-            implementation(projects.plugins.keyboardInput)
-            implementation(projects.plugins.pointerInput)
-            implementation(if (project.findProperty("showcase.isDebugMenuEnabled") == "true") projects.tools.debugMenu else projects.tools.debugMenuNoop)
-            implementation(projects.tools.uiComponents)
-            implementation(compose.components.resources)
-            implementation(compose.material3)
         }
     }
 }

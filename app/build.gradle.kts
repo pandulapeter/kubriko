@@ -32,7 +32,7 @@ kotlin {
             implementation(projects.examples.demoPhysics)
             implementation(projects.examples.demoShaderAnimations)
             implementation(if (isBuildConfigurationValueEnabled("areTestExamplesEnabled")) projects.examples.testAudio else projects.examples.testAudioNoop)
-            implementation(projects.examples.testInput)
+            implementation(if (isBuildConfigurationValueEnabled("areTestExamplesEnabled")) projects.examples.testInput else projects.examples.testInputNoop)
             implementation(if (isBuildConfigurationValueEnabled("isDebugMenuEnabled")) projects.tools.debugMenu else projects.tools.debugMenuNoop)
             implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)

@@ -38,6 +38,7 @@ include(
     ":examples:test-audio",
     ":examples:test-audio-noop",
     ":examples:test-input",
+    ":examples:test-input-noop",
     ":examples:shared",
     ":plugins:audio-playback",
     ":plugins:collision",
