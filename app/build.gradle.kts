@@ -58,7 +58,7 @@ android {
         applicationId = "com.pandulapeter.kubrikoShowcase"
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = buildConfigurationValue("androidVersionCode").toInt()
-        versionName = buildConfigurationValue("androidVersionName")
+        versionName = buildConfigurationValue("versionName")
     }
     val internalSigningConfig = "internal"
     val releaseSigningConfig = "release"
@@ -100,7 +100,7 @@ compose.desktop {
         mainClass = "com.pandulapeter.kubrikoShowcase.KubrikoShowcaseAppKt"
         nativeDistributions {
             packageName = "com.pandulapeter.kubrikoShowcase"
-            packageVersion = buildConfigurationValue("androidDesktopVersionName")
+            packageVersion = buildConfigurationValue("versionName")
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             macOS { iconFile.set(project.file("icon.icns")) }
             windows { iconFile.set(project.file("icon.ico")) }
@@ -142,6 +142,10 @@ buildkonfig {
         buildConfigFieldStringConstant(
             name = "LIBRARY_VERSION",
             value = rootProject.version.toString(),
+        )
+        buildConfigFieldStringConstant(
+            name = "APP_VERSION",
+            value = buildConfigurationValue("versionName"),
         )
         buildConfigFieldBooleanConstant(
             name = "ARE_TEST_EXAMPLES_ENABLED",

@@ -53,7 +53,12 @@ internal fun AboutScreen(
             .padding(16.dp),
     ) {
         Text(
-            text = stringResource(Res.string.other_about_content, stateHolder.libraryVersion, stateHolder.platform),
+            text = stringResource(
+                Res.string.other_about_content,
+                stateHolder.appVersion,
+                stateHolder.libraryVersion,
+                stateHolder.platform,
+            ),
         )
     }
 }
@@ -62,6 +67,7 @@ sealed interface AboutScreenStateHolder : StateHolder
 
 private class AboutScreenStateHolderImpl : AboutScreenStateHolder {
     override val kubriko: Flow<Kubriko?> = emptyFlow()
+    val appVersion = BuildConfig.APP_VERSION
     val libraryVersion = BuildConfig.LIBRARY_VERSION
     val platform = MetadataManager.newInstance().platform
 
