@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -66,6 +67,7 @@ internal class PerformanceDemoManager(
     private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
     private val _shouldShowLoadingIndicator = MutableStateFlow(true)
     private val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
+    private val isSceneEditorEnabled = mutableStateOf(true)
 
     override fun onInitialize(kubriko: Kubriko) {
         stateManager.isFocused
@@ -112,17 +114,23 @@ internal class PerformanceDemoManager(
                     )
                 }
             }
-            Spacer(modifier = Modifier.weight(1f))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Bottom,
-            ) {
-                Spacer(
-                    modifier = Modifier.weight(1f),
-                )
-                PlatformSpecificContent()
+            if (isSceneEditorEnabled.value) {
+                Spacer(modifier = Modifier.weight(1f))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Bottom,
+                ) {
+                    Spacer(
+                        modifier = Modifier.weight(1f),
+                    )
+                    PlatformSpecificContent()
+                }
             }
         }
+    }
+
+    fun disableSceneEditor() {
+        isSceneEditorEnabled.value = false
     }
 
     @OptIn(ExperimentalResourceApi::class)

@@ -57,7 +57,7 @@ internal class PerformanceDemoStateHolderImpl : PerformanceDemoStateHolder {
             instanceNameForLogging = LOG_TAG,
         )
     }
-    private val performanceDemoManager by lazy {
+    val performanceDemoManager by lazy {
         PerformanceDemoManager(sceneJson = sceneJson)
     }
     private val viewportManager by lazy {

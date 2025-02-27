@@ -99,6 +99,7 @@ internal fun ShowcaseEntry.ExampleScreen(
         ShowcaseEntry.PERFORMANCE -> PerformanceDemo(
             stateHolder = getOrCreateState(stateHolders, ::createPerformanceDemoStateHolder),
             windowInsets = windowInsets,
+            isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
         )
 
         ShowcaseEntry.PHYSICS -> PhysicsDemo(

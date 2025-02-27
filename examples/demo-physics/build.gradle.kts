@@ -20,7 +20,7 @@ kotlin {
             implementation(projects.plugins.physics)
             implementation(projects.plugins.pointerInput)
             implementation(projects.tools.debugMenu)
-            implementation(projects.tools.sceneEditor)
+            implementation(if (project.findProperty("showcase.isSceneEditorEnabled") == "true") projects.tools.sceneEditor else projects.tools.sceneEditorNoop)
             implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)
             implementation(libs.kotlinx.serialization)
