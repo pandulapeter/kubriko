@@ -27,7 +27,7 @@ better understand the files of the project.
   from [here](https://www.jetbrains.com/help/kotlin-multiplatform-dev/multiplatform-create-first-app.html#run-your-application-on-ios) (again, you need a
   computer running macOS to do this).
 - To test the Desktop (jvm) app, use the `./gradlew run` command.
-- To test the Web (wasmJs) app, use the `./gradlew wasmJsBrowserRun` command.
+- To test the Web (wasmJs) app, use the `./gradlew wasmJsBrowserDevelopmentRun` command.
 
 It might be a good idea to create separate [Run Configurations](https://www.jetbrains.com/guide/java/tutorials/hello-world/creating-a-run-configuration/) for
 each platform to simplify switching between the different targets in the future:
