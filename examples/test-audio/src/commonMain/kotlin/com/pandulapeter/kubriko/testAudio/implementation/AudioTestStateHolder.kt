@@ -16,24 +16,44 @@ import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.testAudio.implementation.managers.AudioTestManager
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kubriko.examples.test_audio.generated.resources.Res
+import kubriko.examples.test_audio.generated.resources.description
 import kubriko.examples.test_audio.generated.resources.ic_loop_off
 import kubriko.examples.test_audio.generated.resources.ic_loop_on
 import kubriko.examples.test_audio.generated.resources.ic_pause
 import kubriko.examples.test_audio.generated.resources.ic_play
 import kubriko.examples.test_audio.generated.resources.ic_stop
+import kubriko.examples.test_audio.generated.resources.loop_on
+import kubriko.examples.test_audio.generated.resources.music_track_1
+import kubriko.examples.test_audio.generated.resources.music_track_2
+import kubriko.examples.test_audio.generated.resources.pause
+import kubriko.examples.test_audio.generated.resources.play
+import kubriko.examples.test_audio.generated.resources.stop
 
 sealed interface AudioTestStateHolder : StateHolder {
 
     companion object {
         @Composable
-        fun areResourcesLoaded() = preloadedImageVector(Res.drawable.ic_loop_off).value != null
+        fun areResourcesLoaded() = areIconResourcesLoaded() && areStringResourcesLoaded()
+
+        @Composable
+        private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_loop_off).value != null
                 && preloadedImageVector(Res.drawable.ic_loop_on).value != null
                 && preloadedImageVector(Res.drawable.ic_pause).value != null
                 && preloadedImageVector(Res.drawable.ic_play).value != null
                 && preloadedImageVector(Res.drawable.ic_stop).value != null
+
+        @Composable
+        private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank()
+                && preloadedString(Res.string.music_track_1).value.isNotBlank()
+                && preloadedString(Res.string.music_track_2).value.isNotBlank()
+                && preloadedString(Res.string.play).value.isNotBlank()
+                && preloadedString(Res.string.pause).value.isNotBlank()
+                && preloadedString(Res.string.stop).value.isNotBlank()
+                && preloadedString(Res.string.loop_on).value.isNotBlank()
     }
 }
 

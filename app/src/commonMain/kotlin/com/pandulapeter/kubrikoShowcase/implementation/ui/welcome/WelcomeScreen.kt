@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.LargeButton
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.ic_collapse
 import kubriko.app.generated.resources.ic_discord
@@ -214,10 +215,30 @@ internal sealed interface WelcomeScreenStateHolder : StateHolder {
         val shouldShowMoreInfo = mutableStateOf(false)
 
         @Composable
-        fun areResourcesLoaded() = preloadedImageVector(Res.drawable.ic_github).value != null
+        fun areResourcesLoaded() = areIconResourcesLoaded() && areStringResourcesLoaded()
+
+        @Composable
+        private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_github).value != null
                 && preloadedImageVector(Res.drawable.ic_discord).value != null
                 && preloadedImageVector(Res.drawable.ic_documentation).value != null
                 && preloadedImageVector(Res.drawable.ic_getting_started).value != null
                 && preloadedImageVector(Res.drawable.ic_youtube).value != null
+
+        @Composable
+        private fun areStringResourcesLoaded() = preloadedString(Res.string.welcome_message).value.isNotBlank()
+                && preloadedString(Res.string.welcome_more_details).value.isNotBlank()
+                && preloadedString(Res.string.welcome_hide_details).value.isNotBlank()
+                && preloadedString(Res.string.welcome_engine_details).value.isNotBlank()
+                && preloadedString(Res.string.welcome_repository).value.isNotBlank()
+                && preloadedString(Res.string.welcome_learning_1).value.isNotBlank()
+                && preloadedString(Res.string.welcome_learning_2).value.isNotBlank()
+                && preloadedString(Res.string.welcome_getting_started).value.isNotBlank()
+                && preloadedString(Res.string.welcome_documentation).value.isNotBlank()
+                && preloadedString(Res.string.welcome_tutorials).value.isNotBlank()
+                && preloadedString(Res.string.welcome_community).value.isNotBlank()
+                && preloadedString(Res.string.welcome_license).value.isNotBlank()
+                && preloadedString(Res.string.welcome_app_details).value.isNotBlank()
+                && preloadedString(Res.string.welcome_app_details_call_to_action_collapsed).value.isNotBlank()
+                && preloadedString(Res.string.welcome_app_details_call_to_action_expanded).value.isNotBlank()
     }
 }

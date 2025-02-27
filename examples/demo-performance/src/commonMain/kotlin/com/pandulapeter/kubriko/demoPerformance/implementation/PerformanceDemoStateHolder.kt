@@ -23,15 +23,21 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.types.SceneSize
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.Json
+import kubriko.examples.demo_performance.generated.resources.Res
+import kubriko.examples.demo_performance.generated.resources.description
 
 sealed interface PerformanceDemoStateHolder : StateHolder {
 
     companion object {
         @Composable
-        fun areResourcesLoaded() = true
+        fun areResourcesLoaded() = areStringResourcesLoaded()
+
+        @Composable
+        private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank()
     }
 }
 

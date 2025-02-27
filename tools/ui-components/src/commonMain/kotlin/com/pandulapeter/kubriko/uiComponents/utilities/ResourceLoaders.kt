@@ -11,6 +11,8 @@ package com.pandulapeter.kubriko.uiComponents.utilities
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.Font
@@ -18,6 +20,15 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.FontResource
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+
+@Composable
+fun preloadedString(
+    resource: StringResource,
+) = remember(resource) { mutableStateOf("") }.apply {
+    value = stringResource(resource).takeIf { it.isNotBlank() }.orEmpty()
+}
 
 @Composable
 expect fun preloadedFont(

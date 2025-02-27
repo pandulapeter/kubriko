@@ -9,11 +9,18 @@
  */
 package com.pandulapeter.kubriko.testInput.implementation
 
+import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.shared.StateHolder
 import kotlinx.coroutines.flow.emptyFlow
 
-sealed interface InputTestStateHolder : StateHolder
+sealed interface InputTestStateHolder : StateHolder {
+
+    companion object {
+        @Composable
+        fun areResourcesLoaded() = true
+    }
+}
 
 internal class InputTestStateHolderImpl : InputTestStateHolder {
 

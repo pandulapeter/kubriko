@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.shared.StateHolder
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kubriko.app.generated.resources.Res
@@ -55,7 +56,16 @@ internal fun LicensesScreen(
     )
 }
 
-sealed interface LicensesScreenStateHolder : StateHolder
+sealed interface LicensesScreenStateHolder : StateHolder {
+
+    companion object {
+        @Composable
+        fun areResourcesLoaded() = areStringResourcesLoaded()
+
+        @Composable
+        private fun areStringResourcesLoaded() = preloadedString(Res.string.other_licenses_content).value.isNotBlank()
+    }
+}
 
 private class LicensesScreenStateHolderImpl : LicensesScreenStateHolder {
     override val kubriko: Flow<Kubriko?> = emptyFlow()

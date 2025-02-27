@@ -20,26 +20,13 @@ import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
-import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
+import com.pandulapeter.kubrikoShowcase.implementation.ui.ResourceLoader
 import com.pandulapeter.kubrikoShowcase.implementation.ui.ShowcaseContent
 import com.pandulapeter.kubrikoShowcase.implementation.ui.getStateHolder
-import com.pandulapeter.kubrikoShowcase.implementation.ui.welcome.WelcomeScreenStateHolder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kubriko.app.generated.resources.Res
-import kubriko.app.generated.resources.ic_back
-import kubriko.app.generated.resources.ic_collapse
-import kubriko.app.generated.resources.ic_debug_off
-import kubriko.app.generated.resources.ic_debug_on
-import kubriko.app.generated.resources.ic_demos
-import kubriko.app.generated.resources.ic_expand
-import kubriko.app.generated.resources.ic_games
-import kubriko.app.generated.resources.ic_info_off
-import kubriko.app.generated.resources.ic_info_on
-import kubriko.app.generated.resources.ic_other
-import kubriko.app.generated.resources.ic_tests
 import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -50,7 +37,7 @@ fun KubrikoShowcase(
     onFullscreenModeToggled: () -> Unit,
     webEscapePressEvent: Flow<Unit>? = null,
 ) = KubrikoTheme(
-    areResourcesLoaded = areMenuResourcesLoaded() && ShowcaseEntry.entries.all { it.areResourcesLoaded() },
+    areResourcesLoaded = ResourceLoader.areResourcesLoaded() && ShowcaseEntry.entries.all { it.areResourcesLoaded() },
 ) {
     LaunchedEffect(webEscapePressEvent) {
         webEscapePressEvent?.collect {
@@ -110,19 +97,5 @@ fun KubrikoShowcase(
         )
     }
 }
-
-@Composable
-private fun areMenuResourcesLoaded() = WelcomeScreenStateHolder.areResourcesLoaded()
-        && preloadedImageVector(Res.drawable.ic_back).value != null
-        && preloadedImageVector(Res.drawable.ic_collapse).value != null
-        && preloadedImageVector(Res.drawable.ic_debug_off).value != null
-        && preloadedImageVector(Res.drawable.ic_debug_on).value != null
-        && preloadedImageVector(Res.drawable.ic_demos).value != null
-        && preloadedImageVector(Res.drawable.ic_expand).value != null
-        && preloadedImageVector(Res.drawable.ic_games).value != null
-        && preloadedImageVector(Res.drawable.ic_info_off).value != null
-        && preloadedImageVector(Res.drawable.ic_info_on).value != null
-        && preloadedImageVector(Res.drawable.ic_other).value != null
-        && preloadedImageVector(Res.drawable.ic_tests).value != null
 
 private val selectedShowcaseEntry = mutableStateOf<ShowcaseEntry?>(null)

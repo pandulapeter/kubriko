@@ -15,16 +15,36 @@ import com.pandulapeter.kubriko.demoParticles.implementation.managers.ParticlesD
 import com.pandulapeter.kubriko.particles.ParticleManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kubriko.examples.demo_particles.generated.resources.Res
+import kubriko.examples.demo_particles.generated.resources.burst
+import kubriko.examples.demo_particles.generated.resources.collapse_controls
+import kubriko.examples.demo_particles.generated.resources.description
+import kubriko.examples.demo_particles.generated.resources.emit_continuously
+import kubriko.examples.demo_particles.generated.resources.expand_controls
 import kubriko.examples.demo_particles.generated.resources.ic_brush
+import kubriko.examples.demo_particles.generated.resources.lifespan
+import kubriko.examples.demo_particles.generated.resources.rate
 
 sealed interface ParticlesDemoStateHolder : StateHolder {
 
     companion object {
         @Composable
-        fun areResourcesLoaded() = preloadedImageVector(Res.drawable.ic_brush).value != null
+        fun areResourcesLoaded() = areIconResourcesLoaded() && areStringResourcesLoaded()
+
+        @Composable
+        private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_brush).value != null
+
+        @Composable
+        private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank()
+                && preloadedString(Res.string.expand_controls).value.isNotBlank()
+                && preloadedString(Res.string.collapse_controls).value.isNotBlank()
+                && preloadedString(Res.string.emit_continuously).value.isNotBlank()
+                && preloadedString(Res.string.rate).value.isNotBlank()
+                && preloadedString(Res.string.lifespan).value.isNotBlank()
+                && preloadedString(Res.string.burst).value.isNotBlank()
     }
 }
 

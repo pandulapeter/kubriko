@@ -32,6 +32,7 @@ import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.LargeButton
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import com.pandulapeter.kubrikoShowcase.BuildConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -68,7 +69,7 @@ internal fun AboutScreen(
             .verticalScroll(scrollState)
             .windowInsetsPadding(windowInsets.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right))
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
             text = stringResource(
@@ -118,11 +119,23 @@ sealed interface AboutScreenStateHolder : StateHolder {
 
     companion object {
         @Composable
-        fun areResourcesLoaded() = preloadedImageVector(Res.drawable.ic_bug).value != null
+        fun areResourcesLoaded() = areIconResourcesLoaded() && areStringResourcesLoaded()
+
+        @Composable
+        private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_bug).value != null
                 && preloadedImageVector(Res.drawable.ic_contact).value != null
                 && preloadedImageVector(Res.drawable.ic_privacy_policy).value != null
                 && preloadedImageVector(Res.drawable.ic_share).value != null
                 && preloadedImageVector(Res.drawable.ic_website).value != null
+
+        @Composable
+        private fun areStringResourcesLoaded() = preloadedString(Res.string.other_about_content).value.isNotBlank()
+                && preloadedString(Res.string.other_about_repository).value.isNotBlank()
+                && preloadedString(Res.string.other_about_privacy_policy).value.isNotBlank()
+                && preloadedString(Res.string.other_about_report_an_issue).value.isNotBlank()
+                && preloadedString(Res.string.other_about_contact_me).value.isNotBlank()
+                && preloadedString(Res.string.other_about_spread_the_word).value.isNotBlank()
+                && preloadedString(Res.string.other_about_visit_my_website).value.isNotBlank()
     }
 }
 

@@ -18,6 +18,7 @@ import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimat
 import com.pandulapeter.kubriko.testAudio.implementation.AudioTestStateHolder
 import com.pandulapeter.kubriko.testInput.implementation.InputTestStateHolder
 import com.pandulapeter.kubrikoShowcase.implementation.ui.about.AboutScreenStateHolder
+import com.pandulapeter.kubrikoShowcase.implementation.ui.licenses.LicensesScreenStateHolder
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.demo_content_shaders
 import kubriko.app.generated.resources.demo_content_shaders_subtitle
@@ -134,6 +135,7 @@ internal enum class ShowcaseEntry(
         type = ShowcaseEntryType.OTHER,
         titleStringResource = Res.string.other_licenses,
         subtitleStringResource = Res.string.other_licenses_subtitle,
+        areResourcesLoaded = { LicensesScreenStateHolder.areResourcesLoaded() },
     ),
 }
 

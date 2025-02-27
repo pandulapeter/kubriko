@@ -9,11 +9,18 @@
  */
 package com.pandulapeter.kubriko.testAudio.implementation
 
+import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.shared.StateHolder
 import kotlinx.coroutines.flow.emptyFlow
 
-sealed interface AudioTestStateHolder : StateHolder
+sealed interface AudioTestStateHolder : StateHolder {
+
+    companion object {
+        @Composable
+        fun areResourcesLoaded() = true
+    }
+}
 
 internal class AudioTestStateHolderImpl : AudioTestStateHolder {
 

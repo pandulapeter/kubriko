@@ -15,14 +15,20 @@ import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.testInput.implementation.managers.InputTestManager
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kubriko.examples.test_input.generated.resources.Res
+import kubriko.examples.test_input.generated.resources.description
 
 sealed interface InputTestStateHolder : StateHolder {
 
     companion object {
         @Composable
-        fun areResourcesLoaded() = true
+        fun areResourcesLoaded() = areStringResourcesLoaded()
+
+        @Composable
+        private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank()
     }
 }
 
