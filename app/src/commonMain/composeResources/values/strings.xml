@@ -83,6 +83,7 @@
     <string name="other_about">About</string>
     <string name="other_about_subtitle">More information about Kubriko</string>
     <string name="other_about_content">App version: %1$s\nKubriko library version: %2$s\nPlatform: %3$s</string>
+    <string name="other_about_repository">Repository</string>
     <string name="other_about_privacy_policy">Privacy Policy</string>
     <string name="other_about_report_an_issue">Report an issue</string>
     <string name="other_about_contact_me">Contact me</string>
