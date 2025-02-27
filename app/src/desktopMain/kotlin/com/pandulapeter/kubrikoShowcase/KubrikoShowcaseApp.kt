@@ -80,10 +80,10 @@ fun main() = application {
     AnnoyedPenguinsGameSceneEditor(
         defaultSceneFolderPath = "../examples/game-annoyed-penguins/src/commonMain/composeResources/files/scenes"
     )
-    PhysicsDemoSceneEditor(
-        defaultSceneFolderPath = "../examples/demo-physics/src/commonMain/composeResources/files/scenes"
-    )
     PerformanceDemoSceneEditor(
         defaultSceneFolderPath = "../examples/test-performance/src/commonMain/composeResources/files/scenes"
+    )
+    PhysicsDemoSceneEditor(
+        defaultSceneFolderPath = "../examples/demo-physics/src/commonMain/composeResources/files/scenes"
     )
 }

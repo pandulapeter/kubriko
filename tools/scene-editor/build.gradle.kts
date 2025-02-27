@@ -19,9 +19,7 @@ artifactMetadata {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(projects.engine)
-            api(projects.plugins.serialization)
-            api(libs.kotlinx.serialization)
+            api(projects.tools.sceneEditorApi)
             implementation(compose.components.resources)
         }
         val desktopMain by getting {

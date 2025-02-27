@@ -17,9 +17,8 @@ import com.pandulapeter.kubriko.demoPerformance.implementation.managers.Performa
 import com.pandulapeter.kubriko.demoPerformance.implementation.sceneJson
 import com.pandulapeter.kubriko.sceneEditor.SceneEditor
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
-import com.pandulapeter.kubriko.sceneEditor.openSceneEditor
 
-fun main() = openSceneEditor(
+fun main() = SceneEditor.show(
     defaultSceneFilename = PerformanceDemoManager.SCENE_NAME,
     serializationManager = PerformanceDemoStateHolderImpl().serializationManager,
 )

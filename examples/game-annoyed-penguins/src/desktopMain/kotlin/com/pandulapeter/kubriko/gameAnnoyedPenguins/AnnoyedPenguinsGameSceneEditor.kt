@@ -14,9 +14,8 @@ import androidx.compose.runtime.collectAsState
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolderImpl
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.isSceneEditorVisible
 import com.pandulapeter.kubriko.sceneEditor.SceneEditor
-import com.pandulapeter.kubriko.sceneEditor.openSceneEditor
 
-fun main() = openSceneEditor(
+fun main() = SceneEditor.show(
     serializationManager = AnnoyedPenguinsGameStateHolderImpl().serializationManager,
 )
 

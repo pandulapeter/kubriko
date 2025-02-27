@@ -13,13 +13,15 @@ plugins {
 }
 
 artifactMetadata {
-    artifactId = "tool-scene-editor-noop"
+    artifactId = "tool-scene-editor-api"
 }
 
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(projects.tools.sceneEditorApi)
+            api(projects.engine)
+            api(projects.plugins.serialization)
+            api(libs.kotlinx.serialization)
         }
     }
 }

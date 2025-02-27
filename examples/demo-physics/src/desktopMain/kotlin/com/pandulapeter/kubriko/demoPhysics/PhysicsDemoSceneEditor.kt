@@ -17,9 +17,8 @@ import com.pandulapeter.kubriko.demoPhysics.implementation.managers.PhysicsDemoM
 import com.pandulapeter.kubriko.demoPhysics.implementation.sceneJson
 import com.pandulapeter.kubriko.sceneEditor.SceneEditor
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
-import com.pandulapeter.kubriko.sceneEditor.openSceneEditor
 
-fun main() = openSceneEditor(
+fun main() = SceneEditor.show(
     defaultSceneFilename = PhysicsDemoManager.SCENE_NAME,
     serializationManager = PhysicsDemoStateHolderImpl().serializationManager,
 )

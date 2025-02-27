@@ -101,7 +101,7 @@ internal class PerformanceDemoManager(
                 isVisible = StateHolder.isInfoPanelVisible.value,
             )
             AnimatedVisibility(
-                visible = actorManager.allActors.collectAsState().value.size > 10,
+                visible = actorManager.allActors.collectAsState().value.isNotEmpty(),
                 enter = fadeIn() + scaleIn(),
                 exit = scaleOut() + fadeOut(),
             ) {

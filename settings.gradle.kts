@@ -52,6 +52,7 @@ include(
     ":tools:debug-menu-noop",
     ":tools:logger",
     ":tools:scene-editor",
+    ":tools:scene-editor-api",
     ":tools:scene-editor-noop",
     ":tools:ui-components",
 )

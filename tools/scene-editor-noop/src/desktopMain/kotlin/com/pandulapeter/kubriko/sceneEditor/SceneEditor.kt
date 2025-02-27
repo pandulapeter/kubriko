@@ -12,34 +12,27 @@ package com.pandulapeter.kubriko.sceneEditor
 import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.serialization.SerializationManager
 
-/**
- * TODO: Documentation
- */
-fun openSceneEditor(
-    defaultSceneFilename: String? = null,
-    defaultSceneFolderPath: String = "",
-    serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
-) = Unit
+object SceneEditor : SceneEditorContract {
+    /**
+     * TODO: Documentation
+     */
+    override fun show(
+        defaultSceneFilename: String?,
+        defaultSceneFolderPath: String,
+        serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
+        title: String,
+    ) = Unit
 
-sealed class SceneEditorMode {
-
-    data object Normal : SceneEditorMode()
-
-    data class Connected(
-        val sceneJson: String,
-        val onSceneJsonChanged: (String) -> Unit,
-    ) : SceneEditorMode()
+    /**
+     * TODO: Documentation
+     */
+    @Composable
+    override operator fun invoke(
+        defaultSceneFilename: String?,
+        defaultSceneFolderPath: String,
+        serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
+        sceneEditorMode: SceneEditorMode,
+        title: String,
+        onCloseRequest: () -> Unit,
+    ) = Unit
 }
-
-/**
- * TODO: Documentation
- */
-@Composable
-fun SceneEditor(
-    defaultSceneFilename: String? = null,
-    defaultSceneFolderPath: String = "",
-    serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
-    sceneEditorMode: SceneEditorMode = SceneEditorMode.Normal,
-    title: String = "",
-    onCloseRequest: () -> Unit,
-) = Unit
