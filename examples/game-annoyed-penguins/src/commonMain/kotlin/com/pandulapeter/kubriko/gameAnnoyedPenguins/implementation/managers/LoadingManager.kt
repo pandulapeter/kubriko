@@ -20,10 +20,17 @@ import com.pandulapeter.kubriko.sprites.SpriteManager
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedFont
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageBitmap
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
+import kubriko.examples.game_annoyed_penguins.generated.resources.back
+import kubriko.examples.game_annoyed_penguins.generated.resources.close_confirmation
+import kubriko.examples.game_annoyed_penguins.generated.resources.close_confirmation_negative
+import kubriko.examples.game_annoyed_penguins.generated.resources.close_confirmation_positive
+import kubriko.examples.game_annoyed_penguins.generated.resources.fullscreen_enter
+import kubriko.examples.game_annoyed_penguins.generated.resources.fullscreen_exit
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_back
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_exit
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_fullscreen_enter
@@ -35,7 +42,15 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.ic_pause
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_sound_effects_off
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_sound_effects_on
 import kubriko.examples.game_annoyed_penguins.generated.resources.img_logo
+import kubriko.examples.game_annoyed_penguins.generated.resources.information
+import kubriko.examples.game_annoyed_penguins.generated.resources.information_contents
+import kubriko.examples.game_annoyed_penguins.generated.resources.music_disable
+import kubriko.examples.game_annoyed_penguins.generated.resources.music_enable
+import kubriko.examples.game_annoyed_penguins.generated.resources.pause
 import kubriko.examples.game_annoyed_penguins.generated.resources.permanent_marker
+import kubriko.examples.game_annoyed_penguins.generated.resources.resume
+import kubriko.examples.game_annoyed_penguins.generated.resources.sound_effects_disable
+import kubriko.examples.game_annoyed_penguins.generated.resources.sound_effects_enable
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_penguin
 
 internal class LoadingManager : Manager() {
@@ -80,7 +95,12 @@ internal class LoadingManager : Manager() {
 
     @Composable
     private fun areMenuResourcesLoaded() = isFontLoaded.collectAsState().value
-            && preloadedImageVector(Res.drawable.ic_back).value != null
+            && areIconResourcesLoaded()
+            && areImageResourcesLoaded()
+            && areStringResourcesLoaded()
+
+    @Composable
+    private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_back).value != null
             && preloadedImageVector(Res.drawable.ic_exit).value != null
             && preloadedImageVector(Res.drawable.ic_fullscreen_enter).value != null
             && preloadedImageVector(Res.drawable.ic_fullscreen_exit).value != null
@@ -90,5 +110,23 @@ internal class LoadingManager : Manager() {
             && preloadedImageVector(Res.drawable.ic_pause).value != null
             && preloadedImageVector(Res.drawable.ic_sound_effects_off).value != null
             && preloadedImageVector(Res.drawable.ic_sound_effects_on).value != null
-            && preloadedImageBitmap(Res.drawable.img_logo).value != null
+
+    @Composable
+    private fun areImageResourcesLoaded() = preloadedImageBitmap(Res.drawable.img_logo).value != null
+
+    @Composable
+    private fun areStringResourcesLoaded() = preloadedString(Res.string.back).value.isNotBlank()
+            && preloadedString(Res.string.pause).value.isNotBlank()
+            && preloadedString(Res.string.information).value.isNotBlank()
+            && preloadedString(Res.string.sound_effects_enable).value.isNotBlank()
+            && preloadedString(Res.string.sound_effects_disable).value.isNotBlank()
+            && preloadedString(Res.string.music_enable).value.isNotBlank()
+            && preloadedString(Res.string.music_disable).value.isNotBlank()
+            && preloadedString(Res.string.fullscreen_enter).value.isNotBlank()
+            && preloadedString(Res.string.fullscreen_exit).value.isNotBlank()
+            && preloadedString(Res.string.information_contents).value.isNotBlank()
+            && preloadedString(Res.string.resume).value.isNotBlank()
+            && preloadedString(Res.string.close_confirmation).value.isNotBlank()
+            && preloadedString(Res.string.close_confirmation_positive).value.isNotBlank()
+            && preloadedString(Res.string.close_confirmation_negative).value.isNotBlank()
 }
