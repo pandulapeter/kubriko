@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.demoParticles.implementation.actors
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.extensions.cos
 import com.pandulapeter.kubriko.extensions.sceneUnit
@@ -69,14 +70,24 @@ internal class DemoParticleState(
         return true
     }
 
-    override fun DrawScope.draw() = drawCircle(
-        color = Color.hsv(
-            hue = (currentProgress * 360f + hue) % 360,
-            saturation = 0.4f,
-            value = 1f,
-        ).copy(alpha = 1f - currentProgress),
-        radius = body.size.raw.maxDimension * 0.7f,
-        center = body.size.center.raw,
-        style = Fill,
-    )
+    override fun DrawScope.draw() {
+        if (currentProgress != 0f) {
+            drawCircle(
+                color = Color.hsv(
+                    hue = (currentProgress * 360f + hue) % 360,
+                    saturation = 0.4f,
+                    value = 1f,
+                ).copy(alpha = 1f - currentProgress),
+                radius = body.size.raw.maxDimension * 0.7f,
+                center = body.size.center.raw,
+                style = Fill,
+            )
+            drawCircle(
+                color = Color.Black.copy(alpha = 1f - currentProgress),
+                radius = body.size.raw.maxDimension * 0.7f,
+                center = body.size.center.raw,
+                style = Stroke(),
+            )
+        }
+    }
 }
