@@ -57,7 +57,7 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticleSta
 
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
-    private val _emissionRate = MutableStateFlow(0.5f)
+    private val _emissionRate = MutableStateFlow(0.25f)
     val emissionRate = _emissionRate.asStateFlow()
     private val _isEmittingContinuously = MutableStateFlow(true)
     val isEmittingContinuously = _isEmittingContinuously.asStateFlow()

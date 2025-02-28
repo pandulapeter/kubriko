@@ -29,7 +29,7 @@ internal class DemoParticleState(
     override val body = CircleBody(
         initialRadius = 10.sceneUnit,
     )
-    private val speed = 0.3f.sceneUnit
+    private val speed = 0.4f.sceneUnit
     private var direction = AngleRadians.Zero
     private var hue = 0f
     private var remainingLifespan = 0f

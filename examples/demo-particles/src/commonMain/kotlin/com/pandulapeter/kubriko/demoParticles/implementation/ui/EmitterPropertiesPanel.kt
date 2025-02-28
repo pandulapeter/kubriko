@@ -30,7 +30,7 @@ internal fun EmitterPropertiesPanel(
 ) = Panel(
     modifier = modifier,
 ) {
-    Type(
+    EmitterControls(
         emissionRate = particlesDemoManager.emissionRate.collectAsState().value,
         onEmissionRateChanged = particlesDemoManager::setEmissionRate,
         isEmittingContinuously = particlesDemoManager.isEmittingContinuously.collectAsState().value,
@@ -42,7 +42,7 @@ internal fun EmitterPropertiesPanel(
 }
 
 @Composable
-private fun Type(
+private fun EmitterControls(
     emissionRate: Float,
     onEmissionRateChanged: (Float) -> Unit,
     isEmittingContinuously: Boolean,
@@ -61,14 +61,14 @@ private fun Type(
         modifier = Modifier.padding(horizontal = 16.dp),
         value = emissionRate,
         onValueChanged = onEmissionRateChanged,
-        valueRange = 0f..0.5f,
+        valueRange = 0.06f..0.45f,
     )
     SmallSliderWithTitle(
         title = stringResource(Res.string.lifespan),
         modifier = Modifier.padding(horizontal = 16.dp),
         value = lifespan,
         onValueChanged = onLifespanChanged,
-        valueRange = 100f..2000f,
+        valueRange = 50f..1500f,
     )
     SmallSwitch(
         title = stringResource(Res.string.emit_continuously),
