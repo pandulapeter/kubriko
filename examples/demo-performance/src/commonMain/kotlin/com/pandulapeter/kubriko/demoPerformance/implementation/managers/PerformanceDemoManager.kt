@@ -112,8 +112,8 @@ internal class PerformanceDemoManager(
                 Panel {
                     MiniMap(
                         miniMapSize = 120.dp,
-                        dotRadius = 2.dp,
-                        gameTime = metadataManager.totalRuntimeInMilliseconds.filter { it % 4 == 0L }.collectAsState(0L).value,
+                        dotRadius = 1.5.dp,
+                        gameTime = metadataManager.totalRuntimeInMilliseconds.filter { it % 2 == 0L }.collectAsState(0L).value,
                         visibleActorColor = MaterialTheme.colorScheme.primary,
                         invisibleActorColor = lerp(LocalContentColor.current, MaterialTheme.colorScheme.surface, 0.8f),
                         getViewportTopLeft = { viewportManager.topLeft.value },

@@ -13,7 +13,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -50,16 +49,14 @@ internal fun MiniMap(
                 drawBlock = {
                     val allVisibleActors = getAllVisibleActors()
                     val visibleActorsWithinViewport = getAllVisibleActorsWithinViewport()
-                    val size = Size(dotRadiusInPixels, dotRadiusInPixels)
-                    val offset = Offset(dotRadiusInPixels, dotRadiusInPixels) / 2f
                     @Suppress("UNUSED_EXPRESSION") gameTime  // This line invalidates the Canvas, causing a refresh on every frame
                     allVisibleActors
                         .map { it.body.position.raw / SCALE_FACTOR * density to visibleActorsWithinViewport.contains(it) }
                         .forEach { (position, isVisible) ->
-                            drawRect(
+                            drawCircle(
                                 color = if (isVisible) visibleActorColor else invisibleActorColor,
-                                size = size,
-                                topLeft = position - offset,
+                                radius = dotRadiusInPixels,
+                                center = position,
                             )
                         }
                     val topLeft = getViewportTopLeft().raw / SCALE_FACTOR * density
