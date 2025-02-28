@@ -72,6 +72,6 @@ class Character private constructor(state: State) : Unique, Dynamic, Positionabl
     }
 
     companion object {
-        private const val PATH_RADIUS = 3000
+        private const val PATH_RADIUS = 2500
     }
 }
