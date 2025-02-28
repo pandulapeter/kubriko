@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.round
 import com.pandulapeter.kubriko.actor.traits.Visible
 
 @Composable
@@ -45,14 +46,17 @@ internal fun MiniMap(
                     val allVisibleActors = getAllVisibleActors()
                     val visibleActorsWithinViewport = getAllVisibleActorsWithinViewport()
                     @Suppress("UNUSED_EXPRESSION") gameTime  // This line invalidates the Canvas, causing a refresh on every frame
-                    allVisibleActors.forEachIndexed { index, actor ->
-                        if (index % 2 == 0) {
-                            drawCircle(
-                                color = if (visibleActorsWithinViewport.contains(actor)) visibleActorColor else invisibleActorColor,
-                                radius = dotRadiusInPixels,
-                                center = actor.body.position.raw / sizeInPixels * 8f,
-                            )
-                        }
+                    allVisibleActors
+                        .map { it.body.position.raw / 60f * density to visibleActorsWithinViewport.contains(it) }
+                        .distinctBy { it.first.round() }
+                        .forEachIndexed{ index, (position, isVisible) ->
+                            if (index % 1 == 0) {
+                                drawCircle(
+                                    color = if (isVisible) visibleActorColor else invisibleActorColor,
+                                    radius = dotRadiusInPixels,
+                                    center = position,
+                                )
+                            }
                     }
                 }
             )
