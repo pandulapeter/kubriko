@@ -41,14 +41,12 @@ internal fun MiniMap(
                 val allVisibleActors = getAllVisibleActors()
                 val visibleActorsWithinViewport = getAllVisibleActorsWithinViewport()
                 @Suppress("UNUSED_EXPRESSION") gameTime  // This line invalidates the Canvas, causing a refresh on every frame
-                allVisibleActors.forEachIndexed { index, actor ->
-                    if (index % 3 == 0) {
-                        drawCircle(
-                            color = if (visibleActorsWithinViewport.contains(actor)) visibleActorColor else invisibleActorColor,
-                            radius = 1.5f,
-                            center = actor.body.position.raw / 70f,
-                        )
-                    }
+                allVisibleActors.forEach { actor ->
+                    drawCircle(
+                        color = if (visibleActorsWithinViewport.contains(actor)) visibleActorColor else invisibleActorColor,
+                        radius = 1.5f,
+                        center = actor.body.position.raw / 50f,
+                    )
                 }
             }
         )

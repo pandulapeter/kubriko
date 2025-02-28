@@ -110,7 +110,7 @@ internal class PerformanceDemoManager(
                 Panel {
                     MiniMap(
                         size = 120.dp,
-                        gameTime = metadataManager.totalRuntimeInMilliseconds.filter { it % 19 == 0L }.collectAsState(0L).value,
+                        gameTime = metadataManager.totalRuntimeInMilliseconds.filter { it % 10 == 0L }.collectAsState(0L).value,
                         visibleActorColor = MaterialTheme.colorScheme.primary,
                         invisibleActorColor = lerp(LocalContentColor.current, MaterialTheme.colorScheme.surface, 0.8f),
                         getAllVisibleActors = { actorManager.allActors.value.filterIsInstance<Visible>() },

@@ -47,7 +47,7 @@ class Character private constructor(state: State) : Unique, Dynamic, Positionabl
     override fun update(deltaTimeInMilliseconds: Int) {
         if (deltaTimeInMilliseconds > 0) {
             acc += deltaTimeInMilliseconds
-            (acc / 10000f).rad.let { angle ->
+            (acc / 5000f).rad.let { angle ->
                 body.position = SceneOffset(
                     x = angle.cos.sceneUnit,
                     y = angle.sin.sceneUnit,
@@ -72,6 +72,6 @@ class Character private constructor(state: State) : Unique, Dynamic, Positionabl
     }
 
     companion object {
-        private const val PATH_RADIUS = 5000
+        private const val PATH_RADIUS = 3000
     }
 }
