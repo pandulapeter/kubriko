@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.demoPerformance.implementation.actors
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
@@ -65,10 +66,17 @@ internal class MovingBox private constructor(state: State) : Visible, Dynamic, E
         ) * deltaTimeInMilliseconds * 0.2f
     }
 
-    override fun DrawScope.draw() = drawRect(
-        color = boxColor,
-        size = body.size.raw,
-    )
+    override fun DrawScope.draw() {
+        drawRect(
+            color = boxColor,
+            size = body.size.raw,
+        )
+        drawRect(
+            color = Color.Black,
+            size = body.size.raw,
+            style = Stroke(),
+        )
+    }
 
     override fun save() = State(
         body = body,

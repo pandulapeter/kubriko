@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.demoPerformance.implementation.actors
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
@@ -52,10 +53,21 @@ class BoxWithCircle private constructor(state: State) : Visible, Dynamic, Editab
             color = boxColor,
             size = body.size.raw,
         )
+        drawRect(
+            color = Color.Black,
+            size = body.size.raw,
+            style = Stroke(),
+        )
         drawCircle(
             color = circleColor,
             radius = circleRadius.raw,
             center = body.size.center.raw,
+        )
+        drawCircle(
+            color = Color.Black,
+            radius = circleRadius.raw,
+            center = body.size.center.raw,
+            style = Stroke(),
         )
     }
 
