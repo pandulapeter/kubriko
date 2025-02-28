@@ -54,6 +54,7 @@ internal fun LicensesScreen(
         style = MaterialTheme.typography.bodySmall,
         text = stringResource(Res.string.other_licenses_content),
     )
+    // TODO: https://github.com/rafgraph/spa-github-pages
 }
 
 sealed interface LicensesScreenStateHolder : StateHolder {

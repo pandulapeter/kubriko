@@ -13,9 +13,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kubriko</title>
-    <link rel="preload" href="./composeResources/kubriko.examples.shared.generated.resources/font/public_sans_regular.ttf" as="fetch" type="font/ttf" crossorigin/>
-    <link rel="preload" href="./composeResources/kubriko.examples.game_space_squadron.generated.resources/font/orbitron.ttf" as="fetch" type="font/ttf" crossorigin/>
-    <link rel="preload" href="./composeResources/kubriko.examples.game_wallbreaker.generated.resources/font/kanit_regular.ttf" as="fetch" type="font/ttf" crossorigin/>
     <link rel="icon" type="image/png" href="metadata/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="metadata/favicon.svg" />
     <link rel="icon" type="image/x-icon" href="metadata/favicon.ico">
@@ -23,6 +20,28 @@
     <link rel="apple-touch-icon" sizes="180x180" href="metadata/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="Kubriko Showcase" />
     <link rel="manifest" href="metadata/manifest.json" />
+    <script type="text/javascript">
+        // Single Page Apps for GitHub Pages
+        // MIT License
+        // https://github.com/rafgraph/spa-github-pages
+        // This script checks to see if a redirect is present in the query string,
+        // converts it back into the correct url and adds it to the
+        // browser's history using window.history.replaceState(...),
+        // which won't cause the browser to attempt to load the new url.
+        // When the single page app is loaded further down in this file,
+        // the correct url will be waiting in the browser's history for
+        // the single page app to route accordingly.
+        (function(l) {
+          if (l.search[1] === '/' ) {
+            var decoded = l.search.slice(1).split('&').map(function(s) {
+              return s.replace(/~and~/g, '&')
+            }).join('?');
+            window.history.replaceState(null, null,
+                l.pathname.slice(0, -1) + decoded + l.hash
+            );
+          }
+        }(window.location))
+    </script>
     <script src="skiko.js"></script>
     <style>
         body {

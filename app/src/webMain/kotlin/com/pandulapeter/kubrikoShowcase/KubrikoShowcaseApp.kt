@@ -38,15 +38,32 @@ fun main() {
                 onBufferOverflow = BufferOverflow.DROP_OLDEST
             )
         }
+        val initialPath = remember { window.location.pathname }
+        val currentPath = remember { mutableStateOf(initialPath) }
         DisposableEffect(Unit) {
+            val onPopStateEventListener: (Event) -> Unit = {
+                currentPath.value = window.location.pathname
+            }
             val fullscreenListener: (Event) -> Unit = {
                 if (isInFullscreenMode.value) {
                     isInFullscreenMode.value = document.fullscreenElement != null
                 }
             }
+            val keyUpListener: (Event) -> Unit = { event ->
+                (event as? KeyboardEvent)?.let { keyboardEvent ->
+                    if (keyboardEvent.code == "Escape") {
+                        webEscapePressEvent.tryEmit(Unit)
+                    }
+                }
+            }
+            window.addEventListener(EVENT_POP_STATE, onPopStateEventListener)
             document.addEventListener(EVENT_FULLSCREEN_CHANGE, fullscreenListener)
-            window.addEventListener("keyup", createKeyUpListener { webEscapePressEvent.tryEmit(Unit) })
-            onDispose { document.removeEventListener(EVENT_FULLSCREEN_CHANGE, fullscreenListener) }
+            window.addEventListener(EVENT_KEY_UP, keyUpListener)
+            onDispose {
+                window.removeEventListener(EVENT_POP_STATE, onPopStateEventListener)
+                document.removeEventListener(EVENT_FULLSCREEN_CHANGE, fullscreenListener)
+                window.removeEventListener(EVENT_KEY_UP, keyUpListener)
+            }
         }
         Box(
             modifier = Modifier.drawBehind {
@@ -71,17 +88,20 @@ fun main() {
                     }
                 },
                 webEscapePressEvent = webEscapePressEvent.asSharedFlow(),
+                deeplink = currentPath.value,
+                onDestinationChanged = { deeplink ->
+                    if (currentPath.value.split("/").last().isBlank()) {
+                        window.history.pushState(null, "", deeplink ?: initialPath)
+                    } else {
+                        window.history.replaceState(null, "", deeplink ?: initialPath)
+                    }
+                    window.dispatchEvent(Event(EVENT_POP_STATE))
+                },
             )
         }
     }
 }
 
-private fun createKeyUpListener(onEscapeReleased: () -> Unit): (Event) -> Unit = { event ->
-    (event as? KeyboardEvent)?.let { keyboardEvent ->
-        if (keyboardEvent.code == "Escape") {
-            onEscapeReleased()
-        }
-    }
-}
-
+private const val EVENT_POP_STATE = "popstate"
 private const val EVENT_FULLSCREEN_CHANGE = "fullscreenchange"
+private const val EVENT_KEY_UP = "keyup"

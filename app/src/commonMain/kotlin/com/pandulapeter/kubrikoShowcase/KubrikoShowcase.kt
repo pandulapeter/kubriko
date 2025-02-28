@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
+import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntryType
 import com.pandulapeter.kubrikoShowcase.implementation.ui.ResourceLoader
 import com.pandulapeter.kubrikoShowcase.implementation.ui.ShowcaseContent
 import com.pandulapeter.kubrikoShowcase.implementation.ui.getStateHolder
@@ -36,9 +37,17 @@ fun KubrikoShowcase(
     getIsInFullscreenMode: () -> Boolean,
     onFullscreenModeToggled: () -> Unit,
     webEscapePressEvent: Flow<Unit>? = null,
+    deeplink: String? = null,
+    onDestinationChanged: (String?) -> Unit = {},
 ) = KubrikoTheme(
     areResourcesLoaded = ResourceLoader.areResourcesLoaded() && ShowcaseEntry.entries.all { it.areResourcesLoaded() },
 ) {
+    LaunchedEffect(deeplink) {
+        selectedShowcaseEntry.value = deeplink.processDeeplink()
+    }
+    LaunchedEffect(selectedShowcaseEntry.value) {
+        onDestinationChanged(selectedShowcaseEntry.value?.deeplink)
+    }
     LaunchedEffect(webEscapePressEvent) {
         webEscapePressEvent?.collect {
             val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
@@ -96,6 +105,29 @@ fun KubrikoShowcase(
             toggleInfoPanelVisibility = { StateHolder.isInfoPanelVisible.value = !StateHolder.isInfoPanelVisible.value }
         )
     }
+}
+
+private val ShowcaseEntry?.deeplink
+    get() = when (this) {
+        ShowcaseEntry.WALLBREAKER -> "wallbreaker"
+        ShowcaseEntry.SPACE_SQUADRON -> "space-squadron"
+        ShowcaseEntry.ANNOYED_PENGUINS -> "annoyed-penguins"
+        ShowcaseEntry.CONTENT_SHADERS -> "content-shaders"
+        ShowcaseEntry.PARTICLES -> "particles"
+        ShowcaseEntry.PERFORMANCE -> "performance"
+        ShowcaseEntry.PHYSICS -> "physics"
+        ShowcaseEntry.SHADER_ANIMATIONS -> "shader-animations"
+        ShowcaseEntry.AUDIO -> "audio"
+        ShowcaseEntry.INPUT -> "input"
+        ShowcaseEntry.ABOUT -> "about"
+        ShowcaseEntry.LICENSES -> "licenses"
+        else -> null
+    }
+
+private fun String?.processDeeplink() = this?.trim()?.lowercase()?.split("/")?.filterNot { it.isBlank() }?.lastOrNull().let { deeplink ->
+    ShowcaseEntry.entries.firstOrNull { it.deeplink == deeplink }
+}.let {
+    if (it?.type == ShowcaseEntryType.TEST && !BuildConfig.ARE_TEST_EXAMPLES_ENABLED) null else it
 }
 
 private val selectedShowcaseEntry = mutableStateOf<ShowcaseEntry?>(null)
