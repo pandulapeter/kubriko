@@ -149,7 +149,7 @@ internal fun WelcomeScreen(
                     LargeButton(
                         icon = Res.drawable.ic_discord,
                         title = Res.string.welcome_community,
-                        onButtonPressed = { uriHandler.openUri("https://discord.gg/9CqVUGpK") },
+                        onButtonPressed = { uriHandler.openUri("https://discord.gg/RTK4pqbuVR") },
                     )
                 }
                 Text(
