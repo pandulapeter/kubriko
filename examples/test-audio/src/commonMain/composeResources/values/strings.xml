@@ -10,7 +10,7 @@
 -->
 <resources>
 
-    <string name="description">Use the widgets below to test the play, pause, stop and loop features of the music player. Simultaneous playback of multiple tracks is also supported.</string>
+    <string name="description">Use the widgets below to test the play, pause, stop, and loop features of the music player. Simultaneous playback of multiple tracks is also supported.</string>
     <string name="music_track_1">A Csajod - Átkok</string>
     <string name="music_track_2">A Csajod - Energiavámpír</string>
     <string name="play">Play</string>
