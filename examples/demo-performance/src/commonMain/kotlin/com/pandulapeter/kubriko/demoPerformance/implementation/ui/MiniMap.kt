@@ -29,10 +29,12 @@ internal fun MiniMap(
     gameTime: Long,
     visibleActorColor: Color,
     invisibleActorColor: Color,
+    inactiveActorColor: Color,
     getViewportTopLeft: () -> SceneOffset,
     getViewportBottomRight: () -> SceneOffset,
     getAllVisibleActors: () -> List<Visible>,
     getAllVisibleActorsWithinViewport: () -> List<Visible>,
+    getAllActiveDynamicActors: () -> List<Visible>,
 ) {
     val sizeInPixels = miniMapSize.px
     val dotRadiusInPixels = dotRadius.px
@@ -49,14 +51,19 @@ internal fun MiniMap(
                 drawBlock = {
                     val allVisibleActors = getAllVisibleActors()
                     val visibleActorsWithinViewport = getAllVisibleActorsWithinViewport()
+                    val activeDynamicActors = getAllActiveDynamicActors()
                     @Suppress("UNUSED_EXPRESSION") gameTime  // This line invalidates the Canvas, causing a refresh on every frame
                     allVisibleActors
-                        .map { it.body.position.raw / SCALE_FACTOR * density to visibleActorsWithinViewport.contains(it) }
-                        .forEach { (position, isVisible) ->
+                        //.map {  to  }
+                        .forEach { actor ->
                             drawCircle(
-                                color = if (isVisible) visibleActorColor else invisibleActorColor,
+                                color = when {
+                                    visibleActorsWithinViewport.contains(actor) -> visibleActorColor
+                                    activeDynamicActors.contains(actor) -> invisibleActorColor
+                                    else -> inactiveActorColor
+                                },
                                 radius = dotRadiusInPixels,
-                                center = position,
+                                center = actor.body.position.raw / SCALE_FACTOR * density,
                             )
                         }
                     val topLeft = getViewportTopLeft().raw / SCALE_FACTOR * density

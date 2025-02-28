@@ -115,11 +115,13 @@ internal class PerformanceDemoManager(
                         dotRadius = 1.5.dp,
                         gameTime = metadataManager.totalRuntimeInMilliseconds.filter { it % 2 == 0L }.collectAsState(0L).value,
                         visibleActorColor = MaterialTheme.colorScheme.primary,
-                        invisibleActorColor = lerp(LocalContentColor.current, MaterialTheme.colorScheme.surface, 0.8f),
+                        invisibleActorColor = lerp(LocalContentColor.current, MaterialTheme.colorScheme.surface, 0.6f),
+                        inactiveActorColor = lerp(LocalContentColor.current, MaterialTheme.colorScheme.surface, 0.9f),
                         getViewportTopLeft = { viewportManager.topLeft.value },
                         getViewportBottomRight = { viewportManager.bottomRight.value },
                         getAllVisibleActors = { actorManager.allActors.value.filterIsInstance<Visible>() },
                         getAllVisibleActorsWithinViewport = { actorManager.visibleActorsWithinViewport.value },
+                        getAllActiveDynamicActors = { actorManager.activeDynamicActors.value.filterIsInstance<Visible>() },
                     )
                 }
             }

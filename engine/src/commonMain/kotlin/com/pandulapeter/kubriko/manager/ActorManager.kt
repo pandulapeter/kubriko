@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.manager
 
 import com.pandulapeter.kubriko.actor.Actor
+import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.StateFlow
@@ -27,6 +28,7 @@ sealed class ActorManager(
 ) {
     abstract val allActors: StateFlow<ImmutableList<Actor>>
     abstract val visibleActorsWithinViewport: StateFlow<ImmutableList<Visible>>
+    abstract val activeDynamicActors: StateFlow<ImmutableList<Dynamic>>
 
     abstract fun add(vararg actors: Actor)
 

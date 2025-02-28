@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.withTransform
 import com.pandulapeter.kubriko.Kubriko
@@ -28,6 +29,7 @@ import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.Identifiable
 import com.pandulapeter.kubriko.actor.traits.LayerAware
 import com.pandulapeter.kubriko.actor.traits.Overlay
+import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.extensions.distinctUntilChangedWithDelay
@@ -36,6 +38,8 @@ import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.extensions.minus
 import com.pandulapeter.kubriko.extensions.transformForViewport
 import com.pandulapeter.kubriko.extensions.transformViewport
+import com.pandulapeter.kubriko.types.Scale
+import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -84,13 +88,47 @@ internal class ActorManagerImpl(
             viewportManager.cameraPosition,
             viewportManager.scaleFactor,
         ) { _, allVisibleActors, viewportSize, viewportCenter, scaleFactor ->
+            val scaledHalfViewportSize = SceneSize(viewportSize / (scaleFactor * 2))
             allVisibleActors
                 .filter {
                     it.body.axisAlignedBoundingBox.isWithinViewportBounds(
-                        scaledHalfViewportSize = SceneSize(viewportSize / (scaleFactor * 2)),
+                        scaledHalfViewportSize = scaledHalfViewportSize,
                         viewportCenter = viewportCenter,
                         viewportEdgeBuffer = viewportManager.viewportEdgeBuffer,
                     )
+                }
+                .toImmutableList()
+        }.asStateFlow(persistentListOf())
+    }
+    override val activeDynamicActors by lazy {
+        combine(
+            dynamicActors,
+            viewportManager.size,
+            viewportManager.cameraPosition,
+            viewportManager.topLeft,
+            viewportManager.bottomRight,
+            viewportManager.scaleFactor,
+        ) {
+            @Suppress("UNCHECKED_CAST")
+            val allDynamicActors = it[0] as ImmutableList<Dynamic>
+            val viewportSize = it[1] as Size
+            val viewportCenter = it[2] as SceneOffset
+            val viewportTopLeft = it[3] as SceneOffset
+            val viewportBottomRight = it[4] as SceneOffset
+            val scaleFactor = it[5] as Scale
+            val edgeBuffer = minOf(viewportBottomRight.x - viewportTopLeft.x, viewportBottomRight.y - viewportTopLeft.y) / 2
+            val scaledHalfViewportSize = SceneSize(viewportSize / (scaleFactor * 2))
+            allDynamicActors
+                .filter { actor ->
+                    if (actor is Positionable) {
+                        actor.body.axisAlignedBoundingBox.isWithinViewportBounds(
+                            scaledHalfViewportSize = scaledHalfViewportSize,
+                            viewportCenter = viewportCenter,
+                            viewportEdgeBuffer = edgeBuffer,
+                        )
+                    } else {
+                        true
+                    }
                 }
                 .toImmutableList()
         }.asStateFlow(persistentListOf())
@@ -105,7 +143,7 @@ internal class ActorManagerImpl(
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
         if (shouldUpdateActorsWhileNotRunning || stateManager.isRunning.value) {
-            dynamicActors.value
+            activeDynamicActors.value
                 //.filter { if (it !is Positionable) true else it.body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) }
                 .forEach {
                     // TODO: Reduce update frequency for Positionable Dynamic actors that are not within the viewport
