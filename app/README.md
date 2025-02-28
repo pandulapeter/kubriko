@@ -15,10 +15,15 @@ or [IntelliJ IDEA](https://www.jetbrains.com/idea/) are recommended), the follow
 For any configuration / tooling issues check out the official documentation
 for [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform-intro.html#learn-key-concepts).
 
+## A note on performance
+
+Just like with any other Compose app, release builds of Kubriko Showcase have **significantly** better performance than debug builds.
+
 ## Configuring the build
 
 The [gradle.properties](https://github.com/pandulapeter/kubriko/blob/main/gradle.properties) file located in the root folder of the repository contains
 some important flags that affect how the Showcase app is built:
+
 - `showcase.areTestExamplesEnabled`
 - `showcase.isDebugMenuEnabled`
 - `showcase.isSceneEditorEnabled`
