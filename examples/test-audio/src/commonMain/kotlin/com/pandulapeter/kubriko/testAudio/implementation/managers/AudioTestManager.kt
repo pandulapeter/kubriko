@@ -27,6 +27,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +41,7 @@ import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
+import com.pandulapeter.kubriko.uiComponents.LoadingIndicator
 import com.pandulapeter.kubriko.uiComponents.Panel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
@@ -142,11 +144,15 @@ internal class AudioTestManager : Manager() {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                ControlButton(
-                    icon = if (isPlaying) Res.drawable.ic_pause else Res.drawable.ic_play,
-                    contentDescription = if (isPlaying) Res.string.pause else Res.string.play,
-                    onClick = { if (isPlaying) musicManager.pause(musicUri) else musicManager.play(musicUri) },
-                )
+                if (musicManager.getLoadingProgress(musicUri).collectAsState(0f).value == 1f) {
+                    ControlButton(
+                        icon = if (isPlaying) Res.drawable.ic_pause else Res.drawable.ic_play,
+                        contentDescription = if (isPlaying) Res.string.pause else Res.string.play,
+                        onClick = { if (isPlaying) musicManager.pause(musicUri) else musicManager.play(musicUri) },
+                    )
+                } else {
+                    LoadingIndicator()
+                }
                 ControlButton(
                     icon = Res.drawable.ic_stop,
                     contentDescription = Res.string.stop,

@@ -26,6 +26,8 @@ sealed class MusicManager(
     classNameForLogging = "MusicManager",
 ) {
 
+    abstract fun getLoadingProgress(uri: String): Flow<Float>
+
     abstract fun getLoadingProgress(uris: Collection<String>): Flow<Float>
 
     abstract fun preload(vararg uris: String)

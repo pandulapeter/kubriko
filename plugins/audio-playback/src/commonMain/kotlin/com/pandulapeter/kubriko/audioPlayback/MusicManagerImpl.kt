@@ -52,6 +52,8 @@ internal class MusicManagerImpl(
         }
     }
 
+    override fun getLoadingProgress(uri: String) = getLoadingProgress(setOf(uri))
+
     override fun getLoadingProgress(uris: Collection<String>) = if (uris.isEmpty()) flowOf(1f) else cache.map { cache ->
         cache.filter { (key, _) -> key in uris }.count { (_, value) -> value != null }.toFloat() / uris.size
     }.distinctUntilChanged()
