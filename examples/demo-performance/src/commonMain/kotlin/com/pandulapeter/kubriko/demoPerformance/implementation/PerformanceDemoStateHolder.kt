@@ -14,7 +14,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.PointBody
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.BoxWithCircle
-import com.pandulapeter.kubriko.demoPerformance.implementation.actors.Character
+import com.pandulapeter.kubriko.demoPerformance.implementation.actors.Camera
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.MovingBox
 import com.pandulapeter.kubriko.demoPerformance.implementation.managers.PerformanceDemoManager
 import com.pandulapeter.kubriko.extensions.sceneUnit
@@ -45,9 +45,9 @@ internal class PerformanceDemoStateHolderImpl : PerformanceDemoStateHolder {
     private val json = Json { ignoreUnknownKeys = true }
     val serializationManager = EditableMetadata.newSerializationManagerInstance(
         EditableMetadata(
-            typeId = "character",
-            deserializeState = { serializedState -> json.decodeFromString<Character.State>(serializedState) },
-            instantiate = { Character.State(body = PointBody(initialPosition = it)) },
+            typeId = "camera",
+            deserializeState = { serializedState -> json.decodeFromString<Camera.State>(serializedState) },
+            instantiate = { Camera.State(body = PointBody(initialPosition = it)) },
         ),
         EditableMetadata(
             typeId = "boxWithCircle",

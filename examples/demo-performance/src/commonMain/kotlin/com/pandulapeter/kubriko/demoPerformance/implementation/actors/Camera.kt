@@ -29,7 +29,7 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
 
-class Character private constructor(state: State) : Unique, Dynamic, Positionable, Editable<Character> {
+class Camera private constructor(state: State) : Unique, Dynamic, Positionable, Editable<Camera> {
     override val body = state.body
 
     private lateinit var actorManager: ActorManager
@@ -64,9 +64,9 @@ class Character private constructor(state: State) : Unique, Dynamic, Positionabl
     @kotlinx.serialization.Serializable
     data class State(
         @SerialName("body") val body: SerializablePointBody = PointBody(),
-    ) : Serializable.State<Character> {
+    ) : Serializable.State<Camera> {
 
-        override fun restore() = Character(this)
+        override fun restore() = Camera(this)
 
         override fun serialize() = Json.encodeToString(this)
     }
