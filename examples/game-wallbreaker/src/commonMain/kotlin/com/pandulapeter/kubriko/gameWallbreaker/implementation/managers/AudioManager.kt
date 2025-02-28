@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.gameWallbreaker.implementation.managers
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.utilities.getResourceUri
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 import kotlinx.coroutines.FlowPreview
@@ -23,10 +24,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
-import kubriko.examples.game_wallbreaker.generated.resources.Res
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 
-@OptIn(ExperimentalResourceApi::class)
 internal class AudioManager(
     private val stateManager: StateManager,
     private val userPreferencesManager: UserPreferencesManager
@@ -47,11 +45,11 @@ internal class AudioManager(
         }.distinctUntilChanged().onEach { (isFocused, isMusicEnabled, shouldStopMusic) ->
             if (isMusicEnabled && isFocused && !shouldStopMusic) {
                 musicManager.play(
-                    uri = Res.getUri(URI_MUSIC),
+                    uri = getResourceUri(URI_MUSIC),
                     shouldLoop = true,
                 )
             } else {
-                musicManager.pause(Res.getUri(URI_MUSIC))
+                musicManager.pause(getResourceUri(URI_MUSIC))
             }
         }.launchIn(scope)
         stateManager.isFocused
@@ -61,7 +59,7 @@ internal class AudioManager(
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
-        soundUrisToPlay.forEach { soundManager.play(Res.getUri(it)) }
+        soundUrisToPlay.forEach { soundManager.play(getResourceUri(it)) }
         soundUrisToPlay.clear()
     }
 
@@ -99,7 +97,7 @@ internal class AudioManager(
 
         fun getMusicUrisToPreload() = listOf(
             URI_MUSIC,
-        ).map { Res.getUri(it) }
+        ).map { getResourceUri(it) }
 
         fun getSoundUrisToPreload() = listOf(
             URI_SOUND_BRICK_POP,
@@ -109,6 +107,6 @@ internal class AudioManager(
             URI_SOUND_PADDLE_HIT,
             URI_SOUND_CLICK,
             URI_SOUND_HOVER,
-        ).map { Res.getUri(it) }
+        ).map { getResourceUri(it) }
     }
 }
