@@ -40,6 +40,7 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.StateManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
@@ -64,6 +65,7 @@ internal class PerformanceDemoManager(
     private val sceneJson: MutableStateFlow<String>?,
 ) : Manager() {
     private val actorManager by manager<ActorManager>()
+    private val viewportManager by manager<ViewportManager>()
     private val metadataManager by manager<MetadataManager>()
     private val stateManager by manager<StateManager>()
     private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
@@ -109,11 +111,13 @@ internal class PerformanceDemoManager(
             ) {
                 Panel {
                     MiniMap(
-                        size = 120.dp,
-                        dotRadius = 1.dp,
-                        gameTime = metadataManager.totalRuntimeInMilliseconds.filter { it % 13 == 0L }.collectAsState(0L).value,
+                        miniMapSize = 120.dp,
+                        dotRadius = 2.dp,
+                        gameTime = metadataManager.totalRuntimeInMilliseconds.filter { it % 4 == 0L }.collectAsState(0L).value,
                         visibleActorColor = MaterialTheme.colorScheme.primary,
                         invisibleActorColor = lerp(LocalContentColor.current, MaterialTheme.colorScheme.surface, 0.8f),
+                        getViewportTopLeft = { viewportManager.topLeft.value },
+                        getViewportBottomRight = { viewportManager.bottomRight.value },
                         getAllVisibleActors = { actorManager.allActors.value.filterIsInstance<Visible>() },
                         getAllVisibleActorsWithinViewport = { actorManager.visibleActorsWithinViewport.value },
                     )

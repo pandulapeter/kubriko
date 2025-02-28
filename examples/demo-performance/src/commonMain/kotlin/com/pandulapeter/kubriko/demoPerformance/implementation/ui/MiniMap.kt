@@ -13,27 +13,32 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.round
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.types.SceneOffset
 
 @Composable
 internal fun MiniMap(
-    size: Dp,
+    miniMapSize: Dp,
     dotRadius: Dp,
     gameTime: Long,
     visibleActorColor: Color,
     invisibleActorColor: Color,
+    getViewportTopLeft: () -> SceneOffset,
+    getViewportBottomRight: () -> SceneOffset,
     getAllVisibleActors: () -> List<Visible>,
     getAllVisibleActorsWithinViewport: () -> List<Visible>,
 ) {
-    val sizeInPixels = size.px
+    val sizeInPixels = miniMapSize.px
     val dotRadiusInPixels = dotRadius.px
     Canvas(
-        modifier = Modifier.size(size),
+        modifier = Modifier.size(miniMapSize),
         onDraw = {
             withTransform(
                 transformBlock = {
@@ -45,24 +50,36 @@ internal fun MiniMap(
                 drawBlock = {
                     val allVisibleActors = getAllVisibleActors()
                     val visibleActorsWithinViewport = getAllVisibleActorsWithinViewport()
+                    val size = Size(dotRadiusInPixels, dotRadiusInPixels)
+                    val offset = Offset(dotRadiusInPixels, dotRadiusInPixels) / 2f
                     @Suppress("UNUSED_EXPRESSION") gameTime  // This line invalidates the Canvas, causing a refresh on every frame
                     allVisibleActors
-                        .map { it.body.position.raw / 60f * density to visibleActorsWithinViewport.contains(it) }
-                        .distinctBy { it.first.round() }
-                        .forEachIndexed{ index, (position, isVisible) ->
-                            if (index % 1 == 0) {
-                                drawCircle(
-                                    color = if (isVisible) visibleActorColor else invisibleActorColor,
-                                    radius = dotRadiusInPixels,
-                                    center = position,
-                                )
-                            }
-                    }
+                        .map { it.body.position.raw / SCALE_FACTOR * density to visibleActorsWithinViewport.contains(it) }
+                        .forEach { (position, isVisible) ->
+                            drawRect(
+                                color = if (isVisible) visibleActorColor else invisibleActorColor,
+                                size = size,
+                                topLeft = position - offset,
+                            )
+                        }
+                    val topLeft = getViewportTopLeft().raw / SCALE_FACTOR * density
+                    val bottomRight = getViewportBottomRight().raw / SCALE_FACTOR * density
+                    drawRect(
+                        color = Color.Red,
+                        size = Size(
+                            width = bottomRight.x - topLeft.x,
+                            height = bottomRight.y - topLeft.y,
+                        ),
+                        topLeft = topLeft,
+                        style = Stroke(),
+                    )
                 }
             )
         }
     )
 }
+
+private const val SCALE_FACTOR = 75f
 
 private inline val Dp.px: Float
     @Composable get() = with(LocalDensity.current) { this@px.toPx() }
