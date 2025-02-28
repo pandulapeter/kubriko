@@ -80,7 +80,7 @@ internal class PerformanceDemoManager(
         actorManager.allActors
             .filter { it.isNotEmpty() }
             .onEach {
-                delay(100)
+                delay(300)
                 _shouldShowLoadingIndicator.update { false }
             }
             .launchIn(scope)

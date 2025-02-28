@@ -13,7 +13,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -31,7 +30,7 @@ fun LoadingOverlay(
     modifier: Modifier = Modifier,
     shouldShowLoadingIndicator: Boolean,
     color: Color = MaterialTheme.colorScheme.background,
-    enter: EnterTransition = fadeIn(animationSpec = tween(durationMillis = 0)),
+    enter: EnterTransition = EnterTransition.None,
     exit: ExitTransition = fadeOut(animationSpec = tween(durationMillis = 1000)),
     content: @Composable (() -> Unit)? = null,
 ) {

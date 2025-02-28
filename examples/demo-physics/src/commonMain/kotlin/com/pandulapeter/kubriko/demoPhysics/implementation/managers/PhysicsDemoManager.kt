@@ -104,7 +104,7 @@ internal class PhysicsDemoManager(
             .filter { it.size > 1 }
             .distinctUntilChanged()
             .onEach {
-                delay(100)
+                delay(300)
                 _shouldShowLoadingIndicator.update { false }
             }
             .launchIn(scope)

@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.gameAnnoyedPenguins
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -154,7 +155,7 @@ fun AnnoyedPenguinsGame(
     AnimatedVisibility(
         modifier = modifier,
         visible = !isGameLoaded || isLoadingLevel,
-        enter = fadeIn(),
+        enter = if (isLoadingLevel) fadeIn() else EnterTransition.None,
         exit = fadeOut(),
     ) {
         Box(

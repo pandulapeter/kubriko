@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.gameWallbreaker
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -60,7 +61,7 @@ fun WallbreakerGame(
     AnimatedVisibility(
         modifier = modifier,
         visible = !isGameLoaded,
-        enter = fadeIn(),
+        enter = EnterTransition.None,
         exit = fadeOut(),
     ) {
         Box(
