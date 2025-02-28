@@ -129,7 +129,7 @@ internal fun AboutScreen(
             LargeButton(
                 icon = Res.drawable.ic_contact,
                 title = Res.string.other_about_contact_me,
-                onButtonPressed = { uriHandler.openUri("mailto:pandulapeter@gmail.com?subject=Beagle") },
+                onButtonPressed = { uriHandler.openUri("mailto:pandulapeter@gmail.com?subject=Kubriko") },
             )
             LargeButton(
                 icon = Res.drawable.ic_website,
