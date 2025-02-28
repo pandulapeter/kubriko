@@ -51,7 +51,7 @@ internal fun AnnoyedPenguinsTheme(
         LocalIndication provides ripple(color = Color.White),
         LocalRippleConfiguration provides RippleConfiguration(
             color = Color.White,
-            rippleAlpha = RippleAlpha(0.2f, 0.2f, 0.2f, 0.2f),
+            rippleAlpha = RippleAlpha(0f, 0f, 0f, 0.2f),
         )
     ) {
         content()
