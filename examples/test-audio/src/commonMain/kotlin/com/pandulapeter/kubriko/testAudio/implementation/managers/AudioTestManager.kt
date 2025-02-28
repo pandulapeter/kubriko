@@ -40,6 +40,7 @@ import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.shared.StateHolder
+import com.pandulapeter.kubriko.testAudio.implementation.utilities.getResourceUri
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.LoadingIndicator
 import com.pandulapeter.kubriko.uiComponents.Panel
@@ -61,19 +62,17 @@ import kubriko.examples.test_audio.generated.resources.pause
 import kubriko.examples.test_audio.generated.resources.play
 import kubriko.examples.test_audio.generated.resources.stop
 import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalResourceApi::class)
 internal class AudioTestManager : Manager() {
     private val musicManager by manager<MusicManager>()
     private val stateManager by manager<StateManager>()
     private var isTrack1Playing = mutableStateOf(false)
     private var isTrack2Playing = mutableStateOf(false)
-    private val track1Uri = Res.getUri(URI_MUSIC_1)
-    private val track2Uri = Res.getUri(URI_MUSIC_2)
+    private val track1Uri = getResourceUri(URI_MUSIC_1)
+    private val track2Uri = getResourceUri(URI_MUSIC_2)
     private val shouldStopMusic = MutableStateFlow(false)
 
     override fun onInitialize(kubriko: Kubriko) {
