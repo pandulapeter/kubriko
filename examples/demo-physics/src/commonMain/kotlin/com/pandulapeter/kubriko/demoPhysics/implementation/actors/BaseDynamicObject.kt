@@ -27,7 +27,7 @@ internal abstract class BaseDynamicObject : RigidBody, Visible, Dynamic {
     private lateinit var viewportManager: ViewportManager
     protected val color = Color.hsv(
         hue = Random.nextFloat() * 360f,
-        saturation = 0.2f,
+        saturation = 0.3f,
         value = 1f,
     )
 

@@ -73,7 +73,7 @@ internal class DynamicChain private constructor(state: State) : Group, Dynamic, 
     private val offset = SceneOffset(ChainLink.Radius * 2, ChainLink.Radius * 2)
     private val color = Color.hsv(
         hue = Random.nextFloat() * 360f,
-        saturation = 0.2f,
+        saturation = 0.3f,
         value = 1f,
     )
 
