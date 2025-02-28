@@ -39,6 +39,7 @@ import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
+import kotlin.random.Random
 
 // TODO: Something is off with the Editor preview
 internal class DynamicChain private constructor(state: State) : Group, Dynamic, Visible, Editable<DynamicChain> {
@@ -70,6 +71,11 @@ internal class DynamicChain private constructor(state: State) : Group, Dynamic, 
     override val body = RectangleBody()
     override val drawingOrder = -1f
     private val offset = SceneOffset(ChainLink.Radius * 2, ChainLink.Radius * 2)
+    private val color = Color.hsv(
+        hue = Random.nextFloat() * 360f,
+        saturation = 0.2f,
+        value = 1f,
+    )
 
     init {
         refreshBodySize()
@@ -127,7 +133,7 @@ internal class DynamicChain private constructor(state: State) : Group, Dynamic, 
             )
             drawPath(
                 path = path,
-                color = Color.LightGray,
+                color = color,
                 style = strokeInside,
             )
         }

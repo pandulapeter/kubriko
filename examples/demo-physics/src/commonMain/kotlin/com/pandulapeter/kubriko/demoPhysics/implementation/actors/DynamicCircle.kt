@@ -35,7 +35,7 @@ internal class DynamicCircle private constructor(state: State) : BaseDynamicObje
 
     override fun DrawScope.draw() {
         drawCircle(
-            color = Color.LightGray,
+            color = color,
             radius = body.radius.raw,
             center = body.size.center.raw,
         )

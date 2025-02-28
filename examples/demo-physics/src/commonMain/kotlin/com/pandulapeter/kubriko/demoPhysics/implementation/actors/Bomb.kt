@@ -53,7 +53,7 @@ internal class Bomb(
         if (alpha <= 0) {
             actorManager.remove(this)
         } else {
-            explosion.applyBlastImpulse(50000000.sceneUnit)
+            explosion.applyBlastImpulse(25000000.sceneUnit)
         }
     }
 

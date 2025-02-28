@@ -46,7 +46,7 @@ internal class DynamicPolygon(
         }
         drawPath(
             path = path,
-            color = Color.LightGray,
+            color = color,
             style = Fill,
         )
         drawPath(

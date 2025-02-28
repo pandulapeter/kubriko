@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.demoPhysics.implementation.actors
 
+import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
@@ -18,11 +19,17 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.types.SceneOffset
+import kotlin.random.Random
 
 internal abstract class BaseDynamicObject : RigidBody, Visible, Dynamic {
 
     private lateinit var actorManager: ActorManager
     private lateinit var viewportManager: ViewportManager
+    protected val color = Color.hsv(
+        hue = Random.nextFloat() * 360f,
+        saturation = 0.2f,
+        value = 1f,
+    )
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()

@@ -39,7 +39,7 @@ internal class DynamicBox private constructor(state: State) : BaseDynamicObject(
 
     override fun DrawScope.draw() {
         drawRect(
-            color = Color.LightGray,
+            color = color,
             size = body.size.raw,
         )
         drawRect(
