@@ -33,6 +33,7 @@ import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.LargeButton
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
+import com.pandulapeter.kubriko.uiComponents.utilities.rememberShareManager
 import com.pandulapeter.kubrikoShowcase.BuildConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -101,12 +102,14 @@ internal fun AboutScreen(
             title = Res.string.other_about_contact_me,
             onButtonPressed = { uriHandler.openUri("mailto:pandulapeter@gmail.com?subject=Beagle") },
         )
-        // TODO: Implement sharing on supported platforms
-        LargeButton(
-            icon = Res.drawable.ic_share,
-            title = Res.string.other_about_spread_the_word,
-            onButtonPressed = { },
-        )
+        val shareManager = rememberShareManager()
+        if (shareManager.isSharingSupported) {
+            LargeButton(
+                icon = Res.drawable.ic_share,
+                title = Res.string.other_about_spread_the_word,
+                onButtonPressed = { shareManager.shareText("https://github.com/pandulapeter/kubriko") },
+            )
+        }
         LargeButton(
             icon = Res.drawable.ic_website,
             title = Res.string.other_about_visit_my_website,
