@@ -91,6 +91,7 @@ internal class ContentShadersDemoManager : Manager() {
                             y = y * 100.sceneUnit,
                         ),
                         hue = (0..360).random().toFloat(),
+                        shouldDrawBorder = { !state.value.isComicShaderEnabled },
                     )
                 }
             }
