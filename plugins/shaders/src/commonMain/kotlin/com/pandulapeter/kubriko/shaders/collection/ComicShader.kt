@@ -28,22 +28,27 @@ class ComicShader(
 
     data class State(
         val focusPoint: Offset = Offset.Zero,
+        val tileSize: Float = 12f,
+        val dotMinDiameter: Float = 9f,
     ) : Shader.State {
 
         override fun ShaderUniformProvider.applyUniforms() {
             uniform(FOCUS_POINT, focusPoint.x, focusPoint.y)
+            uniform(TILE_SIZE, tileSize)
+            uniform(DOT_MIN_DIAMETER, dotMinDiameter)
         }
     }
 
     companion object {
         private const val FOCUS_POINT = "focusPoint"
+        private const val TILE_SIZE = "tileSize"
+        private const val DOT_MIN_DIAMETER = "dotMinDiameter"
         private const val CODE = """
 uniform float2 ${Shader.RESOLUTION};
 uniform shader ${ContentShader.CONTENT};
 uniform float2 $FOCUS_POINT;
-
-float tileSize = 12;
-float dotMinDiameter = 9;
+uniform float $TILE_SIZE;
+uniform float $DOT_MIN_DIAMETER;
 vec2 maxRedShift = vec2(-2, 3);
 vec2 maxGreenShift = vec2(2.5, 0);
 vec2 maxBlueShift = vec2(1, -2);
@@ -56,12 +61,12 @@ half4 main(vec2 fragcoord) {
   vec2 focalPoint = $FOCUS_POINT.xy;
   
   vec2 tileIndex = vec2(
-    floor(fragcoord.x / tileSize),
-    floor(fragcoord.y / tileSize)
+    floor(fragcoord.x / $TILE_SIZE),
+    floor(fragcoord.y / $TILE_SIZE)
   );
-  vec2 tileOrigin = tileIndex * tileSize;
+  vec2 tileOrigin = tileIndex * $TILE_SIZE;
   vec2 tileCoord = fragcoord - tileOrigin;
-  vec2 tileCenter = vec2(tileSize / 2, tileSize / 2);
+  vec2 tileCenter = vec2($TILE_SIZE / 2, $TILE_SIZE / 2);
 
   // Take a sample of the source's color from the center of the tile.
   vec2 sampleCoord = tileOrigin + tileCenter;
@@ -70,8 +75,8 @@ half4 main(vec2 fragcoord) {
   // Modulate the size of the dot by the mouse position.
   float distanceFromFocus = distance(fragcoord, focalPoint.xy);
   float dotRadius = max(
-    dotMinDiameter / 2,
-    mix(tileSize / 2, 0, distanceFromFocus / focalSizeCutoff)
+    $DOT_MIN_DIAMETER / 2,
+    mix($TILE_SIZE / 2, 0, distanceFromFocus / focalSizeCutoff)
   );
 
   // Chromatic aberration
