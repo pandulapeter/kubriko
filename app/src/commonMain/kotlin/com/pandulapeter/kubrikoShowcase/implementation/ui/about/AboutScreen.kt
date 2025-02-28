@@ -12,9 +12,11 @@ package com.pandulapeter.kubrikoShowcase.implementation.ui.about
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -46,6 +48,14 @@ import kubriko.app.generated.resources.ic_share
 import kubriko.app.generated.resources.ic_website
 import kubriko.app.generated.resources.other_about_contact_me
 import kubriko.app.generated.resources.other_about_content
+import kubriko.app.generated.resources.other_about_content_creator
+import kubriko.app.generated.resources.other_about_content_footer
+import kubriko.app.generated.resources.other_about_content_footer_android
+import kubriko.app.generated.resources.other_about_content_footer_ios
+import kubriko.app.generated.resources.other_about_content_footer_linux
+import kubriko.app.generated.resources.other_about_content_footer_mac_os
+import kubriko.app.generated.resources.other_about_content_footer_web
+import kubriko.app.generated.resources.other_about_content_footer_windows
 import kubriko.app.generated.resources.other_about_privacy_policy
 import kubriko.app.generated.resources.other_about_report_an_issue
 import kubriko.app.generated.resources.other_about_repository
@@ -73,49 +83,79 @@ internal fun AboutScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
-            text = stringResource(
-                Res.string.other_about_content,
-                stateHolder.appVersion,
-                stateHolder.libraryVersion,
-                stateHolder.platform,
-            ),
+            text = stringResource(Res.string.other_about_content),
             style = MaterialTheme.typography.bodySmall,
         )
         val uriHandler = LocalUriHandler.current
-        LargeButton(
-            icon = Res.drawable.ic_github,
-            title = Res.string.other_about_repository,
-            onButtonPressed = { uriHandler.openUri("https://github.com/pandulapeter/kubriko") },
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            LargeButton(
+                icon = Res.drawable.ic_github,
+                title = Res.string.other_about_repository,
+                onButtonPressed = { uriHandler.openUri("https://github.com/pandulapeter/kubriko") },
+            )
+            LargeButton(
+                icon = Res.drawable.ic_bug,
+                title = Res.string.other_about_report_an_issue,
+                onButtonPressed = { uriHandler.openUri("https://github.com/pandulapeter/kubriko/issues/new") },
+            )
+        }
+        Text(
+            text = stringResource(
+                Res.string.other_about_content_footer,
+                stateHolder.appVersion,
+                stateHolder.libraryVersion,
+                stateHolder.platform.description(),
+            ),
+            style = MaterialTheme.typography.bodySmall,
         )
         LargeButton(
             icon = Res.drawable.ic_privacy_policy,
             title = Res.string.other_about_privacy_policy,
             onButtonPressed = { uriHandler.openUri("https://pandulapeter.github.io/legal/privacy_policy-kubriko.html") },
         )
-        LargeButton(
-            icon = Res.drawable.ic_bug,
-            title = Res.string.other_about_report_an_issue,
-            onButtonPressed = { uriHandler.openUri("https://github.com/pandulapeter/kubriko/issues/new") },
+        Text(
+            text = stringResource(Res.string.other_about_content_creator),
+            style = MaterialTheme.typography.bodySmall,
         )
-        LargeButton(
-            icon = Res.drawable.ic_contact,
-            title = Res.string.other_about_contact_me,
-            onButtonPressed = { uriHandler.openUri("mailto:pandulapeter@gmail.com?subject=Beagle") },
-        )
-        val shareManager = rememberShareManager()
-        if (shareManager.isSharingSupported) {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
             LargeButton(
-                icon = Res.drawable.ic_share,
-                title = Res.string.other_about_spread_the_word,
-                onButtonPressed = { shareManager.shareText("https://github.com/pandulapeter/kubriko") },
+                icon = Res.drawable.ic_contact,
+                title = Res.string.other_about_contact_me,
+                onButtonPressed = { uriHandler.openUri("mailto:pandulapeter@gmail.com?subject=Beagle") },
             )
+            LargeButton(
+                icon = Res.drawable.ic_website,
+                title = Res.string.other_about_visit_my_website,
+                onButtonPressed = { uriHandler.openUri("https://pandulapeter.github.io/") },
+            )
+            val shareManager = rememberShareManager()
+            if (shareManager.isSharingSupported) {
+                LargeButton(
+                    icon = Res.drawable.ic_share,
+                    title = Res.string.other_about_spread_the_word,
+                    onButtonPressed = { shareManager.shareText("https://github.com/pandulapeter/kubriko") },
+                )
+            }
         }
-        LargeButton(
-            icon = Res.drawable.ic_website,
-            title = Res.string.other_about_visit_my_website,
-            onButtonPressed = { uriHandler.openUri("https://pandulapeter.github.io/") },
-        )
     }
+}
+
+@Composable
+private fun MetadataManager.Platform.description() = when (this) {
+    is MetadataManager.Platform.Android -> stringResource(Res.string.other_about_content_footer_android, androidSdkVersion)
+    is MetadataManager.Platform.Desktop.Linux -> stringResource(Res.string.other_about_content_footer_linux, linuxVersion, javaVersion)
+    is MetadataManager.Platform.Desktop.MacOS -> stringResource(Res.string.other_about_content_footer_mac_os, macOSVersion, javaVersion)
+    is MetadataManager.Platform.Desktop.Windows -> stringResource(Res.string.other_about_content_footer_windows, windowsVersion, javaVersion)
+    is MetadataManager.Platform.IOS -> stringResource(Res.string.other_about_content_footer_ios, iOSVersion)
+    is MetadataManager.Platform.Web -> stringResource(Res.string.other_about_content_footer_web)
 }
 
 sealed interface AboutScreenStateHolder : StateHolder {
@@ -134,11 +174,19 @@ sealed interface AboutScreenStateHolder : StateHolder {
         @Composable
         private fun areStringResourcesLoaded() = preloadedString(Res.string.other_about_content).value.isNotBlank()
                 && preloadedString(Res.string.other_about_repository).value.isNotBlank()
-                && preloadedString(Res.string.other_about_privacy_policy).value.isNotBlank()
                 && preloadedString(Res.string.other_about_report_an_issue).value.isNotBlank()
                 && preloadedString(Res.string.other_about_contact_me).value.isNotBlank()
-                && preloadedString(Res.string.other_about_spread_the_word).value.isNotBlank()
                 && preloadedString(Res.string.other_about_visit_my_website).value.isNotBlank()
+                && preloadedString(Res.string.other_about_spread_the_word).value.isNotBlank()
+                && preloadedString(Res.string.other_about_privacy_policy).value.isNotBlank()
+                && preloadedString(Res.string.other_about_content_creator).value.isNotBlank()
+                && preloadedString(Res.string.other_about_content_footer).value.isNotBlank()
+                && preloadedString(Res.string.other_about_content_footer_android).value.isNotBlank()
+                && preloadedString(Res.string.other_about_content_footer_ios).value.isNotBlank()
+                && preloadedString(Res.string.other_about_content_footer_linux).value.isNotBlank()
+                && preloadedString(Res.string.other_about_content_footer_mac_os).value.isNotBlank()
+                && preloadedString(Res.string.other_about_content_footer_windows).value.isNotBlank()
+                && preloadedString(Res.string.other_about_content_footer_web).value.isNotBlank()
     }
 }
 

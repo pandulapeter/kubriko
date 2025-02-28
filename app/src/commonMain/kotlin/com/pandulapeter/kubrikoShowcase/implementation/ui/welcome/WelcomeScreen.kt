@@ -205,7 +205,7 @@ internal fun WelcomeScreen(
             .padding(horizontal = 16.dp)
             .padding(top = if (shouldUseCompactUi) 8.dp else 16.dp),
         style = MaterialTheme.typography.bodySmall,
-        text = stringResource(Res.string.welcome_app_details) + stringResource(if (shouldUseCompactUi) Res.string.welcome_app_details_call_to_action_collapsed else Res.string.welcome_app_details_call_to_action_expanded),
+        text = stringResource(Res.string.welcome_app_details, stringResource(if (shouldUseCompactUi) Res.string.welcome_app_details_call_to_action_collapsed else Res.string.welcome_app_details_call_to_action_expanded)),
     )
 }
 
@@ -231,9 +231,9 @@ internal sealed interface WelcomeScreenStateHolder : StateHolder {
                 && preloadedString(Res.string.welcome_engine_details).value.isNotBlank()
                 && preloadedString(Res.string.welcome_repository).value.isNotBlank()
                 && preloadedString(Res.string.welcome_learning_1).value.isNotBlank()
-                && preloadedString(Res.string.welcome_learning_2).value.isNotBlank()
                 && preloadedString(Res.string.welcome_getting_started).value.isNotBlank()
                 && preloadedString(Res.string.welcome_documentation).value.isNotBlank()
+                && preloadedString(Res.string.welcome_learning_2).value.isNotBlank()
                 && preloadedString(Res.string.welcome_tutorials).value.isNotBlank()
                 && preloadedString(Res.string.welcome_community).value.isNotBlank()
                 && preloadedString(Res.string.welcome_license).value.isNotBlank()
