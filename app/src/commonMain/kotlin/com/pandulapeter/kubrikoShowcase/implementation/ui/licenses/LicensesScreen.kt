@@ -10,10 +10,14 @@
 package com.pandulapeter.kubrikoShowcase.implementation.ui.licenses
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -24,6 +28,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.shared.StateHolder
@@ -31,7 +37,12 @@ import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kubriko.app.generated.resources.Res
+import kubriko.app.generated.resources.other_licenses_apache_2_0
 import kubriko.app.generated.resources.other_licenses_content
+import kubriko.app.generated.resources.other_licenses_lgpl_2_1
+import kubriko.app.generated.resources.other_licenses_mit
+import kubriko.app.generated.resources.other_licenses_mpl_2_0
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 
@@ -49,21 +60,59 @@ internal fun LicensesScreen(
         .verticalScroll(scrollState)
         .windowInsetsPadding(windowInsets.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right))
         .padding(16.dp),
+    verticalArrangement = Arrangement.spacedBy(16.dp),
 ) {
     Text(
         style = MaterialTheme.typography.bodySmall,
         text = stringResource(Res.string.other_licenses_content),
     )
+    Dependency.entries.groupBy { it.type }.forEach { (type, dependencies) ->
+        Text(
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.labelLarge,
+            text = stringResource(type.licenseName),
+        )
+        val uriHandler = LocalUriHandler.current
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            dependencies.forEach { dependency ->
+                Text(
+                    modifier = Modifier
+                        .clickable { uriHandler.openUri(dependency.url) }
+                        .padding(
+                            horizontal = 16.dp,
+                            vertical = 8.dp,
+                        ),
+                    style = MaterialTheme.typography.bodySmall,
+                    text = dependency.dependencyName,
+                )
+            }
+        }
+    }
 }
 
-private enum class LicenseType {
-    APACHE_2_0,
-    LGPL_2_1,
-    MIT,
-    MPL_2_0;
+private enum class LicenseType(
+    val licenseName: StringResource,
+) {
+    APACHE_2_0(
+        licenseName = Res.string.other_licenses_apache_2_0,
+    ),
+    LGPL_2_1(
+        licenseName = Res.string.other_licenses_lgpl_2_1,
+    ),
+    MIT(
+        licenseName = Res.string.other_licenses_mit,
+    ),
+    MPL_2_0(
+        licenseName = Res.string.other_licenses_mpl_2_0,
+    );
 }
 
-private enum class License(
+private enum class Dependency(
     val dependencyName: String,
     val url: String,
     val type: LicenseType,
@@ -173,6 +222,10 @@ sealed interface LicensesScreenStateHolder : StateHolder {
 
         @Composable
         private fun areStringResourcesLoaded() = preloadedString(Res.string.other_licenses_content).value.isNotBlank()
+                && preloadedString(Res.string.other_licenses_apache_2_0).value.isNotBlank()
+                && preloadedString(Res.string.other_licenses_lgpl_2_1).value.isNotBlank()
+                && preloadedString(Res.string.other_licenses_mit).value.isNotBlank()
+                && preloadedString(Res.string.other_licenses_mpl_2_0).value.isNotBlank()
     }
 }
 
