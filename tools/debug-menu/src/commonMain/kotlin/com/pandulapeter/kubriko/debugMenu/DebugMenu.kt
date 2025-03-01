@@ -193,7 +193,7 @@ object DebugMenu : DebugMenuContract {
                 Box(
                     modifier = Modifier.fillMaxSize().padding(16.dp),
                 ) {
-                    val isDebugMenuVisible = DebugMenu.isVisible.collectAsState().value
+                    val isDebugMenuVisible = isVisible.collectAsState().value
                     FloatingActionButton(
                         modifier = Modifier.size(40.dp).align(buttonAlignment),
                         containerColor = if (isSystemInDarkTheme()) {
@@ -201,7 +201,7 @@ object DebugMenu : DebugMenuContract {
                         } else {
                             if (isDebugMenuVisible) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary
                         },
-                        onClick = DebugMenu::toggleVisibility,
+                        onClick = ::toggleVisibility,
                     ) {
                         Icon(
                             painter = painterResource(if (isDebugMenuVisible) Res.drawable.ic_debug_on else Res.drawable.ic_debug_off),

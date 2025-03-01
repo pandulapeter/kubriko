@@ -132,7 +132,7 @@ internal fun ShowcaseContent(
                         if (BuildConfig.IS_DEBUG_MENU_ENABLED) {
                             DebugMenu.Vertical(
                                 kubriko = activeKubrikoInstance,
-                                isEnabled = !shouldUseCompactUi && activeKubrikoInstance != null,
+                                isEnabled = !shouldUseCompactUi && selectedShowcaseEntry.hasDebugMenu,
                                 windowInsets = windowInsets,
                             )
                         }
@@ -140,7 +140,7 @@ internal fun ShowcaseContent(
                     if (BuildConfig.IS_DEBUG_MENU_ENABLED) {
                         DebugMenu.Horizontal(
                             kubriko = activeKubrikoInstance,
-                            isEnabled = shouldUseCompactUi && activeKubrikoInstance != null,
+                            isEnabled = shouldUseCompactUi && selectedShowcaseEntry.hasDebugMenu,
                             windowInsets = windowInsets,
                         )
                     }
@@ -195,17 +195,17 @@ private fun ExpandedContent(
     val coroutineScope = rememberCoroutineScope()
     LaunchedEffect(shouldUseCompactUi) {
         val lazyListState = if (shouldUseCompactUi) collapsedLazyListState else expandedLazyListState
-        val itemIndex = selectedShowcaseEntry.getItemIndex()
+        val menuItemIndex = selectedShowcaseEntry.menuItemIndex
         if (!lazyListState.isScrollInProgress) {
-            if (lazyListState.firstVisibleItemIndex >= itemIndex || (lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) <= itemIndex) {
-                coroutineScope.launch { lazyListState.scrollToItem(itemIndex) }
+            if (lazyListState.firstVisibleItemIndex >= menuItemIndex || (lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) <= menuItemIndex) {
+                coroutineScope.launch { lazyListState.scrollToItem(menuItemIndex) }
             }
         }
     }
     LaunchedEffect(selectedShowcaseEntry) {
         val lazyListState = if (shouldUseCompactUi) collapsedLazyListState else expandedLazyListState
         if (!lazyListState.isScrollInProgress) {
-            val itemIndex = (if (shouldUseCompactUi) selectedShowcaseEntry ?: previouslyFocusedShowcaseEntry.value else selectedShowcaseEntry).getItemIndex()
+            val itemIndex = (if (shouldUseCompactUi) selectedShowcaseEntry ?: previouslyFocusedShowcaseEntry.value else selectedShowcaseEntry).menuItemIndex
             if (lazyListState.firstVisibleItemIndex >= itemIndex) {
                 coroutineScope.launch { lazyListState.animateScrollToItem(itemIndex) }
             } else if ((lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) <= itemIndex && !shouldUseCompactUi) {
@@ -363,13 +363,20 @@ private fun CompactContent(
     }
 }
 
-private fun ShowcaseEntry?.getItemIndex() = when (this?.type) {
-    null -> 0
-    ShowcaseEntryType.GAME -> ShowcaseEntry.entries.indexOf(this) + 2
-    ShowcaseEntryType.DEMO -> ShowcaseEntry.entries.indexOf(this) + 3
-    ShowcaseEntryType.TEST -> ShowcaseEntry.entries.indexOf(this) + 4
-    ShowcaseEntryType.OTHER -> ShowcaseEntry.entries.indexOf(this) + if (BuildConfig.ARE_TEST_EXAMPLES_ENABLED) 4 else 5
-}
+private val ShowcaseEntry?.hasDebugMenu
+    get() = when (this?.type) {
+        null, ShowcaseEntryType.OTHER -> false
+        else -> true
+    }
+
+private val ShowcaseEntry?.menuItemIndex
+    get() = when (this?.type) {
+        null -> 0
+        ShowcaseEntryType.GAME -> ShowcaseEntry.entries.indexOf(this) + 2
+        ShowcaseEntryType.DEMO -> ShowcaseEntry.entries.indexOf(this) + 3
+        ShowcaseEntryType.TEST -> ShowcaseEntry.entries.indexOf(this) + 4
+        ShowcaseEntryType.OTHER -> ShowcaseEntry.entries.indexOf(this) + if (BuildConfig.ARE_TEST_EXAMPLES_ENABLED) 4 else 5
+    }
 
 private val TopBarHeight = 64.dp
 private val ThinSideMenuWidth = 192.dp
