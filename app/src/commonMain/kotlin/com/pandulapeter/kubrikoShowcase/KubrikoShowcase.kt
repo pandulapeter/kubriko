@@ -37,8 +37,8 @@ fun KubrikoShowcase(
     getIsInFullscreenMode: () -> Boolean,
     onFullscreenModeToggled: () -> Unit,
     webEscapePressEvent: Flow<Unit>? = null,
-    deeplink: String? = null,
-    onDestinationChanged: (String?) -> Unit = {},
+    deeplink: String? = selectedShowcaseEntry.value.deeplink,
+    onDestinationChanged: (String?) -> Unit = { selectedShowcaseEntry.value = it.processDeeplink() },
 ) = KubrikoTheme(
     areResourcesLoaded = ResourceLoader.areResourcesLoaded() && ShowcaseEntry.entries.all { it.areResourcesLoaded() },
 ) {
