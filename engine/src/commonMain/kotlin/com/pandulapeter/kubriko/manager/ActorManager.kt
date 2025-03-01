@@ -44,12 +44,14 @@ sealed class ActorManager(
         fun newInstance(
             initialActors: List<Actor> = emptyList(),
             shouldUpdateActorsWhileNotRunning: Boolean = false,
+            shouldPutFarAwayActorsToSleep: Boolean = true,
             invisibleActorMinimumRefreshTimeInMillis: Long = 100,
             isLoggingEnabled: Boolean = false,
             instanceNameForLogging: String? = null,
         ): ActorManager = ActorManagerImpl(
             initialActors = initialActors,
             shouldUpdateActorsWhileNotRunning = shouldUpdateActorsWhileNotRunning,
+            shouldPutFarAwayActorsToSleep = shouldPutFarAwayActorsToSleep,
             invisibleActorMinimumRefreshTimeInMillis = invisibleActorMinimumRefreshTimeInMillis,
             isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = instanceNameForLogging,

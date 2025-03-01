@@ -106,6 +106,7 @@ internal class SpaceSquadronGameStateHolderImpl(
     )
     private val actorManager = ActorManager.newInstance(
         shouldUpdateActorsWhileNotRunning = true, // To ensure proper scaling during resize events while paused
+        shouldPutFarAwayActorsToSleep = false,
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )

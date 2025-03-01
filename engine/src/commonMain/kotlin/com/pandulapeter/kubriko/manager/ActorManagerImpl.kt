@@ -56,6 +56,7 @@ import kotlin.uuid.Uuid
 internal class ActorManagerImpl(
     initialActors: List<Actor>,
     private val shouldUpdateActorsWhileNotRunning: Boolean,
+    private val shouldPutFarAwayActorsToSleep: Boolean,
     private val invisibleActorMinimumRefreshTimeInMillis: Long, // TODO: Feels hacky
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
@@ -101,7 +102,7 @@ internal class ActorManagerImpl(
         }.asStateFlow(persistentListOf())
     }
     override val activeDynamicActors by lazy {
-        combine(
+        if (shouldPutFarAwayActorsToSleep) combine(
             dynamicActors,
             viewportManager.size,
             viewportManager.cameraPosition,
@@ -120,7 +121,7 @@ internal class ActorManagerImpl(
             val scaledHalfViewportSize = SceneSize(viewportSize / (scaleFactor * 2))
             allDynamicActors
                 .filter { actor ->
-                    if (actor is Positionable) {
+                    if (!actor.isAlwaysActive && actor is Positionable) {
                         actor.body.axisAlignedBoundingBox.isWithinViewportBounds(
                             scaledHalfViewportSize = scaledHalfViewportSize,
                             viewportCenter = viewportCenter,
@@ -131,7 +132,7 @@ internal class ActorManagerImpl(
                     }
                 }
                 .toImmutableList()
-        }.asStateFlow(persistentListOf())
+        }.asStateFlow(persistentListOf()) else dynamicActors
     }
 
     override fun onInitialize(kubriko: Kubriko) {
@@ -143,12 +144,7 @@ internal class ActorManagerImpl(
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
         if (shouldUpdateActorsWhileNotRunning || stateManager.isRunning.value) {
-            activeDynamicActors.value
-                //.filter { if (it !is Positionable) true else it.body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) }
-                .forEach {
-                    // TODO: Reduce update frequency for Positionable Dynamic actors that are not within the viewport
-                    it.update(deltaTimeInMilliseconds)
-                }
+            activeDynamicActors.value.forEach { it.update(deltaTimeInMilliseconds) }
         }
     }
 
