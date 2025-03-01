@@ -13,16 +13,8 @@ import kotlinx.browser.window
 
 internal actual fun getResourceUri(path: String): String = getUri("composeResources/kubriko.examples.game_space_squadron.generated.resources/" + path)
 
-private fun getUri(path: String): String {
-    // The change in this line is the only reason for this entire mess. Web navigation breaks URI handling. windowPathname has to be empty.
-    return getResourceUrl(window.location.origin, "", path)
-}
+private fun getUri(path: String) = "${window.location.origin}${resolvePathName()}/./$path"
 
-private fun getResourceUrl(windowOrigin: String, windowPathname: String, resourcePath: String): String {
-    val path = "/./$resourcePath"
-    return when {
-        path.startsWith("/") -> windowOrigin + path
-        path.startsWith("http://") || path.startsWith("https://") -> path
-        else -> windowOrigin + windowPathname + path
-    }
+private fun resolvePathName() = window.location.pathname.split("/").filter { it.isNotBlank() }.let { sections ->
+    if (sections.size <= 1) "" else "/${sections.first()}"
 }
