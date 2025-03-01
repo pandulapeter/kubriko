@@ -155,7 +155,7 @@ private fun MetadataManager.Platform.description() = when (this) {
     is MetadataManager.Platform.Desktop.MacOS -> stringResource(Res.string.other_about_content_footer_mac_os, macOSVersion, javaVersion)
     is MetadataManager.Platform.Desktop.Windows -> stringResource(Res.string.other_about_content_footer_windows, windowsVersion, javaVersion)
     is MetadataManager.Platform.IOS -> stringResource(Res.string.other_about_content_footer_ios, iOSVersion)
-    is MetadataManager.Platform.Web -> stringResource(Res.string.other_about_content_footer_web)
+    is MetadataManager.Platform.Web -> stringResource(Res.string.other_about_content_footer_web, userAgent)
 }
 
 sealed interface AboutScreenStateHolder : StateHolder {
