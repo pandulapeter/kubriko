@@ -44,6 +44,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.other_licenses_apache_2_0
+import kubriko.app.generated.resources.other_licenses_cc0_1_0
 import kubriko.app.generated.resources.other_licenses_content
 import kubriko.app.generated.resources.other_licenses_lgpl_2_1
 import kubriko.app.generated.resources.other_licenses_mit
@@ -114,6 +115,9 @@ private enum class LicenseType(
 ) {
     APACHE_2_0(
         licenseName = Res.string.other_licenses_apache_2_0,
+    ),
+    CC0_1_0(
+        licenseName = Res.string.other_licenses_cc0_1_0,
     ),
     LGPL_2_1(
         licenseName = Res.string.other_licenses_lgpl_2_1,
@@ -201,6 +205,21 @@ private enum class Dependency(
         url = "https://github.com/material-components/material-components-android/blob/master/LICENSE",
         type = LicenseType.APACHE_2_0,
     ),
+    MATERIAL_DESIGN_ICONS(
+        dependencyName = "Material Design Icons",
+        url = "https://pictogrammers.com/docs/general/license/",
+        type = LicenseType.APACHE_2_0,
+    ),
+    FREESOUND(
+        dependencyName = "freesound.org",
+        url = "https://creativecommons.org/publicdomain/zero/1.0/",
+        type = LicenseType.CC0_1_0,
+    ),
+    OPEN_GAME_ART(
+        dependencyName = "opengameart.org",
+        url = "https://creativecommons.org/publicdomain/zero/1.0/",
+        type = LicenseType.CC0_1_0,
+    ),
     JLAYER(
         dependencyName = "JLayer",
         url = "https://github.com/umjammer/jlayer/blob/master/LICENSE.txt",
@@ -237,6 +256,7 @@ sealed interface LicensesScreenStateHolder : StateHolder {
         @Composable
         private fun areStringResourcesLoaded() = preloadedString(Res.string.other_licenses_content).value.isNotBlank()
                 && preloadedString(Res.string.other_licenses_apache_2_0).value.isNotBlank()
+                && preloadedString(Res.string.other_licenses_cc0_1_0).value.isNotBlank()
                 && preloadedString(Res.string.other_licenses_lgpl_2_1).value.isNotBlank()
                 && preloadedString(Res.string.other_licenses_mit).value.isNotBlank()
                 && preloadedString(Res.string.other_licenses_mpl_2_0).value.isNotBlank()
