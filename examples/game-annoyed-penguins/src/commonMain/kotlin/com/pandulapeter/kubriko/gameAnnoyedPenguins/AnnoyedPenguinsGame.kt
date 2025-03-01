@@ -120,7 +120,7 @@ fun AnnoyedPenguinsGame(
             exit = slideOut { IntOffset(0, -it.height) },
         ) {
             MenuOverlay(
-                modifier = Modifier.windowInsetsPadding(windowInsets),
+                windowInsets = windowInsets,
                 currentLevel = stateHolder.gameplayManager.currentLevel.collectAsState().value,
                 allLevels = GameplayManager.AllLevels.keys.toImmutableList(),
                 onInfoButtonPressed = {

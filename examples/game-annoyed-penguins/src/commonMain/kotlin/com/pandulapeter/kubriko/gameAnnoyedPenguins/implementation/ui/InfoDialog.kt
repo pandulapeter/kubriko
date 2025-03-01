@@ -10,8 +10,10 @@
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -31,13 +33,15 @@ internal fun InfoDialog(
     modifier: Modifier = Modifier,
     onInfoButtonPressed: () -> Unit,
     onPointerEnter: () -> Unit = {},
+    windowInsets: WindowInsets,
 ) = Box(
     modifier = modifier.fillMaxSize(),
 ) {
     Text(
-        modifier = Modifier
+        modifier = modifier
             .align(Alignment.Center)
             .verticalScroll(rememberScrollState())
+            .windowInsetsPadding(windowInsets)
             .padding(vertical = 16.dp)
             .padding(
                 start = 80.dp,

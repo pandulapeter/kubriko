@@ -26,10 +26,12 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
@@ -70,7 +72,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun MenuOverlay(
-    modifier: Modifier = Modifier,
+    windowInsets: WindowInsets,
     currentLevel: String?,
     allLevels: ImmutableList<String>,
     onInfoButtonPressed: () -> Unit,
@@ -96,9 +98,9 @@ internal fun MenuOverlay(
         exit = slideOut { IntOffset(0, -it.height) },
     ) {
         InfoDialog(
-            modifier = modifier,
             onInfoButtonPressed = onInfoButtonPressed,
             onPointerEnter = playHoverSoundEffect,
+            windowInsets = windowInsets,
         )
     }
     AnimatedVisibility(
@@ -106,10 +108,12 @@ internal fun MenuOverlay(
         enter = slideIn { IntOffset(0, it.height) },
         exit = slideOut { IntOffset(0, it.height) },
     ) {
-        BoxWithConstraints {
+        BoxWithConstraints(
+            modifier = Modifier.windowInsetsPadding(windowInsets),
+        ) {
             val shouldShowLogo = maxHeight > 192.dp
             Column(
-                modifier = modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 val bias by animateFloatAsState(if (shouldShowLogo) 2.5f else 0.75f)
@@ -249,7 +253,7 @@ internal fun MenuOverlay(
         exit = slideOut { IntOffset(0, -it.height) },
     ) {
         CloseConfirmationDialog(
-            modifier = modifier,
+            modifier = Modifier.windowInsetsPadding(windowInsets),
             onCloseConfirmed = onCloseConfirmed,
             onCloseCancelled = onCloseButtonPressed,
             onPointerEnter = playHoverSoundEffect,
