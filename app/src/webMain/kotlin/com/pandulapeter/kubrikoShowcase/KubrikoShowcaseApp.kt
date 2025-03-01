@@ -99,6 +99,9 @@ fun main() {
                     } else {
                         window.history.replaceState(null, "", modifiedDeeplink ?: rootPath)
                     }
+                    if (document.fullscreenElement != null) {
+                        document.exitFullscreen()
+                    }
                     window.dispatchEvent(Event(EVENT_POP_STATE))
                 },
             )
