@@ -63,7 +63,12 @@ internal class SoundManagerImpl(
     }
 
     private fun addToCache(uri: String, sound: Any?) {
-        if (sound != null) {
+        if (sound == null) {
+            log(
+                message = "Preloading ${uri}...",
+                importance = Logger.Importance.LOW,
+            )
+        } else {
             log(
                 message = "${uri.substringAfterLast('/')} preloaded.",
                 importance = Logger.Importance.MEDIUM,

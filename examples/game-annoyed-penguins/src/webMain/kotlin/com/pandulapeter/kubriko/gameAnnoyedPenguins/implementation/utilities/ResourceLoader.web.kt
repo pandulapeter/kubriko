@@ -9,12 +9,6 @@
  */
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.utilities
 
-import kotlinx.browser.window
+import com.pandulapeter.kubriko.shared.utilities.getFixedUri
 
-internal actual fun getResourceUri(path: String): String = getUri("composeResources/kubriko.examples.game_annoyed_penguins.generated.resources/" + path)
-
-private fun getUri(path: String) = "${window.location.origin}${resolvePathName()}/./$path"
-
-private fun resolvePathName() = window.location.pathname.split("/").filter { it.isNotBlank() }.let { sections ->
-    if (sections.size <= 1) "" else "/${sections.first()}"
-}
+internal actual fun getResourceUri(path: String): String = getFixedUri("composeResources/kubriko.examples.game_annoyed_penguins.generated.resources/" + path)

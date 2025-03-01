@@ -44,6 +44,7 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
         cachedMusic as WebMusicPlayer
         cachedMusic.dispose()
         // Sometimes on the Chrome Android the first attempt doesn't stop the music
+        // This doesn't fix the issue all the time
         val handler: () -> JsAny? = {
             cachedMusic.dispose()
             null

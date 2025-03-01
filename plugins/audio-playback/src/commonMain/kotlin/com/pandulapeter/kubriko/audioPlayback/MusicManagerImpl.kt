@@ -78,7 +78,7 @@ internal class MusicManagerImpl(
     private fun addToCache(uri: String, music: Any?) {
         if (music == null) {
             log(
-                message = "Preloading ${uri.substringAfterLast('/')}...",
+                message = "Preloading ${uri}...",
                 importance = Logger.Importance.LOW,
             )
         } else {

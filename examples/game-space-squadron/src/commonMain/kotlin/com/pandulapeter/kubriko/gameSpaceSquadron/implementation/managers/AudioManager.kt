@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.update
 
 internal class AudioManager(
     private val stateManager: StateManager,
-    private val userPreferencesManager: UserPreferencesManager
+    private val userPreferencesManager: UserPreferencesManager,
 ) : Manager() {
     private val musicManager by manager<MusicManager>()
     private val soundManager by manager<SoundManager>()

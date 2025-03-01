@@ -38,8 +38,9 @@ fun main() {
                 onBufferOverflow = BufferOverflow.DROP_OLDEST
             )
         }
-        val initialPath = remember { window.location.pathname }
-        val currentPath = remember { mutableStateOf(initialPath) }
+        val initialPath = remember { window.location.pathname.removePrefix(BuildConfig.WEB_PATH_NAME) }
+        val rootPath = remember { if (window.location.pathname == "/") "/" else "/${BuildConfig.WEB_PATH_NAME}/" }
+        val currentPath = remember { mutableStateOf(window.location.pathname) }
         DisposableEffect(Unit) {
             val onPopStateEventListener: (Event) -> Unit = {
                 currentPath.value = window.location.pathname
@@ -88,12 +89,15 @@ fun main() {
                     }
                 },
                 webEscapePressEvent = webEscapePressEvent.asSharedFlow(),
-                deeplink = currentPath.value,
+                deeplink = currentPath.value.removePrefix(rootPath),
                 onDestinationChanged = { deeplink ->
-                    if (currentPath.value.split("/").last().isBlank()) {
-                        window.history.pushState(null, "", deeplink ?: initialPath)
+                    val modifiedDeeplink = deeplink?.let { rootPath + deeplink }
+                    if (deeplink == null && currentPath.value.removePrefix(rootPath).isNotBlank() && initialPath == rootPath) {
+                        window.history.back()
+                    } else if (deeplink != null && currentPath.value.removePrefix(rootPath).isBlank()) {
+                        window.history.pushState(null, "", modifiedDeeplink ?: rootPath)
                     } else {
-                        window.history.replaceState(null, "", deeplink ?: initialPath)
+                        window.history.replaceState(null, "", modifiedDeeplink ?: rootPath)
                     }
                     window.dispatchEvent(Event(EVENT_POP_STATE))
                 },
