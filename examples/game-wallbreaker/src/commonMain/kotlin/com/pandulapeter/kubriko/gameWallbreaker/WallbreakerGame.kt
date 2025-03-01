@@ -39,12 +39,14 @@ import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.InfoDialogOver
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.MenuOverlay
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.WallbreakerTheme
 
-fun createWallbreakerGameStateHolder(): WallbreakerGameStateHolder = WallbreakerGameStateHolderImpl()
+fun createWallbreakerGameStateHolder(webRootPathName: String): WallbreakerGameStateHolder = WallbreakerGameStateHolderImpl(
+    webRootPathName = webRootPathName,
+)
 
 @Composable
 fun WallbreakerGame(
     modifier: Modifier = Modifier,
-    stateHolder: WallbreakerGameStateHolder = createWallbreakerGameStateHolder(),
+    stateHolder: WallbreakerGameStateHolder = createWallbreakerGameStateHolder(""),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     isInFullscreenMode: Boolean? = null,
     onFullscreenModeToggled: () -> Unit = {},

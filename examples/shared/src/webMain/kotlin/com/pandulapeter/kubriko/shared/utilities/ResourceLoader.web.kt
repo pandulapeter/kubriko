@@ -13,7 +13,7 @@ import kotlinx.browser.window
 
 fun getFixedUri(
     path: String,
-    rootPathName: String = "kubriko", // TODO: Use BuildConfig.WEB_PATH_NAME
+    rootPathName: String,
 ) = "${window.location.origin}${resolveRootPathName(rootPathName)}/./$path"
 
 /**

@@ -20,7 +20,9 @@ import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
 
 fun main() = SceneEditor.show(
     defaultSceneFilename = PhysicsDemoManager.SCENE_NAME,
-    serializationManager = PhysicsDemoStateHolderImpl().serializationManager,
+    serializationManager = PhysicsDemoStateHolderImpl(
+        isSceneEditorEnabled = true,
+    ).serializationManager,
 )
 
 @Composable
@@ -31,7 +33,9 @@ fun PhysicsDemoSceneEditor(
         SceneEditor(
             defaultSceneFilename = PhysicsDemoManager.SCENE_NAME,
             defaultSceneFolderPath = defaultSceneFolderPath,
-            serializationManager = PhysicsDemoStateHolderImpl().serializationManager,
+            serializationManager = PhysicsDemoStateHolderImpl(
+                isSceneEditorEnabled = true,
+            ).serializationManager,
             title = "Scene Editor - Physics Demo",
             onCloseRequest = { isSceneEditorVisible.value = false },
             sceneEditorMode = sceneJson?.let { sceneJson ->

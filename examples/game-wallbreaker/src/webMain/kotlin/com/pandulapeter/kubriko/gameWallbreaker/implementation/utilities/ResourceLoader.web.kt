@@ -11,4 +11,7 @@ package com.pandulapeter.kubriko.gameWallbreaker.implementation.utilities
 
 import com.pandulapeter.kubriko.shared.utilities.getFixedUri
 
-internal actual fun getResourceUri(path: String): String = getFixedUri("composeResources/kubriko.examples.game_wallbreaker.generated.resources/" + path)
+internal actual fun getResourceUri(path: String, webRootPathName: String): String = getFixedUri(
+    path = "composeResources/kubriko.examples.game_wallbreaker.generated.resources/" + path,
+    rootPathName = webRootPathName,
+)

@@ -54,12 +54,13 @@ import kubriko.examples.game_wallbreaker.generated.resources.score
 import kubriko.examples.game_wallbreaker.generated.resources.sound_effects_disable
 import kubriko.examples.game_wallbreaker.generated.resources.sound_effects_enable
 
-internal class LoadingManager : Manager() {
-
+internal class LoadingManager(
+    webRootPathName: String,
+) : Manager() {
     private val musicManager by manager<MusicManager>()
     private val soundManager by manager<SoundManager>()
-    private val musicUris = AudioManager.getMusicUrisToPreload()
-    private val soundUris = AudioManager.getSoundUrisToPreload()
+    private val musicUris = AudioManager.getMusicUrisToPreload(webRootPathName)
+    private val soundUris = AudioManager.getSoundUrisToPreload(webRootPathName)
     private val areGameResourcesLoaded by autoInitializingLazy {
         combine(
             musicManager.getLoadingProgress(musicUris),

@@ -13,4 +13,4 @@ import kubriko.examples.game_space_squadron.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 @OptIn(ExperimentalResourceApi::class)
-internal actual fun getResourceUri(path: String): String = Res.getUri(path)
+internal actual fun getResourceUri(path: String, webRootPathName: String): String = Res.getUri(path)

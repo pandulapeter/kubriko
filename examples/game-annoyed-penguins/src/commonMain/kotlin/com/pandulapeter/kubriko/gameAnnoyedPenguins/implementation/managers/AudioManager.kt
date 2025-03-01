@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.update
 internal class AudioManager(
     private val stateManager: StateManager,
     private val userPreferencesManager: UserPreferencesManager,
+    private val webRootPathName: String,
 ) : Manager() {
     private val musicManager by manager<MusicManager>()
     private val soundManager by manager<SoundManager>()
@@ -45,11 +46,11 @@ internal class AudioManager(
         }.distinctUntilChanged().onEach { (isFocused, isMusicEnabled, shouldStopMusic) ->
             if (isMusicEnabled && isFocused && !shouldStopMusic) {
                 musicManager.play(
-                    uri = getResourceUri(URI_MUSIC),
+                    uri = getResourceUri(URI_MUSIC, webRootPathName),
                     shouldLoop = true,
                 )
             } else {
-                musicManager.pause(getResourceUri(URI_MUSIC))
+                musicManager.pause(getResourceUri(URI_MUSIC, webRootPathName))
             }
         }.launchIn(scope)
         stateManager.isFocused
@@ -59,7 +60,7 @@ internal class AudioManager(
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
-        soundUrisToPlay.forEach { soundManager.play(getResourceUri(it)) }
+        soundUrisToPlay.forEach { soundManager.play(getResourceUri(it, webRootPathName)) }
         soundUrisToPlay.clear()
     }
 
@@ -80,13 +81,13 @@ internal class AudioManager(
         private const val URI_SOUND_BUTTON_TOGGLE = "files/sounds/button_toggle.wav"
         private const val URI_SOUND_BUTTON_HOVER = "files/sounds/button_hover.wav"
 
-        fun getMusicUrisToPreload() = listOf(
+        fun getMusicUrisToPreload(webRootPathName: String) = listOf(
             URI_MUSIC,
-        ).map { getResourceUri(it) }
+        ).map { getResourceUri(it, webRootPathName) }
 
-        fun getSoundUrisToPreload() = listOf(
+        fun getSoundUrisToPreload(webRootPathName: String) = listOf(
             URI_SOUND_BUTTON_TOGGLE,
             URI_SOUND_BUTTON_HOVER,
-        ).map { getResourceUri(it) }
+        ).map { getResourceUri(it, webRootPathName) }
     }
 }

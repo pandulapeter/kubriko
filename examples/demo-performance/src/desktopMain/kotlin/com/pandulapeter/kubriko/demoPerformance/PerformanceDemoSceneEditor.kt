@@ -20,7 +20,9 @@ import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
 
 fun main() = SceneEditor.show(
     defaultSceneFilename = PerformanceDemoManager.SCENE_NAME,
-    serializationManager = PerformanceDemoStateHolderImpl().serializationManager,
+    serializationManager = PerformanceDemoStateHolderImpl(
+        isSceneEditorEnabled = true,
+    ).serializationManager,
 )
 
 @Composable
@@ -31,7 +33,9 @@ fun PerformanceDemoSceneEditor(
         SceneEditor(
             defaultSceneFilename = PerformanceDemoManager.SCENE_NAME,
             defaultSceneFolderPath = defaultSceneFolderPath,
-            serializationManager = PerformanceDemoStateHolderImpl().serializationManager,
+            serializationManager = PerformanceDemoStateHolderImpl(
+                isSceneEditorEnabled = true,
+            ).serializationManager,
             title = "Scene Editor - Performance Demo",
             onCloseRequest = { isSceneEditorVisible.value = false },
             sceneEditorMode = sceneJson?.let { sceneJson ->

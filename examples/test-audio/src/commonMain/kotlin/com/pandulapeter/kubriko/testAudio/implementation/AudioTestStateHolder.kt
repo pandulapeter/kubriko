@@ -57,7 +57,9 @@ sealed interface AudioTestStateHolder : StateHolder {
     }
 }
 
-internal class AudioTestStateHolderImpl : AudioTestStateHolder {
+internal class AudioTestStateHolderImpl(
+    webRootPathName: String,
+) : AudioTestStateHolder {
     private val musicManager = MusicManager.newInstance(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
@@ -66,7 +68,9 @@ internal class AudioTestStateHolderImpl : AudioTestStateHolder {
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    private val audioTestManager = AudioTestManager()
+    private val audioTestManager = AudioTestManager(
+        webRootPathName = webRootPathName,
+    )
     private val _kubriko = MutableStateFlow(
         Kubriko.newInstance(
             musicManager,

@@ -65,25 +65,37 @@ internal fun ShowcaseEntry.ExampleScreen(
 ) {
     when (this) {
         ShowcaseEntry.WALLBREAKER -> WallbreakerGame(
-            stateHolder = getOrCreateState(stateHolders, ::createWallbreakerGameStateHolder),
+            stateHolder = getOrCreateState(stateHolders) {
+                createWallbreakerGameStateHolder(
+                    webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
+                )
+            },
             windowInsets = windowInsets,
             isInFullscreenMode = isInFullscreenMode,
             onFullscreenModeToggled = onFullscreenModeToggled,
         )
 
         ShowcaseEntry.SPACE_SQUADRON -> SpaceSquadronGame(
-            stateHolder = getOrCreateState(stateHolders, ::createSpaceSquadronGameStateHolder),
+            stateHolder = getOrCreateState(stateHolders) {
+                createSpaceSquadronGameStateHolder(
+                    webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
+                )
+            },
             windowInsets = windowInsets,
             isInFullscreenMode = isInFullscreenMode,
             onFullscreenModeToggled = onFullscreenModeToggled,
         )
 
         ShowcaseEntry.ANNOYED_PENGUINS -> AnnoyedPenguinsGame(
-            stateHolder = getOrCreateState(stateHolders, ::createAnnoyedPenguinsGameStateHolder),
+            stateHolder = getOrCreateState(stateHolders) {
+                createAnnoyedPenguinsGameStateHolder(
+                    webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
+                    isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+                )
+            },
             windowInsets = windowInsets,
             isInFullscreenMode = isInFullscreenMode,
             onFullscreenModeToggled = onFullscreenModeToggled,
-            isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
         )
 
         ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemo(
@@ -97,15 +109,21 @@ internal fun ShowcaseEntry.ExampleScreen(
         )
 
         ShowcaseEntry.PERFORMANCE -> PerformanceDemo(
-            stateHolder = getOrCreateState(stateHolders, ::createPerformanceDemoStateHolder),
+            stateHolder = getOrCreateState(stateHolders) {
+                createPerformanceDemoStateHolder(
+                    isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+                )
+            },
             windowInsets = windowInsets,
-            isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
         )
 
         ShowcaseEntry.PHYSICS -> PhysicsDemo(
-            stateHolder = getOrCreateState(stateHolders, ::createPhysicsDemoStateHolder),
+            stateHolder = getOrCreateState(stateHolders) {
+                createPhysicsDemoStateHolder(
+                    isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+                )
+            },
             windowInsets = windowInsets,
-            isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
         )
 
         ShowcaseEntry.SHADER_ANIMATIONS -> ShaderAnimationsDemo(
@@ -114,7 +132,11 @@ internal fun ShowcaseEntry.ExampleScreen(
         )
 
         ShowcaseEntry.AUDIO -> AudioTest(
-            stateHolder = getOrCreateState(stateHolders, ::createAudioTestStateHolder),
+            stateHolder = getOrCreateState(stateHolders) {
+                createAudioTestStateHolder(
+                    webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
+                )
+            },
             windowInsets = windowInsets,
         )
 
@@ -146,17 +168,53 @@ internal fun ShowcaseEntry.ExampleScreen(
 }
 
 internal fun ShowcaseEntry.getStateHolder() = when (this) {
-    ShowcaseEntry.WALLBREAKER -> getOrCreateState(stateHolders, ::createWallbreakerGameStateHolder)
-    ShowcaseEntry.SPACE_SQUADRON -> getOrCreateState(stateHolders, ::createSpaceSquadronGameStateHolder)
-    ShowcaseEntry.ANNOYED_PENGUINS -> getOrCreateState(stateHolders, ::createAnnoyedPenguinsGameStateHolder)
+    ShowcaseEntry.WALLBREAKER -> getOrCreateState(stateHolders) {
+        createWallbreakerGameStateHolder(
+            webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
+        )
+    }
+
+    ShowcaseEntry.SPACE_SQUADRON -> getOrCreateState(stateHolders) {
+        createSpaceSquadronGameStateHolder(
+            webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
+        )
+    }
+
+    ShowcaseEntry.ANNOYED_PENGUINS -> getOrCreateState(stateHolders) {
+        createAnnoyedPenguinsGameStateHolder(
+            webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
+            isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+        )
+    }
+
     ShowcaseEntry.CONTENT_SHADERS -> getOrCreateState(stateHolders, ::createContentShadersDemoStateHolder)
+
     ShowcaseEntry.PARTICLES -> getOrCreateState(stateHolders, ::createParticlesDemoStateHolder)
-    ShowcaseEntry.PERFORMANCE -> getOrCreateState(stateHolders, ::createPerformanceDemoStateHolder)
-    ShowcaseEntry.PHYSICS -> getOrCreateState(stateHolders, ::createPhysicsDemoStateHolder)
+
+    ShowcaseEntry.PERFORMANCE -> getOrCreateState(stateHolders) {
+        createPerformanceDemoStateHolder(
+            isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+        )
+    }
+
+    ShowcaseEntry.PHYSICS -> getOrCreateState(stateHolders) {
+        createPhysicsDemoStateHolder(
+            isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+        )
+    }
+
     ShowcaseEntry.SHADER_ANIMATIONS -> getOrCreateState(stateHolders, ::createShaderAnimationsDemoStateHolder)
-    ShowcaseEntry.AUDIO -> getOrCreateState(stateHolders, ::createAudioTestStateHolder)
+
+    ShowcaseEntry.AUDIO -> getOrCreateState(stateHolders) {
+        createAudioTestStateHolder(
+            webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
+        )
+    }
+
     ShowcaseEntry.INPUT -> getOrCreateState(stateHolders, ::createInputTestStateHolder)
+
     ShowcaseEntry.ABOUT -> getOrCreateState(stateHolders, ::createAboutScreenStateHolder)
+
     ShowcaseEntry.LICENSES -> getOrCreateState(stateHolders, ::createLicensesScreenStateHolder)
 }
 

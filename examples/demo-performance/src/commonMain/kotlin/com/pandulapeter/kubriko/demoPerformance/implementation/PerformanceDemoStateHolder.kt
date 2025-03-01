@@ -41,7 +41,9 @@ sealed interface PerformanceDemoStateHolder : StateHolder {
     }
 }
 
-internal class PerformanceDemoStateHolderImpl : PerformanceDemoStateHolder {
+internal class PerformanceDemoStateHolderImpl(
+    isSceneEditorEnabled: Boolean,
+) : PerformanceDemoStateHolder {
     private val json = Json { ignoreUnknownKeys = true }
     val serializationManager = EditableMetadata.newSerializationManagerInstance(
         EditableMetadata(
@@ -71,7 +73,10 @@ internal class PerformanceDemoStateHolderImpl : PerformanceDemoStateHolder {
         )
     }
     val performanceDemoManager by lazy {
-        PerformanceDemoManager(sceneJson = sceneJson)
+        PerformanceDemoManager(
+            sceneJson = sceneJson,
+            isSceneEditorEnabled = isSceneEditorEnabled,
+        )
     }
     private val viewportManager by lazy {
         ViewportManager.newInstance(

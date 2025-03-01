@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -83,6 +82,7 @@ import org.jetbrains.compose.resources.stringResource
 
 internal class PhysicsDemoManager(
     private val sceneJson: MutableStateFlow<String>?,
+    private val isSceneEditorEnabled: Boolean,
 ) : Manager(), PointerInputAware, Unique {
 
     private val _actionType = MutableStateFlow(ActionType.SHAPE)
@@ -93,7 +93,6 @@ internal class PhysicsDemoManager(
     private val viewportManager by manager<ViewportManager>()
     private val _shouldShowLoadingIndicator = MutableStateFlow(true)
     private val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
-    private val isSceneEditorEnabled = mutableStateOf(true)
 
     override fun onInitialize(kubriko: Kubriko) {
         stateManager.isFocused
@@ -110,10 +109,6 @@ internal class PhysicsDemoManager(
             .launchIn(scope)
         sceneJson?.filter { it.isNotBlank() }?.onEach(::processJson)?.launchIn(scope)
         loadMap()
-    }
-
-    fun disableSceneEditor() {
-        isSceneEditorEnabled.value = false
     }
 
     @Composable
@@ -140,7 +135,7 @@ internal class PhysicsDemoManager(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
             ) {
-                if (isSceneEditorEnabled.value) {
+                if (isSceneEditorEnabled) {
                     PlatformSpecificContent()
                 }
                 Spacer(modifier = Modifier.width(8.dp))

@@ -14,28 +14,23 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceDemoStateHolder
 import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceDemoStateHolderImpl
 
-fun createPerformanceDemoStateHolder(): PerformanceDemoStateHolder = PerformanceDemoStateHolderImpl()
+fun createPerformanceDemoStateHolder(isSceneEditorEnabled: Boolean): PerformanceDemoStateHolder = PerformanceDemoStateHolderImpl(
+    isSceneEditorEnabled = isSceneEditorEnabled,
+)
 
 @Composable
 fun PerformanceDemo(
     modifier: Modifier = Modifier,
-    stateHolder: PerformanceDemoStateHolder = createPerformanceDemoStateHolder(),
+    stateHolder: PerformanceDemoStateHolder = createPerformanceDemoStateHolder(true),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
-    isSceneEditorEnabled: Boolean = true,
 ) {
     stateHolder as PerformanceDemoStateHolderImpl
-    LaunchedEffect(isSceneEditorEnabled) {
-        if (!isSceneEditorEnabled) {
-            stateHolder.performanceDemoManager.disableSceneEditor()
-        }
-    }
     KubrikoViewport(
         modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest),
         kubriko = stateHolder.kubriko.collectAsState().value,

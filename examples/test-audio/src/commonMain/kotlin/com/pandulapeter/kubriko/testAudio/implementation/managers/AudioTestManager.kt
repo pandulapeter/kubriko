@@ -66,13 +66,15 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
-internal class AudioTestManager : Manager() {
+internal class AudioTestManager(
+    webRootPathName: String,
+) : Manager() {
     private val musicManager by manager<MusicManager>()
     private val stateManager by manager<StateManager>()
     private var isTrack1Playing = mutableStateOf(false)
     private var isTrack2Playing = mutableStateOf(false)
-    private val track1Uri = getResourceUri(URI_MUSIC_1)
-    private val track2Uri = getResourceUri(URI_MUSIC_2)
+    private val track1Uri = getResourceUri(URI_MUSIC_1, webRootPathName)
+    private val track2Uri = getResourceUri(URI_MUSIC_2, webRootPathName)
     private val shouldStopMusic = MutableStateFlow(false)
 
     override fun onInitialize(kubriko: Kubriko) {

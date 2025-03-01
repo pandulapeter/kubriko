@@ -65,7 +65,9 @@ sealed interface PhysicsDemoStateHolder : StateHolder {
     }
 }
 
-internal class PhysicsDemoStateHolderImpl : PhysicsDemoStateHolder {
+internal class PhysicsDemoStateHolderImpl(
+    isSceneEditorEnabled: Boolean,
+) : PhysicsDemoStateHolder {
     private val json = Json { ignoreUnknownKeys = true }
     val serializationManager = EditableMetadata.newSerializationManagerInstance(
         EditableMetadata(
@@ -140,7 +142,10 @@ internal class PhysicsDemoStateHolderImpl : PhysicsDemoStateHolder {
         )
     }
     val physicsDemoManager by lazy {
-        PhysicsDemoManager(sceneJson = sceneJson)
+        PhysicsDemoManager(
+            sceneJson = sceneJson,
+            isSceneEditorEnabled = isSceneEditorEnabled,
+        )
     }
     private val _kubriko by lazy {
         MutableStateFlow(

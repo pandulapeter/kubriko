@@ -35,7 +35,9 @@ import kotlinx.coroutines.flow.asStateFlow
 
 sealed interface WallbreakerGameStateHolder : StateHolder
 
-internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
+internal class WallbreakerGameStateHolderImpl(
+    webRootPathName: String,
+) : WallbreakerGameStateHolder {
     private val sharedMusicManager = MusicManager.newInstance(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
@@ -49,7 +51,9 @@ internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
         instanceNameForLogging = LOG_TAG_BACKGROUND,
     )
     private val backgroundAnimationManager = BackgroundAnimationManager()
-    val backgroundLoadingManager = LoadingManager()
+    val backgroundLoadingManager = LoadingManager(
+        webRootPathName = webRootPathName,
+    )
     val backgroundKubriko = Kubriko.newInstance(
         sharedMusicManager,
         sharedSoundManager,
@@ -77,15 +81,27 @@ internal class WallbreakerGameStateHolderImpl : WallbreakerGameStateHolder {
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    val scoreManager = ScoreManager(persistenceManager)
+    val scoreManager = ScoreManager(
+        persistenceManager = persistenceManager,
+    )
     val shaderManager = ShaderManager.newInstance(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    val userPreferencesManager = UserPreferencesManager(persistenceManager)
-    val gameplayManager = GameplayManager(stateManager)
-    val audioManager = AudioManager(stateManager, userPreferencesManager)
-    val uiManager = UIManager(stateManager)
+    val userPreferencesManager = UserPreferencesManager(
+        persistenceManager = persistenceManager,
+    )
+    val gameplayManager = GameplayManager(
+        stateManager = stateManager,
+    )
+    val audioManager = AudioManager(
+        stateManager = stateManager,
+        userPreferencesManager = userPreferencesManager,
+        webRootPathName = webRootPathName,
+    )
+    val uiManager = UIManager(
+        stateManager = stateManager,
+    )
     private val collisionManager = CollisionManager.newInstance(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,

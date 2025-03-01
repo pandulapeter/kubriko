@@ -27,7 +27,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.lerp
@@ -63,6 +62,7 @@ import org.jetbrains.compose.resources.MissingResourceException
 
 internal class PerformanceDemoManager(
     private val sceneJson: MutableStateFlow<String>?,
+    private val isSceneEditorEnabled: Boolean,
 ) : Manager() {
     private val actorManager by manager<ActorManager>()
     private val viewportManager by manager<ViewportManager>()
@@ -71,7 +71,6 @@ internal class PerformanceDemoManager(
     private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
     private val _shouldShowLoadingIndicator = MutableStateFlow(true)
     private val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
-    private val isSceneEditorEnabled = mutableStateOf(true)
 
     override fun onInitialize(kubriko: Kubriko) {
         stateManager.isFocused
@@ -125,7 +124,7 @@ internal class PerformanceDemoManager(
                     )
                 }
             }
-            if (isSceneEditorEnabled.value) {
+            if (isSceneEditorEnabled) {
                 Spacer(modifier = Modifier.weight(1f))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -138,10 +137,6 @@ internal class PerformanceDemoManager(
                 }
             }
         }
-    }
-
-    fun disableSceneEditor() {
-        isSceneEditorEnabled.value = false
     }
 
     @OptIn(ExperimentalResourceApi::class)

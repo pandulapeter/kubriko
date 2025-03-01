@@ -50,16 +50,21 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.ic_pause
 import kubriko.examples.game_annoyed_penguins.generated.resources.pause
 import org.jetbrains.compose.resources.stringResource
 
-fun createAnnoyedPenguinsGameStateHolder(): AnnoyedPenguinsGameStateHolder = AnnoyedPenguinsGameStateHolderImpl()
+fun createAnnoyedPenguinsGameStateHolder(
+    webRootPathName: String,
+    isSceneEditorEnabled: Boolean,
+): AnnoyedPenguinsGameStateHolder = AnnoyedPenguinsGameStateHolderImpl(
+    webRootPathName = webRootPathName,
+    isSceneEditorEnabled = isSceneEditorEnabled,
+)
 
 @Composable
 fun AnnoyedPenguinsGame(
     modifier: Modifier = Modifier,
-    stateHolder: AnnoyedPenguinsGameStateHolder = createAnnoyedPenguinsGameStateHolder(),
+    stateHolder: AnnoyedPenguinsGameStateHolder = createAnnoyedPenguinsGameStateHolder("", true),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     isInFullscreenMode: Boolean? = null,
     onFullscreenModeToggled: () -> Unit = {},
-    isSceneEditorEnabled: Boolean = true,
 ) = AnnoyedPenguinsTheme {
     stateHolder as AnnoyedPenguinsGameStateHolderImpl
     KubrikoViewport(
@@ -148,7 +153,7 @@ fun AnnoyedPenguinsGame(
                     stateHolder.gameplayManager.setCurrentLevel(level)
                     stateHolder.stateManager.updateIsRunning(true)
                 },
-                isSceneEditorEnabled = isSceneEditorEnabled,
+                isSceneEditorEnabled = stateHolder.isSceneEditorEnabled,
             )
         }
     }

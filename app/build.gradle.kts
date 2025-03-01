@@ -144,8 +144,8 @@ buildkonfig {
             value = rootProject.version.toString(),
         )
         buildConfigFieldStringConstant(
-            name = "WEB_PATH_NAME",
-            value = buildConfigurationValue("webPathName"),
+            name = "WEB_ROOT_PATH_NAME",
+            value = buildConfigurationValue("webRootPathName"),
         )
         buildConfigFieldStringConstant(
             name = "APP_VERSION",

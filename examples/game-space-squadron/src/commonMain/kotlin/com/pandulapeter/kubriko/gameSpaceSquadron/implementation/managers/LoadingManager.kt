@@ -58,12 +58,14 @@ import kubriko.examples.game_space_squadron.generated.resources.sprite_power_up
 import kubriko.examples.game_space_squadron.generated.resources.sprite_shield
 import kubriko.examples.game_space_squadron.generated.resources.sprite_ship
 
-internal class LoadingManager : Manager() {
+internal class LoadingManager(
+    webRootPathName: String,
+) : Manager() {
     private val musicManager by manager<MusicManager>()
     private val soundManager by manager<SoundManager>()
     private val spriteManager by manager<SpriteManager>()
-    private val musicUris = AudioManager.getMusicUrisToPreload()
-    private val soundUris = AudioManager.getSoundUrisToPreload()
+    private val musicUris = AudioManager.getMusicUrisToPreload(webRootPathName)
+    private val soundUris = AudioManager.getSoundUrisToPreload(webRootPathName)
     private val spriteResources = listOf(
         Res.drawable.sprite_ship,
         Res.drawable.sprite_alien_ship,

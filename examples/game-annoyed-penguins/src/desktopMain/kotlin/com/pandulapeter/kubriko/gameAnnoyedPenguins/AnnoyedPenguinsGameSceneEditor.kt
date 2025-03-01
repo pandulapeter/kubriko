@@ -16,7 +16,10 @@ import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.isSceneEdi
 import com.pandulapeter.kubriko.sceneEditor.SceneEditor
 
 fun main() = SceneEditor.show(
-    serializationManager = AnnoyedPenguinsGameStateHolderImpl().serializationManager,
+    serializationManager = AnnoyedPenguinsGameStateHolderImpl(
+        webRootPathName = "",
+        isSceneEditorEnabled = true,
+    ).serializationManager,
 )
 
 @Composable
@@ -26,7 +29,10 @@ fun AnnoyedPenguinsGameSceneEditor(
     if (isSceneEditorVisible.collectAsState().value) {
         SceneEditor(
             defaultSceneFolderPath = defaultSceneFolderPath,
-            serializationManager = AnnoyedPenguinsGameStateHolderImpl().serializationManager,
+            serializationManager = AnnoyedPenguinsGameStateHolderImpl(
+                webRootPathName = "",
+                isSceneEditorEnabled = true,
+            ).serializationManager,
             title = "Scene Editor - Annoyed Penguins",
             onCloseRequest = { isSceneEditorVisible.value = false },
         )

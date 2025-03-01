@@ -44,7 +44,10 @@ import kotlinx.serialization.json.Json
 
 sealed interface AnnoyedPenguinsGameStateHolder : StateHolder
 
-internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHolder {
+internal class AnnoyedPenguinsGameStateHolderImpl(
+    webRootPathName: String,
+    val isSceneEditorEnabled: Boolean,
+) : AnnoyedPenguinsGameStateHolder {
 
     private val json = Json { ignoreUnknownKeys = true }
     val serializationManager = EditableMetadata.newSerializationManagerInstance(
@@ -109,7 +112,9 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
         )
     }
     val backgroundLoadingManager by lazy {
-        LoadingManager()
+        LoadingManager(
+            webRootPathName = webRootPathName,
+        )
     }
     val stateManager by lazy {
         StateManager.newInstance(
@@ -128,6 +133,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl : AnnoyedPenguinsGameStateHold
         AudioManager(
             stateManager = stateManager,
             userPreferencesManager = sharedUserPreferencesManager,
+            webRootPathName = webRootPathName,
         )
     }
     private val particleManager by lazy {

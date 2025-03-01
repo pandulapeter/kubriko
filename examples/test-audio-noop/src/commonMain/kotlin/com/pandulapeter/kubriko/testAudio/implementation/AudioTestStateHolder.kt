@@ -22,7 +22,7 @@ sealed interface AudioTestStateHolder : StateHolder {
     }
 }
 
-internal class AudioTestStateHolderImpl : AudioTestStateHolder {
+internal class AudioTestStateHolderImpl(webRootPathName: String) : AudioTestStateHolder {
 
     override val kubriko = emptyFlow<Kubriko?>()
 

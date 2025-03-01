@@ -21,12 +21,14 @@ import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.testAudio.implementation.AudioTestStateHolder
 import com.pandulapeter.kubriko.testAudio.implementation.AudioTestStateHolderImpl
 
-fun createAudioTestStateHolder(): AudioTestStateHolder = AudioTestStateHolderImpl()
+fun createAudioTestStateHolder(webRootPathName: String): AudioTestStateHolder = AudioTestStateHolderImpl(
+    webRootPathName = webRootPathName,
+)
 
 @Composable
 fun AudioTest(
     modifier: Modifier = Modifier,
-    stateHolder: AudioTestStateHolder = createAudioTestStateHolder(),
+    stateHolder: AudioTestStateHolder = createAudioTestStateHolder(""),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as AudioTestStateHolderImpl

@@ -37,7 +37,9 @@ import kotlinx.coroutines.flow.asStateFlow
 
 sealed interface SpaceSquadronGameStateHolder : StateHolder
 
-internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
+internal class SpaceSquadronGameStateHolderImpl(
+    webRootPathName: String,
+) : SpaceSquadronGameStateHolder {
 
     private val sharedMusicManager = MusicManager.newInstance(
         isLoggingEnabled = true,
@@ -51,7 +53,9 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    val backgroundLoadingManager = LoadingManager()
+    val backgroundLoadingManager = LoadingManager(
+        webRootPathName = webRootPathName,
+    )
     private val backgroundStateManager = StateManager.newInstance()
     private val backgroundShaderManager = ShaderManager.newInstance(
         isLoggingEnabled = true,
@@ -82,20 +86,32 @@ internal class SpaceSquadronGameStateHolderImpl : SpaceSquadronGameStateHolder {
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    private val scoreManager = ScoreManager(persistenceManager)
-    val userPreferencesManager = UserPreferencesManager(persistenceManager)
-    val audioManager = AudioManager(stateManager, userPreferencesManager)
+    private val scoreManager = ScoreManager(
+        persistenceManager = persistenceManager,
+    )
+    val userPreferencesManager = UserPreferencesManager(
+        persistenceManager = persistenceManager,
+    )
+    val audioManager = AudioManager(
+        stateManager = stateManager,
+        userPreferencesManager = userPreferencesManager,
+        webRootPathName = webRootPathName,
+    )
     private val particleManager = ParticleManager.newInstance(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    val gameplayManager = GameplayManager(backgroundStateManager)
+    val gameplayManager = GameplayManager(
+        backgroundStateManager = backgroundStateManager,
+    )
     private val actorManager = ActorManager.newInstance(
         shouldUpdateActorsWhileNotRunning = true, // To ensure proper scaling during resize events while paused
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
-    val uiManager = UIManager(stateManager)
+    val uiManager = UIManager(
+        stateManager = stateManager,
+    )
     private val collisionManager = CollisionManager.newInstance(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,

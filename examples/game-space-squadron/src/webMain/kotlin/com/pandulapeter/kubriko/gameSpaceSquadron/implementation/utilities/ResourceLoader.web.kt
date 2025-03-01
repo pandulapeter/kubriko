@@ -11,4 +11,7 @@ package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.utilities
 
 import com.pandulapeter.kubriko.shared.utilities.getFixedUri
 
-internal actual fun getResourceUri(path: String): String = getFixedUri("composeResources/kubriko.examples.game_space_squadron.generated.resources/" + path)
+internal actual fun getResourceUri(path: String, webRootPathName: String): String = getFixedUri(
+    path = "composeResources/kubriko.examples.game_space_squadron.generated.resources/" + path,
+    rootPathName = webRootPathName,
+)

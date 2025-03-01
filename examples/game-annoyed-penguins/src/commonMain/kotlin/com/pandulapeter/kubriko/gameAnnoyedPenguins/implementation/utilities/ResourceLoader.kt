@@ -14,4 +14,4 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.utilities
  * This messy workaround redirects the URI back to the root.
  * Most apps should not need this, as Res.getUri() should work fine under normal circumstances.
  */
-internal expect fun getResourceUri(path: String): String
+internal expect fun getResourceUri(path: String, webRootPathName: String): String

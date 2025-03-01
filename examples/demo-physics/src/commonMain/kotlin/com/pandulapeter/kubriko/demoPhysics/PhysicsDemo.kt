@@ -14,28 +14,23 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoStateHolder
 import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoStateHolderImpl
 
-fun createPhysicsDemoStateHolder(): PhysicsDemoStateHolder = PhysicsDemoStateHolderImpl()
+fun createPhysicsDemoStateHolder(isSceneEditorEnabled: Boolean): PhysicsDemoStateHolder = PhysicsDemoStateHolderImpl(
+    isSceneEditorEnabled = isSceneEditorEnabled,
+)
 
 @Composable
 fun PhysicsDemo(
     modifier: Modifier = Modifier,
-    stateHolder: PhysicsDemoStateHolder = createPhysicsDemoStateHolder(),
+    stateHolder: PhysicsDemoStateHolder = createPhysicsDemoStateHolder(true),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
-    isSceneEditorEnabled: Boolean = true,
 ) {
     stateHolder as PhysicsDemoStateHolderImpl
-    LaunchedEffect(isSceneEditorEnabled) {
-        if (!isSceneEditorEnabled) {
-            stateHolder.physicsDemoManager.disableSceneEditor()
-        }
-    }
     KubrikoViewport(
         modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest),
         kubriko = stateHolder.kubriko.collectAsState().value,
