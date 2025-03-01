@@ -117,9 +117,9 @@ internal object ResourceLoader {
             && preloadedString(Res.string.test_audio_subtitle).value.isNotBlank()
             && preloadedString(Res.string.test_input).value.isNotBlank()
             && preloadedString(Res.string.test_input_subtitle).value.isNotBlank()
-            && preloadedString(Res.string.other_about).value.isNotBlank()
-            && preloadedString(Res.string.other_about_subtitle).value.isNotBlank()
             && preloadedString(Res.string.other_licenses).value.isNotBlank()
             && preloadedString(Res.string.other_licenses_subtitle).value.isNotBlank()
+            && preloadedString(Res.string.other_about).value.isNotBlank()
+            && preloadedString(Res.string.other_about_subtitle).value.isNotBlank()
 
 }

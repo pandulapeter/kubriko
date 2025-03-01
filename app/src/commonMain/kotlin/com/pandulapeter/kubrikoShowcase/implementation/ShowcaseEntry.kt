@@ -125,17 +125,17 @@ internal enum class ShowcaseEntry(
     ),
 
     // Other
-    ABOUT(
-        type = ShowcaseEntryType.OTHER,
-        titleStringResource = Res.string.other_about,
-        subtitleStringResource = Res.string.other_about_subtitle,
-        areResourcesLoaded = { AboutScreenStateHolder.areResourcesLoaded() },
-    ),
     LICENSES(
         type = ShowcaseEntryType.OTHER,
         titleStringResource = Res.string.other_licenses,
         subtitleStringResource = Res.string.other_licenses_subtitle,
         areResourcesLoaded = { LicensesScreenStateHolder.areResourcesLoaded() },
+    ),
+    ABOUT(
+        type = ShowcaseEntryType.OTHER,
+        titleStringResource = Res.string.other_about,
+        subtitleStringResource = Res.string.other_about_subtitle,
+        areResourcesLoaded = { AboutScreenStateHolder.areResourcesLoaded() },
     ),
 }
 

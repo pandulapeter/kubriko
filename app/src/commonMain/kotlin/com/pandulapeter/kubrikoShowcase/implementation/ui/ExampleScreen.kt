@@ -145,13 +145,13 @@ internal fun ShowcaseEntry.ExampleScreen(
             windowInsets = windowInsets,
         )
 
-        ShowcaseEntry.ABOUT -> AboutScreen(
-            stateHolder = getOrCreateState(stateHolders, ::createAboutScreenStateHolder),
+        ShowcaseEntry.LICENSES -> LicensesScreen(
+            stateHolder = getOrCreateState(stateHolders, ::createLicensesScreenStateHolder),
             windowInsets = windowInsets,
         )
 
-        ShowcaseEntry.LICENSES -> LicensesScreen(
-            stateHolder = getOrCreateState(stateHolders, ::createLicensesScreenStateHolder),
+        ShowcaseEntry.ABOUT -> AboutScreen(
+            stateHolder = getOrCreateState(stateHolders, ::createAboutScreenStateHolder),
             windowInsets = windowInsets,
         )
     }
@@ -213,9 +213,9 @@ internal fun ShowcaseEntry.getStateHolder() = when (this) {
 
     ShowcaseEntry.INPUT -> getOrCreateState(stateHolders, ::createInputTestStateHolder)
 
-    ShowcaseEntry.ABOUT -> getOrCreateState(stateHolders, ::createAboutScreenStateHolder)
-
     ShowcaseEntry.LICENSES -> getOrCreateState(stateHolders, ::createLicensesScreenStateHolder)
+
+    ShowcaseEntry.ABOUT -> getOrCreateState(stateHolders, ::createAboutScreenStateHolder)
 }
 
 private inline fun <reified T : StateHolder> getOrCreateState(
@@ -235,6 +235,6 @@ private val ShowcaseEntry.stateHolderType
         ShowcaseEntry.SHADER_ANIMATIONS -> ShaderAnimationsDemoStateHolder::class
         ShowcaseEntry.AUDIO -> AudioTestStateHolder::class
         ShowcaseEntry.INPUT -> InputTestStateHolder::class
-        ShowcaseEntry.ABOUT -> AboutScreenStateHolder::class
         ShowcaseEntry.LICENSES -> LicensesScreenStateHolder::class
+        ShowcaseEntry.ABOUT -> AboutScreenStateHolder::class
     }

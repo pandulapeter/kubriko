@@ -206,11 +206,6 @@ private enum class Dependency(
         url = "https://github.com/umjammer/jlayer/blob/master/LICENSE.txt",
         type = LicenseType.LGPL_2_1,
     ),
-    SINGLE_PAGE_APPS_FOR_GITHUB_PAGES(
-        dependencyName = "Single Page Apps for GitHub Pages",
-        url = "https://github.com/rafgraph/spa-github-pages/blob/gh-pages/LICENSE",
-        type = LicenseType.MIT,
-    ),
     JPHYSICS(
         dependencyName = "JPhysics",
         url = "https://github.com/HaydenMarshalla/JPhysics/blob/master/LICENSE",
@@ -219,6 +214,11 @@ private enum class Dependency(
     KPHYSICS(
         dependencyName = "KPhysics",
         url = "https://github.com/KPhysics/KPhysics/blob/master/LICENSE",
+        type = LicenseType.MIT,
+    ),
+    SINGLE_PAGE_APPS_FOR_GITHUB_PAGES(
+        dependencyName = "Single Page Apps for GitHub Pages",
+        url = "https://github.com/rafgraph/spa-github-pages/blob/gh-pages/LICENSE",
         type = LicenseType.MIT,
     ),
     KUBRIKO(
