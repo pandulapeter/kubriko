@@ -56,6 +56,7 @@ import kubriko.app.generated.resources.other_about_content_footer_linux
 import kubriko.app.generated.resources.other_about_content_footer_mac_os
 import kubriko.app.generated.resources.other_about_content_footer_web
 import kubriko.app.generated.resources.other_about_content_footer_windows
+import kubriko.app.generated.resources.other_about_content_license
 import kubriko.app.generated.resources.other_about_privacy_policy
 import kubriko.app.generated.resources.other_about_report_an_issue
 import kubriko.app.generated.resources.other_about_repository
@@ -104,20 +105,6 @@ internal fun AboutScreen(
             )
         }
         Text(
-            text = stringResource(
-                Res.string.other_about_content_footer,
-                stateHolder.appVersion,
-                stateHolder.libraryVersion,
-                stateHolder.platform.description(),
-            ),
-            style = MaterialTheme.typography.bodySmall,
-        )
-        LargeButton(
-            icon = Res.drawable.ic_privacy_policy,
-            title = Res.string.other_about_privacy_policy,
-            onButtonPressed = { uriHandler.openUri("https://pandulapeter.github.io/legal/privacy_policy-kubriko.html") },
-        )
-        Text(
             text = stringResource(Res.string.other_about_content_creator),
             style = MaterialTheme.typography.bodySmall,
         )
@@ -145,6 +132,25 @@ internal fun AboutScreen(
                 )
             }
         }
+
+        Text(
+            text = stringResource(
+                Res.string.other_about_content_footer,
+                stateHolder.appVersion,
+                stateHolder.libraryVersion,
+                stateHolder.platform.description(),
+            ),
+            style = MaterialTheme.typography.bodySmall,
+        )
+        LargeButton(
+            icon = Res.drawable.ic_privacy_policy,
+            title = Res.string.other_about_privacy_policy,
+            onButtonPressed = { uriHandler.openUri("https://pandulapeter.github.io/legal/privacy_policy-kubriko.html") },
+        )
+        Text(
+            text = stringResource(Res.string.other_about_content_license),
+            style = MaterialTheme.typography.bodySmall,
+        )
     }
 }
 
@@ -180,6 +186,7 @@ sealed interface AboutScreenStateHolder : StateHolder {
                 && preloadedString(Res.string.other_about_spread_the_word).value.isNotBlank()
                 && preloadedString(Res.string.other_about_privacy_policy).value.isNotBlank()
                 && preloadedString(Res.string.other_about_content_creator).value.isNotBlank()
+                && preloadedString(Res.string.other_about_content_license).value.isNotBlank()
                 && preloadedString(Res.string.other_about_content_footer).value.isNotBlank()
                 && preloadedString(Res.string.other_about_content_footer_android).value.isNotBlank()
                 && preloadedString(Res.string.other_about_content_footer_ios).value.isNotBlank()

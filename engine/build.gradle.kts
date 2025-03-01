@@ -27,7 +27,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtime.compose)
         }
         desktopMain.dependencies {
-            implementation(libs.apache.commonsLang3)
+            implementation(libs.apache.commonsLang)
         }
     }
 }

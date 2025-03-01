@@ -56,7 +56,7 @@ android {
     namespace = "com.pandulapeter.kubrikoShowcase"
     defaultConfig {
         applicationId = "com.pandulapeter.kubrikoShowcase"
-        targetSdk = libs.versions.android.targetSdk.get().toInt()
+        targetSdk = libs.versions.android.compileSdk.get().toInt()
         versionCode = buildConfigurationValue("androidVersionCode").toInt()
         versionName = buildConfigurationValue("versionName")
     }
