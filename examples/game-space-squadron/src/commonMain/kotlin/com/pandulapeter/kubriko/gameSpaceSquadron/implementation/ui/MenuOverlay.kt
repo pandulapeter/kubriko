@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -22,11 +23,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntOffset
@@ -75,9 +76,11 @@ internal fun SpaceSquadronMenuOverlay(
     isInFullscreenMode: Boolean?,
     onFullscreenModeToggled: () -> Unit,
     onButtonHover: () -> Unit,
-) = Box(
+) = BoxWithConstraints(
     modifier = modifier,
 ) {
+    val shouldShowLogoHorizontally = maxHeight < 200.dp && maxWidth > 300.dp
+    val shouldShowLogoVertically = maxHeight > 200.dp
     AnimatedVisibility(
         modifier = Modifier.padding(16.dp),
         visible = !isVisible && !shouldShowInfoText && !shouldCloseConfirmationDialog,
@@ -124,48 +127,68 @@ internal fun SpaceSquadronMenuOverlay(
             onButtonHover = onButtonHover,
         )
     }
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.SpaceBetween,
+    Row(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
+        val weight  by animateFloatAsState(if (shouldShowLogoHorizontally) 0.5f else 0.01f)
         AnimatedVisibility(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            visible = isVisible && !shouldShowInfoText && !shouldCloseConfirmationDialog,
-            enter = fadeIn() + slideIn { IntOffset(0, -it.height) },
-            exit = slideOut { IntOffset(0, -it.height) } + fadeOut(),
+            modifier = Modifier.weight(weight),
+            visible = shouldShowLogoHorizontally && isVisible && !shouldShowInfoText && !shouldCloseConfirmationDialog,
+            enter = fadeIn() + slideIn { IntOffset(-it.width, 0) },
+            exit = slideOut { IntOffset(-it.width, 0) } + fadeOut(),
         ) {
-            Title(
-                onPlayButtonPressed = onPlayButtonPressed,
-                onLeaveButtonPressed = onLeaveButtonPressed,
-                onButtonHover = onButtonHover,
+            Image(
+                modifier = Modifier.padding(bottom = 24.dp),
+                painter = painterResource(Res.drawable.img_logo),
+                contentDescription = null,
             )
         }
-        AnimatedVisibility(
-            modifier = Modifier
-                .align(Alignment.End)
-                .padding(16.dp),
-            visible = isVisible && !shouldShowInfoText && !shouldCloseConfirmationDialog,
-            enter = fadeIn() + slideIn { IntOffset(0, it.height * 8) },
-            exit = slideOut { IntOffset(0, it.height * 8) } + fadeOut(),
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.SpaceBetween,
         ) {
-            UserPreferenceControls(
-                onInfoButtonPressed = onInfoButtonPressed,
-                areSoundEffectsEnabled = areSoundEffectsEnabled,
-                onSoundEffectsToggled = onSoundEffectsToggled,
-                isMusicEnabled = isMusicEnabled,
-                onMusicToggled = onMusicToggled,
-                isInFullscreenMode = isInFullscreenMode,
-                onFullscreenModeToggled = onFullscreenModeToggled,
-                onButtonHover = onButtonHover,
-            )
+            AnimatedVisibility(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                visible = isVisible && !shouldShowInfoText && !shouldCloseConfirmationDialog,
+                enter = fadeIn() + slideIn { IntOffset(0, -it.height) },
+                exit = slideOut { IntOffset(0, -it.height) } + fadeOut(),
+            ) {
+                Title(
+                    shouldShowLogoVertically = shouldShowLogoVertically,
+                    onPlayButtonPressed = onPlayButtonPressed,
+                    onLeaveButtonPressed = onLeaveButtonPressed,
+                    onButtonHover = onButtonHover,
+                )
+            }
+            AnimatedVisibility(
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(vertical = 16.dp),
+                visible = isVisible && !shouldShowInfoText && !shouldCloseConfirmationDialog,
+                enter = fadeIn() + slideIn { IntOffset(0, it.height * 8) },
+                exit = slideOut { IntOffset(0, it.height * 8) } + fadeOut(),
+            ) {
+                UserPreferenceControls(
+                    onInfoButtonPressed = onInfoButtonPressed,
+                    areSoundEffectsEnabled = areSoundEffectsEnabled,
+                    onSoundEffectsToggled = onSoundEffectsToggled,
+                    isMusicEnabled = isMusicEnabled,
+                    onMusicToggled = onMusicToggled,
+                    isInFullscreenMode = isInFullscreenMode,
+                    onFullscreenModeToggled = onFullscreenModeToggled,
+                    onButtonHover = onButtonHover,
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun Title(
+    shouldShowLogoVertically: Boolean,
     onPlayButtonPressed: () -> Unit,
     onLeaveButtonPressed: () -> Unit,
     onButtonHover: () -> Unit,
@@ -174,15 +197,15 @@ private fun Title(
 ) {
     Column(
         modifier = Modifier
-            .heightIn(max = 250.dp)
             .align(Alignment.Center)
+            .heightIn(max = 250.dp)
             .padding(top = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         BoxWithConstraints(
             modifier = Modifier.weight(1f),
         ) {
-            if (maxHeight > 72.dp) {
+            if (shouldShowLogoVertically) {
                 Image(
                     modifier = Modifier.align(Alignment.Center),
                     painter = painterResource(Res.drawable.img_logo),
