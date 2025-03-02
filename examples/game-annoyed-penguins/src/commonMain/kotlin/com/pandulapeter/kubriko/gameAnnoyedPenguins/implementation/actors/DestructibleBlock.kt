@@ -16,7 +16,9 @@ import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base.DestructiblePhysicsObject
 import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
+import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.Serializable
+import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableColor
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableRectangleBody
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
@@ -38,9 +40,12 @@ internal class DestructibleBlock private constructor(
         orientation = body.rotation
     }
 
+    @set:Exposed(name = "color")
+    var color: Color = state.color
+
     override fun DrawScope.draw() {
         drawRect(
-            color = Color.Cyan,
+            color = color,
             size = body.size.raw,
         )
         drawRect(
@@ -52,11 +57,13 @@ internal class DestructibleBlock private constructor(
 
     override fun save() = State(
         body = body,
+        color = color,
     )
 
     @kotlinx.serialization.Serializable
     data class State(
         @SerialName("body") val body: SerializableRectangleBody = RectangleBody(),
+        @SerialName("color") val color: SerializableColor = Color.White,
     ) : Serializable.State<DestructibleBlock> {
 
         override fun restore() = DestructibleBlock(this)
