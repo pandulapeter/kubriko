@@ -91,7 +91,8 @@ internal fun MenuOverlay(
     onLevelSelected: (String) -> Unit,
     isSceneEditorEnabled: Boolean,
     levelSelectorScrollState: ScrollState = rememberScrollState(),
-) {
+) = BoxWithConstraints {
+    val shouldShowLogoVertically = maxHeight > 192.dp
     AnimatedVisibility(
         visible = isInfoDialogVisible,
         enter = slideIn { IntOffset(0, -it.height) },
@@ -111,16 +112,15 @@ internal fun MenuOverlay(
         BoxWithConstraints(
             modifier = Modifier.windowInsetsPadding(windowInsets),
         ) {
-            val shouldShowLogo = maxHeight > 192.dp
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                val bias by animateFloatAsState(if (shouldShowLogo) 2.5f else 0.75f)
+                val bias by animateFloatAsState(if (shouldShowLogoVertically) 2.5f else 0.75f)
                 Box(
                     modifier = Modifier.weight(bias),
                 ) {
-                    if (shouldShowLogo) {
+                    if (shouldShowLogoVertically) {
                         Image(
                             modifier = Modifier
                                 .fillMaxSize()
