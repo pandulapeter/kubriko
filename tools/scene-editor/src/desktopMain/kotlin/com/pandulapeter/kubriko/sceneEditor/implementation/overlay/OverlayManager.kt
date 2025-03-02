@@ -106,7 +106,16 @@ internal class OverlayManager(
                                                 right = body.size.width.raw,
                                                 bottom = body.size.height.raw
                                             ) {
-                                                draw()
+                                                try {
+                                                    draw()
+                                                } catch (_: Exception) {
+                                                    with(body) {
+                                                        drawDebugBounds(
+                                                            color = Color.Black,
+                                                            stroke = strokeFront,
+                                                        )
+                                                    }
+                                                }
                                             }
                                         }
                                         with(highlighted.body) {

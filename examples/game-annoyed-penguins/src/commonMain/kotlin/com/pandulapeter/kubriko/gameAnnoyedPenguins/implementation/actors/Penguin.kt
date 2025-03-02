@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors
 
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.Kubriko
@@ -72,18 +71,7 @@ internal class Penguin private constructor(
         )
     }
 
-    override fun DrawScope.draw() {
-        try {
-            animatedSprite.draw(this)
-        } catch (_: RuntimeException) {
-            // TODO: Happens in the editor
-            drawCircle(
-                color = Color.Black,
-                radius = body.radius.raw,
-                center = body.size.center.raw,
-            )
-        }
-    }
+    override fun DrawScope.draw() = animatedSprite.draw(this)
 
     override fun save() = State(
         body = body
