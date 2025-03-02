@@ -95,6 +95,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
     }
     private val viewportManager by lazy {
         ViewportManager.newInstance(
+            aspectRatioMode = ViewportManager.AspectRatioMode.FitVertical(1440.sceneUnit),
             isLoggingEnabled = true,
             instanceNameForLogging = LOG_TAG,
         )
