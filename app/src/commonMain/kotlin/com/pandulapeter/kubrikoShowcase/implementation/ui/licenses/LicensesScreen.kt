@@ -106,7 +106,9 @@ internal fun LicensesScreen(
                 )
             }
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        if (type != LicenseType.entries.last()) {
+            Spacer(modifier = Modifier.height(8.dp))
+        }
     }
 }
 
