@@ -16,11 +16,8 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.LocalContentColor
@@ -124,17 +121,15 @@ internal class PerformanceDemoManager(
                     )
                 }
             }
-            if (isSceneEditorEnabled) {
-                Spacer(modifier = Modifier.weight(1f))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Bottom,
-                ) {
-                    Spacer(
-                        modifier = Modifier.weight(1f),
-                    )
-                    PlatformSpecificContent()
-                }
+        }
+        if (isSceneEditorEnabled) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .windowInsetsPadding(windowInsets)
+                    .padding(16.dp),
+            ) {
+                PlatformSpecificContent()
             }
         }
     }
