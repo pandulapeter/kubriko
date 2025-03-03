@@ -112,6 +112,7 @@ private val ShowcaseEntry?.deeplink
         ShowcaseEntry.WALLBREAKER -> "wallbreaker"
         ShowcaseEntry.SPACE_SQUADRON -> "space-squadron"
         ShowcaseEntry.ANNOYED_PENGUINS -> "annoyed-penguins"
+        ShowcaseEntry.BLOCKYS_JOURNEY -> "blockys-journey"
         ShowcaseEntry.CONTENT_SHADERS -> "content-shaders"
         ShowcaseEntry.PARTICLES -> "particles"
         ShowcaseEntry.PERFORMANCE -> "performance"

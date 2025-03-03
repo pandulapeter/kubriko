@@ -51,6 +51,10 @@
     <string name="game_annoyed_penguins">Annoyed Penguins</string>
     <string name="game_annoyed_penguins_subtitle">Slingshot your penguins to a chaotic victory</string>
 
+    <!-- Game - Blocky's Journey -->
+    <string name="game_blockys_journey">Blocky's Journey</string>
+    <string name="game_blockys_journey_subtitle">An tiny isometric RPG world for you to explore</string>
+
     <!-- Demo - Content Shaders -->
     <string name="demo_content_shaders">Content Shaders</string>
     <string name="demo_content_shaders_subtitle">Playground for testing various shader effects</string>

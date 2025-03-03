@@ -30,6 +30,8 @@ import kubriko.app.generated.resources.demo_shader_animations_subtitle
 import kubriko.app.generated.resources.demos
 import kubriko.app.generated.resources.game_annoyed_penguins
 import kubriko.app.generated.resources.game_annoyed_penguins_subtitle
+import kubriko.app.generated.resources.game_blockys_journey
+import kubriko.app.generated.resources.game_blockys_journey_subtitle
 import kubriko.app.generated.resources.game_space_squadron
 import kubriko.app.generated.resources.game_space_squadron_subtitle
 import kubriko.app.generated.resources.game_wallbreaker
@@ -103,6 +105,8 @@ internal object ResourceLoader {
             && preloadedString(Res.string.game_space_squadron_subtitle).value.isNotBlank()
             && preloadedString(Res.string.game_annoyed_penguins).value.isNotBlank()
             && preloadedString(Res.string.game_annoyed_penguins_subtitle).value.isNotBlank()
+            && preloadedString(Res.string.game_blockys_journey).value.isNotBlank()
+            && preloadedString(Res.string.game_blockys_journey_subtitle).value.isNotBlank()
             && preloadedString(Res.string.demo_content_shaders).value.isNotBlank()
             && preloadedString(Res.string.demo_content_shaders_subtitle).value.isNotBlank()
             && preloadedString(Res.string.demo_particles).value.isNotBlank()

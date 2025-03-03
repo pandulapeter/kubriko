@@ -26,6 +26,7 @@ kotlin {
             implementation(projects.examples.gameWallbreaker)
             implementation(projects.examples.gameSpaceSquadron)
             implementation(projects.examples.gameAnnoyedPenguins)
+            implementation(projects.examples.gameBlockysJourney)
             implementation(projects.examples.demoContentShaders)
             implementation(projects.examples.demoParticles)
             implementation(projects.examples.demoPerformance)

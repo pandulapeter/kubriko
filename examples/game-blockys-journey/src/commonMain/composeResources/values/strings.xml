@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ This file is part of Kubriko.
+ Copyright (c) Pandula Péter 2025.
+ https://github.com/pandulapeter/kubriko
+
+ This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ If a copy of the MPL was not distributed with this file, You can obtain one at
+ https://mozilla.org/MPL/2.0/.
+-->
+<resources>
+
+    <string name="back">Back</string>
+    <string name="pause">Pause</string>
+    <string name="information">Information</string>
+    <string name="sound_effects_enable">Enable sound effects</string>
+    <string name="sound_effects_disable">Disable sound effects</string>
+    <string name="music_enable">Enable music</string>
+    <string name="music_disable">Disable music</string>
+    <string name="fullscreen_enter">Enter fullscreen mode</string>
+    <string name="fullscreen_exit">Exit fullscreen mode</string>
+    <string name="information_contents">Controls:
+ - Drag the pointer (mouse or touch) from the slingshot to launch the penguins.
+ - Drag the pointer (mouse or touch) from anywhere else or use the Up / Left / Down / Right  or W / A / S / D keys to pan the viewport.
+ - Use the two-finger pinch gesture, the mouse wheel, or the ] / [ keys to zoom in / out.
+
+Attribution:
+ - Music: "Children's March Theme" by CleytonKauffman on opengameart.org
+ - Sound effects: CC0 assets from freesound.org
+ - Icons: materialdesignicons.com</string>
+    <string name="resume">Resume</string>
+    <string name="close_confirmation">Are you sure you want to quit the game?</string>
+    <string name="close_confirmation_positive">Quit</string>
+    <string name="close_confirmation_negative">Cancel</string>
+
+</resources>

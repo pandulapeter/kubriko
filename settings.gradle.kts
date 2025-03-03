@@ -33,6 +33,7 @@ include(
     ":examples:demo-physics",
     ":examples:demo-shader-animations",
     ":examples:game-annoyed-penguins",
+    ":examples:game-blockys-journey",
     ":examples:game-space-squadron",
     ":examples:game-wallbreaker",
     ":examples:test-audio",

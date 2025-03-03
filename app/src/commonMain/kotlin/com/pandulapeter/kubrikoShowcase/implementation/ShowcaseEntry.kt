@@ -33,6 +33,8 @@ import kubriko.app.generated.resources.demo_shader_animations_subtitle
 import kubriko.app.generated.resources.demos
 import kubriko.app.generated.resources.game_annoyed_penguins
 import kubriko.app.generated.resources.game_annoyed_penguins_subtitle
+import kubriko.app.generated.resources.game_blockys_journey
+import kubriko.app.generated.resources.game_blockys_journey_subtitle
 import kubriko.app.generated.resources.game_space_squadron
 import kubriko.app.generated.resources.game_space_squadron_subtitle
 import kubriko.app.generated.resources.game_wallbreaker
@@ -76,6 +78,11 @@ internal enum class ShowcaseEntry(
         type = ShowcaseEntryType.GAME,
         titleStringResource = Res.string.game_annoyed_penguins,
         subtitleStringResource = Res.string.game_annoyed_penguins_subtitle,
+    ),
+    BLOCKYS_JOURNEY(
+        type = ShowcaseEntryType.GAME,
+        titleStringResource = Res.string.game_blockys_journey,
+        subtitleStringResource = Res.string.game_blockys_journey_subtitle,
     ),
 
     // Demos

@@ -32,6 +32,9 @@ import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimat
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.AnnoyedPenguinsGame
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.createAnnoyedPenguinsGameStateHolder
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolder
+import com.pandulapeter.kubriko.gameBlockysJourney.BlockysJourneyGame
+import com.pandulapeter.kubriko.gameBlockysJourney.createBlockysJourneyGameStateHolder
+import com.pandulapeter.kubriko.gameBlockysJourney.implementation.BlockysJourneyGameStateHolder
 import com.pandulapeter.kubriko.gameSpaceSquadron.SpaceSquadronGame
 import com.pandulapeter.kubriko.gameSpaceSquadron.createSpaceSquadronGameStateHolder
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.SpaceSquadronGameStateHolder
@@ -89,6 +92,18 @@ internal fun ShowcaseEntry.ExampleScreen(
         ShowcaseEntry.ANNOYED_PENGUINS -> AnnoyedPenguinsGame(
             stateHolder = getOrCreateState(stateHolders) {
                 createAnnoyedPenguinsGameStateHolder(
+                    webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
+                    isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+                )
+            },
+            windowInsets = windowInsets,
+            isInFullscreenMode = isInFullscreenMode,
+            onFullscreenModeToggled = onFullscreenModeToggled,
+        )
+
+        ShowcaseEntry.BLOCKYS_JOURNEY -> BlockysJourneyGame(
+            stateHolder = getOrCreateState(stateHolders) {
+                createBlockysJourneyGameStateHolder(
                     webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
                     isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
                 )
@@ -187,6 +202,13 @@ internal fun ShowcaseEntry.getStateHolder() = when (this) {
         )
     }
 
+    ShowcaseEntry.BLOCKYS_JOURNEY -> getOrCreateState(stateHolders) {
+        createBlockysJourneyGameStateHolder(
+            webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
+            isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+        )
+    }
+
     ShowcaseEntry.CONTENT_SHADERS -> getOrCreateState(stateHolders, ::createContentShadersDemoStateHolder)
 
     ShowcaseEntry.PARTICLES -> getOrCreateState(stateHolders, ::createParticlesDemoStateHolder)
@@ -228,6 +250,7 @@ private val ShowcaseEntry.stateHolderType
         ShowcaseEntry.WALLBREAKER -> WallbreakerGameStateHolder::class
         ShowcaseEntry.SPACE_SQUADRON -> SpaceSquadronGameStateHolder::class
         ShowcaseEntry.ANNOYED_PENGUINS -> AnnoyedPenguinsGameStateHolder::class
+        ShowcaseEntry.BLOCKYS_JOURNEY -> BlockysJourneyGameStateHolder::class
         ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemoStateHolder::class
         ShowcaseEntry.PARTICLES -> ParticlesDemoStateHolder::class
         ShowcaseEntry.PERFORMANCE -> PerformanceDemoStateHolder::class
