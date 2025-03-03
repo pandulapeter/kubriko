@@ -53,7 +53,7 @@
 
     <!-- Game - Blocky's Journey -->
     <string name="game_blockys_journey">Blocky's Journey</string>
-    <string name="game_blockys_journey_subtitle">An tiny isometric RPG world for you to explore</string>
+    <string name="game_blockys_journey_subtitle">A tiny isometric RPG world for you to explore</string>
 
     <!-- Demo - Content Shaders -->
     <string name="demo_content_shaders">Content Shaders</string>

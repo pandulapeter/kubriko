@@ -18,8 +18,6 @@ import androidx.compose.animation.slideOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -33,15 +31,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -60,10 +53,11 @@ import kubriko.examples.game_blockys_journey.generated.resources.ic_music_on
 import kubriko.examples.game_blockys_journey.generated.resources.ic_sound_effects_off
 import kubriko.examples.game_blockys_journey.generated.resources.ic_sound_effects_on
 import kubriko.examples.game_blockys_journey.generated.resources.img_logo
+import kubriko.examples.game_blockys_journey.generated.resources.img_logo_character
 import kubriko.examples.game_blockys_journey.generated.resources.information
 import kubriko.examples.game_blockys_journey.generated.resources.music_disable
 import kubriko.examples.game_blockys_journey.generated.resources.music_enable
-import kubriko.examples.game_blockys_journey.generated.resources.resume
+import kubriko.examples.game_blockys_journey.generated.resources.play
 import kubriko.examples.game_blockys_journey.generated.resources.sound_effects_disable
 import kubriko.examples.game_blockys_journey.generated.resources.sound_effects_enable
 import org.jetbrains.compose.resources.painterResource
@@ -117,13 +111,22 @@ internal fun MenuOverlay(
                 Box(
                     modifier = Modifier.weight(bias),
                 ) {
-                    if (shouldShowLogoVertically) {
+                    Row(
+                        modifier = Modifier
+                            .padding(top = 72.dp)
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
                         Image(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .scale(0.9f)
-                                .padding(top = 56.dp),
-                            alignment = BiasAlignment(0f, 0.5f),
+                            modifier = Modifier.padding(16.dp),
+                            painter = painterResource(Res.drawable.img_logo_character),
+                            contentScale = ContentScale.Inside,
+                            contentDescription = null,
+                        )
+                        Image(
+                            modifier = Modifier.padding(16.dp),
                             painter = painterResource(Res.drawable.img_logo),
                             contentScale = ContentScale.Inside,
                             contentDescription = null,
@@ -198,33 +201,11 @@ internal fun MenuOverlay(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                                .background(
-                                    shape = CircleShape,
-                                    color = Color.White.copy(alpha = 0.9f)
-                                )
-                                .border(
-                                    shape = CircleShape,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    width = 2.dp,
-                                )
-                                .clip(CircleShape)
-                                .horizontalScroll(levelSelectorScrollState)
-                                .padding(
-                                    vertical = 8.dp,
-                                    horizontal = 16.dp,
-                                ),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            BlockysJourneyButton(
-                                onButtonPressed = onPlayButtonPressed,
-                                title = stringResource(Res.string.resume),
-                                onPointerEnter = playHoverSoundEffect,
-                            )
-                        }
+                        BlockysJourneyButton(
+                            onButtonPressed = onPlayButtonPressed,
+                            title = stringResource(Res.string.play),
+                            onPointerEnter = playHoverSoundEffect,
+                        )
                     }
                 }
             }

@@ -42,13 +42,14 @@ import kubriko.examples.game_blockys_journey.generated.resources.ic_pause
 import kubriko.examples.game_blockys_journey.generated.resources.ic_sound_effects_off
 import kubriko.examples.game_blockys_journey.generated.resources.ic_sound_effects_on
 import kubriko.examples.game_blockys_journey.generated.resources.img_logo
+import kubriko.examples.game_blockys_journey.generated.resources.img_logo_character
 import kubriko.examples.game_blockys_journey.generated.resources.information
 import kubriko.examples.game_blockys_journey.generated.resources.information_contents
+import kubriko.examples.game_blockys_journey.generated.resources.medieval_sharp
 import kubriko.examples.game_blockys_journey.generated.resources.music_disable
 import kubriko.examples.game_blockys_journey.generated.resources.music_enable
 import kubriko.examples.game_blockys_journey.generated.resources.pause
-import kubriko.examples.game_blockys_journey.generated.resources.permanent_marker
-import kubriko.examples.game_blockys_journey.generated.resources.resume
+import kubriko.examples.game_blockys_journey.generated.resources.play
 import kubriko.examples.game_blockys_journey.generated.resources.sound_effects_disable
 import kubriko.examples.game_blockys_journey.generated.resources.sound_effects_enable
 import kubriko.examples.game_blockys_journey.generated.resources.sprite_character_east
@@ -107,7 +108,7 @@ internal class LoadingManager(
     @Composable
     override fun Composable(windowInsets: WindowInsets) {
         if (!isFontLoaded.value) {
-            isFontLoaded.update { preloadedFont(Res.font.permanent_marker).value != null }
+            isFontLoaded.update { preloadedFont(Res.font.medieval_sharp).value != null }
         }
     }
 
@@ -131,6 +132,7 @@ internal class LoadingManager(
 
     @Composable
     private fun areImageResourcesLoaded() = preloadedImageBitmap(Res.drawable.img_logo).value != null
+            && preloadedImageBitmap(Res.drawable.img_logo_character).value != null
 
     @Composable
     private fun areStringResourcesLoaded() = preloadedString(Res.string.back).value.isNotBlank()
@@ -143,7 +145,7 @@ internal class LoadingManager(
             && preloadedString(Res.string.fullscreen_enter).value.isNotBlank()
             && preloadedString(Res.string.fullscreen_exit).value.isNotBlank()
             && preloadedString(Res.string.information_contents).value.isNotBlank()
-            && preloadedString(Res.string.resume).value.isNotBlank()
+            && preloadedString(Res.string.play).value.isNotBlank()
             && preloadedString(Res.string.close_confirmation).value.isNotBlank()
             && preloadedString(Res.string.close_confirmation_positive).value.isNotBlank()
             && preloadedString(Res.string.close_confirmation_negative).value.isNotBlank()
