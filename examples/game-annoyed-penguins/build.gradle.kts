@@ -20,7 +20,6 @@ kotlin {
             implementation(projects.plugins.audioPlayback)
             implementation(projects.plugins.physics)
             implementation(projects.plugins.keyboardInput)
-            implementation(projects.plugins.particles)
             implementation(projects.plugins.persistence)
             implementation(projects.plugins.pointerInput)
             implementation(projects.plugins.shaders)

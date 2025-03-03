@@ -27,7 +27,6 @@ import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.User
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
-import com.pandulapeter.kubriko.particles.ParticleManager
 import com.pandulapeter.kubriko.persistence.PersistenceManager
 import com.pandulapeter.kubriko.physics.PhysicsManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
@@ -137,12 +136,6 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
             webRootPathName = webRootPathName,
         )
     }
-    private val particleManager by lazy {
-        ParticleManager.newInstance(
-            isLoggingEnabled = true,
-            instanceNameForLogging = LOG_TAG,
-        )
-    }
     private val keyboardInputManager by lazy {
         KeyboardInputManager.newInstance(
             isLoggingEnabled = true,
@@ -193,7 +186,6 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
                 physicsManager,
                 keyboardInputManager,
                 pointerInputManager,
-                particleManager,
                 audioManager,
                 serializationManager,
                 gameplayManager,

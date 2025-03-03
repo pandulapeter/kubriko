@@ -52,6 +52,8 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.resume
 import kubriko.examples.game_annoyed_penguins.generated.resources.sound_effects_disable
 import kubriko.examples.game_annoyed_penguins.generated.resources.sound_effects_enable
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_penguin
+import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingshot_background
+import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingshot_foreground
 
 internal class LoadingManager(
     webRootPathName: String,
@@ -61,7 +63,11 @@ internal class LoadingManager(
     private val spriteManager by manager<SpriteManager>()
     private val musicUris = AudioManager.getMusicUrisToPreload(webRootPathName)
     private val soundUris = AudioManager.getSoundUrisToPreload(webRootPathName)
-    private val spriteResources = listOf(Res.drawable.sprite_penguin)
+    private val spriteResources = listOf(
+        Res.drawable.sprite_penguin,
+        Res.drawable.sprite_slingshot_background,
+        Res.drawable.sprite_slingshot_foreground,
+    )
     private val areGameResourcesLoaded by autoInitializingLazy {
         combine(
             soundManager.getLoadingProgress(soundUris),
