@@ -93,11 +93,11 @@
     <string name="other_about">About</string>
     <string name="other_about_subtitle">More information about the engine and this app</string>
     <string name="other_about_content">Thank you for checking out the app!\n\nThe source code of the library and of this application can be found on GitHub. Don't hesitate to let me know if you run into any problems.</string>
-    <string name="other_about_repository">See the source</string>
+    <string name="other_about_repository">See the sources</string>
     <string name="other_about_report_an_issue">Report an issue</string>
+    <string name="other_about_spread_the_word">Spread the word</string>
     <string name="other_about_contact_me">Drop me a line</string>
     <string name="other_about_visit_my_website">Visit my website</string>
-    <string name="other_about_spread_the_word">Spread the word</string>
     <string name="other_about_privacy_policy">Read the Privacy Policy</string>
     <string name="other_about_content_creator">Kubriko has been a passion project of mine for a while now, and I'm very excited to finally share it with you. I hope you find it inspiring, and that it will motivate you to create awesome games!</string>
     <string name="other_about_content_license">The Kubriko library is open sourced under the Mozilla Public License Version 2.0. You are free to use the Kubriko engine to develop your own proprietary games at no cost and without attribution. Derivative works such as competing engines must follow the same license and link back to the original repository.\n\nThe Kubriko Showcase application is an open source project built on top of the Kubriko library. Derivative works of this product must clearly credit the original.\n\nCopyright © Pandula Péter 2025\nAll rights reserved</string>

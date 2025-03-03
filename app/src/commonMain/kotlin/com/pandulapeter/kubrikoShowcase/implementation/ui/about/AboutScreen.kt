@@ -103,6 +103,14 @@ internal fun AboutScreen(
                 title = Res.string.other_about_report_an_issue,
                 onButtonPressed = { uriHandler.openUri("https://github.com/pandulapeter/kubriko/issues/new") },
             )
+            val shareManager = rememberShareManager()
+            if (shareManager.isSharingSupported) {
+                LargeButton(
+                    icon = Res.drawable.ic_share,
+                    title = Res.string.other_about_spread_the_word,
+                    onButtonPressed = { shareManager.shareText("https://github.com/pandulapeter/kubriko") },
+                )
+            }
         }
         Text(
             text = stringResource(Res.string.other_about_content_creator),
@@ -123,14 +131,6 @@ internal fun AboutScreen(
                 title = Res.string.other_about_visit_my_website,
                 onButtonPressed = { uriHandler.openUri("https://pandulapeter.github.io/") },
             )
-            val shareManager = rememberShareManager()
-            if (shareManager.isSharingSupported) {
-                LargeButton(
-                    icon = Res.drawable.ic_share,
-                    title = Res.string.other_about_spread_the_word,
-                    onButtonPressed = { shareManager.shareText("https://github.com/pandulapeter/kubriko") },
-                )
-            }
         }
 
         Text(
@@ -181,9 +181,9 @@ sealed interface AboutScreenStateHolder : StateHolder {
         private fun areStringResourcesLoaded() = preloadedString(Res.string.other_about_content).value.isNotBlank()
                 && preloadedString(Res.string.other_about_repository).value.isNotBlank()
                 && preloadedString(Res.string.other_about_report_an_issue).value.isNotBlank()
+                && preloadedString(Res.string.other_about_spread_the_word).value.isNotBlank()
                 && preloadedString(Res.string.other_about_contact_me).value.isNotBlank()
                 && preloadedString(Res.string.other_about_visit_my_website).value.isNotBlank()
-                && preloadedString(Res.string.other_about_spread_the_word).value.isNotBlank()
                 && preloadedString(Res.string.other_about_privacy_policy).value.isNotBlank()
                 && preloadedString(Res.string.other_about_content_creator).value.isNotBlank()
                 && preloadedString(Res.string.other_about_content_license).value.isNotBlank()
