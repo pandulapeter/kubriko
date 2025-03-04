@@ -88,6 +88,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
     }
     private val persistenceManager by lazy {
         PersistenceManager.newInstance(
+            fileName = "kubrikoAnnoyedPenguins",
             isLoggingEnabled = true,
             instanceNameForLogging = LOG_TAG,
         )

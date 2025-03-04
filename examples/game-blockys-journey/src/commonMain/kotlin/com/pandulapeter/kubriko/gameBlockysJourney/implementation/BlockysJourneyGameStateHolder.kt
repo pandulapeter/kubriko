@@ -64,6 +64,7 @@ internal class BlockysJourneyGameStateHolderImpl(
     }
     private val persistenceManager by lazy {
         PersistenceManager.newInstance(
+            fileName = "kubrikoBlockysJourney",
             isLoggingEnabled = true,
             instanceNameForLogging = LOG_TAG,
         )
