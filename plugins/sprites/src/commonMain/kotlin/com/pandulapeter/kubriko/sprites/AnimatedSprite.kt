@@ -25,14 +25,14 @@ class AnimatedSprite(
     private val framesPerSecond: Float = 60f,
 ) {
     val isLoaded get() = getImageBitmap() != null
-    private var _imageIndex = 0f
-    var imageIndex
-        get() = floor(_imageIndex).roundToInt()
+    private var _frameIndex = 0f
+    var frameIndex
+        get() = floor(_frameIndex).roundToInt()
         set(value) {
-            _imageIndex = value.toFloat()
+            _frameIndex = value.toFloat()
         }
-    val isLastFrame get() = imageIndex == frameCount - 1
-    val isFirstFrame get() = imageIndex == 0
+    val isLastFrame get() = frameIndex == frameCount - 1
+    val isFirstFrame get() = frameIndex == 0
 
     // TODO: Support reverse by adding a step function
 
@@ -41,7 +41,7 @@ class AnimatedSprite(
         speed: Float = 1f,
         shouldLoop: Boolean = false,
     ) {
-        _imageIndex += (speed * framesPerSecond * deltaTimeInMilliseconds) / 1000
+        _frameIndex += (speed * framesPerSecond * deltaTimeInMilliseconds) / 1000
         normalizeImageIndex(shouldLoop)
     }
 
@@ -50,16 +50,16 @@ class AnimatedSprite(
         speed: Float = 1f,
         shouldLoop: Boolean = false,
     ) {
-        _imageIndex -= (speed * framesPerSecond * deltaTimeInMilliseconds) / 1000
+        _frameIndex -= (speed * framesPerSecond * deltaTimeInMilliseconds) / 1000
         normalizeImageIndex(shouldLoop)
     }
 
     private fun normalizeImageIndex(shouldLoop: Boolean) {
-        if (imageIndex >= frameCount - 1 || imageIndex < 0) {
-            _imageIndex = if (shouldLoop) {
-                _imageIndex % frameCount
+        if (frameIndex >= frameCount - 1 || frameIndex < 0) {
+            _frameIndex = if (shouldLoop) {
+                _frameIndex % frameCount
             } else {
-                if (_imageIndex < 0) 0f else frameCount - 1f
+                if (_frameIndex < 0) 0f else frameCount - 1f
             }
         }
     }
@@ -68,7 +68,7 @@ class AnimatedSprite(
         scope: DrawScope,
         colorFilter: ColorFilter? = null,
     ) {
-        imageIndex.also { imageIndex ->
+        frameIndex.also { imageIndex ->
             getImageBitmap()?.let {
                 val x = imageIndex % framesPerRow
                 val y = imageIndex / framesPerRow

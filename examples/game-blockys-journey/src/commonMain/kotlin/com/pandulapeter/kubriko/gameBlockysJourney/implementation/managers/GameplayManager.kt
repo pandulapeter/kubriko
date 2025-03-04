@@ -9,6 +9,14 @@
  */
 package com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers
 
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.gameBlockysJourney.implementation.actors.Blocky
+import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 
-internal class GameplayManager : Manager()
+internal class GameplayManager : Manager() {
+
+    private val actorManager by manager<ActorManager>()
+
+    override fun onInitialize(kubriko: Kubriko) = actorManager.add(Blocky())
+}
