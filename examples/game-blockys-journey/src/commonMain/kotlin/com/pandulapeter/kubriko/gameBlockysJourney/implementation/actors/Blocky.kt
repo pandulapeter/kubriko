@@ -64,7 +64,7 @@ internal class Blocky : Visible, Dynamic {
         )
         body.position += SceneOffset(
             x = + Speed * direction.angle.cos,
-            y = - Speed * direction.angle.sin * 0.66f,
+            y = - Speed * direction.angle.sin,
         ) * deltaTimeInMilliseconds
         if (previousFrame != animatedSprite.frameIndex && animatedSprite.isLastFrame) {
             direction = when (direction) {
