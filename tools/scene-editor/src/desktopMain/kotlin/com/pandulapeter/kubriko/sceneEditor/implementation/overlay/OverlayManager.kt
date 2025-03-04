@@ -135,7 +135,16 @@ internal class OverlayManager(
                                                 right = body.size.width.raw,
                                                 bottom = body.size.height.raw
                                             ) {
-                                                draw()
+                                                try {
+                                                    draw()
+                                                } catch (_: UninitializedPropertyAccessException) {
+                                                    with(body) {
+                                                        drawDebugBounds(
+                                                            color = colorBack,
+                                                            stroke = Stroke(),
+                                                        )
+                                                    }
+                                                }
                                             }
                                         }
                                     },

@@ -18,6 +18,7 @@ import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.DestructibleBlock
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Ground
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Penguin
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Slingshot
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.BackgroundAnimationManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.GameplayManager
@@ -64,6 +65,11 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
             typeId = "penguin",
             deserializeState = { serializedState -> json.decodeFromString<Penguin.State>(serializedState) },
             instantiate = { Penguin.State(body = CircleBody(initialPosition = it, initialRadius = 128.sceneUnit)) },
+        ),
+        EditableMetadata(
+            typeId = "slingshot",
+            deserializeState = { serializedState -> json.decodeFromString<Slingshot.State>(serializedState) },
+            instantiate = { Slingshot.State(body = RectangleBody(initialPosition = it, initialSize = SceneSize(422.sceneUnit, 924.sceneUnit))) },
         ),
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
