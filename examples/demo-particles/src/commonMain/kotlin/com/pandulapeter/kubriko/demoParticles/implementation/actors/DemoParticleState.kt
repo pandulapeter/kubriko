@@ -61,10 +61,10 @@ internal class DemoParticleState(
             if (body.scale.horizontal < 0.05f) {
                 return false
             }
-            body.position = SceneOffset(
-                x = body.position.x + speed * direction.cos * deltaTimeInMilliseconds,
-                y = body.position.y - speed * direction.sin * deltaTimeInMilliseconds,
-            )
+            body.position += SceneOffset(
+                x = speed * direction.cos,
+                y = - speed * direction.sin,
+            ) * deltaTimeInMilliseconds
             remainingLifespan -= deltaTimeInMilliseconds
         }
         return true

@@ -15,10 +15,16 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.extensions.cos
+import com.pandulapeter.kubriko.extensions.deg
 import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.extensions.rad
 import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.extensions.sin
 import com.pandulapeter.kubriko.sprites.AnimatedSprite
 import com.pandulapeter.kubriko.sprites.SpriteManager
+import com.pandulapeter.kubriko.types.AngleRadians
+import com.pandulapeter.kubriko.types.SceneOffset
 import kubriko.examples.game_blockys_journey.generated.resources.Res
 import kubriko.examples.game_blockys_journey.generated.resources.sprite_character_east
 import kubriko.examples.game_blockys_journey.generated.resources.sprite_character_north
@@ -56,6 +62,10 @@ internal class Blocky : Visible, Dynamic {
             deltaTimeInMilliseconds = deltaTimeInMilliseconds,
             shouldLoop = true,
         )
+        body.position += SceneOffset(
+            x = + Speed * direction.angle.cos,
+            y = - Speed * direction.angle.sin * 0.66f,
+        ) * deltaTimeInMilliseconds
         if (previousFrame != animatedSprite.frameIndex && animatedSprite.isLastFrame) {
             direction = when (direction) {
                 Direction.EAST -> Direction.SOUTH_EAST
@@ -73,14 +83,45 @@ internal class Blocky : Visible, Dynamic {
 
     override fun DrawScope.draw() = animatedSprite.draw(this)
 
-    private enum class Direction(val drawableResource: DrawableResource) {
-        EAST(Res.drawable.sprite_character_east),
-        SOUTH_EAST(Res.drawable.sprite_character_south_east),
-        SOUTH(Res.drawable.sprite_character_south),
-        SOUTH_WEST(Res.drawable.sprite_character_south_west),
-        WEST(Res.drawable.sprite_character_west),
-        NORTH_WEST(Res.drawable.sprite_character_north_west),
-        NORTH(Res.drawable.sprite_character_north),
-        NORTH_EAST(Res.drawable.sprite_character_north_east),
+    private enum class Direction(
+        val drawableResource: DrawableResource,
+        val angle: AngleRadians,
+    ) {
+        EAST(
+            drawableResource = Res.drawable.sprite_character_east,
+            angle = 0.deg.rad,
+        ),
+        SOUTH_EAST(
+            drawableResource = Res.drawable.sprite_character_south_east,
+            angle = 330.deg.rad,
+        ),
+        SOUTH(
+            drawableResource = Res.drawable.sprite_character_south,
+            angle = 270.deg.rad,
+        ),
+        SOUTH_WEST(
+            drawableResource = Res.drawable.sprite_character_south_west,
+            angle = 210.deg.rad,
+        ),
+        WEST(
+            drawableResource = Res.drawable.sprite_character_west,
+            angle = 180.deg.rad,
+        ),
+        NORTH_WEST(
+            drawableResource = Res.drawable.sprite_character_north_west,
+            angle = 150.deg.rad,
+        ),
+        NORTH(
+            drawableResource = Res.drawable.sprite_character_north,
+            angle = 90.deg.rad,
+        ),
+        NORTH_EAST(
+            drawableResource = Res.drawable.sprite_character_north_east,
+            angle = 30.deg.rad,
+        ),
+    }
+
+    companion object {
+        private val Speed = 0.25f.sceneUnit
     }
 }
