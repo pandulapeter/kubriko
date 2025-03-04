@@ -79,7 +79,7 @@ fun BlockysJourneyGame(
         exit = scaleOut(targetScale = 0.88f) + fadeOut(),
     ) {
         val gameAlpha by animateFloatAsState(
-            targetValue = if (isGameRunning) 1f else 0.4f,
+            targetValue = if (isGameRunning) 1f else 0.2f,
             animationSpec = tween(),
         )
         KubrikoViewport(

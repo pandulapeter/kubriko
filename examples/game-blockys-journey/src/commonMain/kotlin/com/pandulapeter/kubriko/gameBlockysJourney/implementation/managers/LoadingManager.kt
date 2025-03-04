@@ -42,7 +42,6 @@ import kubriko.examples.game_blockys_journey.generated.resources.ic_pause
 import kubriko.examples.game_blockys_journey.generated.resources.ic_sound_effects_off
 import kubriko.examples.game_blockys_journey.generated.resources.ic_sound_effects_on
 import kubriko.examples.game_blockys_journey.generated.resources.img_logo
-import kubriko.examples.game_blockys_journey.generated.resources.img_logo_character
 import kubriko.examples.game_blockys_journey.generated.resources.information
 import kubriko.examples.game_blockys_journey.generated.resources.information_contents
 import kubriko.examples.game_blockys_journey.generated.resources.medieval_sharp
@@ -132,7 +131,6 @@ internal class LoadingManager(
 
     @Composable
     private fun areImageResourcesLoaded() = preloadedImageBitmap(Res.drawable.img_logo).value != null
-            && preloadedImageBitmap(Res.drawable.img_logo_character).value != null
 
     @Composable
     private fun areStringResourcesLoaded() = preloadedString(Res.string.back).value.isNotBlank()

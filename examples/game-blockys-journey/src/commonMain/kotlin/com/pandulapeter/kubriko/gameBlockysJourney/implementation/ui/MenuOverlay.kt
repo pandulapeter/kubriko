@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -50,7 +49,6 @@ import kubriko.examples.game_blockys_journey.generated.resources.ic_music_on
 import kubriko.examples.game_blockys_journey.generated.resources.ic_sound_effects_off
 import kubriko.examples.game_blockys_journey.generated.resources.ic_sound_effects_on
 import kubriko.examples.game_blockys_journey.generated.resources.img_logo
-import kubriko.examples.game_blockys_journey.generated.resources.img_logo_character
 import kubriko.examples.game_blockys_journey.generated.resources.information
 import kubriko.examples.game_blockys_journey.generated.resources.music_disable
 import kubriko.examples.game_blockys_journey.generated.resources.music_enable
@@ -241,15 +239,7 @@ private fun Title(
     horizontalArrangement = Arrangement.Center,
 ) {
     Image(
-        modifier = Modifier.scale(0.5f),
-        painter = painterResource(Res.drawable.img_logo_character),
-        contentScale = ContentScale.Inside,
-        alignment = Alignment.CenterEnd,
-        contentDescription = null,
-    )
-    Spacer(modifier = Modifier.width(16.dp))
-    Image(
-        modifier = Modifier.scale(0.75f),
+        modifier = Modifier.scale(0.85f),
         painter = painterResource(Res.drawable.img_logo),
         contentScale = ContentScale.Inside,
         alignment = Alignment.CenterStart,
