@@ -140,6 +140,7 @@ internal class ActorManagerImpl(
         metadataManager = kubriko.metadataManager
         stateManager = kubriko.stateManager
         viewportManager = kubriko.viewportManager
+        allActors.value.forEach { it.onAdded(kubriko) }
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
