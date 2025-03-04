@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
@@ -51,7 +52,10 @@ fun SpaceSquadronGame(
     stateHolder as SpaceSquadronGameStateHolderImpl
     val isGameLoaded = stateHolder.backgroundLoadingManager.isGameLoaded()
     KubrikoViewport(
-        modifier = modifier.fillMaxSize().background(Color.Black),
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .rotate(stateHolder.cameraShakeManager.rotation.collectAsState().value),
         kubriko = stateHolder.backgroundKubriko,
     )
     AnimatedVisibility(

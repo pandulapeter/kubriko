@@ -34,6 +34,7 @@ internal class BulletEnemy(
         collidables.filterIsInstance<Ship>().firstOrNull()?.let { ship ->
             if (body.position.distanceTo(ship.body.position) < CollisionLimit) {
                 audioManager.playShipHitSoundEffect()
+                actorManager.add(CameraShakeEffect())
                 actorManager.remove(this)
                 ship.onHit(false)
             }

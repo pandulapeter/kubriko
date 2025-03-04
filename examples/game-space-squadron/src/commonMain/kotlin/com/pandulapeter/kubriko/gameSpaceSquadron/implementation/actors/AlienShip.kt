@@ -93,6 +93,7 @@ internal class AlienShip(
     private fun Ship.onShipCollision() {
         if (!isShrinking) {
             onHit(true)
+            actorManager.add(CameraShakeEffect())
             audioManager.playExplosionSmallSoundEffect()
             this@AlienShip.onHit(false)
         }
