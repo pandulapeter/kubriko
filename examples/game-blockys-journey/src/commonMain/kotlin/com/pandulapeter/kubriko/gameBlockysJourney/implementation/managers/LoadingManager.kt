@@ -51,14 +51,14 @@ import kubriko.examples.game_blockys_journey.generated.resources.pause
 import kubriko.examples.game_blockys_journey.generated.resources.play
 import kubriko.examples.game_blockys_journey.generated.resources.sound_effects_disable
 import kubriko.examples.game_blockys_journey.generated.resources.sound_effects_enable
-import kubriko.examples.game_blockys_journey.generated.resources.sprite_character_east
-import kubriko.examples.game_blockys_journey.generated.resources.sprite_character_north
-import kubriko.examples.game_blockys_journey.generated.resources.sprite_character_north_east
-import kubriko.examples.game_blockys_journey.generated.resources.sprite_character_north_west
-import kubriko.examples.game_blockys_journey.generated.resources.sprite_character_south
-import kubriko.examples.game_blockys_journey.generated.resources.sprite_character_south_east
-import kubriko.examples.game_blockys_journey.generated.resources.sprite_character_south_west
-import kubriko.examples.game_blockys_journey.generated.resources.sprite_character_west
+import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_east
+import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_north
+import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_north_east
+import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_north_west
+import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_south
+import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_south_east
+import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_south_west
+import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_west
 
 internal class LoadingManager(
     webRootPathName: String,
@@ -69,14 +69,14 @@ internal class LoadingManager(
     private val musicUris = AudioManager.getMusicUrisToPreload(webRootPathName)
     private val soundUris = AudioManager.getSoundUrisToPreload(webRootPathName)
     private val spriteResources = listOf(
-        Res.drawable.sprite_character_east,
-        Res.drawable.sprite_character_north,
-        Res.drawable.sprite_character_north_east,
-        Res.drawable.sprite_character_north_west,
-        Res.drawable.sprite_character_south,
-        Res.drawable.sprite_character_south_east,
-        Res.drawable.sprite_character_south_west,
-        Res.drawable.sprite_character_west,
+        Res.drawable.sprite_blocky_east,
+        Res.drawable.sprite_blocky_north,
+        Res.drawable.sprite_blocky_north_east,
+        Res.drawable.sprite_blocky_north_west,
+        Res.drawable.sprite_blocky_south,
+        Res.drawable.sprite_blocky_south_east,
+        Res.drawable.sprite_blocky_south_west,
+        Res.drawable.sprite_blocky_west,
     )
     private val areGameResourcesLoaded by autoInitializingLazy {
         combine(

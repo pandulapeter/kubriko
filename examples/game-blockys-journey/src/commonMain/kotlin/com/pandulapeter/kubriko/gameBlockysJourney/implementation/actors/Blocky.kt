@@ -26,14 +26,14 @@ import com.pandulapeter.kubriko.sprites.SpriteManager
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import kubriko.examples.game_blockys_journey.generated.resources.Res
-import kubriko.examples.game_blockys_journey.generated.resources.sprite_character_east
-import kubriko.examples.game_blockys_journey.generated.resources.sprite_character_north
-import kubriko.examples.game_blockys_journey.generated.resources.sprite_character_north_east
-import kubriko.examples.game_blockys_journey.generated.resources.sprite_character_north_west
-import kubriko.examples.game_blockys_journey.generated.resources.sprite_character_south
-import kubriko.examples.game_blockys_journey.generated.resources.sprite_character_south_east
-import kubriko.examples.game_blockys_journey.generated.resources.sprite_character_south_west
-import kubriko.examples.game_blockys_journey.generated.resources.sprite_character_west
+import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_east
+import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_north
+import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_north_east
+import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_north_west
+import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_south
+import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_south_east
+import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_south_west
+import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_west
 import org.jetbrains.compose.resources.DrawableResource
 
 internal class Blocky : Visible, Dynamic {
@@ -88,35 +88,35 @@ internal class Blocky : Visible, Dynamic {
         val angle: AngleRadians,
     ) {
         EAST(
-            drawableResource = Res.drawable.sprite_character_east,
+            drawableResource = Res.drawable.sprite_blocky_east,
             angle = 0.deg.rad,
         ),
         SOUTH_EAST(
-            drawableResource = Res.drawable.sprite_character_south_east,
+            drawableResource = Res.drawable.sprite_blocky_south_east,
             angle = 330.deg.rad,
         ),
         SOUTH(
-            drawableResource = Res.drawable.sprite_character_south,
+            drawableResource = Res.drawable.sprite_blocky_south,
             angle = 270.deg.rad,
         ),
         SOUTH_WEST(
-            drawableResource = Res.drawable.sprite_character_south_west,
+            drawableResource = Res.drawable.sprite_blocky_south_west,
             angle = 210.deg.rad,
         ),
         WEST(
-            drawableResource = Res.drawable.sprite_character_west,
+            drawableResource = Res.drawable.sprite_blocky_west,
             angle = 180.deg.rad,
         ),
         NORTH_WEST(
-            drawableResource = Res.drawable.sprite_character_north_west,
+            drawableResource = Res.drawable.sprite_blocky_north_west,
             angle = 150.deg.rad,
         ),
         NORTH(
-            drawableResource = Res.drawable.sprite_character_north,
+            drawableResource = Res.drawable.sprite_blocky_north,
             angle = 90.deg.rad,
         ),
         NORTH_EAST(
-            drawableResource = Res.drawable.sprite_character_north_east,
+            drawableResource = Res.drawable.sprite_blocky_north_east,
             angle = 30.deg.rad,
         ),
     }
