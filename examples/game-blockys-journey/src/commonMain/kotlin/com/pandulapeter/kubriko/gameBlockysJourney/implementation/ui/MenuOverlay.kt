@@ -142,7 +142,7 @@ internal fun MenuOverlay(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White.copy(alpha = 0.75f))
+                .background(Color.Black.copy(alpha = 0.75f))
                 .pointerInput(Unit) {},
         )
     }
