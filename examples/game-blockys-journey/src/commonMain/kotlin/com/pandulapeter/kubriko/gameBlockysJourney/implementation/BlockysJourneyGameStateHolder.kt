@@ -196,5 +196,5 @@ internal class BlockysJourneyGameStateHolderImpl(
     }
 }
 
-private const val LOG_TAG = "AP"
+private const val LOG_TAG = "BJ"
 private const val LOG_TAG_BACKGROUND = "$LOG_TAG-Background"
