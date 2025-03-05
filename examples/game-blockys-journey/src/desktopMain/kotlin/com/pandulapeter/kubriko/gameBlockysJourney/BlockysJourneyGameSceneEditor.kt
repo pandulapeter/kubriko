@@ -33,7 +33,7 @@ fun BlockysJourneyGameSceneEditor(
                 webRootPathName = "",
                 isSceneEditorEnabled = true,
             ).serializationManager,
-            title = "Scene Editor - Annoyed Penguins",
+            title = "Scene Editor - Blocky's Journey",
             onCloseRequest = { isSceneEditorVisible.value = false },
         )
     }

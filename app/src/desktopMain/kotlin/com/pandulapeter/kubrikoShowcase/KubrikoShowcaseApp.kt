@@ -22,6 +22,7 @@ import androidx.compose.ui.window.rememberWindowState
 import com.pandulapeter.kubriko.demoPerformance.PerformanceDemoSceneEditor
 import com.pandulapeter.kubriko.demoPhysics.PhysicsDemoSceneEditor
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.AnnoyedPenguinsGameSceneEditor
+import com.pandulapeter.kubriko.gameBlockysJourney.BlockysJourneyGameSceneEditor
 import com.pandulapeter.kubriko.implementation.windowState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -79,6 +80,9 @@ fun main() = application {
     }
     AnnoyedPenguinsGameSceneEditor(
         defaultSceneFolderPath = "../examples/game-annoyed-penguins/src/commonMain/composeResources/files/scenes"
+    )
+    BlockysJourneyGameSceneEditor(
+        defaultSceneFolderPath = "../examples/game-blockys-journey/src/commonMain/composeResources/files/scenes"
     )
     PerformanceDemoSceneEditor(
         defaultSceneFolderPath = "../examples/demo-performance/src/commonMain/composeResources/files/scenes"
