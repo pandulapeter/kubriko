@@ -50,6 +50,7 @@ import kubriko.app.generated.resources.other_licenses_content
 import kubriko.app.generated.resources.other_licenses_lgpl_2_1
 import kubriko.app.generated.resources.other_licenses_mit
 import kubriko.app.generated.resources.other_licenses_mpl_2_0
+import kubriko.app.generated.resources.other_licenses_music_note
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -107,10 +108,12 @@ internal fun LicensesScreen(
                 )
             }
         }
-        if (type != LicenseType.entries.last()) {
-            Spacer(modifier = Modifier.height(8.dp))
-        }
+        Spacer(modifier = Modifier.height(8.dp))
     }
+    Text(
+        style = MaterialTheme.typography.bodySmall,
+        text = stringResource(Res.string.other_licenses_music_note),
+    )
 }
 
 private enum class LicenseType(
@@ -271,6 +274,7 @@ sealed interface LicensesScreenStateHolder : StateHolder {
                 && preloadedString(Res.string.other_licenses_lgpl_2_1).value.isNotBlank()
                 && preloadedString(Res.string.other_licenses_mit).value.isNotBlank()
                 && preloadedString(Res.string.other_licenses_mpl_2_0).value.isNotBlank()
+                && preloadedString(Res.string.other_licenses_music_note).value.isNotBlank()
     }
 }
 
