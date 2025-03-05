@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.pointerInput
 
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -152,5 +153,13 @@ internal class PointerInputManagerImpl(
                 }
             }
         }
+    }.pointerInput(Unit) {
+        detectDragGestures(
+            onDrag = { _, dragAmount ->
+                if (stateManager.isFocused.value) {
+                    pointerInputAwareActors.value.forEach { it.onPointerDrag(dragAmount) }
+                }
+            },
+        )
     }
 }

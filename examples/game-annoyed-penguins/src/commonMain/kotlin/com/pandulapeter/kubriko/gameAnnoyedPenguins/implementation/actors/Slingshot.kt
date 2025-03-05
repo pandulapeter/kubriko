@@ -9,11 +9,14 @@
  */
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableRectangleBody
@@ -24,13 +27,15 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingshot_background
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingshot_foreground
 
-internal class Slingshot private constructor(state: State) : Visible, Editable<Slingshot> {
+internal class Slingshot private constructor(state: State) : Visible, Editable<Slingshot>, PointerInputAware {
     override val body = state.body
     private lateinit var spriteManager: SpriteManager
+    private lateinit var viewportManager: ViewportManager
     override val drawingOrder = 1f
 
     override fun onAdded(kubriko: Kubriko) {
         spriteManager = kubriko.get()
+        viewportManager = kubriko.get()
     }
 
     override fun DrawScope.draw() {
@@ -42,6 +47,8 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
             }
         }
     }
+
+    override fun onPointerDrag(screenOffset: Offset) = viewportManager.addToCameraPosition(screenOffset)
 
     override fun save() = State(
         body = body,

@@ -23,6 +23,8 @@ interface PointerInputAware : Actor {
 
     fun onPointerOffsetChanged(screenOffset: Offset) = Unit
 
+    fun onPointerDrag(screenOffset: Offset) = Unit
+
     fun onPointerEnteringTheViewport() = Unit
 
     fun onPointerLeavingTheViewport() = Unit
