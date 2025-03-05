@@ -9,7 +9,11 @@
  */
 package com.pandulapeter.kubriko.pointerInput.implementation
 
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.onPointerEvent
 import com.pandulapeter.kubriko.implementation.windowState
 import java.awt.Robot
 import kotlin.math.roundToInt
@@ -20,4 +24,12 @@ internal actual fun setPointerPosition(offset: Offset, densityMultiplier: Float)
     val x = windowState.position.x.value + offset.x * densityMultiplier
     val y = windowState.position.y.value + offset.y * densityMultiplier
     robot.mouseMove(x.roundToInt(), y.roundToInt())
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+internal actual fun Modifier.zoomDetector(onZoomDetected: (Offset, Float) -> Unit) = onPointerEvent(PointerEventType.Scroll) {
+    onZoomDetected(
+        it.changes.first().position,
+        1f - it.changes.first().scrollDelta.y * 0.05f
+    )
 }

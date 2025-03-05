@@ -50,6 +50,10 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
 
     override fun onPointerDrag(screenOffset: Offset) = viewportManager.addToCameraPosition(screenOffset)
 
+    override fun onPointerZoom(position: Offset, factor: Float) {
+        viewportManager.multiplyScaleFactor(factor)
+    }
+
     override fun save() = State(
         body = body,
     )

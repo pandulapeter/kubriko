@@ -24,6 +24,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.pointerInput.implementation.setPointerPosition
+import com.pandulapeter.kubriko.pointerInput.implementation.zoomDetector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNot
@@ -161,5 +162,9 @@ internal class PointerInputManagerImpl(
                 }
             },
         )
+    }.zoomDetector { offset, factor ->
+        if (stateManager.isFocused.value) {
+            pointerInputAwareActors.value.forEach { it.onPointerZoom(offset, factor) }
+        }
     }
 }

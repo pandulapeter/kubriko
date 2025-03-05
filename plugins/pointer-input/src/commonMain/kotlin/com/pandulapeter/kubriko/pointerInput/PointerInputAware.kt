@@ -25,6 +25,8 @@ interface PointerInputAware : Actor {
 
     fun onPointerDrag(screenOffset: Offset) = Unit
 
+    fun onPointerZoom(position: Offset, factor: Float) = Unit
+
     fun onPointerEnteringTheViewport() = Unit
 
     fun onPointerLeavingTheViewport() = Unit

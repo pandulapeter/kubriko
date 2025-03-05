@@ -9,6 +9,9 @@
  */
 package com.pandulapeter.kubriko.pointerInput.implementation
 
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 
 internal expect fun setPointerPosition(offset: Offset, densityMultiplier: Float)
+
+internal expect fun Modifier.zoomDetector(onZoomDetected: (Offset, Float) -> Unit): Modifier
