@@ -45,6 +45,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.other_licenses_apache_2_0
 import kubriko.app.generated.resources.other_licenses_cc0_1_0
+import kubriko.app.generated.resources.other_licenses_ccby_4_0
 import kubriko.app.generated.resources.other_licenses_content
 import kubriko.app.generated.resources.other_licenses_lgpl_2_1
 import kubriko.app.generated.resources.other_licenses_mit
@@ -120,6 +121,9 @@ private enum class LicenseType(
     ),
     CC0_1_0(
         licenseName = Res.string.other_licenses_cc0_1_0,
+    ),
+    CCBY_4_0(
+        licenseName = Res.string.other_licenses_ccby_4_0,
     ),
     LGPL_2_1(
         licenseName = Res.string.other_licenses_lgpl_2_1,
@@ -212,7 +216,7 @@ private enum class Dependency(
         url = "https://pictogrammers.com/docs/general/license/",
         type = LicenseType.APACHE_2_0,
     ),
-    FREESOUND(
+    FREESOUND_CC0(
         dependencyName = "freesound.org",
         url = "https://creativecommons.org/publicdomain/zero/1.0/",
         type = LicenseType.CC0_1_0,
@@ -221,6 +225,11 @@ private enum class Dependency(
         dependencyName = "opengameart.org",
         url = "https://creativecommons.org/publicdomain/zero/1.0/",
         type = LicenseType.CC0_1_0,
+    ),
+    FREESOUND_CCBY(
+        dependencyName = "freesound.org",
+        url = "https://creativecommons.org/licenses/by/4.0/",
+        type = LicenseType.CCBY_4_0,
     ),
     JLAYER(
         dependencyName = "JLayer",

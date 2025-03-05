@@ -89,6 +89,7 @@
     <string name="other_licenses_content">Here you can find the list of libraries, resources, and tools that the Kubriko Showcase application directly depends on, grouped by their license type. Select any of the items to read the full license text.</string>
     <string name="other_licenses_apache_2_0">Apache License, version 2.0</string>
     <string name="other_licenses_cc0_1_0">Creative Commons CC0, version 1.0</string>
+    <string name="other_licenses_ccby_4_0">Creative Commons CC BY, version 4.0</string>
     <string name="other_licenses_lgpl_2_1">GNU Lesser General Public License, version 2.1</string>
     <string name="other_licenses_mit">MIT License</string>
     <string name="other_licenses_mpl_2_0">Mozilla Public License, version 2.0</string>
