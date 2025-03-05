@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,11 +45,11 @@ internal fun CloseConfirmationDialog(
         modifier = Modifier
             .padding(16.dp)
             .background(
-                shape = CircleShape,
-                color = Color.White.copy(alpha = 0.9f)
+                shape = BlockysJourneyUIElementShape,
+                color = Color.Black.copy(alpha = 0.9f)
             )
             .border(
-                shape = CircleShape,
+                shape = BlockysJourneyUIElementShape,
                 color = MaterialTheme.colorScheme.primary,
                 width = 2.dp,
             )
@@ -68,7 +67,7 @@ internal fun CloseConfirmationDialog(
             textAlign = TextAlign.Center,
         )
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             BlockysJourneyButton(

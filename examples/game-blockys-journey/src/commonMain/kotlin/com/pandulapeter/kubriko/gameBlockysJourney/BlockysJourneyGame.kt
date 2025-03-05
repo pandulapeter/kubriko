@@ -66,7 +66,7 @@ fun BlockysJourneyGame(
 ) = BlockysJourneyTheme {
     stateHolder as BlockysJourneyGameStateHolderImpl
     KubrikoViewport(
-        modifier = modifier.fillMaxSize().background(Color(0xff456343)),
+        modifier = modifier.fillMaxSize().background(Color.Black),
         kubriko = stateHolder.backgroundKubriko,
         windowInsets = windowInsets,
     )
