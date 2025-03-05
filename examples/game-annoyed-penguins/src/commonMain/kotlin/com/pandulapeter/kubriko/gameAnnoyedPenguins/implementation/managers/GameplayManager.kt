@@ -14,9 +14,11 @@ import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Gradua
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
+import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,6 +36,7 @@ internal class GameplayManager : Manager() {
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
     private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
+    private val viewportManager by manager<ViewportManager>()
     private val _currentLevel = MutableStateFlow<String?>(null)
     val currentLevel = _currentLevel.asStateFlow()
     private val _isLoadingLevel = MutableStateFlow(false)
@@ -55,6 +58,7 @@ internal class GameplayManager : Manager() {
             _isLoadingLevel.update { true }
             delay(300) // Gives time for the fade animation to hide the previous level
             actorManager.removeAll()
+            viewportManager.setCameraPosition(SceneOffset.Zero)
             try {
                 val json = Res.readBytes("files/scenes/$sceneName").decodeToString()
                 actorManager.add(serializationManager.deserializeActors(json))
