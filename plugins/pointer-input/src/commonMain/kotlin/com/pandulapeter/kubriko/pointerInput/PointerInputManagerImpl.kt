@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubriko.pointerInput
 
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -23,8 +22,8 @@ import androidx.compose.ui.platform.LocalDensity
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
+import com.pandulapeter.kubriko.pointerInput.implementation.gestureDetector
 import com.pandulapeter.kubriko.pointerInput.implementation.setPointerPosition
-import com.pandulapeter.kubriko.pointerInput.implementation.zoomDetector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNot
@@ -154,17 +153,16 @@ internal class PointerInputManagerImpl(
                 }
             }
         }
-    }.pointerInput(Unit) {
-        detectDragGestures(
-            onDrag = { _, dragAmount ->
-                if (stateManager.isFocused.value) {
-                    pointerInputAwareActors.value.forEach { it.onPointerDrag(dragAmount) }
-                }
-            },
-        )
-    }.zoomDetector { offset, factor ->
-        if (stateManager.isFocused.value) {
-            pointerInputAwareActors.value.forEach { it.onPointerZoom(offset, factor) }
-        }
-    }
+    }.gestureDetector(
+        onDragDetected = { dragAmount ->
+            if (stateManager.isFocused.value) {
+                pointerInputAwareActors.value.forEach { it.onPointerDrag(dragAmount) }
+            }
+        },
+        onZoomDetected = { offset, factor ->
+            if (stateManager.isFocused.value) {
+                pointerInputAwareActors.value.forEach { it.onPointerZoom(offset, factor) }
+            }
+        },
+    )
 }

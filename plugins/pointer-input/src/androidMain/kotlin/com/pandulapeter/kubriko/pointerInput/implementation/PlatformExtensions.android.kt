@@ -17,8 +17,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 // TODO
 internal actual fun setPointerPosition(offset: Offset, densityMultiplier: Float) = Unit
 
-internal actual fun Modifier.zoomDetector(onZoomDetected: (Offset, Float) -> Unit) = pointerInput(Unit) {
-    detectTransformGestures { centroid, _, zoom, _ ->
+internal actual fun Modifier.gestureDetector(
+    onDragDetected: (Offset) -> Unit,
+    onZoomDetected: (Offset, Float) -> Unit,
+) = pointerInput(Unit) {
+    detectTransformGestures { centroid, pan, zoom, _ ->
+        onDragDetected(pan)
         onZoomDetected(centroid, zoom)
     }
 }

@@ -14,4 +14,7 @@ import androidx.compose.ui.geometry.Offset
 
 internal expect fun setPointerPosition(offset: Offset, densityMultiplier: Float)
 
-internal expect fun Modifier.zoomDetector(onZoomDetected: (Offset, Float) -> Unit): Modifier
+internal expect fun Modifier.gestureDetector(
+    onDragDetected: (Offset) -> Unit,
+    onZoomDetected: (Offset, Float) -> Unit,
+): Modifier

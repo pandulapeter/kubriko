@@ -9,11 +9,13 @@
  */
 package com.pandulapeter.kubriko.pointerInput.implementation
 
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.input.pointer.pointerInput
 import com.pandulapeter.kubriko.implementation.windowState
 import java.awt.Robot
 import kotlin.math.roundToInt
@@ -27,7 +29,15 @@ internal actual fun setPointerPosition(offset: Offset, densityMultiplier: Float)
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
-internal actual fun Modifier.zoomDetector(onZoomDetected: (Offset, Float) -> Unit) = onPointerEvent(PointerEventType.Scroll) {
+internal actual fun Modifier.gestureDetector(
+    onDragDetected: (Offset) -> Unit,
+    onZoomDetected: (Offset, Float) -> Unit,
+) = pointerInput(Unit) {
+    detectTransformGestures { centroid, pan, zoom, _ ->
+        onDragDetected(pan)
+        onZoomDetected(centroid, zoom)
+    }
+}.onPointerEvent(PointerEventType.Scroll) {
     onZoomDetected(
         it.changes.first().position,
         1f - it.changes.first().scrollDelta.y * 0.05f
