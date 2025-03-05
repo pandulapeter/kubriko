@@ -13,14 +13,12 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.extensions.sceneUnit
-import com.pandulapeter.kubriko.gameBlockysJourney.implementation.actors.BackgroundShader
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers.LoadingManager
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers.UIManager
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers.UserPreferencesManager
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
-import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.persistence.PersistenceManager
@@ -79,7 +77,7 @@ internal class BlockysJourneyGameStateHolderImpl(
             instanceNameForLogging = LOG_TAG,
         )
     }
-    private val backgroundShaderManager by lazy {
+    private val shaderManager by lazy {
         ShaderManager.newInstance(
             isLoggingEnabled = true,
             instanceNameForLogging = LOG_TAG,
@@ -88,13 +86,6 @@ internal class BlockysJourneyGameStateHolderImpl(
     val backgroundLoadingManager by lazy {
         LoadingManager(
             webRootPathName = webRootPathName,
-        )
-    }
-    val backgroundActorManager by lazy {
-        ActorManager.newInstance(
-            listOf(BackgroundShader()),
-            isLoggingEnabled = true,
-            instanceNameForLogging = LOG_TAG,
         )
     }
     val stateManager by lazy {
@@ -138,9 +129,7 @@ internal class BlockysJourneyGameStateHolderImpl(
             sharedMusicManager,
             sharedSoundManager,
             sharedSpriteManager,
-            backgroundShaderManager,
             backgroundLoadingManager,
-            backgroundActorManager,
             isLoggingEnabled = true,
             instanceNameForLogging = LOG_TAG_BACKGROUND,
         )
@@ -154,6 +143,7 @@ internal class BlockysJourneyGameStateHolderImpl(
                 sharedSoundManager,
                 sharedSpriteManager,
                 stateManager,
+                shaderManager,
                 viewportManager,
                 keyboardInputManager,
                 pointerInputManager,

@@ -36,9 +36,12 @@ import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_s
 import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_west
 import org.jetbrains.compose.resources.DrawableResource
 
-internal class Blocky : Visible, Dynamic {
+internal class Blocky(
+    initialPosition: SceneOffset,
+) : Visible, Dynamic {
 
     override val body = CircleBody(
+        initialPosition = initialPosition,
         initialRadius = 128.sceneUnit,
     )
     private lateinit var spriteManager: SpriteManager
