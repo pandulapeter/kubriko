@@ -13,8 +13,8 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.collision.CollisionManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.GalaxyShader
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.BackgroundAnimationManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.CameraShakeManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.LoadingManager
@@ -62,7 +62,11 @@ internal class SpaceSquadronGameStateHolderImpl(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG_BACKGROUND,
     )
-    private val backgroundAnimationManager = BackgroundAnimationManager()
+    private val backgroundActorManager = ActorManager.newInstance(
+        initialActors = listOf(GalaxyShader()),
+        isLoggingEnabled = true,
+        instanceNameForLogging = LOG_TAG_BACKGROUND,
+    )
     val backgroundKubriko = Kubriko.newInstance(
         backgroundStateManager,
         sharedMusicManager,
@@ -70,7 +74,7 @@ internal class SpaceSquadronGameStateHolderImpl(
         sharedSpriteManager,
         backgroundShaderManager,
         backgroundLoadingManager,
-        backgroundAnimationManager,
+        backgroundActorManager,
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG_BACKGROUND,
     )

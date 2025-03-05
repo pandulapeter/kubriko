@@ -14,14 +14,15 @@ import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.collision.CollisionManager
 import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.FogShader
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.AudioManager
-import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.BackgroundAnimationManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.LoadingManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.ScoreManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.UIManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.UserPreferencesManager
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
+import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.persistence.PersistenceManager
@@ -50,7 +51,11 @@ internal class WallbreakerGameStateHolderImpl(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG_BACKGROUND,
     )
-    private val backgroundAnimationManager = BackgroundAnimationManager()
+    private val backgroundActorManager = ActorManager.newInstance(
+        initialActors = listOf(FogShader()),
+        isLoggingEnabled = true,
+        instanceNameForLogging = LOG_TAG_BACKGROUND,
+    )
     val backgroundLoadingManager = LoadingManager(
         webRootPathName = webRootPathName,
     )
@@ -59,7 +64,7 @@ internal class WallbreakerGameStateHolderImpl(
         sharedSoundManager,
         backgroundShaderManager,
         backgroundLoadingManager,
-        backgroundAnimationManager,
+        backgroundActorManager,
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG_BACKGROUND,
     )

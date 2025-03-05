@@ -16,16 +16,17 @@ import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.DestructibleBlock
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.FogShader
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Ground
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Penguin
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Slingshot
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.AudioManager
-import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.BackgroundAnimationManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.LoadingManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.UIManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.UserPreferencesManager
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
+import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.persistence.PersistenceManager
@@ -130,8 +131,12 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
             instanceNameForLogging = LOG_TAG,
         )
     }
-    private val backgroundAnimationManager by lazy {
-        BackgroundAnimationManager()
+    private val backgroundActorManager by lazy {
+        ActorManager.newInstance(
+            initialActors = listOf(FogShader()),
+            isLoggingEnabled = true,
+            instanceNameForLogging = LOG_TAG_BACKGROUND,
+        )
     }
     val sharedUserPreferencesManager by lazy {
         UserPreferencesManager(persistenceManager)
@@ -174,7 +179,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
             sharedSoundManager,
             sharedSpriteManager,
             backgroundShaderManager,
-            backgroundAnimationManager,
+            backgroundActorManager,
             backgroundLoadingManager,
             isLoggingEnabled = true,
             instanceNameForLogging = LOG_TAG_BACKGROUND,
