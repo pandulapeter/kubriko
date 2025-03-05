@@ -93,7 +93,7 @@
     <string name="other_licenses_lgpl_2_1">GNU Lesser General Public License, version 2.1</string>
     <string name="other_licenses_mit">MIT License</string>
     <string name="other_licenses_mpl_2_0">Mozilla Public License, version 2.0</string>
-    <string name="other_licenses_music_note">The titles and creators of various music tracks (licensed under CC0 1.0 or CC BY 4.0) used in the different games can be found on the information pages of each game.</string>
+    <string name="other_licenses_music_note">The titles and creators of various music tracks (licensed under CC0 1.0 or CC BY 4.0) used in the different games can be found on the information page of each game.</string>
 
     <!-- Other - About -->
     <string name="other_about">About</string>
