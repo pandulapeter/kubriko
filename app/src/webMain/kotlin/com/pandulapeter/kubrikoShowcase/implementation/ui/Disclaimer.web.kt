@@ -35,6 +35,7 @@ import kubriko.app.generated.resources.welcome_disclaimer_web_android
 import kubriko.app.generated.resources.welcome_disclaimer_web_general
 import kubriko.app.generated.resources.welcome_disclaimer_web_ipad
 import kubriko.app.generated.resources.welcome_disclaimer_web_iphone
+import kubriko.app.generated.resources.welcome_disclaimer_web_not_chrome_or_firefox
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -84,6 +85,11 @@ internal actual fun Disclaimer() = Column(
     } else if (window.isRunningOnAndroid()) {
         Text(
             text = stringResource(Res.string.welcome_disclaimer_web_android),
+            style = MaterialTheme.typography.bodySmall,
+        )
+    } else if (window.navigator.userAgent.let { !it.contains("Chrome") && !it.contains("Firefox") }) {
+        Text(
+            text = stringResource(Res.string.welcome_disclaimer_web_not_chrome_or_firefox),
             style = MaterialTheme.typography.bodySmall,
         )
     }

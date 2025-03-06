@@ -43,6 +43,7 @@
     <string name="welcome_disclaimer_web_iphone">Furthermore, looks like you're running it on an iPhone, and this introduces additional problems since WebKit's implementation of WASM GC is relatively new. Fullscreen support is disabled, focus detection doesn't work, audio playback is unreliable, and the app frequently freezes. I strongly recommend that you test the native iOS app instead, or open this page in a desktop or Android browser.</string>
     <string name="welcome_disclaimer_web_ipad">Furthermore, looks like you're running it on an iPad, and this introduces additional problems since WebKit's implementation of WASM GC is relatively new. Focus detection doesn't work, audio playback is unreliable, and the app frequently freezes. I strongly recommend that you test the native iOS app instead, or open this page in a desktop or Android browser.</string>
     <string name="welcome_disclaimer_web_android">Furthermore, looks like you're running it on an Android device, where there is a known issue with the music playback sometimes getting stuck. I recommend that you test the native Android app instead, or open this page in a desktop browser.</string>
+    <string name="welcome_disclaimer_web_not_chrome_or_firefox">Chromium-based browsers or Firefox are highly recommended. Other browsers, such as Safari on macOS, exhibited random application freezes during testing.</string>
 
     <!-- Game - Wallbreaker -->
     <string name="game_wallbreaker">Wallbreaker</string>
