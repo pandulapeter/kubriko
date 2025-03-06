@@ -36,24 +36,26 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
         }
     }
 
-    override fun isPlaying(music: Any) = (music as AVAudioPlayer).isPlaying()
+    override fun isPlaying(cachedMusic: Any) = (cachedMusic as AVAudioPlayer).isPlaying()
 
-    override fun pause(music: Any) {
-        music as AVAudioPlayer
-        if (music.isPlaying()) {
-            music.pause()
+    override fun pause(cachedMusic: Any) {
+        cachedMusic as AVAudioPlayer
+        if (cachedMusic.isPlaying()) {
+            cachedMusic.pause()
         }
     }
 
     // TODO: Works like a pause, not a stop
-    override fun stop(music: Any) {
-        music as AVAudioPlayer
-        if (music.isPlaying()) {
-            music.stop()
+    override fun stop(cachedMusic: Any) {
+        cachedMusic as AVAudioPlayer
+        if (cachedMusic.isPlaying()) {
+            cachedMusic.stop()
         }
     }
 
-    override fun dispose(music: Any) = stop(music)
+    override fun dispose(cachedMusic: Any) = stop(cachedMusic)
 
     override fun dispose() = Unit
 }
+
+internal actual val musicPauseDelayOnFocusLoss: Long = 0L

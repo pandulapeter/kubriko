@@ -31,3 +31,5 @@ internal interface MusicPlayer {
 
 @Composable
 internal expect fun createMusicPlayer(coroutineScope: CoroutineScope): MusicPlayer
+
+internal expect val musicPauseDelayOnFocusLoss: Long

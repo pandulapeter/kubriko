@@ -13,11 +13,14 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.audioPlayback.implementation.MusicPlayer
 import com.pandulapeter.kubriko.audioPlayback.implementation.createMusicPlayer
+import com.pandulapeter.kubriko.audioPlayback.implementation.musicPauseDelayOnFocusLoss
 import com.pandulapeter.kubriko.audioPlayback.implementation.onManagerDisposed
 import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.manager.StateManager
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flowOf
@@ -35,6 +38,7 @@ internal class MusicManagerImpl(
     private var musicPlayer: MusicPlayer? = null
     private val stateManager by manager<StateManager>()
 
+    @OptIn(FlowPreview::class)
     @Composable
     override fun Composable(windowInsets: WindowInsets) {
         if (musicPlayer == null) {
@@ -46,6 +50,7 @@ internal class MusicManagerImpl(
                 }
             }
             stateManager.isFocused
+                .debounce(musicPauseDelayOnFocusLoss)
                 .filterNot { it }
                 .onEach { cache.value.keys.forEach(::pause) }
                 .launchIn(scope)

@@ -71,3 +71,5 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
 
     override fun dispose() = Unit
 }
+
+internal actual val musicPauseDelayOnFocusLoss: Long = 0L
