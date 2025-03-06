@@ -10,9 +10,11 @@
 package com.pandulapeter.kubriko.gameBlockysJourney.implementation
 
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.gameBlockysJourney.implementation.actors.Blocky
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers.LoadingManager
@@ -42,6 +44,11 @@ internal class BlockysJourneyGameStateHolderImpl(
 
     private val json = Json { ignoreUnknownKeys = true }
     val backgroundSerializationManager = EditableMetadata.newSerializationManagerInstance(
+        EditableMetadata(
+            typeId = "blocky",
+            deserializeState = { serializedState -> json.decodeFromString<Blocky.State>(serializedState) },
+            instantiate = { Blocky.State(body = CircleBody(initialPosition = it, initialRadius = 128.sceneUnit)) }
+        ),
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )

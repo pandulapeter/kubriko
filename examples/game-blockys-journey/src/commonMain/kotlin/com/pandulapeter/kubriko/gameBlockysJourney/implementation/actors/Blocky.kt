@@ -21,10 +21,15 @@ import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.rad
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.extensions.sin
+import com.pandulapeter.kubriko.sceneEditor.Editable
+import com.pandulapeter.kubriko.serialization.Serializable
+import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableCircleBody
 import com.pandulapeter.kubriko.sprites.AnimatedSprite
 import com.pandulapeter.kubriko.sprites.SpriteManager
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.json.Json
 import kubriko.examples.game_blockys_journey.generated.resources.Res
 import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_east
 import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_north
@@ -36,14 +41,11 @@ import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_s
 import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_west
 import org.jetbrains.compose.resources.DrawableResource
 
-internal class Blocky(
-    initialPosition: SceneOffset,
-) : Visible, Dynamic {
+internal class Blocky private constructor(
+    state: State,
+) : Visible, Dynamic, Editable<Blocky> {
 
-    override val body = CircleBody(
-        initialPosition = initialPosition,
-        initialRadius = 128.sceneUnit,
-    )
+    override val body = state.body
     private lateinit var spriteManager: SpriteManager
     private var direction = Direction.EAST
     private val animatedSprite = AnimatedSprite(
@@ -52,6 +54,10 @@ internal class Blocky(
         frameCount = 40,
         framesPerRow = 8,
         framesPerSecond = 60f,
+    )
+
+    override fun save() = State(
+        body = body,
     )
 
     override fun onAdded(kubriko: Kubriko) {
@@ -66,8 +72,8 @@ internal class Blocky(
             shouldLoop = true,
         )
         body.position += SceneOffset(
-            x = + Speed * direction.angle.cos,
-            y = - Speed * direction.angle.sin,
+            x = +Speed * direction.angle.cos,
+            y = -Speed * direction.angle.sin,
         ) * deltaTimeInMilliseconds
         if (previousFrame != animatedSprite.frameIndex && animatedSprite.isLastFrame) {
             direction = when (direction) {
@@ -122,6 +128,16 @@ internal class Blocky(
             drawableResource = Res.drawable.sprite_blocky_north_east,
             angle = 30.deg.rad,
         ),
+    }
+
+    @kotlinx.serialization.Serializable
+    data class State(
+        @SerialName("body") val body: SerializableCircleBody = CircleBody(),
+    ) : Serializable.State<Blocky> {
+
+        override fun restore() = Blocky(this)
+
+        override fun serialize() = Json.encodeToString(this)
     }
 
     companion object {
