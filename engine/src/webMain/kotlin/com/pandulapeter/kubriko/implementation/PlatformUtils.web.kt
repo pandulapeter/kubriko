@@ -20,10 +20,11 @@ internal actual fun getPlatform(): MetadataManager.Platform = MetadataManager.Pl
 )
 
 /**
- * When opening the web app from an iPhone the lifecycle never seems to get to RESUMED.
- * Using STARTED instead fixes blocker issues, but we lose the ability to detect when the app gets backgrounded.
+ * When opening the web app on an iPhone the lifecycle never seems to get to RESUMED.
+ * On iPad the situation seems to be a bit better, but it's still possible to make the app get stuck in STARTED state while have full focus.
+ * Using STARTED to mean RESUMED fixes the blocker issues, but we lose the ability to detect when the app gets backgrounded.
  */
-internal actual val activeLifecycleState: Lifecycle.State = if (window.navigator.userAgent.contains("iPhone"))  {
+internal actual val activeLifecycleState: Lifecycle.State = if (window.navigator.userAgent.let { it.contains("iPhone") || it.contains("iPad") })  {
     Lifecycle.State.STARTED
 } else{
     Lifecycle.State.RESUMED
