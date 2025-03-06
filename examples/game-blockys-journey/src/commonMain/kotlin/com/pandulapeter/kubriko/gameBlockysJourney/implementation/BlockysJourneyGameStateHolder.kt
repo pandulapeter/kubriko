@@ -14,6 +14,7 @@ import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.gameBlockysJourney.implementation.actors.Block
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.actors.Blocky
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers.GameplayManager
@@ -48,6 +49,11 @@ internal class BlockysJourneyGameStateHolderImpl(
             typeId = "blocky",
             deserializeState = { serializedState -> json.decodeFromString<Blocky.State>(serializedState) },
             instantiate = { Blocky.State(body = CircleBody(initialPosition = it, initialRadius = 128.sceneUnit)) }
+        ),
+        EditableMetadata(
+            typeId = "block",
+            deserializeState = { serializedState -> json.decodeFromString<Block.State>(serializedState) },
+            instantiate = { Block.State(body = CircleBody(initialPosition = it, initialRadius = 256.sceneUnit)) }
         ),
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,

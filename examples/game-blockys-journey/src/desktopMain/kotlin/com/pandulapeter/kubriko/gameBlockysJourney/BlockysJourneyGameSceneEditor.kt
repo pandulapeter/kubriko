@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.gameBlockysJourney
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.BlockysJourneyGameStateHolderImpl
+import com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers.LoadingManager
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.ui.isSceneEditorVisible
 import com.pandulapeter.kubriko.sceneEditor.SceneEditor
 
@@ -28,6 +29,7 @@ fun BlockysJourneyGameSceneEditor(
 ) {
     if (isSceneEditorVisible.collectAsState().value) {
         SceneEditor(
+            defaultSceneFilename = LoadingManager.SCENE_NAME,
             defaultSceneFolderPath = defaultSceneFolderPath,
             serializationManager = BlockysJourneyGameStateHolderImpl(
                 webRootPathName = "",

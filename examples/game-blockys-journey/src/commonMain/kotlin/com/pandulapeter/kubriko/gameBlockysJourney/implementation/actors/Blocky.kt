@@ -55,6 +55,7 @@ internal class Blocky private constructor(
         framesPerRow = 8,
         framesPerSecond = 60f,
     )
+    override val drawingOrder get() = -body.position.y.raw
 
     override fun save() = State(
         body = body,

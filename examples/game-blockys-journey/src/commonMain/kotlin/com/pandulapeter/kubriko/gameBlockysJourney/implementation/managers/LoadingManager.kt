@@ -109,7 +109,7 @@ internal class LoadingManager(
         spriteManager.preload(spriteResources)
         scope.launch {
             try {
-                actors = serializationManager.deserializeActors(Res.readBytes("files/scenes/world.json").decodeToString())
+                actors = serializationManager.deserializeActors(Res.readBytes("files/scenes/$SCENE_NAME").decodeToString())
             } catch (_: MissingResourceException) {
             }
             isLevelLoaded.update { true }
@@ -167,4 +167,8 @@ internal class LoadingManager(
             && preloadedString(Res.string.close_confirmation).value.isNotBlank()
             && preloadedString(Res.string.close_confirmation_positive).value.isNotBlank()
             && preloadedString(Res.string.close_confirmation_negative).value.isNotBlank()
+
+    companion object {
+        const val SCENE_NAME = "world.json"
+    }
 }
