@@ -75,10 +75,10 @@ internal class ActorManagerImpl(
         _allActors.map { actors -> actors.filterIsInstance<Dynamic>().toImmutableList() }.asStateFlow(persistentListOf())
     }
     private val visibleActors by autoInitializingLazy {
-        _allActors.map { actors -> actors.filterIsInstance<Visible>().sortedByDescending { it.drawingOrder }.toImmutableList() }.asStateFlow(persistentListOf())
+        _allActors.map { actors -> actors.filterIsInstance<Visible>().toImmutableList() }.asStateFlow(persistentListOf())
     }
     private val overlayActors by autoInitializingLazy {
-        _allActors.map { actors -> actors.filterIsInstance<Overlay>().sortedByDescending { it.overlayDrawingOrder }.toImmutableList() }
+        _allActors.map { actors -> actors.filterIsInstance<Overlay>().toImmutableList() }
             .asStateFlow(persistentListOf())
     }
     override val visibleActorsWithinViewport by lazy {
@@ -228,6 +228,7 @@ internal class ActorManagerImpl(
                     drawBlock = {
                         visibleActorsWithinViewport.value
                             .filter { it.isVisible && it.layerIndex == layerIndex }
+                            .sortedByDescending { it.drawingOrder }
                             .forEach { visible ->
                                 withTransform(
                                     transformBlock = { visible.body.transformForViewport(this) },
@@ -249,6 +250,7 @@ internal class ActorManagerImpl(
                 )
                 overlayActors.value
                     .filter { it.layerIndex == layerIndex }
+                    .sortedByDescending { it.overlayDrawingOrder }
                     .forEach { with(it) { drawToViewport() } }
             }
         )
