@@ -13,9 +13,13 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.manager.Manager
+import com.pandulapeter.kubriko.sceneEditor.Editable
+import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
+import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.sprites.SpriteManager
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedFont
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageBitmap
@@ -24,6 +28,7 @@ import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kubriko.examples.game_blockys_journey.generated.resources.Res
 import kubriko.examples.game_blockys_journey.generated.resources.back
 import kubriko.examples.game_blockys_journey.generated.resources.close_confirmation
@@ -59,6 +64,8 @@ import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_s
 import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_south_east
 import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_south_west
 import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_west
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.MissingResourceException
 
 internal class LoadingManager(
     webRootPathName: String,
@@ -68,6 +75,7 @@ internal class LoadingManager(
     private val spriteManager by manager<SpriteManager>()
     private val musicUris = AudioManager.getMusicUrisToPreload(webRootPathName)
     private val soundUris = AudioManager.getSoundUrisToPreload(webRootPathName)
+    private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
     private val spriteResources = listOf(
         Res.drawable.sprite_blocky_east,
         Res.drawable.sprite_blocky_north,
@@ -88,18 +96,30 @@ internal class LoadingManager(
         }.asStateFlow(false)
     }
     private val isFontLoaded = MutableStateFlow(false)
+    private val isLevelLoaded = MutableStateFlow(false)
     var isLoadingDone = false
         private set
+    var actors = emptyList<Actor>()
+        private set
 
+    @OptIn(ExperimentalResourceApi::class)
     override fun onInitialize(kubriko: Kubriko) {
         musicManager.preload(musicUris)
         soundManager.preload(soundUris)
         spriteManager.preload(spriteResources)
+        scope.launch {
+            try {
+                actors = serializationManager.deserializeActors(Res.readBytes("files/scenes/world.json").decodeToString())
+            } catch (_: MissingResourceException) {
+            }
+            isLevelLoaded.update { true }
+        }
     }
 
     @Composable
     fun isGameLoaded() = (isInitialized.collectAsState().value
             && areMenuResourcesLoaded()
+            && isLevelLoaded.collectAsState().value
             && areGameResourcesLoaded.collectAsState().value).also {
         isLoadingDone = it
     }

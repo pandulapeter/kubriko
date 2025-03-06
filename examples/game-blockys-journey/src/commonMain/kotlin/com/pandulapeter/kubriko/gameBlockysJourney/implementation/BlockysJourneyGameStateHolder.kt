@@ -41,7 +41,7 @@ internal class BlockysJourneyGameStateHolderImpl(
 ) : BlockysJourneyGameStateHolder {
 
     private val json = Json { ignoreUnknownKeys = true }
-    val serializationManager = EditableMetadata.newSerializationManagerInstance(
+    val backgroundSerializationManager = EditableMetadata.newSerializationManagerInstance(
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,
     )
@@ -83,7 +83,7 @@ internal class BlockysJourneyGameStateHolderImpl(
             instanceNameForLogging = LOG_TAG,
         )
     }
-    val backgroundLoadingManager by lazy {
+    val sharedLoadingManager by lazy {
         LoadingManager(
             webRootPathName = webRootPathName,
         )
@@ -129,7 +129,8 @@ internal class BlockysJourneyGameStateHolderImpl(
             sharedMusicManager,
             sharedSoundManager,
             sharedSpriteManager,
-            backgroundLoadingManager,
+            sharedLoadingManager,
+            backgroundSerializationManager,
             isLoggingEnabled = true,
             instanceNameForLogging = LOG_TAG_BACKGROUND,
         )
@@ -142,13 +143,13 @@ internal class BlockysJourneyGameStateHolderImpl(
                 sharedMusicManager,
                 sharedSoundManager,
                 sharedSpriteManager,
+                sharedLoadingManager,
                 stateManager,
                 shaderManager,
                 viewportManager,
                 keyboardInputManager,
                 pointerInputManager,
                 audioManager,
-                serializationManager,
                 gameplayManager,
                 uiManager,
                 isLoggingEnabled = true,
@@ -170,7 +171,7 @@ internal class BlockysJourneyGameStateHolderImpl(
     override fun navigateBack(
         isInFullscreenMode: Boolean,
         onFullscreenModeToggled: () -> Unit,
-    ) = backgroundLoadingManager.isLoadingDone.also {
+    ) = sharedLoadingManager.isLoadingDone.also {
         if (it) {
             if (stateManager.isRunning.value) {
                 audioManager.playButtonToggleSoundEffect()

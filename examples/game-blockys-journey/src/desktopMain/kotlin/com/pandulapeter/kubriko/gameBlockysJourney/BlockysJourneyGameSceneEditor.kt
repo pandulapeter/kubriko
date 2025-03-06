@@ -19,7 +19,7 @@ fun main() = SceneEditor.show(
     serializationManager = BlockysJourneyGameStateHolderImpl(
         webRootPathName = "",
         isSceneEditorEnabled = true,
-    ).serializationManager,
+    ).backgroundSerializationManager,
 )
 
 @Composable
@@ -32,7 +32,7 @@ fun BlockysJourneyGameSceneEditor(
             serializationManager = BlockysJourneyGameStateHolderImpl(
                 webRootPathName = "",
                 isSceneEditorEnabled = true,
-            ).serializationManager,
+            ).backgroundSerializationManager,
             title = "Scene Editor - Blocky's Journey",
             onCloseRequest = { isSceneEditorVisible.value = false },
         )

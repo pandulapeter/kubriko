@@ -70,7 +70,7 @@ fun BlockysJourneyGame(
         kubriko = stateHolder.backgroundKubriko,
         windowInsets = windowInsets,
     )
-    val isGameLoaded = stateHolder.backgroundLoadingManager.isGameLoaded()
+    val isGameLoaded = stateHolder.sharedLoadingManager.isGameLoaded()
     val isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value
     val isGameFocused = stateHolder.stateManager.isFocused.collectAsState().value
     AnimatedVisibility(

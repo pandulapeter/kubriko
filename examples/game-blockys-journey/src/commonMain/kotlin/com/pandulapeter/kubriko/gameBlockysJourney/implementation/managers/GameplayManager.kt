@@ -10,14 +10,10 @@
 package com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.extensions.sceneUnit
-import com.pandulapeter.kubriko.extensions.times
-import com.pandulapeter.kubriko.gameBlockysJourney.implementation.actors.Blocky
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.shaders.collection.RippleShader
-import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -25,21 +21,10 @@ internal class GameplayManager : Manager() {
 
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
+    private val loadingManager by manager<LoadingManager>()
     private val backgroundShader = RippleShader()
 
     override fun onInitialize(kubriko: Kubriko) {
-        actorManager.add(
-            (-5..5).flatMap { y ->
-                (-5..5).map { x ->
-                    Blocky(
-                        initialPosition = SceneOffset(
-                            x = x * 250.sceneUnit,
-                            y = y * 250.sceneUnit,
-                        )
-                    )
-                }
-            }
-        )
         stateManager.isRunning
             .onEach { isRunning ->
                 if (isRunning) {
@@ -49,6 +34,7 @@ internal class GameplayManager : Manager() {
                 }
             }
             .launchIn(scope)
+        actorManager.add(loadingManager.actors)
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
