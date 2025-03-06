@@ -27,7 +27,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoImpl
-import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.Scale
 import kotlinx.coroutines.flow.update
@@ -45,7 +44,6 @@ fun InternalViewport(
     // Focus handling
     val lifecycleObserver = remember(kubrikoImpl) {
         LifecycleEventObserver { source, _ ->
-            Logger.log("LIFECYCLE: ${source.lifecycle.currentState.name}")
             kubrikoImpl.stateManager.updateFocus(source.lifecycle.currentState.isAtLeast(activeLifecycleState))
         }
     }
