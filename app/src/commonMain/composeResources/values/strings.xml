@@ -42,7 +42,7 @@
     <string name="welcome_disclaimer_web_general">The web version of Kubriko Showcase has lower performance compared to the native builds.</string>
     <string name="welcome_disclaimer_web_iphone">Furthermore, looks like you're running it on an iPhone, and this introduces additional problems since WebKit's implementation of WASM GC is relatively new. Fullscreen support is disabled, focus loss detection doesn't work, and music playback can be buggy. The app frequently freezes. I strongly recommend that you test the native iOS app instead, or open this page in a desktop or Android browser.</string>
     <string name="welcome_disclaimer_web_ipad">Furthermore, looks like you're running it on an iPad, and this introduces additional problems since WebKit's implementation of WASM GC is relatively new. Based on my testing some music playback issues are to be expected, and the overall rendering performance is worse than on other web platforms. I recommend that you test the native iOS app instead, or open this page in a desktop or Android browser.</string>
-    <string name="welcome_disclaimer_web_android">Furthermore, looks like you're running it on an Android device, which has a known issue of the music playback sometimes getting stuck. I recommend that you test the native Android app instead, or open this page in a desktop browser.</string>
+    <string name="welcome_disclaimer_web_android">Furthermore, looks like you're running it on an Android device, which has the known issue of the music playback sometimes getting stuck. I recommend that you test the native Android app instead, or open this page in a desktop browser.</string>
 
     <!-- Game - Wallbreaker -->
     <string name="game_wallbreaker">Wallbreaker</string>

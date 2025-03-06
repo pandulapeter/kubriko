@@ -53,7 +53,7 @@ internal fun InfoDialog(
     BlockysJourneyButton(
         modifier = Modifier
             .padding(16.dp)
-            .align(Alignment.TopStart),
+            .align(Alignment.BottomStart),
         icon = Res.drawable.ic_back,
         title = stringResource(Res.string.back),
         onButtonPressed = onInfoButtonPressed,

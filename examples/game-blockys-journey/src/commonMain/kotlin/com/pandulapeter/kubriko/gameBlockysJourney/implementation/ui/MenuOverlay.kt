@@ -79,8 +79,8 @@ internal fun MenuOverlay(
 ) = Box {
     AnimatedVisibility(
         visible = isInfoDialogVisible,
-        enter = slideIn { IntOffset(0, -it.height) },
-        exit = slideOut { IntOffset(0, -it.height) },
+        enter = slideIn { IntOffset(0, it.height) } + fadeIn(),
+        exit = fadeOut() + slideOut { IntOffset(0, it.height) },
     ) {
         InfoDialog(
             onInfoButtonPressed = onInfoButtonPressed,
@@ -90,31 +90,15 @@ internal fun MenuOverlay(
     }
     AnimatedVisibility(
         visible = !isInfoDialogVisible,
-        enter = slideIn { IntOffset(0, it.height) },
-        exit = slideOut { IntOffset(0, it.height) },
+        enter = slideIn { IntOffset(0, -it.height) } + fadeIn(),
+        exit = fadeOut() + slideOut { IntOffset(0, -it.height) },
     ) {
         Column(
             modifier = Modifier
                 .windowInsetsPadding(windowInsets)
                 .fillMaxSize()
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            ControlsRow(
-                modifier = Modifier.fillMaxWidth(),
-                onInfoButtonPressed = onInfoButtonPressed,
-                areSoundEffectsEnabled = areSoundEffectsEnabled,
-                onSoundEffectsToggled = onSoundEffectsToggled,
-                isMusicEnabled = isMusicEnabled,
-                onMusicToggled = onMusicToggled,
-                isInFullscreenMode = isInFullscreenMode,
-                onFullscreenModeToggled = onFullscreenModeToggled,
-                playToggleSoundEffect = playToggleSoundEffect,
-                playHoverSoundEffect = playHoverSoundEffect,
-                onCloseButtonPressed = onCloseButtonPressed,
-                isSceneEditorEnabled = isSceneEditorEnabled,
-            )
             Title(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -123,7 +107,7 @@ internal fun MenuOverlay(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.25f),
+                    .weight(0.33f),
             ) {
                 BlockysJourneyButton(
                     modifier = Modifier.align(Alignment.Center),
@@ -132,6 +116,36 @@ internal fun MenuOverlay(
                     onPointerEnter = playHoverSoundEffect,
                 )
             }
+        }
+        Column(
+            modifier = Modifier
+                .windowInsetsPadding(windowInsets)
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            TopControlsRow(
+                modifier = Modifier.fillMaxWidth(),
+                isInFullscreenMode = isInFullscreenMode,
+                onFullscreenModeToggled = onFullscreenModeToggled,
+                playHoverSoundEffect = playHoverSoundEffect,
+                onCloseButtonPressed = onCloseButtonPressed,
+            )
+            Spacer(
+                modifier = Modifier.weight(1f),
+            )
+            BottomControlsRow(
+                modifier = Modifier.fillMaxWidth(),
+                onInfoButtonPressed = onInfoButtonPressed,
+                areSoundEffectsEnabled = areSoundEffectsEnabled,
+                onSoundEffectsToggled = onSoundEffectsToggled,
+                isMusicEnabled = isMusicEnabled,
+                onMusicToggled = onMusicToggled,
+                playToggleSoundEffect = playToggleSoundEffect,
+                playHoverSoundEffect = playHoverSoundEffect,
+                isSceneEditorEnabled = isSceneEditorEnabled,
+            )
         }
     }
     AnimatedVisibility(
@@ -161,18 +175,46 @@ internal fun MenuOverlay(
 }
 
 @Composable
-private fun ControlsRow(
+private fun TopControlsRow(
+    modifier: Modifier = Modifier,
+    isInFullscreenMode: Boolean?,
+    onFullscreenModeToggled: () -> Unit,
+    playHoverSoundEffect: () -> Unit,
+    onCloseButtonPressed: () -> Unit,
+) = Row(
+    modifier = modifier,
+) {
+    BlockysJourneyButton(
+        onButtonPressed = onCloseButtonPressed,
+        icon = Res.drawable.ic_exit,
+        title = stringResource(Res.string.close_confirmation_positive),
+        onPointerEnter = playHoverSoundEffect,
+    )
+    Spacer(
+        modifier = Modifier
+            .defaultMinSize(minWidth = 6.dp)
+            .weight(1f),
+    )
+    isInFullscreenMode?.let {
+        BlockysJourneyButton(
+            onButtonPressed = onFullscreenModeToggled,
+            icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
+            title = stringResource(if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter),
+            onPointerEnter = playHoverSoundEffect,
+        )
+    }
+}
+
+@Composable
+private fun BottomControlsRow(
     modifier: Modifier = Modifier,
     onInfoButtonPressed: () -> Unit,
     areSoundEffectsEnabled: Boolean,
     onSoundEffectsToggled: () -> Unit,
     isMusicEnabled: Boolean,
     onMusicToggled: () -> Unit,
-    isInFullscreenMode: Boolean?,
-    onFullscreenModeToggled: () -> Unit,
     playToggleSoundEffect: () -> Unit,
     playHoverSoundEffect: () -> Unit,
-    onCloseButtonPressed: () -> Unit,
     isSceneEditorEnabled: Boolean,
 ) = Row(
     modifier = modifier,
@@ -180,12 +222,6 @@ private fun ControlsRow(
     Row(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        BlockysJourneyButton(
-            onButtonPressed = onCloseButtonPressed,
-            icon = Res.drawable.ic_exit,
-            title = stringResource(Res.string.close_confirmation_positive),
-            onPointerEnter = playHoverSoundEffect,
-        )
         BlockysJourneyButton(
             icon = Res.drawable.ic_information,
             title = stringResource(Res.string.information),
@@ -219,14 +255,6 @@ private fun ControlsRow(
             title = stringResource(if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable),
             onPointerEnter = playHoverSoundEffect,
         )
-        isInFullscreenMode?.let {
-            BlockysJourneyButton(
-                onButtonPressed = onFullscreenModeToggled,
-                icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
-                title = stringResource(if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter),
-                onPointerEnter = playHoverSoundEffect,
-            )
-        }
     }
 }
 
