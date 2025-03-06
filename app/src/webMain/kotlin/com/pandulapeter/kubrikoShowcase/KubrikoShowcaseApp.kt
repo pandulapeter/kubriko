@@ -31,7 +31,7 @@ import org.w3c.dom.events.KeyboardEvent
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     CanvasBasedWindow(applyDefaultStyles = false) {
-        val isInFullscreenMode = remember { mutableStateOf(false) }
+        val isInFullscreenMode = remember { mutableStateOf(if (window.navigator.userAgent.contains("iPhone")) null else false) }
         val webEscapePressEvent = remember {
             MutableSharedFlow<Unit>(
                 extraBufferCapacity = 1,
@@ -46,7 +46,7 @@ fun main() {
                 currentPath.value = window.location.pathname
             }
             val fullscreenListener: (Event) -> Unit = {
-                if (isInFullscreenMode.value) {
+                if (isInFullscreenMode.value == true) {
                     isInFullscreenMode.value = document.fullscreenElement != null
                 }
             }
@@ -79,12 +79,14 @@ fun main() {
                 isInFullscreenMode = isInFullscreenMode.value,
                 getIsInFullscreenMode = { isInFullscreenMode.value },
                 onFullscreenModeToggled = {
-                    isInFullscreenMode.value = !isInFullscreenMode.value
-                    if (isInFullscreenMode.value) {
-                        document.documentElement?.requestFullscreen()
-                    } else {
-                        if (document.fullscreenElement != null) {
-                            document.exitFullscreen()
+                    isInFullscreenMode.value?.let { currentValue ->
+                        isInFullscreenMode.value = !currentValue
+                        if (currentValue) {
+                            if (document.fullscreenElement != null) {
+                                document.exitFullscreen()
+                            }
+                        } else {
+                            document.documentElement?.requestFullscreen()
                         }
                     }
                 },

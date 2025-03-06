@@ -98,6 +98,7 @@ internal fun MenuOverlay(
             ) {
                 FlowRow(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.Center,
                     maxItemsInEachRow = if (maxHeight < 80.dp) 2 else 1,
                 ) {
                     Row(

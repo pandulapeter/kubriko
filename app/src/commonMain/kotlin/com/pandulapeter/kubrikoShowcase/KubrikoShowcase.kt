@@ -33,8 +33,8 @@ import kotlin.coroutines.cancellation.CancellationException
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun KubrikoShowcase(
-    isInFullscreenMode: Boolean,
-    getIsInFullscreenMode: () -> Boolean,
+    isInFullscreenMode: Boolean?,
+    getIsInFullscreenMode: () -> Boolean?,
     onFullscreenModeToggled: () -> Unit,
     webEscapePressEvent: Flow<Unit>? = null,
     deeplink: String? = selectedShowcaseEntry.value.deeplink,
@@ -52,7 +52,7 @@ fun KubrikoShowcase(
         webEscapePressEvent?.collect {
             val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
             if (activeStateHolder?.navigateBack(
-                    isInFullscreenMode = isInFullscreenMode,
+                    isInFullscreenMode = isInFullscreenMode == true,
                     onFullscreenModeToggled = onFullscreenModeToggled,
                 ) == false
             ) {
@@ -65,7 +65,7 @@ fun KubrikoShowcase(
         val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
         try {
             if (activeStateHolder?.navigateBack(
-                    isInFullscreenMode = getIsInFullscreenMode(),
+                    isInFullscreenMode = getIsInFullscreenMode() == true,
                     onFullscreenModeToggled = onFullscreenModeToggled,
                 ) == false
             ) {
@@ -80,7 +80,7 @@ fun KubrikoShowcase(
         val scope = rememberCoroutineScope()
         LaunchedEffect(activeStateHolder) {
             activeStateHolder?.backNavigationIntent?.onEach {
-                if (getIsInFullscreenMode()) {
+                if (getIsInFullscreenMode() == true) {
                     onFullscreenModeToggled()
                 }
                 selectedShowcaseEntry.value = null

@@ -81,7 +81,7 @@ internal fun ShowcaseContent(
     selectedShowcaseEntry: ShowcaseEntry?,
     onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
     activeKubrikoInstance: Kubriko?,
-    isInFullscreenMode: Boolean,
+    isInFullscreenMode: Boolean?,
     onFullscreenModeToggled: () -> Unit,
     isInfoPanelVisible: Boolean,
     toggleInfoPanelVisibility: () -> Unit,
@@ -99,7 +99,7 @@ internal fun ShowcaseContent(
         ) {
             Column {
                 AnimatedVisibility(
-                    visible = !isInFullscreenMode,
+                    visible = isInFullscreenMode != true,
                 ) {
                     Spacer(modifier = Modifier.height(topBarHeight))
                 }
@@ -107,7 +107,7 @@ internal fun ShowcaseContent(
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     val windowInsets = when {
-                        isInFullscreenMode -> WindowInsets.safeDrawing
+                        isInFullscreenMode == true -> WindowInsets.safeDrawing
                         shouldUseCompactUi -> WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
                         else -> WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right)
                     }
@@ -148,7 +148,7 @@ internal fun ShowcaseContent(
             }
             AnimatedVisibility(
                 modifier = Modifier.padding(bottom = 8.dp),
-                visible = !isInFullscreenMode,
+                visible = isInFullscreenMode != true,
                 enter = fadeIn() + slideIn { IntOffset(0, -it.height) },
                 exit = slideOut { IntOffset(0, -it.height) } + fadeOut(),
             ) {
@@ -177,13 +177,13 @@ private fun ExpandedContent(
     windowInsets: WindowInsets,
     shouldUseCompactUi: Boolean,
     shouldUseWideSideMenu: Boolean,
-    isInFullscreenMode: Boolean,
+    isInFullscreenMode: Boolean?,
     onFullscreenModeToggled: () -> Unit,
     getSelectedShowcaseEntry: () -> ShowcaseEntry?,
 ) = Box(
     modifier = modifier,
 ) {
-    val shouldShowSideMenu = !shouldUseCompactUi && !isInFullscreenMode
+    val shouldShowSideMenu = !shouldUseCompactUi && isInFullscreenMode != true
     val sideMenuWidth by animateDpAsState(
         targetValue = (if (shouldUseWideSideMenu) WideSideMenuWidth else ThinSideMenuWidth) + WindowInsets.safeDrawing
             .only(WindowInsetsSides.Left)

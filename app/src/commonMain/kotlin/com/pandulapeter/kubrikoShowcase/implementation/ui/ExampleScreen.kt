@@ -62,7 +62,7 @@ private val stateHolders = mutableStateOf(emptyList<StateHolder>())
 @Composable
 internal fun ShowcaseEntry.ExampleScreen(
     windowInsets: WindowInsets,
-    isInFullscreenMode: Boolean,
+    isInFullscreenMode: Boolean?,
     onFullscreenModeToggled: () -> Unit,
     getSelectedShowcaseEntry: () -> ShowcaseEntry?,
 ) {
