@@ -42,6 +42,7 @@ import kubriko.app.generated.resources.ic_collapse
 import kubriko.app.generated.resources.ic_debug_off
 import kubriko.app.generated.resources.ic_debug_on
 import kubriko.app.generated.resources.ic_demos
+import kubriko.app.generated.resources.ic_disclaimer
 import kubriko.app.generated.resources.ic_expand
 import kubriko.app.generated.resources.ic_games
 import kubriko.app.generated.resources.ic_info_off
@@ -62,6 +63,11 @@ import kubriko.app.generated.resources.test_input
 import kubriko.app.generated.resources.test_input_subtitle
 import kubriko.app.generated.resources.tests
 import kubriko.app.generated.resources.welcome
+import kubriko.app.generated.resources.welcome_disclaimer
+import kubriko.app.generated.resources.welcome_disclaimer_web_android
+import kubriko.app.generated.resources.welcome_disclaimer_web_general
+import kubriko.app.generated.resources.welcome_disclaimer_web_ipad
+import kubriko.app.generated.resources.welcome_disclaimer_web_iphone
 import kubriko.app.generated.resources.welcome_subtitle
 
 internal object ResourceLoader {
@@ -78,6 +84,7 @@ internal object ResourceLoader {
             && preloadedImageVector(Res.drawable.ic_debug_off).value != null
             && preloadedImageVector(Res.drawable.ic_debug_on).value != null
             && preloadedImageVector(Res.drawable.ic_demos).value != null
+            && preloadedImageVector(Res.drawable.ic_disclaimer).value != null
             && preloadedImageVector(Res.drawable.ic_expand).value != null
             && preloadedImageVector(Res.drawable.ic_games).value != null
             && preloadedImageVector(Res.drawable.ic_info_off).value != null
@@ -125,5 +132,10 @@ internal object ResourceLoader {
             && preloadedString(Res.string.other_licenses_subtitle).value.isNotBlank()
             && preloadedString(Res.string.other_about).value.isNotBlank()
             && preloadedString(Res.string.other_about_subtitle).value.isNotBlank()
+            && preloadedString(Res.string.welcome_disclaimer).value.isNotBlank()
+            && preloadedString(Res.string.welcome_disclaimer_web_general).value.isNotBlank()
+            && preloadedString(Res.string.welcome_disclaimer_web_iphone).value.isNotBlank()
+            && preloadedString(Res.string.welcome_disclaimer_web_ipad).value.isNotBlank()
+            && preloadedString(Res.string.welcome_disclaimer_web_android).value.isNotBlank()
 
 }

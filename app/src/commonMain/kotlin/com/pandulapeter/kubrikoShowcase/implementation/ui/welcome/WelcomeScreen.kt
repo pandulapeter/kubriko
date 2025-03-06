@@ -38,6 +38,7 @@ import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.LargeButton
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
+import com.pandulapeter.kubrikoShowcase.implementation.ui.Disclaimer
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.ic_collapse
 import kubriko.app.generated.resources.ic_discord
@@ -205,8 +206,12 @@ internal fun WelcomeScreen(
             .padding(horizontal = 16.dp)
             .padding(top = if (shouldUseCompactUi) 8.dp else 16.dp),
         style = MaterialTheme.typography.bodySmall,
-        text = stringResource(Res.string.welcome_app_details, stringResource(if (shouldUseCompactUi) Res.string.welcome_app_details_call_to_action_collapsed else Res.string.welcome_app_details_call_to_action_expanded)),
+        text = stringResource(
+            Res.string.welcome_app_details,
+            stringResource(if (shouldUseCompactUi) Res.string.welcome_app_details_call_to_action_collapsed else Res.string.welcome_app_details_call_to_action_expanded)
+        ),
     )
+    Disclaimer()
 }
 
 internal sealed interface WelcomeScreenStateHolder : StateHolder {
