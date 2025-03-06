@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.implementation
 
+import androidx.lifecycle.Lifecycle
 import com.pandulapeter.kubriko.manager.MetadataManager
 import kotlinx.browser.window
 
@@ -17,3 +18,13 @@ internal actual fun getDefaultFocusDebounce() = 0L
 internal actual fun getPlatform(): MetadataManager.Platform = MetadataManager.Platform.Web(
     userAgent = window.navigator.userAgent,
 )
+
+/**
+ * When opening the web app from an iPhone the lifecycle never seems to get to RESUMED.
+ * Using STARTED instead fixes blocker issues, but we lose the ability to detect when the app gets backgrounded.
+ */
+internal actual val activeLifecycleState: Lifecycle.State = if (window.navigator.userAgent.contains("iPhone"))  {
+    Lifecycle.State.STARTED
+} else{
+    Lifecycle.State.RESUMED
+}

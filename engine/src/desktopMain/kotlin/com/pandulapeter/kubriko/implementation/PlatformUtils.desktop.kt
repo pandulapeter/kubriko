@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.implementation
 
 import androidx.compose.ui.window.WindowState
+import androidx.lifecycle.Lifecycle
 import com.pandulapeter.kubriko.manager.MetadataManager
 import org.apache.commons.lang3.SystemUtils
 
@@ -31,5 +32,7 @@ internal actual fun getPlatform(): MetadataManager.Platform = when {
         javaVersion = SystemUtils.JAVA_VERSION,
     )
 }
+
+internal actual val activeLifecycleState: Lifecycle.State = Lifecycle.State.RESUMED
 
 lateinit var windowState: WindowState

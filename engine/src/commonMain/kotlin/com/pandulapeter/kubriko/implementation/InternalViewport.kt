@@ -23,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalDensity
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.pandulapeter.kubriko.Kubriko
@@ -43,7 +42,11 @@ fun InternalViewport(
     val kubrikoImpl = remember(kubriko) { kubriko as? KubrikoImpl ?: throw IllegalStateException("Custom Kubriko implementations are not supported. Use Kubriko.newInstance() to instantiate Kubriko.") }
 
     // Focus handling
-    val lifecycleObserver = remember(kubrikoImpl) { LifecycleEventObserver { source, _ -> kubrikoImpl.stateManager.updateFocus(source.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) } }
+    val lifecycleObserver = remember(kubrikoImpl) {
+        LifecycleEventObserver { source, _ ->
+            kubrikoImpl.stateManager.updateFocus(source.lifecycle.currentState.isAtLeast(activeLifecycleState))
+        }
+    }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     DisposableEffect(lifecycle) {
         lifecycle.addObserver(lifecycleObserver)

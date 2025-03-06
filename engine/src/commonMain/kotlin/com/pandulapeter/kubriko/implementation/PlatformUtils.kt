@@ -9,8 +9,11 @@
  */
 package com.pandulapeter.kubriko.implementation
 
+import androidx.lifecycle.Lifecycle
 import com.pandulapeter.kubriko.manager.MetadataManager
 
 internal expect fun getDefaultFocusDebounce(): Long
 
 internal expect fun getPlatform(): MetadataManager.Platform
+
+internal expect val activeLifecycleState: Lifecycle.State
