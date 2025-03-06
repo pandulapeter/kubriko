@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.implementation
 import androidx.lifecycle.Lifecycle
 import com.pandulapeter.kubriko.manager.MetadataManager
 import kotlinx.browser.window
+import org.w3c.dom.Window
 
 internal actual fun getDefaultFocusDebounce() = 0L
 
@@ -24,8 +25,17 @@ internal actual fun getPlatform(): MetadataManager.Platform = MetadataManager.Pl
  * On iPad the situation seems to be a bit better, but it's still possible to make the app get stuck in STARTED state while have full focus.
  * Using STARTED to mean RESUMED fixes the blocker issues, but we lose the ability to detect when the app gets backgrounded.
  */
-internal actual val activeLifecycleState: Lifecycle.State = if (window.navigator.userAgent.let { it.contains("iPhone") || it.contains("iPad") })  {
+internal actual val activeLifecycleState: Lifecycle.State = if (window.isRunningOnIpad() || window.isRunningOnIphone()) {
     Lifecycle.State.STARTED
-} else{
+} else {
     Lifecycle.State.RESUMED
 }
+
+fun Window.isRunningOnAndroid() =
+    navigator.userAgent.contains("Android")
+
+fun Window.isRunningOnIphone() =
+    navigator.userAgent.contains("iPhone") || (!navigator.userAgent.contains("Chrome") && navigator.maxTouchPoints > 0 && window.innerWidth / window.innerHeight > 1.6)
+
+fun Window.isRunningOnIpad() =
+    navigator.userAgent.contains("iPad") || (!navigator.userAgent.contains("Chrome") && navigator.maxTouchPoints > 0 && window.innerWidth / window.innerHeight <= 1.6)

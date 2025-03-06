@@ -24,6 +24,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.implementation.isRunningOnAndroid
+import com.pandulapeter.kubriko.implementation.isRunningOnIpad
+import com.pandulapeter.kubriko.implementation.isRunningOnIphone
 import kotlinx.browser.window
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.ic_disclaimer
@@ -68,17 +71,17 @@ internal actual fun Disclaimer() = Column(
         text = stringResource(Res.string.welcome_disclaimer_web_general),
         style = MaterialTheme.typography.bodySmall,
     )
-    if (window.navigator.userAgent.contains("iPhone")) {
+    if (window.isRunningOnIphone()) {
         Text(
             text = stringResource(Res.string.welcome_disclaimer_web_iphone),
             style = MaterialTheme.typography.bodySmall,
         )
-    } else if (window.navigator.userAgent.contains("iPad")) {
+    } else if (window.isRunningOnIpad()) {
         Text(
             text = stringResource(Res.string.welcome_disclaimer_web_ipad),
             style = MaterialTheme.typography.bodySmall,
         )
-    } else if (window.navigator.userAgent.contains("Android")) {
+    } else if (window.isRunningOnAndroid()) {
         Text(
             text = stringResource(Res.string.welcome_disclaimer_web_android),
             style = MaterialTheme.typography.bodySmall,

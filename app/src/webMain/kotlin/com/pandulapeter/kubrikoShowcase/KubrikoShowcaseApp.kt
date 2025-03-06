@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.CanvasBasedWindow
+import com.pandulapeter.kubriko.implementation.isRunningOnIphone
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.channels.BufferOverflow
@@ -31,7 +32,7 @@ import org.w3c.dom.events.KeyboardEvent
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     CanvasBasedWindow(applyDefaultStyles = false) {
-        val isInFullscreenMode = remember { mutableStateOf(if (window.navigator.userAgent.contains("iPhone")) null else false) }
+        val isInFullscreenMode = remember { mutableStateOf(if (window.isRunningOnIphone()) null else false) }
         val webEscapePressEvent = remember {
             MutableSharedFlow<Unit>(
                 extraBufferCapacity = 1,
