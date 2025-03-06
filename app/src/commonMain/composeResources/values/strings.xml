@@ -28,21 +28,21 @@
     <string name="welcome_hide_details">Hide details</string>
     <string name="welcome_engine_details">Kubriko is based on Compose Multiplatform and is written entirely in Kotlin. As a result it can seamlessly be integrated into any Compose project.\n\nFor more information check out the GitHub repository, where you can find the source code of the library, as well as this application. If you run into any issues / bugs, have feature request ideas, or would like to contribute in any way, that is the starting point.</string>
     <string name="welcome_repository">Open the repository</string>
-    <string name="welcome_learning_1">The project repository also hosts a number of helpful learning materials. To start using the engine for your own games, follow the guide for creating a new project, or read the documentation.</string>
+    <string name="welcome_learning_1">The project repository also hosts a number of helpful learning materials. To start using the engine for creating your own games, follow the guide for setting up a new project, or read the documentation.</string>
     <string name="welcome_getting_started">Getting started</string>
     <string name="welcome_documentation">Documentation</string>
     <string name="welcome_learning_2">Watching the step by step tutorial videos is another great way to understand how the games in this Showcase are implemented. You can also join our Discord server to discuss more advanced topics with the community, or to promote your own creations.</string>
     <string name="welcome_tutorials">Tutorial videos</string>
     <string name="welcome_community">Join the community</string>
-    <string name="welcome_license">Kubriko is under active development and will evolve together with the games that are being created with it. The library is open source and free to use under MPL 2.0.</string>
+    <string name="welcome_license">Kubriko is under active development and will evolve together with the games that are being created with it. The library is open source and completely free to use under MPL 2.0.</string>
     <string name="welcome_app_details">This app contains a number of examples that present what the engine is capable of. %1$s</string>
     <string name="welcome_app_details_call_to_action_collapsed">Check them out using the menu below!</string>
     <string name="welcome_app_details_call_to_action_expanded">Check them out using the menu on the left!</string>
     <string name="welcome_disclaimer">Warning</string>
-    <string name="welcome_disclaimer_web_general">This web version of Kubriko Showcase has lower performance compared to the native builds.</string>
-    <string name="welcome_disclaimer_web_iphone">Furthermore, looks like you're running it on an iPhone, and this combination has a number of known issues since Safari mobile's implementation of WASM GC is relatively new. Fullscreen support is disabled, focus loss detection doesn't work, and music playback can be buggy. I strongly recommend that you test the native iOS app instead, or open this page from a desktop OS or an Android device.</string>
-    <string name="welcome_disclaimer_web_ipad">Furthermore, looks like you're running it on an iPad, and this combination has a number of known issues since Safari mobile's implementation of WASM GC is relatively new. Based on my testing some music playback issues are to be expected, and the overall rendering performance is worse than on other web platforms. I strongly recommend that you test the native iOS app instead, or open this page from a desktop OS or an Android device.</string>
-    <string name="welcome_disclaimer_web_android">Furthermore, looks like you're running it on an Android device, which has a known issue of the music sometimes getting stuck. I recommend that you test the native Android app instead, or open this page from a desktop OS.</string>
+    <string name="welcome_disclaimer_web_general">The web version of Kubriko Showcase has lower performance compared to the native builds.</string>
+    <string name="welcome_disclaimer_web_iphone">Furthermore, looks like you're running it on an iPhone, and this introduces additional problems since WebKit's implementation of WASM GC is relatively new. Fullscreen support is disabled, focus loss detection doesn't work, and music playback can be buggy. The app frequently freezes. I strongly recommend that you test the native iOS app instead, or open this page in a desktop or Android browser.</string>
+    <string name="welcome_disclaimer_web_ipad">Furthermore, looks like you're running it on an iPad, and this introduces additional problems since WebKit's implementation of WASM GC is relatively new. Based on my testing some music playback issues are to be expected, and the overall rendering performance is worse than on other web platforms. I recommend that you test the native iOS app instead, or open this page in a desktop or Android browser.</string>
+    <string name="welcome_disclaimer_web_android">Furthermore, looks like you're running it on an Android device, which has a known issue of the music playback sometimes getting stuck. I recommend that you test the native Android app instead, or open this page in a desktop browser.</string>
 
     <!-- Game - Wallbreaker -->
     <string name="game_wallbreaker">Wallbreaker</string>
