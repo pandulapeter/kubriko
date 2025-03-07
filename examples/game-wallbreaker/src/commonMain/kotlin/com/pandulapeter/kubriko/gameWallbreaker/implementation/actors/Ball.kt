@@ -61,6 +61,7 @@ internal class Ball(
     private var isCollidingWithPaddle = false
     private var state = State.UNINITIALIZED
     val isLaunched get() = state == State.LAUNCHED
+    private var trackingPointerId: PointerId? = null
 
     private enum class State {
         UNINITIALIZED,
@@ -119,13 +120,16 @@ internal class Ball(
     }
 
     override fun onPointerPressed(pointerId: PointerId, screenOffset: Offset) {
-        if (stateManager.isRunning.value && state == State.UNINITIALIZED) {
-            state = State.POSITIONING
+        if (stateManager.isRunning.value) {
+            trackingPointerId = pointerId
+            if (state == State.UNINITIALIZED) {
+                state = State.POSITIONING
+            }
         }
     }
 
     override fun onPointerReleased(pointerId: PointerId, screenOffset: Offset) {
-        if (stateManager.isRunning.value && state == State.POSITIONING) {
+        if (stateManager.isRunning.value && state == State.POSITIONING && trackingPointerId == pointerId) {
             state = State.LAUNCHED
             audioManager.playPaddleHitSoundEffect()
         }

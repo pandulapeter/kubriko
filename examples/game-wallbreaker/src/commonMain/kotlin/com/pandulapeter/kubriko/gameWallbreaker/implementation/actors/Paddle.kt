@@ -48,7 +48,12 @@ internal class Paddle(
     private lateinit var pointerInputManager: PointerInputManager
     private lateinit var stateManager: StateManager
     private lateinit var viewportManager: ViewportManager
-    private var previousPointerPosition: SceneOffset? = null
+    private var previousPointerOffset: SceneOffset? = null
+    private var movementPointerId: PointerId? = null
+
+    // On desktop after each detected movement we programmatically move the cursor to the center of the screen.
+    // This next flag is there to make sure that that movement is filtered out.
+    private var shouldMovePaddle = false
 
     override fun onAdded(kubriko: Kubriko) {
         pointerInputManager = kubriko.get()
@@ -56,24 +61,24 @@ internal class Paddle(
         viewportManager = kubriko.get()
     }
 
-    private var previousPointerOffset = SceneOffset.Zero
-
     fun resetPointerTracking() {
         viewportManager.size.value.center.let { center ->
             pointerInputManager.tryToMoveHoveringPointer(center)
-            previousPointerPosition = null
+            previousPointerOffset = null
         }
     }
 
-    private var offsetFlag = false
-
     override fun onPointerOffsetChanged(pointerId: PointerId?, screenOffset: Offset) {
-        val currentPointerPosition = screenOffset.toSceneOffset(viewportManager)
-        if (stateManager.isRunning.value) {
-            previousPointerPosition?.let { previousPointerPosition ->
-                val offset = currentPointerPosition - previousPointerPosition
-                offsetFlag = !offsetFlag
-                if (offsetFlag) {
+        if (movementPointerId == null) {
+            movementPointerId = pointerId
+        }
+        val viewportCenter = viewportManager.size.value.center
+        if (stateManager.isRunning.value && pointerId == movementPointerId) {
+            val currentPointerPosition = screenOffset.toSceneOffset(viewportManager)
+            shouldMovePaddle = !shouldMovePaddle
+            if (shouldMovePaddle) {
+                previousPointerOffset?.let { previousPointerPosition ->
+                    val offset = currentPointerPosition - previousPointerPosition
                     body.position = SceneOffset(
                         x = body.position.x + offset.x * POINTER_SPEED_MULTIPLIER,
                         y = body.position.y,
@@ -81,12 +86,15 @@ internal class Paddle(
                         topLeft = viewportManager.topLeft.value,
                         bottomRight = viewportManager.bottomRight.value,
                     )
-                    pointerInputManager.tryToMoveHoveringPointer(viewportManager.size.value.center)
-                    previousPointerOffset = offset
+                }
+                if (!pointerInputManager.tryToMoveHoveringPointer(viewportCenter)) {
+                    // If we didn't manage to move the pointer, let's switch the flag back on, to make sure that the next event is consumed.
+                    // If we managed to move the cursor, the next event should be skipped!
+                    shouldMovePaddle = !shouldMovePaddle
                 }
             }
+            previousPointerOffset = currentPointerPosition
         }
-        previousPointerPosition = currentPointerPosition
     }
 
     override fun DrawScope.draw() {
@@ -101,12 +109,21 @@ internal class Paddle(
         )
     }
 
+    override fun onPointerPressed(pointerId: PointerId, screenOffset: Offset) {
+        if (movementPointerId == null) {
+            movementPointerId = pointerId
+        }
+    }
+
     override fun onPointerReleased(pointerId: PointerId, screenOffset: Offset) {
-        previousPointerPosition = null
+        if (movementPointerId == pointerId) {
+            movementPointerId = null
+            previousPointerOffset = null
+        }
     }
 
     override fun onPointerLeavingTheViewport() {
-        previousPointerPosition = null
+        previousPointerOffset = null
     }
 
     private var moveInNextStep = SceneUnit.Zero
