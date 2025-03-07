@@ -44,10 +44,10 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
     private lateinit var viewportManager: ViewportManager
     override val drawingOrder = 1f
     override val isAlwaysActive = true
-    private var isAiming = false
+    private var aimingPointerId : PointerId? = null
         set(value) {
             field = value
-            fakePenguin.isVisible = value
+            fakePenguin.isVisible = value != null
         }
     private val fakePenguin = FakePenguin(body.position)
 
@@ -70,7 +70,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
     }
 
     override fun onPointerDrag(screenOffset: Offset) {
-        if (!isAiming) {
+        if (aimingPointerId == null) {
             viewportManager.addToCameraPosition(screenOffset)
         }
     }
@@ -78,18 +78,24 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
     override fun onPointerZoom(position: Offset, factor: Float) = viewportManager.multiplyScaleFactor(factor)
 
     override fun onPointerReleased(pointerId: PointerId, screenOffset: Offset) {
-        isAiming = false
+        if (pointerId == aimingPointerId) {
+            aimingPointerId = null
+        }
     }
 
     private var isPointerPressedInPreviousStep = false
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        val pressedPointerPositions = pointerInputManager.pressedPointerPositions.value.values
+        val pressedPointerPositions = pointerInputManager.pressedPointerPositions.value
         if (pressedPointerPositions.isNotEmpty()) {
             // Detect if the initial press was on the slingshot
             if (!isPointerPressedInPreviousStep) {
-                pressedPointerPositions.firstOrNull()?.let { pressPosition ->
-                    isAiming = pressPosition.toSceneOffset(viewportManager).isWithin(body.axisAlignedBoundingBox)
+                if (pressedPointerPositions.isNotEmpty()) {
+                    pressedPointerPositions.firstNotNullOf { it }.let { pressPosition ->
+                        if (pressPosition.value.toSceneOffset(viewportManager).isWithin(body.axisAlignedBoundingBox)) {
+                            aimingPointerId = pressPosition.key
+                        }
+                    }
                 }
             }
         } else {
