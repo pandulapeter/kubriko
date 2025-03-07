@@ -10,6 +10,8 @@
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
@@ -17,7 +19,9 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.extensions.abs
 import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.extensions.isWithin
 import com.pandulapeter.kubriko.extensions.toOffset
+import com.pandulapeter.kubriko.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
@@ -40,6 +44,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
     private lateinit var viewportManager: ViewportManager
     override val drawingOrder = 1f
     override val isAlwaysActive = true
+    private var isAiming = false
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
@@ -51,23 +56,43 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
     override fun DrawScope.draw() {
         spriteManager.get(Res.drawable.sprite_slingshot_background)?.let { background ->
             spriteManager.get(Res.drawable.sprite_slingshot_foreground)?.let { foreground ->
-                drawImage(background)
+                drawImage(
+                    image = background,
+                    colorFilter = if (isAiming) ColorFilter.tint(Color.Black) else null,
+                )
                 // TODO: Should be separate Actors probably
-                drawImage(foreground)
+                drawImage(
+                    image = foreground,
+                    colorFilter = if (isAiming) ColorFilter.tint(Color.Black) else null,
+                )
             }
         }
     }
 
     override fun onPointerDrag(screenOffset: Offset) {
-        viewportManager.addToCameraPosition(screenOffset)
+        if (!isAiming) {
+            viewportManager.addToCameraPosition(screenOffset)
+        }
     }
 
-    override fun onPointerZoom(position: Offset, factor: Float) {
-        viewportManager.multiplyScaleFactor(factor)
+    override fun onPointerZoom(position: Offset, factor: Float) = viewportManager.multiplyScaleFactor(factor)
+
+    override fun onPointerReleased(screenOffset: Offset) {
+        isAiming = false
     }
+
+    private var isPointerPressedInPreviousStep = false
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        if (!pointerInputManager.isPointerPressed.value) {
+        if (pointerInputManager.isPointerPressed.value) {
+            // Detect if the initial press was on the slingshot
+            if (!isPointerPressedInPreviousStep) {
+                pointerInputManager.pointerScreenOffset.value?.let { pressPosition ->
+                    isAiming = pressPosition.toSceneOffset(viewportManager).isWithin(body.axisAlignedBoundingBox)
+                }
+            }
+        } else {
+            // Move the camera automatically to keep the slingshot in focus
             val cameraPosition = viewportManager.cameraPosition.value
             if (abs(cameraPosition.x - body.position.x).raw > 0 || abs(cameraPosition.y - body.position.y).raw > 0) {
                 viewportManager.addToCameraPosition(
@@ -75,6 +100,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
                 )
             }
         }
+        isPointerPressedInPreviousStep = pointerInputManager.isPointerPressed.value
     }
 
     override fun save() = State(
