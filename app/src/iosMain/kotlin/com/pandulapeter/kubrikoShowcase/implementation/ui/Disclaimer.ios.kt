@@ -9,6 +9,15 @@
  */
 package com.pandulapeter.kubrikoShowcase.implementation.ui
 
-import org.jetbrains.compose.resources.StringResource
+import kubriko.app.generated.resources.Res
+import kubriko.app.generated.resources.welcome_disclaimer_obfuscation
+import kotlin.experimental.ExperimentalNativeApi
 
-internal actual fun getWarningTexts() = emptyList<StringResource>()
+internal actual fun getWarningTexts() = buildList {
+    if (isUnoptimized()) {
+        add(Res.string.welcome_disclaimer_obfuscation)
+    }
+}
+
+@OptIn(ExperimentalNativeApi::class)
+private fun isUnoptimized() = Platform.isDebugBinary
