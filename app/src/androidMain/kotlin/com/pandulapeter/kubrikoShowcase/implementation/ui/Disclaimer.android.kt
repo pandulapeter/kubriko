@@ -9,7 +9,13 @@
  */
 package com.pandulapeter.kubrikoShowcase.implementation.ui
 
-import androidx.compose.runtime.Composable
+import kubriko.app.generated.resources.Res
+import kubriko.app.generated.resources.welcome_disclaimer_obfuscation
 
-@Composable
-internal actual fun Disclaimer() = Unit
+internal actual fun getWarningTexts() = buildList {
+    if (isUnoptimized()) {
+        add(Res.string.welcome_disclaimer_obfuscation)
+    }
+}
+
+private fun isUnoptimized() = object {}.javaClass.enclosingMethod?.name == "isUnoptimized"

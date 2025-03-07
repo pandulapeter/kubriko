@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubrikoShowcase.implementation.ui
 
-import androidx.compose.runtime.Composable
+import org.jetbrains.compose.resources.StringResource
 
-@Composable
-internal actual fun Disclaimer() = Unit
+internal actual fun getWarningTexts() = emptyList<StringResource>()

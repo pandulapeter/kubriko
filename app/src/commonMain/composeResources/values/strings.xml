@@ -39,6 +39,7 @@
     <string name="welcome_app_details_call_to_action_collapsed">Check them out using the menu below!</string>
     <string name="welcome_app_details_call_to_action_expanded">Check them out using the menu on the left!</string>
     <string name="welcome_disclaimer">Warning</string>
+    <string name="welcome_disclaimer_obfuscation">Obfuscated production builds have significantly better performance than the debug build you're running now.</string>
     <string name="welcome_disclaimer_web_general">The web version of Kubriko Showcase has lower performance compared to the native builds.</string>
     <string name="welcome_disclaimer_web_iphone">Furthermore, looks like you're running it on an iPhone, and this introduces additional problems since WebKit's implementation of WASM GC is relatively new. Fullscreen support is disabled, focus detection doesn't work, audio playback is unreliable, and the app frequently freezes. I strongly recommend that you test the native iOS app instead, or open this page in a desktop or Android browser.</string>
     <string name="welcome_disclaimer_web_ipad">Furthermore, looks like you're running it on an iPad, and this introduces additional problems since WebKit's implementation of WASM GC is relatively new. Focus detection doesn't work, audio playback is unreliable, and the app frequently freezes. I strongly recommend that you test the native iOS app instead, or open this page in a desktop or Android browser.</string>
