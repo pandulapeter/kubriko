@@ -102,15 +102,21 @@ compose.desktop {
         nativeDistributions {
             packageName = "com.pandulapeter.kubrikoShowcase"
             packageVersion = buildConfigurationValue("versionName")
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             macOS {
                 iconFile.set(project.file("icon.icns"))
                 bundleID = "com.pandulapeter.kubrikoShowcase"
                 packageName = "Kubriko Showcase"
                 dockName = "Kubriko Showcase"
+                targetFormats(TargetFormat.Dmg)
             }
-            windows { iconFile.set(project.file("icon.ico")) }
-            linux { iconFile.set(project.file("icon.png")) }
+            windows {
+                iconFile.set(project.file("icon.ico"))
+                targetFormats(TargetFormat.Msi, TargetFormat.Exe)
+            }
+            linux {
+                iconFile.set(project.file("icon.png"))
+                targetFormats(TargetFormat.Deb)
+            }
             buildTypes.release.proguard {
                 configurationFiles.from(project.file("proguard-rules.pro"))
                 isEnabled.set(true)
