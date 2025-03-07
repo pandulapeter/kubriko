@@ -14,6 +14,7 @@ import com.pandulapeter.kubriko.implementation.isRunningOnIpad
 import com.pandulapeter.kubriko.implementation.isRunningOnIphone
 import kotlinx.browser.window
 import kubriko.app.generated.resources.Res
+import kubriko.app.generated.resources.welcome_disclaimer_obfuscation
 import kubriko.app.generated.resources.welcome_disclaimer_web_android
 import kubriko.app.generated.resources.welcome_disclaimer_web_general
 import kubriko.app.generated.resources.welcome_disclaimer_web_ipad
@@ -21,6 +22,9 @@ import kubriko.app.generated.resources.welcome_disclaimer_web_iphone
 import kubriko.app.generated.resources.welcome_disclaimer_web_not_chrome_or_firefox
 
 internal actual fun getWarningTexts() = buildList {
+    if (isUnoptimized()) {
+        add(Res.string.welcome_disclaimer_obfuscation)
+    }
     add(Res.string.welcome_disclaimer_web_general)
     if (window.isRunningOnIphone()) {
         add(Res.string.welcome_disclaimer_web_iphone)
@@ -31,4 +35,10 @@ internal actual fun getWarningTexts() = buildList {
     } else if (window.navigator.userAgent.let { !it.contains("Chrome") && !it.contains("Firefox") }) {
         add(Res.string.welcome_disclaimer_web_not_chrome_or_firefox)
     }
+}
+
+private fun isUnoptimized() = try {
+    throw Error()
+} catch (e: Throwable) {
+    e.stackTraceToString().contains("isUnoptimized")
 }
