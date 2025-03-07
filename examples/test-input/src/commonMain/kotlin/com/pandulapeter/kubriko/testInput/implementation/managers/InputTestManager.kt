@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.pointer.PointerId
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
@@ -39,15 +40,15 @@ internal class InputTestManager : Manager(), KeyboardInputAware, PointerInputAwa
 
     override fun handleActiveKeys(activeKeys: ImmutableSet<Key>) = _activeKeys.update { activeKeys }
 
-    override fun onPointerOffsetChanged(screenOffset: Offset) {
+    override fun onPointerOffsetChanged(pointerId: PointerId?, screenOffset: Offset) {
         pointerOffset = screenOffset
     }
 
-    override fun onPointerPressed(screenOffset: Offset) {
+    override fun onPointerPressed(pointerId: PointerId, screenOffset: Offset) {
         isPointerBeingPressed = true
     }
 
-    override fun onPointerReleased(screenOffset: Offset) {
+    override fun onPointerReleased(pointerId: PointerId, screenOffset: Offset) {
         isPointerBeingPressed = false
     }
 

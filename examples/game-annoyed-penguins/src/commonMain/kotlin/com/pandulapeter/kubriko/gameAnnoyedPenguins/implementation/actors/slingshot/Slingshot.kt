@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.sling
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.input.pointer.PointerId
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
@@ -76,17 +77,18 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
 
     override fun onPointerZoom(position: Offset, factor: Float) = viewportManager.multiplyScaleFactor(factor)
 
-    override fun onPointerReleased(screenOffset: Offset) {
+    override fun onPointerReleased(pointerId: PointerId, screenOffset: Offset) {
         isAiming = false
     }
 
     private var isPointerPressedInPreviousStep = false
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        if (pointerInputManager.isPointerPressed.value) {
+        val pressedPointerPositions = pointerInputManager.pressedPointerPositions.value.values
+        if (pressedPointerPositions.isNotEmpty()) {
             // Detect if the initial press was on the slingshot
             if (!isPointerPressedInPreviousStep) {
-                pointerInputManager.pointerScreenOffset.value?.let { pressPosition ->
+                pressedPointerPositions.firstOrNull()?.let { pressPosition ->
                     isAiming = pressPosition.toSceneOffset(viewportManager).isWithin(body.axisAlignedBoundingBox)
                 }
             }
@@ -99,7 +101,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
                 )
             }
         }
-        isPointerPressedInPreviousStep = pointerInputManager.isPointerPressed.value
+        isPointerPressedInPreviousStep = pressedPointerPositions.isNotEmpty()
     }
 
     override fun save() = State(

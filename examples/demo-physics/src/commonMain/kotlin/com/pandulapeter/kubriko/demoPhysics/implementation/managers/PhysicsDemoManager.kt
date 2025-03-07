@@ -26,6 +26,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
@@ -165,7 +166,7 @@ internal class PhysicsDemoManager(
         values[nextIndex]
     }
 
-    override fun onPointerReleased(screenOffset: Offset) {
+    override fun onPointerReleased(pointerId: PointerId, screenOffset: Offset) {
         if (!shouldShowLoadingIndicator.value) {
             screenOffset.toSceneOffset(viewportManager).let { pointerSceneOffset ->
                 when (actionType.value) {

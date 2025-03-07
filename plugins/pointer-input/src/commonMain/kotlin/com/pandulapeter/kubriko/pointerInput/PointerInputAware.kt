@@ -10,18 +10,20 @@
 package com.pandulapeter.kubriko.pointerInput
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerId
 import com.pandulapeter.kubriko.actor.Actor
+import kotlinx.collections.immutable.PersistentMap
 
 // TODO: Documentation
 interface PointerInputAware : Actor {
 
-    fun handleActivePointers(screenOffset: Offset) = Unit
+    fun handleActivePointers(pointers: PersistentMap<PointerId, Offset>) = Unit
 
-    fun onPointerPressed(screenOffset: Offset) = Unit
+    fun onPointerPressed(pointerId: PointerId, screenOffset: Offset) = Unit
 
-    fun onPointerReleased(screenOffset: Offset) = Unit
+    fun onPointerReleased(pointerId: PointerId, screenOffset: Offset) = Unit
 
-    fun onPointerOffsetChanged(screenOffset: Offset) = Unit
+    fun onPointerOffsetChanged(pointerId: PointerId?, screenOffset: Offset) = Unit
 
     fun onPointerDrag(screenOffset: Offset) = Unit
 

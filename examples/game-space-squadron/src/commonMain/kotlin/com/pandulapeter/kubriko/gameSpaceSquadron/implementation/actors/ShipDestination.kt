@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.pointer.PointerId
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.PointBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
@@ -38,7 +39,12 @@ internal class ShipDestination : Positionable, PointerInputAware, KeyboardInputA
     private lateinit var pointerInputManager: PointerInputManager
     private lateinit var stateManager: StateManager
     private lateinit var viewportManager: ViewportManager
-    private var previousPointerPosition: SceneOffset? = null
+    private var previousPointerOffset: SceneOffset? = null
+    private var movementPointerId: PointerId? = null
+
+    // On desktop after each detected movement we programmatically move the cursor to the center of the screen.
+    // This next flag is there to make sure that that movement is filtered out.
+    private var shouldMoveShip = true
 
     override fun onAdded(kubriko: Kubriko) {
         pointerInputManager = kubriko.get()
@@ -46,45 +52,56 @@ internal class ShipDestination : Positionable, PointerInputAware, KeyboardInputA
         viewportManager = kubriko.get()
     }
 
-    private var previousPointerOffset = SceneOffset.Zero
 
     fun resetPointerTracking() {
         viewportManager.size.value.center.let { center ->
-            pointerInputManager.movePointer(center)
-            previousPointerPosition = null
+            pointerInputManager.tryToMoveHoveringPointer(center)
+            previousPointerOffset = null
         }
     }
 
-    private var offsetFlag = false
 
-    override fun onPointerOffsetChanged(screenOffset: Offset) {
-        val currentPointerPosition = screenOffset.toSceneOffset(viewportManager)
-        if (stateManager.isRunning.value) {
-            previousPointerPosition?.let { previousPointerPosition ->
-                val offset = currentPointerPosition - previousPointerPosition
-                offsetFlag = !offsetFlag
-                if (offsetFlag) {
-                    // TODO: Clamp within maximum playable area, considering window insets as well
+    override fun onPointerOffsetChanged(pointerId: PointerId?, screenOffset: Offset) {
+        if (movementPointerId == null) {
+            movementPointerId = pointerId
+        }
+        val viewportCenter = viewportManager.size.value.center
+        if (stateManager.isRunning.value && pointerId == movementPointerId) {
+            val currentPointerPosition = screenOffset.toSceneOffset(viewportManager)
+            shouldMoveShip = !shouldMoveShip
+            if (shouldMoveShip) {
+                previousPointerOffset?.let { previousPointerPosition ->
+                    val offset = currentPointerPosition - previousPointerPosition
                     body.position = (body.position + offset * POINTER_SENSITIVITY).clampWithin(
                         topLeft = viewportManager.topLeft.value,
                         bottomRight = viewportManager.bottomRight.value,
                     )
-                    if (!pointerInputManager.movePointer(viewportManager.size.value.center)) {
-                        offsetFlag = !offsetFlag
-                    }
-                    previousPointerOffset = offset
+                }
+                if (!pointerInputManager.tryToMoveHoveringPointer(viewportCenter)) {
+                    // If we didn't manage to move the pointer, let's switch the flag back on, to make sure that the next event is consumed.
+                    // If we managed to move the cursor, the next event should be skipped!
+                    shouldMoveShip = !shouldMoveShip
                 }
             }
+            previousPointerOffset = currentPointerPosition
         }
-        previousPointerPosition = currentPointerPosition
     }
 
-    override fun onPointerReleased(screenOffset: Offset) {
-        previousPointerPosition = null
+    override fun onPointerPressed(pointerId: PointerId, screenOffset: Offset) {
+        if (movementPointerId == null) {
+            movementPointerId = pointerId
+        }
+    }
+
+    override fun onPointerReleased(pointerId: PointerId, screenOffset: Offset) {
+        if (movementPointerId == pointerId) {
+            movementPointerId = null
+            previousPointerOffset = null
+        }
     }
 
     override fun onPointerLeavingTheViewport() {
-        previousPointerPosition = null
+        previousPointerOffset = null
     }
 
     private var moveInNextStep = SceneOffset.Zero

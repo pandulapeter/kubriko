@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.pointer.PointerId
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
@@ -59,14 +60,14 @@ internal class Paddle(
 
     fun resetPointerTracking() {
         viewportManager.size.value.center.let { center ->
-            pointerInputManager.movePointer(center)
+            pointerInputManager.tryToMoveHoveringPointer(center)
             previousPointerPosition = null
         }
     }
 
     private var offsetFlag = false
 
-    override fun onPointerOffsetChanged(screenOffset: Offset) {
+    override fun onPointerOffsetChanged(pointerId: PointerId?, screenOffset: Offset) {
         val currentPointerPosition = screenOffset.toSceneOffset(viewportManager)
         if (stateManager.isRunning.value) {
             previousPointerPosition?.let { previousPointerPosition ->
@@ -80,9 +81,7 @@ internal class Paddle(
                         topLeft = viewportManager.topLeft.value,
                         bottomRight = viewportManager.bottomRight.value,
                     )
-                    if (!pointerInputManager.movePointer(viewportManager.size.value.center)) {
-                        offsetFlag = !offsetFlag
-                    }
+                    pointerInputManager.tryToMoveHoveringPointer(viewportManager.size.value.center)
                     previousPointerOffset = offset
                 }
             }
@@ -102,7 +101,7 @@ internal class Paddle(
         )
     }
 
-    override fun onPointerReleased(screenOffset: Offset) {
+    override fun onPointerReleased(pointerId: PointerId, screenOffset: Offset) {
         previousPointerPosition = null
     }
 

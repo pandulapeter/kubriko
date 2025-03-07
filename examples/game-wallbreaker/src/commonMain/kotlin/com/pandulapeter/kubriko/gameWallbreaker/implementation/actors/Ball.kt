@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.pointer.PointerId
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
@@ -117,13 +118,13 @@ internal class Ball(
         }
     }
 
-    override fun onPointerPressed(screenOffset: Offset) {
+    override fun onPointerPressed(pointerId: PointerId, screenOffset: Offset) {
         if (stateManager.isRunning.value && state == State.UNINITIALIZED) {
             state = State.POSITIONING
         }
     }
 
-    override fun onPointerReleased(screenOffset: Offset) {
+    override fun onPointerReleased(pointerId: PointerId, screenOffset: Offset) {
         if (stateManager.isRunning.value && state == State.POSITIONING) {
             state = State.LAUNCHED
             audioManager.playPaddleHitSoundEffect()

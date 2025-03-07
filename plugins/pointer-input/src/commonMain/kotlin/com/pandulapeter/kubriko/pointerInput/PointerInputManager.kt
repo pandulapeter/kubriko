@@ -10,7 +10,9 @@
 package com.pandulapeter.kubriko.pointerInput
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerId
 import com.pandulapeter.kubriko.manager.Manager
+import kotlinx.collections.immutable.PersistentMap
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -24,11 +26,11 @@ sealed class PointerInputManager(
     instanceNameForLogging = instanceNameForLogging,
     classNameForLogging = "PointerInputManager",
 ) {
-    abstract val isPointerPressed: StateFlow<Boolean>
-    abstract val pointerScreenOffset: StateFlow<Offset?>
+    abstract val pressedPointerPositions: StateFlow<PersistentMap<PointerId, Offset>>
+    abstract val hoveringPointerPosition: StateFlow<Offset?>
 
     // TODO: Only works on Desktop. On macOS it requires accessibility permission
-    abstract fun movePointer(offset: Offset): Boolean
+    abstract fun tryToMoveHoveringPointer(offset: Offset) : Boolean
 
     companion object {
         fun newInstance(

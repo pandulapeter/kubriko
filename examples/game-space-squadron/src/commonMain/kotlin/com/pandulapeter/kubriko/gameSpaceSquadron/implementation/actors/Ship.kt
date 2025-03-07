@@ -13,6 +13,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
@@ -43,6 +44,7 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.PersistentMap
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.sprite_ship
 import kotlin.math.abs
@@ -143,7 +145,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
 
     override fun onRemoved() = gameplayManager.onGameOver()
 
-    override fun handleActivePointers(screenOffset: Offset) = shoot()
+    override fun handleActivePointers(pointers: PersistentMap<PointerId, Offset>) = shoot()
 
     override fun handleActiveKeys(activeKeys: ImmutableSet<Key>) {
         if (Key.Spacebar in activeKeys) {

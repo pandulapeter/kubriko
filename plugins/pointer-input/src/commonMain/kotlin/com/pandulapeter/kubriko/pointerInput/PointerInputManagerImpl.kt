@@ -14,16 +14,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.round
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.pointerInput.implementation.gestureDetector
 import com.pandulapeter.kubriko.pointerInput.implementation.setPointerPosition
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNot
@@ -37,50 +40,64 @@ internal class PointerInputManagerImpl(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
 ) : PointerInputManager(isLoggingEnabled, instanceNameForLogging) {
-    // TODO: Implement multi-touch support
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
     private val pointerInputAwareActors by autoInitializingLazy {
         actorManager.allActors.map { it.filterIsInstance<PointerInputAware>() }.asStateFlow(emptyList())
     }
-    private val rawPointerOffset = MutableStateFlow<Offset?>(null)
-    override val isPointerPressed = MutableStateFlow(false)
     private val rootOffset = MutableStateFlow(Offset.Zero)
     private val viewportOffset = MutableStateFlow(Offset.Zero)
-    override val pointerScreenOffset by autoInitializingLazy {
+    private val _pressedPointerPositions = MutableStateFlow(persistentMapOf<PointerId, Offset>())
+    override val pressedPointerPositions by autoInitializingLazy {
         combine(
-            rawPointerOffset,
+            _pressedPointerPositions,
+            rootOffset,
+            viewportOffset,
+        ) { unprocessed, rootOffset, viewportOffset ->
+            unprocessed.keys.associateWith {
+                unprocessed[it]!!.let {
+                    if (isActiveAboveViewport) it - viewportOffset + rootOffset else it
+                }
+            }.toPersistentMap()
+        }.asStateFlow(persistentMapOf())
+    }
+    private val _hoveringPointerPosition = MutableStateFlow<Offset?>(null)
+    override val hoveringPointerPosition by autoInitializingLazy {
+        combine(
+            _hoveringPointerPosition,
             rootOffset,
             viewportOffset,
         ) { rawPointerOffset, rootOffset, viewportOffset ->
             if (isActiveAboveViewport) rawPointerOffset?.let { it - viewportOffset + rootOffset } else rawPointerOffset
         }.asStateFlow(null)
     }
+    private var mouseId: PointerId? = null
 
     override fun onInitialize(kubriko: Kubriko) {
         stateManager.isFocused
             .filterNot { it }
-            .onEach { isPointerPressed.value = false }
+            .onEach { _pressedPointerPositions.update { persistentMapOf() } }
             .launchIn(scope)
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
-        if (isPointerPressed.value && stateManager.isFocused.value) {
-            pointerScreenOffset.value?.let { pointerScreenOffset ->
-                pointerInputAwareActors.value.forEach { it.handleActivePointers(pointerScreenOffset) }
+        _pressedPointerPositions.value.let { activePointers ->
+            if (activePointers.isNotEmpty()) {
+                pointerInputAwareActors.value.forEach { it.handleActivePointers(activePointers) }
             }
         }
     }
 
     private var densityMultiplier = 1f
 
-    override fun movePointer(offset: Offset): Boolean {
-        val currentOffset = pointerScreenOffset.value
+    override fun tryToMoveHoveringPointer(offset: Offset): Boolean {
+        val before = hoveringPointerPosition.value?.round()
         setPointerPosition(
             offset = offset + if (isActiveAboveViewport) viewportOffset.value else viewportOffset.value,
             densityMultiplier = densityMultiplier,
         )
-        return currentOffset != pointerScreenOffset.value
+        val after = hoveringPointerPosition.value?.round()
+        return before != after
     }
 
     @Composable
@@ -102,48 +119,72 @@ internal class PointerInputManagerImpl(
         densityMultiplier = 1 / LocalDensity.current.density
     }
 
-    // TODO: Hacky solution. Why did we suddenly start getting duplicated events?
-    private var previousChange: PointerInputChange? = null
-
     private fun Modifier.pointerInputHandlingModifier() = pointerInput(Unit) {
         awaitPointerEventScope {
             while (true) {
                 val event = awaitPointerEvent()
-                val change = event.changes.first()
-                if (isInitialized.value && change.uptimeMillis != previousChange?.uptimeMillis) {
-                    previousChange = change
-                    change.position.let { position ->
-                        when (event.type) {
-                            PointerEventType.Press -> {
-                                rawPointerOffset.update { position }
-                                isPointerPressed.update { true }
+                if (isInitialized.value) {
+                    val currentPointers = event.changes.associate { it.id to it.pressed }
+                    event.changes.forEach { change ->
+                        val id = change.id
+                        val wasPressed = _pressedPointerPositions.value.containsKey(id)
+                        val isPressed = currentPointers[id] ?: false
+                        when {
+                            !wasPressed && isPressed -> {
                                 if (stateManager.isFocused.value) {
-                                    pointerInputAwareActors.value.forEach { it.onPointerPressed(position) }
+                                    _pressedPointerPositions.update {
+                                        it.toMutableMap().apply {
+                                            this[change.id] = change.position
+                                        }.toPersistentMap()
+                                    }
+                                    pointerInputAwareActors.value.forEach { it.onPointerPressed(id, change.position) }
+                                    if (mouseId == id) {
+                                        _hoveringPointerPosition.value = change.position
+                                    }
                                 }
                             }
 
-                            PointerEventType.Release -> {
-                                rawPointerOffset.update { position }
-                                isPointerPressed.update { false }
-                                pointerInputAwareActors.value.forEach { it.onPointerReleased(position) }
-                            }
-
-                            PointerEventType.Move -> {
-                                rawPointerOffset.update { position }
-                                if (stateManager.isFocused.value) {
-                                    pointerInputAwareActors.value.forEach { it.onPointerOffsetChanged(position) }
+                            wasPressed && !isPressed -> {
+                                _pressedPointerPositions.update {
+                                    it.toMutableMap().apply {
+                                        remove(change.id)
+                                    }.toPersistentMap()
+                                }
+                                pointerInputAwareActors.value.forEach { it.onPointerReleased(id, change.position) }
+                                if (mouseId == id) {
+                                    _hoveringPointerPosition.value = change.position
                                 }
                             }
 
-                            PointerEventType.Enter -> {
-                                rawPointerOffset.update { position }
+                            wasPressed && isPressed -> {
+                                if (stateManager.isFocused.value) {
+                                    _pressedPointerPositions.update {
+                                        it.toMutableMap().apply {
+                                            this[change.id] = change.position
+                                        }.toPersistentMap()
+                                    }
+                                    if (id == mouseId) {
+                                        _hoveringPointerPosition.value = change.position
+                                    }
+                                    pointerInputAwareActors.value.forEach { it.onPointerOffsetChanged(id, change.position) }
+                                }
+                            }
+
+                            event.type == PointerEventType.Move -> {
+                                if (stateManager.isFocused.value) {
+                                    mouseId = id
+                                    _hoveringPointerPosition.value = change.position
+                                    pointerInputAwareActors.value.forEach { it.onPointerOffsetChanged(id, change.position) }
+                                }
+                            }
+
+                            event.type == PointerEventType.Enter -> {
                                 if (stateManager.isFocused.value) {
                                     pointerInputAwareActors.value.forEach { it.onPointerEnteringTheViewport() }
                                 }
                             }
 
-                            PointerEventType.Exit -> {
-                                rawPointerOffset.update { null }
+                            event.type == PointerEventType.Exit -> {
                                 if (stateManager.isFocused.value) {
                                     pointerInputAwareActors.value.forEach { it.onPointerLeavingTheViewport() }
                                 }
