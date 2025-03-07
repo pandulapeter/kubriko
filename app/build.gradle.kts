@@ -122,7 +122,7 @@ compose.desktop {
                 isEnabled.set(true)
                 optimize.set(true)
                 obfuscate.set(true)
-                version.set("7.4.0")
+                version.set(libs.versions.proguard)
             }
         }
     }
