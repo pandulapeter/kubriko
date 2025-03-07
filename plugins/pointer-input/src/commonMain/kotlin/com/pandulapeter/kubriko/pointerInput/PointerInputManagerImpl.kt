@@ -128,7 +128,7 @@ internal class PointerInputManagerImpl(
                     event.changes.forEach { change ->
                         val id = change.id
                         val wasPressed = _pressedPointerPositions.value.containsKey(id)
-                        val isPressed = currentPointers[id] ?: false
+                        val isPressed = currentPointers[id] == true
                         when {
                             !wasPressed && isPressed -> {
                                 if (stateManager.isFocused.value) {

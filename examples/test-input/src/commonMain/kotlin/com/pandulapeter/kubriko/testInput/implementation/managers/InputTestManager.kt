@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.pointer.PointerId
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
@@ -27,6 +28,7 @@ import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlin.math.abs
 
 internal class InputTestManager : Manager(), KeyboardInputAware, PointerInputAware, Overlay, Unique {
     private val _activeKeys = MutableStateFlow(emptySet<Key>())
@@ -38,6 +40,10 @@ internal class InputTestManager : Manager(), KeyboardInputAware, PointerInputAwa
     }
 
     override fun handleActiveKeys(activeKeys: ImmutableSet<Key>) = _activeKeys.update { activeKeys }
+
+    private fun PointerId?.toColor() = this?.value?.let { value ->
+        Color.hsv(abs((value * 47) % 360).toFloat(), 0.8f, 0.8f)
+    } ?: Color.White
 
     override fun DrawScope.drawToViewport() {
         pointerInputManager.hoveringPointerPosition.value?.let { pointerOffset ->
@@ -77,7 +83,8 @@ internal class InputTestManager : Manager(), KeyboardInputAware, PointerInputAwa
                 style = Stroke(),
             )
         }
-        pointerInputManager.pressedPointerPositions.value.map { it.value }.forEach { pointerOffset ->
+        pointerInputManager.pressedPointerPositions.value.forEach { (pointerId, pointerOffset) ->
+            val color = pointerId.toColor()
             drawLine(
                 color = Color.Black,
                 start = Offset(pointerOffset.x, 0f),
@@ -85,7 +92,7 @@ internal class InputTestManager : Manager(), KeyboardInputAware, PointerInputAwa
                 strokeWidth = 4f,
             )
             drawLine(
-                color = Color.White,
+                color = color,
                 start = Offset(pointerOffset.x, 0f),
                 end = Offset(pointerOffset.x, size.height),
                 strokeWidth = 2f,
@@ -97,13 +104,13 @@ internal class InputTestManager : Manager(), KeyboardInputAware, PointerInputAwa
                 strokeWidth = 4f,
             )
             drawLine(
-                color = Color.White,
+                color = color,
                 start = Offset(0f, pointerOffset.y),
                 end = Offset(size.width, pointerOffset.y),
                 strokeWidth = 2f,
             )
             drawCircle(
-                color = Color.White,
+                color = color,
                 radius = 40f,
                 center = pointerOffset,
             )
