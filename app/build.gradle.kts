@@ -103,13 +103,20 @@ compose.desktop {
             packageName = "com.pandulapeter.kubrikoShowcase"
             packageVersion = buildConfigurationValue("versionName")
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            macOS { iconFile.set(project.file("icon.icns")) }
+            macOS {
+                iconFile.set(project.file("icon.icns"))
+                bundleID = "com.pandulapeter.kubrikoShowcase"
+                packageName = "Kubriko Showcase"
+                dockName = "Kubriko Showcase"
+            }
             windows { iconFile.set(project.file("icon.ico")) }
             linux { iconFile.set(project.file("icon.png")) }
             buildTypes.release.proguard {
                 configurationFiles.from(project.file("proguard-rules.pro"))
                 isEnabled.set(true)
+                optimize.set(true)
                 obfuscate.set(true)
+                version.set("7.4.0")
             }
         }
     }
