@@ -59,6 +59,7 @@ internal class GameplayManager : Manager() {
             delay(300) // Gives time for the fade animation to hide the previous level
             actorManager.removeAll()
             viewportManager.setCameraPosition(SceneOffset.Zero)
+            viewportManager.setScaleFactor(0.5f)
             try {
                 val json = Res.readBytes("files/scenes/$sceneName").decodeToString()
                 actorManager.add(serializationManager.deserializeActors(json))

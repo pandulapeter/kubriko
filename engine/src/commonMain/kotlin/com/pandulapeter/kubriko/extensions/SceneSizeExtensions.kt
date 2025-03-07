@@ -13,3 +13,7 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
 val SceneSize.bottomRight get() = SceneOffset(width, height)
+
+val SceneSize.minDimension get() = raw.minDimension.sceneUnit
+
+val SceneSize.maxDimension get() = raw.maxDimension.sceneUnit

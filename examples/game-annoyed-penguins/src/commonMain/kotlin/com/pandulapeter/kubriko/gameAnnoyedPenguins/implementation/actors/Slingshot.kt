@@ -13,10 +13,15 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
+import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.extensions.abs
 import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.extensions.toOffset
+import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
+import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableRectangleBody
@@ -27,13 +32,18 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingshot_background
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingshot_foreground
 
-internal class Slingshot private constructor(state: State) : Visible, Editable<Slingshot>, PointerInputAware {
+internal class Slingshot private constructor(state: State) : Visible, Editable<Slingshot>, Dynamic, PointerInputAware {
     override val body = state.body
+    private lateinit var actorManager: ActorManager
+    private lateinit var pointerInputManager: PointerInputManager
     private lateinit var spriteManager: SpriteManager
     private lateinit var viewportManager: ViewportManager
     override val drawingOrder = 1f
+    override val isAlwaysActive = true
 
     override fun onAdded(kubriko: Kubriko) {
+        actorManager = kubriko.get()
+        pointerInputManager = kubriko.get()
         spriteManager = kubriko.get()
         viewportManager = kubriko.get()
     }
@@ -48,10 +58,23 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
         }
     }
 
-    override fun onPointerDrag(screenOffset: Offset) = viewportManager.addToCameraPosition(screenOffset)
+    override fun onPointerDrag(screenOffset: Offset) {
+        viewportManager.addToCameraPosition(screenOffset)
+    }
 
     override fun onPointerZoom(position: Offset, factor: Float) {
         viewportManager.multiplyScaleFactor(factor)
+    }
+
+    override fun update(deltaTimeInMilliseconds: Int) {
+        if (!pointerInputManager.isPointerPressed.value) {
+            val cameraPosition = viewportManager.cameraPosition.value
+            if (abs(cameraPosition.x - body.position.x).raw > 0 || abs(cameraPosition.y - body.position.y).raw > 0) {
+                viewportManager.addToCameraPosition(
+                    -((body.position - cameraPosition) / viewportManager.scaleFactor.value).toOffset(viewportManager) * 0.025f
+                )
+            }
+        }
     }
 
     override fun save() = State(

@@ -11,8 +11,10 @@ package com.pandulapeter.kubriko.extensions
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.SceneSize
 
 operator fun Size.minus(offset: Offset) = Offset(
     x = width - offset.x,
@@ -28,3 +30,17 @@ operator fun Size.div(scale: Scale) = Size(
     width = width / scale.horizontal,
     height = height / scale.vertical,
 )
+
+
+fun Size.toSceneSize(viewportManager: ViewportManager): SceneSize = toSceneSize(
+    viewportSize = viewportManager.size.value,
+    viewportScaleFactor = viewportManager.scaleFactor.value,
+)
+
+fun Size.toSceneSize(
+    viewportSize: Size,
+    viewportScaleFactor: Scale,
+): SceneSize = SceneSize(
+    width = (width - viewportSize.width / 2).sceneUnit,
+    height = (height - viewportSize.height / 2).sceneUnit,
+) / viewportScaleFactor
