@@ -38,6 +38,7 @@ import com.pandulapeter.kubriko.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.extensions.minus
 import com.pandulapeter.kubriko.extensions.transformForViewport
 import com.pandulapeter.kubriko.extensions.transformViewport
+import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
@@ -156,6 +157,10 @@ internal class ActorManagerImpl(
 
     @OptIn(ExperimentalUuidApi::class)
     override fun add(vararg actors: Actor) = _allActors.update { currentActors ->
+        log(
+            message = "Adding ${actors.size} new Actors to ${currentActors.size} existing ones",
+            importance = Logger.Importance.LOW,
+        )
         val newActors = flattenActors(actors.toList())
         val uniqueNewActorTypes = newActors.filterIsInstance<Unique>().map { it::class }.toSet()
         val filteredCurrentActors = currentActors.filterNot { it::class in uniqueNewActorTypes }
@@ -168,6 +173,10 @@ internal class ActorManagerImpl(
 
     override fun remove(vararg actors: Actor) {
         if (actors.isNotEmpty()) {
+            log(
+                message = "Removing ${actors.size} Actors",
+                importance = Logger.Importance.LOW,
+            )
             val flattenedActors = flattenActors(actors.toList())
             _allActors.update { currentActors ->
                 currentActors.filterNot { it in flattenedActors }.toImmutableList()

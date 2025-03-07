@@ -7,15 +7,14 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors
+package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.slingshot
 
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
+import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.extensions.abs
 import com.pandulapeter.kubriko.extensions.get
@@ -36,7 +35,7 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingshot_background
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingshot_foreground
 
-internal class Slingshot private constructor(state: State) : Visible, Editable<Slingshot>, Dynamic, PointerInputAware {
+internal class Slingshot private constructor(state: State) : Visible, Editable<Slingshot>, Dynamic, PointerInputAware, Unique {
     override val body = state.body
     private lateinit var actorManager: ActorManager
     private lateinit var pointerInputManager: PointerInputManager
@@ -45,26 +44,26 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
     override val drawingOrder = 1f
     override val isAlwaysActive = true
     private var isAiming = false
+        set(value) {
+            field = value
+            fakePenguin.isVisible = value
+        }
+    private val fakePenguin = FakePenguin(body.position)
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
         pointerInputManager = kubriko.get()
         spriteManager = kubriko.get()
         viewportManager = kubriko.get()
+        actorManager.add(fakePenguin)
     }
 
     override fun DrawScope.draw() {
         spriteManager.get(Res.drawable.sprite_slingshot_background)?.let { background ->
             spriteManager.get(Res.drawable.sprite_slingshot_foreground)?.let { foreground ->
-                drawImage(
-                    image = background,
-                    colorFilter = if (isAiming) ColorFilter.tint(Color.Black) else null,
-                )
+                drawImage(background)
                 // TODO: Should be separate Actors probably
-                drawImage(
-                    image = foreground,
-                    colorFilter = if (isAiming) ColorFilter.tint(Color.Black) else null,
-                )
+                drawImage(foreground)
             }
         }
     }

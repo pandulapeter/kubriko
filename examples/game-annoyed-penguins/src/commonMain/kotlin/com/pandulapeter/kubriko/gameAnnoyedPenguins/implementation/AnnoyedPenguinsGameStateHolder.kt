@@ -19,7 +19,7 @@ import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Destru
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.FogShader
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Ground
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Penguin
-import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Slingshot
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.slingshot.Slingshot
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.LoadingManager
