@@ -30,64 +30,67 @@ import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.event.WindowStateListener
 
-fun main() = application {
-    windowState = rememberWindowState(
-        size = DpSize(860.dp, 660.dp),
-    )
-    val coroutineScope = rememberCoroutineScope()
-    val previousBounds = remember { mutableStateOf<Rectangle?>(null) }
-    val previousWindowPlacement = remember { mutableStateOf<WindowPlacement?>(null) }
-    val isInFullscreenMode = remember { mutableStateOf(false) }
-    Window(
-        onCloseRequest = ::exitApplication,
-        state = windowState,
-        title = "Kubriko",
-    ) {
-        DisposableEffect(Unit) {
-            val listener = WindowStateListener {
-                if (isInFullscreenMode.value) {
-                    isInFullscreenMode.value = windowState.placement == WindowPlacement.Fullscreen
+fun main() {
+    System.setProperty("apple.awt.application.name", "Kubriko Showcase")
+    application {
+        windowState = rememberWindowState(
+            size = DpSize(860.dp, 660.dp),
+        )
+        val coroutineScope = rememberCoroutineScope()
+        val previousBounds = remember { mutableStateOf<Rectangle?>(null) }
+        val previousWindowPlacement = remember { mutableStateOf<WindowPlacement?>(null) }
+        val isInFullscreenMode = remember { mutableStateOf(false) }
+        Window(
+            onCloseRequest = ::exitApplication,
+            state = windowState,
+            title = "Kubriko Showcase",
+        ) {
+            DisposableEffect(Unit) {
+                val listener = WindowStateListener {
+                    if (isInFullscreenMode.value) {
+                        isInFullscreenMode.value = windowState.placement == WindowPlacement.Fullscreen
+                    }
+                }
+                window.addWindowStateListener(listener)
+                onDispose {
+                    window.removeWindowStateListener(listener)
                 }
             }
-            window.addWindowStateListener(listener)
-            onDispose {
-                window.removeWindowStateListener(listener)
-            }
-        }
-        window.minimumSize = Dimension(400, 400)
-        KubrikoShowcase(
-            isInFullscreenMode = isInFullscreenMode.value,
-            getIsInFullscreenMode = { isInFullscreenMode.value },
-            onFullscreenModeToggled = {
-                isInFullscreenMode.value = !isInFullscreenMode.value
-                if (isInFullscreenMode.value) {
-                    previousBounds.value = window.bounds
-                    previousWindowPlacement.value = windowState.placement
-                    windowState.placement = WindowPlacement.Fullscreen
-                } else {
-                    previousWindowPlacement.value?.let { previousWindowPlacement ->
-                        windowState.placement = previousWindowPlacement
-                        previousBounds.value?.let {
-                            coroutineScope.launch {
-                                delay(100)
-                                window.bounds = it
+            window.minimumSize = Dimension(400, 400)
+            KubrikoShowcase(
+                isInFullscreenMode = isInFullscreenMode.value,
+                getIsInFullscreenMode = { isInFullscreenMode.value },
+                onFullscreenModeToggled = {
+                    isInFullscreenMode.value = !isInFullscreenMode.value
+                    if (isInFullscreenMode.value) {
+                        previousBounds.value = window.bounds
+                        previousWindowPlacement.value = windowState.placement
+                        windowState.placement = WindowPlacement.Fullscreen
+                    } else {
+                        previousWindowPlacement.value?.let { previousWindowPlacement ->
+                            windowState.placement = previousWindowPlacement
+                            previousBounds.value?.let {
+                                coroutineScope.launch {
+                                    delay(100)
+                                    window.bounds = it
+                                }
                             }
                         }
                     }
-                }
-            },
+                },
+            )
+        }
+        AnnoyedPenguinsGameSceneEditor(
+            defaultSceneFolderPath = "../examples/game-annoyed-penguins/src/commonMain/composeResources/files/scenes"
+        )
+        BlockysJourneyGameSceneEditor(
+            defaultSceneFolderPath = "../examples/game-blockys-journey/src/commonMain/composeResources/files/scenes"
+        )
+        PerformanceDemoSceneEditor(
+            defaultSceneFolderPath = "../examples/demo-performance/src/commonMain/composeResources/files/scenes"
+        )
+        PhysicsDemoSceneEditor(
+            defaultSceneFolderPath = "../examples/demo-physics/src/commonMain/composeResources/files/scenes"
         )
     }
-    AnnoyedPenguinsGameSceneEditor(
-        defaultSceneFolderPath = "../examples/game-annoyed-penguins/src/commonMain/composeResources/files/scenes"
-    )
-    BlockysJourneyGameSceneEditor(
-        defaultSceneFolderPath = "../examples/game-blockys-journey/src/commonMain/composeResources/files/scenes"
-    )
-    PerformanceDemoSceneEditor(
-        defaultSceneFolderPath = "../examples/demo-performance/src/commonMain/composeResources/files/scenes"
-    )
-    PhysicsDemoSceneEditor(
-        defaultSceneFolderPath = "../examples/demo-physics/src/commonMain/composeResources/files/scenes"
-    )
 }
