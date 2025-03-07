@@ -69,6 +69,7 @@ internal actual fun Disclaimer() = Column(
         )
     }
     Text(
+        modifier = Modifier.padding(top = 4.dp),
         text = stringResource(Res.string.welcome_disclaimer_web_general),
         style = MaterialTheme.typography.bodySmall,
     )
