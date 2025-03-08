@@ -26,6 +26,7 @@ import kotlinx.browser.window
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import org.w3c.dom.TouchEvent
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 
@@ -58,13 +59,35 @@ fun main() {
                     }
                 }
             }
+            val touchStartListener: (Event) -> Unit = { event ->
+                if (event is TouchEvent) {
+                    if (event.touches.length > 1) {
+                        event.preventDefault()
+                        event.stopImmediatePropagation()
+                    }
+                }
+            }
+            val touchMoveHandler: (Event) -> Unit = { event ->
+                if (event is TouchEvent) {
+                    if (event.touches.length > 1) {
+                        event.preventDefault()
+                        event.stopImmediatePropagation()
+                        // Propagating only the first touch would be ideal, but I couldn't figure out how to do it.
+                        // Cancelling all events would be the second best option.
+                    }
+                }
+            }
             window.addEventListener(EVENT_POP_STATE, onPopStateEventListener)
             document.addEventListener(EVENT_FULLSCREEN_CHANGE, fullscreenListener)
             window.addEventListener(EVENT_KEY_UP, keyUpListener)
+            window.addEventListener(EVENT_TOUCH_START, touchStartListener, true)
+            window.addEventListener(EVENT_TOUCH_MOVE, touchMoveHandler, true)
             onDispose {
                 window.removeEventListener(EVENT_POP_STATE, onPopStateEventListener)
                 document.removeEventListener(EVENT_FULLSCREEN_CHANGE, fullscreenListener)
                 window.removeEventListener(EVENT_KEY_UP, keyUpListener)
+                window.removeEventListener(EVENT_TOUCH_START, touchStartListener, true)
+                window.removeEventListener(EVENT_TOUCH_MOVE, touchMoveHandler, true)
             }
         }
         Box(
@@ -115,3 +138,5 @@ fun main() {
 private const val EVENT_POP_STATE = "popstate"
 private const val EVENT_FULLSCREEN_CHANGE = "fullscreenchange"
 private const val EVENT_KEY_UP = "keyup"
+private const val EVENT_TOUCH_START = "touchstart"
+private const val EVENT_TOUCH_MOVE = "touchmove"
