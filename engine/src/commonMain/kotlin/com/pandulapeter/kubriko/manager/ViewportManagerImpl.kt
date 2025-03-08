@@ -28,8 +28,8 @@ import kotlin.math.min
 internal class ViewportManagerImpl(
     val aspectRatioMode: AspectRatioMode,
     initialScaleFactor: Float,
-    private val minimumScaleFactor: Float,
-    private val maximumScaleFactor: Float,
+    override val minimumScaleFactor: Float,
+    override val maximumScaleFactor: Float,
     val viewportEdgeBuffer: SceneUnit,
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
@@ -41,8 +41,11 @@ internal class ViewportManagerImpl(
     override val size = _size.asStateFlow()
     val scaleFactorMultiplier = MutableStateFlow(Scale.Unit)
     private val _scaleFactor = MutableStateFlow(Scale(initialScaleFactor, initialScaleFactor))
+    override val rawScaleFactor by autoInitializingLazy {
+        _scaleFactor.asStateFlow(Scale.Unit)
+    }
     override val scaleFactor by autoInitializingLazy {
-        combine(_scaleFactor, scaleFactorMultiplier) { scaleFactor, scaleFactorMultiplier ->
+        combine(rawScaleFactor, scaleFactorMultiplier) { scaleFactor, scaleFactorMultiplier ->
             scaleFactor * scaleFactorMultiplier
         }.asStateFlow(Scale.Unit)
     }
@@ -76,10 +79,12 @@ internal class ViewportManagerImpl(
     override fun setCameraPosition(position: SceneOffset) = _cameraPosition.update { position }
 
     override fun setScaleFactor(scaleFactor: Float) = _scaleFactor.update {
-        Scale(
-            horizontal = max(minimumScaleFactor, min(scaleFactor, maximumScaleFactor)),
-            vertical = max(minimumScaleFactor, min(scaleFactor, maximumScaleFactor)),
-        )
+        max(minimumScaleFactor, min(scaleFactor, maximumScaleFactor)).let { adjustedScaleFactor ->
+            Scale(
+                horizontal = adjustedScaleFactor,
+                vertical = adjustedScaleFactor,
+            )
+        }
     }
 
     override fun multiplyScaleFactor(scaleFactor: Float) = _scaleFactor.update { currentValue ->

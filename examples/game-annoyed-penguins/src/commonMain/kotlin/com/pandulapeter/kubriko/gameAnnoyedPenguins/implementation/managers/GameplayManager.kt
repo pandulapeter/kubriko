@@ -55,11 +55,11 @@ internal class GameplayManager : Manager() {
     @OptIn(ExperimentalResourceApi::class)
     private fun loadScene(sceneName: String?) = scope.launch {
         if (sceneName != null) {
+            viewportManager.setScaleFactor(0.5f)
             _isLoadingLevel.update { true }
             delay(300) // Gives time for the fade animation to hide the previous level
             actorManager.removeAll()
             viewportManager.setCameraPosition(SceneOffset.Zero)
-            viewportManager.setScaleFactor(0.5f)
             try {
                 val json = Res.readBytes("files/scenes/$sceneName").decodeToString()
                 actorManager.add(serializationManager.deserializeActors(json))
