@@ -136,9 +136,13 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
         } else {
             // Move the camera automatically to keep the slingshot in focus
             val cameraPosition = viewportManager.cameraPosition.value
-            if (abs(cameraPosition.x - body.position.x).raw > 0 || abs(cameraPosition.y - body.position.y).raw > 0) {
+            val targetCameraPosition = SceneOffset(
+                x = body.position.x,
+                y = body.position.y,
+            )
+            if (abs(cameraPosition.x - targetCameraPosition.x).raw > 0 || abs(cameraPosition.y - targetCameraPosition.y).raw > 0) {
                 viewportManager.addToCameraPosition(
-                    (body.position - cameraPosition).toOffset(viewportManager) * 0.05f
+                    (targetCameraPosition - cameraPosition).toOffset(viewportManager) * 0.05f
                 )
             }
         }

@@ -33,7 +33,7 @@ internal class DynamicPolygon(
         x = initialOffset.x,
         y = initialOffset.y,
     ).apply {
-        restitution = 0.5f
+        restitution = 1f
     }
     // TODO: Hacky workaround for incorrect math
     override val shouldClip = false

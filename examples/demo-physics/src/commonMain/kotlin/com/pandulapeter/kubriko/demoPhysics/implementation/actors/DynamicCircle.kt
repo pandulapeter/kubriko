@@ -29,7 +29,7 @@ internal class DynamicCircle private constructor(state: State) : BaseDynamicObje
         x = body.position.x,
         y = body.position.y,
     ).apply {
-        restitution = 0.5f
+        restitution = 1f
         orientation = body.rotation
     }
 

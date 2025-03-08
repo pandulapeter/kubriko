@@ -85,6 +85,6 @@ internal class FakePenguin(
     }
 
     companion object {
-        private val maximumRadius = 650.sceneUnit
+        val maximumRadius = 650.sceneUnit
     }
 }

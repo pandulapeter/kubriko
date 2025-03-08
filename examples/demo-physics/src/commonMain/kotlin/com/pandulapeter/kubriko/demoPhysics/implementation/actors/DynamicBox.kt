@@ -33,7 +33,7 @@ internal class DynamicBox private constructor(state: State) : BaseDynamicObject(
         x = body.position.x,
         y = body.position.y,
     ).apply {
-        restitution = 0.5f
+        restitution = 1f
         orientation = body.rotation
     }
 

@@ -164,7 +164,7 @@ internal class DynamicChain private constructor(state: State) : Group, Dynamic, 
             x = initialPosition.x,
             y = initialPosition.y,
         ).apply {
-            density = 1.5f
+            density = 5f
             restitution = 0.1f
         }
         override val body = CircleBody(
