@@ -16,7 +16,7 @@ Despite Compose WASM support being in [Alpha](https://kotlinlang.org/docs/wasm-o
 [WASM garbage collection](https://webassembly.org/features/) support has only been recently introduced to WebKit and it shows. Kubriko web apps running on iPhones and iPads (both on Safari and Chrome) present some considerable problems. I don't have any control over these issues, but hopefully, with time, WASM support will get gradually optimized by Apple.
 - Lower general performance compared to Android web browsers.
 - Audio playback issues (sometimes the music or sound effects simply just don't start).
-- Frequent app freezes that can last 10-20 seconds. Sudden jumps in the memory required by the app seems to trigger this problems, like loading screens.
+- Frequent app freezes that can last 10-20 seconds. Sudden jumps in the memory required by the app seems to trigger these problems, like loading screens.
 
 ### Missing multi-touch support
 Multi-touch on web doesn't work on the Compose level. [Here's a relevant ticket](https://youtrack.jetbrains.com/issue/CMP-6957/Web.-detectTransformGestures-doesnt-catch-zoom-and-rotation-gestures).

@@ -162,8 +162,8 @@ internal fun MenuOverlay(
     }
     AnimatedVisibility(
         visible = isCloseConfirmationDialogVisible,
-        enter = slideIn { IntOffset(0, -it.height) },
-        exit = slideOut { IntOffset(0, -it.height) },
+        enter = slideIn { IntOffset(0, it.height) } + fadeIn(),
+        exit = fadeOut() + slideOut { IntOffset(0, it.height) },
     ) {
         CloseConfirmationDialog(
             modifier = Modifier.windowInsetsPadding(windowInsets),
