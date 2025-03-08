@@ -23,7 +23,7 @@ Kubriko also offers a number of tools, such as a Scene Editor and a Debug Menu, 
 The tech stack is easy to extend by creating custom plugins, and the low-level integration makes it possible to communicate with platform API-s in a straightforward way.
 
 > [!NOTE]
-> The Kotlin/Wasm export functionality of Compose Multiplatform is currently in alpha. This also applies to the Web version of games created with Kubriko.
+> The Kotlin/Wasm export functionality of Compose Multiplatform is currently in alpha. This also applies to the Web version of games created with Kubriko. Check out [this page](https://github.com/pandulapeter/kubriko/blob/main/documentation/KNOWN_ISSUES.md) for a complete list of limitations.
 
 ## 🎨 Showcase app
 Clone this repository and run the `app` module for the supported targets (Android, Desktop, iOS, Web) to check out what the engine is capable of.

@@ -24,6 +24,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.pointerInput.implementation.gestureDetector
+import com.pandulapeter.kubriko.pointerInput.implementation.isMultiTouchEnabled
 import com.pandulapeter.kubriko.pointerInput.implementation.setPointerPosition
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentMap
@@ -124,8 +125,9 @@ internal class PointerInputManagerImpl(
             while (true) {
                 val event = awaitPointerEvent()
                 if (isInitialized.value) {
-                    val currentPointers = event.changes.associate { it.id to it.pressed }
-                    event.changes.forEach { change ->
+                    val allChanges = if (isMultiTouchEnabled) event.changes else event.changes.filter { it.id.value == 0L }
+                    val currentPointers = allChanges.associate { it.id to it.pressed }
+                    allChanges.forEach { change ->
                         val id = change.id
                         val wasPressed = _pressedPointerPositions.value.containsKey(id)
                         val isPressed = currentPointers[id] == true

@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 
-// TODO
 internal actual fun setPointerPosition(offset: Offset, densityMultiplier: Float) = Unit
 
 internal actual fun Modifier.gestureDetector(
@@ -26,3 +25,5 @@ internal actual fun Modifier.gestureDetector(
         onZoomDetected(centroid, zoom)
     }
 }
+
+internal actual val isMultiTouchEnabled = true

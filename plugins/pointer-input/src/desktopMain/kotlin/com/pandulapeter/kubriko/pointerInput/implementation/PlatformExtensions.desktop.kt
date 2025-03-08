@@ -43,3 +43,6 @@ internal actual fun Modifier.gestureDetector(
         1f - it.changes.first().scrollDelta.y * 0.05f
     )
 }
+
+// https://youtrack.jetbrains.com/issue/CMP-1609/Desktop.-Support-touch-screens-natively
+internal actual val isMultiTouchEnabled = false

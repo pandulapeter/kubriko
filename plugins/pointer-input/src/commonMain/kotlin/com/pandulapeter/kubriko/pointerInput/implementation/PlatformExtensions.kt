@@ -18,3 +18,5 @@ internal expect fun Modifier.gestureDetector(
     onDragDetected: (Offset) -> Unit,
     onZoomDetected: (Offset, Float) -> Unit,
 ): Modifier
+
+internal expect val isMultiTouchEnabled: Boolean

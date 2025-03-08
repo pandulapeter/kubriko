@@ -35,3 +35,5 @@ internal actual fun Modifier.gestureDetector(
         1f - it.changes.first().scrollDelta.y * 0.05f
     )
 }
+
+internal actual val isMultiTouchEnabled = true
