@@ -39,6 +39,8 @@ internal class StaticPolygon private constructor(state: State) : RigidBody, Visi
         density = 0f
         orientation = body.rotation
     }
+    // TODO: Hacky workaround for incorrect math
+    override val shouldClip = false
 
     @set:Exposed(name = "isRotating")
     var isRotating = state.isRotating

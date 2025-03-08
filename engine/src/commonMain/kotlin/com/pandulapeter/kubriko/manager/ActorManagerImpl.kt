@@ -245,10 +245,10 @@ internal class ActorManagerImpl(
                                         with(visible) {
                                             if (shouldClip) {
                                                 clipRect(
-                                                    left = -ACTOR_CLIPPING_BORDER,
-                                                    top = -ACTOR_CLIPPING_BORDER,
-                                                    right = body.size.width.raw + ACTOR_CLIPPING_BORDER,
-                                                    bottom = body.size.height.raw + ACTOR_CLIPPING_BORDER,
+                                                    left = 0f,
+                                                    top = 0f,
+                                                    right = body.size.width.raw,
+                                                    bottom = body.size.height.raw,
                                                 ) {
                                                     draw()
                                                 }
@@ -271,10 +271,5 @@ internal class ActorManagerImpl(
 
     override fun onDispose() {
         _allActors.value = persistentListOf()
-    }
-
-    companion object {
-        // TODO: Probably shouldn't be necessary
-        private const val ACTOR_CLIPPING_BORDER = 20f
     }
 }

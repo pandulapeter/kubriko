@@ -35,6 +35,8 @@ internal class DynamicPolygon(
     ).apply {
         restitution = 0.5f
     }
+    // TODO: Hacky workaround for incorrect math
+    override val shouldClip = false
 
     override fun DrawScope.draw() {
         val path = Path().apply {

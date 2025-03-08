@@ -79,20 +79,20 @@ internal class DemoParticleState(
                         saturation = 0.4f,
                         value = 1f,
                     ).copy(alpha = 1f - currentProgress),
-                    radius = body.size.raw.maxDimension * 0.7f,
+                    radius = body.radius.raw,
                     center = body.size.center.raw,
                     style = Fill,
                 )
                 drawCircle(
                     color = Color.Black.copy(alpha = 1f - currentProgress),
-                    radius = body.size.raw.maxDimension * 0.7f,
+                    radius = body.radius.raw,
                     center = body.size.center.raw,
                     style = Stroke(),
                 )
             } else {
                 drawCircle(
                     color = Color.Black.copy(alpha = 1f - currentProgress),
-                    radius = body.size.raw.maxDimension * 0.7f,
+                    radius = body.radius.raw,
                     center = body.size.center.raw,
                 )
             }
