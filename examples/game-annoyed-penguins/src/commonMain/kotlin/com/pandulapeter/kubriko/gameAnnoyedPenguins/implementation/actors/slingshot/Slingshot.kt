@@ -63,7 +63,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
     private val fakePenguin = FakePenguin(
         initialPosition = body.position - SceneOffset(
             x = SceneUnit.Zero,
-            y = body.size.height * 0.5f,
+            y = body.size.height * 0.4f,
         ),
     )
     override val shouldClip = false

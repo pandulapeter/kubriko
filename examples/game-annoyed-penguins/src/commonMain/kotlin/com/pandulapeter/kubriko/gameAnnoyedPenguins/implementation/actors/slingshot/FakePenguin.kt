@@ -39,6 +39,7 @@ internal class FakePenguin(
                     actorManager.add(
                         Penguin(
                             initialPosition = body.position,
+                            impulseOrigin = initialPosition - body.position,
                         )
                     )
                 }
@@ -54,8 +55,7 @@ internal class FakePenguin(
             body.scale = Scale.Unit * (1f - value)
         }
     var pointerPosition: SceneOffset = initialPosition
-    var adjustedTargetPosition: SceneOffset = initialPosition
-        private set
+    private var adjustedTargetPosition: SceneOffset = initialPosition
 
     init {
         body.scale = Scale.Zero
@@ -85,6 +85,6 @@ internal class FakePenguin(
     }
 
     companion object {
-        private val maximumRadius = 750.sceneUnit
+        private val maximumRadius = 650.sceneUnit
     }
 }
