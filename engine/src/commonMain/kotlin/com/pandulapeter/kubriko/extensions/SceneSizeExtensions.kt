@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.extensions
 
+import androidx.compose.ui.util.lerp
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
@@ -17,3 +18,12 @@ val SceneSize.bottomRight get() = SceneOffset(width, height)
 val SceneSize.minDimension get() = raw.minDimension.sceneUnit
 
 val SceneSize.maxDimension get() = raw.maxDimension.sceneUnit
+
+fun lerp(
+    start: SceneSize,
+    stop: SceneSize,
+    fraction: Float,
+) = SceneSize(
+    width = lerp(start.width.raw, stop.width.raw, fraction).sceneUnit,
+    height = lerp(start.height.raw, stop.height.raw, fraction).sceneUnit,
+)

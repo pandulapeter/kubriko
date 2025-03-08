@@ -46,5 +46,5 @@ internal abstract class BlinkingPenguin(
         speed = if (animatedSprite.isLastFrame) 2f else 0.3f,
     )
 
-    override fun DrawScope.draw() = animatedSprite.draw(this)
+    final override fun DrawScope.draw() = animatedSprite.draw(this)
 }

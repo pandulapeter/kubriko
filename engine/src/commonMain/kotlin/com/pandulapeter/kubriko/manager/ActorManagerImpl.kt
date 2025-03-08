@@ -243,12 +243,16 @@ internal class ActorManagerImpl(
                                     transformBlock = { visible.body.transformForViewport(this) },
                                     drawBlock = {
                                         with(visible) {
-                                            clipRect(
-                                                left = -ACTOR_CLIPPING_BORDER,
-                                                top = -ACTOR_CLIPPING_BORDER,
-                                                right = body.size.width.raw + ACTOR_CLIPPING_BORDER,
-                                                bottom = body.size.height.raw + ACTOR_CLIPPING_BORDER,
-                                            ) {
+                                            if (shouldClip) {
+                                                clipRect(
+                                                    left = -ACTOR_CLIPPING_BORDER,
+                                                    top = -ACTOR_CLIPPING_BORDER,
+                                                    right = body.size.width.raw + ACTOR_CLIPPING_BORDER,
+                                                    bottom = body.size.height.raw + ACTOR_CLIPPING_BORDER,
+                                                ) {
+                                                    draw()
+                                                }
+                                            } else {
                                                 draw()
                                             }
                                         }

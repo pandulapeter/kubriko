@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.extensions
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.util.lerp
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.AngleRadians
@@ -119,4 +120,13 @@ fun SceneOffset.toOffset(
 ): Offset = Offset(
     x = x.raw * viewportScaleFactor.horizontal,
     y = y.raw * viewportScaleFactor.vertical,
+)
+
+fun lerp(
+    start: SceneOffset,
+    stop: SceneOffset,
+    fraction: Float,
+) = SceneOffset(
+    x = lerp(start.x.raw, stop.x.raw, fraction).sceneUnit,
+    y = lerp(start.y.raw, stop.y.raw, fraction).sceneUnit,
 )

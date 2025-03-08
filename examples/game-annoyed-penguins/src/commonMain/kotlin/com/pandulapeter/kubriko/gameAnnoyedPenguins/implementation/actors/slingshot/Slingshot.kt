@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.slingshot
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.pointer.PointerId
 import com.pandulapeter.kubriko.Kubriko
@@ -30,6 +31,8 @@ import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableRectangleBody
 import com.pandulapeter.kubriko.sprites.SpriteManager
+import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
@@ -44,12 +47,26 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
     private lateinit var viewportManager: ViewportManager
     override val drawingOrder = 1f
     override val isAlwaysActive = true
-    private var aimingPointerId : PointerId? = null
+    private var aimingPointerId: PointerId? = null
         set(value) {
             field = value
             fakePenguin.isVisible = value != null
         }
-    private val fakePenguin = FakePenguin(body.position)
+    private val armOffset1 = SceneOffset(
+        x = body.size.width * 0.25f,
+        y = -body.size.height * 0.4f,
+    )
+    private val armOffset2 = SceneOffset(
+        x = -body.size.width * 0.25f,
+        y = -body.size.height * 0.4f,
+    )
+    private val fakePenguin = FakePenguin(
+        initialPosition = body.position - SceneOffset(
+            x = SceneUnit.Zero,
+            y = body.size.height * 0.5f,
+        ),
+    )
+    override val shouldClip = false
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
@@ -62,8 +79,21 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
     override fun DrawScope.draw() {
         spriteManager.get(Res.drawable.sprite_slingshot_background)?.let { background ->
             spriteManager.get(Res.drawable.sprite_slingshot_foreground)?.let { foreground ->
+                if (fakePenguin.isVisible) {
+                    drawLine(
+                        color = Color.DarkGray.copy(alpha = 1f - fakePenguin.distanceFromTarget),
+                        start = body.pivot.raw + armOffset1.raw,
+                        end = fakePenguin.body.position.raw - body.position.raw + body.pivot.raw,
+                        strokeWidth = 16f,
+                    )
+                    drawLine(
+                        color = Color.DarkGray.copy(alpha = 1f - fakePenguin.distanceFromTarget),
+                        start = body.pivot.raw + armOffset2.raw,
+                        end = fakePenguin.body.position.raw - body.position.raw + body.pivot.raw,
+                        strokeWidth = 16f,
+                    )
+                }
                 drawImage(background)
-                // TODO: Should be separate Actors probably
                 drawImage(foreground)
             }
         }
@@ -88,8 +118,13 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
     override fun update(deltaTimeInMilliseconds: Int) {
         val pressedPointerPositions = pointerInputManager.pressedPointerPositions.value
         if (pressedPointerPositions.isNotEmpty()) {
-            // Detect if the initial press was on the slingshot
-            if (!isPointerPressedInPreviousStep) {
+            if (isPointerPressedInPreviousStep) {
+                // Move the penguin that's already on the slingshot
+                pressedPointerPositions[aimingPointerId]?.let { position ->
+                    fakePenguin.pointerPosition = position.toSceneOffset(viewportManager)
+                }
+            } else {
+                // Detect if the initial press was on the slingshot
                 if (pressedPointerPositions.isNotEmpty()) {
                     pressedPointerPositions.firstNotNullOf { it }.let { pressPosition ->
                         if (pressPosition.value.toSceneOffset(viewportManager).isWithin(body.axisAlignedBoundingBox)) {
