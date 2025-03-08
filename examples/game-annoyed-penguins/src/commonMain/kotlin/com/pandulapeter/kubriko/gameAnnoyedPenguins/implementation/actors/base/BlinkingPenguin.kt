@@ -16,17 +16,23 @@ import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.sprites.AnimatedSprite
 import com.pandulapeter.kubriko.sprites.SpriteManager
+import com.pandulapeter.kubriko.types.SceneOffset
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_penguin
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
 internal abstract class BlinkingPenguin(
-    override val body: CircleBody,
+    initialPosition: SceneOffset,
 ) : Visible, Dynamic {
 
+    override val body = CircleBody(
+        initialPosition = initialPosition,
+        initialRadius = 128.sceneUnit,
+    )
     private lateinit var spriteManager: SpriteManager
     private val animatedSprite = AnimatedSprite(
         getImageBitmap = { spriteManager.get(Res.drawable.sprite_penguin) },

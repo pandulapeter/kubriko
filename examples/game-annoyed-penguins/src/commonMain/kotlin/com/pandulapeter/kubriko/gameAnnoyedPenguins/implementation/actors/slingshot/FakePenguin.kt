@@ -9,33 +9,39 @@
  */
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.slingshot
 
-import com.pandulapeter.kubriko.actor.body.CircleBody
+import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.extensions.abs
 import com.pandulapeter.kubriko.extensions.angleTowards
 import com.pandulapeter.kubriko.extensions.cos
 import com.pandulapeter.kubriko.extensions.distanceTo
+import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.extensions.lerp
 import com.pandulapeter.kubriko.extensions.min
 import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.extensions.sin
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Penguin
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base.BlinkingPenguin
+import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 
 internal class FakePenguin(
     private val initialPosition: SceneOffset,
-) : BlinkingPenguin(
-    body = CircleBody(
-        initialPosition = initialPosition,
-        initialRadius = 128.sceneUnit,
-        initialScale = Scale.Zero,
-    ),
-), Unique, Dynamic {
+) : BlinkingPenguin(initialPosition), Unique, Dynamic {
+
+    private lateinit var actorManager: ActorManager
     override var isVisible = false
         set(value) {
             if (field != value) {
+                if (!value) {
+                    actorManager.add(
+                        Penguin(
+                            initialPosition = body.position,
+                        )
+                    )
+                }
                 body.position = initialPosition
                 distanceFromTarget = 1f
                 pointerPosition = initialPosition
@@ -50,6 +56,15 @@ internal class FakePenguin(
     var pointerPosition: SceneOffset = initialPosition
     var adjustedTargetPosition: SceneOffset = initialPosition
         private set
+
+    init {
+        body.scale = Scale.Zero
+    }
+
+    override fun onAdded(kubriko: Kubriko) {
+        super<BlinkingPenguin>.onAdded(kubriko)
+        actorManager = kubriko.get()
+    }
 
     override fun update(deltaTimeInMilliseconds: Int) {
         if (isVisible) {
