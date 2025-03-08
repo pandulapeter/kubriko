@@ -36,6 +36,7 @@ internal class Penguin(
         y = body.position.y * 1.2f,
     ).apply {
         restitution = 0.5f
+        angularDampening = 1000f
         orientation = body.rotation
         applyForce(
             Vec2(

@@ -36,7 +36,8 @@ internal class DestructibleBlock private constructor(
         x = body.position.x,
         y = body.position.y,
     ).apply {
-        restitution = 0.5f
+        restitution =1f
+        density = 10f
         orientation = body.rotation
     }
 
