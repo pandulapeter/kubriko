@@ -9,7 +9,12 @@
  */
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors
 
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.extensions.toSceneSize
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base.BlinkingPenguin
+import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
@@ -19,6 +24,8 @@ internal class Penguin(
     initialPosition: SceneOffset,
 ) : BlinkingPenguin(initialPosition), RigidBody {
 
+    private lateinit var actorManager: ActorManager
+    private lateinit var viewportManager: ViewportManager
     override val physicsBody = Body(
         shape = Circle(
             radius = body.radius * 0.8f,
@@ -30,9 +37,18 @@ internal class Penguin(
         orientation = body.rotation
     }
 
+    override fun onAdded(kubriko: Kubriko) {
+        super<BlinkingPenguin>.onAdded(kubriko)
+        actorManager = kubriko.get()
+        viewportManager = kubriko.get()
+    }
+
     override fun update(deltaTimeInMilliseconds: Int) {
         super.update(deltaTimeInMilliseconds)
         body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
         body.rotation = physicsBody.orientation
+        if (body.position.y > viewportManager.bottomRight.value.y + viewportManager.size.value.toSceneSize(viewportManager).height) {
+            actorManager.remove(this)
+        }
     }
 }

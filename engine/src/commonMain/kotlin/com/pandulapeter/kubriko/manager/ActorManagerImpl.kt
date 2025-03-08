@@ -158,7 +158,7 @@ internal class ActorManagerImpl(
     @OptIn(ExperimentalUuidApi::class)
     override fun add(vararg actors: Actor) = _allActors.update { currentActors ->
         log(
-            message = "Adding ${actors.size} new Actors to ${currentActors.size} existing ones",
+            message = "Adding ${actors.size} new Actor(s) to ${currentActors.size} existing",
             importance = Logger.Importance.LOW,
         )
         val newActors = flattenActors(actors.toList())
@@ -174,7 +174,7 @@ internal class ActorManagerImpl(
     override fun remove(vararg actors: Actor) {
         if (actors.isNotEmpty()) {
             log(
-                message = "Removing ${actors.size} Actors",
+                message = "Removing ${actors.size} Actor(s)",
                 importance = Logger.Importance.LOW,
             )
             val flattenedActors = flattenActors(actors.toList())
