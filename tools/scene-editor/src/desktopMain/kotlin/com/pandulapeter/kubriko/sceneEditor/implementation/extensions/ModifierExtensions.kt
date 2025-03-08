@@ -89,13 +89,13 @@ internal fun Modifier.handleMouseDrag(
 ): Modifier = onDrag(
     matcher = PointerMatcher.mouse(PointerButton.Tertiary),
 ) { screenCoordinates ->
-    viewportManager.addToCameraPosition(screenCoordinates)
+    viewportManager.addToCameraPosition(-screenCoordinates)
 }.onDrag(
     matcher = PointerMatcher.mouse(PointerButton.Primary),
 ) { screenCoordinates ->
     isDragging = true
     if (keyboardInputManager.run { isKeyPressed(Key.ShiftLeft) || isKeyPressed(Key.ShiftRight) }) {
-        viewportManager.addToCameraPosition(screenCoordinates)
+        viewportManager.addToCameraPosition(-screenCoordinates)
     } else {
         startOffset?.let { startOffset ->
             getSelectedActor()?.let { selectedActor ->

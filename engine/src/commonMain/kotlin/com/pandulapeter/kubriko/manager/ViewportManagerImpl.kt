@@ -70,7 +70,7 @@ internal class ViewportManagerImpl(
     }
 
     override fun addToCameraPosition(offset: Offset) = _cameraPosition.update { currentValue ->
-        currentValue - SceneOffset(offset / scaleFactor.value)
+        currentValue + SceneOffset(offset / scaleFactor.value)
     }
 
     override fun setCameraPosition(position: SceneOffset) = _cameraPosition.update { position }

@@ -71,7 +71,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
 
     override fun onPointerDrag(screenOffset: Offset) {
         if (aimingPointerId == null) {
-            viewportManager.addToCameraPosition(screenOffset)
+            viewportManager.addToCameraPosition(-screenOffset)
         }
     }
 
@@ -103,7 +103,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
             val cameraPosition = viewportManager.cameraPosition.value
             if (abs(cameraPosition.x - body.position.x).raw > 0 || abs(cameraPosition.y - body.position.y).raw > 0) {
                 viewportManager.addToCameraPosition(
-                    -((body.position - cameraPosition) / viewportManager.scaleFactor.value).toOffset(viewportManager) * 0.025f
+                    (body.position - cameraPosition).toOffset(viewportManager) * 0.05f
                 )
             }
         }

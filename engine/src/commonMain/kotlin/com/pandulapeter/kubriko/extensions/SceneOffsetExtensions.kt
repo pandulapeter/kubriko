@@ -10,7 +10,6 @@
 package com.pandulapeter.kubriko.extensions
 
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.AngleRadians
@@ -112,19 +111,12 @@ val List<SceneOffset>.center
     }
 
 fun SceneOffset.toOffset(viewportManager: ViewportManager): Offset = toOffset(
-    viewportCenter = viewportManager.cameraPosition.value,
-    viewportSize = viewportManager.size.value,
     viewportScaleFactor = viewportManager.scaleFactor.value,
 )
 
 fun SceneOffset.toOffset(
-    viewportCenter: SceneOffset,
-    viewportSize: Size,
     viewportScaleFactor: Scale,
-): Offset {
-    val localSceneOffset = (this - viewportCenter) * viewportScaleFactor
-    return Offset(
-        x = localSceneOffset.x.raw + viewportSize.width / 2,
-        y = localSceneOffset.y.raw + viewportSize.height / 2
-    )
-}
+): Offset = Offset(
+    x = x.raw * viewportScaleFactor.horizontal,
+    y = y.raw * viewportScaleFactor.vertical,
+)

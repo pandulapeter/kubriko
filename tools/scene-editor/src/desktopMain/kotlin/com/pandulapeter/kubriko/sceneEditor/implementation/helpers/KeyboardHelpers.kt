@@ -22,7 +22,7 @@ private const val CAMERA_SPEED_DIAGONAL = 0.7071f * CAMERA_SPEED
 
 internal fun ViewportManager.handleKeys(keys: Set<Key>) {
     addToCameraPosition(
-        -when (keys.directionState) {
+        when (keys.directionState) {
             KeyboardDirectionState.NONE -> Offset.Zero
             KeyboardDirectionState.LEFT -> Offset(-CAMERA_SPEED, 0f)
             KeyboardDirectionState.UP_LEFT -> Offset(-CAMERA_SPEED_DIAGONAL, -CAMERA_SPEED_DIAGONAL)
