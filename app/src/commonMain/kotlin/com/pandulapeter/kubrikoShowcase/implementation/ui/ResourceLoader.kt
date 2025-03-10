@@ -64,12 +64,6 @@ import kubriko.app.generated.resources.test_input_subtitle
 import kubriko.app.generated.resources.tests
 import kubriko.app.generated.resources.welcome
 import kubriko.app.generated.resources.welcome_disclaimer
-import kubriko.app.generated.resources.welcome_disclaimer_obfuscation
-import kubriko.app.generated.resources.welcome_disclaimer_web_android
-import kubriko.app.generated.resources.welcome_disclaimer_web_general
-import kubriko.app.generated.resources.welcome_disclaimer_web_ipad
-import kubriko.app.generated.resources.welcome_disclaimer_web_iphone
-import kubriko.app.generated.resources.welcome_disclaimer_web_not_chrome_or_firefox
 import kubriko.app.generated.resources.welcome_subtitle
 
 internal object ResourceLoader {
@@ -135,11 +129,5 @@ internal object ResourceLoader {
             && preloadedString(Res.string.other_about).value.isNotBlank()
             && preloadedString(Res.string.other_about_subtitle).value.isNotBlank()
             && preloadedString(Res.string.welcome_disclaimer).value.isNotBlank()
-            && preloadedString(Res.string.welcome_disclaimer_obfuscation).value.isNotBlank()
-            && preloadedString(Res.string.welcome_disclaimer_web_general).value.isNotBlank()
-            && preloadedString(Res.string.welcome_disclaimer_web_iphone).value.isNotBlank()
-            && preloadedString(Res.string.welcome_disclaimer_web_ipad).value.isNotBlank()
-            && preloadedString(Res.string.welcome_disclaimer_web_android).value.isNotBlank()
-            && preloadedString(Res.string.welcome_disclaimer_web_not_chrome_or_firefox).value.isNotBlank()
 
 }

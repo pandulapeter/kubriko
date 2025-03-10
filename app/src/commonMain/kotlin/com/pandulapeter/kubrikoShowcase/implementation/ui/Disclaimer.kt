@@ -38,7 +38,8 @@ internal fun Disclaimer()  {
     if (warningTexts.isNotEmpty()) {
         Column(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(top = 16.dp)
+                .padding(horizontal = 16.dp)
                 .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
                 .border(
                     width = 1.dp,
