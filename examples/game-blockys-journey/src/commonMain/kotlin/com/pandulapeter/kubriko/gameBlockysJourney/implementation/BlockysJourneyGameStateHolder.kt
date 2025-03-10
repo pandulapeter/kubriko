@@ -192,9 +192,9 @@ internal class BlockysJourneyGameStateHolderImpl(
             } else if (uiManager.isInfoDialogVisible.value) {
                 audioManager.playButtonToggleSoundEffect()
                 uiManager.toggleInfoDialogVisibility()
-            } else if (!uiManager.isCloseConfirmationDialogVisible.value) {
-                audioManager.playButtonToggleSoundEffect()
-                stateManager.updateIsRunning(true)
+//            } else if (!uiManager.isCloseConfirmationDialogVisible.value) {
+//                audioManager.playButtonToggleSoundEffect()
+//                stateManager.updateIsRunning(true)
             } else if (isInFullscreenMode) {
                 audioManager.playButtonToggleSoundEffect()
                 onFullscreenModeToggled()
