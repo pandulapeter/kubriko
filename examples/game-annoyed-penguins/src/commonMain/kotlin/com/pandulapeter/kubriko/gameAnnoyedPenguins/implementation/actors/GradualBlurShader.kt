@@ -20,15 +20,18 @@ internal class GradualBlurShader : BlurShader(
 ), Dynamic {
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        if (shaderState.blurHorizontal < 20f) {
+        if (shaderState.blurHorizontal <= 10f) {
             shaderState = shaderState.copy(
-                blurHorizontal = shaderState.blurHorizontal + 0.005f * deltaTimeInMilliseconds,
-                blurVertical = shaderState.blurVertical + 0.005f * deltaTimeInMilliseconds,
+                blurHorizontal = shaderState.blurHorizontal + 0.05f * deltaTimeInMilliseconds,
+                blurVertical = shaderState.blurVertical + 0.05f * deltaTimeInMilliseconds,
             )
         }
     }
 
     override fun onRemoved() {
-        shaderState = State()
+        shaderState = State(
+            blurHorizontal = 0f,
+            blurVertical = 0f,
+        )
     }
 }

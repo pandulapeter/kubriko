@@ -20,9 +20,12 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
@@ -43,6 +46,7 @@ import com.pandulapeter.kubriko.gameBlockysJourney.implementation.BlockysJourney
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.ui.BlockysJourneyButton
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.ui.BlockysJourneyTheme
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.ui.MenuOverlay
+import com.pandulapeter.kubriko.gameBlockysJourney.implementation.ui.UnfinishedDisclaimer
 import kubriko.examples.game_blockys_journey.generated.resources.Res
 import kubriko.examples.game_blockys_journey.generated.resources.ic_pause
 import kubriko.examples.game_blockys_journey.generated.resources.pause
@@ -92,18 +96,25 @@ fun BlockysJourneyGame(
             enter = slideIn { IntOffset(0, -it.height) } + fadeIn(),
             exit = fadeOut() + slideOut { IntOffset(0, -it.height) },
         ) {
-            BlockysJourneyButton(
-                modifier = Modifier
+            Row(
+                modifier = Modifier.fillMaxWidth()
                     .windowInsetsPadding(windowInsets)
                     .padding(16.dp),
-                onButtonPressed = {
-                    stateHolder.audioManager.playButtonToggleSoundEffect()
-                    stateHolder.stateManager.updateIsRunning(false)
-                },
-                icon = Res.drawable.ic_pause,
-                title = stringResource(Res.string.pause),
-                onPointerEnter = stateHolder.audioManager::playButtonHoverSoundEffect,
-            )
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                BlockysJourneyButton(
+                    onButtonPressed = {
+                        stateHolder.audioManager.playButtonToggleSoundEffect()
+                        stateHolder.stateManager.updateIsRunning(false)
+                    },
+                    icon = Res.drawable.ic_pause,
+                    title = stringResource(Res.string.pause),
+                    onPointerEnter = stateHolder.audioManager::playButtonHoverSoundEffect,
+                )
+                UnfinishedDisclaimer(
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
         AnimatedVisibility(
             visible = !isGameRunning,

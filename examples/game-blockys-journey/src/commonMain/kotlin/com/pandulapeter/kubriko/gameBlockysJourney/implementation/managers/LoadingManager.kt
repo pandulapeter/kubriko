@@ -64,6 +64,7 @@ import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_s
 import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_south_east
 import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_south_west
 import kubriko.examples.game_blockys_journey.generated.resources.sprite_blocky_west
+import kubriko.examples.game_blockys_journey.generated.resources.unfinished_disclaimer
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.MissingResourceException
 
@@ -167,6 +168,7 @@ internal class LoadingManager(
             && preloadedString(Res.string.close_confirmation).value.isNotBlank()
             && preloadedString(Res.string.close_confirmation_positive).value.isNotBlank()
             && preloadedString(Res.string.close_confirmation_negative).value.isNotBlank()
+            && preloadedString(Res.string.unfinished_disclaimer).value.isNotBlank()
 
     companion object {
         const val SCENE_NAME = "world.json"

@@ -46,6 +46,7 @@ import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.Game
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.AnnoyedPenguinsButton
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.AnnoyedPenguinsTheme
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.MenuOverlay
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.UnfinishedDisclaimer
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.ZoomSlider
 import kotlinx.collections.immutable.toImmutableList
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
@@ -90,7 +91,7 @@ fun AnnoyedPenguinsGame(
             exit = fadeOut(),
         ) {
             val gameAlpha by animateFloatAsState(
-                targetValue = if (isGameRunning) 1f else 0.4f,
+                targetValue = if (isGameRunning) 1f else 0.5f,
                 animationSpec = tween(),
             )
             KubrikoViewport(
@@ -126,6 +127,23 @@ fun AnnoyedPenguinsGame(
                     maximumScaleFactor = stateHolder.viewportManager.maximumScaleFactor,
                     currentScaleFactor = stateHolder.viewportManager.rawScaleFactor.collectAsState().value.vertical,
                     updateScaleFactor = { stateHolder.viewportManager.setScaleFactor(it) },
+                )
+            }
+        }
+        AnimatedVisibility(
+            visible = isGameRunning,
+            enter = slideIn { IntOffset(0, it.height) },
+            exit = slideOut { IntOffset(0, it.height) },
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(windowInsets)
+                    .padding(16.dp)
+                    .padding(horizontal = 24.dp),
+            ) {
+                UnfinishedDisclaimer(
+                    modifier = Modifier.align(Alignment.BottomCenter)
                 )
             }
         }

@@ -30,5 +30,6 @@ Attribution:
     <string name="close_confirmation">Are you sure you want to abandon Blocky's Journey?</string>
     <string name="close_confirmation_positive">Leave</string>
     <string name="close_confirmation_negative">Cancel</string>
+    <string name="unfinished_disclaimer">At this point this is just a proof of concept for isometric graphics. The actual gameplay implementation is not yet ready. Check back soon!</string>
 
 </resources>
