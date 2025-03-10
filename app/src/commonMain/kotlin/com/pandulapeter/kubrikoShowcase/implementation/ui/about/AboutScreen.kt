@@ -44,6 +44,7 @@ import kubriko.app.generated.resources.ic_bug
 import kubriko.app.generated.resources.ic_contact
 import kubriko.app.generated.resources.ic_github
 import kubriko.app.generated.resources.ic_privacy_policy
+import kubriko.app.generated.resources.ic_review
 import kubriko.app.generated.resources.ic_share
 import kubriko.app.generated.resources.ic_website
 import kubriko.app.generated.resources.other_about_contact_me
@@ -62,6 +63,7 @@ import kubriko.app.generated.resources.other_about_report_an_issue
 import kubriko.app.generated.resources.other_about_repository
 import kubriko.app.generated.resources.other_about_spread_the_word
 import kubriko.app.generated.resources.other_about_visit_my_website
+import kubriko.app.generated.resources.other_about_write_a_review
 import org.jetbrains.compose.resources.stringResource
 
 
@@ -111,6 +113,7 @@ internal fun AboutScreen(
                     onButtonPressed = { shareManager.shareText("https://github.com/pandulapeter/kubriko") },
                 )
             }
+            ReviewButton(uriHandler)
         }
         Text(
             text = stringResource(Res.string.other_about_content_creator),
@@ -174,6 +177,7 @@ sealed interface AboutScreenStateHolder : StateHolder {
         private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_bug).value != null
                 && preloadedImageVector(Res.drawable.ic_contact).value != null
                 && preloadedImageVector(Res.drawable.ic_privacy_policy).value != null
+                && preloadedImageVector(Res.drawable.ic_review).value != null
                 && preloadedImageVector(Res.drawable.ic_share).value != null
                 && preloadedImageVector(Res.drawable.ic_website).value != null
 
@@ -182,6 +186,7 @@ sealed interface AboutScreenStateHolder : StateHolder {
                 && preloadedString(Res.string.other_about_repository).value.isNotBlank()
                 && preloadedString(Res.string.other_about_report_an_issue).value.isNotBlank()
                 && preloadedString(Res.string.other_about_spread_the_word).value.isNotBlank()
+                && preloadedString(Res.string.other_about_write_a_review).value.isNotBlank()
                 && preloadedString(Res.string.other_about_contact_me).value.isNotBlank()
                 && preloadedString(Res.string.other_about_visit_my_website).value.isNotBlank()
                 && preloadedString(Res.string.other_about_privacy_policy).value.isNotBlank()
