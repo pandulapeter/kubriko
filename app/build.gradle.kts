@@ -177,5 +177,9 @@ buildkonfig {
             name = "IS_SCENE_EDITOR_ENABLED",
             key = "isSceneEditorEnabled",
         )
+        buildConfigFieldBooleanConstant(
+            name = "SHOULD_SHOW_UNFINISHED_GAMES",
+            key = "shouldShowUnfinishedGames",
+        )
     }
 }

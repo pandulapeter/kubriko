@@ -27,6 +27,7 @@ some important flags that affect how the Showcase app is built:
 - `showcase.areTestExamplesEnabled`
 - `showcase.isDebugMenuEnabled`
 - `showcase.isSceneEditorEnabled`
+- `showcase.shouldShowUnfinishedGames`
 
 Disabling components is done on the buildscript level so that the unwanted resources and the irrelevant source code are never included in the builds.
 

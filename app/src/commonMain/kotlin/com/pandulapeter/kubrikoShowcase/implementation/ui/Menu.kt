@@ -50,6 +50,7 @@ internal fun LazyListScope.menu(
     onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
 ) = allShowcaseEntries
     .filter { if (BuildConfig.ARE_TEST_EXAMPLES_ENABLED) true else it.type != ShowcaseEntryType.TEST }
+    .filter { if (BuildConfig.SHOULD_SHOW_UNFINISHED_GAMES) true else it.isProductionReady }
     .groupBy { it.type }
     .let { groups ->
         groups.forEach { (type, entries) ->

@@ -61,6 +61,7 @@ internal enum class ShowcaseEntry(
     val type: ShowcaseEntryType,
     val titleStringResource: StringResource,
     val subtitleStringResource: StringResource,
+    val isProductionReady: Boolean = true,
     val areResourcesLoaded: @Composable () -> Boolean = { true },
 ) {
     // Games
@@ -78,11 +79,13 @@ internal enum class ShowcaseEntry(
         type = ShowcaseEntryType.GAME,
         titleStringResource = Res.string.game_annoyed_penguins,
         subtitleStringResource = Res.string.game_annoyed_penguins_subtitle,
+        isProductionReady = false,
     ),
     BLOCKYS_JOURNEY(
         type = ShowcaseEntryType.GAME,
         titleStringResource = Res.string.game_blockys_journey,
         subtitleStringResource = Res.string.game_blockys_journey_subtitle,
+        isProductionReady = false,
     ),
 
     // Demos
