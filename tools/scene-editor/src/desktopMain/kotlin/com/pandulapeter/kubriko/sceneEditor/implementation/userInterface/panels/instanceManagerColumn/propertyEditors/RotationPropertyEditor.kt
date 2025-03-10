@@ -17,8 +17,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.extensions.deg
-import com.pandulapeter.kubriko.extensions.rad
+import com.pandulapeter.kubriko.helpers.extensions.deg
+import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.AngleEditorMode
 import com.pandulapeter.kubriko.types.AngleRadians
 

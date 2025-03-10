@@ -12,7 +12,7 @@ package com.pandulapeter.kubriko.gameWallbreaker.implementation.actors
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Unique
-import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shaders.Shader
 import com.pandulapeter.kubriko.shaders.extensions.ShaderUniformProvider

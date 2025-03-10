@@ -7,7 +7,7 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko.extensions
+package com.pandulapeter.kubriko.helpers.extensions
 
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.abs

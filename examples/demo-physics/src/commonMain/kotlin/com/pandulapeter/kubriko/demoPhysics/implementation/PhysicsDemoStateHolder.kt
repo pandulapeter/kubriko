@@ -21,9 +21,9 @@ import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticBox
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticCircle
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticPolygon
 import com.pandulapeter.kubriko.demoPhysics.implementation.managers.PhysicsDemoManager
-import com.pandulapeter.kubriko.extensions.cos
-import com.pandulapeter.kubriko.extensions.sceneUnit
-import com.pandulapeter.kubriko.extensions.sin
+import com.pandulapeter.kubriko.helpers.extensions.cos
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
+import com.pandulapeter.kubriko.helpers.extensions.sin
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.PhysicsManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager

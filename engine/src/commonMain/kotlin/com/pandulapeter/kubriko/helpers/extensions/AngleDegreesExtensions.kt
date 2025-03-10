@@ -7,9 +7,9 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko.extensions
+package com.pandulapeter.kubriko.helpers.extensions
 
-import androidx.compose.ui.input.pointer.PointerIcon
+import com.pandulapeter.kubriko.types.AngleDegrees
+import kotlin.math.PI
 
-// Can't implement invisible cursor because BrowserCursor is internal to Compose
-internal actual val pointerIconInvisible: PointerIcon = PointerIcon.Default
+val AngleDegrees.rad get() = (normalized * (PI / 180f).toFloat()).rad

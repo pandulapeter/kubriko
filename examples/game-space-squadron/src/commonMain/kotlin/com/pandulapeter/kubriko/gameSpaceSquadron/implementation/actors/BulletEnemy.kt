@@ -11,9 +11,9 @@ package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors
 
 import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.collision.Collidable
-import com.pandulapeter.kubriko.extensions.distanceTo
-import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.base.Bullet
+import com.pandulapeter.kubriko.helpers.extensions.distanceTo
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 

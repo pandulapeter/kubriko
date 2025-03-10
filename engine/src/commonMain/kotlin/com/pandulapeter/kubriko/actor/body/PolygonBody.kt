@@ -14,11 +14,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.pandulapeter.kubriko.extensions.bottomRight
-import com.pandulapeter.kubriko.extensions.center
-import com.pandulapeter.kubriko.extensions.clamp
-import com.pandulapeter.kubriko.extensions.cos
-import com.pandulapeter.kubriko.extensions.sin
+import com.pandulapeter.kubriko.helpers.extensions.bottomRight
+import com.pandulapeter.kubriko.helpers.extensions.center
+import com.pandulapeter.kubriko.helpers.extensions.clamp
+import com.pandulapeter.kubriko.helpers.extensions.cos
+import com.pandulapeter.kubriko.helpers.extensions.sin
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset

@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubriko.types
 
-import com.pandulapeter.kubriko.extensions.deg
+import com.pandulapeter.kubriko.helpers.extensions.deg
 import kotlin.jvm.JvmInline
 
 /**

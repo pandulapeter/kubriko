@@ -12,7 +12,7 @@ package com.pandulapeter.kubriko.demoContentShaders.implementation
 import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.demoContentShaders.implementation.managers.ContentShadersDemoManager
-import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.shaders.ShaderManager
 import com.pandulapeter.kubriko.shared.StateHolder

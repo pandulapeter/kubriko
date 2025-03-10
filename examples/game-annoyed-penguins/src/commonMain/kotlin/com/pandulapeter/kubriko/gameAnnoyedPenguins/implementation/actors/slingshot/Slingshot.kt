@@ -18,11 +18,11 @@ import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.extensions.abs
-import com.pandulapeter.kubriko.extensions.get
-import com.pandulapeter.kubriko.extensions.isWithin
-import com.pandulapeter.kubriko.extensions.toOffset
-import com.pandulapeter.kubriko.extensions.toSceneOffset
+import com.pandulapeter.kubriko.helpers.extensions.abs
+import com.pandulapeter.kubriko.helpers.extensions.get
+import com.pandulapeter.kubriko.helpers.extensions.isWithin
+import com.pandulapeter.kubriko.helpers.extensions.toOffset
+import com.pandulapeter.kubriko.helpers.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware

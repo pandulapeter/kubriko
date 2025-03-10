@@ -17,7 +17,7 @@ import com.pandulapeter.kubriko.demoPerformance.implementation.actors.BoxWithCir
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.Camera
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.MovingBox
 import com.pandulapeter.kubriko.demoPerformance.implementation.managers.PerformanceDemoManager
-import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata

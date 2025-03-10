@@ -15,12 +15,13 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.extensions.cos
-import com.pandulapeter.kubriko.extensions.deg
-import com.pandulapeter.kubriko.extensions.get
-import com.pandulapeter.kubriko.extensions.rad
-import com.pandulapeter.kubriko.extensions.sceneUnit
-import com.pandulapeter.kubriko.extensions.sin
+import com.pandulapeter.kubriko.helpers.Timer
+import com.pandulapeter.kubriko.helpers.extensions.cos
+import com.pandulapeter.kubriko.helpers.extensions.deg
+import com.pandulapeter.kubriko.helpers.extensions.get
+import com.pandulapeter.kubriko.helpers.extensions.rad
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
+import com.pandulapeter.kubriko.helpers.extensions.sin
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableCircleBody
@@ -56,6 +57,13 @@ internal class Blocky private constructor(
         framesPerSecond = 60f,
     )
     override val drawingOrder get() = -body.position.y.raw
+    private val turningTimer = Timer(
+        timeInMilliseconds = 650,
+        shouldTriggerMultipleTimes = true,
+        onDone = {
+            direction = direction.nextDirectionClockwise
+        }
+    )
 
     override fun save() = State(
         body = body,
@@ -64,8 +72,6 @@ internal class Blocky private constructor(
     override fun onAdded(kubriko: Kubriko) {
         spriteManager = kubriko.get()
     }
-
-    private var previousFrame = 0
 
     override fun update(deltaTimeInMilliseconds: Int) {
         animatedSprite.stepForward(
@@ -76,19 +82,7 @@ internal class Blocky private constructor(
             x = +Speed * direction.angle.cos,
             y = -Speed * direction.angle.sin,
         ) * deltaTimeInMilliseconds
-        if (previousFrame != animatedSprite.frameIndex && animatedSprite.isLastFrame) {
-            direction = when (direction) {
-                Direction.EAST -> Direction.SOUTH_EAST
-                Direction.SOUTH_EAST -> Direction.SOUTH
-                Direction.SOUTH -> Direction.SOUTH_WEST
-                Direction.SOUTH_WEST -> Direction.WEST
-                Direction.WEST -> Direction.NORTH_WEST
-                Direction.NORTH_WEST -> Direction.NORTH
-                Direction.NORTH -> Direction.NORTH_EAST
-                Direction.NORTH_EAST -> Direction.EAST
-            }
-        }
-        previousFrame = animatedSprite.frameIndex
+        turningTimer.update(deltaTimeInMilliseconds)
     }
 
     override fun DrawScope.draw() = animatedSprite.draw(this)
@@ -130,6 +124,30 @@ internal class Blocky private constructor(
             angle = 30.deg.rad,
         ),
     }
+
+    private val Direction.nextDirectionClockwise
+        get() = when (this) {
+            Direction.EAST -> Direction.SOUTH_EAST
+            Direction.SOUTH_EAST -> Direction.SOUTH
+            Direction.SOUTH -> Direction.SOUTH_WEST
+            Direction.SOUTH_WEST -> Direction.WEST
+            Direction.WEST -> Direction.NORTH_WEST
+            Direction.NORTH_WEST -> Direction.NORTH
+            Direction.NORTH -> Direction.NORTH_EAST
+            Direction.NORTH_EAST -> Direction.EAST
+        }
+
+    private val Direction.nextDirectionCounterClockwise
+        get() = when (this) {
+            Direction.EAST -> Direction.NORTH_EAST
+            Direction.SOUTH_EAST -> Direction.EAST
+            Direction.SOUTH -> Direction.SOUTH_EAST
+            Direction.SOUTH_WEST -> Direction.SOUTH
+            Direction.WEST -> Direction.SOUTH_WEST
+            Direction.NORTH_WEST -> Direction.WEST
+            Direction.NORTH -> Direction.NORTH_WEST
+            Direction.NORTH_EAST -> Direction.NORTH
+        }
 
     @kotlinx.serialization.Serializable
     data class State(

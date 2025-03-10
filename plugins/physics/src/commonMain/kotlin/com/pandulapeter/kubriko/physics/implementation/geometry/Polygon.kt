@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubriko.physics.implementation.geometry
 
-import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.collision.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.PhysicalBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody

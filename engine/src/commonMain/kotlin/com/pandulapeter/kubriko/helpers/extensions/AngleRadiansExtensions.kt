@@ -7,9 +7,15 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko.extensions
+package com.pandulapeter.kubriko.helpers.extensions
 
-import com.pandulapeter.kubriko.types.AngleDegrees
+import com.pandulapeter.kubriko.types.AngleRadians
 import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
-val AngleDegrees.rad get() = (normalized * (PI / 180f).toFloat()).rad
+val AngleRadians.deg get() = (normalized * (180f / PI).toFloat()).deg
+
+val AngleRadians.sin get() = sin(normalized)
+
+val AngleRadians.cos get() = cos(normalized)

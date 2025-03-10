@@ -9,9 +9,9 @@
  */
 package com.pandulapeter.kubriko.physics.implementation.math
 
-import com.pandulapeter.kubriko.extensions.cos
-import com.pandulapeter.kubriko.extensions.sceneUnit
-import com.pandulapeter.kubriko.extensions.sin
+import com.pandulapeter.kubriko.helpers.extensions.cos
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
+import com.pandulapeter.kubriko.helpers.extensions.sin
 import com.pandulapeter.kubriko.types.AngleRadians
 
 class Mat2 {

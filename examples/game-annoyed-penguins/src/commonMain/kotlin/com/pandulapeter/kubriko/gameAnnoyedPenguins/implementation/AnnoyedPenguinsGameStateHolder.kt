@@ -13,7 +13,6 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
-import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.DestructibleBlock
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.FogShader
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Ground
@@ -23,6 +22,7 @@ import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.Game
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.LoadingManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.UIManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.UserPreferencesManager
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager

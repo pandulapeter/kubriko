@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubriko.physics.implementation.collision
 
-import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.collision.bodies.CollisionBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.dynamics.Physics
 import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.PhysicalBodyInterface

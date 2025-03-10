@@ -11,9 +11,9 @@ package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors
 
 import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.extensions.get
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.ScoreManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.particleStates.ExplosionParticleState
+import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.particles.ParticleEmitter
 import com.pandulapeter.kubriko.types.SceneOffset

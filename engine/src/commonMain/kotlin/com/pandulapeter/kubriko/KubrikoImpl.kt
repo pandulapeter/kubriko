@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubriko
 
-import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ActorManagerImpl

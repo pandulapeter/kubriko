@@ -7,19 +7,19 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko.extensions
+package com.pandulapeter.kubriko.helpers.extensions
 
 import com.pandulapeter.kubriko.types.AngleDegrees
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneUnit
 
-val Int.deg: AngleDegrees
-    get() = AngleDegrees(toFloat())
+val Float.deg: AngleDegrees
+    get() = AngleDegrees(this)
 
-val Int.rad: AngleRadians
-    get() = AngleRadians(toFloat())
+val Float.rad: AngleRadians
+    get() = AngleRadians(this)
 
-val Int.sceneUnit: SceneUnit
-    get() = SceneUnit(toFloat())
+val Float.sceneUnit: SceneUnit
+    get() = SceneUnit(this)
 
-operator fun Int.times(scale: SceneUnit): SceneUnit = (scale.raw * this).sceneUnit
+operator fun Float.times(scale: SceneUnit): SceneUnit = (scale.raw * this).sceneUnit

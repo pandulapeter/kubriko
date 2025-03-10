@@ -39,10 +39,10 @@ import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicChain
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicCircle
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicPolygon
 import com.pandulapeter.kubriko.demoPhysics.implementation.ui.ActionType
-import com.pandulapeter.kubriko.extensions.cos
-import com.pandulapeter.kubriko.extensions.sceneUnit
-import com.pandulapeter.kubriko.extensions.sin
-import com.pandulapeter.kubriko.extensions.toSceneOffset
+import com.pandulapeter.kubriko.helpers.extensions.cos
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
+import com.pandulapeter.kubriko.helpers.extensions.sin
+import com.pandulapeter.kubriko.helpers.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager

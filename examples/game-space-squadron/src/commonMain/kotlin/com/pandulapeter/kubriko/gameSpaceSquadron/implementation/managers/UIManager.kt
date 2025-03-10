@@ -42,10 +42,10 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Unique
-import com.pandulapeter.kubriko.extensions.Invisible
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.Ship
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.SpaceSquadronUIElementShape
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.spaceSquadronUIElementBorder
+import com.pandulapeter.kubriko.helpers.extensions.Invisible
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ActorManager

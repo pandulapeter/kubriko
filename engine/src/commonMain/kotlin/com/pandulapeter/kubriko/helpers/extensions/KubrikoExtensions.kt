@@ -7,10 +7,9 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko.extensions
+package com.pandulapeter.kubriko.helpers.extensions
 
-import androidx.compose.ui.input.pointer.PointerIcon
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.manager.Manager
 
-val PointerIcon.Companion.Invisible get() = pointerIconInvisible
-
-internal expect val pointerIconInvisible: PointerIcon
+inline fun <reified T : Manager> Kubriko.get() = get(T::class)

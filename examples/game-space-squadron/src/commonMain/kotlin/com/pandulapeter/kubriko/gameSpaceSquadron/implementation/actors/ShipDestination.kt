@@ -17,11 +17,11 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.PointBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Positionable
-import com.pandulapeter.kubriko.extensions.clampWithin
-import com.pandulapeter.kubriko.extensions.get
-import com.pandulapeter.kubriko.extensions.normalize
-import com.pandulapeter.kubriko.extensions.sceneUnit
-import com.pandulapeter.kubriko.extensions.toSceneOffset
+import com.pandulapeter.kubriko.helpers.extensions.clampWithin
+import com.pandulapeter.kubriko.helpers.extensions.get
+import com.pandulapeter.kubriko.helpers.extensions.normalize
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
+import com.pandulapeter.kubriko.helpers.extensions.toSceneOffset
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.keyboardInput.extensions.KeyboardDirectionState
 import com.pandulapeter.kubriko.keyboardInput.extensions.directionState

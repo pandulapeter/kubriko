@@ -10,7 +10,7 @@
 package com.pandulapeter.kubriko.serialization.typeSerializers
 
 import com.pandulapeter.kubriko.actor.body.PolygonBody
-import com.pandulapeter.kubriko.extensions.center
+import com.pandulapeter.kubriko.helpers.extensions.center
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset

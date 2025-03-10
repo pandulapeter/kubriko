@@ -10,7 +10,7 @@
 package com.pandulapeter.kubriko.collision.extensions
 
 import com.pandulapeter.kubriko.actor.body.Body
-import com.pandulapeter.kubriko.extensions.isInside
+import com.pandulapeter.kubriko.helpers.extensions.isInside
 
 fun Body.isOverlapping(
     other: Body

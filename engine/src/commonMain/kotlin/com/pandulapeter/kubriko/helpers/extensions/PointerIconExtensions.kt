@@ -7,15 +7,10 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko.extensions
+package com.pandulapeter.kubriko.helpers.extensions
 
-import com.pandulapeter.kubriko.types.AngleRadians
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
+import androidx.compose.ui.input.pointer.PointerIcon
 
-val AngleRadians.deg get() = (normalized * (180f / PI).toFloat()).deg
+val PointerIcon.Companion.Invisible get() = pointerIconInvisible
 
-val AngleRadians.sin get() = sin(normalized)
-
-val AngleRadians.cos get() = cos(normalized)
+internal expect val pointerIconInvisible: PointerIcon

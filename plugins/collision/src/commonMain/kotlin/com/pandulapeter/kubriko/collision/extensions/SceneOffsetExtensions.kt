@@ -10,7 +10,7 @@
 package com.pandulapeter.kubriko.collision.extensions
 
 import com.pandulapeter.kubriko.actor.body.Body
-import com.pandulapeter.kubriko.extensions.isWithin
+import com.pandulapeter.kubriko.helpers.extensions.isWithin
 import com.pandulapeter.kubriko.types.SceneOffset
 
 fun SceneOffset.isWithin(

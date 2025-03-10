@@ -10,7 +10,7 @@
 package com.pandulapeter.kubriko.demoShaderAnimations.implementation.managers
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.shaders.Shader

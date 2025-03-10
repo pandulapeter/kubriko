@@ -18,8 +18,8 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Unique
-import com.pandulapeter.kubriko.extensions.Invisible
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.ui.PauseMenuBackground
+import com.pandulapeter.kubriko.helpers.extensions.Invisible
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager

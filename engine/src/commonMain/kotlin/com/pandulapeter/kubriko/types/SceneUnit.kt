@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubriko.types
 
-import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import kotlin.jvm.JvmInline
 
 /**

@@ -10,9 +10,9 @@
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.extensions.get
-import com.pandulapeter.kubriko.extensions.toSceneSize
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base.BlinkingPenguin
+import com.pandulapeter.kubriko.helpers.extensions.get
+import com.pandulapeter.kubriko.helpers.extensions.toSceneSize
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody

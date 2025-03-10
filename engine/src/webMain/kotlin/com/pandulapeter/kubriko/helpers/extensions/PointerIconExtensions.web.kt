@@ -7,9 +7,11 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko.extensions
+package com.pandulapeter.kubriko.helpers.extensions
 
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.fromKeyword
 
-// Can't implement invisible cursor because AndroidPointerIconType is internal to Compose
-internal actual val pointerIconInvisible: PointerIcon = PointerIcon.Default
+@OptIn(ExperimentalComposeUiApi::class)
+internal actual val pointerIconInvisible: PointerIcon = PointerIcon.fromKeyword("none")

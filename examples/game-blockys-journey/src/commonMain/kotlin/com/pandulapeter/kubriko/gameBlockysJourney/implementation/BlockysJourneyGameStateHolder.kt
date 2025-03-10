@@ -13,7 +13,6 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.CircleBody
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
-import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.actors.Block
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.actors.Blocky
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers.AudioManager
@@ -21,6 +20,7 @@ import com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers.Gamep
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers.LoadingManager
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers.UIManager
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers.UserPreferencesManager
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager

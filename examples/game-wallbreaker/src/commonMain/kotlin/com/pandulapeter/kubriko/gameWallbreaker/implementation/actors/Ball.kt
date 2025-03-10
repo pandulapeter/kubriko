@@ -21,13 +21,13 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.CollisionDetector
-import com.pandulapeter.kubriko.extensions.constrainedWithin
-import com.pandulapeter.kubriko.extensions.get
-import com.pandulapeter.kubriko.extensions.min
-import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.ScoreManager
+import com.pandulapeter.kubriko.helpers.extensions.constrainedWithin
+import com.pandulapeter.kubriko.helpers.extensions.get
+import com.pandulapeter.kubriko.helpers.extensions.min
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager

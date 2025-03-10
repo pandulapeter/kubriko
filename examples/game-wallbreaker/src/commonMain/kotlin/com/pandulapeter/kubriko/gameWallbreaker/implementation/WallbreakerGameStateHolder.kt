@@ -13,7 +13,6 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.collision.CollisionManager
-import com.pandulapeter.kubriko.extensions.sceneUnit
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.FogShader
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.GameplayManager
@@ -21,6 +20,7 @@ import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.LoadingM
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.ScoreManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.UIManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.UserPreferencesManager
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
