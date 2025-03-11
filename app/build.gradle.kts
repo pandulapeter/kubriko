@@ -100,18 +100,20 @@ compose.desktop {
     application {
         mainClass = "com.pandulapeter.kubrikoShowcase.KubrikoShowcaseAppKt"
         nativeDistributions {
-            packageName = "com.pandulapeter.kubrikoShowcase"
+            packageName = "Kubriko Showcase"
             packageVersion = buildConfigurationValue("versionName")
+            description = "Demo app showcasing the feature set of the Kubriko game engine"
+            copyright = "© 2025 Pandula Péter. All rights reserved."
             macOS {
                 iconFile.set(project.file("icon.icns"))
                 bundleID = "com.pandulapeter.kubrikoShowcase"
-                packageName = "Kubriko Showcase"
                 dockName = "Kubriko Showcase"
                 targetFormats(TargetFormat.Dmg)
             }
             windows {
                 iconFile.set(project.file("icon.ico"))
                 targetFormats(TargetFormat.Msi, TargetFormat.Exe)
+                menuGroup = "Kubriko"
             }
             linux {
                 iconFile.set(project.file("icon.png"))
