@@ -27,6 +27,9 @@ import com.pandulapeter.kubriko.implementation.windowState
 import com.pandulapeter.kubriko.manager.MetadataManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kubriko.app.generated.resources.Res
+import kubriko.app.generated.resources.ic_icon
+import org.jetbrains.compose.resources.painterResource
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.event.WindowStateListener
@@ -45,6 +48,7 @@ fun main() {
             onCloseRequest = ::exitApplication,
             state = windowState,
             title = "Kubriko Showcase",
+            icon = painterResource(Res.drawable.ic_icon),
         ) {
             DisposableEffect(Unit) {
                 val listener = WindowStateListener {
