@@ -9,11 +9,8 @@
  */
 package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors
 
-import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Unique
-import com.pandulapeter.kubriko.helpers.extensions.get
-import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shaders.Shader
 import com.pandulapeter.kubriko.shaders.extensions.ShaderUniformProvider
 
@@ -29,11 +26,6 @@ internal class GalaxyShader(
         private set
     override val shaderCode = CODE
     override val shaderCache = Shader.Cache()
-    private lateinit var metadataManager: MetadataManager
-
-    override fun onAdded(kubriko: Kubriko) {
-        metadataManager = kubriko.get()
-    }
 
     private var time = 0f
 
