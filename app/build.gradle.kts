@@ -112,7 +112,7 @@ compose.desktop {
             }
             windows {
                 iconFile.set(project.file("icon.ico"))
-                targetFormats(TargetFormat.Msi, TargetFormat.Exe)
+                targetFormats(TargetFormat.Exe)
                 menuGroup = "Kubriko"
             }
             linux {
