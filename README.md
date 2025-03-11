@@ -30,11 +30,11 @@ Clone this repository and run the `app` module for the supported targets (Androi
 
 You can find the pre-built applications following these links:
 
-[<img src="documentation/images/badge_android_coming_soon.png" alt="Download for Android" height="32px" />](#)
+[<img src="documentation/images/badge_android.png" alt="Download for Android" height="32px" />](https://play.google.com/store/apps/details?id=com.pandulapeter.kubrikoShowcase)
 [<img src="documentation/images/badge_ios_coming_soon.png" alt="Download for iOS" height="32px" />](#)
-[<img src="documentation/images/badge_windows_coming_soon.png" alt="Download for Windows" height="32px" />](#)
-[<img src="documentation/images/badge_macos_coming_soon.png" alt="Download for macOS" height="32px" />](#)
-[<img src="documentation/images/badge_linux_coming_soon.png" alt="Download for Linux" height="32px" />](#)
+[<img src="documentation/images/badge_windows.png" alt="Download for Windows" height="32px" />](https://store.steampowered.com/app/3585120/Kubriko_Showcase/)
+[<img src="documentation/images/badge_macos.png" alt="Download for macOS" height="32px" />](https://store.steampowered.com/app/3585120/Kubriko_Showcase/)
+[<img src="documentation/images/badge_linux.png" alt="Download for Linux" height="32px" />](https://store.steampowered.com/app/3585120/Kubriko_Showcase/)
 [<img src="documentation/images/badge_web.png" alt="Download for Web" height="32px" />](https://pandulapeter.github.io/kubriko/)
 
 > [!NOTE]
