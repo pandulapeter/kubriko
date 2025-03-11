@@ -34,7 +34,7 @@ You can find the pre-built applications following these links:
 [<img src="documentation/images/badge_ios_coming_soon.png" alt="Download for iOS" height="32px" />](#)
 [<img src="documentation/images/badge_windows.png" alt="Download for Windows" height="32px" />](https://store.steampowered.com/app/3585120/Kubriko_Showcase/)
 [<img src="documentation/images/badge_macos.png" alt="Download for macOS" height="32px" />](https://store.steampowered.com/app/3585120/Kubriko_Showcase/)
-[<img src="documentation/images/badge_linux.png" alt="Download for Linux" height="32px" />](https://store.steampowered.com/app/3585120/Kubriko_Showcase/)
+[<img src="documentation/images/badge_linux_coming_soon.png" alt="Download for Linux" height="32px" />](#)
 [<img src="documentation/images/badge_web.png" alt="Download for Web" height="32px" />](https://pandulapeter.github.io/kubriko/)
 
 > [!NOTE]
