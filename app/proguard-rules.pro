@@ -16,6 +16,7 @@
 -keep class org.jetbrains.skiko.** { *; }
 -keep class javazoom.jl.player.** { *; }
 -keep class androidx.compose.runtime.** { *; }
+-keep class androidx.compose.material3.** { *; }
 
 -assumenosideeffects public class androidx.compose.runtime.ComposerKt {
     void sourceInformation(androidx.compose.runtime.Composer,java.lang.String);
