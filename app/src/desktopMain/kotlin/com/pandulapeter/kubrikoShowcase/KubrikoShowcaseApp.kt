@@ -24,6 +24,7 @@ import com.pandulapeter.kubriko.demoPhysics.PhysicsDemoSceneEditor
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.AnnoyedPenguinsGameSceneEditor
 import com.pandulapeter.kubriko.gameBlockysJourney.BlockysJourneyGameSceneEditor
 import com.pandulapeter.kubriko.implementation.windowState
+import com.pandulapeter.kubriko.manager.MetadataManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.awt.Dimension
@@ -39,7 +40,7 @@ fun main() {
         val coroutineScope = rememberCoroutineScope()
         val previousBounds = remember { mutableStateOf<Rectangle?>(null) }
         val previousWindowPlacement = remember { mutableStateOf<WindowPlacement?>(null) }
-        val isInFullscreenMode = remember { mutableStateOf(false) }
+        val isInFullscreenMode = remember { mutableStateOf<Boolean?>(false) }
         Window(
             onCloseRequest = ::exitApplication,
             state = windowState,
@@ -47,11 +48,15 @@ fun main() {
         ) {
             DisposableEffect(Unit) {
                 val listener = WindowStateListener {
-                    if (isInFullscreenMode.value) {
+                    if (isInFullscreenMode.value == true) {
                         isInFullscreenMode.value = windowState.placement == WindowPlacement.Fullscreen
                     }
                 }
-                window.addWindowStateListener(listener)
+                if (MetadataManager.newInstance().platform is MetadataManager.Platform.Desktop.Windows) {
+                    isInFullscreenMode.value = null
+                } else {
+                    window.addWindowStateListener(listener)
+                }
                 onDispose {
                     window.removeWindowStateListener(listener)
                 }
@@ -61,20 +66,22 @@ fun main() {
                 isInFullscreenMode = isInFullscreenMode.value,
                 getIsInFullscreenMode = { isInFullscreenMode.value },
                 onFullscreenModeToggled = {
-                    isInFullscreenMode.value = !isInFullscreenMode.value
-                    if (isInFullscreenMode.value) {
-                        previousBounds.value = window.bounds
-                        previousWindowPlacement.value = windowState.placement
-                        windowState.placement = WindowPlacement.Fullscreen
-                    } else {
-                        previousWindowPlacement.value?.let { previousWindowPlacement ->
-                            windowState.placement = previousWindowPlacement
-                            previousBounds.value?.let {
-                                coroutineScope.launch {
-                                    delay(100)
-                                    window.bounds = it
+                    isInFullscreenMode.value?.let { currentValue ->
+                        isInFullscreenMode.value = !currentValue
+                        if (currentValue) {
+                            previousWindowPlacement.value?.let { previousWindowPlacement ->
+                                windowState.placement = previousWindowPlacement
+                                previousBounds.value?.let {
+                                    coroutineScope.launch {
+                                        delay(100)
+                                        window.bounds = it
+                                    }
                                 }
                             }
+                        } else {
+                            previousBounds.value = window.bounds
+                            previousWindowPlacement.value = windowState.placement
+                            windowState.placement = WindowPlacement.Fullscreen
                         }
                     }
                 },
