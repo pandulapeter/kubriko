@@ -105,19 +105,21 @@ compose.desktop {
             description = "Demo app showcasing the feature set of the Kubriko game engine"
             copyright = "© 2025 Pandula Péter. All rights reserved."
             macOS {
+                targetFormats(TargetFormat.Dmg)
                 iconFile.set(project.file("icon.icns"))
                 bundleID = "com.pandulapeter.kubrikoShowcase"
                 dockName = "Kubriko Showcase"
-                targetFormats(TargetFormat.Dmg)
             }
             windows {
-                iconFile.set(project.file("icon.ico"))
                 targetFormats(TargetFormat.Exe)
+                iconFile.set(project.file("icon.ico"))
                 menuGroup = "Kubriko"
             }
             linux {
-                iconFile.set(project.file("icon.png"))
                 targetFormats(TargetFormat.Deb)
+                iconFile.set(project.file("icon.png"))
+                debMaintainer = "pandulapeter@gmail.com"
+                menuGroup = "kubriko-showcase"
             }
             buildTypes.release.proguard {
                 configurationFiles.from(project.file("proguard-rules.pro"))
