@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ripple.RippleAlpha
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RippleConfiguration
@@ -30,6 +31,7 @@ import kubriko.examples.game_blockys_journey.generated.resources.Res
 import kubriko.examples.game_blockys_journey.generated.resources.medieval_sharp
 import org.jetbrains.compose.resources.Font
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun BlockysJourneyTheme(
     content: @Composable () -> Unit,
