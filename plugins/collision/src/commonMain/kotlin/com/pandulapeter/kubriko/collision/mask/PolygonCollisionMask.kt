@@ -39,7 +39,7 @@ class PolygonCollisionMask(
     override val size = if (vertices.size < 2) SceneSize.Zero else SceneSize(
         width = vertices.maxOf { it.x } - vertices.minOf { it.x },
         height = vertices.maxOf { it.y } - vertices.minOf { it.y },
-    )
+    ) * 1.5f
     override var pivot = initialPivot.clamp(min = SceneOffset.Zero, max = size.bottomRight)
         set(value) {
             val newValue = value.clamp(min = SceneOffset.Zero, max = size.bottomRight)

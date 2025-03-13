@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
-import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.serialization.Serializable
@@ -31,8 +31,9 @@ internal class DynamicBox private constructor(state: State) : BaseDynamicObject(
         initialPosition = body.position,
         initialRotation = body.rotation,
         initialScale = body.scale,
+        initialPivot = body.pivot,
     )
-    override val physicsBody = Body(
+    override val physicsBody = PhysicsBody(
         shape = Polygon(
             halfWidth = body.size.width / 2,
             halfHeight = body.size.height / 2,

@@ -19,7 +19,7 @@ import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
-import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.serialization.Serializable
@@ -35,8 +35,9 @@ internal class StaticCircle private constructor(state: State) : RigidBody, Visib
         initialPosition = body.position,
         initialRotation = body.rotation,
         initialScale = body.scale,
+        initialPivot = body.pivot,
     )
-    override val physicsBody = Body(
+    override val physicsBody = PhysicsBody(
         shape = Circle(radius),
         x = body.position.x,
         y = body.position.y

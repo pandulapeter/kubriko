@@ -19,7 +19,7 @@ import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
+import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
@@ -27,7 +27,7 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.JointWrapper
 import com.pandulapeter.kubriko.physics.RigidBody
-import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.joints.JointToBody
 import com.pandulapeter.kubriko.physics.implementation.math.Vec2
@@ -54,8 +54,8 @@ internal class DynamicChain private constructor(state: State) : Group, Dynamic, 
     private val joints = chainLinks.mapIndexedNotNull { index, chainLink ->
         if (index > 0) JointWrapper(
             physicsJoint = JointToBody(
-                body1 = chainLinks[index - 1].physicsBody,
-                body2 = chainLink.physicsBody,
+                physicsBody1 = chainLinks[index - 1].physicsBody,
+                physicsBody2 = chainLink.physicsBody,
                 jointLength = ChainLink.Radius,
                 jointConstant = 2000f,
                 dampening = 0.0001f,
@@ -90,7 +90,7 @@ internal class DynamicChain private constructor(state: State) : Group, Dynamic, 
         if (chainLinks.none { it.body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) }) {
             actorManager.remove(this)
         } else {
-           refreshBodySize()
+            refreshBodySize()
         }
     }
 
@@ -159,7 +159,7 @@ internal class DynamicChain private constructor(state: State) : Group, Dynamic, 
     private class ChainLink(
         initialPosition: SceneOffset,
     ) : RigidBody, Visible, Dynamic {
-        override val physicsBody = Body(
+        override val physicsBody = PhysicsBody(
             shape = Circle(Radius),
             x = initialPosition.x,
             y = initialPosition.y,
@@ -171,11 +171,12 @@ internal class DynamicChain private constructor(state: State) : Group, Dynamic, 
             initialSize = SceneSize(Radius * 2, Radius * 2),
             initialPosition = initialPosition,
         )
-        override val collisionMask = BoxCollisionMask(
-            initialSize = body.size,
+        override val collisionMask = CircleCollisionMask(
+            initialRadius = Radius,
             initialPosition = body.position,
             initialRotation = body.rotation,
             initialScale = body.scale,
+            initialPivot = body.pivot,
         )
 
         override fun update(deltaTimeInMilliseconds: Int) {

@@ -11,10 +11,10 @@ package com.pandulapeter.kubriko.physics
 
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.collision.Collidable
-import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 
 interface RigidBody : Positionable, Collidable {
 
     // TODO Should be merged with collisionMask
-    val physicsBody: Body
+    val physicsBody: PhysicsBody
 }

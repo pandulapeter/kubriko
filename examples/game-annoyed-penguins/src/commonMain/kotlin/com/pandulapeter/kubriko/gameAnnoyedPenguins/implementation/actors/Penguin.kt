@@ -17,7 +17,7 @@ import com.pandulapeter.kubriko.helpers.extensions.toSceneSize
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
-import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.math.Vec2
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -34,8 +34,9 @@ internal class Penguin(
         initialPosition = body.position,
         initialRotation = body.rotation,
         initialScale = body.scale,
+        initialPivot = body.pivot,
     )
-    override val physicsBody = Body(
+    override val physicsBody = PhysicsBody(
         shape = Circle(
             radius = body.size.width * 0.4f,
         ),

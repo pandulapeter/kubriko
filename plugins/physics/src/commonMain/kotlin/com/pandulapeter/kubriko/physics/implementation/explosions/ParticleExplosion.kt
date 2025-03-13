@@ -10,7 +10,7 @@
 package com.pandulapeter.kubriko.physics.implementation.explosions
 
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.math.Mat2
 import com.pandulapeter.kubriko.physics.implementation.math.Vec2
@@ -30,7 +30,7 @@ class ParticleExplosion(private val epicentre: Vec2, private val noOfParticles: 
      *
      * @return Array of bodies.
      */
-    val particles = MutableList(noOfParticles) { Body(Circle(SceneUnit.Zero), SceneUnit.Zero, SceneUnit.Zero) }
+    val particles = MutableList(noOfParticles) { PhysicsBody(Circle(SceneUnit.Zero), SceneUnit.Zero, SceneUnit.Zero) }
 
     /**
      * Creates particles in the supplied world.
@@ -46,7 +46,7 @@ class ParticleExplosion(private val epicentre: Vec2, private val noOfParticles: 
         val rotate = Mat2(separationAngle)
         for (i in 0 until noOfParticles) {
             val particlePlacement = epicentre.plus(distanceFromCentre)
-            val b = Body(Circle(size), particlePlacement.x, particlePlacement.y)
+            val b = PhysicsBody(Circle(size), particlePlacement.x, particlePlacement.y)
             b.density = density.toFloat()
             b.restitution = 1f
             b.staticFriction = 0f

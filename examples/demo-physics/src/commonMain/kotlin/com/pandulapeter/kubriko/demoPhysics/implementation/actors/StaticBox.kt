@@ -18,7 +18,7 @@ import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.physics.RigidBody
-import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.Exposed
@@ -29,7 +29,7 @@ import kotlinx.serialization.json.Json
 
 internal class StaticBox private constructor(state: State) : RigidBody, Visible, Dynamic, Editable<StaticBox> {
     override val body = state.body
-    override val physicsBody = Body(
+    override val physicsBody = PhysicsBody(
         shape = Polygon(body.size.width / 2f, body.size.height / 2f),
         x = body.position.x,
         y = body.position.y,
@@ -42,6 +42,7 @@ internal class StaticBox private constructor(state: State) : RigidBody, Visible,
         initialPosition = body.position,
         initialRotation = body.rotation,
         initialScale = body.scale,
+        initialPivot = body.pivot,
     )
 
     @set:Exposed(name = "isRotating")
@@ -51,6 +52,7 @@ internal class StaticBox private constructor(state: State) : RigidBody, Visible,
         if (isRotating) {
             body.rotation -= (0.002 * deltaTimeInMilliseconds).toFloat().rad
             physicsBody.orientation = body.rotation
+            collisionMask.rotation = body.rotation
         }
     }
 

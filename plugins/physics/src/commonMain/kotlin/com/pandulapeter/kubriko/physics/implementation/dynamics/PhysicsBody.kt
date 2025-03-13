@@ -25,7 +25,7 @@ import com.pandulapeter.kubriko.types.SceneUnit
  * @param y     Position y in world space.
  */
 // TODO: Should inherit from BoxBody?
-class Body(
+class PhysicsBody(
     override var shape: Shape,
     x: SceneUnit,
     y: SceneUnit,

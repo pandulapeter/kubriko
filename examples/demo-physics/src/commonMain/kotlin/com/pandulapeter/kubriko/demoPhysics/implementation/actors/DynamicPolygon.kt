@@ -9,42 +9,54 @@
  */
 package com.pandulapeter.kubriko.demoPhysics.implementation.actors
 
-//// TODO: Expose to the editor
-//internal class DynamicPolygon(
-//    initialOffset: SceneOffset,
-//    shape: Polygon,
-//) : BaseDynamicObject() {
-//    override val body = PolygonBody(
-//        initialPosition = initialOffset,
-//        vertices = shape.vertices.map { SceneOffset(it.x, it.y) },
-//    )
-//    override val physicsBody = Body(
-//        shape = shape,
-//        x = initialOffset.x,
-//        y = initialOffset.y,
-//    ).apply {
-//        restitution = 1f
-//    }
-//    // TODO: Hacky workaround for incorrect math
-//    override val shouldClip = false
-//
-//    override fun DrawScope.draw() {
-//        val path = Path().apply {
-//            moveTo(body.vertices[0].x.raw + body.pivot.x.raw, body.vertices[0].y.raw + body.pivot.y.raw)
-//            for (i in 1 until body.vertices.size) {
-//                lineTo(body.vertices[i].x.raw + body.pivot.x.raw, body.vertices[i].y.raw + body.pivot.y.raw)
-//            }
-//            close()
-//        }
-//        drawPath(
-//            path = path,
-//            color = color,
-//            style = Fill,
-//        )
-//        drawPath(
-//            path = path,
-//            color = Color.Black,
-//            style = Stroke(width = 2f),
-//        )
-//    }
-//}
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.drawscope.Stroke
+import com.pandulapeter.kubriko.actor.body.BoxBody
+import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
+import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
+import com.pandulapeter.kubriko.types.SceneOffset
+
+internal class DynamicPolygon(
+    initialOffset: SceneOffset,
+    shape: Polygon,
+) : BaseDynamicObject() {
+    override val collisionMask = PolygonCollisionMask(
+        vertices = shape.vertices.map { SceneOffset(it.x, it.y) },
+        initialPosition = initialOffset,
+    )
+    override val body = BoxBody(
+        initialPosition = initialOffset,
+        initialSize = collisionMask.size
+    )
+    override val physicsBody = PhysicsBody(
+        shape = shape,
+        x = initialOffset.x,
+        y = initialOffset.y,
+    ).apply {
+        restitution = 1f
+    }
+
+    override fun DrawScope.draw() {
+        val path = Path().apply {
+            moveTo(collisionMask.vertices[0].x.raw + body.pivot.x.raw, collisionMask.vertices[0].y.raw + body.pivot.y.raw)
+            for (i in 1 until collisionMask.vertices.size) {
+                lineTo(collisionMask.vertices[i].x.raw + body.pivot.x.raw, collisionMask.vertices[i].y.raw + body.pivot.y.raw)
+            }
+            close()
+        }
+        drawPath(
+            path = path,
+            color = color,
+            style = Fill,
+        )
+        drawPath(
+            path = path,
+            color = Color.Black,
+            style = Stroke(width = 2f),
+        )
+    }
+}

@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubriko.physics.implementation.joints
 
-import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.math.Mat2
 import com.pandulapeter.kubriko.physics.implementation.math.Vec2
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -30,7 +30,7 @@ class JointToPoint
  * @param canGoSlack    Boolean whether the joint can go slack or not
  * @param offset       Offset to be applied to the location of the joint relative to b1's object space
  */(
-    b1: Body,
+    b1: PhysicsBody,
     val pointAttachedTo: Vec2,
     jointLength: SceneUnit,
     jointConstant: Float,
@@ -43,13 +43,13 @@ class JointToPoint
      * Applies tension to the body attached to the joint.
      */
     override fun applyTension() {
-        val mat1 = Mat2(body.orientation)
-        object1AttachmentPoint = body.position + mat1.mul(offset)
+        val mat1 = Mat2(physicsBody.orientation)
+        object1AttachmentPoint = physicsBody.position + mat1.mul(offset)
         val tension = calculateTension()
         val distance = pointAttachedTo.minus(object1AttachmentPoint)
         distance.normalize()
         val impulse = distance.scalar(tension)
-        body.applyLinearImpulse(impulse, object1AttachmentPoint.minus(body.position))
+        physicsBody.applyLinearImpulse(impulse, object1AttachmentPoint.minus(physicsBody.position))
     }
 
     /**
@@ -76,8 +76,8 @@ class JointToPoint
     override fun rateOfChangeOfExtension(): SceneUnit {
         val distance = pointAttachedTo.minus(object1AttachmentPoint)
         distance.normalize()
-        val relativeVelocity = body.velocity.copyNegative()
-            .minus(object1AttachmentPoint.minus(body.position).cross(body.angularVelocity))
+        val relativeVelocity = physicsBody.velocity.copyNegative()
+            .minus(object1AttachmentPoint.minus(physicsBody.position).cross(physicsBody.angularVelocity))
         return relativeVelocity.dot(distance)
     }
 }
