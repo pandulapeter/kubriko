@@ -17,6 +17,7 @@ import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.CollisionDetector
+import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.ScoreManager
@@ -47,6 +48,9 @@ internal abstract class Bullet(
     override val body = BoxBody(
         initialPosition = initialPosition,
         initialSize = SceneSize(10f.sceneUnit, 10f.sceneUnit),
+    )
+    override val collisionMask = BoxCollisionMask(
+        initialSize = body.size,
     )
     private val radius = body.size.width / 2f
     protected lateinit var actorManager: ActorManager

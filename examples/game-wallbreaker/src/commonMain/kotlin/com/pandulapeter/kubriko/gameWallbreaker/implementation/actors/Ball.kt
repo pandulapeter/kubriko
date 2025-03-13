@@ -21,6 +21,7 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.CollisionDetector
+import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.ScoreManager
@@ -50,6 +51,9 @@ internal class Ball(
     override val body = BoxBody(
         initialPosition = initialPosition,
         initialSize = SceneSize(Radius * 2, Radius * 2),
+    )
+    override val collisionMask = BoxCollisionMask(
+        initialSize = body.size,
     )
     private var previousPosition = body.position
     private var baseSpeedX = 1

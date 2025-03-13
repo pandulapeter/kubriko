@@ -7,17 +7,16 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko.actor.body
+package com.pandulapeter.kubriko.collision.mask
 
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.types.SceneOffset
 
-open class PointBody internal constructor(
-    initialPosition: SceneOffset = SceneOffset.Zero,
-) : Body {
+open class PointCollisionMask internal constructor() : CollisionMask {
     private var _axisAlignedBoundingBox: AxisAlignedBoundingBox? = null
     override var axisAlignedBoundingBox: AxisAlignedBoundingBox
         get() {
@@ -31,17 +30,10 @@ open class PointBody internal constructor(
             _axisAlignedBoundingBox = value
         }
     protected var isAxisAlignedBoundingBoxDirty = false
-    var position = initialPosition
-        set(value) {
-            if (field != value) {
-                field = value
-                isAxisAlignedBoundingBoxDirty = true
-            }
-        }
 
     protected open fun createAxisAlignedBoundingBox() = AxisAlignedBoundingBox(
-        min = position,
-        max = position,
+        min = SceneOffset.Zero,
+        max = SceneOffset.Zero,
     )
 
     override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = drawCircle(
@@ -53,9 +45,6 @@ open class PointBody internal constructor(
 
     companion object {
         operator fun invoke(
-            initialPosition: SceneOffset = SceneOffset.Zero,
-        ) = PointBody(
-            initialPosition = initialPosition,
-        )
+        ) = PointCollisionMask()
     }
 }

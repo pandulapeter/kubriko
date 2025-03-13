@@ -19,6 +19,7 @@ import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
@@ -169,6 +170,9 @@ internal class DynamicChain private constructor(state: State) : Group, Dynamic, 
         override val body = BoxBody(
             initialSize = SceneSize(Radius * 2, Radius * 2),
             initialPosition = initialPosition,
+        )
+        override val collisionMask = BoxCollisionMask(
+            initialSize = body.size,
         )
 
         override fun update(deltaTimeInMilliseconds: Int) {

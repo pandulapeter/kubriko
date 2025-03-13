@@ -18,5 +18,6 @@ internal data class DebugMenuMetadata(
     val visibleActorWithinViewportCount: Int = 0,
     val playTimeInSeconds: Long = 0,
     val viewportSize: Size = Size.Zero,
-    val isDebugOverlayEnabled: Boolean = false,
+    val isBodyOverlayEnabled: Boolean = false,
+    val isCollisionMaskOverlayEnabled: Boolean = false,
 )

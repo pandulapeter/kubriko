@@ -46,7 +46,8 @@ internal fun DebugMenuContainer(
             windowInsets = windowInsets,
             debugMenuMetadata = InternalDebugMenu.metadata.collectAsState().value,
             logs = InternalDebugMenu.logs.collectAsState(emptyList()).value,
-            onIsDebugOverlayEnabledChanged = InternalDebugMenu::onIsDebugOverlayEnabledChanged,
+            onIsBodyOverlayEnabledChanged = InternalDebugMenu::onIsBodyOverlayEnabledChanged,
+            onIsCollisionMaskOverlayEnabledChanged = InternalDebugMenu::onIsCollisionMaskOverlayEnabledChanged,
             shouldUseVerticalLayout = shouldUseVerticalLayout,
         )
     }

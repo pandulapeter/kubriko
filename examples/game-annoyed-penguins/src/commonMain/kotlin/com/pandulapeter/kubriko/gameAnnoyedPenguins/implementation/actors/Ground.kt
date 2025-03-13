@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
@@ -28,6 +29,9 @@ import kotlinx.serialization.json.Json
 
 internal class Ground private constructor(state: State) : RigidBody, Visible, Editable<Ground> {
     override val body = state.body
+    override val collisionMask = BoxCollisionMask(
+        initialSize = body.size,
+    )
     override val physicsBody = Body(
         shape = Polygon(body.size.width / 2f, body.size.height / 2f),
         x = body.position.x,

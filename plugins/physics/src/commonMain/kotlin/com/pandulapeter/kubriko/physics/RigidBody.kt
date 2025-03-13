@@ -15,6 +15,6 @@ import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
 
 interface RigidBody : Positionable, Collidable {
 
-    // TODO Should be merged with body
+    // TODO Should be merged with collisionMask
     val physicsBody: Body
 }

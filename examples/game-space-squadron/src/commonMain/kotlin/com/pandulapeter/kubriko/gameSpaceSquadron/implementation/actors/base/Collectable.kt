@@ -17,6 +17,7 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.CollisionDetector
+import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.Ship
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
@@ -52,7 +53,7 @@ internal abstract class Collectable(
         initialSize = SceneSize(frameSize.width.sceneUnit, frameSize.height.sceneUnit),
         initialPosition = position,
     )
-    override val collisionMask = BoxBody(
+    override val collisionMask = BoxCollisionMask(
         initialSize = SceneSize(40.sceneUnit, 40.sceneUnit),
     )
     private val animatedSprite = AnimatedSprite(
@@ -90,7 +91,6 @@ internal abstract class Collectable(
                 actorManager.remove(this)
             }
         }
-        collisionMask.position = body.position
         collisionMask.scale = body.scale
         if (isShrinking) {
             if (body.scale.horizontal <= 0) {

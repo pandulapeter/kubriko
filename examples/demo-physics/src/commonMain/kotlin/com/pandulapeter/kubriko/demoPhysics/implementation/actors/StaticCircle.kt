@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
@@ -29,6 +30,9 @@ import kotlinx.serialization.json.Json
 internal class StaticCircle private constructor(state: State) : RigidBody, Visible, Editable<StaticCircle> {
     override val body = state.body
     val radius = body.size.width * 0.5f
+    override val collisionMask = BoxCollisionMask(
+        initialSize = body.size,
+    )
     override val physicsBody = Body(
         shape = Circle(radius),
         x = body.position.x,

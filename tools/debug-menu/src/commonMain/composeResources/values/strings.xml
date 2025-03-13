@@ -11,7 +11,8 @@
 <resources>
 
     <string name="debug_menu">Toggle debug menu</string>
-    <string name="collision_masks">Collision masks</string>
+    <string name="body_overlay">Draw body bounds</string>
+    <string name="collision_mask_overlay">Draw collision masks</string>
     <string name="logs">Logs</string>
     <string name="log_importance_low">Low importance</string>
     <string name="log_importance_medium">Medium importance</string>

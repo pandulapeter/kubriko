@@ -21,6 +21,7 @@ import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
+import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.clampWithin
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
@@ -44,6 +45,9 @@ internal class Paddle(
     override val body = BoxBody(
         initialPosition = initialPosition,
         initialSize = SceneSize(Width, Height),
+    )
+    override val collisionMask = BoxCollisionMask(
+        initialSize = body.size,
     )
     private lateinit var pointerInputManager: PointerInputManager
     private lateinit var stateManager: StateManager

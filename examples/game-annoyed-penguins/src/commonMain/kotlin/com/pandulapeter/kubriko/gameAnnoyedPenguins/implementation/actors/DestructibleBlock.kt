@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.BoxBody
+import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base.DestructiblePhysicsObject
 import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
@@ -28,6 +29,9 @@ internal class DestructibleBlock private constructor(
 ) : DestructiblePhysicsObject<DestructibleBlock>() {
 
     override val body = state.body
+    override val collisionMask = BoxCollisionMask(
+        initialSize = body.size,
+    )
     override val physicsBody = Body(
         shape = Polygon(
             halfWidth = body.size.width / 2,

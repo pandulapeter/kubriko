@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors
 
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base.BlinkingPenguin
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.toSceneSize
@@ -28,6 +29,9 @@ internal class Penguin(
 
     private lateinit var actorManager: ActorManager
     private lateinit var viewportManager: ViewportManager
+    override val collisionMask = BoxCollisionMask(
+        initialSize = body.size,
+    )
     override val physicsBody = Body(
         shape = Circle(
             radius = body.size.width * 0.4f,

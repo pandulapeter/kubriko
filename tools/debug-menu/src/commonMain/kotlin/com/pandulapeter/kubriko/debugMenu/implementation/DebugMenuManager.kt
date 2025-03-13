@@ -40,7 +40,8 @@ internal class DebugMenuManager(
     private val gameStateManager by lazy { gameKubriko.get<StateManager>() }
     private val gameMetadataManager by lazy { gameKubriko.get<MetadataManager>() }
     private val gameViewportManager by lazy { gameKubriko.get<ViewportManager>() }
-    private val debugColor = Color.Cyan
+    private val bodyOverlayColor = Color.Cyan
+    private val collisionMaskOverlayColor = Color.Magenta
     override val overlayDrawingOrder = Float.MIN_VALUE
 
     override fun onInitialize(kubriko: Kubriko) {
@@ -53,8 +54,8 @@ internal class DebugMenuManager(
             combine(gameActorManager.allActors, gameActorManager.visibleActorsWithinViewport) { all, visible -> all to visible },
             gameMetadataManager.activeRuntimeInMilliseconds,
             gameViewportManager.size,
-            InternalDebugMenu.isDebugOverlayEnabled,
-        ) { fps, (allActors, visibleActorsWithinViewport), runtimeInMilliseconds, viewportSize, isDebugOverlayEnabled ->
+            combine(InternalDebugMenu.shouldDrawBodyOverlays, InternalDebugMenu.shouldDrawCollisionMaskOverlays) { body, collisionMask -> body to collisionMask },
+        ) { fps, (allActors, visibleActorsWithinViewport), runtimeInMilliseconds, viewportSize, (bodyOverlay, collisionMaskOverlay) ->
             DebugMenuMetadata(
                 kubrikoInstanceName = gameKubriko.instanceName,
                 fps = fps,
@@ -62,7 +63,8 @@ internal class DebugMenuManager(
                 visibleActorWithinViewportCount = visibleActorsWithinViewport.count(),
                 playTimeInSeconds = runtimeInMilliseconds / 1000,
                 viewportSize = viewportSize,
-                isDebugOverlayEnabled = isDebugOverlayEnabled,
+                isBodyOverlayEnabled = bodyOverlay,
+                isCollisionMaskOverlayEnabled = collisionMaskOverlay,
             )
         }.onEach {
             if (gameStateManager.isFocused.value) {
@@ -72,7 +74,9 @@ internal class DebugMenuManager(
     }
 
     override fun DrawScope.drawToViewport() {
-        if (InternalDebugMenu.isDebugOverlayEnabled.value) {
+        val shouldDrawBodyOverlays = InternalDebugMenu.shouldDrawBodyOverlays.value
+        val shouldDrawCollisionMaskOverlays = InternalDebugMenu.shouldDrawCollisionMaskOverlays.value
+        if (shouldDrawBodyOverlays || shouldDrawCollisionMaskOverlays) {
             gameViewportManager.cameraPosition.value.let { viewportCenter ->
                 gameViewportManager.scaleFactor.value.let { scaleFactor ->
                     withTransform(
@@ -89,21 +93,32 @@ internal class DebugMenuManager(
                                 join = StrokeJoin.Round,
                             )
                             gameActorManager.visibleActorsWithinViewport.value.forEach { visible ->
-                                drawRect(
-                                    color = debugColor,
-                                    topLeft = visible.body.axisAlignedBoundingBox.min.raw,
-                                    size = visible.body.axisAlignedBoundingBox.size.raw,
-                                    style = stroke,
-                                )
-                                val body = (visible as? Collidable)?.collisionMask ?: visible.body
-                                withTransform(
-                                    transformBlock = { body.transformForViewport(this) },
-                                    drawBlock = {
-                                        with(body) {
-                                            drawDebugBounds(debugColor, stroke)
-                                        }
-                                    },
-                                )
+                                if (shouldDrawBodyOverlays) {
+                                    drawRect(
+                                        color = bodyOverlayColor,
+                                        topLeft = visible.body.axisAlignedBoundingBox.min.raw,
+                                        size = visible.body.axisAlignedBoundingBox.size.raw,
+                                        style = stroke,
+                                    )
+                                    withTransform(
+                                        transformBlock = { visible.body.transformForViewport(this) },
+                                        drawBlock = {
+                                            with(visible.body) {
+                                                drawDebugBounds(bodyOverlayColor, stroke)
+                                            }
+                                        },
+                                    )
+                                }
+                                if (shouldDrawCollisionMaskOverlays && visible is Collidable) {
+                                    withTransform(
+                                        transformBlock = { visible.body.transformForViewport(this) },
+                                        drawBlock = {
+                                            with(visible.collisionMask) {
+                                                drawDebugBounds(collisionMaskOverlayColor, stroke)
+                                            }
+                                        },
+                                    )
+                                }
                             }
                         },
                     )

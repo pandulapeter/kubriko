@@ -7,17 +7,16 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko.collision.extensions
+package com.pandulapeter.kubriko.collision.mask
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
-import com.pandulapeter.kubriko.helpers.extensions.isWithin
-import com.pandulapeter.kubriko.types.SceneOffset
 
-fun SceneOffset.isOverlappingWith(
-    bounds: AxisAlignedBoundingBox
-) = if (isWithin(bounds)) {
-    // TODO: Perform detailed check using the collision masks
-    true
-} else {
-    false
+sealed interface CollisionMask {
+
+    val axisAlignedBoundingBox: AxisAlignedBoundingBox
+
+    fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke)
 }

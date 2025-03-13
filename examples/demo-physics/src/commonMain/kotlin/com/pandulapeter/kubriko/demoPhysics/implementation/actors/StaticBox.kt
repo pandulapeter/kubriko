@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
@@ -36,6 +37,9 @@ internal class StaticBox private constructor(state: State) : RigidBody, Visible,
         density = 0f
         orientation = body.rotation
     }
+    override val collisionMask = BoxCollisionMask(
+        initialSize = body.size,
+    )
 
     @set:Exposed(name = "isRotating")
     var isRotating = state.isRotating

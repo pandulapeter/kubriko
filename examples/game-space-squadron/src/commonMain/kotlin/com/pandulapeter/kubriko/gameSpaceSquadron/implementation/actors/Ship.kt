@@ -21,6 +21,7 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
+import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.UIManager
@@ -68,7 +69,7 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         ),
         initialScale = Scale.Unit * 0.5f,
     )
-    override val collisionMask = BoxBody(
+    override val collisionMask = BoxCollisionMask(
         initialSize = SceneSize(200.sceneUnit, 200.sceneUnit),
         initialScale = Scale(
             horizontal = 0.6f,
@@ -211,7 +212,6 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
             shipAnimationWrapper.update(deltaTimeInMilliseconds, previousX, body.position.x)
         }
         body.scale = Scale(shipAnimationWrapper.horizontalScale, shipAnimationWrapper.verticalScale) * gameplayManager.scaleMultiplier.value
-        collisionMask.position = body.position
         collisionMask.scale = body.scale
     }
 

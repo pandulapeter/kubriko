@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
+import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
@@ -25,6 +26,9 @@ internal class Brick(
     override val body = BoxBody(
         initialPosition = position,
         initialSize = SceneSize(Width, Height),
+    )
+    override val collisionMask = BoxCollisionMask(
+        initialSize = body.size,
     )
     var hue = randomHue()
         private set(value) {

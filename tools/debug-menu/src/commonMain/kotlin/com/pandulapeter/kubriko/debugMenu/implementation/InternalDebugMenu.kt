@@ -29,11 +29,16 @@ internal object InternalDebugMenu {
         defaultValue = false,
     )
     val isVisible = _isVisible.asStateFlow()
-    private val _isDebugOverlayEnabled = persistenceManager.boolean(
-        key = "isDebugOverlayEnabled",
+    private val _shouldDrawBodyOverlays = persistenceManager.boolean(
+        key = "shouldDrawBodyOverlays",
         defaultValue = false,
     )
-    val isDebugOverlayEnabled = _isDebugOverlayEnabled.asStateFlow()
+    val shouldDrawBodyOverlays = _shouldDrawBodyOverlays.asStateFlow()
+    private val _shouldDrawCollisionMaskOverlays = persistenceManager.boolean(
+        key = "shouldDrawCollisionMaskOverlays",
+        defaultValue = false,
+    )
+    val shouldDrawCollisionMaskOverlays = _shouldDrawCollisionMaskOverlays.asStateFlow()
     private val _isLowPriorityEnabled = persistenceManager.boolean(
         key = "isLowPriorityEnabled",
         defaultValue = true,
@@ -89,7 +94,9 @@ internal object InternalDebugMenu {
         _isVisible.value = !isVisible.value
     }
 
-    fun onIsDebugOverlayEnabledChanged() = _isDebugOverlayEnabled.update { !it }
+    fun onIsBodyOverlayEnabledChanged() = _shouldDrawBodyOverlays.update { !it }
+
+    fun onIsCollisionMaskOverlayEnabledChanged() = _shouldDrawCollisionMaskOverlays.update { !it }
 
     fun onLowPriorityToggled() = _isLowPriorityEnabled.update { !it }
 
