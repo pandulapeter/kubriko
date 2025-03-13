@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.pointer.PointerId
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.RectangleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
@@ -29,7 +29,7 @@ import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.serialization.Serializable
-import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableRectangleBody
+import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableBoxBody
 import com.pandulapeter.kubriko.sprites.SpriteManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -155,7 +155,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
 
     @kotlinx.serialization.Serializable
     internal data class State(
-        @SerialName("body") val body: SerializableRectangleBody = RectangleBody(),
+        @SerialName("body") val body: SerializableBoxBody = BoxBody(),
     ) : Serializable.State<Slingshot> {
 
         override fun restore() = Slingshot(this)

@@ -12,7 +12,7 @@ package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.particleStates
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
-import com.pandulapeter.kubriko.actor.body.CircleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.helpers.extensions.cos
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.helpers.extensions.sin
@@ -20,6 +20,7 @@ import com.pandulapeter.kubriko.particles.ParticleEmitter
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.random.Random
 
@@ -28,8 +29,8 @@ internal class BulletParticleState(
     private var color: Color,
 ) : ParticleEmitter.ParticleState() {
 
-    override val body = CircleBody(
-        initialRadius = 4.sceneUnit,
+    override val body = BoxBody(
+        initialSize = SceneSize(8.sceneUnit, 8.sceneUnit),
     )
     override val drawingOrder = 1f
     private val speed: SceneUnit = 0.1f.sceneUnit

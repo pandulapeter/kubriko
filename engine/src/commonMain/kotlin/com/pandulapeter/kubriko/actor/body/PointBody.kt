@@ -15,19 +15,11 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.types.SceneOffset
 
-open class PointBody(
+open class PointBody internal constructor(
     initialPosition: SceneOffset = SceneOffset.Zero,
-) : Body {
-    override var position = initialPosition
-        set(value) {
-            if (field != value) {
-                field = value
-                isAxisAlignedBoundingBoxDirty = true
-            }
-        }
-    protected var isAxisAlignedBoundingBoxDirty = false
+) {
     private var _axisAlignedBoundingBox: AxisAlignedBoundingBox? = null
-    override var axisAlignedBoundingBox: AxisAlignedBoundingBox
+    var axisAlignedBoundingBox: AxisAlignedBoundingBox
         get() {
             if (isAxisAlignedBoundingBoxDirty) {
                 _axisAlignedBoundingBox = null
@@ -38,16 +30,32 @@ open class PointBody(
         protected set(value) {
             _axisAlignedBoundingBox = value
         }
+    protected var isAxisAlignedBoundingBoxDirty = false
+    var position = initialPosition
+        set(value) {
+            if (field != value) {
+                field = value
+                isAxisAlignedBoundingBoxDirty = true
+            }
+        }
 
     protected open fun createAxisAlignedBoundingBox() = AxisAlignedBoundingBox(
         min = position,
         max = position,
     )
 
-    override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = drawCircle(
+    open fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = drawCircle(
         color = color,
         radius = 2f,
         center = size.center,
         style = stroke,
     )
+
+    companion object {
+        operator fun invoke(
+            initialPosition: SceneOffset = SceneOffset.Zero,
+        ) = PointBody(
+            initialPosition = initialPosition,
+        )
+    }
 }

@@ -12,7 +12,7 @@ package com.pandulapeter.kubriko.demoPhysics.implementation.actors
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.CircleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.helpers.extensions.get
@@ -22,13 +22,14 @@ import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.explosions.ProximityExplosion
 import com.pandulapeter.kubriko.physics.implementation.math.Vec2
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.SceneSize
 
 internal class Bomb(
     epicenter: SceneOffset,
 ) : Visible, Dynamic {
 
-    override val body = CircleBody(
-        initialRadius = 5.sceneUnit,
+    override val body = BoxBody(
+        initialSize = SceneSize(10.sceneUnit, 10.sceneUnit),
         initialPosition = epicenter,
     )
     private lateinit var actorManager: ActorManager
@@ -47,8 +48,8 @@ internal class Bomb(
     }
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        body.radius += 5.sceneUnit * deltaTimeInMilliseconds
-        body.pivot = SceneOffset(body.radius, body.radius)
+        body.size += SceneSize(5.sceneUnit, 5.sceneUnit) * deltaTimeInMilliseconds
+        body.pivot = body.size.center
         alpha -= 0.01f * deltaTimeInMilliseconds
         if (alpha <= 0) {
             actorManager.remove(this)
@@ -59,7 +60,7 @@ internal class Bomb(
 
     override fun DrawScope.draw() = drawCircle(
         color = Color.White.copy(alpha = alpha),
-        radius = body.radius.raw,
+        radius = body.size.width.raw / 2f,
         center = body.size.center.raw,
     )
 }

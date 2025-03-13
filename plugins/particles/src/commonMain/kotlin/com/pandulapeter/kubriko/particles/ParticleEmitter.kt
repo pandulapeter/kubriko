@@ -11,7 +11,7 @@ package com.pandulapeter.kubriko.particles
 
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.actor.Actor
-import com.pandulapeter.kubriko.actor.body.ComplexBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import kotlin.reflect.KClass
 
 interface ParticleEmitter<S : ParticleEmitter.ParticleState> : Actor {
@@ -37,7 +37,7 @@ interface ParticleEmitter<S : ParticleEmitter.ParticleState> : Actor {
 
     // TODO: Could be renamed and merged with Particle
     abstract class ParticleState {
-        abstract val body: ComplexBody
+        abstract val body: BoxBody
         open val drawingOrder: Float = 0f
 
         abstract fun update(deltaTimeInMilliseconds: Int): Boolean

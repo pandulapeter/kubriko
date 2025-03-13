@@ -95,7 +95,7 @@ internal class DebugMenuManager(
                                     size = visible.body.axisAlignedBoundingBox.size.raw,
                                     style = stroke,
                                 )
-                                val body = (visible as? Collidable)?.collisionBody ?: visible.body
+                                val body = (visible as? Collidable)?.collisionMask ?: visible.body
                                 withTransform(
                                     transformBlock = { body.transformForViewport(this) },
                                     drawBlock = {

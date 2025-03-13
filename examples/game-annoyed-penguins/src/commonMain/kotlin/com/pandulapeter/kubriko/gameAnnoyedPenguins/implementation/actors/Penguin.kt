@@ -30,7 +30,7 @@ internal class Penguin(
     private lateinit var viewportManager: ViewportManager
     override val physicsBody = Body(
         shape = Circle(
-            radius = body.radius * 0.8f,
+            radius = body.size.width * 0.4f,
         ),
         x = body.position.x,
         y = body.position.y * 1.2f,

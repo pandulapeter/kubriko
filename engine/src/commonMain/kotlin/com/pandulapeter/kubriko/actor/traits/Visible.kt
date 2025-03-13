@@ -11,7 +11,7 @@ package com.pandulapeter.kubriko.actor.traits
 
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.actor.Actor
-import com.pandulapeter.kubriko.actor.body.ComplexBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
@@ -20,7 +20,7 @@ import com.pandulapeter.kubriko.types.SceneUnit
  */
 interface Visible : Positionable, LayerAware {
 
-    override val body: ComplexBody
+    override val body: BoxBody
 
     /**
      * This number will be used to determine the order of executing the [draw] function relative to other [Visible] [Actor]s.

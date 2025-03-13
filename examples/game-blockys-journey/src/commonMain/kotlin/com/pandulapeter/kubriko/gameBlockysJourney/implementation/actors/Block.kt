@@ -11,12 +11,12 @@ package com.pandulapeter.kubriko.gameBlockysJourney.implementation.actors
 
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.CircleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.serialization.Serializable
-import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableCircleBody
+import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableBoxBody
 import com.pandulapeter.kubriko.sprites.SpriteManager
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
@@ -47,7 +47,7 @@ internal class Block private constructor(
 
     @kotlinx.serialization.Serializable
     data class State(
-        @SerialName("body") val body: SerializableCircleBody = CircleBody(),
+        @SerialName("body") val body: SerializableBoxBody = BoxBody(),
     ) : Serializable.State<Block> {
 
         override fun restore() = Block(this)

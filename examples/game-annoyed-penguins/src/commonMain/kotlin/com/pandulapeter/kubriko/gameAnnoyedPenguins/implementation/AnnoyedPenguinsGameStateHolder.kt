@@ -10,7 +10,7 @@
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.RectangleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.DestructibleBlock
@@ -53,17 +53,17 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
         EditableMetadata(
             typeId = "block",
             deserializeState = { serializedState -> json.decodeFromString<DestructibleBlock.State>(serializedState) },
-            instantiate = { DestructibleBlock.State(body = RectangleBody(initialPosition = it, initialSize = SceneSize(128.sceneUnit, 128.sceneUnit))) },
+            instantiate = { DestructibleBlock.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(128.sceneUnit, 128.sceneUnit))) },
         ),
         EditableMetadata(
             typeId = "ground",
             deserializeState = { serializedState -> json.decodeFromString<Ground.State>(serializedState) },
-            instantiate = { Ground.State(body = RectangleBody(initialPosition = it, initialSize = SceneSize(128.sceneUnit, 128.sceneUnit))) },
+            instantiate = { Ground.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(128.sceneUnit, 128.sceneUnit))) },
         ),
         EditableMetadata(
             typeId = "slingshot",
             deserializeState = { serializedState -> json.decodeFromString<Slingshot.State>(serializedState) },
-            instantiate = { Slingshot.State(body = RectangleBody(initialPosition = it, initialSize = SceneSize(422.sceneUnit, 924.sceneUnit))) },
+            instantiate = { Slingshot.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(422.sceneUnit, 924.sceneUnit))) },
         ),
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,

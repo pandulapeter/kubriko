@@ -10,19 +10,19 @@
 package com.pandulapeter.kubriko.helpers.extensions
 
 import androidx.compose.ui.graphics.drawscope.DrawTransform
-import com.pandulapeter.kubriko.actor.body.Body
-import com.pandulapeter.kubriko.actor.body.ComplexBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
+import com.pandulapeter.kubriko.actor.body.PointBody
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 
-fun Body.transformForViewport(drawTransform: DrawTransform) {
-    val pivot = if (this is ComplexBody) pivot else SceneOffset.Zero
+fun PointBody.transformForViewport(drawTransform: DrawTransform) {
+    val pivot = if (this is BoxBody) pivot else SceneOffset.Zero
     drawTransform.translate(
         left = (position.x - pivot.x).raw,
         top = (position.y - pivot.y).raw,
     )
-    if (this is ComplexBody) {
+    if (this is BoxBody) {
         if (rotation != AngleRadians.Zero) {
             drawTransform.rotate(
                 degrees = rotation.deg.normalized,

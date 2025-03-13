@@ -16,8 +16,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.CircleBody
-import com.pandulapeter.kubriko.actor.body.RectangleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.Visible
@@ -62,15 +61,15 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     private lateinit var metadataManager: MetadataManager
     private lateinit var uiManager: UIManager
     private lateinit var viewportManager: ViewportManager
-    override val body = RectangleBody(
+    override val body = BoxBody(
         initialSize = SceneSize(
             width = 237.sceneUnit,
             height = 341.sceneUnit,
         ),
         initialScale = Scale.Unit * 0.5f,
     )
-    override val collisionBody = CircleBody(
-        initialRadius = 100.sceneUnit,
+    override val collisionMask = BoxBody(
+        initialSize = SceneSize(200.sceneUnit, 200.sceneUnit),
         initialScale = Scale(
             horizontal = 0.6f,
             vertical = 0.8f,
@@ -212,8 +211,8 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
             shipAnimationWrapper.update(deltaTimeInMilliseconds, previousX, body.position.x)
         }
         body.scale = Scale(shipAnimationWrapper.horizontalScale, shipAnimationWrapper.verticalScale) * gameplayManager.scaleMultiplier.value
-        collisionBody.position = body.position
-        collisionBody.scale = body.scale
+        collisionMask.position = body.position
+        collisionMask.scale = body.scale
     }
 
     private fun moveTowards(target: SceneOffset, speed: SceneUnit) {

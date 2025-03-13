@@ -11,8 +11,8 @@ package com.pandulapeter.kubriko.demoPerformance.implementation
 
 import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.body.PointBody
-import com.pandulapeter.kubriko.actor.body.RectangleBody
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.BoxWithCircle
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.Camera
 import com.pandulapeter.kubriko.demoPerformance.implementation.actors.MovingBox
@@ -54,12 +54,12 @@ internal class PerformanceDemoStateHolderImpl(
         EditableMetadata(
             typeId = "boxWithCircle",
             deserializeState = { serializedState -> json.decodeFromString<BoxWithCircle.State>(serializedState) },
-            instantiate = { BoxWithCircle.State(body = RectangleBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit))) },
+            instantiate = { BoxWithCircle.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit))) },
         ),
         EditableMetadata(
             typeId = "movingBox",
             deserializeState = { serializedState -> json.decodeFromString<MovingBox.State>(serializedState) },
-            instantiate = { MovingBox.State(body = RectangleBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit))) }
+            instantiate = { MovingBox.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit))) }
         ),
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,

@@ -13,19 +13,20 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.pandulapeter.kubriko.actor.body.CircleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.serialization.Serializable
-import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableCircleBody
+import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableBoxBody
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
 
 internal class DynamicCircle private constructor(state: State) : BaseDynamicObject(), Editable<DynamicCircle> {
     override val body = state.body
+    val radius = body.size.width / 2f
     override val physicsBody = Body(
-        shape = Circle(body.radius),
+        shape = Circle(radius),
         x = body.position.x,
         y = body.position.y,
     ).apply {
@@ -36,25 +37,25 @@ internal class DynamicCircle private constructor(state: State) : BaseDynamicObje
     override fun DrawScope.draw() {
         drawCircle(
             color = color,
-            radius = body.radius.raw,
+            radius = radius.raw,
             center = body.size.center.raw,
         )
         drawCircle(
             color = Color.Black,
-            radius = body.radius.raw,
+            radius = radius.raw,
             center = body.size.center.raw,
             style = Stroke(),
         )
         drawLine(
             color = Color.Black,
-            start = Offset(0f, body.radius.raw),
-            end = Offset(body.size.width.raw, body.radius.raw),
+            start = Offset(0f, radius.raw),
+            end = Offset(body.size.width.raw, radius.raw),
             strokeWidth = 2f,
         )
         drawLine(
             color = Color.Black,
-            start = Offset(body.radius.raw, 0f),
-            end = Offset(body.radius.raw, body.size.height.raw),
+            start = Offset(radius.raw, 0f),
+            end = Offset(radius.raw, body.size.height.raw),
             strokeWidth = 2f,
         )
     }
@@ -65,7 +66,7 @@ internal class DynamicCircle private constructor(state: State) : BaseDynamicObje
 
     @kotlinx.serialization.Serializable
     data class State(
-        @SerialName("body") val body: SerializableCircleBody = CircleBody(),
+        @SerialName("body") val body: SerializableBoxBody = BoxBody(),
     ) : Serializable.State<DynamicCircle> {
 
         override fun restore() = DynamicCircle(this)

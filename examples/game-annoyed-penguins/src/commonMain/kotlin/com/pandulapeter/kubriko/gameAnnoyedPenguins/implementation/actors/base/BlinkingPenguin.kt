@@ -12,7 +12,7 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.CircleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.helpers.extensions.get
@@ -20,6 +20,7 @@ import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.sprites.AnimatedSprite
 import com.pandulapeter.kubriko.sprites.SpriteManager
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.SceneSize
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_penguin
 import kotlin.math.roundToInt
@@ -29,9 +30,9 @@ internal abstract class BlinkingPenguin(
     initialPosition: SceneOffset,
 ) : Visible, Dynamic {
 
-    override val body = CircleBody(
+    override val body = BoxBody(
         initialPosition = initialPosition,
-        initialRadius = 128.sceneUnit,
+        initialSize = SceneSize(256.sceneUnit, 256.sceneUnit),
     )
     private lateinit var spriteManager: SpriteManager
     private val animatedSprite = AnimatedSprite(

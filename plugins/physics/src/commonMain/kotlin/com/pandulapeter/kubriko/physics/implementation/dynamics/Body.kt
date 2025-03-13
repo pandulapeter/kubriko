@@ -24,7 +24,7 @@ import com.pandulapeter.kubriko.types.SceneUnit
  * @param x     Position x in world space.
  * @param y     Position y in world space.
  */
-// TODO: Should inherit from RectangleBody?
+// TODO: Should inherit from BoxBody?
 class Body(
     override var shape: Shape,
     x: SceneUnit,

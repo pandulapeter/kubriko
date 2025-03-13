@@ -12,15 +12,15 @@ package com.pandulapeter.kubriko.demoPerformance.implementation.actors
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.pandulapeter.kubriko.actor.body.RectangleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.Serializable
+import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableBoxBody
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableColor
-import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableRectangleBody
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneUnit
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.serialization.SerialName
@@ -81,7 +81,7 @@ class BoxWithCircle private constructor(state: State) : Visible, Dynamic, Editab
 
     @kotlinx.serialization.Serializable
     data class State(
-        @SerialName("body") val body: SerializableRectangleBody = RectangleBody(),
+        @SerialName("body") val body: SerializableBoxBody = BoxBody(),
         @SerialName("boxColor") val boxColor: SerializableColor = Color.Gray,
         @SerialName("circleColor") val circleColor: SerializableColor = Color.White,
         @SerialName("circleRadius") val circleRadius: SerializableSceneUnit = SceneUnit.Zero,

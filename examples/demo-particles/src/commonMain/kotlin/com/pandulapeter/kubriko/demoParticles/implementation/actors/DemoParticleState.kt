@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.pandulapeter.kubriko.actor.body.CircleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.helpers.extensions.cos
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.helpers.extensions.sin
@@ -21,14 +21,15 @@ import com.pandulapeter.kubriko.particles.ParticleEmitter
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.SceneSize
 import kotlin.random.Random
 
 internal class DemoParticleState(
     private var lifespanInMilliseconds: Float,
 ) : ParticleEmitter.ParticleState() {
 
-    override val body = CircleBody(
-        initialRadius = 10.sceneUnit,
+    override val body = BoxBody(
+        initialSize = SceneSize(20.sceneUnit, 20.sceneUnit),
     )
     private val speed = 0.4f.sceneUnit
     private var direction = AngleRadians.Zero
@@ -63,7 +64,7 @@ internal class DemoParticleState(
             }
             body.position += SceneOffset(
                 x = speed * direction.cos,
-                y = - speed * direction.sin,
+                y = -speed * direction.sin,
             ) * deltaTimeInMilliseconds
             remainingLifespan -= deltaTimeInMilliseconds
         }
@@ -72,6 +73,7 @@ internal class DemoParticleState(
 
     override fun DrawScope.draw() {
         if (currentProgress > 0f) {
+            val radius = body.size.width.raw / 2f
             if (currentProgress < 0.7f) {
                 drawCircle(
                     color = Color.hsv(
@@ -79,20 +81,20 @@ internal class DemoParticleState(
                         saturation = 0.4f,
                         value = 1f,
                     ).copy(alpha = 1f - currentProgress),
-                    radius = body.radius.raw,
+                    radius = radius,
                     center = body.size.center.raw,
                     style = Fill,
                 )
                 drawCircle(
                     color = Color.Black.copy(alpha = 1f - currentProgress),
-                    radius = body.radius.raw,
+                    radius = radius,
                     center = body.size.center.raw,
                     style = Stroke(),
                 )
             } else {
                 drawCircle(
                     color = Color.Black.copy(alpha = 1f - currentProgress),
-                    radius = body.radius.raw,
+                    radius = radius,
                     center = body.size.center.raw,
                 )
             }

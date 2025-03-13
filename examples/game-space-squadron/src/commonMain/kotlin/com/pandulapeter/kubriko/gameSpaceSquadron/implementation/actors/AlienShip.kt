@@ -13,8 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.CircleBody
-import com.pandulapeter.kubriko.actor.body.RectangleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
@@ -51,15 +50,15 @@ internal class AlienShip(
     private lateinit var stateManager: StateManager
     private lateinit var metadataManager: MetadataManager
     private lateinit var viewportManager: ViewportManager
-    override val body = RectangleBody(
+    override val body = BoxBody(
         initialSize = SceneSize(
             width = 206.sceneUnit,
             height = 180.sceneUnit,
         ),
         initialScale = Scale.Zero,
     )
-    override val collisionBody = CircleBody(
-        initialRadius = 90.sceneUnit,
+    override val collisionMask = BoxBody(
+        initialSize = SceneSize(180.sceneUnit, 180.sceneUnit),
         initialScale = Scale.Zero,
     )
     private val animatedSprite = AnimatedSprite(
@@ -138,8 +137,8 @@ internal class AlienShip(
         if (!isShrinking) {
             body.scale = StartingScale * gameplayManager.scaleMultiplier.value
         }
-        collisionBody.position = body.position
-        collisionBody.scale = body.scale
+        collisionMask.position = body.position
+        collisionMask.scale = body.scale
     }
 
     fun onHit(canSpawnPowerup: Boolean) {

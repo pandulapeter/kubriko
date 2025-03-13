@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.pointer.PointerId
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.CircleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
@@ -35,6 +35,7 @@ import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.SceneSize
 import kotlin.reflect.KClass
 
 internal class Ball(
@@ -46,9 +47,9 @@ internal class Ball(
 ) : Visible, Dynamic, CollisionDetector, PointerInputAware, KeyboardInputAware {
 
     override val collidableTypes = listOf<KClass<out Collidable>>(Brick::class, Paddle::class)
-    override val body = CircleBody(
+    override val body = BoxBody(
         initialPosition = initialPosition,
-        initialRadius = Radius,
+        initialSize = SceneSize(Radius * 2, Radius * 2),
     )
     private var previousPosition = body.position
     private var baseSpeedX = 1
@@ -148,7 +149,8 @@ internal class Ball(
         var shouldPlayPaddleHitSoundEffect = false
         if (state == State.LAUNCHED) {
             body.position = previousPosition
-            (collidables.filterIsInstance<Paddle>().firstOrNull() ?: collidables.filterIsInstance<Brick>().minBy { it.body.position.distanceTo(body.position) }).let { collidable ->
+            (collidables.filterIsInstance<Paddle>().firstOrNull() ?: collidables.filterIsInstance<Brick>()
+                .minBy { it.body.position.distanceTo(body.position) }).let { collidable ->
                 when (collidable) {
                     is Brick -> {
                         shouldPlayBrickPopSoundEffect = true

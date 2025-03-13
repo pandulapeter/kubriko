@@ -9,10 +9,12 @@
  */
 package com.pandulapeter.kubriko.collision
 
+import com.pandulapeter.kubriko.actor.body.PointBody
 import com.pandulapeter.kubriko.actor.traits.Positionable
 
 //TODO: Documentation
 interface Collidable : Positionable {
 
-    val collisionBody get() = body
+    // TODO: Use a different base class and map existing bodies to it, to support other mask shapes
+    val collisionMask: PointBody get() = body
 }

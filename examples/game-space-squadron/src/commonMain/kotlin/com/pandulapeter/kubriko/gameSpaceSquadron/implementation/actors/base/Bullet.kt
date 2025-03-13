@@ -13,7 +13,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.CircleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.CollisionDetector
@@ -33,6 +33,7 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.particles.ParticleEmitter
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
 
 internal abstract class Bullet(
@@ -43,10 +44,11 @@ internal abstract class Bullet(
     private val bulletBaseSpeed: SceneUnit,
     private val speedIncrement: (Int) -> Float,
 ) : Visible, Dynamic, ParticleEmitter<BulletParticleState>, CollisionDetector {
-    override val body = CircleBody(
+    override val body = BoxBody(
         initialPosition = initialPosition,
-        initialRadius = 5f.sceneUnit,
+        initialSize = SceneSize(10f.sceneUnit, 10f.sceneUnit),
     )
+    private val radius = body.size.width / 2f
     protected lateinit var actorManager: ActorManager
     protected lateinit var audioManager: AudioManager
     private lateinit var gameplayManager: GameplayManager
@@ -92,7 +94,7 @@ internal abstract class Bullet(
     )
 
     override fun DrawScope.draw() = drawCircle(
-        radius = body.radius.raw,
+        radius = radius.raw,
         center = body.size.center.raw,
         color = bulletColor,
     )

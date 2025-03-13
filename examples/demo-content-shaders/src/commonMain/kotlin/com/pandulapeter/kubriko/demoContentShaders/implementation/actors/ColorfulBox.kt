@@ -12,7 +12,7 @@ package com.pandulapeter.kubriko.demoContentShaders.implementation.actors
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.pandulapeter.kubriko.actor.body.RectangleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
@@ -25,7 +25,7 @@ internal class ColorfulBox(
     private val shouldDrawBorder: () -> Boolean,
 ) : Visible, Dynamic {
 
-    override val body = RectangleBody(
+    override val body = BoxBody(
         initialPosition = initialPosition,
         initialSize = SceneSize(width = 100.sceneUnit, height = 100.sceneUnit),
     )

@@ -10,7 +10,7 @@
 package com.pandulapeter.kubriko.gameBlockysJourney.implementation
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.CircleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.actors.Block
@@ -30,6 +30,7 @@ import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.shaders.ShaderManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.sprites.SpriteManager
+import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,12 +49,12 @@ internal class BlockysJourneyGameStateHolderImpl(
         EditableMetadata(
             typeId = "blocky",
             deserializeState = { serializedState -> json.decodeFromString<Blocky.State>(serializedState) },
-            instantiate = { Blocky.State(body = CircleBody(initialPosition = it, initialRadius = 128.sceneUnit)) }
+            instantiate = { Blocky.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(256.sceneUnit, 256.sceneUnit))) }
         ),
         EditableMetadata(
             typeId = "block",
             deserializeState = { serializedState -> json.decodeFromString<Block.State>(serializedState) },
-            instantiate = { Block.State(body = CircleBody(initialPosition = it, initialRadius = 256.sceneUnit)) }
+            instantiate = { Block.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(512.sceneUnit, 512.sceneUnit))) }
         ),
         isLoggingEnabled = true,
         instanceNameForLogging = LOG_TAG,

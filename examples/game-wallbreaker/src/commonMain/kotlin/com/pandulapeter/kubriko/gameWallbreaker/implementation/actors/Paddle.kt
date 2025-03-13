@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.pointer.PointerId
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.RectangleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
@@ -41,7 +41,7 @@ internal class Paddle(
     initialPosition: SceneOffset = SceneOffset(0.sceneUnit, 550.sceneUnit),
 ) : Visible, Collidable, PointerInputAware, KeyboardInputAware, Dynamic {
 
-    override val body = RectangleBody(
+    override val body = BoxBody(
         initialPosition = initialPosition,
         initialSize = SceneSize(Width, Height),
     )

@@ -29,32 +29,25 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.CircleBody
-import com.pandulapeter.kubriko.actor.body.RectangleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.demoPhysics.implementation.PlatformSpecificContent
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.Bomb
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicBox
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicChain
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicCircle
-import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicPolygon
 import com.pandulapeter.kubriko.demoPhysics.implementation.ui.ActionType
-import com.pandulapeter.kubriko.helpers.extensions.cos
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.helpers.extensions.sin
 import com.pandulapeter.kubriko.helpers.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
-import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
-import com.pandulapeter.kubriko.physics.implementation.math.Vec2
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.shared.StateHolder
-import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.uiComponents.FloatingButton
@@ -174,7 +167,7 @@ internal class PhysicsDemoManager(
                         when (ShapeType.entries.random()) {
                             ShapeType.BOX -> createDynamicBox(pointerSceneOffset)
                             ShapeType.CIRCLE -> createDynamicCircle(pointerSceneOffset)
-                            ShapeType.POLYGON -> createDynamicPolygon(pointerSceneOffset)
+                            // ShapeType.POLYGON -> createDynamicPolygon(pointerSceneOffset)
                         }
                     )
 
@@ -215,7 +208,7 @@ internal class PhysicsDemoManager(
     private fun createDynamicBox(
         pointerSceneOffset: SceneOffset,
     ) = DynamicBox.State(
-        body = RectangleBody(
+        body = BoxBody(
             initialSize = SceneSize(
                 width = (60..120).random().toFloat().sceneUnit,
                 height = (60..120).random().toFloat().sceneUnit,
@@ -227,31 +220,31 @@ internal class PhysicsDemoManager(
     private fun createDynamicCircle(
         pointerSceneOffset: SceneOffset,
     ) = DynamicCircle.State(
-        body = CircleBody(
-            initialRadius = (30..60).random().toFloat().sceneUnit,
+        body = BoxBody(
+            initialSize = (60..120).random().toFloat().sceneUnit.let { SceneSize(it, it) },
             initialPosition = pointerSceneOffset,
         )
     ).restore()
 
-    private fun createDynamicPolygon(
-        pointerSceneOffset: SceneOffset,
-    ) = DynamicPolygon(
-        initialOffset = pointerSceneOffset,
-        shape = Polygon(
-            vertList = (3..10).random().let { sideCount ->
-                (0..sideCount).map { sideIndex ->
-                    val angle = AngleRadians.TwoPi / sideCount * (sideIndex + 0.75f)
-                    Vec2(
-                        x = (30..120).random().sceneUnit * angle.cos,
-                        y = (30..120).random().sceneUnit * angle.sin,
-                    )
-                }
-            },
-        ),
-    )
+//    private fun createDynamicPolygon(
+//        pointerSceneOffset: SceneOffset,
+//    ) = DynamicPolygon(
+//        initialOffset = pointerSceneOffset,
+//        shape = Polygon(
+//            vertList = (3..10).random().let { sideCount ->
+//                (0..sideCount).map { sideIndex ->
+//                    val angle = AngleRadians.TwoPi / sideCount * (sideIndex + 0.75f)
+//                    Vec2(
+//                        x = (30..120).random().sceneUnit * angle.cos,
+//                        y = (30..120).random().sceneUnit * angle.sin,
+//                    )
+//                }
+//            },
+//        ),
+//    )
 
     private enum class ShapeType {
-        BOX, CIRCLE, POLYGON
+        BOX, CIRCLE // TODO, POLYGON
     }
 
     companion object {

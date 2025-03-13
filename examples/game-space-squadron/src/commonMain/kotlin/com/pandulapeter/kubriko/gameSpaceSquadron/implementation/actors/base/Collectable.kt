@@ -12,8 +12,7 @@ package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.base
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.CircleBody
-import com.pandulapeter.kubriko.actor.body.RectangleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
@@ -49,12 +48,12 @@ internal abstract class Collectable(
     private lateinit var stateManager: StateManager
     private lateinit var spriteManager: SpriteManager
     private lateinit var viewportManager: ViewportManager
-    override val body = RectangleBody(
+    override val body = BoxBody(
         initialSize = SceneSize(frameSize.width.sceneUnit, frameSize.height.sceneUnit),
         initialPosition = position,
     )
-    override val collisionBody = CircleBody(
-        initialRadius = 20.sceneUnit,
+    override val collisionMask = BoxBody(
+        initialSize = SceneSize(40.sceneUnit, 40.sceneUnit),
     )
     private val animatedSprite = AnimatedSprite(
         getImageBitmap = { spriteManager.get(spriteSheet) },
@@ -91,8 +90,8 @@ internal abstract class Collectable(
                 actorManager.remove(this)
             }
         }
-        collisionBody.position = body.position
-        collisionBody.scale = body.scale
+        collisionMask.position = body.position
+        collisionMask.scale = body.scale
         if (isShrinking) {
             if (body.scale.horizontal <= 0) {
                 actorManager.remove(this)

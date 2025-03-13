@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.manager.ViewportManager
@@ -21,14 +22,15 @@ import com.pandulapeter.kubriko.physics.implementation.dynamics.Body
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.serialization.Serializable
-import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableCircleBody
+import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableBoxBody
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
 
 internal class StaticCircle private constructor(state: State) : RigidBody, Visible, Editable<StaticCircle> {
     override val body = state.body
+    val radius = body.size.width * 0.5f
     override val physicsBody = Body(
-        shape = Circle(body.radius),
+        shape = Circle(radius),
         x = body.position.x,
         y = body.position.y
     ).apply { density = 0f }
@@ -41,12 +43,12 @@ internal class StaticCircle private constructor(state: State) : RigidBody, Visib
     override fun DrawScope.draw() {
         drawCircle(
             color = Color.DarkGray,
-            radius = body.radius.raw,
+            radius = radius.raw,
             center = body.size.center.raw,
         )
         drawCircle(
             color = Color.Black,
-            radius = body.radius.raw,
+            radius = radius.raw,
             center = body.size.center.raw,
             style = Stroke(),
         )
@@ -58,7 +60,7 @@ internal class StaticCircle private constructor(state: State) : RigidBody, Visib
 
     @kotlinx.serialization.Serializable
     data class State(
-        @SerialName("body") val body: SerializableCircleBody
+        @SerialName("body") val body: SerializableBoxBody = BoxBody(),
     ) : Serializable.State<StaticCircle> {
 
         override fun restore() = StaticCircle(this)

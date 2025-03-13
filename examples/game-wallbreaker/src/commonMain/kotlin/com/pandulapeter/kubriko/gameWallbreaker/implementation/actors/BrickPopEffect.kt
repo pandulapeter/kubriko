@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.RectangleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.helpers.extensions.get
@@ -27,7 +27,7 @@ internal class BrickPopEffect(
     position: SceneOffset,
     hue: Float,
 ) : Visible, Dynamic {
-    override val body = RectangleBody(
+    override val body = BoxBody(
         initialPosition = position,
         initialSize = SceneSize(Brick.Width, Brick.Height),
     )

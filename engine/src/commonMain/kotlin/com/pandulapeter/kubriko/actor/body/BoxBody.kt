@@ -22,7 +22,7 @@ import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
-class RectangleBody(
+class BoxBody(
     initialPosition: SceneOffset = SceneOffset.Zero,
     initialSize: SceneSize = SceneSize.Zero,
     initialPivot: SceneOffset = initialSize.center,
@@ -30,8 +30,8 @@ class RectangleBody(
     initialRotation: AngleRadians = AngleRadians.Zero
 ) : PointBody(
     initialPosition = initialPosition,
-), ComplexBody {
-    override var size = initialSize
+) {
+    var size = initialSize
         set(value) {
             if (field != value) {
                 field = value
@@ -39,7 +39,7 @@ class RectangleBody(
                 isAxisAlignedBoundingBoxDirty = true
             }
         }
-    override var pivot = initialPivot.clamp(min = SceneOffset.Zero, max = size.bottomRight)
+    var pivot = initialPivot.clamp(min = SceneOffset.Zero, max = size.bottomRight)
         set(value) {
             val newValue = value.clamp(min = SceneOffset.Zero, max = size.bottomRight)
             if (field != newValue) {
@@ -47,14 +47,14 @@ class RectangleBody(
                 isAxisAlignedBoundingBoxDirty = true
             }
         }
-    override var scale = initialScale
+    var scale = initialScale
         set(value) {
             if (field != value) {
                 field = value
                 isAxisAlignedBoundingBoxDirty = true
             }
         }
-    override var rotation = initialRotation
+    var rotation = initialRotation
         set(value) {
             if (field != value) {
                 field = value
@@ -83,7 +83,7 @@ class RectangleBody(
         return rotated + pivot
     }
 
-    override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = this@RectangleBody.size.raw.let { size ->
+    override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = this@BoxBody.size.raw.let { size ->
         drawRect(
             color = color,
             size = size,

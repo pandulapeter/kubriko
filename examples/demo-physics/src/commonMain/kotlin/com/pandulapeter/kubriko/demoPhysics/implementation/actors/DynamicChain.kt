@@ -15,8 +15,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.CircleBody
-import com.pandulapeter.kubriko.actor.body.RectangleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.Visible
@@ -68,7 +67,7 @@ internal class DynamicChain private constructor(state: State) : Group, Dynamic, 
     private lateinit var actorManager: ActorManager
     private lateinit var viewportManager: ViewportManager
     override val actors = chainLinks + joints
-    override val body = RectangleBody()
+    override val body = BoxBody()
     override val drawingOrder = -1f
     private val offset = SceneOffset(ChainLink.Radius * 2, ChainLink.Radius * 2)
     private val color = Color.hsv(
@@ -167,8 +166,8 @@ internal class DynamicChain private constructor(state: State) : Group, Dynamic, 
             density = 5f
             restitution = 0.1f
         }
-        override val body = CircleBody(
-            initialRadius = Radius,
+        override val body = BoxBody(
+            initialSize = SceneSize(Radius * 2, Radius * 2),
             initialPosition = initialPosition,
         )
 
