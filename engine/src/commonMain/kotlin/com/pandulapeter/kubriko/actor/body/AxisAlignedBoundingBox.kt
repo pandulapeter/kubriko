@@ -25,4 +25,9 @@ data class AxisAlignedBoundingBox(
     val top = min.y
     val right = max.x
     val bottom = max.y
+
+    fun withOffset(offset: SceneOffset) = AxisAlignedBoundingBox(
+        min = min + offset,
+        max = max + offset,
+    )
 }

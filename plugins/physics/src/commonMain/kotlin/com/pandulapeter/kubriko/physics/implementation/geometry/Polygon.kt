@@ -9,13 +9,14 @@
  */
 package com.pandulapeter.kubriko.physics.implementation.geometry
 
+import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.physics.implementation.collision.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.PhysicalBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
 import com.pandulapeter.kubriko.physics.implementation.math.Math.lineIntersect
 import com.pandulapeter.kubriko.physics.implementation.math.Math.pointIsOnLine
 import com.pandulapeter.kubriko.physics.implementation.math.Vec2
+import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -151,8 +152,8 @@ class Polygon : Shape {
             }
         }
         this.body.aabb = AxisAlignedBoundingBox(
-            Vec2(minX, minY),
-            Vec2(maxX, maxY)
+            min = SceneOffset(minX, minY),
+            max = SceneOffset(maxX, maxY),
         )
     }
 

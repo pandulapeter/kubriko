@@ -9,12 +9,12 @@
  */
 package com.pandulapeter.kubriko.physics
 
+import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.physics.implementation.collision.Arbiter
-import com.pandulapeter.kubriko.physics.implementation.collision.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.physics.implementation.collision.bodies.CollisionBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.PhysicalBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.math.Vec2
@@ -113,11 +113,21 @@ internal class PhysicsManagerImpl(
                 if (a.invMass == 0f && b.invMass == 0f || a.particle && b.particle) {
                     continue
                 }
-                if (AxisAlignedBoundingBox.aabbOverlap(a, b)) {
+                if (aabbOverlap(a, b)) {
                     narrowPhaseCheck(a, b)
                 }
             }
         }
+    }
+
+    private fun aabbOverlap(bodyA: CollisionBodyInterface, bodyB: CollisionBodyInterface): Boolean {
+        val aCopy = bodyA.aabb.withOffset(bodyA.position.toSceneOffset())
+        val bCopy = bodyB.aabb.withOffset(bodyB.position.toSceneOffset())
+        return aabbOverlap(aCopy, bCopy)
+    }
+
+    private fun aabbOverlap(boxA: AxisAlignedBoundingBox, boxB: AxisAlignedBoundingBox): Boolean {
+        return boxA.min.x <= boxB.max.x && boxA.max.x >= boxB.min.x && boxA.min.y <= boxB.max.y && boxA.max.y >= boxB.min.y
     }
 
     private fun narrowPhaseCheck(a: CollisionBodyInterface, b: CollisionBodyInterface) {

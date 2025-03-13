@@ -9,11 +9,12 @@
  */
 package com.pandulapeter.kubriko.physics.implementation.geometry
 
+import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.physics.implementation.collision.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.PhysicalBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
 import com.pandulapeter.kubriko.physics.implementation.math.Vec2
+import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.PI
 import kotlin.math.sqrt
@@ -46,8 +47,8 @@ class Circle
      */
     override fun createAABB() {
         this.body.aabb = AxisAlignedBoundingBox(
-            Vec2(-radius, -radius),
-            Vec2(radius, radius)
+            min = SceneOffset(-radius, -radius),
+            max = SceneOffset(radius, radius),
         )
     }
 
