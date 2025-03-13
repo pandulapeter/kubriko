@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubriko.collision.mask
 
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -89,18 +88,6 @@ class BoxCollisionMask(
             color = color,
             size = size,
             style = stroke,
-        )
-        drawLine(
-            color = color,
-            start = Offset(pivot.x.raw, 0f),
-            end = Offset(pivot.x.raw, size.height),
-            strokeWidth = stroke.width,
-        )
-        drawLine(
-            color = color,
-            start = Offset(0f, pivot.y.raw),
-            end = Offset(size.width, pivot.y.raw),
-            strokeWidth = stroke.width,
         )
     }
 }

@@ -92,7 +92,11 @@ internal class DebugMenuManager(
                             )
                         },
                         drawBlock = {
-                            val stroke = Stroke(
+                            val bodyOverlayStroke = Stroke(
+                                width = 6f / (scaleFactor.horizontal + scaleFactor.vertical),
+                                join = StrokeJoin.Round,
+                            )
+                            val collisionMaskStroke = Stroke(
                                 width = 4f / (scaleFactor.horizontal + scaleFactor.vertical),
                                 join = StrokeJoin.Round,
                             )
@@ -102,13 +106,13 @@ internal class DebugMenuManager(
                                         color = bodyOverlayColor,
                                         topLeft = visible.body.axisAlignedBoundingBox.min.raw,
                                         size = visible.body.axisAlignedBoundingBox.size.raw,
-                                        style = stroke,
+                                        style = bodyOverlayStroke,
                                     )
                                     withTransform(
                                         transformBlock = { visible.body.transformForViewport(this) },
                                         drawBlock = {
                                             with(visible.body) {
-                                                drawDebugBounds(bodyOverlayColor, stroke)
+                                                drawDebugBounds(bodyOverlayColor, bodyOverlayStroke)
                                             }
                                         },
                                     )
@@ -118,7 +122,7 @@ internal class DebugMenuManager(
                                         transformBlock = { visible.collisionMask.transformForViewport(this) },
                                         drawBlock = {
                                             with(visible.collisionMask) {
-                                                drawDebugBounds(collisionMaskOverlayColor, stroke)
+                                                drawDebugBounds(collisionMaskOverlayColor, collisionMaskStroke)
                                             }
                                         },
                                     )
