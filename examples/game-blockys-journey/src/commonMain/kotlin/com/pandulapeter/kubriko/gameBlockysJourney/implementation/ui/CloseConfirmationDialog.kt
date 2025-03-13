@@ -56,7 +56,7 @@ internal fun CloseConfirmationDialog(
             .align(Alignment.Center)
             .padding(
                 vertical = 16.dp,
-                horizontal = 48.dp,
+                horizontal = 24.dp,
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
