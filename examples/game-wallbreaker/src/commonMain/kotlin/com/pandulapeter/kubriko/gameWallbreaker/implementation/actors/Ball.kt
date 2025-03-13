@@ -179,13 +179,11 @@ internal class Ball(
                         }
                     }
                 }
-                when {
-                    body.position.y.raw - body.pivot.raw.x in collidable.body.axisAlignedBoundingBox.min.y..collidable.body.axisAlignedBoundingBox.max.y -> baseSpeedX *= -1
-                    body.position.x.raw - body.pivot.raw.x in collidable.body.axisAlignedBoundingBox.min.x..collidable.body.axisAlignedBoundingBox.max.x -> baseSpeedY *= -1
-                    else -> {
-                        baseSpeedX *= -1
-                        baseSpeedY *= -1
-                    }
+                if (body.position.y.raw in collidable.body.axisAlignedBoundingBox.min.y..collidable.body.axisAlignedBoundingBox.max.y) {
+                    baseSpeedX *= -1
+                }
+                if (body.position.x.raw in collidable.body.axisAlignedBoundingBox.min.x..collidable.body.axisAlignedBoundingBox.max.x) {
+                    baseSpeedY *= -1
                 }
             }
             if (shouldPlayBrickPopSoundEffect) {
