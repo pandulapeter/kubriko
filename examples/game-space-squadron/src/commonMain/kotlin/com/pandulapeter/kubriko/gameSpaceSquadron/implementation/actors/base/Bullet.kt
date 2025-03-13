@@ -17,7 +17,7 @@ import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.CollisionDetector
-import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
+import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.ScoreManager
@@ -49,10 +49,11 @@ internal abstract class Bullet(
         initialPosition = initialPosition,
         initialSize = SceneSize(10f.sceneUnit, 10f.sceneUnit),
     )
-    override val collisionMask = BoxCollisionMask(
-        initialSize = body.size,
-    )
     private val radius = body.size.width / 2f
+    override val collisionMask = CircleCollisionMask(
+        initialRadius = radius,
+        initialPosition = body.position,
+    )
     protected lateinit var actorManager: ActorManager
     protected lateinit var audioManager: AudioManager
     private lateinit var gameplayManager: GameplayManager
@@ -81,7 +82,9 @@ internal abstract class Bullet(
                 x = direction.cos,
                 y = direction.sin,
             ) * bulletBaseSpeed * deltaTimeInMilliseconds * speedIncrement(scoreManager.score.value)
-            if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
+            if (body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
+                collisionMask.position = body.position
+            } else {
                 actorManager.remove(this)
             }
         }

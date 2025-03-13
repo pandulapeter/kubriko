@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.types.SceneOffset
 
 open class PointBody internal constructor(
-    initialPosition: SceneOffset = SceneOffset.Zero,
+    initialPosition: SceneOffset,
 ) : Body {
     private var _axisAlignedBoundingBox: AxisAlignedBoundingBox? = null
     override var axisAlignedBoundingBox: AxisAlignedBoundingBox

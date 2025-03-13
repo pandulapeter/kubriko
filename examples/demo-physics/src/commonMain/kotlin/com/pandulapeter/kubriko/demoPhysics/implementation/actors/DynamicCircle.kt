@@ -36,6 +36,9 @@ internal class DynamicCircle private constructor(state: State) : BaseDynamicObje
     }
     override val collisionMask = BoxCollisionMask(
         initialSize = body.size,
+        initialPosition = body.position,
+        initialRotation = body.rotation,
+        initialScale = body.scale,
     )
 
     override fun DrawScope.draw() {

@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.collision.mask.ComplexCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -25,6 +26,7 @@ internal abstract class BaseDynamicObject : RigidBody, Visible, Dynamic {
 
     private lateinit var actorManager: ActorManager
     private lateinit var viewportManager: ViewportManager
+    abstract override val collisionMask: ComplexCollisionMask
     protected val color = Color.hsv(
         hue = Random.nextFloat() * 360f,
         saturation = 0.3f,
@@ -41,6 +43,10 @@ internal abstract class BaseDynamicObject : RigidBody, Visible, Dynamic {
         body.rotation = physicsBody.orientation
         if (!body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
             actorManager.remove(this)
+        } else {
+            collisionMask.position = body.position
+            collisionMask.rotation = body.rotation
+            collisionMask.scale = body.scale
         }
     }
 }

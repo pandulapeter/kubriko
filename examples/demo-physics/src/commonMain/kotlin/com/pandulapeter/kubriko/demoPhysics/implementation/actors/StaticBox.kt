@@ -39,6 +39,9 @@ internal class StaticBox private constructor(state: State) : RigidBody, Visible,
     }
     override val collisionMask = BoxCollisionMask(
         initialSize = body.size,
+        initialPosition = body.position,
+        initialRotation = body.rotation,
+        initialScale = body.scale,
     )
 
     @set:Exposed(name = "isRotating")

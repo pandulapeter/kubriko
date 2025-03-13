@@ -16,7 +16,9 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.types.SceneOffset
 
-open class PointCollisionMask internal constructor() : CollisionMask {
+open class PointCollisionMask internal constructor(
+    initialPosition: SceneOffset,
+) : CollisionMask {
     private var _axisAlignedBoundingBox: AxisAlignedBoundingBox? = null
     override var axisAlignedBoundingBox: AxisAlignedBoundingBox
         get() {
@@ -30,6 +32,13 @@ open class PointCollisionMask internal constructor() : CollisionMask {
             _axisAlignedBoundingBox = value
         }
     protected var isAxisAlignedBoundingBoxDirty = false
+    override var position = initialPosition
+        set(value) {
+            if (field != value) {
+                field = value
+                isAxisAlignedBoundingBoxDirty = true
+            }
+        }
 
     protected open fun createAxisAlignedBoundingBox() = AxisAlignedBoundingBox(
         min = SceneOffset.Zero,
@@ -45,6 +54,9 @@ open class PointCollisionMask internal constructor() : CollisionMask {
 
     companion object {
         operator fun invoke(
-        ) = PointCollisionMask()
+            initialPosition: SceneOffset = SceneOffset.Zero,
+        ) = PointCollisionMask(
+            initialPosition = initialPosition,
+        )
     }
 }

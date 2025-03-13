@@ -11,10 +11,12 @@ package com.pandulapeter.kubriko.collision.mask
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.helpers.extensions.bottomRight
+import com.pandulapeter.kubriko.helpers.extensions.center
 import com.pandulapeter.kubriko.helpers.extensions.clamp
 import com.pandulapeter.kubriko.helpers.extensions.cos
 import com.pandulapeter.kubriko.helpers.extensions.sin
@@ -23,23 +25,21 @@ import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
-class BoxCollisionMask(
+
+// TODO: Merge with RectangleBody
+class PolygonCollisionMask(
+    val vertices: List<SceneOffset> = emptyList(),
     initialPosition: SceneOffset = SceneOffset.Zero,
-    initialSize: SceneSize = SceneSize.Zero,
-    initialPivot: SceneOffset = initialSize.center,
+    initialPivot: SceneOffset = vertices.center,
     initialScale: Scale = Scale.Unit,
     initialRotation: AngleRadians = AngleRadians.Zero
 ) : PointCollisionMask(
     initialPosition = initialPosition,
 ), ComplexCollisionMask {
-    override var size = initialSize
-        set(value) {
-            if (field != value) {
-                field = value
-                pivot = pivot.clamp(min = SceneOffset.Zero, max = value.bottomRight)
-                isAxisAlignedBoundingBoxDirty = true
-            }
-        }
+    override val size = if (vertices.size < 2) SceneSize.Zero else SceneSize(
+        width = vertices.maxOf { it.x } - vertices.minOf { it.x },
+        height = vertices.maxOf { it.y } - vertices.minOf { it.y },
+    )
     override var pivot = initialPivot.clamp(min = SceneOffset.Zero, max = size.bottomRight)
         set(value) {
             val newValue = value.clamp(min = SceneOffset.Zero, max = size.bottomRight)
@@ -63,6 +63,7 @@ class BoxCollisionMask(
             }
         }
 
+    // TODO
     override fun createAxisAlignedBoundingBox() = arrayOf(
         transformPoint(SceneOffset.Zero),
         transformPoint(SceneOffset.Right * size.width),
@@ -84,12 +85,15 @@ class BoxCollisionMask(
         return rotated + pivot
     }
 
-    override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = this@BoxCollisionMask.size.raw.let { size ->
-        drawRect(
-            color = color,
-            size = size,
-            style = stroke,
-        )
+    override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = this@PolygonCollisionMask.size.raw.let { size ->
+        val path = Path().apply {
+            moveTo(vertices[0].x.raw + pivot.x.raw, vertices[0].y.raw + pivot.y.raw)
+            for (i in 1 until vertices.size) {
+                lineTo(vertices[i].x.raw + pivot.x.raw, vertices[i].y.raw + pivot.y.raw)
+            }
+            close()
+        }
+        drawPath(path = path, color = color, style = stroke)
         drawLine(
             color = color,
             start = Offset(pivot.x.raw, 0f),

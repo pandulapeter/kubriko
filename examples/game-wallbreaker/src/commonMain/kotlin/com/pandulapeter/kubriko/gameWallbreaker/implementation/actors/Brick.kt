@@ -29,6 +29,7 @@ internal class Brick(
     )
     override val collisionMask = BoxCollisionMask(
         initialSize = body.size,
+        initialPosition = body.position,
     )
     var hue = randomHue()
         private set(value) {

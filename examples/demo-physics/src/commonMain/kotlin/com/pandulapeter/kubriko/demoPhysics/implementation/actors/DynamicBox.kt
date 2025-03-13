@@ -28,6 +28,9 @@ internal class DynamicBox private constructor(state: State) : BaseDynamicObject(
     override val body = state.body
     override val collisionMask = BoxCollisionMask(
         initialSize = body.size,
+        initialPosition = body.position,
+        initialRotation = body.rotation,
+        initialScale = body.scale,
     )
     override val physicsBody = Body(
         shape = Polygon(

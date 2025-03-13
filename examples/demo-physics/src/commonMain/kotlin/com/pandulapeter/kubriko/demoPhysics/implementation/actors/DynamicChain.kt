@@ -173,11 +173,17 @@ internal class DynamicChain private constructor(state: State) : Group, Dynamic, 
         )
         override val collisionMask = BoxCollisionMask(
             initialSize = body.size,
+            initialPosition = body.position,
+            initialRotation = body.rotation,
+            initialScale = body.scale,
         )
 
         override fun update(deltaTimeInMilliseconds: Int) {
             body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
             body.rotation = physicsBody.orientation
+            collisionMask.position = body.position
+            collisionMask.rotation = body.rotation
+            collisionMask.scale = body.scale
         }
 
         override fun DrawScope.draw() = Unit

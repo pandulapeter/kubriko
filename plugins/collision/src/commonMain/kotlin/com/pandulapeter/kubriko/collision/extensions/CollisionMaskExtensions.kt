@@ -14,19 +14,9 @@ import com.pandulapeter.kubriko.helpers.extensions.isInside
 
 fun Collidable.isOverlappingWith(
     other: Collidable
-): Boolean {
-    val adjustedAABB = collisionMask.axisAlignedBoundingBox.copy(
-        min = collisionMask.axisAlignedBoundingBox.min + body.position,
-        max = collisionMask.axisAlignedBoundingBox.max + body.position,
-    )
-    val otherAdjustedAABB = other.collisionMask.axisAlignedBoundingBox.copy(
-        min = other.collisionMask.axisAlignedBoundingBox.min + other.body.position,
-        max = other.collisionMask.axisAlignedBoundingBox.max + other.body.position,
-    )
-    return if (adjustedAABB.isInside(otherAdjustedAABB)) {
-        // TODO: Perform detailed check using the collision masks
-        true
-    } else {
-        false
-    }
+) = if (collisionMask.axisAlignedBoundingBox.isInside(other.collisionMask.axisAlignedBoundingBox)) {
+    // TODO: Perform detailed check using the collision masks
+    true
+} else {
+    false
 }

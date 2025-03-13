@@ -19,6 +19,9 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.collision.Collidable
+import com.pandulapeter.kubriko.collision.mask.CollisionMask
+import com.pandulapeter.kubriko.collision.mask.ComplexCollisionMask
+import com.pandulapeter.kubriko.helpers.extensions.deg
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.minus
 import com.pandulapeter.kubriko.helpers.extensions.transformForViewport
@@ -27,6 +30,7 @@ import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.combine
@@ -111,7 +115,7 @@ internal class DebugMenuManager(
                                 }
                                 if (shouldDrawCollisionMaskOverlays && visible is Collidable) {
                                     withTransform(
-                                        transformBlock = { visible.body.transformForViewport(this) },
+                                        transformBlock = { visible.collisionMask.transformForViewport(this) },
                                         drawBlock = {
                                             with(visible.collisionMask) {
                                                 drawDebugBounds(collisionMaskOverlayColor, stroke)
@@ -123,6 +127,29 @@ internal class DebugMenuManager(
                         },
                     )
                 }
+            }
+        }
+    }
+
+    fun CollisionMask.transformForViewport(drawTransform: DrawTransform) {
+        val pivot = if (this is ComplexCollisionMask) pivot else SceneOffset.Zero
+        drawTransform.translate(
+            left = (position.x - pivot.x).raw,
+            top = (position.y - pivot.y).raw,
+        )
+        if (this is ComplexCollisionMask) {
+            if (rotation != AngleRadians.Zero) {
+                drawTransform.rotate(
+                    degrees = rotation.deg.normalized,
+                    pivot = pivot.raw,
+                )
+            }
+            if (scale != Scale.Unit) {
+                drawTransform.scale(
+                    scaleX = scale.horizontal,
+                    scaleY = scale.vertical,
+                    pivot = pivot.raw,
+                )
             }
         }
     }

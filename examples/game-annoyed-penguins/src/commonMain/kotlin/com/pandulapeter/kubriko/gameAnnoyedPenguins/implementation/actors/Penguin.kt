@@ -31,6 +31,9 @@ internal class Penguin(
     private lateinit var viewportManager: ViewportManager
     override val collisionMask = BoxCollisionMask(
         initialSize = body.size,
+        initialPosition = body.position,
+        initialRotation = body.rotation,
+        initialScale = body.scale,
     )
     override val physicsBody = Body(
         shape = Circle(
@@ -63,6 +66,8 @@ internal class Penguin(
         // body.rotation = physicsBody.orientation
         if (body.position.y > viewportManager.bottomRight.value.y + viewportManager.size.value.toSceneSize(viewportManager).height) {
             actorManager.remove(this)
+        } else {
+            collisionMask.position = body.position
         }
     }
 }

@@ -48,6 +48,7 @@ internal class Paddle(
     )
     override val collisionMask = BoxCollisionMask(
         initialSize = body.size,
+        initialPosition = body.position,
     )
     private lateinit var pointerInputManager: PointerInputManager
     private lateinit var stateManager: StateManager
@@ -155,6 +156,7 @@ internal class Paddle(
             ).clampWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value)
             moveInNextStep = SceneUnit.Zero
         }
+        collisionMask.position = body.position
     }
 
     companion object {

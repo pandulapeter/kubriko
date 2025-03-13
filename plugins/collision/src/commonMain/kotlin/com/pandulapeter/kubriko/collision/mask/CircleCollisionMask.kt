@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.collision.mask
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -22,27 +23,30 @@ import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
+import com.pandulapeter.kubriko.types.SceneUnit
 
-class BoxCollisionMask(
+class CircleCollisionMask(
     initialPosition: SceneOffset = SceneOffset.Zero,
-    initialSize: SceneSize = SceneSize.Zero,
-    initialPivot: SceneOffset = initialSize.center,
+    initialRadius: SceneUnit = SceneUnit.Zero,
+    initialPivot: SceneOffset = SceneOffset(initialRadius, initialRadius),
     initialScale: Scale = Scale.Unit,
     initialRotation: AngleRadians = AngleRadians.Zero
 ) : PointCollisionMask(
     initialPosition = initialPosition,
 ), ComplexCollisionMask {
-    override var size = initialSize
+    var radius = initialRadius.clamp(min = SceneUnit.Zero)
         set(value) {
-            if (field != value) {
-                field = value
-                pivot = pivot.clamp(min = SceneOffset.Zero, max = value.bottomRight)
+            val newValue = value.clamp(min = SceneUnit.Zero)
+            if (field != newValue) {
+                field = newValue
+                pivot = pivot.clamp(min = SceneOffset.Zero, max = size.bottomRight)
                 isAxisAlignedBoundingBoxDirty = true
             }
         }
-    override var pivot = initialPivot.clamp(min = SceneOffset.Zero, max = size.bottomRight)
+    override val size get() = SceneSize(radius * 2, radius * 2)
+    override var pivot = initialPivot.clamp(SceneOffset.Zero, size.bottomRight)
         set(value) {
-            val newValue = value.clamp(min = SceneOffset.Zero, max = size.bottomRight)
+            val newValue = value.clamp(SceneOffset.Zero, size.bottomRight)
             if (field != newValue) {
                 field = newValue
                 isAxisAlignedBoundingBoxDirty = true
@@ -59,15 +63,23 @@ class BoxCollisionMask(
         set(value) {
             if (field != value) {
                 field = value
-                isAxisAlignedBoundingBoxDirty = true
+                if (pivot != size.center || scale.horizontal != scale.vertical) {
+                    isAxisAlignedBoundingBoxDirty = true
+                }
             }
         }
 
-    override fun createAxisAlignedBoundingBox() = arrayOf(
-        transformPoint(SceneOffset.Zero),
-        transformPoint(SceneOffset.Right * size.width),
-        transformPoint(SceneOffset.Down * size.height),
-        transformPoint(size.bottomRight),
+    // TODO: Not precise while rotating
+    override fun createAxisAlignedBoundingBox() = if (scale.horizontal == scale.vertical && pivot == size.center) {
+        AxisAlignedBoundingBox(
+            min = SceneOffset.Zero - pivot * scale + position,
+            max = SceneOffset(size.width, size.height) * scale - pivot * scale + position,
+        )
+    } else arrayOf(
+        transformPoint(SceneOffset.Zero, rotation),
+        transformPoint(SceneOffset.Right * size.width, rotation),
+        transformPoint(SceneOffset.Down * size.height, rotation),
+        transformPoint(size.bottomRight, rotation),
     ).let { corners ->
         AxisAlignedBoundingBox(
             min = SceneOffset(corners.minOf { it.x }, corners.minOf { it.y }) - pivot + position,
@@ -75,7 +87,7 @@ class BoxCollisionMask(
         )
     }
 
-    private fun transformPoint(point: SceneOffset): SceneOffset {
+    private fun transformPoint(point: SceneOffset, rotation: AngleRadians): SceneOffset {
         val scaled = (point - pivot) * scale
         val rotated = if (rotation == AngleRadians.Zero) scaled else SceneOffset(
             x = scaled.x * rotation.cos - scaled.y * rotation.sin,
@@ -84,10 +96,11 @@ class BoxCollisionMask(
         return rotated + pivot
     }
 
-    override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = this@BoxCollisionMask.size.raw.let { size ->
-        drawRect(
+    override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = this@CircleCollisionMask.size.raw.let { size ->
+        drawCircle(
             color = color,
-            size = size,
+            radius = radius.raw,
+            center = size.center,
             style = stroke,
         )
         drawLine(

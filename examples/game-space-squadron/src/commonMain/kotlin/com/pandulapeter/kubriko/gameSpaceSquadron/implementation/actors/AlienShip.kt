@@ -18,7 +18,7 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.CollisionDetector
-import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
+import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.helpers.extensions.directionTowards
@@ -58,8 +58,9 @@ internal class AlienShip(
         ),
         initialScale = Scale.Zero,
     )
-    override val collisionMask = BoxCollisionMask(
-        initialSize = SceneSize(180.sceneUnit, 180.sceneUnit),
+    override val collisionMask = CircleCollisionMask(
+        initialRadius = 90.sceneUnit,
+        initialPosition = body.position,
         initialScale = Scale.Zero,
     )
     private val animatedSprite = AnimatedSprite(
@@ -138,6 +139,7 @@ internal class AlienShip(
         if (!isShrinking) {
             body.scale = StartingScale * gameplayManager.scaleMultiplier.value
         }
+        collisionMask.position = body.position
         collisionMask.scale = body.scale
     }
 
