@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.round
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.pointerInput.implementation.gestureDetector
 import com.pandulapeter.kubriko.pointerInput.implementation.isMultiTouchEnabled
@@ -42,6 +43,7 @@ internal class PointerInputManagerImpl(
     instanceNameForLogging: String?,
 ) : PointerInputManager(isLoggingEnabled, instanceNameForLogging) {
     private val actorManager by manager<ActorManager>()
+    private val metadataManager by manager<MetadataManager>()
     private val stateManager by manager<StateManager>()
     private val pointerInputAwareActors by autoInitializingLazy {
         actorManager.allActors.map { it.filterIsInstance<PointerInputAware>() }.asStateFlow(emptyList())
@@ -94,6 +96,7 @@ internal class PointerInputManagerImpl(
     override fun tryToMoveHoveringPointer(offset: Offset): Boolean {
         val before = hoveringPointerPosition.value?.round()
         setPointerPosition(
+            platform = metadataManager.platform,
             offset = offset + if (isActiveAboveViewport) viewportOffset.value else viewportOffset.value,
             densityMultiplier = densityMultiplier,
         )

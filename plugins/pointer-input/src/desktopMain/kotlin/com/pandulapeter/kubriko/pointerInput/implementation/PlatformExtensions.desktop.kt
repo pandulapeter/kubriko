@@ -17,15 +17,23 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import com.pandulapeter.kubriko.implementation.windowState
+import com.pandulapeter.kubriko.manager.MetadataManager
 import java.awt.Robot
 import kotlin.math.roundToInt
 
 private val robot by lazy { Robot() }
 
-internal actual fun setPointerPosition(offset: Offset, densityMultiplier: Float) {
-    val x = windowState.position.x.value + offset.x * densityMultiplier
-    val y = windowState.position.y.value + offset.y * densityMultiplier
-    robot.mouseMove(x.roundToInt(), y.roundToInt())
+internal actual fun setPointerPosition(
+    platform: MetadataManager.Platform,
+    offset: Offset,
+    densityMultiplier: Float,
+) {
+    // Based on my testing, on Ubuntu just attempting to move the cursor breaks things
+    if (platform !is MetadataManager.Platform.Desktop.Linux) {
+        val x = windowState.position.x.value + offset.x * densityMultiplier
+        val y = windowState.position.y.value + offset.y * densityMultiplier
+        robot.mouseMove(x.roundToInt(), y.roundToInt())
+    }
 }
 
 @OptIn(ExperimentalComposeUiApi::class)

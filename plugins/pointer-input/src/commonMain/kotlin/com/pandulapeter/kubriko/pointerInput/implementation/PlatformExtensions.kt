@@ -11,8 +11,13 @@ package com.pandulapeter.kubriko.pointerInput.implementation
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import com.pandulapeter.kubriko.manager.MetadataManager
 
-internal expect fun setPointerPosition(offset: Offset, densityMultiplier: Float)
+internal expect fun setPointerPosition(
+    platform: MetadataManager.Platform,
+    offset: Offset,
+    densityMultiplier: Float,
+    )
 
 internal expect fun Modifier.gestureDetector(
     onDragDetected: (Offset) -> Unit,

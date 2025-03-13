@@ -16,9 +16,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
+import com.pandulapeter.kubriko.manager.MetadataManager
 
-// TODO
-internal actual fun setPointerPosition(offset: Offset, densityMultiplier: Float) = Unit
+internal actual fun setPointerPosition(
+    platform: MetadataManager.Platform,
+    offset: Offset,
+    densityMultiplier: Float,
+) = Unit
 
 @OptIn(ExperimentalComposeUiApi::class)
 internal actual fun Modifier.gestureDetector(

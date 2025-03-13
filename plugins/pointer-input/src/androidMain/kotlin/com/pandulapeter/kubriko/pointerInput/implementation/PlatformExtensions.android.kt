@@ -13,8 +13,13 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
+import com.pandulapeter.kubriko.manager.MetadataManager
 
-internal actual fun setPointerPosition(offset: Offset, densityMultiplier: Float) = Unit
+internal actual fun setPointerPosition(
+    platform: MetadataManager.Platform,
+    offset: Offset,
+    densityMultiplier: Float,
+) = Unit
 
 internal actual fun Modifier.gestureDetector(
     onDragDetected: (Offset) -> Unit,
