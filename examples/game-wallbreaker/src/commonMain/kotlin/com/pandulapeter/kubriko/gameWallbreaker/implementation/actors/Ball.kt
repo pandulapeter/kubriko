@@ -25,6 +25,7 @@ import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.AudioMan
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.managers.ScoreManager
 import com.pandulapeter.kubriko.helpers.extensions.constrainedWithin
+import com.pandulapeter.kubriko.helpers.extensions.distanceTo
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.min
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
@@ -147,7 +148,7 @@ internal class Ball(
         var shouldPlayPaddleHitSoundEffect = false
         if (state == State.LAUNCHED) {
             body.position = previousPosition
-            collidables.forEach { collidable ->
+            (collidables.filterIsInstance<Paddle>().firstOrNull() ?: collidables.filterIsInstance<Brick>().minBy { it.body.position.distanceTo(body.position) }).let { collidable ->
                 when (collidable) {
                     is Brick -> {
                         shouldPlayBrickPopSoundEffect = true
@@ -170,15 +171,15 @@ internal class Ball(
                                 x = body.position.x,
                                 y = paddle.body.position.y - paddle.body.pivot.y - Radius
                             )
-                            return@forEach
+                            return@let
                         } else {
                             isCollidingWithPaddle = true
                         }
                     }
                 }
                 when {
-                    body.position.y.raw in collidable.body.axisAlignedBoundingBox.min.y..collidable.body.axisAlignedBoundingBox.max.y -> baseSpeedX *= -1
-                    body.position.x.raw in collidable.body.axisAlignedBoundingBox.min.x..collidable.body.axisAlignedBoundingBox.max.x -> baseSpeedY *= -1
+                    body.position.y.raw - body.pivot.raw.x in collidable.body.axisAlignedBoundingBox.min.y..collidable.body.axisAlignedBoundingBox.max.y -> baseSpeedX *= -1
+                    body.position.x.raw - body.pivot.raw.x in collidable.body.axisAlignedBoundingBox.min.x..collidable.body.axisAlignedBoundingBox.max.x -> baseSpeedY *= -1
                     else -> {
                         baseSpeedX *= -1
                         baseSpeedY *= -1
