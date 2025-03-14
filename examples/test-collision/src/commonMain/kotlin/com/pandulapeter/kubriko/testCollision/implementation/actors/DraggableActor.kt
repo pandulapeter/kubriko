@@ -14,8 +14,10 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.BoxBody
+import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
+import com.pandulapeter.kubriko.collision.CollisionDetector
 import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.collision.mask.ComplexCollisionMask
@@ -28,7 +30,7 @@ import kotlin.random.Random
 
 internal class DraggableActor(
     override val collisionMask: ComplexCollisionMask,
-) : Visible, Collidable, PointerInputAware {
+) : Visible, CollisionDetector, PointerInputAware, Dynamic {
 
     override val body = BoxBody(
         initialPosition = collisionMask.position,
@@ -36,6 +38,8 @@ internal class DraggableActor(
         initialPivot = collisionMask.pivot,
         initialSize = collisionMask.axisAlignedBoundingBox.size,
     )
+    override val collidableTypes = listOf(DraggableActor::class)
+    private var isColliding = false
 
     init {
         (AngleRadians.TwoPi * Random.nextFloat()).let { rotation ->
@@ -44,8 +48,16 @@ internal class DraggableActor(
         }
     }
 
+    override fun onCollisionDetected(collidables: List<Collidable>) {
+        isColliding = true
+    }
+
+    override fun update(deltaTimeInMilliseconds: Int) {
+        isColliding = false
+    }
+
     override fun DrawScope.draw() = with(collisionMask) {
-        drawDebugBounds(Color.Gray, Fill)
+        drawDebugBounds(if (isColliding) Color.Gray else Color.DarkGray, Fill)
         drawDebugBounds(Color.Black, Stroke())
     }
 
