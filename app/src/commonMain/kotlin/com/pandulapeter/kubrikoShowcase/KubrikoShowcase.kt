@@ -119,6 +119,7 @@ private val ShowcaseEntry?.deeplink
         ShowcaseEntry.PHYSICS -> "physics"
         ShowcaseEntry.SHADER_ANIMATIONS -> "shader-animations"
         ShowcaseEntry.AUDIO -> "audio"
+        ShowcaseEntry.COLLISION -> "collision"
         ShowcaseEntry.INPUT -> "input"
         ShowcaseEntry.ABOUT -> "about"
         ShowcaseEntry.LICENSES -> "licenses"

@@ -59,6 +59,8 @@ import kubriko.app.generated.resources.other_licenses
 import kubriko.app.generated.resources.other_licenses_subtitle
 import kubriko.app.generated.resources.test_audio
 import kubriko.app.generated.resources.test_audio_subtitle
+import kubriko.app.generated.resources.test_collision
+import kubriko.app.generated.resources.test_collision_subtitle
 import kubriko.app.generated.resources.test_input
 import kubriko.app.generated.resources.test_input_subtitle
 import kubriko.app.generated.resources.tests
@@ -122,6 +124,8 @@ internal object ResourceLoader {
             && preloadedString(Res.string.demo_shader_animations_subtitle).value.isNotBlank()
             && preloadedString(Res.string.test_audio).value.isNotBlank()
             && preloadedString(Res.string.test_audio_subtitle).value.isNotBlank()
+            && preloadedString(Res.string.test_collision).value.isNotBlank()
+            && preloadedString(Res.string.test_collision_subtitle).value.isNotBlank()
             && preloadedString(Res.string.test_input).value.isNotBlank()
             && preloadedString(Res.string.test_input_subtitle).value.isNotBlank()
             && preloadedString(Res.string.other_licenses).value.isNotBlank()

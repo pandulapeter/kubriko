@@ -16,6 +16,7 @@ import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceDemoSt
 import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoStateHolder
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationsDemoStateHolder
 import com.pandulapeter.kubriko.testAudio.implementation.AudioTestStateHolder
+import com.pandulapeter.kubriko.testCollision.implementation.CollisionTestStateHolder
 import com.pandulapeter.kubriko.testInput.implementation.InputTestStateHolder
 import com.pandulapeter.kubrikoShowcase.implementation.ui.about.AboutScreenStateHolder
 import com.pandulapeter.kubrikoShowcase.implementation.ui.licenses.LicensesScreenStateHolder
@@ -51,6 +52,8 @@ import kubriko.app.generated.resources.other_licenses
 import kubriko.app.generated.resources.other_licenses_subtitle
 import kubriko.app.generated.resources.test_audio
 import kubriko.app.generated.resources.test_audio_subtitle
+import kubriko.app.generated.resources.test_collision
+import kubriko.app.generated.resources.test_collision_subtitle
 import kubriko.app.generated.resources.test_input
 import kubriko.app.generated.resources.test_input_subtitle
 import kubriko.app.generated.resources.tests
@@ -126,6 +129,12 @@ internal enum class ShowcaseEntry(
         titleStringResource = Res.string.test_audio,
         subtitleStringResource = Res.string.test_audio_subtitle,
         areResourcesLoaded = { AudioTestStateHolder.areResourcesLoaded() }
+    ),
+    COLLISION(
+        type = ShowcaseEntryType.TEST,
+        titleStringResource = Res.string.test_collision,
+        subtitleStringResource = Res.string.test_collision_subtitle,
+        areResourcesLoaded = { CollisionTestStateHolder.areResourcesLoaded() }
     ),
     INPUT(
         type = ShowcaseEntryType.TEST,

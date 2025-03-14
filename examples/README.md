@@ -24,11 +24,13 @@ These examples demonstrate the usefulness of individual plugins.
 ### Tests
 These examples are used for testing the behavior of certain components.
 - [test-audio](https://github.com/pandulapeter/kubriko/tree/main/examples/test-auido) - For testing the playback of music and sound effects
+- [test-collision](https://github.com/pandulapeter/kubriko/tree/main/examples/test-collision) - For testing the collision detector plugin
 - [test-input](https://github.com/pandulapeter/kubriko/tree/main/examples/test-input) - Playground for testing keyboard and pointer input
 
 ### Noop test modules
 As tests are not intended to be available in production builds, the following modules provide blank implementations for them.
 - [test-audio-noop](https://github.com/pandulapeter/kubriko/tree/main/examples/test-auido-noop) - Blank implementation of the Audio test.
+- [test-collision-noop](https://github.com/pandulapeter/kubriko/tree/main/examples/test-collision-noop) - Blank implementation of the Collision test.
 - [test-input-noop](https://github.com/pandulapeter/kubriko/tree/main/examples/test-input-noop) - Blank implementation of the Input test.
 
 ### Other

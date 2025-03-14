@@ -38,6 +38,8 @@ include(
     ":examples:game-wallbreaker",
     ":examples:test-audio",
     ":examples:test-audio-noop",
+    ":examples:test-collision",
+    ":examples:test-collision-noop",
     ":examples:test-input",
     ":examples:test-input-noop",
     ":examples:shared",

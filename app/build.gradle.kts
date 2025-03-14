@@ -32,8 +32,11 @@ kotlin {
             implementation(projects.examples.demoPerformance)
             implementation(projects.examples.demoPhysics)
             implementation(projects.examples.demoShaderAnimations)
-            implementation(if (isBuildConfigurationValueEnabled("areTestExamplesEnabled")) projects.examples.testAudio else projects.examples.testAudioNoop)
-            implementation(if (isBuildConfigurationValueEnabled("areTestExamplesEnabled")) projects.examples.testInput else projects.examples.testInputNoop)
+            isBuildConfigurationValueEnabled("areTestExamplesEnabled").let { areTestExamplesEnabled ->
+                implementation(if (areTestExamplesEnabled) projects.examples.testAudio else projects.examples.testAudioNoop)
+                implementation(if (areTestExamplesEnabled) projects.examples.testCollision else projects.examples.testCollisionNoop)
+                implementation(if (areTestExamplesEnabled) projects.examples.testInput else projects.examples.testInputNoop)
+            }
             implementation(if (isBuildConfigurationValueEnabled("isDebugMenuEnabled")) projects.tools.debugMenu else projects.tools.debugMenuNoop)
             implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)

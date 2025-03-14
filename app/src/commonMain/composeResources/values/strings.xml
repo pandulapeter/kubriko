@@ -86,6 +86,10 @@
     <string name="test_audio">Audio</string>
     <string name="test_audio_subtitle">For testing the playback of music and sound effects</string>
 
+    <!-- Test - Collision -->
+    <string name="test_collision">Collision</string>
+    <string name="test_collision_subtitle">For testing the collision detector plugin</string>
+
     <!-- Test - Input -->
     <string name="test_input">Input</string>
     <string name="test_input_subtitle">Playground for testing keyboard and pointer input</string>

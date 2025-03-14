@@ -45,6 +45,9 @@ import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.testAudio.AudioTest
 import com.pandulapeter.kubriko.testAudio.createAudioTestStateHolder
 import com.pandulapeter.kubriko.testAudio.implementation.AudioTestStateHolder
+import com.pandulapeter.kubriko.testCollision.CollisionTest
+import com.pandulapeter.kubriko.testCollision.createCollisionTestStateHolder
+import com.pandulapeter.kubriko.testCollision.implementation.CollisionTestStateHolder
 import com.pandulapeter.kubriko.testInput.InputTest
 import com.pandulapeter.kubriko.testInput.createInputTestStateHolder
 import com.pandulapeter.kubriko.testInput.implementation.InputTestStateHolder
@@ -155,6 +158,11 @@ internal fun ShowcaseEntry.ExampleScreen(
             windowInsets = windowInsets,
         )
 
+        ShowcaseEntry.COLLISION -> CollisionTest(
+            stateHolder = getOrCreateState(stateHolders, ::createCollisionTestStateHolder),
+            windowInsets = windowInsets,
+        )
+
         ShowcaseEntry.INPUT -> InputTest(
             stateHolder = getOrCreateState(stateHolders, ::createInputTestStateHolder),
             windowInsets = windowInsets,
@@ -233,6 +241,8 @@ internal fun ShowcaseEntry.getStateHolder() = when (this) {
         )
     }
 
+    ShowcaseEntry.COLLISION -> getOrCreateState(stateHolders, ::createCollisionTestStateHolder)
+
     ShowcaseEntry.INPUT -> getOrCreateState(stateHolders, ::createInputTestStateHolder)
 
     ShowcaseEntry.LICENSES -> getOrCreateState(stateHolders, ::createLicensesScreenStateHolder)
@@ -257,6 +267,7 @@ private val ShowcaseEntry.stateHolderType
         ShowcaseEntry.PHYSICS -> PhysicsDemoStateHolder::class
         ShowcaseEntry.SHADER_ANIMATIONS -> ShaderAnimationsDemoStateHolder::class
         ShowcaseEntry.AUDIO -> AudioTestStateHolder::class
+        ShowcaseEntry.COLLISION -> CollisionTestStateHolder::class
         ShowcaseEntry.INPUT -> InputTestStateHolder::class
         ShowcaseEntry.LICENSES -> LicensesScreenStateHolder::class
         ShowcaseEntry.ABOUT -> AboutScreenStateHolder::class

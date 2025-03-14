@@ -22,17 +22,10 @@ import kotlin.math.sqrt
 /**
  * Circle class to create a circle object.
  */
-class Circle
-/**
- * Constructor for a circle.
- *
- * @param radius Desired radius of the circle.
- */(var radius: SceneUnit) : Shape() {
-    /**
-     * Calculates the mass of a circle.
-     *
-     * @param density The desired density to factor into the calculation.
-     */
+class Circle(
+    var radius: SceneUnit,
+) : Shape() {
+
     override fun calcMass(density: Float) {
         val physicalBody = this.body
         if (physicalBody !is PhysicalBodyInterface) return
@@ -42,9 +35,6 @@ class Circle
         physicalBody.invInertia = if (physicalBody.inertia != 0f) 1.0f / physicalBody.inertia else 0f
     }
 
-    /**
-     * Generates an AABB and binds it to the body.
-     */
     override fun createAABB() {
         this.body.aabb = AxisAlignedBoundingBox(
             min = SceneOffset(-radius, -radius),
@@ -52,12 +42,6 @@ class Circle
         )
     }
 
-    /**
-     * Method to check if point is inside a body in world space.
-     *
-     * @param startPoint Vector point to check if its inside the first body.
-     * @return boolean value whether the point is inside the first body.
-     */
     override fun isPointInside(startPoint: Vec2) = (body.position - startPoint).length() <= radius
 
     override fun rayIntersect(startPoint: Vec2, endPoint: Vec2, maxDistance: SceneUnit, rayLength: SceneUnit): IntersectionReturnElement {
