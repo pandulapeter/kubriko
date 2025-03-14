@@ -11,11 +11,11 @@ package com.pandulapeter.kubriko.actor.body
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.DrawStyle
 
 sealed interface Body {
 
     val axisAlignedBoundingBox: AxisAlignedBoundingBox
 
-    fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke)
+    fun DrawScope.drawDebugBounds(color: Color, style: DrawStyle)
 }

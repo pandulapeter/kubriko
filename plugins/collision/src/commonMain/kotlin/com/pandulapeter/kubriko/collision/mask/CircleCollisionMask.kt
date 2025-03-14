@@ -12,7 +12,7 @@ package com.pandulapeter.kubriko.collision.mask
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.DrawStyle
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.helpers.extensions.bottomRight
 import com.pandulapeter.kubriko.helpers.extensions.clamp
@@ -95,12 +95,12 @@ class CircleCollisionMask(
         return rotated + pivot
     }
 
-    override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = this@CircleCollisionMask.size.raw.let { size ->
+    override fun DrawScope.drawDebugBounds(color: Color, style: DrawStyle) = this@CircleCollisionMask.size.raw.let { size ->
         drawCircle(
             color = color,
             radius = radius.raw,
             center = size.center,
-            style = stroke,
+            style = style,
         )
     }
 }

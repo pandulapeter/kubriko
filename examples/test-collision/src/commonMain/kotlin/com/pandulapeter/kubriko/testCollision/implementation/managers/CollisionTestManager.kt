@@ -9,6 +9,31 @@
  */
 package com.pandulapeter.kubriko.testCollision.implementation.managers
 
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
+import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
+import com.pandulapeter.kubriko.testCollision.implementation.actors.DraggableActor
+import com.pandulapeter.kubriko.types.SceneOffset
+import kotlin.random.Random
 
-internal class CollisionTestManager : Manager()
+internal class CollisionTestManager : Manager() {
+
+    private val actorManager by manager<ActorManager>()
+
+    override fun onInitialize(kubriko: Kubriko) = actorManager.add(
+        (0..ACTOR_COUNT).map {
+            DraggableActor.newRandomShape(
+                initialPosition = SceneOffset(
+                    x = (AREA_LIMIT * Random.nextFloat() * (if (Random.nextBoolean()) 1f else -1f)).sceneUnit,
+                    y = (AREA_LIMIT * Random.nextFloat() * (if (Random.nextBoolean()) 1f else -1f)).sceneUnit,
+                )
+            )
+        }
+    )
+
+    companion object {
+        private const val ACTOR_COUNT = 64
+        const val AREA_LIMIT = 512
+    }
+}

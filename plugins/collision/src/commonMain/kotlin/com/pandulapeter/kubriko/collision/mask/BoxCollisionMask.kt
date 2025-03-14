@@ -11,7 +11,7 @@ package com.pandulapeter.kubriko.collision.mask
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.DrawStyle
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.helpers.extensions.bottomRight
 import com.pandulapeter.kubriko.helpers.extensions.clamp
@@ -83,11 +83,11 @@ class BoxCollisionMask(
         return rotated + pivot
     }
 
-    override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = this@BoxCollisionMask.size.raw.let { size ->
+    override fun DrawScope.drawDebugBounds(color: Color, style: DrawStyle) = this@BoxCollisionMask.size.raw.let { size ->
         drawRect(
             color = color,
             size = size,
-            style = stroke,
+            style = style,
         )
     }
 }

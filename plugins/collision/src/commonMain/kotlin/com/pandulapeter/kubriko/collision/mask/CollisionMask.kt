@@ -11,7 +11,7 @@ package com.pandulapeter.kubriko.collision.mask
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.DrawStyle
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.types.SceneOffset
 
@@ -20,5 +20,5 @@ sealed interface CollisionMask {
     val axisAlignedBoundingBox: AxisAlignedBoundingBox
     var position: SceneOffset
 
-    fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke)
+    fun DrawScope.drawDebugBounds(color: Color, style: DrawStyle)
 }

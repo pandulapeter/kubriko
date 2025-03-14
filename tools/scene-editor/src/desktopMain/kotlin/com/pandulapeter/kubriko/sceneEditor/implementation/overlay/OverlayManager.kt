@@ -112,7 +112,7 @@ internal class OverlayManager(
                                                     with(body) {
                                                         drawDebugBounds(
                                                             color = Color.Black,
-                                                            stroke = strokeFront,
+                                                            style = strokeFront,
                                                         )
                                                     }
                                                 }
@@ -141,7 +141,7 @@ internal class OverlayManager(
                                                     with(body) {
                                                         drawDebugBounds(
                                                             color = colorBack,
-                                                            stroke = Stroke(),
+                                                            style = Stroke(),
                                                         )
                                                     }
                                                 }

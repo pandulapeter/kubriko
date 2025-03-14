@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.actor.body
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.helpers.extensions.bottomRight
 import com.pandulapeter.kubriko.helpers.extensions.clamp
@@ -83,23 +84,25 @@ class BoxBody(
         return rotated + pivot
     }
 
-    override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = this@BoxBody.size.raw.let { size ->
+    override fun DrawScope.drawDebugBounds(color: Color, style: DrawStyle) = this@BoxBody.size.raw.let { size ->
         drawRect(
             color = color,
             size = size,
-            style = stroke,
+            style = style,
         )
-        drawLine(
-            color = color,
-            start = Offset(pivot.x.raw, 0f),
-            end = Offset(pivot.x.raw, size.height),
-            strokeWidth = stroke.width,
-        )
-        drawLine(
-            color = color,
-            start = Offset(0f, pivot.y.raw),
-            end = Offset(size.width, pivot.y.raw),
-            strokeWidth = stroke.width,
-        )
+        if (style is Stroke) {
+            drawLine(
+                color = color,
+                start = Offset(pivot.x.raw, 0f),
+                end = Offset(pivot.x.raw, size.height),
+                strokeWidth = style.width,
+            )
+            drawLine(
+                color = color,
+                start = Offset(0f, pivot.y.raw),
+                end = Offset(size.width, pivot.y.raw),
+                strokeWidth = style.width,
+            )
+        }
     }
 }

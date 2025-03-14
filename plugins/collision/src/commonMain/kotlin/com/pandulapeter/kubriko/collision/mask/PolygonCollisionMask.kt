@@ -12,7 +12,7 @@ package com.pandulapeter.kubriko.collision.mask
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.DrawStyle
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.helpers.extensions.bottomRight
 import com.pandulapeter.kubriko.helpers.extensions.center
@@ -84,7 +84,7 @@ class PolygonCollisionMask(
         return rotated + pivot
     }
 
-    override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = this@PolygonCollisionMask.size.raw.let { size ->
+    override fun DrawScope.drawDebugBounds(color: Color, style: DrawStyle) = this@PolygonCollisionMask.size.raw.let { size ->
         val path = Path().apply {
             moveTo(vertices[0].x.raw + pivot.x.raw, vertices[0].y.raw + pivot.y.raw)
             for (i in 1 until vertices.size) {
@@ -92,6 +92,6 @@ class PolygonCollisionMask(
             }
             close()
         }
-        drawPath(path = path, color = color, style = stroke)
+        drawPath(path = path, color = color, style = style)
     }
 }

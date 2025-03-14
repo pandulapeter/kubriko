@@ -12,7 +12,7 @@ package com.pandulapeter.kubriko.actor.body
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.DrawStyle
 import com.pandulapeter.kubriko.types.SceneOffset
 
 open class PointBody internal constructor(
@@ -44,11 +44,11 @@ open class PointBody internal constructor(
         max = position,
     )
 
-    override fun DrawScope.drawDebugBounds(color: Color, stroke: Stroke) = drawCircle(
+    override fun DrawScope.drawDebugBounds(color: Color, style: DrawStyle) = drawCircle(
         color = color,
         radius = 2f,
         center = size.center,
-        style = stroke,
+        style = style,
     )
 
     companion object {
