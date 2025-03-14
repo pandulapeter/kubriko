@@ -12,7 +12,7 @@ package com.pandulapeter.kubriko.collision.extensions
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.helpers.extensions.isInside
 
-fun Collidable.isOverlappingWith(
+fun Collidable.isCollidingWith(
     other: Collidable
 ) = if (collisionMask.axisAlignedBoundingBox.isInside(other.collisionMask.axisAlignedBoundingBox)) {
     // TODO: Perform detailed check using the collision masks

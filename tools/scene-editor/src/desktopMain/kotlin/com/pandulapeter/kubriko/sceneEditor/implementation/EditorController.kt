@@ -12,8 +12,8 @@ package com.pandulapeter.kubriko.sceneEditor.implementation
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.collision.extensions.isOverlappingWith
 import com.pandulapeter.kubriko.helpers.extensions.get
+import com.pandulapeter.kubriko.helpers.extensions.isWithin
 import com.pandulapeter.kubriko.helpers.extensions.toSceneOffset
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -172,7 +172,7 @@ internal class EditorController(
     }
 
     private fun findActorOnPosition(sceneOffset: SceneOffset) = filteredVisibleActorsWithinViewport.value
-        .filter { sceneOffset.isOverlappingWith(it.body.axisAlignedBoundingBox) }
+        .filter { sceneOffset.isWithin(it.body.axisAlignedBoundingBox) }
         .minByOrNull { (it as? Visible)?.drawingOrder ?: 0f }
 
     fun selectActor(actor: Editable<*>) = _selectedActor.update {

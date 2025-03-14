@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubriko.collision
 
-import com.pandulapeter.kubriko.collision.extensions.isOverlappingWith
+import com.pandulapeter.kubriko.collision.extensions.isCollidingWith
 import com.pandulapeter.kubriko.manager.ActorManager
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -39,7 +39,7 @@ internal class CollisionManagerImpl(
         collisionDetectors.value.forEach { collisionDetector ->
             collisionDetector.collidableTypes.forEach { collidableType ->
                 collidables.value
-                    .filter { collidableType.isInstance(it) && collisionDetector.isOverlappingWith(it) && it != collisionDetector }
+                    .filter { collidableType.isInstance(it) && collisionDetector.isCollidingWith(it) && it != collisionDetector }
                     .let {
                         if (it.isNotEmpty()) {
                             collisionDetector.onCollisionDetected(it)

@@ -9,13 +9,13 @@
  */
 package com.pandulapeter.kubriko.collision.extensions
 
-import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
+import com.pandulapeter.kubriko.collision.mask.CollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.isWithin
 import com.pandulapeter.kubriko.types.SceneOffset
 
-fun SceneOffset.isOverlappingWith(
-    bounds: AxisAlignedBoundingBox
-) = if (isWithin(bounds)) {
+fun SceneOffset.isCollidingWith(
+    collisionMask: CollisionMask
+) = if (isWithin(collisionMask.axisAlignedBoundingBox)) {
     // TODO: Perform detailed check using the collision masks
     true
 } else {

@@ -19,7 +19,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
-import com.pandulapeter.kubriko.collision.extensions.isOverlappingWith
+import com.pandulapeter.kubriko.helpers.extensions.isWithin
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
@@ -39,7 +39,7 @@ internal fun Modifier.handleMouseClick(
     when (event.button) {
         PointerButton.Primary -> getSelectedActor()?.let { selectedActor ->
             getMouseSceneOffset().let { mouseSceneOffset ->
-                if (mouseSceneOffset.isOverlappingWith(selectedActor.body.axisAlignedBoundingBox)) {
+                if (mouseSceneOffset.isWithin(selectedActor.body.axisAlignedBoundingBox)) {
                     startOffset = mouseSceneOffset - selectedActor.body.position
                 }
             }
