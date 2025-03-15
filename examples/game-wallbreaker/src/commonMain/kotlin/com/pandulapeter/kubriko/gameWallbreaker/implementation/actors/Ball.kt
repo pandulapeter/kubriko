@@ -157,6 +157,63 @@ internal class Ball(
             body.position = previousPosition
             (collidables.filterIsInstance<Paddle>().firstOrNull() ?: collidables.filterIsInstance<Brick>()
                 .minBy { it.body.position.distanceTo(body.position) }).let { collidable ->
+                when {
+                    body.position.x < collidable.body.axisAlignedBoundingBox.min.x &&
+                            body.position.y < collidable.body.axisAlignedBoundingBox.min.y -> {
+                        // Top-left corner
+                        baseSpeedX = -1
+                        baseSpeedY = -1
+                    }
+
+                    body.position.x > collidable.body.axisAlignedBoundingBox.min.x &&
+                            body.position.x < collidable.body.axisAlignedBoundingBox.max.x &&
+                            body.position.y < collidable.body.axisAlignedBoundingBox.min.y -> {
+                        // Top
+                        baseSpeedY = -1
+                    }
+
+                    body.position.x > collidable.body.axisAlignedBoundingBox.max.x &&
+                            body.position.y < collidable.body.axisAlignedBoundingBox.min.y -> {
+                        // Top-right corner
+                        baseSpeedX = -1
+                        baseSpeedY = -1
+                    }
+
+                    body.position.x < collidable.body.axisAlignedBoundingBox.min.x &&
+                            body.position.y > collidable.body.axisAlignedBoundingBox.min.y &&
+                            body.position.y < collidable.body.axisAlignedBoundingBox.max.y -> {
+                        // Left
+                        baseSpeedX = -1
+                    }
+
+                    body.position.x > collidable.body.axisAlignedBoundingBox.max.x &&
+                            body.position.y > collidable.body.axisAlignedBoundingBox.min.y &&
+                            body.position.y < collidable.body.axisAlignedBoundingBox.max.y -> {
+                        // Right
+                        baseSpeedX = 1
+                    }
+
+                    body.position.x < collidable.body.axisAlignedBoundingBox.min.x &&
+                            body.position.y > collidable.body.axisAlignedBoundingBox.max.y -> {
+                        // Bottom-left corner
+                        baseSpeedX = -1
+                        baseSpeedY = 1
+                    }
+
+                    body.position.x > collidable.body.axisAlignedBoundingBox.min.x &&
+                            body.position.x < collidable.body.axisAlignedBoundingBox.max.x &&
+                            body.position.y > collidable.body.axisAlignedBoundingBox.max.y -> {
+                        // Bottom
+                        baseSpeedY = 1
+                    }
+
+                    body.position.x > collidable.body.axisAlignedBoundingBox.max.x &&
+                            body.position.y > collidable.body.axisAlignedBoundingBox.max.y -> {
+                        // Bottom-right corner
+                        baseSpeedX = 1
+                        baseSpeedY = 1
+                    }
+                }
                 when (collidable) {
                     is Brick -> {
                         shouldPlayBrickPopSoundEffect = true
@@ -184,12 +241,6 @@ internal class Ball(
                             isCollidingWithPaddle = true
                         }
                     }
-                }
-                if (body.position.y.raw in collidable.body.axisAlignedBoundingBox.min.y..collidable.body.axisAlignedBoundingBox.max.y) {
-                    baseSpeedX *= -1
-                }
-                if (body.position.x.raw in collidable.body.axisAlignedBoundingBox.min.x..collidable.body.axisAlignedBoundingBox.max.x) {
-                    baseSpeedY *= -1
                 }
             }
             if (shouldPlayBrickPopSoundEffect) {
