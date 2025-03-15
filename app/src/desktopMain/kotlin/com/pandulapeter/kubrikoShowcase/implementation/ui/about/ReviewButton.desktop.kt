@@ -11,14 +11,6 @@ package com.pandulapeter.kubrikoShowcase.implementation.ui.about
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.UriHandler
-import com.pandulapeter.kubriko.uiComponents.LargeButton
-import kubriko.app.generated.resources.Res
-import kubriko.app.generated.resources.ic_review
-import kubriko.app.generated.resources.other_about_write_a_review
 
 @Composable
-internal actual fun ReviewButton(uriHandler: UriHandler) = LargeButton(
-    icon = Res.drawable.ic_review,
-    title = Res.string.other_about_write_a_review,
-    onButtonPressed = { uriHandler.openUri("https://store.steampowered.com/app/3585120/Kubriko_Showcase/") },
-)
+internal actual fun ReviewButton(uriHandler: UriHandler) = Unit
