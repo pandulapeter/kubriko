@@ -65,10 +65,10 @@ internal class Ball(
     private lateinit var scoreManager: ScoreManager
     private lateinit var stateManager: StateManager
     private lateinit var viewportManager: ViewportManager
-    private var isCollidingWithPaddle = false
     private var state = State.UNINITIALIZED
     val isLaunched get() = state == State.LAUNCHED
     private var trackingPointerId: PointerId? = null
+    private var isCollidingWithPaddle = false
 
     private enum class State {
         UNINITIALIZED,
@@ -154,91 +154,99 @@ internal class Ball(
         var shouldPlayBrickPopSoundEffect = false
         var shouldPlayPaddleHitSoundEffect = false
         if (state == State.LAUNCHED) {
-            body.position = previousPosition
             (collidables.filterIsInstance<Paddle>().firstOrNull() ?: collidables.filterIsInstance<Brick>()
                 .minBy { it.body.position.distanceTo(body.position) }).let { collidable ->
+                if (collidable is Brick) {
+                    body.position = previousPosition
+                    isCollidingWithPaddle = false
+                    shouldPlayBrickPopSoundEffect = true
+                    actorManager.remove(collidable)
+                    actorManager.add(
+                        BrickPopEffect(
+                            position = collidable.body.position,
+                            hue = collidable.hue,
+                        )
+                    )
+                    scoreManager.incrementScore()
+                }
                 when {
-                    body.position.x < collidable.body.axisAlignedBoundingBox.min.x &&
-                            body.position.y < collidable.body.axisAlignedBoundingBox.min.y -> {
+                    body.position.x < collidable.body.axisAlignedBoundingBox.left &&
+                            body.position.y < collidable.body.axisAlignedBoundingBox.top -> {
                         // Top-left corner
                         baseSpeedX = -1
                         baseSpeedY = -1
                     }
 
-                    body.position.x > collidable.body.axisAlignedBoundingBox.min.x &&
-                            body.position.x < collidable.body.axisAlignedBoundingBox.max.x &&
-                            body.position.y < collidable.body.axisAlignedBoundingBox.min.y -> {
+                    body.position.x > collidable.body.axisAlignedBoundingBox.left &&
+                            body.position.x < collidable.body.axisAlignedBoundingBox.right &&
+                            body.position.y < collidable.body.axisAlignedBoundingBox.top -> {
                         // Top
                         baseSpeedY = -1
                     }
 
-                    body.position.x > collidable.body.axisAlignedBoundingBox.max.x &&
-                            body.position.y < collidable.body.axisAlignedBoundingBox.min.y -> {
+                    body.position.x > collidable.body.axisAlignedBoundingBox.right &&
+                            body.position.y < collidable.body.axisAlignedBoundingBox.top -> {
                         // Top-right corner
                         baseSpeedX = -1
                         baseSpeedY = -1
                     }
 
-                    body.position.x < collidable.body.axisAlignedBoundingBox.min.x &&
-                            body.position.y > collidable.body.axisAlignedBoundingBox.min.y &&
-                            body.position.y < collidable.body.axisAlignedBoundingBox.max.y -> {
+                    body.position.x < collidable.body.axisAlignedBoundingBox.left &&
+                            body.position.y > collidable.body.axisAlignedBoundingBox.top &&
+                            body.position.y < collidable.body.axisAlignedBoundingBox.bottom -> {
                         // Left
                         baseSpeedX = -1
                     }
 
-                    body.position.x > collidable.body.axisAlignedBoundingBox.max.x &&
-                            body.position.y > collidable.body.axisAlignedBoundingBox.min.y &&
-                            body.position.y < collidable.body.axisAlignedBoundingBox.max.y -> {
+                    body.position.x > collidable.body.axisAlignedBoundingBox.right &&
+                            body.position.y > collidable.body.axisAlignedBoundingBox.top &&
+                            body.position.y < collidable.body.axisAlignedBoundingBox.bottom -> {
                         // Right
                         baseSpeedX = 1
                     }
 
-                    body.position.x < collidable.body.axisAlignedBoundingBox.min.x &&
-                            body.position.y > collidable.body.axisAlignedBoundingBox.max.y -> {
+                    body.position.x < collidable.body.axisAlignedBoundingBox.left &&
+                            body.position.y > collidable.body.axisAlignedBoundingBox.bottom -> {
                         // Bottom-left corner
                         baseSpeedX = -1
                         baseSpeedY = 1
                     }
 
-                    body.position.x > collidable.body.axisAlignedBoundingBox.min.x &&
-                            body.position.x < collidable.body.axisAlignedBoundingBox.max.x &&
-                            body.position.y > collidable.body.axisAlignedBoundingBox.max.y -> {
+                    body.position.x > collidable.body.axisAlignedBoundingBox.left &&
+                            body.position.x < collidable.body.axisAlignedBoundingBox.right &&
+                            body.position.y > collidable.body.axisAlignedBoundingBox.bottom -> {
                         // Bottom
                         baseSpeedY = 1
                     }
 
-                    body.position.x > collidable.body.axisAlignedBoundingBox.max.x &&
-                            body.position.y > collidable.body.axisAlignedBoundingBox.max.y -> {
+                    body.position.x > collidable.body.axisAlignedBoundingBox.right &&
+                            body.position.y > collidable.body.axisAlignedBoundingBox.bottom -> {
                         // Bottom-right corner
                         baseSpeedX = 1
                         baseSpeedY = 1
                     }
                 }
-                when (collidable) {
-                    is Brick -> {
-                        shouldPlayBrickPopSoundEffect = true
-                        actorManager.remove(collidable)
-                        actorManager.add(
-                            BrickPopEffect(
-                                position = collidable.body.position,
-                                hue = collidable.hue,
-                            )
-                        )
-                        scoreManager.incrementScore()
-                        isCollidingWithPaddle = false
-                    }
-
-                    is Paddle -> {
+                if (collidable is Paddle) {
+                    if (!isCollidingWithPaddle) {
+                        isCollidingWithPaddle = true
                         shouldPlayPaddleHitSoundEffect = true
-                        if (isCollidingWithPaddle) {
-                            baseSpeedY = -1
+                    }
+                    if (body.position.y < collidable.body.axisAlignedBoundingBox.top) {
+                        body.position = SceneOffset(
+                            x = body.position.x,
+                            y = paddle.body.position.y - collidable.body.pivot.y - Radius,
+                        )
+                    } else {
+                        if (body.position.x <= collidable.body.axisAlignedBoundingBox.left) {
                             body.position = SceneOffset(
-                                x = body.position.x,
-                                y = paddle.body.position.y - paddle.body.pivot.y - Radius
+                                x = collidable.body.axisAlignedBoundingBox.left - Radius,
+                                y = body.position.y,
                             )
-                            return@let
-                        } else {
-                            isCollidingWithPaddle = true
+                        } else if (body.position.x >= collidable.body.axisAlignedBoundingBox.right) {
+                            body.position = SceneOffset(
+                                x = collidable.body.axisAlignedBoundingBox.right + Radius,
+                                y = body.position.y,
+                            )
                         }
                     }
                 }
