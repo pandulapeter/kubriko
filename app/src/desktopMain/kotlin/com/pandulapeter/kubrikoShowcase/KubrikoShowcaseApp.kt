@@ -9,7 +9,9 @@
  */
 package com.pandulapeter.kubrikoShowcase
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -31,6 +33,7 @@ import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.ic_icon
 import org.jetbrains.compose.resources.painterResource
 import java.awt.Dimension
+import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.WindowStateListener
 
@@ -43,11 +46,22 @@ fun main() {
         val coroutineScope = rememberCoroutineScope()
         val previousBounds = remember { mutableStateOf<Rectangle?>(null) }
         val previousWindowPlacement = remember { mutableStateOf<WindowPlacement?>(null) }
-        val isInFullscreenMode = remember { mutableStateOf<Boolean?>(false) }
-        Window(
+        val previousWindowLocation = remember { mutableStateOf<Point?>(null) }
+        val windowSize = remember { mutableStateOf(windowState.size) }
+        val isInFullscreenMode = remember { mutableStateOf(false) }
+
+        val isRunningOnWindows = remember { MetadataManager.newInstance().platform is MetadataManager.Platform.Desktop.Windows }
+
+        @Composable
+        fun KubrikoShowcaseWindow(
+            undecorated: Boolean,
+            resizable: Boolean,
+        ) = Window(
             onCloseRequest = ::exitApplication,
             state = windowState,
             title = "Kubriko Showcase",
+            undecorated = undecorated,
+            resizable = resizable,
             icon = painterResource(Res.drawable.ic_icon),
         ) {
             DisposableEffect(Unit) {
@@ -56,11 +70,7 @@ fun main() {
                         isInFullscreenMode.value = windowState.placement == WindowPlacement.Fullscreen
                     }
                 }
-                if (MetadataManager.newInstance().platform is MetadataManager.Platform.Desktop.Windows) {
-                    isInFullscreenMode.value = null
-                } else {
-                    window.addWindowStateListener(listener)
-                }
+                window.addWindowStateListener(listener)
                 onDispose {
                     window.removeWindowStateListener(listener)
                 }
@@ -70,11 +80,15 @@ fun main() {
                 isInFullscreenMode = isInFullscreenMode.value,
                 getIsInFullscreenMode = { isInFullscreenMode.value },
                 onFullscreenModeToggled = {
-                    isInFullscreenMode.value?.let { currentValue ->
+                    isInFullscreenMode.value.let { currentValue ->
                         isInFullscreenMode.value = !currentValue
                         if (currentValue) {
                             previousWindowPlacement.value?.let { previousWindowPlacement ->
                                 windowState.placement = previousWindowPlacement
+                                windowState.size = windowSize.value
+                                previousWindowLocation.value?.let {
+                                    window.setLocation(it.x, it.y)
+                                }
                                 previousBounds.value?.let {
                                     coroutineScope.launch {
                                         delay(100)
@@ -83,8 +97,10 @@ fun main() {
                                 }
                             }
                         } else {
+                            windowSize.value = windowState.size
                             previousBounds.value = window.bounds
                             previousWindowPlacement.value = windowState.placement
+                            previousWindowLocation.value = window.location
                             windowState.placement = WindowPlacement.Fullscreen
                         }
                     }
@@ -103,5 +119,19 @@ fun main() {
         PhysicsDemoSceneEditor(
             defaultSceneFolderPath = "../examples/demo-physics/src/commonMain/composeResources/files/scenes"
         )
+
+        if (isRunningOnWindows) {
+            key(isInFullscreenMode.value) {
+                KubrikoShowcaseWindow(
+                    undecorated = isInFullscreenMode.value,
+                    resizable = !isInFullscreenMode.value,
+                )
+            }
+        } else {
+            KubrikoShowcaseWindow(
+                undecorated = false,
+                resizable = true,
+            )
+        }
     }
 }
