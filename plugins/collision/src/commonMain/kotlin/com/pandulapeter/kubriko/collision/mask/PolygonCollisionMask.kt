@@ -38,7 +38,8 @@ open class PolygonCollisionMask internal constructor(
         width = vertices.maxOf { it.x } - vertices.minOf { it.x },
         height = vertices.maxOf { it.y } - vertices.minOf { it.y },
     )
-    private var orientation = Mat2(initialRotation)
+    internal var orientation = Mat2(initialRotation)
+        private set
     var rotation = initialRotation
         set(value) {
             if (field != value) {
@@ -47,7 +48,7 @@ open class PolygonCollisionMask internal constructor(
                 isAxisAlignedBoundingBoxDirty = true
             }
         }
-    private val normals = (0..vertices.lastIndex).map { i ->
+    internal val normals = (0..vertices.lastIndex).map { i ->
         val face = vertices[if (i + 1 == vertices.size) 0 else i + 1].minus(vertices[i])
         face.normal().normalize().unaryMinus()
     }

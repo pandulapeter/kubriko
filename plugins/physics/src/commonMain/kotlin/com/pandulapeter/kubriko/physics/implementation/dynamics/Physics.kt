@@ -18,6 +18,4 @@ import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 object Physics {
     val PenetrationAllowance = 0.sceneUnit
     const val PENETRATION_CORRECTION = 0.2f
-    const val BIAS_RELATIVE = 0.95f
-    const val BIAS_ABSOLUTE = 0.01f
 }

@@ -446,17 +446,8 @@ class Arbiter(
     }
 
     companion object {
-        /**
-         * Method to check if point is inside a body in world space.
-         *
-         * @param b          Body to check against.
-         * @param startPoint Vector point to check if its inside the first body.
-         * @return boolean value whether the point is inside the first body.
-         */
-
-        fun isPointInside(b: CollisionBodyInterface, startPoint: Vec2): Boolean {
-            return b.shape.isPointInside(startPoint)
-        }
+        const val BIAS_RELATIVE = 0.95f
+        const val BIAS_ABSOLUTE = 0.01f
 
         /**
          * Selects one value over another. Intended for polygon collisions to aid in choosing which axis of separation intersects the other in a consistent manner.
@@ -466,9 +457,7 @@ class Arbiter(
          * @param b penetration value b
          * @return boolean value whether a is to be preferred or not.
          */
-        private fun selectionBias(a: SceneUnit, b: SceneUnit): Boolean {
-            return a >= b * Physics.BIAS_RELATIVE + a * Physics.BIAS_ABSOLUTE
-        }
+        private fun selectionBias(a: SceneUnit, b: SceneUnit) = a >= b * BIAS_RELATIVE + a * BIAS_ABSOLUTE
     }
 }
 

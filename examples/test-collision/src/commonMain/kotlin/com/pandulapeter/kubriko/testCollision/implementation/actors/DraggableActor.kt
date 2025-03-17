@@ -56,7 +56,7 @@ internal class DraggableActor(
     private var dragOffset = body.position
     override var drawingOrder = 0f
         private set
-    override val shouldClip = collisionMask is PolygonCollisionMask // TODO: This shouldn't be needed, there must be an issue with the AABB calculation
+    override val shouldClip = collisionMask !is PolygonCollisionMask // TODO: This shouldn't be needed, there must be an issue with the AABB calculation
 
     override fun onAdded(kubriko: Kubriko) {
         viewportManager = kubriko.get()
