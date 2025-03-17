@@ -126,7 +126,7 @@ internal fun WelcomeScreen(
                     LargeButton(
                         icon = Res.drawable.ic_getting_started,
                         title = Res.string.welcome_getting_started,
-                        onButtonPressed = { uriHandler.openUri("https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED.md") },
+                        onButtonPressed = { uriHandler.openUri("https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_01.md") },
                     )
                     LargeButton(
                         icon = Res.drawable.ic_documentation,

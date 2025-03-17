@@ -13,7 +13,7 @@ Using Kubriko requires familiarity with the following concepts:
 - [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html)
 - [Compose](https://developer.android.com/compose)
 - [Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform/)
-- [Setting up the Kubriko dependencies](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED.md)
+- [Setting up the Kubriko dependencies](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_01.md)
 
 ## Library integration
 
@@ -21,7 +21,7 @@ While setting up the Kubriko dependency in any Compose / Compose Multiplatform p
 the [artifact ID-s listed in the main Readme](https://github.com/pandulapeter/kubriko/tree/main?tab=readme-ov-file#-artifacts), if you get stuck at any point,
 feel free to consult the resources below:
 
-[<img src="images/badge_getting_started.png" alt="Getting started" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED.md)
+[<img src="images/badge_getting_started.png" alt="Getting started" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_01.md)
 [<img src="images/badge_tutorial_videos.png" alt="Tutorial videos" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/TUTORIAL_VIDEOS.md)
 
 ## Components of a game

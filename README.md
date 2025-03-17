@@ -33,7 +33,7 @@ You can find the pre-built applications following these links:
 [<img src="./documentation/images/badge_android.png" alt="Download for Android" height="32px" />](https://play.google.com/store/apps/details?id=com.pandulapeter.kubrikoShowcase)
 [<img src="./documentation/images/badge_ios_coming_soon.png" alt="Download for iOS" height="32px" />](#)
 [<img src="./documentation/images/badge_windows.png" alt="Download for Windows" height="32px" />](https://store.steampowered.com/app/3585120/Kubriko_Showcase/)
-[<img src="./documentation/images/badge_macos_coming_soon.png" alt="Download for macOS" height="32px" />]($)
+[<img src="./documentation/images/badge_macos_coming_soon.png" alt="Download for macOS" height="32px" />](#)
 [<img src="./documentation/images/badge_linux.png" alt="Download for Linux" height="32px" />](https://store.steampowered.com/app/3585120/Kubriko_Showcase/)
 [<img src="./documentation/images/badge_web.png" alt="Download for Web" height="32px" />](https://pandulapeter.github.io/kubriko/)
 
@@ -44,7 +44,7 @@ You can find the pre-built applications following these links:
 Follow the links below to get started with the first steps of integrating the library, to read the full documentation, to watch step by step videos on how to approach
 specific types problems, or to join our Discord server where you can discuss more advanced topics with the community, or promote your own creations.
 
-[<img src="documentation/images/badge_getting_started.png" alt="Getting started" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED.md)
+[<img src="documentation/images/badge_getting_started.png" alt="Getting started" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_01.md)
 [<img src="documentation/images/badge_documentation.png" alt="Documentation" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md)
 [<img src="documentation/images/badge_tutorial_videos.png" alt="Tutorial videos" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/TUTORIAL_VIDEOS.md)
 [<img src="documentation/images/badge_community.png" alt="Join the community" height="32px" />](https://discord.gg/RTK4pqbuVR)
