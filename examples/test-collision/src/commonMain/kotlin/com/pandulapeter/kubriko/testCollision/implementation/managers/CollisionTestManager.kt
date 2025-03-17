@@ -13,7 +13,8 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
-import com.pandulapeter.kubriko.testCollision.implementation.actors.DraggableActor
+import com.pandulapeter.kubriko.testCollision.implementation.actors.DraggableCollidableActor
+import com.pandulapeter.kubriko.testCollision.implementation.actors.RayEmitter
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlin.random.Random
 
@@ -23,17 +24,18 @@ internal class CollisionTestManager : Manager() {
 
     override fun onInitialize(kubriko: Kubriko) = actorManager.add(
         (0..ACTOR_COUNT).map {
-            DraggableActor.newRandomShape(
+            DraggableCollidableActor.newRandomShape(
                 initialPosition = SceneOffset(
-                    x = (AREA_LIMIT * Random.nextFloat() * (if (Random.nextBoolean()) 1f else -1f)).sceneUnit,
-                    y = (AREA_LIMIT * Random.nextFloat() * (if (Random.nextBoolean()) 1f else -1f)).sceneUnit,
+                    x = ((RADIUS_AROUND_RAY_EMITTER + AREA_LIMIT * Random.nextFloat()) * (if (Random.nextBoolean()) 1f else -1f)).sceneUnit,
+                    y = ((RADIUS_AROUND_RAY_EMITTER + AREA_LIMIT * Random.nextFloat()) * (if (Random.nextBoolean()) 1f else -1f)).sceneUnit,
                 )
             )
-        }
+        } + RayEmitter()
     )
 
     companion object {
         private const val ACTOR_COUNT = 64
         const val AREA_LIMIT = 512
+        private const val RADIUS_AROUND_RAY_EMITTER = 48
     }
 }
