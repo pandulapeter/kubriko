@@ -30,7 +30,10 @@ internal class BulletParticleState(
 ) : ParticleEmitter.ParticleState() {
 
     override val body = BoxBody(
-        initialSize = SceneSize(8.sceneUnit, 8.sceneUnit),
+        initialSize = SceneSize(
+            width = Radius * 2,
+            height = Radius * 2,
+        ),
     )
     override val drawingOrder = 1f
     private val speed: SceneUnit = 0.1f.sceneUnit
@@ -75,8 +78,12 @@ internal class BulletParticleState(
 
     override fun DrawScope.draw() = drawCircle(
         color = color.copy(alpha = 1 - currentProgress),
-        radius = 6f,
-        center = body.size.center.raw,
+        radius = Radius.raw,
+        center = body.pivot.raw,
         style = Fill,
     )
+
+    companion object {
+        private val Radius = 4.sceneUnit
+    }
 }
