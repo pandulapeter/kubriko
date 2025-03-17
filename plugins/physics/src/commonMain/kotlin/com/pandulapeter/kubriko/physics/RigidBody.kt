@@ -11,9 +11,12 @@ package com.pandulapeter.kubriko.physics
 
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.collision.Collidable
+import com.pandulapeter.kubriko.collision.mask.ComplexCollisionMask
 import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 
 interface RigidBody : Positionable, Collidable {
+
+    override val collisionMask: ComplexCollisionMask
 
     // TODO Should be merged with collisionMask
     val physicsBody: PhysicsBody
