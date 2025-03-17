@@ -40,8 +40,8 @@ internal abstract class DraggableActor(
         initialPivot = collisionMask.size.center,
         initialSize = collisionMask.size,
     )
-    override val collidableTypes = listOf(DraggableActor::class)
-    protected var collisions = emptyList<DraggableActor>()
+    override val collidableTypes = listOf(DraggableCollidableActor::class)
+    protected var collisions = emptyList<DraggableCollidableActor>()
     private var isBeingDragged = false
     private var trackingPointerId: PointerId? = null
     private lateinit var viewportManager: ViewportManager
@@ -79,7 +79,7 @@ internal abstract class DraggableActor(
     }
 
     override fun onCollisionDetected(collidables: List<Collidable>) {
-        collisions = collidables.filterIsInstance<DraggableActor>()
+        collisions = collidables.filterIsInstance<DraggableCollidableActor>()
     }
 
     override fun update(deltaTimeInMilliseconds: Int) {

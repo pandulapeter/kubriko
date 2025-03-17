@@ -10,6 +10,7 @@
 -->
 <resources>
 
-    <string name="description">Drag the different shapes around to test collision detection and ray tracing.</string>
+    <string name="description">Drag the different shapes around to test collision detection.</string>
+<!--    <string name="description">Drag the different shapes around to test collision detection and ray tracing.</string>-->
 
 </resources>
