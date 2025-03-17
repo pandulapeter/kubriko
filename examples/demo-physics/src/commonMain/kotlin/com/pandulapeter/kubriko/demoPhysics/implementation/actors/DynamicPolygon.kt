@@ -38,7 +38,7 @@ internal class DynamicPolygon(
         x = initialOffset.x,
         y = initialOffset.y,
     ).apply {
-        restitution = 1f
+        restitution = 0.4f
     }
 
     override fun DrawScope.draw() {

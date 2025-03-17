@@ -31,7 +31,7 @@ internal class DynamicCircle private constructor(state: State) : BaseDynamicObje
         x = body.position.x,
         y = body.position.y,
     ).apply {
-        restitution = 1f
+        restitution = 0.4f
         orientation = body.rotation
     }
     override val collisionMask = CircleCollisionMask(
