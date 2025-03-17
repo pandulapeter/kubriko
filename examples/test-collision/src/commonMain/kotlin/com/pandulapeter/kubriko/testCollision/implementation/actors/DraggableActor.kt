@@ -25,10 +25,12 @@ import com.pandulapeter.kubriko.collision.extensions.isCollidingWith
 import com.pandulapeter.kubriko.collision.mask.ComplexCollisionMask
 import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.get
+import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.helpers.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.types.AngleRadians
+import kotlin.random.Random
 
 internal abstract class DraggableActor(
     override val collisionMask: ComplexCollisionMask,
@@ -48,6 +50,7 @@ internal abstract class DraggableActor(
     private var dragOffset = body.position
     override var drawingOrder = 0f
     override val shouldClip = collisionMask !is PolygonCollisionMask // TODO: This shouldn't be needed, there must be an issue with the AABB calculation
+    private val rotationDirection = if (Random.nextBoolean()) 1f else -1f
 
     override fun onAdded(kubriko: Kubriko) {
         viewportManager = kubriko.get()
@@ -84,6 +87,12 @@ internal abstract class DraggableActor(
 
     override fun update(deltaTimeInMilliseconds: Int) {
         collisions = emptyList()
+        (collisionMask as? PolygonCollisionMask)?.run {
+            if (!isBeingDragged) {
+                body.rotation += 0.001f.rad * deltaTimeInMilliseconds * rotationDirection
+                rotation = body.rotation
+            }
+        }
     }
 
     override fun DrawScope.draw() = with(collisionMask) {
