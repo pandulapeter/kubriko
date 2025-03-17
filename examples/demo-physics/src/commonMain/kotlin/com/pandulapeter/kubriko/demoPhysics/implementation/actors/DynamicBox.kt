@@ -30,7 +30,6 @@ internal class DynamicBox private constructor(state: State) : BaseDynamicObject(
         initialSize = body.size * body.scale,
         initialPosition = body.position,
         initialRotation = body.rotation,
-        initialPivot = body.pivot,
     )
     override val physicsBody = PhysicsBody(
         shape = Polygon(

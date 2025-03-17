@@ -9,89 +9,147 @@
  */
 package com.pandulapeter.kubriko.collision.mask
 
+import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
-import com.pandulapeter.kubriko.helpers.extensions.bottomRight
-import com.pandulapeter.kubriko.helpers.extensions.center
-import com.pandulapeter.kubriko.helpers.extensions.clamp
-import com.pandulapeter.kubriko.helpers.extensions.cos
-import com.pandulapeter.kubriko.helpers.extensions.sin
+import com.pandulapeter.kubriko.collision.implementation.Mat2
+import com.pandulapeter.kubriko.helpers.extensions.dot
+import com.pandulapeter.kubriko.helpers.extensions.normal
+import com.pandulapeter.kubriko.helpers.extensions.normalize
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
+import com.pandulapeter.kubriko.types.SceneUnit
+import kotlin.math.atan2
 
 
-// TODO: Merge with RectangleBody
-class PolygonCollisionMask(
-    val vertices: List<SceneOffset> = emptyList(),
+open class PolygonCollisionMask internal constructor(
+    unprocessedVertices: List<SceneOffset> = emptyList(),
     initialPosition: SceneOffset = SceneOffset.Zero,
-    initialPivot: SceneOffset = vertices.center,
-//    initialScale: Scale = Scale.Unit,
     initialRotation: AngleRadians = AngleRadians.Zero
 ) : PointCollisionMask(
     initialPosition = initialPosition,
 ), ComplexCollisionMask {
+    val vertices = generateHull(unprocessedVertices)
     override val size = if (vertices.size < 2) SceneSize.Zero else SceneSize(
         width = vertices.maxOf { it.x } - vertices.minOf { it.x },
         height = vertices.maxOf { it.y } - vertices.minOf { it.y },
-    ) * 1.5f
-    override var pivot = initialPivot.clamp(min = SceneOffset.Zero, max = size.bottomRight)
-        set(value) {
-            val newValue = value.clamp(min = SceneOffset.Zero, max = size.bottomRight)
-            if (field != newValue) {
-                field = newValue
-                isAxisAlignedBoundingBoxDirty = true
-            }
-        }
-
-    //    override var scale = initialScale
-//        set(value) {
-//            if (field != value) {
-//                field = value
-//                isAxisAlignedBoundingBoxDirty = true
-//            }
-//        }
-    override var rotation = initialRotation
+    )
+    private var orientation = Mat2(initialRotation)
+    var rotation = initialRotation
         set(value) {
             if (field != value) {
                 field = value
+                orientation.set(rotation)
                 isAxisAlignedBoundingBoxDirty = true
             }
         }
+    private val normals = (0..vertices.lastIndex).map { i ->
+        val face = vertices[if (i + 1 == vertices.size) 0 else i + 1].minus(vertices[i])
+        face.normal().normalize().unaryMinus()
+    }
 
-    // TODO
-    override fun createAxisAlignedBoundingBox() = arrayOf(
-        transformPoint(SceneOffset.Zero),
-        transformPoint(SceneOffset.Right * size.width),
-        transformPoint(SceneOffset.Down * size.height),
-        transformPoint(size.bottomRight),
-    ).let { corners ->
-        AxisAlignedBoundingBox(
-            min = SceneOffset(corners.minOf { it.x }, corners.minOf { it.y }) - pivot + position,
-            max = SceneOffset(corners.maxOf { it.x }, corners.maxOf { it.y }) - pivot + position,
+    /**
+     * Generates a convex hull around the vertices supplied.
+     * TODO: Doesn't work
+     */
+    private fun generateHull(vertices: List<SceneOffset>): List<SceneOffset> {
+        if (vertices.size < 3) return vertices // Convex hull is not defined for fewer than 3 points
+
+        // Step 1: Find the leftmost point (lowest x, then lowest y)
+        var pivot = vertices[0]
+        for (vertex in vertices) {
+            if (vertex.x < pivot.x || (vertex.x == pivot.x && vertex.y < pivot.y)) {
+                pivot = vertex
+            }
+        }
+
+        // Step 2: Sort the points based on polar angle relative to the pivot
+        val sortedVertices = vertices
+            .filter { it != pivot } // Remove the pivot from the list
+            .sortedBy { atan2((it.y - pivot.y).raw.toDouble(), (it.x - pivot.x).raw.toDouble()) }
+
+        // Step 3: Add the pivot to the sorted list
+        val sortedPoints = listOf(pivot) + sortedVertices
+
+        // Step 4: Construct the convex hull using a stack
+        val hull = mutableListOf<SceneOffset>()
+        for (point in sortedPoints) {
+            while (hull.size >= 2 && crossProduct(hull[hull.size - 2], hull[hull.size - 1], point) <= 0) {
+                hull.removeAt(hull.size - 1) // Remove the last point from the hull if it's a clockwise turn
+            }
+            hull.add(point)
+        }
+
+        // Step 5: Return the constructed convex hull
+        return hull
+    }
+
+    private fun crossProduct(o: SceneOffset, a: SceneOffset, b: SceneOffset): Float {
+        return ((a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)).raw
+    }
+
+    override fun isSceneOffsetInside(sceneOffset: SceneOffset): Boolean {
+        for (i in vertices.indices) {
+            val objectPoint = sceneOffset - (position + orientation.mul(vertices[i]))
+            if (objectPoint.dot(orientation.mul(normals[i])) > SceneUnit.Zero) {
+                return false
+            }
+        }
+        return true
+    }
+
+    override fun createAxisAlignedBoundingBox(): AxisAlignedBoundingBox {
+        val firstPoint = orientation.mul(vertices[0])
+        var minX = firstPoint.x
+        var maxX = firstPoint.x
+        var minY = firstPoint.y
+        var maxY = firstPoint.y
+        for (i in 1 until vertices.size) {
+            val point = orientation.mul(vertices[i])
+            val px = point.x
+            val py = point.y
+            if (px < minX) {
+                minX = px
+            } else if (px > maxX) {
+                maxX = px
+            }
+            if (py < minY) {
+                minY = py
+            } else if (py > maxY) {
+                maxY = py
+            }
+        }
+        return AxisAlignedBoundingBox(
+            min = SceneOffset(minX, minY),
+            max = SceneOffset(maxX, maxY),
         )
     }
 
-    private fun transformPoint(point: SceneOffset): SceneOffset {
-        val transformed = (point - pivot) // * scale
-        val rotated = if (rotation == AngleRadians.Zero) transformed else SceneOffset(
-            x = transformed.x * rotation.cos - transformed.y * rotation.sin,
-            y = transformed.x * rotation.sin + transformed.y * rotation.cos,
-        )
-        return rotated + pivot
-    }
 
     override fun DrawScope.drawDebugBounds(color: Color, style: DrawStyle) = this@PolygonCollisionMask.size.raw.let { size ->
         val path = Path().apply {
-            moveTo(vertices[0].x.raw + pivot.x.raw, vertices[0].y.raw + pivot.y.raw)
+            moveTo(vertices[0].x.raw + size.center.x, vertices[0].y.raw + size.center.y)
             for (i in 1 until vertices.size) {
-                lineTo(vertices[i].x.raw + pivot.x.raw, vertices[i].y.raw + pivot.y.raw)
+                lineTo(vertices[i].x.raw + size.center.x, vertices[i].y.raw + size.center.y)
             }
             close()
         }
         drawPath(path = path, color = color, style = style)
+    }
+
+    companion object {
+        operator fun invoke(
+            vertices: List<SceneOffset> = emptyList(),
+            initialPosition: SceneOffset = SceneOffset.Zero,
+            initialRotation: AngleRadians = AngleRadians.Zero
+        ) = PolygonCollisionMask(
+            unprocessedVertices = vertices,
+            initialPosition = initialPosition,
+            initialRotation = initialRotation,
+        )
     }
 }

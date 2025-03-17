@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubriko.physics.implementation.geometry.bodies
 
-import com.pandulapeter.kubriko.physics.implementation.math.Vec2
+import com.pandulapeter.kubriko.collision.implementation.Vec2
 
 interface TranslatableBody {
     var position: Vec2

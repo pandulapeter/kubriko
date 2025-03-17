@@ -33,7 +33,7 @@ internal fun AxisAlignedBoundingBox.isWithinViewportBounds(
         right >= viewportCenter.x - scaledHalfViewportSize.width - viewportEdgeBuffer &&
         bottom >= viewportCenter.y - scaledHalfViewportSize.height - viewportEdgeBuffer
 
-fun AxisAlignedBoundingBox.isInside(other: AxisAlignedBoundingBox): Boolean {
+fun AxisAlignedBoundingBox.isOverlapping(other: AxisAlignedBoundingBox): Boolean {
     val overlapTopLeft = SceneOffset(
         x = maxOf(left, other.left),
         y = maxOf(top, other.top)

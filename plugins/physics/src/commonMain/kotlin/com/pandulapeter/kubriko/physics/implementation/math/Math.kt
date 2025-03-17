@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.physics.implementation.math
 
+import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.abs

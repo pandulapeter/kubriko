@@ -19,6 +19,7 @@ import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.isWithinViewportBounds
@@ -30,7 +31,6 @@ import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.joints.JointToBody
-import com.pandulapeter.kubriko.physics.implementation.math.Vec2
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneOffset
@@ -174,15 +174,12 @@ internal class DynamicChain private constructor(state: State) : Group, Dynamic, 
         override val collisionMask = CircleCollisionMask(
             initialRadius = Radius,
             initialPosition = body.position,
-            initialRotation = body.rotation,
-            initialPivot = body.pivot,
         )
 
         override fun update(deltaTimeInMilliseconds: Int) {
             body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
             body.rotation = physicsBody.orientation
             collisionMask.position = body.position
-            collisionMask.rotation = body.rotation
         }
 
         override fun DrawScope.draw() = Unit

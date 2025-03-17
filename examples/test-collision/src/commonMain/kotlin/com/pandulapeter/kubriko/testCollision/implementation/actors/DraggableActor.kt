@@ -25,8 +25,11 @@ import com.pandulapeter.kubriko.collision.extensions.isCollidingWith
 import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.collision.mask.ComplexCollisionMask
+import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
+import com.pandulapeter.kubriko.helpers.extensions.cos
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
+import com.pandulapeter.kubriko.helpers.extensions.sin
 import com.pandulapeter.kubriko.helpers.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
@@ -41,9 +44,9 @@ internal class DraggableActor(
 
     override val body = BoxBody(
         initialPosition = collisionMask.position,
-        initialRotation = collisionMask.rotation,
-        initialPivot = collisionMask.pivot,
-        initialSize = collisionMask.axisAlignedBoundingBox.size,
+        initialRotation = (collisionMask as? PolygonCollisionMask)?.rotation ?: AngleRadians.Zero,
+        initialPivot = collisionMask.size.center,
+        initialSize = collisionMask.size,
     )
     override val collidableTypes = listOf(DraggableActor::class)
     private var collisions = emptyList<DraggableActor>()
@@ -53,14 +56,6 @@ internal class DraggableActor(
     private var dragOffset = body.position
     override var drawingOrder = 0f
         private set
-
-
-    init {
-        (AngleRadians.TwoPi * Random.nextFloat()).let { rotation ->
-            collisionMask.rotation = rotation
-            body.rotation = rotation
-        }
-    }
 
     override fun onAdded(kubriko: Kubriko) {
         viewportManager = kubriko.get()
@@ -106,21 +101,34 @@ internal class DraggableActor(
 
     companion object {
         fun newRandomShape(initialPosition: SceneOffset) = DraggableActor(
-            collisionMask = when (Random.nextInt(2)) {
+            collisionMask = when (Random.nextInt(3)) {
                 0 -> BoxCollisionMask(
                     initialPosition = initialPosition,
                     initialSize = SceneSize(
                         width = (20 + 80 * Random.nextFloat()).sceneUnit,
                         height = (20 + 80 * Random.nextFloat()).sceneUnit,
                     ),
+                    initialRotation = AngleRadians.TwoPi * Random.nextFloat(),
+                )
+
+                1 -> PolygonCollisionMask(
+                    initialPosition = initialPosition,
+                    vertices = (3..10).random().let { sideCount ->
+                        (0..sideCount).map { sideIndex ->
+                            val angle = AngleRadians.TwoPi / sideCount * (sideIndex + 0.75f)
+                            SceneOffset(
+                                x = (10..40).random().sceneUnit * angle.cos,
+                                y = (10..40).random().sceneUnit * angle.sin,
+                            )
+                        }
+                    },
+                    initialRotation = AngleRadians.TwoPi * Random.nextFloat(),
                 )
 
                 else -> CircleCollisionMask(
                     initialPosition = initialPosition,
                     initialRadius = (10 + 40 * Random.nextFloat()).sceneUnit,
                 )
-
-                // TODO: PolygonCollisionMask
             }
         )
     }

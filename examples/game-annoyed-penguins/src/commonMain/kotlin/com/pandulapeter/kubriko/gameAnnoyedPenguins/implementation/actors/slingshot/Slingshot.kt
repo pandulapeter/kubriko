@@ -20,7 +20,7 @@ import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.helpers.extensions.abs
 import com.pandulapeter.kubriko.helpers.extensions.get
-import com.pandulapeter.kubriko.helpers.extensions.isWithin
+import com.pandulapeter.kubriko.helpers.extensions.isInside
 import com.pandulapeter.kubriko.helpers.extensions.toOffset
 import com.pandulapeter.kubriko.helpers.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -127,7 +127,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
                 // Detect if the initial press was on the slingshot
                 if (pressedPointerPositions.isNotEmpty()) {
                     pressedPointerPositions.firstNotNullOf { it }.let { pressPosition ->
-                        if (pressPosition.value.toSceneOffset(viewportManager).isWithin(body.axisAlignedBoundingBox)) {
+                        if (pressPosition.value.toSceneOffset(viewportManager).isInside(body.axisAlignedBoundingBox)) {
                             aimingPointerId = pressPosition.key
                         }
                     }

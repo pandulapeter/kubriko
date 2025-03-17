@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.physics.implementation.collision
 
+import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.collision.bodies.CollisionBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.dynamics.Physics
@@ -16,7 +17,6 @@ import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.PhysicalB
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
 import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
-import com.pandulapeter.kubriko.physics.implementation.math.Vec2
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.abs
 

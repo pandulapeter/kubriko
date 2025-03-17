@@ -10,7 +10,8 @@
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
+import com.pandulapeter.kubriko.collision.implementation.Vec2
+import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base.BlinkingPenguin
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.toSceneSize
@@ -19,7 +20,6 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
-import com.pandulapeter.kubriko.physics.implementation.math.Vec2
 import com.pandulapeter.kubriko.types.SceneOffset
 
 internal class Penguin(
@@ -29,15 +29,14 @@ internal class Penguin(
 
     private lateinit var actorManager: ActorManager
     private lateinit var viewportManager: ViewportManager
-    override val collisionMask = BoxCollisionMask(
-        initialSize = body.size * body.scale.horizontal, // TODO: Vertical scale is disregarded
+    val radius = body.size.width * 0.4f
+    override val collisionMask = CircleCollisionMask(
+        initialRadius = radius,
         initialPosition = body.position,
-        initialRotation = body.rotation,
-        initialPivot = body.pivot,
     )
     override val physicsBody = PhysicsBody(
         shape = Circle(
-            radius = body.size.width * 0.4f,
+            radius = radius,
         ),
         x = body.position.x,
         y = body.position.y * 1.2f,

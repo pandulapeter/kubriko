@@ -138,9 +138,8 @@ internal class AlienShip(
         if (!isShrinking) {
             body.scale = StartingScale * gameplayManager.scaleMultiplier.value
         }
-        collisionMask.position = body.position
         collisionMask.radius = CollisionMaskRadius * body.scale.horizontal
-        collisionMask.pivot = collisionMask.size.center
+        collisionMask.position = body.position
     }
 
     fun onHit(canSpawnPowerup: Boolean) {

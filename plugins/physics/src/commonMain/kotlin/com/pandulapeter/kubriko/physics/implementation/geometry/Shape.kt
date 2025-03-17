@@ -9,10 +9,10 @@
  */
 package com.pandulapeter.kubriko.physics.implementation.geometry
 
+import com.pandulapeter.kubriko.collision.implementation.Mat2
+import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.physics.implementation.collision.bodies.CollisionBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
-import com.pandulapeter.kubriko.physics.implementation.math.Mat2
-import com.pandulapeter.kubriko.physics.implementation.math.Vec2
 import com.pandulapeter.kubriko.types.SceneUnit
 
 /**

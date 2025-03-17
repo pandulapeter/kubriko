@@ -33,7 +33,6 @@ internal class Ground private constructor(state: State) : RigidBody, Visible, Ed
         initialSize = body.size * body.scale,
         initialPosition = body.position,
         initialRotation = body.rotation,
-        initialPivot = body.pivot,
     )
     override val physicsBody = PhysicsBody(
         shape = Polygon(body.size.width / 2f, body.size.height / 2f),

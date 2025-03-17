@@ -9,9 +9,9 @@
  */
 package com.pandulapeter.kubriko.physics.implementation.joints
 
+import com.pandulapeter.kubriko.collision.implementation.Mat2
+import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
-import com.pandulapeter.kubriko.physics.implementation.math.Mat2
-import com.pandulapeter.kubriko.physics.implementation.math.Vec2
 import com.pandulapeter.kubriko.types.SceneUnit
 
 /**

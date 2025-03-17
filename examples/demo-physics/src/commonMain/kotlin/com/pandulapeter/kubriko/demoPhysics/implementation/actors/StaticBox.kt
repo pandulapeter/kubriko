@@ -41,7 +41,6 @@ internal class StaticBox private constructor(state: State) : RigidBody, Visible,
         initialSize = body.size * body.scale,
         initialPosition = body.position,
         initialRotation = body.rotation,
-        initialPivot = body.pivot,
     )
 
     @set:Exposed(name = "isRotating")

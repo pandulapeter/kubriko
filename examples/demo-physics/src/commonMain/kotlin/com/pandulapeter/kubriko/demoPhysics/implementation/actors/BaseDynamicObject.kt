@@ -14,6 +14,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.mask.ComplexCollisionMask
+import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -45,7 +46,7 @@ internal abstract class BaseDynamicObject : RigidBody, Visible, Dynamic {
             actorManager.remove(this)
         } else {
             collisionMask.position = body.position
-            collisionMask.rotation = body.rotation
+            (collisionMask as? PolygonCollisionMask)?.rotation = body.rotation
         }
     }
 }

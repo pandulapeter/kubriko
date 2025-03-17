@@ -10,14 +10,14 @@
 package com.pandulapeter.kubriko.collision.extensions
 
 import com.pandulapeter.kubriko.collision.mask.CollisionMask
-import com.pandulapeter.kubriko.helpers.extensions.isWithin
+import com.pandulapeter.kubriko.collision.mask.ComplexCollisionMask
+import com.pandulapeter.kubriko.helpers.extensions.isInside
 import com.pandulapeter.kubriko.types.SceneOffset
 
 fun SceneOffset.isCollidingWith(
     collisionMask: CollisionMask
-) = if (isWithin(collisionMask.axisAlignedBoundingBox)) {
-    // TODO: Perform detailed check using the collision masks
-    true
+) = if (collisionMask is ComplexCollisionMask) {
+    isInside(collisionMask.axisAlignedBoundingBox.withOffset(collisionMask.position)) && collisionMask.isSceneOffsetInside(this)
 } else {
-    false
+    x == collisionMask.position.x && y == collisionMask.position.y
 }

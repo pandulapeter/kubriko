@@ -10,11 +10,11 @@
 package com.pandulapeter.kubriko.collision.extensions
 
 import com.pandulapeter.kubriko.collision.Collidable
-import com.pandulapeter.kubriko.helpers.extensions.isInside
+import com.pandulapeter.kubriko.helpers.extensions.isOverlapping
 
 fun Collidable.isCollidingWith(
     other: Collidable
-) = if (collisionMask.axisAlignedBoundingBox.isInside(other.collisionMask.axisAlignedBoundingBox)) {
+) = if (collisionMask.axisAlignedBoundingBox.withOffset(collisionMask.position).isOverlapping(other.collisionMask.axisAlignedBoundingBox.withOffset(other.collisionMask.position))) {
     // TODO: Perform detailed check using the collision masks
     true
 } else {

@@ -21,6 +21,7 @@ import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.mask.CollisionMask
 import com.pandulapeter.kubriko.collision.mask.ComplexCollisionMask
+import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.deg
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.minus
@@ -58,7 +59,10 @@ internal class DebugMenuManager(
             combine(gameActorManager.allActors, gameActorManager.visibleActorsWithinViewport) { all, visible -> all to visible },
             gameMetadataManager.activeRuntimeInMilliseconds,
             gameViewportManager.size,
-            combine(InternalDebugMenu.shouldDrawBodyOverlays, InternalDebugMenu.shouldDrawCollisionMaskOverlays) { body, collisionMask -> body to collisionMask },
+            combine(
+                InternalDebugMenu.shouldDrawBodyOverlays,
+                InternalDebugMenu.shouldDrawCollisionMaskOverlays
+            ) { body, collisionMask -> body to collisionMask },
         ) { fps, (allActors, visibleActorsWithinViewport), runtimeInMilliseconds, viewportSize, (bodyOverlay, collisionMaskOverlay) ->
             DebugMenuMetadata(
                 kubrikoInstanceName = gameKubriko.instanceName,
@@ -136,25 +140,18 @@ internal class DebugMenuManager(
     }
 
     fun CollisionMask.transformForViewport(drawTransform: DrawTransform) {
-        val pivot = if (this is ComplexCollisionMask) pivot else SceneOffset.Zero
+        val pivot = if (this is ComplexCollisionMask) size.center else SceneOffset.Zero
         drawTransform.translate(
             left = (position.x - pivot.x).raw,
             top = (position.y - pivot.y).raw,
         )
-        if (this is ComplexCollisionMask) {
+        if (this is PolygonCollisionMask) {
             if (rotation != AngleRadians.Zero) {
                 drawTransform.rotate(
                     degrees = rotation.deg.normalized,
                     pivot = pivot.raw,
                 )
             }
-//            if (scale != Scale.Unit) {
-//                drawTransform.scale(
-//                    scaleX = scale.horizontal,
-//                    scaleY = scale.vertical,
-//                    pivot = pivot.raw,
-//                )
-//            }
         }
     }
 

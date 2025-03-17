@@ -33,7 +33,6 @@ internal class DestructibleBlock private constructor(
         initialSize = body.size * body.scale,
         initialPosition = body.position,
         initialRotation = body.rotation,
-        initialPivot = body.pivot,
     )
     override val physicsBody = PhysicsBody(
         shape = Polygon(
@@ -43,7 +42,7 @@ internal class DestructibleBlock private constructor(
         x = body.position.x,
         y = body.position.y,
     ).apply {
-        restitution =1f
+        restitution = 1f
         density = 10f
         orientation = body.rotation
     }

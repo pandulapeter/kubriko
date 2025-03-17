@@ -9,10 +9,10 @@
  */
 package com.pandulapeter.kubriko.physics.implementation.dynamics.bodies
 
+import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.physics.implementation.collision.bodies.CollisionBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
-import com.pandulapeter.kubriko.physics.implementation.math.Vec2
 
 abstract class AbstractPhysicalBody : PhysicalBodyInterface {
     override var velocity = Vec2()

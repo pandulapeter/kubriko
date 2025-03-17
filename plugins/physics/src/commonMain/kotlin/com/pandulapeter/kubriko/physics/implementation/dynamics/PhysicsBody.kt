@@ -10,10 +10,10 @@
 package com.pandulapeter.kubriko.physics.implementation.dynamics
 
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
+import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.physics.implementation.collision.bodies.CollisionBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.AbstractPhysicalBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Shape
-import com.pandulapeter.kubriko.physics.implementation.math.Vec2
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneUnit
 

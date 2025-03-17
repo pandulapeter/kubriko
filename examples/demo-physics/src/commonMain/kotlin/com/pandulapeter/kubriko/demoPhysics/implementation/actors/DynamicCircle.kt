@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.BoxBody
-import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
+import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.sceneEditor.Editable
@@ -34,11 +34,9 @@ internal class DynamicCircle private constructor(state: State) : BaseDynamicObje
         restitution = 1f
         orientation = body.rotation
     }
-    override val collisionMask = BoxCollisionMask(
-        initialSize = body.size * body.scale.horizontal, // TODO: Vertical scale is disregarded
+    override val collisionMask = CircleCollisionMask(
+        initialRadius = radius,
         initialPosition = body.position,
-        initialRotation = body.rotation,
-        initialPivot = body.pivot,
     )
 
     override fun DrawScope.draw() {

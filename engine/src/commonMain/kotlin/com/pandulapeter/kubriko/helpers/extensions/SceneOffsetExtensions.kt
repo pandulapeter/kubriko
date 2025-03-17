@@ -97,7 +97,7 @@ fun SceneOffset.scalar(a: Float): SceneOffset = SceneOffset(x * a, y * a)
 
 fun SceneOffset.scalar(a: SceneUnit): SceneOffset = SceneOffset(x * a, y * a)
 
-fun SceneOffset.isWithin(
+fun SceneOffset.isInside(
     axisAlignedBoundingBox: AxisAlignedBoundingBox
 ): Boolean = x.raw in axisAlignedBoundingBox.left..axisAlignedBoundingBox.right && y.raw in axisAlignedBoundingBox.top..axisAlignedBoundingBox.bottom
 
