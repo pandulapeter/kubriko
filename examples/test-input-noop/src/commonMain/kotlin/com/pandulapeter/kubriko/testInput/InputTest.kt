@@ -16,11 +16,15 @@ import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.testInput.implementation.InputTestStateHolder
 import com.pandulapeter.kubriko.testInput.implementation.InputTestStateHolderImpl
 
-fun createInputTestStateHolder(): InputTestStateHolder = InputTestStateHolderImpl()
+fun createInputTestStateHolder(
+    isLoggingEnabled: Boolean,
+): InputTestStateHolder = InputTestStateHolderImpl()
 
 @Composable
 fun InputTest(
     modifier: Modifier = Modifier,
-    stateHolder: InputTestStateHolder = createInputTestStateHolder(),
+    stateHolder: InputTestStateHolder = createInputTestStateHolder(
+        isLoggingEnabled = false,
+    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) = Unit

@@ -16,13 +16,17 @@ import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.testAudio.implementation.AudioTestStateHolder
 import com.pandulapeter.kubriko.testAudio.implementation.AudioTestStateHolderImpl
 
-fun createAudioTestStateHolder(webRootPathName: String): AudioTestStateHolder = AudioTestStateHolderImpl(
-    webRootPathName = webRootPathName,
-)
+fun createAudioTestStateHolder(
+    webRootPathName: String,
+    isLoggingEnabled: Boolean,
+): AudioTestStateHolder = AudioTestStateHolderImpl()
 
 @Composable
 fun AudioTest(
     modifier: Modifier = Modifier,
-    stateHolder: AudioTestStateHolder = createAudioTestStateHolder(""),
+    stateHolder: AudioTestStateHolder = createAudioTestStateHolder(
+        webRootPathName = "",
+        isLoggingEnabled = false,
+    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) = Unit

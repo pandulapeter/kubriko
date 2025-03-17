@@ -16,11 +16,15 @@ import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.testCollision.implementation.CollisionTestStateHolder
 import com.pandulapeter.kubriko.testCollision.implementation.CollisionTestStateHolderImpl
 
-fun createCollisionTestStateHolder(): CollisionTestStateHolder = CollisionTestStateHolderImpl()
+fun createCollisionTestStateHolder(
+    isLoggingEnabled: Boolean,
+): CollisionTestStateHolder = CollisionTestStateHolderImpl()
 
 @Composable
 fun CollisionTest(
     modifier: Modifier = Modifier,
-    stateHolder: CollisionTestStateHolder = createCollisionTestStateHolder(),
+    stateHolder: CollisionTestStateHolder = createCollisionTestStateHolder(
+        isLoggingEnabled = false,
+    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) = Unit
