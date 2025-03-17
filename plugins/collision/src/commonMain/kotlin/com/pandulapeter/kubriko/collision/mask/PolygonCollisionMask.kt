@@ -103,7 +103,7 @@ open class PolygonCollisionMask internal constructor(
         return true
     }
 
-    override fun createAxisAlignedBoundingBox(): AxisAlignedBoundingBox {
+    override fun updateAxisAlignedBoundingBox(): AxisAlignedBoundingBox {
         val firstPoint = orientation.mul(vertices[0])
         var minX = firstPoint.x
         var maxX = firstPoint.x
@@ -125,8 +125,8 @@ open class PolygonCollisionMask internal constructor(
             }
         }
         return AxisAlignedBoundingBox(
-            min = SceneOffset(minX, minY),
-            max = SceneOffset(maxX, maxY),
+            min = SceneOffset(minX, minY) + position,
+            max = SceneOffset(maxX, maxY) + position,
         )
     }
 

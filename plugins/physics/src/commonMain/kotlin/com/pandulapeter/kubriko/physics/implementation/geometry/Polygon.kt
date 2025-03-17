@@ -152,8 +152,14 @@ class Polygon : Shape {
             }
         }
         this.body.aabb = AxisAlignedBoundingBox(
-            min = SceneOffset(minX, minY),
-            max = SceneOffset(maxX, maxY),
+            min = SceneOffset(
+                x = minX + body.position.x,
+                y = minY + body.position.y,
+            ),
+            max = SceneOffset(
+                x = maxX + body.position.x,
+                y = maxY + body.position.y,
+            ),
         )
     }
 

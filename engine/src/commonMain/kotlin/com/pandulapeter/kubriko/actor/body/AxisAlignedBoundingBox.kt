@@ -9,25 +9,41 @@
  */
 package com.pandulapeter.kubriko.actor.body
 
+import androidx.compose.ui.util.fastRoundToInt
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
+import kotlin.jvm.JvmInline
 
-// TODO: Could be optimized by making it mutable
-data class AxisAlignedBoundingBox(
-    val min: SceneOffset,
+@JvmInline
+value class AxisAlignedBoundingBox(private val packed: Long) {
+    val min: SceneOffset
+        get() = SceneOffset(
+            x = (packed shr 48).toShort().toInt().sceneUnit,
+            y = (packed shr 32).toShort().toInt().sceneUnit,
+        )
+
     val max: SceneOffset
-) {
-    val size = SceneSize(
-        width = max.x - min.x,
-        height = max.y - min.y,
-    )
-    val left = min.x
-    val top = min.y
-    val right = max.x
-    val bottom = max.y
+        get() = SceneOffset(
+            x = (packed shr 16).toShort().toInt().sceneUnit,
+            y = packed.toShort().toInt().sceneUnit,
+        )
 
-    fun withOffset(offset: SceneOffset) = AxisAlignedBoundingBox(
-        min = min + offset,
-        max = max + offset,
+    constructor(min: SceneOffset, max: SceneOffset) : this(
+        (((min.x.raw.fastRoundToInt()) and 0xFFFF).toLong() shl 48) or
+                (((min.y.raw.fastRoundToInt()) and 0xFFFF).toLong() shl 32) or
+                (((max.x.raw.fastRoundToInt()) and 0xFFFF).toLong() shl 16) or
+                ((max.y.raw.fastRoundToInt()) and 0xFFFF).toLong()
     )
+
+    val size
+        get() = SceneSize(
+            width = right - left,
+            height = bottom - top,
+        )
+
+    val left get() = min.x
+    val top get() = min.y
+    val right get() = max.x
+    val bottom get() = max.y
 }

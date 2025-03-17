@@ -17,7 +17,7 @@ import com.pandulapeter.kubriko.types.SceneOffset
 fun SceneOffset.isCollidingWith(
     collisionMask: CollisionMask
 ) = if (collisionMask is ComplexCollisionMask) {
-    isInside(collisionMask.axisAlignedBoundingBox.withOffset(collisionMask.position)) && collisionMask.isSceneOffsetInside(this)
+    isInside(collisionMask.axisAlignedBoundingBox) && collisionMask.isSceneOffsetInside(this)
 } else {
     x == collisionMask.position.x && y == collisionMask.position.y
 }

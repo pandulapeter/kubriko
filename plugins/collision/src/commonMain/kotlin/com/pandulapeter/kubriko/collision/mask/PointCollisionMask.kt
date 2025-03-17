@@ -19,19 +19,17 @@ import com.pandulapeter.kubriko.types.SceneOffset
 open class PointCollisionMask internal constructor(
     initialPosition: SceneOffset,
 ) : CollisionMask {
-    private var _axisAlignedBoundingBox: AxisAlignedBoundingBox? = null
-    override var axisAlignedBoundingBox: AxisAlignedBoundingBox
+    protected var isAxisAlignedBoundingBoxDirty = true
+    override var axisAlignedBoundingBox = AxisAlignedBoundingBox(
+        min = SceneOffset.Zero,
+        max = SceneOffset.Zero,
+    )
         get() {
             if (isAxisAlignedBoundingBoxDirty) {
-                _axisAlignedBoundingBox = null
-                isAxisAlignedBoundingBoxDirty = false
+                field = updateAxisAlignedBoundingBox()
             }
-            return _axisAlignedBoundingBox ?: createAxisAlignedBoundingBox().also { _axisAlignedBoundingBox = it }
+            return field
         }
-        protected set(value) {
-            _axisAlignedBoundingBox = value
-        }
-    protected var isAxisAlignedBoundingBoxDirty = false
     override var position = initialPosition
         set(value) {
             if (field != value) {
@@ -40,9 +38,9 @@ open class PointCollisionMask internal constructor(
             }
         }
 
-    protected open fun createAxisAlignedBoundingBox() = AxisAlignedBoundingBox(
-        min = SceneOffset.Zero,
-        max = SceneOffset.Zero,
+    protected open fun updateAxisAlignedBoundingBox() = AxisAlignedBoundingBox(
+        min = position,
+        max = position,
     )
 
     override fun DrawScope.drawDebugBounds(color: Color, style: DrawStyle) = drawCircle(

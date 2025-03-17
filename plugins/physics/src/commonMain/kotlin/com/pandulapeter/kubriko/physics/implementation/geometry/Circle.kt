@@ -37,8 +37,14 @@ class Circle(
 
     override fun createAABB() {
         this.body.aabb = AxisAlignedBoundingBox(
-            min = SceneOffset(-radius, -radius),
-            max = SceneOffset(radius, radius),
+            min = SceneOffset(
+                x = body.position.x - radius,
+                y = body.position.y - radius,
+            ),
+            max = SceneOffset(
+                x = body.position.x + radius,
+                y = body.position.y + radius,
+            ),
         )
     }
 

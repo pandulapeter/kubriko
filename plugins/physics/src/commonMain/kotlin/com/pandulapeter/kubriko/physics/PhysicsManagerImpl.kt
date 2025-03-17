@@ -121,8 +121,8 @@ internal class PhysicsManagerImpl(
     }
 
     private fun aabbOverlap(bodyA: CollisionBodyInterface, bodyB: CollisionBodyInterface): Boolean {
-        val aCopy = bodyA.aabb.withOffset(bodyA.position.toSceneOffset())
-        val bCopy = bodyB.aabb.withOffset(bodyB.position.toSceneOffset())
+        val aCopy = bodyA.aabb
+        val bCopy = bodyB.aabb
         return aabbOverlap(aCopy, bCopy)
     }
 

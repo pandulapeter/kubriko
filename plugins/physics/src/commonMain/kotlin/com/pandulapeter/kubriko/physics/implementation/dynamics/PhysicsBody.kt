@@ -15,6 +15,7 @@ import com.pandulapeter.kubriko.physics.implementation.collision.bodies.Collisio
 import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.AbstractPhysicalBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Shape
 import com.pandulapeter.kubriko.types.AngleRadians
+import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
@@ -39,7 +40,7 @@ class PhysicsBody(
             shape.orientation.set(orientation)
             shape.createAABB()
         }
-    override lateinit var aabb: AxisAlignedBoundingBox
+    override var aabb = AxisAlignedBoundingBox(SceneOffset.Zero, SceneOffset.Zero)
 
     init {
         density = density

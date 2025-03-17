@@ -38,9 +38,9 @@ class CircleCollisionMask(
 
     override fun isSceneOffsetInside(sceneOffset: SceneOffset) = (position - sceneOffset).length() <= radius
 
-    override fun createAxisAlignedBoundingBox() = AxisAlignedBoundingBox(
-        min = SceneOffset.Zero - size.center,
-        max = SceneOffset(size.width, size.height) - size.center,
+    override fun updateAxisAlignedBoundingBox() = AxisAlignedBoundingBox(
+        min = SceneOffset.Zero - size.center + position,
+        max = SceneOffset(size.width, size.height) - size.center + position,
     )
 
     override fun DrawScope.drawDebugBounds(color: Color, style: DrawStyle) = this@CircleCollisionMask.size.raw.let { size ->
