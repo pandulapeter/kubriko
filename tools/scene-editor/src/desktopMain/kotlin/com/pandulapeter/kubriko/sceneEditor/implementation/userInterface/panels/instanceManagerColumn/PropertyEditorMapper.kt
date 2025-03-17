@@ -32,6 +32,7 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.compone
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.BooleanPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ColorPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.FloatPropertyEditor
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.IntPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.RotationPropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.ScalePropertyEditor
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.propertyEditors.SceneOffsetPropertyEditor
@@ -61,6 +62,7 @@ private val angleRadiansType = AngleRadians::class.createType()
 private val sceneOffsetType = SceneOffset::class.createType()
 private val scaleType = Scale::class.createType()
 private val floatType = Float::class.createType()
+private val intType = Int::class.createType()
 private val stringType = String::class.starProjectedType.withNullability(true)
 private val sceneUnitType = SceneUnit::class.createType()
 
@@ -160,6 +162,20 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
                         name = name,
                         value = getter.call(actor) as Float,
+                        onValueChanged = {
+                            setter.call(actor, it)
+                            notifySelectedInstanceUpdate()
+                        },
+                    )
+                }
+            }
+
+            intType -> {
+                {
+                    IntPropertyEditor(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                        name = name,
+                        value = getter.call(actor) as Int,
                         onValueChanged = {
                             setter.call(actor, it)
                             notifySelectedInstanceUpdate()

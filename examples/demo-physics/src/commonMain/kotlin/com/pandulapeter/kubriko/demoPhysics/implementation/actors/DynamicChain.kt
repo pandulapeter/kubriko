@@ -32,6 +32,7 @@ import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.joints.JointToBody
 import com.pandulapeter.kubriko.sceneEditor.Editable
+import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneOffset
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -42,15 +43,14 @@ import kotlinx.serialization.json.Json
 import kotlin.random.Random
 
 // TODO: Something is off with the Editor preview
-internal class DynamicChain private constructor(state: State) : Group, Dynamic, Visible, Editable<DynamicChain> {
-    private val chainLinks = (0..state.linkCount).map { linkIndex ->
-        ChainLink(
-            initialPosition = SceneOffset(
-                x = state.initialCenterOffset.x + LinkDistance * (state.linkCount / 2) - (LinkDistance * linkIndex),
-                y = state.initialCenterOffset.y,
-            )
-        )
-    }
+internal class DynamicChain private constructor(private val state: State) : Group, Dynamic, Visible, Editable<DynamicChain> {
+    @set:Exposed("linkCount")
+    var linkCount = state.linkCount
+        set(value) {
+            field = value
+            chainLinks = generateLinks()
+        }
+    private var chainLinks = generateLinks()
     private val joints = chainLinks.mapIndexedNotNull { index, chainLink ->
         if (index > 0) JointWrapper(
             physicsJoint = JointToBody(
@@ -92,6 +92,15 @@ internal class DynamicChain private constructor(state: State) : Group, Dynamic, 
         } else {
             refreshBodySize()
         }
+    }
+
+    private fun generateLinks() = (0..linkCount).map { linkIndex ->
+        ChainLink(
+            initialPosition = SceneOffset(
+                x = state.initialCenterOffset.x + LinkDistance * (state.linkCount / 2) - (LinkDistance * linkIndex),
+                y = state.initialCenterOffset.y,
+            )
+        )
     }
 
     private fun refreshBodySize() {

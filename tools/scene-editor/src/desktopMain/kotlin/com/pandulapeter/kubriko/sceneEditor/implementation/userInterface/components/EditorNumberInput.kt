@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 @Composable
 internal fun EditorNumberInput(
@@ -30,6 +31,7 @@ internal fun EditorNumberInput(
     valueRange: ClosedFloatingPointRange<Float>? = null,
     enabled: Boolean = true,
     shouldUseHorizontalLayout: Boolean = false,
+    shouldRound: Boolean = false,
     extraContent: (@Composable () -> Unit)? = null,
 ) {
     Column(
@@ -43,7 +45,7 @@ internal fun EditorNumberInput(
             EditorTextInput(
                 modifier = Modifier.weight(1f),
                 title = name,
-                value = "%.2f".format(value) + suffix,
+                value = (if (shouldRound) value.roundToInt().toString() else "%.2f".format(value)) + suffix,
                 onValueChanged = { newValue ->
                     newValue.toFloatOrNull()?.let {
                         onValueChanged(if (valueRange == null) it else min(valueRange.endInclusive, max(valueRange.start, it)))
