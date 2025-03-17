@@ -152,7 +152,7 @@ background.
 Actors are meant to implement one or more interfaces, called Traits, that define what they are capable of (every Trait extends the `Actor` interface). For the
 purposes of this demo, we will use
 the [Visible](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Visible.kt) Trait which will
-allow our Actor to draw onto the scene. Visible Actors need to have bodies that define their position and size of the area they can draw to (and can also be
+allow our Actor to draw onto the scene. Visible Actors need to have bodies that define the position and the size of the area they can draw to (and can also be
 used to transform the Actor's drawing canvas by rotation or scaling).
 
 Let's create a brand new class for our first Actor, which will be a green ball.
@@ -161,25 +161,30 @@ Let's create a brand new class for our first Actor, which will be a green ball.
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.pandulapeter.kubriko.actor.body.CircleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.types.SceneSize
 
 class Ball : Visible {
-    override val body = CircleBody(
-        initialRadius = 40.sceneUnit,
+    private val radius = 40.sceneUnit 
+    override val body = BoxBody(
+        initialSize = SceneSize(
+            width = radius * 2,
+            height = radius * 2,
+        ),
     )
 
     override fun DrawScope.draw() {
         drawCircle(
             color = Color.Green,
-            radius = body.radius.raw,
-            center = body.size.center.raw,
+            radius = radius.raw,
+            center = body.pivot.raw,
         )
         drawCircle(
             color = Color.Black,
-            radius = body.radius.raw,
-            center = body.size.center.raw,
+            radius = radius.raw,
+            center = body.pivot.raw,
             style = Stroke(),
         )
     }
@@ -190,7 +195,9 @@ Note that the coordinate system within the game world is measured in SceneUnits.
 coordinates with scene coordinates.
 While this is not relevant for our current example (as this game's viewport won't support zooming in or out), the API still enforces the distinction.
 
-As we didn't specify an `initialPosition` for our `CircleBody`, it will get spawned at the origin of the coordinate system.
+The default `pivot` point of a body is the center point of its size.
+
+As we didn't specify an `initialPosition` for our `BoxBody`, it will get spawned at the origin of the coordinate system.
 
 > [!IMPORTANT]  
 > The origin point of Kubriko's coordinate system is the center of the Composable, NOT any of its corners. This way it's easier to keep the important part of
