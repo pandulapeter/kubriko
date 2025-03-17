@@ -9,9 +9,10 @@ module), as well as a [StateHolder](https://github.com/pandulapeter/kubriko/blob
 
 ### Games
 These examples are simple, but fully completed games that achieve their feature set using multiple Kubriko plugins.
-- [game-wallbreaker](https://github.com/pandulapeter/kubriko/tree/main/examples/game-wallbreaker) - Playground for testing various shader effects
-- [game-space-squadron](https://github.com/pandulapeter/kubriko/tree/main/examples/game-space-squadron) - Use your space ship to defend from alien invaders
 - [game-annoyed-penguins](https://github.com/pandulapeter/kubriko/tree/main/examples/game-annoyed-penguins) - Slingshot your penguins to a chaotic victory
+- [game-blockys-journey](https://github.com/pandulapeter/kubriko/tree/main/examples/game-blockys-journey) - A tiny isometric RPG world for you to explore
+- [game-space-squadron](https://github.com/pandulapeter/kubriko/tree/main/examples/game-space-squadron) - Use your space ship to defend from alien invaders
+- [game-wallbreaker](https://github.com/pandulapeter/kubriko/tree/main/examples/game-wallbreaker) - Break bricks with a bouncing ball and a paddle
 
 ### Demos
 These examples demonstrate the usefulness of individual plugins.
