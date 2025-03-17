@@ -46,7 +46,6 @@ internal abstract class BaseDynamicObject : RigidBody, Visible, Dynamic {
         } else {
             collisionMask.position = body.position
             collisionMask.rotation = body.rotation
-            collisionMask.scale = body.scale
         }
     }
 }

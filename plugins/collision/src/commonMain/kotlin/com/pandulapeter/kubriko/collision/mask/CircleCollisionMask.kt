@@ -28,7 +28,7 @@ class CircleCollisionMask(
     initialPosition: SceneOffset = SceneOffset.Zero,
     initialRadius: SceneUnit = SceneUnit.Zero,
     initialPivot: SceneOffset = SceneOffset(initialRadius, initialRadius),
-    initialScale: Scale = Scale.Unit,
+//    initialScale: Scale = Scale.Unit,
     initialRotation: AngleRadians = AngleRadians.Zero
 ) : PointCollisionMask(
     initialPosition = initialPosition,
@@ -51,18 +51,20 @@ class CircleCollisionMask(
                 isAxisAlignedBoundingBoxDirty = true
             }
         }
-    override var scale = initialScale
-        set(value) {
-            if (field != value) {
-                field = value
-                isAxisAlignedBoundingBoxDirty = true
-            }
-        }
+
+    //    override var scale = initialScale
+//        set(value) {
+//            if (field != value) {
+//                field = value
+//                isAxisAlignedBoundingBoxDirty = true
+//            }
+//        }
+    private val scale = Scale.Unit
     override var rotation = initialRotation
         set(value) {
             if (field != value) {
                 field = value
-                if (pivot != size.center || scale.horizontal != scale.vertical) {
+                if (pivot != size.center) { // || scale.horizontal != scale.vertical) {
                     isAxisAlignedBoundingBoxDirty = true
                 }
             }

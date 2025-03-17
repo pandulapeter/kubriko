@@ -10,7 +10,6 @@
 package com.pandulapeter.kubriko.collision.mask
 
 import com.pandulapeter.kubriko.types.AngleRadians
-import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
@@ -18,6 +17,5 @@ sealed interface ComplexCollisionMask : CollisionMask {
 
     val size: SceneSize
     var pivot: SceneOffset
-    var scale: Scale
     var rotation: AngleRadians
 }

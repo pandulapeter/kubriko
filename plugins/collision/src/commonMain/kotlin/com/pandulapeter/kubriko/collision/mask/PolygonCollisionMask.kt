@@ -20,7 +20,6 @@ import com.pandulapeter.kubriko.helpers.extensions.clamp
 import com.pandulapeter.kubriko.helpers.extensions.cos
 import com.pandulapeter.kubriko.helpers.extensions.sin
 import com.pandulapeter.kubriko.types.AngleRadians
-import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
@@ -30,7 +29,7 @@ class PolygonCollisionMask(
     val vertices: List<SceneOffset> = emptyList(),
     initialPosition: SceneOffset = SceneOffset.Zero,
     initialPivot: SceneOffset = vertices.center,
-    initialScale: Scale = Scale.Unit,
+//    initialScale: Scale = Scale.Unit,
     initialRotation: AngleRadians = AngleRadians.Zero
 ) : PointCollisionMask(
     initialPosition = initialPosition,
@@ -47,13 +46,14 @@ class PolygonCollisionMask(
                 isAxisAlignedBoundingBoxDirty = true
             }
         }
-    override var scale = initialScale
-        set(value) {
-            if (field != value) {
-                field = value
-                isAxisAlignedBoundingBoxDirty = true
-            }
-        }
+
+    //    override var scale = initialScale
+//        set(value) {
+//            if (field != value) {
+//                field = value
+//                isAxisAlignedBoundingBoxDirty = true
+//            }
+//        }
     override var rotation = initialRotation
         set(value) {
             if (field != value) {
@@ -76,10 +76,10 @@ class PolygonCollisionMask(
     }
 
     private fun transformPoint(point: SceneOffset): SceneOffset {
-        val scaled = (point - pivot) * scale
-        val rotated = if (rotation == AngleRadians.Zero) scaled else SceneOffset(
-            x = scaled.x * rotation.cos - scaled.y * rotation.sin,
-            y = scaled.x * rotation.sin + scaled.y * rotation.cos,
+        val transformed = (point - pivot) // * scale
+        val rotated = if (rotation == AngleRadians.Zero) transformed else SceneOffset(
+            x = transformed.x * rotation.cos - transformed.y * rotation.sin,
+            y = transformed.x * rotation.sin + transformed.y * rotation.cos,
         )
         return rotated + pivot
     }

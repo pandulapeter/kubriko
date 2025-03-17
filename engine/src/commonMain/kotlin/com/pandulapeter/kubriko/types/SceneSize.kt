@@ -48,6 +48,11 @@ value class SceneSize(val raw: Size) {
 
     operator fun times(scale: SceneUnit): SceneSize = SceneSize(raw * scale.raw)
 
+    operator fun times(scale: Scale): SceneSize = SceneSize(
+        width = width * scale.horizontal,
+        height = height * scale.vertical,
+    )
+
     operator fun div(scale: Float): SceneSize = SceneSize(raw / scale)
 
     operator fun div(scale: Int): SceneSize = SceneSize(raw / scale.toFloat())

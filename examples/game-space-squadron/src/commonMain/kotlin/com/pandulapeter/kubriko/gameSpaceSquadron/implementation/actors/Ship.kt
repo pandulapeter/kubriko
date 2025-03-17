@@ -21,7 +21,7 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Group
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
-import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
+import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.UIManager
@@ -69,13 +69,12 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         ),
         initialScale = Scale.Unit * 0.5f,
     )
-    override val collisionMask = CircleCollisionMask(
-        initialRadius = 100.sceneUnit,
-        initialPosition = body.position,
-        initialScale = Scale(
-            horizontal = 0.6f,
-            vertical = 0.8f,
+    override val collisionMask = BoxCollisionMask(
+        initialSize = SceneSize(
+            width = 60.sceneUnit,
+            height = 80.sceneUnit,
         ),
+        initialPosition = body.position,
     )
     private val shipAnimationWrapper by lazy {
         ShipAnimationWrapper(
@@ -214,7 +213,6 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         }
         body.scale = Scale(shipAnimationWrapper.horizontalScale, shipAnimationWrapper.verticalScale) * gameplayManager.scaleMultiplier.value
         collisionMask.position = body.position
-        collisionMask.scale = body.scale
     }
 
     private fun moveTowards(target: SceneOffset, speed: SceneUnit) {

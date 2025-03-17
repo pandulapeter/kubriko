@@ -35,10 +35,9 @@ internal class DynamicCircle private constructor(state: State) : BaseDynamicObje
         orientation = body.rotation
     }
     override val collisionMask = BoxCollisionMask(
-        initialSize = body.size,
+        initialSize = body.size * body.scale.horizontal, // TODO: Vertical scale is disregarded
         initialPosition = body.position,
         initialRotation = body.rotation,
-        initialScale = body.scale,
         initialPivot = body.pivot,
     )
 

@@ -148,13 +148,13 @@ internal class DebugMenuManager(
                     pivot = pivot.raw,
                 )
             }
-            if (scale != Scale.Unit) {
-                drawTransform.scale(
-                    scaleX = scale.horizontal,
-                    scaleY = scale.vertical,
-                    pivot = pivot.raw,
-                )
-            }
+//            if (scale != Scale.Unit) {
+//                drawTransform.scale(
+//                    scaleX = scale.horizontal,
+//                    scaleY = scale.vertical,
+//                    pivot = pivot.raw,
+//                )
+//            }
         }
     }
 

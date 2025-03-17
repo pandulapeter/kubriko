@@ -31,10 +31,9 @@ internal class StaticCircle private constructor(state: State) : RigidBody, Visib
     override val body = state.body
     val radius = body.size.width * 0.5f
     override val collisionMask = BoxCollisionMask(
-        initialSize = body.size,
+        initialSize = body.size * body.scale.horizontal, // TODO: We disregard the vertical scaling component
         initialPosition = body.position,
         initialRotation = body.rotation,
-        initialScale = body.scale,
         initialPivot = body.pivot,
     )
     override val physicsBody = PhysicsBody(

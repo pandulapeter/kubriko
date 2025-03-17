@@ -93,7 +93,6 @@ internal abstract class Collectable(
             }
         }
         collisionMask.position = body.position
-        collisionMask.scale = body.scale
         if (isShrinking) {
             if (body.scale.horizontal <= 0) {
                 actorManager.remove(this)

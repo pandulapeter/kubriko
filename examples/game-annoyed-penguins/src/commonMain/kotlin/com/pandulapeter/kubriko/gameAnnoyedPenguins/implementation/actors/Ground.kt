@@ -30,10 +30,9 @@ import kotlinx.serialization.json.Json
 internal class Ground private constructor(state: State) : RigidBody, Visible, Editable<Ground> {
     override val body = state.body
     override val collisionMask = BoxCollisionMask(
-        initialSize = body.size,
+        initialSize = body.size * body.scale,
         initialPosition = body.position,
         initialRotation = body.rotation,
-        initialScale = body.scale,
         initialPivot = body.pivot,
     )
     override val physicsBody = PhysicsBody(

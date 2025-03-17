@@ -26,7 +26,6 @@ internal abstract class DestructiblePhysicsObject<T : DestructiblePhysicsObject<
             body.rotation = physicsBody.orientation
             collisionMask.position = body.position
             collisionMask.rotation = body.rotation
-            collisionMask.scale = body.scale
         }
     }
 }

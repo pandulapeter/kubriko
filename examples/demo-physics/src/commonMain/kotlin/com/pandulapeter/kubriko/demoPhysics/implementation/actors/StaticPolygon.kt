@@ -44,7 +44,7 @@ internal class StaticPolygon private constructor(state: State) : RigidBody, Visi
     override val collisionMask = PolygonCollisionMask(
         vertices = state.vertices,
         initialPosition = body.position,
-        initialScale = body.scale,
+        // TODO: body.scale is disregarded
         initialRotation = body.rotation,
         initialPivot = body.pivot,
     )

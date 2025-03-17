@@ -31,7 +31,6 @@ operator fun Size.div(scale: Scale) = Size(
     height = height / scale.vertical,
 )
 
-
 fun Size.toSceneSize(viewportManager: ViewportManager): SceneSize = toSceneSize(
     viewportSize = viewportManager.size.value,
     viewportScaleFactor = viewportManager.scaleFactor.value,

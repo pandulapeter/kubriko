@@ -59,9 +59,8 @@ internal class AlienShip(
         initialScale = Scale.Zero,
     )
     override val collisionMask = CircleCollisionMask(
-        initialRadius = 90.sceneUnit,
+        initialRadius = SceneUnit.Zero,
         initialPosition = body.position,
-        initialScale = Scale.Zero,
     )
     private val animatedSprite = AnimatedSprite(
         getImageBitmap = { spriteManager.get(Res.drawable.sprite_alien_ship) },
@@ -140,7 +139,8 @@ internal class AlienShip(
             body.scale = StartingScale * gameplayManager.scaleMultiplier.value
         }
         collisionMask.position = body.position
-        collisionMask.scale = body.scale
+        collisionMask.radius = CollisionMaskRadius * body.scale.horizontal
+        collisionMask.pivot = collisionMask.size.center
     }
 
     fun onHit(canSpawnPowerup: Boolean) {
@@ -180,6 +180,7 @@ internal class AlienShip(
     override fun DrawScope.draw() = animatedSprite.draw(this)
 
     companion object {
+        private val CollisionMaskRadius = 90.sceneUnit
         private val StartingScale = Scale.Unit * 0.75f
         private val ShrinkingSpeed = Scale.Unit * 0.004f
         private const val SPEED = 0.25f

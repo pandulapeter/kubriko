@@ -175,7 +175,6 @@ internal class DynamicChain private constructor(state: State) : Group, Dynamic, 
             initialRadius = Radius,
             initialPosition = body.position,
             initialRotation = body.rotation,
-            initialScale = body.scale,
             initialPivot = body.pivot,
         )
 
@@ -184,7 +183,6 @@ internal class DynamicChain private constructor(state: State) : Group, Dynamic, 
             body.rotation = physicsBody.orientation
             collisionMask.position = body.position
             collisionMask.rotation = body.rotation
-            collisionMask.scale = body.scale
         }
 
         override fun DrawScope.draw() = Unit

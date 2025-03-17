@@ -30,10 +30,9 @@ internal class Penguin(
     private lateinit var actorManager: ActorManager
     private lateinit var viewportManager: ViewportManager
     override val collisionMask = BoxCollisionMask(
-        initialSize = body.size,
+        initialSize = body.size * body.scale.horizontal, // TODO: Vertical scale is disregarded
         initialPosition = body.position,
         initialRotation = body.rotation,
-        initialScale = body.scale,
         initialPivot = body.pivot,
     )
     override val physicsBody = PhysicsBody(
