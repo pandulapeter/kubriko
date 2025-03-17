@@ -22,6 +22,7 @@ fun main() = SceneEditor.show(
     defaultSceneFilename = PerformanceDemoManager.SCENE_NAME,
     serializationManager = PerformanceDemoStateHolderImpl(
         isSceneEditorEnabled = true,
+        isLoggingEnabled = false,
     ).serializationManager,
 )
 
@@ -35,6 +36,7 @@ fun PerformanceDemoSceneEditor(
             defaultSceneFolderPath = defaultSceneFolderPath,
             serializationManager = PerformanceDemoStateHolderImpl(
                 isSceneEditorEnabled = true,
+                isLoggingEnabled = false,
             ).serializationManager,
             title = "Scene Editor - Performance Demo",
             onCloseRequest = { isSceneEditorVisible.value = false },

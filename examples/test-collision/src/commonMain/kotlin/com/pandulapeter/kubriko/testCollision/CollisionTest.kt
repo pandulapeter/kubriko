@@ -29,12 +29,18 @@ import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import kubriko.examples.test_collision.generated.resources.Res
 import kubriko.examples.test_collision.generated.resources.description
 
-fun createCollisionTestStateHolder(): CollisionTestStateHolder = CollisionTestStateHolderImpl()
+fun createCollisionTestStateHolder(
+    isLoggingEnabled: Boolean,
+): CollisionTestStateHolder = CollisionTestStateHolderImpl(
+    isLoggingEnabled = isLoggingEnabled,
+)
 
 @Composable
 fun CollisionTest(
     modifier: Modifier = Modifier,
-    stateHolder: CollisionTestStateHolder = createCollisionTestStateHolder(),
+    stateHolder: CollisionTestStateHolder = createCollisionTestStateHolder(
+        isLoggingEnabled = false,
+    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as CollisionTestStateHolderImpl

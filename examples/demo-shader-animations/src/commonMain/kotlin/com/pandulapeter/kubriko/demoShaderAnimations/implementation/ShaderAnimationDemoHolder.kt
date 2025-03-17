@@ -18,16 +18,17 @@ internal class ShaderAnimationDemoHolder<SHADER : Shader<STATE>, STATE : Shader.
     shader: SHADER,
     updater: (SHADER, STATE) -> Unit,
     nameForLogging: String,
+    isLoggingEnabled: Boolean,
 ) {
     private val shaderManager = ShaderManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = "$LOG_TAG-$nameForLogging",
     )
     val shaderAnimationsDemoManager = ShaderAnimationsDemoManager(shader, updater)
     val kubriko = Kubriko.newInstance(
         shaderManager,
         shaderAnimationsDemoManager,
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = "$LOG_TAG-$nameForLogging",
     )
 }

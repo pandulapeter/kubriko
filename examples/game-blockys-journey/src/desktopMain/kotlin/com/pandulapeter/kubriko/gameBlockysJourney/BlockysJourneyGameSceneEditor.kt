@@ -20,6 +20,7 @@ fun main() = SceneEditor.show(
     serializationManager = BlockysJourneyGameStateHolderImpl(
         webRootPathName = "",
         isSceneEditorEnabled = true,
+        isLoggingEnabled = false,
     ).backgroundSerializationManager,
 )
 
@@ -34,6 +35,7 @@ fun BlockysJourneyGameSceneEditor(
             serializationManager = BlockysJourneyGameStateHolderImpl(
                 webRootPathName = "",
                 isSceneEditorEnabled = true,
+                isLoggingEnabled = false,
             ).backgroundSerializationManager,
             title = "Scene Editor - Blocky's Journey",
             onCloseRequest = { isSceneEditorVisible.value = false },

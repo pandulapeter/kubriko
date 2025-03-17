@@ -55,15 +55,21 @@ import org.jetbrains.compose.resources.stringResource
 fun createBlockysJourneyGameStateHolder(
     webRootPathName: String,
     isSceneEditorEnabled: Boolean,
+    isLoggingEnabled: Boolean,
 ): BlockysJourneyGameStateHolder = BlockysJourneyGameStateHolderImpl(
     webRootPathName = webRootPathName,
     isSceneEditorEnabled = isSceneEditorEnabled,
+    isLoggingEnabled = isLoggingEnabled,
 )
 
 @Composable
 fun BlockysJourneyGame(
     modifier: Modifier = Modifier,
-    stateHolder: BlockysJourneyGameStateHolder = createBlockysJourneyGameStateHolder("", true),
+    stateHolder: BlockysJourneyGameStateHolder = createBlockysJourneyGameStateHolder(
+        webRootPathName = "",
+        isSceneEditorEnabled = true,
+        isLoggingEnabled = false,
+    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     isInFullscreenMode: Boolean? = null,
     onFullscreenModeToggled: () -> Unit = {},

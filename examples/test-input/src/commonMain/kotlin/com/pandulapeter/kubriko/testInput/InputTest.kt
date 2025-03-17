@@ -35,12 +35,18 @@ import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import kubriko.examples.test_input.generated.resources.Res
 import kubriko.examples.test_input.generated.resources.description
 
-fun createInputTestStateHolder(): InputTestStateHolder = InputTestStateHolderImpl()
+fun createInputTestStateHolder(
+    isLoggingEnabled: Boolean,
+): InputTestStateHolder = InputTestStateHolderImpl(
+    isLoggingEnabled = isLoggingEnabled,
+)
 
 @Composable
 fun InputTest(
     modifier: Modifier = Modifier,
-    stateHolder: InputTestStateHolder = createInputTestStateHolder(),
+    stateHolder: InputTestStateHolder = createInputTestStateHolder(
+        isLoggingEnabled = false,
+    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as InputTestStateHolderImpl

@@ -65,7 +65,9 @@ sealed interface PhysicsDemoStateHolder : StateHolder {
 
 internal class PhysicsDemoStateHolderImpl(
     isSceneEditorEnabled: Boolean,
+    isLoggingEnabled: Boolean,
 ) : PhysicsDemoStateHolder {
+
     private val json = Json { ignoreUnknownKeys = true }
     val serializationManager = EditableMetadata.newSerializationManagerInstance(
         EditableMetadata(
@@ -114,7 +116,7 @@ internal class PhysicsDemoStateHolderImpl(
             deserializeState = { serializedState -> json.decodeFromString<DynamicCircle.State>(serializedState) },
             instantiate = { DynamicCircle.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit))) },
         ),
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
 
@@ -124,19 +126,19 @@ internal class PhysicsDemoStateHolderImpl(
             aspectRatioMode = ViewportManager.AspectRatioMode.FitVertical(
                 height = 1920.sceneUnit
             ),
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
     private val physicsManager by lazy {
         PhysicsManager.newInstance(
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
     private val pointerInputManager by lazy {
         PointerInputManager.newInstance(
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
@@ -154,7 +156,7 @@ internal class PhysicsDemoStateHolderImpl(
                 pointerInputManager,
                 physicsDemoManager,
                 serializationManager,
-                isLoggingEnabled = true,
+                isLoggingEnabled = isLoggingEnabled,
                 instanceNameForLogging = LOG_TAG,
             )
         )

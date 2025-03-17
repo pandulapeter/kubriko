@@ -74,6 +74,7 @@ internal fun ShowcaseEntry.ExampleScreen(
             stateHolder = getOrCreateState(stateHolders) {
                 createWallbreakerGameStateHolder(
                     webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
+                    isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
                 )
             },
             windowInsets = windowInsets,
@@ -85,6 +86,7 @@ internal fun ShowcaseEntry.ExampleScreen(
             stateHolder = getOrCreateState(stateHolders) {
                 createSpaceSquadronGameStateHolder(
                     webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
+                    isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
                 )
             },
             windowInsets = windowInsets,
@@ -97,6 +99,7 @@ internal fun ShowcaseEntry.ExampleScreen(
                 createAnnoyedPenguinsGameStateHolder(
                     webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
                     isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+                    isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
                 )
             },
             windowInsets = windowInsets,
@@ -109,6 +112,7 @@ internal fun ShowcaseEntry.ExampleScreen(
                 createBlockysJourneyGameStateHolder(
                     webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
                     isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+                    isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
                 )
             },
             windowInsets = windowInsets,
@@ -117,12 +121,20 @@ internal fun ShowcaseEntry.ExampleScreen(
         )
 
         ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemo(
-            stateHolder = getOrCreateState(stateHolders, ::createContentShadersDemoStateHolder),
+            stateHolder = getOrCreateState(stateHolders) {
+                createContentShadersDemoStateHolder(
+                    isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
+                )
+            },
             windowInsets = windowInsets,
         )
 
         ShowcaseEntry.PARTICLES -> ParticlesDemo(
-            stateHolder = getOrCreateState(stateHolders, ::createParticlesDemoStateHolder),
+            stateHolder = getOrCreateState(stateHolders) {
+                createParticlesDemoStateHolder(
+                    isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
+                )
+            },
             windowInsets = windowInsets,
         )
 
@@ -130,6 +142,7 @@ internal fun ShowcaseEntry.ExampleScreen(
             stateHolder = getOrCreateState(stateHolders) {
                 createPerformanceDemoStateHolder(
                     isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+                    isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
                 )
             },
             windowInsets = windowInsets,
@@ -139,13 +152,18 @@ internal fun ShowcaseEntry.ExampleScreen(
             stateHolder = getOrCreateState(stateHolders) {
                 createPhysicsDemoStateHolder(
                     isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+                    isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
                 )
             },
             windowInsets = windowInsets,
         )
 
         ShowcaseEntry.SHADER_ANIMATIONS -> ShaderAnimationsDemo(
-            stateHolder = getOrCreateState(stateHolders, ::createShaderAnimationsDemoStateHolder),
+            stateHolder = getOrCreateState(stateHolders) {
+                createShaderAnimationsDemoStateHolder(
+                    isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
+                )
+            },
             windowInsets = windowInsets,
         )
 
@@ -153,18 +171,27 @@ internal fun ShowcaseEntry.ExampleScreen(
             stateHolder = getOrCreateState(stateHolders) {
                 createAudioTestStateHolder(
                     webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
+                    isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
                 )
             },
             windowInsets = windowInsets,
         )
 
         ShowcaseEntry.COLLISION -> CollisionTest(
-            stateHolder = getOrCreateState(stateHolders, ::createCollisionTestStateHolder),
+            stateHolder = getOrCreateState(stateHolders) {
+                createCollisionTestStateHolder(
+                    isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
+                )
+            },
             windowInsets = windowInsets,
         )
 
         ShowcaseEntry.INPUT -> InputTest(
-            stateHolder = getOrCreateState(stateHolders, ::createInputTestStateHolder),
+            stateHolder = getOrCreateState(stateHolders) {
+                createInputTestStateHolder(
+                    isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
+                )
+            },
             windowInsets = windowInsets,
         )
 
@@ -194,12 +221,14 @@ internal fun ShowcaseEntry.getStateHolder() = when (this) {
     ShowcaseEntry.WALLBREAKER -> getOrCreateState(stateHolders) {
         createWallbreakerGameStateHolder(
             webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
+            isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
         )
     }
 
     ShowcaseEntry.SPACE_SQUADRON -> getOrCreateState(stateHolders) {
         createSpaceSquadronGameStateHolder(
             webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
+            isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
         )
     }
 
@@ -207,6 +236,7 @@ internal fun ShowcaseEntry.getStateHolder() = when (this) {
         createAnnoyedPenguinsGameStateHolder(
             webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
             isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+            isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
         )
     }
 
@@ -214,36 +244,60 @@ internal fun ShowcaseEntry.getStateHolder() = when (this) {
         createBlockysJourneyGameStateHolder(
             webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
             isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+            isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
         )
     }
 
-    ShowcaseEntry.CONTENT_SHADERS -> getOrCreateState(stateHolders, ::createContentShadersDemoStateHolder)
+    ShowcaseEntry.CONTENT_SHADERS -> getOrCreateState(stateHolders) {
+        createContentShadersDemoStateHolder(
+            isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
+        )
+    }
 
-    ShowcaseEntry.PARTICLES -> getOrCreateState(stateHolders, ::createParticlesDemoStateHolder)
+    ShowcaseEntry.PARTICLES -> getOrCreateState(stateHolders) {
+        createParticlesDemoStateHolder(
+            isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
+        )
+    }
 
     ShowcaseEntry.PERFORMANCE -> getOrCreateState(stateHolders) {
         createPerformanceDemoStateHolder(
             isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+            isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
         )
     }
 
     ShowcaseEntry.PHYSICS -> getOrCreateState(stateHolders) {
         createPhysicsDemoStateHolder(
             isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+            isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
         )
     }
 
-    ShowcaseEntry.SHADER_ANIMATIONS -> getOrCreateState(stateHolders, ::createShaderAnimationsDemoStateHolder)
+    ShowcaseEntry.SHADER_ANIMATIONS -> getOrCreateState(stateHolders) {
+        createShaderAnimationsDemoStateHolder(
+            isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
+        )
+    }
 
     ShowcaseEntry.AUDIO -> getOrCreateState(stateHolders) {
         createAudioTestStateHolder(
             webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
+            isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
         )
     }
 
-    ShowcaseEntry.COLLISION -> getOrCreateState(stateHolders, ::createCollisionTestStateHolder)
+    ShowcaseEntry.COLLISION -> getOrCreateState(stateHolders) {
+        createCollisionTestStateHolder(
+            isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
+        )
+    }
 
-    ShowcaseEntry.INPUT -> getOrCreateState(stateHolders, ::createInputTestStateHolder)
+    ShowcaseEntry.INPUT -> getOrCreateState(stateHolders) {
+        createInputTestStateHolder(
+            isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
+        )
+    }
 
     ShowcaseEntry.LICENSES -> getOrCreateState(stateHolders, ::createLicensesScreenStateHolder)
 

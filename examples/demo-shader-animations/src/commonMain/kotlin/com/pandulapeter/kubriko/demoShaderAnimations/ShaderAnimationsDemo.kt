@@ -41,12 +41,18 @@ import kubriko.examples.demo_shader_animations.generated.resources.Res
 import kubriko.examples.demo_shader_animations.generated.resources.shaders_not_supported
 import org.jetbrains.compose.resources.stringResource
 
-fun createShaderAnimationsDemoStateHolder(): ShaderAnimationsDemoStateHolder = ShaderAnimationsDemoStateHolderImpl()
+fun createShaderAnimationsDemoStateHolder(
+    isLoggingEnabled: Boolean,
+): ShaderAnimationsDemoStateHolder = ShaderAnimationsDemoStateHolderImpl(
+    isLoggingEnabled = isLoggingEnabled,
+)
 
 @Composable
 fun ShaderAnimationsDemo(
     modifier: Modifier = Modifier,
-    stateHolder: ShaderAnimationsDemoStateHolder = createShaderAnimationsDemoStateHolder(),
+    stateHolder: ShaderAnimationsDemoStateHolder = createShaderAnimationsDemoStateHolder(
+        isLoggingEnabled = false,
+    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as ShaderAnimationsDemoStateHolderImpl

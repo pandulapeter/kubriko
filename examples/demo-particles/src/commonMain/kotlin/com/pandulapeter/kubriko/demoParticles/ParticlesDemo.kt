@@ -20,12 +20,18 @@ import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.demoParticles.implementation.ParticlesDemoStateHolder
 import com.pandulapeter.kubriko.demoParticles.implementation.ParticlesDemoStateHolderImpl
 
-fun createParticlesDemoStateHolder(): ParticlesDemoStateHolder = ParticlesDemoStateHolderImpl()
+fun createParticlesDemoStateHolder(
+    isLoggingEnabled: Boolean,
+): ParticlesDemoStateHolder = ParticlesDemoStateHolderImpl(
+    isLoggingEnabled = isLoggingEnabled,
+)
 
 @Composable
 fun ParticlesDemo(
     modifier: Modifier = Modifier,
-    stateHolder: ParticlesDemoStateHolder = createParticlesDemoStateHolder(),
+    stateHolder: ParticlesDemoStateHolder = createParticlesDemoStateHolder(
+        isLoggingEnabled = false,
+    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as ParticlesDemoStateHolderImpl

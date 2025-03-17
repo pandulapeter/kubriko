@@ -46,6 +46,7 @@ sealed interface AnnoyedPenguinsGameStateHolder : StateHolder
 internal class AnnoyedPenguinsGameStateHolderImpl(
     webRootPathName: String,
     val isSceneEditorEnabled: Boolean,
+    isLoggingEnabled: Boolean,
 ) : AnnoyedPenguinsGameStateHolder {
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -65,31 +66,31 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
             deserializeState = { serializedState -> json.decodeFromString<Slingshot.State>(serializedState) },
             instantiate = { Slingshot.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(422.sceneUnit, 924.sceneUnit))) },
         ),
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val sharedMusicManager by lazy {
         MusicManager.newInstance(
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
     private val sharedSoundManager by lazy {
         SoundManager.newInstance(
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
     private val sharedSpriteManager by lazy {
         SpriteManager.newInstance(
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
     private val persistenceManager by lazy {
         PersistenceManager.newInstance(
             fileName = "kubrikoAnnoyedPenguins",
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
@@ -98,19 +99,19 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
             aspectRatioMode = ViewportManager.AspectRatioMode.FitVertical(1440.sceneUnit),
             minimumScaleFactor = 0.25f,
             maximumScaleFactor = 1f,
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
     private val backgroundShaderManager by lazy {
         ShaderManager.newInstance(
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG_BACKGROUND,
         )
     }
     private val shaderManager by lazy {
         ShaderManager.newInstance(
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG_BACKGROUND,
         )
     }
@@ -122,14 +123,14 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
     val stateManager by lazy {
         StateManager.newInstance(
             shouldAutoStart = false,
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
     private val backgroundActorManager by lazy {
         ActorManager.newInstance(
             initialActors = listOf(FogShader()),
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG_BACKGROUND,
         )
     }
@@ -145,20 +146,20 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
     }
     private val keyboardInputManager by lazy {
         KeyboardInputManager.newInstance(
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
     private val physicsManager by lazy {
         PhysicsManager.newInstance(
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
     private val pointerInputManager by lazy {
         PointerInputManager.newInstance(
             isActiveAboveViewport = true,
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
@@ -176,7 +177,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
             backgroundShaderManager,
             backgroundActorManager,
             backgroundLoadingManager,
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG_BACKGROUND,
         )
     }
@@ -198,7 +199,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
                 gameplayManager,
                 shaderManager,
                 uiManager,
-                isLoggingEnabled = true,
+                isLoggingEnabled = isLoggingEnabled,
                 instanceNameForLogging = LOG_TAG,
             )
         )

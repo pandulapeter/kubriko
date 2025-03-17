@@ -48,10 +48,12 @@ sealed interface ParticlesDemoStateHolder : StateHolder {
     }
 }
 
-internal class ParticlesDemoStateHolderImpl : ParticlesDemoStateHolder {
+internal class ParticlesDemoStateHolderImpl(
+    isLoggingEnabled: Boolean,
+) : ParticlesDemoStateHolder {
 
     private val particleManager = ParticleManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val particlesDemoManager = ParticlesDemoManager()
@@ -59,7 +61,7 @@ internal class ParticlesDemoStateHolderImpl : ParticlesDemoStateHolder {
         Kubriko.newInstance(
             particleManager,
             particlesDemoManager,
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     )

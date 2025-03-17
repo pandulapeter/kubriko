@@ -57,15 +57,21 @@ import org.jetbrains.compose.resources.stringResource
 fun createAnnoyedPenguinsGameStateHolder(
     webRootPathName: String,
     isSceneEditorEnabled: Boolean,
+    isLoggingEnabled: Boolean,
 ): AnnoyedPenguinsGameStateHolder = AnnoyedPenguinsGameStateHolderImpl(
     webRootPathName = webRootPathName,
     isSceneEditorEnabled = isSceneEditorEnabled,
+    isLoggingEnabled = isLoggingEnabled,
 )
 
 @Composable
 fun AnnoyedPenguinsGame(
     modifier: Modifier = Modifier,
-    stateHolder: AnnoyedPenguinsGameStateHolder = createAnnoyedPenguinsGameStateHolder("", true),
+    stateHolder: AnnoyedPenguinsGameStateHolder = createAnnoyedPenguinsGameStateHolder(
+        webRootPathName = "",
+        isSceneEditorEnabled = true,
+        isLoggingEnabled = false,
+    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     isInFullscreenMode: Boolean? = null,
     onFullscreenModeToggled: () -> Unit = {},

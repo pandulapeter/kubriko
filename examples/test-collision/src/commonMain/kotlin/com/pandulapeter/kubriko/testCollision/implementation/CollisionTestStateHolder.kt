@@ -34,20 +34,23 @@ sealed interface CollisionTestStateHolder : StateHolder {
     }
 }
 
-internal class CollisionTestStateHolderImpl : CollisionTestStateHolder {
+internal class CollisionTestStateHolderImpl(
+    isLoggingEnabled: Boolean,
+) : CollisionTestStateHolder {
+
     private val collisionManager = CollisionManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val pointerInputManager = PointerInputManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val viewportManager = ViewportManager.newInstance(
         aspectRatioMode = ViewportManager.AspectRatioMode.FitVertical(
             height = CollisionTestManager.AREA_LIMIT.sceneUnit,
         ),
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     val collisionTestManager = CollisionTestManager()
@@ -57,7 +60,7 @@ internal class CollisionTestStateHolderImpl : CollisionTestStateHolder {
             pointerInputManager,
             collisionTestManager,
             viewportManager,
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     )

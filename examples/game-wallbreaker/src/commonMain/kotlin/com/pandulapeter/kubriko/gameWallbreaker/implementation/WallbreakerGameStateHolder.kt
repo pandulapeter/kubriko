@@ -38,22 +38,23 @@ sealed interface WallbreakerGameStateHolder : StateHolder
 
 internal class WallbreakerGameStateHolderImpl(
     webRootPathName: String,
+    isLoggingEnabled: Boolean,
 ) : WallbreakerGameStateHolder {
     private val sharedMusicManager = MusicManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val sharedSoundManager = SoundManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val backgroundShaderManager = ShaderManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG_BACKGROUND,
     )
     private val backgroundActorManager = ActorManager.newInstance(
         initialActors = listOf(FogShader()),
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG_BACKGROUND,
     )
     val backgroundLoadingManager = LoadingManager(
@@ -65,12 +66,12 @@ internal class WallbreakerGameStateHolderImpl(
         backgroundShaderManager,
         backgroundLoadingManager,
         backgroundActorManager,
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG_BACKGROUND,
     )
     val stateManager = StateManager.newInstance(
         shouldAutoStart = false,
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val viewportManager = ViewportManager.newInstance(
@@ -78,19 +79,19 @@ internal class WallbreakerGameStateHolderImpl(
             ratio = 1f,
             width = 1200.sceneUnit,
         ),
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val persistenceManager = PersistenceManager.newInstance(
         fileName = "kubrikoWallbreaker",
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     val scoreManager = ScoreManager(
         persistenceManager = persistenceManager,
     )
     val shaderManager = ShaderManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     val userPreferencesManager = UserPreferencesManager(
@@ -108,16 +109,16 @@ internal class WallbreakerGameStateHolderImpl(
         stateManager = stateManager,
     )
     private val collisionManager = CollisionManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val keyboardInputManager = KeyboardInputManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val pointerInputManager = PointerInputManager.newInstance(
         isActiveAboveViewport = true,
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val _kubriko = MutableStateFlow(
@@ -136,7 +137,7 @@ internal class WallbreakerGameStateHolderImpl(
             audioManager,
             gameplayManager,
             uiManager,
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     )

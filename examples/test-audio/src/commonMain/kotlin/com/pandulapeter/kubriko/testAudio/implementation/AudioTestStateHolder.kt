@@ -59,13 +59,15 @@ sealed interface AudioTestStateHolder : StateHolder {
 
 internal class AudioTestStateHolderImpl(
     webRootPathName: String,
+    isLoggingEnabled: Boolean,
 ) : AudioTestStateHolder {
+
     private val musicManager = MusicManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val soundManager = SoundManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val audioTestManager = AudioTestManager(
@@ -76,7 +78,7 @@ internal class AudioTestStateHolderImpl(
             musicManager,
             soundManager,
             audioTestManager,
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     )

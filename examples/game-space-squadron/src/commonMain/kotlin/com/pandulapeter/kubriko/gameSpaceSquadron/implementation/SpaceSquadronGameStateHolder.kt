@@ -40,18 +40,19 @@ sealed interface SpaceSquadronGameStateHolder : StateHolder
 
 internal class SpaceSquadronGameStateHolderImpl(
     webRootPathName: String,
+    isLoggingEnabled: Boolean,
 ) : SpaceSquadronGameStateHolder {
 
     private val sharedMusicManager = MusicManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val sharedSoundManager = SoundManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val sharedSpriteManager = SpriteManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     val backgroundLoadingManager = LoadingManager(
@@ -59,12 +60,12 @@ internal class SpaceSquadronGameStateHolderImpl(
     )
     private val backgroundStateManager = StateManager.newInstance()
     private val backgroundShaderManager = ShaderManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG_BACKGROUND,
     )
     private val backgroundActorManager = ActorManager.newInstance(
         initialActors = listOf(GalaxyShader()),
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG_BACKGROUND,
     )
     val backgroundKubriko = Kubriko.newInstance(
@@ -75,21 +76,21 @@ internal class SpaceSquadronGameStateHolderImpl(
         backgroundShaderManager,
         backgroundLoadingManager,
         backgroundActorManager,
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG_BACKGROUND,
     )
     private val viewportManager = ViewportManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     val cameraShakeManager = CameraShakeManager()
     val stateManager = StateManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val persistenceManager = PersistenceManager.newInstance(
         fileName = "kubrikoSpaceSquadron",
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val scoreManager = ScoreManager(
@@ -104,7 +105,7 @@ internal class SpaceSquadronGameStateHolderImpl(
         webRootPathName = webRootPathName,
     )
     private val particleManager = ParticleManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     val gameplayManager = GameplayManager(
@@ -113,23 +114,23 @@ internal class SpaceSquadronGameStateHolderImpl(
     private val actorManager = ActorManager.newInstance(
         shouldUpdateActorsWhileNotRunning = true, // To ensure proper scaling during resize events while paused
         shouldPutFarAwayActorsToSleep = false,
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     val uiManager = UIManager(
         stateManager = stateManager,
     )
     private val collisionManager = CollisionManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val keyboardInputManager = KeyboardInputManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val pointerInputManager = PointerInputManager.newInstance(
         isActiveAboveViewport = true,
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val _kubriko = MutableStateFlow(
@@ -151,7 +152,7 @@ internal class SpaceSquadronGameStateHolderImpl(
             scoreManager,
             uiManager,
             audioManager,
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     )

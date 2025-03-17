@@ -20,14 +20,21 @@ import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceDemoStateHolder
 import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceDemoStateHolderImpl
 
-fun createPerformanceDemoStateHolder(isSceneEditorEnabled: Boolean): PerformanceDemoStateHolder = PerformanceDemoStateHolderImpl(
+fun createPerformanceDemoStateHolder(
+    isSceneEditorEnabled: Boolean,
+    isLoggingEnabled: Boolean,
+): PerformanceDemoStateHolder = PerformanceDemoStateHolderImpl(
     isSceneEditorEnabled = isSceneEditorEnabled,
+    isLoggingEnabled = isLoggingEnabled,
 )
 
 @Composable
 fun PerformanceDemo(
     modifier: Modifier = Modifier,
-    stateHolder: PerformanceDemoStateHolder = createPerformanceDemoStateHolder(true),
+    stateHolder: PerformanceDemoStateHolder = createPerformanceDemoStateHolder(
+        isSceneEditorEnabled = true,
+        isLoggingEnabled = false,
+    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as PerformanceDemoStateHolderImpl

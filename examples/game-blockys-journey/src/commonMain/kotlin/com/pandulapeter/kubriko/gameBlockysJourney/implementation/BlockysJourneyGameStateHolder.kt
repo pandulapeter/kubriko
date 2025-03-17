@@ -42,6 +42,7 @@ sealed interface BlockysJourneyGameStateHolder : StateHolder
 internal class BlockysJourneyGameStateHolderImpl(
     webRootPathName: String,
     val isSceneEditorEnabled: Boolean,
+    isLoggingEnabled: Boolean,
 ) : BlockysJourneyGameStateHolder {
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -56,44 +57,44 @@ internal class BlockysJourneyGameStateHolderImpl(
             deserializeState = { serializedState -> json.decodeFromString<Block.State>(serializedState) },
             instantiate = { Block.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(512.sceneUnit, 512.sceneUnit))) }
         ),
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val sharedMusicManager by lazy {
         MusicManager.newInstance(
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
     private val sharedSoundManager by lazy {
         SoundManager.newInstance(
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
     private val sharedSpriteManager by lazy {
         SpriteManager.newInstance(
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
     private val persistenceManager by lazy {
         PersistenceManager.newInstance(
             fileName = "kubrikoBlockysJourney",
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
     private val viewportManager by lazy {
         ViewportManager.newInstance(
             aspectRatioMode = ViewportManager.AspectRatioMode.FitVertical(1440.sceneUnit),
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
     private val shaderManager by lazy {
         ShaderManager.newInstance(
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
@@ -105,7 +106,7 @@ internal class BlockysJourneyGameStateHolderImpl(
     val stateManager by lazy {
         StateManager.newInstance(
             shouldAutoStart = false,
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
@@ -121,14 +122,14 @@ internal class BlockysJourneyGameStateHolderImpl(
     }
     private val keyboardInputManager by lazy {
         KeyboardInputManager.newInstance(
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
     private val pointerInputManager by lazy {
         PointerInputManager.newInstance(
             isActiveAboveViewport = true,
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
@@ -145,7 +146,7 @@ internal class BlockysJourneyGameStateHolderImpl(
             sharedSpriteManager,
             sharedLoadingManager,
             backgroundSerializationManager,
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG_BACKGROUND,
         )
     }
@@ -166,7 +167,7 @@ internal class BlockysJourneyGameStateHolderImpl(
                 audioManager,
                 gameplayManager,
                 uiManager,
-                isLoggingEnabled = true,
+                isLoggingEnabled = isLoggingEnabled,
                 instanceNameForLogging = LOG_TAG,
             )
         )

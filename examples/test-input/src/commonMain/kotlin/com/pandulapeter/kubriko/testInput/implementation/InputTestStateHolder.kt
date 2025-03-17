@@ -32,13 +32,16 @@ sealed interface InputTestStateHolder : StateHolder {
     }
 }
 
-internal class InputTestStateHolderImpl : InputTestStateHolder {
+internal class InputTestStateHolderImpl(
+    isLoggingEnabled: Boolean,
+) : InputTestStateHolder {
+
     private val pointerInputManager = PointerInputManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val keyboardInputManager = KeyboardInputManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     val inputTestManager = InputTestManager()
@@ -47,7 +50,7 @@ internal class InputTestStateHolderImpl : InputTestStateHolder {
             pointerInputManager,
             keyboardInputManager,
             inputTestManager,
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     )

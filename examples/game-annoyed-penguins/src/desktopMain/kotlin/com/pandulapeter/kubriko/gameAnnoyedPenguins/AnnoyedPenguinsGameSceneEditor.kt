@@ -19,6 +19,7 @@ fun main() = SceneEditor.show(
     serializationManager = AnnoyedPenguinsGameStateHolderImpl(
         webRootPathName = "",
         isSceneEditorEnabled = true,
+        isLoggingEnabled = false,
     ).serializationManager,
 )
 
@@ -32,6 +33,7 @@ fun AnnoyedPenguinsGameSceneEditor(
             serializationManager = AnnoyedPenguinsGameStateHolderImpl(
                 webRootPathName = "",
                 isSceneEditorEnabled = true,
+                isLoggingEnabled = false,
             ).serializationManager,
             title = "Scene Editor - Annoyed Penguins",
             onCloseRequest = { isSceneEditorVisible.value = false },

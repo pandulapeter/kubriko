@@ -57,14 +57,17 @@ sealed interface ContentShadersDemoStateHolder : StateHolder {
     }
 }
 
-internal class ContentShadersDemoStateHolderImpl : ContentShadersDemoStateHolder {
+internal class ContentShadersDemoStateHolderImpl(
+    isLoggingEnabled: Boolean,
+) : ContentShadersDemoStateHolder {
+
     private val viewportManager = ViewportManager.newInstance(
         aspectRatioMode = ViewportManager.AspectRatioMode.Stretched(SceneSize(2000.sceneUnit, 2000.sceneUnit)),
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     val shaderManager = ShaderManager.newInstance(
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
     private val contentShadersDemoManager = ContentShadersDemoManager()
@@ -73,7 +76,7 @@ internal class ContentShadersDemoStateHolderImpl : ContentShadersDemoStateHolder
             viewportManager,
             shaderManager,
             contentShadersDemoManager,
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     )

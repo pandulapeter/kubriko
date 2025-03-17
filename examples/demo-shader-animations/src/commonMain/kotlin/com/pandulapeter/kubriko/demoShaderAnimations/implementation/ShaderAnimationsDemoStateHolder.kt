@@ -87,38 +87,46 @@ sealed interface ShaderAnimationsDemoStateHolder : StateHolder {
     }
 }
 
-internal class ShaderAnimationsDemoStateHolderImpl : ShaderAnimationsDemoStateHolder {
+internal class ShaderAnimationsDemoStateHolderImpl(
+    isLoggingEnabled: Boolean,
+) : ShaderAnimationsDemoStateHolder {
+
     val shaderManager = ShaderManager.newInstance()
     val shaderAnimationDemoHolders = ShaderAnimationDemoType.entries.associateWith {
         when (it) {
             ShaderAnimationDemoType.CLOUD -> ShaderAnimationDemoHolder(
                 shader = CloudShader(),
                 updater = { shader, state -> shader.updateState(state) },
-                nameForLogging = "cloud"
+                nameForLogging = "cloud",
+                isLoggingEnabled = isLoggingEnabled,
             )
 
             ShaderAnimationDemoType.ETHER -> ShaderAnimationDemoHolder(
                 shader = EtherShader(),
                 updater = { shader, state -> shader.updateState(state) },
-                nameForLogging = "ether"
+                nameForLogging = "ether",
+                isLoggingEnabled = isLoggingEnabled,
             )
 
             ShaderAnimationDemoType.GRADIENT -> ShaderAnimationDemoHolder(
                 shader = GradientShader(),
                 updater = { shader, state -> shader.updateState(state) },
-                nameForLogging = "gradient"
+                nameForLogging = "gradient",
+                isLoggingEnabled = isLoggingEnabled,
             )
 
             ShaderAnimationDemoType.NOODLE -> ShaderAnimationDemoHolder(
                 shader = NoodleShader(),
                 updater = { shader, state -> shader.updateState(state) },
-                nameForLogging = "noodle"
+                nameForLogging = "noodle",
+                isLoggingEnabled = isLoggingEnabled,
             )
 
             ShaderAnimationDemoType.WARP -> ShaderAnimationDemoHolder(
                 shader = WarpShader(),
                 updater = { shader, state -> shader.updateState(state) },
-                nameForLogging = "warp"
+                nameForLogging = "warp",
+                isLoggingEnabled = isLoggingEnabled,
             )
         }
     }.toPersistentMap()

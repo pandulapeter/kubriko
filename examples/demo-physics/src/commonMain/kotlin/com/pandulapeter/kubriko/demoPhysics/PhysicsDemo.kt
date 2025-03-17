@@ -20,14 +20,21 @@ import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoStateHolder
 import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoStateHolderImpl
 
-fun createPhysicsDemoStateHolder(isSceneEditorEnabled: Boolean): PhysicsDemoStateHolder = PhysicsDemoStateHolderImpl(
+fun createPhysicsDemoStateHolder(
+    isSceneEditorEnabled: Boolean,
+    isLoggingEnabled: Boolean,
+): PhysicsDemoStateHolder = PhysicsDemoStateHolderImpl(
     isSceneEditorEnabled = isSceneEditorEnabled,
+    isLoggingEnabled = isLoggingEnabled,
 )
 
 @Composable
 fun PhysicsDemo(
     modifier: Modifier = Modifier,
-    stateHolder: PhysicsDemoStateHolder = createPhysicsDemoStateHolder(true),
+    stateHolder: PhysicsDemoStateHolder = createPhysicsDemoStateHolder(
+        isSceneEditorEnabled = true,
+        isLoggingEnabled = false,
+    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as PhysicsDemoStateHolderImpl

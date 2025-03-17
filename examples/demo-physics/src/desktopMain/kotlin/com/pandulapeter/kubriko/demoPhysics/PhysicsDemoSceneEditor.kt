@@ -22,6 +22,7 @@ fun main() = SceneEditor.show(
     defaultSceneFilename = PhysicsDemoManager.SCENE_NAME,
     serializationManager = PhysicsDemoStateHolderImpl(
         isSceneEditorEnabled = true,
+        isLoggingEnabled = false,
     ).serializationManager,
 )
 
@@ -35,6 +36,7 @@ fun PhysicsDemoSceneEditor(
             defaultSceneFolderPath = defaultSceneFolderPath,
             serializationManager = PhysicsDemoStateHolderImpl(
                 isSceneEditorEnabled = true,
+                isLoggingEnabled = false,
             ).serializationManager,
             title = "Scene Editor - Physics Demo",
             onCloseRequest = { isSceneEditorVisible.value = false },

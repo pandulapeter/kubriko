@@ -32,12 +32,18 @@ import kubriko.examples.demo_content_shaders.generated.resources.Res
 import kubriko.examples.demo_content_shaders.generated.resources.shaders_not_supported
 import org.jetbrains.compose.resources.stringResource
 
-fun createContentShadersDemoStateHolder(): ContentShadersDemoStateHolder = ContentShadersDemoStateHolderImpl()
+fun createContentShadersDemoStateHolder(
+    isLoggingEnabled: Boolean,
+): ContentShadersDemoStateHolder = ContentShadersDemoStateHolderImpl(
+    isLoggingEnabled = isLoggingEnabled,
+)
 
 @Composable
 fun ContentShadersDemo(
     modifier: Modifier = Modifier,
-    stateHolder: ContentShadersDemoStateHolder = createContentShadersDemoStateHolder(),
+    stateHolder: ContentShadersDemoStateHolder = createContentShadersDemoStateHolder(
+        isLoggingEnabled = false,
+    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as ContentShadersDemoStateHolderImpl

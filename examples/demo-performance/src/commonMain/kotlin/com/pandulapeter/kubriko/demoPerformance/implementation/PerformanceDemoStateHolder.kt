@@ -43,7 +43,9 @@ sealed interface PerformanceDemoStateHolder : StateHolder {
 
 internal class PerformanceDemoStateHolderImpl(
     isSceneEditorEnabled: Boolean,
+    isLoggingEnabled: Boolean,
 ) : PerformanceDemoStateHolder {
+
     private val json = Json { ignoreUnknownKeys = true }
     val serializationManager = EditableMetadata.newSerializationManagerInstance(
         EditableMetadata(
@@ -61,14 +63,14 @@ internal class PerformanceDemoStateHolderImpl(
             deserializeState = { serializedState -> json.decodeFromString<MovingBox.State>(serializedState) },
             instantiate = { MovingBox.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit))) }
         ),
-        isLoggingEnabled = true,
+        isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
 
     // The properties below are lazily initialized because we don't need them when we only run the Scene Editor
     private val actorManager by lazy {
         ActorManager.newInstance(
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
@@ -82,7 +84,7 @@ internal class PerformanceDemoStateHolderImpl(
         ViewportManager.newInstance(
             initialScaleFactor = 0.5f,
             viewportEdgeBuffer = 200.sceneUnit,
-            isLoggingEnabled = true,
+            isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
     }
@@ -93,7 +95,7 @@ internal class PerformanceDemoStateHolderImpl(
                 viewportManager,
                 performanceDemoManager,
                 serializationManager,
-                isLoggingEnabled = true,
+                isLoggingEnabled = isLoggingEnabled,
                 instanceNameForLogging = LOG_TAG,
             )
         )
