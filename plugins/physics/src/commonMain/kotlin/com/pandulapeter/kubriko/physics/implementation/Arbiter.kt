@@ -34,50 +34,50 @@ internal data class Arbiter(
     private var dynamicFriction = (bodyA.dynamicFriction + bodyB.dynamicFriction) / 2
     val contacts = arrayOf(Vec2(), Vec2())
     var contactNormal = Vec2()
-    var contactCount = 0
+    var isColliding = false
     var restitution = 0f
 
     fun narrowPhaseCheck() {
         restitution = bodyA.restitution.coerceAtMost(bodyB.restitution)
         if (bodyA.shape is Circle && bodyB.shape is Circle) {
-            circleCircleCollision(bodyA, bodyB)
+            circleToCircleCollision(bodyA, bodyB)
         } else if (bodyA.shape is Circle && bodyB.shape is Polygon) {
-            circlePolygonCollision(bodyA, bodyB)
+            circleToPolygonCollision(bodyA, bodyB)
         } else if (bodyA.shape is Polygon && bodyB.shape is Circle) {
-            circlePolygonCollision(bodyB, bodyA)
-            if (contactCount > 0) {
+            circleToPolygonCollision(bodyB, bodyA)
+            if (isColliding) {
                 contactNormal.unaryMinus()
             }
         } else if (bodyA.shape is Polygon && bodyB.shape is Polygon) {
-            polygonPolygonCollision(bodyA, bodyB)
+            polygonToPolygonCollision(bodyA, bodyB)
         }
     }
 
     private var penetration = SceneUnit.Zero
 
-    private fun circleCircleCollision(a: PhysicsBody, body: PhysicsBody) {
-        val ca = a.shape as Circle
+    private fun circleToCircleCollision(bodyA: PhysicsBody, bodyB: PhysicsBody) {
+        val ca = bodyA.shape as Circle
         val cb = bodyB.shape as Circle
-        val normal = bodyB.position.minus(a.position)
+        val normal = bodyB.position.minus(bodyA.position)
         val distance = normal.length()
         val radius = ca.radius + cb.radius
         if (distance >= radius) {
-            contactCount = 0
+            isColliding = false
             return
         }
-        contactCount = 1
+        isColliding = true
         if (distance == SceneUnit.Zero) {
             penetration = radius
             contactNormal = Vec2(0.sceneUnit, 1.sceneUnit)
-            contacts[0].set(a.position.toVec2())
+            contacts[0].set(bodyA.position.toVec2())
         } else {
             penetration = radius - distance
             contactNormal = normal.toVec2().normalize()
-            contacts[0].set(contactNormal.scalar(ca.radius) + a.position.toVec2())
+            contacts[0].set(contactNormal.scalar(ca.radius) + bodyA.position.toVec2())
         }
     }
 
-    private fun circlePolygonCollision(circleBody: PhysicsBody, polygonBody: PhysicsBody) {
+    private fun circleToPolygonCollision(circleBody: PhysicsBody, polygonBody: PhysicsBody) {
         val circle = circleBody.shape as Circle
         val polygon = polygonBody.shape as Polygon
 
@@ -119,7 +119,7 @@ internal data class Arbiter(
                 return
             }
             this.penetration = circle.radius - distBetweenObj
-            contactCount = 1
+            isColliding = true
             contactNormal = polygon.orientation.times((vector1 - polyToCircleVec).normalize()).toVec2()
             contacts[0] = polygon.orientation.times(vector1).plus(polygonBody.position).toVec2()
             return
@@ -138,7 +138,7 @@ internal data class Arbiter(
                 return
             }
             this.penetration = circle.radius - distBetweenObj
-            contactCount = 1
+            isColliding = true
             contactNormal = polygon.orientation.times(vector2.minus(polyToCircleVec).normalize()).toVec2()
             contacts[0] = polygon.orientation.times(vector2).plus(polygonBody.position).toVec2()
         } else {
@@ -147,18 +147,15 @@ internal data class Arbiter(
                 return
             }
             this.penetration = circle.radius - distFromEdgeToCircle
-            contactCount = 1
+            isColliding = true
             contactNormal = polygon.orientation.times(polygon.normals[faceNormalIndex]).toVec2()
             val circleContactPoint = circleBody.position.plus(contactNormal.unaryMinus().scalar(circle.radius).toSceneOffset())
             contacts[0].set(circleContactPoint.toVec2())
         }
     }
 
-    /**
-     * Polygon collision check
-     */
-    private fun polygonPolygonCollision(a: PhysicsBody, body: PhysicsBody) {
-        val pa = a.shape as Polygon
+    private fun polygonToPolygonCollision(bodyA: PhysicsBody, bodyB: PhysicsBody) {
+        val pa = bodyA.shape as Polygon
         val pb = bodyB.shape as Polygon
         val aData = AxisData()
         findAxisOfMinPenetration(aData, pa, pb)
@@ -252,7 +249,7 @@ internal data class Arbiter(
             contactPoint = contactVectorsFound[1].plus(contactVectorsFound[0]).scalar(0.5f)
             penetration = totalPen / 2
         }
-        contactCount = 1
+        isColliding = true
         contacts[0].set(contactPoint)
         contactNormal.set((if (flip) refFaceNormal.unaryMinus() else refFaceNormal).toVec2())
     }
@@ -287,29 +284,22 @@ internal data class Arbiter(
         return num
     }
 
-    /**
-     * Finds the incident face of polygon A in object space relative to polygons B position.
-     *
-     * @param data Data obtained from earlier penetration test.
-     * @param A    Polygon A to test.
-     * @param B    Polygon B to test.
-     */
-    private fun findAxisOfMinPenetration(data: AxisData, A: Polygon, B: Polygon) {
+    private fun findAxisOfMinPenetration(data: AxisData, polygonA: Polygon, polygonB: Polygon) {
         var distance = (-Float.MAX_VALUE).sceneUnit
         var bestIndex = 0
-        for (i in A.vertices.indices) {
+        for (i in polygonA.vertices.indices) {
             //Applies polygon A's orientation to its normals for calculation.
-            val polyANormal = A.orientation.times(A.normals[i])
+            val polyANormal = polygonA.orientation.times(polygonA.normals[i])
 
             //Rotates the normal by the clock wise rotation matrix of B to put the normal relative to the object space of polygon B
             //Polygon b is axis aligned and the normal is located according to this in the correct position in object space
-            val objectPolyANormal = B.orientation.transpose().times(polyANormal)
+            val objectPolyANormal = polygonB.orientation.transpose().times(polyANormal)
             var bestProjection = Float.MAX_VALUE.sceneUnit
-            var bestVertex = B.vertices[0]
+            var bestVertex = polygonB.vertices[0]
 
             //Finds the index of the most negative vertex relative to the normal of polygon A
-            for (x in B.vertices.indices) {
-                val vertex = B.vertices[x]
+            for (x in polygonB.vertices.indices) {
+                val vertex = polygonB.vertices[x]
                 val projection = vertex.dot(objectPolyANormal)
                 if (projection < bestProjection) {
                     bestVertex = vertex
@@ -318,10 +308,10 @@ internal data class Arbiter(
             }
 
             //Distance of B to A in world space space
-            val distanceOfBA = A.body.position.minus(B.body.position)
+            val distanceOfBA = polygonA.body.position.minus(polygonB.body.position)
 
             //Best vertex relative to polygon B in object space
-            val polyANormalVertex = B.orientation.transpose().times(A.orientation.times(A.vertices[i]) + distanceOfBA)
+            val polyANormalVertex = polygonB.orientation.transpose().times(polygonA.orientation.times(polygonA.vertices[i]) + distanceOfBA)
 
             //Distance between best vertex and polygon A's plane in object space
             val d = objectPolyANormal.dot(bestVertex.minus(polyANormalVertex))

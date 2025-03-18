@@ -122,7 +122,7 @@ internal class PhysicsManagerImpl(
     private fun narrowPhaseCheck(bodyA: PhysicsBody, bodyB: PhysicsBody) {
         val contactQuery = Arbiter(bodyA, bodyB, penetrationCorrection)
         contactQuery.narrowPhaseCheck()
-        if (contactQuery.contactCount > 0) {
+        if (contactQuery.isColliding) {
             arbiters.add(contactQuery)
         }
     }
