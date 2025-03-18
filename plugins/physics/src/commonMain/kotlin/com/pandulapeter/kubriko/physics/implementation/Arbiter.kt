@@ -9,15 +9,18 @@
  */
 package com.pandulapeter.kubriko.physics.implementation
 
+import com.pandulapeter.kubriko.helpers.extensions.cross
 import com.pandulapeter.kubriko.helpers.extensions.distanceTo
 import com.pandulapeter.kubriko.helpers.extensions.dot
 import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.normal
 import com.pandulapeter.kubriko.helpers.extensions.normalized
+import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
+import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.abs
 
@@ -31,8 +34,8 @@ internal data class Arbiter(
 ) {
     private var staticFriction = (bodyA.staticFriction + bodyB.staticFriction) / 2
     private var dynamicFriction = (bodyA.dynamicFriction + bodyB.dynamicFriction) / 2
-    val contacts = arrayOf(Vec2(), Vec2())
-    var contactNormal = Vec2()
+    val contacts = arrayOf(SceneOffset.Zero, SceneOffset.Zero)
+    var contactNormal = SceneOffset.Zero
     var isColliding = false
     var restitution = 0f
 
@@ -45,7 +48,7 @@ internal data class Arbiter(
         } else if (bodyA.shape is Polygon && bodyB.shape is Circle) {
             circleToPolygonCollision(bodyB, bodyA)
             if (isColliding) {
-                contactNormal.unaryMinus()
+                contactNormal = contactNormal.unaryMinus()
             }
         } else if (bodyA.shape is Polygon && bodyB.shape is Polygon) {
             polygonToPolygonCollision(bodyA, bodyB)
@@ -67,12 +70,12 @@ internal data class Arbiter(
         isColliding = true
         if (distance == SceneUnit.Zero) {
             penetration = radius
-            contactNormal = Vec2(0.sceneUnit, 1.sceneUnit)
-            contacts[0].set(bodyA.position.toVec2())
+            contactNormal = SceneOffset.Down
+            contacts[0] = bodyA.position
         } else {
             penetration = radius - distance
-            contactNormal = normal.toVec2().normalize()
-            contacts[0].set(contactNormal.scalar(ca.radius) + bodyA.position.toVec2())
+            contactNormal = normal.normalized()
+            contacts[0] = contactNormal.scalar(ca.radius) + bodyA.position
         }
     }
 
@@ -119,8 +122,8 @@ internal data class Arbiter(
             }
             this.penetration = circle.radius - distBetweenObj
             isColliding = true
-            contactNormal = polygon.orientation.times((vector1 - polyToCircleVec).normalized()).toVec2()
-            contacts[0] = polygon.orientation.times(vector1).plus(polygonBody.position).toVec2()
+            contactNormal = polygon.orientation.times((vector1 - polyToCircleVec).normalized())
+            contacts[0] = polygon.orientation.times(vector1) + polygonBody.position
             return
         }
         val v2ToV1 = vector1.minus(vector2)
@@ -138,8 +141,8 @@ internal data class Arbiter(
             }
             this.penetration = circle.radius - distBetweenObj
             isColliding = true
-            contactNormal = polygon.orientation.times(vector2.minus(polyToCircleVec).normalized()).toVec2()
-            contacts[0] = polygon.orientation.times(vector2).plus(polygonBody.position).toVec2()
+            contactNormal = polygon.orientation.times(vector2.minus(polyToCircleVec).normalized())
+            contacts[0] = polygon.orientation.times(vector2) + polygonBody.position
         } else {
             val distFromEdgeToCircle = polyToCircleVec.minus(vector1).dot(polygon.normals[faceNormalIndex])
             if (distFromEdgeToCircle >= circle.radius) {
@@ -147,9 +150,9 @@ internal data class Arbiter(
             }
             this.penetration = circle.radius - distFromEdgeToCircle
             isColliding = true
-            contactNormal = polygon.orientation.times(polygon.normals[faceNormalIndex]).toVec2()
-            val circleContactPoint = circleBody.position.plus(contactNormal.unaryMinus().scalar(circle.radius).toSceneOffset())
-            contacts[0].set(circleContactPoint.toVec2())
+            contactNormal = polygon.orientation.times(polygon.normals[faceNormalIndex])
+            contacts[0] = circleBody.position.plus(-contactNormal.scalar(circle.radius))
+            contactNormal = -contactNormal
         }
     }
 
@@ -249,8 +252,8 @@ internal data class Arbiter(
             penetration = totalPen / 2
         }
         isColliding = true
-        contacts[0].set(contactPoint)
-        contactNormal.set((if (flip) refFaceNormal.unaryMinus() else refFaceNormal).toVec2())
+        contacts[0] = contactPoint.toSceneOffset()
+        contactNormal = if (flip) -refFaceNormal else refFaceNormal
     }
 
     /**
@@ -336,21 +339,21 @@ internal data class Arbiter(
         }
         val totalMass = bodyA.mass + bodyB.mass
         val correction = penetrationTolerance * penetrationCorrection / totalMass
-        bodyA.position = bodyA.position + contactNormal.scalar(-bodyA.mass.sceneUnit * correction).toSceneOffset()
-        bodyB.position = bodyB.position + contactNormal.scalar(bodyB.mass.sceneUnit * correction).toSceneOffset()
+        bodyA.position = bodyA.position + contactNormal.scalar(-bodyA.mass.sceneUnit * correction)
+        bodyB.position = bodyB.position + contactNormal.scalar(bodyB.mass.sceneUnit * correction)
     }
 
     /**
      * Solves the current contact manifold and applies impulses based on any contacts found.
      */
     fun solve() {
-        val contactA = contacts[0].minus(bodyA.position.toVec2())
-        val contactB = contacts[0].minus(bodyB.position.toVec2())
+        val contactA = contacts[0] - bodyA.position
+        val contactB = contacts[0] - bodyB.position
 
         //Relative velocity created from equation found in GDC talk of box2D lite.
-        var relativeVel = bodyB.velocity.toVec2()
+        var relativeVel = bodyB.velocity
             .plus(contactB.cross(bodyB.angularVelocity.raw))
-            .minus(bodyA.velocity.toVec2())
+            .minus(bodyA.velocity)
             .minus(contactA.cross(bodyA.angularVelocity.raw))
 
         //Positive = converging Negative = diverging
@@ -361,29 +364,28 @@ internal data class Arbiter(
         if (contactVel >= SceneUnit.Zero) {
             return
         }
-        val acn = contactA.cross(contactNormal)
-        val bcn = contactB.cross(contactNormal)
+        val acn = contactA.cross(contactNormal).raw
+        val bcn = contactB.cross(contactNormal).raw
         val inverseMassSum = bodyA.invMass + bodyB.invMass + acn * acn * bodyA.invInertia + bcn * bcn * bodyB.invInertia
         var j = -(restitution.sceneUnit + SceneUnit.Unit) * contactVel
         j /= inverseMassSum
         val impulse = contactNormal.scalar(j)
-        bodyB.applyLinearImpulse(impulse.toSceneOffset(), contactB.toSceneOffset())
-        bodyA.applyLinearImpulse(-impulse.toSceneOffset(), contactA.toSceneOffset())
-        relativeVel = bodyB.velocity.toVec2()
+        bodyB.applyLinearImpulse(impulse, contactB)
+        bodyA.applyLinearImpulse(-impulse, contactA)
+        relativeVel = bodyB.velocity
             .plus(contactB.cross(bodyB.angularVelocity.raw))
-            .minus(bodyA.velocity.toVec2())
+            .minus(bodyA.velocity)
             .minus(contactA.cross(bodyA.angularVelocity.raw))
-        val t = relativeVel.copy()
-        t.add(contactNormal.scalar(-relativeVel.dot(contactNormal))).normalize()
+        val t = (relativeVel + contactNormal.scalar(-relativeVel.dot(contactNormal))).normalized()
         var jt = -relativeVel.dot(t)
         jt /= inverseMassSum
-        val tangentImpulse: Vec2 = if (abs(jt.raw).sceneUnit < j * staticFriction) {
+        val tangentImpulse = if (abs(jt.raw).sceneUnit < j * staticFriction) {
             t.scalar(jt)
         } else {
             t.scalar(j).scalar(-dynamicFriction)
         }
-        bodyB.applyLinearImpulse(tangentImpulse.toSceneOffset(), contactB.toSceneOffset())
-        bodyA.applyLinearImpulse(tangentImpulse.copyNegative().toSceneOffset(), contactA.toSceneOffset())
+        bodyB.applyLinearImpulse(tangentImpulse, contactB)
+        bodyA.applyLinearImpulse(-tangentImpulse, contactA)
     }
 
     companion object {
