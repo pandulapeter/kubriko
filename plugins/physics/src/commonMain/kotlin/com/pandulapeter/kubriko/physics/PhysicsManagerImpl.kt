@@ -81,7 +81,7 @@ internal class PhysicsManagerImpl(
                 continue
             }
             applyLinearDrag(b)
-            if (b.affectedByGravity) {
+            if (b.isAffectedByGravity) {
                 b.velocity += actualGravity.value.scalar(dt)
             }
             b.velocity += b.force.scalar(b.invMass).scalar(dt)
@@ -111,7 +111,7 @@ internal class PhysicsManagerImpl(
             val bodyA = bodies[i]
             for (x in i + 1 until bodies.size) {
                 val bodyB = bodies[x]
-                if (bodyA.invMass == 0f && bodyB.invMass == 0f || bodyA.particle && bodyB.particle) {
+                if (bodyA.invMass == 0f && bodyB.invMass == 0f || bodyA.isParticle && bodyB.isParticle) {
                     continue
                 }
                 if (bodyA.aabb.isOverlapping(bodyB.aabb)) {

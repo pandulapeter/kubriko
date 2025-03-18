@@ -52,9 +52,9 @@ class ParticleExplosion(private val epicenter: SceneOffset, private val noOfPart
             b.restitution = 1f
             b.staticFriction = 0f
             b.dynamicFriction = 0f
-            b.affectedByGravity = false
+            b.isAffectedByGravity = false
             b.linearDampening = 0f
-            b.particle = true
+            b.isParticle = true
             //TODO: world.addBody(b)
             particles[i] = b
             distanceFromCentre = rotate.times(distanceFromCentre)

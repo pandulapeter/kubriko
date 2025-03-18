@@ -12,8 +12,6 @@ package com.pandulapeter.kubriko.physics
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.helpers.extensions.cross
 import com.pandulapeter.kubriko.helpers.extensions.scalar
-import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
-import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
 import com.pandulapeter.kubriko.physics.implementation.geometry.Shape
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -34,7 +32,9 @@ class PhysicsBody(
         }
     var aabb = AxisAlignedBoundingBox(SceneOffset.Zero, SceneOffset.Zero)
     var velocity = SceneOffset.Zero
+        internal set
     var force = SceneOffset.Zero
+        internal set
     var angularVelocity = SceneUnit.Zero
     var torque = SceneUnit.Zero
     var restitution = 0.8f
@@ -45,10 +45,7 @@ class PhysicsBody(
                 setStatic()
             } else if (true) {
                 shape.body = this
-                when (shape) {
-                    is Circle -> (shape as Circle).calcMass(value)
-                    is Polygon -> (shape as Polygon).calcMass(value)
-                }
+                shape.calcMass(value)
             }
         }
     var mass = 0f
@@ -57,8 +54,8 @@ class PhysicsBody(
     var invInertia = 0f
     var angularDampening = 0f
     var linearDampening = 0f
-    var affectedByGravity = true
-    var particle = false
+    var isAffectedByGravity = true
+    var isParticle = false
 
     init {
         density = density
