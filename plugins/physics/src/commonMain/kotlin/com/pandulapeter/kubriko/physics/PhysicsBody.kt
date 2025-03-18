@@ -16,15 +16,12 @@ import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
 import com.pandulapeter.kubriko.physics.implementation.geometry.Shape
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.SceneUnit
 
 // TODO: The shape should be set automatically based on the collisionMask
 class PhysicsBody(
     var shape: Shape,
-    x: SceneUnit,
-    y: SceneUnit,
+    var position: SceneOffset,
 ) {
-    var position: SceneOffset = SceneOffset(x, y)
     var dynamicFriction = 0.2f
     var staticFriction = 0.5f
     var orientation = AngleRadians.Companion.Zero

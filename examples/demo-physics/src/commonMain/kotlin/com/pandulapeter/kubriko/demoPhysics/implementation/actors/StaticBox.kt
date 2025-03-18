@@ -31,8 +31,7 @@ internal class StaticBox private constructor(state: State) : RigidBody, Visible,
     override val body = state.body
     override val physicsBody = PhysicsBody(
         shape = Polygon(body.size.width / 2f, body.size.height / 2f),
-        x = body.position.x,
-        y = body.position.y,
+        position = body.position,
     ).apply {
         density = 0f
         orientation = body.rotation

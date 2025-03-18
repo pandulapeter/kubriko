@@ -35,8 +35,7 @@ internal class DynamicPolygon(
     override val shouldClip = false // TODO: This shouldn't be needed, there must be an issue with the AABB calculation
     override val physicsBody = PhysicsBody(
         shape = shape,
-        x = initialOffset.x,
-        y = initialOffset.y,
+        position = initialOffset,
     ).apply {
         restitution = 0.4f
     }

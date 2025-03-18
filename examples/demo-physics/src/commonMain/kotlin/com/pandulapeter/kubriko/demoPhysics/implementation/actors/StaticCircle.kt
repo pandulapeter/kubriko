@@ -36,8 +36,7 @@ internal class StaticCircle private constructor(state: State) : RigidBody, Visib
     )
     override val physicsBody = PhysicsBody(
         shape = Circle(radius),
-        x = body.position.x,
-        y = body.position.y
+        position = body.position,
     ).apply { density = 0f }
     private lateinit var viewportManager: ViewportManager
 

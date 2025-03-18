@@ -169,8 +169,7 @@ internal class DynamicChain private constructor(private val state: State) : Grou
     ) : RigidBody, Visible, Dynamic {
         override val physicsBody = PhysicsBody(
             shape = Circle(Radius),
-            x = initialPosition.x,
-            y = initialPosition.y,
+            position = initialPosition,
         ).apply {
             density = 5f
             restitution = 0.1f

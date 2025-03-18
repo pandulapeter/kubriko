@@ -17,6 +17,7 @@ import com.pandulapeter.kubriko.types.SceneUnit
 /**
  * Abstract class presenting a geometric shape.
  */
+// TODO: Should be merged with CollisionMask
 abstract class Shape {
     lateinit var body: PhysicsBody
     var orientation: Mat2 = Mat2()

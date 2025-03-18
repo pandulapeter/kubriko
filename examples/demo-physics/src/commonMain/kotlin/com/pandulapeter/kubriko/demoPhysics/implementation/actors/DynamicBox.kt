@@ -36,8 +36,7 @@ internal class DynamicBox private constructor(state: State) : BaseDynamicObject(
             halfWidth = body.size.width / 2,
             halfHeight = body.size.height / 2,
         ),
-        x = body.position.x,
-        y = body.position.y,
+        position = body.position,
     ).apply {
         restitution = 0.4f
         orientation = body.rotation

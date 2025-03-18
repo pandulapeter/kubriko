@@ -34,8 +34,7 @@ internal class StaticPolygon private constructor(state: State) : RigidBody, Visi
     override val body = state.body
     override val physicsBody = PhysicsBody(
         shape = Polygon(state.vertices),
-        x = body.position.x,
-        y = body.position.y,
+        position = body.position,
     ).apply {
         density = 0f
         orientation = body.rotation

@@ -38,8 +38,10 @@ internal class Penguin(
         shape = Circle(
             radius = radius,
         ),
-        x = body.position.x,
-        y = body.position.y * 1.2f,
+        position = SceneOffset(
+            x = body.position.x,
+            y = body.position.y * 1.2f,
+        ),
     ).apply {
         restitution = 0.5f
         density = 5f

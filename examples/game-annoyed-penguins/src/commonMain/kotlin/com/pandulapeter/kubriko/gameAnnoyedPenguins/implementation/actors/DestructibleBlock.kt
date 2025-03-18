@@ -39,8 +39,7 @@ internal class DestructibleBlock private constructor(
             halfWidth = body.size.width / 2,
             halfHeight = body.size.height / 2,
         ),
-        x = body.position.x,
-        y = body.position.y,
+        position = body.position,
     ).apply {
         restitution = 1f
         density = 10f

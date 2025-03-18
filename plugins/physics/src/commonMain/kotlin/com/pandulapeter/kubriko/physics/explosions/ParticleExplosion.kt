@@ -32,7 +32,7 @@ class ParticleExplosion(private val epicenter: SceneOffset, private val noOfPart
      *
      * @return Array of bodies.
      */
-    val particles = MutableList(noOfParticles) { PhysicsBody(Circle(SceneUnit.Zero), SceneUnit.Zero, SceneUnit.Zero) }
+    val particles = MutableList(noOfParticles) { PhysicsBody(Circle(SceneUnit.Zero), SceneOffset.Zero) }
 
     /**
      * Creates particles in the supplied world.
@@ -48,7 +48,7 @@ class ParticleExplosion(private val epicenter: SceneOffset, private val noOfPart
         val rotate = Mat2(separationAngle)
         for (i in 0 until noOfParticles) {
             val particlePlacement = epicenter.plus(distanceFromCentre)
-            val b = PhysicsBody(Circle(size), particlePlacement.x, particlePlacement.y)
+            val b = PhysicsBody(Circle(size), particlePlacement)
             b.density = density.toFloat()
             b.restitution = 1f
             b.staticFriction = 0f

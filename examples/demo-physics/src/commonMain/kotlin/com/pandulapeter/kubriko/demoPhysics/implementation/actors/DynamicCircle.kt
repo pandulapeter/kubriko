@@ -28,8 +28,7 @@ internal class DynamicCircle private constructor(state: State) : BaseDynamicObje
     val radius = body.size.width / 2f
     override val physicsBody = PhysicsBody(
         shape = Circle(radius),
-        x = body.position.x,
-        y = body.position.y,
+        position = body.position,
     ).apply {
         restitution = 0.4f
         orientation = body.rotation
