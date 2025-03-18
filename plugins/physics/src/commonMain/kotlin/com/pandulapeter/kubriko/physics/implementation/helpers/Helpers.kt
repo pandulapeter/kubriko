@@ -25,7 +25,7 @@ internal fun SceneOffset.toVec2() = Vec2(
 
 internal fun isPointInside(body: PhysicsBody, startPoint: SceneOffset) = body.shape.isPointInside(startPoint)
 
-internal fun lineIntersect(line1Start: Vec2, line1End: Vec2, line2Start: Vec2, line2End: Vec2): Vec2? {
+internal fun lineIntersect(line1Start: SceneOffset, line1End: SceneOffset, line2Start: SceneOffset, line2End: SceneOffset): SceneOffset? {
     val x1 = line1Start.x
     val y1 = line1Start.y
     val x2 = line1End.x
@@ -43,19 +43,19 @@ internal fun lineIntersect(line1Start: Vec2, line1End: Vec2, line2Start: Vec2, l
     val x = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / denom
     val y = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / denom
 
-    if (!pointIsOnLine(line1Start, line1End, Vec2(x, y)) || !pointIsOnLine(
+    if (!isPointOnLine(line1Start, line1End, SceneOffset(x, y)) || !isPointOnLine(
             line2Start, line2End,
-            Vec2(x, y)
+            SceneOffset(x, y)
         )
     ) {
         return null
     }
 
-    return Vec2(x, y)
+    return SceneOffset(x, y)
 }
 
 
-internal fun pointIsOnLine(lineStart: Vec2, lineEnd: Vec2, point: Vec2): Boolean {
+internal fun isPointOnLine(lineStart: SceneOffset, lineEnd: SceneOffset, point: SceneOffset): Boolean {
     if (lineStart.x == lineEnd.x) {
         return point.x == lineStart.x && ((point.y >= lineStart.y && point.y <= lineEnd.y) || (point.y <= lineStart.y && point.y >= lineEnd.y))
     } else if (lineStart.y == lineEnd.y) {

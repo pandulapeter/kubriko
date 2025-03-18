@@ -19,9 +19,8 @@ import com.pandulapeter.kubriko.helpers.extensions.normalize
 import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
+import com.pandulapeter.kubriko.physics.implementation.helpers.isPointOnLine
 import com.pandulapeter.kubriko.physics.implementation.helpers.lineIntersect
-import com.pandulapeter.kubriko.physics.implementation.helpers.pointIsOnLine
-import com.pandulapeter.kubriko.physics.implementation.helpers.toVec2
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.PI
@@ -135,13 +134,13 @@ class Polygon : Shape {
      * Generates an AABB encompassing the polygon and binds it to the body.
      */
     override fun createAABB() {
-        val firstPoint = orientation.mul(vertices[0])
+        val firstPoint = orientation.times(vertices[0])
         var minX = firstPoint.x
         var maxX = firstPoint.x
         var minY = firstPoint.y
         var maxY = firstPoint.y
         for (i in 1 until vertices.size) {
-            val point = orientation.mul(vertices[i])
+            val point = orientation.times(vertices[i])
             val px = point.x
             val py = point.y
             if (px < minX) {
@@ -232,8 +231,8 @@ class Polygon : Shape {
      */
     override fun isPointInside(startPoint: SceneOffset): Boolean {
         for (i in vertices.indices) {
-            val objectPoint = startPoint - (body.position + body.shape.orientation.mul(vertices[i]))
-            if (objectPoint.dot(this.body.shape.orientation.mul(normals[i])) > SceneUnit.Zero) {
+            val objectPoint = startPoint - (body.position + body.shape.orientation.times(vertices[i]))
+            if (objectPoint.dot(this.body.shape.orientation.times(normals[i])) > SceneUnit.Zero) {
                 return false
             }
         }
@@ -248,16 +247,16 @@ class Polygon : Shape {
         var maxD = maxDistance
 
         for (i in vertices.indices) {
-            var startOfPolyEdge = vertices[i].toVec2()
-            var endOfPolyEdge = vertices[if (i + 1 == vertices.size) 0 else i + 1].toVec2()
-            startOfPolyEdge = orientation.mul(startOfPolyEdge) + body.position.toVec2()
-            endOfPolyEdge = orientation.mul(endOfPolyEdge) + body.position.toVec2()
+            var startOfPolyEdge = vertices[i]
+            var endOfPolyEdge = vertices[if (i + 1 == vertices.size) 0 else i + 1]
+            startOfPolyEdge = orientation.times(startOfPolyEdge) + body.position
+            endOfPolyEdge = orientation.times(endOfPolyEdge) + body.position
 
             //detect if line (startPoint -> endpoint) intersects with the current edge (startOfPolyEdge -> endOfPolyEdge)
-            val intersection = lineIntersect(startPoint.toVec2(), endPoint.toVec2(), startOfPolyEdge, endOfPolyEdge)
+            val intersection = lineIntersect(startPoint, endPoint, startOfPolyEdge, endOfPolyEdge)
             if (intersection != null) {
-                val distance = startPoint.distanceTo(intersection.toSceneOffset())
-                if (pointIsOnLine(startPoint.toVec2(), endPoint.toVec2(), intersection) && pointIsOnLine(
+                val distance = startPoint.distanceTo(intersection)
+                if (isPointOnLine(startPoint, endPoint, intersection) && isPointOnLine(
                         startOfPolyEdge,
                         endOfPolyEdge,
                         intersection

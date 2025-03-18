@@ -95,8 +95,8 @@ open class PolygonCollisionMask internal constructor(
 
     override fun isSceneOffsetInside(sceneOffset: SceneOffset): Boolean {
         for (i in vertices.indices) {
-            val objectPoint = sceneOffset - (position + orientation.mul(vertices[i]))
-            if (objectPoint.dot(orientation.mul(normals[i])) > SceneUnit.Zero) {
+            val objectPoint = sceneOffset - (position + orientation.times(vertices[i]))
+            if (objectPoint.dot(orientation.times(normals[i])) > SceneUnit.Zero) {
                 return false
             }
         }
@@ -104,13 +104,13 @@ open class PolygonCollisionMask internal constructor(
     }
 
     override fun updateAxisAlignedBoundingBox(): AxisAlignedBoundingBox {
-        val firstPoint = orientation.mul(vertices[0])
+        val firstPoint = orientation.times(vertices[0])
         var minX = firstPoint.x
         var maxX = firstPoint.x
         var minY = firstPoint.y
         var maxY = firstPoint.y
         for (i in 1 until vertices.size) {
-            val point = orientation.mul(vertices[i])
+            val point = orientation.times(vertices[i])
             val px = point.x
             val py = point.y
             if (px < minX) {

@@ -15,6 +15,7 @@ import com.pandulapeter.kubriko.helpers.extensions.cross
 import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.helpers.toVec2
+import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
@@ -39,7 +40,7 @@ class JointToPoint
     jointConstant: Float,
     dampening: Float,
     canGoSlack: Boolean,
-    offset: Vec2
+    offset: SceneOffset
 ) : Joint(b1, jointLength, jointConstant, dampening, canGoSlack, offset) {
 
     /**
@@ -47,7 +48,7 @@ class JointToPoint
      */
     override fun applyTension() {
         val mat1 = Mat2(physicsBody.orientation)
-        object1AttachmentPoint = physicsBody.position + mat1.mul(offset).toSceneOffset()
+        object1AttachmentPoint = physicsBody.position + mat1.times(offset)
         val tension = calculateTension()
         val distance = pointAttachedTo.minus(object1AttachmentPoint.toVec2())
         distance.normalize()

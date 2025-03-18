@@ -58,7 +58,7 @@ class ParticleExplosion(private val epicenter: SceneOffset, private val noOfPart
             b.particle = true
             //TODO: world.addBody(b)
             particles[i] = b
-            distanceFromCentre = rotate.mul(distanceFromCentre)
+            distanceFromCentre = rotate.times(distanceFromCentre)
         }
     }
 

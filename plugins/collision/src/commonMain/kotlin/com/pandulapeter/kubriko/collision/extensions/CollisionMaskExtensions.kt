@@ -57,7 +57,7 @@ private fun checkCircleToPolygonCollision(
 
     //Transpose effectively removes the rotation thus allowing the OBB vs OBB detection to become AABB vs OBB
     val distOfBodies = circle.position.minus(polygon.position)
-    val polyToCircleVec = polygon.orientation.transpose().mul(distOfBodies)
+    val polyToCircleVec = polygon.orientation.transpose().times(distOfBodies)
     var penetration = (-Float.MAX_VALUE).sceneUnit
     var faceNormalIndex = 0
 
@@ -146,8 +146,8 @@ private fun checkPolygonToPolygonCollision(
     var referenceNormal = referencePoly.normals[referenceFaceIndex]
 
     //Reference face of reference polygon in object space of incident polygon
-    referenceNormal = referencePoly.orientation.mul(referenceNormal)
-    referenceNormal = incidentPoly.orientation.transpose().mul(referenceNormal)
+    referenceNormal = referencePoly.orientation.times(referenceNormal)
+    referenceNormal = incidentPoly.orientation.transpose().times(referenceNormal)
 
     //Finds face of incident polygon angled best vs reference poly normal.
     //Best face is the incident face that is the most anti parallel (most negative dot product)
@@ -163,8 +163,8 @@ private fun checkPolygonToPolygonCollision(
 
     //Incident faces vertexes in world space
     val incidentFaceVertexes = arrayOf(
-        incidentPoly.orientation.mul(incidentPoly.vertices[incidentIndex]) + incidentPoly.position,
-        incidentPoly.orientation.mul(incidentPoly.vertices[if (incidentIndex + 1 >= incidentPoly.vertices.size) 0 else incidentIndex + 1]) + incidentPoly.position
+        incidentPoly.orientation.times(incidentPoly.vertices[incidentIndex]) + incidentPoly.position,
+        incidentPoly.orientation.times(incidentPoly.vertices[if (incidentIndex + 1 >= incidentPoly.vertices.size) 0 else incidentIndex + 1]) + incidentPoly.position
     )
 
     //Gets vertex's of reference polygon reference face in world space
@@ -172,8 +172,8 @@ private fun checkPolygonToPolygonCollision(
     var v2 = referencePoly.vertices[if (referenceFaceIndex + 1 == referencePoly.vertices.size) 0 else referenceFaceIndex + 1]
 
     //Rotate and translate vertex's of reference poly
-    v1 = referencePoly.orientation.mul(v1) + referencePoly.position
-    v2 = referencePoly.orientation.mul(v2) + referencePoly.position
+    v1 = referencePoly.orientation.times(v1) + referencePoly.position
+    v2 = referencePoly.orientation.times(v2) + referencePoly.position
     val refTangent = v2.minus(v1)
     refTangent.normalize()
     val negSide = -refTangent.dot(v1)
@@ -215,11 +215,11 @@ private fun findAxisOfMinPenetration(
     var bestIndex = 0
     for (i in polygonA.vertices.indices) {
         //Applies polygon A's orientation to its normals for calculation.
-        val polyANormal = polygonA.orientation.mul(polygonA.normals[i])
+        val polyANormal = polygonA.orientation.times(polygonA.normals[i])
 
         //Rotates the normal by the clock wise rotation matrix of B to put the normal relative to the object space of polygon B
         //Polygon b is axis aligned and the normal is located according to this in the correct position in object space
-        val objectPolyANormal = polygonB.orientation.transpose().mul(polyANormal)
+        val objectPolyANormal = polygonB.orientation.transpose().times(polyANormal)
         var bestProjection = Float.MAX_VALUE.sceneUnit
         var bestVertex = polygonB.vertices[0]
 
@@ -237,7 +237,7 @@ private fun findAxisOfMinPenetration(
         val distanceOfBA = polygonA.position.minus(polygonB.position)
 
         //Best vertex relative to polygon B in object space
-        val polyANormalVertex = polygonB.orientation.transpose().mul(polygonA.orientation.mul(polygonA.vertices[i]) + distanceOfBA)
+        val polyANormalVertex = polygonB.orientation.transpose().times(polygonA.orientation.times(polygonA.vertices[i]) + distanceOfBA)
 
         //Distance between best vertex and polygon A's plane in object space
         val d = objectPolyANormal.dot(bestVertex.minus(polyANormalVertex))

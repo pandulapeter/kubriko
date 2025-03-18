@@ -45,7 +45,7 @@ class RayScatter(epicenter: SceneOffset, private val noOfRays: Int) {
         val u = Mat2(angle.rad)
         for (i in rays.indices) {
             rays.add(Ray(epicenter, direction, distance))
-            u.mul(direction)
+            u.times(direction)
         }
     }
 

@@ -10,8 +10,8 @@
 package com.pandulapeter.kubriko.physics.implementation.joints
 
 import com.pandulapeter.kubriko.collision.implementation.Mat2
-import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
+import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
@@ -30,9 +30,9 @@ abstract class Joint protected constructor(
     protected val springConstant: Float,
     protected val dampeningConstant: Float,
     protected val canGoSlack: Boolean,
-    protected val offset: Vec2
+    protected val offset: SceneOffset
 ) {
-    var object1AttachmentPoint = physicsBody.position + Mat2(physicsBody.orientation).mul(offset).toSceneOffset()
+    var object1AttachmentPoint = physicsBody.position + Mat2(physicsBody.orientation).times(offset)
 
     /**
      * Abstract method to apply tension to the joint

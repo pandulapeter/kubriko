@@ -44,7 +44,7 @@ internal class ShadowCasting(var startPoint: SceneOffset, private val distance: 
             if (body.shape is Polygon) {
                 val poly1 = body.shape as Polygon
                 for (v in poly1.vertices) {
-                    val direction = poly1.orientation.mul(v).plus(body.position).minus(startPoint)
+                    val direction = poly1.orientation.times(v).plus(body.position).minus(startPoint)
                     projectRays(direction, bodiesToEvaluate)
                 }
             } else {
@@ -52,9 +52,9 @@ internal class ShadowCasting(var startPoint: SceneOffset, private val distance: 
                 val d = body.position.minus(startPoint)
                 val angle = asin((circle.radius / d.length()).raw)
                 val u = Mat2(angle.rad)
-                projectRays(u.mul(d.normalize()), bodiesToEvaluate)
+                projectRays(u.times(d.normalize()), bodiesToEvaluate)
                 val u2 = Mat2(-angle.rad)
-                projectRays(u2.mul(d.normalize()), bodiesToEvaluate)
+                projectRays(u2.times(d.normalize()), bodiesToEvaluate)
             }
         }
         rayData.sortWith { lhs: RayAngleInformation, rhs: RayAngleInformation ->
@@ -70,12 +70,12 @@ internal class ShadowCasting(var startPoint: SceneOffset, private val distance: 
      */
     private fun projectRays(direction: SceneOffset, bodiesToEvaluate: List<PhysicsBody>) {
         val m = Mat2(0.001f.rad)
-        m.transpose().mul(direction)
+        m.transpose().times(direction)
         for (i in 0..2) {
             val ray = Ray(startPoint, direction, distance)
             ray.updateProjection(bodiesToEvaluate)
             rayData.add(RayAngleInformation(ray, atan2(direction.y.raw.toDouble(), direction.x.raw.toDouble())))
-            m.mul(direction)
+            m.times(direction)
         }
     }
 

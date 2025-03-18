@@ -10,13 +10,13 @@
 package com.pandulapeter.kubriko.physics.implementation.joints
 
 import com.pandulapeter.kubriko.collision.implementation.Mat2
-import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.helpers.extensions.cross
 import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.normalize
 import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.helpers.toVec2
+import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
@@ -41,19 +41,19 @@ class JointToBody
     jointConstant: Float,
     dampening: Float,
     canGoSlack: Boolean,
-    offset1: Vec2,
-    private val offset2: Vec2
+    offset1: SceneOffset,
+    private val offset2: SceneOffset
 ) : Joint(physicsBody1, jointLength, jointConstant, dampening, canGoSlack, offset1) {
-    private var object2AttachmentPoint = physicsBody2.position + Mat2(physicsBody2.orientation).mul(offset2).toSceneOffset()
+    private var object2AttachmentPoint = physicsBody2.position + Mat2(physicsBody2.orientation).times(offset2)
 
     /**
      * Applies tension to the two bodies.
      */
     override fun applyTension() {
         val mat1 = Mat2(physicsBody.orientation)
-        object1AttachmentPoint = physicsBody.position + mat1.mul(offset).toSceneOffset()
+        object1AttachmentPoint = physicsBody.position + mat1.times(offset)
         val mat2 = Mat2(physicsBody2.orientation)
-        object2AttachmentPoint = physicsBody2.position + mat2.mul(offset2).toSceneOffset()
+        object2AttachmentPoint = physicsBody2.position + mat2.times(offset2)
         val tension = calculateTension()
         val distance = object2AttachmentPoint.minus(object1AttachmentPoint).normalize()
         val impulse = distance.scalar(tension).toVec2()
