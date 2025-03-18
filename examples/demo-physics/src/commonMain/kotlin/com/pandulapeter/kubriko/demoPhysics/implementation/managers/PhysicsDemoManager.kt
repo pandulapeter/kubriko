@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Unique
-import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.demoPhysics.implementation.PlatformSpecificContent
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.Bomb
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicBox
@@ -239,7 +238,7 @@ internal class PhysicsDemoManager(
             vertList = (3..10).random().let { sideCount ->
                 (0..sideCount).map { sideIndex ->
                     val angle = AngleRadians.TwoPi / sideCount * (sideIndex + 0.75f)
-                    Vec2(
+                    SceneOffset(
                         x = (30..120).random().sceneUnit * angle.cos,
                         y = (30..120).random().sceneUnit * angle.sin,
                     )

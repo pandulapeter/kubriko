@@ -10,6 +10,11 @@
 package com.pandulapeter.kubriko.physics.implementation.collision
 
 import com.pandulapeter.kubriko.collision.implementation.Vec2
+import com.pandulapeter.kubriko.helpers.extensions.distanceTo
+import com.pandulapeter.kubriko.helpers.extensions.dot
+import com.pandulapeter.kubriko.helpers.extensions.length
+import com.pandulapeter.kubriko.helpers.extensions.normal
+import com.pandulapeter.kubriko.helpers.extensions.normalize
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.collision.bodies.CollisionBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.dynamics.Physics
@@ -17,6 +22,7 @@ import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.PhysicalB
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
 import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
+import com.pandulapeter.kubriko.physics.implementation.helpers.toVec2
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.abs
 
@@ -105,11 +111,11 @@ class Arbiter(
         if (distance == SceneUnit.Zero) {
             penetration = radius
             contactNormal = Vec2(0.sceneUnit, 1.sceneUnit)
-            contacts[0].set(a.position)
+            contacts[0].set(a.position.toVec2())
         } else {
             penetration = radius - distance
-            contactNormal = normal.normalize()
-            contacts[0].set(contactNormal.scalar(ca.radius).plus(a.position))
+            contactNormal = normal.toVec2().normalize()
+            contacts[0].set(contactNormal.scalar(ca.radius) + a.position.toVec2())
         }
     }
 
@@ -132,7 +138,7 @@ class Arbiter(
         //Applies SAT to check for potential penetration
         //Retrieves best face of polygon
         for (i in polygon.vertices.indices) {
-            val v = polyToCircleVec.minus(polygon.vertices[i])
+            val v = polyToCircleVec - polygon.vertices[i]
             val distance = polygon.normals[i].dot(v)
 
             //If circle is outside of polygon, no collision detected.
@@ -154,7 +160,7 @@ class Arbiter(
 
         //If first vertex is positive, v1 face region collision check
         if (firstPolyCorner <= SceneUnit.Zero) {
-            val distBetweenObj = polyToCircleVec.distance(vector1)
+            val distBetweenObj = polyToCircleVec.distanceTo(vector1)
 
             //Check to see if vertex is within the circle
             if (distBetweenObj >= circle.radius) {
@@ -162,8 +168,8 @@ class Arbiter(
             }
             this.penetration = circle.radius - distBetweenObj
             contactCount = 1
-            contactNormal = polygon.orientation.mul((vector1 - polyToCircleVec).normalize())
-            contacts[0] = polygon.orientation.mul(vector1).plus(polygonBody.position)
+            contactNormal = polygon.orientation.mul((vector1 - polyToCircleVec).toVec2().normalize())
+            contacts[0] = polygon.orientation.mul(vector1).plus(polygonBody.position).toVec2()
             return
         }
         val v2ToV1 = vector1.minus(vector2)
@@ -173,7 +179,7 @@ class Arbiter(
         //If second vertex is positive, v2 face region collision check
         //Else circle has made contact with the polygon face.
         if (secondPolyCorner < SceneUnit.Zero) {
-            val distBetweenObj = polyToCircleVec.distance(vector2)
+            val distBetweenObj = polyToCircleVec.distanceTo(vector2)
 
             //Check to see if vertex is within the circle
             if (distBetweenObj >= circle.radius) {
@@ -181,8 +187,8 @@ class Arbiter(
             }
             this.penetration = circle.radius - distBetweenObj
             contactCount = 1
-            contactNormal = polygon.orientation.mul(vector2.minus(polyToCircleVec).normalize())
-            contacts[0] = polygon.orientation.mul(vector2).plus(polygonBody.position)
+            contactNormal = polygon.orientation.mul(vector2.minus(polyToCircleVec).toVec2().normalize())
+            contacts[0] = polygon.orientation.mul(vector2).plus(polygonBody.position).toVec2()
         } else {
             val distFromEdgeToCircle = polyToCircleVec.minus(vector1).dot(polygon.normals[faceNormalIndex])
             if (distFromEdgeToCircle >= circle.radius) {
@@ -190,9 +196,9 @@ class Arbiter(
             }
             this.penetration = circle.radius - distFromEdgeToCircle
             contactCount = 1
-            contactNormal = polygon.orientation.mul(polygon.normals[faceNormalIndex])
-            val circleContactPoint = circleBody.position.plus(contactNormal.unaryMinus().scalar(circle.radius))
-            contacts[0].set(circleContactPoint)
+            contactNormal = polygon.orientation.mul(polygon.normals[faceNormalIndex]).toVec2()
+            val circleContactPoint = circleBody.position.plus(contactNormal.unaryMinus().scalar(circle.radius).toSceneOffset())
+            contacts[0].set(circleContactPoint.toVec2())
         }
     }
 
@@ -248,8 +254,8 @@ class Arbiter(
 
         //Incident faces vertexes in world space
         val incidentFaceVertexes = arrayOf(
-            incidentPoly.orientation.mul(incidentPoly.vertices[incidentIndex]) + incidentPoly.body.position,
-            incidentPoly.orientation.mul(incidentPoly.vertices[if (incidentIndex + 1 >= incidentPoly.vertices.size) 0 else incidentIndex + 1]) + incidentPoly.body.position
+            (incidentPoly.orientation.mul(incidentPoly.vertices[incidentIndex]) + incidentPoly.body.position).toVec2(),
+            (incidentPoly.orientation.mul(incidentPoly.vertices[if (incidentIndex + 1 >= incidentPoly.vertices.size) 0 else incidentIndex + 1]) + incidentPoly.body.position).toVec2(),
         )
 
         //Gets vertex's of reference polygon reference face in world space
@@ -260,27 +266,26 @@ class Arbiter(
         //Rotate and translate vertex's of reference poly
         v1 = referencePoly.orientation.mul(v1) + referencePoly.body.position
         v2 = referencePoly.orientation.mul(v2) + referencePoly.body.position
-        val refTangent = v2.minus(v1)
-        refTangent.normalize()
+        val refTangent = v2.minus(v1).normalize()
         val negSide = -refTangent.dot(v1)
         val posSide = refTangent.dot(v2)
         // Clips the incident face against the reference
-        var np = clip(refTangent.copyNegative(), negSide, incidentFaceVertexes)
+        var np = clip((-refTangent).toVec2(), negSide, incidentFaceVertexes)
         if (np < 2) {
             return
         }
-        np = clip(refTangent, posSide, incidentFaceVertexes)
+        np = clip(refTangent.toVec2(), posSide, incidentFaceVertexes)
         if (np < 2) {
             return
         }
-        val refFaceNormal = refTangent.normal().copyNegative()
+        val refFaceNormal = -refTangent.normal()
         val contactVectorsFound = MutableList(2) { Vec2() }
         var totalPen = SceneUnit.Zero
         var contactsFound = 0
 
         //Discards points that are positive/above the reference face
         for (i in 0..1) {
-            val separation = refFaceNormal.dot(incidentFaceVertexes[i]) - refFaceNormal.dot(v1)
+            val separation = refFaceNormal.dot(incidentFaceVertexes[i].toSceneOffset()) - refFaceNormal.dot(v1)
             if (separation <= SceneUnit.Zero) {
                 contactVectorsFound[contactsFound] = incidentFaceVertexes[i]
                 totalPen += -separation
@@ -297,7 +302,7 @@ class Arbiter(
         }
         contactCount = 1
         contacts[0].set(contactPoint)
-        contactNormal.set(if (flip) refFaceNormal.unaryMinus() else refFaceNormal)
+        contactNormal.set((if (flip) refFaceNormal.unaryMinus() else refFaceNormal).toVec2())
     }
 
     /**
@@ -391,16 +396,16 @@ class Arbiter(
         if (a !is PhysicalBodyInterface || b !is PhysicalBodyInterface) return
         val totalMass = a.mass + b.mass
         val correction = penetrationTolerance * Physics.PENETRATION_CORRECTION / totalMass
-        a.position = a.position.plus(contactNormal.scalar(-a.mass.sceneUnit * correction))
-        b.position = b.position.plus(contactNormal.scalar(b.mass.sceneUnit * correction))
+        a.position = a.position + contactNormal.scalar(-a.mass.sceneUnit * correction).toSceneOffset()
+        b.position = b.position + contactNormal.scalar(b.mass.sceneUnit * correction).toSceneOffset()
     }
 
     /**
      * Solves the current contact manifold and applies impulses based on any contacts found.
      */
     fun solve() {
-        val contactA = contacts[0].minus(a.position)
-        val contactB = contacts[0].minus(b.position)
+        val contactA = contacts[0].minus(a.position.toVec2())
+        val contactB = contacts[0].minus(b.position.toVec2())
 
         if (a !is PhysicalBodyInterface || b !is PhysicalBodyInterface) return
 

@@ -9,7 +9,9 @@
  */
 package com.pandulapeter.kubriko.physics.explosions
 
-import com.pandulapeter.kubriko.collision.implementation.Vec2
+import com.pandulapeter.kubriko.helpers.extensions.length
+import com.pandulapeter.kubriko.helpers.extensions.normalize
+import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.PhysicalBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
 import com.pandulapeter.kubriko.physics.implementation.helpers.toVec2
@@ -42,14 +44,14 @@ class ProximityExplosion(
     override fun update(bodiesToEvaluate: Collection<TranslatableBody>) {
         bodiesEffected.clear()
         for (b in bodiesToEvaluate) {
-            val blastDist = b.position.minus(epicenter.toVec2())
+            val blastDist = b.position - epicenter
             if (blastDist.length() <= proximity) {
                 bodiesEffected.add(b)
             }
         }
     }
 
-    val linesToBodies = mutableListOf<Vec2?>()
+    val linesToBodies = mutableListOf<SceneOffset>()
 
     /**
      * Updates the lines to body array for the debug drawer.
@@ -70,14 +72,14 @@ class ProximityExplosion(
         for (b in bodiesEffected) {
             if (b !is PhysicalBodyInterface) continue
 
-            val blastDir = b.position.minus(epicenter.toVec2())
+            val blastDir = b.position - epicenter
             val distance = blastDir.length()
             if (distance == SceneUnit.Zero) return
 
             //Not physically correct as it should be blast * radius to object ^ 2 as the pressure of an explosion in 2D dissipates
             val invDistance = SceneUnit.Unit / distance
             val impulseMag = blastPower * invDistance
-            b.applyLinearImpulse(blastDir.normalize().scalar(impulseMag))
+            b.applyLinearImpulse(blastDir.normalize().scalar(impulseMag).toVec2())
         }
     }
 }

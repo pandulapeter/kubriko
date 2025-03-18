@@ -11,7 +11,12 @@ package com.pandulapeter.kubriko.physics.implementation.geometry
 
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.collision.implementation.Vec2
+import com.pandulapeter.kubriko.helpers.extensions.cross
 import com.pandulapeter.kubriko.helpers.extensions.distanceTo
+import com.pandulapeter.kubriko.helpers.extensions.dot
+import com.pandulapeter.kubriko.helpers.extensions.normal
+import com.pandulapeter.kubriko.helpers.extensions.normalize
+import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.PhysicalBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
@@ -29,15 +34,15 @@ import kotlin.math.sin
  * Class for representing polygon shape.
  */
 class Polygon : Shape {
-    var vertices: MutableList<Vec2>
-    lateinit var normals: List<Vec2>
+    var vertices: MutableList<SceneOffset>
+    lateinit var normals: List<SceneOffset>
 
     /**
      * Constructor takes a supplied list of vertices and generates a convex hull around them.
      *
      * @param vertList Vertices of polygon to create.
      */
-    constructor(vertList: List<Vec2>) {
+    constructor(vertList: List<SceneOffset>) {
         vertices = generateHull(vertList).toMutableList()
         calcNormals()
     }
@@ -50,16 +55,16 @@ class Polygon : Shape {
      */
     constructor(halfWidth: SceneUnit, halfHeight: SceneUnit) {
         vertices = mutableListOf(
-            Vec2(-halfWidth, -halfHeight),
-            Vec2(halfWidth, -halfHeight),
-            Vec2(halfWidth, halfHeight),
-            Vec2(-halfWidth, halfHeight)
+            SceneOffset(-halfWidth, -halfHeight),
+            SceneOffset(halfWidth, -halfHeight),
+            SceneOffset(halfWidth, halfHeight),
+            SceneOffset(-halfWidth, halfHeight)
         )
         normals = listOf(
-            Vec2(0f.sceneUnit, (-1f).sceneUnit),
-            Vec2(1f.sceneUnit, 0f.sceneUnit),
-            Vec2(0f.sceneUnit, 1f.sceneUnit),
-            Vec2((-1f).sceneUnit, 0f.sceneUnit)
+            SceneOffset(0f.sceneUnit, (-1f).sceneUnit),
+            SceneOffset(1f.sceneUnit, 0f.sceneUnit),
+            SceneOffset(0f.sceneUnit, 1f.sceneUnit),
+            SceneOffset((-1f).sceneUnit, 0f.sceneUnit)
         )
     }
 
@@ -70,12 +75,12 @@ class Polygon : Shape {
      * @param noOfSides The desired number of face the polygon has.
      */
     constructor(radius: SceneUnit, noOfSides: Int) {
-        val vertices = MutableList(noOfSides) { Vec2() }
+        val vertices = MutableList(noOfSides) { SceneOffset.Zero }
         for (i in 0 until noOfSides) {
             val angle = 2 * PI.toFloat() / noOfSides * (i + 0.75f)
             val pointX = radius * cos(angle)
             val pointY = radius * sin(angle)
-            vertices[i] = Vec2(pointX, pointY)
+            vertices[i] = SceneOffset(pointX, pointY)
         }
         this.vertices = generateHull(vertices).toMutableList()
         calcNormals()
@@ -85,10 +90,10 @@ class Polygon : Shape {
      * Generates normals for each face of the polygon. Positive normals of polygon faces face outward.
      */
     private fun calcNormals() {
-        val normals = MutableList(vertices.size) { Vec2() }
+        val normals = MutableList(vertices.size) { SceneOffset.Zero }
         for (i in vertices.indices) {
             val face = vertices[if (i + 1 == vertices.size) 0 else i + 1].minus(vertices[i])
-            normals[i] = face.normal().normalize().unaryMinus()
+            normals[i] = -face.normal().normalize()
         }
         this.normals = normals
     }
@@ -101,31 +106,30 @@ class Polygon : Shape {
     override fun calcMass(density: Float) {
         val physicalBody = this.body
         if (physicalBody !is PhysicalBodyInterface) return
-        var centroidDistVec: Vec2? =
-            Vec2(SceneUnit.Zero, SceneUnit.Zero)
-        var area = 0f
-        var inertia = 0f
+        var centroidDistVec = SceneOffset.Zero
+        var area = SceneUnit.Zero
+        var inertia = SceneUnit.Zero
         val k = 1f / 3f
         for (i in vertices.indices) {
             val point1 = vertices[i]
             val point2 = vertices[(i + 1) % vertices.size]
             val areaOfParallelogram = point1.cross(point2)
-            val triangleArea = 0.5f * areaOfParallelogram
+            val triangleArea = areaOfParallelogram * 0.5f
             area += triangleArea
             val weight = triangleArea * k
-            centroidDistVec!!.add(point1.scalar(weight))
-            centroidDistVec.add(point2.scalar(weight))
+            centroidDistVec += point1.scalar(weight)
+            centroidDistVec += point2.scalar(weight)
             val intx2 = point1.x * point1.x + point2.x * point1.x + point2.x * point2.x
             val inty2 = point1.y * point1.y + point2.y * point1.y + point2.y * point2.y
-            inertia += 0.25f * k * areaOfParallelogram * (intx2.raw + inty2.raw)
+            inertia += areaOfParallelogram * (intx2.raw + inty2.raw) * 0.25f * k
         }
-        centroidDistVec = centroidDistVec!!.scalar(1f / area)
+        centroidDistVec = centroidDistVec.scalar(SceneUnit.Unit / area)
         for (i in vertices.indices) {
             vertices[i] = vertices[i].minus(centroidDistVec)
         }
-        physicalBody.mass = density * area
+        physicalBody.mass = density * area.raw
         physicalBody.invMass = if (physicalBody.mass != 0f) 1f / physicalBody.mass else 0f
-        physicalBody.inertia = inertia * density
+        physicalBody.inertia = inertia.raw * density
         physicalBody.invInertia = if (physicalBody.inertia != 0f) 1f / physicalBody.inertia else 0f
     }
 
@@ -173,7 +177,7 @@ class Polygon : Shape {
      * @return Returns a convex hull array.
      */
     // TODO: Doesn't work
-    private fun generateHull(vertices: List<Vec2>): List<Vec2> {
+    private fun generateHull(vertices: List<SceneOffset>): List<SceneOffset> {
         if (vertices.size < 3) return vertices // Convex hull is not defined for fewer than 3 points
 
         // Step 1: Find the leftmost point (lowest x, then lowest y)
@@ -193,7 +197,7 @@ class Polygon : Shape {
         val sortedPoints = listOf(pivot) + sortedVertices
 
         // Step 4: Construct the convex hull using a stack
-        val hull = mutableListOf<Vec2>()
+        val hull = mutableListOf<SceneOffset>()
         for (point in sortedPoints) {
             while (hull.size >= 2 && crossProduct(hull[hull.size - 2], hull[hull.size - 1], point) <= 0) {
                 hull.removeAt(hull.size - 1) // Remove the last point from the hull if it's a clockwise turn
@@ -205,7 +209,7 @@ class Polygon : Shape {
         return hull
     }
 
-    private fun crossProduct(o: Vec2, a: Vec2, b: Vec2): Float {
+    private fun crossProduct(o: SceneOffset, a: SceneOffset, b: SceneOffset): Float {
         return ((a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)).raw
     }
 
@@ -230,7 +234,7 @@ class Polygon : Shape {
      */
     override fun isPointInside(startPoint: SceneOffset): Boolean {
         for (i in vertices.indices) {
-            val objectPoint = startPoint.toVec2() - (body.position + body.shape.orientation.mul(vertices[i]))
+            val objectPoint = startPoint - (body.position + body.shape.orientation.mul(vertices[i]))
             if (objectPoint.dot(this.body.shape.orientation.mul(normals[i])) > SceneUnit.Zero) {
                 return false
             }
@@ -246,10 +250,10 @@ class Polygon : Shape {
         var maxD = maxDistance
 
         for (i in vertices.indices) {
-            var startOfPolyEdge = vertices[i]
-            var endOfPolyEdge = vertices[if (i + 1 == vertices.size) 0 else i + 1]
-            startOfPolyEdge = orientation.mul(startOfPolyEdge) + body.position
-            endOfPolyEdge = orientation.mul(endOfPolyEdge) + body.position
+            var startOfPolyEdge = vertices[i].toVec2()
+            var endOfPolyEdge = vertices[if (i + 1 == vertices.size) 0 else i + 1].toVec2()
+            startOfPolyEdge = orientation.mul(startOfPolyEdge) + body.position.toVec2()
+            endOfPolyEdge = orientation.mul(endOfPolyEdge) + body.position.toVec2()
 
             //detect if line (startPoint -> endpoint) intersects with the current edge (startOfPolyEdge -> endOfPolyEdge)
             val intersection = lineIntersect(startPoint.toVec2(), endPoint.toVec2(), startOfPolyEdge, endOfPolyEdge)

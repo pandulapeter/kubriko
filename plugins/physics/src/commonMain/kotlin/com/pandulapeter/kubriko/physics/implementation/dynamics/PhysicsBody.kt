@@ -10,7 +10,6 @@
 package com.pandulapeter.kubriko.physics.implementation.dynamics
 
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
-import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.physics.implementation.collision.bodies.CollisionBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.AbstractPhysicalBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Shape
@@ -31,7 +30,7 @@ class PhysicsBody(
     x: SceneUnit,
     y: SceneUnit,
 ) : AbstractPhysicalBody(), CollisionBodyInterface {
-    override var position: Vec2 = Vec2(x, y)
+    override var position: SceneOffset = SceneOffset(x, y)
     override var dynamicFriction = 0.2f
     override var staticFriction = 0.5f
     override var orientation = AngleRadians.Zero

@@ -11,7 +11,10 @@ package com.pandulapeter.kubriko.physics.implementation.joints
 
 import com.pandulapeter.kubriko.collision.implementation.Mat2
 import com.pandulapeter.kubriko.collision.implementation.Vec2
+import com.pandulapeter.kubriko.helpers.extensions.cross
+import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
+import com.pandulapeter.kubriko.physics.implementation.helpers.toVec2
 import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
@@ -44,12 +47,12 @@ class JointToPoint
      */
     override fun applyTension() {
         val mat1 = Mat2(physicsBody.orientation)
-        object1AttachmentPoint = physicsBody.position + mat1.mul(offset)
+        object1AttachmentPoint = physicsBody.position + mat1.mul(offset).toSceneOffset()
         val tension = calculateTension()
-        val distance = pointAttachedTo.minus(object1AttachmentPoint)
+        val distance = pointAttachedTo.minus(object1AttachmentPoint.toVec2())
         distance.normalize()
         val impulse = distance.scalar(tension)
-        physicsBody.applyLinearImpulse(impulse, object1AttachmentPoint.minus(physicsBody.position))
+        physicsBody.applyLinearImpulse(impulse, object1AttachmentPoint.minus(physicsBody.position).toVec2())
     }
 
     /**
@@ -58,7 +61,7 @@ class JointToPoint
      * @return double value of the tension force between the point and attached bodies point
      */
     override fun calculateTension(): SceneUnit {
-        val distance = object1AttachmentPoint.minus(pointAttachedTo).length()
+        val distance = object1AttachmentPoint.minus(pointAttachedTo.toSceneOffset()).length()
         if (distance < naturalLength && canGoSlack) {
             return SceneUnit.Zero
         }
@@ -74,10 +77,10 @@ class JointToPoint
      * @return double value of the rate of change
      */
     override fun rateOfChangeOfExtension(): SceneUnit {
-        val distance = pointAttachedTo.minus(object1AttachmentPoint)
+        val distance = pointAttachedTo.minus(object1AttachmentPoint.toVec2())
         distance.normalize()
         val relativeVelocity = physicsBody.velocity.copyNegative()
-            .minus(object1AttachmentPoint.minus(physicsBody.position).cross(physicsBody.angularVelocity))
+            .minus(object1AttachmentPoint.minus(physicsBody.position).cross(physicsBody.angularVelocity).toVec2())
         return relativeVelocity.dot(distance)
     }
 }

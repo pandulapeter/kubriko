@@ -32,7 +32,7 @@ abstract class Joint protected constructor(
     protected val canGoSlack: Boolean,
     protected val offset: Vec2
 ) {
-    var object1AttachmentPoint: Vec2 = physicsBody.position + Mat2(physicsBody.orientation).mul(offset)
+    var object1AttachmentPoint = physicsBody.position + Mat2(physicsBody.orientation).mul(offset).toSceneOffset()
 
     /**
      * Abstract method to apply tension to the joint

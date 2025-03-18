@@ -70,7 +70,7 @@ class ParticleExplosion(private val epicenter: SceneOffset, private val noOfPart
     fun applyBlastImpulse(blastPower: Float) {
         var line: SceneOffset
         for (b in particles) {
-            line = b.position.toSceneOffset().minus(epicenter)
+            line = b.position - epicenter
             b.velocity.set(line.scalar(blastPower).toVec2())
         }
     }

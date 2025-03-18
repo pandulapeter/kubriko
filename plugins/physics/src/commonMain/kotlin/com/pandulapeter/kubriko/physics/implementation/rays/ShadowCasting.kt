@@ -10,13 +10,14 @@
 package com.pandulapeter.kubriko.physics.implementation.rays
 
 import com.pandulapeter.kubriko.collision.implementation.Mat2
+import com.pandulapeter.kubriko.helpers.extensions.length
+import com.pandulapeter.kubriko.helpers.extensions.normalize
 import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.physics.implementation.collision.bodies.CollisionBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
 import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
 import com.pandulapeter.kubriko.physics.implementation.helpers.isPointInside
-import com.pandulapeter.kubriko.physics.implementation.helpers.toVec2
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.asin
@@ -46,17 +47,17 @@ internal class ShadowCasting(var startPoint: SceneOffset, private val distance: 
             if (B.shape is Polygon) {
                 val poly1 = B.shape as Polygon
                 for (v in poly1.vertices) {
-                    val direction = poly1.orientation.mul(v).plus(B.position).minus(startPoint.toVec2()).toSceneOffset()
+                    val direction = poly1.orientation.mul(v).plus(B.position).minus(startPoint)
                     projectRays(direction, bodiesToEvaluate)
                 }
             } else {
                 val circle = B.shape as Circle
-                val d = B.position.minus(startPoint.toVec2())
+                val d = B.position.minus(startPoint)
                 val angle = asin((circle.radius / d.length()).raw)
                 val u = Mat2(angle.rad)
-                projectRays(u.mul(d.normalize()).toSceneOffset(), bodiesToEvaluate)
+                projectRays(u.mul(d.normalize()), bodiesToEvaluate)
                 val u2 = Mat2(-angle.rad)
-                projectRays(u2.mul(d.normalize()).toSceneOffset(), bodiesToEvaluate)
+                projectRays(u2.mul(d.normalize()), bodiesToEvaluate)
             }
         }
         rayData.sortWith { lhs: RayAngleInformation, rhs: RayAngleInformation ->

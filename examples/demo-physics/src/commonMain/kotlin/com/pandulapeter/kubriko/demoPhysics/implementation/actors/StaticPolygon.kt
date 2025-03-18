@@ -17,7 +17,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.physics.RigidBody
@@ -34,7 +33,7 @@ import kotlinx.serialization.json.Json
 internal class StaticPolygon private constructor(state: State) : RigidBody, Visible, Dynamic, Editable<StaticPolygon> {
     override val body = state.body
     override val physicsBody = PhysicsBody(
-        shape = Polygon(state.vertices.map { Vec2(it.x, it.y) }),
+        shape = Polygon(state.vertices),
         x = body.position.x,
         y = body.position.y,
     ).apply {

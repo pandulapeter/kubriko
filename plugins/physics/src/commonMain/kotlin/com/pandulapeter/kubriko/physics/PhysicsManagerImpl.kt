@@ -67,7 +67,7 @@ internal class PhysicsManagerImpl(
             if (b.invMass == 0f) {
                 continue
             }
-            b.position.add(b.velocity.scalar(dt))
+            b.position += b.velocity.scalar(dt).toSceneOffset()
             b.orientation += (dt * b.angularVelocity).rad
             b.force.set(0f.sceneUnit, 0f.sceneUnit)
             b.torque = 0f

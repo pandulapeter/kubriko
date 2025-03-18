@@ -82,7 +82,7 @@ class RaycastExplosion(
             val impulseMag = blastDir.normalize().scalar(blastPower * invDistance)
             val b = ray.b
             if (b !is PhysicalBodyInterface) continue
-            b.applyLinearImpulse(impulseMag.toVec2(), ray.coordinates.minus(b.position.toSceneOffset()).toVec2())
+            b.applyLinearImpulse(impulseMag.toVec2(), (ray.coordinates - b.position).toVec2())
         }
     }
 }

@@ -11,10 +11,10 @@ package com.pandulapeter.kubriko.physics.implementation.geometry
 
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.helpers.extensions.dot
+import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.PhysicalBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
-import com.pandulapeter.kubriko.physics.implementation.helpers.toVec2
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.PI
@@ -49,7 +49,7 @@ class Circle(
         )
     }
 
-    override fun isPointInside(startPoint: SceneOffset) = (body.position - startPoint.toVec2()).length() <= radius
+    override fun isPointInside(startPoint: SceneOffset) = (body.position - startPoint).length() <= radius
 
     override fun rayIntersect(startPoint: SceneOffset, endPoint: SceneOffset, maxDistance: SceneUnit, rayLength: SceneUnit): IntersectionReturnElement {
         var minPx = SceneUnit.Zero
@@ -59,7 +59,7 @@ class Circle(
         var maxD = maxDistance
 
         val ray = endPoint.copy() - startPoint
-        val circleCenter = body.position.toSceneOffset().copy()
+        val circleCenter = body.position.copy()
         val r = radius
         val difInCenters = startPoint - circleCenter
         val a = ray.dot(ray)

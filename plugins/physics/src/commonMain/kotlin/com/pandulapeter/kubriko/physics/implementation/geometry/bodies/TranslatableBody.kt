@@ -9,8 +9,8 @@
  */
 package com.pandulapeter.kubriko.physics.implementation.geometry.bodies
 
-import com.pandulapeter.kubriko.collision.implementation.Vec2
+import com.pandulapeter.kubriko.types.SceneOffset
 
 interface TranslatableBody {
-    var position: Vec2
+    var position: SceneOffset
 }
