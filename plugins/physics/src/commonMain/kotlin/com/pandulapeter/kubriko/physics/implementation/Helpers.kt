@@ -17,11 +17,6 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-internal fun SceneOffset.toVec2() = Vec2(
-    x = x,
-    y = y,
-)
-
 internal fun isPointInside(body: PhysicsBody, startPoint: SceneOffset) = body.shape.isPointInside(startPoint)
 
 internal fun lineIntersect(line1Start: SceneOffset, line1End: SceneOffset, line2Start: SceneOffset, line2End: SceneOffset): SceneOffset? {
@@ -33,23 +28,24 @@ internal fun lineIntersect(line1Start: SceneOffset, line1End: SceneOffset, line2
     val y3 = line2Start.y
     val x4 = line2End.x
     val y4 = line2End.y
-
-    val denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
-    if (denom == SceneUnit.Zero) {
+    val denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+    if (denominator == SceneUnit.Zero) {
         return null
     }
-
-    val x = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / denom
-    val y = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / denom
-
-    if (!isPointOnLine(line1Start, line1End, SceneOffset(x, y)) || !isPointOnLine(
-            line2Start, line2End,
-            SceneOffset(x, y)
+    val x = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / denominator
+    val y = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / denominator
+    if (!isPointOnLine(
+            lineStart = line1Start,
+            lineEnd = line1End,
+            point = SceneOffset(x, y),
+        ) || !isPointOnLine(
+            lineStart = line2Start,
+            lineEnd = line2End,
+            point = SceneOffset(x, y),
         )
     ) {
         return null
     }
-
     return SceneOffset(x, y)
 }
 

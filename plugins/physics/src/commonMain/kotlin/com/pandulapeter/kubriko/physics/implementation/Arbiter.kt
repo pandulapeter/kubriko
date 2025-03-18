@@ -205,8 +205,8 @@ internal data class Arbiter(
 
         //Incident faces vertexes in world space
         val incidentFaceVertexes = arrayOf(
-            (incidentPoly.orientation.times(incidentPoly.vertices[incidentIndex]) + incidentPoly.body.position).toVec2(),
-            (incidentPoly.orientation.times(incidentPoly.vertices[if (incidentIndex + 1 >= incidentPoly.vertices.size) 0 else incidentIndex + 1]) + incidentPoly.body.position).toVec2(),
+            incidentPoly.orientation.times(incidentPoly.vertices[incidentIndex]) + incidentPoly.body.position,
+            incidentPoly.orientation.times(incidentPoly.vertices[if (incidentIndex + 1 >= incidentPoly.vertices.size) 0 else incidentIndex + 1]) + incidentPoly.body.position,
         )
 
         //Gets vertex's of reference polygon reference face in world space
@@ -221,29 +221,29 @@ internal data class Arbiter(
         val negSide = -refTangent.dot(v1)
         val posSide = refTangent.dot(v2)
         // Clips the incident face against the reference
-        var np = clip((-refTangent).toVec2(), negSide, incidentFaceVertexes)
+        var np = clip(-refTangent, negSide, incidentFaceVertexes)
         if (np < 2) {
             return
         }
-        np = clip(refTangent.toVec2(), posSide, incidentFaceVertexes)
+        np = clip(refTangent, posSide, incidentFaceVertexes)
         if (np < 2) {
             return
         }
         val refFaceNormal = -refTangent.normal()
-        val contactVectorsFound = MutableList(2) { Vec2() }
+        val contactVectorsFound = MutableList(2) { SceneOffset.Zero }
         var totalPen = SceneUnit.Zero
         var contactsFound = 0
 
         //Discards points that are positive/above the reference face
         for (i in 0..1) {
-            val separation = refFaceNormal.dot(incidentFaceVertexes[i].toSceneOffset()) - refFaceNormal.dot(v1)
+            val separation = refFaceNormal.dot(incidentFaceVertexes[i]) - refFaceNormal.dot(v1)
             if (separation <= SceneUnit.Zero) {
                 contactVectorsFound[contactsFound] = incidentFaceVertexes[i]
                 totalPen += -separation
                 contactsFound++
             }
         }
-        val contactPoint: Vec2?
+        val contactPoint: SceneOffset?
         if (contactsFound == 1) {
             contactPoint = contactVectorsFound[0]
             penetration = totalPen
@@ -252,7 +252,7 @@ internal data class Arbiter(
             penetration = totalPen / 2
         }
         isColliding = true
-        contacts[0] = contactPoint.toSceneOffset()
+        contacts[0] = contactPoint
         contactNormal = if (flip) -refFaceNormal else refFaceNormal
     }
 
@@ -264,20 +264,20 @@ internal data class Arbiter(
      * @param incidentFace Clipped face vertex's
      * @return Number of clipped vertex's
      */
-    private fun clip(planeTangent: Vec2, offset: SceneUnit, incidentFace: Array<Vec2>): Int {
+    private fun clip(planeTangent: SceneOffset, offset: SceneUnit, incidentFace: Array<SceneOffset>): Int {
         var num = 0
         val out = arrayOf(
-            Vec2(incidentFace[0]),
-            Vec2(incidentFace[1])
+            incidentFace[0],
+            incidentFace[1],
         )
         val dist = planeTangent.dot(incidentFace[0]) - offset
         val dist1 = planeTangent.dot(incidentFace[1]) - offset
-        if (dist <= SceneUnit.Zero) out[num++].set(incidentFace[0])
-        if (dist1 <= SceneUnit.Zero) out[num++].set(incidentFace[1])
+        if (dist <= SceneUnit.Zero) out[num++] = incidentFace[0]
+        if (dist1 <= SceneUnit.Zero) out[num++] = incidentFace[1]
         if (dist * dist1 < SceneUnit.Zero) {
             val interp = dist / (dist - dist1)
             if (num < 2) {
-                out[num].set(incidentFace[1].minus(incidentFace[0]).scalar(interp).plus(incidentFace[0]))
+                out[num] = incidentFace[1].minus(incidentFace[0]).scalar(interp).plus(incidentFace[0])
                 num++
             }
         }
