@@ -19,8 +19,8 @@ import com.pandulapeter.kubriko.types.SceneUnit
  */
 // TODO: Should be merged with CollisionMask
 abstract class Shape {
-    lateinit var body: PhysicsBody
-    var orientation: RotationMatrix = RotationMatrix()
+    internal lateinit var body: PhysicsBody
+    internal val orientation: RotationMatrix = RotationMatrix()
 
     /**
      * Calculates the mass of a shape.
