@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubriko.physics.joints
 
-import com.pandulapeter.kubriko.collision.implementation.Mat2
+import com.pandulapeter.kubriko.collision.implementation.RotationMatrix
 import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -32,7 +32,7 @@ sealed class Joint protected constructor(
     protected val canGoSlack: Boolean,
     protected val offset: SceneOffset
 ) {
-    var object1AttachmentPoint = physicsBody.position + Mat2(physicsBody.orientation).times(offset)
+    var object1AttachmentPoint = physicsBody.position + RotationMatrix(physicsBody.orientation).times(offset)
 
     /**
      * Abstract method to apply tension to the joint

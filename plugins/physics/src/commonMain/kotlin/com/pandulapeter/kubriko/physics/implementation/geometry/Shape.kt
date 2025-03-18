@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubriko.physics.implementation.geometry
 
-import com.pandulapeter.kubriko.collision.implementation.Mat2
+import com.pandulapeter.kubriko.collision.implementation.RotationMatrix
 import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -20,7 +20,7 @@ import com.pandulapeter.kubriko.types.SceneUnit
 // TODO: Should be merged with CollisionMask
 abstract class Shape {
     lateinit var body: PhysicsBody
-    var orientation: Mat2 = Mat2()
+    var orientation: RotationMatrix = RotationMatrix()
 
     /**
      * Calculates the mass of a shape.

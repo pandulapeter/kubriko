@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubriko.physics.rays
 
-import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.helpers.extensions.normalized
 import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
@@ -39,7 +38,7 @@ internal class Ray(
      * @param direction The direction of the ray points in radians.
      * @param distance  The distance the ray is projected
      */
-    constructor(direction: AngleRadians, distance: SceneUnit) : this(SceneOffset.Companion.Zero, Vec2(direction).toSceneOffset(), distance)
+    constructor(direction: AngleRadians, distance: SceneUnit) : this(SceneOffset.Companion.Zero, SceneOffset(direction), distance)
 
     /**
      * Convenience constructor with ray set at origin. Similar to
@@ -60,7 +59,7 @@ internal class Ray(
      */
     constructor(startPoint: SceneOffset, direction: AngleRadians, distance: SceneUnit) : this(
         startPoint,
-        Vec2(direction).toSceneOffset(),
+        SceneOffset(direction),
         distance
     )
 

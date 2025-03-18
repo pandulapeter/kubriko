@@ -10,7 +10,9 @@
 package com.pandulapeter.kubriko.types
 
 import androidx.compose.ui.geometry.Offset
+import com.pandulapeter.kubriko.helpers.extensions.cos
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
+import com.pandulapeter.kubriko.helpers.extensions.sin
 import kotlin.jvm.JvmInline
 
 /**
@@ -24,6 +26,8 @@ value class SceneOffset(val raw: Offset) {
     val y: SceneUnit get() = raw.y.sceneUnit
 
     constructor(x: SceneUnit, y: SceneUnit) : this(Offset(x.raw, y.raw))
+
+    constructor(direction: AngleRadians) : this(direction.cos.sceneUnit, direction.sin.sceneUnit)
 
     fun copy(x: SceneUnit = this.x, y: SceneUnit = this.y) = SceneOffset(
         x = x,

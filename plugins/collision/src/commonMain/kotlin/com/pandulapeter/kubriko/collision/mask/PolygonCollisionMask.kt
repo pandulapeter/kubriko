@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
-import com.pandulapeter.kubriko.collision.implementation.Mat2
+import com.pandulapeter.kubriko.collision.implementation.RotationMatrix
 import com.pandulapeter.kubriko.helpers.extensions.dot
 import com.pandulapeter.kubriko.helpers.extensions.normal
 import com.pandulapeter.kubriko.helpers.extensions.normalized
@@ -38,7 +38,7 @@ open class PolygonCollisionMask internal constructor(
         width = vertices.maxOf { it.x } - vertices.minOf { it.x },
         height = vertices.maxOf { it.y } - vertices.minOf { it.y },
     )
-    internal var orientation = Mat2(initialRotation)
+    internal var orientation = RotationMatrix(initialRotation)
         private set
     var rotation = initialRotation
         set(value) {

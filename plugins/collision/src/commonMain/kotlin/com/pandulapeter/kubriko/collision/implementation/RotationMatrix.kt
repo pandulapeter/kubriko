@@ -15,7 +15,7 @@ import com.pandulapeter.kubriko.helpers.extensions.sin
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 
-data class Mat2(
+data class RotationMatrix(
     var row1: SceneOffset = SceneOffset.Zero,
     var row2: SceneOffset = SceneOffset.Zero,
 ) {
@@ -36,12 +36,12 @@ data class Mat2(
         )
     }
 
-    fun set(m: Mat2) {
+    fun set(m: RotationMatrix) {
         row1 = m.row1
         row2 = m.row2
     }
 
-    fun transpose() = Mat2(
+    fun transpose() = RotationMatrix(
         row1 = SceneOffset(
             x = row1.x,
             y = row2.x,

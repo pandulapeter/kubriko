@@ -10,7 +10,6 @@
 package com.pandulapeter.kubriko.physics.implementation.geometry
 
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
-import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.helpers.extensions.cross
 import com.pandulapeter.kubriko.helpers.extensions.distanceTo
 import com.pandulapeter.kubriko.helpers.extensions.dot
@@ -208,19 +207,6 @@ class Polygon : Shape {
 
     private fun crossProduct(o: SceneOffset, a: SceneOffset, b: SceneOffset): Float {
         return ((a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)).raw
-    }
-
-    /**
-     * Checks which side of a line a point is on.
-     *
-     * @param p1    Vertex of line to evaluate.
-     * @param p2    Vertex of line to evaluate.
-     * @param point Point to check which side it lies on.
-     * @return Int value - positive = right side of line. Negative = left side of line.
-     */
-    private fun sideOfLine(p1: Vec2, p2: Vec2, point: Vec2): Int {
-        val value = (p2.y - p1.y) * (point.x - p2.x) - (p2.x - p1.x) * (point.y - p2.y)
-        return if (value > SceneUnit.Zero) 1 else if (value == SceneUnit.Zero) 0 else -1
     }
 
     /**

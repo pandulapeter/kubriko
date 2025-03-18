@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubriko.physics.explosions
 
-import com.pandulapeter.kubriko.collision.implementation.Mat2
+import com.pandulapeter.kubriko.collision.implementation.RotationMatrix
 import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.PhysicsBody
@@ -44,7 +44,7 @@ class ParticleExplosion(private val epicenter: SceneOffset, private val noOfPart
     fun createParticles(size: SceneUnit, density: Int, radius: SceneUnit) {
         val separationAngle = AngleRadians.TwoPi / noOfParticles
         var distanceFromCentre = SceneOffset(0.sceneUnit, radius)
-        val rotate = Mat2(separationAngle)
+        val rotate = RotationMatrix(separationAngle)
         for (i in 0 until noOfParticles) {
             val particlePlacement = epicenter.plus(distanceFromCentre)
             val b = PhysicsBody(Circle(size), particlePlacement)

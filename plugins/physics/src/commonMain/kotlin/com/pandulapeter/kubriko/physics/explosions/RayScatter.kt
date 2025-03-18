@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubriko.physics.explosions
 
-import com.pandulapeter.kubriko.collision.implementation.Mat2
+import com.pandulapeter.kubriko.collision.implementation.RotationMatrix
 import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.rays.Ray
@@ -42,7 +42,7 @@ class RayScatter(epicenter: SceneOffset, private val noOfRays: Int) {
     fun castRays(distance: SceneUnit) {
         val angle = 6.28319f / noOfRays
         val direction = SceneOffset.UpRight
-        val u = Mat2(angle.rad)
+        val u = RotationMatrix(angle.rad)
         for (i in rays.indices) {
             rays.add(Ray(epicenter, direction, distance))
             u.times(direction)

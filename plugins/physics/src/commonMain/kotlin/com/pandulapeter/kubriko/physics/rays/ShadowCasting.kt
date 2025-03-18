@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubriko.physics.rays
 
-import com.pandulapeter.kubriko.collision.implementation.Mat2
+import com.pandulapeter.kubriko.collision.implementation.RotationMatrix
 import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.normalized
 import com.pandulapeter.kubriko.helpers.extensions.rad
@@ -51,9 +51,9 @@ internal class ShadowCasting(var startPoint: SceneOffset, private val distance: 
                 val circle = body.shape as Circle
                 val d = body.position.minus(startPoint)
                 val angle = asin((circle.radius / d.length()).raw)
-                val u = Mat2(angle.rad)
+                val u = RotationMatrix(angle.rad)
                 projectRays(u.times(d.normalized()), bodiesToEvaluate)
-                val u2 = Mat2(-angle.rad)
+                val u2 = RotationMatrix(-angle.rad)
                 projectRays(u2.times(d.normalized()), bodiesToEvaluate)
             }
         }
@@ -69,7 +69,7 @@ internal class ShadowCasting(var startPoint: SceneOffset, private val distance: 
      * @param bodiesToEvaluate Arraylist of bodies to check if they intersect with the ray projection.
      */
     private fun projectRays(direction: SceneOffset, bodiesToEvaluate: List<PhysicsBody>) {
-        val m = Mat2(0.001f.rad)
+        val m = RotationMatrix(0.001f.rad)
         m.transpose().times(direction)
         for (i in 0..2) {
             val ray = Ray(startPoint, direction, distance)

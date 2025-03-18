@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubriko.physics.joints
 
-import com.pandulapeter.kubriko.collision.implementation.Mat2
+import com.pandulapeter.kubriko.collision.implementation.RotationMatrix
 import com.pandulapeter.kubriko.helpers.extensions.cross
 import com.pandulapeter.kubriko.helpers.extensions.dot
 import com.pandulapeter.kubriko.helpers.extensions.length
@@ -44,16 +44,16 @@ class JointToBody
     offset1: SceneOffset,
     private val offset2: SceneOffset
 ) : Joint(physicsBody1, jointLength, jointConstant, dampening, canGoSlack, offset1) {
-    private var object2AttachmentPoint = physicsBody2.position + Mat2(physicsBody2.orientation).times(offset2)
+    private var object2AttachmentPoint = physicsBody2.position + RotationMatrix(physicsBody2.orientation).times(offset2)
 
     /**
      * Applies tension to the two bodies.
      */
     override fun applyTension() {
-        val mat1 = Mat2(physicsBody.orientation)
+        val mat1 = RotationMatrix(physicsBody.orientation)
         object1AttachmentPoint = physicsBody.position + mat1.times(offset)
-        val mat2 = Mat2(physicsBody2.orientation)
-        object2AttachmentPoint = physicsBody2.position + mat2.times(offset2)
+        val rotationMatrix = RotationMatrix(physicsBody2.orientation)
+        object2AttachmentPoint = physicsBody2.position + rotationMatrix.times(offset2)
         val tension = calculateTension()
         val distance = object2AttachmentPoint.minus(object1AttachmentPoint).normalized()
         val impulse = distance.scalar(tension)

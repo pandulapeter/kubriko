@@ -7,7 +7,7 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko.collision.implementation
+package com.pandulapeter.kubriko.physics.implementation
 
 import com.pandulapeter.kubriko.helpers.extensions.cos
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
@@ -17,10 +17,10 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.sqrt
 
-// TODO: Use SceneOffset instead of this class
-data class Vec2(
-    var x: SceneUnit = SceneUnit.Zero,
-    var y: SceneUnit = SceneUnit.Zero,
+@Deprecated("Should be replaced with SceneOffset") // TODO: Use SceneOffset instead of this class
+internal data class Vec2(
+    var x: SceneUnit = SceneUnit.Companion.Zero,
+    var y: SceneUnit = SceneUnit.Companion.Zero,
 ) {
     constructor(vector: Vec2) : this(vector.x, vector.y)
 
