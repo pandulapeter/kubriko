@@ -10,12 +10,14 @@
 package com.pandulapeter.kubriko.physics
 
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
-import com.pandulapeter.kubriko.collision.implementation.Vec2
+import com.pandulapeter.kubriko.helpers.extensions.cross
+import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
 import com.pandulapeter.kubriko.physics.implementation.geometry.Shape
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.SceneUnit
 
 // TODO: The shape should be set automatically based on the collisionMask
 class PhysicsBody(
@@ -24,17 +26,17 @@ class PhysicsBody(
 ) {
     var dynamicFriction = 0.2f
     var staticFriction = 0.5f
-    var orientation = AngleRadians.Companion.Zero
+    var orientation = AngleRadians.Zero
         set(value) {
             field = value
             shape.orientation.set(orientation)
             shape.createAABB()
         }
-    var aabb = AxisAlignedBoundingBox(SceneOffset.Companion.Zero, SceneOffset.Companion.Zero)
-    var velocity = Vec2()
-    var force = Vec2()
-    var angularVelocity = 0f
-    var torque = 0f
+    var aabb = AxisAlignedBoundingBox(SceneOffset.Zero, SceneOffset.Zero)
+    var velocity = SceneOffset.Zero
+    var force = SceneOffset.Zero
+    var angularVelocity = SceneUnit.Zero
+    var torque = SceneUnit.Zero
     var restitution = 0.8f
     var density = 1f
         set(value) {
@@ -71,8 +73,8 @@ class PhysicsBody(
      * @param force        Force vector to apply.
      * @param contactPoint The point to apply the force to relative to the body in object space.
      */
-    fun applyForce(force: Vec2, contactPoint: Vec2) {
-        this.force.add(force)
+    fun applyForce(force: SceneOffset, contactPoint: SceneOffset) {
+        this.force += force
         torque += contactPoint.cross(force)
     }
 
@@ -81,8 +83,8 @@ class PhysicsBody(
      *
      * @param force Force vector to apply.
      */
-    fun applyForce(force: Vec2) {
-        this.force.add(force)
+    fun applyForce(force: SceneOffset) {
+        this.force += force
     }
 
     /**
@@ -91,9 +93,9 @@ class PhysicsBody(
      * @param impulse      Magnitude of impulse vector.
      * @param contactPoint The point to apply the force to relative to the body in object space.
      */
-    fun applyLinearImpulse(impulse: Vec2, contactPoint: Vec2) {
-        velocity.add(impulse.scalar(invMass))
-        angularVelocity += invInertia * contactPoint.cross(impulse)
+    fun applyLinearImpulse(impulse: SceneOffset, contactPoint: SceneOffset) {
+        velocity += impulse.scalar(invMass)
+        angularVelocity += contactPoint.cross(impulse) * invInertia
     }
 
     /**
@@ -101,9 +103,9 @@ class PhysicsBody(
      *
      * @param impulse Magnitude of impulse vector.
      */
-    fun applyLinearImpulse(impulse: Vec2) {
+    fun applyLinearImpulse(impulse: SceneOffset) {
         if (density > 0f) {
-            velocity.add(impulse.scalar(invMass))
+            velocity += impulse.scalar(invMass)
         }
     }
 

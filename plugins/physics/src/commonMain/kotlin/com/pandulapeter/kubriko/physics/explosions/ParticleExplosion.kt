@@ -14,7 +14,6 @@ import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
-import com.pandulapeter.kubriko.physics.implementation.toVec2
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -71,7 +70,7 @@ class ParticleExplosion(private val epicenter: SceneOffset, private val noOfPart
         var line: SceneOffset
         for (b in particles) {
             line = b.position - epicenter
-            b.velocity.set(line.scalar(blastPower).toVec2())
+            b.velocity = line.scalar(blastPower)
         }
     }
 }

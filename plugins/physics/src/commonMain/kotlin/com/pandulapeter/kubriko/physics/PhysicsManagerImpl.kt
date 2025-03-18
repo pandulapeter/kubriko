@@ -9,14 +9,16 @@
  */
 package com.pandulapeter.kubriko.physics
 
-import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.helpers.extensions.isOverlapping
+import com.pandulapeter.kubriko.helpers.extensions.length
+import com.pandulapeter.kubriko.helpers.extensions.normalized
 import com.pandulapeter.kubriko.helpers.extensions.rad
-import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
+import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.physics.implementation.Arbiter
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -44,7 +46,7 @@ internal class PhysicsManagerImpl(
     private val arbiters = mutableListOf<Arbiter>()
     override val gravity = MutableStateFlow(initialGravity)
     private val actualGravity by autoInitializingLazy {
-        gravity.map { Vec2(it.x, it.y) }.asStateFlow(Vec2(initialGravity.x, initialGravity.y))
+        gravity.asStateFlow(initialGravity)
     }
     override val simulationSpeed = MutableStateFlow(initialSimulationSpeed)
 
@@ -66,10 +68,10 @@ internal class PhysicsManagerImpl(
             if (b.invMass == 0f) {
                 continue
             }
-            b.position += b.velocity.scalar(dt).toSceneOffset()
-            b.orientation += (dt * b.angularVelocity).rad
-            b.force.set(0f.sceneUnit, 0f.sceneUnit)
-            b.torque = 0f
+            b.position += b.velocity.scalar(dt)
+            b.orientation += (b.angularVelocity * dt).raw.rad
+            b.force = SceneOffset.Zero
+            b.torque = SceneUnit.Zero
         }
     }
 
@@ -80,10 +82,10 @@ internal class PhysicsManagerImpl(
             }
             applyLinearDrag(b)
             if (b.affectedByGravity) {
-                b.velocity.add(actualGravity.value.scalar(dt))
+                b.velocity += actualGravity.value.scalar(dt)
             }
-            b.velocity.add(b.force.scalar(b.invMass).scalar(dt))
-            b.angularVelocity += dt * b.invInertia * b.torque
+            b.velocity += b.force.scalar(b.invMass).scalar(dt)
+            b.angularVelocity += b.torque * b.invInertia * dt
         }
     }
 
@@ -99,7 +101,7 @@ internal class PhysicsManagerImpl(
     private fun applyLinearDrag(body: PhysicsBody) {
         val velocityMagnitude = body.velocity.length()
         val dragForceMagnitude = velocityMagnitude * velocityMagnitude * body.linearDampening
-        val dragForceVector = body.velocity.normalized.scalar(-dragForceMagnitude)
+        val dragForceVector = body.velocity.normalized().scalar(-dragForceMagnitude)
         body.applyForce(dragForceVector)
     }
 

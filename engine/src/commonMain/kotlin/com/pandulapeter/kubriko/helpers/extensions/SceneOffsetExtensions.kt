@@ -80,7 +80,7 @@ fun SceneOffset.dot(v1: SceneOffset): SceneUnit = (v1.x.raw * x.raw + v1.y.raw *
 
 fun SceneOffset.normal(): SceneOffset = SceneOffset(-y, x)
 
-fun SceneOffset.normalize(): SceneOffset = length().let { length ->
+fun SceneOffset.normalized(): SceneOffset = length().let { length ->
     (if (length == SceneUnit.Zero) SceneUnit.Unit else length).let { d ->
         SceneOffset(
             x = x / d,

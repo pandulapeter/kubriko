@@ -10,10 +10,9 @@
 package com.pandulapeter.kubriko.physics.explosions
 
 import com.pandulapeter.kubriko.helpers.extensions.length
-import com.pandulapeter.kubriko.helpers.extensions.normalize
+import com.pandulapeter.kubriko.helpers.extensions.normalized
 import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.physics.PhysicsBody
-import com.pandulapeter.kubriko.physics.implementation.toVec2
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
@@ -76,7 +75,7 @@ class ProximityExplosion(
             //Not physically correct as it should be blast * radius to object ^ 2 as the pressure of an explosion in 2D dissipates
             val invDistance = SceneUnit.Unit / distance
             val impulseMag = blastPower * invDistance
-            b.applyLinearImpulse(blastDir.normalize().scalar(impulseMag).toVec2())
+            b.applyLinearImpulse(blastDir.normalized().scalar(impulseMag))
         }
     }
 }

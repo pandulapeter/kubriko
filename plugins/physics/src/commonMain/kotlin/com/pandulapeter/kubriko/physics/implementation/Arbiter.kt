@@ -14,7 +14,7 @@ import com.pandulapeter.kubriko.helpers.extensions.distanceTo
 import com.pandulapeter.kubriko.helpers.extensions.dot
 import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.normal
-import com.pandulapeter.kubriko.helpers.extensions.normalize
+import com.pandulapeter.kubriko.helpers.extensions.normalized
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
@@ -120,7 +120,7 @@ internal data class Arbiter(
             }
             this.penetration = circle.radius - distBetweenObj
             isColliding = true
-            contactNormal = polygon.orientation.times((vector1 - polyToCircleVec).normalize()).toVec2()
+            contactNormal = polygon.orientation.times((vector1 - polyToCircleVec).normalized()).toVec2()
             contacts[0] = polygon.orientation.times(vector1).plus(polygonBody.position).toVec2()
             return
         }
@@ -139,7 +139,7 @@ internal data class Arbiter(
             }
             this.penetration = circle.radius - distBetweenObj
             isColliding = true
-            contactNormal = polygon.orientation.times(vector2.minus(polyToCircleVec).normalize()).toVec2()
+            contactNormal = polygon.orientation.times(vector2.minus(polyToCircleVec).normalized()).toVec2()
             contacts[0] = polygon.orientation.times(vector2).plus(polygonBody.position).toVec2()
         } else {
             val distFromEdgeToCircle = polyToCircleVec.minus(vector1).dot(polygon.normals[faceNormalIndex])
@@ -215,7 +215,7 @@ internal data class Arbiter(
         //Rotate and translate vertex's of reference poly
         v1 = referencePoly.orientation.times(v1) + referencePoly.body.position
         v2 = referencePoly.orientation.times(v2) + referencePoly.body.position
-        val refTangent = v2.minus(v1).normalize()
+        val refTangent = v2.minus(v1).normalized()
         val negSide = -refTangent.dot(v1)
         val posSide = refTangent.dot(v2)
         // Clips the incident face against the reference
@@ -349,11 +349,10 @@ internal data class Arbiter(
         val contactB = contacts[0].minus(bodyB.position.toVec2())
 
         //Relative velocity created from equation found in GDC talk of box2D lite.
-        var relativeVel = bodyB.velocity.plus(contactB.cross(bodyB.angularVelocity)).minus(bodyA.velocity).minus(
-            contactA.cross(
-                bodyA.angularVelocity
-            )
-        )
+        var relativeVel = bodyB.velocity.toVec2()
+            .plus(contactB.cross(bodyB.angularVelocity.raw))
+            .minus(bodyA.velocity.toVec2())
+            .minus(contactA.cross(bodyA.angularVelocity.raw))
 
         //Positive = converging Negative = diverging
         val contactVel = relativeVel.dot(contactNormal)
@@ -369,13 +368,12 @@ internal data class Arbiter(
         var j = -(restitution.sceneUnit + SceneUnit.Unit) * contactVel
         j /= inverseMassSum
         val impulse = contactNormal.scalar(j)
-        bodyB.applyLinearImpulse(impulse, contactB)
-        bodyA.applyLinearImpulse(impulse.copyNegative(), contactA)
-        relativeVel = bodyB.velocity.plus(contactB.cross(bodyB.angularVelocity)).minus(bodyA.velocity).minus(
-            contactA.cross(
-                bodyA.angularVelocity
-            )
-        )
+        bodyB.applyLinearImpulse(impulse.toSceneOffset(), contactB.toSceneOffset())
+        bodyA.applyLinearImpulse(-impulse.toSceneOffset(), contactA.toSceneOffset())
+        relativeVel = bodyB.velocity.toVec2()
+            .plus(contactB.cross(bodyB.angularVelocity.raw))
+            .minus(bodyA.velocity.toVec2())
+            .minus(contactA.cross(bodyA.angularVelocity.raw))
         val t = relativeVel.copy()
         t.add(contactNormal.scalar(-relativeVel.dot(contactNormal))).normalize()
         var jt = -relativeVel.dot(t)
@@ -385,8 +383,8 @@ internal data class Arbiter(
         } else {
             t.scalar(j).scalar(-dynamicFriction)
         }
-        bodyB.applyLinearImpulse(tangentImpulse, contactB)
-        bodyA.applyLinearImpulse(tangentImpulse.copyNegative(), contactA)
+        bodyB.applyLinearImpulse(tangentImpulse.toSceneOffset(), contactB.toSceneOffset())
+        bodyA.applyLinearImpulse(tangentImpulse.copyNegative().toSceneOffset(), contactA.toSceneOffset())
     }
 
     companion object {

@@ -10,7 +10,7 @@
 package com.pandulapeter.kubriko.physics.rays
 
 import com.pandulapeter.kubriko.collision.implementation.Vec2
-import com.pandulapeter.kubriko.helpers.extensions.normalize
+import com.pandulapeter.kubriko.helpers.extensions.normalized
 import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.PhysicsBody
@@ -30,7 +30,7 @@ internal class Ray(
     direction: SceneOffset,
     val distance: SceneUnit,
 ) {
-    var direction: SceneOffset = direction.normalize()
+    var direction: SceneOffset = direction.normalized()
 
     /**
      * Convenience constructor with ray set at origin. Similar to

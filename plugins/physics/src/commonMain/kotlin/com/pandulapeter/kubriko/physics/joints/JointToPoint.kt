@@ -10,21 +10,17 @@
 package com.pandulapeter.kubriko.physics.joints
 
 import com.pandulapeter.kubriko.collision.implementation.Mat2
-import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.helpers.extensions.cross
+import com.pandulapeter.kubriko.helpers.extensions.dot
 import com.pandulapeter.kubriko.helpers.extensions.length
+import com.pandulapeter.kubriko.helpers.extensions.normalized
+import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.physics.PhysicsBody
-import com.pandulapeter.kubriko.physics.implementation.toVec2
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
  * Class for a joint between a body and a point in world space.
- */
-class JointToPoint
-/**
- * Convenience constructor that works like
- * [.JointToPoint]
  *
  * @param pointAttachedTo The point the joint is attached to
  * @param b1            First body the joint is attached to
@@ -33,9 +29,10 @@ class JointToPoint
  * @param dampening     The dampening constant to use for the joints forces
  * @param canGoSlack    Boolean whether the joint can go slack or not
  * @param offset       Offset to be applied to the location of the joint relative to b1's object space
- */(
+ */
+class JointToPoint(
     b1: PhysicsBody,
-    val pointAttachedTo: Vec2,
+    val pointAttachedTo: SceneOffset,
     jointLength: SceneUnit,
     jointConstant: Float,
     dampening: Float,
@@ -50,10 +47,9 @@ class JointToPoint
         val mat1 = Mat2(physicsBody.orientation)
         object1AttachmentPoint = physicsBody.position + mat1.times(offset)
         val tension = calculateTension()
-        val distance = pointAttachedTo.minus(object1AttachmentPoint.toVec2())
-        distance.normalize()
+        val distance = pointAttachedTo.minus(object1AttachmentPoint).normalized()
         val impulse = distance.scalar(tension)
-        physicsBody.applyLinearImpulse(impulse, object1AttachmentPoint.minus(physicsBody.position).toVec2())
+        physicsBody.applyLinearImpulse(impulse, object1AttachmentPoint.minus(physicsBody.position))
     }
 
     /**
@@ -62,7 +58,7 @@ class JointToPoint
      * @return double value of the tension force between the point and attached bodies point
      */
     override fun calculateTension(): SceneUnit {
-        val distance = object1AttachmentPoint.minus(pointAttachedTo.toSceneOffset()).length()
+        val distance = object1AttachmentPoint.minus(pointAttachedTo).length()
         if (distance < naturalLength && canGoSlack) {
             return SceneUnit.Zero
         }
@@ -78,10 +74,8 @@ class JointToPoint
      * @return double value of the rate of change
      */
     override fun rateOfChangeOfExtension(): SceneUnit {
-        val distance = pointAttachedTo.minus(object1AttachmentPoint.toVec2())
-        distance.normalize()
-        val relativeVelocity = physicsBody.velocity.copyNegative()
-            .minus(object1AttachmentPoint.minus(physicsBody.position).cross(physicsBody.angularVelocity).toVec2())
+        val distance = pointAttachedTo - object1AttachmentPoint.normalized()
+        val relativeVelocity = -physicsBody.velocity.minus(object1AttachmentPoint.minus(physicsBody.position).cross(physicsBody.angularVelocity.raw))
         return relativeVelocity.dot(distance)
     }
 }

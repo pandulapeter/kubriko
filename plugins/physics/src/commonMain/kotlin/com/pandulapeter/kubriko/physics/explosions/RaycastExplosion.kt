@@ -10,10 +10,9 @@
 package com.pandulapeter.kubriko.physics.explosions
 
 import com.pandulapeter.kubriko.helpers.extensions.length
-import com.pandulapeter.kubriko.helpers.extensions.normalize
+import com.pandulapeter.kubriko.helpers.extensions.normalized
 import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.physics.PhysicsBody
-import com.pandulapeter.kubriko.physics.implementation.toVec2
 import com.pandulapeter.kubriko.physics.rays.RayInformation
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -78,9 +77,9 @@ class RaycastExplosion(
             val distance = blastDir.length()
             if (distance == SceneUnit.Zero) return
             val invDistance = 1f / distance.raw
-            val impulseMag = blastDir.normalize().scalar(blastPower * invDistance)
+            val impulseMag = blastDir.normalized().scalar(blastPower * invDistance)
             ray.body.let { body ->
-                body.applyLinearImpulse(impulseMag.toVec2(), (ray.coordinates - body.position).toVec2())
+                body.applyLinearImpulse(impulseMag, ray.coordinates - body.position)
             }
         }
     }

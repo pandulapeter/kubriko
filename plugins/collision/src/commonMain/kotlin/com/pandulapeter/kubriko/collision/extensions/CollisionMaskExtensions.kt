@@ -17,7 +17,7 @@ import com.pandulapeter.kubriko.helpers.extensions.dot
 import com.pandulapeter.kubriko.helpers.extensions.isOverlapping
 import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.normal
-import com.pandulapeter.kubriko.helpers.extensions.normalize
+import com.pandulapeter.kubriko.helpers.extensions.normalized
 import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -175,7 +175,7 @@ private fun checkPolygonToPolygonCollision(
     v1 = referencePoly.orientation.times(v1) + referencePoly.position
     v2 = referencePoly.orientation.times(v2) + referencePoly.position
     val refTangent = v2.minus(v1)
-    refTangent.normalize()
+    refTangent.normalized()
     val negSide = -refTangent.dot(v1)
     val posSide = refTangent.dot(v2)
     // Clips the incident face against the reference

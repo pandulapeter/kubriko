@@ -18,7 +18,7 @@ import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.collision.implementation.Mat2
 import com.pandulapeter.kubriko.helpers.extensions.dot
 import com.pandulapeter.kubriko.helpers.extensions.normal
-import com.pandulapeter.kubriko.helpers.extensions.normalize
+import com.pandulapeter.kubriko.helpers.extensions.normalized
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
@@ -50,7 +50,7 @@ open class PolygonCollisionMask internal constructor(
         }
     internal val normals = (0..vertices.lastIndex).map { i ->
         val face = vertices[if (i + 1 == vertices.size) 0 else i + 1].minus(vertices[i])
-        face.normal().normalize().unaryMinus()
+        face.normal().normalized().unaryMinus()
     }
 
     /**

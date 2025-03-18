@@ -15,7 +15,7 @@ import com.pandulapeter.kubriko.helpers.extensions.cross
 import com.pandulapeter.kubriko.helpers.extensions.distanceTo
 import com.pandulapeter.kubriko.helpers.extensions.dot
 import com.pandulapeter.kubriko.helpers.extensions.normal
-import com.pandulapeter.kubriko.helpers.extensions.normalize
+import com.pandulapeter.kubriko.helpers.extensions.normalized
 import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.PhysicsBody
@@ -91,7 +91,7 @@ class Polygon : Shape {
         val normals = MutableList(vertices.size) { SceneOffset.Zero }
         for (i in vertices.indices) {
             val face = vertices[if (i + 1 == vertices.size) 0 else i + 1].minus(vertices[i])
-            normals[i] = -face.normal().normalize()
+            normals[i] = -face.normal().normalized()
         }
         this.normals = normals
     }

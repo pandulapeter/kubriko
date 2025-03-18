@@ -10,10 +10,10 @@
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base.BlinkingPenguin
 import com.pandulapeter.kubriko.helpers.extensions.get
+import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.helpers.extensions.toSceneSize
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
@@ -47,12 +47,7 @@ internal class Penguin(
         density = 5f
         angularDampening = 1000f
         orientation = body.rotation
-        applyForce(
-            Vec2(
-                x = impulseOrigin.x,
-                y = impulseOrigin.y,
-            ).scalar(1500000f)
-        )
+        applyForce(impulseOrigin.scalar(1500000f))
     }
 
     override fun onAdded(kubriko: Kubriko) {

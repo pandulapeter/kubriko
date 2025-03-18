@@ -19,7 +19,7 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.helpers.extensions.clampWithin
 import com.pandulapeter.kubriko.helpers.extensions.get
-import com.pandulapeter.kubriko.helpers.extensions.normalize
+import com.pandulapeter.kubriko.helpers.extensions.normalized
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.helpers.extensions.toSceneOffset
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
@@ -118,7 +118,7 @@ internal class ShipDestination : Positionable, PointerInputAware, KeyboardInputA
                 KeyboardDirectionState.DOWN_RIGHT -> SceneOffset(KeyboardMovementSpeed, KeyboardMovementSpeed)
                 KeyboardDirectionState.DOWN -> SceneOffset(SceneUnit.Zero, KeyboardMovementSpeed)
                 KeyboardDirectionState.DOWN_LEFT -> SceneOffset(-KeyboardMovementSpeed, KeyboardMovementSpeed)
-            }.normalize() * KeyboardMovementSpeed
+            }.normalized() * KeyboardMovementSpeed
         }
     }
 

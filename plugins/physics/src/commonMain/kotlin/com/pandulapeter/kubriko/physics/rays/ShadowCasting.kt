@@ -11,7 +11,7 @@ package com.pandulapeter.kubriko.physics.rays
 
 import com.pandulapeter.kubriko.collision.implementation.Mat2
 import com.pandulapeter.kubriko.helpers.extensions.length
-import com.pandulapeter.kubriko.helpers.extensions.normalize
+import com.pandulapeter.kubriko.helpers.extensions.normalized
 import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
@@ -52,9 +52,9 @@ internal class ShadowCasting(var startPoint: SceneOffset, private val distance: 
                 val d = body.position.minus(startPoint)
                 val angle = asin((circle.radius / d.length()).raw)
                 val u = Mat2(angle.rad)
-                projectRays(u.times(d.normalize()), bodiesToEvaluate)
+                projectRays(u.times(d.normalized()), bodiesToEvaluate)
                 val u2 = Mat2(-angle.rad)
-                projectRays(u2.times(d.normalize()), bodiesToEvaluate)
+                projectRays(u2.times(d.normalized()), bodiesToEvaluate)
             }
         }
         rayData.sortWith { lhs: RayAngleInformation, rhs: RayAngleInformation ->
