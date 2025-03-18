@@ -158,7 +158,6 @@ internal class PhysicsDemoManager(
         }
     }
 
-
     private fun changeSelectedActionType() = _actionType.update { currentActionType ->
         val values = ActionType.entries
         val nextIndex = (currentActionType.ordinal + 1) % values.size

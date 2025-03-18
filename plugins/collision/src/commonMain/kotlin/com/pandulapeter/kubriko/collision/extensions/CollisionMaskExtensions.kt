@@ -10,7 +10,6 @@
 package com.pandulapeter.kubriko.collision.extensions
 
 import com.pandulapeter.kubriko.collision.Collidable
-import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.distanceTo
@@ -19,6 +18,7 @@ import com.pandulapeter.kubriko.helpers.extensions.isOverlapping
 import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.normal
 import com.pandulapeter.kubriko.helpers.extensions.normalize
+import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -169,8 +169,7 @@ private fun checkPolygonToPolygonCollision(
 
     //Gets vertex's of reference polygon reference face in world space
     var v1 = referencePoly.vertices[referenceFaceIndex]
-    var v2 =
-        referencePoly.vertices[if (referenceFaceIndex + 1 == referencePoly.vertices.size) 0 else referenceFaceIndex + 1]
+    var v2 = referencePoly.vertices[if (referenceFaceIndex + 1 == referencePoly.vertices.size) 0 else referenceFaceIndex + 1]
 
     //Rotate and translate vertex's of reference poly
     v1 = referencePoly.orientation.mul(v1) + referencePoly.position
@@ -180,18 +179,12 @@ private fun checkPolygonToPolygonCollision(
     val negSide = -refTangent.dot(v1)
     val posSide = refTangent.dot(v2)
     // Clips the incident face against the reference
-    val refTangentNegativeCopy = Vec2(
-        x = -refTangent.x,
-        y = -refTangent.y,
-    )
+    val refTangentNegativeCopy = -refTangent
     var np = clip(refTangentNegativeCopy, negSide, incidentFaceVertexes)
     if (np < 2) {
         return false
     }
-    val refTangentPositiveCopy = Vec2(
-        x = refTangent.x,
-        y = refTangent.y,
-    )
+    val refTangentPositiveCopy = refTangent
     np = clip(refTangentPositiveCopy, posSide, incidentFaceVertexes)
     if (np < 2) {
         return false
@@ -261,21 +254,21 @@ private fun findAxisOfMinPenetration(
 
 private fun selectionBias(a: SceneUnit, b: SceneUnit) = a >= b * BIAS_RELATIVE + a * BIAS_ABSOLUTE
 
-private fun clip(planeTangent: Vec2, offset: SceneUnit, incidentFaces: Array<SceneOffset>): Int {
-    val incidentFace = incidentFaces.map { Vec2(it.x, it.y) }.toMutableList()
+private fun clip(planeTangent: SceneOffset, offset: SceneUnit, incidentFaces: Array<SceneOffset>): Int {
+    val incidentFace = incidentFaces.toMutableList()
     var num = 0
     val out = arrayOf(
-        Vec2(incidentFace[0]),
-        Vec2(incidentFace[1])
+        incidentFace[0],
+        incidentFace[1]
     )
     val dist = planeTangent.dot(incidentFace[0]) - offset
     val dist1 = planeTangent.dot(incidentFace[1]) - offset
-    if (dist <= SceneUnit.Zero) out[num++].set(incidentFace[0])
-    if (dist1 <= SceneUnit.Zero) out[num++].set(incidentFace[1])
+    if (dist <= SceneUnit.Zero) out[num++] = incidentFace[0]
+    if (dist1 <= SceneUnit.Zero) out[num++] = incidentFace[1]
     if (dist * dist1 < SceneUnit.Zero) {
         val interp = dist / (dist - dist1)
         if (num < 2) {
-            out[num].set(incidentFace[1].minus(incidentFace[0]).scalar(interp).plus(incidentFace[0]))
+            out[num] = incidentFace[1].minus(incidentFace[0]).scalar(interp).plus(incidentFace[0])
             num++
         }
     }

@@ -26,10 +26,10 @@ class ProximityExplosion(
     /**
      * Sets the epicenter to a different coordinate.
      *
-     * @param newEpicenter The vector position of the new epicenter.
+     * @param epicenter The vector position of the new epicenter.
      */
-    override fun setEpicenter(newEpicenter: SceneOffset) {
-        epicenter = newEpicenter
+    override fun setEpicenter(epicenter: SceneOffset) {
+        this.epicenter = epicenter
     }
 
     private var bodiesEffected = mutableListOf<TranslatableBody>()

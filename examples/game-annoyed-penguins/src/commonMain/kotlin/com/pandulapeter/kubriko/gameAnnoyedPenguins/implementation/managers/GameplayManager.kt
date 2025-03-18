@@ -44,7 +44,7 @@ internal class GameplayManager : Manager() {
     private val blurShader = GradualBlurShader()
 
     override fun onInitialize(kubriko: Kubriko) {
-        _currentLevel
+        currentLevel
             .onEach { loadScene(AllLevels[it]) }
             .launchIn(scope)
         stateManager.isRunning

@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors
 
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.shaders.collection.BlurShader
+import kotlin.math.min
 
 internal class GradualBlurShader : BlurShader(
     shaderState = State(
@@ -20,10 +21,10 @@ internal class GradualBlurShader : BlurShader(
 ), Dynamic {
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        if (shaderState.blurHorizontal <= 10f) {
+        if (shaderState.blurHorizontal <= MAXIMUM_BLUR_AMOUNT) {
             shaderState = shaderState.copy(
-                blurHorizontal = shaderState.blurHorizontal + 0.05f * deltaTimeInMilliseconds,
-                blurVertical = shaderState.blurVertical + 0.05f * deltaTimeInMilliseconds,
+                blurHorizontal = min(MAXIMUM_BLUR_AMOUNT, shaderState.blurHorizontal + 0.05f * deltaTimeInMilliseconds),
+                blurVertical = min(MAXIMUM_BLUR_AMOUNT, shaderState.blurVertical + 0.05f * deltaTimeInMilliseconds),
             )
         }
     }
@@ -33,5 +34,9 @@ internal class GradualBlurShader : BlurShader(
             blurHorizontal = 0f,
             blurVertical = 0f,
         )
+    }
+
+    companion object {
+        private const val MAXIMUM_BLUR_AMOUNT = 10f
     }
 }
