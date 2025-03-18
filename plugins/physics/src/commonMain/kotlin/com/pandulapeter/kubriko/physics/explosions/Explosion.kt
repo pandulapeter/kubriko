@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubriko.physics.explosions
 
-import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
@@ -28,7 +28,7 @@ interface Explosion {
     /**
      * Updates the list of objects that should be effected by the explosion.
      */
-    fun update(bodiesToEvaluate: Collection<TranslatableBody>)
+    fun update(bodiesToEvaluate: Collection<PhysicsBody>)
 
     /**
      * Sets the epicenter of the explosion to a different coordinate.

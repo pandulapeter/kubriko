@@ -12,8 +12,7 @@ package com.pandulapeter.kubriko.physics.explosions
 import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.normalize
 import com.pandulapeter.kubriko.helpers.extensions.scalar
-import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.PhysicalBodyInterface
-import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.helpers.toVec2
 import com.pandulapeter.kubriko.physics.implementation.rays.RayInformation
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -31,7 +30,7 @@ class RaycastExplosion(
     epicenter: SceneOffset,
     noOfRays: Int,
     distance: SceneUnit,
-    worldBodies: List<TranslatableBody>,
+    worldBodies: List<PhysicsBody>,
 ) : Explosion {
     val rayScatter: RayScatter = RayScatter(epicenter, noOfRays)
 
@@ -44,7 +43,7 @@ class RaycastExplosion(
         rayScatter.epicenter = epicenter
     }
 
-    private var raysInContact = ArrayList<RayInformation>()
+    private var raysInContact = mutableListOf<RayInformation>()
 
     init {
         rayScatter.castRays(distance)
@@ -56,7 +55,7 @@ class RaycastExplosion(
      *
      * @param bodiesToEvaluate Arraylist of bodies in the world to check.
      */
-    override fun update(bodiesToEvaluate: Collection<TranslatableBody>) {
+    override fun update(bodiesToEvaluate: Collection<PhysicsBody>) {
         raysInContact.clear()
         rayScatter.updateRays(bodiesToEvaluate)
         val rayArray = rayScatter.rays
@@ -80,9 +79,9 @@ class RaycastExplosion(
             if (distance == SceneUnit.Zero) return
             val invDistance = 1f / distance.raw
             val impulseMag = blastDir.normalize().scalar(blastPower * invDistance)
-            val b = ray.b
-            if (b !is PhysicalBodyInterface) continue
-            b.applyLinearImpulse(impulseMag.toVec2(), (ray.coordinates - b.position).toVec2())
+            ray.body.let { body ->
+                body.applyLinearImpulse(impulseMag.toVec2(), (ray.coordinates - body.position).toVec2())
+            }
         }
     }
 }

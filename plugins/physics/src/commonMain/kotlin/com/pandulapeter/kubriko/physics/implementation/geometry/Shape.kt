@@ -10,8 +10,7 @@
 package com.pandulapeter.kubriko.physics.implementation.geometry
 
 import com.pandulapeter.kubriko.collision.implementation.Mat2
-import com.pandulapeter.kubriko.physics.implementation.collision.bodies.CollisionBodyInterface
-import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
@@ -19,7 +18,7 @@ import com.pandulapeter.kubriko.types.SceneUnit
  * Abstract class presenting a geometric shape.
  */
 abstract class Shape {
-    lateinit var body: CollisionBodyInterface
+    lateinit var body: PhysicsBody
     var orientation: Mat2 = Mat2()
 
     /**
@@ -51,7 +50,7 @@ abstract class Shape {
         val minPx: SceneUnit,
         val minPy: SceneUnit,
         val intersectionFound: Boolean,
-        val closestBody: TranslatableBody?,
+        val closestBody: PhysicsBody?,
         val maxDistance: SceneUnit
     )
 }

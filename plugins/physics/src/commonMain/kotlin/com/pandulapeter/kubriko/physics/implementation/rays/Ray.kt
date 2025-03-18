@@ -13,8 +13,7 @@ import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.helpers.extensions.normalize
 import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.physics.implementation.collision.bodies.CollisionBodyInterface
-import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -73,16 +72,15 @@ internal class Ray(
      *
      * @param bodiesToEvaluate Arraylist of bodies to check if they intersect with the ray projection.
      */
-    fun updateProjection(bodiesToEvaluate: Collection<TranslatableBody>) {
+    fun updateProjection(bodiesToEvaluate: Collection<PhysicsBody>) {
         rayInformation = null
         val endPoint = direction.scalar(distance).plus(startPoint)
         var minT1 = Float.POSITIVE_INFINITY.sceneUnit
         var minPx = SceneUnit.Companion.Zero
         var minPy = SceneUnit.Companion.Zero
         var intersectionFound = false
-        var closestBody: TranslatableBody? = null
+        var closestBody: PhysicsBody? = null
         for (body in bodiesToEvaluate) {
-            if (body !is CollisionBodyInterface) continue
             val shape = body.shape
             val intersectionReturnElement = shape.rayIntersect(startPoint, endPoint, minT1, distance)
             if (intersectionReturnElement.intersectionFound) {

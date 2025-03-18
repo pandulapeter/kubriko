@@ -11,7 +11,7 @@ package com.pandulapeter.kubriko.physics.explosions
 
 import com.pandulapeter.kubriko.collision.implementation.Mat2
 import com.pandulapeter.kubriko.helpers.extensions.rad
-import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.rays.Ray
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -54,7 +54,7 @@ class RayScatter(epicenter: SceneOffset, private val noOfRays: Int) {
      *
      * @param worldBodies Arraylist of all bodies to update ray projections for.
      */
-    fun updateRays(worldBodies: Collection<TranslatableBody>) {
+    fun updateRays(worldBodies: Collection<PhysicsBody>) {
         for (ray in rays) {
             ray.updateProjection(worldBodies)
         }

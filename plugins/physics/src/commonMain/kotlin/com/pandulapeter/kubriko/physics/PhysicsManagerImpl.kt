@@ -16,8 +16,7 @@ import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.physics.implementation.collision.Arbiter
-import com.pandulapeter.kubriko.physics.implementation.collision.bodies.CollisionBodyInterface
-import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.PhysicalBodyInterface
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -97,11 +96,11 @@ internal class PhysicsManagerImpl(
         }
     }
 
-    private fun applyLinearDrag(b: PhysicalBodyInterface?) {
-        val velocityMagnitude = b!!.velocity.length()
-        val dragForceMagnitude = velocityMagnitude * velocityMagnitude * b.linearDampening
-        val dragForceVector = b.velocity.normalized.scalar(-dragForceMagnitude)
-        b.applyForce(dragForceVector)
+    private fun applyLinearDrag(body: PhysicsBody) {
+        val velocityMagnitude = body.velocity.length()
+        val dragForceMagnitude = velocityMagnitude * velocityMagnitude * body.linearDampening
+        val dragForceVector = body.velocity.normalized.scalar(-dragForceMagnitude)
+        body.applyForce(dragForceVector)
     }
 
     private fun broadPhaseCheck() {
@@ -120,7 +119,7 @@ internal class PhysicsManagerImpl(
         }
     }
 
-    private fun aabbOverlap(bodyA: CollisionBodyInterface, bodyB: CollisionBodyInterface): Boolean {
+    private fun aabbOverlap(bodyA: PhysicsBody, bodyB: PhysicsBody): Boolean {
         val aCopy = bodyA.aabb
         val bCopy = bodyB.aabb
         return aabbOverlap(aCopy, bCopy)
@@ -130,9 +129,9 @@ internal class PhysicsManagerImpl(
         return boxA.min.x <= boxB.max.x && boxA.max.x >= boxB.min.x && boxA.min.y <= boxB.max.y && boxA.max.y >= boxB.min.y
     }
 
-    private fun narrowPhaseCheck(a: CollisionBodyInterface, b: CollisionBodyInterface) {
-        val contactQuery = Arbiter(a, b)
-        contactQuery.narrowPhase()
+    private fun narrowPhaseCheck(bodyA: PhysicsBody, bodyB: PhysicsBody) {
+        val contactQuery = Arbiter(bodyA, bodyB)
+        contactQuery.narrowPhaseCheck()
         if (contactQuery.contactCount > 0) {
             arbiters.add(contactQuery)
         }

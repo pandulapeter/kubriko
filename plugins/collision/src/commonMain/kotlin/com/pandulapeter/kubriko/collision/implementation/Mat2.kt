@@ -16,8 +16,8 @@ import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 
 class Mat2 {
-    var row1 = Vec2()
-    var row2 = Vec2()
+    val row1 = Vec2()
+    val row2 = Vec2()
 
     constructor()
 

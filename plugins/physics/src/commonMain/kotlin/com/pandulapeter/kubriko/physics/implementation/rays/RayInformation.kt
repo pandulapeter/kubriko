@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubriko.physics.implementation.rays
 
-import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
@@ -22,7 +22,7 @@ internal class RayInformation {
      *
      * @return returns b variable of type Body.
      */
-    val b: TranslatableBody
+    val body: PhysicsBody
 
     /**
      * Getter for coords variable.
@@ -47,8 +47,8 @@ internal class RayInformation {
      * @param y     y position of intersection.
      * @param index Index of shapes side that intersection intersects.
      */
-    constructor(b: TranslatableBody, x: SceneUnit, y: SceneUnit, index: Int) {
-        this.b = b
+    constructor(body: PhysicsBody, x: SceneUnit, y: SceneUnit, index: Int) {
+        this.body = body
         coordinates = SceneOffset(x, y)
         this.index = index
     }
@@ -61,8 +61,8 @@ internal class RayInformation {
      * @param v     x/y position of intersection.
      * @param index Index of shapes side that intersection intersects.
      */
-    constructor(b: TranslatableBody, v: SceneOffset, index: Int) {
-        this.b = b
+    constructor(body: PhysicsBody, v: SceneOffset, index: Int) {
+        this.body = body
         coordinates = v.copy()
         this.index = index
     }

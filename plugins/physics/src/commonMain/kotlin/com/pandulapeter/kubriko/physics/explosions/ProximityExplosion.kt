@@ -12,8 +12,7 @@ package com.pandulapeter.kubriko.physics.explosions
 import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.normalize
 import com.pandulapeter.kubriko.helpers.extensions.scalar
-import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.PhysicalBodyInterface
-import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.helpers.toVec2
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -34,14 +33,14 @@ class ProximityExplosion(
         this.epicenter = epicenter
     }
 
-    private var bodiesEffected = mutableListOf<TranslatableBody>()
+    private var bodiesEffected = mutableListOf<PhysicsBody>()
 
     /**
      * Updates the arraylist to reevaluate what bodies are effected/within the proximity.
      *
      * @param bodiesToEvaluate Arraylist of bodies in the world to check.
      */
-    override fun update(bodiesToEvaluate: Collection<TranslatableBody>) {
+    override fun update(bodiesToEvaluate: Collection<PhysicsBody>) {
         bodiesEffected.clear()
         for (b in bodiesToEvaluate) {
             val blastDist = b.position - epicenter
@@ -70,8 +69,6 @@ class ProximityExplosion(
      */
     override fun applyBlastImpulse(blastPower: SceneUnit) {
         for (b in bodiesEffected) {
-            if (b !is PhysicalBodyInterface) continue
-
             val blastDir = b.position - epicenter
             val distance = blastDir.length()
             if (distance == SceneUnit.Zero) return

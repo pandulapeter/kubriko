@@ -13,8 +13,7 @@ import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.helpers.extensions.dot
 import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.PhysicalBodyInterface
-import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.PI
@@ -29,7 +28,6 @@ class Circle(
 
     override fun calcMass(density: Float) {
         val physicalBody = this.body
-        if (physicalBody !is PhysicalBodyInterface) return
         physicalBody.mass = PI.toFloat() * radius.raw * radius.raw * density
         physicalBody.invMass = if (physicalBody.mass != 0f) 1.0f / physicalBody.mass else 0f
         physicalBody.inertia = physicalBody.mass * radius.raw * radius.raw
@@ -55,7 +53,7 @@ class Circle(
         var minPx = SceneUnit.Zero
         var minPy = SceneUnit.Zero
         var intersectionFound = false
-        var closestBody: TranslatableBody? = null
+        var closestBody: PhysicsBody? = null
         var maxD = maxDistance
 
         val ray = endPoint.copy() - startPoint

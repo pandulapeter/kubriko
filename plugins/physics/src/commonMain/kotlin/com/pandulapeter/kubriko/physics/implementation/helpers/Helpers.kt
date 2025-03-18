@@ -11,7 +11,7 @@ package com.pandulapeter.kubriko.physics.implementation.helpers
 
 import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.physics.implementation.collision.bodies.CollisionBodyInterface
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.abs
@@ -23,7 +23,7 @@ internal fun SceneOffset.toVec2() = Vec2(
     y = y,
 )
 
-internal fun isPointInside(b: CollisionBodyInterface, startPoint: SceneOffset) = b.shape.isPointInside(startPoint)
+internal fun isPointInside(body: PhysicsBody, startPoint: SceneOffset) = body.shape.isPointInside(startPoint)
 
 internal fun lineIntersect(line1Start: Vec2, line1End: Vec2, line2Start: Vec2, line2End: Vec2): Vec2? {
     val x1 = line1Start.x

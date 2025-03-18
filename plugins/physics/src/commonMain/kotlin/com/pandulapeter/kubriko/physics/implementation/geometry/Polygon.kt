@@ -18,8 +18,7 @@ import com.pandulapeter.kubriko.helpers.extensions.normal
 import com.pandulapeter.kubriko.helpers.extensions.normalize
 import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.PhysicalBodyInterface
-import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
+import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.helpers.lineIntersect
 import com.pandulapeter.kubriko.physics.implementation.helpers.pointIsOnLine
 import com.pandulapeter.kubriko.physics.implementation.helpers.toVec2
@@ -105,7 +104,6 @@ class Polygon : Shape {
      */
     override fun calcMass(density: Float) {
         val physicalBody = this.body
-        if (physicalBody !is PhysicalBodyInterface) return
         var centroidDistVec = SceneOffset.Zero
         var area = SceneUnit.Zero
         var inertia = SceneUnit.Zero
@@ -246,7 +244,7 @@ class Polygon : Shape {
         var minPx = SceneUnit.Zero
         var minPy = SceneUnit.Zero
         var intersectionFound = false
-        var closestBody: TranslatableBody? = null
+        var closestBody: PhysicsBody? = null
         var maxD = maxDistance
 
         for (i in vertices.indices) {
