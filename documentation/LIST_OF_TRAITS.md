@@ -24,7 +24,7 @@ Read the KDoc comments of the linked files for more information.
 - [ParticleEmitter](https://github.com/pandulapeter/kubriko/blob/main/plugins/particles/src/commonMain/kotlin/com/pandulapeter/kubriko/particles/ParticleEmitter.kt)
 
 ## Physics plugin
-- [Joint](https://github.com/pandulapeter/kubriko/blob/main/plugins/physics/src/commonMain/kotlin/com/pandulapeter/kubriko/physics/Joint.kt)
+- [JointWrapper](https://github.com/pandulapeter/kubriko/blob/main/plugins/physics/src/commonMain/kotlin/com/pandulapeter/kubriko/physics/JointWrapper.kt)
 - [RigidBody](https://github.com/pandulapeter/kubriko/blob/main/plugins/physics/src/commonMain/kotlin/com/pandulapeter/kubriko/physics/RigidBody.kt)
 
 ## Pointer Input plugin
