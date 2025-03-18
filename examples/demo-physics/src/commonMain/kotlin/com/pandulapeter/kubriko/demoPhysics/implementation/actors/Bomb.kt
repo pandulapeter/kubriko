@@ -15,12 +15,11 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.physics.RigidBody
-import com.pandulapeter.kubriko.physics.implementation.explosions.ProximityExplosion
+import com.pandulapeter.kubriko.physics.explosions.ProximityExplosion
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
@@ -35,10 +34,7 @@ internal class Bomb(
     private lateinit var actorManager: ActorManager
     private var alpha = 1f
     private val explosion = ProximityExplosion(
-        epicentre = Vec2(
-            x = epicenter.x,
-            y = epicenter.y,
-        ),
+        epicenter = epicenter,
         proximity = 750.sceneUnit,
     )
 

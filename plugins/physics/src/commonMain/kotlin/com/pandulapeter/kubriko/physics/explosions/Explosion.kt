@@ -7,16 +7,17 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko.physics.implementation.explosions
+package com.pandulapeter.kubriko.physics.explosions
 
-import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
+import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
  * Interface detailing what explosions need to include.
  */
 interface Explosion {
+
     /**
      * Applies a blast impulse to the effected bodies.
      *
@@ -25,16 +26,12 @@ interface Explosion {
     fun applyBlastImpulse(blastPower: SceneUnit)
 
     /**
-     * Updates the arraylist to reevaluate what objects are effected/within the proximity.
-     *
-     * @param bodiesToEvaluate Arraylist of bodies in the world to check.
+     * Updates the list of objects that should be effected by the explosion.
      */
     fun update(bodiesToEvaluate: Collection<TranslatableBody>)
 
     /**
-     * Sets the epicentre to a different coordinate.
-     *
-     * @param v The vector position of the new epicentre.
+     * Sets the epicenter of the explosion to a different coordinate.
      */
-    fun setEpicentre(v: Vec2)
+    fun setEpicenter(epicenter: SceneOffset)
 }

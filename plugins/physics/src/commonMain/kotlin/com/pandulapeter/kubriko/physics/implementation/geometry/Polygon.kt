@@ -11,11 +11,13 @@ package com.pandulapeter.kubriko.physics.implementation.geometry
 
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.collision.implementation.Vec2
+import com.pandulapeter.kubriko.helpers.extensions.distanceTo
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.dynamics.bodies.PhysicalBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
-import com.pandulapeter.kubriko.physics.implementation.math.Math.lineIntersect
-import com.pandulapeter.kubriko.physics.implementation.math.Math.pointIsOnLine
+import com.pandulapeter.kubriko.physics.implementation.helpers.lineIntersect
+import com.pandulapeter.kubriko.physics.implementation.helpers.pointIsOnLine
+import com.pandulapeter.kubriko.physics.implementation.helpers.toVec2
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.PI
@@ -226,9 +228,9 @@ class Polygon : Shape {
      * @param startPoint Vector point to check if its inside the first body.
      * @return boolean value whether the point is inside the first body.
      */
-    override fun isPointInside(startPoint: Vec2): Boolean {
+    override fun isPointInside(startPoint: SceneOffset): Boolean {
         for (i in vertices.indices) {
-            val objectPoint = startPoint - (body.position + body.shape.orientation.mul(vertices[i]))
+            val objectPoint = startPoint.toVec2() - (body.position + body.shape.orientation.mul(vertices[i]))
             if (objectPoint.dot(this.body.shape.orientation.mul(normals[i])) > SceneUnit.Zero) {
                 return false
             }
@@ -236,7 +238,7 @@ class Polygon : Shape {
         return true
     }
 
-    override fun rayIntersect(startPoint: Vec2, endPoint: Vec2, maxDistance: SceneUnit, rayLength: SceneUnit): IntersectionReturnElement {
+    override fun rayIntersect(startPoint: SceneOffset, endPoint: SceneOffset, maxDistance: SceneUnit, rayLength: SceneUnit): IntersectionReturnElement {
         var minPx = SceneUnit.Zero
         var minPy = SceneUnit.Zero
         var intersectionFound = false
@@ -250,10 +252,15 @@ class Polygon : Shape {
             endOfPolyEdge = orientation.mul(endOfPolyEdge) + body.position
 
             //detect if line (startPoint -> endpoint) intersects with the current edge (startOfPolyEdge -> endOfPolyEdge)
-            val intersection = lineIntersect(startPoint, endPoint, startOfPolyEdge, endOfPolyEdge)
+            val intersection = lineIntersect(startPoint.toVec2(), endPoint.toVec2(), startOfPolyEdge, endOfPolyEdge)
             if (intersection != null) {
-                val distance = startPoint.distance(intersection)
-                if (pointIsOnLine(startPoint, endPoint, intersection) && pointIsOnLine(startOfPolyEdge, endOfPolyEdge, intersection) && distance < maxD) {
+                val distance = startPoint.distanceTo(intersection.toSceneOffset())
+                if (pointIsOnLine(startPoint.toVec2(), endPoint.toVec2(), intersection) && pointIsOnLine(
+                        startOfPolyEdge,
+                        endOfPolyEdge,
+                        intersection
+                    ) && distance < maxD
+                ) {
                     maxD = distance
                     minPx = intersection.x
                     minPy = intersection.y

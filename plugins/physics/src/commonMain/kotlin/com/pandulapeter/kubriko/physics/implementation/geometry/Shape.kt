@@ -10,9 +10,9 @@
 package com.pandulapeter.kubriko.physics.implementation.geometry
 
 import com.pandulapeter.kubriko.collision.implementation.Mat2
-import com.pandulapeter.kubriko.collision.implementation.Vec2
 import com.pandulapeter.kubriko.physics.implementation.collision.bodies.CollisionBodyInterface
 import com.pandulapeter.kubriko.physics.implementation.geometry.bodies.TranslatableBody
+import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
@@ -34,7 +34,7 @@ abstract class Shape {
      */
     abstract fun createAABB()
 
-    abstract fun isPointInside(startPoint: Vec2): Boolean
+    abstract fun isPointInside(startPoint: SceneOffset): Boolean
 
     /**
      * Checks if a ray intersects with the shape.
@@ -45,7 +45,13 @@ abstract class Shape {
      * @param rayInformation The object to store the information in.
      * @return Float Returns the distance to the intersection point. maxDistance if no intersection was found.
      */
-    abstract fun rayIntersect(startPoint: Vec2, endPoint: Vec2, maxDistance: SceneUnit, rayLength: SceneUnit): IntersectionReturnElement
+    abstract fun rayIntersect(startPoint: SceneOffset, endPoint: SceneOffset, maxDistance: SceneUnit, rayLength: SceneUnit): IntersectionReturnElement
 
-    class IntersectionReturnElement(val minPx: SceneUnit, val minPy: SceneUnit, val intersectionFound: Boolean, val closestBody: TranslatableBody?, val maxDistance: SceneUnit)
+    class IntersectionReturnElement(
+        val minPx: SceneUnit,
+        val minPy: SceneUnit,
+        val intersectionFound: Boolean,
+        val closestBody: TranslatableBody?,
+        val maxDistance: SceneUnit
+    )
 }

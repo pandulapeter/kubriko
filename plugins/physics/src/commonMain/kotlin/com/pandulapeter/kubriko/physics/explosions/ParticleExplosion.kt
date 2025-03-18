@@ -7,24 +7,26 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko.physics.implementation.explosions
+package com.pandulapeter.kubriko.physics.explosions
 
 import com.pandulapeter.kubriko.collision.implementation.Mat2
-import com.pandulapeter.kubriko.collision.implementation.Vec2
+import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
+import com.pandulapeter.kubriko.physics.implementation.helpers.toVec2
 import com.pandulapeter.kubriko.types.AngleRadians
+import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
  * Models particle explosions.
  *
- * @param epicentre     Vector location of explosion epicenter.
+ * @param epicenter     Vector location of explosion epicenter.
  * @param noOfParticles Total number of particles the explosion has.
  * @param lifespan          The life time of the particle.
  */
-class ParticleExplosion(private val epicentre: Vec2, private val noOfParticles: Int, private val lifespan: Float) {
+class ParticleExplosion(private val epicenter: SceneOffset, private val noOfParticles: Int, private val lifespan: Float) {
     /**
      * Getter to return the list of particles in the world.
      *
@@ -42,10 +44,10 @@ class ParticleExplosion(private val epicentre: Vec2, private val noOfParticles: 
      */
     fun createParticles(size: SceneUnit, density: Int, radius: SceneUnit) {
         val separationAngle = AngleRadians.TwoPi / noOfParticles
-        var distanceFromCentre = Vec2(0.sceneUnit, radius)
+        var distanceFromCentre = SceneOffset(0.sceneUnit, radius)
         val rotate = Mat2(separationAngle)
         for (i in 0 until noOfParticles) {
-            val particlePlacement = epicentre.plus(distanceFromCentre)
+            val particlePlacement = epicenter.plus(distanceFromCentre)
             val b = PhysicsBody(Circle(size), particlePlacement.x, particlePlacement.y)
             b.density = density.toFloat()
             b.restitution = 1f
@@ -66,10 +68,10 @@ class ParticleExplosion(private val epicentre: Vec2, private val noOfParticles: 
      * @param blastPower The impulse magnitude.
      */
     fun applyBlastImpulse(blastPower: Float) {
-        var line: Vec2
+        var line: SceneOffset
         for (b in particles) {
-            line = b.position.minus(epicentre)
-            b.velocity.set(line.scalar(blastPower))
+            line = b.position.toSceneOffset().minus(epicenter)
+            b.velocity.set(line.scalar(blastPower).toVec2())
         }
     }
 }
