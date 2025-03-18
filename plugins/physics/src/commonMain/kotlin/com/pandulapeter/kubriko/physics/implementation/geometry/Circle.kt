@@ -13,7 +13,7 @@ import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.helpers.extensions.dot
 import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
+import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.PI

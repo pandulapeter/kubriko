@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
-import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
+import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
 import com.pandulapeter.kubriko.types.SceneOffset
 

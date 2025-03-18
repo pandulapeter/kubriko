@@ -10,7 +10,7 @@
 package com.pandulapeter.kubriko.physics.implementation.joints
 
 import com.pandulapeter.kubriko.collision.implementation.Mat2
-import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
+import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
@@ -24,7 +24,7 @@ import com.pandulapeter.kubriko.types.SceneUnit
  * @param canGoSlack    Boolean whether the joint can go slack or not
  * @param offset       Offset to be applied to the location of the joint relative to b1's object space.
  */
-abstract class Joint protected constructor(
+sealed class Joint protected constructor(
     protected val physicsBody: PhysicsBody,
     protected val naturalLength: SceneUnit,
     protected val springConstant: Float,

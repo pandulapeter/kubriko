@@ -16,8 +16,7 @@ import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.normal
 import com.pandulapeter.kubriko.helpers.extensions.normalize
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.physics.implementation.dynamics.Physics
-import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
+import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
 import com.pandulapeter.kubriko.physics.implementation.helpers.toVec2
@@ -27,9 +26,10 @@ import kotlin.math.abs
 /**
  * Creates manifolds to detect collisions and apply forces to them. Discrete in nature and only evaluates pairs of bodies in a single manifold.
  */
-data class Arbiter(
+internal data class Arbiter(
     val bodyA: PhysicsBody,
-    val bodyB: PhysicsBody
+    val bodyB: PhysicsBody,
+    private val penetrationCorrection: Float,
 ) {
     private var staticFriction = (bodyA.staticFriction + bodyB.staticFriction) / 2
     private var dynamicFriction = (bodyA.dynamicFriction + bodyB.dynamicFriction) / 2
@@ -342,12 +342,12 @@ data class Arbiter(
      * Based on linear projection to move the shapes away from each other based on a correction constant and scaled relative to the inverse mass of the objects.
      */
     fun penetrationResolution() {
-        val penetrationTolerance = penetration - Physics.PenetrationAllowance
+        val penetrationTolerance = penetration
         if (penetrationTolerance <= SceneUnit.Zero) {
             return
         }
         val totalMass = bodyA.mass + bodyB.mass
-        val correction = penetrationTolerance * Physics.PENETRATION_CORRECTION / totalMass
+        val correction = penetrationTolerance * penetrationCorrection / totalMass
         bodyA.position = bodyA.position + contactNormal.scalar(-bodyA.mass.sceneUnit * correction).toSceneOffset()
         bodyB.position = bodyB.position + contactNormal.scalar(bodyB.mass.sceneUnit * correction).toSceneOffset()
     }

@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubriko.physics.explosions
 
-import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
+import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 

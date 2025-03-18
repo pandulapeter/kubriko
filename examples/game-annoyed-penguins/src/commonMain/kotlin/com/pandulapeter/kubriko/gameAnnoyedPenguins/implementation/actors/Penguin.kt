@@ -17,8 +17,8 @@ import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.toSceneSize
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.RigidBody
-import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.types.SceneOffset
 

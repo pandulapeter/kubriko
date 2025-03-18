@@ -13,7 +13,7 @@ import com.pandulapeter.kubriko.collision.implementation.Mat2
 import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.normalize
 import com.pandulapeter.kubriko.helpers.extensions.rad
-import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
+import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
 import com.pandulapeter.kubriko.physics.implementation.helpers.isPointInside

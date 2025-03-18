@@ -16,8 +16,8 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
+import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.RigidBody
-import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.Exposed

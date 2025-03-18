@@ -11,7 +11,6 @@ package com.pandulapeter.kubriko.physics
 
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.mask.ComplexCollisionMask
-import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 
 interface RigidBody : Collidable {
 

@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base.DestructiblePhysicsObject
-import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
+import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
 import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.Serializable

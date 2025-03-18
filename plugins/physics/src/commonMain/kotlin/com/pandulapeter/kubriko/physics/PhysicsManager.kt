@@ -32,11 +32,13 @@ sealed class PhysicsManager(
         fun newInstance(
             initialGravity: SceneOffset = SceneOffset(0f.sceneUnit, 9.81f.sceneUnit),
             initialSimulationSpeed: Float = 1f,
+            penetrationCorrection: Float = 0.2f,
             isLoggingEnabled: Boolean = false,
             instanceNameForLogging: String? = null,
         ): PhysicsManager = PhysicsManagerImpl(
             initialGravity = initialGravity,
             initialSimulationSpeed = initialSimulationSpeed,
+            penetrationCorrection = penetrationCorrection,
             isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = instanceNameForLogging,
         )

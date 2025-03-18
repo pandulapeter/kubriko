@@ -26,8 +26,8 @@ import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.JointWrapper
+import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.RigidBody
-import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.physics.implementation.joints.JointToBody
 import com.pandulapeter.kubriko.sceneEditor.Editable
@@ -51,8 +51,8 @@ internal class DynamicChain private constructor(private val state: State) : Grou
         }
     private var chainLinks = generateLinks()
     private val joints = chainLinks.mapIndexedNotNull { index, chainLink ->
-        if (index > 0) JointWrapper(
-            physicsJoint = JointToBody(
+        if (index > 0) object : JointWrapper {
+            override val physicsJoint = JointToBody(
                 physicsBody1 = chainLinks[index - 1].physicsBody,
                 physicsBody2 = chainLink.physicsBody,
                 jointLength = ChainLink.Radius,
@@ -62,7 +62,7 @@ internal class DynamicChain private constructor(private val state: State) : Grou
                 offset1 = SceneOffset(-ChainLink.Radius, SceneUnit.Zero),
                 offset2 = SceneOffset(ChainLink.Radius, SceneUnit.Zero),
             )
-        ) else null
+        } else null
     }
     private lateinit var actorManager: ActorManager
     private lateinit var viewportManager: ViewportManager

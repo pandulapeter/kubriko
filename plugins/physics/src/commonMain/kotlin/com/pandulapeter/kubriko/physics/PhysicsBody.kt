@@ -7,7 +7,7 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko.physics.implementation.dynamics
+package com.pandulapeter.kubriko.physics
 
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.collision.implementation.Vec2
@@ -27,13 +27,13 @@ class PhysicsBody(
     var position: SceneOffset = SceneOffset(x, y)
     var dynamicFriction = 0.2f
     var staticFriction = 0.5f
-    var orientation = AngleRadians.Zero
+    var orientation = AngleRadians.Companion.Zero
         set(value) {
             field = value
             shape.orientation.set(orientation)
             shape.createAABB()
         }
-    var aabb = AxisAlignedBoundingBox(SceneOffset.Zero, SceneOffset.Zero)
+    var aabb = AxisAlignedBoundingBox(SceneOffset.Companion.Zero, SceneOffset.Companion.Zero)
     var velocity = Vec2()
     var force = Vec2()
     var angularVelocity = 0f

@@ -9,14 +9,13 @@
  */
 package com.pandulapeter.kubriko.physics
 
-import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.collision.implementation.Vec2
+import com.pandulapeter.kubriko.helpers.extensions.isOverlapping
 import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.physics.implementation.collision.Arbiter
-import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,6 +25,7 @@ import kotlinx.coroutines.flow.stateIn
 internal class PhysicsManagerImpl(
     initialGravity: SceneOffset,
     initialSimulationSpeed: Float,
+    private val penetrationCorrection: Float,
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
 ) : PhysicsManager(isLoggingEnabled, instanceNameForLogging) {
@@ -106,31 +106,21 @@ internal class PhysicsManagerImpl(
     private fun broadPhaseCheck() {
         val bodies = rigidBodies.value
         for (i in bodies.indices) {
-            val a = bodies[i]
+            val bodyA = bodies[i]
             for (x in i + 1 until bodies.size) {
-                val b = bodies[x]
-                if (a.invMass == 0f && b.invMass == 0f || a.particle && b.particle) {
+                val bodyB = bodies[x]
+                if (bodyA.invMass == 0f && bodyB.invMass == 0f || bodyA.particle && bodyB.particle) {
                     continue
                 }
-                if (aabbOverlap(a, b)) {
-                    narrowPhaseCheck(a, b)
+                if (bodyA.aabb.isOverlapping(bodyB.aabb)) {
+                    narrowPhaseCheck(bodyA, bodyB)
                 }
             }
         }
     }
 
-    private fun aabbOverlap(bodyA: PhysicsBody, bodyB: PhysicsBody): Boolean {
-        val aCopy = bodyA.aabb
-        val bCopy = bodyB.aabb
-        return aabbOverlap(aCopy, bCopy)
-    }
-
-    private fun aabbOverlap(boxA: AxisAlignedBoundingBox, boxB: AxisAlignedBoundingBox): Boolean {
-        return boxA.min.x <= boxB.max.x && boxA.max.x >= boxB.min.x && boxA.min.y <= boxB.max.y && boxA.max.y >= boxB.min.y
-    }
-
     private fun narrowPhaseCheck(bodyA: PhysicsBody, bodyB: PhysicsBody) {
-        val contactQuery = Arbiter(bodyA, bodyB)
+        val contactQuery = Arbiter(bodyA, bodyB, penetrationCorrection)
         contactQuery.narrowPhaseCheck()
         if (contactQuery.contactCount > 0) {
             arbiters.add(contactQuery)

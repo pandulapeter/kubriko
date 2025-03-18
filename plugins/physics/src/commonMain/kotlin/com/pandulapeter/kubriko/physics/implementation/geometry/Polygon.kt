@@ -18,7 +18,7 @@ import com.pandulapeter.kubriko.helpers.extensions.normal
 import com.pandulapeter.kubriko.helpers.extensions.normalize
 import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.physics.implementation.dynamics.PhysicsBody
+import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.implementation.helpers.isPointOnLine
 import com.pandulapeter.kubriko.physics.implementation.helpers.lineIntersect
 import com.pandulapeter.kubriko.types.SceneOffset
