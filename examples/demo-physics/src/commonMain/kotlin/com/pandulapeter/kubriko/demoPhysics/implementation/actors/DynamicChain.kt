@@ -29,7 +29,7 @@ import com.pandulapeter.kubriko.physics.JointWrapper
 import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
-import com.pandulapeter.kubriko.physics.implementation.joints.JointToBody
+import com.pandulapeter.kubriko.physics.joints.JointToBody
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.Serializable

@@ -15,7 +15,7 @@ import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
-import com.pandulapeter.kubriko.physics.implementation.collision.Arbiter
+import com.pandulapeter.kubriko.physics.implementation.Arbiter
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

@@ -13,7 +13,7 @@ import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.normalize
 import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.physics.PhysicsBody
-import com.pandulapeter.kubriko.physics.implementation.helpers.toVec2
+import com.pandulapeter.kubriko.physics.implementation.toVec2
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
