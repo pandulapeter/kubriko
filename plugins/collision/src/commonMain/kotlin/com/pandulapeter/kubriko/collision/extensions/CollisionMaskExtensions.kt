@@ -27,11 +27,15 @@ import com.pandulapeter.kubriko.types.SceneUnit
 
 fun Collidable.isCollidingWith(
     other: Collidable
-) = collisionMask.collisionResultWith(other.collisionMask) != null
+) = collisionMask.collisionResultWith(
+    other = other.collisionMask,
+    shouldSkipAxisAlignedBoundingBoxCheck = false,
+) != null
 
 fun CollisionMask.collisionResultWith(
-    other: CollisionMask
-): CollisionResult? = if (axisAlignedBoundingBox.isOverlapping(other.axisAlignedBoundingBox)) {
+    other: CollisionMask,
+    shouldSkipAxisAlignedBoundingBoxCheck: Boolean,
+): CollisionResult? = if (shouldSkipAxisAlignedBoundingBoxCheck || axisAlignedBoundingBox.isOverlapping(other.axisAlignedBoundingBox)) {
     val collisionMaskA = this
     val collisionMaskB = other
     when {

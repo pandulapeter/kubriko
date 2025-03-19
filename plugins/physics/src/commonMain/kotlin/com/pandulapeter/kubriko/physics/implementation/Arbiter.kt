@@ -38,7 +38,10 @@ internal data class Arbiter(
 
     fun narrowPhaseCheck() {
         restitution = bodyA.restitution.coerceAtMost(bodyB.restitution)
-        bodyA.collisionMask.collisionResultWith(bodyB.collisionMask)?.let { collisionResult ->
+        bodyA.collisionMask.collisionResultWith(
+            other = bodyB.collisionMask,
+            shouldSkipAxisAlignedBoundingBoxCheck = true,
+        )?.let { collisionResult ->
             isColliding = true
             contacts[0] = collisionResult.contact
             contactNormal = collisionResult.contactNormal
