@@ -85,7 +85,7 @@ internal data class Arbiter(
 
         //Transpose effectively removes the rotation thus allowing the OBB vs OBB detection to become AABB vs OBB
         val distOfBodies = circleBody.position.minus(polygonBody.position)
-        val polyToCircleVec = polygon.orientation.transpose().times(distOfBodies)
+        val polyToCircleVec = polygon.rotationMatrix.transpose().times(distOfBodies)
         var penetration = (-Float.MAX_VALUE).sceneUnit
         var faceNormalIndex = 0
 
@@ -122,8 +122,8 @@ internal data class Arbiter(
             }
             this.penetration = circle.radius - distBetweenObj
             isColliding = true
-            contactNormal = polygon.orientation.times((vector1 - polyToCircleVec).normalized())
-            contacts[0] = polygon.orientation.times(vector1) + polygonBody.position
+            contactNormal = polygon.rotationMatrix.times((vector1 - polyToCircleVec).normalized())
+            contacts[0] = polygon.rotationMatrix.times(vector1) + polygonBody.position
             return
         }
         val v2ToV1 = vector1.minus(vector2)
@@ -141,8 +141,8 @@ internal data class Arbiter(
             }
             this.penetration = circle.radius - distBetweenObj
             isColliding = true
-            contactNormal = polygon.orientation.times(vector2.minus(polyToCircleVec).normalized())
-            contacts[0] = polygon.orientation.times(vector2) + polygonBody.position
+            contactNormal = polygon.rotationMatrix.times(vector2.minus(polyToCircleVec).normalized())
+            contacts[0] = polygon.rotationMatrix.times(vector2) + polygonBody.position
         } else {
             val distFromEdgeToCircle = polyToCircleVec.minus(vector1).dot(polygon.normals[faceNormalIndex])
             if (distFromEdgeToCircle >= circle.radius) {
@@ -150,7 +150,7 @@ internal data class Arbiter(
             }
             this.penetration = circle.radius - distFromEdgeToCircle
             isColliding = true
-            contactNormal = polygon.orientation.times(polygon.normals[faceNormalIndex])
+            contactNormal = polygon.rotationMatrix.times(polygon.normals[faceNormalIndex])
             contacts[0] = circleBody.position.plus(-contactNormal.scalar(circle.radius))
             contactNormal = -contactNormal
         }
@@ -188,8 +188,8 @@ internal data class Arbiter(
         var referenceNormal = referencePoly.normals[referenceFaceIndex]
 
         //Reference face of reference polygon in object space of incident polygon
-        referenceNormal = referencePoly.orientation.times(referenceNormal)
-        referenceNormal = incidentPoly.orientation.transpose().times(referenceNormal)
+        referenceNormal = referencePoly.rotationMatrix.times(referenceNormal)
+        referenceNormal = incidentPoly.rotationMatrix.transpose().times(referenceNormal)
 
         //Finds face of incident polygon angled best vs reference poly normal.
         //Best face is the incident face that is the most anti parallel (most negative dot product)
@@ -205,8 +205,8 @@ internal data class Arbiter(
 
         //Incident faces vertexes in world space
         val incidentFaceVertexes = arrayOf(
-            incidentPoly.orientation.times(incidentPoly.vertices[incidentIndex]) + incidentPoly.body.position,
-            incidentPoly.orientation.times(incidentPoly.vertices[if (incidentIndex + 1 >= incidentPoly.vertices.size) 0 else incidentIndex + 1]) + incidentPoly.body.position,
+            incidentPoly.rotationMatrix.times(incidentPoly.vertices[incidentIndex]) + incidentPoly.body.position,
+            incidentPoly.rotationMatrix.times(incidentPoly.vertices[if (incidentIndex + 1 >= incidentPoly.vertices.size) 0 else incidentIndex + 1]) + incidentPoly.body.position,
         )
 
         //Gets vertex's of reference polygon reference face in world space
@@ -215,8 +215,8 @@ internal data class Arbiter(
             referencePoly.vertices[if (referenceFaceIndex + 1 == referencePoly.vertices.size) 0 else referenceFaceIndex + 1]
 
         //Rotate and translate vertex's of reference poly
-        v1 = referencePoly.orientation.times(v1) + referencePoly.body.position
-        v2 = referencePoly.orientation.times(v2) + referencePoly.body.position
+        v1 = referencePoly.rotationMatrix.times(v1) + referencePoly.body.position
+        v2 = referencePoly.rotationMatrix.times(v2) + referencePoly.body.position
         val refTangent = v2.minus(v1).normalized()
         val negSide = -refTangent.dot(v1)
         val posSide = refTangent.dot(v2)
@@ -291,11 +291,11 @@ internal data class Arbiter(
         var bestIndex = 0
         for (i in polygonA.vertices.indices) {
             //Applies polygon A's orientation to its normals for calculation.
-            val polyANormal = polygonA.orientation.times(polygonA.normals[i])
+            val polyANormal = polygonA.rotationMatrix.times(polygonA.normals[i])
 
             //Rotates the normal by the clock wise rotation matrix of B to put the normal relative to the object space of polygon B
             //Polygon b is axis aligned and the normal is located according to this in the correct position in object space
-            val objectPolyANormal = polygonB.orientation.transpose().times(polyANormal)
+            val objectPolyANormal = polygonB.rotationMatrix.transpose().times(polyANormal)
             var bestProjection = Float.MAX_VALUE.sceneUnit
             var bestVertex = polygonB.vertices[0]
 
@@ -313,7 +313,7 @@ internal data class Arbiter(
             val distanceOfBA = polygonA.body.position.minus(polygonB.body.position)
 
             //Best vertex relative to polygon B in object space
-            val polyANormalVertex = polygonB.orientation.transpose().times(polygonA.orientation.times(polygonA.vertices[i]) + distanceOfBA)
+            val polyANormalVertex = polygonB.rotationMatrix.transpose().times(polygonA.rotationMatrix.times(polygonA.vertices[i]) + distanceOfBA)
 
             //Distance between best vertex and polygon A's plane in object space
             val d = objectPolyANormal.dot(bestVertex.minus(polyANormalVertex))

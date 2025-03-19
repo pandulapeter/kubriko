@@ -45,7 +45,6 @@ internal class StaticPolygon private constructor(state: State) : RigidBody, Visi
         // TODO: body.scale is disregarded
         initialRotation = body.rotation,
     )
-    override val shouldClip = false
 
     @set:Exposed(name = "isRotating")
     var isRotating = state.isRotating

@@ -102,13 +102,13 @@ fun SceneOffset.isInside(
 ): Boolean = x.raw in axisAlignedBoundingBox.left..axisAlignedBoundingBox.right && y.raw in axisAlignedBoundingBox.top..axisAlignedBoundingBox.bottom
 
 val List<SceneOffset>.center
-    get(): SceneOffset = when {
+    get() = when {
         isEmpty() -> SceneOffset.Zero
         size == 1 -> first()
         else -> SceneOffset(
-            x = maxOf { it.x } - minOf { it.x },
-            y = maxOf { it.y } - minOf { it.y },
-        ) / 2
+            x = (maxOf { it.x } + minOf { it.x }) / 2,
+            y = (maxOf { it.y } + minOf { it.y }) / 2
+        )
     }
 
 fun SceneOffset.toOffset(viewportManager: ViewportManager): Offset = toOffset(

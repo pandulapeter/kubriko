@@ -44,7 +44,7 @@ internal class ShadowCasting(var startPoint: SceneOffset, private val distance: 
             if (body.shape is Polygon) {
                 val poly1 = body.shape as Polygon
                 for (v in poly1.vertices) {
-                    val direction = poly1.orientation.times(v).plus(body.position).minus(startPoint)
+                    val direction = poly1.rotationMatrix.times(v).plus(body.position).minus(startPoint)
                     projectRays(direction, bodiesToEvaluate)
                 }
             } else {

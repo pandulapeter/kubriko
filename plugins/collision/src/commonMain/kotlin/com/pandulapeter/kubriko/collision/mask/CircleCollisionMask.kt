@@ -34,7 +34,7 @@ class CircleCollisionMask(
                 isAxisAlignedBoundingBoxDirty = true
             }
         }
-    override val size get() = SceneSize(radius * 2, radius * 2)
+    override val size get() = SceneSize(radius * 2 + SceneUnit.Unit, radius * 2 + SceneUnit.Unit)
 
     override fun isSceneOffsetInside(sceneOffset: SceneOffset) = (position - sceneOffset).length() <= radius
 

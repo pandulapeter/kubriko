@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.physics.implementation.geometry
 
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
+import com.pandulapeter.kubriko.helpers.extensions.center
 import com.pandulapeter.kubriko.helpers.extensions.cross
 import com.pandulapeter.kubriko.helpers.extensions.distanceTo
 import com.pandulapeter.kubriko.helpers.extensions.dot
@@ -40,7 +41,7 @@ class Polygon : Shape {
      * @param vertList Vertices of polygon to create.
      */
     constructor(vertList: List<SceneOffset>) {
-        vertices = generateHull(vertList).toMutableList()
+        vertices = generateConvexHull(vertList).toMutableList()
         calcNormals()
     }
 
@@ -79,7 +80,7 @@ class Polygon : Shape {
             val pointY = radius * sin(angle)
             vertices[i] = SceneOffset(pointX, pointY)
         }
-        this.vertices = generateHull(vertices).toMutableList()
+        this.vertices = generateConvexHull(vertices).toMutableList()
         calcNormals()
     }
 
@@ -129,17 +130,14 @@ class Polygon : Shape {
         physicalBody.invInertia = if (physicalBody.inertia != 0f) 1f / physicalBody.inertia else 0f
     }
 
-    /**
-     * Generates an AABB encompassing the polygon and binds it to the body.
-     */
     override fun createAABB() {
-        val firstPoint = orientation.times(vertices[0])
+        val firstPoint = rotationMatrix.times(vertices[0])
         var minX = firstPoint.x
         var maxX = firstPoint.x
         var minY = firstPoint.y
         var maxY = firstPoint.y
         for (i in 1 until vertices.size) {
-            val point = orientation.times(vertices[i])
+            val point = rotationMatrix.times(vertices[i])
             val px = point.x
             val py = point.y
             if (px < minX) {
@@ -165,15 +163,7 @@ class Polygon : Shape {
         )
     }
 
-    /**
-     * Generates a convex hull around the vertices supplied.
-     *
-     * @param vertices List of vertices.
-     * @param n        Number of vertices supplied.
-     * @return Returns a convex hull array.
-     */
-    // TODO: Doesn't work
-    private fun generateHull(vertices: List<SceneOffset>): List<SceneOffset> {
+    private fun generateConvexHull(vertices: List<SceneOffset>): List<SceneOffset> {
         if (vertices.size < 3) return vertices // Convex hull is not defined for fewer than 3 points
 
         // Step 1: Find the leftmost point (lowest x, then lowest y)
@@ -201,24 +191,20 @@ class Polygon : Shape {
             hull.add(point)
         }
 
-        // Step 5: Return the constructed convex hull
-        return hull
+        // Step 5: Return the center-aligned convex hull
+        return hull.center.let { centerPoint ->
+            hull.map {
+                it - centerPoint
+            }
+        }
     }
 
-    private fun crossProduct(o: SceneOffset, a: SceneOffset, b: SceneOffset): Float {
-        return ((a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)).raw
-    }
+    private fun crossProduct(o: SceneOffset, a: SceneOffset, b: SceneOffset) = ((a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)).raw
 
-    /**
-     * Method to check if point is inside a body in world space.
-     *
-     * @param startPoint Vector point to check if its inside the first body.
-     * @return boolean value whether the point is inside the first body.
-     */
     override fun isPointInside(startPoint: SceneOffset): Boolean {
         for (i in vertices.indices) {
-            val objectPoint = startPoint - (body.position + body.shape.orientation.times(vertices[i]))
-            if (objectPoint.dot(this.body.shape.orientation.times(normals[i])) > SceneUnit.Zero) {
+            val objectPoint = startPoint - (body.position + body.shape.rotationMatrix.times(vertices[i]))
+            if (objectPoint.dot(this.body.shape.rotationMatrix.times(normals[i])) > SceneUnit.Zero) {
                 return false
             }
         }
@@ -235,8 +221,8 @@ class Polygon : Shape {
         for (i in vertices.indices) {
             var startOfPolyEdge = vertices[i]
             var endOfPolyEdge = vertices[if (i + 1 == vertices.size) 0 else i + 1]
-            startOfPolyEdge = orientation.times(startOfPolyEdge) + body.position
-            endOfPolyEdge = orientation.times(endOfPolyEdge) + body.position
+            startOfPolyEdge = rotationMatrix.times(startOfPolyEdge) + body.position
+            endOfPolyEdge = rotationMatrix.times(endOfPolyEdge) + body.position
 
             //detect if line (startPoint -> endpoint) intersects with the current edge (startOfPolyEdge -> endOfPolyEdge)
             val intersection = lineIntersect(startPoint, endPoint, startOfPolyEdge, endOfPolyEdge)

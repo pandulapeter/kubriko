@@ -39,7 +39,6 @@ internal abstract class DraggableActor(
     override val body = BoxBody(
         initialPosition = collisionMask.position,
         initialRotation = (collisionMask as? PolygonCollisionMask)?.rotation ?: AngleRadians.Zero,
-        initialPivot = collisionMask.size.center,
         initialSize = collisionMask.size,
     )
     override val collidableTypes = listOf(DraggableCollidableActor::class)
@@ -49,7 +48,6 @@ internal abstract class DraggableActor(
     private lateinit var viewportManager: ViewportManager
     private var dragOffset = body.position
     override var drawingOrder = 0f
-    override val shouldClip = collisionMask !is PolygonCollisionMask // TODO: This shouldn't be needed, there must be an issue with the AABB calculation
     private val rotationDirection = if (Random.nextBoolean()) 1f else -1f
 
     override fun onAdded(kubriko: Kubriko) {

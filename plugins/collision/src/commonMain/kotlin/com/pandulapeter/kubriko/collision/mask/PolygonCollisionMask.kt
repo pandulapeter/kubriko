@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.collision.implementation.RotationMatrix
+import com.pandulapeter.kubriko.helpers.extensions.center
 import com.pandulapeter.kubriko.helpers.extensions.dot
 import com.pandulapeter.kubriko.helpers.extensions.normal
 import com.pandulapeter.kubriko.helpers.extensions.normalized
@@ -33,18 +34,27 @@ open class PolygonCollisionMask internal constructor(
 ) : PointCollisionMask(
     initialPosition = initialPosition,
 ), ComplexCollisionMask {
-    val vertices = generateHull(unprocessedVertices)
-    override val size = if (vertices.size < 2) SceneSize.Zero else SceneSize(
-        width = vertices.maxOf { it.x } - vertices.minOf { it.x },
-        height = vertices.maxOf { it.y } - vertices.minOf { it.y },
-    )
-    internal var orientation = RotationMatrix(initialRotation)
+    val vertices = generateConvexHull(unprocessedVertices)
+    internal var rotationMatrix = RotationMatrix(initialRotation)
         private set
+    override val size = when {
+        vertices.size < 2 -> SceneSize.Zero
+        else -> {
+            val minX = vertices.minOf { it.x }
+            val maxX = vertices.maxOf { it.x }
+            val minY = vertices.minOf { it.y }
+            val maxY = vertices.maxOf { it.y }
+            SceneSize(
+                width = maxX - minX,
+                height = maxY - minY
+            )
+        }
+    }
     var rotation = initialRotation
         set(value) {
             if (field != value) {
                 field = value
-                orientation.set(rotation)
+                rotationMatrix.set(rotation)
                 isAxisAlignedBoundingBoxDirty = true
             }
         }
@@ -53,11 +63,7 @@ open class PolygonCollisionMask internal constructor(
         face.normal().normalized().unaryMinus()
     }
 
-    /**
-     * Generates a convex hull around the vertices supplied.
-     * TODO: Doesn't work
-     */
-    private fun generateHull(vertices: List<SceneOffset>): List<SceneOffset> {
+    private fun generateConvexHull(vertices: List<SceneOffset>): List<SceneOffset> {
         if (vertices.size < 3) return vertices // Convex hull is not defined for fewer than 3 points
 
         // Step 1: Find the leftmost point (lowest x, then lowest y)
@@ -85,8 +91,12 @@ open class PolygonCollisionMask internal constructor(
             hull.add(point)
         }
 
-        // Step 5: Return the constructed convex hull
-        return hull
+        // Step 5: Return the center-aligned convex hull
+        return hull.center.let { centerPoint ->
+            hull.map {
+                it - centerPoint
+            }
+        }
     }
 
     private fun crossProduct(o: SceneOffset, a: SceneOffset, b: SceneOffset): Float {
@@ -95,8 +105,8 @@ open class PolygonCollisionMask internal constructor(
 
     override fun isSceneOffsetInside(sceneOffset: SceneOffset): Boolean {
         for (i in vertices.indices) {
-            val objectPoint = sceneOffset - (position + orientation.times(vertices[i]))
-            if (objectPoint.dot(orientation.times(normals[i])) > SceneUnit.Zero) {
+            val objectPoint = sceneOffset - (position + rotationMatrix.times(vertices[i]))
+            if (objectPoint.dot(rotationMatrix.times(normals[i])) > SceneUnit.Zero) {
                 return false
             }
         }
@@ -104,13 +114,13 @@ open class PolygonCollisionMask internal constructor(
     }
 
     override fun updateAxisAlignedBoundingBox(): AxisAlignedBoundingBox {
-        val firstPoint = orientation.times(vertices[0])
+        val firstPoint = rotationMatrix.times(vertices[0])
         var minX = firstPoint.x
         var maxX = firstPoint.x
         var minY = firstPoint.y
         var maxY = firstPoint.y
         for (i in 1 until vertices.size) {
-            val point = orientation.times(vertices[i])
+            val point = rotationMatrix.times(vertices[i])
             val px = point.x
             val py = point.y
             if (px < minX) {

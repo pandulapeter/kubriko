@@ -30,9 +30,8 @@ internal class DynamicPolygon(
     )
     override val body = BoxBody(
         initialPosition = initialOffset,
-        initialSize = collisionMask.size
+        initialSize = collisionMask.size,
     )
-    override val shouldClip = false // TODO: This shouldn't be needed, there must be an issue with the AABB calculation
     override val physicsBody = PhysicsBody(
         shape = shape,
         position = initialOffset,

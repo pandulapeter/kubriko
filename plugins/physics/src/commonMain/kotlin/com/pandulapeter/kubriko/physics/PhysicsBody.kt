@@ -27,7 +27,7 @@ class PhysicsBody(
     var orientation = AngleRadians.Zero
         set(value) {
             field = value
-            shape.orientation.set(orientation)
+            shape.rotationMatrix.set(orientation)
             shape.createAABB()
         }
     var aabb = AxisAlignedBoundingBox(SceneOffset.Zero, SceneOffset.Zero)
@@ -60,7 +60,7 @@ class PhysicsBody(
     init {
         density = density
         shape.body = this
-        shape.orientation.set(orientation)
+        shape.rotationMatrix.set(orientation)
         shape.createAABB()
     }
 
