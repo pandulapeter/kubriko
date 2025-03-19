@@ -24,6 +24,7 @@ import com.pandulapeter.kubriko.helpers.extensions.min
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.helpers.extensions.sin
 import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 
@@ -66,11 +67,26 @@ internal class FakePenguin(
         actorManager = kubriko.get()
     }
 
+    private fun downwardFactor(angle: AngleRadians): Float {
+        val downwardAngle = AngleRadians.HalfPi * 3
+        val range = AngleRadians.Pi / 4
+        return 1 - when {
+            angle.normalized in (downwardAngle - range).normalized..(downwardAngle + range).normalized -> {
+                val t = ((angle - downwardAngle) * (AngleRadians.Pi.normalized / (range.normalized * 2f))).cos.coerceIn(0f, 0.75f)
+                val smoothT = t * t * (3 - 2 * t)
+                (smoothT * 0.75f).coerceIn(0f, 0.75f)
+            }
+
+            else -> 0f
+        }
+    }
+
     override fun update(deltaTimeInMilliseconds: Int) {
         if (isVisible) {
             super.update(deltaTimeInMilliseconds)
             val angle = -initialPosition.angleTowards(pointerPosition)
-            val distance = min(abs(initialPosition.distanceTo(pointerPosition)), maximumRadius)
+            val distance = min(abs(initialPosition.distanceTo(pointerPosition)), maximumRadius * downwardFactor(angle))
+
             adjustedTargetPosition = initialPosition + SceneOffset(
                 x = distance * angle.cos,
                 y = -distance * angle.sin,

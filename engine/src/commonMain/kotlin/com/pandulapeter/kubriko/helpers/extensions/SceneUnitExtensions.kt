@@ -25,4 +25,4 @@ fun abs(sceneUnit: SceneUnit) = sceneUnit.abs
 
 fun min(a: SceneUnit, b: SceneUnit) = min(a.raw, b.raw).sceneUnit
 
-fun max(a: SceneUnit, b: SceneUnit) = min(a.raw, b.raw).sceneUnit
+fun max(a: SceneUnit, b: SceneUnit) = max(a.raw, b.raw).sceneUnit
