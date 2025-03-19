@@ -300,25 +300,24 @@ private fun findAxisOfMinPenetration(
 private fun selectionBias(a: SceneUnit, b: SceneUnit) = a >= b * BIAS_RELATIVE + a * BIAS_ABSOLUTE
 
 private fun clip(planeTangent: SceneOffset, offset: SceneUnit, incidentFaces: Array<SceneOffset>): Int {
-    val incidentFace = incidentFaces.toMutableList()
     var num = 0
     val out = arrayOf(
-        incidentFace[0],
-        incidentFace[1]
+        incidentFaces[0],
+        incidentFaces[1],
     )
-    val dist = planeTangent.dot(incidentFace[0]) - offset
-    val dist1 = planeTangent.dot(incidentFace[1]) - offset
-    if (dist <= SceneUnit.Zero) out[num++] = incidentFace[0]
-    if (dist1 <= SceneUnit.Zero) out[num++] = incidentFace[1]
+    val dist = planeTangent.dot(incidentFaces[0]) - offset
+    val dist1 = planeTangent.dot(incidentFaces[1]) - offset
+    if (dist <= SceneUnit.Zero) out[num++] = incidentFaces[0]
+    if (dist1 <= SceneUnit.Zero) out[num++] = incidentFaces[1]
     if (dist * dist1 < SceneUnit.Zero) {
         val interp = dist / (dist - dist1)
         if (num < 2) {
-            out[num] = incidentFace[1].minus(incidentFace[0]).scalar(interp).plus(incidentFace[0])
+            out[num] = incidentFaces[1].minus(incidentFaces[0]).scalar(interp).plus(incidentFaces[0])
             num++
         }
     }
-    incidentFace[0] = out[0]
-    incidentFace[1] = out[1]
+    incidentFaces[0] = out[0]
+    incidentFaces[1] = out[1]
     return num
 }
 

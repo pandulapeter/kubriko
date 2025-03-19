@@ -12,7 +12,7 @@ package com.pandulapeter.kubriko.collision
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
-data class CollisionResult(
+class CollisionResult internal constructor(
     val contact: SceneOffset,
     val contactNormal: SceneOffset,
     val penetration: SceneUnit,
