@@ -25,6 +25,6 @@ class BoxCollisionMask(
         SceneOffset(initialSize.width, initialSize.height) - initialSize.center,
         SceneOffset(SceneUnit.Zero, initialSize.height) - initialSize.center,
     ),
-    initialOffset = initialPosition,
+    initialPosition = initialPosition,
     initialRotation = initialRotation,
 )

@@ -234,7 +234,7 @@ internal class PhysicsDemoManager(
         pointerSceneOffset: SceneOffset,
     ) = DynamicPolygon(
         collisionMask = PolygonCollisionMask(
-            initialOffset = pointerSceneOffset,
+            initialPosition = pointerSceneOffset,
             vertices = (3..10).random().let { sideCount ->
                 (0..sideCount).map { sideIndex ->
                     val angle = AngleRadians.TwoPi / sideCount * (sideIndex + 0.75f)

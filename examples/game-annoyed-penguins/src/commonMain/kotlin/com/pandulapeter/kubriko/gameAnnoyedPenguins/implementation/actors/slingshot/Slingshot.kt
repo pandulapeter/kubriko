@@ -19,7 +19,7 @@ import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
+import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.abs
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.isInside
@@ -37,7 +37,6 @@ import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableBoxBody
 import com.pandulapeter.kubriko.sprites.SpriteManager
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
@@ -51,16 +50,25 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
     private lateinit var pointerInputManager: PointerInputManager
     private lateinit var spriteManager: SpriteManager
     private lateinit var viewportManager: ViewportManager
-    // TODO: Replace with a triangle so that penguins will always fall down
-    override val collisionMask = BoxCollisionMask(
+    override val collisionMask = PolygonCollisionMask(
+        vertices = listOf(
+            SceneOffset(
+                x = SceneUnit.Zero,
+                y = (-225).sceneUnit,
+            ),
+            SceneOffset(
+                x = 75.sceneUnit,
+                y = 225.sceneUnit,
+            ),
+            SceneOffset(
+                x = (-75).sceneUnit,
+                y = 225.sceneUnit,
+            ),
+        ),
         initialPosition = body.position + SceneOffset(
             x = 25.sceneUnit,
             y = 220.sceneUnit,
         ),
-        initialSize = SceneSize(
-            width = 150.sceneUnit,
-            height = 450.sceneUnit,
-        )
     )
     override val physicsBody = PhysicsBody(collisionMask).apply {
         density = 0f

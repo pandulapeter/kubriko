@@ -49,7 +49,7 @@ internal class DraggableCollidableActor(
                 )
 
                 1 -> PolygonCollisionMask(
-                    initialOffset = initialPosition,
+                    initialPosition = initialPosition,
                     vertices = (3..10).random().let { sideCount ->
                         (0..sideCount).map { sideIndex ->
                             val angle = AngleRadians.TwoPi / sideCount * (sideIndex + 0.75f)
