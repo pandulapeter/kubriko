@@ -35,15 +35,32 @@ fun CollisionMask.collisionResultWith(
     val collisionMaskA = this
     val collisionMaskB = other
     when {
-        (collisionMaskA is CircleCollisionMask && collisionMaskB is CircleCollisionMask) -> checkCircleToCircleCollision(collisionMaskA, collisionMaskB)
-        (collisionMaskA is CircleCollisionMask && collisionMaskB is PolygonCollisionMask) -> checkCircleToPolygonCollision(
-            collisionMaskA,
-            collisionMaskB,
-            false
+        collisionMaskA is CircleCollisionMask && collisionMaskB is CircleCollisionMask -> checkCircleToCircleCollision(
+            circleA = collisionMaskA,
+            circleB = collisionMaskB,
         )
 
-        (collisionMaskA is PolygonCollisionMask && collisionMaskB is CircleCollisionMask) -> checkCircleToPolygonCollision(collisionMaskB, collisionMaskA, true)
-        (collisionMaskA is PolygonCollisionMask && collisionMaskB is PolygonCollisionMask) -> checkPolygonToPolygonCollision(collisionMaskA, collisionMaskB)
+        collisionMaskA is CircleCollisionMask && collisionMaskB is PolygonCollisionMask -> checkCircleToPolygonCollision(
+            circle = collisionMaskA,
+            polygon = collisionMaskB,
+        )
+
+        collisionMaskA is PolygonCollisionMask && collisionMaskB is CircleCollisionMask -> checkCircleToPolygonCollision(
+            circle = collisionMaskB,
+            polygon = collisionMaskA,
+        )?.let {
+            CollisionResult(
+                contact = it.contact,
+                contactNormal = -it.contactNormal,
+                penetration = it.penetration,
+            )
+        }
+
+        collisionMaskA is PolygonCollisionMask && collisionMaskB is PolygonCollisionMask -> checkPolygonToPolygonCollision(
+            polygonA = collisionMaskA,
+            polygonB = collisionMaskB,
+        )
+
         else -> null
     }
 } else {
@@ -75,7 +92,6 @@ private fun checkCircleToCircleCollision(
 private fun checkCircleToPolygonCollision(
     circle: CircleCollisionMask,
     polygon: PolygonCollisionMask,
-    shouldFlipNormal: Boolean,
 ): CollisionResult? {
 
     //Transpose effectively removes the rotation thus allowing the OBB vs OBB detection to become AABB vs OBB
@@ -138,7 +154,7 @@ private fun checkCircleToPolygonCollision(
         return if (distFromEdgeToCircle >= circle.radius) null else polygon.rotationMatrix.times(polygon.normals[faceNormalIndex]).let { contactNormal ->
             CollisionResult(
                 contact = circle.position.plus(-contactNormal.scalar(circle.radius)),
-                contactNormal = if (shouldFlipNormal) contactNormal else -contactNormal,
+                contactNormal = -contactNormal,
                 penetration = circle.radius - distFromEdgeToCircle,
             )
         }
