@@ -38,7 +38,7 @@ internal class Ray(
      * @param direction The direction of the ray points in radians.
      * @param distance  The distance the ray is projected
      */
-    constructor(direction: AngleRadians, distance: SceneUnit) : this(SceneOffset.Companion.Zero, SceneOffset(direction), distance)
+    constructor(direction: AngleRadians, distance: SceneUnit) : this(SceneOffset.Zero, SceneOffset(direction), distance)
 
     /**
      * Convenience constructor with ray set at origin. Similar to
@@ -47,7 +47,7 @@ internal class Ray(
      * @param direction The direction of the ray points.
      * @param distance  The distance the ray is projected
      */
-    constructor(direction: SceneOffset, distance: SceneUnit) : this(SceneOffset.Companion.Zero, direction, distance)
+    constructor(direction: SceneOffset, distance: SceneUnit) : this(SceneOffset.Zero, direction, distance)
 
     /**
      * Convenience constructor. Similar to
@@ -75,13 +75,12 @@ internal class Ray(
         rayInformation = null
         val endPoint = direction.scalar(distance).plus(startPoint)
         var minT1 = Float.POSITIVE_INFINITY.sceneUnit
-        var minPx = SceneUnit.Companion.Zero
-        var minPy = SceneUnit.Companion.Zero
+        var minPx = SceneUnit.Zero
+        var minPy = SceneUnit.Zero
         var intersectionFound = false
         var closestBody: PhysicsBody? = null
         for (body in bodiesToEvaluate) {
-            val shape = body.physicalShape
-            val intersectionReturnElement = shape.rayIntersect(startPoint, endPoint, minT1, body)
+            val intersectionReturnElement = body.rayIntersect(startPoint, endPoint, minT1, body)
             if (intersectionReturnElement.intersectionFound) {
                 minT1 = intersectionReturnElement.maxDistance
                 minPx = intersectionReturnElement.minPx

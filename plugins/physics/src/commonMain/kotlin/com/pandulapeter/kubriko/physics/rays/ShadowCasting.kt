@@ -40,9 +40,9 @@ internal class ShadowCasting(var startPoint: SceneOffset, private val distance: 
                 rayData.clear()
                 break
             }
-            when (body.physicalShape.collisionMask) {
+            when (body.collisionMask) {
                 is CircleCollisionMask -> {
-                    val circle = body.physicalShape.collisionMask
+                    val circle = body.collisionMask
                     val d = body.position.minus(startPoint)
                     val angle = asin((circle.radius / d.length()).raw)
                     val u = RotationMatrix(angle.rad)
@@ -52,7 +52,7 @@ internal class ShadowCasting(var startPoint: SceneOffset, private val distance: 
                 }
 
                 is PolygonCollisionMask -> {
-                    val polygon = body.physicalShape.collisionMask
+                    val polygon = body.collisionMask
                     for (v in polygon.vertices) {
                         val direction = polygon.rotationMatrix.times(v).plus(body.position).minus(startPoint)
                         projectRays(direction, bodiesToEvaluate)
