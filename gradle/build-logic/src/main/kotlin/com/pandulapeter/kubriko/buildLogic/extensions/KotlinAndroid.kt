@@ -26,7 +26,6 @@ internal fun Project.configureKotlinAndroid(
         targetCompatibility = JavaVersion.VERSION_17
     }
     if (extension is ApplicationExtension) {
-        // TODO: Signing config for release builds
         buildTypes {
             getByName("release") {
                 isShrinkResources = true

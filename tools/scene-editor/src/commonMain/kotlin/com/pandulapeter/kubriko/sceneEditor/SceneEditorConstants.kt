@@ -7,23 +7,9 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-plugins {
-    id("kubriko-compose-library")
-    id("kubriko-public-artifact")
-}
+package com.pandulapeter.kubriko.sceneEditor
 
-artifactMetadata {
-    artifactId = "tool-debug-menu-api"
-}
-
-kotlin {
-    sourceSets {
-        commonMain.dependencies {
-            api(projects.engine)
-        }
-    }
-}
-
-android {
-    namespace = "com.pandulapeter.kubriko.debugMenuApi"
-}
+/**
+ * This constant is only here because completely empty Kotlin Multiplatform modules cannot be built for iOS.
+ */
+const val IS_SCENE_EDITOR_AVAILABLE = false

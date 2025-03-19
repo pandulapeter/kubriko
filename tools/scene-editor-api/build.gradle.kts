@@ -27,5 +27,5 @@ kotlin {
 }
 
 android {
-    namespace = "com.pandulapeter.kubriko.sceneEditor"
+    namespace = "com.pandulapeter.kubriko.sceneEditorApi"
 }
