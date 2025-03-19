@@ -20,7 +20,6 @@ import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.RigidBody
-import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableBoxBody
@@ -34,10 +33,9 @@ internal class StaticCircle private constructor(state: State) : RigidBody, Visib
         initialRadius = radius,
         initialPosition = body.position,
     )
-    override val physicsBody = PhysicsBody(
-        shape = Circle(radius),
-        position = body.position,
-    ).apply { density = 0f }
+    override val physicsBody = PhysicsBody(collisionMask).apply {
+        density = 0f
+    }
     private lateinit var viewportManager: ViewportManager
 
     override fun onAdded(kubriko: Kubriko) {

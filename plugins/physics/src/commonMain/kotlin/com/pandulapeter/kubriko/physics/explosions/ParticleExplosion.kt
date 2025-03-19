@@ -10,10 +10,10 @@
 package com.pandulapeter.kubriko.physics.explosions
 
 import com.pandulapeter.kubriko.collision.implementation.RotationMatrix
+import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.PhysicsBody
-import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -31,7 +31,7 @@ class ParticleExplosion(private val epicenter: SceneOffset, private val noOfPart
      *
      * @return Array of bodies.
      */
-    val particles = MutableList(noOfParticles) { PhysicsBody(Circle(SceneUnit.Zero), SceneOffset.Zero) }
+    val particles = MutableList(noOfParticles) { PhysicsBody(CircleCollisionMask()) }
 
     /**
      * Creates particles in the supplied world.
@@ -47,7 +47,12 @@ class ParticleExplosion(private val epicenter: SceneOffset, private val noOfPart
         val rotate = RotationMatrix(separationAngle)
         for (i in 0 until noOfParticles) {
             val particlePlacement = epicenter.plus(distanceFromCentre)
-            val b = PhysicsBody(Circle(size), particlePlacement)
+            val b = PhysicsBody(
+                CircleCollisionMask(
+                    initialRadius = size,
+                    initialPosition = particlePlacement,
+                )
+            )
             b.density = density.toFloat()
             b.restitution = 1f
             b.staticFriction = 0f

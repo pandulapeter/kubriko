@@ -9,28 +9,27 @@
  */
 package com.pandulapeter.kubriko.physics
 
-import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
+import com.pandulapeter.kubriko.collision.mask.ComplexCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.cross
 import com.pandulapeter.kubriko.helpers.extensions.scalar
-import com.pandulapeter.kubriko.physics.implementation.geometry.Shape
+import com.pandulapeter.kubriko.physics.implementation.PhysicalShape
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
 // TODO: The shape should be set automatically based on the collisionMask
 class PhysicsBody(
-    var shape: Shape,
-    var position: SceneOffset,
+    val collisionMask: ComplexCollisionMask,
 ) {
+    var position = collisionMask.position
+    val physicalShape = PhysicalShape(collisionMask)
     var dynamicFriction = 0.2f
     var staticFriction = 0.5f
     var orientation = AngleRadians.Zero
         set(value) {
             field = value
-            shape.rotationMatrix.set(orientation)
-            shape.createAABB()
+            physicalShape.rotationMatrix.set(orientation)
         }
-    var aabb = AxisAlignedBoundingBox(SceneOffset.Zero, SceneOffset.Zero)
     var velocity = SceneOffset.Zero
         internal set
     var force = SceneOffset.Zero
@@ -44,8 +43,7 @@ class PhysicsBody(
             if (density == 0f) {
                 setStatic()
             } else if (true) {
-                shape.body = this
-                shape.calcMass(value)
+                physicalShape.calculateMass(value, this)
             }
         }
     var mass = 0f
@@ -58,10 +56,8 @@ class PhysicsBody(
     var isParticle = false
 
     init {
+        physicalShape.rotationMatrix.set(orientation)
         density = density
-        shape.body = this
-        shape.rotationMatrix.set(orientation)
-        shape.createAABB()
     }
 
     /**

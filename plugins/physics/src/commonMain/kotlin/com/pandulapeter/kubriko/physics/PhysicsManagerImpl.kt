@@ -114,7 +114,7 @@ internal class PhysicsManagerImpl(
                 if (bodyA.invMass == 0f && bodyB.invMass == 0f || bodyA.isParticle && bodyB.isParticle) {
                     continue
                 }
-                if (bodyA.aabb.isOverlapping(bodyB.aabb)) {
+                if (bodyA.collisionMask.axisAlignedBoundingBox.isOverlapping(bodyB.collisionMask.axisAlignedBoundingBox)) {
                     narrowPhaseCheck(bodyA, bodyB)
                 }
             }

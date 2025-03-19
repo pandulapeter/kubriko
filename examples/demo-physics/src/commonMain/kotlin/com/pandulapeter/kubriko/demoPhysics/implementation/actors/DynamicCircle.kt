@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.physics.PhysicsBody
-import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableBoxBody
@@ -26,17 +25,14 @@ import kotlinx.serialization.json.Json
 internal class DynamicCircle private constructor(state: State) : BaseDynamicObject(), Editable<DynamicCircle> {
     override val body = state.body
     val radius = body.size.width / 2f
-    override val physicsBody = PhysicsBody(
-        shape = Circle(radius),
-        position = body.position,
-    ).apply {
-        restitution = 0.4f
-        orientation = body.rotation
-    }
     override val collisionMask = CircleCollisionMask(
         initialRadius = radius,
         initialPosition = body.position,
     )
+    override val physicsBody = PhysicsBody(collisionMask).apply {
+        restitution = 0.4f
+        orientation = body.rotation
+    }
 
     override fun DrawScope.draw() {
         drawCircle(

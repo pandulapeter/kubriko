@@ -21,7 +21,6 @@ import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.RigidBody
-import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.Serializable
@@ -32,19 +31,16 @@ import kotlinx.serialization.json.Json
 
 internal class StaticPolygon private constructor(state: State) : RigidBody, Visible, Dynamic, Editable<StaticPolygon> {
     override val body = state.body
-    override val physicsBody = PhysicsBody(
-        shape = Polygon(state.vertices),
-        position = body.position,
-    ).apply {
-        density = 0f
-        orientation = body.rotation
-    }
     override val collisionMask = PolygonCollisionMask(
         vertices = state.vertices,
-        initialPosition = body.position,
+        initialOffset = body.position,
         // TODO: body.scale is disregarded
         initialRotation = body.rotation,
     )
+    override val physicsBody = PhysicsBody(collisionMask).apply {
+        density = 0f
+        orientation = body.rotation
+    }
 
     @set:Exposed(name = "isRotating")
     var isRotating = state.isRotating

@@ -18,7 +18,6 @@ import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.RigidBody
-import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.Serializable
@@ -34,10 +33,7 @@ internal class Ground private constructor(state: State) : RigidBody, Visible, Ed
         initialPosition = body.position,
         initialRotation = body.rotation,
     )
-    override val physicsBody = PhysicsBody(
-        shape = Polygon(body.size.width / 2f, body.size.height / 2f),
-        position = body.position,
-    ).apply {
+    override val physicsBody = PhysicsBody(collisionMask).apply {
         density = 0f
         orientation = body.rotation
     }

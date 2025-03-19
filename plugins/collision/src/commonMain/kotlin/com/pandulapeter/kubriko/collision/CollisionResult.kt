@@ -13,7 +13,7 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
 data class CollisionResult(
-    val contacts: List<SceneOffset>,
+    val contact: SceneOffset,
     val contactNormal: SceneOffset,
     val penetration: SceneUnit,
 )

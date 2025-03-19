@@ -17,25 +17,15 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
 import com.pandulapeter.kubriko.physics.PhysicsBody
-import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
-import com.pandulapeter.kubriko.types.SceneOffset
 
 internal class DynamicPolygon(
-    initialOffset: SceneOffset,
-    shape: Polygon,
+    override val collisionMask: PolygonCollisionMask,
 ) : BaseDynamicObject() {
-    override val collisionMask = PolygonCollisionMask(
-        vertices = shape.vertices.map { SceneOffset(it.x, it.y) },
-        initialPosition = initialOffset,
-    )
     override val body = BoxBody(
-        initialPosition = initialOffset,
+        initialPosition = collisionMask.position,
         initialSize = collisionMask.size,
     )
-    override val physicsBody = PhysicsBody(
-        shape = shape,
-        position = initialOffset,
-    ).apply {
+    override val physicsBody = PhysicsBody(collisionMask).apply {
         restitution = 0.4f
     }
 

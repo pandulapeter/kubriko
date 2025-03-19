@@ -19,7 +19,6 @@ import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.RigidBody
-import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.Serializable
@@ -29,18 +28,15 @@ import kotlinx.serialization.json.Json
 
 internal class StaticBox private constructor(state: State) : RigidBody, Visible, Dynamic, Editable<StaticBox> {
     override val body = state.body
-    override val physicsBody = PhysicsBody(
-        shape = Polygon(body.size.width / 2f, body.size.height / 2f),
-        position = body.position,
-    ).apply {
-        density = 0f
-        orientation = body.rotation
-    }
     override val collisionMask = BoxCollisionMask(
         initialSize = body.size * body.scale,
         initialPosition = body.position,
         initialRotation = body.rotation,
     )
+    override val physicsBody = PhysicsBody(collisionMask).apply {
+        density = 0f
+        orientation = body.rotation
+    }
 
     @set:Exposed(name = "isRotating")
     var isRotating = state.isRotating

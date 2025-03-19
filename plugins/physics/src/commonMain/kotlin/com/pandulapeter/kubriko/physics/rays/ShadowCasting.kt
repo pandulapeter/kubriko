@@ -10,13 +10,12 @@
 package com.pandulapeter.kubriko.physics.rays
 
 import com.pandulapeter.kubriko.collision.implementation.RotationMatrix
+import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
+import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.normalized
 import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.physics.PhysicsBody
-import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
-import com.pandulapeter.kubriko.physics.implementation.geometry.Polygon
-import com.pandulapeter.kubriko.physics.implementation.isPointInside
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.asin
@@ -37,24 +36,28 @@ internal class ShadowCasting(var startPoint: SceneOffset, private val distance: 
     fun updateProjections(bodiesToEvaluate: List<PhysicsBody>) {
         rayData.clear()
         for (body in bodiesToEvaluate) {
-            if (isPointInside(body, startPoint)) {
+            if (body.collisionMask.isSceneOffsetInside(startPoint)) {
                 rayData.clear()
                 break
             }
-            if (body.shape is Polygon) {
-                val poly1 = body.shape as Polygon
-                for (v in poly1.vertices) {
-                    val direction = poly1.rotationMatrix.times(v).plus(body.position).minus(startPoint)
-                    projectRays(direction, bodiesToEvaluate)
+            when (body.physicalShape.collisionMask) {
+                is CircleCollisionMask -> {
+                    val circle = body.physicalShape.collisionMask
+                    val d = body.position.minus(startPoint)
+                    val angle = asin((circle.radius / d.length()).raw)
+                    val u = RotationMatrix(angle.rad)
+                    projectRays(u.times(d.normalized()), bodiesToEvaluate)
+                    val u2 = RotationMatrix(-angle.rad)
+                    projectRays(u2.times(d.normalized()), bodiesToEvaluate)
                 }
-            } else {
-                val circle = body.shape as Circle
-                val d = body.position.minus(startPoint)
-                val angle = asin((circle.radius / d.length()).raw)
-                val u = RotationMatrix(angle.rad)
-                projectRays(u.times(d.normalized()), bodiesToEvaluate)
-                val u2 = RotationMatrix(-angle.rad)
-                projectRays(u2.times(d.normalized()), bodiesToEvaluate)
+
+                is PolygonCollisionMask -> {
+                    val polygon = body.physicalShape.collisionMask
+                    for (v in polygon.vertices) {
+                        val direction = polygon.rotationMatrix.times(v).plus(body.position).minus(startPoint)
+                        projectRays(direction, bodiesToEvaluate)
+                    }
+                }
             }
         }
         rayData.sortWith { lhs: RayAngleInformation, rhs: RayAngleInformation ->

@@ -29,13 +29,13 @@ import kotlin.math.atan2
 
 open class PolygonCollisionMask internal constructor(
     unprocessedVertices: List<SceneOffset> = emptyList(),
-    initialPosition: SceneOffset = SceneOffset.Zero,
+    initialOffset: SceneOffset = SceneOffset.Zero,
     initialRotation: AngleRadians = AngleRadians.Zero
 ) : PointCollisionMask(
-    initialPosition = initialPosition,
+    initialPosition = initialOffset,
 ), ComplexCollisionMask {
     val vertices = generateConvexHull(unprocessedVertices)
-    internal var rotationMatrix = RotationMatrix(initialRotation)
+    var rotationMatrix = RotationMatrix(initialRotation)
         private set
     override val size = when {
         vertices.size < 2 -> SceneSize.Zero
@@ -155,11 +155,11 @@ open class PolygonCollisionMask internal constructor(
     companion object {
         operator fun invoke(
             vertices: List<SceneOffset> = emptyList(),
-            initialPosition: SceneOffset = SceneOffset.Zero,
+            initialOffset: SceneOffset = SceneOffset.Zero,
             initialRotation: AngleRadians = AngleRadians.Zero
         ) = PolygonCollisionMask(
             unprocessedVertices = vertices,
-            initialPosition = initialPosition,
+            initialOffset = initialOffset,
             initialRotation = initialRotation,
         )
     }

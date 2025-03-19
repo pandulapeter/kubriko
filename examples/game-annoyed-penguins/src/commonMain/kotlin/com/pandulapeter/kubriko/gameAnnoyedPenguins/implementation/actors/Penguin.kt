@@ -19,7 +19,6 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.RigidBody
-import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.types.SceneOffset
 
 internal class Penguin(
@@ -34,15 +33,7 @@ internal class Penguin(
         initialRadius = radius,
         initialPosition = body.position,
     )
-    override val physicsBody = PhysicsBody(
-        shape = Circle(
-            radius = radius,
-        ),
-        position = SceneOffset(
-            x = body.position.x,
-            y = body.position.y * 1.2f,
-        ),
-    ).apply {
+    override val physicsBody = PhysicsBody(collisionMask).apply {
         restitution = 0.5f
         density = 5f
         angularDampening = 1000f

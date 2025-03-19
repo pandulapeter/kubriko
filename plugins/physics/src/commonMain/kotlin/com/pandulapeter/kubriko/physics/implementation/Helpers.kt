@@ -10,14 +10,11 @@
 package com.pandulapeter.kubriko.physics.implementation
 
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-
-internal fun isPointInside(body: PhysicsBody, startPoint: SceneOffset) = body.shape.isPointInside(startPoint)
 
 internal fun lineIntersect(line1Start: SceneOffset, line1End: SceneOffset, line2Start: SceneOffset, line2End: SceneOffset): SceneOffset? {
     val x1 = line1Start.x

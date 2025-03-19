@@ -28,7 +28,6 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.JointWrapper
 import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.RigidBody
-import com.pandulapeter.kubriko.physics.implementation.geometry.Circle
 import com.pandulapeter.kubriko.physics.joints.JointToBody
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.Exposed
@@ -167,13 +166,6 @@ internal class DynamicChain private constructor(private val state: State) : Grou
     private class ChainLink(
         initialPosition: SceneOffset,
     ) : RigidBody, Visible, Dynamic {
-        override val physicsBody = PhysicsBody(
-            shape = Circle(Radius),
-            position = initialPosition,
-        ).apply {
-            density = 5f
-            restitution = 0.1f
-        }
         override val body = BoxBody(
             initialSize = SceneSize(Radius * 2, Radius * 2),
             initialPosition = initialPosition,
@@ -182,6 +174,10 @@ internal class DynamicChain private constructor(private val state: State) : Grou
             initialRadius = Radius,
             initialPosition = body.position,
         )
+        override val physicsBody = PhysicsBody(collisionMask).apply {
+            density = 5f
+            restitution = 0.1f
+        }
 
         override fun update(deltaTimeInMilliseconds: Int) {
             body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
