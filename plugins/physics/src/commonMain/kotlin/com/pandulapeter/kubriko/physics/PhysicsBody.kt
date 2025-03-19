@@ -26,7 +26,7 @@ import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.PI
 import kotlin.math.sqrt
 
-// TODO: The shape should be set automatically based on the collisionMask
+// TODO: Move configuration parameters to the constructor
 class PhysicsBody(
     val collisionMask: ComplexCollisionMask,
 ) {

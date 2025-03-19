@@ -46,7 +46,7 @@ class ParticleExplosion(private val epicenter: SceneOffset, private val noOfPart
         var distanceFromCentre = SceneOffset(0.sceneUnit, radius)
         val rotate = RotationMatrix(separationAngle)
         for (i in 0 until noOfParticles) {
-            val particlePlacement = epicenter.plus(distanceFromCentre)
+            val particlePlacement = epicenter + distanceFromCentre
             val b = PhysicsBody(
                 CircleCollisionMask(
                     initialRadius = size,

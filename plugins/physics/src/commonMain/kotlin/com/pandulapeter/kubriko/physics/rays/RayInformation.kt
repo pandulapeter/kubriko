@@ -58,12 +58,12 @@ internal class RayInformation {
      * [.RayInformation]
      *
      * @param b     Body involved with ray intersection.
-     * @param v     x/y position of intersection.
+     * @param sceneOffset     x/y position of intersection.
      * @param index Index of shapes side that intersection intersects.
      */
-    constructor(body: PhysicsBody, v: SceneOffset, index: Int) {
+    constructor(body: PhysicsBody, sceneOffset: SceneOffset, index: Int) {
         this.body = body
-        coordinates = v.copy()
+        coordinates = sceneOffset
         this.index = index
     }
 }

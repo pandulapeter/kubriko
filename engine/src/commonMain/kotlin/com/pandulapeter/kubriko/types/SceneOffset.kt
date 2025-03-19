@@ -29,12 +29,6 @@ value class SceneOffset(val raw: Offset) {
 
     constructor(direction: AngleRadians) : this(direction.cos.sceneUnit, direction.sin.sceneUnit)
 
-    // TODO: Remove this, it's pointless
-    fun copy(x: SceneUnit = this.x, y: SceneUnit = this.y) = SceneOffset(
-        x = x,
-        y = y,
-    )
-
     operator fun plus(other: SceneOffset): SceneOffset = SceneOffset(raw + other.raw)
 
     operator fun minus(other: SceneOffset): SceneOffset = SceneOffset(raw - other.raw)

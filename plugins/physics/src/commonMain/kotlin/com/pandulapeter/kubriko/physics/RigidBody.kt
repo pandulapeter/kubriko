@@ -10,12 +10,8 @@
 package com.pandulapeter.kubriko.physics
 
 import com.pandulapeter.kubriko.collision.Collidable
-import com.pandulapeter.kubriko.collision.mask.ComplexCollisionMask
 
+// TODO: Since PhysicsBody wraps the collision mask, there is no need for RigidBody to be Collidable
 interface RigidBody : Collidable {
-
-    override val collisionMask: ComplexCollisionMask
-
-    // TODO Should be merged with collisionMask
     val physicsBody: PhysicsBody
 }
