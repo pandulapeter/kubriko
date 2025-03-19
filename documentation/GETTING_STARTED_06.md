@@ -18,15 +18,19 @@ being [Visible](https://github.com/pandulapeter/kubriko/blob/main/engine/src/com
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import com.pandulapeter.kubriko.actor.body.CircleBody
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.extensions.sceneUnit
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
 
 class Ball : Visible, Dynamic {
-    override val body = CircleBody(
-        initialRadius = 40.sceneUnit,
+    private val radius = 40.sceneUnit
+    override val body = BoxBody(
+        initialSize = SceneSize(
+            width = radius * 2,
+            height = radius * 2,
+        ),
     )
 
     private var horizontalSpeed = 0.5f.sceneUnit
@@ -42,13 +46,13 @@ class Ball : Visible, Dynamic {
     override fun DrawScope.draw() {
         drawCircle(
             color = Color.Green,
-            radius = body.radius.raw,
-            center = body.size.center.raw,
+            radius = radius.raw,
+            center = body.pivot.raw,
         )
         drawCircle(
             color = Color.Black,
-            radius = body.radius.raw,
-            center = body.size.center.raw,
+            radius = radius.raw,
+            center = body.pivot.raw,
             style = Stroke(),
         )
     }
@@ -82,7 +86,7 @@ constructor of `Ball` in the `onInitialize()` function, but let's look at a diff
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.extensions.get
+import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.manager.ViewportManager
 
 // ...
