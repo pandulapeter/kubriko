@@ -79,7 +79,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
     private var aimingPointerId: PointerId? = null
         set(value) {
             field = value
-            fakePenguin.isVisible = value != null
+            activeFakePenguin.isVisible = value != null
         }
     private val stringColor = Color(0xFF080808)
     private val armOffset1 = SceneOffset(
@@ -90,11 +90,18 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
         x = -body.size.width * 0.21f,
         y = -body.size.height * 0.4f,
     )
-    private val fakePenguin = FakePenguin(
+    private val waitingFakePenguin = WaitingFakePenguin(
+        initialPosition = body.position - SceneOffset(
+            x = SceneUnit.Zero,
+            y = -body.size.height * 0.35f,
+        ),
+    )
+    private val activeFakePenguin = ActiveFakePenguin(
         initialPosition = body.position - SceneOffset(
             x = SceneUnit.Zero,
             y = body.size.height * 0.4f,
         ),
+        waitingFakePenguin = waitingFakePenguin,
     )
     private val front = object : Visible, Unique {
         override val body = this@Slingshot.body
@@ -114,24 +121,24 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
         pointerInputManager = kubriko.get()
         spriteManager = kubriko.get()
         viewportManager = kubriko.get()
-        actorManager.add(fakePenguin, front)
+        actorManager.add(activeFakePenguin, waitingFakePenguin, front)
     }
 
     override fun DrawScope.draw() {
         spriteManager.get(Res.drawable.sprite_slingshot_background)?.let { background ->
             drawImage(background)
-            if (fakePenguin.isVisible) {
+            if (activeFakePenguin.isVisible) {
                 drawLine(
-                    color = stringColor.copy(alpha = 1f - fakePenguin.distanceFromTarget),
+                    color = stringColor.copy(alpha = 1f - activeFakePenguin.distanceFromTarget),
                     start = body.pivot.raw + armOffset1.raw,
-                    end = fakePenguin.body.position.raw - body.position.raw + body.pivot.raw,
+                    end = activeFakePenguin.body.position.raw - body.position.raw + body.pivot.raw,
                     cap = StrokeCap.Round,
                     strokeWidth = 16f,
                 )
                 drawLine(
-                    color = stringColor.copy(alpha = 1f - fakePenguin.distanceFromTarget),
+                    color = stringColor.copy(alpha = 1f - activeFakePenguin.distanceFromTarget),
                     start = body.pivot.raw + armOffset2.raw,
-                    end = fakePenguin.body.position.raw - body.position.raw + body.pivot.raw,
+                    end = activeFakePenguin.body.position.raw - body.position.raw + body.pivot.raw,
                     cap = StrokeCap.Round,
                     strokeWidth = 16f,
                 )
@@ -164,7 +171,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
             if (isPointerPressedInPreviousStep) {
                 // Move the penguin that's already on the slingshot
                 pressedPointerPositions[aimingPointerId]?.let { position ->
-                    fakePenguin.pointerPosition = position.toSceneOffset(viewportManager)
+                    activeFakePenguin.pointerPosition = position.toSceneOffset(viewportManager)
                 }
             } else {
                 // Detect if the initial press was on the slingshot
@@ -193,7 +200,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
         if (!isInitialZoomOutDone) {
             val nextValue = max(viewportManager.minimumScaleFactor, viewportManager.rawScaleFactor.value.horizontal - 0.0005f * deltaTimeInMilliseconds)
             viewportManager.setScaleFactor(nextValue)
-            if (nextValue == viewportManager.minimumScaleFactor) {
+            if (nextValue <= (viewportManager.minimumScaleFactor + (viewportManager.maximumScaleFactor - viewportManager.minimumScaleFactor) * 0.2f)) {
                 isInitialZoomOutDone = true
             }
         }

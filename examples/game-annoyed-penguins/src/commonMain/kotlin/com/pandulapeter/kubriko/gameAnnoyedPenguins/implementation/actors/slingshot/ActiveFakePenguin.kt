@@ -25,18 +25,23 @@ import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.helpers.extensions.sin
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.types.AngleRadians
-import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 
-internal class FakePenguin(
+/**
+ * This penguin is "loaded" into the slingshot. It handles the aiming logic and instantiating the real physics-aware Penguin.
+ */
+internal class ActiveFakePenguin(
     private val initialPosition: SceneOffset,
-) : BlinkingPenguin(initialPosition), Unique, Dynamic {
+    private val waitingFakePenguin: WaitingFakePenguin,
+) : BlinkingPenguin(waitingFakePenguin.body.position), Unique, Dynamic {
 
     private lateinit var actorManager: ActorManager
     override var isVisible = false
         set(value) {
             if (field != value) {
-                if (!value) {
+                if (value) {
+                    waitingFakePenguin.reset()
+                } else {
                     actorManager.add(
                         Penguin(
                             initialPosition = body.position,
@@ -44,23 +49,16 @@ internal class FakePenguin(
                         )
                     )
                 }
-                body.position = initialPosition
+                body.position = waitingFakePenguin.body.position
                 distanceFromTarget = 1f
                 pointerPosition = initialPosition
                 field = value
             }
         }
     var distanceFromTarget = 1f
-        private set(value) {
-            field = value
-            body.scale = Scale.Unit * (1f - value)
-        }
     var pointerPosition: SceneOffset = initialPosition
+    override val drawingOrder get() = if (distanceFromTarget <= 0.8f) 0f else -2f
     private var adjustedTargetPosition: SceneOffset = initialPosition
-
-    init {
-        body.scale = Scale.Zero
-    }
 
     override fun onAdded(kubriko: Kubriko) {
         super<BlinkingPenguin>.onAdded(kubriko)
@@ -86,7 +84,6 @@ internal class FakePenguin(
             super.update(deltaTimeInMilliseconds)
             val angle = -initialPosition.angleTowards(pointerPosition)
             val distance = min(abs(initialPosition.distanceTo(pointerPosition)), maximumRadius * downwardFactor(angle))
-
             adjustedTargetPosition = initialPosition + SceneOffset(
                 x = distance * angle.cos,
                 y = -distance * angle.sin,
@@ -94,7 +91,7 @@ internal class FakePenguin(
             body.position = if (distanceFromTarget <= 0f) {
                 adjustedTargetPosition
             } else {
-                distanceFromTarget -= deltaTimeInMilliseconds * 0.005f
+                distanceFromTarget -= deltaTimeInMilliseconds * 0.001f
                 lerp(adjustedTargetPosition, body.position, distanceFromTarget)
             }
         }
