@@ -112,6 +112,16 @@ compose.desktop {
                 iconFile.set(project.file("icon.icns"))
                 bundleID = "com.pandulapeter.kubrikoShowcase"
                 dockName = "Kubriko Showcase"
+                signing {
+                    sign.set(true)
+                    identity.set("PETER PANDULA")
+                }
+                notarization {
+                    val providers = project.providers
+                    appleID.set(providers.environmentVariable("NOTARIZATION_APPLE_ID"))
+                    password.set(providers.environmentVariable("NOTARIZATION_PASSWORD"))
+                    teamID.set(providers.environmentVariable("NOTARIZATION_TEAM_ID"))
+                }
             }
             windows {
                 targetFormats(TargetFormat.Exe)
