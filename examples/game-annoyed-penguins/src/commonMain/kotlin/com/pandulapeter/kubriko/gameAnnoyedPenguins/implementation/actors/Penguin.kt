@@ -40,6 +40,7 @@ internal class Penguin(
         orientation = body.rotation
         applyForce(impulseOrigin.scalar(1500000f))
     }
+    override val drawingOrder = -2f
 
     override fun onAdded(kubriko: Kubriko) {
         super<BlinkingPenguin>.onAdded(kubriko)
