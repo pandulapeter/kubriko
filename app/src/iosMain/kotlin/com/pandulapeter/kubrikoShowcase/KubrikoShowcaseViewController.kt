@@ -18,6 +18,7 @@ fun KubrikoShowcaseViewController() = ComposeUIViewController {
         isInFullscreenMode = isInFullscreenMode.value,
         getIsInFullscreenMode = { isInFullscreenMode.value },
         onFullscreenModeToggled = { isInFullscreenMode.value = !isInFullscreenMode.value },
+        areAnimationsEnabled = false,
     )
 }
 

@@ -11,7 +11,6 @@ package com.pandulapeter.kubrikoShowcase.implementation.ui
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
@@ -85,6 +84,7 @@ internal fun ShowcaseContent(
     onFullscreenModeToggled: () -> Unit,
     isInfoPanelVisible: Boolean,
     toggleInfoPanelVisibility: () -> Unit,
+    areAnimationsEnabled: Boolean,
 ) = Surface(
     tonalElevation = if (isSystemInDarkTheme()) 2.dp else 0.dp,
 ) {
@@ -98,7 +98,8 @@ internal fun ShowcaseContent(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
         ) {
             Column {
-                AnimatedVisibility(
+                ConditionalAnimatedVisibility(
+                    areAnimationsEnabled = areAnimationsEnabled,
                     visible = isInFullscreenMode != true,
                 ) {
                     Spacer(modifier = Modifier.height(topBarHeight))
@@ -128,6 +129,7 @@ internal fun ShowcaseContent(
                             shouldUseWideSideMenu = shouldUseWideSideMenu,
                             onFullscreenModeToggled = onFullscreenModeToggled,
                             getSelectedShowcaseEntry = getSelectedShowcaseEntry,
+                            areAnimationsEnabled = areAnimationsEnabled,
                         )
                         if (BuildConfig.IS_DEBUG_MENU_ENABLED) {
                             DebugMenu.Vertical(
@@ -146,7 +148,8 @@ internal fun ShowcaseContent(
                     }
                 }
             }
-            AnimatedVisibility(
+            ConditionalAnimatedVisibility(
+                areAnimationsEnabled = areAnimationsEnabled,
                 modifier = Modifier.padding(bottom = 8.dp),
                 visible = isInFullscreenMode != true,
                 enter = fadeIn() + slideIn { IntOffset(0, -it.height) },
@@ -180,6 +183,7 @@ private fun ExpandedContent(
     isInFullscreenMode: Boolean?,
     onFullscreenModeToggled: () -> Unit,
     getSelectedShowcaseEntry: () -> ShowcaseEntry?,
+    areAnimationsEnabled: Boolean,
 ) = Box(
     modifier = modifier,
 ) {
@@ -228,7 +232,8 @@ private fun ExpandedContent(
     Row(
         modifier = Modifier.fillMaxSize(),
     ) {
-        AnimatedVisibility(
+        ConditionalAnimatedVisibility(
+            areAnimationsEnabled = areAnimationsEnabled,
             visible = shouldShowSideMenu,
         ) {
             Spacer(modifier = Modifier.width(sideMenuWidth).background(MaterialTheme.colorScheme.surface))
@@ -255,6 +260,7 @@ private fun ExpandedContent(
                     onShowcaseEntrySelected = onShowcaseEntrySelected,
                     selectedShowcaseEntry = selectedShowcaseEntry,
                     shouldUseCompactUi = shouldUseCompactUi,
+                    areAnimationsEnabled = areAnimationsEnabled,
                 )
             }
         }
@@ -268,10 +274,11 @@ private fun ExpandedContent(
             Content()
         }
     }
-    AnimatedVisibility(
+    ConditionalAnimatedVisibility(
         visible = shouldShowSideMenu,
         enter = fadeIn() + slideIn { IntOffset(-it.width, 0) },
         exit = slideOut { IntOffset(-it.width, 0) } + fadeOut(),
+        areAnimationsEnabled = areAnimationsEnabled,
     ) {
         Surface(
             modifier = Modifier
@@ -317,6 +324,7 @@ private fun CompactContent(
     onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
     selectedShowcaseEntry: ShowcaseEntry?,
     shouldUseCompactUi: Boolean,
+    areAnimationsEnabled: Boolean,
     welcomeScreenScrollState: ScrollState = rememberScrollState(),
 ) = Crossfade(
     targetState = !shouldUseCompactUi,
@@ -333,7 +341,8 @@ private fun CompactContent(
             scrollToTop = { coroutineScope.launch { lazyListState.animateScrollToItem(0) } },
         )
     } else {
-        AnimatedVisibility(
+        ConditionalAnimatedVisibility(
+            areAnimationsEnabled = areAnimationsEnabled,
             visible = selectedShowcaseEntry == null,
             enter = fadeIn(),
             exit = fadeOut(),
