@@ -11,7 +11,14 @@ package com.pandulapeter.kubrikoShowcase.implementation.ui.about
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.UriHandler
+import com.pandulapeter.kubriko.uiComponents.LargeButton
+import kubriko.app.generated.resources.Res
+import kubriko.app.generated.resources.ic_review
+import kubriko.app.generated.resources.other_about_write_a_review
 
-// TODO: Add button with app store link
 @Composable
-internal actual fun ReviewButton(uriHandler: UriHandler) = Unit
+internal actual fun ReviewButton(uriHandler: UriHandler) = LargeButton(
+    icon = Res.drawable.ic_review,
+    title = Res.string.other_about_write_a_review,
+    onButtonPressed = { uriHandler.openUri("https://apps.apple.com/app/id6743525729") },
+)
