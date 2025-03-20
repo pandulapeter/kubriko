@@ -10,14 +10,25 @@
 package com.pandulapeter.kubrikoShowcase
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.uikit.ComposeUIViewControllerDelegate
 import androidx.compose.ui.window.ComposeUIViewController
+import platform.UIKit.UIApplication
 
 // TODO: Hide status bar in fullscreen mode
-fun KubrikoShowcaseViewController() = ComposeUIViewController {
+fun KubrikoShowcaseViewController() = ComposeUIViewController(
+    configure = {
+        delegate = object : ComposeUIViewControllerDelegate {
+            override val prefersStatusBarHidden: Boolean? get() = isInFullscreenMode.value
+        }
+    }
+) {
     KubrikoShowcase(
         isInFullscreenMode = isInFullscreenMode.value,
         getIsInFullscreenMode = { isInFullscreenMode.value },
-        onFullscreenModeToggled = { isInFullscreenMode.value = !isInFullscreenMode.value },
+        onFullscreenModeToggled = {
+            isInFullscreenMode.value = !isInFullscreenMode.value
+            UIApplication.sharedApplication.keyWindow?.rootViewController?.setNeedsStatusBarAppearanceUpdate()
+        },
         areAnimationsEnabled = false,
     )
 }
