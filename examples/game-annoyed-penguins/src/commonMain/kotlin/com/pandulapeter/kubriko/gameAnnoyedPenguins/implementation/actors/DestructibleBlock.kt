@@ -34,10 +34,16 @@ internal class DestructibleBlock private constructor(
         initialRotation = body.rotation,
     )
     override val physicsBody = PhysicsBody(collisionMask).apply {
-        restitution = 1f
+        restitution = 0.5f
         density = 10f
         orientation = body.rotation
     }
+    @set:Exposed(name = "restitution")
+    var restitution
+        get() = physicsBody.restitution
+        set(value) {
+            physicsBody.restitution = value
+        }
 
     @set:Exposed(name = "color")
     var color: Color = state.color
