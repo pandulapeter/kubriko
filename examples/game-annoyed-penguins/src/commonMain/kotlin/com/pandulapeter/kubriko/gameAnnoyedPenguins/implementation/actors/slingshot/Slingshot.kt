@@ -43,6 +43,7 @@ import kotlinx.serialization.json.Json
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingshot_background
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingshot_foreground
+import kotlin.math.max
 
 internal class Slingshot private constructor(state: State) : Visible, Editable<Slingshot>, Dynamic, PointerInputAware, RigidBody, Unique {
     override val body = state.body
@@ -106,6 +107,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
         }
     }
     override val shouldClip = false
+    var isInitialZoomOutDone = false
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
@@ -143,7 +145,10 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
         }
     }
 
-    override fun onPointerZoom(position: Offset, factor: Float) = viewportManager.multiplyScaleFactor(factor)
+    override fun onPointerZoom(position: Offset, factor: Float) {
+        isInitialZoomOutDone = true
+        viewportManager.multiplyScaleFactor(factor)
+    }
 
     override fun onPointerReleased(pointerId: PointerId, screenOffset: Offset) {
         if (pointerId == aimingPointerId) {
@@ -185,6 +190,13 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
             }
         }
         isPointerPressedInPreviousStep = pressedPointerPositions.isNotEmpty()
+        if (!isInitialZoomOutDone) {
+            val nextValue = max(viewportManager.minimumScaleFactor, viewportManager.rawScaleFactor.value.horizontal - 0.0005f * deltaTimeInMilliseconds)
+            viewportManager.setScaleFactor(nextValue)
+            if (nextValue == viewportManager.minimumScaleFactor) {
+                isInitialZoomOutDone = true
+            }
+        }
     }
 
     override fun save() = State(

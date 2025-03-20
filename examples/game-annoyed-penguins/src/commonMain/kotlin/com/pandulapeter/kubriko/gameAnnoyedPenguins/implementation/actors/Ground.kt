@@ -37,6 +37,7 @@ internal class Ground private constructor(state: State) : RigidBody, Visible, Ed
         density = 0f
         orientation = body.rotation
     }
+    override val drawingOrder = -2f
 
     @set:Exposed(name = "color")
     var color: Color = state.color

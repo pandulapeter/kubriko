@@ -132,7 +132,10 @@ fun AnnoyedPenguinsGame(
                     minimumScaleFactor = stateHolder.viewportManager.minimumScaleFactor,
                     maximumScaleFactor = stateHolder.viewportManager.maximumScaleFactor,
                     currentScaleFactor = stateHolder.viewportManager.rawScaleFactor.collectAsState().value.vertical,
-                    updateScaleFactor = { stateHolder.viewportManager.setScaleFactor(it) },
+                    updateScaleFactor = {
+                        stateHolder.gameplayManager.onScaleFactorChanged()
+                        stateHolder.viewportManager.setScaleFactor(it)
+                    },
                 )
             }
         }
