@@ -11,7 +11,12 @@ import UIKit
 import SwiftUI
 import ComposeApp
 
+extension Notification.Name {
+    static let windowSizeChanged = Notification.Name("windowSizeChanged")
+}
+
 struct ComposeView: UIViewControllerRepresentable {
+    
     func makeUIViewController(context: Context) -> UIViewController {
         KubrikoShowcaseViewControllerKt.KubrikoShowcaseViewController()
     }
@@ -20,8 +25,25 @@ struct ComposeView: UIViewControllerRepresentable {
 }
 
 struct ContentView: View {
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @Environment(\.verticalSizeClass) var verticalSizeClass
+    
     var body: some View {
-        ComposeView().ignoresSafeArea()
+        ComposeView()
+            .ignoresSafeArea()
+            .onChange(of: horizontalSizeClass) { newValue in
+                NotificationCenter.default.post(
+                    name: .windowSizeChanged,
+                    object: nil
+                )
+            }
+            .onChange(of: verticalSizeClass) { newValue in
+                NotificationCenter.default.post(
+                    name: .windowSizeChanged,
+                    object: nil
+                )
+            }
+        
     }
 }
 

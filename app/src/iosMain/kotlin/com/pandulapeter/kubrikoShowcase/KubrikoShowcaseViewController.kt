@@ -9,12 +9,13 @@
  */
 package com.pandulapeter.kubrikoShowcase
 
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.uikit.ComposeUIViewControllerDelegate
 import androidx.compose.ui.window.ComposeUIViewController
+import platform.Foundation.NSNotificationCenter
 import platform.UIKit.UIApplication
 
-// TODO: Hide status bar in fullscreen mode
 fun KubrikoShowcaseViewController() = ComposeUIViewController(
     configure = {
         delegate = object : ComposeUIViewControllerDelegate {
@@ -22,6 +23,18 @@ fun KubrikoShowcaseViewController() = ComposeUIViewController(
         }
     }
 ) {
+    DisposableEffect(Unit) {
+        val observer = NSNotificationCenter.defaultCenter.addObserverForName(
+            name = "windowSizeChanged",
+            `object` = null,
+            queue = null,
+        ) { notification ->
+            // TODO: Add support for SplitView
+        }
+        onDispose {
+            NSNotificationCenter.defaultCenter.removeObserver(observer)
+        }
+    }
     KubrikoShowcase(
         isInFullscreenMode = isInFullscreenMode.value,
         getIsInFullscreenMode = { isInFullscreenMode.value },
