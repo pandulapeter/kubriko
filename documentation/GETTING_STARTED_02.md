@@ -1,6 +1,6 @@
 # Getting started
 
-These pages guide you through creating an empty project that contains the basic setup for any Kubriko game.
+These pages guide you through creating a your first Kubriko game from scratch.
 
 [<img src="images/badge_previous.png" alt="Previous page" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_01.md)
 [<img src="images/badge_next.png" alt="Next page" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_03.md)
@@ -21,9 +21,7 @@ Use the latest release version of Kubriko that can be found [here](https://githu
 Regularly update this version number to get access to the latest features and bug fixes.
 
 While we're here, we should make sure that the following three versions in your project's `libs.versions.toml` are at least equal to the versions defined for
-Kubriko.
-Cross reference these dependency versions with their counterparts from [here](https://github.com/pandulapeter/kubriko/blob/main/gradle/libs.versions.toml) and
-update where necessary.
+Kubriko. Cross reference these dependency versions with their counterparts from [here](https://github.com/pandulapeter/kubriko/blob/main/gradle/libs.versions.toml) and update where necessary.
 
 - `android-compileSdk` (only if your project supports Android)
 - `android-minSdk` (only if your project supports Android)

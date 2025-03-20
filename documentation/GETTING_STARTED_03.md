@@ -1,6 +1,6 @@
 # Getting started
 
-These pages guide you through creating an empty project that contains the basic setup for any Kubriko game.
+These pages guide you through creating a your first Kubriko game from scratch.
 
 [<img src="images/badge_previous.png" alt="Previous page" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_02.md)
 [<img src="images/badge_next.png" alt="Next page" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_04.md)
@@ -8,8 +8,7 @@ These pages guide you through creating an empty project that contains the basic 
 ## 3 - Integrating KubrikoViewport
 
 Following the previous step you should be able to access the classes and functions provided by Kubriko (the engine itself only, as we didn't yet add any plugin
-dependencies).
-Furthermore, you should also be able to see the sources, and more importantly, the KDoc comments of Kubriko's public API.
+dependencies). Furthermore, you should also be able to see the sources, and more importantly, the KDoc comments of Kubriko's public API.
 
 Let's verify this by replacing the app's main Composable (by default located in the `commonMain` source set's `App.kt` file)
 with [KubrikoViewport](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/KubrikoViewport.kt).
@@ -38,7 +37,7 @@ fun App() {
 Verify that you're able to see the sources for these newly added components.
 More importantly, try running the app to make sure that there are no compilation issues.
 
-If everything went well, you should see an empty screen, as we didn't add anything to the game yet.
+If everything went well, you should see an empty screen, as we didn't implement any gameplay logic yet.
 
 [<img src="images/badge_previous.png" alt="Previous page" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_02.md)
 [<img src="images/badge_next.png" alt="Next page" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_04.md)

@@ -1,6 +1,6 @@
 # Getting started
 
-These pages guide you through creating an empty project that contains the basic setup for any Kubriko game.
+These pages guide you through creating a your first Kubriko game from scratch.
 
 [<img src="images/badge_previous.png" alt="Previous page" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_08.md)
 [<img src="images/badge_next_inactive.png" alt="Next page" height="32px" />](#)
@@ -15,6 +15,8 @@ If you ever get stuck, check out the resources below:
 [<img src="images/badge_documentation.png" alt="Documentation" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md)
 [<img src="images/badge_tutorial_videos.png" alt="Tutorial videos" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/TUTORIAL_VIDEOS.md)
 [<img src="images/badge_community.png" alt="Join the community" height="32px" />](https://discord.gg/RTK4pqbuVR)
+
+TODO: Write a paragraph about extending Kubriko's functionality with Kotlin Multiplatform libraries, such as KTor for multiplayer.
 
 [<img src="images/badge_previous.png" alt="Previous page" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_08.md)
 [<img src="images/badge_next_inactive.png" alt="Next page" height="32px" />](#)
