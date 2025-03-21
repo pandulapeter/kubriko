@@ -1,6 +1,6 @@
 # Getting started
 
-These pages guide you through creating a your first Kubriko game from scratch.
+These pages guide you through creating your first Kubriko game from scratch.
 
 [<img src="images/badge_previous_inactive.png" alt="Previous page" height="32px" />](#)
 [<img src="images/badge_next.png" alt="Next page" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_02.md)
