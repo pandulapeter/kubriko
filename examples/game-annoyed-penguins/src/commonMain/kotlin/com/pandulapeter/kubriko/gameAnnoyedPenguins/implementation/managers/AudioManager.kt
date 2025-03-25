@@ -35,6 +35,14 @@ internal class AudioManager(
     private val soundUrisToPlay = mutableSetOf<String>()
     private val shouldStopMusic = MutableStateFlow(false)
     private val shouldPlayStretchingSound = MutableStateFlow(false)
+    private val crashSoundEffectUris = listOf(
+        URI_SOUND_CRASH_01,
+        URI_SOUND_CRASH_02,
+        URI_SOUND_CRASH_03,
+        URI_SOUND_CRASH_04,
+        URI_SOUND_CRASH_05,
+        URI_SOUND_CRASH_06,
+    )
 
     @OptIn(FlowPreview::class)
     override fun onInitialize(kubriko: Kubriko) {
@@ -88,6 +96,8 @@ internal class AudioManager(
 
     fun playLaunchSoundEffect() = playSoundEffect(URI_SOUND_LAUNCH)
 
+    fun playCrashSoundEffect() = playSoundEffect(crashSoundEffectUris.random())
+
     fun setShouldPlayStretchingSoundEffect(shouldPlay: Boolean) = shouldPlayStretchingSound.update { shouldPlay }
 
     fun stopMusicBeforeDispose() = shouldStopMusic.update { true }
@@ -104,6 +114,12 @@ internal class AudioManager(
         private const val URI_SOUND_BUTTON_TOGGLE = "files/sounds/button_toggle.wav"
         private const val URI_SOUND_BUTTON_HOVER = "files/sounds/button_hover.wav"
         private const val URI_SOUND_LAUNCH = "files/sounds/launch.wav"
+        private const val URI_SOUND_CRASH_01 = "files/sounds/crash_01.wav"
+        private const val URI_SOUND_CRASH_02 = "files/sounds/crash_02.wav"
+        private const val URI_SOUND_CRASH_03 = "files/sounds/crash_03.wav"
+        private const val URI_SOUND_CRASH_04 = "files/sounds/crash_04.wav"
+        private const val URI_SOUND_CRASH_05 = "files/sounds/crash_05.wav"
+        private const val URI_SOUND_CRASH_06 = "files/sounds/crash_06.wav"
 
         fun getMusicUrisToPreload(webRootPathName: String) = listOf(
             URI_MUSIC,
@@ -114,6 +130,12 @@ internal class AudioManager(
             URI_SOUND_BUTTON_TOGGLE,
             URI_SOUND_BUTTON_HOVER,
             URI_SOUND_LAUNCH,
+            URI_SOUND_CRASH_01,
+            URI_SOUND_CRASH_02,
+            URI_SOUND_CRASH_03,
+            URI_SOUND_CRASH_04,
+            URI_SOUND_CRASH_05,
+            URI_SOUND_CRASH_06,
         ).map { getResourceUri(it, webRootPathName) }
     }
 }
