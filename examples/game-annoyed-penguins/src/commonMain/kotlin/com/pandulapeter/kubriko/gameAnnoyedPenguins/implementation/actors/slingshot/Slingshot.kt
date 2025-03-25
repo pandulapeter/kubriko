@@ -20,6 +20,7 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.helpers.extensions.abs
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.isInside
@@ -48,6 +49,7 @@ import kotlin.math.max
 internal class Slingshot private constructor(state: State) : Visible, Editable<Slingshot>, Dynamic, PointerInputAware, RigidBody, Unique {
     override val body = state.body
     private lateinit var actorManager: ActorManager
+    private lateinit var audioManager: AudioManager
     private lateinit var pointerInputManager: PointerInputManager
     private lateinit var spriteManager: SpriteManager
     private lateinit var viewportManager: ViewportManager
@@ -79,6 +81,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
     private var aimingPointerId: PointerId? = null
         set(value) {
             field = value
+            audioManager.setShouldPlayStretchingSoundEffect(value != null)
             activeFakePenguin.isVisible = value != null
         }
     private val stringColor = Color(0xFF080808)
@@ -118,6 +121,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
+        audioManager = kubriko.get()
         pointerInputManager = kubriko.get()
         spriteManager = kubriko.get()
         viewportManager = kubriko.get()

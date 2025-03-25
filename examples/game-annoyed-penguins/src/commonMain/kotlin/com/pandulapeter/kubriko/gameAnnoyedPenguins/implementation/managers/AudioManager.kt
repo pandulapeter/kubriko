@@ -34,6 +34,7 @@ internal class AudioManager(
     private val soundManager by manager<SoundManager>()
     private val soundUrisToPlay = mutableSetOf<String>()
     private val shouldStopMusic = MutableStateFlow(false)
+    private val shouldPlayStretchingSound = MutableStateFlow(false)
 
     @OptIn(FlowPreview::class)
     override fun onInitialize(kubriko: Kubriko) {
@@ -53,6 +54,23 @@ internal class AudioManager(
                 musicManager.pause(getResourceUri(URI_MUSIC, webRootPathName))
             }
         }.launchIn(scope)
+        combine(
+            stateManager.isRunning.debounce(100),
+            userPreferencesManager.areSoundEffectsEnabled,
+            shouldStopMusic,
+            shouldPlayStretchingSound,
+        ) { isRunning, areSoundEffectsEnabled, shouldStopMusic, shouldPlayStretchingSound ->
+            Triple(isRunning, areSoundEffectsEnabled, shouldPlayStretchingSound && !shouldStopMusic)
+        }.distinctUntilChanged().onEach { (isRunning, areSoundEffectsEnabled, shouldPlayStretchingSound) ->
+            if (areSoundEffectsEnabled && isRunning && shouldPlayStretchingSound) {
+                musicManager.play(
+                    uri = getResourceUri(URI_SOUND_STRETCHING, webRootPathName),
+                    shouldLoop = true,
+                )
+            } else {
+                musicManager.pause(getResourceUri(URI_SOUND_STRETCHING, webRootPathName))
+            }
+        }.launchIn(scope)
         stateManager.isFocused
             .filter { it }
             .onEach { shouldStopMusic.update { false } }
@@ -68,6 +86,8 @@ internal class AudioManager(
 
     fun playButtonHoverSoundEffect() = playSoundEffect(URI_SOUND_BUTTON_HOVER)
 
+    fun setShouldPlayStretchingSoundEffect(shouldPlay: Boolean) = shouldPlayStretchingSound.update { shouldPlay }
+
     fun stopMusicBeforeDispose() = shouldStopMusic.update { true }
 
     private fun playSoundEffect(uri: String) {
@@ -78,11 +98,13 @@ internal class AudioManager(
 
     companion object {
         private const val URI_MUSIC = "files/music/music.mp3"
+        private const val URI_SOUND_STRETCHING = "files/sounds/stretching.mp3"
         private const val URI_SOUND_BUTTON_TOGGLE = "files/sounds/button_toggle.wav"
         private const val URI_SOUND_BUTTON_HOVER = "files/sounds/button_hover.wav"
 
         fun getMusicUrisToPreload(webRootPathName: String) = listOf(
             URI_MUSIC,
+            URI_SOUND_STRETCHING,
         ).map { getResourceUri(it, webRootPathName) }
 
         fun getSoundUrisToPreload(webRootPathName: String) = listOf(
