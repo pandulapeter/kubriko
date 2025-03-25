@@ -19,7 +19,6 @@ import javazoom.jl.player.FactoryRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.InputStream
@@ -49,9 +48,7 @@ internal class DesktopMusicPlayer(
                     do {
                         var isThereANextFrame = true
                         do {
-                            if (isMusicPaused) {
-                                delay(10)
-                            } else {
+                            if (!isMusicPaused) {
                                 isThereANextFrame = playFrame()
                             }
                         } while (isThereANextFrame && isActive && !closed)
