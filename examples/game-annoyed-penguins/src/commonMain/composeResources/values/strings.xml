@@ -32,6 +32,6 @@ Attribution:
     <string name="close_confirmation">Are you sure you want to quit the game?</string>
     <string name="close_confirmation_positive">Quit</string>
     <string name="close_confirmation_negative">Cancel</string>
-    <string name="unfinished_disclaimer">Unfinished game: improved gameplay, graphics, and sound effects are coming soon!</string>
+    <string name="unfinished_disclaimer">Unfinished game: improved graphics and gameplay are coming soon!</string>
 
 </resources>

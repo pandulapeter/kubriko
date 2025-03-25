@@ -43,6 +43,7 @@ internal class AudioManager(
         URI_SOUND_CRASH_05,
         URI_SOUND_CRASH_06,
     )
+    private var timeSinceLastPop = 0
 
     @OptIn(FlowPreview::class)
     override fun onInitialize(kubriko: Kubriko) {
@@ -88,6 +89,9 @@ internal class AudioManager(
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
         soundUrisToPlay.forEach { soundManager.play(getResourceUri(it, webRootPathName)) }
         soundUrisToPlay.clear()
+        if (timeSinceLastPop < POP_DEBOUNCE) {
+            timeSinceLastPop += deltaTimeInMilliseconds
+        }
     }
 
     fun playButtonToggleSoundEffect() = playSoundEffect(URI_SOUND_BUTTON_TOGGLE)
@@ -97,6 +101,13 @@ internal class AudioManager(
     fun playLaunchSoundEffect() = playSoundEffect(URI_SOUND_LAUNCH)
 
     fun playCrashSoundEffect() = playSoundEffect(crashSoundEffectUris.random())
+
+    fun playPopSoundEffect() {
+        if (timeSinceLastPop >= POP_DEBOUNCE) {
+            timeSinceLastPop = 0
+            playSoundEffect(URI_POP)
+        }
+    }
 
     fun setShouldPlayStretchingSoundEffect(shouldPlay: Boolean) = shouldPlayStretchingSound.update { shouldPlay }
 
@@ -109,6 +120,7 @@ internal class AudioManager(
     }
 
     companion object {
+        private const val POP_DEBOUNCE = 100
         private const val URI_MUSIC = "files/music/music.mp3"
         private const val URI_SOUND_STRETCHING = "files/sounds/stretching.mp3"
         private const val URI_SOUND_BUTTON_TOGGLE = "files/sounds/button_toggle.wav"
@@ -120,6 +132,7 @@ internal class AudioManager(
         private const val URI_SOUND_CRASH_04 = "files/sounds/crash_04.wav"
         private const val URI_SOUND_CRASH_05 = "files/sounds/crash_05.wav"
         private const val URI_SOUND_CRASH_06 = "files/sounds/crash_06.wav"
+        private const val URI_POP = "files/sounds/pop.wav"
 
         fun getMusicUrisToPreload(webRootPathName: String) = listOf(
             URI_MUSIC,
@@ -136,6 +149,7 @@ internal class AudioManager(
             URI_SOUND_CRASH_04,
             URI_SOUND_CRASH_05,
             URI_SOUND_CRASH_06,
+            URI_POP,
         ).map { getResourceUri(it, webRootPathName) }
     }
 }
