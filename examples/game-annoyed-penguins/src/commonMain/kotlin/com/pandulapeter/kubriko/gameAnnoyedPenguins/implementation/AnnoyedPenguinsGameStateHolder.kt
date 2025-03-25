@@ -13,6 +13,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.audioPlayback.SoundManager
+import com.pandulapeter.kubriko.collision.CollisionManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.DestructibleBlock
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.FogShader
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Ground
@@ -90,6 +91,12 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
     private val persistenceManager by lazy {
         PersistenceManager.newInstance(
             fileName = "kubrikoAnnoyedPenguins",
+            isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = LOG_TAG,
+        )
+    }
+    private val collisionManager by lazy {
+        CollisionManager.newInstance(
             isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
@@ -189,6 +196,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
                 sharedMusicManager,
                 sharedSoundManager,
                 sharedSpriteManager,
+                collisionManager,
                 stateManager,
                 viewportManager,
                 physicsManager,
