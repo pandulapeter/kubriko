@@ -82,6 +82,9 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
         set(value) {
             field = value
             audioManager.setShouldPlayStretchingSoundEffect(value != null)
+            if (value == null) {
+                audioManager.playLaunchSoundEffect()
+            }
             activeFakePenguin.isVisible = value != null
         }
     private val stringColor = Color(0xFF080808)

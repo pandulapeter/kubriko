@@ -86,6 +86,8 @@ internal class AudioManager(
 
     fun playButtonHoverSoundEffect() = playSoundEffect(URI_SOUND_BUTTON_HOVER)
 
+    fun playLaunchSoundEffect() = playSoundEffect(URI_SOUND_LAUNCH)
+
     fun setShouldPlayStretchingSoundEffect(shouldPlay: Boolean) = shouldPlayStretchingSound.update { shouldPlay }
 
     fun stopMusicBeforeDispose() = shouldStopMusic.update { true }
@@ -101,6 +103,7 @@ internal class AudioManager(
         private const val URI_SOUND_STRETCHING = "files/sounds/stretching.mp3"
         private const val URI_SOUND_BUTTON_TOGGLE = "files/sounds/button_toggle.wav"
         private const val URI_SOUND_BUTTON_HOVER = "files/sounds/button_hover.wav"
+        private const val URI_SOUND_LAUNCH = "files/sounds/launch.wav"
 
         fun getMusicUrisToPreload(webRootPathName: String) = listOf(
             URI_MUSIC,
@@ -110,6 +113,7 @@ internal class AudioManager(
         fun getSoundUrisToPreload(webRootPathName: String) = listOf(
             URI_SOUND_BUTTON_TOGGLE,
             URI_SOUND_BUTTON_HOVER,
+            URI_SOUND_LAUNCH,
         ).map { getResourceUri(it, webRootPathName) }
     }
 }
