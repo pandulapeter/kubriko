@@ -23,7 +23,7 @@ kotlinx-coroutines = "1.10.1" # https://github.com/Kotlin/kotlinx.coroutines/rel
 kotlinx-datetime = "0.6.1" # https://github.com/Kotlin/kotlinx-datetime/releases/tag/v0.6.1
 kotlinx-immutable = "0.3.8" # https://github.com/Kotlin/kotlinx.collections.immutable/releases
 kotlinx-serialization = "1.8.0" # https://github.com/Kotlin/kotlinx.serialization/releases
-proguard = "7.6.1" # https://github.com/Guardsquare/proguard/releases
+proguard = "7.7" # https://github.com/Guardsquare/proguard/releases
 vanniktech-publish = "0.31.0" # https://github.com/vanniktech/gradle-maven-publish-plugin/releases
 
 
