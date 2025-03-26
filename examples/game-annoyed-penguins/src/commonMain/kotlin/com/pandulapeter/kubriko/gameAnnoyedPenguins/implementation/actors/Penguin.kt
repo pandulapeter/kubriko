@@ -59,7 +59,6 @@ internal class Penguin(
     }
 
     override fun onCollisionDetected(collidables: List<Collidable>) {
-        println(physicsBody.velocity.length())
         if (physicsBody.velocity.length() > 50.sceneUnit) {
             audioManager.playPopSoundEffect()
         }
