@@ -62,6 +62,7 @@ fun createAnnoyedPenguinsGameStateHolder(
     webRootPathName = webRootPathName,
     isSceneEditorEnabled = isSceneEditorEnabled,
     isLoggingEnabled = isLoggingEnabled,
+    isForSceneEditor = false,
 )
 
 @Composable

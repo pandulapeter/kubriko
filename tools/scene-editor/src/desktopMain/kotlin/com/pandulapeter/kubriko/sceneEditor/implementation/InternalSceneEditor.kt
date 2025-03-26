@@ -20,6 +20,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.rememberWindowState
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
+import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.persistence.PersistenceManager
@@ -31,7 +32,6 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.overlay.OverlayManage
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.EditorUserInterface
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.Settings
 import com.pandulapeter.kubriko.serialization.SerializationManager
-import com.pandulapeter.kubriko.sprites.SpriteManager
 import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame
@@ -42,23 +42,25 @@ internal fun InternalSceneEditor(
     defaultSceneFilename: String?,
     defaultSceneFolderPath: String,
     serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
+    customManagers: List<Manager>,
     sceneEditorMode: SceneEditorMode,
     title: String,
     onCloseRequest: () -> Unit,
 ) {
     val editorKubriko = remember {
         Kubriko.newInstance(
-            ViewportManager.newInstance(
-                aspectRatioMode = ViewportManager.AspectRatioMode.Dynamic,
-                minimumScaleFactor = MINIMUM_SCALE_FACTOR,
-                maximumScaleFactor = MAXIMUM_SCALE_FACTOR,
-            ),
-            StateManager.newInstance(shouldAutoStart = false),
-            SpriteManager.newInstance(),
-            KeyboardInputManager.newInstance(),
-            PointerInputManager.newInstance(),
-            PersistenceManager.newInstance(fileName = "kubrikoSceneEditor"),
-            serializationManager,
+            manager = (listOf(
+                ViewportManager.newInstance(
+                    aspectRatioMode = ViewportManager.AspectRatioMode.Dynamic,
+                    minimumScaleFactor = MINIMUM_SCALE_FACTOR,
+                    maximumScaleFactor = MAXIMUM_SCALE_FACTOR,
+                ),
+                StateManager.newInstance(shouldAutoStart = false),
+                KeyboardInputManager.newInstance(),
+                PointerInputManager.newInstance(),
+                PersistenceManager.newInstance(fileName = "kubrikoSceneEditor"),
+                serializationManager,
+            ) + customManagers).toTypedArray(),
             instanceNameForLogging = "SceneEditor",
         )
     }

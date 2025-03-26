@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.sceneEditor
 
 import androidx.compose.runtime.Composable
+import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.serialization.SerializationManager
 
 interface SceneEditorContract {
@@ -18,6 +19,7 @@ interface SceneEditorContract {
         defaultSceneFilename: String? = null,
         defaultSceneFolderPath: String = "./src/commonMain/composeResources/files/scenes",
         serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
+        customManagers: List<Manager> = emptyList(),
         title: String = "Scene Editor",
     )
 
@@ -27,12 +29,14 @@ interface SceneEditorContract {
     operator fun invoke(
         defaultSceneFolderPath: String,
         serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
+        customManagers: List<Manager>,
         title: String,
         onCloseRequest: () -> Unit,
     ) = invoke(
         defaultSceneFilename = null,
         defaultSceneFolderPath = defaultSceneFolderPath,
         serializationManager = serializationManager,
+        customManagers = customManagers,
         sceneEditorMode = SceneEditorMode.Normal,
         title = title,
         onCloseRequest = onCloseRequest,
@@ -45,12 +49,14 @@ interface SceneEditorContract {
         defaultSceneFilename: String?,
         defaultSceneFolderPath: String,
         serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
+        customManagers: List<Manager>,
         title: String,
         onCloseRequest: () -> Unit,
     ) = invoke(
         defaultSceneFilename = defaultSceneFilename,
         defaultSceneFolderPath = defaultSceneFolderPath,
         serializationManager = serializationManager,
+        customManagers = customManagers,
         sceneEditorMode = SceneEditorMode.Normal,
         title = title,
         onCloseRequest = onCloseRequest,
@@ -61,6 +67,7 @@ interface SceneEditorContract {
         defaultSceneFilename: String?, // TODO: = null,
         defaultSceneFolderPath: String, // TODO:  = "./src/commonMain/composeResources/files/scenes",
         serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
+        customManagers: List<Manager>, // TODO: = emptyList(),
         sceneEditorMode: SceneEditorMode, // TODO:  = SceneEditorMode.Normal,
         title: String, // TODO:  = "Scene Editor",
         onCloseRequest: () -> Unit,

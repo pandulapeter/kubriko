@@ -11,30 +11,40 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolderImpl
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.isSceneEditorVisible
 import com.pandulapeter.kubriko.sceneEditor.SceneEditor
 
-fun main() = SceneEditor.show(
-    serializationManager = AnnoyedPenguinsGameStateHolderImpl(
-        webRootPathName = "",
-        isSceneEditorEnabled = true,
-        isLoggingEnabled = false,
-    ).serializationManager,
-)
+fun main() = AnnoyedPenguinsGameStateHolderImpl(
+    webRootPathName = "",
+    isSceneEditorEnabled = true,
+    isLoggingEnabled = false,
+    isForSceneEditor = true,
+).let { stateHolder ->
+    SceneEditor.show(
+        serializationManager = stateHolder.serializationManager,
+        customManagers = stateHolder.customManagersForSceneEditor,
+    )
+}
 
 @Composable
 fun AnnoyedPenguinsGameSceneEditor(
     defaultSceneFolderPath: String,
 ) {
     if (isSceneEditorVisible.collectAsState().value) {
-        SceneEditor(
-            defaultSceneFolderPath = defaultSceneFolderPath,
-            serializationManager = AnnoyedPenguinsGameStateHolderImpl(
+        val stateHolder = remember {
+            AnnoyedPenguinsGameStateHolderImpl(
                 webRootPathName = "",
                 isSceneEditorEnabled = true,
                 isLoggingEnabled = false,
-            ).serializationManager,
+                isForSceneEditor = true,
+            )
+        }
+        SceneEditor(
+            defaultSceneFolderPath = defaultSceneFolderPath,
+            serializationManager = stateHolder.serializationManager,
+            customManagers = stateHolder.customManagersForSceneEditor,
             title = "Scene Editor - Annoyed Penguins",
             onCloseRequest = { isSceneEditorVisible.value = false },
         )

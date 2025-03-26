@@ -26,10 +26,11 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 
 internal class AudioManager(
-    private val stateManager: StateManager,
+    private val isForSceneEditor: Boolean,
     private val userPreferencesManager: UserPreferencesManager,
     private val webRootPathName: String,
 ) : Manager() {
+    private val stateManager by manager<StateManager>()
     private val musicManager by manager<MusicManager>()
     private val soundManager by manager<SoundManager>()
     private val soundUrisToPlay = mutableSetOf<String>()
@@ -47,43 +48,45 @@ internal class AudioManager(
 
     @OptIn(FlowPreview::class)
     override fun onInitialize(kubriko: Kubriko) {
-        combine(
-            stateManager.isFocused.debounce(100),
-            userPreferencesManager.isMusicEnabled,
-            shouldStopMusic,
-        ) { isFocused, isMusicEnabled, shouldStopMusic ->
-            Triple(isFocused, isMusicEnabled, shouldStopMusic)
-        }.distinctUntilChanged().onEach { (isFocused, isMusicEnabled, shouldStopMusic) ->
-            if (isMusicEnabled && isFocused && !shouldStopMusic) {
-                musicManager.play(
-                    uri = getResourceUri(URI_MUSIC, webRootPathName),
-                    shouldLoop = true,
-                )
-            } else {
-                musicManager.pause(getResourceUri(URI_MUSIC, webRootPathName))
-            }
-        }.launchIn(scope)
-        combine(
-            stateManager.isRunning.debounce(100),
-            userPreferencesManager.areSoundEffectsEnabled,
-            shouldStopMusic,
-            shouldPlayStretchingSound,
-        ) { isRunning, areSoundEffectsEnabled, shouldStopMusic, shouldPlayStretchingSound ->
-            Triple(isRunning, areSoundEffectsEnabled, shouldPlayStretchingSound && !shouldStopMusic)
-        }.distinctUntilChanged().onEach { (isRunning, areSoundEffectsEnabled, shouldPlayStretchingSound) ->
-            if (areSoundEffectsEnabled && isRunning && shouldPlayStretchingSound) {
-                musicManager.play(
-                    uri = getResourceUri(URI_SOUND_STRETCHING, webRootPathName),
-                    shouldLoop = true,
-                )
-            } else {
-                musicManager.pause(getResourceUri(URI_SOUND_STRETCHING, webRootPathName))
-            }
-        }.launchIn(scope)
-        stateManager.isFocused
-            .filter { it }
-            .onEach { shouldStopMusic.update { false } }
-            .launchIn(scope)
+        if (!isForSceneEditor) {
+            combine(
+                stateManager.isFocused.debounce(100),
+                userPreferencesManager.isMusicEnabled,
+                shouldStopMusic,
+            ) { isFocused, isMusicEnabled, shouldStopMusic ->
+                Triple(isFocused, isMusicEnabled, shouldStopMusic)
+            }.distinctUntilChanged().onEach { (isFocused, isMusicEnabled, shouldStopMusic) ->
+                if (isMusicEnabled && isFocused && !shouldStopMusic) {
+                    musicManager.play(
+                        uri = getResourceUri(URI_MUSIC, webRootPathName),
+                        shouldLoop = true,
+                    )
+                } else {
+                    musicManager.pause(getResourceUri(URI_MUSIC, webRootPathName))
+                }
+            }.launchIn(scope)
+            combine(
+                stateManager.isRunning.debounce(100),
+                userPreferencesManager.areSoundEffectsEnabled,
+                shouldStopMusic,
+                shouldPlayStretchingSound,
+            ) { isRunning, areSoundEffectsEnabled, shouldStopMusic, shouldPlayStretchingSound ->
+                Triple(isRunning, areSoundEffectsEnabled, shouldPlayStretchingSound && !shouldStopMusic)
+            }.distinctUntilChanged().onEach { (isRunning, areSoundEffectsEnabled, shouldPlayStretchingSound) ->
+                if (areSoundEffectsEnabled && isRunning && shouldPlayStretchingSound) {
+                    musicManager.play(
+                        uri = getResourceUri(URI_SOUND_STRETCHING, webRootPathName),
+                        shouldLoop = true,
+                    )
+                } else {
+                    musicManager.pause(getResourceUri(URI_SOUND_STRETCHING, webRootPathName))
+                }
+            }.launchIn(scope)
+            stateManager.isFocused
+                .filter { it }
+                .onEach { shouldStopMusic.update { false } }
+                .launchIn(scope)
+        }
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {

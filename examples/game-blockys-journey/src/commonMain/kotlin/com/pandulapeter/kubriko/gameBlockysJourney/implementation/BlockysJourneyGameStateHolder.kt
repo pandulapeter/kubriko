@@ -60,6 +60,11 @@ internal class BlockysJourneyGameStateHolderImpl(
         isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
+    val customManagersForSceneEditor by lazy {
+        listOf(
+            sharedSpriteManager,
+        )
+    }
     private val sharedMusicManager by lazy {
         MusicManager.newInstance(
             isLoggingEnabled = isLoggingEnabled,

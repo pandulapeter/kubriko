@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.demoPerformance
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceDemoStateHolderImpl
 import com.pandulapeter.kubriko.demoPerformance.implementation.isSceneEditorVisible
 import com.pandulapeter.kubriko.demoPerformance.implementation.managers.PerformanceDemoManager
@@ -31,13 +32,17 @@ fun PerformanceDemoSceneEditor(
     defaultSceneFolderPath: String,
 ) {
     if (isSceneEditorVisible.collectAsState().value) {
+        val stateHolder = remember {
+            PerformanceDemoStateHolderImpl(
+                isSceneEditorEnabled = true,
+                isLoggingEnabled = false,
+            )
+        }
         SceneEditor(
             defaultSceneFilename = PerformanceDemoManager.SCENE_NAME,
             defaultSceneFolderPath = defaultSceneFolderPath,
-            serializationManager = PerformanceDemoStateHolderImpl(
-                isSceneEditorEnabled = true,
-                isLoggingEnabled = false,
-            ).serializationManager,
+            serializationManager = stateHolder.serializationManager,
+            customManagers = emptyList(),
             title = "Scene Editor - Performance Demo",
             onCloseRequest = { isSceneEditorVisible.value = false },
             sceneEditorMode = sceneJson?.let { sceneJson ->

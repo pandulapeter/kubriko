@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.demoPhysics
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoStateHolderImpl
 import com.pandulapeter.kubriko.demoPhysics.implementation.isSceneEditorVisible
 import com.pandulapeter.kubriko.demoPhysics.implementation.managers.PhysicsDemoManager
@@ -31,13 +32,17 @@ fun PhysicsDemoSceneEditor(
     defaultSceneFolderPath: String,
 ) {
     if (isSceneEditorVisible.collectAsState().value) {
+        val stateHolder = remember {
+            PhysicsDemoStateHolderImpl(
+                isSceneEditorEnabled = true,
+                isLoggingEnabled = false,
+            )
+        }
         SceneEditor(
             defaultSceneFilename = PhysicsDemoManager.SCENE_NAME,
             defaultSceneFolderPath = defaultSceneFolderPath,
-            serializationManager = PhysicsDemoStateHolderImpl(
-                isSceneEditorEnabled = true,
-                isLoggingEnabled = false,
-            ).serializationManager,
+            serializationManager = stateHolder.serializationManager,
+            customManagers = emptyList(),
             title = "Scene Editor - Physics Demo",
             onCloseRequest = { isSceneEditorVisible.value = false },
             sceneEditorMode = sceneJson?.let { sceneJson ->

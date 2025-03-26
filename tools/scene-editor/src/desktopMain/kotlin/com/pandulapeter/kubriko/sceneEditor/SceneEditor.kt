@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.sceneEditor
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.application
+import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.sceneEditor.implementation.InternalSceneEditor
 import com.pandulapeter.kubriko.serialization.SerializationManager
 
@@ -22,12 +23,14 @@ object SceneEditor : SceneEditorContract {
         defaultSceneFilename: String?,
         defaultSceneFolderPath: String,
         serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
+        customManagers: List<Manager>,
         title: String,
     ) = application {
         SceneEditor(
             defaultSceneFilename = defaultSceneFilename,
             defaultSceneFolderPath = defaultSceneFolderPath,
             serializationManager = serializationManager,
+            customManagers = customManagers,
             onCloseRequest = ::exitApplication,
             title = title,
         )
@@ -41,6 +44,7 @@ object SceneEditor : SceneEditorContract {
         defaultSceneFilename: String?,
         defaultSceneFolderPath: String,
         serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
+        customManagers: List<Manager>,
         sceneEditorMode: SceneEditorMode,
         title: String,
         onCloseRequest: () -> Unit,
@@ -48,6 +52,7 @@ object SceneEditor : SceneEditorContract {
         defaultSceneFilename = defaultSceneFilename,
         defaultSceneFolderPath = defaultSceneFolderPath,
         serializationManager = serializationManager,
+        customManagers = customManagers,
         sceneEditorMode = sceneEditorMode,
         title = title,
         onCloseRequest = onCloseRequest,

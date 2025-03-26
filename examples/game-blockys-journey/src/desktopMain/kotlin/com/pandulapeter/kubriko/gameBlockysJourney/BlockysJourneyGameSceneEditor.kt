@@ -11,32 +11,40 @@ package com.pandulapeter.kubriko.gameBlockysJourney
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.BlockysJourneyGameStateHolderImpl
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers.LoadingManager
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.ui.isSceneEditorVisible
 import com.pandulapeter.kubriko.sceneEditor.SceneEditor
 
-fun main() = SceneEditor.show(
-    serializationManager = BlockysJourneyGameStateHolderImpl(
-        webRootPathName = "",
-        isSceneEditorEnabled = true,
-        isLoggingEnabled = false,
-    ).backgroundSerializationManager,
-)
+fun main() = BlockysJourneyGameStateHolderImpl(
+    webRootPathName = "",
+    isSceneEditorEnabled = true,
+    isLoggingEnabled = false,
+).let { stateHolder ->
+    SceneEditor.show(
+        serializationManager = stateHolder.backgroundSerializationManager,
+        customManagers = stateHolder.customManagersForSceneEditor,
+    )
+}
 
 @Composable
 fun BlockysJourneyGameSceneEditor(
     defaultSceneFolderPath: String,
 ) {
     if (isSceneEditorVisible.collectAsState().value) {
-        SceneEditor(
-            defaultSceneFilename = LoadingManager.SCENE_NAME,
-            defaultSceneFolderPath = defaultSceneFolderPath,
-            serializationManager = BlockysJourneyGameStateHolderImpl(
+        val stateHolder = remember {
+            BlockysJourneyGameStateHolderImpl(
                 webRootPathName = "",
                 isSceneEditorEnabled = true,
                 isLoggingEnabled = false,
-            ).backgroundSerializationManager,
+            )
+        }
+        SceneEditor(
+            defaultSceneFilename = LoadingManager.SCENE_NAME,
+            defaultSceneFolderPath = defaultSceneFolderPath,
+            serializationManager = stateHolder.backgroundSerializationManager,
+            customManagers = stateHolder.customManagersForSceneEditor,
             title = "Scene Editor - Blocky's Journey",
             onCloseRequest = { isSceneEditorVisible.value = false },
         )

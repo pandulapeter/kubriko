@@ -48,6 +48,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
     webRootPathName: String,
     val isSceneEditorEnabled: Boolean,
     isLoggingEnabled: Boolean,
+    isForSceneEditor: Boolean,
 ) : AnnoyedPenguinsGameStateHolder {
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -70,6 +71,14 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
         isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
+    val customManagersForSceneEditor by lazy {
+        listOf(
+            sharedSpriteManager,
+            sharedMusicManager,
+            sharedSoundManager,
+            audioManager,
+        )
+    }
     private val sharedMusicManager by lazy {
         MusicManager.newInstance(
             isLoggingEnabled = isLoggingEnabled,
@@ -146,7 +155,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
     }
     val audioManager by lazy {
         AudioManager(
-            stateManager = stateManager,
+            isForSceneEditor = isForSceneEditor,
             userPreferencesManager = sharedUserPreferencesManager,
             webRootPathName = webRootPathName,
         )

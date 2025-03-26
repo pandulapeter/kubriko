@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.sceneEditor
 
 import androidx.compose.runtime.Composable
+import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.serialization.SerializationManager
 
 object SceneEditor : SceneEditorContract {
@@ -20,6 +21,7 @@ object SceneEditor : SceneEditorContract {
         defaultSceneFilename: String?,
         defaultSceneFolderPath: String,
         serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
+        customManagers: List<Manager>,
         title: String,
     ) = Unit
 
@@ -31,6 +33,7 @@ object SceneEditor : SceneEditorContract {
         defaultSceneFilename: String?,
         defaultSceneFolderPath: String,
         serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
+        customManagers: List<Manager>,
         sceneEditorMode: SceneEditorMode,
         title: String,
         onCloseRequest: () -> Unit,
