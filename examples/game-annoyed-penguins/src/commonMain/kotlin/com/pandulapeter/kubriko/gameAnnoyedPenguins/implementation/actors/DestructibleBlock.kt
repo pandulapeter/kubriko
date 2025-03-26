@@ -34,8 +34,8 @@ internal class DestructibleBlock private constructor(
         initialRotation = body.rotation,
     )
     override val physicsBody = PhysicsBody(collisionMask).apply {
-        restitution = 0.5f
-        density = 10f
+        restitution = state.restitution
+        density = state.density
         orientation = body.rotation
     }
     @set:Exposed(name = "restitution")
@@ -43,6 +43,12 @@ internal class DestructibleBlock private constructor(
         get() = physicsBody.restitution
         set(value) {
             physicsBody.restitution = value
+        }
+    @set:Exposed(name = "density")
+    var density
+        get() = physicsBody.density
+        set(value) {
+            physicsBody.density = value
         }
 
     @set:Exposed(name = "color")
@@ -63,12 +69,16 @@ internal class DestructibleBlock private constructor(
     override fun save() = State(
         body = body,
         color = color,
+        restitution = restitution,
+        density = density,
     )
 
     @kotlinx.serialization.Serializable
     data class State(
         @SerialName("body") val body: SerializableBoxBody = BoxBody(),
         @SerialName("color") val color: SerializableColor = Color.White,
+        @SerialName("restitution") val restitution: Float = 1f,
+        @SerialName("density") val density: Float = 10f,
     ) : Serializable.State<DestructibleBlock> {
 
         override fun restore() = DestructibleBlock(this)
