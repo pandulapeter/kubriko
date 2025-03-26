@@ -43,7 +43,7 @@ internal class Penguin(
         initialPosition = body.position,
     )
     override val physicsBody = PhysicsBody(collisionMask).apply {
-        restitution = 0.5f
+        restitution = 0.1f
         density = 5f
         angularDampening = 1000f
         orientation = body.rotation
