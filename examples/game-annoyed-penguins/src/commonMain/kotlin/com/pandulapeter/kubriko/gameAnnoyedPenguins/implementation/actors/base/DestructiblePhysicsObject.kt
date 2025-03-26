@@ -30,7 +30,7 @@ import kotlin.reflect.KClass
 internal abstract class DestructiblePhysicsObject<T : DestructiblePhysicsObject<T>> : Visible, Editable<T>, RigidBody, Dynamic, CollisionDetector {
 
     abstract override val collisionMask: ComplexCollisionMask
-    override val collidableTypes = listOf<KClass<out Collidable>>(Ground::class, Penguin::class)
+    override val collidableTypes = listOf<KClass<out Collidable>>(Ground::class, Penguin::class, DestructiblePhysicsObject::class)
     private var timeSinceLastCrash = 0
     private lateinit var audioManager: AudioManager
 

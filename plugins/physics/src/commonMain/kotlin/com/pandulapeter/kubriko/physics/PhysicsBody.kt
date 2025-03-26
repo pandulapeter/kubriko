@@ -16,6 +16,7 @@ import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.cross
 import com.pandulapeter.kubriko.helpers.extensions.distanceTo
 import com.pandulapeter.kubriko.helpers.extensions.dot
+import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.physics.implementation.isPointOnLine
@@ -40,9 +41,13 @@ class PhysicsBody(
             rotationMatrix.set(orientation)
         }
     var velocity = SceneOffset.Zero
-        internal set
+        internal set(value) {
+            field = if (value.length() < 0.5f.sceneUnit) SceneOffset.Zero else value
+        }
     var force = SceneOffset.Zero
-        internal set
+        internal set(value) {
+            field = if (value.length() < 0.5f.sceneUnit) SceneOffset.Zero else value
+        }
     var angularVelocity = SceneUnit.Zero
     var torque = SceneUnit.Zero
     var restitution = 0.8f
@@ -58,8 +63,10 @@ class PhysicsBody(
     var mass = 0f
     var invMass = 0f
     var inertia = 0f
+         set(value) {
+            field = if (value < 0.05f) 0f else value
+        }
     var invInertia = 0f
-    var angularDampening = 0f
     var linearDampening = 0f
     var isAffectedByGravity = true
     var isParticle = false

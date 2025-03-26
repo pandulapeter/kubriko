@@ -37,6 +37,7 @@ internal class DestructibleBlock private constructor(
         restitution = state.restitution
         density = state.density
         orientation = body.rotation
+        staticFriction = 0.01f
     }
     @set:Exposed(name = "restitution")
     var restitution
