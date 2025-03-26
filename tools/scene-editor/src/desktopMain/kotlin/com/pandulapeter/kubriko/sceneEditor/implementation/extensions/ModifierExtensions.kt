@@ -20,12 +20,11 @@ import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import com.pandulapeter.kubriko.helpers.extensions.isInside
-import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
+import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.snapped
 import com.pandulapeter.kubriko.types.SceneOffset
-import kotlin.math.roundToInt
 
 private var startOffset: SceneOffset? = null
 private var isDragging = false
@@ -102,14 +101,7 @@ internal fun Modifier.handleMouseDrag(
     } else {
         startOffset?.let { startOffset ->
             getSelectedActor()?.let { selectedActor ->
-                selectedActor.body.position = (getMouseSceneOffset() - startOffset).let { newPosition ->
-                    getSnapMode().let { snapMode ->
-                        SceneOffset(
-                            x = newPosition.x.let { if (snapMode.first == 0) it else ((newPosition.x.raw / snapMode.first).roundToInt() * snapMode.first).sceneUnit },
-                            y = newPosition.y.let { if (snapMode.second == 0) it else ((newPosition.y.raw / snapMode.second).roundToInt() * snapMode.second).sceneUnit },
-                        )
-                    }
-                }
+                selectedActor.body.position = (getMouseSceneOffset() - startOffset).snapped(getSnapMode())
                 notifySelectedInstanceUpdate()
             }
         }

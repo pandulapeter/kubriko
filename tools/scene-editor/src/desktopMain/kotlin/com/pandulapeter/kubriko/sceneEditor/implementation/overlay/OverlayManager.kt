@@ -28,6 +28,7 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
+import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.snapped
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.combine
@@ -69,7 +70,7 @@ internal class OverlayManager(
                 alpha = min(HIGHLIGHT_BACKGROUND_ALPHA, alpha + deltaTimeInMilliseconds * HIGHLIGHT_BACKGROUND_FADE_SPEED)
             }
         }
-        editorController.previewOverlayActor?.body?.position = editorController.mouseSceneOffset.value
+        editorController.previewOverlayActor?.body?.position = editorController.mouseSceneOffset.value.snapped(editorController.snapMode.value)
     }
 
     override fun DrawScope.drawToViewport() {
