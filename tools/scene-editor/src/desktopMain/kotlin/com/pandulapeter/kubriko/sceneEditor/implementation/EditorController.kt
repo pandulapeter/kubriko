@@ -114,6 +114,12 @@ internal class EditorController(
     private val _shouldShowLoadingIndicator = MutableStateFlow(false)
     val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
     var previewOverlayActor: Editable<*>? = null
+    val snapMode = combine(
+        userPreferences.snapX,
+        userPreferences.snapY,
+    ) { snapX, snapY ->
+        snapX to snapY
+    }.stateIn(this, SharingStarted.Eagerly, 0 to 0)
 
     init {
         actorManager.add(editorActors)
@@ -128,6 +134,11 @@ internal class EditorController(
                 )
             }
         }
+    }
+
+    fun onSnapModeChanged(snapMode: Pair<Int, Int>) {
+        userPreferences.snapX.update { snapMode.first }
+        userPreferences.snapY.update { snapMode.second }
     }
 
     fun onShouldShowVisibleOnlyToggled() = _shouldShowVisibleOnly.update { currentValue ->

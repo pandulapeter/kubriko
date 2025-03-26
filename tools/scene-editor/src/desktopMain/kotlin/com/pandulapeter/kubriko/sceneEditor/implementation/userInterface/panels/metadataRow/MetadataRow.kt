@@ -9,17 +9,20 @@
  */
 package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.metadataRow
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorSurface
-import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorText
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorTextInput
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorTextLabel
 import com.pandulapeter.kubriko.types.SceneOffset
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 
@@ -28,6 +31,8 @@ internal fun MetadataRow(
     modifier: Modifier = Modifier,
     totalActorCount: Int,
     mouseSceneOffset: SceneOffset,
+    snapMode: Pair<Int, Int>,
+    onSnapModeChanged: (Pair<Int, Int>) -> Unit,
 ) = EditorSurface(
     modifier = modifier,
 ) {
@@ -38,13 +43,34 @@ internal fun MetadataRow(
                 horizontal = 8.dp,
                 vertical = 4.dp,
             ),
-        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        EditorText(
+        EditorTextLabel(
+            modifier = Modifier.width(92.dp),
             text = "Actors: $totalActorCount",
         )
-        EditorText(
+        EditorTextInput(
+            modifier = Modifier.width(92.dp),
+            title = "Snap X:",
+            shouldUseHorizontalLayout = true,
+            value = snapMode.first.toString(),
+            onValueChanged = { newValue ->
+                onSnapModeChanged(snapMode.copy(first = max(0, newValue.take(5).toIntOrNull() ?: 0)))
+            },
+        )
+        EditorTextInput(
+            modifier = Modifier.width(92.dp),
+            title = "Snap Y:",
+            shouldUseHorizontalLayout = true,
+            value = snapMode.second.toString(),
+            onValueChanged = { newValue ->
+                onSnapModeChanged(snapMode.copy(second = max(0, newValue.take(5).toIntOrNull() ?: 0)))
+            },
+        )
+        Spacer(
+            modifier = Modifier.weight(1f),
+        )
+        EditorTextLabel(
             text = "${mouseSceneOffset.x.raw.roundToInt()}:${mouseSceneOffset.y.raw.roundToInt()}",
         )
     }

@@ -12,7 +12,9 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.compon
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,11 +30,12 @@ internal fun EditorTextInput(
     value: String,
     onValueChanged: (String) -> Unit,
     enabled: Boolean = true,
+    shouldUseHorizontalLayout: Boolean = false,
     extraContent: (@Composable () -> Unit)? = null,
 ) = Column(
-    modifier = modifier,
+    modifier = modifier.alpha(if (enabled) 1f else 0.5f),
 ) {
-    if (!title.isNullOrBlank()) {
+    if (!title.isNullOrBlank() && !shouldUseHorizontalLayout) {
         EditorTextLabel(
             text = title,
         )
@@ -41,6 +44,14 @@ internal fun EditorTextInput(
         modifier = Modifier.defaultMinSize(minHeight = 24.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        if (!title.isNullOrBlank() && shouldUseHorizontalLayout) {
+            EditorTextLabel(
+                text = title,
+            )
+            Spacer(
+                modifier = Modifier.width(4.dp),
+            )
+        }
         Box(
             modifier = Modifier.weight(1f)
         ) {
