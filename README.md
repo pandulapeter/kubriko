@@ -6,7 +6,7 @@
 This repository contains the source code of the Kotlin Multiplatform library and its plugins / tooling, as well as the Kubriko Showcase application that demonstrates the engine's capabilities.
 
 > [!IMPORTANT]  
-> Kubriko is in early stages of development. The API might change and bugs can be present.
+> Kubriko is in early stages of development. The API might change and bugs can be present. The documentation and the tutorials are not yet finalized.
 
 ## 🎮 Overview
 Kubriko aims to offer a lightweight, scalable, and easy-to-use solution for creating simple 2D games for **Android**, **Desktop** (Windows, Linux, macOS), **iOS** and **Web**.
