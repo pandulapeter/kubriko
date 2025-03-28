@@ -150,6 +150,13 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
             instanceNameForLogging = LOG_TAG_BACKGROUND,
         )
     }
+    private val actorManager by lazy {
+        ActorManager.newInstance(
+            shouldPutFarAwayActorsToSleep = false,
+            isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = LOG_TAG,
+        )
+    }
     val sharedUserPreferencesManager by lazy {
         UserPreferencesManager(persistenceManager)
     }
@@ -200,6 +207,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
     private val _kubriko by lazy {
         MutableStateFlow(
             Kubriko.newInstance(
+                actorManager,
                 persistenceManager,
                 sharedUserPreferencesManager,
                 sharedMusicManager,
