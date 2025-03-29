@@ -40,5 +40,5 @@ internal actual fun Modifier.gestureDetector(
     )
 }
 
-// https://youtrack.jetbrains.com/issue/CMP-6957/Web.-detectTransformGestures-doesnt-catch-zoom-and-rotation-gestures
-internal actual val isMultiTouchEnabled = false
+// TODO: https://youtrack.jetbrains.com/issue/CMP-6957/Web.-detectTransformGestures-doesnt-catch-zoom-and-rotation-gestures
+internal actual val isMultiTouchEnabled = true
