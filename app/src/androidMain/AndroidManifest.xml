@@ -7,16 +7,19 @@
  If a copy of the MPL was not distributed with this file, You can obtain one at
  https://mozilla.org/MPL/2.0/.
 -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <application
         android:allowBackup="true"
         android:appCategory="game"
+        android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
         android:isGame="true"
         android:label="@string/app_name"
         android:supportsRtl="false"
-        android:theme="@style/SplashTheme">
+        android:theme="@style/SplashTheme"
+        tools:ignore="UnusedAttribute">
 
         <activity
             android:name=".KubrikoShowcaseActivity"
