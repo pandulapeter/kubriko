@@ -109,7 +109,7 @@ fun AnnoyedPenguinsGame(
             )
         }
         AnimatedVisibility(
-            visible = isGameRunning,
+            visible = isGameRunning && !isLoadingLevel,
             enter = slideIn { IntOffset(0, -it.height) },
             exit = slideOut { IntOffset(0, -it.height) },
         ) {
@@ -146,7 +146,7 @@ fun AnnoyedPenguinsGame(
             }
         }
         AnimatedVisibility(
-            visible = isGameRunning,
+            visible = isGameRunning && !isLoadingLevel,
             enter = slideIn { IntOffset(0, it.height) },
             exit = slideOut { IntOffset(0, it.height) },
         ) {

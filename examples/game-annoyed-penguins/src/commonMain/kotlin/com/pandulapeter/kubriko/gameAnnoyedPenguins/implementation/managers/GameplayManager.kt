@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.GradualBlurShader
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Star
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.slingshot.Slingshot
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
@@ -59,15 +60,19 @@ internal class GameplayManager : Manager() {
 
     @OptIn(ExperimentalResourceApi::class)
     private fun loadScene(sceneName: String?) = scope.launch {
+        _collectedStarCount.update { 0 }
+        _totalStarCount.update { 0 }
         if (sceneName != null) {
+            _isLoadingLevel.update { true }
             viewportManager.setScaleFactor(viewportManager.maximumScaleFactor)
             actorManager.removeAll()
-            _isLoadingLevel.update { true }
             delay(300) // Gives time for the fade animation to hide the previous level
             viewportManager.setCameraPosition(SceneOffset.Zero)
             try {
                 val json = Res.readBytes("files/scenes/$sceneName").decodeToString()
-                actorManager.add(serializationManager.deserializeActors(json))
+                val newActors = serializationManager.deserializeActors(json)
+                actorManager.add(newActors)
+                _totalStarCount.update { newActors.filterIsInstance<Star>().count() }
                 _isLoadingLevel.update { false }
             } catch (_: MissingResourceException) {
             }
@@ -77,6 +82,8 @@ internal class GameplayManager : Manager() {
     fun onScaleFactorChanged() {
         actorManager.allActors.value.filterIsInstance<Slingshot>().firstOrNull()?.isInitialZoomOutDone = true
     }
+
+    fun onStarCollected() = _collectedStarCount.update { it + 1 }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
         if (!stateManager.isRunning.value) {

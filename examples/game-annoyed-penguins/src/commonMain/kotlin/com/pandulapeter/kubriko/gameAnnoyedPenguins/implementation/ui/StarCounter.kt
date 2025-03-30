@@ -47,11 +47,11 @@ internal fun StarCounter(
             width = 2.dp,
         )
         .padding(
-            vertical = 16.dp,
+            vertical = 8.dp,
         )
         .padding(
-            start = 16.dp,
-            end = 24.dp,
+            start = 8.dp,
+            end = 16.dp,
         ),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalAlignment = Alignment.CenterVertically,

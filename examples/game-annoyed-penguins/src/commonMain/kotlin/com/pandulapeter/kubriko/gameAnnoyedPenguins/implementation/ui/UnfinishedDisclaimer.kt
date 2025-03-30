@@ -40,8 +40,8 @@ internal fun UnfinishedDisclaimer(
             width = 2.dp,
         )
         .padding(
-            vertical = 16.dp,
-            horizontal = 36.dp,
+            vertical = 8.dp,
+            horizontal = 16.dp,
         ),
 ) {
     Text(
