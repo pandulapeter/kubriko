@@ -112,6 +112,10 @@ internal class AudioManager(
         }
     }
 
+    fun playStarSoundEffect() = playSoundEffect(URI_STAR)
+
+    fun playLevelDoneSoundEffect() = playSoundEffect(URI_LEVEL_DONE)
+
     fun setShouldPlayStretchingSoundEffect(shouldPlay: Boolean) = shouldPlayStretchingSound.update { shouldPlay }
 
     fun stopMusicBeforeDispose() = shouldStopMusic.update { true }
@@ -136,6 +140,8 @@ internal class AudioManager(
         private const val URI_SOUND_CRASH_05 = "files/sounds/crash_05.wav"
         private const val URI_SOUND_CRASH_06 = "files/sounds/crash_06.wav"
         private const val URI_POP = "files/sounds/pop.wav"
+        private const val URI_STAR = "files/sounds/star.wav"
+        private const val URI_LEVEL_DONE = "files/sounds/level_done.wav"
 
         fun getMusicUrisToPreload(webRootPathName: String) = listOf(
             URI_MUSIC,
@@ -153,6 +159,8 @@ internal class AudioManager(
             URI_SOUND_CRASH_05,
             URI_SOUND_CRASH_06,
             URI_POP,
+            URI_STAR,
+            URI_LEVEL_DONE,
         ).map { getResourceUri(it, webRootPathName) }
     }
 }

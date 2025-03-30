@@ -18,6 +18,7 @@ import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.CollisionDetector
 import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base.DestructiblePhysicsObject
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -39,6 +40,7 @@ internal class Star private constructor(
 
     override val body = state.body
     private lateinit var actorManager: ActorManager
+    private lateinit var audioManager: AudioManager
     private lateinit var spriteManager: SpriteManager
     override val collisionMask = CircleCollisionMask(
         initialRadius = 64.sceneUnit,
@@ -49,11 +51,20 @@ internal class Star private constructor(
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
+        audioManager = kubriko.get()
         spriteManager = kubriko.get()
     }
 
+    override fun onRemoved() {
+        if (actorManager.allActors.value.filterIsInstance<Star>().isEmpty()) {
+            audioManager.playLevelDoneSoundEffect()
+        } else {
+            audioManager.playStarSoundEffect()
+        }
+    }
+
     override fun onCollisionDetected(collidables: List<Collidable>) {
-        // TODO: Increment score, sound effect
+        // TODO: Increment score
         isAnimating = true
     }
 
