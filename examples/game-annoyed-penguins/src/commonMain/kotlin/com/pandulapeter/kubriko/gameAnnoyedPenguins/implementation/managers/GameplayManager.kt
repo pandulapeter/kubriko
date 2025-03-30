@@ -13,6 +13,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.GradualBlurShader
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Star
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.slingshot.Slingshot
+import com.pandulapeter.kubriko.helpers.Timer
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
@@ -48,6 +49,11 @@ internal class GameplayManager : Manager() {
     val collectedStarCount = _collectedStarCount.asStateFlow()
     private val _totalStarCount = MutableStateFlow(0)
     val totalStarCount = _totalStarCount.asStateFlow()
+    private var gameEndTimer = Timer(
+        timeInMilliseconds = 2000,
+        shouldTriggerMultipleTimes = true,
+        onDone = { _currentLevel.update { null } }
+    )
 
     override fun onInitialize(kubriko: Kubriko) {
         currentLevel
@@ -62,7 +68,12 @@ internal class GameplayManager : Manager() {
     private fun loadScene(sceneName: String?) = scope.launch {
         _collectedStarCount.update { 0 }
         _totalStarCount.update { 0 }
-        if (sceneName != null) {
+        if (sceneName == null) {
+            stateManager.updateIsRunning(false)
+            delay(300)
+            actorManager.removeAll()
+            stateManager.updateIsRunning(false)
+        } else {
             _isLoadingLevel.update { true }
             viewportManager.setScaleFactor(viewportManager.maximumScaleFactor)
             actorManager.removeAll()
@@ -88,6 +99,9 @@ internal class GameplayManager : Manager() {
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
         if (!stateManager.isRunning.value) {
             blurShader.update(deltaTimeInMilliseconds)
+        }
+        if (collectedStarCount.value == totalStarCount.value && totalStarCount.value != 0) {
+            gameEndTimer.update(deltaTimeInMilliseconds)
         }
     }
 
