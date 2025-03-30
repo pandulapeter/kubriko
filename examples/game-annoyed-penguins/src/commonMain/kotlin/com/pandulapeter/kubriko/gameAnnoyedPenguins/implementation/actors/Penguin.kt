@@ -47,6 +47,7 @@ internal class Penguin(
         restitution = 0.1f,
         density = 5f,
         rotation = body.rotation,
+        staticFriction = -500f,
         force = impulseOrigin.scalar(1500000f),
     )
     override val drawingOrder = -2f
