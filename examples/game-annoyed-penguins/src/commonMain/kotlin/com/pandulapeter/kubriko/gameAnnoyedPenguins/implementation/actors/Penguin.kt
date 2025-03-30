@@ -49,6 +49,8 @@ internal class Penguin(
         applyForce(impulseOrigin.scalar(1500000f))
     }
     override val drawingOrder = -2f
+    var shouldBeFollowedByCamera = true
+    private var timeSinceLastCollision = -2000
 
     override fun onAdded(kubriko: Kubriko) {
         super<BlinkingPenguin>.onAdded(kubriko)
@@ -60,6 +62,7 @@ internal class Penguin(
     override fun onCollisionDetected(collidables: List<Collidable>) {
         if (physicsBody.velocity.length() > 50.sceneUnit) {
             audioManager.playPopSoundEffect()
+            timeSinceLastCollision = 0
         }
     }
 
@@ -67,10 +70,16 @@ internal class Penguin(
         super.update(deltaTimeInMilliseconds)
         body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
         // body.rotation = physicsBody.orientation
-        if (body.position.y > viewportManager.bottomRight.value.y + viewportManager.size.value.toSceneSize(viewportManager).height) {
+        if (body.position.y > viewportManager.bottomRight.value.y + viewportManager.size.value.toSceneSize(viewportManager).height && !shouldBeFollowedByCamera) {
             actorManager.remove(this)
         } else {
             collisionMask.position = body.position
+        }
+        if (shouldBeFollowedByCamera) {
+            timeSinceLastCollision += deltaTimeInMilliseconds
+            if (timeSinceLastCollision >= 2000) {
+                shouldBeFollowedByCamera = false
+            }
         }
     }
 }

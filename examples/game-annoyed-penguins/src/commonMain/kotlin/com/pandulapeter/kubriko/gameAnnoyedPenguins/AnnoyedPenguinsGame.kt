@@ -150,7 +150,6 @@ fun AnnoyedPenguinsGame(
                     .fillMaxSize()
                     .windowInsetsPadding(windowInsets)
                     .padding(16.dp)
-                    .padding(horizontal = 24.dp),
             ) {
                 UnfinishedDisclaimer(
                     modifier = Modifier.align(Alignment.BottomCenter)

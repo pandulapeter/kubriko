@@ -22,9 +22,11 @@ import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.Audi
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
+import com.pandulapeter.kubriko.helpers.extensions.toSceneSize
+import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.sceneEditor.Editable
-import com.pandulapeter.kubriko.types.SceneOffset
 import kotlin.reflect.KClass
 
 internal abstract class DestructiblePhysicsObject<T : DestructiblePhysicsObject<T>> : Visible, Editable<T>, RigidBody, Dynamic, CollisionDetector {
@@ -32,10 +34,14 @@ internal abstract class DestructiblePhysicsObject<T : DestructiblePhysicsObject<
     abstract override val collisionMask: ComplexCollisionMask
     override val collidableTypes = listOf<KClass<out Collidable>>(Ground::class, Penguin::class, DestructiblePhysicsObject::class)
     private var timeSinceLastCrash = 0
+    private lateinit var actorManager: ActorManager
     private lateinit var audioManager: AudioManager
+    private lateinit var viewportManager: ViewportManager
 
     override fun onAdded(kubriko: Kubriko) {
+        actorManager = kubriko.get()
         audioManager = kubriko.get()
+        viewportManager = kubriko.get()
     }
 
     override fun onCollisionDetected(collidables: List<Collidable>) {
@@ -47,12 +53,16 @@ internal abstract class DestructiblePhysicsObject<T : DestructiblePhysicsObject<
 
     override fun update(deltaTimeInMilliseconds: Int) {
         if (deltaTimeInMilliseconds > 0) {
-            body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
-            body.rotation = physicsBody.orientation
-            collisionMask.position = body.position
-            (collisionMask as? PolygonCollisionMask)?.rotation = body.rotation
-            if (timeSinceLastCrash < 500) {
-                timeSinceLastCrash += deltaTimeInMilliseconds
+            if (body.position.y > viewportManager.bottomRight.value.y + viewportManager.size.value.toSceneSize(viewportManager).height) {
+                actorManager.remove(this)
+            } else {
+                body.position = physicsBody.position
+                body.rotation = physicsBody.orientation
+                collisionMask.position = body.position
+                (collisionMask as? PolygonCollisionMask)?.rotation = body.rotation
+                if (timeSinceLastCrash < 500) {
+                    timeSinceLastCrash += deltaTimeInMilliseconds
+                }
             }
         }
     }

@@ -20,6 +20,7 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Penguin
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.helpers.extensions.abs
 import com.pandulapeter.kubriko.helpers.extensions.get
@@ -121,6 +122,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
     }
     override val shouldClip = false
     var isInitialZoomOutDone = false
+    private val activePenguin: Penguin? get() = actorManager.allActors.value.filterIsInstance<Penguin>().firstOrNull { it.shouldBeFollowedByCamera }
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
@@ -151,6 +153,10 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
                 )
             }
         }
+    }
+
+    override fun onPointerPressed(pointerId: PointerId, screenOffset: Offset) {
+        activePenguin?.shouldBeFollowedByCamera = false
     }
 
     override fun onPointerDrag(screenOffset: Offset) {
@@ -193,13 +199,10 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
         } else {
             // Move the camera automatically to keep the slingshot in focus
             val cameraPosition = viewportManager.cameraPosition.value
-            val targetCameraPosition = SceneOffset(
-                x = body.position.x,
-                y = body.position.y,
-            )
+            val targetCameraPosition = activePenguin?.body?.position ?: body.position
             if (abs(cameraPosition.x - targetCameraPosition.x).raw > 0 || abs(cameraPosition.y - targetCameraPosition.y).raw > 0) {
                 viewportManager.addToCameraPosition(
-                    (targetCameraPosition - cameraPosition).toOffset(viewportManager) * 0.05f
+                    (targetCameraPosition - cameraPosition).toOffset(viewportManager) * 0.025f
                 )
             }
         }
