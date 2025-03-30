@@ -27,31 +27,40 @@ import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.PI
 import kotlin.math.sqrt
 
-// TODO: Move configuration parameters to the constructor
 class PhysicsBody(
     val collisionMask: ComplexCollisionMask,
+    var position: SceneOffset = collisionMask.position,
+    var dynamicFriction: Float = 0.2f,
+    var staticFriction: Float = 0.5f,
+    rotation: AngleRadians = AngleRadians.Zero,
+    velocity: SceneOffset = SceneOffset.Zero,
+    force: SceneOffset = SceneOffset.Zero,
+    density: Float = 1f,
+    var torque: SceneUnit = SceneUnit.Zero,
+    var restitution: Float = 0.8f,
+    var angularVelocity: SceneUnit = SceneUnit.Zero,
+    var linearDampening: Float = 0f,
+    var isAffectedByGravity: Boolean = true,
 ) {
-    var position = collisionMask.position
-    var dynamicFriction = 0.2f
-    var staticFriction = 0.5f
     internal val rotationMatrix = RotationMatrix()
-    var rotation = AngleRadians.Zero
+    var rotation = rotation
         set(value) {
             field = value
             rotationMatrix.set(rotation)
         }
-    var velocity = SceneOffset.Zero
-        internal set(value) {
+    var velocity = velocity
+        set(value) {
+            if (density > 0f) {
+                // TODO: Make the minimum velocity configurable
+                field = if (value.length() < 0.5f.sceneUnit) SceneOffset.Zero else value
+            }
+        }
+    var force = force
+        set(value) {
+            // TODO: Make the minimum velocity configurable
             field = if (value.length() < 0.5f.sceneUnit) SceneOffset.Zero else value
         }
-    var force = SceneOffset.Zero
-        internal set(value) {
-            field = if (value.length() < 0.5f.sceneUnit) SceneOffset.Zero else value
-        }
-    var angularVelocity = SceneUnit.Zero
-    var torque = SceneUnit.Zero
-    var restitution = 0.8f
-    var density = 1f
+    var density = density
         set(value) {
             field = value
             if (density == 0f) {
@@ -60,20 +69,21 @@ class PhysicsBody(
                 calculateMass(value)
             }
         }
-    var mass = 0f
-    var invMass = 0f
-    var inertia = 0f
-         set(value) {
+    internal var mass = 0f
+        private set
+    internal var invMass = 0f
+        private set
+    internal var inertia = 0f
+        private set(value) {
             field = if (value < 0.05f) 0f else value
         }
-    var invInertia = 0f
-    var linearDampening = 0f
-    var isAffectedByGravity = true
-    var isParticle = false
+    internal var invInertia = 0f
+        private set
+    internal var isParticle = false
 
     init {
         rotationMatrix.set(rotation)
-        density = density
+        this.density = density
     }
 
     /**

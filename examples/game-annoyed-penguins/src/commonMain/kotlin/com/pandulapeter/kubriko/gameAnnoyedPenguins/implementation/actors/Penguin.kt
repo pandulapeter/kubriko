@@ -42,12 +42,13 @@ internal class Penguin(
         initialRadius = radius,
         initialPosition = body.position,
     )
-    override val physicsBody = PhysicsBody(collisionMask).apply {
-        restitution = 0.1f
-        density = 5f
-        rotation = body.rotation
-        applyForce(impulseOrigin.scalar(1500000f))
-    }
+    override val physicsBody = PhysicsBody(
+        collisionMask = collisionMask,
+        restitution = 0.1f,
+        density = 5f,
+        rotation = body.rotation,
+        force = impulseOrigin.scalar(1500000f),
+    )
     override val drawingOrder = -2f
     var shouldBeFollowedByCamera = true
     private var timeSinceLastCollision = -2000
