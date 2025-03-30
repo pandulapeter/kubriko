@@ -71,6 +71,7 @@ internal class SpriteManagerImpl(
     private suspend fun loadImage(drawableResource: DrawableResource): ImageBitmap? = try {
         getDrawableResourceBytes(getSystemResourceEnvironment(), drawableResource).toImageBitmap(DensityQualifier.MDPI.dpi, DensityQualifier.MDPI.dpi)
     } catch (e: Exception) {
+        e.printStackTrace()
         null
     }
 
