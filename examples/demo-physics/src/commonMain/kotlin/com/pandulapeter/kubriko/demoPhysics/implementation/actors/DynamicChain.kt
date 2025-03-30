@@ -181,7 +181,7 @@ internal class DynamicChain private constructor(private val state: State) : Grou
 
         override fun update(deltaTimeInMilliseconds: Int) {
             body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
-            body.rotation = physicsBody.orientation
+            body.rotation = physicsBody.rotation
             collisionMask.position = body.position
         }
 

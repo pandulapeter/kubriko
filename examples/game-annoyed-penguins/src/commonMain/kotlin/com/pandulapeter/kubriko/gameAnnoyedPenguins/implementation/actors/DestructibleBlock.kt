@@ -36,7 +36,7 @@ internal class DestructibleBlock private constructor(
     override val physicsBody = PhysicsBody(collisionMask).apply {
         restitution = state.restitution
         density = state.density
-        orientation = body.rotation
+        rotation = body.rotation
         staticFriction = 0.01f
     }
     @set:Exposed(name = "restitution")

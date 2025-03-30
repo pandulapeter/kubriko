@@ -32,7 +32,7 @@ sealed class Joint protected constructor(
     protected val canGoSlack: Boolean,
     protected val offset: SceneOffset
 ) {
-    var object1AttachmentPoint = physicsBody.position + RotationMatrix(physicsBody.orientation).times(offset)
+    var object1AttachmentPoint = physicsBody.position + RotationMatrix(physicsBody.rotation).times(offset)
 
     /**
      * Abstract method to apply tension to the joint

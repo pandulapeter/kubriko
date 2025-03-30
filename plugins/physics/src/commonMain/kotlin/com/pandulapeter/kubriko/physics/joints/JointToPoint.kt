@@ -30,7 +30,7 @@ class JointToPoint(
 ) : Joint(b1, jointLength, jointConstant, dampening, canGoSlack, offset) {
 
     override fun applyTension() {
-        val mat1 = RotationMatrix(physicsBody.orientation)
+        val mat1 = RotationMatrix(physicsBody.rotation)
         object1AttachmentPoint = physicsBody.position + mat1.times(offset)
         val tension = calculateTension()
         val distance = pointAttachedTo.minus(object1AttachmentPoint).normalized()

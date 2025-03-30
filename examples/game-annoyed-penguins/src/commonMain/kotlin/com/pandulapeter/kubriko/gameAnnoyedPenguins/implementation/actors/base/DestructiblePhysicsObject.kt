@@ -57,7 +57,7 @@ internal abstract class DestructiblePhysicsObject<T : DestructiblePhysicsObject<
                 actorManager.remove(this)
             } else {
                 body.position = physicsBody.position
-                body.rotation = physicsBody.orientation
+                body.rotation = physicsBody.rotation
                 collisionMask.position = body.position
                 (collisionMask as? PolygonCollisionMask)?.rotation = body.rotation
                 if (timeSinceLastCrash < 500) {

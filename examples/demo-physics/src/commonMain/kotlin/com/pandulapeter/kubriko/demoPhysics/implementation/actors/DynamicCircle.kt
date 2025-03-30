@@ -31,7 +31,7 @@ internal class DynamicCircle private constructor(state: State) : BaseDynamicObje
     )
     override val physicsBody = PhysicsBody(collisionMask).apply {
         restitution = 0.4f
-        orientation = body.rotation
+        rotation = body.rotation
     }
 
     override fun DrawScope.draw() {

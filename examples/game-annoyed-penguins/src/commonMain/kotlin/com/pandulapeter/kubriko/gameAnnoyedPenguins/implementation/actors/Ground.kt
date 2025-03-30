@@ -35,7 +35,7 @@ internal class Ground private constructor(state: State) : RigidBody, Visible, Ed
     )
     override val physicsBody = PhysicsBody(collisionMask).apply {
         density = 0f
-        orientation = body.rotation
+        rotation = body.rotation
     }
     override val drawingOrder = -2f
 
@@ -43,7 +43,7 @@ internal class Ground private constructor(state: State) : RigidBody, Visible, Ed
     var color: Color = state.color
 
     override fun onAdded(kubriko: Kubriko) {
-        physicsBody.orientation = body.rotation
+        physicsBody.rotation = body.rotation
     }
 
     override fun DrawScope.draw() {

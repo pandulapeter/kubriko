@@ -35,10 +35,10 @@ class PhysicsBody(
     var dynamicFriction = 0.2f
     var staticFriction = 0.5f
     internal val rotationMatrix = RotationMatrix()
-    var orientation = AngleRadians.Zero
+    var rotation = AngleRadians.Zero
         set(value) {
             field = value
-            rotationMatrix.set(orientation)
+            rotationMatrix.set(rotation)
         }
     var velocity = SceneOffset.Zero
         internal set(value) {
@@ -72,7 +72,7 @@ class PhysicsBody(
     var isParticle = false
 
     init {
-        rotationMatrix.set(orientation)
+        rotationMatrix.set(rotation)
         density = density
     }
 

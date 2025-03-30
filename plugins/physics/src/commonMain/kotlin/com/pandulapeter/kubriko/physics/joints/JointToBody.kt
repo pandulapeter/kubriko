@@ -29,12 +29,12 @@ class JointToBody(
     offset1: SceneOffset,
     private val offset2: SceneOffset
 ) : Joint(physicsBody1, jointLength, jointConstant, dampening, canGoSlack, offset1) {
-    private var object2AttachmentPoint = physicsBody2.position + RotationMatrix(physicsBody2.orientation).times(offset2)
+    private var object2AttachmentPoint = physicsBody2.position + RotationMatrix(physicsBody2.rotation).times(offset2)
 
     override fun applyTension() {
-        val mat1 = RotationMatrix(physicsBody.orientation)
+        val mat1 = RotationMatrix(physicsBody.rotation)
         object1AttachmentPoint = physicsBody.position + mat1.times(offset)
-        val rotationMatrix = RotationMatrix(physicsBody2.orientation)
+        val rotationMatrix = RotationMatrix(physicsBody2.rotation)
         object2AttachmentPoint = physicsBody2.position + rotationMatrix.times(offset2)
         val tension = calculateTension()
         val distance = object2AttachmentPoint.minus(object1AttachmentPoint).normalized()

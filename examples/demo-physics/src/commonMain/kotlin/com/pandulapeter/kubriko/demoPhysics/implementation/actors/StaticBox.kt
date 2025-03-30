@@ -35,7 +35,7 @@ internal class StaticBox private constructor(state: State) : RigidBody, Visible,
     )
     override val physicsBody = PhysicsBody(collisionMask).apply {
         density = 0f
-        orientation = body.rotation
+        rotation = body.rotation
     }
 
     @set:Exposed(name = "isRotating")
@@ -44,7 +44,7 @@ internal class StaticBox private constructor(state: State) : RigidBody, Visible,
     override fun update(deltaTimeInMilliseconds: Int) {
         if (isRotating) {
             body.rotation -= (0.002 * deltaTimeInMilliseconds).toFloat().rad
-            physicsBody.orientation = body.rotation
+            physicsBody.rotation = body.rotation
             collisionMask.rotation = body.rotation
         }
     }

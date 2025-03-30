@@ -69,7 +69,7 @@ internal class PhysicsManagerImpl(
                 continue
             }
             b.position += b.velocity.scalar(dt)
-            b.orientation += (b.angularVelocity * dt).raw.rad
+            b.rotation += (b.angularVelocity * dt).raw.rad
             b.force = SceneOffset.Zero
             b.torque = SceneUnit.Zero
         }
