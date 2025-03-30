@@ -54,6 +54,7 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.sound_effects_
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_penguin
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingshot_background
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingshot_foreground
+import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_star
 import kubriko.examples.game_annoyed_penguins.generated.resources.unfinished_disclaimer
 
 internal class LoadingManager(
@@ -68,6 +69,7 @@ internal class LoadingManager(
         Res.drawable.sprite_penguin,
         Res.drawable.sprite_slingshot_background,
         Res.drawable.sprite_slingshot_foreground,
+        Res.drawable.sprite_star,
     )
     private val areGameResourcesLoaded by autoInitializingLazy {
         combine(
