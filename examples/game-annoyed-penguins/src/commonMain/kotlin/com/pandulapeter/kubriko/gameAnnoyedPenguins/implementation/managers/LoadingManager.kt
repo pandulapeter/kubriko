@@ -41,6 +41,7 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.ic_music_on
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_pause
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_sound_effects_off
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_sound_effects_on
+import kubriko.examples.game_annoyed_penguins.generated.resources.ic_star
 import kubriko.examples.game_annoyed_penguins.generated.resources.img_logo
 import kubriko.examples.game_annoyed_penguins.generated.resources.information
 import kubriko.examples.game_annoyed_penguins.generated.resources.information_contents
@@ -55,6 +56,7 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_penguin
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingshot_background
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingshot_foreground
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_star
+import kubriko.examples.game_annoyed_penguins.generated.resources.star_count
 import kubriko.examples.game_annoyed_penguins.generated.resources.unfinished_disclaimer
 
 internal class LoadingManager(
@@ -121,6 +123,7 @@ internal class LoadingManager(
             && preloadedImageVector(Res.drawable.ic_pause).value != null
             && preloadedImageVector(Res.drawable.ic_sound_effects_off).value != null
             && preloadedImageVector(Res.drawable.ic_sound_effects_on).value != null
+            && preloadedImageVector(Res.drawable.ic_star).value != null
 
     @Composable
     private fun areImageResourcesLoaded() = preloadedImageBitmap(Res.drawable.img_logo).value != null
@@ -141,4 +144,5 @@ internal class LoadingManager(
             && preloadedString(Res.string.close_confirmation_positive).value.isNotBlank()
             && preloadedString(Res.string.close_confirmation_negative).value.isNotBlank()
             && preloadedString(Res.string.unfinished_disclaimer).value.isNotBlank()
+            && preloadedString(Res.string.star_count).value.isNotBlank()
 }

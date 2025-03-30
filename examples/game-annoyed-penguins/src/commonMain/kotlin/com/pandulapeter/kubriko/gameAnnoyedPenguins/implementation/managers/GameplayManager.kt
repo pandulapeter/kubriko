@@ -43,6 +43,10 @@ internal class GameplayManager : Manager() {
     private val _isLoadingLevel = MutableStateFlow(false)
     val isLoadingLevel = _isLoadingLevel.asStateFlow()
     private val blurShader = GradualBlurShader()
+    private val _collectedStarCount = MutableStateFlow(0)
+    val collectedStarCount = _collectedStarCount.asStateFlow()
+    private val _totalStarCount = MutableStateFlow(0)
+    val totalStarCount = _totalStarCount.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         currentLevel

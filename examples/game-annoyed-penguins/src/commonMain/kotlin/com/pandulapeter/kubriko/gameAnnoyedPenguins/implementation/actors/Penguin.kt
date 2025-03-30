@@ -69,7 +69,7 @@ internal class Penguin(
     override fun update(deltaTimeInMilliseconds: Int) {
         super.update(deltaTimeInMilliseconds)
         body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
-        // body.rotation = physicsBody.orientation
+        body.rotation = physicsBody.rotation
         if (body.position.y > viewportManager.bottomRight.value.y + viewportManager.size.value.toSceneSize(viewportManager).height && !shouldBeFollowedByCamera) {
             actorManager.remove(this)
         } else {

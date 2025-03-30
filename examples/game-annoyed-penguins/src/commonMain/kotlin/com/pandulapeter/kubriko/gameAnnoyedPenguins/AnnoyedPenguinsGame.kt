@@ -46,6 +46,7 @@ import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.Game
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.AnnoyedPenguinsButton
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.AnnoyedPenguinsTheme
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.MenuOverlay
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.StarCounter
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.UnfinishedDisclaimer
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.ZoomSlider
 import kotlinx.collections.immutable.toImmutableList
@@ -115,7 +116,7 @@ fun AnnoyedPenguinsGame(
             Row(
                 modifier = Modifier
                     .windowInsetsPadding(windowInsets)
-                    .padding(16.dp),
+                    .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
@@ -137,6 +138,10 @@ fun AnnoyedPenguinsGame(
                         stateHolder.gameplayManager.onScaleFactorChanged()
                         stateHolder.viewportManager.setScaleFactor(it)
                     },
+                )
+                StarCounter(
+                    collectedStarCount = stateHolder.gameplayManager.collectedStarCount.collectAsState().value,
+                    totalStarCount = stateHolder.gameplayManager.totalStarCount.collectAsState().value,
                 )
             }
         }
