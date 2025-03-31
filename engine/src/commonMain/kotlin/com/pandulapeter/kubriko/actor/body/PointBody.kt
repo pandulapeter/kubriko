@@ -39,6 +39,12 @@ open class PointBody internal constructor(
             }
         }
 
+    fun copyAsPointBody(
+        position: SceneOffset = this.position,
+    ) = PointBody(
+        initialPosition = position,
+    )
+
     protected open fun createAxisAlignedBoundingBox() = AxisAlignedBoundingBox(
         min = position,
         max = position,

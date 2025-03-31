@@ -63,6 +63,20 @@ class BoxBody(
             }
         }
 
+    fun copyAsBoxBody(
+        position: SceneOffset = this.position,
+        size: SceneSize = this.size,
+        pivot: SceneOffset = this.pivot,
+        scale: Scale = this.scale,
+        rotation: AngleRadians = this.rotation
+    ) = BoxBody(
+        initialPosition = position,
+        initialSize = size,
+        initialPivot = pivot,
+        initialScale = scale,
+        initialRotation = rotation,
+    )
+
     override fun createAxisAlignedBoundingBox() = arrayOf(
         transformPoint(SceneOffset.Zero),
         transformPoint(SceneOffset.Right * size.width),
