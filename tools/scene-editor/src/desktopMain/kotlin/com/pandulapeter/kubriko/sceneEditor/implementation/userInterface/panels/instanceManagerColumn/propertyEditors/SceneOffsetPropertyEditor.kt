@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorIcon
@@ -48,6 +49,7 @@ internal fun SceneOffsetPropertyEditor(
                     value = value.x,
                     onValueChanged = { onValueChanged(SceneOffset(it, value.y)) },
                     range = xValueRange,
+                    isHorizontal = true,
                 )
             }
         }
@@ -64,6 +66,7 @@ internal fun SceneOffsetPropertyEditor(
                     value = value.y,
                     onValueChanged = { onValueChanged(SceneOffset(value.x, it)) },
                     range = yValueRange,
+                    isHorizontal = false,
                 )
             }
         }
@@ -75,10 +78,12 @@ private fun CenterButton(
     value: SceneUnit,
     onValueChanged: (SceneUnit) -> Unit,
     range: ClosedFloatingPointRange<Float>?,
+    isHorizontal: Boolean,
 ) {
     if (range != null) {
         val center = (range.endInclusive - range.start).sceneUnit / 2
         EditorIcon(
+            modifier = if (isHorizontal) Modifier else Modifier.rotate(90f),
             drawableResource = Res.drawable.ic_center,
             contentDescription = "Center",
             isEnabled = value != center,
