@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.lerp
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base.DestructiblePhysicsObject
@@ -61,9 +62,9 @@ internal class DestructibleBlock private constructor(
             size = body.size.raw,
         )
         drawRect(
-            color = Color.Black.copy(alpha = alpha),
+            color = lerp(color, Color.Black, 0.25f).copy(alpha = alpha),
             size = body.size.raw,
-            style = Stroke(width = 6f),
+            style = Stroke(width = 16f),
         )
     }
 
