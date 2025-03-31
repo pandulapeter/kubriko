@@ -57,7 +57,6 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingsh
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingshot_foreground
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_star
 import kubriko.examples.game_annoyed_penguins.generated.resources.star_count
-import kubriko.examples.game_annoyed_penguins.generated.resources.unfinished_disclaimer
 
 internal class LoadingManager(
     webRootPathName: String,
@@ -143,6 +142,5 @@ internal class LoadingManager(
             && preloadedString(Res.string.close_confirmation).value.isNotBlank()
             && preloadedString(Res.string.close_confirmation_positive).value.isNotBlank()
             && preloadedString(Res.string.close_confirmation_negative).value.isNotBlank()
-            && preloadedString(Res.string.unfinished_disclaimer).value.isNotBlank()
             && preloadedString(Res.string.star_count).value.isNotBlank()
 }

@@ -47,7 +47,6 @@ import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.AnnoyedPen
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.AnnoyedPenguinsTheme
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.MenuOverlay
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.StarCounter
-import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.UnfinishedDisclaimer
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.ZoomSlider
 import kotlinx.collections.immutable.toImmutableList
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
@@ -142,22 +141,6 @@ fun AnnoyedPenguinsGame(
                 StarCounter(
                     collectedStarCount = stateHolder.gameplayManager.collectedStarCount.collectAsState().value,
                     totalStarCount = stateHolder.gameplayManager.totalStarCount.collectAsState().value,
-                )
-            }
-        }
-        AnimatedVisibility(
-            visible = isGameRunning && !isLoadingLevel,
-            enter = slideIn { IntOffset(0, it.height) },
-            exit = slideOut { IntOffset(0, it.height) },
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .windowInsetsPadding(windowInsets)
-                    .padding(16.dp)
-            ) {
-                UnfinishedDisclaimer(
-                    modifier = Modifier.align(Alignment.BottomCenter)
                 )
             }
         }

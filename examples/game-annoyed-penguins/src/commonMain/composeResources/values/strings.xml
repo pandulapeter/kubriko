@@ -32,7 +32,6 @@ Attribution:
     <string name="close_confirmation">Are you sure you want to quit the game?</string>
     <string name="close_confirmation_positive">Quit</string>
     <string name="close_confirmation_negative">Cancel</string>
-    <string name="unfinished_disclaimer">Improved maps and graphics are coming soon!</string>
     <string name="star_count">%1$s/%2$s</string>
 
 </resources>
