@@ -72,8 +72,9 @@ internal class GameplayManager : Manager() {
         _collectedStarCount.update { 0 }
         _totalStarCount.update { 0 }
         if (sceneName == null) {
-            stateManager.updateIsRunning(false)
             actorManager.removeAll()
+            delay(100)
+            stateManager.updateIsRunning(false)
         } else {
             _isLoadingLevel.update { true }
             viewportManager.setScaleFactor(viewportManager.maximumScaleFactor)
@@ -103,8 +104,10 @@ internal class GameplayManager : Manager() {
         }
         if (collectedStarCount.value == totalStarCount.value && totalStarCount.value != 0) {
             gameEndTimer.update(deltaTimeInMilliseconds)
-            max(0f, gameEndTimer.remainingTimeInMilliseconds / GAME_END_DELAY).let { alpha ->
-                actorManager.allActors.value.filterIsInstance<FadingActor>().forEach { it.alpha = alpha }
+            if (gameEndTimer.remainingTimeInMilliseconds.toFloat() != GAME_END_DELAY) {
+                max(0f, gameEndTimer.remainingTimeInMilliseconds / GAME_END_DELAY).let { alpha ->
+                    actorManager.allActors.value.filterIsInstance<FadingActor>().forEach { it.alpha = alpha }
+                }
             }
         }
     }
