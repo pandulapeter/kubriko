@@ -57,11 +57,11 @@ internal class DestructibleBlock private constructor(
 
     override fun DrawScope.draw() {
         drawRect(
-            color = color,
+            color = color.copy(alpha = alpha),
             size = body.size.raw,
         )
         drawRect(
-            color = Color.Black,
+            color = Color.Black.copy(alpha = alpha),
             size = body.size.raw,
             style = Stroke(width = 6f),
         )

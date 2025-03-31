@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.GradualBlurShader
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Star
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base.FadingActor
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.slingshot.Slingshot
 import com.pandulapeter.kubriko.helpers.Timer
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -33,6 +34,7 @@ import kotlinx.coroutines.launch
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.MissingResourceException
+import kotlin.math.roundToLong
 
 internal class GameplayManager : Manager() {
 
@@ -50,7 +52,7 @@ internal class GameplayManager : Manager() {
     private val _totalStarCount = MutableStateFlow(0)
     val totalStarCount = _totalStarCount.asStateFlow()
     private var gameEndTimer = Timer(
-        timeInMilliseconds = 2000,
+        timeInMilliseconds = GAME_END_DELAY.roundToLong(),
         shouldTriggerMultipleTimes = true,
         onDone = { _currentLevel.update { null } }
     )
@@ -70,9 +72,7 @@ internal class GameplayManager : Manager() {
         _totalStarCount.update { 0 }
         if (sceneName == null) {
             stateManager.updateIsRunning(false)
-            delay(300)
             actorManager.removeAll()
-            stateManager.updateIsRunning(false)
         } else {
             _isLoadingLevel.update { true }
             viewportManager.setScaleFactor(viewportManager.maximumScaleFactor)
@@ -102,12 +102,16 @@ internal class GameplayManager : Manager() {
         }
         if (collectedStarCount.value == totalStarCount.value && totalStarCount.value != 0) {
             gameEndTimer.update(deltaTimeInMilliseconds)
+            (gameEndTimer.remainingTimeInMilliseconds / GAME_END_DELAY).let { alpha ->
+                actorManager.allActors.value.filterIsInstance<FadingActor>().forEach { it.alpha = alpha }
+            }
         }
     }
 
     fun setCurrentLevel(level: String) = _currentLevel.update { level }
 
     companion object {
+        private const val GAME_END_DELAY = 600f
         val AllLevels = persistentMapOf(
             "Map 1" to "level_1.json",
             "Map 2" to "level_2.json",

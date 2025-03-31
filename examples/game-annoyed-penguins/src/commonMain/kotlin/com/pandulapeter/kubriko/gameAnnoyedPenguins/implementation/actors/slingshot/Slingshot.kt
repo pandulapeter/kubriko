@@ -11,8 +11,10 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.sling
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.input.pointer.PointerId
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.BoxBody
@@ -21,6 +23,7 @@ import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Penguin
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base.FadingActor
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.helpers.extensions.abs
 import com.pandulapeter.kubriko.helpers.extensions.get
@@ -47,7 +50,7 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingsh
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingshot_foreground
 import kotlin.math.max
 
-internal class Slingshot private constructor(state: State) : Visible, Editable<Slingshot>, Dynamic, PointerInputAware, RigidBody, Unique {
+internal class Slingshot private constructor(state: State) : FadingActor(), Editable<Slingshot>, Dynamic, PointerInputAware, RigidBody, Unique {
     override val body = state.body
     private lateinit var actorManager: ActorManager
     private lateinit var audioManager: AudioManager
@@ -116,13 +119,20 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
 
         override fun DrawScope.draw() {
             spriteManager.get(Res.drawable.sprite_slingshot_foreground)?.let { foreground ->
-                drawImage(foreground)
+                drawIntoCanvas { canvas ->
+                    canvas.drawImage(
+                        topLeftOffset = Offset.Zero,
+                        image = foreground,
+                        paint = paint,
+                    )
+                }
             }
         }
     }
     override val shouldClip = false
     var isInitialZoomOutDone = false
     private val activePenguin: Penguin? get() = actorManager.allActors.value.filterIsInstance<Penguin>().firstOrNull { it.shouldBeFollowedByCamera }
+    private val paint = Paint()
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
@@ -135,17 +145,23 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
 
     override fun DrawScope.draw() {
         spriteManager.get(Res.drawable.sprite_slingshot_background)?.let { background ->
-            drawImage(background)
+            drawIntoCanvas { canvas ->
+                canvas.drawImage(
+                    topLeftOffset = Offset.Zero,
+                    image = background,
+                    paint = paint,
+                )
+            }
             if (activeFakePenguin.isVisible) {
                 drawLine(
-                    color = stringColor.copy(alpha = 1f - activeFakePenguin.distanceFromTarget),
+                    color = stringColor.copy(alpha = (1f - activeFakePenguin.distanceFromTarget) * alpha),
                     start = body.pivot.raw + armOffset1.raw,
                     end = activeFakePenguin.body.position.raw - body.position.raw + body.pivot.raw,
                     cap = StrokeCap.Round,
                     strokeWidth = 16f,
                 )
                 drawLine(
-                    color = stringColor.copy(alpha = 1f - activeFakePenguin.distanceFromTarget),
+                    color = stringColor.copy(alpha = (1f - activeFakePenguin.distanceFromTarget) * alpha),
                     start = body.pivot.raw + armOffset2.raw,
                     end = activeFakePenguin.body.position.raw - body.position.raw + body.pivot.raw,
                     cap = StrokeCap.Round,
@@ -179,6 +195,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
     private var isPointerPressedInPreviousStep = false
 
     override fun update(deltaTimeInMilliseconds: Int) {
+        paint.alpha = alpha
         val pressedPointerPositions = pointerInputManager.pressedPointerPositions.value
         if (pressedPointerPositions.isNotEmpty()) {
             if (isPointerPressedInPreviousStep) {
