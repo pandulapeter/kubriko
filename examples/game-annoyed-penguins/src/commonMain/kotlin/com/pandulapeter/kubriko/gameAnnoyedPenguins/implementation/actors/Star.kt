@@ -50,6 +50,7 @@ internal class Star private constructor(
     )
     override val collidableTypes: List<KClass<out Collidable>> = listOf(Penguin::class, DestructiblePhysicsObject::class)
     private var isAnimating = false
+    private var isIndicatorAdded = false // TODO: Ugly workaround for issue #121
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
@@ -94,6 +95,10 @@ internal class Star private constructor(
     )
 
     override fun update(deltaTimeInMilliseconds: Int) {
+        if (!isIndicatorAdded) {
+            actorManager.add(StarIndicator(this))
+            isIndicatorAdded = true
+        }
         body.rotation += AngleRadians.Pi * 0.0005f * deltaTimeInMilliseconds
         if (isAnimating) {
             body.scale -= Scale.Unit * 0.01f * deltaTimeInMilliseconds
