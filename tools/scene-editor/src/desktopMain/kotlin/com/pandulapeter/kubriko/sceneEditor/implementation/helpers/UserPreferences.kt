@@ -28,8 +28,8 @@ internal class UserPreferences(persistenceManager: PersistenceManager) {
         deserializer = { it.toAngleEditorMode },
     )
     val isDebugMenuEnabled = persistenceManager.boolean("isDebugMenuEnabled")
-    val snapX = persistenceManager.int("snapX")
-    val snapY = persistenceManager.int("snapY")
+    val snapX = persistenceManager.int("snapX") // Represented in SceneUnits
+    val snapY = persistenceManager.int("snapY") // Represented in SceneUnits
 
     private val ColorEditorMode.serializedName
         get() = when (this) {
