@@ -63,12 +63,16 @@ internal class Star private constructor(
     }
 
     override fun onRemoved() {
-        if (!gameplayManager.isLoadingLevel.value) {
-            if (actorManager.allActors.value.filterIsInstance<Star>().isEmpty()) {
-                audioManager.playLevelDoneSoundEffect()
-            } else {
-                audioManager.playStarSoundEffect()
+        try {
+            if (!gameplayManager.isLoadingLevel.value) {
+                if (actorManager.allActors.value.filterIsInstance<Star>().isEmpty()) {
+                    audioManager.playLevelDoneSoundEffect()
+                } else {
+                    audioManager.playStarSoundEffect()
+                }
             }
+        } catch (_: IllegalStateException) {
+            // Only happens in the Editor
         }
     }
 
