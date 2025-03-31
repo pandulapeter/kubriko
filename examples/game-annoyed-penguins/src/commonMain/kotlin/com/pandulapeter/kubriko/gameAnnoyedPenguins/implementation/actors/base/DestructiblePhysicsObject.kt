@@ -36,13 +36,12 @@ internal abstract class DestructiblePhysicsObject<T : DestructiblePhysicsObject<
     private lateinit var actorManager: ActorManager
     private lateinit var audioManager: AudioManager
     private lateinit var viewportManager: ViewportManager
-    private var lowestGroundY = Float.POSITIVE_INFINITY.sceneUnit
+    private val lowestGroundY by lazy { actorManager.allActors.value.filterIsInstance<Ground>().maxOf { it.body.position.y } }
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
         audioManager = kubriko.get()
         viewportManager = kubriko.get()
-        lowestGroundY = actorManager.allActors.value.filterIsInstance<Ground>().maxOf { it.body.position.y }
     }
 
     override fun onCollisionDetected(collidables: List<Collidable>) {

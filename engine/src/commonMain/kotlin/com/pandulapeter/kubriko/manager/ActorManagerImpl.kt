@@ -161,9 +161,9 @@ internal class ActorManagerImpl(
             val uniqueNewActorTypes = newActors.filterIsInstance<Unique>().map { it::class }.toSet()
             val filteredCurrentActors = currentActors.filterNot { it::class in uniqueNewActorTypes }
             newActors.filterIsInstance<Identifiable>().onEach { if (it.name == null) it.name = Uuid.random().toString() }
+            newActors.forEach { it.onAdded(scope as Kubriko) } // TODO: Calling onAdded() before the Actors are actually added
             (filteredCurrentActors + newActors).toImmutableList()
         }
-        newActors.forEach { it.onAdded(scope as Kubriko) }
     }
 
     override fun add(actors: Collection<Actor>) = add(actors = actors.toTypedArray())
