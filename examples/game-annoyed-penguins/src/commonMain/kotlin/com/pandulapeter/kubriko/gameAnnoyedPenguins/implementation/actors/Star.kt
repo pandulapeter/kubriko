@@ -54,7 +54,11 @@ internal class Star private constructor(
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
         audioManager = kubriko.get()
-        gameplayManager = kubriko.get()
+        try {
+            gameplayManager = kubriko.get()
+        } catch (_: IllegalStateException) {
+            // Happens in the Editor
+        }
         spriteManager = kubriko.get()
     }
 
