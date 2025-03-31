@@ -82,7 +82,6 @@ internal enum class ShowcaseEntry(
         type = ShowcaseEntryType.GAME,
         titleStringResource = Res.string.game_annoyed_penguins,
         subtitleStringResource = Res.string.game_annoyed_penguins_subtitle,
-        isProductionReady = false,
     ),
     BLOCKYS_JOURNEY(
         type = ShowcaseEntryType.GAME,
