@@ -37,11 +37,13 @@ internal abstract class DestructiblePhysicsObject<T : DestructiblePhysicsObject<
     private lateinit var actorManager: ActorManager
     private lateinit var audioManager: AudioManager
     private lateinit var viewportManager: ViewportManager
+    private var lowestGroundY = Float.POSITIVE_INFINITY.sceneUnit
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
         audioManager = kubriko.get()
         viewportManager = kubriko.get()
+        lowestGroundY = actorManager.allActors.value.filterIsInstance<Ground>().maxOf { it.body.position.y }
     }
 
     override fun onCollisionDetected(collidables: List<Collidable>) {
@@ -53,7 +55,7 @@ internal abstract class DestructiblePhysicsObject<T : DestructiblePhysicsObject<
 
     override fun update(deltaTimeInMilliseconds: Int) {
         if (deltaTimeInMilliseconds > 0) {
-            if (body.position.y > viewportManager.bottomRight.value.y + viewportManager.size.value.toSceneSize(viewportManager).height) {
+            if (body.position.y > viewportManager.bottomRight.value.y + viewportManager.size.value.toSceneSize(viewportManager).height && body.position.y > lowestGroundY) {
                 actorManager.remove(this)
             } else {
                 body.position = physicsBody.position
