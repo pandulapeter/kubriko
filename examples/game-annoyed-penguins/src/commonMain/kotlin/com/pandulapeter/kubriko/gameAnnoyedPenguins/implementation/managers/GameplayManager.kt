@@ -34,6 +34,7 @@ import kotlinx.coroutines.launch
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.MissingResourceException
+import kotlin.math.max
 import kotlin.math.roundToLong
 
 internal class GameplayManager : Manager() {
@@ -102,7 +103,7 @@ internal class GameplayManager : Manager() {
         }
         if (collectedStarCount.value == totalStarCount.value && totalStarCount.value != 0) {
             gameEndTimer.update(deltaTimeInMilliseconds)
-            (gameEndTimer.remainingTimeInMilliseconds / GAME_END_DELAY).let { alpha ->
+            max(0f, gameEndTimer.remainingTimeInMilliseconds / GAME_END_DELAY).let { alpha ->
                 actorManager.allActors.value.filterIsInstance<FadingActor>().forEach { it.alpha = alpha }
             }
         }

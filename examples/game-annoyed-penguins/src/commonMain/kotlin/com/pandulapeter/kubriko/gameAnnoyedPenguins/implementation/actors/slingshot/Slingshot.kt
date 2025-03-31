@@ -11,10 +11,8 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.sling
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.input.pointer.PointerId
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.BoxBody
@@ -41,6 +39,7 @@ import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableBoxBody
 import com.pandulapeter.kubriko.sprites.SpriteManager
+import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.serialization.SerialName
@@ -119,20 +118,13 @@ internal class Slingshot private constructor(state: State) : FadingActor(), Edit
 
         override fun DrawScope.draw() {
             spriteManager.get(Res.drawable.sprite_slingshot_foreground)?.let { foreground ->
-                drawIntoCanvas { canvas ->
-                    canvas.drawImage(
-                        topLeftOffset = Offset.Zero,
-                        image = foreground,
-                        paint = paint,
-                    )
-                }
+                drawImage(foreground)
             }
         }
     }
     override val shouldClip = false
     var isInitialZoomOutDone = false
     private val activePenguin: Penguin? get() = actorManager.allActors.value.filterIsInstance<Penguin>().firstOrNull { it.shouldBeFollowedByCamera }
-    private val paint = Paint()
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
@@ -145,13 +137,7 @@ internal class Slingshot private constructor(state: State) : FadingActor(), Edit
 
     override fun DrawScope.draw() {
         spriteManager.get(Res.drawable.sprite_slingshot_background)?.let { background ->
-            drawIntoCanvas { canvas ->
-                canvas.drawImage(
-                    topLeftOffset = Offset.Zero,
-                    image = background,
-                    paint = paint,
-                )
-            }
+            drawImage(background)
             if (activeFakePenguin.isVisible) {
                 drawLine(
                     color = stringColor.copy(alpha = (1f - activeFakePenguin.distanceFromTarget) * alpha),
@@ -195,7 +181,10 @@ internal class Slingshot private constructor(state: State) : FadingActor(), Edit
     private var isPointerPressedInPreviousStep = false
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        paint.alpha = alpha
+        body.scale = Scale(
+            horizontal = alpha * alpha,
+            vertical = 1f,
+        )
         val pressedPointerPositions = pointerInputManager.pressedPointerPositions.value
         if (pressedPointerPositions.isNotEmpty()) {
             if (isPointerPressedInPreviousStep) {
@@ -207,7 +196,7 @@ internal class Slingshot private constructor(state: State) : FadingActor(), Edit
                 // Detect if the initial press was on the slingshot
                 if (pressedPointerPositions.isNotEmpty()) {
                     pressedPointerPositions.firstNotNullOf { it }.let { pressPosition ->
-                        if (pressPosition.value.toSceneOffset(viewportManager).isInside(body.axisAlignedBoundingBox)) {
+                        if (pressPosition.value.toSceneOffset(viewportManager).isInside(body.axisAlignedBoundingBox) && alpha == 1f) {
                             aimingPointerId = pressPosition.key
                         }
                     }
