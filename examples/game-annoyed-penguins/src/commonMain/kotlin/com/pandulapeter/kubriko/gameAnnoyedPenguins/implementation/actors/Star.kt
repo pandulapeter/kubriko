@@ -71,7 +71,7 @@ internal class Star private constructor(
                     audioManager.playStarSoundEffect()
                 }
             }
-        } catch (_: IllegalStateException) {
+        } catch (_: Exception) {
             // Only happens in the Editor
         }
     }

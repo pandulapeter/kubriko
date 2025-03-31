@@ -12,8 +12,8 @@ package com.pandulapeter.kubriko.sceneEditor.implementation
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.collision.extensions.isCollidingWith
 import com.pandulapeter.kubriko.helpers.extensions.get
-import com.pandulapeter.kubriko.helpers.extensions.isInside
 import com.pandulapeter.kubriko.helpers.extensions.toSceneOffset
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -23,6 +23,7 @@ import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.GridOverlay
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.KeyboardInputListener
+import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.boundingBoxCollisionMask
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.UserPreferences
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.saveFile
@@ -183,7 +184,7 @@ internal class EditorController(
     }
 
     private fun findActorOnPosition(sceneOffset: SceneOffset) = filteredVisibleActorsWithinViewport.value
-        .filter { sceneOffset.isInside(it.body.axisAlignedBoundingBox) }
+        .filter { sceneOffset.isCollidingWith(it.body.boundingBoxCollisionMask) }
         .minByOrNull { (it as? Visible)?.drawingOrder ?: 0f }
 
     fun selectActor(actor: Editable<*>) = _selectedActor.update {
