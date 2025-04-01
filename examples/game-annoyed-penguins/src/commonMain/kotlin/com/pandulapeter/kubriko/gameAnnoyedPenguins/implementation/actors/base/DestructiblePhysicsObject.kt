@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Dynamic
+import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.CollisionDetector
 import com.pandulapeter.kubriko.collision.mask.ComplexCollisionMask
@@ -28,7 +29,7 @@ import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import kotlin.reflect.KClass
 
-internal abstract class DestructiblePhysicsObject<T : DestructiblePhysicsObject<T>> : FadingActor(), Editable<T>, Dynamic, RigidBody, CollisionDetector {
+internal abstract class DestructiblePhysicsObject<T : DestructiblePhysicsObject<T>> : Visible, Editable<T>, Dynamic, RigidBody, CollisionDetector {
 
     abstract override val collisionMask: ComplexCollisionMask
     override val collidableTypes = listOf<KClass<out Collidable>>(Ground::class, Penguin::class, DestructiblePhysicsObject::class)

@@ -17,7 +17,6 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
-import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base.FadingActor
 import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.sceneEditor.Editable
@@ -28,7 +27,7 @@ import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableColor
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
 
-internal class Ground private constructor(state: State) : FadingActor(), RigidBody, Visible, Editable<Ground> {
+internal class Ground private constructor(state: State) : Visible, RigidBody, Editable<Ground> {
     override val body = state.body
     override val collisionMask = BoxCollisionMask(
         initialSize = body.size * body.scale,
@@ -50,11 +49,11 @@ internal class Ground private constructor(state: State) : FadingActor(), RigidBo
 
     override fun DrawScope.draw() {
         drawRect(
-            color = color.copy(alpha = alpha),
+            color = color,
             size = body.size.raw,
         )
         drawRect(
-            color = lerp(color, Color.Black, 0.25f).copy(alpha = alpha),
+            color = lerp(color, Color.Black, 0.25f),
             size = body.size.raw,
             style = Stroke(width = 16f),
         )

@@ -102,7 +102,7 @@ fun AnnoyedPenguinsGame(
                 animationSpec = tween(),
             )
             KubrikoViewport(
-                modifier = Modifier.alpha(gameAlpha),
+                modifier = Modifier.alpha(gameAlpha * stateHolder.gameplayManager.gameViewportAlpha.collectAsState().value),
                 kubriko = stateHolder.kubriko.value,
                 windowInsets = windowInsets,
             )

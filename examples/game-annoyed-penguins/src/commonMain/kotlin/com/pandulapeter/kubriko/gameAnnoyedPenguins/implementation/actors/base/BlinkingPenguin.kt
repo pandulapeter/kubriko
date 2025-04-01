@@ -9,13 +9,12 @@
  */
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base
 
-import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
+import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.sprites.AnimatedSprite
@@ -29,7 +28,7 @@ import kotlin.random.Random
 
 internal abstract class BlinkingPenguin(
     initialPosition: SceneOffset,
-) : FadingActor(), Dynamic {
+) : Visible, Dynamic {
 
     override val body = BoxBody(
         initialPosition = initialPosition,
@@ -43,7 +42,6 @@ internal abstract class BlinkingPenguin(
         framesPerRow = 2,
         framesPerSecond = 1f,
     )
-    private val paint = Paint()
 
     override fun onAdded(kubriko: Kubriko) {
         spriteManager = kubriko.get()
@@ -55,15 +53,7 @@ internal abstract class BlinkingPenguin(
             shouldLoop = true,
             speed = if (animatedSprite.isLastFrame) 2f else 0.3f,
         )
-        paint.alpha = alpha
     }
 
-    final override fun DrawScope.draw() {
-        drawIntoCanvas { canvas ->
-            animatedSprite.draw(
-                canvas = canvas,
-                paint = paint,
-            )
-        }
-    }
+    final override fun DrawScope.draw() = animatedSprite.draw(this)
 }

@@ -41,12 +41,14 @@ internal class DestructibleBlock private constructor(
         rotation = body.rotation,
         staticFriction = 0.01f,
     )
+
     @set:Exposed(name = "restitution")
     var restitution
         get() = physicsBody.restitution
         set(value) {
             physicsBody.restitution = value
         }
+
     @set:Exposed(name = "density")
     var density
         get() = physicsBody.density
@@ -59,11 +61,11 @@ internal class DestructibleBlock private constructor(
 
     override fun DrawScope.draw() {
         drawRect(
-            color = color.copy(alpha = alpha),
+            color = color,
             size = body.size.raw,
         )
         drawRect(
-            color = lerp(color, Color.Black, 0.25f).copy(alpha = alpha),
+            color = lerp(color, Color.Black, 0.25f),
             size = body.size.raw,
             style = Stroke(width = 16f),
         )

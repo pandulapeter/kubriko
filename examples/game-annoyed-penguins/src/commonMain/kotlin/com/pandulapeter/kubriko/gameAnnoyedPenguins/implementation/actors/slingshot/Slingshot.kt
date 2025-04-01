@@ -11,7 +11,6 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.sling
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
@@ -23,7 +22,6 @@ import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Penguin
-import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base.FadingActor
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.helpers.extensions.abs
 import com.pandulapeter.kubriko.helpers.extensions.get
@@ -50,7 +48,7 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingsh
 import kubriko.examples.game_annoyed_penguins.generated.resources.sprite_slingshot_foreground
 import kotlin.math.max
 
-internal class Slingshot private constructor(state: State) : FadingActor(), Editable<Slingshot>, Dynamic, PointerInputAware, RigidBody, Unique {
+internal class Slingshot private constructor(state: State) : Visible, Editable<Slingshot>, Dynamic, PointerInputAware, RigidBody, Unique {
     override val body = state.body
     private lateinit var actorManager: ActorManager
     private lateinit var audioManager: AudioManager
@@ -80,7 +78,6 @@ internal class Slingshot private constructor(state: State) : FadingActor(), Edit
     override val physicsBody = PhysicsBody(collisionMask).apply {
         density = 0f
     }
-    private val paint = Paint()
     override val drawingOrder = 1f
     override val isAlwaysActive = true
     private var aimingPointerId: PointerId? = null
@@ -120,13 +117,7 @@ internal class Slingshot private constructor(state: State) : FadingActor(), Edit
 
         override fun DrawScope.draw() {
             spriteManager.get(Res.drawable.sprite_slingshot_foreground)?.let { foreground ->
-                drawIntoCanvas { canvas ->
-                    canvas.drawImage(
-                        image = foreground,
-                        topLeftOffset = Offset.Zero,
-                        paint = paint,
-                    )
-                }
+                drawImage(foreground)
             }
         }
     }
@@ -146,22 +137,18 @@ internal class Slingshot private constructor(state: State) : FadingActor(), Edit
     override fun DrawScope.draw() {
         spriteManager.get(Res.drawable.sprite_slingshot_background)?.let { background ->
             drawIntoCanvas { canvas ->
-                canvas.drawImage(
-                    image = background,
-                    topLeftOffset = Offset.Zero,
-                    paint = paint,
-                )
+                drawImage(background)
             }
             if (activeFakePenguin.isVisible) {
                 drawLine(
-                    color = stringColor.copy(alpha = (1f - activeFakePenguin.distanceFromTarget) * alpha),
+                    color = stringColor.copy(alpha = 1f - activeFakePenguin.distanceFromTarget),
                     start = body.pivot.raw + armOffset1.raw,
                     end = activeFakePenguin.body.position.raw - body.position.raw + body.pivot.raw,
                     cap = StrokeCap.Round,
                     strokeWidth = 16f,
                 )
                 drawLine(
-                    color = stringColor.copy(alpha = (1f - activeFakePenguin.distanceFromTarget) * alpha),
+                    color = stringColor.copy(alpha = 1f - activeFakePenguin.distanceFromTarget),
                     start = body.pivot.raw + armOffset2.raw,
                     end = activeFakePenguin.body.position.raw - body.position.raw + body.pivot.raw,
                     cap = StrokeCap.Round,
@@ -195,7 +182,6 @@ internal class Slingshot private constructor(state: State) : FadingActor(), Edit
     private var isPointerPressedInPreviousStep = false
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        paint.alpha = alpha * alpha
         val pressedPointerPositions = pointerInputManager.pressedPointerPositions.value
         if (pressedPointerPositions.isNotEmpty()) {
             if (isPointerPressedInPreviousStep) {
@@ -207,7 +193,7 @@ internal class Slingshot private constructor(state: State) : FadingActor(), Edit
                 // Detect if the initial press was on the slingshot
                 if (pressedPointerPositions.isNotEmpty()) {
                     pressedPointerPositions.firstNotNullOf { it }.let { pressPosition ->
-                        if (pressPosition.value.toSceneOffset(viewportManager).isInside(body.axisAlignedBoundingBox) && alpha == 1f) {
+                        if (pressPosition.value.toSceneOffset(viewportManager).isInside(body.axisAlignedBoundingBox)) {
                             aimingPointerId = pressPosition.key
                         }
                     }

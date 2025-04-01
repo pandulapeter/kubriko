@@ -12,7 +12,6 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.GradualBlurShader
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Star
-import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.base.FadingActor
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.slingshot.Slingshot
 import com.pandulapeter.kubriko.helpers.Timer
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -57,6 +56,8 @@ internal class GameplayManager : Manager() {
         shouldTriggerMultipleTimes = true,
         onDone = { _currentLevel.update { null } }
     )
+    private val _gameViewportAlpha = MutableStateFlow(1f)
+    val gameViewportAlpha = _gameViewportAlpha.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         currentLevel
@@ -75,10 +76,12 @@ internal class GameplayManager : Manager() {
             actorManager.removeAll()
             delay(100)
             stateManager.updateIsRunning(false)
+            _gameViewportAlpha.update { 1f }
         } else {
             _isLoadingLevel.update { true }
             viewportManager.setScaleFactor(viewportManager.maximumScaleFactor)
             actorManager.removeAll()
+            _gameViewportAlpha.update { 1f }
             delay(300) // Gives time for the fade animation to hide the previous level
             viewportManager.setCameraPosition(SceneOffset.Zero)
             try {
@@ -105,9 +108,7 @@ internal class GameplayManager : Manager() {
         if (collectedStarCount.value == totalStarCount.value && totalStarCount.value != 0) {
             gameEndTimer.update(deltaTimeInMilliseconds)
             if (gameEndTimer.remainingTimeInMilliseconds.toFloat() != GAME_END_DELAY) {
-                max(0f, gameEndTimer.remainingTimeInMilliseconds / GAME_END_DELAY).let { alpha ->
-                    actorManager.allActors.value.filterIsInstance<FadingActor>().forEach { it.alpha = alpha }
-                }
+                _gameViewportAlpha.update { max(0f, gameEndTimer.remainingTimeInMilliseconds / GAME_END_DELAY) }
             }
         }
     }
