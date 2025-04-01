@@ -79,10 +79,10 @@ internal class GameplayManager : Manager() {
             _gameViewportAlpha.update { 1f }
         } else {
             _isLoadingLevel.update { true }
+            delay(300) // Gives time for the fade animation to hide the previous level
             viewportManager.setScaleFactor(viewportManager.maximumScaleFactor)
             actorManager.removeAll()
             _gameViewportAlpha.update { 1f }
-            delay(300) // Gives time for the fade animation to hide the previous level
             viewportManager.setCameraPosition(SceneOffset.Zero)
             try {
                 val json = Res.readBytes("files/scenes/$sceneName").decodeToString()
