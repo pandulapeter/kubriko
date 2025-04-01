@@ -13,6 +13,7 @@ import com.pandulapeter.kubriko.collision.implementation.RotationMatrix
 import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.collision.mask.ComplexCollisionMask
 import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
+import com.pandulapeter.kubriko.helpers.extensions.abs
 import com.pandulapeter.kubriko.helpers.extensions.cross
 import com.pandulapeter.kubriko.helpers.extensions.distanceTo
 import com.pandulapeter.kubriko.helpers.extensions.dot
@@ -36,9 +37,9 @@ class PhysicsBody(
     velocity: SceneOffset = SceneOffset.Zero,
     force: SceneOffset = SceneOffset.Zero,
     density: Float = 1f,
-    var torque: SceneUnit = SceneUnit.Zero,
+    torque: SceneUnit = SceneUnit.Zero,
     var restitution: Float = 0.8f,
-    var angularVelocity: SceneUnit = SceneUnit.Zero,
+    angularVelocity: SceneUnit = SceneUnit.Zero,
     var linearDampening: Float = 0f,
     var isAffectedByGravity: Boolean = true,
 ) {
@@ -50,15 +51,23 @@ class PhysicsBody(
         }
     var velocity = velocity
         set(value) {
-            if (density > 0f) {
-                // TODO: Make the minimum velocity configurable
-                field = if (value.length() < 0.5f.sceneUnit) SceneOffset.Zero else value
-            }
+            // TODO: Make the minimum velocity configurable
+            field = if (abs(value.length()) < 0.1f.sceneUnit) SceneOffset.Zero else value
         }
     var force = force
         set(value) {
-            // TODO: Make the minimum velocity configurable
-            field = if (value.length() < 0.5f.sceneUnit) SceneOffset.Zero else value
+            // TODO: Make the minimum force configurable
+            field = if (abs(value.length()) < 0.1f.sceneUnit) SceneOffset.Zero else value
+        }
+    var angularVelocity = angularVelocity
+        set(value) {
+            // TODO: Make the minimum angular velocity configurable
+            field = if (abs(value) < 0.01f.sceneUnit) SceneUnit.Zero else value
+        }
+    var torque = torque
+        set(value) {
+            // TODO: Make the minimum torque configurable
+            field = if (abs(value) < 0.1f.sceneUnit) SceneUnit.Zero else value
         }
     var density = density
         set(value) {
@@ -84,6 +93,10 @@ class PhysicsBody(
     init {
         rotationMatrix.set(rotation)
         this.density = density
+        this.velocity = velocity
+        this.force = force
+        this.angularVelocity = angularVelocity
+        this.torque = torque
     }
 
     /**

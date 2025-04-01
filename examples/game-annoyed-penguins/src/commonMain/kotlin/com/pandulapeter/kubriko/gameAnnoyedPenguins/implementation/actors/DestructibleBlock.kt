@@ -34,12 +34,13 @@ internal class DestructibleBlock private constructor(
         initialPosition = body.position,
         initialRotation = body.rotation,
     )
-    override val physicsBody = PhysicsBody(collisionMask).apply {
-        restitution = state.restitution
-        density = state.density
-        rotation = body.rotation
-        staticFriction = 0.01f
-    }
+    override val physicsBody = PhysicsBody(
+        collisionMask = collisionMask,
+        restitution = state.restitution,
+        density = state.density,
+        rotation = body.rotation,
+        staticFriction = 0.01f,
+    )
     @set:Exposed(name = "restitution")
     var restitution
         get() = physicsBody.restitution
@@ -79,8 +80,8 @@ internal class DestructibleBlock private constructor(
     data class State(
         @SerialName("body") val body: SerializableBoxBody = BoxBody(),
         @SerialName("color") val color: SerializableColor = Color.White,
-        @SerialName("restitution") val restitution: Float = 1f,
-        @SerialName("density") val density: Float = 10f,
+        @SerialName("restitution") val restitution: Float = 0.75f,
+        @SerialName("density") val density: Float = 20f,
     ) : Serializable.State<DestructibleBlock> {
 
         override fun restore() = DestructibleBlock(this)
