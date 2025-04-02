@@ -26,16 +26,20 @@ internal actual fun <T : Shader.State> createRenderEffect(
 ): androidx.compose.ui.graphics.RenderEffect? {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         if (shader is BlurShader) {
-            return RenderEffect.createBlurEffect(
-                shader.shaderState.blurHorizontal,
-                shader.shaderState.blurVertical,
-                when (shader.shaderState.mode) {
-                    BlurShader.Mode.CLAMP -> TileMode.CLAMP
-                    BlurShader.Mode.REPEAT -> TileMode.REPEAT
-                    BlurShader.Mode.MIRROR -> TileMode.MIRROR
-                    BlurShader.Mode.DECAL -> TileMode.DECAL
-                },
-            ).asComposeRenderEffect()
+            return shader.shaderState.blurHorizontal.let { blurHorizontal ->
+                shader.shaderState.blurVertical.let { blurVertical ->
+                    if (blurHorizontal <= 0 || blurVertical <= 0) null else RenderEffect.createBlurEffect(
+                        blurHorizontal,
+                        blurVertical,
+                        when (shader.shaderState.mode) {
+                            BlurShader.Mode.CLAMP -> TileMode.CLAMP
+                            BlurShader.Mode.REPEAT -> TileMode.REPEAT
+                            BlurShader.Mode.MIRROR -> TileMode.MIRROR
+                            BlurShader.Mode.DECAL -> TileMode.DECAL
+                        },
+                    ).asComposeRenderEffect()
+                }
+            }
         } else {
             val runtimeShader =
                 (shader.shaderCache.runtimeShader as? RuntimeShader) ?: RuntimeShader(shader.shaderCode.trimIndent()).also {

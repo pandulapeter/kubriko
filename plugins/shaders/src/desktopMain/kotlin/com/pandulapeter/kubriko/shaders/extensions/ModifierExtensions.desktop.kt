@@ -26,16 +26,20 @@ internal actual fun <T : Shader.State> createRenderEffect(
     size: Size,
 ): RenderEffect? {
     if (shader is BlurShader) {
-        return ImageFilter.makeBlur(
-            sigmaX = shader.shaderState.blurHorizontal,
-            sigmaY = shader.shaderState.blurVertical,
-            mode = when (shader.shaderState.mode) {
-                BlurShader.Mode.CLAMP -> FilterTileMode.CLAMP
-                BlurShader.Mode.REPEAT -> FilterTileMode.REPEAT
-                BlurShader.Mode.MIRROR -> FilterTileMode.MIRROR
-                BlurShader.Mode.DECAL -> FilterTileMode.DECAL
-            },
-        ).asComposeRenderEffect()
+        return shader.shaderState.blurHorizontal.let { blurHorizontal ->
+            shader.shaderState.blurVertical.let { blurVertical ->
+                if (blurHorizontal <= 0 || blurVertical <= 0) null else ImageFilter.makeBlur(
+                    sigmaX = blurHorizontal,
+                    sigmaY = blurVertical,
+                    mode = when (shader.shaderState.mode) {
+                        BlurShader.Mode.CLAMP -> FilterTileMode.CLAMP
+                        BlurShader.Mode.REPEAT -> FilterTileMode.REPEAT
+                        BlurShader.Mode.MIRROR -> FilterTileMode.MIRROR
+                        BlurShader.Mode.DECAL -> FilterTileMode.DECAL
+                    },
+                ).asComposeRenderEffect()
+            }
+        }
     } else {
         val runtimeShaderBuilder =
             (shader.shaderCache.runtimeShader as? RuntimeShaderBuilder)
