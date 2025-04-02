@@ -20,7 +20,7 @@ These examples demonstrate the usefulness of individual plugins.
 - [demo-particles](https://github.com/pandulapeter/kubriko/tree/main/examples/demo-particles) - Demo for editing and testing particle effects
 - [demo-performance](https://github.com/pandulapeter/kubriko/tree/main/examples/demo-performance) - Stress test using a large number of dynamic actors
 - [demo-physics](https://github.com/pandulapeter/kubriko/tree/main/examples/demo-physics) - Rigid body collisions, chains, explosions
-- [demo-shader-animations](https://github.com/pandulapeter/kubriko/tree/main/examples/demo-shader-animations) - Examples for dynamic SGSL shader overlays
+- [demo-shader-animations](https://github.com/pandulapeter/kubriko/tree/main/examples/demo-shader-animations) - Examples for dynamic SKSL shader overlays
 
 ### Tests
 These examples are used for testing the behavior of certain components.

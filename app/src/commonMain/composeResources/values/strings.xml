@@ -80,7 +80,7 @@
 
     <!-- Demo - Shader Animations -->
     <string name="demo_shader_animations">Shader Animations</string>
-    <string name="demo_shader_animations_subtitle">Examples for dynamic SGSL shader overlays</string>
+    <string name="demo_shader_animations_subtitle">Examples for dynamic SKSL shader overlays</string>
 
     <!-- Test - Audio -->
     <string name="test_audio">Audio</string>
