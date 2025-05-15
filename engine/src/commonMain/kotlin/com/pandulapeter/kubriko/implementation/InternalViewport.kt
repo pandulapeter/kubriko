@@ -59,16 +59,20 @@ fun InternalViewport(
     // Game loop
     LaunchedEffect(Unit) {
         kubrikoImpl.initialize()
+        var count = 0
         while (isActive) {
             withFrameMillis { frameTimeInMilliseconds ->
                 if (kubrikoImpl.metadataManager.totalRuntimeInMilliseconds.value == 0L) {
                     kubrikoImpl.metadataManager.onUpdateInternal(frameTimeInMilliseconds.toInt())
                 }
-                (frameTimeInMilliseconds - kubrikoImpl.metadataManager.totalRuntimeInMilliseconds.value).toInt().let { deltaTimeInMilliseconds ->
-                    if (!kubrikoImpl.viewportManager.size.value.isEmpty() && kubrikoImpl.stateManager.isFocused.value) {
-                        kubrikoImpl.managers.forEach { it.onUpdateInternal(deltaTimeInMilliseconds) }
+                if (count % Kubriko.frameRate.factor == 0) {
+                    (frameTimeInMilliseconds - kubrikoImpl.metadataManager.totalRuntimeInMilliseconds.value).toInt().let { deltaTimeInMilliseconds ->
+                        if (!kubrikoImpl.viewportManager.size.value.isEmpty() && kubrikoImpl.stateManager.isFocused.value) {
+                            kubrikoImpl.managers.forEach { it.onUpdateInternal(deltaTimeInMilliseconds) }
+                        }
                     }
                 }
+                count++
             }
         }
     }
