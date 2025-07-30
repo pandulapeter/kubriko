@@ -10,14 +10,13 @@
 package com.pandulapeter.kubriko.buildLogic.extensions
 
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
-import com.vanniktech.maven.publish.SonatypeHost
 import org.gradle.api.Project
 
 internal fun Project.configurePublicArtifact(
     extension: MavenPublishBaseExtension,
     artifactId: String,
 ) = extension.apply {
-    publishToMavenCentral(SonatypeHost.S01)
+    publishToMavenCentral()
     signAllPublications()
     coordinates(
         groupId = "io.github.pandulapeter.kubriko",
