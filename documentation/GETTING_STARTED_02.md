@@ -14,7 +14,7 @@ It already contains a number of dependencies (some of which are unused and can s
 To do that, first define the version reference by adding a new line to the `[versions]` section:
 
 ```toml
-kubriko = "0.0.3"
+kubriko = "0.0.4"
 ```
 
 Use the latest release version of Kubriko that can be found [here](https://github.com/pandulapeter/kubriko/releases).

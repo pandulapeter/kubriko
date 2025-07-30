@@ -108,7 +108,7 @@ Expand the sections below to see the complete list of all Kubriko dependencies h
 
 The latest version is:
 
-[![](https://maven-badges.herokuapp.com/maven-central/io.github.pandulapeter.kubriko/engine/badge.svg?style=flat)](https://repo1.maven.org/maven2/io/github/pandulapeter/kubriko/)
+[![](https://maven-badges.sml.io/sonatype-central/io.github.pandulapeter.kubriko/engine/badge.svg?style=flat)](https://repo1.maven.org/maven2/io/github/pandulapeter/kubriko/)
 
 ## 🫶️ Support
 Displaying the [Kubriko logo](https://github.com/pandulapeter/kubriko/blob/main/documentation/images/logo.png) in games created with the engine, or just mentioning Kubriko somewhere in the credits is highly appreciated!
