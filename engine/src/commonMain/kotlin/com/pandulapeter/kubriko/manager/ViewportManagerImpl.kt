@@ -15,6 +15,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoImpl
 import com.pandulapeter.kubriko.helpers.extensions.div
 import com.pandulapeter.kubriko.helpers.extensions.toSceneOffset
+import com.pandulapeter.kubriko.types.FrameRate
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -33,6 +34,7 @@ internal class ViewportManagerImpl(
     val viewportEdgeBuffer: SceneUnit,
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
+    val frameRate: FrameRate,
 ) : ViewportManager(isLoggingEnabled, instanceNameForLogging) {
     private lateinit var actorManager: ActorManagerImpl
     private val _cameraPosition = MutableStateFlow(SceneOffset.Zero)

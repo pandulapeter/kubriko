@@ -11,7 +11,6 @@ package com.pandulapeter.kubriko
 
 import com.pandulapeter.kubriko.Kubriko.Companion.newInstance
 import com.pandulapeter.kubriko.manager.Manager
-import com.pandulapeter.kubriko.types.FrameRate
 import kotlin.reflect.KClass
 
 /**
@@ -50,7 +49,5 @@ sealed interface Kubriko {
             isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = instanceNameForLogging,
         )
-
-        var frameRate = FrameRate.Normal
     }
 }

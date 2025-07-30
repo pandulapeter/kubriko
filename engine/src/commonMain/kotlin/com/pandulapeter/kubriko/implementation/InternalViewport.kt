@@ -65,7 +65,7 @@ fun InternalViewport(
                 if (kubrikoImpl.metadataManager.totalRuntimeInMilliseconds.value == 0L) {
                     kubrikoImpl.metadataManager.onUpdateInternal(frameTimeInMilliseconds.toInt())
                 }
-                if (count % Kubriko.frameRate.factor == 0) {
+                if (count % kubrikoImpl.viewportManager.frameRate.factor == 0) {
                     (frameTimeInMilliseconds - kubrikoImpl.metadataManager.totalRuntimeInMilliseconds.value).toInt().let { deltaTimeInMilliseconds ->
                         if (!kubrikoImpl.viewportManager.size.value.isEmpty() && kubrikoImpl.stateManager.isFocused.value) {
                             kubrikoImpl.managers.forEach { it.onUpdateInternal(deltaTimeInMilliseconds) }

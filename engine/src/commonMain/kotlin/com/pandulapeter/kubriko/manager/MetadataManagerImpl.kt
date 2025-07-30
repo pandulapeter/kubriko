@@ -28,6 +28,7 @@ internal class MetadataManagerImpl(
     instanceNameForLogging: String?,
 ) : MetadataManager(isLoggingEnabled, instanceNameForLogging) {
     private lateinit var stateManager: StateManager
+    private lateinit var viewportManager: ViewportManagerImpl
     private val _fps = MutableStateFlow(0f)
     override val fps = _fps.asStateFlow()
     private val _totalRuntimeInMilliseconds = MutableStateFlow(0L)
@@ -38,6 +39,7 @@ internal class MetadataManagerImpl(
 
     override fun onInitialize(kubriko: Kubriko) {
         stateManager = (kubriko as KubrikoImpl).stateManager
+        viewportManager = kubriko.viewportManager
     }
 
     @Composable
@@ -49,7 +51,7 @@ internal class MetadataManagerImpl(
                 val frameTime = withFrameNanos { it }
                 frameCount.value++
                 if (frameTime - lastUpdateTime.value >= 100_000_000L) {
-                    _fps.update { frameCount.value * 1_000_000_000L / (frameTime - lastUpdateTime.value).toFloat() }
+                    _fps.update { (frameCount.value * 1_000_000_000L / (frameTime - lastUpdateTime.value).toFloat()) / viewportManager.frameRate.factor }
                     frameCount.value = 0
                     lastUpdateTime.value = frameTime
                 }

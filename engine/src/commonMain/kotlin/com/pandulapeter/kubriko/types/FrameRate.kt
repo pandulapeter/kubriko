@@ -1,7 +1,11 @@
 package com.pandulapeter.kubriko.types
 
+
+/**
+ * TODO: Documentation
+ */
 enum class FrameRate(val factor: Int) {
-    Normal(1),
-    Half(2),
-    Quarter(4)
+    NORMAL(1),
+    HALF(2),
+    QUARTER(4)
 }

@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
+import com.pandulapeter.kubriko.types.FrameRate
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
@@ -79,6 +80,7 @@ sealed class ViewportManager(
             viewportEdgeBuffer: SceneUnit = 0f.sceneUnit,
             isLoggingEnabled: Boolean = false,
             instanceNameForLogging: String? = null,
+            frameRate: FrameRate = FrameRate.NORMAL,
         ): ViewportManager = ViewportManagerImpl(
             aspectRatioMode = aspectRatioMode,
             initialScaleFactor = initialScaleFactor,
@@ -87,6 +89,7 @@ sealed class ViewportManager(
             viewportEdgeBuffer = viewportEdgeBuffer,
             isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = instanceNameForLogging,
+            frameRate = frameRate,
         )
     }
 }
