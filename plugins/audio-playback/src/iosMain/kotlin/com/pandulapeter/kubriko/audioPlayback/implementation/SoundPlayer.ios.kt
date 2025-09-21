@@ -35,17 +35,17 @@ internal actual fun createSoundPlayer(
         }
     }
 
-    override suspend fun play(sound: Any) = withContext(Dispatchers.Default) {
-        sound as List<AVAudioPlayer>
+    override suspend fun play(cachedSound: Any) = withContext(Dispatchers.Default) {
+        cachedSound as List<AVAudioPlayer>
         var wasSoundPlayed: Boolean
         do {
-            wasSoundPlayed = sound.firstOrNull { !it.playing }?.play() == true
+            wasSoundPlayed = cachedSound.firstOrNull { !it.playing }?.play() == true
         } while (!wasSoundPlayed)
     }
 
-    override fun dispose(sound: Any) {
-        sound as List<AVAudioPlayer>
-        sound.forEach {
+    override fun dispose(cachedSound: Any) {
+        cachedSound as List<AVAudioPlayer>
+        cachedSound.forEach {
             if (it.isPlaying()) {
                 it.stop()
             }

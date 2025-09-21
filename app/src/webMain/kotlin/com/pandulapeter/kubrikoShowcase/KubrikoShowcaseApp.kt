@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.window.CanvasBasedWindow
+import androidx.compose.ui.window.ComposeViewport
 import com.pandulapeter.kubriko.implementation.isRunningOnIphone
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -30,9 +30,14 @@ import org.w3c.dom.TouchEvent
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 
+@ExperimentalWasmJsInterop
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
-    CanvasBasedWindow(applyDefaultStyles = false) {
+    ComposeViewport(
+        configure = {
+            isA11YEnabled = false
+        }
+    ) {
         val isInFullscreenMode = remember { mutableStateOf(if (window.isRunningOnIphone()) null else false) }
         val webEscapePressEvent = remember {
             MutableSharedFlow<Unit>(
@@ -91,13 +96,15 @@ fun main() {
             }
         }
         Box(
-            modifier = Modifier.drawBehind {
-                drawRect(
-                    color = Color.Transparent,
-                    size = size,
-                    blendMode = BlendMode.Clear
-                )
-            }.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .drawBehind {
+                    drawRect(
+                        color = Color.Transparent,
+                        size = size,
+                        blendMode = BlendMode.Clear
+                    )
+                },
         ) {
             KubrikoShowcase(
                 isInFullscreenMode = isInFullscreenMode.value,

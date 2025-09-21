@@ -7,6 +7,8 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package com.pandulapeter.kubriko.audioPlayback.implementation
 
 import androidx.compose.runtime.Composable
@@ -33,10 +35,10 @@ internal actual fun createSoundPlayer(
         }
     }
 
-    override suspend fun play(sound: Any) {
-        sound as List<HTMLAudioElement>
+    override suspend fun play(cachedSound: Any) {
+        cachedSound as List<HTMLAudioElement>
         withContext(Dispatchers.Default) {
-            sound.firstOrNull { it.paused }?.play()
+            cachedSound.firstOrNull { it.paused }?.play()
         }
     }
 

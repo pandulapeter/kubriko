@@ -66,7 +66,7 @@ fun main() {
         ) {
             DisposableEffect(Unit) {
                 val listener = WindowStateListener {
-                    if (isInFullscreenMode.value == true) {
+                    if (isInFullscreenMode.value) {
                         isInFullscreenMode.value = windowState.placement == WindowPlacement.Fullscreen
                     }
                 }

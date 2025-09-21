@@ -9,16 +9,16 @@
 [versions]
 android-compileSdk = "36"
 android-minSdk = "29"
-androidx-activity = "1.10.1" # https://developer.android.com/jetpack/androidx/releases/activity
+androidx-activity = "1.11.0" # https://developer.android.com/jetpack/androidx/releases/activity
 androidx-core-splashScreen = "1.0.1" # https://developer.android.com/jetpack/androidx/releases/core
-androidx-lifecycle = "2.9.1" # https://developer.android.com/jetpack/androidx/releases/lifecycle
+androidx-lifecycle = "2.9.4" # https://developer.android.com/jetpack/androidx/releases/lifecycle
 apache-commonsLang = "3.18.0" # https://github.com/apache/commons-lang/tags
 codingfeline-buildkonfig = "0.17.1" # https://github.com/yshrsmz/BuildKonfig/releases
-compose-multiplatform = "1.8.2" # https://github.com/JetBrains/compose-multiplatform/releases
-google-material = "1.12.0" # https://github.com/material-components/material-components-android/releases
-gradle = "8.11.1" # https://developer.android.com/build/releases/gradle-plugin
+compose-multiplatform = "1.9.0" # https://github.com/JetBrains/compose-multiplatform/releases
+google-material = "1.13.0" # https://github.com/material-components/material-components-android/releases
+gradle = "8.13.0" # https://developer.android.com/build/releases/gradle-plugin
 jlayer = "1.0.3" # https://github.com/umjammer/jlayer/releases
-kotlin = "2.2.0" # https://github.com/JetBrains/kotlin/releases
+kotlin = "2.2.20" # https://github.com/JetBrains/kotlin/releases
 kotlinx-coroutines = "1.10.2" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinx-datetime = "0.7.1" # https://github.com/Kotlin/kotlinx-datetime/tags
 kotlinx-immutable = "0.4.0" # https://github.com/Kotlin/kotlinx.collections.immutable/releases

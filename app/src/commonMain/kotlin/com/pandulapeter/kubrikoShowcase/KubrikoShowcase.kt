@@ -39,7 +39,6 @@ fun KubrikoShowcase(
     webEscapePressEvent: Flow<Unit>? = null,
     deeplink: String? = selectedShowcaseEntry.value.deeplink,
     onDestinationChanged: (String?) -> Unit = { selectedShowcaseEntry.value = it.processDeeplink() },
-    areAnimationsEnabled: Boolean = true,
 ) = KubrikoTheme(
     areResourcesLoaded = ResourceLoader.areResourcesLoaded() && ShowcaseEntry.entries.all { it.areResourcesLoaded() },
 ) {
@@ -104,7 +103,6 @@ fun KubrikoShowcase(
             onFullscreenModeToggled = onFullscreenModeToggled,
             isInfoPanelVisible = StateHolder.isInfoPanelVisible.value,
             toggleInfoPanelVisibility = { StateHolder.isInfoPanelVisible.value = !StateHolder.isInfoPanelVisible.value },
-            areAnimationsEnabled = areAnimationsEnabled,
         )
     }
 }

@@ -181,7 +181,7 @@ private fun Controls(
         ),
     verticalArrangement = Arrangement.spacedBy(4.dp)
 ) {
-    @file:Suppress("UNCHECKED_CAST")
+    @Suppress("UNCHECKED_CAST")
     when (demoType) {
         ShaderAnimationDemoType.CLOUD -> {
             manager as ShaderAnimationsDemoManager<CloudShader, CloudShader.State>
