@@ -25,8 +25,8 @@ internal actual fun createSoundPlayer(
     // Couldn't figure out how to re-use cached Clips, so preloading on desktop is not supported
     override suspend fun preload(uri: String) = uri
 
-    override suspend fun play(sound: Any) = withContext(Dispatchers.IO) {
-        val uri = sound as String
+    override suspend fun play(cachedSound: Any) = withContext(Dispatchers.IO) {
+        val uri = cachedSound as String
         val clip = AudioSystem.getClip()
         val inputStream = URI(uri).let { resolvedUri ->
             if (resolvedUri.isAbsolute) {
