@@ -72,6 +72,8 @@ android {
 }
 ```
 
+If your project supports Web, make sure to delete the `js()` block from the `kotlin { ... }` block - Kubriko only supports the `wasmJs()` target.
+
 Make sure to sync the project after changing the build script.
 
 [<img src="images/badge_previous.png" alt="Previous page" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_01.md)

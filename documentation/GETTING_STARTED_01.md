@@ -7,6 +7,11 @@ These pages guide you through creating your first Kubriko game from scratch.
 
 ## 1 - Creating a Compose Multiplatform project
 
+> [!IMPORTANT]  
+> This page of the documentation is already outdated. The latest version of the Compose Multiplatform plugin includes a built-in
+> wizard that can be used to create new projects right from the IDE. Feel free to use that solution instead, and proceed to the
+> [next page](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_02.md).
+
 The first step is using the [Kotlin Multiplatform Wizard](https://kmp.jetbrains.com/) to generate the project files.
 
 <img src="images/screenshot_kotlin_multiplatform_wizard.png" width="200px" />
