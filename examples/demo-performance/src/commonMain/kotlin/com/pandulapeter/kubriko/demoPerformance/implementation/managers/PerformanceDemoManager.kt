@@ -151,6 +151,6 @@ internal class PerformanceDemoManager(
     }
 
     companion object {
-        const val SCENE_NAME = "scene_performance_test.json"
+        const val SCENE_NAME = "scene_performance_demo.json"
     }
 }
