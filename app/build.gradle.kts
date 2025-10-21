@@ -40,7 +40,7 @@ kotlin {
             implementation(if (isBuildConfigurationValueEnabled("isDebugMenuEnabled")) projects.tools.debugMenu else projects.tools.debugMenuNoop)
             implementation(projects.tools.uiComponents)
             implementation(compose.components.resources)
-            implementation(libs.compose.backhandler)
+            implementation(libs.compose.backHandler)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)

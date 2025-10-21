@@ -24,7 +24,7 @@ kotlin {
             api(libs.kotlinx.coroutines)
             api(libs.kotlinx.immutable)
             api(projects.tools.logger)
-            implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation(libs.compose.lifecycle.runtime)
         }
         desktopMain.dependencies {
             implementation(libs.apache.commonsLang)
