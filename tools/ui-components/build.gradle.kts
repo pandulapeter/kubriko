@@ -26,5 +26,5 @@ kotlin {
 }
 
 android {
-    namespace = "com.pandulapeter.kubriko.shared"
+    namespace = "com.pandulapeter.kubriko.uiComponents"
 }
