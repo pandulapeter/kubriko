@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ This file is part of Kubriko.
+ Copyright (c) Pandula Péter 2025.
+ https://github.com/pandulapeter/kubriko
+
+ This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ If a copy of the MPL was not distributed with this file, You can obtain one at
+ https://mozilla.org/MPL/2.0/.
+-->
+<resources>
+
+    <string name="description">This example demonstrates how the engine optimizes the rendering pipeline by only working with the visible subset of the large number of Actors that are present in this scene. On the mini map below, the highlighted dots represent Actors that are actually rendered. The semi-transparent dots represent dormant Actors that are not even updated.</string>
+
+</resources>

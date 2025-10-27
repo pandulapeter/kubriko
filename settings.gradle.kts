@@ -28,6 +28,7 @@ include(
     ":app",
     ":engine",
     ":examples:demo-content-shaders",
+    ":examples:demo-isometric-graphics",
     ":examples:demo-particles",
     ":examples:demo-performance",
     ":examples:demo-physics",
