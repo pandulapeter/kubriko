@@ -25,12 +25,20 @@ internal abstract class VisibleInWorld() : Visible, Dynamic {
         private set
 
     override fun onAdded(kubriko: Kubriko) {
-        isometricGraphicsDemoManager = kubriko.get()
-        isometricGraphicsDemoManager.isometricWorldActorManager.add(isometricRepresentation)
+        try {
+            isometricGraphicsDemoManager = kubriko.get()
+            isometricGraphicsDemoManager.isometricWorldActorManager.add(isometricRepresentation)
+        } catch (_: IllegalStateException) {
+            // Happens in the editor
+        }
     }
 
     override fun onRemoved() {
-        isometricGraphicsDemoManager.isometricWorldActorManager.remove(isometricRepresentation)
+        try {
+            isometricGraphicsDemoManager.isometricWorldActorManager.remove(isometricRepresentation)
+        } catch (_: RuntimeException) {
+            // Happens in the editor
+        }
     }
 
     override fun update(deltaTimeInMilliseconds: Int) = isometricRepresentation.update(
