@@ -34,12 +34,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,12 +49,31 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.managers.GridManager
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.managers.IsometricGraphicsDemoManager
+import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.types.SceneOffset
+import kubriko.examples.demo_isometric_graphics.generated.resources.Res
+import kubriko.examples.demo_isometric_graphics.generated.resources.bounce
+import kubriko.examples.demo_isometric_graphics.generated.resources.character
+import kubriko.examples.demo_isometric_graphics.generated.resources.debug_bounds
+import kubriko.examples.demo_isometric_graphics.generated.resources.environment
+import kubriko.examples.demo_isometric_graphics.generated.resources.movement
+import kubriko.examples.demo_isometric_graphics.generated.resources.orientation
+import kubriko.examples.demo_isometric_graphics.generated.resources.reset_camera
+import kubriko.examples.demo_isometric_graphics.generated.resources.section_world
+import kubriko.examples.demo_isometric_graphics.generated.resources.spin
+import kubriko.examples.demo_isometric_graphics.generated.resources.tile_height
+import kubriko.examples.demo_isometric_graphics.generated.resources.tile_width
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun Controls(
+internal fun Controls(
     modifier: Modifier = Modifier,
+    gridManager: GridManager,
+    isometricWorldViewportManager: ViewportManager,
+    isometricGraphicsDemoManager: IsometricGraphicsDemoManager,
 ) = Card {
     Column(
         modifier = modifier
@@ -61,64 +82,64 @@ fun Controls(
             .padding(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-//        SectionHeader(
-//            title = Res.string.section_world,
-//        )
-//        CustomButton(
-//            modifier = Modifier.fillMaxWidth(),
-//            label = Res.string.reset_camera,
-//            onClick = {
-//                DI.gridManager.tileWidthMultiplier.value = 1f
-//                DI.gridManager.tileHeightMultiplier.value = 0.5f
-//                DI.isometricWorldViewportManager.setCameraPosition(SceneOffset.Zero)
-//            },
-//        )
-//        SliderWithText(
-//            label = Res.string.tile_width,
-//            valueRange = GridManager.ZOOM_MINIMUM..GridManager.ZOOM_MAXIMUM,
-//            value = DI.gridManager.tileWidthMultiplier.collectAsState().value,
-//            onValueChanged = { DI.gridManager.tileWidthMultiplier.value = it },
-//        )
-//        SliderWithText(
-//            label = Res.string.tile_height,
-//            valueRange = GridManager.ZOOM_MINIMUM..GridManager.ZOOM_MAXIMUM,
-//            value = DI.gridManager.tileHeightMultiplier.collectAsState().value,
-//            onValueChanged = { DI.gridManager.tileHeightMultiplier.value = it },
-//        )
-//        SwitchWithText(
-//            label = Res.string.debug_bounds,
-//            isChecked = DI.gameplayManager.shouldDrawDebugBounds.collectAsState().value,
-//            onCheckedChanged = { DI.gameplayManager.shouldDrawDebugBounds.value = it },
-//        )
-//        HorizontalDivider()
-//        SectionHeader(
-//            title = Res.string.environment,
-//        )
-//        SwitchWithText(
-//            label = Res.string.spin,
-//            isChecked = DI.gameplayManager.shouldRotate.collectAsState().value,
-//            onCheckedChanged = { DI.gameplayManager.shouldRotate.value = it },
-//        )
-//        SwitchWithText(
-//            label = Res.string.bounce,
-//            isChecked = DI.gameplayManager.shouldBounce.collectAsState().value,
-//            onCheckedChanged = { DI.gameplayManager.shouldBounce.value = it },
-//        )
-//        HorizontalDivider()
-//        SectionHeader(
-//            title = Res.string.character,
-//        )
-//        SliderWithText(
-//            label = Res.string.orientation,
-//            valueRange = -1f..1f,
-//            value = DI.gameplayManager.characterOrientation.collectAsState().value,
-//            onValueChanged = { DI.gameplayManager.characterOrientation.value = it },
-//        )
-//        SwitchWithText(
-//            label = Res.string.movement,
-//            isChecked = DI.gameplayManager.shouldMove.collectAsState().value,
-//            onCheckedChanged = { DI.gameplayManager.shouldMove.value = it },
-//        )
+        SectionHeader(
+            title = Res.string.section_world,
+        )
+        CustomButton(
+            modifier = Modifier.fillMaxWidth(),
+            label = Res.string.reset_camera,
+            onClick = {
+                gridManager.tileWidthMultiplier.value = 1f
+                gridManager.tileHeightMultiplier.value = 0.5f
+                isometricWorldViewportManager.setCameraPosition(SceneOffset.Zero)
+            },
+        )
+        SliderWithText(
+            label = Res.string.tile_width,
+            valueRange = GridManager.ZOOM_MINIMUM..GridManager.ZOOM_MAXIMUM,
+            value = gridManager.tileWidthMultiplier.collectAsState().value,
+            onValueChanged = { gridManager.tileWidthMultiplier.value = it },
+        )
+        SliderWithText(
+            label = Res.string.tile_height,
+            valueRange = GridManager.ZOOM_MINIMUM..GridManager.ZOOM_MAXIMUM,
+            value = gridManager.tileHeightMultiplier.collectAsState().value,
+            onValueChanged = { gridManager.tileHeightMultiplier.value = it },
+        )
+        SwitchWithText(
+            label = Res.string.debug_bounds,
+            isChecked = isometricGraphicsDemoManager.shouldDrawDebugBounds.collectAsState().value,
+            onCheckedChanged = { isometricGraphicsDemoManager.shouldDrawDebugBounds.value = it },
+        )
+        HorizontalDivider()
+        SectionHeader(
+            title = Res.string.environment,
+        )
+        SwitchWithText(
+            label = Res.string.spin,
+            isChecked = isometricGraphicsDemoManager.shouldRotate.collectAsState().value,
+            onCheckedChanged = { isometricGraphicsDemoManager.shouldRotate.value = it },
+        )
+        SwitchWithText(
+            label = Res.string.bounce,
+            isChecked = isometricGraphicsDemoManager.shouldBounce.collectAsState().value,
+            onCheckedChanged = { isometricGraphicsDemoManager.shouldBounce.value = it },
+        )
+        HorizontalDivider()
+        SectionHeader(
+            title = Res.string.character,
+        )
+        SliderWithText(
+            label = Res.string.orientation,
+            valueRange = -1f..1f,
+            value = isometricGraphicsDemoManager.characterOrientation.collectAsState().value,
+            onValueChanged = { isometricGraphicsDemoManager.characterOrientation.value = it },
+        )
+        SwitchWithText(
+            label = Res.string.movement,
+            isChecked = isometricGraphicsDemoManager.shouldMove.collectAsState().value,
+            onCheckedChanged = { isometricGraphicsDemoManager.shouldMove.value = it },
+        )
     }
 }
 

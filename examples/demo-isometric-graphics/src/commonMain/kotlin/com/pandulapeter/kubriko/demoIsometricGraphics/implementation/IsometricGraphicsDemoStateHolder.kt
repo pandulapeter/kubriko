@@ -99,9 +99,7 @@ internal class IsometricGraphicsDemoStateHolderImpl(
         isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
-    private val gridManager by lazy { GridManager() }
-
-    // The properties below are lazily initialized because we don't need them when we only run the Scene Editor
+    val gridManager by lazy { GridManager() }
     private val actorManager by lazy {
         ActorManager.newInstance(
             isLoggingEnabled = isLoggingEnabled,
@@ -126,7 +124,6 @@ internal class IsometricGraphicsDemoStateHolderImpl(
         isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG_WORLD,
     )
-
     val isometricGraphicsDemoManager by lazy {
         IsometricGraphicsDemoManager(
             sceneJson = sceneJson,

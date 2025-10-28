@@ -33,6 +33,7 @@ import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.IsometricGraphicsDemoStateHolder
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.IsometricGraphicsDemoStateHolderImpl
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.PlatformSpecificContent
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.ui.Controls
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.LoadingOverlay
@@ -94,6 +95,11 @@ fun IsometricGraphicsDemo(
                     kubriko = stateHolder.kubriko.collectAsState().value,
                 )
             }
+            Controls(
+                gridManager = stateHolder.gridManager,
+                isometricWorldViewportManager = stateHolder.isometricWorldViewportManager,
+                isometricGraphicsDemoManager = stateHolder.isometricGraphicsDemoManager,
+            )
         }
         if (stateHolder.isometricGraphicsDemoManager.isSceneEditorEnabled) {
             Box(

@@ -11,5 +11,16 @@
 <resources>
 
     <string name="description">The shapes in this example are rendered in isometric space. While in the Blocky's Journey game the graphics come from static assets, here they are calculated in real time which allows for unlimited rotation, morphing and animation possibilities. Try experimenting with changing the grid dimensions.</string>
+    <string name="section_world">World</string>
+    <string name="reset_camera">Reset camera</string>
+    <string name="tile_width">Tile width</string>
+    <string name="tile_height">Tile height</string>
+    <string name="debug_bounds">Debug bounds</string>
+    <string name="environment">Environment</string>
+    <string name="spin">Spin</string>
+    <string name="bounce">Bounce</string>
+    <string name="character">Character</string>
+    <string name="movement">Movement</string>
+    <string name="orientation">Orientation</string>
 
 </resources>
