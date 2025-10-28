@@ -70,7 +70,7 @@ interface DebugMenuContract {
         isEnabled = isEnabled,
         windowInsets = windowInsets,
         debugMenuTheme = { it() },
-        height = 160.dp,
+        height = 180.dp,
     )
 
     @Composable
@@ -80,7 +80,7 @@ interface DebugMenuContract {
         isEnabled: Boolean, // TODO: = true,
         windowInsets: WindowInsets, // TODO: = WindowInsets.safeDrawing,
         debugMenuTheme: @Composable (@Composable () -> Unit) -> Unit, // TODO: = { it() },
-        height: Dp, // TODO: = 160.dp,
+        height: Dp, // TODO: = 180.dp,
     ) = Unit
 
     // TODO: Remove this function once default arguments in member Composables become supported.
