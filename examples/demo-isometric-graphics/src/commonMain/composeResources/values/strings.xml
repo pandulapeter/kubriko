@@ -10,6 +10,6 @@
 -->
 <resources>
 
-    <string name="description">This example demonstrates how the engine optimizes the rendering pipeline by only working with the visible subset of the large number of Actors that are present in this scene. On the mini map below, the highlighted dots represent Actors that are actually rendered. The semi-transparent dots represent dormant Actors that are not even updated.</string>
+    <string name="description">The shapes in this example are rendered in isometric space. While in the Blocky's Journey game the graphics come from static assets, here they are calculated in real time which allows for unlimited rotation, morphing and animation possibilities. Try experimenting with changing the grid dimensions.</string>
 
 </resources>

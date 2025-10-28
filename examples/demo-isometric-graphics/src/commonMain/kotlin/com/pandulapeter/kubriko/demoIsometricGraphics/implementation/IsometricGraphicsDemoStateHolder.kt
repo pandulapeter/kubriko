@@ -42,7 +42,6 @@ internal class IsometricGraphicsDemoStateHolderImpl(
 
     private val json = Json { ignoreUnknownKeys = true }
     val serializationManager = EditableMetadata.newSerializationManagerInstance(
-        TODO(),
         isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )

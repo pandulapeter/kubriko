@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoShowcase.implementation
 
 import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.demoContentShaders.implementation.ContentShadersDemoStateHolder
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.IsometricGraphicsDemoStateHolder
 import com.pandulapeter.kubriko.demoParticles.implementation.ParticlesDemoStateHolder
 import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceDemoStateHolder
 import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoStateHolder
@@ -23,6 +24,8 @@ import com.pandulapeter.kubrikoShowcase.implementation.ui.licenses.LicensesScree
 import kubriko.app.generated.resources.Res
 import kubriko.app.generated.resources.demo_content_shaders
 import kubriko.app.generated.resources.demo_content_shaders_subtitle
+import kubriko.app.generated.resources.demo_isometric_graphics
+import kubriko.app.generated.resources.demo_isometric_graphics_subtitle
 import kubriko.app.generated.resources.demo_particles
 import kubriko.app.generated.resources.demo_particles_subtitle
 import kubriko.app.generated.resources.demo_performance
@@ -96,6 +99,12 @@ internal enum class ShowcaseEntry(
         titleStringResource = Res.string.demo_content_shaders,
         subtitleStringResource = Res.string.demo_content_shaders_subtitle,
         areResourcesLoaded = { ContentShadersDemoStateHolder.areResourcesLoaded() }
+    ),
+    ISOMETRIC_GRAPHICS(
+        type = ShowcaseEntryType.DEMO,
+        titleStringResource = Res.string.demo_isometric_graphics,
+        subtitleStringResource = Res.string.demo_isometric_graphics_subtitle,
+        areResourcesLoaded = { IsometricGraphicsDemoStateHolder.areResourcesLoaded() }
     ),
     PARTICLES(
         type = ShowcaseEntryType.DEMO,

@@ -66,6 +66,10 @@
     <string name="demo_content_shaders">Content Shaders</string>
     <string name="demo_content_shaders_subtitle">Playground for testing various shader effects</string>
 
+    <!-- Demo - Isometric Graphics -->
+    <string name="demo_isometric_graphics">Isometric Graphics</string>
+    <string name="demo_isometric_graphics_subtitle">Programmatically drawn isometric shapes</string>
+
     <!-- Demo - Particles -->
     <string name="demo_particles">Particles</string>
     <string name="demo_particles_subtitle">Demo for editing and testing particle effects</string>

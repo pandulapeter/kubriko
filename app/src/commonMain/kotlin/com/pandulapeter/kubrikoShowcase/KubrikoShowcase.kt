@@ -114,6 +114,7 @@ private val ShowcaseEntry?.deeplink
         ShowcaseEntry.ANNOYED_PENGUINS -> "annoyed-penguins"
         ShowcaseEntry.BLOCKYS_JOURNEY -> "blockys-journey"
         ShowcaseEntry.CONTENT_SHADERS -> "content-shaders"
+        ShowcaseEntry.ISOMETRIC_GRAPHICS -> "isometric-graphics"
         ShowcaseEntry.PARTICLES -> "particles"
         ShowcaseEntry.PERFORMANCE -> "performance"
         ShowcaseEntry.PHYSICS -> "physics"
@@ -123,7 +124,7 @@ private val ShowcaseEntry?.deeplink
         ShowcaseEntry.INPUT -> "input"
         ShowcaseEntry.ABOUT -> "about"
         ShowcaseEntry.LICENSES -> "licenses"
-        else -> null
+        null -> null
     }
 
 private fun String?.processDeeplink() = this?.trim()?.lowercase()?.split("/")?.filterNot { it.isBlank() }?.lastOrNull().let { deeplink ->

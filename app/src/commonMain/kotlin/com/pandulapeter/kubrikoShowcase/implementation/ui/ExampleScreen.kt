@@ -17,6 +17,9 @@ import androidx.compose.runtime.mutableStateOf
 import com.pandulapeter.kubriko.demoContentShaders.ContentShadersDemo
 import com.pandulapeter.kubriko.demoContentShaders.createContentShadersDemoStateHolder
 import com.pandulapeter.kubriko.demoContentShaders.implementation.ContentShadersDemoStateHolder
+import com.pandulapeter.kubriko.demoIsometricGraphics.IsometricGraphicsDemo
+import com.pandulapeter.kubriko.demoIsometricGraphics.createIsometricGraphicsDemoStateHolder
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.IsometricGraphicsDemoStateHolder
 import com.pandulapeter.kubriko.demoParticles.ParticlesDemo
 import com.pandulapeter.kubriko.demoParticles.createParticlesDemoStateHolder
 import com.pandulapeter.kubriko.demoParticles.implementation.ParticlesDemoStateHolder
@@ -123,6 +126,16 @@ internal fun ShowcaseEntry.ExampleScreen(
         ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemo(
             stateHolder = getOrCreateState(stateHolders) {
                 createContentShadersDemoStateHolder(
+                    isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
+                )
+            },
+            windowInsets = windowInsets,
+        )
+
+        ShowcaseEntry.ISOMETRIC_GRAPHICS -> IsometricGraphicsDemo(
+            stateHolder = getOrCreateState(stateHolders) {
+                createIsometricGraphicsDemoStateHolder(
+                    isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
                     isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
                 )
             },
@@ -254,6 +267,13 @@ internal fun ShowcaseEntry.getStateHolder() = when (this) {
         )
     }
 
+    ShowcaseEntry.ISOMETRIC_GRAPHICS -> getOrCreateState(stateHolders) {
+        createIsometricGraphicsDemoStateHolder(
+            isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+            isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
+        )
+    }
+
     ShowcaseEntry.PARTICLES -> getOrCreateState(stateHolders) {
         createParticlesDemoStateHolder(
             isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
@@ -316,6 +336,7 @@ private val ShowcaseEntry.stateHolderType
         ShowcaseEntry.ANNOYED_PENGUINS -> AnnoyedPenguinsGameStateHolder::class
         ShowcaseEntry.BLOCKYS_JOURNEY -> BlockysJourneyGameStateHolder::class
         ShowcaseEntry.CONTENT_SHADERS -> ContentShadersDemoStateHolder::class
+        ShowcaseEntry.ISOMETRIC_GRAPHICS -> IsometricGraphicsDemoStateHolder::class
         ShowcaseEntry.PARTICLES -> ParticlesDemoStateHolder::class
         ShowcaseEntry.PERFORMANCE -> PerformanceDemoStateHolder::class
         ShowcaseEntry.PHYSICS -> PhysicsDemoStateHolder::class
