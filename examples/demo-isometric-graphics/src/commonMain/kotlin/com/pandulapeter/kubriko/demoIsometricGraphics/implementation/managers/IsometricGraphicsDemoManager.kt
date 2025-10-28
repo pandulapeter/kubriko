@@ -46,10 +46,12 @@ internal class IsometricGraphicsDemoManager(
     private val _shouldShowLoadingIndicator = MutableStateFlow(true)
     val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
     val shouldMove = MutableStateFlow(false)
-    val shouldRotate = MutableStateFlow(false)
-    val shouldBounce = MutableStateFlow(false)
+    val shouldRotate = MutableStateFlow(true)
+    val shouldBounce = MutableStateFlow(true)
     val shouldDrawDebugBounds = MutableStateFlow(false)
     val characterOrientation = MutableStateFlow(0f)
+    private val _areControlsExpanded = MutableStateFlow(false)
+    val areControlsExpanded = _areControlsExpanded.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         stateManager.isFocused
@@ -93,6 +95,8 @@ internal class IsometricGraphicsDemoManager(
         gridManager.tileHeightMultiplier.value = 0.5f
         isometricWorldViewportManager.setCameraPosition(SceneOffset.Zero)
     }
+
+    fun toggleControlsExpanded() = _areControlsExpanded.update { !it }
 
     companion object {
         const val SCENE_NAME = "scene_isometric_graphics_demo.json"

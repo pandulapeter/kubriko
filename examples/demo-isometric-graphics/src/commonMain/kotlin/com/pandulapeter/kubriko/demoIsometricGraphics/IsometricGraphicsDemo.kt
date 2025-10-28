@@ -9,13 +9,20 @@
  */
 package com.pandulapeter.kubriko.demoIsometricGraphics
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
@@ -28,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.IsometricGraphicsDemoStateHolder
@@ -35,10 +43,16 @@ import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.IsometricGr
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.PlatformSpecificContent
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.ui.Controls
 import com.pandulapeter.kubriko.shared.StateHolder
+import com.pandulapeter.kubriko.uiComponents.FloatingButton
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.LoadingOverlay
+import com.pandulapeter.kubriko.uiComponents.Panel
 import kubriko.examples.demo_isometric_graphics.generated.resources.Res
+import kubriko.examples.demo_isometric_graphics.generated.resources.collapse_controls
 import kubriko.examples.demo_isometric_graphics.generated.resources.description
+import kubriko.examples.demo_isometric_graphics.generated.resources.expand_controls
+import kubriko.examples.demo_isometric_graphics.generated.resources.ic_brush
+import org.jetbrains.compose.resources.stringResource
 
 fun createIsometricGraphicsDemoStateHolder(
     isSceneEditorEnabled: Boolean,
@@ -95,16 +109,47 @@ fun IsometricGraphicsDemo(
                     kubriko = stateHolder.kubriko.collectAsState().value,
                 )
             }
-            Controls(
-                gridManager = stateHolder.gridManager,
-                isometricWorldViewportManager = stateHolder.isometricWorldViewportManager,
-                isometricGraphicsDemoManager = stateHolder.isometricGraphicsDemoManager,
+            Spacer(
+                modifier = Modifier.weight(1f),
             )
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                val areControlsExpanded = stateHolder.isometricGraphicsDemoManager.areControlsExpanded.collectAsState().value
+                this@Column.AnimatedVisibility(
+                    visible = areControlsExpanded,
+                    enter = fadeIn() + scaleIn(transformOrigin = TransformOrigin(1f, 1f)),
+                    exit = scaleOut(transformOrigin = TransformOrigin(1f, 1f)) + fadeOut(),
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        Panel(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(bottom = 16.dp, end = 16.dp),
+                        ) {
+                            Controls(
+                                gridManager = stateHolder.gridManager,
+                                isometricWorldViewportManager = stateHolder.isometricWorldViewportManager,
+                                isometricGraphicsDemoManager = stateHolder.isometricGraphicsDemoManager,
+                            )
+                        }
+                    }
+                }
+                FloatingButton(
+                    modifier = Modifier.align(Alignment.BottomEnd),
+                    icon = Res.drawable.ic_brush,
+                    isSelected = areControlsExpanded,
+                    contentDescription = stringResource(if (areControlsExpanded) Res.string.collapse_controls else Res.string.expand_controls),
+                    onButtonPressed = stateHolder.isometricGraphicsDemoManager::toggleControlsExpanded,
+                )
+            }
         }
         if (stateHolder.isometricGraphicsDemoManager.isSceneEditorEnabled) {
             Box(
                 modifier = Modifier
-                    .align(Alignment.BottomEnd)
+                    .align(Alignment.BottomStart)
                     .windowInsetsPadding(windowInsets)
                     .padding(16.dp),
             ) {

@@ -10,7 +10,6 @@
 package com.pandulapeter.kubriko.demoIsometricGraphics.implementation.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -26,13 +25,13 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -74,73 +73,72 @@ internal fun Controls(
     gridManager: GridManager,
     isometricWorldViewportManager: ViewportManager,
     isometricGraphicsDemoManager: IsometricGraphicsDemoManager,
-) = Card {
-    Column(
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Right))
-            .padding(vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        SectionHeader(
-            title = Res.string.section_world,
-        )
-        CustomButton(
-            modifier = Modifier.fillMaxWidth(),
-            label = Res.string.reset_camera,
-            onClick = {
-                gridManager.tileWidthMultiplier.value = 1f
-                gridManager.tileHeightMultiplier.value = 0.5f
-                isometricWorldViewportManager.setCameraPosition(SceneOffset.Zero)
-            },
-        )
-        SliderWithText(
-            label = Res.string.tile_width,
-            valueRange = GridManager.ZOOM_MINIMUM..GridManager.ZOOM_MAXIMUM,
-            value = gridManager.tileWidthMultiplier.collectAsState().value,
-            onValueChanged = { gridManager.tileWidthMultiplier.value = it },
-        )
-        SliderWithText(
-            label = Res.string.tile_height,
-            valueRange = GridManager.ZOOM_MINIMUM..GridManager.ZOOM_MAXIMUM,
-            value = gridManager.tileHeightMultiplier.collectAsState().value,
-            onValueChanged = { gridManager.tileHeightMultiplier.value = it },
-        )
-        SwitchWithText(
-            label = Res.string.debug_bounds,
-            isChecked = isometricGraphicsDemoManager.shouldDrawDebugBounds.collectAsState().value,
-            onCheckedChanged = { isometricGraphicsDemoManager.shouldDrawDebugBounds.value = it },
-        )
-        HorizontalDivider()
-        SectionHeader(
-            title = Res.string.environment,
-        )
-        SwitchWithText(
-            label = Res.string.spin,
-            isChecked = isometricGraphicsDemoManager.shouldRotate.collectAsState().value,
-            onCheckedChanged = { isometricGraphicsDemoManager.shouldRotate.value = it },
-        )
-        SwitchWithText(
-            label = Res.string.bounce,
-            isChecked = isometricGraphicsDemoManager.shouldBounce.collectAsState().value,
-            onCheckedChanged = { isometricGraphicsDemoManager.shouldBounce.value = it },
-        )
-        HorizontalDivider()
-        SectionHeader(
-            title = Res.string.character,
-        )
-        SliderWithText(
-            label = Res.string.orientation,
-            valueRange = -1f..1f,
-            value = isometricGraphicsDemoManager.characterOrientation.collectAsState().value,
-            onValueChanged = { isometricGraphicsDemoManager.characterOrientation.value = it },
-        )
-        SwitchWithText(
-            label = Res.string.movement,
-            isChecked = isometricGraphicsDemoManager.shouldMove.collectAsState().value,
-            onCheckedChanged = { isometricGraphicsDemoManager.shouldMove.value = it },
-        )
-    }
+) = Column(
+    modifier = modifier
+        .verticalScroll(rememberScrollState())
+        .sizeIn(maxWidth = 240.dp)
+        .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Right))
+        .padding(vertical = 8.dp),
+    verticalArrangement = Arrangement.spacedBy(4.dp),
+) {
+    SectionHeader(
+        title = Res.string.section_world,
+    )
+    CustomButton(
+        modifier = Modifier.fillMaxWidth(),
+        label = Res.string.reset_camera,
+        onClick = {
+            gridManager.tileWidthMultiplier.value = 1f
+            gridManager.tileHeightMultiplier.value = 0.5f
+            isometricWorldViewportManager.setCameraPosition(SceneOffset.Zero)
+        },
+    )
+    SliderWithText(
+        label = Res.string.tile_width,
+        valueRange = GridManager.ZOOM_MINIMUM..GridManager.ZOOM_MAXIMUM,
+        value = gridManager.tileWidthMultiplier.collectAsState().value,
+        onValueChanged = { gridManager.tileWidthMultiplier.value = it },
+    )
+    SliderWithText(
+        label = Res.string.tile_height,
+        valueRange = GridManager.ZOOM_MINIMUM..GridManager.ZOOM_MAXIMUM,
+        value = gridManager.tileHeightMultiplier.collectAsState().value,
+        onValueChanged = { gridManager.tileHeightMultiplier.value = it },
+    )
+    SwitchWithText(
+        label = Res.string.debug_bounds,
+        isChecked = isometricGraphicsDemoManager.shouldDrawDebugBounds.collectAsState().value,
+        onCheckedChanged = { isometricGraphicsDemoManager.shouldDrawDebugBounds.value = it },
+    )
+    HorizontalDivider()
+    SectionHeader(
+        title = Res.string.environment,
+    )
+    SwitchWithText(
+        label = Res.string.spin,
+        isChecked = isometricGraphicsDemoManager.shouldRotate.collectAsState().value,
+        onCheckedChanged = { isometricGraphicsDemoManager.shouldRotate.value = it },
+    )
+    SwitchWithText(
+        label = Res.string.bounce,
+        isChecked = isometricGraphicsDemoManager.shouldBounce.collectAsState().value,
+        onCheckedChanged = { isometricGraphicsDemoManager.shouldBounce.value = it },
+    )
+    HorizontalDivider()
+    SectionHeader(
+        title = Res.string.character,
+    )
+    SliderWithText(
+        label = Res.string.orientation,
+        valueRange = -1f..1f,
+        value = isometricGraphicsDemoManager.characterOrientation.collectAsState().value,
+        onValueChanged = { isometricGraphicsDemoManager.characterOrientation.value = it },
+    )
+    SwitchWithText(
+        label = Res.string.movement,
+        isChecked = isometricGraphicsDemoManager.shouldMove.collectAsState().value,
+        onCheckedChanged = { isometricGraphicsDemoManager.shouldMove.value = it },
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -247,23 +245,6 @@ private fun Label(
     label: String,
 ) = Text(
     modifier = modifier,
-    text = label,
-    style = MaterialTheme.typography.labelSmall,
-)
-
-@Composable
-private fun ClickableCell(
-    modifier: Modifier = Modifier,
-    label: String,
-    onClick: () -> Unit,
-) = Text(
-    modifier = modifier
-        .fillMaxWidth()
-        .clickable(onClick = onClick)
-        .padding(
-            horizontal = 8.dp,
-            vertical = 4.dp,
-        ),
     text = label,
     style = MaterialTheme.typography.labelSmall,
 )
