@@ -11,12 +11,21 @@ package com.pandulapeter.kubriko.demoIsometricGraphics.implementation
 
 import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.body.BoxBody
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.actors.AnimalTile
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.actors.CharacterTile
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.actors.CubeTile
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.managers.GridManager
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.managers.IsometricGraphicsDemoManager
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.shared.StateHolder
+import com.pandulapeter.kubriko.sprites.SpriteManager
+import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,9 +51,55 @@ internal class IsometricGraphicsDemoStateHolderImpl(
 
     private val json = Json { ignoreUnknownKeys = true }
     val serializationManager = EditableMetadata.newSerializationManagerInstance(
+        EditableMetadata(
+            typeId = "cube",
+            deserializeState = { serializedState -> json.decodeFromString<CubeTile.State>(serializedState) },
+            instantiate = {
+                CubeTile.State(
+                    body = BoxBody(
+                        initialPosition = it,
+                        initialSize = SceneSize(
+                            width = 128.sceneUnit,
+                            height = 128.sceneUnit,
+                        )
+                    )
+                )
+            },
+        ),
+        EditableMetadata(
+            typeId = "character",
+            deserializeState = { serializedState -> json.decodeFromString<CharacterTile.State>(serializedState) },
+            instantiate = {
+                CharacterTile.State(
+                    body = BoxBody(
+                        initialPosition = it,
+                        initialSize = SceneSize(
+                            width = 128.sceneUnit,
+                            height = 128.sceneUnit,
+                        )
+                    )
+                )
+            },
+        ),
+        EditableMetadata(
+            typeId = "animal",
+            deserializeState = { serializedState -> json.decodeFromString<AnimalTile.State>(serializedState) },
+            instantiate = {
+                AnimalTile.State(
+                    body = BoxBody(
+                        initialPosition = it,
+                        initialSize = SceneSize(
+                            width = 128.sceneUnit,
+                            height = 128.sceneUnit,
+                        )
+                    )
+                )
+            },
+        ),
         isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
+    private val gridManager by lazy { GridManager() }
 
     // The properties below are lazily initialized because we don't need them when we only run the Scene Editor
     private val actorManager by lazy {
@@ -53,27 +108,57 @@ internal class IsometricGraphicsDemoStateHolderImpl(
             instanceNameForLogging = LOG_TAG,
         )
     }
+    private val stateManager by lazy {
+        StateManager.newInstance(
+            isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = LOG_TAG,
+        )
+    }
+    val isometricWorldActorManager = ActorManager.newInstance(
+        isLoggingEnabled = isLoggingEnabled,
+        instanceNameForLogging = LOG_TAG_WORLD,
+    )
+    val isometricWorldViewportManager = ViewportManager.newInstance(
+        isLoggingEnabled = isLoggingEnabled,
+        instanceNameForLogging = LOG_TAG_WORLD,
+    )
+    val spriteManager = SpriteManager.newInstance(
+        isLoggingEnabled = isLoggingEnabled,
+        instanceNameForLogging = LOG_TAG_WORLD,
+    )
 
     val isometricGraphicsDemoManager by lazy {
         IsometricGraphicsDemoManager(
             sceneJson = sceneJson,
             isSceneEditorEnabled = isSceneEditorEnabled,
+            actorManager = actorManager,
+            isometricWorldActorManager = isometricWorldActorManager,
+            isometricWorldViewportManager = isometricWorldViewportManager,
+            gridManager = gridManager,
+            serializationManager = serializationManager,
+            stateManager = stateManager,
         )
     }
     private val viewportManager by lazy {
         ViewportManager.newInstance(
-            initialScaleFactor = 0.5f,
-            viewportEdgeBuffer = 200.sceneUnit,
+            initialScaleFactor = 0.75f,
             isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
+        )
+    }
+    private val pointerInputManager by lazy {
+        PointerInputManager.newInstance(
+            isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = LOG_TAG_WORLD,
         )
     }
     private val _kubriko by lazy {
         MutableStateFlow(
             Kubriko.newInstance(
-                actorManager,
+                stateManager,
                 viewportManager,
                 serializationManager,
+                actorManager,
                 isometricGraphicsDemoManager,
                 isLoggingEnabled = isLoggingEnabled,
                 instanceNameForLogging = LOG_TAG,
@@ -81,8 +166,19 @@ internal class IsometricGraphicsDemoStateHolderImpl(
         )
     }
     override val kubriko by lazy { _kubriko.asStateFlow() }
+    internal val isometricWorldKubriko = Kubriko.newInstance(
+        gridManager,
+        isometricWorldViewportManager,
+        isometricWorldActorManager,
+        spriteManager,
+        pointerInputManager,
+        isometricGraphicsDemoManager,
+        isLoggingEnabled = isLoggingEnabled,
+        instanceNameForLogging = LOG_TAG_WORLD,
+    )
 
     override fun dispose() = kubriko.value.dispose()
 }
 
-private const val LOG_TAG = "IsometricGraphics"
+private const val LOG_TAG = "IsometricGraphicsMap"
+private const val LOG_TAG_WORLD = "IsometricGraphics"

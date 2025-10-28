@@ -17,6 +17,8 @@ kotlin {
         commonMain.dependencies {
             api(projects.examples.shared)
             implementation(projects.engine)
+            implementation(projects.plugins.sprites)
+            implementation(projects.plugins.pointerInput)
             implementation(if (project.findProperty("showcase.isDebugMenuEnabled") == "true") projects.tools.debugMenu else projects.tools.debugMenuNoop)
             implementation(if (project.findProperty("showcase.isSceneEditorEnabled") == "true") projects.tools.sceneEditor else projects.tools.sceneEditorNoop)
             implementation(projects.tools.uiComponents)
