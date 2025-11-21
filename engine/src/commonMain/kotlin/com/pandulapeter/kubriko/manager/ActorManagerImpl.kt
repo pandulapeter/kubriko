@@ -68,7 +68,7 @@ internal class ActorManagerImpl(
     override val allActors = _allActors.asStateFlow()
     private lateinit var kubrikoImpl: KubrikoImpl
     private val layerIndices by autoInitializingLazy {
-        _allActors.map { actors -> actors.filterIsInstance<LayerAware>().groupBy { it.layerIndex }.keys.sortedByDescending { it }.toImmutableList() }
+        _allActors.map { actors -> actors.filterIsInstance<LayerAware>().groupBy { it.layerIndex }.keys.sortedBy { it }.toImmutableList() }
             .asStateFlow(persistentListOf())
     }
     private val dynamicActors by autoInitializingLazy {
