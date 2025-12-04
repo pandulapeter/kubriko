@@ -14,6 +14,9 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import platform.AVFAudio.AVAudioPlayer
+import platform.AVFAudio.AVAudioSession
+import platform.AVFAudio.AVAudioSessionCategoryPlayback
+import platform.AVFAudio.setActive
 import platform.Foundation.NSURL
 
 @Suppress("UNCHECKED_CAST")
@@ -22,6 +25,13 @@ import platform.Foundation.NSURL
 internal actual fun createSoundPlayer(
     maximumSimultaneousStreamsOfTheSameSound: Int,
 ) = object : SoundPlayer {
+
+    init {
+        AVAudioSession.sharedInstance().apply {
+            setCategory(AVAudioSessionCategoryPlayback, error = null)
+            setActive(true, error = null)
+        }
+    }
 
     override suspend fun preload(uri: String) = withContext(Dispatchers.Default) {
         buildList {
