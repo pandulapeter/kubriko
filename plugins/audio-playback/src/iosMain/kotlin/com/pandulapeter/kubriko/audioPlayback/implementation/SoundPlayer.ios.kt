@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.audioPlayback.implementation
 import androidx.compose.runtime.Composable
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import platform.AVFAudio.AVAudioPlayer
 import platform.AVFAudio.AVAudioSession
@@ -47,10 +48,31 @@ internal actual fun createSoundPlayer(
 
     override suspend fun play(cachedSound: Any) = withContext(Dispatchers.Default) {
         cachedSound as List<AVAudioPlayer>
-        var wasSoundPlayed: Boolean
-        do {
-            wasSoundPlayed = cachedSound.firstOrNull { !it.playing }?.play() == true
-        } while (!wasSoundPlayed)
+        
+        // Try to find an available player with a reasonable retry limit
+        val maxAttempts = 10
+        var attempts = 0
+        var wasSoundPlayed = false
+        
+        while (!wasSoundPlayed && attempts < maxAttempts) {
+            val availablePlayer = cachedSound.firstOrNull { !it.playing }
+            if (availablePlayer != null) {
+                wasSoundPlayed = availablePlayer.play()
+            } else {
+                // Small delay before retrying
+                delay(5)
+                attempts++
+            }
+        }
+        
+        // Fallback: If still not played after max attempts, force-restart the first player
+        if (!wasSoundPlayed) {
+            cachedSound.firstOrNull()?.let { player ->
+                player.stop()
+                player.setCurrentTime(0.0)
+                player.play()
+            }
+        }
     }
 
     override fun dispose(cachedSound: Any) {

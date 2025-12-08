@@ -38,9 +38,16 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
         }
     }
 
-    override suspend fun play(cachedMusic: Any, shouldLoop: Boolean) {
+    override suspend fun play(cachedMusic: Any, shouldLoop: Boolean, shouldRestart: Boolean) {
         cachedMusic as AVAudioPlayer
         cachedMusic.setNumberOfLoops(if (shouldLoop) NSIntegerMax else 0)
+        
+        // Handle restart request
+        if (shouldRestart && cachedMusic.isPlaying()) {
+            cachedMusic.stop()
+            cachedMusic.setCurrentTime(0.0)
+        }
+        
         if (!cachedMusic.isPlaying()) {
             cachedMusic.play()
         }
@@ -61,6 +68,23 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
         if (cachedMusic.isPlaying()) {
             cachedMusic.stop()
         }
+        cachedMusic.setCurrentTime(0.0) // Reset to beginning
+    }
+
+    override fun setVolume(cachedMusic: Any, leftVolume: Float, rightVolume: Float) {
+        cachedMusic as AVAudioPlayer
+        // Overall volume as average of left and right
+        val volume = (leftVolume + rightVolume) / 2f
+        cachedMusic.setVolume(volume.toDouble())
+        
+        // Pan: -1.0 (left) to 1.0 (right)
+        // Calculate pan from the balance between left and right volumes
+        val pan = if (leftVolume + rightVolume > 0f) {
+            (rightVolume - leftVolume) / (leftVolume + rightVolume)
+        } else {
+            0f
+        }
+        cachedMusic.setPan(pan.toDouble())
     }
 
     override fun dispose(cachedMusic: Any) = stop(cachedMusic)
