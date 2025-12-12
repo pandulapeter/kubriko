@@ -9,14 +9,14 @@
 [versions]
 android-compileSdk = "36"
 android-minSdk = "29"
-androidx-activity = "1.12.0" # https://developer.android.com/jetpack/androidx/releases/activity
+androidx-activity = "1.12.1" # https://developer.android.com/jetpack/androidx/releases/activity
 androidx-core-splashScreen = "1.2.0" # https://developer.android.com/jetpack/androidx/releases/core
 apache-commonsLang = "3.20.0" # https://github.com/apache/commons-lang/tags
 codingfeline-buildkonfig = "0.17.1" # https://github.com/yshrsmz/BuildKonfig/releases
 compose-lifecycle = "2.9.6" # https://github.com/JetBrains/compose-multiplatform/releases
 compose-multiplatform = "1.9.3" # https://github.com/JetBrains/compose-multiplatform/releases
 google-material = "1.13.0" # https://github.com/material-components/material-components-android/releases
-gradle = "8.13.1" # https://developer.android.com/build/releases/gradle-plugin
+gradle = "8.13.2" # https://developer.android.com/build/releases/gradle-plugin
 jlayer = "1.0.3" # https://github.com/umjammer/jlayer/releases
 kotlin = "2.2.21" # https://github.com/JetBrains/kotlin/releases
 kotlinx-coroutines = "1.10.2" # https://github.com/Kotlin/kotlinx.coroutines/releases
@@ -36,15 +36,14 @@ google-material = { group = "com.google.android.material", name = "material", ve
 gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "gradle" }
 jlayer = { group = "com.github.umjammer", name = "jlayer", version.ref = "jlayer" }
 kotlin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect" }
 kotlinx-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlinx-immutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version.ref = "kotlinx-immutable" }
 kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 vanniktech-publish = { group = "com.vanniktech", name = "gradle-maven-publish-plugin", version.ref = "vanniktech-publish" }
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
-
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "gradle" }
