@@ -31,8 +31,9 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
         )
     }
 
-    override suspend fun play(cachedMusic: Any, shouldLoop: Boolean) {
-        (cachedMusic as DesktopMusicPlayer).play(coroutineScope, shouldLoop)
+    override suspend fun play(cachedMusic: Any, shouldLoop: Boolean, shouldRestart: Boolean) {
+        // Propagate restart flag so the player can rewind the buffered stream before playback.
+        (cachedMusic as DesktopMusicPlayer).play(coroutineScope, shouldLoop, shouldRestart)
     }
 
     override fun isPlaying(cachedMusic: Any) = (cachedMusic as DesktopMusicPlayer).isPlaying
@@ -43,6 +44,11 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
 
     override fun stop(cachedMusic: Any) {
         (cachedMusic as DesktopMusicPlayer).stop()
+    }
+
+    override fun setVolume(cachedMusic: Any, leftVolume: Float, rightVolume: Float) {
+        // Desktop uses per-frame scaling, so we simply forward the requested gains.
+        (cachedMusic as DesktopMusicPlayer).setVolume(leftVolume, rightVolume)
     }
 
     override fun dispose(cachedMusic: Any) {

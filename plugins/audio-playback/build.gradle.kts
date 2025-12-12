@@ -22,6 +22,10 @@ kotlin {
             api(projects.engine)
             implementation(projects.tools.logger)
         }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+        }
         desktopMain.dependencies {
             implementation(libs.jlayer)
         }

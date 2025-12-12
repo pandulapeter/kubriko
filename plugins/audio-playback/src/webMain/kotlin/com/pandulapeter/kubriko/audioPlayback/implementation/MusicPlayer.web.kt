@@ -32,8 +32,8 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
         }
     }
 
-    override suspend fun play(cachedMusic: Any, shouldLoop: Boolean) = withContext(Dispatchers.Default) {
-        (cachedMusic as WebMusicPlayer).play(shouldLoop)
+    override suspend fun play(cachedMusic: Any, shouldLoop: Boolean, shouldRestart: Boolean) = withContext(Dispatchers.Default) {
+        (cachedMusic as WebMusicPlayer).play(shouldLoop, shouldRestart)
     }
 
     override fun isPlaying(cachedMusic: Any) = (cachedMusic as WebMusicPlayer).isPlaying
@@ -41,6 +41,10 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
     override fun pause(cachedMusic: Any) = (cachedMusic as WebMusicPlayer).pause()
 
     override fun stop(cachedMusic: Any) = (cachedMusic as WebMusicPlayer).stop()
+
+    override fun setVolume(cachedMusic: Any, leftVolume: Float, rightVolume: Float) {
+        (cachedMusic as WebMusicPlayer).setVolume(leftVolume, rightVolume)
+    }
 
     override fun dispose(cachedMusic: Any) {
         cachedMusic as WebMusicPlayer

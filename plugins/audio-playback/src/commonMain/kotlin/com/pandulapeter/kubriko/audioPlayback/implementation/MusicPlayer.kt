@@ -16,13 +16,15 @@ internal interface MusicPlayer {
 
     suspend fun preload(uri: String): Any?
 
-    suspend fun play(cachedMusic: Any, shouldLoop: Boolean)
+    suspend fun play(cachedMusic: Any, shouldLoop: Boolean, shouldRestart: Boolean)
 
     fun isPlaying(cachedMusic: Any): Boolean
 
     fun pause(cachedMusic: Any)
 
     fun stop(cachedMusic: Any)
+
+    fun setVolume(cachedMusic: Any, leftVolume: Float, rightVolume: Float)
 
     fun dispose(cachedMusic: Any)
 

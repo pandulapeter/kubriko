@@ -43,13 +43,22 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
         }
     }
 
-    override suspend fun play(cachedMusic: Any, shouldLoop: Boolean) = withContext(Dispatchers.Default) {
+    override suspend fun play(cachedMusic: Any, shouldLoop: Boolean, shouldRestart: Boolean) = withContext(Dispatchers.Default) {
         (cachedMusic as MediaPlayer).run {
+            // If shouldRestart is true and already playing, reset to beginning
+            if (shouldRestart && isPlaying) {
+                pause()
+                seekTo(0)
+            }
+            
             if (shouldLoop) {
                 isLooping = true
                 setOnCompletionListener(null)
             } else {
-                setOnCompletionListener { stop() }
+                setOnCompletionListener { 
+                    pause()
+                    seekTo(0)
+                }
             }
             if (!isPlaying) {
                 start()
@@ -61,8 +70,14 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
 
     override fun pause(cachedMusic: Any) = (cachedMusic as MediaPlayer).pause()
 
-    // TODO: Stream cannot be restarted after stop
-    override fun stop(cachedMusic: Any) = (cachedMusic as MediaPlayer).stop()
+    override fun stop(cachedMusic: Any) = (cachedMusic as MediaPlayer).run {
+        pause()
+        seekTo(0)
+    }
+
+    override fun setVolume(cachedMusic: Any, leftVolume: Float, rightVolume: Float) {
+        (cachedMusic as MediaPlayer).setVolume(leftVolume, rightVolume)
+    }
 
     override fun dispose(cachedMusic: Any) {
         stop(cachedMusic)

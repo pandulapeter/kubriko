@@ -25,6 +25,10 @@ sealed class MusicManager(
     instanceNameForLogging = instanceNameForLogging,
     classNameForLogging = "MusicManager",
 ) {
+    /**
+     * method that clear the audio cache without disposing the music manager
+     */
+    abstract fun unloadAll()
 
     abstract fun getLoadingProgress(uri: String): Flow<Float>
 
@@ -36,13 +40,19 @@ sealed class MusicManager(
 
     abstract fun isPlaying(uri: String): Boolean
 
-    abstract fun play(uri: String, shouldLoop: Boolean = true)
+    abstract fun play(uri: String, shouldLoop: Boolean = true, shouldRestart: Boolean = false)
 
     abstract fun pause(uri: String)
 
     abstract fun stop(uri: String)
 
     abstract fun unload(uri: String)
+
+    abstract fun setVolume(uri: String, leftVolume: Float, rightVolume: Float)
+
+    abstract fun setDefaultVolume(leftVolume: Float, rightVolume: Float)
+
+    abstract fun getVolume(uri: String): Pair<Float, Float>
 
     companion object {
         fun newInstance(

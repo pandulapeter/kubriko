@@ -37,6 +37,8 @@ internal class MusicManagerImpl(
     private val cache = MutableStateFlow(persistentMapOf<String, Any?>())
     private var musicPlayer: MusicPlayer? = null
     private val stateManager by manager<StateManager>()
+    private val volumeConfig = MutableStateFlow(persistentMapOf<String, Pair<Float, Float>>())
+    private var defaultVolume: Pair<Float, Float> = Pair(1.0f, 1.0f)
 
     @OptIn(FlowPreview::class)
     @Composable
@@ -95,21 +97,27 @@ internal class MusicManagerImpl(
         cache.update { it.put(uri, music) }
     }
 
-    override fun play(uri: String, shouldLoop: Boolean) {
+    override fun play(uri: String, shouldLoop: Boolean, shouldRestart: Boolean) {
         musicPlayer?.let { musicPlayer ->
-            if (!isPlaying(uri)) {
+            if (shouldRestart || !isPlaying(uri)) {
                 val cachedSound = cache.value[uri]
                 scope.launch {
                     if (cachedSound == null) {
                         musicPlayer.preload(uri)?.let { music ->
                             addToCache(uri, music)
-                            if (stateManager.isFocused.value && !isPlaying(uri)) {
-                                musicPlayer.play(music, shouldLoop)
+                            if (stateManager.isFocused.value) {
+                                // Apply volume configuration before playing
+                                val volume = getVolume(uri)
+                                musicPlayer.setVolume(music, volume.first, volume.second)
+                                musicPlayer.play(music, shouldLoop, shouldRestart)
                             }
                         }
                     } else {
-                        if (stateManager.isFocused.value && !isPlaying(uri)) {
-                            musicPlayer.play(cachedSound, shouldLoop)
+                        if (stateManager.isFocused.value) {
+                            // Apply volume configuration before playing
+                            val volume = getVolume(uri)
+                            musicPlayer.setVolume(cachedSound, volume.first, volume.second)
+                            musicPlayer.play(cachedSound, shouldLoop, shouldRestart)
                         }
                     }
                 }
@@ -136,6 +144,38 @@ internal class MusicManagerImpl(
             cache.value[uri]?.let { music -> musicPlayer?.dispose(music) }
             cache.update { it.remove(uri) }
         }
+    }
+
+    /**
+     * unload all data currently in cache
+     */
+    override fun unloadAll() {
+        val curCache= cache.value
+        for(c in curCache) {
+            unload(c.key)
+        }
+        cache.update { persistentMapOf() }
+    }
+
+
+    override fun setVolume(uri: String, leftVolume: Float, rightVolume: Float) {
+        // Store the volume configuration for this URI
+        volumeConfig.update { it.put(uri, Pair(leftVolume, rightVolume)) }
+        
+        // If the sound is currently playing, apply volume immediately
+        cache.value[uri]?.let { music ->
+            if (isPlaying(uri)) {
+                musicPlayer?.setVolume(music, leftVolume, rightVolume)
+            }
+        }
+    }
+
+    override fun setDefaultVolume(leftVolume: Float, rightVolume: Float) {
+        defaultVolume = Pair(leftVolume, rightVolume)
+    }
+
+    override fun getVolume(uri: String): Pair<Float, Float> {
+        return volumeConfig.value[uri] ?: defaultVolume
     }
 
     override fun onDispose() {
