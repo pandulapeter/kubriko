@@ -75,7 +75,7 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
         cachedMusic as AVAudioPlayer
         // Overall volume as average of left and right
         val volume = (leftVolume + rightVolume) / 2f
-        cachedMusic.setVolume(volume.toDouble())
+        cachedMusic.setVolume(volume)
         
         // Pan: -1.0 (left) to 1.0 (right)
         // Calculate pan from the balance between left and right volumes
@@ -84,7 +84,7 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
         } else {
             0f
         }
-        cachedMusic.setPan(pan.toDouble())
+        cachedMusic.setPan(pan)
     }
 
     override fun dispose(cachedMusic: Any) = stop(cachedMusic)
