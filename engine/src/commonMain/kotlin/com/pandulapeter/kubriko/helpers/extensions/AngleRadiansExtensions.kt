@@ -14,7 +14,7 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-val AngleRadians.deg get() = (normalized * (180f / PI).toFloat()).deg
+val AngleRadians.deg get() = (raw * (180f / PI).toFloat()).deg
 
 val AngleRadians.sin get() = sin(normalized)
 
