@@ -20,7 +20,7 @@ import kotlin.math.PI
  * Use the [normalized] property to always get a value between 0 and 2π.
  */
 @JvmInline
-value class AngleRadians internal constructor(private val raw: Float) : Comparable<AngleRadians> {
+value class AngleRadians internal constructor(val raw: Float) : Comparable<AngleRadians> {
     val normalized: Float
         get() = (raw % TwoPi.raw + TwoPi.raw) % TwoPi.raw
 
