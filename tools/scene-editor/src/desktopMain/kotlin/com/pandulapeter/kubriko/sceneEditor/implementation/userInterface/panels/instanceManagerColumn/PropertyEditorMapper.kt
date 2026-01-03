@@ -108,7 +108,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                         name = name,
                         value = (getter.call(actor) as AngleDegrees).rad,
                         onValueChanged = {
-                            setter.call(actor, it.deg)
+                            setter.call(actor, it.deg.normalized)
                             notifySelectedInstanceUpdate()
                         },
                         angleEditorMode = angleEditorMode,
