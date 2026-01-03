@@ -150,7 +150,10 @@ internal class ActorManagerImpl(
     }
 
     private fun flattenActors(actors: List<Actor>): List<Actor> = actors.flatMap { actor ->
-        if (actor is Group) flattenActors(actor.actors.filterNot { it === actor }) + actor
+        if (actor is Group) buildList {
+            add(actor)
+            addAll(flattenActors(actor.actors.filterNot { it === actor }))
+        }
         else listOf(actor)
     }
 
@@ -170,7 +173,7 @@ internal class ActorManagerImpl(
 
     override fun remove(vararg actors: Actor) {
         if (actors.isNotEmpty()) {
-            val flattenedActors = flattenActors(actors.toList())
+            val flattenedActors = flattenActors(actors.toList()).asReversed()
             _allActors.update { currentActors ->
                 currentActors.filterNot { it in flattenedActors }.toImmutableList()
             }
