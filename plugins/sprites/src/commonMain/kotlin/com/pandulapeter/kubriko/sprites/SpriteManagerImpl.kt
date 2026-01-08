@@ -17,17 +17,9 @@ import com.pandulapeter.kubriko.sprites.helpers.toSpriteResource
 import com.pandulapeter.kubriko.sprites.implementation.toImageBitmap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentMap
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.DensityQualifier
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.InternalResourceApi
-import org.jetbrains.compose.resources.getDrawableResourceBytes
-import org.jetbrains.compose.resources.getSystemResourceEnvironment
+import org.jetbrains.compose.resources.*
 
 internal class SpriteManagerImpl(
     isLoggingEnabled: Boolean,
@@ -35,10 +27,8 @@ internal class SpriteManagerImpl(
 ) : SpriteManager(isLoggingEnabled, instanceNameForLogging) {
     private val cache = MutableStateFlow(persistentMapOf<SpriteResource, ImageBitmap?>())
 
-    override fun getLoadingProgress(drawableResources: Collection<DrawableResource>) = if (drawableResources.isEmpty()) flowOf(1f) else cache.map { cache ->
-        val spriteResources = drawableResources.map { drawableResource -> drawableResource.toSpriteResource() }
-        cache.filter { (key, _) -> key in spriteResources }.count { (_, value) -> value != null }.toFloat() / drawableResources.size
-    }
+    override fun getLoadingProgress(drawableResources: Collection<DrawableResource>) = if (drawableResources.isEmpty()) flowOf(1f) else
+        getSpriteLoadingProgress(drawableResources.map { drawableResource -> drawableResource.toSpriteResource() })
 
     override fun preload(vararg drawableResources: DrawableResource) = preload(drawableResources.toList())
 
@@ -46,15 +36,33 @@ internal class SpriteManagerImpl(
         drawableResources.forEach { drawableResource -> get(drawableResource) }
     }
 
-    override fun get(drawableResource: DrawableResource): ImageBitmap? {
-        val spriteResource = drawableResource.toSpriteResource()
-        if (!cache.value.containsKey(spriteResource)) {
-            cache.update { it.put(spriteResource, null) }
-        }
-        return cache.value[spriteResource]
+    override fun get(drawableResource: DrawableResource): ImageBitmap? =
+        get(drawableResource.toSpriteResource())
+
+    override fun unload(drawableResource: DrawableResource) = unload(drawableResource.toSpriteResource())
+
+    override fun getSpriteLoadingProgress(resources: Collection<SpriteResource>): Flow<Float> = if (resources.isEmpty()) flowOf(1f) else cache.map { cache ->
+        cache.filter { (key, _) -> key in resources }.count { (_, value) -> value != null }.toFloat() / resources.size
     }
 
-    override fun unload(drawableResource: DrawableResource) = cache.update { it.remove(drawableResource.toSpriteResource()) }
+    override fun preloadSprites(vararg resources: SpriteResource) {
+        preloadSprites(resources.toList())
+    }
+
+    override fun preloadSprites(resources: Collection<SpriteResource>) {
+        resources.forEach { get(it) }
+    }
+
+    override fun get(resource: SpriteResource): ImageBitmap? {
+        if (!cache.value.containsKey(resource)) {
+            cache.update { it.put(resource, null) }
+        }
+        return cache.value[resource]
+    }
+
+    override fun unload(resource: SpriteResource) {
+        cache.update { it.remove(resource) }
+    }
 
     @Composable
     override fun Composable(windowInsets: WindowInsets) {

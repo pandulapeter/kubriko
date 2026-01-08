@@ -16,6 +16,19 @@ import org.jetbrains.compose.resources.DrawableResource
 
 /**
  * TODO: Documentation
+ *
+ * The first time get is called for a resource it is registered, but it won't be loaded until the SpriteManager Composable
+ * has been invoked. This means that the first get() will return null unless the resource was previously registered with
+ * a preload() call. So if you require the size of the sprite to be known when, eg, adding an actor, ensure that the
+ * asset has been preloaded. If you're only accessing it in draw() then preloading is less necessary.
+ *
+ * To load a resource with a rotation, eg if your asset points upwards but your game's coordinates system points to the right,
+ * you can use the SpriteResource data class and associated SpriteManager functions.
+ *
+ * Each Rotation of a resource is handled separately when getting, preloading and unloading sprites.
+ *
+ * DrawableResource parameters are functionally the same as SpriteResource parameters created with Rotation.NONE for all
+ * function calls, and can be used interchangeably.
  */
 sealed class SpriteManager(
     isLoggingEnabled: Boolean,
@@ -35,6 +48,16 @@ sealed class SpriteManager(
     abstract fun get(drawableResource: DrawableResource): ImageBitmap?
 
     abstract fun unload(drawableResource: DrawableResource)
+
+    abstract fun getSpriteLoadingProgress(resources: Collection<SpriteResource>): Flow<Float>
+
+    abstract fun preloadSprites(vararg resources: SpriteResource)
+
+    abstract fun preloadSprites(resources: Collection<SpriteResource>)
+
+    abstract fun get(resource: SpriteResource): ImageBitmap?
+
+    abstract fun unload(resource: SpriteResource)
 
     companion object {
         fun newInstance(
