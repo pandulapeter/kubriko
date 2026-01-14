@@ -9,16 +9,10 @@
  */
 package com.pandulapeter.kubrikoShowcase
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.ComposeViewport
 import com.pandulapeter.kubriko.implementation.isRunningOnIphone
 import kotlinx.browser.document
@@ -95,50 +89,38 @@ fun main() {
                 window.removeEventListener(EVENT_TOUCH_MOVE, touchMoveHandler, true)
             }
         }
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .drawBehind {
-                    drawRect(
-                        color = Color.Transparent,
-                        size = size,
-                        blendMode = BlendMode.Clear
-                    )
-                },
-        ) {
-            KubrikoShowcase(
-                isInFullscreenMode = isInFullscreenMode.value,
-                getIsInFullscreenMode = { isInFullscreenMode.value },
-                onFullscreenModeToggled = {
-                    isInFullscreenMode.value?.let { currentValue ->
-                        isInFullscreenMode.value = !currentValue
-                        if (currentValue) {
-                            if (document.fullscreenElement != null) {
-                                document.exitFullscreen()
-                            }
-                        } else {
-                            document.documentElement?.requestFullscreen()
+        KubrikoShowcase(
+            isInFullscreenMode = isInFullscreenMode.value,
+            getIsInFullscreenMode = { isInFullscreenMode.value },
+            onFullscreenModeToggled = {
+                isInFullscreenMode.value?.let { currentValue ->
+                    isInFullscreenMode.value = !currentValue
+                    if (currentValue) {
+                        if (document.fullscreenElement != null) {
+                            document.exitFullscreen()
                         }
-                    }
-                },
-                webEscapePressEvent = webEscapePressEvent.asSharedFlow(),
-                deeplink = currentPath.value.removePrefix(rootPath),
-                onDestinationChanged = { deeplink ->
-                    val modifiedDeeplink = deeplink?.let { rootPath + deeplink }
-                    if (deeplink == null && currentPath.value.removePrefix(rootPath).isNotBlank() && initialPath == rootPath) {
-                        window.history.back()
-                    } else if (deeplink != null && currentPath.value.removePrefix(rootPath).isBlank()) {
-                        window.history.pushState(null, "", modifiedDeeplink ?: rootPath)
                     } else {
-                        window.history.replaceState(null, "", modifiedDeeplink ?: rootPath)
+                        document.documentElement?.requestFullscreen()
                     }
-                    if (document.fullscreenElement != null) {
-                        document.exitFullscreen()
-                    }
-                    window.dispatchEvent(Event(EVENT_POP_STATE))
-                },
-            )
-        }
+                }
+            },
+            webEscapePressEvent = webEscapePressEvent.asSharedFlow(),
+            deeplink = currentPath.value.removePrefix(rootPath),
+            onDestinationChanged = { deeplink ->
+                val modifiedDeeplink = deeplink?.let { rootPath + deeplink }
+                if (deeplink == null && currentPath.value.removePrefix(rootPath).isNotBlank() && initialPath == rootPath) {
+                    window.history.back()
+                } else if (deeplink != null && currentPath.value.removePrefix(rootPath).isBlank()) {
+                    window.history.pushState(null, "", modifiedDeeplink ?: rootPath)
+                } else {
+                    window.history.replaceState(null, "", modifiedDeeplink ?: rootPath)
+                }
+                if (document.fullscreenElement != null) {
+                    document.exitFullscreen()
+                }
+                window.dispatchEvent(Event(EVENT_POP_STATE))
+            },
+        )
     }
 }
 
