@@ -25,7 +25,6 @@ import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntryType
 import com.pandulapeter.kubrikoShowcase.implementation.ui.ResourceLoader
 import com.pandulapeter.kubrikoShowcase.implementation.ui.ShowcaseContent
 import com.pandulapeter.kubrikoShowcase.implementation.ui.getStateHolder
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlin.coroutines.cancellation.CancellationException
@@ -36,7 +35,6 @@ fun KubrikoShowcase(
     isInFullscreenMode: Boolean?,
     getIsInFullscreenMode: () -> Boolean?,
     onFullscreenModeToggled: () -> Unit,
-    webEscapePressEvent: Flow<Unit>? = null,
     deeplink: String? = selectedShowcaseEntry.value.deeplink,
     onDestinationChanged: (String?) -> Unit = { selectedShowcaseEntry.value = it.processDeeplink() },
 ) = KubrikoTheme(
@@ -47,19 +45,6 @@ fun KubrikoShowcase(
     }
     LaunchedEffect(selectedShowcaseEntry.value) {
         onDestinationChanged(selectedShowcaseEntry.value?.deeplink)
-    }
-    LaunchedEffect(webEscapePressEvent) {
-        webEscapePressEvent?.collect {
-            val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
-            if (activeStateHolder?.navigateBack(
-                    isInFullscreenMode = isInFullscreenMode == true,
-                    onFullscreenModeToggled = onFullscreenModeToggled,
-                ) == false
-            ) {
-                activeStateHolder.stopMusic()
-                selectedShowcaseEntry.value = null
-            }
-        }
     }
     BackHandler(selectedShowcaseEntry.value != null) {
         val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()

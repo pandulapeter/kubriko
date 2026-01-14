@@ -17,12 +17,8 @@ import androidx.compose.ui.window.ComposeViewport
 import com.pandulapeter.kubriko.implementation.isRunningOnIphone
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import org.w3c.dom.TouchEvent
 import org.w3c.dom.events.Event
-import org.w3c.dom.events.KeyboardEvent
 
 @ExperimentalWasmJsInterop
 @OptIn(ExperimentalComposeUiApi::class)
@@ -33,12 +29,6 @@ fun main() {
         }
     ) {
         val isInFullscreenMode = remember { mutableStateOf(if (window.isRunningOnIphone()) null else false) }
-        val webEscapePressEvent = remember {
-            MutableSharedFlow<Unit>(
-                extraBufferCapacity = 1,
-                onBufferOverflow = BufferOverflow.DROP_OLDEST
-            )
-        }
         val initialPath = remember { window.location.pathname.removePrefix(BuildConfig.WEB_ROOT_PATH_NAME) }
         val rootPath = remember { if (window.location.pathname == "/") "/" else "/${BuildConfig.WEB_ROOT_PATH_NAME}/" }
         val currentPath = remember { mutableStateOf(window.location.pathname) }
@@ -49,13 +39,6 @@ fun main() {
             val fullscreenListener: (Event) -> Unit = {
                 if (isInFullscreenMode.value == true) {
                     isInFullscreenMode.value = document.fullscreenElement != null
-                }
-            }
-            val keyUpListener: (Event) -> Unit = { event ->
-                (event as? KeyboardEvent)?.let { keyboardEvent ->
-                    if (keyboardEvent.code == "Escape") {
-                        webEscapePressEvent.tryEmit(Unit)
-                    }
                 }
             }
             val touchStartListener: (Event) -> Unit = { event ->
@@ -78,13 +61,11 @@ fun main() {
             }
             window.addEventListener(EVENT_POP_STATE, onPopStateEventListener)
             document.addEventListener(EVENT_FULLSCREEN_CHANGE, fullscreenListener)
-            window.addEventListener(EVENT_KEY_UP, keyUpListener)
             window.addEventListener(EVENT_TOUCH_START, touchStartListener, true)
             window.addEventListener(EVENT_TOUCH_MOVE, touchMoveHandler, true)
             onDispose {
                 window.removeEventListener(EVENT_POP_STATE, onPopStateEventListener)
                 document.removeEventListener(EVENT_FULLSCREEN_CHANGE, fullscreenListener)
-                window.removeEventListener(EVENT_KEY_UP, keyUpListener)
                 window.removeEventListener(EVENT_TOUCH_START, touchStartListener, true)
                 window.removeEventListener(EVENT_TOUCH_MOVE, touchMoveHandler, true)
             }
@@ -104,7 +85,6 @@ fun main() {
                     }
                 }
             },
-            webEscapePressEvent = webEscapePressEvent.asSharedFlow(),
             deeplink = currentPath.value.removePrefix(rootPath),
             onDestinationChanged = { deeplink ->
                 val modifiedDeeplink = deeplink?.let { rootPath + deeplink }
@@ -126,6 +106,5 @@ fun main() {
 
 private const val EVENT_POP_STATE = "popstate"
 private const val EVENT_FULLSCREEN_CHANGE = "fullscreenchange"
-private const val EVENT_KEY_UP = "keyup"
 private const val EVENT_TOUCH_START = "touchstart"
 private const val EVENT_TOUCH_MOVE = "touchmove"
