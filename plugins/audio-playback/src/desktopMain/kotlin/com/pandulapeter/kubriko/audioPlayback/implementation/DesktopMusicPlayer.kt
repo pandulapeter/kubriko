@@ -141,6 +141,8 @@ internal class DesktopMusicPlayer(
             false
         } catch (_: JavaLayerException) {
             false
+        } catch (_: ArrayIndexOutOfBoundsException) {
+            false
         }
     }
 
