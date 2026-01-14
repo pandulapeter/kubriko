@@ -1,6 +1,6 @@
 /*
  * This file is part of Kubriko.
- * Copyright (c) Pandula Péter 2025.
+ * Copyright (c) Pandula Péter 2025-2026.
  * https://github.com/pandulapeter/kubriko
  *
  * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
@@ -30,8 +30,8 @@ import com.pandulapeter.kubriko.implementation.windowState
 import com.pandulapeter.kubriko.manager.MetadataManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kubriko.app.generated.resources.Res
-import kubriko.app.generated.resources.ic_icon
+import kubriko.app.desktop.generated.resources.Res
+import kubriko.app.desktop.generated.resources.ic_icon
 import org.jetbrains.compose.resources.painterResource
 import java.awt.Dimension
 import java.awt.Point
