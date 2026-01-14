@@ -24,7 +24,6 @@ dependencies {
     implementation(projects.examples.gameAnnoyedPenguins)
     implementation(projects.examples.gameBlockysJourney)
     implementation(compose.desktop.currentOs)
-    implementation(libs.compose.backHandler)
     implementation(libs.compose.resources)
 }
 

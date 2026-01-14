@@ -12,9 +12,9 @@ package com.pandulapeter.kubrikoShowcase.implementation.ui.about
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.UriHandler
 import com.pandulapeter.kubriko.uiComponents.LargeButton
-import kubriko.app.generated.resources.Res
-import kubriko.app.generated.resources.ic_review
-import kubriko.app.generated.resources.other_about_write_a_review
+import kubriko.app.shared.generated.resources.Res
+import kubriko.app.shared.generated.resources.ic_review
+import kubriko.app.shared.generated.resources.other_about_write_a_review
 
 @Composable
 internal actual fun ReviewButton(uriHandler: UriHandler) = LargeButton(

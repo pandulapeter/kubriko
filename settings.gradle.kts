@@ -28,7 +28,7 @@ dependencyResolutionManagement {
 include(
     ":app:android",
     ":app:desktop",
-//    ":app:ios",
+    ":app:ios",
     ":app:shared",
 //    ":app:web",
     ":engine",

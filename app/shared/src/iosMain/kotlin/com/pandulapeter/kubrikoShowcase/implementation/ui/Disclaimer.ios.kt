@@ -9,8 +9,8 @@
  */
 package com.pandulapeter.kubrikoShowcase.implementation.ui
 
-import kubriko.app.generated.resources.Res
-import kubriko.app.generated.resources.welcome_disclaimer_obfuscation
+import kubriko.app.shared.generated.resources.Res
+import kubriko.app.shared.generated.resources.welcome_disclaimer_obfuscation
 import kotlin.experimental.ExperimentalNativeApi
 
 internal actual fun getWarningTexts() = buildList {
