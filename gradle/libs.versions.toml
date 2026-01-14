@@ -35,6 +35,7 @@ compose-foundation = { group = "org.jetbrains.compose.foundation", name = "found
 compose-material3 = { group = "org.jetbrains.compose.material3", name = "material3", version.ref = "compose-material3" }
 compose-resources = { group = "org.jetbrains.compose.components", name = "components-resources", version.ref = "compose-multiplatform" }
 compose-runtime = { group = "org.jetbrains.compose.runtime", name = "runtime", version.ref = "compose-multiplatform" }
+compose-ui = { group = "org.jetbrains.compose.ui", name = "ui", version.ref = "compose-multiplatform" }
 compose-lifecycle-runtime = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "compose-lifecycle" }
 google-material = { group = "com.google.android.material", name = "material", version.ref = "google-material" }
 gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "gradle" }

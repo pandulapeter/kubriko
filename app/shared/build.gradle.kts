@@ -21,6 +21,7 @@ fun buildConfigurationValue(key: String) = project.findProperty("showcase.$key")
 fun isBuildConfigurationValueEnabled(key: String) = buildConfigurationValue(key) == "true"
 
 kotlin {
+    @Suppress("UnstableApiUsage")
     androidLibrary {
         namespace = "com.pandulapeter.kubrikoShowcase"
     }
@@ -53,6 +54,7 @@ kotlin {
 buildkonfig {
     packageName = "com.pandulapeter.kubrikoShowcase"
     objectName = "BuildConfig"
+    exposeObjectWithName = "BuildConfig"
 
     fun TargetConfigDsl.buildConfigFieldStringConstant(
         name: String,

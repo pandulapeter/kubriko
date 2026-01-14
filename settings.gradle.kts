@@ -30,7 +30,7 @@ include(
     ":app:desktop",
     ":app:ios",
     ":app:shared",
-//    ":app:web",
+    ":app:web",
     ":engine",
     ":examples:demo-content-shaders",
     ":examples:demo-isometric-graphics",
