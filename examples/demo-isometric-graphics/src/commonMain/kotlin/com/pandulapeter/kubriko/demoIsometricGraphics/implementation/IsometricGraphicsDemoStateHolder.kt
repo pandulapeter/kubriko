@@ -26,21 +26,59 @@ import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.sprites.SpriteManager
 import com.pandulapeter.kubriko.types.SceneSize
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageBitmap
+import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.Json
 import kubriko.examples.demo_isometric_graphics.generated.resources.Res
+import kubriko.examples.demo_isometric_graphics.generated.resources.bounce
+import kubriko.examples.demo_isometric_graphics.generated.resources.character
+import kubriko.examples.demo_isometric_graphics.generated.resources.collapse_controls
+import kubriko.examples.demo_isometric_graphics.generated.resources.debug_bounds
 import kubriko.examples.demo_isometric_graphics.generated.resources.description
+import kubriko.examples.demo_isometric_graphics.generated.resources.environment
+import kubriko.examples.demo_isometric_graphics.generated.resources.expand_controls
+import kubriko.examples.demo_isometric_graphics.generated.resources.ic_brush
+import kubriko.examples.demo_isometric_graphics.generated.resources.movement
+import kubriko.examples.demo_isometric_graphics.generated.resources.orientation
+import kubriko.examples.demo_isometric_graphics.generated.resources.reset_camera
+import kubriko.examples.demo_isometric_graphics.generated.resources.section_world
+import kubriko.examples.demo_isometric_graphics.generated.resources.spin
+import kubriko.examples.demo_isometric_graphics.generated.resources.sprite_texture_side
+import kubriko.examples.demo_isometric_graphics.generated.resources.sprite_texture_top
+import kubriko.examples.demo_isometric_graphics.generated.resources.tile_height
+import kubriko.examples.demo_isometric_graphics.generated.resources.tile_width
 
 sealed interface IsometricGraphicsDemoStateHolder : StateHolder {
 
     companion object {
         @Composable
-        fun areResourcesLoaded() = areStringResourcesLoaded()
+        fun areResourcesLoaded() = areIconResourcesLoaded() && areImageResourcesLoaded() && areStringResourcesLoaded()
+
+        @Composable
+        private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_brush).value != null
+
+        @Composable
+        private fun areImageResourcesLoaded() = preloadedImageBitmap(Res.drawable.sprite_texture_side).value != null
+                && preloadedImageBitmap(Res.drawable.sprite_texture_top).value != null
 
         @Composable
         private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank()
+                && preloadedString(Res.string.expand_controls).value.isNotBlank()
+                && preloadedString(Res.string.collapse_controls).value.isNotBlank()
+                && preloadedString(Res.string.section_world).value.isNotBlank()
+                && preloadedString(Res.string.reset_camera).value.isNotBlank()
+                && preloadedString(Res.string.tile_width).value.isNotBlank()
+                && preloadedString(Res.string.tile_height).value.isNotBlank()
+                && preloadedString(Res.string.debug_bounds).value.isNotBlank()
+                && preloadedString(Res.string.environment).value.isNotBlank()
+                && preloadedString(Res.string.spin).value.isNotBlank()
+                && preloadedString(Res.string.bounce).value.isNotBlank()
+                && preloadedString(Res.string.character).value.isNotBlank()
+                && preloadedString(Res.string.movement).value.isNotBlank()
+                && preloadedString(Res.string.orientation).value.isNotBlank()
     }
 }
 
