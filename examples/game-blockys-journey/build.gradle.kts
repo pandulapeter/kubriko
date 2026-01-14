@@ -15,6 +15,7 @@ plugins {
 }
 
 kotlin {
+    @Suppress("UnstableApiUsage")
     androidLibrary {
         namespace = "com.pandulapeter.kubriko.gameBlockysJourney"
     }

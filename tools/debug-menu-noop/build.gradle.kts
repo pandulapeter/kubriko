@@ -19,6 +19,7 @@ artifactMetadata {
 }
 
 kotlin {
+    @Suppress("UnstableApiUsage")
     androidLibrary {
         namespace = "com.pandulapeter.kubriko.debugMenu"
     }
