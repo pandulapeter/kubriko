@@ -7,6 +7,8 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
+import com.android.build.api.dsl.androidLibrary
+
 plugins {
     id("kubriko-compose-library")
     id("kubriko-public-artifact")
@@ -17,10 +19,13 @@ artifactMetadata {
 }
 
 kotlin {
+    androidLibrary {
+        namespace = "com.pandulapeter.kubriko.engine"
+    }
     sourceSets {
         commonMain.dependencies {
-            api(compose.foundation)
-            api(compose.runtime)
+            api(libs.compose.foundation)
+            api(libs.compose.runtime)
             api(libs.kotlinx.coroutines)
             api(libs.kotlinx.immutable)
             api(projects.tools.logger)
@@ -30,8 +35,4 @@ kotlin {
             implementation(libs.apache.commonsLang)
         }
     }
-}
-
-android {
-    namespace = "com.pandulapeter.kubriko.engine"
 }

@@ -10,11 +10,12 @@
 version = project.findProperty("library.version").toString()
 
 plugins {
-    alias(libs.plugins.androidApplication) apply false
-    alias(libs.plugins.androidLibrary) apply false
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.android.multiplatformLibrary) apply false
     alias(libs.plugins.codingfeline.buildkonfig) apply false
     alias(libs.plugins.compose) apply false
     alias(libs.plugins.compose.compiler) apply false
+    alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.vanniktech.publish) apply false

@@ -9,8 +9,10 @@
  */
 package com.pandulapeter.kubriko.buildLogic.extensions
 
+import com.android.build.api.dsl.androidLibrary
 import org.gradle.api.Project
 import org.gradle.api.tasks.JavaExec
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -19,7 +21,13 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 internal fun Project.configureKotlinMultiplatform(
     extension: KotlinMultiplatformExtension
 ) = extension.apply {
-    androidTarget {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+    @Suppress("UnstableApiUsage")
+    androidLibrary {
+        compileSdk = libs.findVersion("android-compileSdk").get().toString().toInt()
+        androidResources.enable = true
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }

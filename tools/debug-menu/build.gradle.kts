@@ -7,6 +7,8 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
+import com.android.build.api.dsl.androidLibrary
+
 plugins {
     id("kubriko-compose-library")
     id("kubriko-public-artifact")
@@ -17,6 +19,9 @@ artifactMetadata {
 }
 
 kotlin {
+    androidLibrary {
+        namespace = "com.pandulapeter.kubriko.debugMenu"
+    }
     sourceSets {
         commonMain.dependencies {
             api(projects.tools.debugMenuApi)
@@ -24,13 +29,9 @@ kotlin {
             implementation(projects.plugins.persistence)
             implementation(projects.tools.logger)
             implementation(projects.tools.uiComponents)
-            implementation(compose.components.resources)
-            implementation(compose.material3)
+            implementation(libs.compose.resources)
+            implementation(libs.compose.material3)
             implementation(libs.kotlinx.datetime)
         }
     }
-}
-
-android {
-    namespace = "com.pandulapeter.kubriko.debugMenu"
 }

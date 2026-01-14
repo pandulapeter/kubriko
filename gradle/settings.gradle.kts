@@ -8,6 +8,7 @@
  * https://mozilla.org/MPL/2.0/.
  */
 dependencyResolutionManagement {
+    @Suppress("UnstableApiUsage")
     repositories {
         google()
         mavenCentral()

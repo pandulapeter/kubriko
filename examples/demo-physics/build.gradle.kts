@@ -7,12 +7,17 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
+import com.android.build.api.dsl.androidLibrary
+
 plugins {
     id("kubriko-compose-library")
     alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
+    androidLibrary {
+        namespace = "com.pandulapeter.kubriko.demoPhysics"
+    }
     sourceSets {
         commonMain.dependencies {
             api(projects.examples.shared)
@@ -22,12 +27,8 @@ kotlin {
             implementation(if (project.findProperty("showcase.isDebugMenuEnabled") == "true") projects.tools.debugMenu else projects.tools.debugMenuNoop)
             implementation(if (project.findProperty("showcase.isSceneEditorEnabled") == "true") projects.tools.sceneEditor else projects.tools.sceneEditorNoop)
             implementation(projects.tools.uiComponents)
-            implementation(compose.components.resources)
+            implementation(libs.compose.resources)
             implementation(libs.kotlinx.serialization)
         }
     }
-}
-
-android {
-    namespace = "com.pandulapeter.kubriko.demoPhysics"
 }

@@ -7,6 +7,8 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
+import com.android.build.api.dsl.androidLibrary
+
 plugins {
     id("kubriko-compose-library")
     id("kubriko-public-artifact")
@@ -17,10 +19,13 @@ artifactMetadata {
 }
 
 kotlin {
+    androidLibrary {
+        namespace = "com.pandulapeter.kubriko.sceneEditor"
+    }
     sourceSets {
         commonMain.dependencies {
             api(projects.tools.sceneEditorApi)
-            implementation(compose.components.resources)
+            implementation(libs.compose.resources)
         }
         val desktopMain by getting {
             dependencies {
@@ -35,8 +40,4 @@ kotlin {
             }
         }
     }
-}
-
-android {
-    namespace = "com.pandulapeter.kubriko.sceneEditor"
 }

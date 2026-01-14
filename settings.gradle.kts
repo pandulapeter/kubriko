@@ -1,12 +1,12 @@
 /*
- * This file is part of Kubriko.
- * Copyright (c) Pandula Péter 2025.
- * https://github.com/pandulapeter/kubriko
- *
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
- * If a copy of the MPL was not distributed with this file, You can obtain one at
- * https://mozilla.org/MPL/2.0/.
- */
+* This file is part of Kubriko.
+* Copyright (c) Pandula Péter 2025.
+* https://github.com/pandulapeter/kubriko
+*
+* This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+* If a copy of the MPL was not distributed with this file, You can obtain one at
+* https://mozilla.org/MPL/2.0/.
+*/
 rootProject.name = "Kubriko"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 pluginManagement {
@@ -18,6 +18,7 @@ pluginManagement {
     includeBuild("gradle")
 }
 dependencyResolutionManagement {
+    @Suppress("UnstableApiUsage")
     repositories {
         google()
         mavenCentral()
@@ -25,7 +26,11 @@ dependencyResolutionManagement {
     }
 }
 include(
-    ":app",
+    ":app:android",
+//    ":app:desktop",
+//    ":app:ios",
+    ":app:shared",
+//    ":app:web",
     ":engine",
     ":examples:demo-content-shaders",
     ":examples:demo-isometric-graphics",

@@ -7,18 +7,19 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
+import com.android.build.api.dsl.androidLibrary
+
 plugins {
     id("kubriko-compose-library")
 }
 
 kotlin {
+    androidLibrary {
+        namespace = "com.pandulapeter.kubriko.testCollision"
+    }
     sourceSets {
         commonMain.dependencies {
             api(projects.examples.shared)
         }
     }
-}
-
-android {
-    namespace = "com.pandulapeter.kubriko.testCollision"
 }

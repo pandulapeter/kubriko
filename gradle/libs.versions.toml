@@ -13,7 +13,8 @@ androidx-activity = "1.12.2" # https://developer.android.com/jetpack/androidx/re
 androidx-core-splashScreen = "1.2.0" # https://developer.android.com/jetpack/androidx/releases/core
 apache-commonsLang = "3.20.0" # https://github.com/apache/commons-lang/tags
 codingfeline-buildkonfig = "0.17.1" # https://github.com/yshrsmz/BuildKonfig/releases
-compose-lifecycle = "2.9.6" # https://github.com/JetBrains/compose-multiplatform/releases
+compose-lifecycle = "2.10.0-alpha06" # https://github.com/JetBrains/compose-multiplatform/releases
+compose-material3 = "1.10.0-alpha05" # https://github.com/JetBrains/compose-multiplatform/releases
 compose-multiplatform = "1.10.0" # https://github.com/JetBrains/compose-multiplatform/releases
 google-material = "1.13.0" # https://github.com/material-components/material-components-android/releases
 gradle = "8.13.2" # https://developer.android.com/build/releases/gradle-plugin
@@ -31,6 +32,10 @@ androidx-activity-compose = { group = "androidx.activity", name = "activity-comp
 androidx-core-splashScreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-core-splashScreen" }
 apache-commonsLang = { group = "org.apache.commons", name = "commons-lang3", version.ref = "apache-commonsLang" }
 compose-backHandler = { group = "org.jetbrains.compose.ui", name = "ui-backhandler", version.ref = "compose-multiplatform" }
+compose-foundation = { group = "org.jetbrains.compose.foundation", name = "foundation", version.ref = "compose-multiplatform" }
+compose-material3 = { group = "org.jetbrains.compose.material3", name = "material3", version.ref = "compose-material3" }
+compose-resources = { group = "org.jetbrains.compose.components", name = "components-resources", version.ref = "compose-multiplatform" }
+compose-runtime = { group = "org.jetbrains.compose.runtime", name = "runtime", version.ref = "compose-multiplatform" }
 compose-lifecycle-runtime = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "compose-lifecycle" }
 google-material = { group = "com.google.android.material", name = "material", version.ref = "google-material" }
 gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "gradle" }
@@ -46,11 +51,12 @@ kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-seria
 vanniktech-publish = { group = "com.vanniktech", name = "gradle-maven-publish-plugin", version.ref = "vanniktech-publish" }
 
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "gradle" }
-androidLibrary = { id = "com.android.library", version.ref = "gradle" }
+android-application = { id = "com.android.application", version.ref = "gradle" }
+android-multiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "gradle" }
 codingfeline-buildkonfig = { id = "com.codingfeline.buildkonfig", version.ref = "codingfeline-buildkonfig" }
 compose = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 vanniktech-publish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech-publish" }
