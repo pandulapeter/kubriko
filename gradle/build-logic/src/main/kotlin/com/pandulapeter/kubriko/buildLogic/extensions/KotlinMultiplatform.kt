@@ -9,13 +9,13 @@
  */
 package com.pandulapeter.kubriko.buildLogic.extensions
 
-import com.android.build.api.dsl.androidLibrary
+import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import org.gradle.api.Project
 import org.gradle.api.tasks.JavaExec
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 internal fun Project.configureKotlinMultiplatform(
@@ -24,12 +24,14 @@ internal fun Project.configureKotlinMultiplatform(
     jvmToolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
     }
-    @Suppress("UnstableApiUsage")
-    androidLibrary {
+    extension.configure<KotlinMultiplatformAndroidLibraryTarget> {
+        minSdk = libs.findVersion("android-minSdk").get().toString().toInt()
         compileSdk = libs.findVersion("android-compileSdk").get().toString().toInt()
         androidResources.enable = true
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
+        packaging {
+            resources {
+                excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            }
         }
     }
     jvm("desktop") {

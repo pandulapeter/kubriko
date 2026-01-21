@@ -7,7 +7,6 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-import com.android.build.api.dsl.androidLibrary
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type
 import com.codingfeline.buildkonfig.gradle.TargetConfigDsl
 
@@ -21,9 +20,8 @@ fun buildConfigurationValue(key: String) = project.findProperty("showcase.$key")
 fun isBuildConfigurationValueEnabled(key: String) = buildConfigurationValue(key) == "true"
 
 kotlin {
-    @Suppress("UnstableApiUsage")
     androidLibrary {
-        namespace = "com.pandulapeter.kubrikoShowcase"
+        namespace = "com.pandulapeter.kubrikoShowcase.shared"
     }
     sourceSets {
         commonMain.dependencies {

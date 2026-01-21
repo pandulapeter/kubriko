@@ -7,15 +7,12 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-import com.android.build.api.dsl.androidLibrary
-
 plugins {
     id("kubriko-compose-library")
     alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
-    @Suppress("UnstableApiUsage")
     androidLibrary {
         namespace = "com.pandulapeter.kubriko.demoPhysics"
     }

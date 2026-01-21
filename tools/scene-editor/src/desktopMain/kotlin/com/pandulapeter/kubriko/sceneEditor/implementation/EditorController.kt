@@ -165,7 +165,7 @@ internal class EditorController(
                         deselectSelectedActor()
                     }
                 } else {
-                    (actorAtPosition as? Editable<*>)?.let(::selectActor)
+                    actorAtPosition.let(::selectActor)
                 }
             }
         }

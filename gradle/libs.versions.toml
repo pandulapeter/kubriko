@@ -13,18 +13,18 @@ androidx-activity = "1.12.2" # https://developer.android.com/jetpack/androidx/re
 androidx-core-splashScreen = "1.2.0" # https://developer.android.com/jetpack/androidx/releases/core
 apache-commonsLang = "3.20.0" # https://github.com/apache/commons-lang/tags
 codingfeline-buildkonfig = "0.17.1" # https://github.com/yshrsmz/BuildKonfig/releases
-compose-lifecycle = "2.10.0-alpha06" # https://github.com/JetBrains/compose-multiplatform/releases
+compose-lifecycle = "2.10.0-alpha07" # https://github.com/JetBrains/compose-multiplatform/releases
 compose-material3 = "1.10.0-alpha05" # https://github.com/JetBrains/compose-multiplatform/releases
 compose-multiplatform = "1.10.0" # https://github.com/JetBrains/compose-multiplatform/releases
 google-material = "1.13.0" # https://github.com/material-components/material-components-android/releases
-gradle = "8.13.2" # https://developer.android.com/build/releases/gradle-plugin
+gradle = "9.0.0" # https://developer.android.com/build/releases/gradle-plugin
 jlayer = "1.0.3" # https://github.com/umjammer/jlayer/releases
 kotlin = "2.3.0" # https://github.com/JetBrains/kotlin/releases
 kotlinx-coroutines = "1.10.2" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinx-datetime = "0.7.1" # https://github.com/Kotlin/kotlinx-datetime/tags
 kotlinx-immutable = "0.4.0" # https://github.com/Kotlin/kotlinx.collections.immutable/releases
 kotlinx-serialization = "1.9.0" # https://github.com/Kotlin/kotlinx.serialization/releases
-vanniktech-publish = "0.35.0" # https://github.com/vanniktech/gradle-maven-publish-plugin/releases
+vanniktech-publish = "0.36.0" # https://github.com/vanniktech/gradle-maven-publish-plugin/releases
 
 [libraries]
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity" }
@@ -56,7 +56,6 @@ android-multiplatformLibrary = { id = "com.android.kotlin.multiplatform.library"
 codingfeline-buildkonfig = { id = "com.codingfeline.buildkonfig", version.ref = "codingfeline-buildkonfig" }
 compose = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-desktop = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
