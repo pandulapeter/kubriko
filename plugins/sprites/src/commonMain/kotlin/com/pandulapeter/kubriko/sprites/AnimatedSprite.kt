@@ -16,17 +16,28 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import com.pandulapeter.kubriko.sprites.SpriteResource.Rotation
+import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToInt
 
 class AnimatedSprite(
     private val getImageBitmap: () -> ImageBitmap?,
-    private val frameSize: IntSize,
+    frameSize: IntSize,
     val frameCount: Int,
-    private val framesPerRow: Int, // TODO: Support different orientations
+    private val framesPerRow: Int,
     private val framesPerSecond: Float = 60f,
+    private val orientation: Rotation = Rotation.NONE,
 ) {
     val isLoaded get() = getImageBitmap() != null
+    private val numberOfRows = ceil(frameCount / framesPerRow.toFloat()).toInt()
+    private val orientedFrameSize = when (orientation) {
+        Rotation.NONE,
+        Rotation.DEGREES_180 -> frameSize
+        Rotation.DEGREES_90,
+        Rotation.DEGREES_270 -> IntSize(width = frameSize.height, height = frameSize.width)
+
+    }
     private var _frameIndex = 0f
     var frameIndex
         get() = floor(_frameIndex).roundToInt()
@@ -66,18 +77,62 @@ class AnimatedSprite(
         }
     }
 
+    private fun getOrientedFramePosition(frameIndex: Int): Pair<Int, Int> = when (orientation) {
+        Rotation.NONE ->
+            frameIndex % framesPerRow to frameIndex / framesPerRow
+
+        Rotation.DEGREES_180 ->
+            framesPerRow - 1 - (frameIndex % framesPerRow) to numberOfRows - 1 - frameIndex / framesPerRow
+
+        Rotation.DEGREES_90 ->
+            numberOfRows - 1 - frameIndex / framesPerRow to frameIndex % framesPerRow
+
+        Rotation.DEGREES_270 ->
+            frameIndex / framesPerRow to framesPerRow - 1 - frameIndex % framesPerRow
+
+    }
+
+    private fun getXIndex(frameIndex: Int) = when (orientation) {
+        Rotation.NONE ->
+            frameIndex % framesPerRow
+
+        Rotation.DEGREES_180 ->
+            framesPerRow - 1 - (frameIndex % framesPerRow)
+
+        Rotation.DEGREES_90 ->
+            numberOfRows - 1 - frameIndex / framesPerRow
+
+        Rotation.DEGREES_270 ->
+            frameIndex / framesPerRow
+    }
+
+    private fun getYIndex(frameIndex: Int) = when (orientation) {
+        Rotation.NONE ->
+            frameIndex / framesPerRow
+
+        Rotation.DEGREES_180 ->
+            numberOfRows - 1 - frameIndex / framesPerRow
+
+        Rotation.DEGREES_90 ->
+            frameIndex % framesPerRow
+
+        Rotation.DEGREES_270 ->
+            framesPerRow - 1 - frameIndex % framesPerRow
+    }
+
     fun draw(
         scope: DrawScope,
         colorFilter: ColorFilter? = null,
     ) {
-        frameIndex.also { imageIndex ->
-            getImageBitmap()?.let {
-                val x = imageIndex % framesPerRow
-                val y = imageIndex / framesPerRow
+        getImageBitmap()?.let {
+            frameIndex.also { index ->
                 scope.drawImage(
                     image = it,
-                    srcOffset = IntOffset(frameSize.width * x, frameSize.height * y),
-                    srcSize = frameSize,
+                    srcOffset = IntOffset(
+                        orientedFrameSize.width * getXIndex(index),
+                        orientedFrameSize.height * getYIndex(index)
+                    ),
+                    srcSize = orientedFrameSize,
                     colorFilter = colorFilter,
                 )
             }
@@ -88,14 +143,15 @@ class AnimatedSprite(
         canvas: Canvas,
         paint: Paint,
     ) {
-        frameIndex.also { imageIndex ->
-            getImageBitmap()?.let {
-                val x = imageIndex % framesPerRow
-                val y = imageIndex / framesPerRow
+        getImageBitmap()?.let {
+            frameIndex.also { index ->
                 canvas.drawImageRect(
                     image = it,
-                    srcOffset = IntOffset(frameSize.width * x, frameSize.height * y),
-                    srcSize = frameSize,
+                    srcOffset = IntOffset(
+                        orientedFrameSize.width * getXIndex(index),
+                        orientedFrameSize.height * getYIndex(index)
+                    ),
+                    srcSize = orientedFrameSize,
                     paint = paint,
                 )
             }
