@@ -11,28 +11,61 @@ package com.pandulapeter.kubriko.sprites.implementation
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import com.pandulapeter.kubriko.sprites.SpriteResource
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.Paint
 import org.jetbrains.skia.Rect
 import org.jetbrains.skia.SamplingMode
 import org.jetbrains.skia.Surface
 
-internal actual fun ByteArray.toImageBitmap(resourceDensity: Int, targetDensity: Int): ImageBitmap {
+internal actual fun ByteArray.toImageBitmap(resourceDensity: Int, targetDensity: Int, rotation: SpriteResource.Rotation): ImageBitmap {
     val image = Image.makeFromEncoded(this)
-    val targetImage: Image
-    if (resourceDensity > targetDensity) {
-        val scale = targetDensity.toFloat() / resourceDensity.toFloat()
-        val targetH = image.height * scale
-        val targetW = image.width * scale
-        val srcRect = Rect.Companion.makeWH(image.width.toFloat(), image.height.toFloat())
-        val dstRect = Rect.Companion.makeWH(targetW, targetH)
-        targetImage = Surface.makeRasterN32Premul(targetW.toInt(), targetH.toInt()).run {
-            val paint = Paint().apply { isAntiAlias = true }
-            canvas.drawImageRect(image, srcRect, dstRect, SamplingMode.LINEAR, paint, true)
-            makeImageSnapshot()
-        }
+
+    if (resourceDensity == targetDensity && rotation == SpriteResource.Rotation.NONE) return image.toComposeImageBitmap()
+
+    //https://youtrack.jetbrains.com/issue/CMP-5657
+    //android only downscales drawables. If there is only low dpi resource then use it as is (not upscale)
+    //we need a consistent behavior on all platforms
+    val scale = if (resourceDensity > targetDensity) {
+        targetDensity.toFloat() / resourceDensity.toFloat()
     } else {
-        targetImage = image
+        1f
     }
-    return targetImage.toComposeImageBitmap()
+    val targetH = image.height * scale
+    val targetW = image.width * scale
+
+    val canvasH = when (rotation) {
+        SpriteResource.Rotation.NONE,
+        SpriteResource.Rotation.DEGREES_180 -> targetH
+        SpriteResource.Rotation.DEGREES_90,
+        SpriteResource.Rotation.DEGREES_270 -> targetW
+    }
+    val canvasW = when (rotation) {
+        SpriteResource.Rotation.NONE,
+        SpriteResource.Rotation.DEGREES_180 -> targetW
+        SpriteResource.Rotation.DEGREES_90,
+        SpriteResource.Rotation.DEGREES_270 -> targetH
+    }
+
+    val srcRect = Rect.makeWH(image.width.toFloat(), image.height.toFloat())
+    val dstRect = when (rotation) {
+        SpriteResource.Rotation.NONE -> Rect.makeWH(targetW, targetH)
+        SpriteResource.Rotation.DEGREES_90 -> Rect.makeXYWH(0f, -targetH,targetW, targetH)
+        SpriteResource.Rotation.DEGREES_180 -> Rect.makeXYWH(-targetW, -targetH,targetW, targetH)
+        SpriteResource.Rotation.DEGREES_270 -> Rect.makeXYWH(-targetW, 0f,targetW, targetH)
+    }
+
+    return Surface.makeRasterN32Premul(canvasW.toInt(), canvasH.toInt()).run {
+        canvas.apply {
+            when (rotation) {
+                SpriteResource.Rotation.NONE -> Unit
+                SpriteResource.Rotation.DEGREES_90 -> rotate(90f)
+                SpriteResource.Rotation.DEGREES_180 -> rotate(-180f)
+                SpriteResource.Rotation.DEGREES_270 -> rotate(-90f)
+            }
+            val paint = Paint().apply { isAntiAlias = true }
+            drawImageRect(image, srcRect, dstRect, SamplingMode.LINEAR, paint, true)
+        }
+        makeImageSnapshot()
+    }.toComposeImageBitmap()
 }

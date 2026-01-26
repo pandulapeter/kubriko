@@ -10,5 +10,6 @@
 package com.pandulapeter.kubriko.sprites.implementation
 
 import androidx.compose.ui.graphics.ImageBitmap
+import com.pandulapeter.kubriko.sprites.SpriteResource
 
-internal expect fun ByteArray.toImageBitmap(resourceDensity: Int, targetDensity: Int): ImageBitmap
+internal expect fun ByteArray.toImageBitmap(resourceDensity: Int, targetDensity: Int, rotation: SpriteResource.Rotation): ImageBitmap
