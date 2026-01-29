@@ -9,11 +9,15 @@
  */
 package com.pandulapeter.kubriko.sprites
 
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.DrawScope.Companion.DefaultBlendMode
+import androidx.compose.ui.graphics.drawscope.DrawScope.Companion.DefaultFilterQuality
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.sprites.SpriteResource.Rotation
@@ -34,6 +38,7 @@ class AnimatedSprite(
     private val orientedFrameSize = when (orientation) {
         Rotation.NONE,
         Rotation.DEGREES_180 -> frameSize
+
         Rotation.DEGREES_90,
         Rotation.DEGREES_270 -> IntSize(width = frameSize.height, height = frameSize.width)
 
@@ -123,6 +128,8 @@ class AnimatedSprite(
     fun draw(
         scope: DrawScope,
         colorFilter: ColorFilter? = null,
+        blendMode: BlendMode = DefaultBlendMode,
+        filterQuality: FilterQuality = DefaultFilterQuality,
     ) {
         getImageBitmap()?.let {
             frameIndex.also { index ->
@@ -134,6 +141,8 @@ class AnimatedSprite(
                     ),
                     srcSize = orientedFrameSize,
                     colorFilter = colorFilter,
+                    blendMode = blendMode,
+                    filterQuality = filterQuality,
                 )
             }
         }
