@@ -122,6 +122,17 @@ fun SceneOffset.toOffset(
     y = y.raw * viewportScaleFactor.vertical,
 )
 
+fun SceneOffset.rotateAround(center: SceneOffset, radians: AngleRadians): SceneOffset {
+    val cosA = radians.cos
+    val sinA = radians.sin
+    val dx = x - center.x
+    val dy = y - center.y
+    return SceneOffset(
+        x = center.x + dx * cosA - dy * sinA,
+        y = center.y + dx * sinA + dy * cosA
+    )
+}
+
 fun lerp(
     start: SceneOffset,
     stop: SceneOffset,
