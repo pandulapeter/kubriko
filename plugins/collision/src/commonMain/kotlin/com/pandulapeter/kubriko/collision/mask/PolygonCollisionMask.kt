@@ -24,7 +24,6 @@ import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
-import kotlin.math.atan2
 
 
 open class PolygonCollisionMask internal constructor(
@@ -63,44 +62,46 @@ open class PolygonCollisionMask internal constructor(
         face.normal().normalized().unaryMinus()
     }
 
-    private fun generateConvexHull(vertices: List<SceneOffset>): List<SceneOffset> {
-        if (vertices.size < 3) return vertices // Convex hull is not defined for fewer than 3 points
+    private fun cross(o: SceneOffset, a: SceneOffset, b: SceneOffset) = (a.x - o.x).raw * (b.y - o.y).raw - (a.y - o.y).raw * (b.x - o.x).raw
 
-        // Step 1: Find the leftmost point (lowest x, then lowest y)
-        var pivot = vertices[0]
-        for (vertex in vertices) {
-            if (vertex.x < pivot.x || (vertex.x == pivot.x && vertex.y < pivot.y)) {
-                pivot = vertex
+    private fun generateConvexHull(points: List<SceneOffset>): List<SceneOffset> {
+        if (points.size <= 1) return points
+
+        val sorted = points.sortedWith(compareBy<SceneOffset> { it.x }.thenBy { it.y })
+
+        // Build lower hull
+        val lower = mutableListOf<SceneOffset>()
+        for (p in sorted) {
+            while (
+                lower.size >= 2 &&
+                cross(lower[lower.size - 2], lower.last(), p) <= 0f
+            ) {
+                lower.removeAt(lower.lastIndex)
             }
+            lower.add(p)
         }
 
-        // Step 2: Sort the points based on polar angle relative to the pivot
-        val sortedVertices = vertices
-            .filter { it != pivot } // Remove the pivot from the list
-            .sortedBy { atan2((it.y - pivot.y).raw.toDouble(), (it.x - pivot.x).raw.toDouble()) }
-
-        // Step 3: Add the pivot to the sorted list
-        val sortedPoints = listOf(pivot) + sortedVertices
-
-        // Step 4: Construct the convex hull using a stack
-        val hull = mutableListOf<SceneOffset>()
-        for (point in sortedPoints) {
-            while (hull.size >= 2 && crossProduct(hull[hull.size - 2], hull[hull.size - 1], point) <= 0) {
-                hull.removeAt(hull.size - 1) // Remove the last point from the hull if it's a clockwise turn
+        // Build upper hull
+        val upper = mutableListOf<SceneOffset>()
+        for (p in sorted.asReversed()) {
+            while (
+                upper.size >= 2 &&
+                cross(upper[upper.size - 2], upper.last(), p) <= 0f
+            ) {
+                upper.removeAt(upper.lastIndex)
             }
-            hull.add(point)
+            upper.add(p)
         }
 
-        // Step 5: Return the center-aligned convex hull
-        return hull.center.let { centerPoint ->
-            hull.map {
-                it - centerPoint
-            }
-        }
-    }
+        // Remove duplicate endpoints
+        lower.removeAt(lower.lastIndex)
+        upper.removeAt(upper.lastIndex)
 
-    private fun crossProduct(o: SceneOffset, a: SceneOffset, b: SceneOffset): Float {
-        return ((a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)).raw
+        val hull = lower + upper
+
+        // Center the hull around its centroid
+        val center = hull.center
+        return hull.map { it - center }
     }
 
     override fun isSceneOffsetInside(sceneOffset: SceneOffset): Boolean {
