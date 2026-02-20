@@ -50,6 +50,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlin.reflect.KClass
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -159,16 +160,31 @@ internal class ActorManagerImpl(
 
     @OptIn(ExperimentalUuidApi::class)
     override fun add(vararg actors: Actor) {
-        if (actors.isNotEmpty()) {
-            val newActors = flattenActors(actors.toList())
-            _allActors.update { currentActors ->
-                val uniqueNewActorTypes = newActors.filterIsInstance<Unique>().map { it::class }.toSet()
-                val filteredCurrentActors = currentActors.filterNot { it::class in uniqueNewActorTypes }
-                newActors.filterIsInstance<Identifiable>().onEach { if (it.name == null) it.name = Uuid.random().toString() }
-                newActors.forEach { it.onAdded(scope as Kubriko) } // TODO: Calling onAdded() before the Actors are actually added
-                (filteredCurrentActors + newActors).toImmutableList()
+        if (actors.isEmpty()) return
+        val flattened = flattenActors(actors.asList())
+        val latestUniqueByClass = LinkedHashMap<KClass<out Actor>, Actor>()
+        val nonUnique = ArrayList<Actor>(flattened.size)
+        for (a in flattened) {
+            if (a is Unique) {
+                latestUniqueByClass[a::class] = a // overwrites -> "latest wins"
+            } else {
+                nonUnique.add(a)
             }
         }
+        val newActors = ArrayList<Actor>(nonUnique.size + latestUniqueByClass.size).apply {
+            addAll(nonUnique)
+            addAll(latestUniqueByClass.values)
+        }
+        for (a in newActors) {
+            if (a is Identifiable && a.name == null) a.name = Uuid.random().toString()
+        }
+        val uniqueTypesToReplace = latestUniqueByClass.keys
+        _allActors.update { current ->
+            val filteredCurrent = if (uniqueTypesToReplace.isEmpty()) current
+            else current.filterNot { it::class in uniqueTypesToReplace }
+            (filteredCurrent + newActors).toImmutableList()
+        }
+        newActors.forEach { it.onAdded(scope as Kubriko) }
     }
 
     override fun add(actors: Collection<Actor>) = add(actors = actors.toTypedArray())
