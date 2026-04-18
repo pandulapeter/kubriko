@@ -12,7 +12,7 @@ plugins {
 }
 
 kotlin {
-    androidLibrary {
+    android {
         namespace = "com.pandulapeter.kubriko.shared"
     }
     sourceSets {

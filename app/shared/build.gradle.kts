@@ -20,7 +20,7 @@ fun buildConfigurationValue(key: String) = project.findProperty("showcase.$key")
 fun isBuildConfigurationValueEnabled(key: String) = buildConfigurationValue(key) == "true"
 
 kotlin {
-    androidLibrary {
+    android {
         namespace = "com.pandulapeter.kubrikoShowcase.shared"
     }
     sourceSets {

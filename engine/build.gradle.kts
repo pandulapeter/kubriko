@@ -17,7 +17,7 @@ artifactMetadata {
 }
 
 kotlin {
-    androidLibrary {
+    android {
         namespace = "com.pandulapeter.kubriko.engine"
     }
     sourceSets {
