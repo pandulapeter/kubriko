@@ -45,7 +45,7 @@ sealed class ActorManager(
             initialActors: List<Actor> = emptyList(),
             shouldUpdateActorsWhileNotRunning: Boolean = false,
             shouldPutFarAwayActorsToSleep: Boolean = true,
-            invisibleActorMinimumRefreshTimeInMillis: Long = 100,
+            invisibleActorMinimumRefreshTimeInMillis: Long = 0,
             isLoggingEnabled: Boolean = false,
             instanceNameForLogging: String? = null,
         ): ActorManager = ActorManagerImpl(

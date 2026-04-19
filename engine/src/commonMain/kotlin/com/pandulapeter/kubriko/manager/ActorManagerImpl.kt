@@ -17,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.withTransform
 import com.pandulapeter.kubriko.Kubriko
@@ -38,27 +37,31 @@ import com.pandulapeter.kubriko.helpers.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.helpers.extensions.minus
 import com.pandulapeter.kubriko.helpers.extensions.transformForViewport
 import com.pandulapeter.kubriko.helpers.extensions.transformViewport
-import com.pandulapeter.kubriko.types.Scale
-import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlin.reflect.KClass
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
+@OptIn(FlowPreview::class)
 internal class ActorManagerImpl(
     initialActors: List<Actor>,
     private val shouldUpdateActorsWhileNotRunning: Boolean,
     private val shouldPutFarAwayActorsToSleep: Boolean,
-    private val invisibleActorMinimumRefreshTimeInMillis: Long, // TODO: Feels hacky
+    private val invisibleActorMinimumRefreshTimeInMillis: Long,
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
 ) : ActorManager(isLoggingEnabled, instanceNameForLogging) {
@@ -68,6 +71,7 @@ internal class ActorManagerImpl(
     private val _allActors = MutableStateFlow<ImmutableList<Actor>>(initialActors.toPersistentList())
     override val allActors = _allActors.asStateFlow()
     private lateinit var kubrikoImpl: KubrikoImpl
+
     private val layerIndices by autoInitializingLazy {
         _allActors.map { actors -> actors.filterIsInstance<LayerAware>().groupBy { it.layerIndex }.keys.sortedBy { it }.toImmutableList() }
             .asStateFlow(persistentListOf())
@@ -82,14 +86,17 @@ internal class ActorManagerImpl(
         _allActors.map { actors -> actors.filterIsInstance<Overlay>().toImmutableList() }
             .asStateFlow(persistentListOf())
     }
+
     override val visibleActorsWithinViewport by lazy {
         combine(
-            metadataManager.activeRuntimeInMilliseconds.distinctUntilChangedWithDelay(invisibleActorMinimumRefreshTimeInMillis),
-            visibleActors,
-            viewportManager.size,
-            viewportManager.cameraPosition,
-            viewportManager.scaleFactor,
-        ) { _, allVisibleActors, viewportSize, viewportCenter, scaleFactor ->
+            visibleActors.debounce(8L),
+            metadataManager.activeRuntimeInMilliseconds
+                .distinctUntilChangedWithDelay(invisibleActorMinimumRefreshTimeInMillis)
+                .onStart { emit(-1L) } // Forces initial evaluation even if paused
+        ) { allVisibleActors, _ ->
+            val viewportSize = viewportManager.size.value
+            val viewportCenter = viewportManager.cameraPosition.value
+            val scaleFactor = viewportManager.scaleFactor.value
             val scaledHalfViewportSize = SceneSize(viewportSize / (scaleFactor * 2))
             allVisibleActors
                 .filter {
@@ -100,40 +107,44 @@ internal class ActorManagerImpl(
                     )
                 }
                 .toImmutableList()
-        }.asStateFlow(persistentListOf())
+        }
+            .flowOn(Dispatchers.Default) // Execute the heavy spatial math on a background CPU thread
+            .asStateFlow(persistentListOf())
     }
+
     override val activeDynamicActors by lazy {
-        if (shouldPutFarAwayActorsToSleep) combine(
-            dynamicActors,
-            viewportManager.size,
-            viewportManager.cameraPosition,
-            viewportManager.topLeft,
-            viewportManager.bottomRight,
-            viewportManager.scaleFactor,
-        ) {
-            @Suppress("UNCHECKED_CAST")
-            val allDynamicActors = it[0] as ImmutableList<Dynamic>
-            val viewportSize = it[1] as Size
-            val viewportCenter = it[2] as SceneOffset
-            val viewportTopLeft = it[3] as SceneOffset
-            val viewportBottomRight = it[4] as SceneOffset
-            val scaleFactor = it[5] as Scale
-            val edgeBuffer = minOf(viewportBottomRight.x - viewportTopLeft.x, viewportBottomRight.y - viewportTopLeft.y) / 2
-            val scaledHalfViewportSize = SceneSize(viewportSize / (scaleFactor * 2))
-            allDynamicActors
-                .filter { actor ->
-                    if (!actor.isAlwaysActive && actor is Positionable) {
-                        actor.body.axisAlignedBoundingBox.isWithinViewportBounds(
-                            scaledHalfViewportSize = scaledHalfViewportSize,
-                            viewportCenter = viewportCenter,
-                            viewportEdgeBuffer = edgeBuffer,
-                        )
-                    } else {
-                        true
+        if (shouldPutFarAwayActorsToSleep) {
+            combine(
+                dynamicActors.debounce(8),
+                metadataManager.activeRuntimeInMilliseconds
+                    .distinctUntilChangedWithDelay(invisibleActorMinimumRefreshTimeInMillis)
+                    .onStart { emit(-1L) }
+            ) { allDynamicActors, _ ->
+                val viewportSize = viewportManager.size.value
+                val viewportCenter = viewportManager.cameraPosition.value
+                val viewportTopLeft = viewportManager.topLeft.value
+                val viewportBottomRight = viewportManager.bottomRight.value
+                val scaleFactor = viewportManager.scaleFactor.value
+                val edgeBuffer = minOf(viewportBottomRight.x - viewportTopLeft.x, viewportBottomRight.y - viewportTopLeft.y) / 2
+                val scaledHalfViewportSize = SceneSize(viewportSize / (scaleFactor * 2))
+
+                allDynamicActors
+                    .filter { actor ->
+                        if (!actor.isAlwaysActive && actor is Positionable) {
+                            actor.body.axisAlignedBoundingBox.isWithinViewportBounds(
+                                scaledHalfViewportSize = scaledHalfViewportSize,
+                                viewportCenter = viewportCenter,
+                                viewportEdgeBuffer = edgeBuffer,
+                            )
+                        } else {
+                            true
+                        }
                     }
-                }
-                .toImmutableList()
-        }.asStateFlow(persistentListOf()) else dynamicActors
+                    .toImmutableList()
+            }
+                .flowOn(Dispatchers.Default)
+                .asStateFlow(persistentListOf())
+        } else dynamicActors
     }
 
     override fun onInitialize(kubriko: Kubriko) {
@@ -150,12 +161,23 @@ internal class ActorManagerImpl(
         }
     }
 
-    private fun flattenActors(actors: List<Actor>): List<Actor> = actors.flatMap { actor ->
-        if (actor is Group) buildList {
-            add(actor)
-            addAll(flattenActors(actor.actors.filterNot { it === actor }))
+    private fun flattenActors(initialActors: List<Actor>): List<Actor> {
+        val result = ArrayList<Actor>()
+        val queue = ArrayDeque(initialActors)
+
+        while (queue.isNotEmpty()) {
+            val current = queue.removeFirst()
+            result.add(current)
+
+            if (current is Group) {
+                for (child in current.actors) {
+                    if (child !== current) {
+                        queue.addLast(child)
+                    }
+                }
+            }
         }
-        else listOf(actor)
+        return result
     }
 
     @OptIn(ExperimentalUuidApi::class)
@@ -229,7 +251,7 @@ internal class ActorManagerImpl(
     private fun Layer(
         gameTime: Long,
         layerIndex: Int?,
-    ) = viewportManager.cameraPosition.value.let { viewportCenter ->
+    ) {
         Canvas(
             modifier = if (layerIndex == null) {
                 Modifier.fillMaxSize().clipToBounds()
@@ -239,19 +261,28 @@ internal class ActorManagerImpl(
                 }
             },
             onDraw = {
-                @Suppress("UNUSED_EXPRESSION") gameTime  // This line invalidates the Canvas, causing a refresh on every frame
+                @Suppress("UNUSED_EXPRESSION") gameTime  // Invalidates the Canvas, causing a refresh on every frame
+                val viewportCenter = viewportManager.cameraPosition.value
+                val viewportSize = viewportManager.size.value
+                val scaleFactor = viewportManager.scaleFactor.value
                 withTransform(
                     transformBlock = {
                         transformViewport(
                             viewportCenter = viewportCenter,
-                            shiftedViewportOffset = (viewportManager.size.value / 2f) - viewportCenter,
-                            viewportScaleFactor = viewportManager.scaleFactor.value,
+                            shiftedViewportOffset = (viewportSize / 2f) - viewportCenter,
+                            viewportScaleFactor = scaleFactor,
                         )
                     },
                     drawBlock = {
                         visibleActorsWithinViewport.value
                             .filter { it.isVisible && it.layerIndex == layerIndex }
-                            .sortedByDescending { it.drawingOrder }
+                            .sortedWith { a, b ->
+                                val orderA = a.drawingOrder
+                                val orderB = b.drawingOrder
+                                if (orderA.isNaN()) return@sortedWith 1
+                                if (orderB.isNaN()) return@sortedWith -1
+                                compareValues(orderB as Comparable<*>, orderA as Comparable<*>)
+                            }
                             .forEach { visible ->
                                 withTransform(
                                     transformBlock = { visible.body.transformForViewport(this) },
@@ -263,9 +294,7 @@ internal class ActorManagerImpl(
                                                     top = 0f,
                                                     right = body.size.width.raw,
                                                     bottom = body.size.height.raw,
-                                                ) {
-                                                    draw()
-                                                }
+                                                ) { draw() }
                                             } else {
                                                 draw()
                                             }
@@ -276,14 +305,21 @@ internal class ActorManagerImpl(
                     }
                 )
                 overlayActors.value
-                    .filter { it.layerIndex == layerIndex }
-                    .sortedByDescending { it.overlayDrawingOrder }
-                    .forEach { with(it) { drawToViewport() } }
+                    .sortedWith { a, b ->
+                        val orderA = a.overlayDrawingOrder
+                        val orderB = b.overlayDrawingOrder
+
+                        if (orderA.isNaN()) return@sortedWith 1
+                        if (orderB.isNaN()) return@sortedWith -1
+
+                        compareValues(orderB as Comparable<*>, orderA as Comparable<*>)
+                    }
+                    .forEach { overlay ->
+                        if (overlay.layerIndex == layerIndex) {
+                            with(overlay) { drawToViewport() }
+                        }
+                    }
             }
         )
-    }
-
-    override fun onDispose() {
-        _allActors.value = persistentListOf()
     }
 }
