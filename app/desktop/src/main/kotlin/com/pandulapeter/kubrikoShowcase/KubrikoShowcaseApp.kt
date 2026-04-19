@@ -109,19 +109,19 @@ fun main() {
             )
         }
         AnnoyedPenguinsGameSceneEditor(
-            defaultSceneFolderPath = "../examples/game-annoyed-penguins/src/commonMain/composeResources/files/scenes"
+            defaultSceneFolderPath = "../../examples/game-annoyed-penguins/src/commonMain/composeResources/files/scenes"
         )
         BlockysJourneyGameSceneEditor(
-            defaultSceneFolderPath = "../examples/game-blockys-journey/src/commonMain/composeResources/files/scenes"
+            defaultSceneFolderPath = "../../examples/game-blockys-journey/src/commonMain/composeResources/files/scenes"
         )
         IsometricGraphicsDemoSceneEditor(
-            defaultSceneFolderPath = "../examples/demo-isometric-graphics/src/commonMain/composeResources/files/scenes"
+            defaultSceneFolderPath = "../../examples/demo-isometric-graphics/src/commonMain/composeResources/files/scenes"
         )
         PerformanceDemoSceneEditor(
-            defaultSceneFolderPath = "../examples/demo-performance/src/commonMain/composeResources/files/scenes"
+            defaultSceneFolderPath = "../../examples/demo-performance/src/commonMain/composeResources/files/scenes"
         )
         PhysicsDemoSceneEditor(
-            defaultSceneFolderPath = "../examples/demo-physics/src/commonMain/composeResources/files/scenes"
+            defaultSceneFolderPath = "../../examples/demo-physics/src/commonMain/composeResources/files/scenes"
         )
 
         if (isRunningOnWindows) {

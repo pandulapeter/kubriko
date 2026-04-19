@@ -308,10 +308,8 @@ internal class ActorManagerImpl(
                     .sortedWith { a, b ->
                         val orderA = a.overlayDrawingOrder
                         val orderB = b.overlayDrawingOrder
-
                         if (orderA.isNaN()) return@sortedWith 1
                         if (orderB.isNaN()) return@sortedWith -1
-
                         compareValues(orderB as Comparable<*>, orderA as Comparable<*>)
                     }
                     .forEach { overlay ->
