@@ -80,11 +80,13 @@ internal class SpriteManagerImpl(
 
     @OptIn(InternalResourceApi::class, ExperimentalResourceApi::class)
     private suspend fun loadImage(spriteResource: SpriteResource): ImageBitmap? = try {
-        getDrawableResourceBytes(getSystemResourceEnvironment(), spriteResource.drawableResource).toImageBitmap(DensityQualifier.MDPI.dpi, DensityQualifier.MDPI.dpi, spriteResource.rotation)
+        getDrawableResourceBytes(getSystemResourceEnvironment(), spriteResource.drawableResource).toImageBitmap(
+            DensityQualifier.MDPI.dpi,
+            DensityQualifier.MDPI.dpi,
+            spriteResource.rotation
+        )
     } catch (e: Exception) {
         e.printStackTrace()
         null
     }
-
-    override fun onDispose() = cache.update { persistentMapOf() }
 }

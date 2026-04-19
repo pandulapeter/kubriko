@@ -150,8 +150,8 @@ internal class MusicManagerImpl(
      * unload all data currently in cache
      */
     override fun unloadAll() {
-        val curCache= cache.value
-        for(c in curCache) {
+        val curCache = cache.value
+        for (c in curCache) {
             unload(c.key)
         }
         cache.update { persistentMapOf() }
@@ -161,7 +161,7 @@ internal class MusicManagerImpl(
     override fun setVolume(uri: String, leftVolume: Float, rightVolume: Float) {
         // Store the volume configuration for this URI
         volumeConfig.update { it.put(uri, Pair(leftVolume, rightVolume)) }
-        
+
         // If the sound is currently playing, apply volume immediately
         cache.value[uri]?.let { music ->
             if (isPlaying(uri)) {
@@ -181,6 +181,5 @@ internal class MusicManagerImpl(
     override fun onDispose() {
         musicPlayer?.onManagerDisposed(cache.value)
         musicPlayer = null
-        cache.update { persistentMapOf() }
     }
 }

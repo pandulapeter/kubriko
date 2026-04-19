@@ -73,6 +73,4 @@ internal class ParticleManagerImpl(
             }
         }
     }
-
-    override fun onDispose() = cache.values.forEach { it.clear() }
 }

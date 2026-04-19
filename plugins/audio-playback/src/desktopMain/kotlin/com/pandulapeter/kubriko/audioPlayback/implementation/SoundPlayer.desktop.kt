@@ -10,7 +10,10 @@
 package com.pandulapeter.kubriko.audioPlayback.implementation
 
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
@@ -18,6 +21,7 @@ import java.io.FileInputStream
 import java.net.URI
 import javax.sound.sampled.AudioSystem
 
+@OptIn(DelicateCoroutinesApi::class)
 @Composable
 internal actual fun createSoundPlayer(
     maximumSimultaneousStreamsOfTheSameSound: Int,
@@ -59,7 +63,7 @@ internal actual fun createSoundPlayer(
             inputStream.close()
 
             cachedSound
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -72,13 +76,16 @@ internal actual fun createSoundPlayer(
     }
 
     override fun dispose(cachedSound: Any) {
-        val sound = cachedSound as CachedSound
-        cachedSounds.remove(sound.uri)
-        sound.dispose()
+        GlobalScope.launch(Dispatchers.IO) {
+            val sound = cachedSound as CachedSound
+            cachedSounds.remove(sound.uri)
+            sound.dispose()
+        }
     }
 
     override fun dispose() {
-        cachedSounds.values.forEach { it.dispose() }
-        cachedSounds.clear()
+        GlobalScope.launch(Dispatchers.IO) {
+            cachedSounds.clear()
+        }
     }
 }

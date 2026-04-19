@@ -87,6 +87,5 @@ internal class PersistenceManagerImpl(
 
     override fun onDispose() {
         keyValuePersistenceManager = null
-        stateFlowMap.clear()
     }
 }

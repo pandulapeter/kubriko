@@ -16,6 +16,7 @@ import com.pandulapeter.kubriko.audioPlayback.implementation.createSoundPlayer
 import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.manager.StateManager
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
@@ -102,12 +103,12 @@ internal class SoundManagerImpl(
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onDispose() {
         soundPlayer?.let { soundPlayer ->
             cache.value.values.filterNotNull().forEach { sound -> soundPlayer.dispose(sound) }
             soundPlayer.dispose()
         }
-        cache.update { persistentMapOf() }
         soundPlayer = null
     }
 }
