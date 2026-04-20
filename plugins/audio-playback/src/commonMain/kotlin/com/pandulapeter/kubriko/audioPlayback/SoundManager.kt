@@ -20,6 +20,9 @@ import kotlinx.coroutines.flow.Flow
  *
  * Note: Only WAV files are supported. To ensure compatibility with older Android versions,
  * keep the bitrate at a maximum of 48k.
+ *
+ * @param isLoggingEnabled Whether to enable logging for this manager.
+ * @param instanceNameForLogging Optional name to use for this instance in log messages.
  */
 sealed class SoundManager(
     isLoggingEnabled: Boolean,

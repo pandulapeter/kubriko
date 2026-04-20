@@ -16,6 +16,11 @@ import androidx.compose.ui.graphics.drawscope.DrawStyle
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.types.SceneOffset
 
+/**
+ * A collision mask representing a single point in the scene.
+ *
+ * @param initialPosition The initial position of the point in scene units.
+ */
 open class PointCollisionMask internal constructor(
     initialPosition: SceneOffset,
 ) : CollisionMask {

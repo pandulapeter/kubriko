@@ -12,7 +12,9 @@ package com.pandulapeter.kubriko.particles
 import com.pandulapeter.kubriko.manager.Manager
 
 /**
- * TODO: Documentation
+ * Manager responsible for handling particle systems.
+ *
+ * It manages the lifecycle and rendering of particles.
  */
 sealed class ParticleManager(
     isLoggingEnabled: Boolean,
@@ -24,6 +26,13 @@ sealed class ParticleManager(
 ) {
 
     companion object {
+        /**
+         * Creates a new [ParticleManager] instance.
+         *
+         * @param cacheSize The maximum number of particles that can be active at once.
+         * @param isLoggingEnabled Whether to enable logging for this manager.
+         * @param instanceNameForLogging Optional name for logging purposes.
+         */
         fun newInstance(
             cacheSize: Int = 1000,
             isLoggingEnabled: Boolean = false,

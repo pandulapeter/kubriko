@@ -15,20 +15,15 @@ import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.DrawableResource
 
 /**
- * TODO: Documentation
+ * Manager responsible for loading and caching sprite images.
  *
- * The first time get is called for a resource it is registered, but it won't be loaded until the SpriteManager Composable
- * has been invoked. This means that the first get() will return null unless the resource was previously registered with
- * a preload() call. So if you require the size of the sprite to be known when, eg, adding an actor, ensure that the
- * asset has been preloaded. If you're only accessing it in draw() then preloading is less necessary.
+ * It handles the loading of [DrawableResource]s and [SpriteResource]s into [ImageBitmap]s.
  *
- * To load a resource with a rotation, eg if your asset points upwards but your game's coordinates system points to the right,
- * you can use the SpriteResource data class and associated SpriteManager functions.
+ * The first time a resource is requested, it is registered for loading.
+ * To ensure a sprite is available immediately, use the [preload] or [preloadSprites] functions.
  *
- * Each Rotation of a resource is handled separately when getting, preloading and unloading sprites.
- *
- * DrawableResource parameters are functionally the same as SpriteResource parameters created with Rotation.NONE for all
- * function calls, and can be used interchangeably.
+ * @param isLoggingEnabled Whether to enable logging for this manager.
+ * @param instanceNameForLogging Optional name for logging purposes.
  */
 sealed class SpriteManager(
     isLoggingEnabled: Boolean,
@@ -39,27 +34,65 @@ sealed class SpriteManager(
     classNameForLogging = "SpriteManager",
 ) {
 
+    /**
+     * Returns a [Flow] representing the cumulative loading progress of the specified [drawableResources].
+     */
     abstract fun getLoadingProgress(drawableResources: Collection<DrawableResource>): Flow<Float>
 
+    /**
+     * Preloads the specified [drawableResources] into memory.
+     */
     abstract fun preload(vararg drawableResources: DrawableResource)
 
+    /**
+     * Preloads the specified [drawableResources] into memory.
+     */
     abstract fun preload(drawableResources: Collection<DrawableResource>)
 
+    /**
+     * Retrieves the [ImageBitmap] for the given [drawableResource].
+     * Returns null if the resource is not yet loaded.
+     */
     abstract fun get(drawableResource: DrawableResource): ImageBitmap?
 
+    /**
+     * Unloads the specified [drawableResource] from memory.
+     */
     abstract fun unload(drawableResource: DrawableResource)
 
+    /**
+     * Returns a [Flow] representing the cumulative loading progress of the specified sprite [resources].
+     */
     abstract fun getSpriteLoadingProgress(resources: Collection<SpriteResource>): Flow<Float>
 
+    /**
+     * Preloads the specified sprite [resources] into memory.
+     */
     abstract fun preloadSprites(vararg resources: SpriteResource)
 
+    /**
+     * Preloads the specified sprite [resources] into memory.
+     */
     abstract fun preloadSprites(resources: Collection<SpriteResource>)
 
+    /**
+     * Retrieves the [ImageBitmap] for the given sprite [resource].
+     * Returns null if the resource is not yet loaded.
+     */
     abstract fun get(resource: SpriteResource): ImageBitmap?
 
+    /**
+     * Unloads the specified sprite [resource] from memory.
+     */
     abstract fun unload(resource: SpriteResource)
 
     companion object {
+        /**
+         * Creates a new [SpriteManager] instance.
+         *
+         * @param isLoggingEnabled Whether to enable logging for this manager.
+         * @param instanceNameForLogging Optional name for logging purposes.
+         */
         fun newInstance(
             isLoggingEnabled: Boolean = false,
             instanceNameForLogging: String? = null,

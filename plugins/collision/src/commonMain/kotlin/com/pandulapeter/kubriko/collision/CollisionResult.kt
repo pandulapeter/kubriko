@@ -12,6 +12,13 @@ package com.pandulapeter.kubriko.collision
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
+/**
+ * Contains details about a collision between two [Collidable] objects.
+ *
+ * @property contact The point in scene units where the collision occurred.
+ * @property contactNormal The direction of the collision from the first object towards the second.
+ * @property penetration The depth of the overlap between the two objects.
+ */
 class CollisionResult internal constructor(
     val contact: SceneOffset,
     val contactNormal: SceneOffset,

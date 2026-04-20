@@ -12,8 +12,15 @@ package com.pandulapeter.kubriko.collision
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.collision.mask.CollisionMask
 
-//TODO: Documentation
+/**
+ * A trait for actors that can collide with other actors.
+ *
+ * Implementing this interface allows the actor to be processed by the [CollisionManager].
+ */
 interface Collidable : Positionable {
 
+    /**
+     * The shape used for collision detection.
+     */
     val collisionMask: CollisionMask
 }

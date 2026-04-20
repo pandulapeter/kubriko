@@ -13,9 +13,10 @@ import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.manager.Manager
 
 /**
- * TODO: Documentation
+ * Manager responsible for handling keyboard input.
+ *
+ * It tracks the state of all keys on the keyboard.
  */
-// TODO: Introduce a custom type instead of relying on Key
 sealed class KeyboardInputManager(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
@@ -25,9 +26,18 @@ sealed class KeyboardInputManager(
     classNameForLogging = "KeyboardInputManager",
 ) {
 
+    /**
+     * Returns true if the specified [key] is currently pressed.
+     */
     abstract fun isKeyPressed(key: Key): Boolean
 
     companion object {
+        /**
+         * Creates a new [KeyboardInputManager] instance.
+         *
+         * @param isLoggingEnabled Whether to enable logging for this manager.
+         * @param instanceNameForLogging Optional name for logging purposes.
+         */
         fun newInstance(
             isLoggingEnabled: Boolean = false,
             instanceNameForLogging: String? = null,

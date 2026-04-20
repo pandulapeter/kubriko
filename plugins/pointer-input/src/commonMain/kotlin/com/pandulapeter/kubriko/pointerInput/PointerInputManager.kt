@@ -16,7 +16,9 @@ import kotlinx.collections.immutable.PersistentMap
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * TODO: Documentation
+ * Manager responsible for handling pointer input (touch, mouse, etc.).
+ *
+ * It tracks the positions of all pressed and hovering pointers.
  */
 sealed class PointerInputManager(
     isLoggingEnabled: Boolean,
@@ -26,13 +28,33 @@ sealed class PointerInputManager(
     instanceNameForLogging = instanceNameForLogging,
     classNameForLogging = "PointerInputManager",
 ) {
+    /**
+     * Map of currently pressed pointer IDs to their positions in screen pixels.
+     */
     abstract val pressedPointerPositions: StateFlow<PersistentMap<PointerId, Offset>>
+
+    /**
+     * The position of the hovering pointer in screen pixels, if any.
+     */
     abstract val hoveringPointerPosition: StateFlow<Offset?>
 
-    // TODO: Only works on Desktop. On macOS it requires accessibility permission
+    /**
+     * Attempts to move the hovering pointer to the specified [offset].
+     *
+     * Note: This only works on Desktop and might require special permissions.
+     *
+     * @return True if the pointer was moved, false otherwise.
+     */
     abstract fun tryToMoveHoveringPointer(offset: Offset) : Boolean
 
     companion object {
+        /**
+         * Creates a new [PointerInputManager] instance.
+         *
+         * @param isActiveAboveViewport Whether the manager should receive input even when the pointer is outside the viewport.
+         * @param isLoggingEnabled Whether to enable logging for this manager.
+         * @param instanceNameForLogging Optional name for logging purposes.
+         */
         fun newInstance(
             isActiveAboveViewport: Boolean = false,
             isLoggingEnabled: Boolean = false,

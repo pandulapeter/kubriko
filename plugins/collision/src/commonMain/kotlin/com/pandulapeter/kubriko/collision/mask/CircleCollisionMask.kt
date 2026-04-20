@@ -20,6 +20,14 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
 
+/**
+ * A circular collision mask.
+ *
+ * @param initialPosition The center position of the circle in scene units.
+ * @param initialRadius The radius of the circle in scene units.
+ *
+ * @property radius The radius of the circle in scene units.
+ */
 class CircleCollisionMask(
     initialPosition: SceneOffset = SceneOffset.Zero,
     initialRadius: SceneUnit = SceneUnit.Zero,

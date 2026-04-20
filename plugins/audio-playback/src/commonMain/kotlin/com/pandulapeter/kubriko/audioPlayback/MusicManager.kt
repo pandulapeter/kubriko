@@ -19,6 +19,9 @@ import kotlinx.coroutines.flow.Flow
  * Audio files are identified using Uri. Use the Compose Resources library to provide Uri-s: Res.getUri("file_location"),
  *
  * Note: MP3 files at upd 320 kbps are recommended. Use other formats at your own risk.
+ *
+ * @param isLoggingEnabled Whether to enable logging for this manager.
+ * @param instanceNameForLogging Optional name to use for this instance in log messages.
  */
 sealed class MusicManager(
     isLoggingEnabled: Boolean,

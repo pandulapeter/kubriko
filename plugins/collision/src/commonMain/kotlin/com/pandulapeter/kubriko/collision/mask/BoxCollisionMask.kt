@@ -14,6 +14,13 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
 
+/**
+ * A rectangular collision mask.
+ *
+ * @param initialPosition The center position of the box in scene units.
+ * @param initialSize The width and height of the box in scene units.
+ * @param initialRotation The rotation of the box in radians.
+ */
 class BoxCollisionMask(
     initialPosition: SceneOffset = SceneOffset.Zero,
     initialSize: SceneSize = SceneSize.Zero,

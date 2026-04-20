@@ -12,7 +12,7 @@ package com.pandulapeter.kubriko.shaders
 import com.pandulapeter.kubriko.manager.Manager
 
 /**
- * TODO: Documentation
+ * Manager responsible for handling custom shaders.
  */
 sealed class ShaderManager(
     isLoggingEnabled: Boolean,
@@ -22,9 +22,18 @@ sealed class ShaderManager(
     instanceNameForLogging = instanceNameForLogging,
     classNameForLogging = "ShaderManager",
 ) {
+    /**
+     * Whether custom shaders are supported on the current platform.
+     */
     abstract val areShadersSupported: Boolean
 
     companion object {
+        /**
+         * Creates a new [ShaderManager] instance.
+         *
+         * @param isLoggingEnabled Whether to enable logging for this manager.
+         * @param instanceNameForLogging Optional name for logging purposes.
+         */
         fun newInstance(
             isLoggingEnabled: Boolean = false,
             instanceNameForLogging: String? = null,

@@ -11,10 +11,23 @@ package com.pandulapeter.kubriko.collision
 
 import kotlin.reflect.KClass
 
-//TODO: Documentation
+/**
+ * A specialized [Collidable] that can react to collisions with other collidable actors.
+ *
+ * Actors implementing this trait will receive callbacks when they overlap with other [Collidable]s
+ * that match the specified [collidableTypes].
+ */
 interface CollisionDetector : Collidable {
 
+    /**
+     * The types of [Collidable] actors that this detector should listen for.
+     */
     val collidableTypes: List<KClass<out Collidable>>
 
+    /**
+     * Called when a collision is detected between this object and one or more other [Collidable]s.
+     *
+     * @param collidables The list of objects that were found to be colliding with this detector.
+     */
     fun onCollisionDetected(collidables: List<Collidable>)
 }

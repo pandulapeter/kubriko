@@ -12,7 +12,9 @@ package com.pandulapeter.kubriko.collision
 import com.pandulapeter.kubriko.manager.Manager
 
 /**
- * TODO: Documentation
+ * Manager responsible for handling collision detection between [Collidable] actors.
+ *
+ * [CollisionDetector] instances receive callbacks about overlaps.
  */
 sealed class CollisionManager(
     isLoggingEnabled: Boolean,
@@ -24,6 +26,12 @@ sealed class CollisionManager(
 ) {
 
     companion object {
+        /**
+         * Creates a new [CollisionManager] instance.
+         *
+         * @param isLoggingEnabled Whether to enable logging for this manager.
+         * @param instanceNameForLogging Optional name to use for this instance in log messages.
+         */
         fun newInstance(
             isLoggingEnabled: Boolean = false,
             instanceNameForLogging: String? = null,

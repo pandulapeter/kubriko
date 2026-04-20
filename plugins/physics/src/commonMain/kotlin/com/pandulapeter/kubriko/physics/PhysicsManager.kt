@@ -15,7 +15,7 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
- * TODO: Documentation
+ * Manager responsible for simulating physics for [Physical] actors.
  */
 sealed class PhysicsManager(
     isLoggingEnabled: Boolean,
@@ -25,10 +25,26 @@ sealed class PhysicsManager(
     instanceNameForLogging = instanceNameForLogging,
     classNameForLogging = "PhysicsManager",
 ) {
+    /**
+     * The gravity vector applied to all physical objects.
+     */
     abstract val gravity: MutableStateFlow<SceneOffset>
+
+    /**
+     * The speed multiplier for the physics simulation.
+     */
     abstract val simulationSpeed: MutableStateFlow<Float>
 
     companion object {
+        /**
+         * Creates a new [PhysicsManager] instance.
+         *
+         * @param initialGravity The starting gravity vector.
+         * @param initialSimulationSpeed The starting simulation speed multiplier.
+         * @param penetrationCorrection A factor to help resolve overlapping physical objects.
+         * @param isLoggingEnabled Whether to enable logging for this manager.
+         * @param instanceNameForLogging Optional name for logging purposes.
+         */
         fun newInstance(
             initialGravity: SceneOffset = SceneOffset(0f.sceneUnit, 9.81f.sceneUnit),
             initialSimulationSpeed: Float = 1f,

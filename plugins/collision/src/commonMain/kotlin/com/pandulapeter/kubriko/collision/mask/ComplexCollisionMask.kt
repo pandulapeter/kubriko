@@ -12,9 +12,18 @@ package com.pandulapeter.kubriko.collision.mask
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
+/**
+ * A collision mask that has a size and can check if a point is inside it.
+ */
 sealed interface ComplexCollisionMask : CollisionMask {
 
+    /**
+     * The size of the mask in scene units.
+     */
     val size: SceneSize
 
+    /**
+     * Checks if the given [sceneOffset] is inside the mask.
+     */
     fun isSceneOffsetInside(sceneOffset: SceneOffset): Boolean
 }

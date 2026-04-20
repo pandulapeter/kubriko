@@ -15,10 +15,26 @@ import androidx.compose.ui.graphics.drawscope.DrawStyle
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.types.SceneOffset
 
+/**
+ * Represents a shape used for collision detection.
+ */
 sealed interface CollisionMask {
 
+    /**
+     * The smallest axis-aligned box that fully encloses this shape.
+     */
     val axisAlignedBoundingBox: AxisAlignedBoundingBox
+
+    /**
+     * The center position of this collision mask in scene units.
+     */
     var position: SceneOffset
 
+    /**
+     * Draws the shape for debugging purposes.
+     *
+     * @param color The color to use for the debug visualization.
+     * @param style The drawing style (e.g., stroke or fill).
+     */
     fun DrawScope.drawDebugBounds(color: Color, style: DrawStyle)
 }

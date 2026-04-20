@@ -105,6 +105,9 @@ sealed class MetadataManager(
     companion object {
         /**
          * Creates a new [MetadataManager] instance.
+         *
+         * @param isLoggingEnabled Whether to enable logging for this manager.
+         * @param instanceNameForLogging Optional name to use for this instance in log messages.
          */
         fun newInstance(
             isLoggingEnabled: Boolean = false,

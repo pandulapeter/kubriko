@@ -26,6 +26,18 @@ import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
 
 
+/**
+ * A collision mask representing a convex polygon.
+ *
+ * The vertices are automatically processed into a convex hull.
+ *
+ * @param unprocessedVertices The initial list of vertices to form the polygon.
+ * @param initialPosition The center position of the mask in scene units.
+ * @param initialRotation The initial rotation of the polygon in radians.
+ *
+ * @property vertices The list of vertices relative to the center of the mask.
+ * @property rotation The rotation of the polygon in radians.
+ */
 open class PolygonCollisionMask internal constructor(
     unprocessedVertices: List<SceneOffset> = emptyList(),
     initialPosition: SceneOffset = SceneOffset.Zero,

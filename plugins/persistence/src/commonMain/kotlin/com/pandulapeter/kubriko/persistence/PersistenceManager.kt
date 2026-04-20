@@ -13,7 +13,10 @@ import com.pandulapeter.kubriko.manager.Manager
 import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
- * TODO: Documentation
+ * Manager responsible for persisting game data.
+ *
+ * It provides [MutableStateFlow]s for different data types that are automatically
+ * synchronized with local storage.
  */
 sealed class PersistenceManager(
     isLoggingEnabled: Boolean,
@@ -24,26 +27,41 @@ sealed class PersistenceManager(
     classNameForLogging = "PersistenceManager",
 ) {
 
+    /**
+     * Returns a [MutableStateFlow] for a boolean value.
+     */
     abstract fun boolean(
         key: String,
         defaultValue: Boolean = false,
     ): MutableStateFlow<Boolean>
 
+    /**
+     * Returns a [MutableStateFlow] for an integer value.
+     */
     abstract fun int(
         key: String,
         defaultValue: Int = 0,
     ): MutableStateFlow<Int>
 
+    /**
+     * Returns a [MutableStateFlow] for a float value.
+     */
     abstract fun float(
         key: String,
         defaultValue: Float = 0f,
     ): MutableStateFlow<Float>
 
+    /**
+     * Returns a [MutableStateFlow] for a string value.
+     */
     abstract fun string(
         key: String,
         defaultValue: String = "",
     ): MutableStateFlow<String>
 
+    /**
+     * Returns a [MutableStateFlow] for a generic value that can be serialized to a string.
+     */
     abstract fun <T> generic(
         key: String,
         defaultValue: T,
@@ -52,6 +70,13 @@ sealed class PersistenceManager(
     ): MutableStateFlow<T>
 
     companion object {
+        /**
+         * Creates a new [PersistenceManager] instance.
+         *
+         * @param fileName The name of the storage file.
+         * @param isLoggingEnabled Whether to enable logging for this manager.
+         * @param instanceNameForLogging Optional name for logging purposes.
+         */
         fun newInstance(
             fileName: String = "kubrikoPreferences",
             isLoggingEnabled: Boolean = false,
