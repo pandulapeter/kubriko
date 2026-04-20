@@ -15,14 +15,12 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoImpl
 import com.pandulapeter.kubriko.helpers.extensions.div
 import com.pandulapeter.kubriko.helpers.extensions.toSceneOffset
+import com.pandulapeter.kubriko.implementation.SyncStateFlow
 import com.pandulapeter.kubriko.types.FrameRate
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
-import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
-import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
@@ -118,18 +116,4 @@ internal class ViewportManagerImpl(
     }
 
     fun updateSize(size: Size) = _size.update { size }
-
-    /**
-     * A custom StateFlow wrapper that intercepts `.value` reads to calculate them synchronously.
-     * This prevents 1-frame asynchronous lag when the engine reads combined viewport bounds.
-     */
-    @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
-    class SyncStateFlow<T>(
-        private val delegate: StateFlow<T>,
-        private val getSyncValue: () -> T
-    ) : StateFlow<T> {
-        override val replayCache: List<T> get() = delegate.replayCache
-        override suspend fun collect(collector: FlowCollector<T>): Nothing = delegate.collect(collector)
-        override val value: T get() = getSyncValue()
-    }
 }

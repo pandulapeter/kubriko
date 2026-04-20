@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.manager
 
+import com.pandulapeter.kubriko.implementation.SyncStateFlow
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -22,11 +23,19 @@ internal class StateManagerImpl(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
 ) : StateManager(isLoggingEnabled, instanceNameForLogging) {
+
     private val _isFocused = MutableStateFlow(true)
-    override val isFocused by autoInitializingLazy { _isFocused.debounce(focusDebounce).asStateFlow(true) }
+    override val isFocused by autoInitializingLazy {
+        _isFocused.debounce(focusDebounce).asStateFlow(true)
+    }
     private val _isRunning = MutableStateFlow(false)
     override val isRunning by autoInitializingLazy {
-        combine(isFocused, _isRunning) { isFocused, isRunning -> isFocused && isRunning }.asStateFlow(false)
+        val combinedFlow = combine(isFocused, _isRunning) { focused, running ->
+            focused && running
+        }.asStateFlow(false)
+        SyncStateFlow(combinedFlow) {
+            isFocused.value && _isRunning.value
+        }
     }
 
     fun updateFocus(isFocused: Boolean) = _isFocused.update { isFocused }
