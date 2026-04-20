@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubriko
 
-import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ActorManagerImpl
@@ -31,34 +30,37 @@ internal class KubrikoImpl(
     override var isLoggingEnabled: Boolean,
     private val instanceNameForLogging: String?,
 ) : Kubriko, CoroutineScope {
+
     override val instanceName = instanceNameForLogging ?: toString().substringAfterLast('@')
     override val coroutineContext = SupervisorJob() + Dispatchers.Default
-    val managers = manager.toSet()
-        .addIfNeeded {
-            ActorManager.newInstance(
+    val managers: List<Manager> = buildList {
+        addAll(manager.distinctBy { it::class })
+        if (none { it is ActorManager }) add(
+            0, ActorManager.newInstance(
                 isLoggingEnabled = isLoggingEnabled,
                 instanceNameForLogging = instanceNameForLogging,
             )
-        }
-        .addIfNeeded {
-            MetadataManager.newInstance(
+        )
+        if (none { it is MetadataManager }) add(
+            0, MetadataManager.newInstance(
                 isLoggingEnabled = isLoggingEnabled,
                 instanceNameForLogging = instanceNameForLogging,
             )
-        }
-        .addIfNeeded {
-            StateManager.newInstance(
+        )
+        if (none { it is StateManager }) add(
+            0, StateManager.newInstance(
                 isLoggingEnabled = isLoggingEnabled,
                 instanceNameForLogging = instanceNameForLogging,
             )
-        }
-        .addIfNeeded {
-            ViewportManager.newInstance(
+        )
+        if (none { it is ViewportManager }) add(
+            0, ViewportManager.newInstance(
                 isLoggingEnabled = isLoggingEnabled,
                 instanceNameForLogging = instanceNameForLogging,
             )
-        }
-        .distinctBy { it::class }
+        )
+    }
+    private val managerCache = mutableMapOf<KClass<out Manager>, Manager>()
     val actorManager = requireAndVerify<ActorManager, ActorManagerImpl>("ActorManager")
     val metadataManager = requireAndVerify<MetadataManager, MetadataManagerImpl>("MetadataManager")
     val stateManager = requireAndVerify<StateManager, StateManagerImpl>("StateManager")
@@ -78,8 +80,12 @@ internal class KubrikoImpl(
     }
 
     private var isInitialized = false
+    private var isDisposed = false
 
     internal fun initialize() {
+        if (isDisposed) {
+            throw IllegalStateException("Cannot initialize a disposed Kubriko instance. Create a new instance instead.")
+        }
         if (!isInitialized) {
             log("Initializing Manager instances...")
             managers.forEach { it.initializeInternal(this) }
@@ -91,22 +97,33 @@ internal class KubrikoImpl(
         }
     }
 
-    private inline fun <reified T : Manager> Collection<Manager>.addIfNeeded(creator: () -> T) =
-        if (none { T::class.isInstance(it) }) toMutableList().apply { add(0, creator()) } else this
+    @Suppress("UNCHECKED_CAST")
+    private inline fun <reified T : Manager, TI : T> requireAndVerify(name: String): TI {
+        return get(T::class) as? TI
+            ?: throw IllegalStateException("Custom implementations of the $name interface are not supported. Use $name.newInstance() to instantiate $name.")
+    }
 
     @Suppress("UNCHECKED_CAST")
-    private inline fun <reified T : Manager, TI : T> requireAndVerify(name: String) = get<T>() as? TI
-        ?: throw IllegalStateException("Custom implementations of the $name interface are not supported. Use $name.newInstance() to instantiate $name.")
-
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : Manager> get(managerType: KClass<T>) = managers.firstOrNull { managerType.isInstance(it) } as? T
-        ?: throw IllegalStateException("${managerType.simpleName} has not been registered in Kubriko.newInstance().")
+    override fun <T : Manager> get(managerType: KClass<T>): T {
+        if (isDisposed) {
+            throw IllegalStateException("Cannot access Managers on a disposed Kubriko instance.")
+        }
+        val cached = managerCache[managerType] as? T
+        if (cached != null) return cached
+        val found = managers.firstOrNull { managerType.isInstance(it) } as? T
+            ?: throw IllegalStateException("${managerType.simpleName} has not been registered in Kubriko.newInstance().")
+        managerCache[managerType] = found
+        return found
+    }
 
     override fun dispose() {
+        if (isDisposed) return
         log("Disposing Manager instances...")
         managers.forEach { it.onDisposeInternal() }
         cancel()
+        managerCache.clear()
         isInitialized = false
+        isDisposed = true
         log(
             message = "Disposed.",
             importance = Logger.Importance.HIGH,
