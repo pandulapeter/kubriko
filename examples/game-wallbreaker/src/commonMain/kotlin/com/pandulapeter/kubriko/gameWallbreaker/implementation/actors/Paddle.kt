@@ -19,6 +19,7 @@ import androidx.compose.ui.input.pointer.PointerId
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
+import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
@@ -40,7 +41,7 @@ import kotlinx.collections.immutable.ImmutableSet
 
 internal class Paddle(
     initialPosition: SceneOffset = SceneOffset(0.sceneUnit, 550.sceneUnit),
-) : Visible, Collidable, PointerInputAware, KeyboardInputAware, Dynamic {
+) : Visible, Collidable, PointerInputAware, KeyboardInputAware, Dynamic, Unique {
 
     override val body = BoxBody(
         initialPosition = initialPosition,

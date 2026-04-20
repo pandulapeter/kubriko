@@ -62,7 +62,7 @@ internal class GameplayManager(
     override fun onInitialize(kubriko: Kubriko) {
         initializeScene()
         scoreManager.score
-            .onEach { if (actorManager.allActors.value.filterIsInstance<Brick>().isEmpty()) onLevelCleared() }
+            .onEach { if (actorManager.allActors.value.isNotEmpty() && actorManager.allActors.value.filterIsInstance<Brick>().isEmpty()) onLevelCleared() }
             .launchIn(scope)
     }
 

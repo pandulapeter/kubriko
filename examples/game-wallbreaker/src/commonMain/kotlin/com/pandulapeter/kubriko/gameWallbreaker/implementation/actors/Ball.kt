@@ -18,6 +18,7 @@ import androidx.compose.ui.input.pointer.PointerId
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
+import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.CollisionDetector
@@ -45,7 +46,7 @@ internal class Ball(
         x = paddle.body.position.x,
         y = paddle.body.position.y - paddle.body.pivot.y - Radius
     ),
-) : Visible, Dynamic, CollisionDetector, PointerInputAware, KeyboardInputAware {
+) : Visible, Dynamic, CollisionDetector, PointerInputAware, KeyboardInputAware, Unique {
 
     override val collidableTypes = listOf<KClass<out Collidable>>(Brick::class, Paddle::class)
     override val body = BoxBody(

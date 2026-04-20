@@ -41,7 +41,6 @@ import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,14 +50,17 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlin.reflect.KClass
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @OptIn(FlowPreview::class)
 internal class ActorManagerImpl(
-    initialActors: List<Actor>,
+    private val initialActors: List<Actor>,
     private val shouldUpdateActorsWhileNotRunning: Boolean,
     private val shouldPutFarAwayActorsToSleep: Boolean,
     private val invisibleActorMinimumRefreshTimeInMillis: Long,
@@ -68,9 +70,20 @@ internal class ActorManagerImpl(
     private lateinit var metadataManager: MetadataManagerImpl
     private lateinit var viewportManager: ViewportManagerImpl
     private lateinit var stateManager: StateManager
-    private val _allActors = MutableStateFlow<ImmutableList<Actor>>(initialActors.toPersistentList())
+    private val _allActors = MutableStateFlow<ImmutableList<Actor>>(persistentListOf())
     override val allActors = _allActors.asStateFlow()
     private lateinit var kubrikoImpl: KubrikoImpl
+
+    // Batching system properties
+    private val pendingOperations = mutableListOf<Operation>()
+    private val queueMutex = Mutex()
+    private val processingMutex = Mutex()
+
+    private sealed class Operation {
+        class Add(val actors: List<Actor>) : Operation()
+        class Remove(val actors: List<Actor>) : Operation()
+        data object RemoveAll : Operation()
+    }
 
     private val layerIndices by autoInitializingLazy {
         _allActors.map { actors -> actors.filterIsInstance<LayerAware>().groupBy { it.layerIndex }.keys.sortedBy { it }.toImmutableList() }
@@ -92,7 +105,7 @@ internal class ActorManagerImpl(
             visibleActors.debounce(8L),
             metadataManager.activeRuntimeInMilliseconds
                 .distinctUntilChangedWithDelay(invisibleActorMinimumRefreshTimeInMillis)
-                .onStart { emit(-1L) } // Forces initial evaluation even if paused
+                .onStart { emit(-1L) }
         ) { allVisibleActors, _ ->
             val viewportSize = viewportManager.size.value
             val viewportCenter = viewportManager.cameraPosition.value
@@ -108,7 +121,7 @@ internal class ActorManagerImpl(
                 }
                 .toImmutableList()
         }
-            .flowOn(Dispatchers.Default) // Execute the heavy spatial math on a background CPU thread
+            .flowOn(Dispatchers.Default)
             .asStateFlow(persistentListOf())
     }
 
@@ -127,7 +140,6 @@ internal class ActorManagerImpl(
                 val scaleFactor = viewportManager.scaleFactor.value
                 val edgeBuffer = minOf(viewportBottomRight.x - viewportTopLeft.x, viewportBottomRight.y - viewportTopLeft.y) / 2
                 val scaledHalfViewportSize = SceneSize(viewportSize / (scaleFactor * 2))
-
                 allDynamicActors
                     .filter { actor ->
                         if (!actor.isAlwaysActive && actor is Positionable) {
@@ -152,7 +164,7 @@ internal class ActorManagerImpl(
         metadataManager = kubriko.metadataManager
         stateManager = kubriko.stateManager
         viewportManager = kubriko.viewportManager
-        allActors.value.forEach { it.onAdded(kubriko) }
+        add(initialActors)
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
@@ -181,55 +193,110 @@ internal class ActorManagerImpl(
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    override fun add(vararg actors: Actor) {
-        if (actors.isEmpty()) return
-        val flattened = flattenActors(actors.asList())
-        val latestUniqueByClass = LinkedHashMap<KClass<out Actor>, Actor>()
-        val nonUnique = ArrayList<Actor>(flattened.size)
-        for (a in flattened) {
-            if (a is Unique) {
-                latestUniqueByClass[a::class] = a // overwrites -> "latest wins"
-            } else {
-                nonUnique.add(a)
+    private fun triggerProcessing() {
+        scope.launch(Dispatchers.Default) {
+            processingMutex.withLock {
+                val batch: List<Operation>
+                queueMutex.withLock {
+                    if (pendingOperations.isEmpty()) return@launch
+                    batch = pendingOperations.toList()
+                    pendingOperations.clear()
+                }
+                var workingList = _allActors.value
+                val newlyAdded = LinkedHashSet<Actor>()
+                val newlyRemoved = LinkedHashSet<Actor>()
+                for (op in batch) {
+                    when (op) {
+                        is Operation.Add -> {
+                            val flattened = flattenActors(op.actors)
+                            val latestUniqueByClass = LinkedHashMap<KClass<out Actor>, Actor>()
+                            val nonUnique = ArrayList<Actor>(flattened.size)
+                            for (a in flattened) {
+                                if (a is Unique) latestUniqueByClass[a::class] = a
+                                else nonUnique.add(a)
+                            }
+                            val newActors = ArrayList<Actor>(nonUnique.size + latestUniqueByClass.size).apply {
+                                addAll(nonUnique)
+                                addAll(latestUniqueByClass.values)
+                            }
+                            for (a in newActors) {
+                                if (a is Identifiable && a.name == null) a.name = Uuid.random().toString()
+                            }
+                            val uniqueTypesToReplace = latestUniqueByClass.keys
+                            workingList.forEach {
+                                if (it::class in uniqueTypesToReplace) {
+                                    newlyRemoved.add(it)
+                                    newlyAdded.remove(it)
+                                }
+                            }
+                            workingList = (workingList.filterNot { it::class in uniqueTypesToReplace } + newActors).toImmutableList()
+                            newActors.forEach {
+                                newlyAdded.add(it)
+                                newlyRemoved.remove(it)
+                            }
+                        }
+
+                        is Operation.Remove -> {
+                            val flattenedActors = flattenActors(op.actors).asReversed()
+                            workingList = workingList.filterNot { it in flattenedActors }.toImmutableList()
+                            flattenedActors.forEach {
+                                newlyRemoved.add(it)
+                                newlyAdded.remove(it)
+                            }
+                        }
+
+                        is Operation.RemoveAll -> {
+                            workingList.forEach {
+                                newlyRemoved.add(it)
+                                newlyAdded.remove(it)
+                            }
+                            workingList = persistentListOf()
+                        }
+                    }
+                }
+                if (newlyAdded.isNotEmpty()) {
+                    withContext(Dispatchers.Main) {
+                        newlyAdded.forEach { it.onAdded(kubrikoImpl) }
+                    }
+                }
+                _allActors.value = workingList
+                if (newlyRemoved.isNotEmpty()) {
+                    withContext(Dispatchers.Main) {
+                        newlyRemoved.forEach {
+                            (it as? Disposable)?.dispose()
+                            it.onRemoved()
+                        }
+                    }
+                }
             }
         }
-        val newActors = ArrayList<Actor>(nonUnique.size + latestUniqueByClass.size).apply {
-            addAll(nonUnique)
-            addAll(latestUniqueByClass.values)
+    }
+
+    override fun add(vararg actors: Actor) {
+        if (actors.isEmpty()) return
+        scope.launch(Dispatchers.Default) {
+            queueMutex.withLock { pendingOperations.add(Operation.Add(actors.toList())) }
+            triggerProcessing()
         }
-        for (a in newActors) {
-            if (a is Identifiable && a.name == null) a.name = Uuid.random().toString()
-        }
-        val uniqueTypesToReplace = latestUniqueByClass.keys
-        _allActors.update { current ->
-            val filteredCurrent = if (uniqueTypesToReplace.isEmpty()) current
-            else current.filterNot { it::class in uniqueTypesToReplace }
-            (filteredCurrent + newActors).toImmutableList()
-        }
-        newActors.forEach { it.onAdded(scope as Kubriko) }
     }
 
     override fun add(actors: Collection<Actor>) = add(actors = actors.toTypedArray())
 
     override fun remove(vararg actors: Actor) {
-        if (actors.isNotEmpty()) {
-            val flattenedActors = flattenActors(actors.toList()).asReversed()
-            _allActors.update { currentActors ->
-                currentActors.filterNot { it in flattenedActors }.toImmutableList()
-            }
-            flattenedActors.forEach {
-                (it as? Disposable)?.dispose()
-                it.onRemoved()
-            }
+        if (actors.isEmpty()) return
+        scope.launch(Dispatchers.Default) {
+            queueMutex.withLock { pendingOperations.add(Operation.Remove(actors.toList())) }
+            triggerProcessing()
         }
     }
 
     override fun remove(actors: Collection<Actor>) = remove(actors = actors.toTypedArray())
 
     override fun removeAll() {
-        val currentActors = _allActors.value
-        _allActors.update { persistentListOf() }
-        currentActors.forEach { it.onRemoved() }
+        scope.launch(Dispatchers.Default) {
+            queueMutex.withLock { pendingOperations.add(Operation.RemoveAll) }
+            triggerProcessing()
+        }
     }
 
     @Composable

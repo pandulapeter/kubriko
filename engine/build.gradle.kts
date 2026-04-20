@@ -31,6 +31,7 @@ kotlin {
         }
         desktopMain.dependencies {
             implementation(libs.apache.commonsLang)
+            implementation(libs.kotlinx.coroutines.desktop)
         }
     }
 }
