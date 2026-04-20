@@ -12,21 +12,19 @@ package com.pandulapeter.kubriko.manager
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoImpl
 import com.pandulapeter.kubriko.implementation.getPlatform
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 
 internal class MetadataManagerImpl(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
 ) : MetadataManager(isLoggingEnabled, instanceNameForLogging) {
+
     private lateinit var stateManager: StateManager
     private lateinit var viewportManager: ViewportManagerImpl
     private val _fps = MutableStateFlow(0f)
@@ -44,16 +42,21 @@ internal class MetadataManagerImpl(
 
     @Composable
     override fun Composable(windowInsets: WindowInsets) {
-        val frameCount = remember { mutableStateOf(0) }
-        val lastUpdateTime = remember { mutableStateOf(0L) }
         LaunchedEffect(Unit) {
+            var frameCount = 0
+            var lastUpdateTime = -1L
             while (isActive) {
                 val frameTime = withFrameNanos { it }
-                frameCount.value++
-                if (frameTime - lastUpdateTime.value >= 100_000_000L) {
-                    _fps.update { (frameCount.value * 1_000_000_000L / (frameTime - lastUpdateTime.value).toFloat()) / viewportManager.frameRate.factor }
-                    frameCount.value = 0
-                    lastUpdateTime.value = frameTime
+                if (lastUpdateTime == -1L) {
+                    lastUpdateTime = frameTime
+                    continue
+                }
+                frameCount++
+                val elapsedNanos = frameTime - lastUpdateTime
+                if (elapsedNanos >= 100_000_000L) {
+                    _fps.value = (frameCount * 1_000_000_000f / elapsedNanos) / viewportManager.frameRate.factor
+                    frameCount = 0
+                    lastUpdateTime = frameTime
                 }
             }
         }
@@ -61,8 +64,8 @@ internal class MetadataManagerImpl(
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
         if (stateManager.isRunning.value) {
-            _activeRuntimeInMilliseconds.update { currentValue -> currentValue + deltaTimeInMilliseconds }
+            _activeRuntimeInMilliseconds.value += deltaTimeInMilliseconds
         }
-        _totalRuntimeInMilliseconds.update { currentValue -> currentValue + deltaTimeInMilliseconds }
+        _totalRuntimeInMilliseconds.value += deltaTimeInMilliseconds
     }
 }
