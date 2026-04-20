@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.manager
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.Kubriko
@@ -49,10 +50,10 @@ abstract class Manager(
     protected open fun processOverlayModifier(modifier: Modifier): Modifier = modifier
 
     @Composable
-    internal fun processModifierInternal(modifier: Modifier, layerIndex: Int?) = processModifier(modifier, layerIndex)
+    internal fun processModifierInternal(modifier: Modifier, layerIndex: Int?, gameTime: State<Long>) = processModifier(modifier, layerIndex, gameTime)
 
     @Composable
-    protected open fun processModifier(modifier: Modifier, layerIndex: Int?): Modifier = modifier
+    protected open fun processModifier(modifier: Modifier, layerIndex: Int?, gameTime: State<Long>): Modifier = modifier
 
     internal fun initializeInternal(kubriko: Kubriko) {
         if (!isInitialized.value) {

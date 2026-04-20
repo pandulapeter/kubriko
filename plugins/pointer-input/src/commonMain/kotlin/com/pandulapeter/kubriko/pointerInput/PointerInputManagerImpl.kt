@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.pointerInput
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventType
@@ -112,7 +113,7 @@ internal class PointerInputManagerImpl(
     }
 
     @Composable
-    override fun processModifier(modifier: Modifier, layerIndex: Int?) = modifier.onGloballyPositioned { coordinates ->
+    override fun processModifier(modifier: Modifier, layerIndex: Int?, gameTime: State<Long>) = modifier.onGloballyPositioned { coordinates ->
         viewportOffset.value = coordinates.positionInRoot()
     }.run {
         if (isActiveAboveViewport) this else pointerInputHandlingModifier()

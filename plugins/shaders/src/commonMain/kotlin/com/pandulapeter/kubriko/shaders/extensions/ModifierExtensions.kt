@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.shaders.extensions
 
+import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.RenderEffect
@@ -17,7 +18,9 @@ import com.pandulapeter.kubriko.shaders.Shader
 
 fun <T : Shader.State> Modifier.shader(
     shader: Shader<T>,
+    gameTime: State<Long>,
 ) = this then graphicsLayer {
+    @Suppress("UNUSED_EXPRESSION") gameTime.value  // Invalidates the Canvas, causing a refresh on every frame
     clip = true
     renderEffect = createRenderEffect(shader, size)
 }

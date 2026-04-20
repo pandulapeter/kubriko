@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -100,7 +101,7 @@ internal class UIManager(
     fun updateShipMultiShoot(multiShoot: Int) = this.multiShoot.update { multiShoot }
 
     @Composable
-    override fun processModifier(modifier: Modifier, layerIndex: Int?) = modifier.pointerHoverIcon(
+    override fun processModifier(modifier: Modifier, layerIndex: Int?, gameTime: State<Long>) = modifier.pointerHoverIcon(
         icon = if (stateManager.isRunning.collectAsState().value && !gameplayManager.isGameOver.collectAsState().value) PointerIcon.Invisible else PointerIcon.Default
     )
 

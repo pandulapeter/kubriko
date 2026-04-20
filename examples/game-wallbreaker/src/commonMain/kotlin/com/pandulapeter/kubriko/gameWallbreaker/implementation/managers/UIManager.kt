@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.gameWallbreaker.implementation.managers
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
@@ -41,7 +42,7 @@ internal class UIManager(
     val isCloseConfirmationDialogVisible = _isCloseConfirmationDialogVisible.asStateFlow()
 
     @Composable
-    override fun processModifier(modifier: Modifier, layerIndex: Int?) = modifier.pointerHoverIcon(
+    override fun processModifier(modifier: Modifier, layerIndex: Int?, gameTime: State<Long>) = modifier.pointerHoverIcon(
         icon = if (stateManager.isRunning.collectAsState().value) PointerIcon.Invisible else PointerIcon.Default
     )
 

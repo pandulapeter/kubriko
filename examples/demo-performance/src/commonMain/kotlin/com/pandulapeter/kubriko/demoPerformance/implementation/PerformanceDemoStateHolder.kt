@@ -72,6 +72,7 @@ internal class PerformanceDemoStateHolderImpl(
         ActorManager.newInstance(
             isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
+            invisibleActorMinimumRefreshTimeInMillis = 500,
         )
     }
     val performanceDemoManager by lazy {
