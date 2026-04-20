@@ -11,11 +11,18 @@ package com.pandulapeter.kubriko.keyboardInput.extensions
 
 import androidx.compose.ui.input.key.Key
 
+/**
+ * Represents the directional state of the keyboard based on the currently pressed keys.
+ */
 enum class KeyboardDirectionState {
     NONE, LEFT, UP_LEFT, UP, UP_RIGHT, RIGHT, DOWN_RIGHT, DOWN, DOWN_LEFT,
 }
 
-// TODO: Should be optimized, rewrite using vectors
+/**
+ * Calculates the [KeyboardDirectionState] based on the currently pressed keys.
+ *
+ * This includes arrow keys and WASD.
+ */
 val Set<Key>.directionState
     get() = when {
         isEmpty() -> KeyboardDirectionState.NONE
@@ -30,10 +37,18 @@ val Set<Key>.directionState
         else -> KeyboardDirectionState.NONE
     }
 
+/**
+ * Represents the zoom state of the keyboard based on the currently pressed keys.
+ */
 enum class KeyboardZoomState {
     NONE, ZOOM_IN, ZOOM_OUT,
 }
 
+/**
+ * Calculates the [KeyboardZoomState] based on the currently pressed keys.
+ *
+ * This includes +/- keys, NumPad +/- keys, and the ZoomIn/ZoomOut keys.
+ */
 val Set<Key>.zoomState
     get() = when {
         isEmpty() -> KeyboardZoomState.NONE
@@ -42,27 +57,59 @@ val Set<Key>.zoomState
         else -> KeyboardZoomState.NONE
     }
 
+/**
+ * Returns true if the set contains a "Left" direction key (Arrow Left or A).
+ */
 val Set<Key>.hasLeft get() = contains(Key.DirectionLeft) || contains(Key.A)
 
+/**
+ * Returns true if the set contains an "Up-Left" direction combination.
+ */
 val Set<Key>.hasUpLeft get() = contains(Key.DirectionUpLeft) || (contains(Key.DirectionUp) && contains(Key.DirectionLeft)) || ((contains(Key.W) && contains(Key.A)))
 
+/**
+ * Returns true if the set contains an "Up" direction key (Arrow Up or W).
+ */
 val Set<Key>.hasUp get() = contains(Key.DirectionUp) || contains(Key.W)
 
+/**
+ * Returns true if the set contains an "Up-Right" direction combination.
+ */
 val Set<Key>.hasUpRight get() = contains(Key.DirectionUpRight) || (contains(Key.DirectionUp) && contains(Key.DirectionRight)) || ((contains(Key.W) && contains(Key.D)))
 
+/**
+ * Returns true if the set contains a "Right" direction key (Arrow Right or D).
+ */
 val Set<Key>.hasRight get() = contains(Key.DirectionRight) || contains(Key.D)
 
+/**
+ * Returns true if the set contains a "Down-Right" direction combination.
+ */
 val Set<Key>.hasDownRight get() = contains(Key.DirectionDownRight) || (contains(Key.DirectionDown) && contains(Key.DirectionRight)) || ((contains(Key.S) && contains(Key.D)))
 
+/**
+ * Returns true if the set contains a "Down" direction key (Arrow Down or S).
+ */
 val Set<Key>.hasDown get() = contains(Key.DirectionDown) || contains(Key.S)
 
+/**
+ * Returns true if the set contains a "Down-Left" direction combination.
+ */
 val Set<Key>.hasDownLeft get() = contains(Key.DirectionDownLeft) || (contains(Key.DirectionDown) && contains(Key.DirectionLeft)) || ((contains(Key.S) && contains(Key.A)))
 
+/**
+ * Returns true if the set contains a "Zoom In" key.
+ */
 val Set<Key>.hasZoomIn get() = contains(Key.Plus) || contains(Key.Equals) || contains(Key.NumPadAdd) || contains(Key.ZoomIn)
 
+/**
+ * Returns true if the set contains a "Zoom Out" key.
+ */
 val Set<Key>.hasZoomOut get() = contains(Key.Minus) || contains(Key.NumPadSubtract) || contains(Key.ZoomOut)
 
-// TODO
+/**
+ * Returns a human-readable name for the key.
+ */
 val Key.displayName
     get() = when (this) {
         Key.Escape -> "Esc"

@@ -13,12 +13,30 @@ import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.actor.Actor
 import kotlinx.collections.immutable.ImmutableSet
 
-// TODO: Documentation
+/**
+ * A trait that can be added to an [Actor] to make it aware of keyboard input.
+ */
 interface KeyboardInputAware : Actor {
 
+    /**
+     * Called on every frame with the set of all keys currently being held down.
+     * TODO: On Android continuously pressed keys are not reported correctly.
+     *
+     * @param activeKeys The set of all keys currently pressed.
+     */
     fun handleActiveKeys(activeKeys: ImmutableSet<Key>) = Unit
 
+    /**
+     * Called when a key is first pressed.
+     *
+     * @param key The key that was pressed.
+     */
     fun onKeyPressed(key: Key) = Unit
 
+    /**
+     * Called when a key is released.
+     *
+     * @param key The key that was released.
+     */
     fun onKeyReleased(key: Key) = Unit
 }
