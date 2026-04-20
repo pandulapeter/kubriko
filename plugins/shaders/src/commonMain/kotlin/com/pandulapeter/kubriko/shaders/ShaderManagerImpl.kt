@@ -27,21 +27,28 @@ internal class ShaderManagerImpl(
     private val actorManager by manager<ActorManager>()
     private val shaders by autoInitializingLazy {
         actorManager.allActors.map { allActors ->
-            allActors
-                .filterIsInstance<Shader<*>>()
-                .distinctBy { it.shaderState }
-                .toImmutableList()
+            val result = ArrayList<Shader<*>>()
+            val seenStates = HashSet<Any?>()
+            allActors.forEach { actor ->
+                if (actor is Shader<*>) {
+                    if (seenStates.add(actor.shaderState)) {
+                        result.add(actor)
+                    }
+                }
+            }
+            result.toImmutableList()
         }.asStateFlow(persistentListOf())
     }
 
     @Composable
-    override fun processModifier(modifier: Modifier, layerIndex: Int?, gameTime: State<Long>) = if (isInitialized.collectAsState().value) {
-        shaders.collectAsState().value
-            .filter { it.layerIndex == layerIndex }
-            .fold(modifier) { compoundModifier, shader ->
-                compoundModifier then Modifier.shader(shader, gameTime)
+    override fun processModifier(modifier: Modifier, layerIndex: Int?, gameTime: State<Long>): Modifier {
+        if (!isInitialized.collectAsState().value) return modifier
+        var currentModifier = modifier
+        shaders.collectAsState().value.forEach { shader ->
+            if (shader.layerIndex == layerIndex) {
+                currentModifier = currentModifier.then(Modifier.shader(shader, gameTime))
             }
-    } else {
-        modifier
+        }
+        return currentModifier
     }
 }
