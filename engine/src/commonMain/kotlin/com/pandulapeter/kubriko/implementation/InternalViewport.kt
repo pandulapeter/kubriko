@@ -10,7 +10,6 @@
 package com.pandulapeter.kubriko.implementation
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,7 +21,7 @@ import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.pandulapeter.kubriko.Kubriko
@@ -39,7 +38,10 @@ fun InternalViewport(
     windowInsets: WindowInsets,
 ) {
     // Enforce and cache the internal implementation
-    val kubrikoImpl = remember(kubriko) { kubriko as? KubrikoImpl ?: throw IllegalStateException("Custom Kubriko implementations are not supported. Use Kubriko.newInstance() to instantiate Kubriko.") }
+    val kubrikoImpl = remember(kubriko) {
+        kubriko as? KubrikoImpl
+            ?: throw IllegalStateException("Custom Kubriko implementations are not supported. Use Kubriko.newInstance() to instantiate Kubriko.")
+    }
 
     // Focus handling
     val lifecycleObserver = remember(kubrikoImpl) {
@@ -53,24 +55,24 @@ fun InternalViewport(
         onDispose { lifecycle.removeObserver(lifecycleObserver) }
     }
 
-    // Inset handling
-    val density = LocalDensity.current
-
     // Game loop
     LaunchedEffect(Unit) {
         kubrikoImpl.initialize()
         var count = 0
+        var lastProcessedFrameTime = -1L
         while (isActive) {
             withFrameMillis { frameTimeInMilliseconds ->
-                if (kubrikoImpl.metadataManager.totalRuntimeInMilliseconds.value == 0L) {
-                    kubrikoImpl.metadataManager.onUpdateInternal(frameTimeInMilliseconds.toInt())
+                if (lastProcessedFrameTime == -1L) {
+                    lastProcessedFrameTime = frameTimeInMilliseconds
+                    kubrikoImpl.metadataManager.onUpdateInternal(0)
                 }
                 if (count % kubrikoImpl.viewportManager.frameRate.factor == 0) {
-                    (frameTimeInMilliseconds - kubrikoImpl.metadataManager.totalRuntimeInMilliseconds.value).toInt().let { deltaTimeInMilliseconds ->
-                        if (!kubrikoImpl.viewportManager.size.value.isEmpty() && kubrikoImpl.stateManager.isFocused.value) {
-                            kubrikoImpl.managers.forEach { it.onUpdateInternal(deltaTimeInMilliseconds) }
-                        }
+                    val deltaTimeInMilliseconds = (frameTimeInMilliseconds - lastProcessedFrameTime).toInt()
+
+                    if (!kubrikoImpl.viewportManager.size.value.isEmpty() && kubrikoImpl.stateManager.isFocused.value) {
+                        kubrikoImpl.managers.forEach { it.onUpdateInternal(deltaTimeInMilliseconds) }
                     }
+                    lastProcessedFrameTime = frameTimeInMilliseconds
                 }
                 count++
             }
@@ -83,38 +85,40 @@ fun InternalViewport(
             manager.processOverlayModifierInternal(overlayModifierToProcess)
         }
     ) {
-        BoxWithConstraints(
+        // Replaced BoxWithConstraints with a standard Box + onSizeChanged to eliminate subcomposition overhead
+        Box(
             modifier = when (val aspectRatioMode = kubrikoImpl.viewportManager.aspectRatioMode) {
                 ViewportManager.AspectRatioMode.Dynamic,
                 is ViewportManager.AspectRatioMode.FitHorizontal,
                 is ViewportManager.AspectRatioMode.FitVertical,
                 is ViewportManager.AspectRatioMode.Stretched -> modifier
+
                 is ViewportManager.AspectRatioMode.Fixed -> modifier
                     .align(aspectRatioMode.alignment)
                     .aspectRatio(ratio = aspectRatioMode.ratio)
-            }.clipToBounds()
-        ) {
-            LaunchedEffect(maxWidth, maxHeight) {
-                with(density) {
+            }
+                .clipToBounds()
+                .onSizeChanged { intSize ->
+                    val widthPx = intSize.width.toFloat()
+                    val heightPx = intSize.height.toFloat()
+
                     kubrikoImpl.viewportManager.run {
-                        val newSize = Size(maxWidth.toPx(), maxHeight.toPx())
-                        updateSize(newSize)
+                        updateSize(Size(widthPx, heightPx))
                         scaleFactorMultiplier.update {
-                            when (val aspectRatioMode = aspectRatioMode) {
+                            when (val mode = aspectRatioMode) {
                                 ViewportManager.AspectRatioMode.Dynamic -> Scale.Unit
-                                is ViewportManager.AspectRatioMode.FitHorizontal -> (maxWidth.toPx() / aspectRatioMode.width.raw).let { Scale(it, it) }
-                                is ViewportManager.AspectRatioMode.FitVertical -> (maxHeight.toPx() / aspectRatioMode.height.raw).let { Scale(it, it) }
-                                is ViewportManager.AspectRatioMode.Fixed -> (maxWidth.toPx() / aspectRatioMode.width.raw).let { Scale(it, it) }
+                                is ViewportManager.AspectRatioMode.FitHorizontal -> (widthPx / mode.width.raw).let { Scale(it, it) }
+                                is ViewportManager.AspectRatioMode.FitVertical -> (heightPx / mode.height.raw).let { Scale(it, it) }
+                                is ViewportManager.AspectRatioMode.Fixed -> (widthPx / mode.width.raw).let { Scale(it, it) }
                                 is ViewportManager.AspectRatioMode.Stretched -> Scale(
-                                    horizontal = maxWidth.toPx() / aspectRatioMode.size.width.raw,
-                                    vertical = maxHeight.toPx() / aspectRatioMode.size.height.raw,
+                                    horizontal = widthPx / mode.size.width.raw,
+                                    vertical = heightPx / mode.size.height.raw,
                                 )
                             }
                         }
                     }
                 }
-            }
-
+        ) {
             // Allow Managers to provide their own Composable functions
             kubrikoImpl.managers.forEach { it.ComposableInternal(windowInsets) }
         }
