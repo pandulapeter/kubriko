@@ -17,15 +17,14 @@ import com.pandulapeter.kubriko.actor.Actor
 interface Dynamic : Actor {
 
     /**
-     * The engine stops updating [Positionable] Dynamic Actors if they are too far away from the viewport.
-     * Setting this flag to {true} prevents that behavior.
+     * If true, the engine will keep updating this actor even if it's far outside the viewport.
      */
     val isAlwaysActive: Boolean get() = false
 
     /**
-     * Called in every frame unless the game state is paused.
+     * Called on every frame while the game is running.
      *
-     * @param deltaTimeInMilliseconds - The number of milliseconds since the previous frame.
+     * @param deltaTimeInMilliseconds The time elapsed since the last frame.
      */
     fun update(deltaTimeInMilliseconds: Int)
 }

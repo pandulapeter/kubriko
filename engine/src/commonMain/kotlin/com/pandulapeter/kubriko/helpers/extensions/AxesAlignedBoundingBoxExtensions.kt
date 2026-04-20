@@ -16,6 +16,11 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
 
+/**
+ * Checks if this bounding box is currently visible within the viewport.
+ *
+ * @param viewportManager The [ViewportManager] used for the visibility check.
+ */
 fun AxisAlignedBoundingBox.isWithinViewportBounds(
     viewportManager: ViewportManager,
 ): Boolean = isWithinViewportBounds(
@@ -33,6 +38,9 @@ internal fun AxisAlignedBoundingBox.isWithinViewportBounds(
         right >= viewportCenter.x - scaledHalfViewportSize.width - viewportEdgeBuffer &&
         bottom >= viewportCenter.y - scaledHalfViewportSize.height - viewportEdgeBuffer
 
+/**
+ * Checks if this bounding box overlaps with [other].
+ */
 fun AxisAlignedBoundingBox.isOverlapping(other: AxisAlignedBoundingBox): Boolean {
     val overlapTopLeft = SceneOffset(
         x = maxOf(left, other.left),

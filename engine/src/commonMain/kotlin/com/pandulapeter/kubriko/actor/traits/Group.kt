@@ -12,9 +12,13 @@ package com.pandulapeter.kubriko.actor.traits
 import com.pandulapeter.kubriko.actor.Actor
 
 /**
- * TODO
+ * Represents an actor that contains a list of other actors.
+ * It is useful for adding or removing multiple Actors simultaneously to / from the scene.
  */
 interface Group : Actor {
 
+    /**
+     * The list of actors belonging to this group.
+     */
     val actors: List<Actor>
 }

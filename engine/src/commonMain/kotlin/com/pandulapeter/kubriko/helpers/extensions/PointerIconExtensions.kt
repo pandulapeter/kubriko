@@ -11,6 +11,9 @@ package com.pandulapeter.kubriko.helpers.extensions
 
 import androidx.compose.ui.input.pointer.PointerIcon
 
+/**
+ * Returns a [PointerIcon] that is invisible.
+ */
 val PointerIcon.Companion.Invisible get() = pointerIconInvisible
 
 internal expect val pointerIconInvisible: PointerIcon

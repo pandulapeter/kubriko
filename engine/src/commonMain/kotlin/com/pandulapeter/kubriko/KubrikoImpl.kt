@@ -27,7 +27,7 @@ import kotlin.reflect.KClass
 
 internal class KubrikoImpl(
     vararg manager: Manager,
-    override var isLoggingEnabled: Boolean,
+    override val isLoggingEnabled: Boolean,
     private val instanceNameForLogging: String?,
 ) : Kubriko, CoroutineScope {
 

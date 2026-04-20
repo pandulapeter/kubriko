@@ -16,26 +16,46 @@ import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
+/**
+ * Subtracts an [Offset] from this [Size].
+ */
 operator fun Size.minus(offset: Offset) = Offset(
     x = width - offset.x,
     y = height - offset.y,
 )
 
+/**
+ * Subtracts a [SceneOffset] from this [Size].
+ */
 operator fun Size.minus(offset: SceneOffset) = SceneOffset(
     x = width.sceneUnit - offset.x,
     y = height.sceneUnit - offset.y,
 )
 
+/**
+ * Divides this [Size] by a [Scale].
+ */
 operator fun Size.div(scale: Scale) = Size(
     width = width / scale.horizontal,
     height = height / scale.vertical,
 )
 
+/**
+ * Converts this screen [Size] to a [SceneSize].
+ *
+ * @param viewportManager The [ViewportManager] used for conversion.
+ */
 fun Size.toSceneSize(viewportManager: ViewportManager): SceneSize = toSceneSize(
     viewportSize = viewportManager.size.value,
     viewportScaleFactor = viewportManager.scaleFactor.value,
 )
 
+/**
+ * Converts this screen [Size] to a [SceneSize].
+ *
+ * @param viewportSize The size of the viewport in screen pixels.
+ * @param viewportScaleFactor The current scale factor of the viewport.
+ */
 fun Size.toSceneSize(
     viewportSize: Size,
     viewportScaleFactor: Scale,

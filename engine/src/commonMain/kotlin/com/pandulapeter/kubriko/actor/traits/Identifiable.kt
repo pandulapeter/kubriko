@@ -13,18 +13,18 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
 
 /**
- * Should be implemented by [Actor]s that want to have a [name] set for their instances.
- * [Kubriko] does NOT enforce these [name]-s to be unique. If you want "singleton" [Actor]s, take a look at the [Unique] trait instead.
- * [Identifiable] is meant for [Actor]s that want to be referenced by other classes in a more abstract way.
- * Searching for an [Actor] by name might return multiple results.
+ * Should be implemented by [Actor]s that want to have a name identifier.
+ *
+ * [Kubriko] does NOT enforce these names to be unique. If you want "singleton" [Actor]s,
+ * take a look at the [Unique] trait instead.
  */
-// TODO: Is this really necessary?
 interface Identifiable : Actor {
 
     /**
      * The name of the [Actor] instance.
-     * If implementations provide a {null} [name], [Kubriko] will set a random-generated value when the [Actor] is added to the Scene.
-     * [Kubriko] will never change the value of [name] at runtime.
+     *
+     * If implementations provide `null`, [Kubriko] will set a randomly generated value
+     * when the actor is added to the scene.
      */
     var name: String?
 }

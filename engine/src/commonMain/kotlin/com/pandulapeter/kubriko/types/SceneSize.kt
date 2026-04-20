@@ -15,9 +15,10 @@ import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import kotlin.jvm.JvmInline
 
 /**
- * Defines a [Size] in [SceneUnit]-s.
+ * Represents a 2D size within the scene, using [SceneUnit]s.
  *
- * Regular [Size] values should be used for screen sizes while this wrapper should be used for Scene sizes.
+ * Regular [Size] values should be used for dimensions on the screen, while [SceneSize]
+ * should be used for logical dimensions within the game world.
  */
 @JvmInline
 value class SceneSize(val raw: Size) {

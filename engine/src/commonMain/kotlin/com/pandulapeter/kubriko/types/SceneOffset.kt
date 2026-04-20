@@ -16,9 +16,10 @@ import com.pandulapeter.kubriko.helpers.extensions.sin
 import kotlin.jvm.JvmInline
 
 /**
- * Defines an [Offset] in [SceneUnit]-s.
+ * Represents a 2D coordinate or offset within the scene, using [SceneUnit]s.
  *
- * Regular [Offset] values should be used for coordinates on the screen while this wrapper should be used for coordinates within the Scene.
+ * Regular [Offset] values should be used for coordinates on the screen, while [SceneOffset]
+ * should be used for coordinates within the game world.
  */
 @JvmInline
 value class SceneOffset(val raw: Offset) {

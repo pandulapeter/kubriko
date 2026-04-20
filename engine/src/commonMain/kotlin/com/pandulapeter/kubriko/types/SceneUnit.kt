@@ -13,10 +13,12 @@ import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import kotlin.jvm.JvmInline
 
 /**
- * Wrapper for 1D dimensions in the context of a Scene.
- * Regular [Float] values should be used for screen dimensions while this wrapper should be used for Scene dimensions.
+ * A wrapper for a single dimension in the coordinate system of the scene.
  *
- * Use the [sceneUnit] extension property for casting.
+ * Regular [Float] values should be used for dimensions in screen pixels, while [SceneUnit]
+ * should be used for logical dimensions within the game world.
+ *
+ * Use the `sceneUnit` extension property on [Float] to create an instance.
  */
 @JvmInline
 value class SceneUnit internal constructor(val raw: Float) : Comparable<SceneUnit> {

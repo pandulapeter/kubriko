@@ -13,6 +13,11 @@ import androidx.compose.ui.graphics.Color
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * Converts this color to Hue-Saturation-Value (HSV) components.
+ *
+ * @return A [Triple] containing hue (0-360), saturation (0-1), and value (0-1).
+ */
 fun Color.toHSV(): Triple<Float, Float, Float> {
     val r = red
     val g = green

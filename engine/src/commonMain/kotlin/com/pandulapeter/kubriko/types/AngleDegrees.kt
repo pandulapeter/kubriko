@@ -13,13 +13,16 @@ import com.pandulapeter.kubriko.helpers.extensions.deg
 import kotlin.jvm.JvmInline
 
 /**
- * Wrapper for values that represent angles in degrees.
+ * A wrapper for values that represent angles in degrees that should be used for rotations and directions.
  *
- * Use the [deg] extension property for casting.
- * Use the [normalized] property to always get a value between 0 and 360.
+ * Use the `deg` extension property on [Float] to create an instance.
  */
 @JvmInline
 value class AngleDegrees internal constructor(val raw: Float) : Comparable<AngleDegrees> {
+
+    /**
+     * The value of the angle normalized to the range [0, 360).
+     */
     val normalized: Float
         get() = (raw % 360 + 360) % 360
 

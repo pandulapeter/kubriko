@@ -14,13 +14,16 @@ import kotlin.jvm.JvmInline
 import kotlin.math.PI
 
 /**
- * Wrapper for values that represent angles in radians.
+ * A wrapper for values that represent angles in radians. that should be used for rotations and directions.
  *
- * Use the [rad] extension property for casting.
- * Use the [normalized] property to always get a value between 0 and 2π.
+ * Use the `rad` extension property on [Float] to create an instance.
  */
 @JvmInline
 value class AngleRadians internal constructor(val raw: Float) : Comparable<AngleRadians> {
+
+    /**
+     * The value of the angle normalized to the range [0, 2π).
+     */
     val normalized: Float
         get() = (raw % TwoPi.raw + TwoPi.raw) % TwoPi.raw
 

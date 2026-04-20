@@ -11,7 +11,14 @@ package com.pandulapeter.kubriko.actor.traits
 
 import com.pandulapeter.kubriko.actor.Actor
 
+/**
+ * Should be implemented by [Actor]s that belong to a specific rendering layer.
+ */
 interface LayerAware : Actor {
 
+    /**
+     * The index of the layer this actor belongs to.
+     * Layers are drawn in increasing order of their index.
+     */
     val layerIndex: Int? get() = 0
 }

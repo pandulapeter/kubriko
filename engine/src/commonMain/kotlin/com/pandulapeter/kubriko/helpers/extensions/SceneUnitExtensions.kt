@@ -14,15 +14,30 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * Returns a new [SceneUnit] clamped between the specified [min] and [max] values.
+ */
 fun SceneUnit.clamp(
     min: SceneUnit? = null,
     max: SceneUnit? = null,
 ) = max(min?.raw ?: raw, min(max?.raw ?: raw, raw)).sceneUnit
 
+/**
+ * Returns the absolute value of this [SceneUnit].
+ */
 val SceneUnit.abs get() = abs(raw).sceneUnit
 
+/**
+ * Returns the absolute value of the given [sceneUnit].
+ */
 fun abs(sceneUnit: SceneUnit) = sceneUnit.abs
 
+/**
+ * Returns the smaller of two [SceneUnit] values.
+ */
 fun min(a: SceneUnit, b: SceneUnit) = min(a.raw, b.raw).sceneUnit
 
+/**
+ * Returns the larger of two [SceneUnit] values.
+ */
 fun max(a: SceneUnit, b: SceneUnit) = max(a.raw, b.raw).sceneUnit

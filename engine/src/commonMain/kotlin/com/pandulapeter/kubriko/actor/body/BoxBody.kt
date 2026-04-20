@@ -23,6 +23,16 @@ import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
+/**
+ * A body type that represents a rectangular box in the scene.
+ * It supports size, pivot, scaling, and rotation.
+ *
+ * @param initialPosition The initial position of the body.
+ * @param initialSize The initial size of the box.
+ * @param initialPivot The point within the box that serves as the center for rotation and scaling.
+ * @param initialScale The initial horizontal and vertical scale.
+ * @param initialRotation The initial rotation in radians.
+ */
 class BoxBody(
     initialPosition: SceneOffset = SceneOffset.Zero,
     initialSize: SceneSize = SceneSize.Zero,
@@ -32,6 +42,9 @@ class BoxBody(
 ) : PointBody(
     initialPosition = initialPosition,
 ) {
+    /**
+     * The dimensions of the box.
+     */
     var size = initialSize
         set(value) {
             if (field != value) {
@@ -40,6 +53,10 @@ class BoxBody(
                 isAxisAlignedBoundingBoxDirty = true
             }
         }
+
+    /**
+     * The point around which rotation and scaling are applied, relative to the box's top-left corner.
+     */
     var pivot = initialPivot.clamp(min = SceneOffset.Zero, max = size.bottomRight)
         set(value) {
             val newValue = value.clamp(min = SceneOffset.Zero, max = size.bottomRight)
@@ -48,6 +65,10 @@ class BoxBody(
                 isAxisAlignedBoundingBoxDirty = true
             }
         }
+
+    /**
+     * The scale factor of the box.
+     */
     var scale = initialScale
         set(value) {
             if (field != value) {
@@ -55,6 +76,10 @@ class BoxBody(
                 isAxisAlignedBoundingBoxDirty = true
             }
         }
+
+    /**
+     * The rotation of the box in radians.
+     */
     var rotation = initialRotation
         set(value) {
             if (field != value) {
@@ -63,6 +88,9 @@ class BoxBody(
             }
         }
 
+    /**
+     * Creates a copy of this [BoxBody] with optional new property values.
+     */
     fun copyAsBoxBody(
         position: SceneOffset = this.position,
         size: SceneSize = this.size,

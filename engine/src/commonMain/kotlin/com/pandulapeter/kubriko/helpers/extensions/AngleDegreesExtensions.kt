@@ -11,5 +11,21 @@ package com.pandulapeter.kubriko.helpers.extensions
 
 import com.pandulapeter.kubriko.types.AngleDegrees
 import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
+/**
+ * Converts this angle from degrees to radians.
+ */
 val AngleDegrees.rad get() = (normalized * (PI / 180f).toFloat()).rad
+
+
+/**
+ * Returns the sine of this angle.
+ */
+val AngleDegrees.sin get() = sin(normalized)
+
+/**
+ * Returns the cosine of this angle.
+ */
+val AngleDegrees.cos get() = cos(normalized)

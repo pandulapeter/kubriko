@@ -13,9 +13,12 @@ import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.body.PointBody
 
 /**
- * [Actor]s that want to have a well defined position in the Scene should implement this interface.
+ * Should be implemented by [Actor]s that have a specific position in the scene.
  */
 interface Positionable : Actor {
 
+    /**
+     * The physical representation of the actor.
+     */
     val body: PointBody
 }

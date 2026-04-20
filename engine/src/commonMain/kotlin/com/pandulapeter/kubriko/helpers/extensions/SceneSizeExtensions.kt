@@ -13,12 +13,24 @@ import androidx.compose.ui.util.lerp
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 
+/**
+ * Returns a [SceneOffset] representing the bottom-right corner of this size.
+ */
 val SceneSize.bottomRight get() = SceneOffset(width, height)
 
+/**
+ * Returns the minimum dimension of this size.
+ */
 val SceneSize.minDimension get() = raw.minDimension.sceneUnit
 
+/**
+ * Returns the maximum dimension of this size.
+ */
 val SceneSize.maxDimension get() = raw.maxDimension.sceneUnit
 
+/**
+ * Linearly interpolates between [start] and [stop] sizes.
+ */
 fun lerp(
     start: SceneSize,
     stop: SceneSize,

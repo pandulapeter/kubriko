@@ -12,10 +12,21 @@ package com.pandulapeter.kubriko.actor.body
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawStyle
+import com.pandulapeter.kubriko.actor.Actor
 
+/**
+ * Represents the logical shape of an [Actor] in the scene.
+ * Bodies are used for rendering: they determine the clipping bounds and are also used for checking if the actor is within the visible viewport.
+ */
 sealed interface Body {
 
+    /**
+     * The axis-aligned bounding box that contains the entire body.
+     */
     val axisAlignedBoundingBox: AxisAlignedBoundingBox
 
+    /**
+     * Draws the debug representation of the body's boundaries.
+     */
     fun DrawScope.drawDebugBounds(color: Color, style: DrawStyle)
 }

@@ -15,26 +15,35 @@ import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
- * [Actor]s that want to be drawn on the Scene should implement this interface.
- * A [Visible] actor must also be [Positionable].
+ * Should be implemented by [Actor]s that have a visual representation in the scene.
+ * A [Visible] actor must also be [Positionable] and [LayerAware].
  */
 interface Visible : Positionable, LayerAware {
 
+    /**
+     * The bounding box of the actor, used for visibility and clipping.
+     */
     override val body: BoxBody
 
     /**
-     * This number will be used to determine the order of executing the [draw] function relative to other [Visible] [Actor]s.
-     * [Actor]s with smaller [drawingOrder]-s get drawn later (on top).
+     * Determines the rendering order relative to other [Visible] actors.
+     * Actors with smaller [drawingOrder] values are drawn later (on top).
      */
     val drawingOrder: Float get() = 0f
 
+    /**
+     * Whether the actor should be drawn.
+     */
     val isVisible: Boolean get() = true
 
+    /**
+     * Whether the drawing should be clipped to the actor's [body].
+     */
     val shouldClip: Boolean get() = true
 
     /**
-     * Implement this function to draw the [Actor] into the Scene using the [scope], that has already been positioned, scaled and rotated.
-     * The units used within this drawing scope must always be raw values of [SceneUnit].
+     * Draws the actor into the scene.
+     * The [DrawScope] is already transformed based on the actor's position, scale, and rotation.
      */
     fun DrawScope.draw()
 }

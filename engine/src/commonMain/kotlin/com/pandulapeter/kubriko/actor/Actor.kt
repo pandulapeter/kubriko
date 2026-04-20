@@ -11,15 +11,23 @@ package com.pandulapeter.kubriko.actor
 
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.Manager
 
 /**
- * Marker interface that should be implemented by all classes handled by [ActorManager].
+ * Represents an object in the game world managed by [ActorManager].
+ * Actors can have various traits and behaviors defined by implementing additional interfaces.
  */
 interface Actor {
 
-    // TODO: Documentation
+    /**
+     * Called from the main thread right before the actor is added to the [ActorManager].
+     *
+     * @param kubriko The [Kubriko] instance the actor was added to. Could be used to get references to [Manager] instances.
+     */
     fun onAdded(kubriko: Kubriko) = Unit
 
-    // TODO: Documentation
+    /**
+     * Called from the main thread right after the actor is removed from the [ActorManager].
+     */
     fun onRemoved() = Unit
 }

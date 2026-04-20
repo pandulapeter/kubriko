@@ -15,10 +15,18 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import com.pandulapeter.kubriko.types.SceneOffset
 
+/**
+ * A basic body type that represents a single point in the scene.
+ * This is the simplest form of physical representation for an actor.
+ */
 open class PointBody internal constructor(
     initialPosition: SceneOffset,
 ) : Body {
     private var _axisAlignedBoundingBox: AxisAlignedBoundingBox? = null
+
+    /**
+     * The axis-aligned bounding box of the point body.
+     */
     override var axisAlignedBoundingBox: AxisAlignedBoundingBox
         get() {
             if (isAxisAlignedBoundingBoxDirty) {
@@ -31,6 +39,10 @@ open class PointBody internal constructor(
             _axisAlignedBoundingBox = value
         }
     protected var isAxisAlignedBoundingBoxDirty = false
+
+    /**
+     * The current position of the body in the scene.
+     */
     var position = initialPosition
         set(value) {
             if (field != value) {
@@ -39,6 +51,9 @@ open class PointBody internal constructor(
             }
         }
 
+    /**
+     * Creates a copy of this [PointBody] with an optional new position.
+     */
     fun copyAsPointBody(
         position: SceneOffset = this.position,
     ) = PointBody(
@@ -58,6 +73,9 @@ open class PointBody internal constructor(
     )
 
     companion object {
+        /**
+         * Creates a new [PointBody] instance.
+         */
         operator fun invoke(
             initialPosition: SceneOffset = SceneOffset.Zero,
         ) = PointBody(

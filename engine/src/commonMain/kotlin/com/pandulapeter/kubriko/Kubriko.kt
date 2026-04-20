@@ -10,27 +10,43 @@
 package com.pandulapeter.kubriko
 
 import com.pandulapeter.kubriko.Kubriko.Companion.newInstance
+import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
+import com.pandulapeter.kubriko.manager.MetadataManager
+import com.pandulapeter.kubriko.manager.StateManager
+import com.pandulapeter.kubriko.manager.ViewportManager
 import kotlin.reflect.KClass
 
 /**
- * Holds references to the individual Manager classes that control the different aspects of a game.
- * See the documentations of the specific Managers for detailed information.
+ * Holds references to the individual [Manager] classes that control the different aspects of the game.
+ * See the documentations of the specific managers for detailed information.
  * Use the static [newInstance] function to instantiate a [Kubriko] implementation.
  * Provide that instance to the [KubrikoViewport] Composable to draw the game world.
  */
 sealed interface Kubriko {
 
-    var isLoggingEnabled: Boolean
+    /**
+     * Whether logging is enabled for this [Kubriko] instance and its Managers.
+     */
+    val isLoggingEnabled: Boolean
+
+    /**
+     * The name of this [Kubriko] instance, used for logging.
+     */
     val instanceName: String
 
     /**
-     * TODO: Documentation + nullability
+     * Retrieves a [Manager] of the specified type.
+     *
+     * @param managerType The class of the [Manager] to retrieve.
+     * @return The [Manager] instance.
+     * @throws IllegalStateException if the [Manager] has not been registered or if the [Kubriko] instance has been disposed.
      */
     fun <T : Manager> get(managerType: KClass<T>): T
 
     /**
-     * TODO: Documentation
+     * Disposes of this [Kubriko] instance and all its [Manager]s.
+     * This should be called when the game engine is no longer needed.
      */
     fun dispose()
 
@@ -38,7 +54,12 @@ sealed interface Kubriko {
         /**
          * Creates a new [Kubriko] instance.
          *
-         * TODO: Mention default Managers
+         * If not provided, the default [ActorManager], [MetadataManager], [StateManager], and [ViewportManager]
+         * implementations will be automatically added.
+         *
+         * @param manager Optional custom [Manager] implementations.
+         * @param isLoggingEnabled Whether to enable logging for this instance.
+         * @param instanceNameForLogging Optional name to use for this instance in log messages.
          */
         fun newInstance(
             vararg manager: Manager,

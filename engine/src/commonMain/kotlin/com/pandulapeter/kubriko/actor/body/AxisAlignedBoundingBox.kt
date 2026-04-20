@@ -15,6 +15,15 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlin.jvm.JvmInline
 
+/**
+ * An axis-aligned rectangle used for collision detection and visibility checks.
+ *
+ * This class is optimized for memory and performance, using a packed [Long] to store
+ * its coordinates in a quantized format.
+ *
+ * TODO: Please note the existence of the QUANT_SHIFT constant. It limits the maximum size of the scene!
+ * Future versions of Kubriko should make that constant configurable, or get rid of it completely.
+ */
 @JvmInline
 value class AxisAlignedBoundingBox(private val packed: Long) {
 

@@ -16,6 +16,11 @@ import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 
+/**
+ * Applies the body's position, rotation, and scale to the [DrawTransform].
+ *
+ * @param drawTransform The transformation to modify.
+ */
 fun PointBody.transformForViewport(drawTransform: DrawTransform) {
     val pivot = if (this is BoxBody) pivot else SceneOffset.Zero
     drawTransform.translate(

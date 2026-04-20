@@ -14,9 +14,10 @@ import androidx.compose.ui.geometry.center
 import kotlin.jvm.JvmInline
 
 /**
- * 2D scaling factor.
+ * Represents a 2D scaling factor.
+ *
+ * This wrapper is used to specify horizontal and vertical scaling independently.
  */
-// TODO: Should be replaced with ScaleFactor
 @JvmInline
 value class Scale(private val raw: Size) {
     val horizontal: Float get() = raw.width

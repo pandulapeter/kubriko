@@ -14,18 +14,19 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
 
 /**
- * [Actor]s that implement this interface get to draw directly onto the viewport.
+ * Should be implemented by [Actor]s that draw directly onto the viewport,
+ * rather than being part of the game world.
  */
 interface Overlay : LayerAware {
 
     /**
-     * This number will be used to determine the order of executing the [drawToViewport] function relative to other [Overlay] [Actor]s.
-     * Actors with smaller [overlayDrawingOrder]s get drawn later (on top).
+     * Determines the rendering order relative to other [Overlay] actors.
+     * Actors with smaller [overlayDrawingOrder] values are drawn later (on top).
      */
     val overlayDrawingOrder: Float get() = 0f
 
     /**
-     * Invoked by [Kubriko] to draw using the viewport drawing scope.
+     * Draws the overlay elements into the viewport's [DrawScope].
      */
     fun DrawScope.drawToViewport()
 }

@@ -16,18 +16,23 @@ import kotlin.math.cos
 import kotlin.math.sign
 import kotlin.math.sin
 
+/**
+ * Converts this angle from radians to degrees.
+ */
 val AngleRadians.deg get() = (raw * (180f / PI).toFloat()).deg
 
+/**
+ * Returns the sine of this angle.
+ */
 val AngleRadians.sin get() = sin(normalized)
 
+/**
+ * Returns the cosine of this angle.
+ */
 val AngleRadians.cos get() = cos(normalized)
 
 /**
- * Rotates this angle towards the [targetAngle] by a step not exceeding [maxDelta].
- *
- * If the difference between this angle and the [targetAngle] is less than [maxDelta],
- * the returned angle will be exactly [targetAngle]. Otherwise, the angle is rotated
- * by [maxDelta] in the direction of [targetAngle].
+ * Rotates this angle towards the [target] angle by a step not exceeding [maxDelta].
  *
  * @param target The destination angle.
  * @param maxDelta The maximum amount to rotate by (should be non-negative).
@@ -44,6 +49,12 @@ fun AngleRadians.rotateTowards(
     return (this.raw + (maxDelta.raw * sign(delta.raw))).rad
 }
 
+/**
+ * Calculates the shortest signed distance between this angle and the [target] angle.
+ *
+ * @param target The destination angle.
+ * @return The shortest signed difference in radians.
+ */
 fun AngleRadians.shortestDeltaTo(target: AngleRadians): AngleRadians {
     val diff = (target.raw - this.raw) % AngleRadians.TwoPi.raw
     return when {

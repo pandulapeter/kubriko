@@ -13,6 +13,9 @@ import androidx.compose.ui.graphics.drawscope.DrawTransform
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 
+/**
+ * Transforms the [DrawTransform] based on the viewport state.
+ */
 internal fun DrawTransform.transformViewport(
     viewportCenter: SceneOffset,
     shiftedViewportOffset: SceneOffset,

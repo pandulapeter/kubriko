@@ -12,6 +12,9 @@ package com.pandulapeter.kubriko.helpers.extensions
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
+/**
+ * Emits values only if [minIntervalMillis] has passed since the last emission.
+ */
 internal fun Flow<Long>.distinctUntilChangedWithDelay(minIntervalMillis: Long): Flow<Long> = flow {
     var lastEmissionTime = 0L
     collect { timestamp ->

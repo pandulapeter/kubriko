@@ -12,4 +12,7 @@ package com.pandulapeter.kubriko.helpers.extensions
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.manager.Manager
 
+/**
+ * Retrieves a [Manager] of the specified type from the [Kubriko] engine.
+ */
 inline fun <reified T : Manager> Kubriko.get() = get(T::class)

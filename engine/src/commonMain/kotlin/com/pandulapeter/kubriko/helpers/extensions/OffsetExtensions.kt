@@ -16,12 +16,24 @@ import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
+/**
+ * Converts this screen [Offset] to a [SceneOffset].
+ *
+ * @param viewportManager The [ViewportManager] used for conversion.
+ */
 fun Offset.toSceneOffset(viewportManager: ViewportManager): SceneOffset = toSceneOffset(
     viewportCenter = viewportManager.cameraPosition.value,
     viewportSize = viewportManager.size.value,
     viewportScaleFactor = viewportManager.scaleFactor.value,
 )
 
+/**
+ * Converts this screen [Offset] to a [SceneOffset].
+ *
+ * @param viewportCenter The current center of the camera in the scene.
+ * @param viewportSize The size of the viewport in screen pixels.
+ * @param viewportScaleFactor The current scale factor of the viewport.
+ */
 fun Offset.toSceneOffset(
     viewportCenter: SceneOffset,
     viewportSize: Size,
@@ -31,16 +43,25 @@ fun Offset.toSceneOffset(
     y = (y - viewportSize.height / 2).sceneUnit,
 ) / viewportScaleFactor
 
+/**
+ * Divides this [Offset] by a [Scale].
+ */
 operator fun Offset.div(scale: Scale) = Offset(
     x = x / scale.horizontal,
     y = y / scale.vertical,
 )
 
+/**
+ * Multiplies this [Offset] by a [Scale].
+ */
 operator fun Offset.times(scale: Scale) = Offset(
     x = x * scale.horizontal,
     y = y * scale.vertical,
 )
 
+/**
+ * Multiplies this [Offset] by a [SceneUnit].
+ */
 operator fun Offset.times(scale: SceneUnit) = SceneOffset(
     x = x * scale,
     y = y * scale,

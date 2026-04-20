@@ -13,13 +13,25 @@ import com.pandulapeter.kubriko.types.AngleDegrees
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneUnit
 
+/**
+ * Converts this long to an [AngleDegrees] value.
+ */
 val Long.deg: AngleDegrees
     get() = AngleDegrees(toFloat())
 
+/**
+ * Converts this long to an [AngleRadians] value.
+ */
 val Long.rad: AngleRadians
     get() = AngleRadians(toFloat())
 
+/**
+ * Converts this long to a [SceneUnit] value.
+ */
 val Long.sceneUnit: SceneUnit
     get() = SceneUnit(toFloat())
 
+/**
+ * Multiplies this long by a [SceneUnit].
+ */
 operator fun Long.times(scale: SceneUnit): SceneUnit = (scale.raw * this).sceneUnit

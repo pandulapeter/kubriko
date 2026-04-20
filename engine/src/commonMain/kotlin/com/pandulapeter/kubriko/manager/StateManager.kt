@@ -13,7 +13,8 @@ import com.pandulapeter.kubriko.implementation.getDefaultFocusDebounce
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * TODO: Documentation
+ * Manages the global state of the game engine.
+ * This includes tracking whether the game window is focused and whether the game loop is running.
  */
 sealed class StateManager(
     isLoggingEnabled: Boolean,
@@ -23,12 +24,35 @@ sealed class StateManager(
     instanceNameForLogging = instanceNameForLogging,
     classNameForLogging = "StateManager",
 ) {
+    /**
+     * Whether the game window or viewport currently has focus.
+     * The value is automatically updated by the engine.
+     */
     abstract val isFocused: StateFlow<Boolean>
+
+    /**
+     * Whether the game loop is currently running.
+     * When false, actors and managers do not receive updates.
+     * The value can be updated by the `updateIsRunning()` function.
+     */
     abstract val isRunning: StateFlow<Boolean>
 
+    /**
+     * Starts or pauses the game loop.
+     *
+     * @param isRunning True to start the game, false to pause it.
+     */
     abstract fun updateIsRunning(isRunning: Boolean)
 
     companion object {
+        /**
+         * Creates a new [StateManager] instance.
+         *
+         * @param shouldAutoStart Whether the game should start running immediately after initialization.
+         * @param focusDebounce The delay in milliseconds before focus changes are applied.
+         * @param isLoggingEnabled Whether to enable logging for this manager.
+         * @param instanceNameForLogging Optional name for logging purposes.
+         */
         fun newInstance(
             shouldAutoStart: Boolean = true,
             focusDebounce: Long = getDefaultFocusDebounce(),
