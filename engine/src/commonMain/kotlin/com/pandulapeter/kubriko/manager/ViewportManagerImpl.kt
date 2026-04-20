@@ -19,12 +19,13 @@ import com.pandulapeter.kubriko.types.FrameRate
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
+import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
-import kotlin.math.max
-import kotlin.math.min
 
 internal class ViewportManagerImpl(
     val aspectRatioMode: AspectRatioMode,
@@ -36,6 +37,7 @@ internal class ViewportManagerImpl(
     instanceNameForLogging: String?,
     val frameRate: FrameRate,
 ) : ViewportManager(isLoggingEnabled, instanceNameForLogging) {
+
     private lateinit var actorManager: ActorManagerImpl
     private val _cameraPosition = MutableStateFlow(SceneOffset.Zero)
     override val cameraPosition = _cameraPosition.asStateFlow()
@@ -44,30 +46,49 @@ internal class ViewportManagerImpl(
     val scaleFactorMultiplier = MutableStateFlow(Scale.Unit)
     private val _scaleFactor = MutableStateFlow(Scale(initialScaleFactor, initialScaleFactor))
     override val rawScaleFactor by autoInitializingLazy {
-        _scaleFactor.asStateFlow(Scale.Unit)
+        _scaleFactor.asStateFlow()
     }
     override val scaleFactor by autoInitializingLazy {
-        combine(rawScaleFactor, scaleFactorMultiplier) { scaleFactor, scaleFactorMultiplier ->
-            scaleFactor * scaleFactorMultiplier
+        val combinedFlow = combine(rawScaleFactor, scaleFactorMultiplier) { raw, multiplier ->
+            raw * multiplier
         }.asStateFlow(Scale.Unit)
+
+        SyncStateFlow(combinedFlow) {
+            rawScaleFactor.value * scaleFactorMultiplier.value
+        }
     }
     override val topLeft by autoInitializingLazy {
-        combine(cameraPosition, size, scaleFactor) { viewportCenter, viewportSize, scaleFactor ->
+        val combinedFlow = combine(cameraPosition, size, scaleFactor) { viewportCenter, viewportSize, scale ->
             Offset.Zero.toSceneOffset(
                 viewportCenter = viewportCenter,
                 viewportSize = viewportSize,
-                viewportScaleFactor = scaleFactor,
+                viewportScaleFactor = scale,
             )
         }.asStateFlow(SceneOffset.Zero)
+        SyncStateFlow(combinedFlow) {
+            Offset.Zero.toSceneOffset(
+                viewportCenter = cameraPosition.value,
+                viewportSize = size.value,
+                viewportScaleFactor = scaleFactor.value,
+            )
+        }
     }
     override val bottomRight by autoInitializingLazy {
-        combine(cameraPosition, size, scaleFactor) { viewportCenter, viewportSize, scaleFactor ->
+        val combinedFlow = combine(cameraPosition, size, scaleFactor) { viewportCenter, viewportSize, scale ->
             Offset(viewportSize.width, viewportSize.height).toSceneOffset(
                 viewportCenter = viewportCenter,
                 viewportSize = viewportSize,
-                viewportScaleFactor = scaleFactor,
+                viewportScaleFactor = scale,
             )
         }.asStateFlow(SceneOffset.Zero)
+        SyncStateFlow(combinedFlow) {
+            val currentSize = size.value
+            Offset(currentSize.width, currentSize.height).toSceneOffset(
+                viewportCenter = cameraPosition.value,
+                viewportSize = currentSize,
+                viewportScaleFactor = scaleFactor.value,
+            )
+        }
     }
 
     override fun onInitialize(kubriko: Kubriko) {
@@ -81,7 +102,7 @@ internal class ViewportManagerImpl(
     override fun setCameraPosition(position: SceneOffset) = _cameraPosition.update { position }
 
     override fun setScaleFactor(scaleFactor: Float) = _scaleFactor.update {
-        max(minimumScaleFactor, min(scaleFactor, maximumScaleFactor)).let { adjustedScaleFactor ->
+        scaleFactor.coerceIn(minimumScaleFactor, maximumScaleFactor).let { adjustedScaleFactor ->
             Scale(
                 horizontal = adjustedScaleFactor,
                 vertical = adjustedScaleFactor,
@@ -91,10 +112,24 @@ internal class ViewportManagerImpl(
 
     override fun multiplyScaleFactor(scaleFactor: Float) = _scaleFactor.update { currentValue ->
         Scale(
-            horizontal = max(minimumScaleFactor, min(currentValue.horizontal * scaleFactor, maximumScaleFactor)),
-            vertical = max(minimumScaleFactor, min(currentValue.vertical * scaleFactor, maximumScaleFactor)),
+            horizontal = (currentValue.horizontal * scaleFactor).coerceIn(minimumScaleFactor, maximumScaleFactor),
+            vertical = (currentValue.vertical * scaleFactor).coerceIn(minimumScaleFactor, maximumScaleFactor),
         )
     }
 
     fun updateSize(size: Size) = _size.update { size }
+
+    /**
+     * A custom StateFlow wrapper that intercepts `.value` reads to calculate them synchronously.
+     * This prevents 1-frame asynchronous lag when the engine reads combined viewport bounds.
+     */
+    @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
+    class SyncStateFlow<T>(
+        private val delegate: StateFlow<T>,
+        private val getSyncValue: () -> T
+    ) : StateFlow<T> {
+        override val replayCache: List<T> get() = delegate.replayCache
+        override suspend fun collect(collector: FlowCollector<T>): Nothing = delegate.collect(collector)
+        override val value: T get() = getSyncValue()
+    }
 }
