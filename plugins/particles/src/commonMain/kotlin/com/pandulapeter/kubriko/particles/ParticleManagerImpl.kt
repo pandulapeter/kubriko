@@ -50,10 +50,6 @@ internal class ParticleManagerImpl(
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
         if (stateManager.isRunning.value) {
             val currentEmitters = particleEmitters.value
-            if (currentEmitters !== lastProcessedEmitters) {
-                emissionAccumulators.keys.retainAll(currentEmitters.toSet())
-                lastProcessedEmitters = currentEmitters
-            }
             currentEmitters.forEach { emitter ->
                 val spawnCount = when (val mode = emitter.particleEmissionMode) {
                     is ParticleEmitter.Mode.Burst -> {
@@ -76,6 +72,14 @@ internal class ParticleManagerImpl(
                             emitter.reuseParticleInternal(reusedParticle.state)
                         } ?: Particle(emitter.createParticleState())
                     )
+                }
+            }
+            if (emissionAccumulators.size > currentEmitters.size) {
+                val iterator = emissionAccumulators.iterator()
+                while (iterator.hasNext()) {
+                    if (!currentEmitters.contains(iterator.next().key)) {
+                        iterator.remove()
+                    }
                 }
             }
             if (particlesToAdd.isNotEmpty()) {
