@@ -13,10 +13,13 @@ import com.pandulapeter.kubriko.manager.Manager
 import kotlinx.coroutines.flow.Flow
 
 /**
- * TODO: Documentation
- * Note: MP3 files at 320 kbps have been tested. Use other formats at own risk.
+ * Manager responsible for playing background music.
+ *
+ * It is optimized for streaming larger audio files from disk.
+ * Audio files are identified using Uri. Use the Compose Resources library to provide Uri-s: Res.getUri("file_location"),
+ *
+ * Note: MP3 files at upd 320 kbps are recommended. Use other formats at your own risk.
  */
-// TODO: Add API to control the volume
 sealed class MusicManager(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
@@ -26,35 +29,96 @@ sealed class MusicManager(
     classNameForLogging = "MusicManager",
 ) {
     /**
-     * method that clear the audio cache without disposing the music manager
+     * Clears the audio cache without disposing the music manager.
      */
     abstract fun unloadAll()
 
+    /**
+     * Returns a [Flow] representing the loading progress of the specified [uri].
+     *
+     * @param uri The identifier of the music file to check.
+     * @return A flow emitting values between 0.0 and 1.0.
+     */
     abstract fun getLoadingProgress(uri: String): Flow<Float>
 
+    /**
+     * Returns a [Flow] representing the cumulative loading progress of the specified [uris].
+     *
+     * @param uris The identifiers of the music files to check.
+     * @return A flow emitting values between 0.0 and 1.0.
+     */
     abstract fun getLoadingProgress(uris: Collection<String>): Flow<Float>
 
+    /**
+     * Preloads the specified music [uris] into memory.
+     */
     abstract fun preload(vararg uris: String)
 
+    /**
+     * Preloads the specified music [uris] into memory.
+     */
     abstract fun preload(uris: Collection<String>)
 
+    /**
+     * Returns whether the music associated with the given [uri] is currently playing.
+     */
     abstract fun isPlaying(uri: String): Boolean
 
+    /**
+     * Starts playback of the music associated with the given [uri].
+     *
+     * @param uri The identifier of the music file.
+     * @param shouldLoop Whether the music should automatically restart when it finishes.
+     * @param shouldRestart Whether to restart the music from the beginning if it is already playing.
+     */
     abstract fun play(uri: String, shouldLoop: Boolean = true, shouldRestart: Boolean = false)
 
+    /**
+     * Pauses playback of the music associated with the given [uri].
+     */
     abstract fun pause(uri: String)
 
+    /**
+     * Stops playback of the music associated with the given [uri] and resets its position.
+     */
     abstract fun stop(uri: String)
 
+    /**
+     * Unloads the specified music [uri] from memory.
+     */
     abstract fun unload(uri: String)
 
+    /**
+     * Sets the volume for the music associated with the given [uri].
+     *
+     * @param uri The identifier of the music file.
+     * @param leftVolume The volume for the left channel (0.0 to 1.0).
+     * @param rightVolume The volume for the right channel (0.0 to 1.0).
+     */
     abstract fun setVolume(uri: String, leftVolume: Float, rightVolume: Float)
 
+    /**
+     * Sets the default volume for all new music playbacks.
+     *
+     * @param leftVolume The default volume for the left channel (0.0 to 1.0).
+     * @param rightVolume The default volume for the right channel (0.0 to 1.0).
+     */
     abstract fun setDefaultVolume(leftVolume: Float, rightVolume: Float)
 
+    /**
+     * Returns the current volume for the music associated with the given [uri].
+     *
+     * @return A [Pair] containing the left and right channel volumes.
+     */
     abstract fun getVolume(uri: String): Pair<Float, Float>
 
     companion object {
+        /**
+         * Creates a new instance of [MusicManager].
+         *
+         * @param isLoggingEnabled Whether to enable internal logging.
+         * @param instanceNameForLogging An optional name to identify this instance in logs.
+         */
         fun newInstance(
             isLoggingEnabled: Boolean = false,
             instanceNameForLogging: String? = null,
