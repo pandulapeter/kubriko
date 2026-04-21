@@ -19,6 +19,18 @@ import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
+/**
+ * A joint that connects two [PhysicsBody]s.
+ *
+ * @param physicsBody1 The first body.
+ * @param physicsBody2 The second body.
+ * @param jointLength The rest length of the joint.
+ * @param jointConstant The stiffness of the joint (Hooke's Law).
+ * @param dampening The dampening coefficient.
+ * @param canGoSlack Whether the joint can be compressed without resisting.
+ * @param offset1 The attachment point on the first body, relative to its center.
+ * @param offset2 The attachment point on the second body, relative to its center.
+ */
 class JointToBody(
     physicsBody1: PhysicsBody,
     private val physicsBody2: PhysicsBody,

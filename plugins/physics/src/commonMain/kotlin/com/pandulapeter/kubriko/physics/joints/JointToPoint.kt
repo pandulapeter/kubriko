@@ -19,6 +19,17 @@ import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
+/**
+ * A joint that connects a [PhysicsBody] to a fixed point in the scene.
+ *
+ * @param b1 The body to attach.
+ * @param pointAttachedTo The fixed point in the scene.
+ * @param jointLength The rest length of the joint.
+ * @param jointConstant The stiffness of the joint (Hooke's Law).
+ * @param dampening The dampening coefficient.
+ * @param canGoSlack Whether the joint can be compressed without resisting.
+ * @param offset The attachment point on the body, relative to its center.
+ */
 class JointToPoint(
     b1: PhysicsBody,
     val pointAttachedTo: SceneOffset,

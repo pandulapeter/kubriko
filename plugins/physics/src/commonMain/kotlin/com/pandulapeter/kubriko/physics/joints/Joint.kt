@@ -24,7 +24,7 @@ import com.pandulapeter.kubriko.types.SceneUnit
  * @param canGoSlack    Boolean whether the joint can go slack or not
  * @param offset       Offset to be applied to the location of the joint relative to b1's object space.
  */
-sealed class Joint protected constructor(
+sealed class Joint(
     protected val physicsBody: PhysicsBody,
     protected val naturalLength: SceneUnit,
     protected val springConstant: Float,

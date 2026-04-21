@@ -14,24 +14,30 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
- * Interface detailing what explosions need to include.
+ * Interface detailing the behavior of an explosion in the physics simulation.
+ *
+ * Explosions can apply forces to nearby [PhysicsBody]s.
  */
 interface Explosion {
 
     /**
-     * Applies a blast impulse to the effected bodies.
+     * Applies a blast impulse to the affected bodies.
      *
      * @param blastPower The impulse magnitude.
      */
     fun applyBlastImpulse(blastPower: SceneUnit)
 
     /**
-     * Updates the list of objects that should be effected by the explosion.
+     * Updates the list of objects that should be affected by the explosion.
+     *
+     * @param bodiesToEvaluate The collection of bodies to check for potential impact.
      */
     fun update(bodiesToEvaluate: Collection<PhysicsBody>)
 
     /**
      * Sets the epicenter of the explosion to a different coordinate.
+     *
+     * @param epicenter The new center of the explosion.
      */
     fun setEpicenter(epicenter: SceneOffset)
 }

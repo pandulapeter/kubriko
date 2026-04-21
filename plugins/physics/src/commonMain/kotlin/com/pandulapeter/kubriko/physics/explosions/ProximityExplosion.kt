@@ -49,18 +49,6 @@ class ProximityExplosion(
         }
     }
 
-    val linesToBodies = mutableListOf<SceneOffset>()
-
-    /**
-     * Updates the lines to body array for the debug drawer.
-     */
-    fun updateLinesToBody() {
-        linesToBodies.clear()
-        for (b in bodiesEffected) {
-            linesToBodies.add(b.position)
-        }
-    }
-
     /**
      * Applies blast impulse to all effected bodies center of mass.
      *
@@ -71,7 +59,6 @@ class ProximityExplosion(
             val blastDir = b.position - epicenter
             val distance = blastDir.length()
             if (distance == SceneUnit.Zero) return
-
             //Not physically correct as it should be blast * radius to object ^ 2 as the pressure of an explosion in 2D dissipates
             val invDistance = SceneUnit.Unit / distance
             val impulseMag = blastPower * invDistance

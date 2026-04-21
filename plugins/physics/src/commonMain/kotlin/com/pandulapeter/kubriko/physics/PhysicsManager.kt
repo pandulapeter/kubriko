@@ -15,7 +15,7 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
- * Manager responsible for simulating physics for [Physical] actors.
+ * Manager responsible for simulating physics for [RigidBody] actors.
  */
 sealed class PhysicsManager(
     isLoggingEnabled: Boolean,
@@ -27,11 +27,15 @@ sealed class PhysicsManager(
 ) {
     /**
      * The gravity vector applied to all physical objects.
+     *
+     * Change this to update the world's gravity.
      */
     abstract val gravity: MutableStateFlow<SceneOffset>
 
     /**
      * The speed multiplier for the physics simulation.
+     *
+     * 1.0 is normal speed, 0.5 is slow motion, 2.0 is fast-forward.
      */
     abstract val simulationSpeed: MutableStateFlow<Float>
 

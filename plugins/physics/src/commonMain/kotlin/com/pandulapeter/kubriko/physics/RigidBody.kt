@@ -11,7 +11,15 @@ package com.pandulapeter.kubriko.physics
 
 import com.pandulapeter.kubriko.collision.Collidable
 
-// TODO: Since PhysicsBody wraps the collision mask, there is no need for RigidBody to be Collidable
+/**
+ * An interface for actors that have a physical presence in the world.
+ *
+ * Actors implementing this interface are automatically tracked by the [PhysicsManager].
+ */
 interface RigidBody : Collidable {
+
+    /**
+     * The physical body associated with this actor.
+     */
     val physicsBody: PhysicsBody
 }

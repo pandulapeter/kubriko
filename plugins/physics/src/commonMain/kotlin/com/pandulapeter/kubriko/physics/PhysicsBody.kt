@@ -28,6 +28,25 @@ import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.PI
 import kotlin.math.sqrt
 
+/**
+ * Represents a physical body in the physics simulation.
+ *
+ * It wraps a [ComplexCollisionMask] and adds physical properties like velocity, mass, friction, and restitution.
+ *
+ * @param collisionMask The collision mask that defines the shape of the body.
+ * @param position The initial position of the body in the scene.
+ * @param dynamicFriction The dynamic friction coefficient (for moving objects).
+ * @param staticFriction The static friction coefficient (for objects at rest).
+ * @param rotation The initial rotation of the body in radians.
+ * @param velocity The initial velocity of the body.
+ * @param force The initial force applied to the body.
+ * @param density The density of the body. A density of 0 makes the body static.
+ * @param torque The initial torque applied to the body.
+ * @param restitution The coefficient of restitution (bounciness).
+ * @param angularVelocity The initial angular velocity of the body.
+ * @param linearDampening The linear dampening factor.
+ * @param isAffectedByGravity Whether the body is affected by the world's gravity.
+ */
 class PhysicsBody(
     val collisionMask: ComplexCollisionMask,
     var position: SceneOffset = collisionMask.position,
@@ -44,31 +63,55 @@ class PhysicsBody(
     var isAffectedByGravity: Boolean = true,
 ) {
     internal val rotationMatrix = RotationMatrix()
+
+    /**
+     * The rotation of the body in radians.
+     */
     var rotation = rotation
         set(value) {
             field = value
             rotationMatrix.set(rotation)
         }
+
+    /**
+     * The current velocity of the body.
+     */
     var velocity = velocity
         set(value) {
             // TODO: Make the minimum velocity configurable
             field = if (abs(value.length()) < 0.1f.sceneUnit) SceneOffset.Zero else value
         }
+
+    /**
+     * The current force applied to the body.
+     */
     var force = force
         set(value) {
             // TODO: Make the minimum force configurable
             field = if (abs(value.length()) < 0.1f.sceneUnit) SceneOffset.Zero else value
         }
+
+    /**
+     * The current angular velocity of the body.
+     */
     var angularVelocity = angularVelocity
         set(value) {
             // TODO: Make the minimum angular velocity configurable
             field = if (abs(value) < 0.01f.sceneUnit) SceneUnit.Zero else value
         }
+
+    /**
+     * The current torque applied to the body.
+     */
     var torque = torque
         set(value) {
             // TODO: Make the minimum torque configurable
             field = if (abs(value) < 0.1f.sceneUnit) SceneUnit.Zero else value
         }
+
+    /**
+     * The density of the body. Setting this to 0 makes the body static.
+     */
     var density = density
         set(value) {
             field = value

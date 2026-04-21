@@ -20,15 +20,15 @@ internal class RayAngleInformation
  * @param angle Angle the ray is set to.
  */(
     /**
-     * Getter for RAY.
+     * Getter for ray.
      *
-     * @return returns RAY.
+     * @return returns ray.
      */
     val ray: Ray,
     /**
-     * Getter for ANGLE.
+     * Getter for angle.
      *
-     * @return returns ANGLE.
+     * @return returns angle.
      */
     val angle: Double
 )
