@@ -30,26 +30,27 @@ internal class CollisionManagerImpl(
             .flowOn(Dispatchers.Default)
             .asStateFlow(persistentListOf())
     }
-    private val collidablesByType by autoInitializingLazy {
+    private val collidables by autoInitializingLazy {
         actorManager.allActors.map { allActors ->
-            allActors.filterIsInstance<Collidable>()
-                .groupBy { it::class }
+            allActors.filterIsInstance<Collidable>().toImmutableList()
         }
             .flowOn(Dispatchers.Default)
-            .asStateFlow(emptyMap())
+            .asStateFlow(persistentListOf())
     }
+
     private val collisionBuffer = mutableListOf<Collidable>()
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
         val detectors = collisionDetectors.value
-        val allCollidables = collidablesByType.value
+        val allCollidables = collidables.value
         detectors.forEach { detector ->
             detector.collidableTypes.forEach { type ->
-                val candidates = allCollidables[type] ?: return@forEach
                 collisionBuffer.clear()
-                candidates.forEach { candidate ->
-                    if (candidate !== detector && detector.isCollidingWith(candidate)) {
-                        collisionBuffer.add(candidate)
+                allCollidables.forEach { candidate ->
+                    if (candidate !== detector && type.isInstance(candidate)) {
+                        if (detector.isCollidingWith(candidate)) {
+                            collisionBuffer.add(candidate)
+                        }
                     }
                 }
                 if (collisionBuffer.isNotEmpty()) {

@@ -257,7 +257,6 @@ internal class ActorManagerImpl(
                     val flattenedActors = flattenActors(op.actors).asReversed()
                     val removalCollection = if (flattenedActors.size > 10) flattenedActors.toHashSet() else flattenedActors
                     workingList = workingList.filterNot { it in removalCollection }.toImmutableList()
-
                     flattenedActors.forEach {
                         newlyRemoved.add(it)
                         newlyAdded.remove(it)
@@ -273,15 +272,11 @@ internal class ActorManagerImpl(
                 }
             }
         }
-
-        // Single Main Thread block for all UI-facing updates and callbacks
         withContext(Dispatchers.Main) {
             if (newlyAdded.isNotEmpty()) {
                 newlyAdded.forEach { it.onAdded(kubrikoImpl) }
             }
-
             _allActors.value = workingList
-
             if (newlyRemoved.isNotEmpty()) {
                 newlyRemoved.forEach {
                     (it as? Disposable)?.dispose()
