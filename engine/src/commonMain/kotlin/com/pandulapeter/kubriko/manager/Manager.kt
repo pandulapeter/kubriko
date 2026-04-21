@@ -166,9 +166,14 @@ abstract class Manager(
     protected fun <T> autoInitializingLazy(initializer: () -> T): ReadOnlyProperty<Manager, T> = AutoInitializingLazy(initializer)
 
     /**
+     * Converts a [Flow] into a [StateFlow] using the manager's scope and moves it to the Main dispatcher.
+     */
+    protected fun <T> Flow<T>.asStateFlowOnMainThread(initialValue: T) = stateIn(scope + Dispatchers.Main, SharingStarted.Eagerly, initialValue)
+
+    /**
      * Converts a [Flow] into a [StateFlow] using the manager's scope.
      */
-    protected fun <T> Flow<T>.asStateFlow(initialValue: T) = stateIn(scope + Dispatchers.Main, SharingStarted.Eagerly, initialValue)
+    protected fun <T> Flow<T>.asStateFlow(initialValue: T) = stateIn(scope, SharingStarted.Eagerly, initialValue)
 
     private inner class AutoInitializingLazy<T>(initializer: () -> T) : ReadOnlyProperty<Manager, T> {
 

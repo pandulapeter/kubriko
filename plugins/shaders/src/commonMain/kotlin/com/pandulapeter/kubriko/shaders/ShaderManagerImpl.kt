@@ -37,7 +37,7 @@ internal class ShaderManagerImpl(
                 }
             }
             result.toImmutableList()
-        }.asStateFlow(persistentListOf())
+        }.asStateFlowOnMainThread(persistentListOf())
     }
 
     @Composable

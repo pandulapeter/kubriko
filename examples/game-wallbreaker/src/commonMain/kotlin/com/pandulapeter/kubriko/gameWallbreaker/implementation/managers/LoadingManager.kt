@@ -67,7 +67,7 @@ internal class LoadingManager(
             soundManager.getLoadingProgress(soundUris),
         ) { musicLoadingProgress, soundLoadingProgress ->
             musicLoadingProgress == 1f && soundLoadingProgress == 1f
-        }.asStateFlow(false)
+        }.asStateFlowOnMainThread(false)
     }
     private val isFontLoaded = MutableStateFlow(false)
     var isLoadingDone = false

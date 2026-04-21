@@ -26,13 +26,13 @@ internal class StateManagerImpl(
 
     private val _isFocused = MutableStateFlow(true)
     override val isFocused by autoInitializingLazy {
-        _isFocused.debounce(focusDebounce).asStateFlow(true)
+        _isFocused.debounce(focusDebounce).asStateFlowOnMainThread(true)
     }
     private val _isRunning = MutableStateFlow(false)
     override val isRunning by autoInitializingLazy {
         val combinedFlow = combine(isFocused, _isRunning) { focused, running ->
             focused && running
-        }.asStateFlow(false)
+        }.asStateFlowOnMainThread(false)
         SyncStateFlow(combinedFlow) {
             isFocused.value && _isRunning.value
         }

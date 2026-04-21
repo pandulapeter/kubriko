@@ -32,7 +32,7 @@ internal class KeyboardInputManagerImpl(
     private var activeKeysCache = mutableSetOf<Key>()
     private var keyboardEventHandler: KeyboardEventHandler? = null
     private val keyboardInputAwareActors by autoInitializingLazy {
-        actorManager.allActors.map { it.filterIsInstance<KeyboardInputAware>() }.asStateFlow(emptyList())
+        actorManager.allActors.map { it.filterIsInstance<KeyboardInputAware>() }.asStateFlowOnMainThread(emptyList())
     }
     private var hasSentEmptyMap = false
 

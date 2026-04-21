@@ -32,7 +32,7 @@ internal class ParticleManagerImpl(
             allActors
                 .filterIsInstance<ParticleEmitter<*>>()
                 .toImmutableList()
-        }.asStateFlow(persistentListOf())
+        }.asStateFlowOnMainThread(persistentListOf())
     }
     private val cache: MutableMap<KClass<out ParticleEmitter.ParticleState>, ArrayDeque<Particle<*>>> = mutableMapOf()
 

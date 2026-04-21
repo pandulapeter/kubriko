@@ -46,7 +46,7 @@ internal class PhysicsManagerImpl(
     private val arbiters = mutableListOf<Arbiter>()
     override val gravity = MutableStateFlow(initialGravity)
     private val actualGravity by autoInitializingLazy {
-        gravity.asStateFlow(initialGravity)
+        gravity.asStateFlowOnMainThread(initialGravity)
     }
     override val simulationSpeed = MutableStateFlow(initialSimulationSpeed)
 

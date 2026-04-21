@@ -33,8 +33,8 @@ internal class GameplayManager(
     private val viewportManager by manager<ViewportManager>()
     private val _isGameOver = MutableStateFlow(true)
     val isGameOver = _isGameOver.asStateFlow()
-    val speedMultiplier by lazy { viewportManager.size.map { it.height / 1280f }.asStateFlow(1f) }
-    val scaleMultiplier by lazy { viewportManager.size.map { (it.height + it.width) / 3000f }.asStateFlow(1f) }
+    val speedMultiplier by lazy { viewportManager.size.map { it.height / 1280f }.asStateFlowOnMainThread(1f) }
+    val scaleMultiplier by lazy { viewportManager.size.map { (it.height + it.width) / 3000f }.asStateFlowOnMainThread(1f) }
     val isGameStarted get() = actorManager.allActors.value.any { it is Ship }
 
     override fun onInitialize(kubriko: Kubriko) = actorManager.add(

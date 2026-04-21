@@ -94,25 +94,25 @@ internal class ActorManagerImpl(
         _allActors
             .map { actors -> actors.filterIsInstance<LayerAware>().groupBy { it.layerIndex }.keys.sortedBy { it }.toImmutableList() }
             .flowOn(Dispatchers.Default)
-            .asStateFlow(persistentListOf())
+            .asStateFlowOnMainThread(persistentListOf())
     }
     private val dynamicActors by autoInitializingLazy {
         _allActors
             .map { actors -> actors.filterIsInstance<Dynamic>().toImmutableList() }
             .flowOn(Dispatchers.Default)
-            .asStateFlow(persistentListOf())
+            .asStateFlowOnMainThread(persistentListOf())
     }
     private val visibleActors by autoInitializingLazy {
         _allActors
             .map { actors -> actors.filterIsInstance<Visible>().toImmutableList() }
             .flowOn(Dispatchers.Default)
-            .asStateFlow(persistentListOf())
+            .asStateFlowOnMainThread(persistentListOf())
     }
     private val overlayActors by autoInitializingLazy {
         _allActors
             .map { actors -> actors.filterIsInstance<Overlay>().toImmutableList() }
             .flowOn(Dispatchers.Default)
-            .asStateFlow(persistentListOf())
+            .asStateFlowOnMainThread(persistentListOf())
     }
 
     override val visibleActorsWithinViewport by lazy {
@@ -137,7 +137,7 @@ internal class ActorManagerImpl(
                 .toImmutableList()
         }
             .flowOn(Dispatchers.Default)
-            .asStateFlow(persistentListOf())
+            .asStateFlowOnMainThread(persistentListOf())
     }
 
     override val activeDynamicActors by lazy {
@@ -170,7 +170,7 @@ internal class ActorManagerImpl(
                     .toImmutableList()
             }
                 .flowOn(Dispatchers.Default)
-                .asStateFlow(persistentListOf())
+                .asStateFlowOnMainThread(persistentListOf())
         } else dynamicActors
     }
 

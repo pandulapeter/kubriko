@@ -28,14 +28,14 @@ internal class CollisionManagerImpl(
             allActors.filterIsInstance<CollisionDetector>().toImmutableList()
         }
             .flowOn(Dispatchers.Default)
-            .asStateFlow(persistentListOf())
+            .asStateFlowOnMainThread(persistentListOf())
     }
     private val collidables by autoInitializingLazy {
         actorManager.allActors.map { allActors ->
             allActors.filterIsInstance<Collidable>().toImmutableList()
         }
             .flowOn(Dispatchers.Default)
-            .asStateFlow(persistentListOf())
+            .asStateFlowOnMainThread(persistentListOf())
     }
 
     private val collisionBuffer = mutableListOf<Collidable>()

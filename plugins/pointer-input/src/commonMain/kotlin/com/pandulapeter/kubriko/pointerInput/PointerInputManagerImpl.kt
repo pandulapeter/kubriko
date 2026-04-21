@@ -47,7 +47,7 @@ internal class PointerInputManagerImpl(
     private val metadataManager by manager<MetadataManager>()
     private val stateManager by manager<StateManager>()
     private val pointerInputAwareActors by autoInitializingLazy {
-        actorManager.allActors.map { it.filterIsInstance<PointerInputAware>() }.asStateFlow(emptyList())
+        actorManager.allActors.map { it.filterIsInstance<PointerInputAware>() }.asStateFlowOnMainThread(emptyList())
     }
     private val rootOffset = MutableStateFlow(Offset.Zero)
     private val viewportOffset = MutableStateFlow(Offset.Zero)

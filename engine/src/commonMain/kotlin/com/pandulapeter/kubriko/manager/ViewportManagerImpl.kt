@@ -49,7 +49,7 @@ internal class ViewportManagerImpl(
     override val scaleFactor by autoInitializingLazy {
         val combinedFlow = combine(rawScaleFactor, scaleFactorMultiplier) { raw, multiplier ->
             raw * multiplier
-        }.asStateFlow(Scale.Unit)
+        }.asStateFlowOnMainThread(Scale.Unit)
 
         SyncStateFlow(combinedFlow) {
             rawScaleFactor.value * scaleFactorMultiplier.value
@@ -62,7 +62,7 @@ internal class ViewportManagerImpl(
                 viewportSize = viewportSize,
                 viewportScaleFactor = scale,
             )
-        }.asStateFlow(SceneOffset.Zero)
+        }.asStateFlowOnMainThread(SceneOffset.Zero)
         SyncStateFlow(combinedFlow) {
             Offset.Zero.toSceneOffset(
                 viewportCenter = cameraPosition.value,
@@ -78,7 +78,7 @@ internal class ViewportManagerImpl(
                 viewportSize = viewportSize,
                 viewportScaleFactor = scale,
             )
-        }.asStateFlow(SceneOffset.Zero)
+        }.asStateFlowOnMainThread(SceneOffset.Zero)
         SyncStateFlow(combinedFlow) {
             val currentSize = size.value
             Offset(currentSize.width, currentSize.height).toSceneOffset(
