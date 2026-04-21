@@ -47,17 +47,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import kotlin.reflect.KClass
 import kotlin.uuid.ExperimentalUuidApi
@@ -97,25 +94,25 @@ internal class ActorManagerImpl(
         _allActors
             .map { actors -> actors.filterIsInstance<LayerAware>().groupBy { it.layerIndex }.keys.sortedBy { it }.toImmutableList() }
             .flowOn(Dispatchers.Default)
-            .stateIn(scope + Dispatchers.Main, SharingStarted.Eagerly, persistentListOf())
+            .asStateFlow(persistentListOf())
     }
     private val dynamicActors by autoInitializingLazy {
         _allActors
             .map { actors -> actors.filterIsInstance<Dynamic>().toImmutableList() }
             .flowOn(Dispatchers.Default)
-            .stateIn(scope + Dispatchers.Main, SharingStarted.Eagerly, persistentListOf())
+            .asStateFlow(persistentListOf())
     }
     private val visibleActors by autoInitializingLazy {
         _allActors
             .map { actors -> actors.filterIsInstance<Visible>().toImmutableList() }
             .flowOn(Dispatchers.Default)
-            .stateIn(scope + Dispatchers.Main, SharingStarted.Eagerly, persistentListOf())
+            .asStateFlow(persistentListOf())
     }
     private val overlayActors by autoInitializingLazy {
         _allActors
             .map { actors -> actors.filterIsInstance<Overlay>().toImmutableList() }
             .flowOn(Dispatchers.Default)
-            .stateIn(scope + Dispatchers.Main, SharingStarted.Eagerly, persistentListOf())
+            .asStateFlow(persistentListOf())
     }
 
     override val visibleActorsWithinViewport by lazy {
@@ -140,7 +137,7 @@ internal class ActorManagerImpl(
                 .toImmutableList()
         }
             .flowOn(Dispatchers.Default)
-            .stateIn(scope + Dispatchers.Main, SharingStarted.Eagerly, persistentListOf())
+            .asStateFlow(persistentListOf())
     }
 
     override val activeDynamicActors by lazy {
@@ -173,7 +170,7 @@ internal class ActorManagerImpl(
                     .toImmutableList()
             }
                 .flowOn(Dispatchers.Default)
-                .stateIn(scope + Dispatchers.Main, SharingStarted.Eagerly, persistentListOf())
+                .asStateFlow(persistentListOf())
         } else dynamicActors
     }
 
