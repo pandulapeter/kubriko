@@ -77,6 +77,7 @@ internal abstract class Collectable(
         stateManager = kubriko.get()
         spriteManager = kubriko.get()
         viewportManager = kubriko.get()
+        body.scale = StartingScale * gameplayManager.scaleMultiplier.value
     }
 
     override fun DrawScope.draw() = animatedSprite.draw(this)
@@ -95,6 +96,7 @@ internal abstract class Collectable(
         collisionMask.position = body.position
         if (isShrinking) {
             if (body.scale.horizontal <= 0) {
+                body.scale = Scale.Zero
                 actorManager.remove(this)
             } else {
                 body.scale -= Scale.Unit * 0.003f * deltaTimeInMilliseconds * gameplayManager.scaleMultiplier.value
