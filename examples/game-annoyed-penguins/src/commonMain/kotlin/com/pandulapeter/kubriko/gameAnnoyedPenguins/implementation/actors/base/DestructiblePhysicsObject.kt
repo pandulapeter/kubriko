@@ -27,6 +27,7 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.sceneEditor.Editable
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.reflect.KClass
 
 internal abstract class DestructiblePhysicsObject<T : DestructiblePhysicsObject<T>> : Visible, Editable<T>, Dynamic, RigidBody, CollisionDetector {
@@ -37,7 +38,7 @@ internal abstract class DestructiblePhysicsObject<T : DestructiblePhysicsObject<
     private lateinit var actorManager: ActorManager
     private lateinit var audioManager: AudioManager
     private lateinit var viewportManager: ViewportManager
-    private val lowestGroundY by lazy { actorManager.allActors.value.filterIsInstance<Ground>().maxOf { it.body.position.y } }
+    private val lowestGroundY by lazy { actorManager.allActors.value.filterIsInstance<Ground>().maxOfOrNull { it.body.position.y } ?: SceneUnit.Zero }
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()

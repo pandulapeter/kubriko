@@ -181,6 +181,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
     }
     private val physicsManager by lazy {
         PhysicsManager.newInstance(
+            initialSimulationSpeed = 0f,
             isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )

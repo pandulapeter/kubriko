@@ -18,6 +18,7 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.physics.PhysicsManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
@@ -40,6 +41,7 @@ internal class GameplayManager : Manager() {
 
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
+    private val physicsManager by manager<PhysicsManager>()
     private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
     private val viewportManager by manager<ViewportManager>()
     private val _currentLevel = MutableStateFlow<String?>(null)
@@ -54,7 +56,10 @@ internal class GameplayManager : Manager() {
     private var gameEndTimer = Timer(
         timeInMilliseconds = GAME_END_DELAY.roundToLong(),
         shouldTriggerMultipleTimes = true,
-        onDone = { _currentLevel.update { null } }
+        onDone = {
+            _currentLevel.update { null }
+            physicsManager.simulationSpeed.value = 0f
+        }
     )
     private val _gameViewportAlpha = MutableStateFlow(1f)
     val gameViewportAlpha = _gameViewportAlpha.asStateFlow()
@@ -113,7 +118,10 @@ internal class GameplayManager : Manager() {
         }
     }
 
-    fun setCurrentLevel(level: String) = _currentLevel.update { level }
+    fun setCurrentLevel(level: String) {
+        physicsManager.simulationSpeed.value = 0f
+        _currentLevel.update { level }
+    }
 
     companion object {
         private const val GAME_END_DELAY = 600f

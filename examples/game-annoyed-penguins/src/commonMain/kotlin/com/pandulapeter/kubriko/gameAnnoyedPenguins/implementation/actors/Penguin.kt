@@ -24,6 +24,7 @@ import com.pandulapeter.kubriko.helpers.extensions.toSceneSize
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.PhysicsBody
+import com.pandulapeter.kubriko.physics.PhysicsManager
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlin.reflect.KClass
@@ -35,6 +36,7 @@ internal class Penguin(
 
     private lateinit var actorManager: ActorManager
     private lateinit var audioManager: AudioManager
+    private lateinit var physicsManager: PhysicsManager
     private lateinit var viewportManager: ViewportManager
     private var isLaunched = false
     val radius = body.size.width * 0.4f
@@ -58,6 +60,7 @@ internal class Penguin(
         super<BlinkingPenguin>.onAdded(kubriko)
         actorManager = kubriko.get()
         audioManager = kubriko.get()
+        physicsManager = kubriko.get()
         viewportManager = kubriko.get()
     }
 
@@ -70,6 +73,7 @@ internal class Penguin(
 
     override fun update(deltaTimeInMilliseconds: Int) {
         if (!isLaunched) {
+            physicsManager.simulationSpeed.value = 1f
             physicsBody.force = impulseOrigin.scalar(10000000f / deltaTimeInMilliseconds)
             isLaunched = true
         }
