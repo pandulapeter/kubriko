@@ -18,8 +18,12 @@ import com.pandulapeter.kubriko.shaders.Shader
 import com.pandulapeter.kubriko.shaders.extensions.ShaderUniformProvider
 
 /**
- * Credit: Juraj Kusnier
- * https://github.com/jurajkusnier/agsl-fun
+ * A shader that applies an animated water ripple effect to the scene.
+ *
+ * Credit: Juraj Kusnier (https://github.com/jurajkusnier/agsl-fun)
+ *
+ * @param initialState The initial state of the shader.
+ * @param layerIndex The index of the layer to apply the effect to. If null, it's applied to the entire scene.
  */
 class RippleShader(
     initialState: State = State(),
@@ -39,6 +43,12 @@ class RippleShader(
         shaderState = shaderState.copy(time = shaderState.time + deltaTimeInMilliseconds)
     }
 
+    /**
+     * The state of the [RippleShader].
+     *
+     * @param time The current time in milliseconds, used to animate the ripples.
+     * @param speed The speed at which the ripples expand.
+     */
     data class State(
         val time: Float = 0f,
         val speed: Float = 6.28f,

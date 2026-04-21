@@ -15,10 +15,13 @@ import com.pandulapeter.kubriko.shaders.Shader
 import com.pandulapeter.kubriko.shaders.extensions.ShaderUniformProvider
 
 /**
- * Credit: Zach Klippenstein
- * https://gist.github.com/zach-klippenstein/f92f7d59c1bdabcda67a3aed51a3fe3a
+ * A shader that applies a stylized comic-book halftone effect.
+ *
+ * Credit: Zach Klippenstein (https://gist.github.com/zach-klippenstein/f92f7d59c1bdabcda67a3aed51a3fe3a)
+ *
+ * @param shaderState The current state of the shader.
+ * @param layerIndex The index of the layer to apply the effect to. If null, it's applied to the entire scene.
  */
-// TODO: Extract parameters
 class ComicShader(
     override var shaderState: State = State(),
     override val layerIndex: Int? = null,
@@ -26,6 +29,13 @@ class ComicShader(
     override val shaderCache = Shader.Cache()
     override val shaderCode = CODE
 
+    /**
+     * The state of the [ComicShader].
+     *
+     * @param focusPoint The center of the focal effect in screen pixels.
+     * @param tileSize The size of each halftone tile in pixels.
+     * @param dotMinDiameter The minimum diameter of the halftone dots.
+     */
     data class State(
         val focusPoint: Offset = Offset.Zero,
         val tileSize: Float = 12f,

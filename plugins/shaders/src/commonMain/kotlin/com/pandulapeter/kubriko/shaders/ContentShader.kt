@@ -9,10 +9,19 @@
  */
 package com.pandulapeter.kubriko.shaders
 
-//TODO: Documentation
+/**
+ * A specialized [Shader] that has access to the content it is being applied to.
+ *
+ * This is useful for post-processing effects like blur, chromatic aberration, or color correction.
+ *
+ * @param T The type of the shader state which holds the uniforms.
+ */
 interface ContentShader<T : Shader.State> : Shader<T> {
 
     companion object {
+        /**
+         * The reserved uniform name for the content input (sampler2D).
+         */
         const val CONTENT = "content"
     }
 }

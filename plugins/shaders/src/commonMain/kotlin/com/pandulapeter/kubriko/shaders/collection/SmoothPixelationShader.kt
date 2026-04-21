@@ -14,8 +14,12 @@ import com.pandulapeter.kubriko.shaders.Shader
 import com.pandulapeter.kubriko.shaders.extensions.ShaderUniformProvider
 
 /**
- * Credit: Manel Martos Roldán
- * https://github.com/manuel-martos/Photo-FX
+ * A shader that applies a smooth pixelation effect to the scene.
+ *
+ * Credit: Manel Martos Roldán (https://github.com/manuel-martos/Photo-FX)
+ *
+ * @param shaderState The current state of the shader.
+ * @param layerIndex The index of the layer to apply the effect to. If null, it's applied to the entire scene.
  */
 data class SmoothPixelationShader(
     override var shaderState: State = State(),
@@ -24,6 +28,11 @@ data class SmoothPixelationShader(
     override val shaderCache = Shader.Cache()
     override val shaderCode = CODE
 
+    /**
+     * The state of the [SmoothPixelationShader].
+     *
+     * @param pixelSize The size of the pixels in the effect.
+     */
     data class State(
         val pixelSize: Float = 2f,
     ) : Shader.State {

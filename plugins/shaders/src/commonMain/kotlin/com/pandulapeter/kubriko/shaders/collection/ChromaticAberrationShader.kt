@@ -14,8 +14,12 @@ import com.pandulapeter.kubriko.shaders.Shader
 import com.pandulapeter.kubriko.shaders.extensions.ShaderUniformProvider
 
 /**
- * Credit: Manel Martos Roldán
- * https://github.com/manuel-martos/Photo-FX
+ * A shader that applies a chromatic aberration effect, splitting colors at the edges of the frame.
+ *
+ * Credit: Manel Martos Roldán (https://github.com/manuel-martos/Photo-FX)
+ *
+ * @param shaderState The current state of the shader.
+ * @param layerIndex The index of the layer to apply the effect to. If null, it's applied to the entire scene.
  */
 data class ChromaticAberrationShader(
     override var shaderState: State = State(),
@@ -24,6 +28,11 @@ data class ChromaticAberrationShader(
     override val shaderCache = Shader.Cache()
     override val shaderCode = CODE
 
+    /**
+     * The state of the [ChromaticAberrationShader].
+     *
+     * @param intensity The intensity of the color splitting effect.
+     */
     data class State(
         val intensity: Float = 20f,
     ) : Shader.State {

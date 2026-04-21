@@ -30,8 +30,34 @@ internal expect fun <T : Shader.State> createRenderEffect(
     size: Size,
 ): RenderEffect?
 
+/**
+ * A provider for setting uniform values on a [Shader].
+ *
+ * Implementations are platform-specific and handle the actual binding of values to the SKSL program.
+ */
 interface ShaderUniformProvider {
+    /**
+     * Sets an integer uniform value.
+     *
+     * @param name The name of the uniform in the SKSL code.
+     * @param value The value to set.
+     */
     fun uniform(name: String, value: Int)
+
+    /**
+     * Sets a float uniform value.
+     *
+     * @param name The name of the uniform in the SKSL code.
+     * @param value The value to set.
+     */
     fun uniform(name: String, value: Float)
+
+    /**
+     * Sets a float2 uniform value.
+     *
+     * @param name The name of the uniform in the SKSL code.
+     * @param value1 The first component of the vector.
+     * @param value2 The second component of the vector.
+     */
     fun uniform(name: String, value1: Float, value2: Float)
 }

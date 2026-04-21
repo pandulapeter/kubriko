@@ -14,8 +14,12 @@ import com.pandulapeter.kubriko.shaders.Shader
 import com.pandulapeter.kubriko.shaders.extensions.ShaderUniformProvider
 
 /**
- * Credit: Manel Martos Roldán
- * https://github.com/manuel-martos/Photo-FX
+ * A shader that applies a vignette effect, darkening the edges of the frame.
+ *
+ * Credit: Manel Martos Roldán (https://github.com/manuel-martos/Photo-FX)
+ *
+ * @param shaderState The current state of the shader.
+ * @param layerIndex The index of the layer to apply the effect to. If null, it's applied to the entire scene.
  */
 data class VignetteShader(
     override var shaderState: State = State(),
@@ -24,9 +28,15 @@ data class VignetteShader(
     override val shaderCache = Shader.Cache()
     override val shaderCode = CODE
 
+    /**
+     * The state of the [VignetteShader].
+     *
+     * @param intensity Controls the size of the vignette. Lower values result in a stronger darkening effect that reaches further towards the center.
+     * @param decayFactor How quickly the darkness fades towards the center. Higher values create a sharper transition.
+     */
     data class State(
-        private val intensity: Float = 30f,
-        private val decayFactor: Float = 0.6f,
+        val intensity: Float = 30f,
+        val decayFactor: Float = 0.6f,
     ) : Shader.State {
 
         override fun ShaderUniformProvider.applyUniforms() {
