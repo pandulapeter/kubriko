@@ -121,11 +121,11 @@ internal class ActorManagerImpl(
             metadataManager.activeRuntimeInMilliseconds
                 .distinctUntilChangedWithDelay(invisibleActorMinimumRefreshTimeInMillis)
                 .onStart { emit(-1L) },
-            viewportManager.cameraPosition,
-            viewportManager.size,
-            viewportManager.scaleFactor,
+            viewportManager.cameraPosition.debounce(8L),
+            viewportManager.size.debounce(8L),
+            viewportManager.scaleFactor.debounce(8L),
         ) { allVisibleActors, _, viewportCenter, viewportSize, scaleFactor ->
-            val scaledHalfViewportSize = SceneSize(viewportSize / (scaleFactor * 2))
+            val scaledHalfViewportSize = SceneSize(viewportSize / (scaleFactor * 2f))
             allVisibleActors
                 .filter {
                     it.body.axisAlignedBoundingBox.isWithinViewportBounds(
@@ -153,8 +153,8 @@ internal class ActorManagerImpl(
             ) { allDynamicActors, _, viewportCenter, viewportSize, scaleFactor ->
                 val viewportTopLeft = viewportManager.topLeft.value
                 val viewportBottomRight = viewportManager.bottomRight.value
-                val edgeBuffer = minOf(viewportBottomRight.x - viewportTopLeft.x, viewportBottomRight.y - viewportTopLeft.y) / 2
-                val scaledHalfViewportSize = SceneSize(viewportSize / (scaleFactor * 2))
+                val edgeBuffer = minOf(viewportBottomRight.x - viewportTopLeft.x, viewportBottomRight.y - viewportTopLeft.y) / 2f
+                val scaledHalfViewportSize = SceneSize(viewportSize / (scaleFactor * 2f))
                 allDynamicActors
                     .filter { actor ->
                         if (!actor.isAlwaysActive && actor is Positionable) {
@@ -255,10 +255,8 @@ internal class ActorManagerImpl(
 
                 is Operation.Remove -> {
                     val flattenedActors = flattenActors(op.actors).asReversed()
-
-                    // Restored the HashSet lookup optimization! Huge performance boost for large removals.
-                    val flattenedSet = flattenedActors.toHashSet()
-                    workingList = workingList.filterNot { it in flattenedSet }.toImmutableList()
+                    val removalCollection = if (flattenedActors.size > 10) flattenedActors.toHashSet() else flattenedActors
+                    workingList = workingList.filterNot { it in removalCollection }.toImmutableList()
 
                     flattenedActors.forEach {
                         newlyRemoved.add(it)
@@ -360,7 +358,10 @@ internal class ActorManagerImpl(
                     },
                     drawBlock = {
                         drawBuffer.clear()
-                        visibleActorsWithinViewport.value.forEach { actor ->
+                        val visibles = visibleActorsWithinViewport.value
+                        val visiblesSize = visibles.size
+                        for (i in 0 until visiblesSize) {
+                            val actor = visibles[i]
                             if (actor.isVisible && actor.layerIndex == layerIndex) {
                                 drawBuffer.add(actor)
                             }
