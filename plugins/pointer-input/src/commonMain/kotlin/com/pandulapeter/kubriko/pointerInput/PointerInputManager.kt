@@ -41,7 +41,7 @@ sealed class PointerInputManager(
     /**
      * Attempts to move the hovering pointer to the specified [offset].
      *
-     * Note: This only works on Desktop and might require special permissions.
+     * Note: This only works on Desktop and might require special permissions (accessibility on MacOS for example).
      *
      * @return True if the pointer was moved, false otherwise.
      */
