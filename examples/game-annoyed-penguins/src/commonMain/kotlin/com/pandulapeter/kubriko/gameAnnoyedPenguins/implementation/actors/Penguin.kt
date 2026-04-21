@@ -30,12 +30,13 @@ import kotlin.reflect.KClass
 
 internal class Penguin(
     initialPosition: SceneOffset,
-    impulseOrigin: SceneOffset,
+    private val impulseOrigin: SceneOffset,
 ) : BlinkingPenguin(initialPosition), RigidBody, CollisionDetector {
 
     private lateinit var actorManager: ActorManager
     private lateinit var audioManager: AudioManager
     private lateinit var viewportManager: ViewportManager
+    private var isLaunched = false
     val radius = body.size.width * 0.4f
     override val collidableTypes = listOf<KClass<out Collidable>>(Ground::class, DestructiblePhysicsObject::class, Penguin::class)
     override val collisionMask = CircleCollisionMask(
@@ -48,7 +49,6 @@ internal class Penguin(
         density = 5f,
         rotation = body.rotation,
         staticFriction = -500f,
-        force = impulseOrigin.scalar(1500000f),
     )
     override val drawingOrder = -2f
     var shouldBeFollowedByCamera = true
@@ -69,6 +69,10 @@ internal class Penguin(
     }
 
     override fun update(deltaTimeInMilliseconds: Int) {
+        if (!isLaunched) {
+            physicsBody.force = impulseOrigin.scalar(10000000f / deltaTimeInMilliseconds)
+            isLaunched = true
+        }
         super.update(deltaTimeInMilliseconds)
         body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
         body.rotation = physicsBody.rotation
