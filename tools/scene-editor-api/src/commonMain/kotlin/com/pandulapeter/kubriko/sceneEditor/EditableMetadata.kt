@@ -18,16 +18,16 @@ import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlin.reflect.KClass
 
-// TODO: Revisit documentation, rename class if needed.
 /**
- * Defines the deserialization logic for [Editable] [Actor]s. Should be registered when instantiating [Kubriko].
- * Use the static [invoke] function for a simplified way to create instances.
+ * Defines the deserialization and instantiation logic for [Editable] [Actor]s.
  *
- * @param type - The unique [String] that defines the type of the Actor.
- * @param deserializeState - This lambda will be invoked to restore the [Serializable.State] of an [Editable] from a [String].
- * The serialization logic is defined in the [Editable] implementation.
- * @param instantiate - TODO
- * @param type - The [KClass] of the [Editable] this metadata refers to.
+ * This class extends [SerializableMetadata] to include an `instantiate` function,
+ * which allows the Scene Editor to create new actor instances at a specific location.
+ *
+ * @param typeId A unique string that identifies the actor type.
+ * @param deserializeState A function that restores a [Serializable.State] from a string.
+ * @param instantiate A function that creates a new [Serializable.State] for an actor at the given [SceneOffset].
+ * @param type The class of the [Editable] actor this metadata refers to.
  */
 class EditableMetadata<T : Editable<T>>(
     typeId: String,
@@ -42,7 +42,11 @@ class EditableMetadata<T : Editable<T>>(
 
     companion object {
         /**
-         * TODO: Documentation
+         * Creates a new [SerializationManager] instance configured for [Editable] actors.
+         *
+         * @param editableMetadata The metadata for all types of actors that can be edited.
+         * @param isLoggingEnabled Whether to enable logging for this manager.
+         * @param instanceNameForLogging Optional name for logging purposes.
          */
         fun newSerializationManagerInstance(
             vararg editableMetadata: EditableMetadata<*>,
@@ -55,12 +59,11 @@ class EditableMetadata<T : Editable<T>>(
         )
 
         /**
-         * Simplified way to instantiate [EditableMetadata].
+         * A simplified way to instantiate [EditableMetadata] using reified type parameters.
          *
-         * @param typeId - The unique [String] that defines the type of the Actor.
-         * @param deserializeState - This lambda will be invoked to restore the [Serializable.State] of an [Editable] from a [String].
-         * The serialization logic is defined in the [Editable] implementation.
-         * @param instantiate - TODO
+         * @param typeId A unique string that identifies the actor type.
+         * @param deserializeState A function that restores a [Serializable.State] from a string.
+         * @param instantiate A function that creates a new [Serializable.State] for an actor at the given [SceneOffset].
          */
         inline operator fun <reified T : Editable<T>> invoke(
             typeId: String,

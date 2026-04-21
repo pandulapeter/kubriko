@@ -18,6 +18,12 @@ import com.pandulapeter.kubriko.Kubriko
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+/**
+ * No-op implementation of [DebugMenuContract].
+ *
+ * This object can be used in release builds to satisfy dependencies without including the full
+ * debug menu implementation. All operations are non-functional.
+ */
 object DebugMenu : DebugMenuContract {
 
     override val isVisible = MutableStateFlow(false).asStateFlow()

@@ -25,6 +25,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
+/**
+ * A fullscreen overlay that displays a loading indicator while content is being prepared.
+ *
+ * @param modifier The modifier to be applied to the layout.
+ * @param shouldShowLoadingIndicator Whether the loading indicator should be visible.
+ * @param color The background color of the overlay.
+ * @param enter The enter transition for the overlay.
+ * @param exit The exit transition for the overlay.
+ * @param content The main content to display once loading is complete.
+ */
 @Composable
 fun LoadingOverlay(
     modifier: Modifier = Modifier,

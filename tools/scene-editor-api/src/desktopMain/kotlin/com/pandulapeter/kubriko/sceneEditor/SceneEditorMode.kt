@@ -10,12 +10,22 @@
 package com.pandulapeter.kubriko.sceneEditor
 
 /**
- * TODO: Documentation
+ * Defines the operational mode of the Scene Editor.
  */
 sealed class SceneEditorMode {
 
+    /**
+     * Standalone mode where the editor manages its own scene state.
+     */
     data object Normal : SceneEditorMode()
 
+    /**
+     * Connected mode where the editor is linked to an external scene state provider.
+     * This is designed for real-time updates.
+     *
+     * @param sceneJson The current scene state in JSON format.
+     * @param onSceneJsonChanged Callback when the editor modifies the scene state.
+     */
     data class Connected(
         val sceneJson: String,
         val onSceneJsonChanged: (String) -> Unit,

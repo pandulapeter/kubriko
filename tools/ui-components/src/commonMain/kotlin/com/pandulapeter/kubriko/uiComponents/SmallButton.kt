@@ -24,6 +24,15 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * A standardized icon-only button used throughout the Kubriko tools.
+ *
+ * @param modifier The modifier to apply to this button.
+ * @param icon The drawable resource for the button's icon.
+ * @param onButtonPressed Callback to be invoked when the button is pressed.
+ * @param contentDescription The string resource for accessibility.
+ * @param contentColor Optional color override for the icon.
+ */
 @Composable
 fun SmallButton(
     modifier: Modifier = Modifier,

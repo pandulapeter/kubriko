@@ -24,6 +24,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 
+/**
+ * A compact toggle switch with a label, used for boolean properties in the Scene Editor or settings in the Debug Menu.
+ *
+ * @param modifier The modifier to be applied to the layout.
+ * @param title The label to display next to the switch.
+ * @param isEnabled Whether the switch is interactive.
+ * @param isChecked Whether the switch is currently ON.
+ * @param onCheckedChanged Callback when the switch is toggled.
+ */
 @Composable
 fun SmallSwitch(
     modifier: Modifier = Modifier,

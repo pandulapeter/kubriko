@@ -31,6 +31,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
+/**
+ * The default Material3 theme for Kubriko tools and the Showcase app.
+ *
+ * It handles font loading and provides a consistent color palette and typography across the engine.
+ *
+ * @param areResourcesLoaded Whether all external resources (like textures or levels) are loaded.
+ * @param content The UI content to display within the theme.
+ */
 @Composable
 fun KubrikoTheme(
     areResourcesLoaded: Boolean = true,

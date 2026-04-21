@@ -19,14 +19,34 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import kotlinx.coroutines.flow.StateFlow
 
+/**
+ * Defines the public API for the Kubriko Debug Menu.
+ *
+ * The Debug Menu provides a way to inspect the internal state of the engine, view logs,
+ * and manipulate various parameters at runtime.
+ */
 interface DebugMenuContract {
 
+    /**
+     * A flow indicating whether the debug menu is currently open.
+     */
     val isVisible: StateFlow<Boolean>
 
+    /**
+     * Toggles the visibility of the debug menu.
+     */
     fun toggleVisibility()
 
-    // TODO: Remove this function once default arguments in member Composables become supported.
-    // https://issuetracker.google.com/issues/165812010
+    /**
+     * Renders the debug menu along with the game viewport.
+     *
+     * This is the recommended way to use the debug menu, as it handles the layout
+     * and overlay button for you.
+     *
+     * @param kubriko The [Kubriko] instance to inspect.
+     * @param isEnabled Whether the debug menu (and its toggle button) should be active.
+     * @param kubrikoViewport A composable that renders the game scene.
+     */
     @Composable
     operator fun invoke(
         kubriko: Kubriko?,
@@ -44,6 +64,9 @@ interface DebugMenuContract {
         horizontalDebugMenuHeight = 160.dp,
     )
 
+    /**
+     * Detailed version of [invoke] for advanced customization.
+     */
     @Composable
     operator fun invoke(
         modifier: Modifier, // TODO: = Modifier,
@@ -57,8 +80,9 @@ interface DebugMenuContract {
         horizontalDebugMenuHeight: Dp, // TODO: = 160.dp
     ) = Unit
 
-    // TODO: Remove this function once default arguments in member Composables become supported.
-    // https://issuetracker.google.com/issues/165812010
+    /**
+     * Renders only the horizontal version of the debug menu.
+     */
     @Composable
     fun Horizontal(
         kubriko: Kubriko?,
@@ -73,6 +97,9 @@ interface DebugMenuContract {
         height = 180.dp,
     )
 
+    /**
+     * Detailed version of [Horizontal] for advanced customization.
+     */
     @Composable
     fun Horizontal(
         modifier: Modifier, // TODO: = Modifier,
@@ -83,8 +110,9 @@ interface DebugMenuContract {
         height: Dp, // TODO: = 180.dp,
     ) = Unit
 
-    // TODO: Remove this function once default arguments in member Composables become supported.
-    // https://issuetracker.google.com/issues/165812010
+    /**
+     * Renders only the vertical version of the debug menu.
+     */
     @Composable
     fun Vertical(
         kubriko: Kubriko?,
@@ -99,6 +127,9 @@ interface DebugMenuContract {
         width = 192.dp,
     )
 
+    /**
+     * Detailed version of [Vertical] for advanced customization.
+     */
     @Composable
     fun Vertical(
         modifier: Modifier, // TODO: = Modifier,
@@ -109,8 +140,9 @@ interface DebugMenuContract {
         width: Dp, // TODO: = 192.dp,
     ) = Unit
 
-    // TODO: Remove this function once default arguments in member Composables become supported.
-    // https://issuetracker.google.com/issues/165812010
+    /**
+     * Renders only the overlay button that toggles the menu.
+     */
     @Composable
     fun OverlayOnly(
         kubriko: Kubriko?,
@@ -123,6 +155,9 @@ interface DebugMenuContract {
         buttonAlignment = buttonAlignment,
     )
 
+    /**
+     * Detailed version of [OverlayOnly] for advanced customization.
+     */
     @Composable
     fun OverlayOnly(
         modifier: Modifier, // TODO: = Modifier,

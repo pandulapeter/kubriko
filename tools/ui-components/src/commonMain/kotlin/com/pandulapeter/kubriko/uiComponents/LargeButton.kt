@@ -32,6 +32,15 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * A standardized high-emphasis button used throughout the Kubriko tools.
+ *
+ * @param modifier The modifier to apply to this button.
+ * @param title The string resource for the button's text.
+ * @param icon An optional drawable resource for an icon to display before the text.
+ * @param isEnabled Whether the button is clickable and visually enabled.
+ * @param onButtonPressed Callback to be invoked when the button is pressed.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LargeButton(

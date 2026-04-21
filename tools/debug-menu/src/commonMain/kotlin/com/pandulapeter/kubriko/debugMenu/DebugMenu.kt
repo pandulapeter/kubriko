@@ -53,6 +53,12 @@ import kubriko.tools.debug_menu.generated.resources.ic_debug_on
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * The default implementation of the [DebugMenuContract].
+ *
+ * This object provides the entry point for adding the Kubriko Debug Menu to your application.
+ * It manages the menu's visibility and provides different layout options (Horizontal, Vertical, Overlay).
+ */
 object DebugMenu : DebugMenuContract {
 
     override val isVisible = InternalDebugMenu.isVisible

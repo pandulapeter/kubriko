@@ -16,6 +16,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
+/**
+ * A container component used to group related UI elements in the Kubriko tools.
+ *
+ * It uses a standard [Card] with the surface color from the theme.
+ *
+ * @param modifier The modifier to apply to the panel.
+ * @param content The composable content to display inside the panel.
+ */
 @Composable
 fun Panel(
     modifier: Modifier = Modifier,

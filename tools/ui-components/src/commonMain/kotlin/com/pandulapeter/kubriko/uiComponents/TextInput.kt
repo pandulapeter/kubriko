@@ -15,6 +15,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 
+/**
+ * A simple text input component used for editing string properties in the Scene Editor.
+ *
+ * @param modifier The modifier to be applied to the layout.
+ * @param value The current text to display.
+ * @param onValueChanged Callback when the text changes.
+ * @param enabled Whether the input is interactive.
+ */
 @Composable
 fun TextInput(
     modifier: Modifier = Modifier,

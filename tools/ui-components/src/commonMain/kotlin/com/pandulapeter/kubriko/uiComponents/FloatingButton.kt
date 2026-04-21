@@ -21,6 +21,15 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import org.jetbrains.compose.resources.DrawableResource
 
+/**
+ * A circular action button used for floating controls, such as toggling the Debug Menu.
+ *
+ * @param modifier The modifier to be applied to the layout.
+ * @param icon The drawable resource to display as an icon.
+ * @param isSelected Whether the button is in a selected/active state (affects coloring).
+ * @param contentDescription Accessibility description for the icon.
+ * @param onButtonPressed Callback when the button is clicked.
+ */
 @Composable
 fun FloatingButton(
     modifier: Modifier = Modifier,

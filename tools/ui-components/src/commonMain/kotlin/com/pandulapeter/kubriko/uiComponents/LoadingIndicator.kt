@@ -15,6 +15,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+/**
+ * A standardized circular progress indicator for Kubriko tools.
+ *
+ * @param modifier The modifier to be applied to the layout.
+ */
 @Composable
 fun LoadingIndicator(
     modifier: Modifier = Modifier,

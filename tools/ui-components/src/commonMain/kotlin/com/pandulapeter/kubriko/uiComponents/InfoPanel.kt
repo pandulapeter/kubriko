@@ -32,6 +32,13 @@ import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * A panel used to display informational text with a fade/expand animation.
+ *
+ * @param modifier The modifier to apply to the text element.
+ * @param text The text to display.
+ * @param isVisible Whether the panel is currently visible.
+ */
 @Composable
 fun InfoPanel(
     modifier: Modifier = Modifier,
@@ -67,6 +74,13 @@ fun InfoPanel(
     )
 }
 
+/**
+ * A version of [InfoPanel] that takes a [StringResource].
+ *
+ * @param modifier The modifier to apply to the text element.
+ * @param stringResource The string resource for the text to display.
+ * @param isVisible Whether the panel is currently visible.
+ */
 @Composable
 fun InfoPanel(
     modifier: Modifier = Modifier,

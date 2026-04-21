@@ -30,6 +30,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+/**
+ * A compact slider component used for fine-tuning values in tool panels.
+ *
+ * @param modifier The modifier to apply to the slider.
+ * @param value The current value of the slider.
+ * @param onValueChanged Callback to be invoked when the value changes.
+ * @param valueRange The range of values the slider can represent.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SmallSlider(
@@ -67,6 +75,15 @@ fun SmallSlider(
     )
 }
 
+/**
+ * A [SmallSlider] with a label displayed next to it.
+ *
+ * @param modifier The modifier to apply to the row container.
+ * @param title The label text to display.
+ * @param value The current value of the slider.
+ * @param onValueChanged Callback to be invoked when the value changes.
+ * @param valueRange The range of values the slider can represent.
+ */
 @Composable
 fun SmallSliderWithTitle(
     modifier: Modifier = Modifier,

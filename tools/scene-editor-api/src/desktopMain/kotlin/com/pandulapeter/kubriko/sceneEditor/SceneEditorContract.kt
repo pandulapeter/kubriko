@@ -13,8 +13,22 @@ import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.serialization.SerializationManager
 
+/**
+ * Contract for the Scene Editor tool.
+ *
+ * The Scene Editor allows for visual manipulation of [Editable] actors on Desktop.
+ */
 interface SceneEditorContract {
 
+    /**
+     * Shows the Scene Editor in a new window.
+     *
+     * @param defaultSceneFilename The name of the scene file to load by default.
+     * @param defaultSceneFolderPath The path to the folder containing scene files.
+     * @param serializationManager The manager used for serializing/deserializing actors.
+     * @param customManagers Additional engine managers to include in the editor's engine instance.
+     * @param title The title of the editor window.
+     */
     fun show(
         defaultSceneFilename: String? = null,
         defaultSceneFolderPath: String = "./src/commonMain/composeResources/files/scenes",
@@ -23,8 +37,17 @@ interface SceneEditorContract {
         title: String = "Scene Editor",
     )
 
-    // TODO: Remove this function once default arguments in member Composables become supported.
-    // https://issuetracker.google.com/issues/165812010
+    /**
+     * Embeds the Scene Editor as a Composable.
+     *
+     * @param defaultSceneFilename The name of the scene file to load by default.
+     * @param defaultSceneFolderPath The path to the folder containing scene files.
+     * @param serializationManager The manager used for serializing/deserializing actors.
+     * @param customManagers Additional engine managers to include in the editor's engine instance.
+     * @param sceneEditorMode The operational mode of the editor.
+     * @param title The title of the editor.
+     * @param onCloseRequest Callback when the user attempts to close the editor.
+     */
     @Composable
     operator fun invoke(
         defaultSceneFolderPath: String,

@@ -13,10 +13,15 @@ import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.serialization.SerializationManager
 
+/**
+ * No-op implementation of [SceneEditorContract].
+ *
+ * This object can be used in release builds or on platforms where the Scene Editor is not
+ * supported to satisfy dependencies without including the full implementation.
+ * All operations are non-functional.
+ */
 object SceneEditor : SceneEditorContract {
-    /**
-     * TODO: Documentation
-     */
+
     override fun show(
         defaultSceneFilename: String?,
         defaultSceneFolderPath: String,
@@ -25,9 +30,6 @@ object SceneEditor : SceneEditorContract {
         title: String,
     ) = Unit
 
-    /**
-     * TODO: Documentation
-     */
     @Composable
     override operator fun invoke(
         defaultSceneFilename: String?,
