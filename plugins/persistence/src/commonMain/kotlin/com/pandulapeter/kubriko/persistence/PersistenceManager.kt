@@ -29,6 +29,11 @@ sealed class PersistenceManager(
 
     /**
      * Returns a [MutableStateFlow] for a boolean value.
+     *
+     * Changes to the flow's value will be automatically saved to local storage.
+     *
+     * @param key The unique key for this value.
+     * @param defaultValue The value to return if no value is found in storage.
      */
     abstract fun boolean(
         key: String,
@@ -37,6 +42,11 @@ sealed class PersistenceManager(
 
     /**
      * Returns a [MutableStateFlow] for an integer value.
+     *
+     * Changes to the flow's value will be automatically saved to local storage.
+     *
+     * @param key The unique key for this value.
+     * @param defaultValue The value to return if no value is found in storage.
      */
     abstract fun int(
         key: String,
@@ -45,6 +55,11 @@ sealed class PersistenceManager(
 
     /**
      * Returns a [MutableStateFlow] for a float value.
+     *
+     * Changes to the flow's value will be automatically saved to local storage.
+     *
+     * @param key The unique key for this value.
+     * @param defaultValue The value to return if no value is found in storage.
      */
     abstract fun float(
         key: String,
@@ -53,6 +68,11 @@ sealed class PersistenceManager(
 
     /**
      * Returns a [MutableStateFlow] for a string value.
+     *
+     * Changes to the flow's value will be automatically saved to local storage.
+     *
+     * @param key The unique key for this value.
+     * @param defaultValue The value to return if no value is found in storage.
      */
     abstract fun string(
         key: String,
@@ -61,6 +81,13 @@ sealed class PersistenceManager(
 
     /**
      * Returns a [MutableStateFlow] for a generic value that can be serialized to a string.
+     *
+     * Changes to the flow's value will be automatically saved to local storage.
+     *
+     * @param key The unique key for this value.
+     * @param defaultValue The value to return if no value is found in storage.
+     * @param serializer A function that converts the value to a string.
+     * @param deserializer A function that converts the string back to the value.
      */
     abstract fun <T> generic(
         key: String,

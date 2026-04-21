@@ -10,34 +10,34 @@ The `audio-playback` plugin provides high-level managers for playing sound effec
 
 ## Usage
 
-### Sound Effects
+### 1. Register the Manager
 
-To use the `SoundManager`, register it with your `Kubriko` instance:
+To use audio in your game, register the `SoundManager` and/or `MusicManager` with your `Kubriko` instance:
 
 ```kotlin
 val kubriko = Kubriko.newInstance(
-    managers = listOf(
-        SoundManager.newInstance()
-    )
+    SoundManager.newInstance(),
+    MusicManager.newInstance(),
+    // ... other managers
 )
+```
 
+### 2. Play Sound Effects
+
+Use the `SoundManager` for short, repetitive sounds like jumps or explosions:
+
+```kotlin
 val soundManager = kubriko.get<SoundManager>()
 
 // Play a sound effect
 soundManager.play(Res.getUri("sounds/jump.wav"))
 ```
 
-### Background Music
+### 3. Play Background Music
 
-To use the `MusicManager`, register it with your `Kubriko` instance:
+Use the `MusicManager` for larger background music tracks:
 
 ```kotlin
-val kubriko = Kubriko.newInstance(
-    managers = listOf(
-        MusicManager.newInstance()
-    )
-)
-
 val musicManager = kubriko.get<MusicManager>()
 
 // Play background music
@@ -53,6 +53,7 @@ musicManager.play(Res.getUri("music/theme.mp3"), shouldLoop = true)
 ### Volume Control
 `MusicManager` supports per-track volume control as well as a default volume setting.
 
-## Public artifact
-The artifact for this module has the following ID:
+## Public Artifact
+
+The artifact for this module is:
 `io.github.pandulapeter.kubriko:plugin-audio-playback`
