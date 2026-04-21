@@ -9,12 +9,18 @@
  */
 package com.pandulapeter.kubriko.serialization
 
+import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.manager.Manager
 import kotlinx.collections.immutable.ImmutableSet
 import kotlin.reflect.KClass
 
 /**
- * TODO: Documentation
+ * Manager responsible for serializing and deserializing [Actor]s that implement the [Serializable] interface.
+ *
+ * It uses [SerializableMetadata] to know how to handle different types of actors.
+ *
+ * @param MD The type of metadata used by this manager.
+ * @param T The base type of serializable actors managed by this manager.
  */
 sealed class SerializationManager<MD : SerializableMetadata<out T>, out T : Serializable<out T>>(
     isLoggingEnabled: Boolean,
@@ -24,20 +30,42 @@ sealed class SerializationManager<MD : SerializableMetadata<out T>, out T : Seri
     instanceNameForLogging = instanceNameForLogging,
     classNameForLogging = "SerializationManager",
 ) {
+    /**
+     * The set of all registered type IDs.
+     */
     abstract val registeredTypeIds: ImmutableSet<String>
 
+    /**
+     * Returns the type ID for the given actor type, or null if it's not registered.
+     */
     abstract fun getTypeId(type: KClass<out @UnsafeVariance T>): String?
 
+    /**
+     * Returns the metadata for the given type ID, or null if it's not registered.
+     */
     abstract fun getMetadata(typeId: String): MD?
 
+    /**
+     * Serializes a list of actors into a string representation.
+     */
     abstract fun serializeActors(actors: List<@UnsafeVariance T>): String
 
+    /**
+     * Deserializes a string representation into a list of actors.
+     */
     abstract fun deserializeActors(serializedStates: String): List<T>
 
     companion object {
 
         /**
-         * TODO: Documentation. Mention the shortcut in Metadata to this generic mess
+         * Creates a new [SerializationManager] instance.
+         *
+         * For a simpler way to create an instance when using the default [SerializableMetadata],
+         * see [SerializableMetadata.newSerializationManagerInstance].
+         *
+         * @param serializableMetadata The metadata for all types of actors that can be serialized.
+         * @param isLoggingEnabled Whether to enable logging for this manager.
+         * @param instanceNameForLogging Optional name for logging purposes.
          */
         fun <MD : SerializableMetadata<out T>, T : Serializable<out T>> newInstance(
             vararg serializableMetadata: MD,

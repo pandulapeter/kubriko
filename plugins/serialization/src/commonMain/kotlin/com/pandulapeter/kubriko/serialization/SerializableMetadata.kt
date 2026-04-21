@@ -9,20 +9,17 @@
  */
 package com.pandulapeter.kubriko.serialization
 
-import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
-import com.pandulapeter.kubriko.serialization.SerializableMetadata.Companion.invoke
 import kotlin.reflect.KClass
 
-// TODO: Revisit documentation, rename class if needed.
 /**
- * Defines the deserialization logic for [Serializable] [Actor]s. Should be registered when instantiating [Kubriko].
- * Use the static [invoke] function for a simplified way to create instances.
+ * Defines the deserialization logic for [Serializable] [Actor]s.
  *
- * @param type - The unique [String] that defines the type of the Actor.
- * @param deserializeState - This lambda will be invoked to restore the [Serializable.State] of an [Serializable] from a [String].
- * The serialization logic is defined in the [Serializable] implementation.
- * @param type - The [KClass] of the [Serializable] this metadata refers to.
+ * Instances of this class should be registered when instantiating the [SerializationManager].
+ *
+ * @param typeId A unique string that identifies the actor type.
+ * @param deserializeState A function that restores a [Serializable.State] from a string.
+ * @param type The class of the [Serializable] actor this metadata refers to.
  */
 open class SerializableMetadata<T : Serializable<T>>(
     val typeId: String,
@@ -32,24 +29,29 @@ open class SerializableMetadata<T : Serializable<T>>(
 
     companion object {
         /**
-         * TODO: Documentation
+         * Creates a new [SerializationManager] instance using the default [SerializableMetadata] and [Serializable] types.
+         *
+         * This is a convenience shortcut for projects that don't need custom metadata or actor base types.
+         *
+         * @param serializableMetadata The metadata for all types of actors that can be serialized.
+         * @param isLoggingEnabled Whether to enable logging for this manager.
+         * @param instanceNameForLogging Optional name for logging purposes.
          */
         fun newSerializationManagerInstance(
             vararg serializableMetadata: SerializableMetadata<*>,
             isLoggingEnabled: Boolean = false,
             instanceNameForLogging: String? = null,
-        ) = SerializationManager.newInstance<SerializableMetadata<*>, Serializable<*>>(
+        ) = SerializationManager.newInstance(
             serializableMetadata = serializableMetadata,
             isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = instanceNameForLogging,
         )
 
         /**
-         * Simplified way to instantiate [SerializableMetadata].
+         * A simplified way to instantiate [SerializableMetadata] using reified type parameters.
          *
-         * @param typeId - The unique [String] that defines the type of the Actor.
-         * @param deserializeState - This lambda will be invoked to restore the [Serializable.State] of an [Serializable] from a [String].
-         * The serialization logic is defined in the [Serializable] implementation.
+         * @param typeId A unique string that identifies the actor type.
+         * @param deserializeState A function that restores a [Serializable.State] from a string.
          */
         inline operator fun <reified T : Serializable<T>> invoke(
             typeId: String,

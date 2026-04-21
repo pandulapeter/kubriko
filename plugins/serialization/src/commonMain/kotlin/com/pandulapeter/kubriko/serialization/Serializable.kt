@@ -9,44 +9,45 @@
  */
 package com.pandulapeter.kubriko.serialization
 
-import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
-import com.pandulapeter.kubriko.actor.traits.Positionable
-import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.serialization.Serializable.State
 
 
-// TODO: Revisit documentation.
 /**
- * Should be implemented by [Actor]s that want to appear in the Scene Editor.
- * It's important that such types should also be registered as [SerializableMetadata] when instantiating [Kubriko].
- * The main point of this interface is to enforce a serialization pattern (the deserialization logic is defined in [SerializableMetadata]), so that
- * the Scene Editor can save and load instance [State]-s from text files. This [State] can then be used to restore the [Serializable] instance.
- * Actors that appear in the Scene Editor must be [Positionable] so that they can be placed into the Scene, and they are usually [Visible] too, however the latter is not enforced.
- * If an [Serializable] Actor is not [Visible], the Scene Editor will create a default representation for it (that's only visible in the Editor). Use [editorPreview] to override this representation.
+ * An interface for [Actor]s that can be serialized and deserialized.
+ *
+ * Actors implementing this interface must be registered using [SerializableMetadata] when
+ * instantiating the [SerializationManager].
+ *
+ * @param T The type of the serializable actor.
  */
 interface Serializable<T : Serializable<T>> : Actor {
 
     /**
-     * Invoked when saving the state of the [Actor] instance.
+     * Saves the current state of the actor.
+     *
+     * @return A [State] object containing all necessary data to restore the actor.
      */
     fun save(): State<T>
 
     /**
      * Represents the serializable state of an [Actor] instance.
-     * Implementations should define properties for each important aspect of an [Actor] in a way that those properties can be saved to and restored from a [String].
-     * See [SerializableMetadata] for more information.
+     *
+     * Implementations should define properties for each important aspect of an [Actor] in a way
+     * that those properties can be saved to and restored from a [String].
      */
-    interface State<T: Serializable<T>> {
+    interface State<T : Serializable<T>> {
 
         /**
-         * Instantiates an [Serializable] [Actor] from the current [State].
+         * Instantiates an [Actor] from the current state.
+         *
+         * @return A new instance of the actor [T].
          */
         fun restore(): T
 
         /**
-         * Serializes the current [State] into a [String].
-         * The deserialization logic is defined using [SerializableMetadata].
+         * Serializes the current state into a string representation.
+         *
+         * @return A string containing the serialized state.
          */
         fun serialize(): String
     }
