@@ -14,6 +14,8 @@ import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.particles.implementation.Particle
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlin.reflect.KClass
 
@@ -26,13 +28,14 @@ internal class ParticleManagerImpl(
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
     private val emissionAccumulators = mutableMapOf<ParticleEmitter<*>, Float>()
-    private var lastProcessedEmitters: List<ParticleEmitter<*>>? = null
     private val particleEmitters by autoInitializingLazy {
         actorManager.allActors.map { allActors ->
             allActors
                 .filterIsInstance<ParticleEmitter<*>>()
                 .toImmutableList()
-        }.asStateFlowOnMainThread(persistentListOf())
+        }
+            .flowOn(Dispatchers.Default)
+            .asStateFlow(persistentListOf())
     }
     private val cache: MutableMap<KClass<out ParticleEmitter.ParticleState>, ArrayDeque<Particle<*>>> = mutableMapOf()
 

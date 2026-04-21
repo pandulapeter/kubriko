@@ -55,7 +55,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.reflect.KClass
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -181,13 +180,16 @@ internal class ActorManagerImpl(
         viewportManager = kubriko.viewportManager
         scope.launch(Dispatchers.Default) {
             while (isActive) {
-                val firstOp = operationChannel.receive()
-                val batch = mutableListOf(firstOp)
-                while (true) {
-                    val op = operationChannel.tryReceive().getOrNull() ?: break
-                    batch.add(op)
+                try {
+                    val firstOp = operationChannel.receive()
+                    val batch = mutableListOf(firstOp)
+                    while (true) {
+                        val op = operationChannel.tryReceive().getOrNull() ?: break
+                        batch.add(op)
+                    }
+                    processBatch(batch)
+                } catch (_: Exception) {
                 }
-                processBatch(batch)
             }
         }
         add(initialActors)
@@ -205,7 +207,6 @@ internal class ActorManagerImpl(
         while (queue.isNotEmpty()) {
             val current = queue.removeFirst()
             result.add(current)
-
             if (current is Group) {
                 for (child in current.actors) {
                     if (child !== current) {
@@ -218,7 +219,7 @@ internal class ActorManagerImpl(
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    private suspend fun processBatch(batch: List<Operation>) {
+    private fun processBatch(batch: List<Operation>) {
         var workingList = _allActors.value
         val newlyAdded = LinkedHashSet<Actor>()
         val newlyRemoved = LinkedHashSet<Actor>()
@@ -255,11 +256,14 @@ internal class ActorManagerImpl(
 
                 is Operation.Remove -> {
                     val flattenedActors = flattenActors(op.actors).asReversed()
-                    val removalCollection = if (flattenedActors.size > 10) flattenedActors.toHashSet() else flattenedActors
-                    workingList = workingList.filterNot { it in removalCollection }.toImmutableList()
-                    flattenedActors.forEach {
-                        newlyRemoved.add(it)
-                        newlyAdded.remove(it)
+                    val validRemovals = flattenedActors.filter { workingList.contains(it) }
+                    if (validRemovals.isNotEmpty()) {
+                        val removalCollection = if (validRemovals.size > 10) validRemovals.toHashSet() else validRemovals
+                        workingList = workingList.filterNot { it in removalCollection }.toImmutableList()
+                        validRemovals.forEach {
+                            newlyRemoved.add(it)
+                            newlyAdded.remove(it)
+                        }
                     }
                 }
 
@@ -272,36 +276,40 @@ internal class ActorManagerImpl(
                 }
             }
         }
-        withContext(Dispatchers.Main) {
-            if (newlyAdded.isNotEmpty()) {
-                newlyAdded.forEach { it.onAdded(kubrikoImpl) }
-            }
-            _allActors.value = workingList
-            if (newlyRemoved.isNotEmpty()) {
-                newlyRemoved.forEach {
-                    (it as? Disposable)?.dispose()
-                    it.onRemoved()
-                }
+        if (newlyAdded.isNotEmpty()) {
+            newlyAdded.forEach { it.onAdded(kubrikoImpl) }
+        }
+        _allActors.value = workingList
+        if (newlyRemoved.isNotEmpty()) {
+            newlyRemoved.forEach {
+                (it as? Disposable)?.dispose()
+                it.onRemoved()
             }
         }
     }
 
     override fun add(vararg actors: Actor) {
         if (actors.isEmpty()) return
-        operationChannel.trySend(Operation.Add(actors.toList()))
+        scope.launch {
+            operationChannel.send(Operation.Add(actors.toList()))
+        }
     }
 
     override fun add(actors: Collection<Actor>) = add(actors = actors.toTypedArray())
 
     override fun remove(vararg actors: Actor) {
         if (actors.isEmpty()) return
-        operationChannel.trySend(Operation.Remove(actors.toList()))
+        scope.launch {
+            operationChannel.send(Operation.Remove(actors.toList()))
+        }
     }
 
     override fun remove(actors: Collection<Actor>) = remove(actors = actors.toTypedArray())
 
     override fun removeAll() {
-        operationChannel.trySend(Operation.RemoveAll)
+        scope.launch {
+            operationChannel.send(Operation.RemoveAll)
+        }
     }
 
     @Composable

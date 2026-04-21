@@ -19,6 +19,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Group
+import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
@@ -52,7 +53,7 @@ import kotlin.math.hypot
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputAware, Collidable {
+internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputAware, Collidable, Unique {
 
     private lateinit var actorManager: ActorManager
     private lateinit var audioManager: AudioManager

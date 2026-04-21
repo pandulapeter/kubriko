@@ -37,6 +37,7 @@ import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
 import kubriko.examples.game_space_squadron.generated.resources.Res
 import kubriko.examples.game_space_squadron.generated.resources.sprite_alien_ship
+import kotlin.math.max
 import kotlin.random.Random
 import kotlin.reflect.KClass
 
@@ -125,7 +126,10 @@ internal class AlienShip(
                 resetPosition()
             }
             if (isShrinking) {
-                body.scale -= ShrinkingSpeed * deltaTimeInMilliseconds * gameplayManager.scaleMultiplier.value
+                body.scale = Scale(
+                    horizontal = max(0f, body.scale.horizontal - ShrinkingSpeed.horizontal * deltaTimeInMilliseconds * gameplayManager.scaleMultiplier.value),
+                    vertical = max(0f, body.scale.vertical - ShrinkingSpeed.vertical * deltaTimeInMilliseconds * gameplayManager.scaleMultiplier.value),
+                )
                 if (body.scale.horizontal <= 0f) {
                     resetPosition()
                 }
