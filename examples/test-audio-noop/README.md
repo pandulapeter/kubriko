@@ -1,3 +1,5 @@
-# Audio test - noop
+# Audio Test - No-op
 
-This module exposes the same public API as [test-audio](https://github.com/pandulapeter/kubriko/tree/main/examples/test-auido) but with blank implementation, as tests should not be included in production builds of the Showcase app. 
+Blank implementation of the Audio test.
+
+This module is used to exclude the Audio test from production builds while maintaining source compatibility.

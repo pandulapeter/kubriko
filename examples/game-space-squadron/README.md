@@ -1,3 +1,5 @@
-# Space Squadron game
+# Space Squadron Example
 
-TODO: Documentation
+Use your spaceship to defend from alien invaders.
+
+This module demonstrates fast-paced action, projectile logic, and input handling.

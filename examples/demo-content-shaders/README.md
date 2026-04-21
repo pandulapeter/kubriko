@@ -1,3 +1,5 @@
-# Content Shaders demo
+# Content Shaders Demo
 
-TODO: Documentation
+Playground for testing various shader effects.
+
+This module demonstrates how to apply and customize fragment shaders on actors.

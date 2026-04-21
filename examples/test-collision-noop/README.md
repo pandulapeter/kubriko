@@ -1,3 +1,5 @@
-# Collision test - noop
+# Collision Test - No-op
 
-This module exposes the same public API as [test-collision](https://github.com/pandulapeter/kubriko/tree/main/examples/test-collision) but with blank implementation, as tests should not be included in production builds of the Showcase app. 
+Blank implementation of the Collision test.
+
+This module is used to exclude the Collision test from production builds while maintaining source compatibility.

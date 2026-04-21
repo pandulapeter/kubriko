@@ -52,7 +52,7 @@
 
     <!-- Game - Space Squadron -->
     <string name="game_space_squadron">Space Squadron</string>
-    <string name="game_space_squadron_subtitle">Use your space ship to defend from alien invaders</string>
+    <string name="game_space_squadron_subtitle">Use your spaceship to defend from alien invaders</string>
 
     <!-- Game - Annoyed Penguins -->
     <string name="game_annoyed_penguins">Annoyed Penguins</string>

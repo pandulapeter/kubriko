@@ -1,3 +1,5 @@
-# Shader Animations demo
+# Shader Animations Demo
 
-TODO: Documentation
+Examples for dynamic SKSL shader overlays.
+
+This module demonstrates how to use shaders for procedural animations and transitions.
