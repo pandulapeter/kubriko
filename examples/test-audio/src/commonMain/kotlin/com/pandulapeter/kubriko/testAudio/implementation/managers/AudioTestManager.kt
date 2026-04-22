@@ -187,7 +187,7 @@ internal class AudioTestManager(
     )
 
     companion object {
-        private const val URI_MUSIC_1 = "files/music/a_csajod-átkok.mp3"
-        private const val URI_MUSIC_2 = "files/music/a_csajod-energiavámpír.mp3"
+        private const val URI_MUSIC_1 = "files/music/a_csajod-atkok.mp3"
+        private const val URI_MUSIC_2 = "files/music/a_csajod-energiavampir.mp3"
     }
 }
