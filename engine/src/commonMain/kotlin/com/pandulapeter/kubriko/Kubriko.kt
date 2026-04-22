@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko
 
 import com.pandulapeter.kubriko.Kubriko.Companion.newInstance
+import com.pandulapeter.kubriko.helpers.TickSource
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.MetadataManager
@@ -45,6 +46,13 @@ sealed interface Kubriko {
     fun <T : Manager> get(managerType: KClass<T>): T
 
     /**
+     * Initializes this [Kubriko] instance and starts its [TickSource].
+     *
+     * Calling this function multiple times is safe.
+     */
+    fun initialize()
+
+    /**
      * Disposes of this [Kubriko] instance and all its [Manager]s.
      * This should be called when the game engine is no longer needed.
      */
@@ -58,15 +66,18 @@ sealed interface Kubriko {
          * implementations will be automatically added.
          *
          * @param manager Optional custom [Manager] implementations.
+         * @param tickSource Optional custom [TickSource] implementation.
          * @param isLoggingEnabled Whether to enable logging for this instance.
          * @param instanceNameForLogging Optional name to use for this instance in log messages.
          */
         fun newInstance(
             vararg manager: Manager,
+            tickSource: TickSource = TickSource.viewportFrames(),
             isLoggingEnabled: Boolean = false,
             instanceNameForLogging: String? = null,
         ): Kubriko = KubrikoImpl(
             manager = manager,
+            tickSource = tickSource,
             isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = instanceNameForLogging,
         )
