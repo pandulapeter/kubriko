@@ -74,6 +74,7 @@ internal class KubrikoImpl(
         metadataManager.initializeInternal(this)
         stateManager.initializeInternal(this)
         viewportManager.initializeInternal(this)
+        tickSource.initializeInternal(this)
         log(
             message = "Kubriko instance created with ${managers.size} Managers.",
             details = managers.joinToString { it::class.simpleName.orEmpty() },
@@ -84,7 +85,7 @@ internal class KubrikoImpl(
     private var isInitialized = false
     private var isDisposed = false
 
-    override fun initialize() {
+    internal fun initializeInternal() {
         if (isDisposed) {
             throw IllegalStateException("Cannot initialize a disposed Kubriko instance. Create a new instance instead.")
         }
@@ -94,7 +95,6 @@ internal class KubrikoImpl(
             if (stateManager.shouldAutoStart) {
                 stateManager.updateIsRunning(true)
             }
-            tickSource.initializeInternal(this)
             isInitialized = true
             log("Initialized.")
         }

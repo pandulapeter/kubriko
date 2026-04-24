@@ -31,8 +31,14 @@ abstract class TickSource {
      */
     protected var isInitialized = false
         private set
+
+    /**
+     * Whether the [TickSource] is currently emitting ticks.
+     */
+    protected var isRunning = false
+        private set
     private lateinit var _scope: CoroutineScope
-    private lateinit var tickCallback: (Int) -> Unit
+    private lateinit var kubrikoImpl: KubrikoImpl
 
     /**
      * The [CoroutineScope] of the [Kubriko] instance this [TickSource] is attached to.
@@ -55,7 +61,7 @@ abstract class TickSource {
             _scope = kubriko as CoroutineScope
             val kubrikoImpl = kubriko as? KubrikoImpl
                 ?: throw IllegalStateException("Custom Kubriko implementations are not supported. Use Kubriko.newInstance() to instantiate Kubriko.")
-            tickCallback = kubrikoImpl::onTick
+            this.kubrikoImpl = kubrikoImpl
             isInitialized = true
             onInitialize(kubriko)
             log(
@@ -72,8 +78,62 @@ abstract class TickSource {
      */
     protected open fun onInitialize(kubriko: Kubriko) = Unit
 
+    /**
+     * Initializes the attached [Kubriko] instance and starts this [TickSource].
+     *
+     * Calling this function multiple times is safe.
+     */
+    fun start() {
+        val kubrikoImpl = kubrikoImpl
+            ?: throw IllegalStateException("Cannot start ${this::class.simpleName} before it has been attached to a Kubriko instance.")
+        kubrikoImpl.initializeInternal()
+        if (!isRunning) {
+            log(
+                message = "Starting...",
+                importance = Logger.Importance.LOW,
+            )
+            isRunning = true
+            onStart()
+            log(
+                message = "Started.",
+                importance = Logger.Importance.MEDIUM,
+            )
+        }
+    }
+
+    /**
+     * Stops this [TickSource] without disposing the attached [Kubriko] instance.
+     *
+     * Calling this function multiple times is safe.
+     */
+    fun stop() {
+        if (isRunning) {
+            log(
+                message = "Stopping...",
+                importance = Logger.Importance.LOW,
+            )
+            isRunning = false
+            onStop()
+            log(
+                message = "Stopped.",
+                importance = Logger.Importance.MEDIUM,
+            )
+        }
+    }
+
+    /**
+     * Called when this [TickSource] starts.
+     */
+    protected open fun onStart() = Unit
+
+    /**
+     * Called when this [TickSource] stops.
+     */
+    protected open fun onStop() = Unit
+
     internal fun onDisposeInternal() {
         if (isInitialized) {
+            stop()
             log(
                 message = "Disposing...",
                 importance = Logger.Importance.LOW,
@@ -98,8 +158,8 @@ abstract class TickSource {
      * Emits one engine tick.
      */
     protected fun emitTick(deltaTimeInMilliseconds: Int) {
-        if (!isInitialized) return
-        tickCallback(deltaTimeInMilliseconds)
+        if (!isRunning) return
+        kubrikoImpl.onTick(deltaTimeInMilliseconds)
     }
 
     /**
@@ -172,7 +232,7 @@ internal class FixedRateTickSource(
         require(intervalInMilliseconds > 0L) { "intervalInMilliseconds must be greater than 0." }
     }
 
-    override fun onInitialize(kubriko: Kubriko) {
+    override fun onStart() {
         job = scope.launch {
             emitTick(0)
             while (isActive) {
@@ -182,7 +242,7 @@ internal class FixedRateTickSource(
         }
     }
 
-    override fun onDispose() {
+    override fun onStop() {
         job?.cancel()
         job = null
     }
@@ -198,7 +258,7 @@ internal class FixedFrequencyTickSource(
         require(ticksPerSecond > 0) { "ticksPerSecond must be greater than 0." }
     }
 
-    override fun onInitialize(kubriko: Kubriko) {
+    override fun onStart() {
         job = scope.launch {
             emitTick(0)
             var lastTickTime = TimeSource.Monotonic.markNow()
@@ -219,7 +279,7 @@ internal class FixedFrequencyTickSource(
         }
     }
 
-    override fun onDispose() {
+    override fun onStop() {
         job?.cancel()
         job = null
     }

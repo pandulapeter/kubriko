@@ -58,8 +58,10 @@ fun InternalViewport(
 
     // Engine initialization and viewport-backed frame loop
     LaunchedEffect(Unit) {
-        kubrikoImpl.initialize()
         val tickSource = kubrikoImpl.tickSource
+        if (tickSource is ViewportFrameTickSource) {
+            tickSource.start()
+        }
         var count = 0
         var lastProcessedFrameTime = -1L
         while (isActive) {
