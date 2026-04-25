@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko
 
 import com.pandulapeter.kubriko.logger.Logger
+import com.pandulapeter.kubriko.helpers.TickSource
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ActorManagerImpl
 import com.pandulapeter.kubriko.manager.Manager
@@ -27,6 +28,7 @@ import kotlin.reflect.KClass
 
 internal class KubrikoImpl(
     vararg manager: Manager,
+    internal val tickSource: TickSource,
     override val isLoggingEnabled: Boolean,
     private val instanceNameForLogging: String?,
 ) : Kubriko, CoroutineScope {
@@ -72,6 +74,7 @@ internal class KubrikoImpl(
         metadataManager.initializeInternal(this)
         stateManager.initializeInternal(this)
         viewportManager.initializeInternal(this)
+        tickSource.initializeInternal(this)
         log(
             message = "Kubriko instance created with ${managers.size} Managers.",
             details = managers.joinToString { it::class.simpleName.orEmpty() },
@@ -82,7 +85,7 @@ internal class KubrikoImpl(
     private var isInitialized = false
     private var isDisposed = false
 
-    internal fun initialize() {
+    internal fun initializeInternal() {
         if (isDisposed) {
             throw IllegalStateException("Cannot initialize a disposed Kubriko instance. Create a new instance instead.")
         }
@@ -119,6 +122,7 @@ internal class KubrikoImpl(
     override fun dispose() {
         if (isDisposed) return
         log("Disposing Manager instances...")
+        tickSource.onDisposeInternal()
         managers.forEach { it.onDisposeInternal() }
         cancel()
         managerCache.clear()
@@ -143,5 +147,9 @@ internal class KubrikoImpl(
                 importance = importance,
             )
         }
+    }
+
+    internal fun onTick(deltaTimeInMilliseconds: Int) {
+        managers.forEach { it.onUpdateInternal(deltaTimeInMilliseconds) }
     }
 }

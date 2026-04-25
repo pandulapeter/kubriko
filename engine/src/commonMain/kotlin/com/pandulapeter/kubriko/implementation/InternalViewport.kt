@@ -26,6 +26,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoImpl
+import com.pandulapeter.kubriko.helpers.ViewportFrameTickSource
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.Scale
 import kotlinx.coroutines.flow.update
@@ -55,9 +56,12 @@ fun InternalViewport(
         onDispose { lifecycle.removeObserver(lifecycleObserver) }
     }
 
-    // Game loop
+    // Engine initialization and viewport-backed frame loop
     LaunchedEffect(Unit) {
-        kubrikoImpl.initialize()
+        val tickSource = kubrikoImpl.tickSource
+        if (tickSource is ViewportFrameTickSource) {
+            tickSource.start()
+        }
         var count = 0
         var lastProcessedFrameTime = -1L
         while (isActive) {
@@ -69,8 +73,8 @@ fun InternalViewport(
                 if (count % kubrikoImpl.viewportManager.frameRate.factor == 0) {
                     val deltaTimeInMilliseconds = (frameTimeInMilliseconds - lastProcessedFrameTime).toInt()
 
-                    if (!kubrikoImpl.viewportManager.size.value.isEmpty() && kubrikoImpl.stateManager.isFocused.value) {
-                        kubrikoImpl.managers.forEach { it.onUpdateInternal(deltaTimeInMilliseconds) }
+                    if (tickSource is ViewportFrameTickSource && !kubrikoImpl.viewportManager.size.value.isEmpty() && kubrikoImpl.stateManager.isFocused.value) {
+                        tickSource.tick(deltaTimeInMilliseconds)
                     }
                     lastProcessedFrameTime = frameTimeInMilliseconds
                 }
