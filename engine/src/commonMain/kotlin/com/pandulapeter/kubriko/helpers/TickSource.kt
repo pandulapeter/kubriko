@@ -84,8 +84,6 @@ abstract class TickSource {
      * Calling this function multiple times is safe.
      */
     fun start() {
-        val kubrikoImpl = kubrikoImpl
-            ?: throw IllegalStateException("Cannot start ${this::class.simpleName} before it has been attached to a Kubriko instance.")
         kubrikoImpl.initializeInternal()
         if (!isRunning) {
             log(
@@ -188,8 +186,14 @@ abstract class TickSource {
 
         /**
          * Creates the default viewport-frame based [TickSource].
+         *
+         * @param shouldPauseOnFocusLoss when true, ticks will only be emitted when the window is focused.
          */
-        fun viewportFrames(): TickSource = ViewportFrameTickSource()
+        fun viewportFrames(
+            shouldPauseOnFocusLoss: Boolean = true,
+        ): TickSource = ViewportFrameTickSource(
+            shouldPauseOnFocusLoss = shouldPauseOnFocusLoss,
+        )
 
         /**
          * Creates a fixed-rate [TickSource] that can run without a mounted viewport.
@@ -218,7 +222,9 @@ class ManualTickSource : TickSource() {
     fun tick(deltaTimeInMilliseconds: Int) = emitTick(deltaTimeInMilliseconds)
 }
 
-internal class ViewportFrameTickSource : TickSource() {
+internal class ViewportFrameTickSource(
+    val shouldPauseOnFocusLoss: Boolean,
+) : TickSource() {
 
     internal fun tick(deltaTimeInMilliseconds: Int) = emitTick(deltaTimeInMilliseconds)
 }
@@ -249,7 +255,7 @@ internal class FixedRateTickSource(
 }
 
 internal class FixedFrequencyTickSource(
-    private val ticksPerSecond: Int,
+    ticksPerSecond: Int,
 ) : TickSource() {
     private val targetInterval = (1_000_000_000L / ticksPerSecond).nanoseconds
     private var job: Job? = null

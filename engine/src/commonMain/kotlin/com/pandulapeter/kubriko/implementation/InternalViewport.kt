@@ -72,8 +72,7 @@ fun InternalViewport(
                 }
                 if (count % kubrikoImpl.viewportManager.frameRate.factor == 0) {
                     val deltaTimeInMilliseconds = (frameTimeInMilliseconds - lastProcessedFrameTime).toInt()
-
-                    if (tickSource is ViewportFrameTickSource && !kubrikoImpl.viewportManager.size.value.isEmpty() && kubrikoImpl.stateManager.isFocused.value) {
+                    if (tickSource is ViewportFrameTickSource && !kubrikoImpl.viewportManager.size.value.isEmpty() && (!tickSource.shouldPauseOnFocusLoss || kubrikoImpl.stateManager.isFocused.value)) {
                         tickSource.tick(deltaTimeInMilliseconds)
                     }
                     lastProcessedFrameTime = frameTimeInMilliseconds
@@ -89,7 +88,6 @@ fun InternalViewport(
             manager.processOverlayModifierInternal(overlayModifierToProcess)
         }
     ) {
-        // Replaced BoxWithConstraints with a standard Box + onSizeChanged to eliminate subcomposition overhead
         Box(
             modifier = when (val aspectRatioMode = kubrikoImpl.viewportManager.aspectRatioMode) {
                 ViewportManager.AspectRatioMode.Dynamic,
@@ -105,7 +103,6 @@ fun InternalViewport(
                 .onSizeChanged { intSize ->
                     val widthPx = intSize.width.toFloat()
                     val heightPx = intSize.height.toFloat()
-
                     kubrikoImpl.viewportManager.run {
                         updateSize(Size(widthPx, heightPx))
                         scaleFactorMultiplier.update {

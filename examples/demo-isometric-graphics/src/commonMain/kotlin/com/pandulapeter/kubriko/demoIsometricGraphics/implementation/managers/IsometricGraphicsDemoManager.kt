@@ -14,7 +14,6 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
-import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.sceneEditor.Editable
@@ -41,7 +40,6 @@ internal class IsometricGraphicsDemoManager(
     private val isometricWorldViewportManager: ViewportManager,
     private val gridManager: GridManager,
     private val serializationManager: SerializationManager<EditableMetadata<*>, Editable<*>>,
-    private val stateManager: StateManager,
 ) : Manager(), PointerInputAware, Unique {
     private val _shouldShowLoadingIndicator = MutableStateFlow(true)
     val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
@@ -54,9 +52,6 @@ internal class IsometricGraphicsDemoManager(
     val areControlsExpanded = _areControlsExpanded.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
-        stateManager.isFocused
-            .onEach(stateManager::updateIsRunning)
-            .launchIn(scope)
         actorManager.allActors
             .filter { it.isNotEmpty() }
             .onEach {

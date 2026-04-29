@@ -45,7 +45,6 @@ import com.pandulapeter.kubriko.helpers.extensions.sin
 import com.pandulapeter.kubriko.helpers.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
-import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.sceneEditor.Editable
@@ -87,16 +86,12 @@ internal class PhysicsDemoManager(
     private val _actionType = MutableStateFlow(ActionType.SHAPE)
     private val actionType = _actionType.asStateFlow()
     private val actorManager by manager<ActorManager>()
-    private val stateManager by manager<StateManager>()
     private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
     private val viewportManager by manager<ViewportManager>()
     private val _shouldShowLoadingIndicator = MutableStateFlow(true)
     private val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
-        stateManager.isFocused
-            .onEach(stateManager::updateIsRunning)
-            .launchIn(scope)
         actorManager.add(this)
         actorManager.allActors
             .filter { it.size > 1 }

@@ -22,7 +22,10 @@ internal class SyncStateFlow<T>(
     private val delegate: StateFlow<T>,
     private val getSyncValue: () -> T
 ) : StateFlow<T> {
+
     override val replayCache: List<T> get() = delegate.replayCache
+
     override suspend fun collect(collector: FlowCollector<T>): Nothing = delegate.collect(collector)
+
     override val value: T get() = getSyncValue()
 }

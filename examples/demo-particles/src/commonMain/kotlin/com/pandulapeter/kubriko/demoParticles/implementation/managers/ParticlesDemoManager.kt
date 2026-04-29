@@ -35,7 +35,6 @@ import com.pandulapeter.kubriko.demoParticles.implementation.actors.DemoParticle
 import com.pandulapeter.kubriko.demoParticles.implementation.ui.EmitterPropertiesPanel
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
-import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.particles.ParticleEmitter
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.FloatingButton
@@ -56,7 +55,6 @@ import kotlin.math.roundToInt
 internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticleState>, Unique {
 
     private val actorManager by manager<ActorManager>()
-    private val stateManager by manager<StateManager>()
     private val _emissionRate = MutableStateFlow(0.25f)
     val emissionRate = _emissionRate.asStateFlow()
     private val _isEmittingContinuously = MutableStateFlow(true)
@@ -77,9 +75,6 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticleSta
         isEmittingContinuously.onEach { isEmittingContinuously ->
             particleEmissionMode = if (isEmittingContinuously) ParticleEmitter.Mode.Continuous { emissionRate.value } else ParticleEmitter.Mode.Inactive
         }.launchIn(scope)
-        stateManager.isFocused
-            .onEach(stateManager::updateIsRunning)
-            .launchIn(scope)
     }
 
     fun setEmissionRate(emissionRate: Float) = _emissionRate.update { emissionRate }

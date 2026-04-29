@@ -171,7 +171,6 @@ internal class IsometricGraphicsDemoStateHolderImpl(
             isometricWorldViewportManager = isometricWorldViewportManager,
             gridManager = gridManager,
             serializationManager = serializationManager,
-            stateManager = stateManager,
         )
     }
     private val viewportManager by lazy {

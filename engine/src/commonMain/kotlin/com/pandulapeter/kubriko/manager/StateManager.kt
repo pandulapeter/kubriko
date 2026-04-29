@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.manager
 
+import com.pandulapeter.kubriko.helpers.ViewportFrameTickSource
 import com.pandulapeter.kubriko.implementation.getDefaultFocusDebounce
 import kotlinx.coroutines.flow.StateFlow
 
@@ -33,7 +34,12 @@ sealed class StateManager(
     /**
      * Whether the game loop is currently running.
      * When false, actors and managers do not receive updates.
-     * The value can be updated by the `updateIsRunning()` function.
+     * The value can be updated by the `updateIsRunning()` function,
+     * but only for the focused state. If isFocused is false, isRunning
+     * will always be false as well.
+     *
+     * See the `shouldUpdateActorsWhileNotRunning` property of [ActorManager].
+     * See the `shouldPauseOnFocusLoss` property of [ViewportFrameTickSource].
      */
     abstract val isRunning: StateFlow<Boolean>
 
