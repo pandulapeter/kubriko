@@ -51,6 +51,19 @@ Every `Manager` goes through a defined lifecycle managed by the `Kubriko` instan
 Managers are added to the engine at the moment of creation and can not be removed later on.
 For components that need a more limited lifecycle use Actors. For more complex projects, multiple instances of Kubriko could be used.
 
+### TickSource
+
+[TickSource](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/helpers/TickSource.kt) controls when the
+engine updates Managers and Actors. The default `TickSource.viewportFrames()` uses viewport frames, which updates the engine as part of a Compose-rendered game loop.
+
+Alternative TickSources make it possible to run Kubriko without a mounted viewport, for example in headless simulations, tests, replay systems, editors, or
+servers. `TickSource.fixedRate()` and `TickSource.fixedFrequency()` run from a coroutine, while `TickSource.manual()` advances only when explicitly ticked.
+Custom implementations can extend `TickSource` and call `emitTick()` from any timing source.
+
+More details are available in the dedicated TickSource documentation:
+
+[TickSource documentation](https://github.com/pandulapeter/kubriko/blob/main/documentation/TICK_SOURCE.md)
+
 ## Scope
 
 The `engine` module contains all the essential parts needed in a Kubriko game: the bare minimum feature set for drawing the viewport, dealing with state, and

@@ -31,26 +31,13 @@ The [Kubriko](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commo
 all the Manager instances for the game, and thus the entire game state.
 You can specify these Managers when instantiating Kubriko using `Kubriko.newInstance()`, and persist the returned state holder to seamlessly handle configuration changes (such as a resizing game window).
 
-A `Kubriko` instance must be provided for `KubrikoViewport` to work, but it can also be driven without a viewport by using a custom `TickSource`.
+A `Kubriko` instance must be provided for `KubrikoViewport` to work, but frames can also be driven without a viewport by using a custom `TickSource`.
 
 ### 🖼️ KubrikoViewport
 
 [KubrikoViewport](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/KubrikoViewport.kt) is a Composable
 function that displays the game canvas.
 It needs a `Kubriko` instance that controls the game state. With the default viewport-frame based `TickSource`, Managers get fully initialized after the first composition of this viewport.
-
-### ⏱️ TickSource
-
-[TickSource](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/helpers/TickSource.kt) controls when the
-engine updates Managers and Actors. The default `TickSource.viewportFrames()` uses viewport frames, which updates the engine as part of a Compose-rendered game loop.
-
-Alternative TickSources make it possible to run Kubriko without a mounted viewport, for example in headless simulations, tests, replay systems, editors, or
-servers. `TickSource.fixedRate()` and `TickSource.fixedFrequency()` run from a coroutine, while `TickSource.manual()` advances only when explicitly ticked.
-Custom implementations can extend `TickSource` and call `emitTick()` from any timing source.
-
-More details are available in the dedicated TickSource documentation:
-
-[TickSource documentation](https://github.com/pandulapeter/kubriko/blob/main/documentation/TICK_SOURCE.md)
 
 ### 🧑‍💼 Managers
 
