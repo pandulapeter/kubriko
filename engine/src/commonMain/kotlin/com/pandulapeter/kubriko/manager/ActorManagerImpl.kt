@@ -52,7 +52,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
@@ -76,18 +75,10 @@ internal class ActorManagerImpl(
     private lateinit var kubrikoImpl: KubrikoImpl
     private val operationChannel = Channel<Operation>(Channel.UNLIMITED)
     private val drawingOrderComparator = Comparator<Visible> { a, b ->
-        val orderA = a.drawingOrder
-        val orderB = b.drawingOrder
-        if (orderA.isNaN()) return@Comparator 1
-        if (orderB.isNaN()) return@Comparator -1
-        compareValues(orderB as Comparable<*>, orderA as Comparable<*>)
+        compareValues(b.drawingOrder, a.drawingOrder)
     }
     private val overlayDrawingOrderComparator = Comparator<Overlay> { a, b ->
-        val orderA = a.overlayDrawingOrder
-        val orderB = b.overlayDrawingOrder
-        if (orderA.isNaN()) return@Comparator 1
-        if (orderB.isNaN()) return@Comparator -1
-        compareValues(orderB as Comparable<*>, orderA as Comparable<*>)
+        compareValues(b.overlayDrawingOrder, a.overlayDrawingOrder)
     }
     private val layerIndices by autoInitializingLazy {
         _allActors
@@ -118,8 +109,7 @@ internal class ActorManagerImpl(
         combine(
             visibleActors,
             metadataManager.activeRuntimeInMilliseconds
-                .distinctUntilChangedWithDelay(invisibleActorMinimumRefreshTimeInMillis)
-                .onStart { emit(-1L) },
+                .distinctUntilChangedWithDelay(invisibleActorMinimumRefreshTimeInMillis),
             viewportManager.cameraPosition,
             viewportManager.size,
             viewportManager.scaleFactor,
@@ -144,8 +134,7 @@ internal class ActorManagerImpl(
             combine(
                 dynamicActors,
                 metadataManager.activeRuntimeInMilliseconds
-                    .distinctUntilChangedWithDelay(invisibleActorMinimumRefreshTimeInMillis)
-                    .onStart { emit(-1L) },
+                    .distinctUntilChangedWithDelay(invisibleActorMinimumRefreshTimeInMillis),
                 viewportManager.cameraPosition,
                 viewportManager.size,
                 viewportManager.scaleFactor,
@@ -334,8 +323,8 @@ internal class ActorManagerImpl(
         gameTime: State<Long>,
         layerIndex: Int?,
     ) {
-        val drawBuffer = remember { ArrayList<Visible>() }
-        val overlayBuffer = remember { ArrayList<Overlay>() }
+        val drawBuffer = remember { ArrayList<Visible>(64) }
+        val overlayBuffer = remember { ArrayList<Overlay>(16) }
         Canvas(
             modifier = if (layerIndex == null) {
                 Modifier.fillMaxSize().clipToBounds()
