@@ -30,7 +30,7 @@ internal class KubrikoImpl(
     vararg manager: Manager,
     internal val tickSource: TickSource,
     override val isLoggingEnabled: Boolean,
-    private val instanceNameForLogging: String?,
+    internal val instanceNameForLogging: String?,
 ) : Kubriko, CoroutineScope {
 
     override val instanceName = instanceNameForLogging ?: toString().substringAfterLast('@')

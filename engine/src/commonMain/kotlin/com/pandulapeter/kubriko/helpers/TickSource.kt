@@ -54,10 +54,6 @@ abstract class TickSource {
 
     internal fun initializeInternal(kubriko: Kubriko) {
         if (!isInitialized) {
-            log(
-                message = "Initializing...",
-                importance = Logger.Importance.LOW,
-            )
             _scope = kubriko as CoroutineScope
             val kubrikoImpl = kubriko as? KubrikoImpl
                 ?: throw IllegalStateException("Custom Kubriko implementations are not supported. Use Kubriko.newInstance() to instantiate Kubriko.")
@@ -168,14 +164,14 @@ abstract class TickSource {
         details: String? = null,
         importance: Logger.Importance = Logger.Importance.HIGH,
     ) {
-        val className = this::class.simpleName
-        val instanceName = toString().substringAfterLast('@')
-        Logger.log(
-            message = message,
-            details = details,
-            source = "$className@$instanceName",
-            importance = importance,
-        )
+        if (kubrikoImpl.isLoggingEnabled) {
+            Logger.log(
+                message = "TickSource: $message",
+                details = details,
+                source = kubrikoImpl.instanceNameForLogging,
+                importance = importance,
+            )
+        }
     }
 
     companion object {
