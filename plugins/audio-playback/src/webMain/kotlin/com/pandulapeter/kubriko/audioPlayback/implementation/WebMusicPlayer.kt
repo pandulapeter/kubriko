@@ -17,7 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
-import org.w3c.fetch.Response
+import org.khronos.webgl.ArrayBuffer
 import kotlin.js.Promise
 
 internal class WebMusicPlayer(
@@ -42,8 +42,8 @@ internal class WebMusicPlayer(
 
     init {
         scope.launch(Dispatchers.Default) {
-            val response = window.fetch(uri).await<Response>()
-            val arrayBuffer = response.arrayBuffer().await<ArrayBuffer>()
+            val response = window.fetch(uri).await()
+            val arrayBuffer = response.arrayBuffer().await()
             audioBuffer = AudioContext().decodeAudioData(arrayBuffer).await()
             onPreloadReady(this@WebMusicPlayer)
         }
@@ -158,7 +158,7 @@ internal class WebMusicPlayer(
     }
 }
 
-internal external class AudioContext {
+internal external class AudioContext : JsAny {
     fun decodeAudioData(audioData: ArrayBuffer): Promise<AudioBuffer>
     fun createBufferSource(): AudioBufferSourceNode
     fun createGain(): GainNode
@@ -187,13 +187,11 @@ internal external class ChannelSplitterNode : AudioNode
 
 internal external class ChannelMergerNode : AudioNode
 
-internal external class AudioParam {
+internal external class AudioParam : JsAny {
     var value: Double
 }
 
-internal abstract external class AudioNode {
+internal abstract external class AudioNode : JsAny {
     fun connect(destinationNode: AudioNode, output: Int = definedExternally, input: Int = definedExternally)
     fun disconnect()
 }
-
-external class ArrayBuffer
