@@ -84,7 +84,7 @@ internal class PerformanceDemoStateHolderImpl(
     private val viewportManager by lazy {
         ViewportManager.newInstance(
             initialScaleFactor = 0.5f,
-            viewportEdgeBuffer = 200.sceneUnit,
+            viewportEdgeBuffer = 400.sceneUnit,
             isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,
         )
