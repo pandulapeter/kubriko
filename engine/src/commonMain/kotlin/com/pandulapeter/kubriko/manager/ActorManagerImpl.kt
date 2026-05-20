@@ -37,6 +37,7 @@ import com.pandulapeter.kubriko.helpers.extensions.distinctUntilChangedWithDelay
 import com.pandulapeter.kubriko.helpers.extensions.div
 import com.pandulapeter.kubriko.helpers.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.helpers.extensions.minus
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.helpers.extensions.transformForViewport
 import com.pandulapeter.kubriko.helpers.extensions.transformViewport
 import com.pandulapeter.kubriko.types.SceneSize
@@ -49,7 +50,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
@@ -120,9 +120,9 @@ internal class ActorManagerImpl(
             metadataManager.activeRuntimeInMilliseconds
                 .distinctUntilChangedWithDelay(invisibleActorMinimumRefreshTimeInMillis)
                 .onStart { emit(-1L) },
-            viewportManager.cameraPosition.debounce(8L),
-            viewportManager.size.debounce(8L),
-            viewportManager.scaleFactor.debounce(8L),
+            viewportManager.cameraPosition,
+            viewportManager.size,
+            viewportManager.scaleFactor,
         ) { allVisibleActors, _, viewportCenter, viewportSize, scaleFactor ->
             val scaledHalfViewportSize = SceneSize(viewportSize / (scaleFactor * 2f))
             allVisibleActors
@@ -146,13 +146,11 @@ internal class ActorManagerImpl(
                 metadataManager.activeRuntimeInMilliseconds
                     .distinctUntilChangedWithDelay(invisibleActorMinimumRefreshTimeInMillis)
                     .onStart { emit(-1L) },
-                viewportManager.cameraPosition.debounce(8L),
-                viewportManager.size.debounce(8L),
-                viewportManager.scaleFactor.debounce(8L)
+                viewportManager.cameraPosition,
+                viewportManager.size,
+                viewportManager.scaleFactor,
             ) { allDynamicActors, _, viewportCenter, viewportSize, scaleFactor ->
-                val viewportTopLeft = viewportManager.topLeft.value
-                val viewportBottomRight = viewportManager.bottomRight.value
-                val edgeBuffer = minOf(viewportBottomRight.x - viewportTopLeft.x, viewportBottomRight.y - viewportTopLeft.y) / 2f
+                val edgeBuffer = (minOf(viewportSize.width / scaleFactor.horizontal, viewportSize.height / scaleFactor.vertical) / 2f).sceneUnit
                 val scaledHalfViewportSize = SceneSize(viewportSize / (scaleFactor * 2f))
                 allDynamicActors
                     .filter { actor ->
