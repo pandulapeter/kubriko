@@ -19,6 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.withTransform
 import com.pandulapeter.kubriko.Kubriko
@@ -33,23 +34,17 @@ import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.helpers.extensions.distinctUntilChangedWithDelay
-import com.pandulapeter.kubriko.helpers.extensions.div
-import com.pandulapeter.kubriko.helpers.extensions.isWithinViewportBounds
 import com.pandulapeter.kubriko.helpers.extensions.minus
-import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.helpers.extensions.transformForViewport
 import com.pandulapeter.kubriko.helpers.extensions.transformViewport
-import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
@@ -58,7 +53,6 @@ import kotlin.reflect.KClass
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-@OptIn(FlowPreview::class)
 internal class ActorManagerImpl(
     private val initialActors: List<Actor>,
     private val shouldUpdateActorsWhileNotRunning: Boolean,
@@ -72,92 +66,115 @@ internal class ActorManagerImpl(
     private lateinit var stateManager: StateManager
     private val _allActors = MutableStateFlow<ImmutableList<Actor>>(persistentListOf())
     override val allActors = _allActors.asStateFlow()
+    private val _visibleActorsWithinViewport = MutableStateFlow<ImmutableList<Visible>>(persistentListOf())
+    override val visibleActorsWithinViewport = _visibleActorsWithinViewport.asStateFlow()
+    private val _activeDynamicActors = MutableStateFlow<ImmutableList<Dynamic>>(persistentListOf())
+    override val activeDynamicActors = _activeDynamicActors.asStateFlow()
     private lateinit var kubrikoImpl: KubrikoImpl
     private val operationChannel = Channel<Operation>(Channel.UNLIMITED)
     private val drawingOrderComparator = Comparator<Visible> { a, b ->
-        compareValues(b.drawingOrder, a.drawingOrder)
+        b.drawingOrder.compareTo(a.drawingOrder)
     }
     private val overlayDrawingOrderComparator = Comparator<Overlay> { a, b ->
-        compareValues(b.overlayDrawingOrder, a.overlayDrawingOrder)
+        b.overlayDrawingOrder.compareTo(a.overlayDrawingOrder)
     }
     private val layerIndices by autoInitializingLazy {
         _allActors
             .map { actors -> actors.filterIsInstance<LayerAware>().groupBy { it.layerIndex }.keys.sortedBy { it }.toImmutableList() }
+            .distinctUntilChanged()
             .flowOn(Dispatchers.Default)
             .asStateFlowOnMainThread(persistentListOf())
     }
     private val dynamicActors by autoInitializingLazy {
         _allActors
             .map { actors -> actors.filterIsInstance<Dynamic>().toImmutableList() }
+            .distinctUntilChanged()
             .flowOn(Dispatchers.Default)
             .asStateFlowOnMainThread(persistentListOf())
     }
     private val visibleActors by autoInitializingLazy {
         _allActors
             .map { actors -> actors.filterIsInstance<Visible>().toImmutableList() }
+            .distinctUntilChanged()
             .flowOn(Dispatchers.Default)
             .asStateFlowOnMainThread(persistentListOf())
     }
     private val overlayActors by autoInitializingLazy {
         _allActors
             .map { actors -> actors.filterIsInstance<Overlay>().toImmutableList() }
+            .distinctUntilChanged()
             .flowOn(Dispatchers.Default)
             .asStateFlowOnMainThread(persistentListOf())
     }
 
-    override val visibleActorsWithinViewport by lazy {
-        combine(
-            visibleActors,
-            metadataManager.activeRuntimeInMilliseconds
-                .distinctUntilChangedWithDelay(invisibleActorMinimumRefreshTimeInMillis),
-            viewportManager.cameraPosition,
-            viewportManager.size,
-            viewportManager.scaleFactor,
-        ) { allVisibleActors, _, viewportCenter, viewportSize, scaleFactor ->
-            val scaledHalfViewportSize = SceneSize(viewportSize / (scaleFactor * 2f))
-            allVisibleActors
-                .filter {
-                    it.body.axisAlignedBoundingBox.isWithinViewportBounds(
-                        scaledHalfViewportSize = scaledHalfViewportSize,
-                        viewportCenter = viewportCenter,
-                        viewportEdgeBuffer = viewportManager.viewportEdgeBuffer,
-                    )
-                }
-                .toImmutableList()
-        }
-            .flowOn(Dispatchers.Default)
-            .asStateFlowOnMainThread(persistentListOf())
-    }
+    private var lastVisibleActors: ImmutableList<Visible>? = null
+    private var lastVisibleRefreshTime = -1L
+    private var lastViewportSizeForVisible: Size? = null
 
-    override val activeDynamicActors by lazy {
-        if (shouldPutFarAwayActorsToSleep) {
-            combine(
-                dynamicActors,
-                metadataManager.activeRuntimeInMilliseconds
-                    .distinctUntilChangedWithDelay(invisibleActorMinimumRefreshTimeInMillis),
-                viewportManager.cameraPosition,
-                viewportManager.size,
-                viewportManager.scaleFactor,
-            ) { allDynamicActors, _, viewportCenter, viewportSize, scaleFactor ->
-                val edgeBuffer = (minOf(viewportSize.width / scaleFactor.horizontal, viewportSize.height / scaleFactor.vertical) / 2f).sceneUnit
-                val scaledHalfViewportSize = SceneSize(viewportSize / (scaleFactor * 2f))
-                allDynamicActors
-                    .filter { actor ->
-                        if (!actor.isAlwaysActive && actor is Positionable) {
-                            actor.body.axisAlignedBoundingBox.isWithinViewportBounds(
-                                scaledHalfViewportSize = scaledHalfViewportSize,
-                                viewportCenter = viewportCenter,
-                                viewportEdgeBuffer = edgeBuffer,
-                            )
-                        } else {
-                            true
-                        }
-                    }
-                    .toImmutableList()
+    private fun updateVisibleActorsWithinViewport() {
+        val actors = visibleActors.value
+        lastVisibleActors = actors
+        val viewportSize = viewportManager.size.value
+        lastViewportSizeForVisible = viewportSize
+        lastVisibleRefreshTime = metadataManager.totalRuntimeInMilliseconds.value
+
+        val viewportCenter = viewportManager.cameraPosition.value
+        val scaleFactor = viewportManager.scaleFactor.value
+        val halfScaledWidth = viewportSize.width / (scaleFactor.horizontal * 2f)
+        val halfScaledHeight = viewportSize.height / (scaleFactor.vertical * 2f)
+        val edgeBuffer = viewportManager.viewportEdgeBuffer.raw
+
+        val leftBound = viewportCenter.x.raw - halfScaledWidth - edgeBuffer
+        val topBound = viewportCenter.y.raw - halfScaledHeight - edgeBuffer
+        val rightBound = viewportCenter.x.raw + halfScaledWidth + edgeBuffer
+        val bottomBound = viewportCenter.y.raw + halfScaledHeight + edgeBuffer
+
+        _visibleActorsWithinViewport.value = actors
+            .filter {
+                val aabb = it.body.axisAlignedBoundingBox
+                aabb.left.raw <= rightBound &&
+                        aabb.top.raw <= bottomBound &&
+                        aabb.right.raw >= leftBound &&
+                        aabb.bottom.raw >= topBound
             }
-                .flowOn(Dispatchers.Default)
-                .asStateFlowOnMainThread(persistentListOf())
-        } else dynamicActors
+            .toImmutableList()
+    }
+
+    private var lastDynamicActors: ImmutableList<Dynamic>? = null
+    private var lastDynamicRefreshTime = -1L
+    private var lastViewportSizeForDynamic: Size? = null
+
+    private fun updateActiveDynamicActors() {
+        val actors = dynamicActors.value
+        lastDynamicActors = actors
+        val viewportSize = viewportManager.size.value
+        lastViewportSizeForDynamic = viewportSize
+        lastDynamicRefreshTime = metadataManager.activeRuntimeInMilliseconds.value
+
+        val viewportCenter = viewportManager.cameraPosition.value
+        val scaleFactor = viewportManager.scaleFactor.value
+        val edgeBuffer = minOf(viewportSize.width / scaleFactor.horizontal, viewportSize.height / scaleFactor.vertical) / 2f
+        val halfScaledWidth = viewportSize.width / (scaleFactor.horizontal * 2f)
+        val halfScaledHeight = viewportSize.height / (scaleFactor.vertical * 2f)
+
+        val leftBound = viewportCenter.x.raw - halfScaledWidth - edgeBuffer
+        val topBound = viewportCenter.y.raw - halfScaledHeight - edgeBuffer
+        val rightBound = viewportCenter.x.raw + halfScaledWidth + edgeBuffer
+        val bottomBound = viewportCenter.y.raw + halfScaledHeight + edgeBuffer
+
+        _activeDynamicActors.value = actors
+            .filter { actor ->
+                if (!actor.isAlwaysActive && actor is Positionable) {
+                    val aabb = actor.body.axisAlignedBoundingBox
+                    aabb.left.raw <= rightBound &&
+                            aabb.top.raw <= bottomBound &&
+                            aabb.right.raw >= leftBound &&
+                            aabb.bottom.raw >= topBound
+                } else {
+                    true
+                }
+            }
+            .toImmutableList()
     }
 
     override fun onInitialize(kubriko: Kubriko) {
@@ -185,6 +202,29 @@ internal class ActorManagerImpl(
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
         if (shouldUpdateActorsWhileNotRunning || stateManager.isRunning.value) {
             activeDynamicActors.value.forEach { it.update(deltaTimeInMilliseconds) }
+        }
+
+        // Update visible actors
+        val totalTime = metadataManager.totalRuntimeInMilliseconds.value
+        val visibleActorsList = visibleActors.value
+        val viewportSize = viewportManager.size.value
+        if (!viewportSize.isEmpty()) {
+            if (visibleActorsList !== lastVisibleActors || viewportSize != lastViewportSizeForVisible || (totalTime - lastVisibleRefreshTime) >= invisibleActorMinimumRefreshTimeInMillis) {
+                updateVisibleActorsWithinViewport()
+            }
+        }
+
+        // Update active dynamic actors
+        if (shouldPutFarAwayActorsToSleep) {
+            val activeTime = metadataManager.activeRuntimeInMilliseconds.value
+            val dynamicActorsList = dynamicActors.value
+            if (!viewportSize.isEmpty()) {
+                if (dynamicActorsList !== lastDynamicActors || viewportSize != lastViewportSizeForDynamic || (activeTime - lastDynamicRefreshTime) >= invisibleActorMinimumRefreshTimeInMillis) {
+                    updateActiveDynamicActors()
+                }
+            }
+        } else if (_activeDynamicActors.value !== dynamicActors.value) {
+            _activeDynamicActors.value = dynamicActors.value
         }
     }
 

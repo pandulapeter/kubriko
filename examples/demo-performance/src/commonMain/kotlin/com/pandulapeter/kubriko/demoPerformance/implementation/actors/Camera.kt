@@ -40,21 +40,20 @@ class Camera private constructor(state: State) : Unique, Dynamic, Positionable, 
         actorManager = kubriko.get()
         stateManager = kubriko.get()
         viewportManager = kubriko.get()
+        update(0)
     }
 
     private var acc = 0f
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        if (deltaTimeInMilliseconds > 0) {
-            acc += deltaTimeInMilliseconds
-            (acc / 5000f).rad.let { angle ->
-                body.position = SceneOffset(
-                    x = angle.cos.sceneUnit,
-                    y = angle.sin.sceneUnit,
-                ) * PATH_RADIUS
-            }
-            viewportManager.setCameraPosition(body.position)
+        acc += deltaTimeInMilliseconds
+        (acc / 5000f).rad.let { angle ->
+            body.position = SceneOffset(
+                x = angle.cos.sceneUnit,
+                y = angle.sin.sceneUnit,
+            ) * PATH_RADIUS
         }
+        viewportManager.setCameraPosition(body.position)
     }
 
     override fun save() = State(
