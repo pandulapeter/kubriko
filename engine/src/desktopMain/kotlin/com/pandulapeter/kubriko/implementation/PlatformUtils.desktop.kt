@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.implementation
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.WindowState
 import androidx.lifecycle.Lifecycle
 import com.pandulapeter.kubriko.manager.MetadataManager
@@ -34,5 +35,10 @@ internal actual fun getPlatform(): MetadataManager.Platform = when {
 }
 
 internal actual val activeLifecycleState: Lifecycle.State = Lifecycle.State.RESUMED
+
+internal actual val shouldUseLifecycleFocus = true
+
+@Composable
+internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) = Unit
 
 lateinit var windowState: WindowState

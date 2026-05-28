@@ -9,10 +9,14 @@
  */
 package com.pandulapeter.kubriko.implementation
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.lifecycle.Lifecycle
 import com.pandulapeter.kubriko.manager.MetadataManager
+import kotlinx.browser.document
 import kotlinx.browser.window
 import org.w3c.dom.Window
+import org.w3c.dom.events.Event
 
 internal actual fun getDefaultFocusDebounce() = 0L
 
@@ -31,6 +35,31 @@ internal actual val activeLifecycleState: Lifecycle.State = if (window.isRunning
     Lifecycle.State.RESUMED
 }
 
+internal actual val shouldUseLifecycleFocus = false
+
+@Composable
+internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) {
+    DisposableEffect(Unit) {
+        fun updateFocus() {
+            onFocusChanged(document.hasFocus())
+        }
+        val listener: (Event) -> Unit = { updateFocus() }
+        window.addEventListener(EVENT_FOCUS, listener)
+        window.addEventListener(EVENT_BLUR, listener)
+        window.addEventListener(EVENT_PAGE_SHOW, listener)
+        window.addEventListener(EVENT_PAGE_HIDE, listener)
+        document.addEventListener(EVENT_VISIBILITY_CHANGE, listener)
+        updateFocus()
+        onDispose {
+            window.removeEventListener(EVENT_FOCUS, listener)
+            window.removeEventListener(EVENT_BLUR, listener)
+            window.removeEventListener(EVENT_PAGE_SHOW, listener)
+            window.removeEventListener(EVENT_PAGE_HIDE, listener)
+            document.removeEventListener(EVENT_VISIBILITY_CHANGE, listener)
+        }
+    }
+}
+
 fun Window.isRunningOnAndroid() =
     navigator.userAgent.contains("Android")
 
@@ -39,3 +68,9 @@ fun Window.isRunningOnIphone() =
 
 fun Window.isRunningOnIpad() =
     navigator.userAgent.contains("iPad") || (!navigator.userAgent.contains("Chrome") && navigator.maxTouchPoints > 0 && window.innerWidth / window.innerHeight <= 1.6)
+
+private const val EVENT_BLUR = "blur"
+private const val EVENT_FOCUS = "focus"
+private const val EVENT_PAGE_HIDE = "pagehide"
+private const val EVENT_PAGE_SHOW = "pageshow"
+private const val EVENT_VISIBILITY_CHANGE = "visibilitychange"

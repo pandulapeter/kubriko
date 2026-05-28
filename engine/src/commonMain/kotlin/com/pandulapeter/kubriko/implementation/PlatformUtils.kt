@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.implementation
 
 import androidx.lifecycle.Lifecycle
+import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.manager.MetadataManager
 
 internal expect fun getDefaultFocusDebounce(): Long
@@ -17,3 +18,8 @@ internal expect fun getDefaultFocusDebounce(): Long
 internal expect fun getPlatform(): MetadataManager.Platform
 
 internal expect val activeLifecycleState: Lifecycle.State
+
+internal expect val shouldUseLifecycleFocus: Boolean
+
+@Composable
+internal expect fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit)

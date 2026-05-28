@@ -45,15 +45,20 @@ fun InternalViewport(
     }
 
     // Focus handling
-    val lifecycleObserver = remember(kubrikoImpl) {
-        LifecycleEventObserver { source, _ ->
-            kubrikoImpl.stateManager.updateFocus(source.lifecycle.currentState.isAtLeast(activeLifecycleState))
+    if (shouldUseLifecycleFocus) {
+        val lifecycleObserver = remember(kubrikoImpl) {
+            LifecycleEventObserver { source, _ ->
+                kubrikoImpl.stateManager.updateFocus(source.lifecycle.currentState.isAtLeast(activeLifecycleState))
+            }
+        }
+        val lifecycle = LocalLifecycleOwner.current.lifecycle
+        DisposableEffect(lifecycle) {
+            lifecycle.addObserver(lifecycleObserver)
+            onDispose { lifecycle.removeObserver(lifecycleObserver) }
         }
     }
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    DisposableEffect(lifecycle) {
-        lifecycle.addObserver(lifecycleObserver)
-        onDispose { lifecycle.removeObserver(lifecycleObserver) }
+    PlatformFocusEffect { isFocused ->
+        kubrikoImpl.stateManager.updateFocus(isFocused)
     }
 
     // Engine initialization and viewport-backed frame loop

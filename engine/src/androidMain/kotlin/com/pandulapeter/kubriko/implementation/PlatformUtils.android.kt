@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.implementation
 
 import android.os.Build
+import androidx.compose.runtime.Composable
 import androidx.lifecycle.Lifecycle
 import com.pandulapeter.kubriko.manager.MetadataManager
 
@@ -20,3 +21,8 @@ internal actual fun getPlatform(): MetadataManager.Platform = MetadataManager.Pl
 )
 
 internal actual val activeLifecycleState: Lifecycle.State = Lifecycle.State.RESUMED
+
+internal actual val shouldUseLifecycleFocus = true
+
+@Composable
+internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) = Unit
