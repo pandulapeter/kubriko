@@ -11,7 +11,6 @@ package com.pandulapeter.kubriko.implementation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.lifecycle.Lifecycle
 import com.pandulapeter.kubriko.manager.MetadataManager
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -23,19 +22,6 @@ internal actual fun getDefaultFocusDebounce() = 0L
 internal actual fun getPlatform(): MetadataManager.Platform = MetadataManager.Platform.Web(
     userAgent = window.navigator.userAgent,
 )
-
-/**
- * When opening the web app on an iPhone the lifecycle never seems to get to RESUMED.
- * On iPad the situation seems to be a bit better, but it's still possible to make the app get stuck in STARTED state while have full focus.
- * Using STARTED to mean RESUMED fixes the blocker issues, but we lose the ability to detect when the app gets backgrounded.
- */
-internal actual val activeLifecycleState: Lifecycle.State = if (window.isRunningOnIpad() || window.isRunningOnIphone()) {
-    Lifecycle.State.STARTED
-} else {
-    Lifecycle.State.RESUMED
-}
-
-internal actual val shouldUseLifecycleFocus = false
 
 @Composable
 internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) {

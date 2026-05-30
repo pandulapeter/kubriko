@@ -9,17 +9,44 @@
  */
 package com.pandulapeter.kubriko.implementation
 
-import androidx.lifecycle.Lifecycle
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.pandulapeter.kubriko.manager.MetadataManager
 
 internal expect fun getDefaultFocusDebounce(): Long
 
 internal expect fun getPlatform(): MetadataManager.Platform
 
-internal expect val activeLifecycleState: Lifecycle.State
-
-internal expect val shouldUseLifecycleFocus: Boolean
-
 @Composable
 internal expect fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit)
+
+@Composable
+internal fun LifecycleFocusEffect(
+    activeLifecycleState: Lifecycle.State = Lifecycle.State.RESUMED,
+    onFocusChanged: (Boolean) -> Unit,
+) {
+    val currentOnFocusChanged by rememberUpdatedState(onFocusChanged)
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+
+    DisposableEffect(lifecycle, activeLifecycleState) {
+        fun updateFocus() {
+            currentOnFocusChanged(lifecycle.currentState.isAtLeast(activeLifecycleState))
+        }
+
+        val lifecycleObserver = LifecycleEventObserver { _, _ ->
+            updateFocus()
+        }
+
+        lifecycle.addObserver(lifecycleObserver)
+        updateFocus()
+
+        onDispose {
+            lifecycle.removeObserver(lifecycleObserver)
+        }
+    }
+}
