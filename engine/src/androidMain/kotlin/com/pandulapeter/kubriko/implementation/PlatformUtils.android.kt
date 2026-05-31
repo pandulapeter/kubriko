@@ -10,7 +10,7 @@
 package com.pandulapeter.kubriko.implementation
 
 import android.os.Build
-import androidx.lifecycle.Lifecycle
+import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.manager.MetadataManager
 
 internal actual fun getDefaultFocusDebounce() = 350L
@@ -19,4 +19,7 @@ internal actual fun getPlatform(): MetadataManager.Platform = MetadataManager.Pl
     androidSdkVersion = Build.VERSION.SDK_INT,
 )
 
-internal actual val activeLifecycleState: Lifecycle.State = Lifecycle.State.RESUMED
+@Composable
+internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) {
+    LifecycleFocusEffect(onFocusChanged = onFocusChanged)
+}

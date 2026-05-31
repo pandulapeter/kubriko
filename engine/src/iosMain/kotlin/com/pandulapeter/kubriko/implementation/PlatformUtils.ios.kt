@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubriko.implementation
 
-import androidx.lifecycle.Lifecycle
+import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.manager.MetadataManager
 import platform.UIKit.UIDevice
 
@@ -19,4 +19,7 @@ internal actual fun getPlatform(): MetadataManager.Platform = MetadataManager.Pl
     iOSVersion = UIDevice.currentDevice.systemVersion,
 )
 
-internal actual val activeLifecycleState: Lifecycle.State = Lifecycle.State.RESUMED
+@Composable
+internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) {
+    LifecycleFocusEffect(onFocusChanged = onFocusChanged)
+}
