@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Size
@@ -37,6 +36,8 @@ import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.helpers.extensions.minus
 import com.pandulapeter.kubriko.helpers.extensions.transformForViewport
 import com.pandulapeter.kubriko.helpers.extensions.transformViewport
+import com.pandulapeter.kubriko.types.Scale
+import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -107,19 +108,30 @@ internal class ActorManagerImpl(
             .asStateFlowOnMainThread(persistentListOf())
     }
 
+    // Pre-grouped and pre-sorted draw caches — rebuilt in onUpdate() when inputs change, read in onDraw()
+    private var sortedVisibleActorsByLayer: Map<Int?, List<Visible>> = emptyMap()
+    private var sortedOverlayActorsByLayer: Map<Int?, List<Overlay>> = emptyMap()
+
+    // Visibility cache invalidation tracking
     private var lastVisibleActors: ImmutableList<Visible>? = null
     private var lastVisibleRefreshTime = -1L
     private var lastViewportSizeForVisible: Size? = null
 
-    private fun updateVisibleActorsWithinViewport() {
+    // Dynamic actor cache invalidation tracking
+    private var lastDynamicActors: ImmutableList<Dynamic>? = null
+    private var lastDynamicRefreshTime = -1L
+    private var lastViewportSizeForDynamic: Size? = null
+
+    // Overlay cache invalidation tracking
+    private var lastOverlayActors: ImmutableList<Overlay>? = null
+
+    private fun updateVisibleActorsWithinViewport(viewportCenter: SceneOffset, scaleFactor: Scale) {
         val actors = visibleActors.value
         lastVisibleActors = actors
         val viewportSize = viewportManager.size.value
         lastViewportSizeForVisible = viewportSize
         lastVisibleRefreshTime = metadataManager.totalRuntimeInMilliseconds.value
 
-        val viewportCenter = viewportManager.cameraPosition.value
-        val scaleFactor = viewportManager.scaleFactor.value
         val halfScaledWidth = viewportSize.width / (scaleFactor.horizontal * 2f)
         val halfScaledHeight = viewportSize.height / (scaleFactor.vertical * 2f)
         val edgeBuffer = viewportManager.viewportEdgeBuffer.raw
@@ -129,7 +141,7 @@ internal class ActorManagerImpl(
         val rightBound = viewportCenter.x.raw + halfScaledWidth + edgeBuffer
         val bottomBound = viewportCenter.y.raw + halfScaledHeight + edgeBuffer
 
-        _visibleActorsWithinViewport.value = actors
+        val filtered = actors
             .filter {
                 val aabb = it.body.axisAlignedBoundingBox
                 aabb.left.raw <= rightBound &&
@@ -138,21 +150,27 @@ internal class ActorManagerImpl(
                         aabb.bottom.raw >= topBound
             }
             .toImmutableList()
+        _visibleActorsWithinViewport.value = filtered
+
+        // Pre-group by layer and pre-sort by drawingOrder so the draw loop is a plain indexed walk
+        sortedVisibleActorsByLayer = if (filtered.isEmpty()) {
+            emptyMap()
+        } else {
+            val grouped = HashMap<Int?, ArrayList<Visible>>()
+            for (actor in filtered) {
+                grouped.getOrPut(actor.layerIndex) { ArrayList() }.add(actor)
+            }
+            grouped.mapValues { (_, list) -> list.also { it.sortWith(drawingOrderComparator) } }
+        }
     }
 
-    private var lastDynamicActors: ImmutableList<Dynamic>? = null
-    private var lastDynamicRefreshTime = -1L
-    private var lastViewportSizeForDynamic: Size? = null
-
-    private fun updateActiveDynamicActors() {
+    private fun updateActiveDynamicActors(viewportCenter: SceneOffset, scaleFactor: Scale) {
         val actors = dynamicActors.value
         lastDynamicActors = actors
         val viewportSize = viewportManager.size.value
         lastViewportSizeForDynamic = viewportSize
         lastDynamicRefreshTime = metadataManager.activeRuntimeInMilliseconds.value
 
-        val viewportCenter = viewportManager.cameraPosition.value
-        val scaleFactor = viewportManager.scaleFactor.value
         val edgeBuffer = minOf(viewportSize.width / scaleFactor.horizontal, viewportSize.height / scaleFactor.vertical) / 2f
         val halfScaledWidth = viewportSize.width / (scaleFactor.horizontal * 2f)
         val halfScaledHeight = viewportSize.height / (scaleFactor.vertical * 2f)
@@ -204,23 +222,48 @@ internal class ActorManagerImpl(
             activeDynamicActors.value.forEach { it.update(deltaTimeInMilliseconds) }
         }
 
-        // Update visible actors
-        val totalTime = metadataManager.totalRuntimeInMilliseconds.value
-        val visibleActorsList = visibleActors.value
         val viewportSize = viewportManager.size.value
-        if (!viewportSize.isEmpty()) {
-            if (visibleActorsList !== lastVisibleActors || viewportSize != lastViewportSizeForVisible || (totalTime - lastVisibleRefreshTime) >= invisibleActorMinimumRefreshTimeInMillis) {
-                updateVisibleActorsWithinViewport()
+        // Read camera and scale once per tick; both update functions share the same snapshot
+        val cameraPosition = viewportManager.cameraPosition.value
+        val scaleFactor = viewportManager.scaleFactor.value
+
+        // Rebuild overlay draw cache only when the overlay list reference changes
+        val currentOverlays = overlayActors.value
+        if (currentOverlays !== lastOverlayActors) {
+            lastOverlayActors = currentOverlays
+            sortedOverlayActorsByLayer = if (currentOverlays.isEmpty()) {
+                emptyMap()
+            } else {
+                val grouped = HashMap<Int?, ArrayList<Overlay>>()
+                for (overlay in currentOverlays) {
+                    grouped.getOrPut(overlay.layerIndex) { ArrayList() }.add(overlay)
+                }
+                grouped.mapValues { (_, list) -> list.also { it.sortWith(overlayDrawingOrderComparator) } }
             }
         }
 
-        // Update active dynamic actors
+        // Rebuild visible actor draw cache when actors, viewport dimensions, or the throttle interval elapses
+        val totalTime = metadataManager.totalRuntimeInMilliseconds.value
+        val visibleActorsList = visibleActors.value
+        if (!viewportSize.isEmpty()) {
+            if (visibleActorsList !== lastVisibleActors
+                || viewportSize != lastViewportSizeForVisible
+                || (totalTime - lastVisibleRefreshTime) >= invisibleActorMinimumRefreshTimeInMillis
+            ) {
+                updateVisibleActorsWithinViewport(cameraPosition, scaleFactor)
+            }
+        }
+
+        // Rebuild active dynamic actor list when actors, viewport dimensions, or the throttle interval elapses
         if (shouldPutFarAwayActorsToSleep) {
             val activeTime = metadataManager.activeRuntimeInMilliseconds.value
             val dynamicActorsList = dynamicActors.value
             if (!viewportSize.isEmpty()) {
-                if (dynamicActorsList !== lastDynamicActors || viewportSize != lastViewportSizeForDynamic || (activeTime - lastDynamicRefreshTime) >= invisibleActorMinimumRefreshTimeInMillis) {
-                    updateActiveDynamicActors()
+                if (dynamicActorsList !== lastDynamicActors
+                    || viewportSize != lastViewportSizeForDynamic
+                    || (activeTime - lastDynamicRefreshTime) >= invisibleActorMinimumRefreshTimeInMillis
+                ) {
+                    updateActiveDynamicActors(cameraPosition, scaleFactor)
                 }
             }
         } else if (_activeDynamicActors.value !== dynamicActors.value) {
@@ -363,8 +406,6 @@ internal class ActorManagerImpl(
         gameTime: State<Long>,
         layerIndex: Int?,
     ) {
-        val drawBuffer = remember { ArrayList<Visible>(64) }
-        val overlayBuffer = remember { ArrayList<Overlay>(16) }
         Canvas(
             modifier = if (layerIndex == null) {
                 Modifier.fillMaxSize().clipToBounds()
@@ -387,50 +428,38 @@ internal class ActorManagerImpl(
                         )
                     },
                     drawBlock = {
-                        drawBuffer.clear()
-                        val visibles = visibleActorsWithinViewport.value
-                        val visiblesSize = visibles.size
-                        for (i in 0 until visiblesSize) {
-                            val actor = visibles[i]
-                            if (actor.isVisible && actor.layerIndex == layerIndex) {
-                                drawBuffer.add(actor)
-                            }
-                        }
-                        drawBuffer.sortWith(drawingOrderComparator)
-                        for (i in 0 until drawBuffer.size) {
-                            val visible = drawBuffer[i]
-                            withTransform(
-                                transformBlock = { visible.body.transformForViewport(this) },
-                                drawBlock = {
-                                    with(visible) {
-                                        if (shouldClip) {
-                                            clipRect(
-                                                left = 0f,
-                                                top = 0f,
-                                                right = body.size.width.raw,
-                                                bottom = body.size.height.raw,
-                                            ) { draw() }
-                                        } else {
-                                            draw()
+                        val visibles = sortedVisibleActorsByLayer[layerIndex]
+                        if (!visibles.isNullOrEmpty()) {
+                            for (i in visibles.indices) {
+                                val visible = visibles[i]
+                                if (visible.isVisible) {
+                                    withTransform(
+                                        transformBlock = { visible.body.transformForViewport(this) },
+                                        drawBlock = {
+                                            with(visible) {
+                                                if (shouldClip) {
+                                                    clipRect(
+                                                        left = 0f,
+                                                        top = 0f,
+                                                        right = body.size.width.raw,
+                                                        bottom = body.size.height.raw,
+                                                    ) { draw() }
+                                                } else {
+                                                    draw()
+                                                }
+                                            }
                                         }
-                                    }
+                                    )
                                 }
-                            )
+                            }
                         }
                     }
                 )
-                overlayBuffer.clear()
-                val overlays = overlayActors.value
-                for (i in 0 until overlays.size) {
-                    val overlay = overlays[i]
-                    if (overlay.layerIndex == layerIndex) {
-                        overlayBuffer.add(overlay)
+                val overlays = sortedOverlayActorsByLayer[layerIndex]
+                if (!overlays.isNullOrEmpty()) {
+                    for (i in overlays.indices) {
+                        with(overlays[i]) { drawToViewport() }
                     }
-                }
-                overlayBuffer.sortWith(overlayDrawingOrderComparator)
-                for (i in 0 until overlayBuffer.size) {
-                    val overlay = overlayBuffer[i]
-                    with(overlay) { drawToViewport() }
                 }
             }
         )
