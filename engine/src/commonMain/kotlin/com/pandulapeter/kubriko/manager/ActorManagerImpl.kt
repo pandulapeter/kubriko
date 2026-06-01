@@ -74,10 +74,13 @@ internal class ActorManagerImpl(
     private lateinit var kubrikoImpl: KubrikoImpl
     private val operationChannel = Channel<Operation>(Channel.UNLIMITED)
     private val drawingOrderComparator = Comparator<Visible> { a, b ->
-        b.drawingOrder.compareTo(a.drawingOrder)
+        // +0f normalizes -0.0f to +0.0f: Float.compareTo distinguishes them via bit patterns,
+        // causing A > B and B > C but A == C when one value is -0.0f, which violates the
+        // transitivity contract that TimSort enforces and triggers an IllegalArgumentException.
+        (b.drawingOrder + 0f).compareTo(a.drawingOrder + 0f)
     }
     private val overlayDrawingOrderComparator = Comparator<Overlay> { a, b ->
-        b.overlayDrawingOrder.compareTo(a.overlayDrawingOrder)
+        (b.overlayDrawingOrder + 0f).compareTo(a.overlayDrawingOrder + 0f)
     }
     private val layerIndices by autoInitializingLazy {
         _allActors

@@ -276,6 +276,16 @@ class MyManager : Manager() {
 
 **Multiple Kubriko instances**: valid (e.g. a background layer and a game layer sharing some Managers). Each instance has its own Manager set. Managers can be shared between instances.
 
+## Performance
+
+Performance is of paramount importance in this codebase. The engine runs every frame and must sustain smooth frame rates across all target platforms, including lower-end Android and Web (Wasm) targets.
+
+Concrete rules:
+- **Zero per-frame allocation in hot paths.** Code that executes every tick (inside `onUpdate`, `draw`, comparators, filters on actor lists) must not allocate heap objects. This rules out lambdas that capture, boxed primitives (e.g. `List<Int>` instead of `IntArray`, `List<Float>` instead of `FloatArray`), unnecessary `map`/`filter` chains that produce intermediate lists, and any approach that trades allocations for code simplicity.
+- **Sort in place.** Prefer `sortWith` on existing `ArrayList`s over `sortedWith`/`sortedByDescending`, which always allocate a new list.
+- **Prefer primitives.** Use `FloatArray`, `IntArray`, etc. wherever a sequence of primitive values is needed. Kotlin generic collections box primitives.
+- **Snapshot keys correctly without boxing.** When a sort key must be captured once (e.g. to fix a `-0.0f` vs `+0.0f` comparator inconsistency), prefer a targeted fix (e.g. `+ 0f` inside the comparator) over a snapshot approach that allocates intermediate collections.
+
 ## Known platform limitations
 
 - **Web (Wasm)**: no multi-touch support (Compose limitation). iOS browsers have significant issues (performance, audio, frequent freezes). Chrome/Firefox desktop is near-JVM quality.
