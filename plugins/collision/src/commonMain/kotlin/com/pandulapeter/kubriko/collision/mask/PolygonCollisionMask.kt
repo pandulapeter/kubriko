@@ -48,6 +48,11 @@ open class PolygonCollisionMask internal constructor(
     val vertices = generateConvexHull(unprocessedVertices)
     var rotationMatrix = RotationMatrix(initialRotation)
         private set
+    internal val transposedRotationMatrix = RotationMatrix()
+
+    init {
+        rotationMatrix.transposeInto(transposedRotationMatrix)
+    }
     override val size = when {
         vertices.size < 2 -> SceneSize.Zero
         else -> {
@@ -66,6 +71,7 @@ open class PolygonCollisionMask internal constructor(
             if (field != value) {
                 field = value
                 rotationMatrix.set(rotation)
+                rotationMatrix.transposeInto(transposedRotationMatrix)
                 isAxisAlignedBoundingBoxDirty = true
             }
         }

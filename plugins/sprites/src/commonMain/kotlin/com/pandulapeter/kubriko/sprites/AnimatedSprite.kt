@@ -121,21 +121,6 @@ class AnimatedSprite(
         }
     }
 
-    private fun getOrientedFramePosition(frameIndex: Int): Pair<Int, Int> = when (orientation) {
-        Rotation.NONE ->
-            frameIndex % framesPerRow to frameIndex / framesPerRow
-
-        Rotation.DEGREES_180 ->
-            framesPerRow - 1 - (frameIndex % framesPerRow) to numberOfRows - 1 - frameIndex / framesPerRow
-
-        Rotation.DEGREES_90 ->
-            numberOfRows - 1 - frameIndex / framesPerRow to frameIndex % framesPerRow
-
-        Rotation.DEGREES_270 ->
-            frameIndex / framesPerRow to framesPerRow - 1 - frameIndex % framesPerRow
-
-    }
-
     private fun getXIndex(frameIndex: Int) = when (orientation) {
         Rotation.NONE ->
             frameIndex % framesPerRow

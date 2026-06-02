@@ -97,13 +97,10 @@ internal class SpriteManagerImpl(
 
     override fun get(resource: SpriteResource): ImageBitmap? {
         val currentCache = cache.value
-        if (currentCache.containsKey(resource)) {
-            return currentCache[resource]
-        }
-        val currentPending = pendingWarmingUp.value
-        if (currentPending.containsKey(resource)) {
-            return null
-        }
+        val bitmap = currentCache[resource]
+        if (bitmap != null) return bitmap
+        if (resource in currentCache) return null
+        if (resource in pendingWarmingUp.value) return null
         cache.update { it.put(resource, null) }
         scope.launch {
             val bitmap = loadImage(resource)

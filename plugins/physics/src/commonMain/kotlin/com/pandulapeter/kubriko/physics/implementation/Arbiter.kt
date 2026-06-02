@@ -23,13 +23,22 @@ import kotlin.math.abs
 /**
  * Creates manifolds to detect collisions and apply forces to them. Discrete in nature and only evaluates pairs of bodies in a single manifold.
  */
-internal data class Arbiter(
-    val bodyA: PhysicsBody,
-    val bodyB: PhysicsBody,
-    private val penetrationCorrection: Float,
+internal class Arbiter(
+    var bodyA: PhysicsBody,
+    var bodyB: PhysicsBody,
+    private var penetrationCorrection: Float,
 ) {
     private var staticFriction = (bodyA.staticFriction + bodyB.staticFriction) / 2
     private var dynamicFriction = (bodyA.dynamicFriction + bodyB.dynamicFriction) / 2
+
+    fun reset(newBodyA: PhysicsBody, newBodyB: PhysicsBody, newPenetrationCorrection: Float) {
+        bodyA = newBodyA
+        bodyB = newBodyB
+        penetrationCorrection = newPenetrationCorrection
+        staticFriction = (bodyA.staticFriction + bodyB.staticFriction) / 2
+        dynamicFriction = (bodyA.dynamicFriction + bodyB.dynamicFriction) / 2
+        isColliding = false
+    }
     val contacts = arrayOf(SceneOffset.Zero, SceneOffset.Zero)
     var contactNormal = SceneOffset.Zero
     var isColliding = false

@@ -54,7 +54,7 @@ internal class CollisionManagerImpl(
                     }
                 }
                 if (collisionBuffer.isNotEmpty()) {
-                    detector.onCollisionDetected(collisionBuffer.toList())
+                    detector.onCollisionDetected(collisionBuffer)
                 }
             }
         }

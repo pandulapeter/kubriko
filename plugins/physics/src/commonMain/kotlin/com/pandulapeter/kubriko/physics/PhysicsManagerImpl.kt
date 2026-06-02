@@ -44,14 +44,20 @@ internal class PhysicsManagerImpl(
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
     }
     private val arbiters = mutableListOf<Arbiter>()
+    private val arbiterPool = ArrayList<Arbiter>()
     override val gravity = MutableStateFlow(initialGravity)
     private val actualGravity by autoInitializingLazy {
         gravity.asStateFlowOnMainThread(initialGravity)
     }
     override val simulationSpeed = MutableStateFlow(initialSimulationSpeed)
 
+    private fun acquireArbiter(bodyA: PhysicsBody, bodyB: PhysicsBody): Arbiter =
+        if (arbiterPool.isEmpty()) Arbiter(bodyA, bodyB, penetrationCorrection)
+        else arbiterPool.removeLast().also { it.reset(bodyA, bodyB, penetrationCorrection) }
+
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
         if (stateManager.isRunning.value && deltaTimeInMilliseconds > 0) {
+            arbiterPool.addAll(arbiters)
             arbiters.clear()
             broadPhaseCheck()
             semiImplicit(deltaTimeInMilliseconds * simulationSpeed.value / 100f)
@@ -122,10 +128,12 @@ internal class PhysicsManagerImpl(
     }
 
     private fun narrowPhaseCheck(bodyA: PhysicsBody, bodyB: PhysicsBody) {
-        val contactQuery = Arbiter(bodyA, bodyB, penetrationCorrection)
+        val contactQuery = acquireArbiter(bodyA, bodyB)
         contactQuery.narrowPhaseCheck()
         if (contactQuery.isColliding) {
             arbiters.add(contactQuery)
+        } else {
+            arbiterPool.add(contactQuery)
         }
     }
 }

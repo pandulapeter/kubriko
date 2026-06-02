@@ -71,6 +71,12 @@ fun CollisionMask.collisionResultWith(
     null
 }
 
+private val polygonPolygonAData = AxisData()
+private val polygonPolygonBData = AxisData()
+private val incidentFaceVertexesBuffer = arrayOf(SceneOffset.Zero, SceneOffset.Zero)
+private val contactVectorsFoundBuffer = arrayOf(SceneOffset.Zero, SceneOffset.Zero)
+private val clipOutBuffer = arrayOf(SceneOffset.Zero, SceneOffset.Zero)
+
 private fun checkCircleToCircleCollision(
     circleA: CircleCollisionMask,
     circleB: CircleCollisionMask,
@@ -100,7 +106,7 @@ private fun checkCircleToPolygonCollision(
 
     //Transpose effectively removes the rotation thus allowing the OBB vs OBB detection to become AABB vs OBB
     val distOfBodies = circle.position.minus(polygon.position)
-    val polyToCircleVec = polygon.rotationMatrix.transpose().times(distOfBodies)
+    val polyToCircleVec = polygon.transposedRotationMatrix.times(distOfBodies)
     var penetration = (-Float.MAX_VALUE).sceneUnit
     var faceNormalIndex = 0
 
@@ -171,29 +177,27 @@ private data class AxisData(
 )
 
 private fun checkPolygonToPolygonCollision(polygonA: PolygonCollisionMask, polygonB: PolygonCollisionMask): CollisionResult? {
-    val aData = AxisData()
-    findAxisOfMinPenetration(aData, polygonA, polygonB)
-    if (aData.penetration >= SceneUnit.Zero) {
+    findAxisOfMinPenetration(polygonPolygonAData, polygonA, polygonB)
+    if (polygonPolygonAData.penetration >= SceneUnit.Zero) {
         return null
     }
-    val bData = AxisData()
-    findAxisOfMinPenetration(bData, polygonB, polygonA)
-    if (bData.penetration >= SceneUnit.Zero) {
+    findAxisOfMinPenetration(polygonPolygonBData, polygonB, polygonA)
+    if (polygonPolygonBData.penetration >= SceneUnit.Zero) {
         return null
     }
     val referenceFaceIndex: Int
     val referencePoly: PolygonCollisionMask
     val incidentPoly: PolygonCollisionMask
     val flip: Boolean
-    if (selectionBias(aData.penetration, bData.penetration)) {
+    if (selectionBias(polygonPolygonAData.penetration, polygonPolygonBData.penetration)) {
         referencePoly = polygonA
         incidentPoly = polygonB
-        referenceFaceIndex = aData.referenceFaceIndex
+        referenceFaceIndex = polygonPolygonAData.referenceFaceIndex
         flip = false
     } else {
         referencePoly = polygonB
         incidentPoly = polygonA
-        referenceFaceIndex = bData.referenceFaceIndex
+        referenceFaceIndex = polygonPolygonBData.referenceFaceIndex
         flip = true
     }
 
@@ -201,7 +205,7 @@ private fun checkPolygonToPolygonCollision(polygonA: PolygonCollisionMask, polyg
 
     //Reference face of reference polygon in object space of incident polygon
     referenceNormal = referencePoly.rotationMatrix.times(referenceNormal)
-    referenceNormal = incidentPoly.rotationMatrix.transpose().times(referenceNormal)
+    referenceNormal = incidentPoly.transposedRotationMatrix.times(referenceNormal)
 
     //Finds face of incident polygon angled best vs reference poly normal.
     //Best face is the incident face that is the most anti parallel (most negative dot product)
@@ -216,10 +220,8 @@ private fun checkPolygonToPolygonCollision(polygonA: PolygonCollisionMask, polyg
     }
 
     //Incident faces vertexes in world space
-    val incidentFaceVertexes = arrayOf(
-        incidentPoly.rotationMatrix.times(incidentPoly.vertices[incidentIndex]) + incidentPoly.position,
-        incidentPoly.rotationMatrix.times(incidentPoly.vertices[if (incidentIndex + 1 >= incidentPoly.vertices.size) 0 else incidentIndex + 1]) + incidentPoly.position,
-    )
+    incidentFaceVertexesBuffer[0] = incidentPoly.rotationMatrix.times(incidentPoly.vertices[incidentIndex]) + incidentPoly.position
+    incidentFaceVertexesBuffer[1] = incidentPoly.rotationMatrix.times(incidentPoly.vertices[if (incidentIndex + 1 >= incidentPoly.vertices.size) 0 else incidentIndex + 1]) + incidentPoly.position
 
     //Gets vertex's of reference polygon reference face in world space
     var v1 = referencePoly.vertices[referenceFaceIndex]
@@ -233,24 +235,23 @@ private fun checkPolygonToPolygonCollision(polygonA: PolygonCollisionMask, polyg
     val negSide = -refTangent.dot(v1)
     val posSide = refTangent.dot(v2)
     // Clips the incident face against the reference
-    var np = clip(-refTangent, negSide, incidentFaceVertexes)
+    var np = clip(-refTangent, negSide, incidentFaceVertexesBuffer)
     if (np < 2) {
         return null
     }
-    np = clip(refTangent, posSide, incidentFaceVertexes)
+    np = clip(refTangent, posSide, incidentFaceVertexesBuffer)
     if (np < 2) {
         return null
     }
     val refFaceNormal = -refTangent.normal()
-    val contactVectorsFound = MutableList(2) { SceneOffset.Zero }
     var totalPen = SceneUnit.Zero
     var contactsFound = 0
 
     //Discards points that are positive/above the reference face
     for (i in 0..1) {
-        val separation = refFaceNormal.dot(incidentFaceVertexes[i]) - refFaceNormal.dot(v1)
+        val separation = refFaceNormal.dot(incidentFaceVertexesBuffer[i]) - refFaceNormal.dot(v1)
         if (separation <= SceneUnit.Zero) {
-            contactVectorsFound[contactsFound] = incidentFaceVertexes[i]
+            contactVectorsFoundBuffer[contactsFound] = incidentFaceVertexesBuffer[i]
             totalPen += -separation
             contactsFound++
         }
@@ -258,10 +259,10 @@ private fun checkPolygonToPolygonCollision(polygonA: PolygonCollisionMask, polyg
     val contactPoint: SceneOffset?
     val penetration: SceneUnit
     if (contactsFound == 1) {
-        contactPoint = contactVectorsFound[0]
+        contactPoint = contactVectorsFoundBuffer[0]
         penetration = totalPen
     } else {
-        contactPoint = contactVectorsFound[1].plus(contactVectorsFound[0]).scalar(0.5f)
+        contactPoint = contactVectorsFoundBuffer[1].plus(contactVectorsFoundBuffer[0]).scalar(0.5f)
         penetration = totalPen / 2
     }
     return CollisionResult(
@@ -284,7 +285,7 @@ private fun findAxisOfMinPenetration(
 
         //Rotates the normal by the clock wise rotation matrix of B to put the normal relative to the object space of polygon B
         //Polygon b is axis aligned and the normal is located according to this in the correct position in object space
-        val objectPolyANormal = polygonB.rotationMatrix.transpose().times(polyANormal)
+        val objectPolyANormal = polygonB.transposedRotationMatrix.times(polyANormal)
         var bestProjection = Float.MAX_VALUE.sceneUnit
         var bestVertex = polygonB.vertices[0]
 
@@ -302,7 +303,7 @@ private fun findAxisOfMinPenetration(
         val distanceOfBA = polygonA.position.minus(polygonB.position)
 
         //Best vertex relative to polygon B in object space
-        val polyANormalVertex = polygonB.rotationMatrix.transpose().times(polygonA.rotationMatrix.times(polygonA.vertices[i]) + distanceOfBA)
+        val polyANormalVertex = polygonB.transposedRotationMatrix.times(polygonA.rotationMatrix.times(polygonA.vertices[i]) + distanceOfBA)
 
         //Distance between best vertex and polygon A's plane in object space
         val d = objectPolyANormal.dot(bestVertex.minus(polyANormalVertex))
@@ -321,23 +322,21 @@ private fun selectionBias(a: SceneUnit, b: SceneUnit) = a >= b * BIAS_RELATIVE +
 
 private fun clip(planeTangent: SceneOffset, offset: SceneUnit, incidentFaces: Array<SceneOffset>): Int {
     var num = 0
-    val out = arrayOf(
-        incidentFaces[0],
-        incidentFaces[1],
-    )
+    clipOutBuffer[0] = incidentFaces[0]
+    clipOutBuffer[1] = incidentFaces[1]
     val dist = planeTangent.dot(incidentFaces[0]) - offset
     val dist1 = planeTangent.dot(incidentFaces[1]) - offset
-    if (dist <= SceneUnit.Zero) out[num++] = incidentFaces[0]
-    if (dist1 <= SceneUnit.Zero) out[num++] = incidentFaces[1]
+    if (dist <= SceneUnit.Zero) clipOutBuffer[num++] = incidentFaces[0]
+    if (dist1 <= SceneUnit.Zero) clipOutBuffer[num++] = incidentFaces[1]
     if (dist * dist1 < SceneUnit.Zero) {
         val interp = dist / (dist - dist1)
         if (num < 2) {
-            out[num] = incidentFaces[1].minus(incidentFaces[0]).scalar(interp).plus(incidentFaces[0])
+            clipOutBuffer[num] = incidentFaces[1].minus(incidentFaces[0]).scalar(interp).plus(incidentFaces[0])
             num++
         }
     }
-    incidentFaces[0] = out[0]
-    incidentFaces[1] = out[1]
+    incidentFaces[0] = clipOutBuffer[0]
+    incidentFaces[1] = clipOutBuffer[1]
     return num
 }
 

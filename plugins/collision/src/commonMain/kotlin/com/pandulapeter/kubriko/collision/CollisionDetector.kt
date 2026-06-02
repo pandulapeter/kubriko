@@ -27,6 +27,8 @@ interface CollisionDetector : Collidable {
     /**
      * Called when a collision is detected between this object and one or more other [Collidable]s.
      *
+     * The [collidables] list is a shared buffer — valid only for the duration of this call. Do not store a reference to it; copy the contents if you need to keep them.
+     *
      * @param collidables The list of objects that were found to be colliding with this detector.
      */
     fun onCollisionDetected(collidables: List<Collidable>)

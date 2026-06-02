@@ -52,6 +52,11 @@ data class RotationMatrix(
         )
     )
 
+    fun transposeInto(dest: RotationMatrix) {
+        dest.row1 = SceneOffset(x = row1.x, y = row2.x)
+        dest.row2 = SceneOffset(x = row1.y, y = row2.y)
+    }
+
     operator fun times(v: SceneOffset) = SceneOffset(
         x = row1.x * v.x + row1.y * v.y,
         y = row2.x * v.x + row2.y * v.y,

@@ -129,20 +129,15 @@ internal class PointerInputManagerImpl(
             while (true) {
                 val event = awaitPointerEvent()
                 if (isInitialized.value) {
-                    val allChanges = if (isMultiTouchEnabled) event.changes else event.changes.filter { it.id.value == 0L }
-                    val currentPointers = allChanges.associate { it.id to it.pressed }
-                    allChanges.forEach { change ->
+                    event.changes.forEach { change ->
+                        if (!isMultiTouchEnabled && change.id.value != 0L) return@forEach
                         val id = change.id
                         val wasPressed = _pressedPointerPositions.value.containsKey(id)
-                        val isPressed = currentPointers[id] == true
+                        val isPressed = change.pressed
                         when {
                             !wasPressed && isPressed -> {
                                 if (stateManager.isFocused.value) {
-                                    _pressedPointerPositions.update {
-                                        it.toMutableMap().apply {
-                                            this[change.id] = change.position
-                                        }.toPersistentMap()
-                                    }
+                                    _pressedPointerPositions.update { it.put(change.id, change.position) }
                                     pointerInputAwareActors.value.forEach { it.onPointerPressed(id, change.position) }
                                     if (mouseId == id) {
                                         _hoveringPointerPosition.value = change.position
@@ -151,11 +146,7 @@ internal class PointerInputManagerImpl(
                             }
 
                             wasPressed && !isPressed -> {
-                                _pressedPointerPositions.update {
-                                    it.toMutableMap().apply {
-                                        remove(change.id)
-                                    }.toPersistentMap()
-                                }
+                                _pressedPointerPositions.update { it.remove(change.id) }
                                 pointerInputAwareActors.value.forEach { it.onPointerReleased(id, change.position) }
                                 if (mouseId == id) {
                                     _hoveringPointerPosition.value = change.position
@@ -164,11 +155,7 @@ internal class PointerInputManagerImpl(
 
                             wasPressed && isPressed -> {
                                 if (stateManager.isFocused.value) {
-                                    _pressedPointerPositions.update {
-                                        it.toMutableMap().apply {
-                                            this[change.id] = change.position
-                                        }.toPersistentMap()
-                                    }
+                                    _pressedPointerPositions.update { it.put(change.id, change.position) }
                                     if (id == mouseId) {
                                         _hoveringPointerPosition.value = change.position
                                     }

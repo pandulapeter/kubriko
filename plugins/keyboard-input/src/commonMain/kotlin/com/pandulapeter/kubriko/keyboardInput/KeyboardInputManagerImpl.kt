@@ -17,6 +17,8 @@ import com.pandulapeter.kubriko.keyboardInput.implementation.KeyboardEventHandle
 import com.pandulapeter.kubriko.keyboardInput.implementation.createKeyboardEventHandler
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
+import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toImmutableSet
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
@@ -30,6 +32,8 @@ internal class KeyboardInputManagerImpl(
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
     private var activeKeysCache = mutableSetOf<Key>()
+    private var activeKeysSnapshot: ImmutableSet<Key> = persistentSetOf()
+    private var isActiveKeysDirty = false
     private var keyboardEventHandler: KeyboardEventHandler? = null
     private val keyboardInputAwareActors by autoInitializingLazy {
         actorManager.allActors.map { it.filterIsInstance<KeyboardInputAware>() }.asStateFlowOnMainThread(emptyList())
@@ -61,17 +65,17 @@ internal class KeyboardInputManagerImpl(
     override fun isKeyPressed(key: Key) = activeKeysCache.contains(key)
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
+        if (isActiveKeysDirty) {
+            activeKeysSnapshot = activeKeysCache.toImmutableSet()
+            isActiveKeysDirty = false
+        }
         if (activeKeysCache.isNotEmpty() && stateManager.isFocused.value) {
             hasSentEmptyMap = false
-            activeKeysCache.toImmutableSet().let { activeKeys ->
-                keyboardInputAwareActors.value.forEach { it.handleActiveKeys(activeKeys) }
-            }
+            keyboardInputAwareActors.value.forEach { it.handleActiveKeys(activeKeysSnapshot) }
         } else {
             if (!hasSentEmptyMap) {
                 hasSentEmptyMap = true
-                activeKeysCache.toImmutableSet().let { activeKeys ->
-                    keyboardInputAwareActors.value.forEach { it.handleActiveKeys(activeKeys) }
-                }
+                keyboardInputAwareActors.value.forEach { it.handleActiveKeys(activeKeysSnapshot) }
             }
         }
     }
@@ -85,11 +89,13 @@ internal class KeyboardInputManagerImpl(
         if (!activeKeysCache.contains(key) && stateManager.isFocused.value) {
             keyboardInputAwareActors.value.forEach { it.onKeyPressed(key) }
             activeKeysCache.add(key)
+            isActiveKeysDirty = true
         }
     }
 
     private fun onKeyReleased(key: Key) {
         keyboardInputAwareActors.value.forEach { it.onKeyReleased(key) }
         activeKeysCache.remove(key)
+        isActiveKeysDirty = true
     }
 }
