@@ -9,7 +9,9 @@
  */
 package com.pandulapeter.kubriko.logger
 
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.time.Clock
@@ -30,6 +32,13 @@ object Logger {
      * A flow of the most recent log entries.
      */
     val logs = _logs.asStateFlow()
+
+    private val _latestEntry = MutableSharedFlow<Entry>(extraBufferCapacity = 64)
+
+    /**
+     * A flow that emits each new [Entry] as it is added.
+     */
+    val latestEntry = _latestEntry.asSharedFlow()
 
     /**
      * The maximum number of log entries to keep in memory.
@@ -98,20 +107,17 @@ object Logger {
         details: String? = null,
         source: String? = null,
         importance: Importance = Importance.HIGH,
-    ) = _logs.update {
-        buildList {
-            add(
-                Entry(
-                    id = Uuid.random().toString(),
-                    message = message,
-                    details = details,
-                    source = source,
-                    timestamp = Clock.System.now().toEpochMilliseconds(),
-                    importance = importance,
-                )
-            )
-            addAll(it)
-        }.take(entryLimit)
+    ) {
+        val entry = Entry(
+            id = Uuid.random().toString(),
+            message = message,
+            details = details,
+            source = source,
+            timestamp = Clock.System.now().toEpochMilliseconds(),
+            importance = importance,
+        )
+        _latestEntry.tryEmit(entry)
+        _logs.update { (listOf(entry) + it).take(entryLimit) }
     }
 
     /**
