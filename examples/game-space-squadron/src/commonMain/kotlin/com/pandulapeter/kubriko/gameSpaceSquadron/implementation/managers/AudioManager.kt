@@ -60,8 +60,11 @@ internal class AudioManager(
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
-        soundUrisToPlay.forEach { soundManager.play(getResourceUri(it, webRootPathName)) }
-        soundUrisToPlay.clear()
+        if (soundUrisToPlay.isNotEmpty()) {
+            val uris = soundUrisToPlay.toList()
+            soundUrisToPlay.clear()
+            uris.forEach { soundManager.play(getResourceUri(it, webRootPathName)) }
+        }
     }
 
     fun playButtonPlaySoundEffect() = playSoundEffect(URI_SOUND_BUTTON_PLAY)
