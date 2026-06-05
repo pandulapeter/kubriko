@@ -1,0 +1,79 @@
+<!--
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+-->
+# plugin-collision
+
+Broad-phase AABB + narrow-phase SAT collision detection dispatched to `CollisionDetector` actors each tick.
+
+## Key Files
+
+- `src/commonMain/.../CollisionManagerImpl.kt` — detection loop; owns `collisionBuffer`
+- `src/commonMain/.../CollisionDetector.kt` — actor trait receiving `onCollisionDetected`
+- `src/commonMain/.../mask/CollisionMask.kt` — sealed interface root
+- `src/commonMain/.../mask/PolygonCollisionMask.kt` — convex hull; base for `BoxCollisionMask`
+- `src/commonMain/.../extensions/CollisionMaskExtensions.kt` — all narrow-phase math
+- `src/commonMain/.../implementation/RotationMatrix.kt` — mutable 2×2 matrix, no-alloc `transposeInto`
+
+## Detection Loop (each tick)
+
+1. Iterates only `CollisionDetector` instances
+2. For each detector, iterates `collidableTypes` list
+3. Scans all `Collidable` actors, skipping self
+4. Broad phase: AABB overlap check (skip if no overlap)
+5. Narrow phase: type-dispatched algorithm
+6. Matching collidables collected into `collisionBuffer: MutableList<Collidable>` (module-level, reused)
+7. `onCollisionDetected(collisionBuffer)` called only when at least one hit found
+
+**Critical**: `collisionBuffer` is a **shared buffer cleared between iterations**. Never store a reference to it — copy contents if needed beyond the callback.
+
+Detection is O(D × T × C): D = detectors, T = collidableTypes per detector, C = total collidables. Keep `collidableTypes` lists narrow.
+
+## Narrow-Phase Algorithms
+
+| Pair | Algorithm |
+|---|---|
+| Circle–Circle | Distance vs. sum-of-radii |
+| Circle–Polygon / Polygon–Circle | SAT; circle transposed into polygon object space |
+| Polygon–Polygon | Full SAT + Sutherland–Hodgman clipping; uses pre-allocated static buffers (zero allocation) |
+| Point or mismatched | Returns `null` (no collision) |
+
+Pass `shouldSkipAxisAlignedBoundingBoxCheck = true` to `collisionResultWith()` only when AABB overlap is guaranteed.
+
+## Mask Hierarchy
+
+```
+CollisionMask (sealed interface)
+└── PointCollisionMask (open) — position + dirty-flag lazy AABB
+    ├── CircleCollisionMask
+    └── PolygonCollisionMask (open) — convex hull, centered on centroid
+        └── BoxCollisionMask — 4-vertex convenience wrapper
+```
+
+`ComplexCollisionMask` adds `size: SceneSize` and `isSceneOffsetInside(SceneOffset)`.
+
+`PolygonCollisionMask` silently convexifies input via Andrew's monotone chain algorithm. **Concave polygons are not supported** — shapes are convexified at construction time.
+
+`BoxCollisionMask` is centered on `initialPosition` (vertices derived from half-size).
+
+## RotationMatrix
+
+Mutable 2×2 matrix stored as two `SceneOffset` rows. `transposeInto(dest)` writes result into an existing instance — no allocation. Polygon masks own both `rotationMatrix` and `transposedRotationMatrix`, updated in-place when `rotation` is set. Avoid mutating `rotation` every frame on non-rotating bodies.
+
+## Collidable + CollisionDetector Contract
+
+- `Collidable` — any hittable actor; just position + mask, no callback
+- `CollisionDetector extends Collidable` — receives `onCollisionDetected(List<Collidable>)`; declare `collidableTypes: List<KClass<out Collidable>>`
+- `CollisionDetector` is never reported colliding with itself (`candidate !== detector`)
+- To get `CollisionResult` (contact point, normal, depth): call `collisionMask.collisionResultWith(other.collisionMask)` inside the callback
+
+## Gotchas
+
+- AABB dirty flag: position changes set `isAxisAlignedBoundingBoxDirty = true`; box recomputed lazily on next read
+- `collisionDetectors` and `collidables` StateFlows are derived via `filterIsInstance` on `allActors` on `Dispatchers.Default`, pinned to main-thread via `asStateFlowOnMainThread`
+- `PolygonCollisionMask.updateAxisAlignedBoundingBox()` iterates all vertices — avoid high-frequency rotation on high-vertex polygons
