@@ -1,3 +1,12 @@
+<!--
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+-->
 # Debug Menu Tool
 
 The `debug-menu` tool provides an in-game overlay for inspecting and manipulating the state of a Kubriko project at runtime. It features a log viewer, actor inspector, performance metrics, and plugin-specific controls.

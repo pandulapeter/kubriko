@@ -1,3 +1,12 @@
+<!--
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+-->
 # Scene Editor Tool - No-op
 
 The `scene-editor-noop` module provides a no-op implementation of the `scene-editor-api` contract. It is designed to be used in production builds or on platforms where the Scene Editor is not supported, ensuring that your code can still compile and run without including the heavy editor logic.
