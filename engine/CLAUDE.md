@@ -43,9 +43,16 @@ The sealed-interface core of Kubriko: wires Managers, Actors, the tick loop, and
 ## Draw-Cache Invalidation
 
 Three caches rebuilt only on change (reference equality `!==`):
-- `sortedVisibleActorsByLayer` — rebuilt on `visibleActors` change, viewport size change, or `invisibleActorMinimumRefreshTimeInMillis` elapsed
+- `sortedVisibleActorsByLayer` — rebuilt on `visibleActors` change, viewport size change, or `invisibleActorMinimumRefreshTimeInMillis` elapsed (default `0` ⇒ every frame)
 - `sortedOverlayActorsByLayer` — rebuilt only on `overlayActors` change
 - `activeDynamicActors` — uses larger edge buffer (one viewport half-dimension) to avoid sleep-on-enter jitter
+
+### Culling allocation model
+
+With the default `invisibleActorMinimumRefreshTimeInMillis = 0` the visibility / active-dynamic cull runs every frame, so it is written to allocate as little as possible:
+- Culling filters into reusable, tick-thread-private scratch buffers (`visibleScratch`, `dynamicScratch`) rather than `List.filter`.
+- The public `visibleActorsWithinViewport` / `activeDynamicActors` StateFlows are re-published only when the culled set changed (identity-based `contentEquals` against the currently published list). Observable behavior is unchanged — equal sets never emitted before either — but the per-frame `ImmutableList` allocation is skipped in the steady state.
+- `sortedVisibleActorsByLayer` / `sortedOverlayActorsByLayer` still build a **fresh** `HashMap` (one map, not two — no `mapValues`) on every rebuild and are never mutated after publishing. This is deliberate: a background `TickSource` runs `onUpdate` on `Dispatchers.Default` while the Canvas draws on the UI thread, so the render thread relies on the "published structures are immutable" invariant to read them lock-free. **Do not** switch these to reused/in-place-mutated buffers. Per-layer lists are always re-sorted (drawingOrder may change every frame, e.g. Y-sorted depth).
 
 ## Actor Batch Processing
 

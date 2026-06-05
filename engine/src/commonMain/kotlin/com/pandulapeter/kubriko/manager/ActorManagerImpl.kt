@@ -115,6 +115,12 @@ internal class ActorManagerImpl(
     private var sortedVisibleActorsByLayer: Map<Int?, List<Visible>> = emptyMap()
     private var sortedOverlayActorsByLayer: Map<Int?, List<Overlay>> = emptyMap()
 
+    // Reusable scratch buffers for visibility / active culling. Only ever touched on the tick thread
+    // inside onUpdate(), never published anywhere, so they add no cross-thread sharing and let us cull
+    // without allocating an intermediate list every frame.
+    private val visibleScratch = ArrayList<Visible>()
+    private val dynamicScratch = ArrayList<Dynamic>()
+
     // Visibility cache invalidation tracking
     private var lastVisibleActors: ImmutableList<Visible>? = null
     private var lastVisibleRefreshTime = -1L
@@ -144,26 +150,46 @@ internal class ActorManagerImpl(
         val rightBound = viewportCenter.x.raw + halfScaledWidth + edgeBuffer
         val bottomBound = viewportCenter.y.raw + halfScaledHeight + edgeBuffer
 
-        val filtered = actors
-            .filter {
-                val aabb = it.body.axisAlignedBoundingBox
-                aabb.left.raw <= rightBound &&
-                        aabb.top.raw <= bottomBound &&
-                        aabb.right.raw >= leftBound &&
-                        aabb.bottom.raw >= topBound
+        // Cull into the reusable scratch buffer instead of List.filter, which would allocate a fresh
+        // ArrayList every frame (the predicate already inlines, so only the result list was the cost).
+        // Iterate the source via its iterator: `actors` is a persistent vector whose indexed get() is
+        // a trie walk, so a for-each is cheaper than indexing it per element.
+        visibleScratch.clear()
+        for (actor in actors) {
+            val aabb = actor.body.axisAlignedBoundingBox
+            if (aabb.left.raw <= rightBound &&
+                aabb.top.raw <= bottomBound &&
+                aabb.right.raw >= leftBound &&
+                aabb.bottom.raw >= topBound
+            ) {
+                visibleScratch.add(actor)
             }
-            .toImmutableList()
-        _visibleActorsWithinViewport.value = filtered
+        }
+        // Only publish a fresh ImmutableList when the visible set actually changed. The StateFlow
+        // already dedupes equal values, so consumers observe identical emissions and identical
+        // .value contents — we just skip allocating the list in the common unchanged case.
+        if (!_visibleActorsWithinViewport.value.contentEquals(visibleScratch)) {
+            _visibleActorsWithinViewport.value = visibleScratch.toImmutableList()
+        }
 
-        // Pre-group by layer and pre-sort by drawingOrder so the draw loop is a plain indexed walk
-        sortedVisibleActorsByLayer = if (filtered.isEmpty()) {
+        // Pre-group by layer and pre-sort by drawingOrder so the draw loop is a plain indexed walk.
+        // A brand-new map is published on every rebuild and never mutated afterwards, so the render
+        // thread can read it lock-free even when a background TickSource drives onUpdate() off the
+        // main thread. (drawingOrder can change per frame — e.g. Y-sorted depth — so we always
+        // re-sort here rather than reusing the previous frame's ordering.) Built from the scratch
+        // ArrayList, whose indexed access is genuinely O(1).
+        sortedVisibleActorsByLayer = if (visibleScratch.isEmpty()) {
             emptyMap()
         } else {
             val grouped = HashMap<Int?, ArrayList<Visible>>()
-            for (actor in filtered) {
+            for (i in visibleScratch.indices) {
+                val actor = visibleScratch[i]
                 grouped.getOrPut(actor.layerIndex) { ArrayList() }.add(actor)
             }
-            grouped.mapValues { (_, list) -> list.also { it.sortWith(drawingOrderComparator) } }
+            for (list in grouped.values) {
+                list.sortWith(drawingOrderComparator)
+            }
+            grouped
         }
     }
 
@@ -183,19 +209,26 @@ internal class ActorManagerImpl(
         val rightBound = viewportCenter.x.raw + halfScaledWidth + edgeBuffer
         val bottomBound = viewportCenter.y.raw + halfScaledHeight + edgeBuffer
 
-        _activeDynamicActors.value = actors
-            .filter { actor ->
-                if (!actor.isAlwaysActive && actor is Positionable) {
-                    val aabb = actor.body.axisAlignedBoundingBox
-                    aabb.left.raw <= rightBound &&
-                            aabb.top.raw <= bottomBound &&
-                            aabb.right.raw >= leftBound &&
-                            aabb.bottom.raw >= topBound
-                } else {
-                    true
-                }
+        // Cull into the reusable scratch buffer, then only publish a fresh ImmutableList when the
+        // active set changed (see updateVisibleActorsWithinViewport for the rationale).
+        dynamicScratch.clear()
+        for (actor in actors) {
+            val isActive = if (!actor.isAlwaysActive && actor is Positionable) {
+                val aabb = actor.body.axisAlignedBoundingBox
+                aabb.left.raw <= rightBound &&
+                        aabb.top.raw <= bottomBound &&
+                        aabb.right.raw >= leftBound &&
+                        aabb.bottom.raw >= topBound
+            } else {
+                true
             }
-            .toImmutableList()
+            if (isActive) {
+                dynamicScratch.add(actor)
+            }
+        }
+        if (!_activeDynamicActors.value.contentEquals(dynamicScratch)) {
+            _activeDynamicActors.value = dynamicScratch.toImmutableList()
+        }
     }
 
     override fun onInitialize(kubriko: Kubriko) {
@@ -241,7 +274,11 @@ internal class ActorManagerImpl(
                 for (overlay in currentOverlays) {
                     grouped.getOrPut(overlay.layerIndex) { ArrayList() }.add(overlay)
                 }
-                grouped.mapValues { (_, list) -> list.also { it.sortWith(overlayDrawingOrderComparator) } }
+                // Sort each layer's list in place; mapValues would only allocate a second identical map.
+                for (list in grouped.values) {
+                    list.sortWith(overlayDrawingOrderComparator)
+                }
+                grouped
             }
         }
 
@@ -272,6 +309,21 @@ internal class ActorManagerImpl(
         } else if (_activeDynamicActors.value !== dynamicActors.value) {
             _activeDynamicActors.value = dynamicActors.value
         }
+    }
+
+    // Reference-equality, allocation-free comparison of a published list against a freshly culled
+    // scratch buffer. Actors don't override equals, so identity comparison is the correct notion of
+    // "same set in the same order" and lets us detect when re-publishing the StateFlow is unnecessary.
+    // The receiver is the published persistent list (iterated, since its indexed get() is a trie walk);
+    // `other` is the scratch ArrayList (indexed, genuinely O(1)).
+    private fun <T> List<T>.contentEquals(other: List<T>): Boolean {
+        if (size != other.size) return false
+        var i = 0
+        for (element in this) {
+            if (element !== other[i]) return false
+            i++
+        }
+        return true
     }
 
     private fun flattenActors(initialActors: List<Actor>): List<Actor> {

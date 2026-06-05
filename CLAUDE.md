@@ -244,6 +244,7 @@ The `Editable` trait from `scene-editor-api` can be combined with `Serializable`
 
 ## Conventions
 
+- **Public API stability**: Kubriko is a published library (`io.github.pandulapeter.kubriko` on Maven Central). The public API surface — public/protected signatures, types, defaults, and the observable behavior of public `StateFlow`s and functions — MUST NOT change for the sake of internal improvements. External consumers may depend on anything public (even members that look unused inside this repo, e.g. `ActorManager.visibleActorsWithinViewport`). Optimize under the hood only; if a change would alter the API or its observable behavior, stop and confirm first.
 - **Convention plugins**: module build files apply `kubriko-library`, `kubriko-compose-library`, and/or `kubriko-public-artifact` (defined in `gradle/build-logic/`). A published module sets its artifact via `artifactMetadata { artifactId = "..." }`. When adding a module, mirror an existing sibling's build file rather than re-deriving KMP/Compose setup.
 - **Type-safe project accessors** are enabled — depend on modules with `projects.engine`, `projects.plugins.physics`, etc., not string paths.
 - **`-api` / `-noop` split**: `scene-editor` and `debug-menu` each have an `-api` module (public surface) plus a `-noop` blank implementation, swapped in via the `gradle.properties` flags so tools are excluded from production builds. The `examples/test-*` modules follow the same pattern with `test-*-noop`.
