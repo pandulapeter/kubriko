@@ -24,8 +24,14 @@ import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -38,8 +44,18 @@ class LogicManager : Manager() {
     private val stateManager by manager<StateManager>()
     private val textureResolver by manager<TextureResolver>()
     private val json = Json { ignoreUnknownKeys = true }
+    private val _shouldShowLoadingIndicator = MutableStateFlow(true)
+    val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
+        actorManager.allActors
+            .filter { it.isNotEmpty() }
+            .take(1)
+            .onEach {
+                delay(300)
+                _shouldShowLoadingIndicator.update { false }
+            }
+            .launchIn(scope)
         stateManager.isFocused
             .onEach(stateManager::updateIsRunning)
             .launchIn(scope)

@@ -18,7 +18,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
@@ -56,8 +58,14 @@ import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.vo
 import com.pandulapeter.kubriko.helpers.extensions.cos
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.helpers.extensions.sin
+import com.pandulapeter.kubriko.shared.StateHolder
+import com.pandulapeter.kubriko.uiComponents.InfoPanel
+import com.pandulapeter.kubriko.uiComponents.LoadingOverlay
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
+import kubriko.examples.demo_isometric_graphics.generated.resources.Res
+import kubriko.examples.demo_isometric_graphics.generated.resources.description
+import org.jetbrains.compose.resources.stringResource
 
 private const val JOYSTICK_ENABLED = true
 
@@ -65,8 +73,9 @@ private const val JOYSTICK_ENABLED = true
 internal fun IsometricGraphicsContent(
     stateHolder: IsometricGraphicsDemoStateHolderImpl,
     modifier: Modifier = Modifier,
+    windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) = Box(
-    modifier = modifier.background(MaterialTheme.colorScheme.background),
+    modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest),
 ) {
     val worldRotationState = stateHolder.volumetricRenderManager.worldRotation.collectAsState()
     val offsetState = stateHolder.controlManager.cameraOffset.collectAsState()
@@ -212,13 +221,24 @@ internal fun IsometricGraphicsContent(
     }
     Column(
         modifier = Modifier
-            .windowInsetsPadding(WindowInsets.safeDrawing)
-            .align(Alignment.TopEnd)
+            .fillMaxWidth()
+            .windowInsetsPadding(windowInsets)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        MiniMap(stateHolder = stateHolder, gridMap = gridMap)
+        InfoPanel(
+            text = stringResource(Res.string.description),
+            isVisible = StateHolder.isInfoPanelVisible.value,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+        ) {
+            MiniMap(stateHolder = stateHolder, gridMap = gridMap)
+        }
     }
+    LoadingOverlay(
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        shouldShowLoadingIndicator = stateHolder.shouldShowLoadingIndicator.collectAsState().value,
+    )
 }
-

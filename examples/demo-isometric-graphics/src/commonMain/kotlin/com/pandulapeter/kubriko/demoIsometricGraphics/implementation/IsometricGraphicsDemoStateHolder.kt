@@ -69,6 +69,7 @@ internal class IsometricGraphicsDemoStateHolderImpl(
     val controlManager = ControlManager()
     val textureManager = TextureResolver()
     private val logicManager = LogicManager()
+    val shouldShowLoadingIndicator = logicManager.shouldShowLoadingIndicator
     private val logicActorManager = ActorManager.newInstance(
         invisibleActorMinimumRefreshTimeInMillis = 500,
         isLoggingEnabled = isLoggingEnabled,

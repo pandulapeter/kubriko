@@ -82,7 +82,7 @@ internal fun MiniMap(
         val scaleFactorState = stateHolder.logicViewportManager.scaleFactor.collectAsState()
         val sampler = remember { MiniMapSampler() }
         val samplerVersion = remember { mutableStateOf(0) }
-        val surfaceColor = MaterialTheme.colorScheme.surface
+        val surfaceColor = MaterialTheme.colorScheme.surfaceContainerHighest
         val outlineColor = Color.Black
         LaunchedEffect(Unit) {
             val actorManager = stateHolder.logicKubriko.get<ActorManager>()
