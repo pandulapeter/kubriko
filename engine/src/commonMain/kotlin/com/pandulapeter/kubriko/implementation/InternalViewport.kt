@@ -54,21 +54,24 @@ fun InternalViewport(
         }
         var count = 0
         var lastProcessedFrameTime = -1L
-        while (isActive) {
-            withFrameMillis { frameTimeInMilliseconds ->
-                if (lastProcessedFrameTime == -1L) {
-                    lastProcessedFrameTime = frameTimeInMilliseconds
-                    kubrikoImpl.metadataManager.onUpdateInternal(0)
-                }
-                if (count % kubrikoImpl.viewportManager.frameRate.factor == 0) {
-                    val deltaTimeInMilliseconds = (frameTimeInMilliseconds - lastProcessedFrameTime).toInt()
-                    if (tickSource is ViewportFrameTickSource && !kubrikoImpl.viewportManager.size.value.isEmpty() && (!tickSource.shouldPauseOnFocusLoss || kubrikoImpl.stateManager.isFocused.value)) {
-                        tickSource.tick(deltaTimeInMilliseconds)
-                    }
-                    lastProcessedFrameTime = frameTimeInMilliseconds
-                }
-                count++
+        // Hoisted out of the loop: a lambda declared inline in the withFrameMillis call would capture
+        // the mutable locals and be re-allocated on every frame.
+        val onFrame: (Long) -> Unit = { frameTimeInMilliseconds ->
+            if (lastProcessedFrameTime == -1L) {
+                lastProcessedFrameTime = frameTimeInMilliseconds
+                kubrikoImpl.metadataManager.onUpdateInternal(0)
             }
+            if (count % kubrikoImpl.viewportManager.frameRate.factor == 0) {
+                val deltaTimeInMilliseconds = (frameTimeInMilliseconds - lastProcessedFrameTime).toInt()
+                if (tickSource is ViewportFrameTickSource && !kubrikoImpl.viewportManager.size.value.isEmpty() && (!tickSource.shouldPauseOnFocusLoss || kubrikoImpl.stateManager.isFocused.value)) {
+                    tickSource.tick(deltaTimeInMilliseconds)
+                }
+                lastProcessedFrameTime = frameTimeInMilliseconds
+            }
+            count++
+        }
+        while (isActive) {
+            withFrameMillis(onFrame)
         }
     }
 

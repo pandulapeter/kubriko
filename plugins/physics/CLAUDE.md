@@ -85,3 +85,13 @@ Add the `JointWrapper` actor to the scene alongside the bodies it connects.
 ## Arbiter Pooling
 
 `PhysicsManagerImpl` pools `Arbiter` objects to avoid per-frame allocation. Do not hold references to arbiters beyond the physics update — they are recycled every tick.
+
+## Broad Phase: Sweep-and-Prune
+
+`broadPhaseCheck()` keeps body indices sorted by AABB left edge (insertion sort over reusable `IntArray`/`FloatArray` scratch buffers — nearly O(n) per frame thanks to temporal coherence; the order is reset to identity whenever the `rigidBodies` list reference changes). Each body is then only tested against neighbors whose x-extents can still overlap. AABBs are read once per body per frame into the scratch arrays.
+
+**Order preservation is load-bearing**: candidate pairs are packed into a `LongArray` as `(minIndex shl 32) or maxIndex` and sorted before the narrow phase, restoring the exact `(i, j)` order of a naive nested loop. The sequential impulse solver iterates arbiters in insertion order, so changing pair order would change simulation results. Do not "optimize away" the pair sort.
+
+The `>=` x-axis break condition matches `isOverlapping` exactly (touching edges count as non-overlapping), so the sweep prunes no pair the full AABB check would have accepted.
+
+`applyLinearDrag` early-returns when `linearDampening == 0f` (the default) or velocity is zero — a zero drag force is a no-op — and reuses the computed magnitude instead of calling `normalized()`, which would take the same square root twice.

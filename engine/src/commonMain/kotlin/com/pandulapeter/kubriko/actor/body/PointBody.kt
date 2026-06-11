@@ -22,7 +22,13 @@ import com.pandulapeter.kubriko.types.SceneOffset
 open class PointBody internal constructor(
     initialPosition: SceneOffset,
 ) : Body {
-    private var _axisAlignedBoundingBox: AxisAlignedBoundingBox? = null
+    // Stored as a non-null value class plus a validity flag instead of a nullable field:
+    // a nullable inline class field boxes its underlying Long on every cache store.
+    private var cachedAxisAlignedBoundingBox = AxisAlignedBoundingBox(
+        min = SceneOffset.Zero,
+        max = SceneOffset.Zero,
+    )
+    private var isAxisAlignedBoundingBoxCached = false
 
     /**
      * The axis-aligned bounding box of the point body.
@@ -30,13 +36,18 @@ open class PointBody internal constructor(
     override var axisAlignedBoundingBox: AxisAlignedBoundingBox
         get() {
             if (isAxisAlignedBoundingBoxDirty) {
-                _axisAlignedBoundingBox = null
+                isAxisAlignedBoundingBoxCached = false
                 isAxisAlignedBoundingBoxDirty = false
             }
-            return _axisAlignedBoundingBox ?: createAxisAlignedBoundingBox().also { _axisAlignedBoundingBox = it }
+            if (!isAxisAlignedBoundingBoxCached) {
+                cachedAxisAlignedBoundingBox = createAxisAlignedBoundingBox()
+                isAxisAlignedBoundingBoxCached = true
+            }
+            return cachedAxisAlignedBoundingBox
         }
         protected set(value) {
-            _axisAlignedBoundingBox = value
+            cachedAxisAlignedBoundingBox = value
+            isAxisAlignedBoundingBoxCached = true
         }
     protected var isAxisAlignedBoundingBoxDirty = false
 

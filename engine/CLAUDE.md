@@ -28,7 +28,7 @@ The sealed-interface core of Kubriko: wires Managers, Actors, the tick loop, and
 
 ## Tick Dispatch
 
-`KubrikoImpl.onTick(delta)` iterates `managers` in registration order. `ActorManagerImpl.onUpdate` calls `update()` on every actor in `activeDynamicActors.value` — plain indexed `forEach` over a pre-filtered `ImmutableList`. No allocation in this hot path.
+`KubrikoImpl.onTick(delta)` iterates the managers in registration order via `managersForTick: Array<Manager>` (indexed loop; `List.forEach` would allocate an iterator per tick). `ActorManagerImpl.onUpdate` calls `update()` on every actor in the active Dynamic set — iterated through `activeDynamicMirror`, a tick-thread-private `ArrayList` refilled only when the published `activeDynamicActors` reference changes, because indexing the persistent list directly is a trie walk and iterating it allocates. No allocation in this hot path.
 
 `FrameRate` throttling (`HALF`/`QUARTER`) is applied in `InternalViewport` by skipping `tickSource.tick()` calls based on a counter modulo `frameRate.factor`.
 
@@ -52,7 +52,8 @@ Three caches rebuilt only on change (reference equality `!==`):
 With the default `invisibleActorMinimumRefreshTimeInMillis = 0` the visibility / active-dynamic cull runs every frame, so it is written to allocate as little as possible:
 - Culling filters into reusable, tick-thread-private scratch buffers (`visibleScratch`, `dynamicScratch`) rather than `List.filter`.
 - The public `visibleActorsWithinViewport` / `activeDynamicActors` StateFlows are re-published only when the culled set changed (identity-based `contentEquals` against the currently published list). Observable behavior is unchanged — equal sets never emitted before either — but the per-frame `ImmutableList` allocation is skipped in the steady state.
-- `sortedVisibleActorsByLayer` / `sortedOverlayActorsByLayer` still build a **fresh** `HashMap` (one map, not two — no `mapValues`) on every rebuild and are never mutated after publishing. This is deliberate: a background `TickSource` runs `onUpdate` on `Dispatchers.Default` while the Canvas draws on the UI thread, so the render thread relies on the "published structures are immutable" invariant to read them lock-free. **Do not** switch these to reused/in-place-mutated buffers. Per-layer lists are always re-sorted (drawingOrder may change every frame, e.g. Y-sorted depth).
+- `sortedVisibleActorsByLayer` / `sortedOverlayActorsByLayer` still build a **fresh** `HashMap` (one map, not two — no `mapValues`) on every rebuild and are never mutated after publishing. This is deliberate: a background `TickSource` runs `onUpdate` on `Dispatchers.Default` while the Canvas draws on the UI thread, so the render thread relies on the "published structures are immutable" invariant to read them lock-free. **Do not** switch these to reused/in-place-mutated buffers.
+- The `sortedVisibleActorsByLayer` rebuild is **skipped** when nothing changed: the published list reference identifies the culled set, and reusable primitive snapshots (`drawCacheDrawingOrders: FloatArray`, `drawCacheLayerIndices: LongArray`, null layer encoded as `Long.MIN_VALUE`) capture each actor's `drawingOrder`/`layerIndex` at the last rebuild. If the set, every drawingOrder, and every layerIndex are unchanged, the previously published map is still correct and the frame pays one read-only scan instead of HashMap + ArrayList + sort (the steady state for static scenes and menus). Any change — including per-frame drawingOrder mutation, e.g. Y-sorted depth — triggers a full rebuild with a fresh map, preserving the lock-free invariant above.
 
 ## Actor Batch Processing
 

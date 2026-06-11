@@ -27,7 +27,14 @@ internal class ParticleManagerImpl(
 
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
-    private val emissionAccumulators = mutableMapOf<ParticleEmitter<*>, Float>()
+
+    // Mutable holder keyed by emitter: storing Float values directly in the map would box a fresh
+    // Float on every per-frame accumulator write.
+    private class EmissionAccumulator {
+        var value = 0f
+    }
+
+    private val emissionAccumulators = mutableMapOf<ParticleEmitter<*>, EmissionAccumulator>()
     private val particleEmitters by autoInitializingLazy {
         actorManager.allActors.map { allActors ->
             allActors
@@ -61,9 +68,10 @@ internal class ParticleManagerImpl(
                     }
 
                     is ParticleEmitter.Mode.Continuous -> {
-                        val rawAmount = (mode.getEmissionsPerMillisecond() * deltaTimeInMilliseconds) + (emissionAccumulators[emitter] ?: 0f)
+                        val accumulator = emissionAccumulators.getOrPut(emitter) { EmissionAccumulator() }
+                        val rawAmount = (mode.getEmissionsPerMillisecond() * deltaTimeInMilliseconds) + accumulator.value
                         val count = rawAmount.toInt()
-                        emissionAccumulators[emitter] = rawAmount - count
+                        accumulator.value = rawAmount - count
                         count
                     }
 

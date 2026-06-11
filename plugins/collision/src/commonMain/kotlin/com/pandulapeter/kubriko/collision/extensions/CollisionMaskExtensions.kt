@@ -27,14 +27,41 @@ import com.pandulapeter.kubriko.types.SceneUnit
 
 fun Collidable.isCollidingWith(
     other: Collidable
-) = collisionMask.collisionResultWith(
-    other = other.collisionMask,
-    shouldSkipAxisAlignedBoundingBoxCheck = false,
-) != null
+) = collisionMask.hasCollisionWith(other.collisionMask)
 
 fun CollisionMask.collisionResultWith(
     other: CollisionMask,
     shouldSkipAxisAlignedBoundingBoxCheck: Boolean,
+): CollisionResult? = collisionCheck(
+    other = other,
+    shouldSkipAxisAlignedBoundingBoxCheck = shouldSkipAxisAlignedBoundingBoxCheck,
+    shouldCollectResult = true,
+)
+
+/**
+ * Boolean-only collision test: runs the same broad and narrow phase as [collisionResultWith] but
+ * never constructs a [CollisionResult] (the detection loop in CollisionManagerImpl only needs the
+ * yes/no answer, and the result object would otherwise be allocated for every colliding pair on
+ * every frame).
+ */
+internal fun CollisionMask.hasCollisionWith(other: CollisionMask): Boolean = collisionCheck(
+    other = other,
+    shouldSkipAxisAlignedBoundingBoxCheck = false,
+    shouldCollectResult = false,
+) != null
+
+// Pre-allocated marker returned by the narrow-phase checks instead of a real result when
+// shouldCollectResult is false. Never escapes this file: callers that pass false only null-check.
+private val COLLISION_DETECTED = CollisionResult(
+    contact = SceneOffset.Zero,
+    contactNormal = SceneOffset.Zero,
+    penetration = SceneUnit.Zero,
+)
+
+private fun CollisionMask.collisionCheck(
+    other: CollisionMask,
+    shouldSkipAxisAlignedBoundingBoxCheck: Boolean,
+    shouldCollectResult: Boolean,
 ): CollisionResult? = if (shouldSkipAxisAlignedBoundingBoxCheck || axisAlignedBoundingBox.isOverlapping(other.axisAlignedBoundingBox)) {
     val collisionMaskA = this
     val collisionMaskB = other
@@ -42,27 +69,31 @@ fun CollisionMask.collisionResultWith(
         collisionMaskA is CircleCollisionMask && collisionMaskB is CircleCollisionMask -> checkCircleToCircleCollision(
             circleA = collisionMaskA,
             circleB = collisionMaskB,
+            shouldCollectResult = shouldCollectResult,
         )
 
         collisionMaskA is CircleCollisionMask && collisionMaskB is PolygonCollisionMask -> checkCircleToPolygonCollision(
             circle = collisionMaskA,
             polygon = collisionMaskB,
+            shouldCollectResult = shouldCollectResult,
         )
 
         collisionMaskA is PolygonCollisionMask && collisionMaskB is CircleCollisionMask -> checkCircleToPolygonCollision(
             circle = collisionMaskB,
             polygon = collisionMaskA,
+            shouldCollectResult = shouldCollectResult,
         )?.let {
-            CollisionResult(
+            if (shouldCollectResult) CollisionResult(
                 contact = it.contact,
                 contactNormal = -it.contactNormal,
                 penetration = it.penetration,
-            )
+            ) else it
         }
 
         collisionMaskA is PolygonCollisionMask && collisionMaskB is PolygonCollisionMask -> checkPolygonToPolygonCollision(
             polygonA = collisionMaskA,
             polygonB = collisionMaskB,
+            shouldCollectResult = shouldCollectResult,
         )
 
         else -> null
@@ -80,11 +111,14 @@ private val clipOutBuffer = arrayOf(SceneOffset.Zero, SceneOffset.Zero)
 private fun checkCircleToCircleCollision(
     circleA: CircleCollisionMask,
     circleB: CircleCollisionMask,
+    shouldCollectResult: Boolean,
 ): CollisionResult? {
     val normal = circleB.position.minus(circleA.position)
     val distance = normal.length()
     val radius = circleA.radius + circleB.radius
-    return if (distance >= radius) null else if (distance == SceneUnit.Zero) CollisionResult(
+    return if (distance >= radius) null
+    else if (!shouldCollectResult) COLLISION_DETECTED
+    else if (distance == SceneUnit.Zero) CollisionResult(
         contact = circleA.position,
         contactNormal = SceneOffset.Down,
         penetration = radius,
@@ -102,6 +136,7 @@ private fun checkCircleToCircleCollision(
 private fun checkCircleToPolygonCollision(
     circle: CircleCollisionMask,
     polygon: PolygonCollisionMask,
+    shouldCollectResult: Boolean,
 ): CollisionResult? {
 
     //Transpose effectively removes the rotation thus allowing the OBB vs OBB detection to become AABB vs OBB
@@ -138,7 +173,9 @@ private fun checkCircleToPolygonCollision(
         val distBetweenObj = polyToCircleVec.distanceTo(vector1)
 
         //Check to see if vertex is within the circle
-        return if (distBetweenObj >= circle.radius) null else CollisionResult(
+        return if (distBetweenObj >= circle.radius) null
+        else if (!shouldCollectResult) COLLISION_DETECTED
+        else CollisionResult(
             contact = polygon.rotationMatrix.times(vector1) + polygon.position,
             contactNormal = polygon.rotationMatrix.times((vector1 - polyToCircleVec).normalized()),
             penetration = circle.radius - distBetweenObj,
@@ -154,14 +191,18 @@ private fun checkCircleToPolygonCollision(
         val distBetweenObj = polyToCircleVec.distanceTo(vector2)
 
         //Check to see if vertex is within the circle
-        return if (distBetweenObj >= circle.radius) null else CollisionResult(
+        return if (distBetweenObj >= circle.radius) null
+        else if (!shouldCollectResult) COLLISION_DETECTED
+        else CollisionResult(
             contact = polygon.rotationMatrix.times(vector2) + polygon.position,
             contactNormal = polygon.rotationMatrix.times(vector2.minus(polyToCircleVec).normalized()),
             penetration = circle.radius - distBetweenObj,
         )
     } else {
         val distFromEdgeToCircle = polyToCircleVec.minus(vector1).dot(polygon.normals[faceNormalIndex])
-        return if (distFromEdgeToCircle >= circle.radius) null else polygon.rotationMatrix.times(polygon.normals[faceNormalIndex]).let { contactNormal ->
+        return if (distFromEdgeToCircle >= circle.radius) null
+        else if (!shouldCollectResult) COLLISION_DETECTED
+        else polygon.rotationMatrix.times(polygon.normals[faceNormalIndex]).let { contactNormal ->
             CollisionResult(
                 contact = circle.position.plus(-contactNormal.scalar(circle.radius)),
                 contactNormal = -contactNormal,
@@ -176,7 +217,11 @@ private data class AxisData(
     var referenceFaceIndex: Int = 0,
 )
 
-private fun checkPolygonToPolygonCollision(polygonA: PolygonCollisionMask, polygonB: PolygonCollisionMask): CollisionResult? {
+private fun checkPolygonToPolygonCollision(
+    polygonA: PolygonCollisionMask,
+    polygonB: PolygonCollisionMask,
+    shouldCollectResult: Boolean,
+): CollisionResult? {
     findAxisOfMinPenetration(polygonPolygonAData, polygonA, polygonB)
     if (polygonPolygonAData.penetration >= SceneUnit.Zero) {
         return null
@@ -242,6 +287,11 @@ private fun checkPolygonToPolygonCollision(polygonA: PolygonCollisionMask, polyg
     np = clip(refTangent, posSide, incidentFaceVertexesBuffer)
     if (np < 2) {
         return null
+    }
+    // Once both clips succeed the polygons are colliding; the remainder of this function only
+    // computes contact details, so the boolean-only path can stop here.
+    if (!shouldCollectResult) {
+        return COLLISION_DETECTED
     }
     val refFaceNormal = -refTangent.normal()
     var totalPen = SceneUnit.Zero

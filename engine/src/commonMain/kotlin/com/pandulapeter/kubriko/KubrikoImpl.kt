@@ -62,6 +62,8 @@ internal class KubrikoImpl(
             )
         )
     }
+    // Tick dispatch iterates this array by index: List.forEach would allocate an iterator on every tick.
+    private val managersForTick: Array<Manager> = managers.toTypedArray()
     private val managerCache = mutableMapOf<KClass<out Manager>, Manager>()
     val actorManager = requireAndVerify<ActorManager, ActorManagerImpl>("ActorManager")
     val metadataManager = requireAndVerify<MetadataManager, MetadataManagerImpl>("MetadataManager")
@@ -150,6 +152,8 @@ internal class KubrikoImpl(
     }
 
     internal fun onTick(deltaTimeInMilliseconds: Int) {
-        managers.forEach { it.onUpdateInternal(deltaTimeInMilliseconds) }
+        for (i in managersForTick.indices) {
+            managersForTick[i].onUpdateInternal(deltaTimeInMilliseconds)
+        }
     }
 }

@@ -32,6 +32,9 @@ open class PointCollisionMask internal constructor(
         get() {
             if (isAxisAlignedBoundingBoxDirty) {
                 field = updateAxisAlignedBoundingBox()
+                // Without clearing the flag the cache never takes effect and every read recomputes
+                // the bounding box (a full vertex transform for polygon masks).
+                isAxisAlignedBoundingBoxDirty = false
             }
             return field
         }

@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.helpers.extensions.bottomRight
 import com.pandulapeter.kubriko.helpers.extensions.clamp
 import com.pandulapeter.kubriko.helpers.extensions.cos
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.helpers.extensions.sin
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
@@ -105,25 +106,53 @@ class BoxBody(
         initialRotation = rotation,
     )
 
-    override fun createAxisAlignedBoundingBox() = arrayOf(
-        transformPoint(SceneOffset.Zero),
-        transformPoint(SceneOffset.Right * size.width),
-        transformPoint(SceneOffset.Down * size.height),
-        transformPoint(size.bottomRight),
-    ).let { corners ->
-        AxisAlignedBoundingBox(
-            min = SceneOffset(corners.minOf { it.x }, corners.minOf { it.y }) - pivot + position,
-            max = SceneOffset(corners.maxOf { it.x }, corners.maxOf { it.y }) - pivot + position,
+    // Raw float math on the four corners; building an Array<SceneOffset> here would box every
+    // value class element, and this runs once per frame for every moving/rotating/scaling body.
+    override fun createAxisAlignedBoundingBox(): AxisAlignedBoundingBox {
+        val pivotX = pivot.x.raw
+        val pivotY = pivot.y.raw
+        // Corner coordinates scaled around the pivot: (0,0), (w,0), (0,h), (w,h)
+        val scaledLeft = -pivotX * scale.horizontal
+        val scaledTop = -pivotY * scale.vertical
+        val scaledRight = (size.width.raw - pivotX) * scale.horizontal
+        val scaledBottom = (size.height.raw - pivotY) * scale.vertical
+        val minX: Float
+        val minY: Float
+        val maxX: Float
+        val maxY: Float
+        if (rotation == AngleRadians.Zero) {
+            minX = minOf(scaledLeft, scaledRight) + pivotX
+            minY = minOf(scaledTop, scaledBottom) + pivotY
+            maxX = maxOf(scaledLeft, scaledRight) + pivotX
+            maxY = maxOf(scaledTop, scaledBottom) + pivotY
+        } else {
+            val cos = rotation.cos
+            val sin = rotation.sin
+            val x0 = scaledLeft * cos - scaledTop * sin + pivotX
+            val y0 = scaledLeft * sin + scaledTop * cos + pivotY
+            val x1 = scaledRight * cos - scaledTop * sin + pivotX
+            val y1 = scaledRight * sin + scaledTop * cos + pivotY
+            val x2 = scaledLeft * cos - scaledBottom * sin + pivotX
+            val y2 = scaledLeft * sin + scaledBottom * cos + pivotY
+            val x3 = scaledRight * cos - scaledBottom * sin + pivotX
+            val y3 = scaledRight * sin + scaledBottom * cos + pivotY
+            minX = minOf(x0, x1, x2, x3)
+            minY = minOf(y0, y1, y2, y3)
+            maxX = maxOf(x0, x1, x2, x3)
+            maxY = maxOf(y0, y1, y2, y3)
+        }
+        val positionX = position.x.raw
+        val positionY = position.y.raw
+        return AxisAlignedBoundingBox(
+            min = SceneOffset(
+                x = (minX - pivotX + positionX).sceneUnit,
+                y = (minY - pivotY + positionY).sceneUnit,
+            ),
+            max = SceneOffset(
+                x = (maxX - pivotX + positionX).sceneUnit,
+                y = (maxY - pivotY + positionY).sceneUnit,
+            ),
         )
-    }
-
-    private fun transformPoint(point: SceneOffset): SceneOffset {
-        val scaled = (point - pivot) * scale
-        val rotated = if (rotation == AngleRadians.Zero) scaled else SceneOffset(
-            x = scaled.x * rotation.cos - scaled.y * rotation.sin,
-            y = scaled.x * rotation.sin + scaled.y * rotation.cos,
-        )
-        return rotated + pivot
     }
 
     override fun DrawScope.drawDebugBounds(color: Color, style: DrawStyle) = this@BoxBody.size.raw.let { size ->

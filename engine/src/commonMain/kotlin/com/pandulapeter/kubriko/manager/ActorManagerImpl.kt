@@ -121,6 +121,21 @@ internal class ActorManagerImpl(
     private val visibleScratch = ArrayList<Visible>()
     private val dynamicScratch = ArrayList<Dynamic>()
 
+    // Mirror of the published active Dynamic list for the update loop: iterating the persistent list
+    // directly would allocate a trie iterator every frame, while the ArrayList mirror is indexable in
+    // O(1). Refilled only when the published list reference changes; tick-thread-private.
+    private val activeDynamicMirror = ArrayList<Dynamic>()
+    private var lastMirroredActiveDynamicActors: ImmutableList<Dynamic>? = null
+
+    // Draw-cache reuse snapshots: the published list reference identifies the culled set, and the
+    // primitive arrays capture each actor's drawingOrder/layerIndex at the last rebuild. When all
+    // three are unchanged, the previously published sortedVisibleActorsByLayer is still correct and
+    // the per-frame HashMap + ArrayList + sort rebuild can be skipped entirely (typical for static
+    // scenes, menus, and paused games). Tick-thread-private.
+    private var drawCacheActors: ImmutableList<Visible>? = null
+    private var drawCacheDrawingOrders = FloatArray(0)
+    private var drawCacheLayerIndices = LongArray(0)
+
     // Visibility cache invalidation tracking
     private var lastVisibleActors: ImmutableList<Visible>? = null
     private var lastVisibleRefreshTime = -1L
@@ -175,23 +190,54 @@ internal class ActorManagerImpl(
         // Pre-group by layer and pre-sort by drawingOrder so the draw loop is a plain indexed walk.
         // A brand-new map is published on every rebuild and never mutated afterwards, so the render
         // thread can read it lock-free even when a background TickSource drives onUpdate() off the
-        // main thread. (drawingOrder can change per frame — e.g. Y-sorted depth — so we always
-        // re-sort here rather than reusing the previous frame's ordering.) Built from the scratch
-        // ArrayList, whose indexed access is genuinely O(1).
-        sortedVisibleActorsByLayer = if (visibleScratch.isEmpty()) {
-            emptyMap()
-        } else {
-            val grouped = HashMap<Int?, ArrayList<Visible>>()
-            for (i in visibleScratch.indices) {
+        // main thread. Built from the scratch ArrayList, whose indexed access is genuinely O(1).
+        //
+        // The rebuild is skipped when the culled set (identified by the published list reference)
+        // and every actor's drawingOrder/layerIndex are unchanged since the last rebuild — the old
+        // map is still correct, so a static scene pays one read-only scan instead of an
+        // allocation + sort every frame. drawingOrder can change per frame (e.g. Y-sorted depth),
+        // which the snapshot comparison catches.
+        val publishedList = _visibleActorsWithinViewport.value
+        val count = visibleScratch.size
+        var canReuseDrawCache = publishedList === drawCacheActors
+        if (canReuseDrawCache) {
+            for (i in 0 until count) {
                 val actor = visibleScratch[i]
-                grouped.getOrPut(actor.layerIndex) { ArrayList() }.add(actor)
+                if (drawCacheDrawingOrders[i] != actor.drawingOrder ||
+                    drawCacheLayerIndices[i] != actor.layerIndex.encodeLayerIndex()
+                ) {
+                    canReuseDrawCache = false
+                    break
+                }
             }
-            for (list in grouped.values) {
-                list.sortWith(drawingOrderComparator)
+        }
+        if (!canReuseDrawCache) {
+            if (drawCacheDrawingOrders.size < count) {
+                val newCapacity = maxOf(count, drawCacheDrawingOrders.size * 2)
+                drawCacheDrawingOrders = FloatArray(newCapacity)
+                drawCacheLayerIndices = LongArray(newCapacity)
             }
-            grouped
+            sortedVisibleActorsByLayer = if (visibleScratch.isEmpty()) {
+                emptyMap()
+            } else {
+                val grouped = HashMap<Int?, ArrayList<Visible>>()
+                for (i in visibleScratch.indices) {
+                    val actor = visibleScratch[i]
+                    drawCacheDrawingOrders[i] = actor.drawingOrder
+                    drawCacheLayerIndices[i] = actor.layerIndex.encodeLayerIndex()
+                    grouped.getOrPut(actor.layerIndex) { ArrayList() }.add(actor)
+                }
+                for (list in grouped.values) {
+                    list.sortWith(drawingOrderComparator)
+                }
+                grouped
+            }
+            drawCacheActors = publishedList
         }
     }
+
+    // Long-encoded layerIndex snapshot value; Long.MIN_VALUE marks null (no Int maps to it).
+    private fun Int?.encodeLayerIndex() = this?.toLong() ?: Long.MIN_VALUE
 
     private fun updateActiveDynamicActors(viewportCenter: SceneOffset, scaleFactor: Scale) {
         val actors = dynamicActors.value
@@ -255,7 +301,15 @@ internal class ActorManagerImpl(
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
         if (shouldUpdateActorsWhileNotRunning || stateManager.isRunning.value) {
-            activeDynamicActors.value.forEach { it.update(deltaTimeInMilliseconds) }
+            val currentActiveDynamicActors = activeDynamicActors.value
+            if (currentActiveDynamicActors !== lastMirroredActiveDynamicActors) {
+                lastMirroredActiveDynamicActors = currentActiveDynamicActors
+                activeDynamicMirror.clear()
+                activeDynamicMirror.addAll(currentActiveDynamicActors)
+            }
+            for (i in activeDynamicMirror.indices) {
+                activeDynamicMirror[i].update(deltaTimeInMilliseconds)
+            }
         }
 
         val viewportSize = viewportManager.size.value

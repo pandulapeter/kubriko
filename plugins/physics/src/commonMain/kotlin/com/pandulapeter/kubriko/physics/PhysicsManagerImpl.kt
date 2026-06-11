@@ -11,7 +11,6 @@ package com.pandulapeter.kubriko.physics
 
 import com.pandulapeter.kubriko.helpers.extensions.isOverlapping
 import com.pandulapeter.kubriko.helpers.extensions.length
-import com.pandulapeter.kubriko.helpers.extensions.normalized
 import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -55,14 +54,23 @@ internal class PhysicsManagerImpl(
         if (arbiterPool.isEmpty()) Arbiter(bodyA, bodyB, penetrationCorrection)
         else arbiterPool.removeLast().also { it.reset(bodyA, bodyB, penetrationCorrection) }
 
+    // Sweep-and-prune scratch state. The sorted index order is kept between frames, so the
+    // insertion sort below is nearly O(n) thanks to temporal coherence. All buffers are
+    // tick-thread-private and only grow.
+    private var sweepBodiesSnapshot: List<PhysicsBody>? = null
+    private var sweepSortedIndices = IntArray(0)
+    private var sweepMinX = FloatArray(0)
+    private var sweepMaxX = FloatArray(0)
+    private var sweepPairs = LongArray(0)
+
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
         if (stateManager.isRunning.value && deltaTimeInMilliseconds > 0) {
             arbiterPool.addAll(arbiters)
             arbiters.clear()
             broadPhaseCheck()
             semiImplicit(deltaTimeInMilliseconds * simulationSpeed.value / 100f)
-            for (contact in arbiters) {
-                contact.penetrationResolution()
+            for (i in arbiters.indices) {
+                arbiters[i].penetrationResolution()
             }
         }
     }
@@ -70,7 +78,9 @@ internal class PhysicsManagerImpl(
     private fun semiImplicit(dt: Float) {
         applyForces(dt)
         solve()
-        for (b in rigidBodies.value) {
+        val bodies = rigidBodies.value
+        for (i in bodies.indices) {
+            val b = bodies[i]
             if (b.invMass == 0f) {
                 continue
             }
@@ -82,7 +92,9 @@ internal class PhysicsManagerImpl(
     }
 
     private fun applyForces(dt: Float) {
-        for (b in rigidBodies.value) {
+        val bodies = rigidBodies.value
+        for (i in bodies.indices) {
+            val b = bodies[i]
             if (b.invMass == 0f) {
                 continue
             }
@@ -96,34 +108,112 @@ internal class PhysicsManagerImpl(
     }
 
     private fun solve() {
-        for (joint in joints.value) {
-            joint.applyTension()
+        val currentJoints = joints.value
+        for (i in currentJoints.indices) {
+            currentJoints[i].applyTension()
         }
-        for (arbiter in arbiters) {
-            arbiter.solve()
+        for (i in arbiters.indices) {
+            arbiters[i].solve()
         }
     }
 
     private fun applyLinearDrag(body: PhysicsBody) {
+        // Zero dampening or zero velocity produce a zero drag force, which applyForce turns into a
+        // no-op — skipping early avoids two square roots per body per frame in the common case.
+        if (body.linearDampening == 0f) {
+            return
+        }
         val velocityMagnitude = body.velocity.length()
+        if (velocityMagnitude == SceneUnit.Zero) {
+            return
+        }
         val dragForceMagnitude = velocityMagnitude * velocityMagnitude * body.linearDampening
-        val dragForceVector = body.velocity.normalized().scalar(-dragForceMagnitude)
+        // Inlined normalization reusing the already computed magnitude instead of normalized(),
+        // which would calculate the same square root a second time.
+        val dragForceVector = SceneOffset(
+            x = body.velocity.x / velocityMagnitude,
+            y = body.velocity.y / velocityMagnitude,
+        ).scalar(-dragForceMagnitude)
         body.applyForce(dragForceVector)
     }
 
+    // Sweep-and-prune broad phase: bodies are kept sorted by the left edge of their bounding box,
+    // so each body only needs to be tested against the neighbors whose x-extents can still overlap
+    // instead of every other body. Candidate pairs are collected and re-sorted into the exact
+    // (i, j) order the previous nested-loop implementation produced, which keeps the solver's
+    // arbiter order — and therefore the simulation results — identical.
     private fun broadPhaseCheck() {
         val bodies = rigidBodies.value
-        for (i in bodies.indices) {
+        val bodyCount = bodies.size
+        if (bodyCount < 2) {
+            return
+        }
+        if (bodies !== sweepBodiesSnapshot) {
+            sweepBodiesSnapshot = bodies
+            if (sweepSortedIndices.size < bodyCount) {
+                sweepSortedIndices = IntArray(bodyCount)
+                sweepMinX = FloatArray(bodyCount)
+                sweepMaxX = FloatArray(bodyCount)
+            }
+            // The previous permutation may not cover 0 until bodyCount anymore; start from identity.
+            for (i in 0 until bodyCount) {
+                sweepSortedIndices[i] = i
+            }
+        }
+        // One bounding box read per body (the pair loop below would otherwise re-read them O(n²) times).
+        for (i in 0 until bodyCount) {
+            val aabb = bodies[i].collisionMask.axisAlignedBoundingBox
+            sweepMinX[i] = aabb.left.raw
+            sweepMaxX[i] = aabb.right.raw
+        }
+        // Insertion sort by minX; nearly sorted from the previous frame.
+        val sorted = sweepSortedIndices
+        for (k in 1 until bodyCount) {
+            val index = sorted[k]
+            val key = sweepMinX[index]
+            var m = k - 1
+            while (m >= 0 && sweepMinX[sorted[m]] > key) {
+                sorted[m + 1] = sorted[m]
+                m--
+            }
+            sorted[m + 1] = index
+        }
+        var pairCount = 0
+        for (a in 0 until bodyCount) {
+            val i = sorted[a]
             val bodyA = bodies[i]
-            for (x in i + 1 until bodies.size) {
-                val bodyB = bodies[x]
+            val maxXa = sweepMaxX[i]
+            for (b in a + 1 until bodyCount) {
+                val j = sorted[b]
+                // isOverlapping treats touching edges as non-overlapping, so >= prunes exactly the
+                // pairs it would reject on the x axis — and every later index sorts even further right.
+                if (sweepMinX[j] >= maxXa) {
+                    break
+                }
+                val bodyB = bodies[j]
                 if (bodyA.invMass == 0f && bodyB.invMass == 0f || bodyA.isParticle && bodyB.isParticle) {
                     continue
                 }
                 if (bodyA.collisionMask.axisAlignedBoundingBox.isOverlapping(bodyB.collisionMask.axisAlignedBoundingBox)) {
-                    narrowPhaseCheck(bodyA, bodyB)
+                    if (pairCount == sweepPairs.size) {
+                        sweepPairs = sweepPairs.copyOf(maxOf(16, sweepPairs.size * 2))
+                    }
+                    sweepPairs[pairCount++] = if (i < j) {
+                        (i.toLong() shl 32) or j.toLong()
+                    } else {
+                        (j.toLong() shl 32) or i.toLong()
+                    }
                 }
             }
+        }
+        // Restore the original deterministic pair order before running the narrow phase.
+        sweepPairs.sort(fromIndex = 0, toIndex = pairCount)
+        for (k in 0 until pairCount) {
+            val packed = sweepPairs[k]
+            narrowPhaseCheck(
+                bodyA = bodies[(packed ushr 32).toInt()],
+                bodyB = bodies[(packed and 0xFFFFFFFFL).toInt()],
+            )
         }
     }
 

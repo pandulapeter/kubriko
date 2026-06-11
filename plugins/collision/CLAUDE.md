@@ -22,17 +22,17 @@ Broad-phase AABB + narrow-phase SAT collision detection dispatched to `Collision
 
 ## Detection Loop (each tick)
 
-1. Iterates only `CollisionDetector` instances
+1. Iterates only `CollisionDetector` instances (via `detectorsMirror`, an `ArrayList` mirror of the published list refilled on reference change — avoids per-frame persistent-list iterators)
 2. For each detector, iterates `collidableTypes` list
-3. Scans all `Collidable` actors, skipping self
+3. Scans the type's pre-filtered candidate list (`collidablesByType`), skipping self. The per-type lists are built lazily via `KClass.isInstance` and invalidated when the collidable list changes — `isInstance` is reflective (slow on Wasm) and must not run per candidate per frame
 4. Broad phase: AABB overlap check (skip if no overlap)
-5. Narrow phase: type-dispatched algorithm
+5. Narrow phase: type-dispatched algorithm via `hasCollisionWith` — the boolean-only twin of `collisionResultWith` that runs the same math but returns a pre-allocated sentinel instead of constructing a `CollisionResult` per colliding pair
 6. Matching collidables collected into `collisionBuffer: MutableList<Collidable>` (module-level, reused)
 7. `onCollisionDetected(collisionBuffer)` called only when at least one hit found
 
 **Critical**: `collisionBuffer` is a **shared buffer cleared between iterations**. Never store a reference to it — copy contents if needed beyond the callback.
 
-Detection is O(D × T × C): D = detectors, T = collidableTypes per detector, C = total collidables. Keep `collidableTypes` lists narrow.
+Detection is O(D × T × C′): D = detectors, T = collidableTypes per detector, C′ = collidables matching the type. Keep `collidableTypes` lists narrow.
 
 ## Narrow-Phase Algorithms
 
@@ -74,6 +74,6 @@ Mutable 2×2 matrix stored as two `SceneOffset` rows. `transposeInto(dest)` writ
 
 ## Gotchas
 
-- AABB dirty flag: position changes set `isAxisAlignedBoundingBoxDirty = true`; box recomputed lazily on next read
+- AABB dirty flag: position changes set `isAxisAlignedBoundingBoxDirty = true`; box recomputed lazily on the next read, which also clears the flag so subsequent reads hit the cache (physics reads AABBs in an O(n)-per-body loop — a missing reset here re-runs the full vertex transform on every read)
 - `collisionDetectors` and `collidables` StateFlows are derived via `filterIsInstance` on `allActors` on `Dispatchers.Default`, pinned to main-thread via `asStateFlowOnMainThread`
 - `PolygonCollisionMask.updateAxisAlignedBoundingBox()` iterates all vertices — avoid high-frequency rotation on high-vertex polygons
