@@ -11,208 +11,123 @@ package com.pandulapeter.kubriko.demoIsometricGraphics.implementation
 
 import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.body.BoxBody
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.actors.AnimalTile
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.actors.CharacterTile
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.actors.CubeTile
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.managers.GridManager
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.managers.IsometricGraphicsDemoManager
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.logic.manager.ControlManager
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.logic.manager.LogicManager
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.gameplay.resources.TextureResolver
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.volumetric.manager.VolumetricRenderManager
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.ui.ControlOverlayManager
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
+import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ActorManager
-import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
-import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.sprites.SpriteManager
-import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageBitmap
-import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.serialization.json.Json
 import kubriko.examples.demo_isometric_graphics.generated.resources.Res
-import kubriko.examples.demo_isometric_graphics.generated.resources.bounce
-import kubriko.examples.demo_isometric_graphics.generated.resources.character
-import kubriko.examples.demo_isometric_graphics.generated.resources.collapse_controls
-import kubriko.examples.demo_isometric_graphics.generated.resources.debug_bounds
 import kubriko.examples.demo_isometric_graphics.generated.resources.description
-import kubriko.examples.demo_isometric_graphics.generated.resources.environment
-import kubriko.examples.demo_isometric_graphics.generated.resources.expand_controls
-import kubriko.examples.demo_isometric_graphics.generated.resources.ic_brush
-import kubriko.examples.demo_isometric_graphics.generated.resources.movement
-import kubriko.examples.demo_isometric_graphics.generated.resources.orientation
-import kubriko.examples.demo_isometric_graphics.generated.resources.reset_camera
-import kubriko.examples.demo_isometric_graphics.generated.resources.section_world
-import kubriko.examples.demo_isometric_graphics.generated.resources.spin
-import kubriko.examples.demo_isometric_graphics.generated.resources.sprite_texture_side
-import kubriko.examples.demo_isometric_graphics.generated.resources.sprite_texture_top
-import kubriko.examples.demo_isometric_graphics.generated.resources.tile_height
-import kubriko.examples.demo_isometric_graphics.generated.resources.tile_width
+import kubriko.examples.demo_isometric_graphics.generated.resources.map_01
+import kubriko.examples.demo_isometric_graphics.generated.resources.texture_01
 
 sealed interface IsometricGraphicsDemoStateHolder : StateHolder {
 
     companion object {
         @Composable
-        fun areResourcesLoaded() = areIconResourcesLoaded() && areImageResourcesLoaded() && areStringResourcesLoaded()
+        fun areResourcesLoaded() = areImageResourcesLoaded() && areStringResourcesLoaded()
 
         @Composable
-        private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_brush).value != null
-
-        @Composable
-        private fun areImageResourcesLoaded() = preloadedImageBitmap(Res.drawable.sprite_texture_side).value != null
-                && preloadedImageBitmap(Res.drawable.sprite_texture_top).value != null
+        private fun areImageResourcesLoaded() = preloadedImageBitmap(Res.drawable.texture_01).value != null
+                && preloadedImageBitmap(Res.drawable.map_01).value != null
 
         @Composable
         private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank()
-                && preloadedString(Res.string.expand_controls).value.isNotBlank()
-                && preloadedString(Res.string.collapse_controls).value.isNotBlank()
-                && preloadedString(Res.string.section_world).value.isNotBlank()
-                && preloadedString(Res.string.reset_camera).value.isNotBlank()
-                && preloadedString(Res.string.tile_width).value.isNotBlank()
-                && preloadedString(Res.string.tile_height).value.isNotBlank()
-                && preloadedString(Res.string.debug_bounds).value.isNotBlank()
-                && preloadedString(Res.string.environment).value.isNotBlank()
-                && preloadedString(Res.string.spin).value.isNotBlank()
-                && preloadedString(Res.string.bounce).value.isNotBlank()
-                && preloadedString(Res.string.character).value.isNotBlank()
-                && preloadedString(Res.string.movement).value.isNotBlank()
-                && preloadedString(Res.string.orientation).value.isNotBlank()
     }
 }
 
+/**
+ * The game runs two independent [Kubriko] instances:
+ *  - [logicKubriko] drives the game logic (the main character, the wandering characters, the trees)
+ *    in plain Cartesian space.
+ *  - [isometricKubriko] only renders: it projects every actor that enters [logicKubriko]'s viewport
+ *    into the isometric view via [VolumetricRenderManager].
+ * Everything that used to live as module-level singletons in the standalone game is owned here so
+ * the demo can be created and disposed like every other Showcase example.
+ */
 internal class IsometricGraphicsDemoStateHolderImpl(
-    isSceneEditorEnabled: Boolean,
     isLoggingEnabled: Boolean,
 ) : IsometricGraphicsDemoStateHolder {
 
-    private val json = Json { ignoreUnknownKeys = true }
-    val serializationManager = EditableMetadata.newSerializationManagerInstance(
-        EditableMetadata(
-            typeId = "cube",
-            deserializeState = { serializedState -> json.decodeFromString<CubeTile.State>(serializedState) },
-            instantiate = {
-                CubeTile.State(
-                    body = BoxBody(
-                        initialPosition = it,
-                        initialSize = SceneSize(
-                            width = 128.sceneUnit,
-                            height = 128.sceneUnit,
-                        )
-                    )
-                )
-            },
+    // region logic instance
+    val logicViewportManager = ViewportManager.newInstance(
+        initialScaleFactor = 0.04f,
+        isLoggingEnabled = isLoggingEnabled,
+        instanceNameForLogging = LOG_TAG_LOGIC,
+    )
+    val controlManager = ControlManager()
+    val textureManager = TextureResolver()
+    private val logicManager = LogicManager()
+    private val logicActorManager = ActorManager.newInstance(
+        invisibleActorMinimumRefreshTimeInMillis = 500,
+        isLoggingEnabled = isLoggingEnabled,
+        instanceNameForLogging = LOG_TAG_LOGIC,
+    )
+    val logicKubriko = Kubriko.newInstance(
+        logicActorManager,
+        logicViewportManager,
+        controlManager,
+        logicManager,
+        textureManager,
+        SpriteManager.newInstance(
+            isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = LOG_TAG_LOGIC,
         ),
-        EditableMetadata(
-            typeId = "character",
-            deserializeState = { serializedState -> json.decodeFromString<CharacterTile.State>(serializedState) },
-            instantiate = {
-                CharacterTile.State(
-                    body = BoxBody(
-                        initialPosition = it,
-                        initialSize = SceneSize(
-                            width = 128.sceneUnit,
-                            height = 128.sceneUnit,
-                        )
-                    )
-                )
-            },
+        isLoggingEnabled = isLoggingEnabled,
+        instanceNameForLogging = LOG_TAG_LOGIC,
+    )
+    // endregion
+
+    // region isometric (render) instance
+    val volumetricViewportManager = ViewportManager.newInstance(
+        viewportEdgeBuffer = 100.sceneUnit,
+        isLoggingEnabled = isLoggingEnabled,
+        instanceNameForLogging = LOG_TAG,
+    )
+    val volumetricRenderManager = VolumetricRenderManager(
+        allActors = logicActorManager.visibleActorsWithinViewport,
+        cameraOffset = controlManager.cameraOffset,
+    )
+    val controlOverlayManager = ControlOverlayManager(
+        controlManager = controlManager,
+        logicViewportManager = logicViewportManager,
+    )
+    val isometricKubriko = Kubriko.newInstance(
+        volumetricViewportManager,
+        volumetricRenderManager,
+        controlOverlayManager,
+        KeyboardInputManager.newInstance(
+            isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = LOG_TAG,
         ),
-        EditableMetadata(
-            typeId = "animal",
-            deserializeState = { serializedState -> json.decodeFromString<AnimalTile.State>(serializedState) },
-            instantiate = {
-                AnimalTile.State(
-                    body = BoxBody(
-                        initialPosition = it,
-                        initialSize = SceneSize(
-                            width = 128.sceneUnit,
-                            height = 128.sceneUnit,
-                        )
-                    )
-                )
-            },
+        PointerInputManager.newInstance(
+            isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = LOG_TAG,
         ),
         isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
-    val gridManager by lazy { GridManager() }
-    private val actorManager by lazy {
-        ActorManager.newInstance(
-            isLoggingEnabled = isLoggingEnabled,
-            instanceNameForLogging = LOG_TAG,
-        )
-    }
-    private val stateManager by lazy {
-        StateManager.newInstance(
-            isLoggingEnabled = isLoggingEnabled,
-            instanceNameForLogging = LOG_TAG,
-        )
-    }
-    val isometricWorldActorManager = ActorManager.newInstance(
-        isLoggingEnabled = isLoggingEnabled,
-        instanceNameForLogging = LOG_TAG_WORLD,
-    )
-    val isometricWorldViewportManager = ViewportManager.newInstance(
-        isLoggingEnabled = isLoggingEnabled,
-        instanceNameForLogging = LOG_TAG_WORLD,
-    )
-    val spriteManager = SpriteManager.newInstance(
-        isLoggingEnabled = isLoggingEnabled,
-        instanceNameForLogging = LOG_TAG_WORLD,
-    )
-    val isometricGraphicsDemoManager by lazy {
-        IsometricGraphicsDemoManager(
-            sceneJson = sceneJson,
-            isSceneEditorEnabled = isSceneEditorEnabled,
-            actorManager = actorManager,
-            isometricWorldActorManager = isometricWorldActorManager,
-            isometricWorldViewportManager = isometricWorldViewportManager,
-            gridManager = gridManager,
-            serializationManager = serializationManager,
-        )
-    }
-    private val viewportManager by lazy {
-        ViewportManager.newInstance(
-            initialScaleFactor = 0.75f,
-            isLoggingEnabled = isLoggingEnabled,
-            instanceNameForLogging = LOG_TAG,
-        )
-    }
-    private val pointerInputManager by lazy {
-        PointerInputManager.newInstance(
-            isLoggingEnabled = isLoggingEnabled,
-            instanceNameForLogging = LOG_TAG_WORLD,
-        )
-    }
-    private val _kubriko by lazy {
-        MutableStateFlow(
-            Kubriko.newInstance(
-                stateManager,
-                viewportManager,
-                serializationManager,
-                actorManager,
-                isometricGraphicsDemoManager,
-                isLoggingEnabled = isLoggingEnabled,
-                instanceNameForLogging = LOG_TAG,
-            )
-        )
-    }
-    override val kubriko by lazy { _kubriko.asStateFlow() }
-    internal val isometricWorldKubriko = Kubriko.newInstance(
-        gridManager,
-        isometricWorldViewportManager,
-        isometricWorldActorManager,
-        spriteManager,
-        pointerInputManager,
-        isometricGraphicsDemoManager,
-        isLoggingEnabled = isLoggingEnabled,
-        instanceNameForLogging = LOG_TAG_WORLD,
-    )
+    // endregion
 
-    override fun dispose() = kubriko.value.dispose()
+    private val _kubriko = MutableStateFlow<Kubriko?>(isometricKubriko)
+    override val kubriko = _kubriko.asStateFlow()
+
+    override fun dispose() {
+        isometricKubriko.dispose()
+        logicKubriko.dispose()
+    }
 }
 
-private const val LOG_TAG = "IsometricGraphicsMap"
-private const val LOG_TAG_WORLD = "IsometricGraphics"
+private const val LOG_TAG = "IsometricGraphics"
+private const val LOG_TAG_LOGIC = "IsometricGraphicsLogic"

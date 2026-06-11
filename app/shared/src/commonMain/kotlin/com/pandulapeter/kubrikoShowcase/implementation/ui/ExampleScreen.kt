@@ -135,7 +135,6 @@ internal fun ShowcaseEntry.ExampleScreen(
         ShowcaseEntry.ISOMETRIC_GRAPHICS -> IsometricGraphicsDemo(
             stateHolder = getOrCreateState(stateHolders) {
                 createIsometricGraphicsDemoStateHolder(
-                    isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
                     isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
                 )
             },
@@ -269,7 +268,6 @@ internal fun ShowcaseEntry.getStateHolder() = when (this) {
 
     ShowcaseEntry.ISOMETRIC_GRAPHICS -> getOrCreateState(stateHolders) {
         createIsometricGraphicsDemoStateHolder(
-            isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
             isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
         )
     }

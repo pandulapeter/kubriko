@@ -11,61 +11,74 @@
 
 ## What this demo demonstrates
 
-A fully editable isometric-projection scene with animated tiles, sprite textures, chain physics,
-and a mini-map. It shows how to build isometric rendering on top of the engine's Cartesian
-coordinate system using a dual-Kubriko-instance architecture.
+A real-time isometric 3D world composed entirely of **cuboids** (boxes with per-face color or
+texture), rendered on top of the engine's Cartesian coordinate system using a dual-`Kubriko`-instance
+architecture. This module is a flattened port of the standalone **Tesselar** game — the model/region
+editors are dropped and all of its modules (renderer, gameplay, UI) are collapsed into this one
+module under `implementation/`.
 
-## Entry point and managers/plugins
+## Entry point and state
 
-`IsometricGraphicsDemo` (`@Composable`) renders two overlapping `KubrikoViewport`s from two
-separate `Kubriko` instances held in `IsometricGraphicsDemoStateHolderImpl`:
+`IsometricGraphicsDemo` (`@Composable`, top-level package) renders `IsometricGraphicsContent` plus
+the standard Showcase `InfoPanel`. All state lives in `IsometricGraphicsDemoStateHolderImpl`
+(`implementation/`), which owns **two** `Kubriko` instances and is created/disposed like every other
+demo's state holder:
 
-**Map Kubriko** (`LOG_TAG = "IsometricGraphicsMap"`) — owns the top-down Cartesian layout of tile
-actors (`CubeTile`, `CharacterTile`, `AnimalTile`). Uses `SerializationManager` (from
-`scene-editor-api`) to load/save a JSON scene from `files/scenes/scene_isometric_graphics_demo.json`.
+- **`logicKubriko`** (`LOG_TAG_LOGIC = "IsometricGraphicsLogic"`) — drives game logic in plain
+  Cartesian space: the `ActorManager` (with `invisibleActorMinimumRefreshTimeInMillis = 500`),
+  `logicViewportManager` (scale `0.04`), `ControlManager`, `LogicManager`, `TextureResolver`, and a
+  `SpriteManager`.
+- **`isometricKubriko`** (`LOG_TAG = "IsometricGraphics"`) — pure rendering: `volumetricViewportManager`,
+  `VolumetricRenderManager`, `ControlOverlayManager`, `KeyboardInputManager`, `PointerInputManager`.
 
-**World Kubriko** (`LOG_TAG = "IsometricGraphics"`) — renders the projected isometric
-representations. Managers: `GridManager`, `ViewportManager`, `SpriteManager`, `PointerInputManager`,
-`IsometricGraphicsDemoManager`. The map viewport is rendered at 128×128 dp in the top-left corner,
-scaled ×1.5 and rotated −45° via Compose modifiers so it looks like a bird's-eye map.
+`StateHolder.kubriko` exposes `isometricKubriko` (the on-screen viewport) for the debug menu;
+`dispose()` tears down both instances.
 
-## Key actor types
+## The bridge between the two instances
 
-**`IsometricRepresentation`** (abstract `Visible`) — base for the 3-D projected actors. Stores
-6-dimensional state (positionX/Y/Z, dimensionX/Y/Z) and recomputes `BoxBody` position, size, and
-pivot on every `update()` call using the isometric projection formula:
-`screenX = (posX - posY) * tileW * 0.5`, `screenY = -(posX + posY) * tileH * 0.5`.
-`drawingOrder = posX + posY - 0.1 * posZ` provides correct painter's-algorithm depth sorting.
+`RenderableCuboidHolder` (`implementation/renderer/data/actor/`) is the key interface. Any actor in
+`logicKubriko` that implements it (`MainCharacter`, `Character`, `Tree` — all extend
+`PlanarCuboidModelRenderer`) automatically gets a `VolumetricCuboidRenderer` created in
+`isometricKubriko` when it enters the logic viewport. `VolumetricRenderManager` subscribes to
+`logicActorManager.visibleActorsWithinViewport` and to `ControlManager.cameraOffset`, diffing the
+holder set off the main thread to add/remove renderers.
 
-**`VisibleInWorld`** (abstract `Visible`, `Dynamic`) — bridges a Cartesian tile Actor in the map
-Kubriko to its `IsometricRepresentation` in the world Kubriko. `onAdded` registers the
-representation into `isometricWorldActorManager`; `update()` propagates the tile's body state.
+## State-holder wiring (vs. the original Tesselar globals)
 
-**`CubeTile`** — implements `VisibleInWorld` + `Editable`. Supports bounce (sinusoidal Z offset)
-and rotation animations controlled by flags on `IsometricGraphicsDemoManager`. Sprite textures
-for the top and side faces are drawn via `Cube.drawImageInParallelogram()` using an affine matrix
-transform to warp the bitmap onto the rhombus face shape.
+Tesselar declared its `Kubriko` instances and managers as module-level singletons and a
+`object ControlManager`. Here they are instance members of the state holder instead:
 
-**`GridManager`** — draws the infinite isometric grid as a Compose `Canvas` overlay inside
-its `Composable()` override. Camera drag and pinch-zoom both flow through
-`IsometricGraphicsDemoManager.onPointerDrag/onPointerZoom` into `isometricWorldViewportManager`.
+- `ControlManager` is a normal `Manager` **class**, registered in `logicKubriko`.
+- `ControlOverlayManager` (in `isometricKubriko`) takes `controlManager` and `logicViewportManager`
+  via its constructor, and resolves `VolumetricRenderManager` with the `manager<T>()` delegate.
+- `MainCharacter` resolves its `ControlManager` via `kubriko.get()` in `onAdded`.
+- The composables `IsometricGraphicsContent` and `MiniMap` take the state holder as a parameter
+  rather than reading globals.
 
-## Non-obvious implementation patterns
+## Key types
 
-**Two-Kubriko architecture.** The map Kubriko holds serializable, Editable tile state; the world
-Kubriko holds the rendered representation actors. `IsometricGraphicsDemoManager` is registered in
-*both* instances (shared Manager) so tiles can reach `isometricWorldActorManager` at init time.
+- `implementation/renderer/data` — serializable model (`Cuboid`, `CuboidModel`, animations, `Vec3`,
+  `RenderableCuboid(Model)`). `@Serializable` is used only to **load** the JSON models at runtime.
+- `implementation/renderer/planar` — top-down/flat projection used by the minimap and as the base
+  class for the logic actors; includes the `TriangleBatch` mesh helper (with an `expect`/`actual`
+  `drawTriangles` per platform) and the grid-line caches.
+- `implementation/renderer/volumetric` — isometric 3D rendering (`VolumetricRenderManager`,
+  `VolumetricCuboidRenderer`, batch renderer, mip chains).
+- `implementation/logic` — `ControlManager`, `LogicManager` (loads `character.json` + `tree.json`,
+  scatters trees), and the actors.
+- `implementation/gameplay/resources` — `TextureResolver` (sprite-backed) and `FileResolver`.
+- `implementation/ui` — `IsometricGraphicsContent` (viewport + joystick + minimap), `MiniMap`,
+  `ControlOverlayManager`.
 
-**Projection math.** The `IsometricRepresentation.update()` call negates Y (`positionY = -posY`)
-and applies a `magicEffect` correction factor `(tileH / tileW) * 1.6` to the Z axis so objects
-at different heights project correctly regardless of the tile aspect ratio.
+## Resources
 
-**Scene editor integration.** Desktop builds expose `IsometricGraphicsDemoSceneEditor` which
-launches the tool-scene-editor with the map Kubriko's serialization manager.
+`commonMain/composeResources/`:
+- `drawable/` — `texture_01.webp`, `map_01.webp`.
+- `files/model/` — `character.json`, `tree.json` (read directly by `LogicManager` at runtime).
+- `values/strings.xml` — only the `description` shown in the `InfoPanel`.
 
-## Platform-specific considerations
+## Platform notes
 
-- `PlatformSpecificContent` (per-platform `expect`/`actual`) exposes the Scene Editor launch button
-  on Desktop; it is a no-op on Android, iOS, and Web.
-- The demo includes `desktopMain`, `androidMain`, `iosMain`, and `webMain` source sets for the
-  `PlatformSpecificContent` expect function.
+- `TriangleBatch` has an `expect fun drawTriangles` in `commonMain` with an Android actual
+  (`android.graphics`) and a shared Skiko actual in `desktopMain`, `iosMain`, and `webMain`.
+- Multi-touch (pinch-zoom) only works on Android and iOS; desktop and web use mouse drag + wheel.

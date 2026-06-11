@@ -21,7 +21,6 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import com.pandulapeter.kubriko.demoIsometricGraphics.IsometricGraphicsDemoSceneEditor
 import com.pandulapeter.kubriko.demoPerformance.PerformanceDemoSceneEditor
 import com.pandulapeter.kubriko.demoPhysics.PhysicsDemoSceneEditor
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.AnnoyedPenguinsGameSceneEditor
@@ -113,9 +112,6 @@ fun main() {
         )
         BlockysJourneyGameSceneEditor(
             defaultSceneFolderPath = "../../examples/game-blockys-journey/src/commonMain/composeResources/files/scenes"
-        )
-        IsometricGraphicsDemoSceneEditor(
-            defaultSceneFolderPath = "../../examples/demo-isometric-graphics/src/commonMain/composeResources/files/scenes"
         )
         PerformanceDemoSceneEditor(
             defaultSceneFolderPath = "../../examples/demo-performance/src/commonMain/composeResources/files/scenes"
