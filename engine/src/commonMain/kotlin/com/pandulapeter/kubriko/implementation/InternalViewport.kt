@@ -86,7 +86,7 @@ fun InternalViewport(
                 ViewportManager.AspectRatioMode.Dynamic,
                 is ViewportManager.AspectRatioMode.FitHorizontal,
                 is ViewportManager.AspectRatioMode.FitVertical,
-                is ViewportManager.AspectRatioMode.Stretched -> modifier
+                is ViewportManager.AspectRatioMode.Stretched -> modifier.fillMaxSize()
 
                 is ViewportManager.AspectRatioMode.Fixed -> modifier
                     .align(aspectRatioMode.alignment)
