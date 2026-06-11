@@ -61,7 +61,7 @@ fun InternalViewport(
                 lastProcessedFrameTime = frameTimeInMilliseconds
                 kubrikoImpl.metadataManager.onUpdateInternal(0)
             }
-            if (count % kubrikoImpl.viewportManager.frameRate.factor == 0) {
+            if (count % (kubrikoImpl.viewportManager.frameRate.factor * kubrikoImpl.viewportManager.frameRateDivisor.value) == 0) {
                 val deltaTimeInMilliseconds = (frameTimeInMilliseconds - lastProcessedFrameTime).toInt()
                 if (tickSource is ViewportFrameTickSource && !kubrikoImpl.viewportManager.size.value.isEmpty() && (!tickSource.shouldPauseOnFocusLoss || kubrikoImpl.stateManager.isFocused.value)) {
                     tickSource.tick(deltaTimeInMilliseconds)

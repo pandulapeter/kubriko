@@ -63,6 +63,14 @@ sealed class ViewportManager(
     abstract val maximumScaleFactor: Float
 
     /**
+     * Runtime divisor applied on top of the constructed [FrameRate]: the game loop ticks every
+     * `frameRate.factor * frameRateDivisor`-th display frame. Defaults to 1, which preserves the
+     * constructed frame rate exactly. Useful for temporarily lowering the update rate (e.g. to save
+     * power while the game is idle) without recreating the manager.
+     */
+    abstract val frameRateDivisor: StateFlow<Int>
+
+    /**
      * The top-left corner coordinates of the visible area in the scene.
      */
     abstract val topLeft: StateFlow<SceneOffset>
@@ -99,6 +107,13 @@ sealed class ViewportManager(
      * @param scaleFactor The multiplier to apply to the current zoom level.
      */
     abstract fun multiplyScaleFactor(scaleFactor: Float)
+
+    /**
+     * Updates [frameRateDivisor]. Values below 1 are coerced to 1.
+     *
+     * @param divisor The new frame rate divisor.
+     */
+    abstract fun setFrameRateDivisor(divisor: Int)
 
     /**
      * Defines how the viewport should handle different screen aspect ratios.

@@ -37,6 +37,8 @@ internal class ViewportManagerImpl(
 ) : ViewportManager(isLoggingEnabled, instanceNameForLogging) {
 
     private lateinit var actorManager: ActorManagerImpl
+    private val _frameRateDivisor = MutableStateFlow(1)
+    override val frameRateDivisor = _frameRateDivisor.asStateFlow()
     private val _cameraPosition = MutableStateFlow(SceneOffset.Zero)
     override val cameraPosition = _cameraPosition.asStateFlow()
     private val _size = MutableStateFlow(Size.Zero)
@@ -114,6 +116,8 @@ internal class ViewportManagerImpl(
             vertical = (currentValue.vertical * scaleFactor).coerceIn(minimumScaleFactor, maximumScaleFactor),
         )
     }
+
+    override fun setFrameRateDivisor(divisor: Int) = _frameRateDivisor.update { divisor.coerceAtLeast(1) }
 
     fun updateSize(size: Size) = _size.update { size }
 }
