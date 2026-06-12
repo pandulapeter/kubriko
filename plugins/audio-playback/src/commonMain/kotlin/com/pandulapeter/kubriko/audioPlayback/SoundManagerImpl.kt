@@ -75,7 +75,7 @@ internal class SoundManagerImpl(
                 importance = Logger.Importance.MEDIUM,
             )
         }
-        cache.update { it.put(uri, sound) }
+        cache.update { it.putting(uri, sound) }
     }
 
     override fun play(uri: String) {
@@ -99,7 +99,7 @@ internal class SoundManagerImpl(
     override fun unload(uri: String) {
         scope.launch {
             cache.value[uri]?.let { sound -> soundPlayer?.dispose(sound) }
-            cache.update { cache.value.remove(uri) }
+            cache.update { it.removing(uri) }
         }
     }
 

@@ -34,6 +34,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.getDrawableResourceBytes
 import org.jetbrains.compose.resources.getSystemResourceEnvironment
+import kotlin.time.Duration.Companion.milliseconds
 
 internal class SpriteManagerImpl(
     isLoggingEnabled: Boolean,
@@ -101,13 +102,13 @@ internal class SpriteManagerImpl(
         if (bitmap != null) return bitmap
         if (resource in currentCache) return null
         if (resource in pendingWarmingUp.value) return null
-        cache.update { it.put(resource, null) }
+        cache.update { it.putting(resource, null) }
         scope.launch {
             val bitmap = loadImage(resource)
             if (bitmap != null) {
-                pendingWarmingUp.update { it.put(resource, bitmap) }
+                pendingWarmingUp.update { it.putting(resource, bitmap) }
                 launch {
-                    delay(WARM_UP_TIMEOUT_MS)
+                    delay(WARM_UP_TIMEOUT_MS.milliseconds)
                     promoteToCache(resource)
                 }
             }
@@ -117,13 +118,13 @@ internal class SpriteManagerImpl(
 
     internal fun promoteToCache(resource: SpriteResource) {
         val bitmap = pendingWarmingUp.value[resource] ?: return
-        pendingWarmingUp.update { it.remove(resource) }
-        cache.update { it.put(resource, bitmap) }
+        pendingWarmingUp.update { it.removing(resource) }
+        cache.update { it.putting(resource, bitmap) }
     }
 
     override fun unload(resource: SpriteResource) {
-        pendingWarmingUp.update { it.remove(resource) }
-        cache.update { it.remove(resource) }
+        pendingWarmingUp.update { it.removing(resource) }
+        cache.update { it.removing(resource) }
     }
 
     @OptIn(InternalResourceApi::class, ExperimentalResourceApi::class)

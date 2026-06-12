@@ -94,7 +94,7 @@ internal class MusicManagerImpl(
                 importance = Logger.Importance.MEDIUM,
             )
         }
-        cache.update { it.put(uri, music) }
+        cache.update { it.putting(uri, music) }
     }
 
     override fun play(uri: String, shouldLoop: Boolean, shouldRestart: Boolean) {
@@ -142,7 +142,7 @@ internal class MusicManagerImpl(
     override fun unload(uri: String) {
         scope.launch {
             cache.value[uri]?.let { music -> musicPlayer?.dispose(music) }
-            cache.update { it.remove(uri) }
+            cache.update { it.removing(uri) }
         }
     }
 
@@ -160,7 +160,7 @@ internal class MusicManagerImpl(
 
     override fun setVolume(uri: String, leftVolume: Float, rightVolume: Float) {
         // Store the volume configuration for this URI
-        volumeConfig.update { it.put(uri, Pair(leftVolume, rightVolume)) }
+        volumeConfig.update { it.putting(uri, Pair(leftVolume, rightVolume)) }
 
         // If the sound is currently playing, apply volume immediately
         cache.value[uri]?.let { music ->
