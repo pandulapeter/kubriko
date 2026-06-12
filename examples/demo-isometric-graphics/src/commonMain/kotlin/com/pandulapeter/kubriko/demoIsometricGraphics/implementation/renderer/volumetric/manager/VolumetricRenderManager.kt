@@ -25,6 +25,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flowOn
@@ -32,10 +33,12 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlin.math.exp
+import kotlin.text.compareTo
+import kotlin.text.contains
 
 class VolumetricRenderManager(
     private val allActors: Flow<List<Actor>>,
-    private val cameraOffset: Flow<SceneOffset>,
+    private val cameraOffset: StateFlow<SceneOffset>,
 ) : Manager() {
 
     private val actorManager by manager<ActorManager>()
@@ -46,10 +49,8 @@ class VolumetricRenderManager(
     val zoom = _zoom.asStateFlow()
     private val _tilt = MutableStateFlow(1f)
     val tilt = _tilt.asStateFlow()
-    private val _cameraOffset = MutableStateFlow(SceneOffset.Zero)
     private val trackedRenderers = MutableStateFlow<Map<String, VolumetricCuboidRenderer>>(emptyMap())
     private var actorsJob: Job? = null
-    private var cameraJob: Job? = null
 
     // All cuboids draw through this single actor (see VolumetricCuboidBatchRenderer); individual
     // renderers are never added to the ActorManager.
@@ -99,17 +100,13 @@ class VolumetricRenderManager(
             }
             .flowOn(Dispatchers.Default)
             .launchIn(scope)
-        cameraJob?.cancel()
-        cameraJob = cameraOffset
-            .onEach { _cameraOffset.value = it }
-            .launchIn(scope)
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
         val currentRotation = worldRotation.value
         val currentZoom = zoom.value
         val currentTilt = tilt.value
-        val currentCameraOffset = _cameraOffset.value
+        val currentCameraOffset = cameraOffset.value
 
         val sqrtTwo = 1.4142135f
         val tileWidthMultiplier = currentZoom * sqrtTwo * 2f
