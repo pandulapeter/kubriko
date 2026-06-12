@@ -23,6 +23,14 @@ import kotlin.random.Random
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
+private val TREE_FOLIAGE_PALETTE = listOf(
+    Triple(0.10f, 0.22f, 0.09f),
+    Triple(0.09f, 0.25f, 0.11f),
+    Triple(0.11f, 0.21f, 0.10f),
+    Triple(0.13f, 0.26f, 0.09f),
+    Triple(0.16f, 0.28f, 0.09f),
+)
+
 @OptIn(ExperimentalUuidApi::class)
 class Tree(
     cuboidModel: CuboidModel,
@@ -43,13 +51,21 @@ class Tree(
     isStatic = true,
 ) {
     init {
-        val heightFactor = Random.nextFloat() * 0.4f + 0.8f // 0.8 to 1.2
-        val foliageSizeFactor = Random.nextFloat() * 0.4f + 0.8f // 0.8 to 1.2
+        val heightFactor = Random.nextFloat() * 0.4f + 0.8f
+        val foliageSizeFactor = Random.nextFloat() * 0.4f + 0.8f
+        val base = TREE_FOLIAGE_PALETTE[Random.nextInt(TREE_FOLIAGE_PALETTE.size)]
+        val variation = Random.nextFloat() * 0.05f
         val foliageColor = Color(
-            red = Random.nextFloat() * 0.15f + 0.05f,
-            green = Random.nextFloat() * 0.4f + 0.4f,
-            blue = Random.nextFloat() * 0.15f + 0.05f,
-            alpha = 1.0f
+            red = base.first + variation,
+            green = base.second + variation,
+            blue = base.third + variation * 0.5f,
+            alpha = 1f,
+        )
+        val foliageTopColor = Color(
+            red = (foliageColor.red * 1.30f).coerceAtMost(1f),
+            green = (foliageColor.green * 1.30f).coerceAtMost(1f),
+            blue = (foliageColor.blue * 1.30f).coerceAtMost(1f),
+            alpha = 1f,
         )
 
         renderableCuboidModel.rotationZ = AngleRadians.TwoPi * Random.nextFloat()
@@ -59,12 +75,12 @@ class Tree(
             if (cuboid.name == "Foliage") {
                 cuboid.sizeX = (cuboid.sizeX.raw * foliageSizeFactor).sceneUnit
                 cuboid.sizeY = (cuboid.sizeY.raw * foliageSizeFactor).sceneUnit
+                cuboid.colorZPlus = foliageTopColor
+                cuboid.colorZMinus = foliageColor
                 cuboid.colorXPlus = foliageColor
                 cuboid.colorXMinus = foliageColor
                 cuboid.colorYPlus = foliageColor
                 cuboid.colorYMinus = foliageColor
-                cuboid.colorZPlus = foliageColor
-                cuboid.colorZMinus = foliageColor
             }
         }
     }

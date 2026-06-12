@@ -28,31 +28,6 @@ interface MiniMapMarker {
         stroke: Stroke
     )
 
-    object Circle : MiniMapMarker {
-        override fun DrawScope.draw(
-            centerX: Float,
-            centerY: Float,
-            halfWidth: Float,
-            halfHeight: Float,
-            rotation: Float,
-            color: Color,
-            stroke: Stroke
-        ) {
-            val radius = halfWidth // The sampler already limits this if needed
-            drawCircle(
-                color = Color.White,
-                radius = radius,
-                center = Offset(centerX, centerY),
-            )
-            drawCircle(
-                color = Color.Black,
-                radius = radius,
-                center = Offset(centerX, centerY),
-                style = stroke,
-            )
-        }
-    }
-
     object Rectangle : MiniMapMarker {
         override fun DrawScope.draw(
             centerX: Float,

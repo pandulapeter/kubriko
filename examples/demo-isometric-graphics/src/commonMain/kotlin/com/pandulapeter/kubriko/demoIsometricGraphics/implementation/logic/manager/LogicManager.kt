@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.demoIsometricGraphics.implementation.logic.mana
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.gameplay.resources.FileResolver
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.gameplay.resources.TextureResolver
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.logic.actor.Bush
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.logic.actor.Character
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.logic.actor.MainCharacter
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.logic.actor.Tree
@@ -68,63 +69,83 @@ class LogicManager : Manager() {
         json.run {
             val characterModel = decodeFromString<CuboidModel>(FileResolver.resolveFileAsString("model/character.json"))
             val treeModel = decodeFromString<CuboidModel>(FileResolver.resolveFileAsString("model/tree.json"))
+            val bushModel = decodeFromString<CuboidModel>(FileResolver.resolveFileAsString("model/bush.json"))
+            val mainCharacterPosition = Vec3(x = 5000.sceneUnit, y = 6000.sceneUnit, z = SceneUnit.Zero)
             val mainCharacter = MainCharacter(
                 cuboidModel = characterModel,
-                position = Vec3(
-                    x = 5000.sceneUnit,
-                    y = 6000.sceneUnit,
-                    z = SceneUnit.Zero,
-                ),
+                position = mainCharacterPosition,
                 textureResolver = textureResolver::resolveTexture,
             )
+            val npcMinDistance = 400.sceneUnit
+            val npcPositions = mutableListOf<SceneOffset>()
+            var npcAttempts = 0
+            while (npcPositions.size < 64 && npcAttempts < 10000) {
+                val candidate = SceneOffset(
+                    x = Random.nextInt(0, 12500).sceneUnit,
+                    y = Random.nextInt(0, 12500).sceneUnit,
+                )
+                val tooClose = mainCharacterPosition.positionXY.distanceTo(candidate) < npcMinDistance
+                    || npcPositions.any { it.distanceTo(candidate) < npcMinDistance }
+                if (!tooClose) npcPositions.add(candidate)
+                npcAttempts++
+            }
+            val allCharacterPositions = buildList {
+                add(mainCharacterPosition.positionXY)
+                addAll(npcPositions)
+            }
             actorManager.add(
                 mainCharacter,
-                Character(
-                    mainCharacter = mainCharacter,
-                    cuboidModel = characterModel,
-                    position = Vec3(
-                        x = 5000.sceneUnit,
-                        y = 5500.sceneUnit,
-                        z = SceneUnit.Zero,
-                    ),
-                    textureResolver = textureResolver::resolveTexture,
-                ),
-                Character(
-                    mainCharacter = mainCharacter,
-                    cuboidModel = characterModel,
-                    position = Vec3(
-                        x = 3500.sceneUnit,
-                        y = 5000.sceneUnit,
-                        z = SceneUnit.Zero,
-                    ),
-                    textureResolver = textureResolver::resolveTexture,
-                ),
+                *npcPositions.map { position ->
+                    Character(
+                        mainCharacter = mainCharacter,
+                        cuboidModel = characterModel,
+                        position = Vec3(position.x, position.y, SceneUnit.Zero),
+                        textureResolver = textureResolver::resolveTexture,
+                    )
+                }.toTypedArray(),
             )
-            val characterPositions = listOf(
-                mainCharacter.renderableCuboidModel.position.positionXY,
-                Vec3(5000.sceneUnit, 5500.sceneUnit, SceneUnit.Zero).positionXY,
-                Vec3(3500.sceneUnit, 5000.sceneUnit, SceneUnit.Zero).positionXY,
-            )
+            val treeMinDistance = 400.sceneUnit
             val treePositions = mutableListOf<SceneOffset>()
-            val minDistance = 400.sceneUnit
-            var attempts = 0
-            while ((treePositions.size < 128) && (attempts < 10000)) {
-                val newPosition = SceneOffset(
+            var treeAttempts = 0
+            while (treePositions.size < 256 && treeAttempts < 10000) {
+                val candidate = SceneOffset(
                     x = Random.nextInt(0, 12500).sceneUnit,
-                    y = Random.nextInt(0, 12500).sceneUnit
+                    y = Random.nextInt(0, 12500).sceneUnit,
                 )
-                val isTooCloseToCharacter = characterPositions.any { it.distanceTo(newPosition) < minDistance }
-                val isTooCloseToTree = treePositions.any { it.distanceTo(newPosition) < minDistance }
-
-                if (!isTooCloseToCharacter && !isTooCloseToTree) {
-                    treePositions.add(newPosition)
-                }
-                attempts++
+                val tooClose = allCharacterPositions.any { it.distanceTo(candidate) < treeMinDistance }
+                    || treePositions.any { it.distanceTo(candidate) < treeMinDistance }
+                if (!tooClose) treePositions.add(candidate)
+                treeAttempts++
             }
             treePositions.forEach { position ->
                 actorManager.add(
                     Tree(
                         cuboidModel = treeModel,
+                        position = Vec3(position.x, position.y, SceneUnit.Zero),
+                        textureResolver = textureResolver::resolveTexture,
+                    )
+                )
+            }
+            val bushMinDistanceToCharacter = 400.sceneUnit
+            val bushMinDistanceToTree = 150.sceneUnit
+            val bushMinDistanceToBush = 150.sceneUnit
+            val bushPositions = mutableListOf<SceneOffset>()
+            var bushAttempts = 0
+            while (bushPositions.size < 256 && bushAttempts < 10000) {
+                val candidate = SceneOffset(
+                    x = Random.nextInt(0, 12500).sceneUnit,
+                    y = Random.nextInt(0, 12500).sceneUnit,
+                )
+                val tooClose = allCharacterPositions.any { it.distanceTo(candidate) < bushMinDistanceToCharacter }
+                    || treePositions.any { it.distanceTo(candidate) < bushMinDistanceToTree }
+                    || bushPositions.any { it.distanceTo(candidate) < bushMinDistanceToBush }
+                if (!tooClose) bushPositions.add(candidate)
+                bushAttempts++
+            }
+            bushPositions.forEach { position ->
+                actorManager.add(
+                    Bush(
+                        cuboidModel = bushModel,
                         position = Vec3(position.x, position.y, SceneUnit.Zero),
                         textureResolver = textureResolver::resolveTexture,
                     )
