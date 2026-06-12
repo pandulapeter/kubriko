@@ -44,5 +44,6 @@ Scene editors are only compiled when `showcase.isSceneEditorEnabled = true` in `
 - macOS: `.dmg` distribution; requires code signing identity `"PETER PANDULA"` and notarization env vars (`NOTARIZATION_APPLE_ID`, `NOTARIZATION_PASSWORD`, `NOTARIZATION_TEAM_ID`).
 - Windows: `.exe` distribution; icon from `icon.ico`.
 - Linux: `.deb` distribution; icon from `icon.png`.
-- ProGuard is configured but currently disabled (`isEnabled.set(false)`) pending a configuration fix.
+- ProGuard (minification + obfuscation) is enabled for release builds. The Compose plugin's bundled default rules cover Skiko/coroutines/serialization; `proguard-rules.pro` adds what they miss (JLayer reflection, enums, attributes). Two quirks handled in `build.gradle.kts`: the ProGuard task is pointed at a Temurin 21 toolchain because JetBrains Runtime ships without `jmods` (ProGuard needs them to resolve `java.**` references), and an obfuscation mapping file is written to `build/compose/proguard/mapping.txt` via a generated `-printmapping` rule (archive it per release to de-obfuscate crash reports).
+- Packaging tasks (`createReleaseDistributable` etc.) need `JAVA_HOME` to point at a full JDK with `jpackage`; the Android Studio JBR lacks it.
 - `System.setProperty("apple.awt.application.name", "Kubriko Showcase")` sets the macOS menu bar app name.
