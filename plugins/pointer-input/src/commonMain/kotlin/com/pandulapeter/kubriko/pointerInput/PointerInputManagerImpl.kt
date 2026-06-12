@@ -137,7 +137,7 @@ internal class PointerInputManagerImpl(
                         when {
                             !wasPressed && isPressed -> {
                                 if (stateManager.isFocused.value) {
-                                    _pressedPointerPositions.update { it.put(change.id, change.position) }
+                                    _pressedPointerPositions.update { it.putting(change.id, change.position) }
                                     pointerInputAwareActors.value.forEach { it.onPointerPressed(id, change.position) }
                                     if (mouseId == id) {
                                         _hoveringPointerPosition.value = change.position
@@ -146,7 +146,7 @@ internal class PointerInputManagerImpl(
                             }
 
                             wasPressed && !isPressed -> {
-                                _pressedPointerPositions.update { it.remove(change.id) }
+                                _pressedPointerPositions.update { it.removing(change.id) }
                                 pointerInputAwareActors.value.forEach { it.onPointerReleased(id, change.position) }
                                 if (mouseId == id) {
                                     _hoveringPointerPosition.value = change.position
@@ -155,7 +155,7 @@ internal class PointerInputManagerImpl(
 
                             wasPressed && isPressed -> {
                                 if (stateManager.isFocused.value) {
-                                    _pressedPointerPositions.update { it.put(change.id, change.position) }
+                                    _pressedPointerPositions.update { it.putting(change.id, change.position) }
                                     if (id == mouseId) {
                                         _hoveringPointerPosition.value = change.position
                                     }
