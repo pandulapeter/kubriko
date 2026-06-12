@@ -35,9 +35,8 @@ coroutine, while raw pointer events arrive synchronously in the event loop.
 ## Multi-touch and platform differences
 - `isMultiTouchEnabled = false` on **Desktop** (tracked JetBrains issue CMP-1609); pointer ID
   filtering drops any event whose `id.value != 0L`.
-- **Android** and **iOS**: `isMultiTouchEnabled = true`; all pointer IDs are forwarded.
-- **Web**: `isMultiTouchEnabled = true` but `detectTransformGestures` does not catch pinch-zoom
-  (JetBrains issue CMP-6957), so `onPointerZoom` only fires from scroll-wheel events.
+- **Android**, **iOS**, and **Web**: `isMultiTouchEnabled = true`; all pointer IDs are forwarded.
+  `detectTransformGestures` correctly fires `onPointerZoom` from pinch gestures on all three.
 - Scroll-to-zoom factor formula: Desktop `1f - scrollDelta.y * 0.05f`; Web `1f - scrollDelta.y * 0.005f`; iOS `1f - scrollDelta.y * 0.05f`.
 
 ## Cursor control (`tryToMoveHoveringPointer`)

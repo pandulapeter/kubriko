@@ -66,7 +66,7 @@ val hoveringPosition = pointerManager.hoveringPointerPosition.value
 ## Technical Details
 
 ### Platform Limitations
-- **Multitouch**: Currently, multitouch support is fully available on Android and iOS. On Desktop (JVM) and Web platforms, only a single pointer (the mouse) is typically supported, though some touch-enabled hardware may vary.
+- **Multitouch**: Multitouch support is fully available on Android, iOS, and Web (Wasm). On Desktop (JVM), only a single pointer (the mouse) is typically supported, though some touch-enabled hardware may vary.
 - **Pointer Movement**: The `tryToMoveHoveringPointer` function is only supported on Desktop and may require specific platform permissions.
 
 ## Public Artifact

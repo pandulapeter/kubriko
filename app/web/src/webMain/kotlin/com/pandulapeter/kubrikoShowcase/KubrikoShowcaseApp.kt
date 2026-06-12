@@ -17,7 +17,6 @@ import androidx.compose.ui.window.ComposeViewport
 import com.pandulapeter.kubriko.implementation.isRunningOnIphone
 import kotlinx.browser.document
 import kotlinx.browser.window
-import org.w3c.dom.TouchEvent
 import org.w3c.dom.events.Event
 
 @ExperimentalWasmJsInterop
@@ -41,33 +40,11 @@ fun main() {
                     isInFullscreenMode.value = document.fullscreenElement != null
                 }
             }
-            val touchStartListener: (Event) -> Unit = { event ->
-                if (event is TouchEvent) {
-                    if (event.touches.length > 1) {
-                        event.preventDefault()
-                        event.stopImmediatePropagation()
-                    }
-                }
-            }
-            val touchMoveHandler: (Event) -> Unit = { event ->
-                if (event is TouchEvent) {
-                    if (event.touches.length > 1) {
-                        event.preventDefault()
-                        event.stopImmediatePropagation()
-                        // Propagating only the first touch would be ideal, but I couldn't figure out how to do it.
-                        // Cancelling all events would be the second best option.
-                    }
-                }
-            }
             window.addEventListener(EVENT_POP_STATE, onPopStateEventListener)
             document.addEventListener(EVENT_FULLSCREEN_CHANGE, fullscreenListener)
-            window.addEventListener(EVENT_TOUCH_START, touchStartListener, true)
-            window.addEventListener(EVENT_TOUCH_MOVE, touchMoveHandler, true)
             onDispose {
                 window.removeEventListener(EVENT_POP_STATE, onPopStateEventListener)
                 document.removeEventListener(EVENT_FULLSCREEN_CHANGE, fullscreenListener)
-                window.removeEventListener(EVENT_TOUCH_START, touchStartListener, true)
-                window.removeEventListener(EVENT_TOUCH_MOVE, touchMoveHandler, true)
             }
         }
         KubrikoShowcase(
@@ -106,5 +83,3 @@ fun main() {
 
 private const val EVENT_POP_STATE = "popstate"
 private const val EVENT_FULLSCREEN_CHANGE = "fullscreenchange"
-private const val EVENT_TOUCH_START = "touchstart"
-private const val EVENT_TOUCH_MOVE = "touchmove"

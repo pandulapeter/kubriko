@@ -28,10 +28,6 @@ The web target is the only platform that drives browser navigation. `KubrikoShow
 
 `isInFullscreenMode` is `null` on iPhone browsers (fullscreen is not supported / meaningful), and `false` otherwise. The `onFullscreenModeToggled` callback calls `document.documentElement?.requestFullscreen()` / `document.exitFullscreen()`. A `fullscreenchange` event listener syncs the state if the user exits fullscreen via the browser's own UI.
 
-## Multi-touch suppression
-
-`touchstart` and `touchmove` events with more than one touch point are cancelled (`preventDefault` + `stopImmediatePropagation`). This prevents unintended pinch-to-zoom on the browser page. Single-touch events pass through normally. (Propagating only the first touch was attempted but not achieved; all multi-touch events are dropped.)
-
 ## Build / run
 
 ```bash

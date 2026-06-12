@@ -18,9 +18,6 @@ Despite Compose WASM support being in [Alpha](https://kotlinlang.org/docs/wasm-o
 - Audio playback issues (sometimes the music or sound effects simply just don't start).
 - Frequent app freezes that can last 10-20 seconds. Sudden jumps in the memory required by the app seems to trigger these problems, like loading screens.
 
-### Missing multi-touch support
-Multitouch on web doesn't work on the Compose level. [Here's a relevant ticket](https://youtrack.jetbrains.com/issue/CMP-6957/Web.-detectTransformGestures-doesnt-catch-zoom-and-rotation-gestures). This might get fixed very soon, in the next Compose Multiplatform beta.
-
 ## Desktop limitations
 ### Missing multi-touch support
 Multitouch on the JVM doesn't work on the Compose level. [Here's a relevant ticket](https://youtrack.jetbrains.com/issue/CMP-2209/Desktop.-Unable-to-zoom-using-detectTransformGestures-in-Modifier.pointerInput-using-touch-screens). I don't consider this such an important issue as on the web, as Windows / Linux systems with touch screens generally have other input methods as well.

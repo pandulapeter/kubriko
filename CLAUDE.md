@@ -298,6 +298,6 @@ Concrete rules:
 
 ## Known platform limitations
 
-- **Web (Wasm)**: no multi-touch support (Compose limitation). iOS browsers have significant issues (performance, audio, frequent freezes). Chrome/Firefox desktop is near-JVM quality.
+- **Web (Wasm)**: iOS browsers have significant issues (performance, audio, frequent freezes). Chrome/Firefox desktop is near-JVM quality.
 - **Desktop (JVM)**: no multi-touch support (Compose limitation).
 - **Shaders**: SKSL only; behavior may differ across platforms if GPU support varies.

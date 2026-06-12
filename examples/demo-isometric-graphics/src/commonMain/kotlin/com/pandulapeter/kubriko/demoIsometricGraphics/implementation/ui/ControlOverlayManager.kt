@@ -86,7 +86,7 @@ internal class ControlOverlayManager(
             .onEach(stateManager::updateIsRunning)
             .launchIn(scope)
         isMultitouchSupported = kubriko.get<MetadataManager>().platform.let {
-            it is MetadataManager.Platform.Android || it is MetadataManager.Platform.IOS
+            it is MetadataManager.Platform.Android || it is MetadataManager.Platform.IOS || it is MetadataManager.Platform.Web
         }
     }
 

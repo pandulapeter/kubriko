@@ -81,4 +81,4 @@ Tesselar declared its `Kubriko` instances and managers as module-level singleton
 
 - `TriangleBatch` has an `expect fun drawTriangles` in `commonMain` with an Android actual
   (`android.graphics`) and a shared Skiko actual in `desktopMain`, `iosMain`, and `webMain`.
-- Multi-touch (pinch-zoom) only works on Android and iOS; desktop and web use mouse drag + wheel.
+- Multi-touch (pinch-zoom) works on Android, iOS, and Web; desktop uses mouse drag + wheel.
