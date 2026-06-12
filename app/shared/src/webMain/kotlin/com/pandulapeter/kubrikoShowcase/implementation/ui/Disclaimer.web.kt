@@ -9,13 +9,11 @@
  */
 package com.pandulapeter.kubrikoShowcase.implementation.ui
 
-import com.pandulapeter.kubriko.implementation.isRunningOnAndroid
 import com.pandulapeter.kubriko.implementation.isRunningOnIpad
 import com.pandulapeter.kubriko.implementation.isRunningOnIphone
 import kotlinx.browser.window
 import kubriko.app.shared.generated.resources.Res
 import kubriko.app.shared.generated.resources.welcome_disclaimer_obfuscation
-import kubriko.app.shared.generated.resources.welcome_disclaimer_web_android
 import kubriko.app.shared.generated.resources.welcome_disclaimer_web_general
 import kubriko.app.shared.generated.resources.welcome_disclaimer_web_ipad
 import kubriko.app.shared.generated.resources.welcome_disclaimer_web_iphone
@@ -30,8 +28,6 @@ internal actual fun getWarningTexts() = buildList {
         add(Res.string.welcome_disclaimer_web_iphone)
     } else if (window.isRunningOnIpad()) {
         add(Res.string.welcome_disclaimer_web_ipad)
-    } else if (window.isRunningOnAndroid()) {
-        add(Res.string.welcome_disclaimer_web_android)
     } else if (window.navigator.userAgent.let { !it.contains("Chrome") && !it.contains("Firefox") }) {
         add(Res.string.welcome_disclaimer_web_not_chrome_or_firefox)
     }

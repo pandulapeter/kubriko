@@ -30,7 +30,6 @@ import com.pandulapeter.kubriko.keyboardInput.extensions.hasUpLeft
 import com.pandulapeter.kubriko.keyboardInput.extensions.hasUpRight
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
-import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputAware
@@ -55,7 +54,6 @@ internal class ControlOverlayManager(
     private val viewportManager by manager<ViewportManager>()
     private val volumetricRenderManager by manager<VolumetricRenderManager>()
     private val stateManager by manager<StateManager>()
-    private var isMultitouchSupported = false
     var isJoystickEnabled: Boolean = true
     private var joystickPointerId: PointerId? = null
     private var _joystickOrigin = MutableStateFlow<Offset?>(null)
@@ -85,9 +83,6 @@ internal class ControlOverlayManager(
         stateManager.isFocused
             .onEach(stateManager::updateIsRunning)
             .launchIn(scope)
-        isMultitouchSupported = kubriko.get<MetadataManager>().platform.let {
-            it is MetadataManager.Platform.Android || it is MetadataManager.Platform.IOS || it is MetadataManager.Platform.Web
-        }
     }
 
     // Power saving: with no input for a while the scene is static except for the idle animation,
@@ -140,7 +135,7 @@ internal class ControlOverlayManager(
 
     override fun onPointerZoom(position: Offset, factor: Float) {
         registerInteraction()
-        if (!isMultitouchSupported) { // Mouse wheel scroll
+        if (secondaryCameraPointerId == null) {
             volumetricRenderManager.multiplyWorldZoom(factor)
         }
     }

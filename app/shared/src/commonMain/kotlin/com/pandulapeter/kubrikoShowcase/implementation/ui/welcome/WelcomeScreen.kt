@@ -52,7 +52,6 @@ import kubriko.app.shared.generated.resources.welcome_app_details_call_to_action
 import kubriko.app.shared.generated.resources.welcome_app_details_call_to_action_expanded
 import kubriko.app.shared.generated.resources.welcome_community
 import kubriko.app.shared.generated.resources.welcome_disclaimer_obfuscation
-import kubriko.app.shared.generated.resources.welcome_disclaimer_web_android
 import kubriko.app.shared.generated.resources.welcome_disclaimer_web_general
 import kubriko.app.shared.generated.resources.welcome_disclaimer_web_ipad
 import kubriko.app.shared.generated.resources.welcome_disclaimer_web_iphone
@@ -255,7 +254,6 @@ internal sealed interface WelcomeScreenStateHolder : StateHolder {
                 && preloadedString(Res.string.welcome_disclaimer_web_general).value.isNotBlank()
                 && preloadedString(Res.string.welcome_disclaimer_web_iphone).value.isNotBlank()
                 && preloadedString(Res.string.welcome_disclaimer_web_ipad).value.isNotBlank()
-                && preloadedString(Res.string.welcome_disclaimer_web_android).value.isNotBlank()
                 && preloadedString(Res.string.welcome_disclaimer_web_not_chrome_or_firefox).value.isNotBlank()
     }
 }
