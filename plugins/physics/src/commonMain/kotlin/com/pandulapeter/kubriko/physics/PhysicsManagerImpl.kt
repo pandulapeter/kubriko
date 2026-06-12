@@ -52,7 +52,7 @@ internal class PhysicsManagerImpl(
 
     private fun acquireArbiter(bodyA: PhysicsBody, bodyB: PhysicsBody): Arbiter =
         if (arbiterPool.isEmpty()) Arbiter(bodyA, bodyB, penetrationCorrection)
-        else arbiterPool.removeLast().also { it.reset(bodyA, bodyB, penetrationCorrection) }
+        else arbiterPool.removeAt(arbiterPool.lastIndex).also { it.reset(bodyA, bodyB, penetrationCorrection) }
 
     // Sweep-and-prune scratch state. The sorted index order is kept between frames, so the
     // insertion sort below is nearly O(n) thanks to temporal coherence. All buffers are
