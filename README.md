@@ -119,6 +119,16 @@ The latest version is:
 
 [![](https://maven-badges.sml.io/sonatype-central/io.github.pandulapeter.kubriko/engine/badge.svg?style=flat)](https://repo1.maven.org/maven2/io/github/pandulapeter/kubriko/)
 
+## 🔒 Shrinking & obfuscation
+ProGuard / R8 only run on the JVM targets; iOS and Web are optimized by their own compilers. Kubriko adds no requirements of its own — for the JVM targets the Showcase's rule files (linked below, with explanatory comments) double as the reference.
+
+| Platform | Tool | What you need to add                                                                                                               |
+|---|---|------------------------------------------------------------------------------------------------------------------------------------|
+| Android | R8 | Nothing - see [`app/android/proguard-rules.pro`](https://github.com/pandulapeter/kubriko/blob/main/app/android/proguard-rules.pro) |
+| Desktop | ProGuard | Copy from [`app/desktop/proguard-rules.pro`](https://github.com/pandulapeter/kubriko/blob/main/app/desktop/proguard-rules.pro)     |
+| iOS | Kotlin/Native | Nothing - handled by the compiler                                                                                                  |
+| Web | Kotlin/Wasm | Nothing - handled by the compiler                                                                                                  |
+
 ## 🫶️ Support
 Displaying the [Kubriko logo](https://github.com/pandulapeter/kubriko/blob/main/documentation/images/logo.png) in games created with the engine, or just mentioning Kubriko somewhere in the credits is highly appreciated!
 Also, if you create anything with Kubriko that you're proud of, don't hesitate to reach out to me via [email](mailto:pandulapeter@gmail.com) or [Discord](https://discord.gg/RTK4pqbuVR)!
