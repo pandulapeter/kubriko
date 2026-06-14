@@ -61,7 +61,8 @@ internal class ParticleManagerImpl(
         if (stateManager.isRunning.value) {
             val currentEmitters = particleEmitters.value
             currentEmitters.forEach { emitter ->
-                val spawnCount = when (val mode = emitter.particleEmissionMode) {
+                val mode = emitter.particleEmissionMode
+                val spawnCount = when (mode) {
                     is ParticleEmitter.Mode.Burst -> {
                         emitter.particleEmissionMode = ParticleEmitter.Mode.Inactive
                         mode.emissionsPerBurst
@@ -77,12 +78,30 @@ internal class ParticleManagerImpl(
 
                     ParticleEmitter.Mode.Inactive -> 0
                 }
-                repeat(spawnCount) {
-                    particlesToAdd.add(
-                        pop(emitter.particleStateType)?.also { reusedParticle ->
-                            emitter.reuseParticleInternal(reusedParticle.state)
-                        } ?: Particle(emitter.createParticleState())
-                    )
+                // A continuous emitter conceptually emits steadily across the whole tick, not all at once.
+                // Spawning the entire batch on a single instant at the emitter origin renders, at low frame
+                // rates, as one expanding shell per tick — i.e. concentric rings. Pre-aging each particle by
+                // the slice of this interval it should already have lived scatters the batch along its own
+                // trajectory into a continuous stream, frame-rate independently. The effect is proportional
+                // to the delta, so it is negligible at 60 FPS and only meaningful once ticks are throttled.
+                // Bursts are a single instant by definition, so they are never staggered.
+                val shouldStagger = mode is ParticleEmitter.Mode.Continuous && spawnCount > 1 && deltaTimeInMilliseconds > 0
+                repeat(spawnCount) { index ->
+                    val particle = pop(emitter.particleStateType)?.also { reusedParticle ->
+                        emitter.reuseParticleInternal(reusedParticle.state)
+                    } ?: Particle(emitter.createParticleState())
+                    if (shouldStagger) {
+                        // Oldest first (index 0 ≈ full interval), youngest last (≈ 0), evenly spaced by
+                        // delta / spawnCount so successive ticks tile into a uniform age distribution.
+                        val preAgeInMilliseconds = (deltaTimeInMilliseconds * (spawnCount - index - 0.5f) / spawnCount).toInt()
+                        if (preAgeInMilliseconds > 0 && !particle.state.update(preAgeInMilliseconds)) {
+                            // The particle's whole lifetime fell inside the catch-up window; recycle it
+                            // instead of adding a particle that would die on its first real frame.
+                            addParticleToCache(particle.state::class, particle)
+                            return@repeat
+                        }
+                    }
+                    particlesToAdd.add(particle)
                 }
             }
             if (emissionAccumulators.size > currentEmitters.size) {

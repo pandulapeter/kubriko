@@ -30,8 +30,8 @@ Two-layer pool — zero allocations at steady state:
 
 ## Emission Modes
 
-- **Continuous**: accumulator carries fractional particles across frames — e.g. 2.5 particles/frame emits 2 one frame, 3 the next. Stored per-emitter in `emissionAccumulators`.
-- **Burst**: fires once on the same tick the mode is set, then auto-resets `particleEmissionMode = Inactive`.
+- **Continuous**: accumulator carries fractional particles across frames — e.g. 2.5 particles/frame emits 2 one frame, 3 the next. Stored per-emitter in `emissionAccumulators`. The per-tick batch is **sub-frame staggered**: each particle is pre-aged (one `state.update(preAge)` call before it is added) by the slice of the tick interval it should already have lived — evenly spaced over `[0, delta)`, oldest first. Without this, at low frame rates the whole batch spawns on one instant at the emitter origin and renders as an expanding shell per tick (concentric rings); staggering scatters it along its trajectory into a continuous stream. The pre-age scales with `delta`, so it is negligible at 60 FPS. If a particle's lifetime fully fits inside its catch-up window (`state.update` returns false), it is recycled instead of added.
+- **Burst**: fires once on the same tick the mode is set, then auto-resets `particleEmissionMode = Inactive`. **Never staggered** — a burst is a single instant by definition.
 
 Emission is gated on `stateManager.isRunning` — particles pause when the game is paused.
 
