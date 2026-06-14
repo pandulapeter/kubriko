@@ -267,7 +267,7 @@ internal class ControlOverlayManager(
 
     private companion object {
         const val IDLE_FRAME_RATE_TIMEOUT_MS = 2000
-        val IDLE_TARGET_FRAME_RATE = TargetFrameRate.Limit(framesPerSecond = 30)
+        val IDLE_TARGET_FRAME_RATE = TargetFrameRate.DisplayDivider(2)
     }
 
     private fun SceneOffset.calculateMovementDirection() =

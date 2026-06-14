@@ -83,7 +83,9 @@ class PhysicsBody(
         }
 
     /**
-     * The current force applied to the body.
+     * The force applied to the body. Forces are accumulated during a frame, integrated over that frame's
+     * full simulated duration (regardless of frame rate), and then cleared. To apply a continuous force,
+     * set it every frame. For an instantaneous change in velocity use [applyLinearImpulse] instead.
      */
     var force = force
         set(value) {
@@ -143,7 +145,9 @@ class PhysicsBody(
     }
 
     /**
-     * Applies force ot body.
+     * Applies force to the body. The force is accumulated for the current frame, integrated over the
+     * frame's full simulated duration (frame-rate independent), and then cleared — re-apply it every
+     * frame for a continuous force. For an instantaneous velocity change use [applyLinearImpulse].
      *
      * @param force        Force vector to apply.
      * @param contactPoint The point to apply the force to relative to the body in object space.

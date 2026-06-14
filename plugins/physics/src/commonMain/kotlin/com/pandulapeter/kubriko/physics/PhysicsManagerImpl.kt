@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.physics
 
+import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.isOverlapping
 import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.rad
@@ -50,13 +51,12 @@ internal class PhysicsManagerImpl(
     }
     override val simulationSpeed = MutableStateFlow(initialSimulationSpeed)
 
-    private fun acquireArbiter(bodyA: PhysicsBody, bodyB: PhysicsBody): Arbiter =
-        if (arbiterPool.isEmpty()) Arbiter(bodyA, bodyB, penetrationCorrection)
-        else arbiterPool.removeAt(arbiterPool.lastIndex).also { it.reset(bodyA, bodyB, penetrationCorrection) }
+    private fun acquireArbiter(bodyA: PhysicsBody, bodyB: PhysicsBody): Arbiter = if (arbiterPool.isEmpty()) {
+        Arbiter(bodyA, bodyB, penetrationCorrection)
+    } else {
+        arbiterPool.removeAt(arbiterPool.lastIndex).also { it.reset(bodyA, bodyB, penetrationCorrection) }
+    }
 
-    // Sweep-and-prune scratch state. The sorted index order is kept between frames, so the
-    // insertion sort below is nearly O(n) thanks to temporal coherence. All buffers are
-    // tick-thread-private and only grow.
     private var sweepBodiesSnapshot: List<PhysicsBody>? = null
     private var sweepSortedIndices = IntArray(0)
     private var sweepMinX = FloatArray(0)
@@ -83,10 +83,21 @@ internal class PhysicsManagerImpl(
         accumulatedTimeInMilliseconds += deltaTimeInMilliseconds
         val subStepDt = FIXED_TIME_STEP_IN_MILLISECONDS * simulationSpeed.value / 100f
         var stepsRemaining = MAXIMUM_SUB_STEPS_PER_TICK
+        var didStep = false
         while (accumulatedTimeInMilliseconds >= FIXED_TIME_STEP_IN_MILLISECONDS && stepsRemaining > 0) {
             step(subStepDt)
             accumulatedTimeInMilliseconds -= FIXED_TIME_STEP_IN_MILLISECONDS
             stepsRemaining--
+            didStep = true
+        }
+        // A force/torque accumulated on a body during this tick is applied by every sub-step above (not just
+        // the first), so its net effect tracks the real time the tick covered and is frame-rate independent;
+        // it is cleared once here, after the tick's steps, preserving the "set each frame, auto-cleared each
+        // frame" contract. The clear is gated on at least one sub-step having run: above the sub-step rate a
+        // tick can run no step (it only adds to the accumulator), and a force set on such a tick must survive
+        // to the tick that actually steps instead of being discarded unapplied.
+        if (didStep) {
+            clearForcesAndTorques()
         }
         // Spiral-of-death guard: if the simulation is still more than a whole step behind after exhausting
         // the per-tick budget (a long stall, or a frame rate below ~7.5 FPS), drop the backlog rather than
@@ -96,16 +107,50 @@ internal class PhysicsManagerImpl(
         }
     }
 
+    private fun clearForcesAndTorques() {
+        val bodies = rigidBodies.value
+        for (i in bodies.indices) {
+            val b = bodies[i]
+            if (b.invMass == 0f) {
+                continue
+            }
+            b.force = SceneOffset.Zero
+            b.torque = SceneUnit.Zero
+        }
+    }
+
     // One full simulation step: recycle last step's arbiters, rebuild the contact set for the bodies'
     // current positions, integrate, then resolve penetration. Collisions are re-detected every sub-step,
     // which is what prevents tunneling when a tick is split into several steps.
     private fun step(dt: Float) {
         arbiterPool.addAll(arbiters)
         arbiters.clear()
+        // Collision detection (broad and narrow phase) reads each body's collisionMask, but integration and
+        // penetration resolution move physicsBody.position/rotation. Those two are otherwise only reconciled
+        // once per tick by the owning actor's update(). When one tick is split into several sub-steps (low
+        // frame rates), the mask would stay frozen for the whole tick, so every sub-step would re-detect the
+        // same stale penetration and contact normal and resolve it again — over-correcting resting contacts
+        // (stacks explode) and repeatedly cancelling a launched body's velocity against a stale contact (it
+        // never moves). Refreshing the mask from the body before each broad phase makes every sub-step detect
+        // collisions at the body's current position, which is what keeps the simulation frame-rate independent.
+        syncCollisionMasksWithBodies()
         broadPhaseCheck()
         semiImplicit(dt)
         for (i in arbiters.indices) {
             arbiters[i].penetrationResolution()
+        }
+    }
+
+    private fun syncCollisionMasksWithBodies() {
+        val bodies = rigidBodies.value
+        for (i in bodies.indices) {
+            val b = bodies[i]
+            // Static bodies (invMass == 0) never move during the simulation, so their mask is already correct.
+            if (b.invMass == 0f) {
+                continue
+            }
+            b.collisionMask.position = b.position
+            (b.collisionMask as? PolygonCollisionMask)?.rotation = b.rotation
         }
     }
 
@@ -120,8 +165,8 @@ internal class PhysicsManagerImpl(
             }
             b.position += b.velocity.scalar(dt)
             b.rotation += (b.angularVelocity * dt).raw.rad
-            b.force = SceneOffset.Zero
-            b.torque = SceneUnit.Zero
+            // force/torque are intentionally NOT cleared per sub-step: they must apply across every sub-step
+            // of the tick to stay frame-rate independent. They are cleared once per tick in onUpdate.
         }
     }
 
@@ -132,7 +177,7 @@ internal class PhysicsManagerImpl(
             if (b.invMass == 0f) {
                 continue
             }
-            applyLinearDrag(b)
+            applyLinearDrag(b, dt)
             if (b.isAffectedByGravity) {
                 b.velocity += actualGravity.value.scalar(dt)
             }
@@ -151,9 +196,9 @@ internal class PhysicsManagerImpl(
         }
     }
 
-    private fun applyLinearDrag(body: PhysicsBody) {
-        // Zero dampening or zero velocity produce a zero drag force, which applyForce turns into a
-        // no-op — skipping early avoids two square roots per body per frame in the common case.
+    private fun applyLinearDrag(body: PhysicsBody, dt: Float) {
+        // Zero dampening or zero velocity produce a zero drag force (a no-op) — skipping early avoids two
+        // square roots per body per sub-step in the common case.
         if (body.linearDampening == 0f) {
             return
         }
@@ -168,7 +213,11 @@ internal class PhysicsManagerImpl(
             x = body.velocity.x / velocityMagnitude,
             y = body.velocity.y / velocityMagnitude,
         ).scalar(-dragForceMagnitude)
-        body.applyForce(dragForceVector)
+        // Drag is integrated straight into velocity instead of being routed through body.force. body.force
+        // now persists across all sub-steps of a tick (cleared once per tick), so adding the per-sub-step
+        // drag into it would let drag accumulate across sub-steps. Applying it here is equivalent to the
+        // previous `applyForce(drag)` followed by `velocity += force * invMass * dt`.
+        body.velocity += dragForceVector.scalar(body.invMass).scalar(dt)
     }
 
     // Sweep-and-prune broad phase: bodies are kept sorted by the left edge of their bounding box,

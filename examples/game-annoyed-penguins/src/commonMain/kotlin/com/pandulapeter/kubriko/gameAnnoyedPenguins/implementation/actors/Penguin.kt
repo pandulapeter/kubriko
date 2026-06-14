@@ -74,7 +74,12 @@ internal class Penguin(
     override fun update(deltaTimeInMilliseconds: Int) {
         if (!isLaunched) {
             physicsManager.simulationSpeed.value = 1f
-            physicsBody.force = impulseOrigin.scalar(10000000f / deltaTimeInMilliseconds)
+            // The launch is an instantaneous velocity change, so apply it as a true impulse rather than a
+            // force: a force is integrated over time and, with the fixed-timestep accumulator, that time is
+            // the sub-step dt (not the tick delta), which made the old `force = impulse / deltaTime` hack
+            // frame-rate dependent (much weaker at low frame rates). 100000 reproduces the velocity the old
+            // formula delivered at its intended scale (10000000 / 100), independent of frame rate.
+            physicsBody.applyLinearImpulse(impulseOrigin.scalar(100000f))
             isLaunched = true
         }
         super.update(deltaTimeInMilliseconds)

@@ -68,12 +68,31 @@ detected), joint blow-up (springs overshoot rest length), and stuck/repeating co
 - Collisions are re-detected **every sub-step** — that is what prevents tunneling; do not hoist
   `broadPhaseCheck` out of the loop. Sweep-and-prune temporal coherence holds across sub-steps (bodies
   barely move per step), so the extra broad-phase passes stay near-O(n).
+- `step()` calls `syncCollisionMasksWithBodies()` before the broad phase. Collision detection reads each
+  body's `collisionMask`, but integration/penetration resolution move `physicsBody.position/rotation`; the
+  owning actor's `update()` only reconciles them once per tick. Without the per-step sync, all sub-steps in
+  one tick would detect collisions against frozen geometry — re-resolving the same stale penetration N times,
+  which exploded resting stacks and froze launched bodies at low frame rates. Do not remove this sync. Static
+  bodies (`invMass == 0`) are skipped because they never move during the simulation.
 - `MAXIMUM_SUB_STEPS_PER_TICK` (8) caps worst-case cost and prevents the spiral of death. Frame rates
   down to ~7.5 FPS stay fully time-accurate; below that the sim runs slower rather than exploding (backlog
   is dropped, not caught up in a burst).
 - 16 ms ≈ the per-step dt the engine was tuned against at 60 FPS (`16 * simulationSpeed 1 / 100`), so
   typical-frame-rate behavior is essentially unchanged; the accumulator only changes things when throttled.
 - The accumulator is not advanced while `isRunning` is false, so resuming does not trigger a catch-up burst.
+- **Forces/torques are applied across every sub-step of a tick, then cleared once per tick** (in
+  `clearForcesAndTorques`, gated on `didStep`) — **not** per sub-step. A force set on a tick is integrated
+  over that tick's full simulated time, so a continuous force (set each frame) produces the same acceleration
+  at any frame rate. Clearing per sub-step instead would apply the force for only ~16 ms of a longer tick,
+  making it weaker at low frame rates (this was the bug behind the frame-rate-dependent penguin launch).
+  Gating the clear on `didStep` matters above the sub-step rate (>~62 FPS), where a tick can add to the
+  accumulator without running a step: the force must survive to the tick that steps, not be cleared unapplied.
+- Because `force` now persists across sub-steps, **drag is integrated straight into velocity** in
+  `applyLinearDrag` rather than routed through `body.force` (which would let it accumulate across sub-steps).
+  Gravity was always applied directly to velocity each sub-step and is unaffected.
+- For an instantaneous velocity change (a launch, a kick), use `applyLinearImpulse` — it is dt-free and
+  therefore frame-rate independent by construction. Do **not** emulate an impulse with `force / deltaTime`;
+  that relied on the old whole-tick integration and breaks under sub-stepping.
 
 ## Hardcoded Velocity/Force Thresholds (not configurable)
 

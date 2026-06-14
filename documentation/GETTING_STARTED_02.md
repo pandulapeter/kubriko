@@ -21,7 +21,7 @@ Use the latest release version of Kubriko that can be found [here](https://githu
 Regularly update this version number to get access to the latest features and bug fixes.
 
 While we're here, we should make sure that the following three versions in your project's `libs.versions.toml` are at least equal to the versions defined for
-Kubriko. Cross reference these dependency versions with their counterparts from [here](https://github.com/pandulapeter/kubriko/blob/main/gradle/libs.versions.toml) and update where necessary.
+Kubriko. Cross-reference these dependency versions with their counterparts from [here](https://github.com/pandulapeter/kubriko/blob/main/gradle/libs.versions.toml) and update where necessary.
 
 - `android-compileSdk` (only if your project supports Android)
 - `android-minSdk` (only if your project supports Android)
