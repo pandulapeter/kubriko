@@ -41,7 +41,7 @@ import com.pandulapeter.kubriko.types.SceneSize
 import kotlin.reflect.KClass
 
 internal class Ball(
-    private val paddle: Visible,
+    private val paddle: Paddle,
     initialPosition: SceneOffset = SceneOffset(
         x = paddle.body.position.x,
         y = paddle.body.position.y - paddle.body.pivot.y - Radius
@@ -85,6 +85,26 @@ internal class Ball(
         scoreManager = kubriko.get()
         stateManager = kubriko.get()
         viewportManager = kubriko.get()
+        paddle.attachBall(this)
+    }
+
+    override fun onRemoved() {
+        paddle.detachBall(this)
+    }
+
+    // Called by the Paddle at the end of its own update (and by this Ball's update) so that while
+    // the ball is glued to the paddle the two always share the exact same position within a frame.
+    // Driving it from the paddle's update guarantees the ball reflects the paddle's post-movement
+    // position regardless of actor update order, which previously made the paddle appear to move one
+    // frame ahead of the ball at low frame rates.
+    fun snapToPaddle() {
+        if (state == State.UNINITIALIZED || state == State.POSITIONING) {
+            body.position = SceneOffset(
+                x = paddle.body.position.x,
+                y = body.position.y,
+            ).constrainedWithin(viewportManager.topLeft.value, viewportManager.bottomRight.value)
+            collisionMask.position = body.position
+        }
     }
 
     override fun update(deltaTimeInMilliseconds: Int) {
@@ -92,10 +112,7 @@ internal class Ball(
         val viewportBottomRight = viewportManager.bottomRight.value
         when (state) {
             State.UNINITIALIZED, State.POSITIONING -> {
-                body.position = SceneOffset(
-                    x = paddle.body.position.x,
-                    y = body.position.y,
-                ).constrainedWithin(viewportTopLeft, viewportBottomRight)
+                snapToPaddle()
             }
 
             State.LAUNCHED -> {
