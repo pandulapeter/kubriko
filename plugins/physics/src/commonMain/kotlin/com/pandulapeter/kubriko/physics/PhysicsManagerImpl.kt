@@ -63,15 +63,49 @@ internal class PhysicsManagerImpl(
     private var sweepMaxX = FloatArray(0)
     private var sweepPairs = LongArray(0)
 
+    // Leftover real time carried between ticks by the fixed-timestep accumulator below.
+    private var accumulatedTimeInMilliseconds = 0
+
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
-        if (stateManager.isRunning.value && deltaTimeInMilliseconds > 0) {
-            arbiterPool.addAll(arbiters)
-            arbiters.clear()
-            broadPhaseCheck()
-            semiImplicit(deltaTimeInMilliseconds * simulationSpeed.value / 100f)
-            for (i in arbiters.indices) {
-                arbiters[i].penetrationResolution()
-            }
+        if (!stateManager.isRunning.value || deltaTimeInMilliseconds <= 0) {
+            return
+        }
+        // Fixed-timestep accumulator. Advancing the simulation by one Euler step the size of the whole
+        // tick delta is unstable once the delta grows (e.g. a single ~100 ms step at 10 FPS): fast bodies
+        // jump clean past each other before any collision is detected (tunneling), springs overshoot
+        // their rest length and inject energy (joints spiraling), and deep penetrations never resolve
+        // (contacts stuck, re-triggering every tick). Splitting the same elapsed time into constant
+        // FIXED_TIME_STEP_IN_MILLISECONDS sub-steps keeps each integration step inside the stable range
+        // it was tuned for, so behavior is frame-rate independent. The sub-step dt keeps the original
+        // `* simulationSpeed / 100` scaling, so simulationSpeed still behaves as a pure time multiplier:
+        // the sub-step count tracks real elapsed time while each step advances by simulationSpeed times
+        // the fixed quantum.
+        accumulatedTimeInMilliseconds += deltaTimeInMilliseconds
+        val subStepDt = FIXED_TIME_STEP_IN_MILLISECONDS * simulationSpeed.value / 100f
+        var stepsRemaining = MAXIMUM_SUB_STEPS_PER_TICK
+        while (accumulatedTimeInMilliseconds >= FIXED_TIME_STEP_IN_MILLISECONDS && stepsRemaining > 0) {
+            step(subStepDt)
+            accumulatedTimeInMilliseconds -= FIXED_TIME_STEP_IN_MILLISECONDS
+            stepsRemaining--
+        }
+        // Spiral-of-death guard: if the simulation is still more than a whole step behind after exhausting
+        // the per-tick budget (a long stall, or a frame rate below ~7.5 FPS), drop the backlog rather than
+        // letting it grow unbounded — catching it all up later would stall frames and destabilize the sim.
+        if (accumulatedTimeInMilliseconds >= FIXED_TIME_STEP_IN_MILLISECONDS) {
+            accumulatedTimeInMilliseconds = 0
+        }
+    }
+
+    // One full simulation step: recycle last step's arbiters, rebuild the contact set for the bodies'
+    // current positions, integrate, then resolve penetration. Collisions are re-detected every sub-step,
+    // which is what prevents tunneling when a tick is split into several steps.
+    private fun step(dt: Float) {
+        arbiterPool.addAll(arbiters)
+        arbiters.clear()
+        broadPhaseCheck()
+        semiImplicit(dt)
+        for (i in arbiters.indices) {
+            arbiters[i].penetrationResolution()
         }
     }
 
@@ -225,5 +259,18 @@ internal class PhysicsManagerImpl(
         } else {
             arbiterPool.add(contactQuery)
         }
+    }
+
+    private companion object {
+        // The constant simulation step. 16 ms matches the per-step dt the simulation was tuned against
+        // at 60 FPS (16 ms * default simulationSpeed 1 / 100 ≈ the previous variable-delta step), so the
+        // engine behaves the same at typical frame rates and only changes — for the better — when ticks
+        // are throttled and one tick now covers several steps.
+        const val FIXED_TIME_STEP_IN_MILLISECONDS = 16
+
+        // Upper bound on sub-steps per tick, bounding worst-case cost and preventing the spiral of death.
+        // 8 steps cover a single ~128 ms tick, so frame rates down to ~7.5 FPS stay fully time-accurate;
+        // below that the simulation degrades gracefully (runs slower) instead of becoming unstable.
+        const val MAXIMUM_SUB_STEPS_PER_TICK = 8
     }
 }

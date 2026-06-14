@@ -51,10 +51,29 @@ Forgetting this leaves rendering and collision detection out of sync.
 ## Simulation Parameters
 
 - `gravity: MutableStateFlow<SceneOffset>` — default `(0, 9.81)` scene units/s²; Y positive = downward
-- `simulationSpeed: MutableStateFlow<Float>` — multiplies `deltaTimeInMilliseconds`
+- `simulationSpeed: MutableStateFlow<Float>` — pure time multiplier (scales the sub-step dt, not the sub-step count)
 - `penetrationCorrection: Float` (constructor-only, default 0.2) — fraction of overlap corrected per step; too high causes jitter
 
 Simulation pauses when `stateManager.isRunning` is false.
+
+## Fixed-Timestep Accumulator
+
+`onUpdate` does **not** integrate one Euler step the size of the tick delta. It accumulates real elapsed
+time and runs `step(dt)` — recycle arbiters, `broadPhaseCheck`, `semiImplicit`, penetration resolution —
+in constant `FIXED_TIME_STEP_IN_MILLISECONDS` (16 ms) quanta, carrying the remainder between ticks. This
+keeps the simulation frame-rate independent: at 10 FPS one ~100 ms tick runs ~6 small steps instead of one
+huge one. A single large step is what caused tunneling (bodies jump past each other before collision is
+detected), joint blow-up (springs overshoot rest length), and stuck/repeating contacts at low frame rates.
+
+- Collisions are re-detected **every sub-step** — that is what prevents tunneling; do not hoist
+  `broadPhaseCheck` out of the loop. Sweep-and-prune temporal coherence holds across sub-steps (bodies
+  barely move per step), so the extra broad-phase passes stay near-O(n).
+- `MAXIMUM_SUB_STEPS_PER_TICK` (8) caps worst-case cost and prevents the spiral of death. Frame rates
+  down to ~7.5 FPS stay fully time-accurate; below that the sim runs slower rather than exploding (backlog
+  is dropped, not caught up in a burst).
+- 16 ms ≈ the per-step dt the engine was tuned against at 60 FPS (`16 * simulationSpeed 1 / 100`), so
+  typical-frame-rate behavior is essentially unchanged; the accumulator only changes things when throttled.
+- The accumulator is not advanced while `isRunning` is false, so resuming does not trigger a catch-up burst.
 
 ## Hardcoded Velocity/Force Thresholds (not configurable)
 
