@@ -42,7 +42,14 @@ scene JSON. They implement `Editable` / `Serializable` so the scene can be rebui
 
 **`DynamicChain`** (`Group`, `Dynamic`, `Visible`, `Editable`) — creates `linkCount` `ChainLink`
 rigid bodies (circular) and `linkCount - 1` `JointToBody` spring joints connecting adjacent links.
-The chain's `BoxBody` is kept up to date each frame by computing the AABB of all link positions.
+The chain's `BoxBody` is kept up to date each frame in `refreshBodySize()` by computing the AABB of
+all link positions. It reads `ChainLink.physicsBody.position` (the authoritative physics state),
+**not** `ChainLink.body.position`: as a `Group` parent this actor updates before its child links in
+the same tick (BFS flatten order in `ActorManagerImpl`), so the links' render bodies still hold the
+previous tick's position when `refreshBodySize()` runs. Reading them made the clip/cull bounds lag
+the drawn path by one tick — invisible at 60 FPS, but enough to clip the chain visibly at low/throttled
+frame rates. `physicsBody.position` is the same value the links copy into their render bodies this
+tick, so bounds and path stay in sync.
 The chain draws a smooth quadratic-Bezier path through all link centres using two `drawPath` calls
 (thick black outline then thinner coloured stroke). Uses `Group` so all link and joint Actors are
 added/removed atomically with the chain.

@@ -102,10 +102,10 @@ internal class DynamicChain private constructor(private val state: State) : Grou
     }
 
     private fun refreshBodySize() {
-        val left = chainLinks.minOf { it.body.position.x } - offset.x
-        val top = chainLinks.minOf { it.body.position.y } - offset.y
-        val right = chainLinks.maxOf { it.body.position.x } + offset.x
-        val bottom = chainLinks.maxOf { it.body.position.y } + offset.y
+        val left = chainLinks.minOf { it.physicsBody.position.x } - offset.x
+        val top = chainLinks.minOf { it.physicsBody.position.y } - offset.y
+        val right = chainLinks.maxOf { it.physicsBody.position.x } + offset.x
+        val bottom = chainLinks.maxOf { it.physicsBody.position.y } + offset.y
         body.position = SceneOffset(left, top)
         body.size = SceneSize(right - left, bottom - top)
     }
