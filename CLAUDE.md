@@ -127,12 +127,13 @@ ViewportManager.newInstance(
     minimumScaleFactor: Float = 0.2f,
     maximumScaleFactor: Float = 5f,
     viewportEdgeBuffer: SceneUnit = 0f.sceneUnit,
-    frameRate: FrameRate = FrameRate.NORMAL,
+    initialTargetFrameRate: TargetFrameRate = TargetFrameRate.DisplayDefault,
 )
 ```
 - `AspectRatioMode` variants: `Dynamic` (matches screen), `FitHorizontal(width)`, `FitVertical(height)`, `Fixed(ratio, width, alignment)`, `Stretched(size)`.
 - `cameraPosition`, `size` (pixels), `scaleFactor`, `topLeft`, `bottomRight` — observable state.
 - `setCameraPosition(SceneOffset)`, `addToCameraPosition(Offset)`, `setScaleFactor(Float)`, `multiplyScaleFactor(Float)` — camera control.
+- `targetFrameRate: StateFlow<TargetFrameRate>` / `setTargetFrameRate(TargetFrameRate)` — runtime update-rate control. `TargetFrameRate.DisplayDefault` (default) ticks every display frame (device maximum); `TargetFrameRate.Limit(fps)` caps to an absolute, refresh-rate-independent rate; `TargetFrameRate.DisplayDivider(divisor)` ticks every `divisor`-th display frame (the classic frame-divider behavior, so the rate scales with the panel's refresh rate). For drastically lower rates, prefer a coroutine `TickSource` (`fixedFrequency`/`fixedRate`) over a low `Limit`, since `viewportFrames()` still wakes per vsync.
 - Coordinate conversion (scene ↔ screen) is handled internally; use `topLeft`/`bottomRight` for world-space bounds.
 
 **`MetadataManager`**

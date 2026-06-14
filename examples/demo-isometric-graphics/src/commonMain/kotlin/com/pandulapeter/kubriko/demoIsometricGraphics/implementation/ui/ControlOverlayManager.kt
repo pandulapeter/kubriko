@@ -36,6 +36,7 @@ import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
+import com.pandulapeter.kubriko.types.TargetFrameRate
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.volumetric.manager.VolumetricRenderManager
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.logic.manager.ControlManager
 import kotlinx.collections.immutable.ImmutableSet
@@ -86,8 +87,8 @@ internal class ControlOverlayManager(
     }
 
     // Power saving: with no input for a while the scene is static except for the idle animation,
-    // so both Kubriko instances drop to half the display refresh rate. Any interaction restores
-    // full rate on the next frame. A held-but-motionless joystick produces no pointer events while
+    // so both Kubriko instances drop to a low fixed frame rate. Any interaction restores the device
+    // maximum on the next frame. A held-but-motionless joystick produces no pointer events while
     // the character keeps walking, hence the active-pointer check.
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
         if (joystickPointerId != null || cameraPointerId != null || secondaryCameraPointerId != null) {
@@ -98,9 +99,9 @@ internal class ControlOverlayManager(
         val shouldThrottle = millisSinceLastInteraction >= IDLE_FRAME_RATE_TIMEOUT_MS
         if (shouldThrottle != isFrameRateThrottled) {
             isFrameRateThrottled = shouldThrottle
-            val divisor = if (shouldThrottle) IDLE_FRAME_RATE_DIVISOR else 1
-            viewportManager.setFrameRateDivisor(divisor)
-            logicViewportManager.setFrameRateDivisor(divisor)
+            val targetFrameRate = if (shouldThrottle) IDLE_TARGET_FRAME_RATE else TargetFrameRate.DisplayDefault
+            viewportManager.setTargetFrameRate(targetFrameRate)
+            logicViewportManager.setTargetFrameRate(targetFrameRate)
         }
     }
 
@@ -108,8 +109,8 @@ internal class ControlOverlayManager(
         millisSinceLastInteraction = 0
         if (isFrameRateThrottled) {
             isFrameRateThrottled = false
-            viewportManager.setFrameRateDivisor(1)
-            logicViewportManager.setFrameRateDivisor(1)
+            viewportManager.setTargetFrameRate(TargetFrameRate.DisplayDefault)
+            logicViewportManager.setTargetFrameRate(TargetFrameRate.DisplayDefault)
         }
     }
 
@@ -266,7 +267,7 @@ internal class ControlOverlayManager(
 
     private companion object {
         const val IDLE_FRAME_RATE_TIMEOUT_MS = 2000
-        const val IDLE_FRAME_RATE_DIVISOR = 3
+        val IDLE_TARGET_FRAME_RATE = TargetFrameRate.Limit(framesPerSecond = 30)
     }
 
     private fun SceneOffset.calculateMovementDirection() =

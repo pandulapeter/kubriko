@@ -13,11 +13,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.types.FrameRate
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
+import com.pandulapeter.kubriko.types.TargetFrameRate
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -63,12 +63,11 @@ sealed class ViewportManager(
     abstract val maximumScaleFactor: Float
 
     /**
-     * Runtime divisor applied on top of the constructed [FrameRate]: the game loop ticks every
-     * `frameRate.factor * frameRateDivisor`-th display frame. Defaults to 1, which preserves the
-     * constructed frame rate exactly. Useful for temporarily lowering the update rate (e.g. to save
-     * power while the game is idle) without recreating the manager.
+     * The target update frequency of the game loop. Defaults to [TargetFrameRate.DisplayDefault]
+     * (the device's maximum refresh rate). Can be changed at runtime via [setTargetFrameRate] to,
+     * for example, lower the update rate to save power while the game is idle.
      */
-    abstract val frameRateDivisor: StateFlow<Int>
+    abstract val targetFrameRate: StateFlow<TargetFrameRate>
 
     /**
      * The top-left corner coordinates of the visible area in the scene.
@@ -109,11 +108,11 @@ sealed class ViewportManager(
     abstract fun multiplyScaleFactor(scaleFactor: Float)
 
     /**
-     * Updates [frameRateDivisor]. Values below 1 are coerced to 1.
+     * Updates [targetFrameRate].
      *
-     * @param divisor The new frame rate divisor.
+     * @param targetFrameRate The new target update frequency.
      */
-    abstract fun setFrameRateDivisor(divisor: Int)
+    abstract fun setTargetFrameRate(targetFrameRate: TargetFrameRate)
 
     /**
      * Defines how the viewport should handle different screen aspect ratios.
@@ -165,9 +164,9 @@ sealed class ViewportManager(
          * @param minimumScaleFactor The minimum zoom level allowed.
          * @param maximumScaleFactor The maximum zoom level allowed.
          * @param viewportEdgeBuffer An extra margin around the viewport where actors are still considered visible.
+         * @param initialTargetFrameRate The initial target frame rate for updates. Can be changed at runtime via [setTargetFrameRate].
          * @param isLoggingEnabled Whether to enable logging for this manager.
          * @param instanceNameForLogging Optional name for logging purposes.
-         * @param frameRate The target frame rate for updates.
          */
         fun newInstance(
             aspectRatioMode: AspectRatioMode = AspectRatioMode.Dynamic,
@@ -175,9 +174,9 @@ sealed class ViewportManager(
             minimumScaleFactor: Float = 0.2f,
             maximumScaleFactor: Float = 5f,
             viewportEdgeBuffer: SceneUnit = 0f.sceneUnit,
+            initialTargetFrameRate: TargetFrameRate = TargetFrameRate.DisplayDefault,
             isLoggingEnabled: Boolean = false,
             instanceNameForLogging: String? = null,
-            frameRate: FrameRate = FrameRate.NORMAL,
         ): ViewportManager = ViewportManagerImpl(
             aspectRatioMode = aspectRatioMode,
             initialScaleFactor = initialScaleFactor,
@@ -186,7 +185,7 @@ sealed class ViewportManager(
             viewportEdgeBuffer = viewportEdgeBuffer,
             isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = instanceNameForLogging,
-            frameRate = frameRate,
+            initialTargetFrameRate = initialTargetFrameRate,
         )
     }
 }

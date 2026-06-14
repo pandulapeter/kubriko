@@ -16,10 +16,10 @@ import com.pandulapeter.kubriko.KubrikoImpl
 import com.pandulapeter.kubriko.helpers.extensions.div
 import com.pandulapeter.kubriko.helpers.extensions.toSceneOffset
 import com.pandulapeter.kubriko.implementation.SyncStateFlow
-import com.pandulapeter.kubriko.types.FrameRate
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
+import com.pandulapeter.kubriko.types.TargetFrameRate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -33,12 +33,12 @@ internal class ViewportManagerImpl(
     val viewportEdgeBuffer: SceneUnit,
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
-    val frameRate: FrameRate,
+    initialTargetFrameRate: TargetFrameRate,
 ) : ViewportManager(isLoggingEnabled, instanceNameForLogging) {
 
     private lateinit var actorManager: ActorManagerImpl
-    private val _frameRateDivisor = MutableStateFlow(1)
-    override val frameRateDivisor = _frameRateDivisor.asStateFlow()
+    private val _targetFrameRate = MutableStateFlow(initialTargetFrameRate)
+    override val targetFrameRate = _targetFrameRate.asStateFlow()
     private val _cameraPosition = MutableStateFlow(SceneOffset.Zero)
     override val cameraPosition = _cameraPosition.asStateFlow()
     private val _size = MutableStateFlow(Size.Zero)
@@ -117,7 +117,7 @@ internal class ViewportManagerImpl(
         )
     }
 
-    override fun setFrameRateDivisor(divisor: Int) = _frameRateDivisor.update { divisor.coerceAtLeast(1) }
+    override fun setTargetFrameRate(targetFrameRate: TargetFrameRate) = _targetFrameRate.update { targetFrameRate }
 
     fun updateSize(size: Size) = _size.update { size }
 }
