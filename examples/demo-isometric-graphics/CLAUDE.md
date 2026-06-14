@@ -70,6 +70,18 @@ Tesselar declared its `Kubriko` instances and managers as module-level singleton
 - `implementation/ui` — `IsometricGraphicsContent` (viewport + joystick + minimap), `MiniMap`,
   `ControlOverlayManager`.
 
+## Grid rendering and frame-rate sync
+
+The isometric ground grid is drawn in a Compose `.drawBehind {}` modifier on the `KubrikoViewport`
+in `IsometricGraphicsContent`, not through an Actor — so it repaints every vsync regardless of the
+`TargetFrameRate`, which throttles only the engine tick (`onUpdate`), not Canvas invalidation. To keep
+the grid in step with the camera and cuboids (which only advance on the throttled tick), it reads
+`VolumetricRenderManager.renderState`: a `RenderState` snapshot of `cameraOffset/worldRotation/zoom/tilt`
+published once per tick from `onUpdate`. Do **not** point the grid back at the raw
+`worldRotation`/`zoom`/`tilt` StateFlows — those are mutated directly by input events (off-tick), so the
+grid would glide smoothly at display rate while the rest of the world steps at the limited frame rate.
+At full rate `onUpdate` runs every vsync, so the snapshot updates every frame and the grid is smooth again.
+
 ## Resources
 
 `commonMain/composeResources/`:

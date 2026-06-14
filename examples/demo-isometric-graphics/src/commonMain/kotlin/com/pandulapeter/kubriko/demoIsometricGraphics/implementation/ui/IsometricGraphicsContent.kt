@@ -77,10 +77,9 @@ internal fun IsometricGraphicsContent(
 ) = Box(
     modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest),
 ) {
-    val worldRotationState = stateHolder.volumetricRenderManager.worldRotation.collectAsState()
-    val offsetState = stateHolder.controlManager.cameraOffset.collectAsState()
-    val zoomState = stateHolder.volumetricRenderManager.zoom.collectAsState()
-    val tiltState = stateHolder.volumetricRenderManager.tilt.collectAsState()
+    // Tick-cadence snapshot of the values the world renders with, so the grid steps in sync with the
+    // rest of the scene when the frame rate is limited instead of gliding smoothly at display rate.
+    val renderState = stateHolder.volumetricRenderManager.renderState.collectAsState()
     val joystickOrigin = stateHolder.controlOverlayManager.joystickOrigin.collectAsState()
     val joystickDirection = stateHolder.controlOverlayManager.joystickDirection.collectAsState()
     val joystickSpeedFactor = stateHolder.controlOverlayManager.joystickSpeedFactor.collectAsState()
@@ -156,10 +155,11 @@ internal fun IsometricGraphicsContent(
     KubrikoViewport(
         modifier = Modifier
             .drawBehind {
-                val offset = offsetState.value
-                val worldRotation = worldRotationState.value
-                val zoom = zoomState.value
-                val tilt = tiltState.value
+                val state = renderState.value
+                val offset = state.cameraOffset
+                val worldRotation = state.worldRotation
+                val zoom = state.zoom
+                val tilt = state.tilt
                 drawIsometricGrid(
                     gridLinesPath = gridLinesPath,
                     isoMatrix = isoMatrix,

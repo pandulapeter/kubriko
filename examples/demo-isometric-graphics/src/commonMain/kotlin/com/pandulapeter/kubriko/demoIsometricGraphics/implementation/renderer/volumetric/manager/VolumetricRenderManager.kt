@@ -49,6 +49,14 @@ class VolumetricRenderManager(
     val zoom = _zoom.asStateFlow()
     private val _tilt = MutableStateFlow(1f)
     val tilt = _tilt.asStateFlow()
+    // Snapshot of the camera/orientation values actually used for rendering, published once per tick
+    // from onUpdate. worldRotation/zoom/tilt are mutated directly by input events (off-tick) and
+    // cameraOffset advances with the logic, while the camera transform and the cuboids only update on
+    // the throttled tick. The isometric grid is drawn every vsync in a Compose drawBehind, so it must
+    // read this tick-cadence snapshot rather than the raw StateFlows — otherwise it glides smoothly
+    // while the rest of the world steps at the limited frame rate.
+    private val _renderState = MutableStateFlow(RenderState())
+    val renderState = _renderState.asStateFlow()
     private val trackedRenderers = MutableStateFlow<Map<String, VolumetricCuboidRenderer>>(emptyMap())
     private var actorsJob: Job? = null
 
@@ -107,6 +115,19 @@ class VolumetricRenderManager(
         val currentZoom = zoom.value
         val currentTilt = tilt.value
         val currentCameraOffset = cameraOffset.value
+        val published = _renderState.value
+        if (published.cameraOffset != currentCameraOffset ||
+            published.worldRotation != currentRotation ||
+            published.zoom != currentZoom ||
+            published.tilt != currentTilt
+        ) {
+            _renderState.value = RenderState(
+                cameraOffset = currentCameraOffset,
+                worldRotation = currentRotation,
+                zoom = currentZoom,
+                tilt = currentTilt,
+            )
+        }
 
         val sqrtTwo = 1.4142135f
         val tileWidthMultiplier = currentZoom * sqrtTwo * 2f
@@ -151,6 +172,13 @@ class VolumetricRenderManager(
     fun multiplyWorldZoom(zoom: Float) = _zoom.update { (it * zoom).coerceIn(0.1f, 1f) }
 
     fun addToWorldTilt(tiltDelta: Float) = _tilt.update { currentTilt -> (currentTilt * exp(tiltDelta)).coerceIn(0.1f, 2f) }
+
+    data class RenderState(
+        val cameraOffset: SceneOffset = SceneOffset.Zero,
+        val worldRotation: AngleRadians = AngleRadians.Zero,
+        val zoom: Float = 0.25f,
+        val tilt: Float = 1f,
+    )
 
     companion object {
         const val FOCUS_HEIGHT = 137f
