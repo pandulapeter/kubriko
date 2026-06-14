@@ -26,6 +26,14 @@ the manager calls `handleActivePointers` on **every** actor in registration orde
 spatial culling or hit-testing. The same applies to all other callbacks: all registered actors
 receive every event regardless of position.
 
+`pointersPressedSinceLastTick` is a one-tick latch (same idea as keyboard's): every press records its
+id+position there. In `onUpdate` any latched id not already held is added back into the
+`handleActivePointers` map at its press position, so a pointer tapped and released entirely between two
+ticks (common at low/throttled frame rates) is still delivered for exactly one tick. The latch is
+cleared at the end of every `onUpdate` and on focus loss. Discrete `onPointerPressed`/`onPointerReleased`
+fire off-tick and were never affected; this only fixes the per-tick polling path. The merge allocates a
+map only on the rare tap path.
+
 ## Gesture detection split
 Raw press/release/move events come from a `pointerInput { awaitPointerEventScope }` loop.
 Drag and zoom come from a second `gestureDetector` modifier chained via `.then()` using

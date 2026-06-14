@@ -76,20 +76,41 @@ internal class PointerInputManagerImpl(
         }.asStateFlow(null)
     }
     private var mouseId: PointerId? = null
+    // Pointers pressed since the previous tick. Discrete onPointerPressed/onPointerReleased callbacks
+    // fire off-tick and are never lost, but a pointer tapped and released entirely between two ticks
+    // (common at low frame rates) would otherwise never appear in the per-tick handleActivePointers map.
+    // This latch surfaces such a pointer for exactly one tick. Cleared at the end of every onUpdate.
+    private val pointersPressedSinceLastTick = mutableMapOf<PointerId, Offset>()
 
     override fun onInitialize(kubriko: Kubriko) {
         stateManager.isFocused
             .filterNot { it }
-            .onEach { _pressedPointerPositions.update { persistentMapOf() } }
+            .onEach {
+                _pressedPointerPositions.update { persistentMapOf() }
+                pointersPressedSinceLastTick.clear()
+            }
             .launchIn(scope)
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
-        _pressedPointerPositions.value.let { activePointers ->
-            if (activePointers.isNotEmpty()) {
-                pointerInputAwareActors.value.forEach { it.handleActivePointers(activePointers) }
-            }
+        val pressed = _pressedPointerPositions.value
+        val activePointers = if (pointersPressedSinceLastTick.isEmpty()) {
+            pressed
+        } else {
+            // Add back pointers tapped (pressed and released) between two ticks, at their press position,
+            // unless they are already held. Allocates a map only on this rare path.
+            pressed.builder().apply {
+                pointersPressedSinceLastTick.forEach { (id, offset) ->
+                    if (!containsKey(id)) {
+                        put(id, offset)
+                    }
+                }
+            }.build()
         }
+        if (activePointers.isNotEmpty()) {
+            pointerInputAwareActors.value.forEach { it.handleActivePointers(activePointers) }
+        }
+        pointersPressedSinceLastTick.clear()
     }
 
     private var densityMultiplier = 1f
@@ -138,6 +159,7 @@ internal class PointerInputManagerImpl(
                             !wasPressed && isPressed -> {
                                 if (stateManager.isFocused.value) {
                                     _pressedPointerPositions.update { it.putting(change.id, change.position) }
+                                    pointersPressedSinceLastTick[id] = change.position
                                     pointerInputAwareActors.value.forEach { it.onPointerPressed(id, change.position) }
                                     if (mouseId == id) {
                                         _hoveringPointerPosition.value = change.position

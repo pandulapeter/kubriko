@@ -26,6 +26,15 @@ Two-buffer design avoids per-frame allocations:
 
 A `hasSentEmptyMap` guard prevents repeated empty-set broadcasts after all keys are released.
 
+`keysPressedSinceLastSnapshot` is a one-tick latch: every press is recorded there as well as in
+`activeKeysCache`. When building the per-tick snapshot, latched keys are unioned in, so a key tapped
+and released entirely between two ticks (common at low/throttled frame rates, where a tick can span
+100 ms) still appears in `handleActiveKeys` for exactly one tick instead of being missed. The latch is
+cleared at the end of every `onUpdate`; when it surfaced a now-released key the dirty flag is re-armed
+so the following tick rebuilds the snapshot without it. Discrete `onKeyPressed`/`onKeyReleased` already
+fire off-tick and were never affected; this only fixes the polling path. `isKeyPressed` stays strictly
+live (no latch) per its contract — use `handleActiveKeys` (or `onKeyPressed`) for tick-accurate taps.
+
 On focus loss, all active keys are flushed immediately to prevent stuck-key state.
 
 ## Platform Differences
