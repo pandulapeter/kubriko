@@ -252,6 +252,7 @@ The `Editable` trait from `scene-editor-api` can be combined with `Serializable`
 - New modules must be registered in `settings.gradle.kts`.
 - Every source file starts with the MPL-2.0 license header (the project is licensed MPL-2.0; derivative engines/forks must stay open source).
 - Geometry uses custom value types (`SceneUnit`, `SceneOffset`, `SceneSize`, `Scale`, `AngleRadians`/`AngleDegrees`) rather than raw floats/Compose units — use them and their extension helpers in `helpers/extensions/`.
+- **Comments and documentation**: see the `code-style` skill (`.claude/skills/code-style/SKILL.md`). In short: public API is fully documented with KDoc; implementation comments are used sparingly for genuinely non-obvious "why", and clear naming is preferred over narration. Do not leave comments that explain bugs already fixed.
 
 ## Common patterns
 

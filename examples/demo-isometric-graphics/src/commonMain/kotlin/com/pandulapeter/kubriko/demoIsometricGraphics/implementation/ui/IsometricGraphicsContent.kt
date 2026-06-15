@@ -85,10 +85,7 @@ internal fun IsometricGraphicsContent(
     val joystickOrigin = stateHolder.controlOverlayManager.joystickOrigin.collectAsState()
     val joystickDirection = stateHolder.controlOverlayManager.joystickDirection.collectAsState()
     val joystickSpeedFactor = stateHolder.controlOverlayManager.joystickSpeedFactor.collectAsState()
-    // Composing the two KubrikoViewports (this one and the hidden logic viewport inside MiniMap)
-    // warms up the whole render pipeline on the main thread. Deferring it past the Showcase crossfade
-    // transition keeps that heavy first frame from stalling the animation; the loading overlay covers
-    // the gap until the world is ready.
+    // Held back past the Showcase crossfade so the viewports' heavy first frame doesn't stall it.
     val isReadyToRender = remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         delay(CROSSFADE_SETTLE_DELAY)
@@ -192,45 +189,45 @@ internal fun IsometricGraphicsContent(
                 },
             kubriko = stateHolder.isometricKubriko,
         )
-    }
-    if (JOYSTICK_ENABLED && isReadyToRender.value) {
-        Box {
-            Box(
-                modifier = Modifier
-                    .graphicsLayer {
-                        val radius = with(density) { 64.dp.toPx() }
-                        translationX = animatedJoystickOrigin.x - radius
-                        translationY = animatedJoystickOrigin.y - radius
-                    }
-                    .size(128.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = animatedJoystickAlpha * 0.75f),
-                        shape = CircleShape,
-                    )
-                    .border(
-                        width = 2.dp,
-                        color = Color.Black.copy(alpha = animatedJoystickAlpha),
-                        shape = CircleShape,
-                    )
-            )
-            Box(
-                modifier = Modifier
-                    .graphicsLayer {
-                        val radius = with(density) { 20.dp.toPx() }
-                        translationX = animatedJoystickOrigin.x + animatedKnobOffset.x - radius
-                        translationY = animatedJoystickOrigin.y + animatedKnobOffset.y - radius
-                    }
-                    .size(40.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = animatedJoystickAlpha),
-                        shape = CircleShape,
-                    )
-                    .border(
-                        width = 2.dp,
-                        color = Color.Black.copy(alpha = animatedJoystickAlpha),
-                        shape = CircleShape,
-                    )
-            )
+        if (JOYSTICK_ENABLED) {
+            Box {
+                Box(
+                    modifier = Modifier
+                        .graphicsLayer {
+                            val radius = with(density) { 64.dp.toPx() }
+                            translationX = animatedJoystickOrigin.x - radius
+                            translationY = animatedJoystickOrigin.y - radius
+                        }
+                        .size(128.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = animatedJoystickAlpha * 0.75f),
+                            shape = CircleShape,
+                        )
+                        .border(
+                            width = 2.dp,
+                            color = Color.Black.copy(alpha = animatedJoystickAlpha),
+                            shape = CircleShape,
+                        )
+                )
+                Box(
+                    modifier = Modifier
+                        .graphicsLayer {
+                            val radius = with(density) { 20.dp.toPx() }
+                            translationX = animatedJoystickOrigin.x + animatedKnobOffset.x - radius
+                            translationY = animatedJoystickOrigin.y + animatedKnobOffset.y - radius
+                        }
+                        .size(40.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = animatedJoystickAlpha),
+                            shape = CircleShape,
+                        )
+                        .border(
+                            width = 2.dp,
+                            color = Color.Black.copy(alpha = animatedJoystickAlpha),
+                            shape = CircleShape,
+                        )
+                )
+            }
         }
     }
     Column(
