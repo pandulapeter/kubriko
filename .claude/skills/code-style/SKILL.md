@@ -31,10 +31,12 @@ that explains what the code already says.
 - **Public API is documented 100% with KDoc.** Every public/protected declaration in a published
   module (`engine`, `plugins/*`, `tools/*-api`) gets KDoc — types, functions, properties, defaults,
   and the observable behavior of public `StateFlow`s. This is the surface external consumers depend on.
-- **Use KDoc (`/** … */`), not block or line comments, for documentation.** Line comments (`//`) are
-  for the occasional internal "why" note only.
+- **Documenting a declaration always uses KDoc (`/** … */`), never a `//` block — even for internal or
+  private declarations.** If a class, function, or property warrants a comment about what it is or why
+  it exists, that comment is KDoc attached to the declaration. Reserve plain `//` comments for notes on
+  statements *inside* a function body.
 - **Implementation details are not the public API.** Internal/private code is documented through naming
-  and structure, with sparse `//` notes where truly needed — not exhaustive KDoc.
+  and structure, with sparse comments only where truly needed — not exhaustive KDoc on every member.
 
 ## Naming and structure
 

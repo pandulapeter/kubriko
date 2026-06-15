@@ -37,6 +37,13 @@ interface Visible : Positionable, LayerAware {
     val isVisible: Boolean get() = true
 
     /**
+     * Whether the actor should always be considered within the viewport, bypassing the bounding box
+     * based visibility culling. Useful for actors that render across the whole scene and perform their
+     * own culling internally (for example batched renderers).
+     */
+    val isAlwaysVisible: Boolean get() = false
+
+    /**
      * Whether the drawing should be clipped to the actor's [body].
      */
     val shouldClip: Boolean get() = true

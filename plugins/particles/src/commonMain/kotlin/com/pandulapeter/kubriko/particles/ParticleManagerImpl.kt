@@ -11,7 +11,7 @@ package com.pandulapeter.kubriko.particles
 
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
-import com.pandulapeter.kubriko.particles.implementation.Particle
+import com.pandulapeter.kubriko.particles.implementation.ParticleBatch
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
@@ -44,21 +44,42 @@ internal class ParticleManagerImpl(
             .flowOn(Dispatchers.Default)
             .asStateFlow(persistentListOf())
     }
-    private val cache: MutableMap<KClass<out ParticleEmitter.ParticleState>, ArrayDeque<Particle<*>>> = mutableMapOf()
+    private val cache: MutableMap<KClass<out ParticleEmitter.ParticleState>, ArrayDeque<ParticleEmitter.ParticleState>> = mutableMapOf()
 
-    private fun pop(stateKClass: KClass<out ParticleEmitter.ParticleState>): Particle<*>? = cache[stateKClass]?.removeLastOrNull()
+    // One rendering actor per distinct drawingOrder, created lazily and kept for the lifetime of the
+    // manager. There are very few distinct values in practice, so a linear scan keyed on the Float
+    // avoids boxing it as a map key on every emission.
+    private val batches = ArrayList<ParticleBatch>()
 
-    fun addParticleToCache(stateKClass: KClass<out ParticleEmitter.ParticleState>, particle: Particle<*>) {
-        val deque = cache.getOrPut(stateKClass) { ArrayDeque() }
+    // Hoisted so beginFrame() does not allocate a capturing lambda per batch per frame.
+    private val recycle: (ParticleEmitter.ParticleState) -> Unit = { state ->
+        val deque = cache.getOrPut(state::class) { ArrayDeque() }
         if (deque.size < cacheSize) {
-            deque.addLast(particle)
+            deque.addLast(state)
         }
     }
 
-    private val particlesToAdd = mutableListOf<Particle<*>>()
+    private fun pop(stateKClass: KClass<out ParticleEmitter.ParticleState>): ParticleEmitter.ParticleState? =
+        cache[stateKClass]?.removeLastOrNull()
+
+    private fun batchFor(drawingOrder: Float): ParticleBatch {
+        for (i in batches.indices) {
+            if (batches[i].drawingOrder == drawingOrder) {
+                return batches[i]
+            }
+        }
+        return ParticleBatch(drawingOrder).also { batch ->
+            batches.add(batch)
+            actorManager.add(batch)
+        }
+    }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
-        if (stateManager.isRunning.value) {
+        val isRunning = stateManager.isRunning.value
+        for (i in batches.indices) {
+            batches[i].beginFrame(deltaTimeInMilliseconds, isRunning, recycle)
+        }
+        if (isRunning) {
             val currentEmitters = particleEmitters.value
             currentEmitters.forEach { emitter ->
                 val mode = emitter.particleEmissionMode
@@ -87,21 +108,21 @@ internal class ParticleManagerImpl(
                 // Bursts are a single instant by definition, so they are never staggered.
                 val shouldStagger = mode is ParticleEmitter.Mode.Continuous && spawnCount > 1 && deltaTimeInMilliseconds > 0
                 repeat(spawnCount) { index ->
-                    val particle = pop(emitter.particleStateType)?.also { reusedParticle ->
-                        emitter.reuseParticleInternal(reusedParticle.state)
-                    } ?: Particle(emitter.createParticleState())
+                    val state = pop(emitter.particleStateType)?.also { reusedState ->
+                        emitter.reuseParticleInternal(reusedState)
+                    } ?: emitter.createParticleState()
                     if (shouldStagger) {
                         // Oldest first (index 0 ≈ full interval), youngest last (≈ 0), evenly spaced by
                         // delta / spawnCount so successive ticks tile into a uniform age distribution.
                         val preAgeInMilliseconds = (deltaTimeInMilliseconds * (spawnCount - index - 0.5f) / spawnCount).toInt()
-                        if (preAgeInMilliseconds > 0 && !particle.state.update(preAgeInMilliseconds)) {
+                        if (preAgeInMilliseconds > 0 && !state.update(preAgeInMilliseconds)) {
                             // The particle's whole lifetime fell inside the catch-up window; recycle it
                             // instead of adding a particle that would die on its first real frame.
-                            addParticleToCache(particle.state::class, particle)
+                            recycle(state)
                             return@repeat
                         }
                     }
-                    particlesToAdd.add(particle)
+                    batchFor(state.drawingOrder).addParticle(state)
                 }
             }
             if (emissionAccumulators.size > currentEmitters.size) {
@@ -112,10 +133,9 @@ internal class ParticleManagerImpl(
                     }
                 }
             }
-            if (particlesToAdd.isNotEmpty()) {
-                actorManager.add(particlesToAdd)
-                particlesToAdd.clear()
-            }
+        }
+        for (i in batches.indices) {
+            batches[i].endFrame()
         }
     }
 }

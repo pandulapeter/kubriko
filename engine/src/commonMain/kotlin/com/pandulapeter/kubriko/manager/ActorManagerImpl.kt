@@ -171,6 +171,10 @@ internal class ActorManagerImpl(
         // a trie walk, so a for-each is cheaper than indexing it per element.
         visibleScratch.clear()
         for (actor in actors) {
+            if (actor.isAlwaysVisible) {
+                visibleScratch.add(actor)
+                continue
+            }
             val aabb = actor.body.axisAlignedBoundingBox
             if (aabb.left.raw <= rightBound &&
                 aabb.top.raw <= bottomBound &&
