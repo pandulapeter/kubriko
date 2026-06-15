@@ -71,6 +71,14 @@ Mirror the existing releases:
   "...for a large reduction in per-frame overhead").
 - **Backtick every code identifier** — managers, traits, APIs, types, parameters (`ViewportManager`,
   `TargetFrameRate`, `Visible.isAlwaysVisible`).
+- **Link newly introduced public classes/types.** When the notes mention a public class, interface, or
+  type that is *new* this release (a freshly added file outside `implementation/`, e.g. `TargetFrameRate`),
+  make its first mention a link to its source file at the release tag:
+  `[`TargetFrameRate`](https://github.com/pandulapeter/kubriko/blob/<version>/<path/to/File.kt>)` — keep the
+  identifier backticked inside the link text. Use the `library.version` value as the tag (tags have no `v`
+  prefix). Find the path with `git diff <bump>..HEAD --name-status -- engine plugins tools | grep '^A'`.
+  Only newly introduced *classes/types* are linked — not new members added to an existing class (e.g.
+  `Visible.isAlwaysVisible`), and not types that already existed in a prior release.
 - **Be transparent about breaking changes and replacements.** If an API replaces, renames, or removes
   another, state both sides.
 - **Thank external contributors inline**, e.g. `- thank you [@handle](https://github.com/handle)`. Find them
