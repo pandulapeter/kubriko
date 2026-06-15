@@ -10,8 +10,6 @@
 package com.pandulapeter.kubriko.particles.implementation
 
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.drawscope.withTransform
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Visible
@@ -87,6 +85,8 @@ internal class ParticleBatch(
         val topBound = topLeft.y.raw
         val rightBound = bottomRight.x.raw
         val bottomBound = bottomRight.y.raw
+        val canvas = drawContext.canvas
+        val transform = drawContext.transform
         for (i in particles.indices) {
             val state = particles[i]
             val aabb = state.body.axisAlignedBoundingBox
@@ -95,19 +95,16 @@ internal class ParticleBatch(
                 aabb.right.raw >= leftBound &&
                 aabb.bottom.raw >= topBound
             ) {
-                withTransform(
-                    transformBlock = { state.body.transformForViewport(this) },
-                    drawBlock = {
-                        clipRect(
-                            left = 0f,
-                            top = 0f,
-                            right = state.body.size.width.raw,
-                            bottom = state.body.size.height.raw,
-                        ) {
-                            with(state) { draw() }
-                        }
-                    },
+                canvas.save()
+                state.body.transformForViewport(transform)
+                transform.clipRect(
+                    left = 0f,
+                    top = 0f,
+                    right = state.body.size.width.raw,
+                    bottom = state.body.size.height.raw,
                 )
+                with(state) { draw() }
+                canvas.restore()
             }
         }
     }

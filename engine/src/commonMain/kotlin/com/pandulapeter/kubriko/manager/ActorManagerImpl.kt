@@ -19,7 +19,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.withTransform
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoImpl
@@ -543,26 +542,25 @@ internal class ActorManagerImpl(
                     drawBlock = {
                         val visibles = sortedVisibleActorsByLayer[layerIndex]
                         if (!visibles.isNullOrEmpty()) {
+                            val canvas = drawContext.canvas
+                            val transform = drawContext.transform
                             for (i in visibles.indices) {
                                 val visible = visibles[i]
                                 if (visible.isVisible) {
-                                    withTransform(
-                                        transformBlock = { visible.body.transformForViewport(this) },
-                                        drawBlock = {
-                                            with(visible) {
-                                                if (shouldClip) {
-                                                    clipRect(
-                                                        left = 0f,
-                                                        top = 0f,
-                                                        right = body.size.width.raw,
-                                                        bottom = body.size.height.raw,
-                                                    ) { draw() }
-                                                } else {
-                                                    draw()
-                                                }
-                                            }
+                                    canvas.save()
+                                    visible.body.transformForViewport(transform)
+                                    with(visible) {
+                                        if (shouldClip) {
+                                            transform.clipRect(
+                                                left = 0f,
+                                                top = 0f,
+                                                right = body.size.width.raw,
+                                                bottom = body.size.height.raw,
+                                            )
                                         }
-                                    )
+                                        draw()
+                                    }
+                                    canvas.restore()
                                 }
                             }
                         }

@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(jq -r '.tool_input.file_path // empty'); case \"$f\" in *.kt|*.kts) jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",additionalContext:\"Kubriko code-style skill applies to this Kotlin file (.claude/skills/code-style/SKILL.md): comment with restraint (do not narrate routine code); use KDoc (/** */), never //, for any declaration-level doc; document 100% of public API in published modules; never explain already-fixed bugs; prefer clear names over comments; match the surrounding file style.\"}}' ;; esac",
+            "statusMessage": "Loading code-style conventions"
+          }
+        ]
+      }
+    ]
+  }
+}
