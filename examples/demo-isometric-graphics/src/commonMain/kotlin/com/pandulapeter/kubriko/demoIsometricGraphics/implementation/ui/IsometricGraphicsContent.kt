@@ -69,6 +69,8 @@ import org.jetbrains.compose.resources.stringResource
 
 private const val JOYSTICK_ENABLED = true
 
+private val CROSSFADE_SETTLE_DELAY = 350L.milliseconds
+
 @Composable
 internal fun IsometricGraphicsContent(
     stateHolder: IsometricGraphicsDemoStateHolderImpl,
@@ -83,8 +85,18 @@ internal fun IsometricGraphicsContent(
     val joystickOrigin = stateHolder.controlOverlayManager.joystickOrigin.collectAsState()
     val joystickDirection = stateHolder.controlOverlayManager.joystickDirection.collectAsState()
     val joystickSpeedFactor = stateHolder.controlOverlayManager.joystickSpeedFactor.collectAsState()
-    val image = remember { mutableStateOf<ImageBitmap?>(null) }
+    // Composing the two KubrikoViewports (this one and the hidden logic viewport inside MiniMap)
+    // warms up the whole render pipeline on the main thread. Deferring it past the Showcase crossfade
+    // transition keeps that heavy first frame from stalling the animation; the loading overlay covers
+    // the gap until the world is ready.
+    val isReadyToRender = remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
+        delay(CROSSFADE_SETTLE_DELAY)
+        isReadyToRender.value = true
+    }
+    val image = remember { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(isReadyToRender.value) {
+        if (!isReadyToRender.value) return@LaunchedEffect
         while (image.value == null) {
             image.value = stateHolder.textureManager.resolveTexture("map")
             if (image.value == null) {
@@ -152,34 +164,36 @@ internal fun IsometricGraphicsContent(
         stateHolder.controlOverlayManager.leftInsetPx = leftInsetPx
         stateHolder.controlOverlayManager.bottomInsetPx = bottomInsetPx
     }
-    KubrikoViewport(
-        modifier = Modifier
-            .drawBehind {
-                val state = renderState.value
-                val offset = state.cameraOffset
-                val worldRotation = state.worldRotation
-                val zoom = state.zoom
-                val tilt = state.tilt
-                drawIsometricGrid(
-                    gridLinesPath = gridLinesPath,
-                    isoMatrix = isoMatrix,
-                    gridColor = Color.Black,
-                    tileWidth = 100.sceneUnit,
-                    tileHeight = 100.sceneUnit,
-                    cameraPosition = offset,
-                    worldRotation = worldRotation,
-                    zoom = zoom * 2f,
-                    tilt = tilt,
-                    gridMap = gridMap,
-                    stroke = stroke,
-                    size = size.value,
-                    focusHeight = VolumetricRenderManager.FOCUS_HEIGHT,
-                    lineCache = gridLineCache,
-                )
-            },
-        kubriko = stateHolder.isometricKubriko,
-    )
-    if (JOYSTICK_ENABLED) {
+    if (isReadyToRender.value) {
+        KubrikoViewport(
+            modifier = Modifier
+                .drawBehind {
+                    val state = renderState.value
+                    val offset = state.cameraOffset
+                    val worldRotation = state.worldRotation
+                    val zoom = state.zoom
+                    val tilt = state.tilt
+                    drawIsometricGrid(
+                        gridLinesPath = gridLinesPath,
+                        isoMatrix = isoMatrix,
+                        gridColor = Color.Black,
+                        tileWidth = 100.sceneUnit,
+                        tileHeight = 100.sceneUnit,
+                        cameraPosition = offset,
+                        worldRotation = worldRotation,
+                        zoom = zoom * 2f,
+                        tilt = tilt,
+                        gridMap = gridMap,
+                        stroke = stroke,
+                        size = size.value,
+                        focusHeight = VolumetricRenderManager.FOCUS_HEIGHT,
+                        lineCache = gridLineCache,
+                    )
+                },
+            kubriko = stateHolder.isometricKubriko,
+        )
+    }
+    if (JOYSTICK_ENABLED && isReadyToRender.value) {
         Box {
             Box(
                 modifier = Modifier
@@ -230,15 +244,17 @@ internal fun IsometricGraphicsContent(
             text = stringResource(Res.string.description),
             isVisible = StateHolder.isInfoPanelVisible.value,
         )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-        ) {
-            MiniMap(stateHolder = stateHolder, gridMap = gridMap)
+        if (isReadyToRender.value) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                MiniMap(stateHolder = stateHolder, gridMap = gridMap)
+            }
         }
     }
     LoadingOverlay(
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
-        shouldShowLoadingIndicator = stateHolder.shouldShowLoadingIndicator.collectAsState().value,
+        shouldShowLoadingIndicator = !isReadyToRender.value || stateHolder.shouldShowLoadingIndicator.collectAsState().value,
     )
 }
