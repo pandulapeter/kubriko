@@ -40,7 +40,7 @@ internal class Ground private constructor(state: State) : Visible, RigidBody, Ed
     }
     override val drawingOrder = -2f
 
-    @set:Exposed(name = "color")
+    @set:Exposed
     var color: Color = state.color
 
     override fun onAdded(kubriko: Kubriko) {

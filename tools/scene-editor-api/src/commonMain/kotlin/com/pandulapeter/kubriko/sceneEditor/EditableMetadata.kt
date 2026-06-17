@@ -16,6 +16,8 @@ import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.serialization.SerializableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.types.SceneOffset
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import kotlin.reflect.KClass
 
 /**
@@ -72,6 +74,29 @@ class EditableMetadata<T : Editable<T>>(
         ): EditableMetadata<T> = EditableMetadata(
             typeId = typeId,
             deserializeState = deserializeState,
+            instantiate = instantiate,
+            type = T::class,
+        )
+
+        /**
+         * Creates [EditableMetadata] for an actor whose [Serializable.State] type is also reified, so the
+         * deserialization logic can be derived automatically instead of being passed in.
+         *
+         * @param S The [Serializable.State] type of the actor, used to deserialize scene files.
+         * @param typeId A unique string that identifies the actor type. Defaults to the actor's simple class name.
+         * Note that this value is written into serialized scenes, so changing it (or renaming the class while
+         * relying on the default) invalidates previously saved scene files.
+         * @param json The [Json] instance used to deserialize the state. Defaults to a lenient instance that
+         * ignores unknown keys.
+         * @param instantiate A function that creates a new [S] for an actor at the given [SceneOffset].
+         */
+        inline fun <reified T : Editable<T>, reified S : Serializable.State<T>> create(
+            typeId: String = requireNotNull(T::class.simpleName) { "Cannot derive a typeId for an anonymous Editable type; pass typeId explicitly." },
+            json: Json = Json { ignoreUnknownKeys = true },
+            noinline instantiate: (SceneOffset) -> S,
+        ): EditableMetadata<T> = EditableMetadata(
+            typeId = typeId,
+            deserializeState = { json.decodeFromString<S>(it) },
             instantiate = instantiate,
             type = T::class,
         )

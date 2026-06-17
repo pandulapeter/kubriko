@@ -42,7 +42,7 @@ import kotlin.random.Random
 
 // TODO: Something is off with the Editor preview
 internal class DynamicChain private constructor(private val state: State) : Group, Dynamic, Visible, Editable<DynamicChain> {
-    @set:Exposed("linkCount")
+    @set:Exposed
     var linkCount = state.linkCount
         set(value) {
             field = value

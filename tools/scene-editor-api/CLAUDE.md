@@ -25,9 +25,9 @@ An Actor that can be manipulated in the editor. Requirements:
 ### `@Exposed`
 ```kotlin
 @Target(AnnotationTarget.PROPERTY_SETTER)
-annotation class Exposed(val name: String)
+annotation class Exposed(val name: String = "")
 ```
-Apply to **property setters** of an `Editable` actor to surface them in the property inspector panel. The editor discovers them at runtime via Kotlin reflection (`KMutableProperty.setter.findAnnotation<Exposed>()`).
+Apply to **property setters** of an `Editable` actor to surface them in the property inspector panel. The editor discovers them at runtime via Kotlin reflection (`KMutableProperty.setter.findAnnotation<Exposed>()`). `name` is optional: when left blank (the default), `PropertyEditorMapper` falls back to the property's own name (`KMutableProperty.name`), so a bare `@set:Exposed` is enough whenever the label matches the property name.
 
 Supported setter types (anything else is silently ignored):
 - `Boolean` — rendered as a checkbox
@@ -43,11 +43,20 @@ Supported setter types (anything else is silently ignored):
 ### `EditableMetadata<T>`
 Extends `SerializableMetadata<T>` with an `instantiate: (SceneOffset) -> Serializable.State<T>` lambda. This lets the editor create a new default instance at a given scene position when the user places an actor.
 
-Use the companion `invoke` operator for idiomatic construction:
+Preferred construction is the companion `create<T, S>` factory, which reifies the `State` type (`S`) too and therefore derives `deserializeState` automatically — the caller only supplies `instantiate`:
+```kotlin
+EditableMetadata.create<MyActor, MyActor.State> { position ->
+    MyActor.State(body = BoxBody(initialPosition = position))
+}
+```
+- `typeId` defaults to `T::class.simpleName` (the examples rely on this default; their committed scene files store the simple class names). Since the `typeId` is persisted into scene files, pass an explicit `typeId = "..."` when you need it to stay stable across class renames.
+- `json` defaults to a lenient `Json { ignoreUnknownKeys = true }`; override it only if your `State` needs custom serialization config.
+
+The lower-level `invoke` operator is still available when you need to supply `deserializeState` by hand:
 ```kotlin
 EditableMetadata(
     typeId = "MyActor",
-    deserializeState = { MyActor.State.deserialize(it) },
+    deserializeState = { json.decodeFromString<MyActor.State>(it) },
     instantiate = { position -> MyActor.State(position = position) },
 )
 ```

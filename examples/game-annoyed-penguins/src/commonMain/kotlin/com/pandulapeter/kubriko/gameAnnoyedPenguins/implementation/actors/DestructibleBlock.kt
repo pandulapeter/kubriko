@@ -42,21 +42,21 @@ internal class DestructibleBlock private constructor(
         staticFriction = 0.01f,
     )
 
-    @set:Exposed(name = "restitution")
+    @set:Exposed
     var restitution
         get() = physicsBody.restitution
         set(value) {
             physicsBody.restitution = value
         }
 
-    @set:Exposed(name = "density")
+    @set:Exposed
     var density
         get() = physicsBody.density
         set(value) {
             physicsBody.density = value
         }
 
-    @set:Exposed(name = "color")
+    @set:Exposed
     var color: Color = state.color
 
     override fun DrawScope.draw() {

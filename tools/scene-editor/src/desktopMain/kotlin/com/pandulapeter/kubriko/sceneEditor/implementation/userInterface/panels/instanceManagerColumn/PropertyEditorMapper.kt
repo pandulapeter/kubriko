@@ -73,7 +73,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
     angleEditorMode: AngleEditorMode,
 ): (@Composable () -> Unit)? = setter.findAnnotation<Exposed>()?.let { editableProperty ->
     isAccessible = true
-    editableProperty.name.let { name ->
+    editableProperty.name.ifBlank { name }.let { name ->
         when (returnType) {
             booleanType -> {
                 {

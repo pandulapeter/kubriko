@@ -26,7 +26,6 @@ import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.serialization.json.Json
 import kubriko.examples.demo_performance.generated.resources.Res
 import kubriko.examples.demo_performance.generated.resources.description
 
@@ -46,23 +45,16 @@ internal class PerformanceDemoStateHolderImpl(
     isLoggingEnabled: Boolean,
 ) : PerformanceDemoStateHolder {
 
-    private val json = Json { ignoreUnknownKeys = true }
     val serializationManager = EditableMetadata.newSerializationManagerInstance(
-        EditableMetadata(
-            typeId = "camera",
-            deserializeState = { serializedState -> json.decodeFromString<Camera.State>(serializedState) },
-            instantiate = { Camera.State(body = PointBody(initialPosition = it)) },
-        ),
-        EditableMetadata(
-            typeId = "boxWithCircle",
-            deserializeState = { serializedState -> json.decodeFromString<BoxWithCircle.State>(serializedState) },
-            instantiate = { BoxWithCircle.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit))) },
-        ),
-        EditableMetadata(
-            typeId = "movingBox",
-            deserializeState = { serializedState -> json.decodeFromString<MovingBox.State>(serializedState) },
-            instantiate = { MovingBox.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit))) }
-        ),
+        EditableMetadata.create<Camera, Camera.State> {
+            Camera.State(body = PointBody(initialPosition = it))
+        },
+        EditableMetadata.create<BoxWithCircle, BoxWithCircle.State> {
+            BoxWithCircle.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit)))
+        },
+        EditableMetadata.create<MovingBox, MovingBox.State> {
+            MovingBox.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit)))
+        },
         isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )

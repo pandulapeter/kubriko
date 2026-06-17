@@ -35,7 +35,6 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.serialization.json.Json
 
 sealed interface BlockysJourneyGameStateHolder : StateHolder
 
@@ -45,18 +44,13 @@ internal class BlockysJourneyGameStateHolderImpl(
     isLoggingEnabled: Boolean,
 ) : BlockysJourneyGameStateHolder {
 
-    private val json = Json { ignoreUnknownKeys = true }
     val backgroundSerializationManager = EditableMetadata.newSerializationManagerInstance(
-        EditableMetadata(
-            typeId = "blocky",
-            deserializeState = { serializedState -> json.decodeFromString<Blocky.State>(serializedState) },
-            instantiate = { Blocky.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(256.sceneUnit, 256.sceneUnit))) }
-        ),
-        EditableMetadata(
-            typeId = "block",
-            deserializeState = { serializedState -> json.decodeFromString<Block.State>(serializedState) },
-            instantiate = { Block.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(512.sceneUnit, 512.sceneUnit))) }
-        ),
+        EditableMetadata.create<Blocky, Blocky.State> {
+            Blocky.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(256.sceneUnit, 256.sceneUnit)))
+        },
+        EditableMetadata.create<Block, Block.State> {
+            Block.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(512.sceneUnit, 512.sceneUnit)))
+        },
         isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )

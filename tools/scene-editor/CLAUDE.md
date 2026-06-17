@@ -33,7 +33,7 @@ The editor runs **two separate Kubriko instances**:
 
 ## Property inspector
 
-`PropertyEditorMapper.kt` uses Kotlin reflection to discover all `KMutableProperty` members of the selected actor where the setter is annotated with `@Exposed`. Property type is matched against a pre-built set of `KType` constants (no allocation per-frame — discovery only happens on selection change). See `scene-editor-api/CLAUDE.md` for the full list of supported types.
+`PropertyEditorMapper.kt` uses Kotlin reflection to discover all `KMutableProperty` members of the selected actor where the setter is annotated with `@Exposed`. Property type is matched against a pre-built set of `KType` constants (no allocation per-frame — discovery only happens on selection change). The displayed label is `@Exposed.name`, falling back to the `KMutableProperty.name` when the annotation's `name` is blank. See `scene-editor-api/CLAUDE.md` for the full list of supported types.
 
 ## JSON scene format
 

@@ -50,16 +50,37 @@ SceneEditor(
 
 ### 3. Making Actors Editable
 
-To make an actor appear in the Scene Editor, it must implement the `Editable` interface and use the `@Exposed` annotation on its property setters:
+To make an actor appear in the Scene Editor, it must implement the `Editable<T>` interface (which also requires `Serializable<T>` and `Positionable`) and annotate the property setters you want to tune with `@Exposed`:
 
 ```kotlin
-class PlayerActor : Editable {
-    var speed: Float = 5f
-        @Exposed(name = "Movement Speed") set
+class PlayerActor private constructor(state: State) : Visible, Editable<PlayerActor> {
+
+    @set:Exposed
+    var speed: Float = state.speed
+
+    @set:Exposed(name = "Movement direction")
+    var direction: AngleRadians = state.direction
 
     // ...
 }
 ```
+
+`@Exposed` displays the property's own name by default; pass `name = "..."` only when you want a different label.
+
+### 4. Registering Editable Actors
+
+The editor needs an `EditableMetadata` entry per actor type, bundled into a `SerializationManager`. Use `EditableMetadata.create<Actor, Actor.State>` to derive the deserialization logic from the reified `State` type — you only need to supply how to instantiate a fresh actor at a placement position:
+
+```kotlin
+val serializationManager = EditableMetadata.newSerializationManagerInstance(
+    EditableMetadata.create<PlayerActor, PlayerActor.State> { position ->
+        PlayerActor.State(body = BoxBody(initialPosition = position))
+    },
+    // ...further actor types
+)
+```
+
+`typeId` defaults to the actor's simple class name. Because the `typeId` is written into saved scene files, pass an explicit `typeId = "..."` if you want it to stay stable across class renames.
 
 ## Public Artifact
 

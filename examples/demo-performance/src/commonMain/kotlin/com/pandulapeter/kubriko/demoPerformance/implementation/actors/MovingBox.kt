@@ -34,10 +34,10 @@ import kotlin.random.Random
 internal class MovingBox private constructor(state: State) : Visible, Dynamic, Editable<MovingBox> {
     override val body = state.body
 
-    @set:Exposed(name = "isRotatingClockwise")
+    @set:Exposed
     var isRotatingClockwise = state.isRotatingClockwise
 
-    @set:Exposed(name = "boxColor")
+    @set:Exposed
     var boxColor: Color = state.boxColor
 
     private var isGrowing = true

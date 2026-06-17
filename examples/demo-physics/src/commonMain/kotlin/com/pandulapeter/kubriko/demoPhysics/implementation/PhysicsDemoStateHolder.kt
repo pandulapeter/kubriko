@@ -34,7 +34,6 @@ import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.serialization.json.Json
 import kubriko.examples.demo_physics.generated.resources.Res
 import kubriko.examples.demo_physics.generated.resources.chain
 import kubriko.examples.demo_physics.generated.resources.description
@@ -68,54 +67,39 @@ internal class PhysicsDemoStateHolderImpl(
     isLoggingEnabled: Boolean,
 ) : PhysicsDemoStateHolder {
 
-    private val json = Json { ignoreUnknownKeys = true }
     val serializationManager = EditableMetadata.newSerializationManagerInstance(
-        EditableMetadata(
-            typeId = "staticBox",
-            deserializeState = { serializedState -> json.decodeFromString<StaticBox.State>(serializedState) },
-            instantiate = { StaticBox.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit))) },
-        ),
-        EditableMetadata(
-            typeId = "staticCircle",
-            deserializeState = { serializedState -> json.decodeFromString<StaticCircle.State>(serializedState) },
-            instantiate = { StaticCircle.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit))) },
-        ),
-        EditableMetadata(
-            typeId = "staticPolygon",
-            deserializeState = { serializedState -> json.decodeFromString<StaticPolygon.State>(serializedState) },
-            instantiate = {
-                StaticPolygon.State(
-                    body = BoxBody(
-                        initialPosition = it,
-                        initialSize = SceneSize(240.sceneUnit, 240.sceneUnit),
-                    ),
-                    vertices = (3..10).random().let { sideCount ->
-                        (0..sideCount).map { sideIndex ->
-                            val angle = AngleRadians.TwoPi / sideCount * (sideIndex + 0.75f)
-                            SceneOffset(
-                                x = (30..120).random().sceneUnit * angle.cos,
-                                y = (30..120).random().sceneUnit * angle.sin,
-                            )
-                        }
-                    },
-                )
-            },
-        ),
-        EditableMetadata(
-            typeId = "dynamicBox",
-            deserializeState = { serializedState -> json.decodeFromString<DynamicBox.State>(serializedState) },
-            instantiate = { DynamicBox.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit))) },
-        ),
-        EditableMetadata(
-            typeId = "dynamicChain",
-            deserializeState = { serializedState -> json.decodeFromString<DynamicChain.State>(serializedState) },
-            instantiate = { DynamicChain.State(linkCount = 20, initialCenterOffset = it) },
-        ),
-        EditableMetadata(
-            typeId = "dynamicCircle",
-            deserializeState = { serializedState -> json.decodeFromString<DynamicCircle.State>(serializedState) },
-            instantiate = { DynamicCircle.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit))) },
-        ),
+        EditableMetadata.create<StaticBox, StaticBox.State> {
+            StaticBox.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit)))
+        },
+        EditableMetadata.create<StaticCircle, StaticCircle.State> {
+            StaticCircle.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit)))
+        },
+        EditableMetadata.create<StaticPolygon, StaticPolygon.State> {
+            StaticPolygon.State(
+                body = BoxBody(
+                    initialPosition = it,
+                    initialSize = SceneSize(240.sceneUnit, 240.sceneUnit),
+                ),
+                vertices = (3..10).random().let { sideCount ->
+                    (0..sideCount).map { sideIndex ->
+                        val angle = AngleRadians.TwoPi / sideCount * (sideIndex + 0.75f)
+                        SceneOffset(
+                            x = (30..120).random().sceneUnit * angle.cos,
+                            y = (30..120).random().sceneUnit * angle.sin,
+                        )
+                    }
+                },
+            )
+        },
+        EditableMetadata.create<DynamicBox, DynamicBox.State> {
+            DynamicBox.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit)))
+        },
+        EditableMetadata.create<DynamicChain, DynamicChain.State> {
+            DynamicChain.State(linkCount = 20, initialCenterOffset = it)
+        },
+        EditableMetadata.create<DynamicCircle, DynamicCircle.State> {
+            DynamicCircle.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit)))
+        },
         isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )

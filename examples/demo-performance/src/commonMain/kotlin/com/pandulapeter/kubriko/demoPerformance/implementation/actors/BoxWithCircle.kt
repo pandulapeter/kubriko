@@ -29,16 +29,16 @@ import kotlinx.serialization.json.Json
 class BoxWithCircle private constructor(state: State) : Visible, Dynamic, Editable<BoxWithCircle> {
     override val body = state.body
 
-    @set:Exposed(name = "isRotatingClockwise")
+    @set:Exposed
     var isRotatingClockwise = state.isRotatingClockwise
 
-    @set:Exposed(name = "boxColor")
+    @set:Exposed
     var boxColor: Color = state.boxColor
 
-    @set:Exposed(name = "circleRadius")
+    @set:Exposed
     var circleRadius: SceneUnit = state.circleRadius
 
-    @set:Exposed(name = "circleColor")
+    @set:Exposed
     var circleColor: Color = state.circleColor
 
     override val layerIndex = 0

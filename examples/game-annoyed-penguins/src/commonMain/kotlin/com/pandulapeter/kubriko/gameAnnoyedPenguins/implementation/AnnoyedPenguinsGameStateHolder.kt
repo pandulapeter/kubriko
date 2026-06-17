@@ -41,7 +41,6 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.serialization.json.Json
 
 sealed interface AnnoyedPenguinsGameStateHolder : StateHolder
 
@@ -52,28 +51,19 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
     isForSceneEditor: Boolean,
 ) : AnnoyedPenguinsGameStateHolder {
 
-    private val json = Json { ignoreUnknownKeys = true }
     val serializationManager = EditableMetadata.newSerializationManagerInstance(
-        EditableMetadata(
-            typeId = "block",
-            deserializeState = { serializedState -> json.decodeFromString<DestructibleBlock.State>(serializedState) },
-            instantiate = { DestructibleBlock.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(128.sceneUnit, 128.sceneUnit))) },
-        ),
-        EditableMetadata(
-            typeId = "ground",
-            deserializeState = { serializedState -> json.decodeFromString<Ground.State>(serializedState) },
-            instantiate = { Ground.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(128.sceneUnit, 128.sceneUnit))) },
-        ),
-        EditableMetadata(
-            typeId = "slingshot",
-            deserializeState = { serializedState -> json.decodeFromString<Slingshot.State>(serializedState) },
-            instantiate = { Slingshot.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(422.sceneUnit, 924.sceneUnit))) },
-        ),
-        EditableMetadata(
-            typeId = "star",
-            deserializeState = { serializedState -> json.decodeFromString<Star.State>(serializedState) },
-            instantiate = { Star.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(256.sceneUnit, 256.sceneUnit))) },
-        ),
+        EditableMetadata.create<DestructibleBlock, DestructibleBlock.State> {
+            DestructibleBlock.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(128.sceneUnit, 128.sceneUnit)))
+        },
+        EditableMetadata.create<Ground, Ground.State> {
+            Ground.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(128.sceneUnit, 128.sceneUnit)))
+        },
+        EditableMetadata.create<Slingshot, Slingshot.State> {
+            Slingshot.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(422.sceneUnit, 924.sceneUnit)))
+        },
+        EditableMetadata.create<Star, Star.State> {
+            Star.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(256.sceneUnit, 256.sceneUnit)))
+        },
         isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
