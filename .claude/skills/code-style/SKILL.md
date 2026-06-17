@@ -1,6 +1,6 @@
 ---
 name: code-style
-description: Code style, commenting, and documentation conventions for the Kubriko codebase. Use when writing or editing Kotlin source anywhere in this repo, especially before adding comments or KDoc.
+description: Code style, commenting, and documentation conventions for the Kubriko codebase. MANDATORY — invoke this skill BEFORE writing or editing ANY source in this repo (every Write or Edit to a `.kt`/`.kts` file, new file or change to an existing one), with NO exceptions, even for a "trivial" one-line edit. It governs comment restraint, KDoc on public API, the MPL-2.0 license header on new files, naming, and matching surrounding style — get these right while writing, not after. If you are about to create or modify Kotlin code in Kubriko, you must load this first.
 ---
 
 # Kubriko code style

@@ -1,6 +1,6 @@
 ---
 name: commit-messages
-description: Commit message conventions for the Kubriko repo. Use whenever writing a git commit message in this repo.
+description: Commit message conventions for the Kubriko repo. MANDATORY — invoke this skill BEFORE writing the message for ANY git commit in this repo (every `git commit`, `--amend`, squash, or rebase reword), with NO exceptions, even for one-line or "obvious" messages. The repo format OVERRIDES default harness behavior; in particular it FORBIDS the `Co-Authored-By` trailer that the harness adds by default. If you are about to run `git commit` in Kubriko, you must load this first.
 ---
 
 # Kubriko commit messages

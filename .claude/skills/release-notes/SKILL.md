@@ -1,6 +1,6 @@
 ---
 name: release-notes
-description: Write a paste-ready GitHub release-notes draft for Kubriko, summarizing the library changes since the last version bump, grouped by module. Use when preparing a new release or asked to draft/summarize release notes.
+description: Write a paste-ready GitHub release-notes draft for Kubriko, summarizing the library changes since the last version bump, grouped by module. Invoke this skill WHENEVER the task involves Kubriko release notes — preparing or cutting a new release, bumping `library.version`, or any request to draft, write, summarize, or update release notes / a changelog / "what changed since the last version". This is the ONLY correct way to produce these notes; do not summarize changes by hand instead. Not triggered by ordinary code edits — only by release/notes work.
 ---
 
 # Kubriko release notes
