@@ -48,8 +48,20 @@ that explains what the code already says.
 - Match the formatting, indentation, and idiom of the surrounding file rather than reformatting to a
   personal preference.
 
+## Clean up after changes
+
+- **Never leave anything unused behind.** When a change removes the last usage of a declaration,
+  delete the declaration too — don't leave it dangling.
+- This includes the whole chain: unused imports, private/internal functions, properties, classes,
+  string/drawable resources.
+- After editing, search the codebase for each symbol and resource you stopped using and confirm it
+  has no remaining references before finishing.
+
 ## Always
 
 - Start every new source file with the MPL-2.0 license header (copy from a sibling file).
 - Keep the public API stable — optimize under the hood only (see root `CLAUDE.md` → Conventions).
 - Honor the performance rules (zero per-frame allocation in hot paths; see root `CLAUDE.md` → Performance).
+- **Never commit automatically.** Leave edits in the working tree as uncommitted changes so they can be
+  reviewed first. Only run `git commit` (or `git add` in preparation for one) when explicitly instructed
+  to commit — finishing the code is not an implicit request to commit it.
