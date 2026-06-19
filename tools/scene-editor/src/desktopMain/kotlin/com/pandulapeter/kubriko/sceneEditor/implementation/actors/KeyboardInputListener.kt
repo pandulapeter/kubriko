@@ -21,6 +21,7 @@ import kotlinx.collections.immutable.ImmutableSet
 internal class KeyboardInputListener(
     private val viewportManager: ViewportManager,
     private val keyboardInputManager: KeyboardInputManager,
+    private val isTextInputFocused: () -> Boolean,
     private val navigateBack: () -> Unit,
     private val onUndo: () -> Unit,
     private val onRedo: () -> Unit,
@@ -33,7 +34,11 @@ internal class KeyboardInputListener(
     private val isShiftActive
         get() = keyboardInputManager.run { isKeyPressed(Key.ShiftLeft) || isKeyPressed(Key.ShiftRight) }
 
-    override fun handleActiveKeys(activeKeys: ImmutableSet<Key>) = viewportManager.handleKeys(activeKeys)
+    override fun handleActiveKeys(activeKeys: ImmutableSet<Key>) {
+        if (!isTextInputFocused()) {
+            viewportManager.handleKeys(activeKeys)
+        }
+    }
 
     override fun onKeyPressed(key: Key) {
         if (isShortcutModifierActive) {

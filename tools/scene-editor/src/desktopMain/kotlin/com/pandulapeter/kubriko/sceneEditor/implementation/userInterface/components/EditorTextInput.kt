@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.LocalTextInputFocusReporter
 import com.pandulapeter.kubriko.uiComponents.TextInput
 
 @Composable
@@ -59,6 +60,7 @@ internal fun EditorTextInput(
                 value = value,
                 enabled = enabled,
                 onValueChanged = onValueChanged,
+                onFocusChanged = LocalTextInputFocusReporter.current,
             )
             if (!hint.isNullOrBlank() && value.isEmpty()) {
                 EditorText(

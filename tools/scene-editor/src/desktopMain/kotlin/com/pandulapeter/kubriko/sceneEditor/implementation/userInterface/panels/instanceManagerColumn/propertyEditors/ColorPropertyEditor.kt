@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.helpers.extensions.toHSV
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.LocalTextInputFocusReporter
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorText
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.ColorEditorMode
 import com.pandulapeter.kubriko.uiComponents.TextInput
@@ -113,6 +114,7 @@ private fun HexInput(
             text = input.filter { it.isHexDigit() }.uppercase().take(6)
             text.parseHexColor(value.alpha)?.let(onValueChanged)
         },
+        onFocusChanged = LocalTextInputFocusReporter.current,
     )
 }
 

@@ -50,7 +50,13 @@ Scene files are plain JSON produced by `SerializationManager.serializeActors(Lis
 
 ## Navigation (keyboard)
 
-`KeyboardInputListener` actor in `editorKubriko` handles Escape: deselect actor → deselect type → close editor.
+`KeyboardInputListener` actor in `editorKubriko` handles Escape (deselect actor → deselect type → close editor), undo/redo shortcuts, and the WASD/arrow-key camera pan + `+`/`-` zoom (via `ViewportManager.handleKeys`).
+
+`KeyboardInputManager` reads keys from a **global** source (a window-wide AWT listener on Desktop), so a focused Compose text field does **not** naturally steal key events from the camera handler — typing or moving the text cursor would otherwise pan/zoom the camera. To prevent this, text-input focus is tracked and the camera/zoom keys are suppressed while any field is focused:
+
+- `LocalTextInputFocusReporter` (a `staticCompositionLocalOf`) carries a `(Boolean) -> Unit` reporter, provided in `InternalSceneEditor` around the editor UI. This avoids threading a focus callback through every property editor.
+- The shared `ui-components` `TextInput` accepts an `onFocusChanged` callback and reports a **balanced** focus state — it emits `false` on dispose if it was focused, so the count can't leak when a focused field is removed (e.g. selecting a different actor). `EditorTextInput` and the HEX field in `ColorPropertyEditor` are the only call sites that forward the local into it.
+- `EditorController` keeps `focusedTextInputCount`; `KeyboardInputListener.handleActiveKeys` skips `ViewportManager.handleKeys` while it is `> 0`. Discrete shortcuts (Escape, undo/redo) are **not** gated.
 
 ## Persistence
 

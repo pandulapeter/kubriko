@@ -38,7 +38,7 @@ Typography uses `Public Sans Regular` across all Material3 text styles.
 | `SmallSlider` | Compact 24 dp tall slider | `value`, `onValueChanged`, `valueRange` |
 | `SmallSliderWithTitle` | `SmallSlider` with a label in a Row | `title: String` prepended left |
 | `SmallSwitch` | Compact labeled toggle switch | `title: String`, `isChecked`, `onCheckedChanged` |
-| `TextInput` | `BasicTextField` styled with theme colors | `value`, `onValueChanged`, `enabled` |
+| `TextInput` | `BasicTextField` styled with theme colors | `value`, `onValueChanged`, `enabled`, `onFocusChanged` (balanced — also fires `false` on dispose if focused) |
 | `LoadingIndicator` | 24 dp circular progress, 3 dp stroke | — |
 | `LoadingOverlay` | Fullscreen overlay; shows `LoadingIndicator` bottom-start while loading | `shouldShowLoadingIndicator`, `content` slot |
 

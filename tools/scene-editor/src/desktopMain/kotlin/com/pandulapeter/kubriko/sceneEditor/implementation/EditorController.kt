@@ -68,6 +68,7 @@ internal class EditorController(
         KeyboardInputListener(
             viewportManager = viewportManager,
             keyboardInputManager = keyboardInputManager,
+            isTextInputFocused = { focusedTextInputCount > 0 },
             navigateBack = ::navigateBack,
             onUndo = ::onUndo,
             onRedo = ::onRedo,
@@ -143,6 +144,7 @@ internal class EditorController(
     val isSceneModified = _isSceneModified.asStateFlow()
     private var pendingPropertyEditKey: Any? = null
     private var cameraAnimationJob: Job? = null
+    private var focusedTextInputCount = 0
     val snapMode = combine(
         userPreferences.snapX,
         userPreferences.snapY,
@@ -169,6 +171,10 @@ internal class EditorController(
     fun onSnapModeChanged(snapMode: Pair<Int, Int>) {
         userPreferences.snapX.update { snapMode.first }
         userPreferences.snapY.update { snapMode.second }
+    }
+
+    fun onTextInputFocusChanged(isFocused: Boolean) {
+        focusedTextInputCount = (focusedTextInputCount + if (isFocused) 1 else -1).coerceAtLeast(0)
     }
 
     fun onShouldShowVisibleOnlyToggled() = _shouldShowVisibleOnly.update { currentValue ->

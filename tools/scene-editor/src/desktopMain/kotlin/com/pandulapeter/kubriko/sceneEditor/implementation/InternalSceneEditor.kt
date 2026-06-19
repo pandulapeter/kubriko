@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.sceneEditor.implementation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +31,7 @@ import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.overlay.OverlayManager
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.EditorUserInterface
+import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.LocalTextInputFocusReporter
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.Settings
 import com.pandulapeter.kubriko.serialization.SerializationManager
 import java.awt.Dimension
@@ -109,13 +111,17 @@ internal fun InternalSceneEditor(
         title = title,
     ) {
         window.minimumSize = Dimension(600, 400)
-        EditorUserInterface(
-            editorController = editorController,
-            openFilePickerForLoading = { isLoadFileChooserOpen.value = true },
-            openFilePickerForSaving = { isSaveFileChooserOpen.value = true },
-            openSettings = { isSettingsOpen.value = !isSettingsOpen.value },
-            overlayKubriko = overlayKubriko,
-        )
+        CompositionLocalProvider(
+            LocalTextInputFocusReporter provides editorController::onTextInputFocusChanged,
+        ) {
+            EditorUserInterface(
+                editorController = editorController,
+                openFilePickerForLoading = { isLoadFileChooserOpen.value = true },
+                openFilePickerForSaving = { isSaveFileChooserOpen.value = true },
+                openSettings = { isSettingsOpen.value = !isSettingsOpen.value },
+                overlayKubriko = overlayKubriko,
+            )
+        }
         if (isLoadFileChooserOpen.value) {
             FileDialog(
                 parent = window,
