@@ -34,7 +34,9 @@ import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,7 +44,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
+import kotlin.time.TimeSource
 
 internal class EditorController(
     val kubriko: Kubriko,
@@ -108,6 +113,15 @@ internal class EditorController(
     ) { actor, triggerActorUpdate ->
         actor to triggerActorUpdate
     }.stateIn(this, SharingStarted.Eagerly, null to false)
+    val canLocateSelectedActor = combine(
+        _selectedActor,
+        viewportManager.cameraPosition,
+        triggerActorUpdate,
+    ) { selectedActor, cameraPosition, _ ->
+        (selectedActor as? Visible)?.let { visibleActor ->
+            !cameraPosition.isRoughlyAt(visibleActor.body.position)
+        } ?: false
+    }.stateIn(this, SharingStarted.Eagerly, false)
     private val _selectedTypeId = MutableStateFlow<String?>(null)
     val selectedTypeId = _selectedTypeId.asStateFlow()
     val colorEditorMode = userPreferences.colorEditorMode
@@ -128,6 +142,7 @@ internal class EditorController(
     private val _isSceneModified = MutableStateFlow(false)
     val isSceneModified = _isSceneModified.asStateFlow()
     private var pendingPropertyEditKey: Any? = null
+    private var cameraAnimationJob: Job? = null
     val snapMode = combine(
         userPreferences.snapX,
         userPreferences.snapY,
@@ -229,7 +244,30 @@ internal class EditorController(
 
     fun locateSelectedActor() {
         (_selectedActor.value as? Visible)?.let { visibleTrait ->
-            viewportManager.setCameraPosition(visibleTrait.body.position)
+            animateCameraTo(visibleTrait.body.position)
+        }
+    }
+
+    private fun animateCameraTo(target: SceneOffset) {
+        val start = viewportManager.cameraPosition.value
+        val delta = target - start
+        cameraAnimationJob?.cancel()
+        cameraAnimationJob = launch {
+            val startMark = TimeSource.Monotonic.markNow()
+            var lastAnimatedPosition = start
+            while (isActive) {
+                // Any camera movement the animation did not perform means the user took over; yield to them.
+                if (viewportManager.cameraPosition.value != lastAnimatedPosition) {
+                    return@launch
+                }
+                val progress = (startMark.elapsedNow().inWholeMilliseconds.toFloat() / CAMERA_ANIMATION_DURATION_MS).coerceIn(0f, 1f)
+                lastAnimatedPosition = start + delta * easeInOut(progress)
+                viewportManager.setCameraPosition(lastAnimatedPosition)
+                if (progress >= 1f) {
+                    break
+                }
+                delay(CAMERA_ANIMATION_FRAME_DELAY_MS)
+            }
         }
     }
 
@@ -312,6 +350,7 @@ internal class EditorController(
     }
 
     fun reset() {
+        cameraAnimationJob?.cancel()
         viewportManager.setCameraPosition(SceneOffset.Zero)
         _currentFileName.update { DEFAULT_SCENE_FILE_NAME }
         _selectedActor.update { null }
@@ -379,5 +418,12 @@ internal class EditorController(
 
     companion object {
         private const val DEFAULT_SCENE_FILE_NAME = "scene_untitled.json"
+        private const val CAMERA_ANIMATION_DURATION_MS = 350f
+        private const val CAMERA_ANIMATION_FRAME_DELAY_MS = 8L
+
+        private fun easeInOut(progress: Float) = progress * progress * (3f - 2f * progress)
+
+        private fun SceneOffset.isRoughlyAt(other: SceneOffset) =
+            raw.x.roundToInt() == other.raw.x.roundToInt() && raw.y.roundToInt() == other.raw.y.roundToInt()
     }
 }

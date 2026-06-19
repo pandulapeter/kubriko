@@ -126,6 +126,7 @@ internal fun EditorUserInterface(
                             selectTypeId = editorController::selectActorType,
                             resolveTypeId = editorController.serializationManager::getTypeId,
                             deselectSelectedInstance = editorController::deselectSelectedActor,
+                            canLocateSelectedInstance = editorController.canLocateSelectedActor.collectAsState().value,
                             locateSelectedInstance = editorController::locateSelectedActor,
                             deleteSelectedInstance = editorController::removeSelectedActor,
                             onBeforeInstanceChange = editorController::onBeforePropertyChange,

@@ -47,6 +47,7 @@ internal fun InstanceManagerColumn(
     resolveTypeId: (KClass<out Editable<*>>) -> String?,
     selectTypeId: (String) -> Unit,
     deselectSelectedInstance: () -> Unit,
+    canLocateSelectedInstance: Boolean,
     locateSelectedInstance: () -> Unit,
     deleteSelectedInstance: () -> Unit,
     onBeforeInstanceChange: (editKey: Any) -> Unit,
@@ -62,6 +63,7 @@ internal fun InstanceManagerColumn(
                 SelectedInstanceHeader(
                     instanceTypeName = resolveTypeId(selectedInstance::class) ?: "Unknown Actor type",
                     onDeselectClicked = deselectSelectedInstance,
+                    isLocateEnabled = canLocateSelectedInstance,
                     onLocateClicked = locateSelectedInstance,
                     onDeleteClicked = deleteSelectedInstance,
                 )
@@ -133,6 +135,7 @@ internal fun InstanceManagerColumn(
 private fun SelectedInstanceHeader(
     instanceTypeName: String,
     onDeselectClicked: () -> Unit,
+    isLocateEnabled: Boolean,
     onLocateClicked: () -> Unit,
     onDeleteClicked: () -> Unit,
 ) = Column(
@@ -158,6 +161,7 @@ private fun SelectedInstanceHeader(
             drawableResource = Res.drawable.ic_locate,
             contentDescription = "Locate",
             onClick = onLocateClicked,
+            isEnabled = isLocateEnabled,
         )
         EditorIcon(
             drawableResource = Res.drawable.ic_delete,
