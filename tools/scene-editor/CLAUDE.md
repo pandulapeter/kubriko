@@ -46,7 +46,7 @@ Scene files are plain JSON produced by `SerializationManager.serializeActors(Lis
 - **Instance manager** (right column) — shows all placed actors; click to select; also shows property editors for the selected actor.
 - **File manager** (top row) — new/load/save via AWT `FileDialog`.
 - **Metadata row** (bottom) — displays mouse scene coordinates and total actor count.
-- **Settings window** — separate Compose Window (200×250 dp); contains color editor mode (RGB/Hex), angle editor mode (wheel/numeric), debug menu toggle.
+- **Settings window** — separate Compose Window (200×250 dp); contains color editor mode (RGB/HSV), angle editor mode (wheel/numeric), debug menu toggle.
 
 ## Navigation (keyboard)
 
