@@ -371,8 +371,7 @@ internal class EditorController(
         viewportManager.setCameraPosition(SceneOffset.Zero)
         _currentFileName.update { DEFAULT_SCENE_FILE_NAME }
         _selectedActor.update { null }
-        actorManager.removeAll()
-        actorManager.add(editorActors)
+        clearSceneActors()
         onSceneReplaced()
     }
 
@@ -383,8 +382,8 @@ internal class EditorController(
                 parseJson(json)
                 onSceneReplaced()
                 updateCurrentFolderPathAndFileName(path)
-                _shouldShowLoadingIndicator.update { false }
             }
+            _shouldShowLoadingIndicator.update { false }
         }
     }
 
@@ -394,9 +393,15 @@ internal class EditorController(
     }
 
     private fun replaceSceneActors(actors: List<Editable<*>>) {
-        actorManager.removeAll()
-        actorManager.add(actors + editorActors)
+        clearSceneActors()
+        actorManager.add(actors)
     }
+
+    /**
+     * Removes the scene's actors while keeping [editorActors] registered. Clearing everything and re-adding
+     * the editor's own actors would race the startup auto-load and drop the grid until the next scene change.
+     */
+    private fun clearSceneActors() = actorManager.remove(actorManager.allActors.value.filterNot { it in editorActors })
 
     fun syncScene() {
         launch {
