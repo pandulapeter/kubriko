@@ -134,6 +134,10 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
         actorManager.add(activeFakePenguin, waitingFakePenguin, front)
     }
 
+    override fun onRemoved() {
+        actorManager.remove(activeFakePenguin, waitingFakePenguin, front)
+    }
+
     override fun DrawScope.draw() {
         spriteManager.get(Res.drawable.sprite_slingshot_background)?.let { background ->
             drawIntoCanvas { canvas ->

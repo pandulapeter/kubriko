@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.actor.traits.Identifiable
+import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorSurface
@@ -82,9 +83,10 @@ internal fun InstanceBrowserColumn(
 }
 
 private fun Editable<*>.getName(typeId: String?): String {
+    val prefix = if (this is Unique) "[Unique] " else ""
     val type = typeId ?: "Unknown Actor type"
     val id = (this as? Identifiable)?.name
-    return if (id == null) type else "$type [$id]"
+    return if (id == null) "$prefix$type" else "$prefix$type [$id]"
 }
 
 @Composable

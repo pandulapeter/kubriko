@@ -126,6 +126,7 @@ internal fun EditorUserInterface(
                             selectedUpdatableInstance = editorController.selectedUpdatableActor.collectAsState().value,
                             selectTypeId = editorController::selectActorType,
                             resolveTypeId = editorController.serializationManager::getTypeId,
+                            isTypeUnique = editorController::isTypeUnique,
                             deselectSelectedInstance = editorController::deselectSelectedActor,
                             canLocateSelectedInstance = editorController.canLocateSelectedActor.collectAsState().value,
                             locateSelectedInstance = editorController::locateSelectedActor,

@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.sceneEditor.implementation
 
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.collision.extensions.isCollidingWith
 import com.pandulapeter.kubriko.helpers.extensions.get
@@ -47,6 +48,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import kotlin.reflect.full.isSubclassOf
 import kotlin.time.TimeSource
 
 internal class EditorController(
@@ -293,6 +295,8 @@ internal class EditorController(
     fun onFilterTextChanged(filterText: String) = _filterText.update { filterText }
 
     fun selectActorType(typeId: String?) = _selectedTypeId.update { currentValue -> if (currentValue == typeId) null else typeId }
+
+    fun isTypeUnique(typeId: String) = serializationManager.getMetadata(typeId)?.type?.isSubclassOf(Unique::class) == true
 
     fun deselectSelectedActor() {
         pendingPropertyEditKey = null

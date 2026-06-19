@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorIcon
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorRadioButton
@@ -45,6 +46,7 @@ internal fun InstanceManagerColumn(
     selectedTypeId: String?,
     selectedUpdatableInstance: Pair<Editable<*>?, Boolean>,
     resolveTypeId: (KClass<out Editable<*>>) -> String?,
+    isTypeUnique: (String) -> Boolean,
     selectTypeId: (String) -> Unit,
     deselectSelectedInstance: () -> Unit,
     canLocateSelectedInstance: Boolean,
@@ -62,6 +64,7 @@ internal fun InstanceManagerColumn(
             if (selectedInstance != null) {
                 SelectedInstanceHeader(
                     instanceTypeName = resolveTypeId(selectedInstance::class) ?: "Unknown Actor type",
+                    isUnique = selectedInstance is Unique,
                     onDeselectClicked = deselectSelectedInstance,
                     isLocateEnabled = canLocateSelectedInstance,
                     onLocateClicked = locateSelectedInstance,
@@ -78,7 +81,7 @@ internal fun InstanceManagerColumn(
                         key = { "typeRadioButton_${it}" },
                     ) { typeId ->
                         EditorRadioButton(
-                            label = typeId,
+                            label = if (isTypeUnique(typeId)) "[Unique] $typeId" else typeId,
                             isSelected = typeId == selectedTypeId,
                             onSelectionChanged = { selectTypeId(typeId) },
                         )
@@ -134,6 +137,7 @@ internal fun InstanceManagerColumn(
 @Composable
 private fun SelectedInstanceHeader(
     instanceTypeName: String,
+    isUnique: Boolean,
     onDeselectClicked: () -> Unit,
     isLocateEnabled: Boolean,
     onLocateClicked: () -> Unit,
@@ -155,7 +159,7 @@ private fun SelectedInstanceHeader(
     ) {
         EditorTextTitle(
             modifier = Modifier.weight(1f),
-            text = instanceTypeName,
+            text = if (isUnique) "[Unique] $instanceTypeName" else instanceTypeName,
         )
         EditorIcon(
             drawableResource = Res.drawable.ic_locate,
