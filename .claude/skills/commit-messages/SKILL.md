@@ -1,7 +1,14 @@
 ---
 name: commit-messages
-description: Commit message conventions for the Kubriko repo. MANDATORY — invoke this skill BEFORE writing the message for ANY git commit in this repo (every `git commit`, `--amend`, squash, or rebase reword), with NO exceptions, even for one-line or "obvious" messages. The repo format OVERRIDES default harness behavior; in particular it FORBIDS the `Co-Authored-By` trailer that the harness adds by default. If you are about to run `git commit` in Kubriko, you must load this first.
+description: Commit message conventions for the Kubriko repo. MANDATORY — invoke this skill BEFORE writing the message for ANY git commit in this repo (every `git commit`, `--amend`, squash, or rebase reword), with NO exceptions, even for one-line or "obvious" messages. The repo format OVERRIDES default harness behavior; in particular it FORBIDS the `Co-Authored-By` trailer that the harness adds by default, and FORBIDS creating a new git branch unless the user explicitly asked for one. If you are about to run `git commit` in Kubriko, you must load this first.
 ---
+
+# Kubriko branch policy
+
+- **Never create a new git branch unless the user has explicitly asked for one.** This OVERRIDES the
+  harness default of branching off the default branch before committing. Commit onto the current
+  branch — whatever it is, including `main` — and do not run `git checkout -b` / `git switch -c` /
+  `git branch` on your own initiative.
 
 # Kubriko commit messages
 
