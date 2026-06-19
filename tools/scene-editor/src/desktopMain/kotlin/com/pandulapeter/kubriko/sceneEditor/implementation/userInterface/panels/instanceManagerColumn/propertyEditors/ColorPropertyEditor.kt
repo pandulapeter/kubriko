@@ -31,6 +31,16 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.LocalTe
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorText
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.ColorEditorMode
 import com.pandulapeter.kubriko.uiComponents.TextInput
+import kubriko.tools.scene_editor.generated.resources.Res
+import kubriko.tools.scene_editor.generated.resources.property_alpha
+import kubriko.tools.scene_editor.generated.resources.property_blue
+import kubriko.tools.scene_editor.generated.resources.property_green
+import kubriko.tools.scene_editor.generated.resources.property_hex_prefix
+import kubriko.tools.scene_editor.generated.resources.property_hue
+import kubriko.tools.scene_editor.generated.resources.property_red
+import kubriko.tools.scene_editor.generated.resources.property_saturation
+import kubriko.tools.scene_editor.generated.resources.property_value
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
 @Composable
@@ -53,7 +63,7 @@ internal fun ColorPropertyEditor(
         )
         Row {
             EditorText(
-                text = "#",
+                text = stringResource(Res.string.property_hex_prefix),
             )
             HexInput(
                 modifier = Modifier.weight(1f),
@@ -76,7 +86,7 @@ internal fun ColorPropertyEditor(
         )
         FloatPropertyEditor(
             modifier = Modifier.weight(2f),
-            name = "alpha",
+            name = stringResource(Res.string.property_alpha),
             value = value.alpha,
             onValueChanged = { onValueChanged(value.copy(alpha = it)) },
             valueRange = 0f..1f,
@@ -140,7 +150,7 @@ private fun ControlsHSV(
 ) {
     val (colorHue, colorSaturation, colorValue) = value.toHSV()
     FloatPropertyEditor(
-        name = "hue",
+        name = stringResource(Res.string.property_hue),
         value = colorHue,
         onValueChanged = { onValueChanged(Color.hsv(it, colorSaturation, colorValue).copy(alpha = value.alpha)) },
         valueRange = 0f..359.5f,
@@ -148,7 +158,7 @@ private fun ControlsHSV(
         shouldUseHorizontalLayout = true,
     )
     FloatPropertyEditor(
-        name = "saturation",
+        name = stringResource(Res.string.property_saturation),
         value = colorSaturation,
         onValueChanged = { onValueChanged(Color.hsv(colorHue, it, colorValue).copy(alpha = value.alpha)) },
         valueRange = 0f..1f,
@@ -156,7 +166,7 @@ private fun ControlsHSV(
         shouldUseHorizontalLayout = true,
     )
     FloatPropertyEditor(
-        name = "value",
+        name = stringResource(Res.string.property_value),
         value = colorValue,
         onValueChanged = { onValueChanged(Color.hsv(colorHue, colorSaturation, it).copy(alpha = value.alpha)) },
         valueRange = 0f..1f,
@@ -170,21 +180,21 @@ private fun ControlsRGB(
     onValueChanged: (Color) -> Unit,
 ) {
     FloatPropertyEditor(
-        name = "red",
+        name = stringResource(Res.string.property_red),
         value = value.red,
         onValueChanged = { onValueChanged(value.copy(red = it)) },
         valueRange = 0f..1f,
         shouldUseHorizontalLayout = true,
     )
     FloatPropertyEditor(
-        name = "green",
+        name = stringResource(Res.string.property_green),
         value = value.green,
         onValueChanged = { onValueChanged(value.copy(green = it)) },
         valueRange = 0f..1f,
         shouldUseHorizontalLayout = true,
     )
     FloatPropertyEditor(
-        name = "blue",
+        name = stringResource(Res.string.property_blue),
         value = value.blue,
         onValueChanged = { onValueChanged(value.copy(blue = it)) },
         valueRange = 0f..1f,

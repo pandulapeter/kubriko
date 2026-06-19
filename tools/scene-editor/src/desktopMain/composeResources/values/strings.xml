@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><!--
+ This file is part of Kubriko.
+ Copyright (c) Pandula Péter 2025-2026.
+ https://github.com/pandulapeter/kubriko
+
+ This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ If a copy of the MPL was not distributed with this file, You can obtain one at
+ https://mozilla.org/MPL/2.0/.
+-->
+<resources>
+
+    <string name="editor_settings">Editor Settings</string>
+    <string name="file_dialog_title">Scene file</string>
+    <string name="action_new">New</string>
+    <string name="action_open">Open</string>
+    <string name="action_save">Save</string>
+    <string name="action_sync">Sync</string>
+    <string name="action_undo">Undo</string>
+    <string name="action_redo">Redo</string>
+    <string name="modified_file_name">%1$s *</string>
+    <string name="action_locate">Locate</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_deselect">Deselect</string>
+    <string name="unknown_actor_type">Unknown Actor type</string>
+    <string name="unique_prefix">[Unique] %1$s</string>
+    <string name="named_instance">%1$s [%2$s]</string>
+    <string name="filter_hint">Filter...</string>
+    <string name="clear_filter">Clear filter</string>
+    <string name="toggle_visible_only">Toggle visible only</string>
+    <string name="action_collapse">Collapse</string>
+    <string name="action_expand">Expand</string>
+    <string name="action_center">Center</string>
+    <string name="action_unit">Unit</string>
+    <string name="property_body">body</string>
+    <string name="property_position">position</string>
+    <string name="property_pivot">pivot</string>
+    <string name="property_size">size</string>
+    <string name="property_scale">scale</string>
+    <string name="property_rotation">rotation</string>
+    <string name="property_alpha">alpha</string>
+    <string name="property_hue">hue</string>
+    <string name="property_saturation">saturation</string>
+    <string name="property_value">value</string>
+    <string name="property_red">red</string>
+    <string name="property_green">green</string>
+    <string name="property_blue">blue</string>
+    <string name="property_hex_prefix">#</string>
+    <string name="property_degree_suffix">°</string>
+    <string name="property_component_x">%1$s.x</string>
+    <string name="property_component_y">%1$s.y</string>
+    <string name="property_component_horizontal">%1$s.horizontal</string>
+    <string name="property_component_vertical">%1$s.vertical</string>
+    <string name="property_component_width">%1$s.width</string>
+    <string name="property_component_height">%1$s.height</string>
+    <string name="actor_count">Actors: %1$d</string>
+    <string name="snap_x">Snap X:</string>
+    <string name="snap_y">Snap Y:</string>
+    <string name="color_controls">Color controls</string>
+    <string name="angle_controls">Angle controls</string>
+    <string name="debug_menu">Debug Menu</string>
+    <string name="color_mode_hsv">HSV</string>
+    <string name="color_mode_rgb">RGB</string>
+    <string name="angle_mode_radians">Radians</string>
+    <string name="angle_mode_degrees">Degrees</string>
+    <string name="interaction_mode_translate">Translate</string>
+    <string name="interaction_mode_scale">Scale</string>
+    <string name="interaction_mode_rotate">Rotate</string>
+
+</resources>

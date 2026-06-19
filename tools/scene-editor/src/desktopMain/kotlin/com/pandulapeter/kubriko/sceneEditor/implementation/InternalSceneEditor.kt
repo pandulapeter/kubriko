@@ -34,6 +34,10 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.EditorU
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.LocalTextInputFocusReporter
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.Settings
 import com.pandulapeter.kubriko.serialization.SerializationManager
+import kubriko.tools.scene_editor.generated.resources.Res
+import kubriko.tools.scene_editor.generated.resources.editor_settings
+import kubriko.tools.scene_editor.generated.resources.file_dialog_title
+import org.jetbrains.compose.resources.stringResource
 import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame
@@ -154,7 +158,7 @@ internal fun InternalSceneEditor(
     if (isSettingsOpen.value) {
         Window(
             onCloseRequest = { isSettingsOpen.value = false },
-            title = "Editor Settings",
+            title = stringResource(Res.string.editor_settings),
             state = rememberWindowState(
                 size = DpSize(200.dp, 250.dp),
             )
@@ -179,34 +183,37 @@ private fun FileDialog(
     currentFolderPath: String,
     isForLoading: Boolean,
     onCloseRequest: (directory: String?, fileName: String?) -> Unit
-) = AwtWindow(
-    create = {
-        object : FileDialog(parent, "Scene file", if (isForLoading) LOAD else SAVE) {
-            init {
-                val scenesDirectoryFile = File(currentFolderPath)
-                scenesDirectoryFile.parentFile?.mkdirs()
-                if (!scenesDirectoryFile.exists()) {
-                    scenesDirectoryFile.mkdir()
+) {
+    val dialogTitle = stringResource(Res.string.file_dialog_title)
+    AwtWindow(
+        create = {
+            object : FileDialog(parent, dialogTitle, if (isForLoading) LOAD else SAVE) {
+                init {
+                    val scenesDirectoryFile = File(currentFolderPath)
+                    scenesDirectoryFile.parentFile?.mkdirs()
+                    if (!scenesDirectoryFile.exists()) {
+                        scenesDirectoryFile.mkdir()
+                    }
+//                    filenameFilter = FilenameFilter { _, name ->
+//                        name.endsWith(".json")
+//                    }
+                    directory = currentFolderPath
+                    if (!isForLoading) {
+                        file = currentFileName
+                    }
                 }
-//                filenameFilter = FilenameFilter { _, name ->
-//                    name.endsWith(".json")
-//                }
-                directory = currentFolderPath
-                if (!isForLoading) {
-                    file = currentFileName
-                }
-            }
 
-            override fun setVisible(value: Boolean) {
-                super.setVisible(value)
-                if (value) {
-                    onCloseRequest(directory, file)
+                override fun setVisible(value: Boolean) {
+                    super.setVisible(value)
+                    if (value) {
+                        onCloseRequest(directory, file)
+                    }
                 }
             }
-        }
-    },
-    dispose = FileDialog::dispose
-)
+        },
+        dispose = FileDialog::dispose
+    )
+}
 
 internal const val MINIMUM_SCALE_FACTOR = 0.1f
 internal const val MAXIMUM_SCALE_FACTOR = 10f

@@ -20,7 +20,11 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.compone
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorNumberInput
 import com.pandulapeter.kubriko.types.Scale
 import kubriko.tools.scene_editor.generated.resources.Res
+import kubriko.tools.scene_editor.generated.resources.action_unit
 import kubriko.tools.scene_editor.generated.resources.ic_unit
+import kubriko.tools.scene_editor.generated.resources.property_component_horizontal
+import kubriko.tools.scene_editor.generated.resources.property_component_vertical
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun ScalePropertyEditor(
@@ -33,7 +37,7 @@ internal fun ScalePropertyEditor(
 ) {
     EditorNumberInput(
         modifier = Modifier.weight(1f),
-        name = "$name.horizontal",
+        name = stringResource(Res.string.property_component_horizontal, name),
         value = value.horizontal,
         onValueChanged = { onValueChanged(Scale(it, value.vertical)) },
         extraContent = {
@@ -45,7 +49,7 @@ internal fun ScalePropertyEditor(
     )
     EditorNumberInput(
         modifier = Modifier.weight(1f),
-        name = "$name.vertical",
+        name = stringResource(Res.string.property_component_vertical, name),
         value = value.vertical,
         onValueChanged = { onValueChanged(Scale(value.horizontal, it)) },
         extraContent = {
@@ -65,7 +69,7 @@ private fun UnitButton(
 ) {
     EditorIcon(
         drawableResource = Res.drawable.ic_unit,
-        contentDescription = "Unit",
+        contentDescription = stringResource(Res.string.action_unit),
         isEnabled = value != 1f,
         onClick = { onValueChanged(1f) }
     )

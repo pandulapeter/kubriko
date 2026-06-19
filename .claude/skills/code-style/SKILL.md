@@ -48,6 +48,22 @@ that explains what the code already says.
 - Match the formatting, indentation, and idiom of the surrounding file rather than reformatting to a
   personal preference.
 
+## User-facing strings
+
+- **No hardcoded user-facing strings in UI code.** Every string that appears on screen — `Text`
+  content, `contentDescription`, hints, titles, labels, window/dialog titles, button captions — lives
+  in a `composeResources/values/strings.xml` file and is read through `stringResource(Res.string.…)`.
+  Do not inline string literals in Composables.
+- Use parameterized resources (`%1$s`, `%1$d`, `\n`) for any string assembled from dynamic parts rather
+  than concatenating a literal with a value; pass the value as a `stringResource` format argument.
+- Keys are lower-snake-case and grouped by intent (e.g. `action_*` for buttons/icons, `property_*` for
+  the property inspector). Reuse an existing key rather than duplicating the same text.
+- Where a value reaches a Composable from a non-Composable site (e.g. an enum entry, an AWT factory
+  lambda), store the `StringResource` (not the resolved `String`) and resolve it with `stringResource`
+  at the Composable call site.
+- Exempt: persistence keys, file names, log/serialization identifiers, and numeric/coordinate readouts —
+  these are not user-facing copy and stay as literals.
+
 ## Clean up after changes
 
 - **Never leave anything unused behind.** When a change removes the last usage of a declaration,

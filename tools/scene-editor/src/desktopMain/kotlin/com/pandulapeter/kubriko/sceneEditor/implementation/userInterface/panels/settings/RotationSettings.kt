@@ -14,6 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorRadioButton
+import kubriko.tools.scene_editor.generated.resources.Res
+import kubriko.tools.scene_editor.generated.resources.angle_mode_degrees
+import kubriko.tools.scene_editor.generated.resources.angle_mode_radians
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun AngleSettings(
@@ -25,8 +29,8 @@ internal fun AngleSettings(
     AngleEditorMode.entries.forEach { mode ->
         EditorRadioButton(
             label = when (mode) {
-                AngleEditorMode.RADIANS -> "Radians"
-                AngleEditorMode.DEGREES -> "Degrees"
+                AngleEditorMode.RADIANS -> stringResource(Res.string.angle_mode_radians)
+                AngleEditorMode.DEGREES -> stringResource(Res.string.angle_mode_degrees)
             },
             isSmall = true,
             isSelected = mode == angleEditorMode,

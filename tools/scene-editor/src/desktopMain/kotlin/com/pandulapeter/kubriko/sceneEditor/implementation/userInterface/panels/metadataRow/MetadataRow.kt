@@ -30,6 +30,11 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.compone
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorTextInput
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorTextLabel
 import com.pandulapeter.kubriko.types.SceneOffset
+import kubriko.tools.scene_editor.generated.resources.Res
+import kubriko.tools.scene_editor.generated.resources.actor_count
+import kubriko.tools.scene_editor.generated.resources.snap_x
+import kubriko.tools.scene_editor.generated.resources.snap_y
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -57,11 +62,11 @@ internal fun MetadataRow(
     ) {
         EditorTextLabel(
             modifier = Modifier.width(92.dp),
-            text = "Actors: $totalActorCount",
+            text = stringResource(Res.string.actor_count, totalActorCount),
         )
         EditorTextInput(
             modifier = Modifier.width(92.dp),
-            title = "Snap X:",
+            title = stringResource(Res.string.snap_x),
             shouldUseHorizontalLayout = true,
             value = snapMode.first.toString(),
             onValueChanged = { newValue ->
@@ -70,7 +75,7 @@ internal fun MetadataRow(
         )
         EditorTextInput(
             modifier = Modifier.width(92.dp),
-            title = "Snap Y:",
+            title = stringResource(Res.string.snap_y),
             shouldUseHorizontalLayout = true,
             value = snapMode.second.toString(),
             onValueChanged = { newValue ->
@@ -117,6 +122,6 @@ private fun InteractionModeRadioButton(
         onClick = onSelected,
     )
     EditorTextLabel(
-        text = mode.label,
+        text = stringResource(mode.label),
     )
 }

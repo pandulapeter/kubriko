@@ -12,6 +12,9 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorSwitch
+import kubriko.tools.scene_editor.generated.resources.Res
+import kubriko.tools.scene_editor.generated.resources.debug_menu
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun DebugMenuSettings(
@@ -19,7 +22,7 @@ internal fun DebugMenuSettings(
     onIsDebutMenuEnabledChanged: (Boolean) -> Unit,
 ) = EditorSwitch(
     modifier = Modifier,
-    text = "Debug Menu",
+    text = stringResource(Res.string.debug_menu),
     isChecked = isDebutMenuEnabled,
     onCheckedChanged = onIsDebutMenuEnabledChanged,
 )

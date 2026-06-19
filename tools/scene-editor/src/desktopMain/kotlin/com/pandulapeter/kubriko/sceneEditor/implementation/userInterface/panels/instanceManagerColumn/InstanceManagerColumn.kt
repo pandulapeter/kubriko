@@ -32,9 +32,15 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.AngleEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.ColorEditorMode
 import kubriko.tools.scene_editor.generated.resources.Res
+import kubriko.tools.scene_editor.generated.resources.action_delete
+import kubriko.tools.scene_editor.generated.resources.action_deselect
+import kubriko.tools.scene_editor.generated.resources.action_locate
 import kubriko.tools.scene_editor.generated.resources.ic_close
 import kubriko.tools.scene_editor.generated.resources.ic_delete
 import kubriko.tools.scene_editor.generated.resources.ic_locate
+import kubriko.tools.scene_editor.generated.resources.unique_prefix
+import kubriko.tools.scene_editor.generated.resources.unknown_actor_type
+import org.jetbrains.compose.resources.stringResource
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.memberProperties
@@ -63,7 +69,7 @@ internal fun InstanceManagerColumn(
         Column {
             if (selectedInstance != null) {
                 SelectedInstanceHeader(
-                    instanceTypeName = resolveTypeId(selectedInstance::class) ?: "Unknown Actor type",
+                    instanceTypeName = resolveTypeId(selectedInstance::class) ?: stringResource(Res.string.unknown_actor_type),
                     isUnique = selectedInstance is Unique,
                     onDeselectClicked = deselectSelectedInstance,
                     isLocateEnabled = canLocateSelectedInstance,
@@ -81,7 +87,7 @@ internal fun InstanceManagerColumn(
                         key = { "typeRadioButton_${it}" },
                     ) { typeId ->
                         EditorRadioButton(
-                            label = if (isTypeUnique(typeId)) "[Unique] $typeId" else typeId,
+                            label = if (isTypeUnique(typeId)) stringResource(Res.string.unique_prefix, typeId) else typeId,
                             isSelected = typeId == selectedTypeId,
                             onSelectionChanged = { selectTypeId(typeId) },
                         )
@@ -159,22 +165,22 @@ private fun SelectedInstanceHeader(
     ) {
         EditorTextTitle(
             modifier = Modifier.weight(1f),
-            text = if (isUnique) "[Unique] $instanceTypeName" else instanceTypeName,
+            text = if (isUnique) stringResource(Res.string.unique_prefix, instanceTypeName) else instanceTypeName,
         )
         EditorIcon(
             drawableResource = Res.drawable.ic_locate,
-            contentDescription = "Locate",
+            contentDescription = stringResource(Res.string.action_locate),
             onClick = onLocateClicked,
             isEnabled = isLocateEnabled,
         )
         EditorIcon(
             drawableResource = Res.drawable.ic_delete,
-            contentDescription = "Delete",
+            contentDescription = stringResource(Res.string.action_delete),
             onClick = onDeleteClicked,
         )
         EditorIcon(
             drawableResource = Res.drawable.ic_close,
-            contentDescription = "Deselect",
+            contentDescription = stringResource(Res.string.action_deselect),
             onClick = onDeselectClicked,
         )
     }

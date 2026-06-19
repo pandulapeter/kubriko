@@ -19,6 +19,10 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorNumberInput
 import com.pandulapeter.kubriko.types.SceneSize
+import kubriko.tools.scene_editor.generated.resources.Res
+import kubriko.tools.scene_editor.generated.resources.property_component_height
+import kubriko.tools.scene_editor.generated.resources.property_component_width
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun SceneSizePropertyEditor(
@@ -31,13 +35,13 @@ internal fun SceneSizePropertyEditor(
 ) {
     EditorNumberInput(
         modifier = Modifier.weight(1f),
-        name = "$name.width",
+        name = stringResource(Res.string.property_component_width, name),
         value = value.width.raw,
         onValueChanged = { onValueChanged(SceneSize(it.sceneUnit, value.height)) },
     )
     EditorNumberInput(
         modifier = Modifier.weight(1f),
-        name = "$name.height",
+        name = stringResource(Res.string.property_component_height, name),
         value = value.height.raw,
         onValueChanged = { onValueChanged(SceneSize(value.width, it.sceneUnit)) },
     )

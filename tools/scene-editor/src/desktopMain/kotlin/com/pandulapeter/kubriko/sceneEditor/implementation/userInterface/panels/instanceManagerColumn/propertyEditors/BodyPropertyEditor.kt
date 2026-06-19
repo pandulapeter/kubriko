@@ -19,6 +19,14 @@ import com.pandulapeter.kubriko.actor.body.PointBody
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorText
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.AngleEditorMode
+import kubriko.tools.scene_editor.generated.resources.Res
+import kubriko.tools.scene_editor.generated.resources.property_body
+import kubriko.tools.scene_editor.generated.resources.property_pivot
+import kubriko.tools.scene_editor.generated.resources.property_position
+import kubriko.tools.scene_editor.generated.resources.property_rotation
+import kubriko.tools.scene_editor.generated.resources.property_scale
+import kubriko.tools.scene_editor.generated.resources.property_size
+import org.jetbrains.compose.resources.stringResource
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
@@ -48,14 +56,14 @@ internal fun BodyPropertyEditor(
 ) {
     EditorText(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
-        text = "body",
+        text = stringResource(Res.string.property_body),
         isBold = true,
     )
     val actor = getActor()
     val bd = actor::class.memberProperties.firstOrNull { it.returnType.isSubtypeOf(PointBody::class.createType()) }
     val body = bd!!.getter.call(actor) as PointBody
     SceneOffsetPropertyEditor(
-        name = "position",
+        name = stringResource(Res.string.property_position),
         value = body.position,
         onValueChanged = {
             onBeforeChange("body.position")
@@ -65,7 +73,7 @@ internal fun BodyPropertyEditor(
     )
     if (body is BoxBody) {
         SceneOffsetPropertyEditor(
-            name = "pivot",
+            name = stringResource(Res.string.property_pivot),
             value = body.pivot,
             onValueChanged = {
                 onBeforeChange("body.pivot")
@@ -77,7 +85,7 @@ internal fun BodyPropertyEditor(
             shouldShowCenterButton = true,
         )
         SceneSizePropertyEditor(
-            name = "size",
+            name = stringResource(Res.string.property_size),
             value = body.size,
             onValueChanged = {
                 onBeforeChange("body.size")
@@ -86,7 +94,7 @@ internal fun BodyPropertyEditor(
             }
         )
         ScalePropertyEditor(
-            name = "scale",
+            name = stringResource(Res.string.property_scale),
             value = body.scale,
             onValueChanged = {
                 onBeforeChange("body.scale")
@@ -95,7 +103,7 @@ internal fun BodyPropertyEditor(
             },
         )
         RotationPropertyEditor(
-            name = "rotation",
+            name = stringResource(Res.string.property_rotation),
             value = body.rotation,
             onValueChanged = {
                 onBeforeChange("body.rotation")

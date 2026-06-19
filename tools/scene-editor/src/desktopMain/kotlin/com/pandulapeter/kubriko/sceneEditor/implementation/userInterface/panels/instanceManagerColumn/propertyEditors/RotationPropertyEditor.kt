@@ -21,6 +21,9 @@ import com.pandulapeter.kubriko.helpers.extensions.deg
 import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.AngleEditorMode
 import com.pandulapeter.kubriko.types.AngleRadians
+import kubriko.tools.scene_editor.generated.resources.Res
+import kubriko.tools.scene_editor.generated.resources.property_degree_suffix
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun RotationPropertyEditor(
@@ -38,7 +41,7 @@ internal fun RotationPropertyEditor(
         AngleEditorMode.DEGREES -> FloatPropertyEditor(
             modifier = Modifier.weight(1f),
             name = name,
-            suffix = "°",
+            suffix = stringResource(Res.string.property_degree_suffix),
             value = value.deg.normalized,
             onValueChanged = { onValueChanged(it.deg.rad) },
             valueRange = 0f..359.99f,

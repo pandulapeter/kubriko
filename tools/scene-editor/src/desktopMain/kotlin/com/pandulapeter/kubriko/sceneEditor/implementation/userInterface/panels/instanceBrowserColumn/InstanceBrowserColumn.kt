@@ -35,9 +35,16 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.compone
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorText
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorTextInput
 import kubriko.tools.scene_editor.generated.resources.Res
+import kubriko.tools.scene_editor.generated.resources.clear_filter
+import kubriko.tools.scene_editor.generated.resources.filter_hint
 import kubriko.tools.scene_editor.generated.resources.ic_close
 import kubriko.tools.scene_editor.generated.resources.ic_visible_only_off
 import kubriko.tools.scene_editor.generated.resources.ic_visible_only_on
+import kubriko.tools.scene_editor.generated.resources.named_instance
+import kubriko.tools.scene_editor.generated.resources.toggle_visible_only
+import kubriko.tools.scene_editor.generated.resources.unique_prefix
+import kubriko.tools.scene_editor.generated.resources.unknown_actor_type
+import org.jetbrains.compose.resources.stringResource
 import kotlin.reflect.KClass
 
 @Composable
@@ -82,11 +89,12 @@ internal fun InstanceBrowserColumn(
     }
 }
 
+@Composable
 private fun Editable<*>.getName(typeId: String?): String {
-    val prefix = if (this is Unique) "[Unique] " else ""
-    val type = typeId ?: "Unknown Actor type"
+    val type = typeId ?: stringResource(Res.string.unknown_actor_type)
+    val prefixedType = if (this is Unique) stringResource(Res.string.unique_prefix, type) else type
     val id = (this as? Identifiable)?.name
-    return if (id == null) "$prefix$type" else "$prefix$type [$id]"
+    return if (id == null) prefixedType else stringResource(Res.string.named_instance, prefixedType, id)
 }
 
 @Composable
@@ -113,19 +121,19 @@ private fun HeaderRow(
         EditorTextInput(
             modifier = Modifier.weight(1f),
             value = filterText,
-            hint = "Filter...",
+            hint = stringResource(Res.string.filter_hint),
             onValueChanged = onFilterTextChanged,
         )
         if (filterText.isNotEmpty()) {
             EditorIcon(
                 drawableResource = Res.drawable.ic_close,
-                contentDescription = "Clear filter",
+                contentDescription = stringResource(Res.string.clear_filter),
                 onClick = { onFilterTextChanged("") },
             )
         }
         EditorIcon(
             drawableResource = if (shouldShowVisibleOnly) Res.drawable.ic_visible_only_on else Res.drawable.ic_visible_only_off,
-            contentDescription = "Toggle visible only",
+            contentDescription = stringResource(Res.string.toggle_visible_only),
             onClick = onShouldShowVisibleOnlyToggled,
         )
     }

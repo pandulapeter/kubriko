@@ -23,7 +23,11 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.compone
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kubriko.tools.scene_editor.generated.resources.Res
+import kubriko.tools.scene_editor.generated.resources.action_center
 import kubriko.tools.scene_editor.generated.resources.ic_center
+import kubriko.tools.scene_editor.generated.resources.property_component_x
+import kubriko.tools.scene_editor.generated.resources.property_component_y
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun SceneOffsetPropertyEditor(
@@ -39,7 +43,7 @@ internal fun SceneOffsetPropertyEditor(
 ) {
     EditorNumberInput(
         modifier = Modifier.weight(1f),
-        name = "$name.x",
+        name = stringResource(Res.string.property_component_x, name),
         value = value.x.raw,
         onValueChanged = { onValueChanged(SceneOffset(it.sceneUnit, value.y)) },
         valueRange = xValueRange,
@@ -56,7 +60,7 @@ internal fun SceneOffsetPropertyEditor(
     )
     EditorNumberInput(
         modifier = Modifier.weight(1f),
-        name = "$name.y",
+        name = stringResource(Res.string.property_component_y, name),
         value = value.y.raw,
         onValueChanged = { onValueChanged(SceneOffset(value.x, it.sceneUnit)) },
         valueRange = yValueRange,
@@ -85,7 +89,7 @@ private fun CenterButton(
         EditorIcon(
             modifier = if (isHorizontal) Modifier else Modifier.rotate(90f),
             drawableResource = Res.drawable.ic_center,
-            contentDescription = "Center",
+            contentDescription = stringResource(Res.string.action_center),
             isEnabled = value != center,
             onClick = { onValueChanged(center) }
         )

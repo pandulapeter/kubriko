@@ -19,6 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorText
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
+import kubriko.tools.scene_editor.generated.resources.Res
+import kubriko.tools.scene_editor.generated.resources.angle_controls
+import kubriko.tools.scene_editor.generated.resources.color_controls
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun Settings(
@@ -40,7 +44,7 @@ internal fun Settings(
         ) {
             EditorText(
                 modifier = Modifier.padding(horizontal = 8.dp),
-                text = "Color controls",
+                text = stringResource(Res.string.color_controls),
             )
             Spacer(modifier = Modifier.height(8.dp))
             ColorSettings(
@@ -50,7 +54,7 @@ internal fun Settings(
             Spacer(modifier = Modifier.height(8.dp))
             EditorText(
                 modifier = Modifier.padding(horizontal = 8.dp),
-                text = "Angle controls",
+                text = stringResource(Res.string.angle_controls),
             )
             Spacer(modifier = Modifier.height(8.dp))
             AngleSettings(

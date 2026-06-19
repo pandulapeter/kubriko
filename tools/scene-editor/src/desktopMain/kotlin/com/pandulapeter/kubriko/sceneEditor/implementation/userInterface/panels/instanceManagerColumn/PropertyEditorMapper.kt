@@ -46,8 +46,11 @@ import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kubriko.tools.scene_editor.generated.resources.Res
+import kubriko.tools.scene_editor.generated.resources.action_collapse
+import kubriko.tools.scene_editor.generated.resources.action_expand
 import kubriko.tools.scene_editor.generated.resources.ic_collapse
 import kubriko.tools.scene_editor.generated.resources.ic_expand
+import org.jetbrains.compose.resources.stringResource
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
@@ -217,7 +220,7 @@ private fun LazyItemScope.EditorCategory(
         if (controls.isNotEmpty()) {
             EditorIcon(
                 drawableResource = if (isExpanded) Res.drawable.ic_collapse else Res.drawable.ic_expand,
-                contentDescription = if (isExpanded) "Collapse" else "Expand"
+                contentDescription = stringResource(if (isExpanded) Res.string.action_collapse else Res.string.action_expand)
             )
         }
     }

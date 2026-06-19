@@ -14,6 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorRadioButton
+import kubriko.tools.scene_editor.generated.resources.Res
+import kubriko.tools.scene_editor.generated.resources.color_mode_hsv
+import kubriko.tools.scene_editor.generated.resources.color_mode_rgb
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun ColorSettings(
@@ -25,8 +29,8 @@ internal fun ColorSettings(
     ColorEditorMode.entries.forEach { mode ->
         EditorRadioButton(
             label = when (mode) {
-                ColorEditorMode.HSV -> "HSV"
-                ColorEditorMode.RGB -> "RGB"
+                ColorEditorMode.HSV -> stringResource(Res.string.color_mode_hsv)
+                ColorEditorMode.RGB -> stringResource(Res.string.color_mode_rgb)
             },
             isSmall = true,
             isSelected = mode == colorEditorMode,
