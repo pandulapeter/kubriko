@@ -84,6 +84,7 @@ internal fun Modifier.handleMouseDrag(
     keyboardInputManager: KeyboardInputManager,
     viewportManager: ViewportManager,
     getSelectedActor: () -> Editable<*>?,
+    isPlacingNewInstance: () -> Boolean,
     getSnapMode: () -> Pair<Int, Int>,
     getMouseSceneOffset: () -> SceneOffset,
     onActorDragStarted: () -> Unit,
@@ -97,17 +98,17 @@ internal fun Modifier.handleMouseDrag(
 ) { screenCoordinates ->
     val isFirstDragEvent = !isDragging
     isDragging = true
-    if (keyboardInputManager.run { isKeyPressed(Key.ShiftLeft) || isKeyPressed(Key.ShiftRight) }) {
-        viewportManager.addToCameraPosition(-screenCoordinates)
-    } else {
-        startOffset?.let { startOffset ->
-            getSelectedActor()?.let { selectedActor ->
-                if (isFirstDragEvent) {
-                    onActorDragStarted()
-                }
-                selectedActor.body.position = (getMouseSceneOffset() - startOffset).snapped(getSnapMode())
-                notifySelectedInstanceUpdate()
+    val isShiftPressed = keyboardInputManager.run { isKeyPressed(Key.ShiftLeft) || isKeyPressed(Key.ShiftRight) }
+    val dragStartOffset = startOffset
+    if (!isShiftPressed && dragStartOffset != null) {
+        getSelectedActor()?.let { selectedActor ->
+            if (isFirstDragEvent) {
+                onActorDragStarted()
             }
+            selectedActor.body.position = (getMouseSceneOffset() - dragStartOffset).snapped(getSnapMode())
+            notifySelectedInstanceUpdate()
         }
+    } else if (isShiftPressed || !isPlacingNewInstance()) {
+        viewportManager.addToCameraPosition(-screenCoordinates)
     }
 }

@@ -183,6 +183,8 @@ internal class EditorController(
 
     fun getSelectedActor() = selectedUpdatableActor.value.first
 
+    fun isPlacingNewInstance() = previewOverlayActor != null && getSelectedActor() == null
+
     fun getMouseWorldCoordinates() = mouseSceneOffset.value
 
     fun onLeftClick(screenCoordinates: Offset) {

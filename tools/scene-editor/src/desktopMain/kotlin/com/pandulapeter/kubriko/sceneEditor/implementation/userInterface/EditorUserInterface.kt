@@ -108,6 +108,7 @@ internal fun EditorUserInterface(
                                             keyboardInputManager = editorController.keyboardInputManager,
                                             viewportManager = editorController.viewportManager,
                                             getSelectedActor = editorController::getSelectedActor,
+                                            isPlacingNewInstance = editorController::isPlacingNewInstance,
                                             getSnapMode = { editorController.snapMode.value },
                                             getMouseSceneOffset = editorController::getMouseWorldCoordinates,
                                             onActorDragStarted = editorController::onBeforeActorDrag,
