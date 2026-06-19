@@ -11,10 +11,8 @@ package com.pandulapeter.kubriko.buildLogic.extensions
 
 import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import org.gradle.api.Project
-import org.gradle.api.tasks.JavaExec
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
@@ -34,11 +32,7 @@ internal fun Project.configureKotlinMultiplatform(
             }
         }
     }
-    jvm("desktop") {
-        tasks.withType<JavaExec> {
-            jvmArgs("-XX:+UseZGC")
-        }
-    }
+    jvm("desktop")
     listOf(
         iosArm64(),
         iosSimulatorArm64()
