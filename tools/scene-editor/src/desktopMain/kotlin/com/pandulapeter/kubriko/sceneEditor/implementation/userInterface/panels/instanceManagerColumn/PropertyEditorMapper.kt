@@ -68,11 +68,17 @@ private val sceneUnitType = SceneUnit::class.createType()
 
 internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
     actor: T,
+    onBeforeChange: (editKey: Any) -> Unit,
     notifySelectedInstanceUpdate: () -> Unit,
     colorEditorMode: ColorEditorMode,
     angleEditorMode: AngleEditorMode,
 ): (@Composable () -> Unit)? = setter.findAnnotation<Exposed>()?.let { editableProperty ->
     isAccessible = true
+    val applyValue: (value: Any?) -> Unit = { value ->
+        onBeforeChange(this)
+        setter.call(actor, value)
+        notifySelectedInstanceUpdate()
+    }
     editableProperty.name.ifBlank { name }.let { name ->
         when (returnType) {
             booleanType -> {
@@ -80,10 +86,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                     BooleanPropertyEditor(
                         name = name,
                         value = getter.call(actor) as Boolean,
-                        onValueChanged = { boolean ->
-                            setter.call(actor, boolean)
-                            notifySelectedInstanceUpdate()
-                        },
+                        onValueChanged = { boolean -> applyValue(boolean) },
                     )
                 }
             }
@@ -93,10 +96,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                     ColorPropertyEditor(
                         name = name,
                         value = getter.call(actor) as Color,
-                        onValueChanged = { color ->
-                            setter.call(actor, color)
-                            notifySelectedInstanceUpdate()
-                        },
+                        onValueChanged = { color -> applyValue(color) },
                         colorEditorMode = colorEditorMode,
                     )
                 }
@@ -107,10 +107,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                     RotationPropertyEditor(
                         name = name,
                         value = (getter.call(actor) as AngleDegrees).rad,
-                        onValueChanged = {
-                            setter.call(actor, it.deg.normalized)
-                            notifySelectedInstanceUpdate()
-                        },
+                        onValueChanged = { applyValue(it.deg.normalized) },
                         angleEditorMode = angleEditorMode,
                     )
                 }
@@ -121,10 +118,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                     RotationPropertyEditor(
                         name = name,
                         value = getter.call(actor) as AngleRadians,
-                        onValueChanged = {
-                            setter.call(actor, it)
-                            notifySelectedInstanceUpdate()
-                        },
+                        onValueChanged = { applyValue(it) },
                         angleEditorMode = angleEditorMode,
                     )
                 }
@@ -135,10 +129,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                     SceneOffsetPropertyEditor(
                         name = name,
                         value = getter.call(actor) as SceneOffset,
-                        onValueChanged = {
-                            setter.call(actor, it)
-                            notifySelectedInstanceUpdate()
-                        }
+                        onValueChanged = { applyValue(it) }
                     )
                 }
             }
@@ -148,10 +139,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                     ScalePropertyEditor(
                         name = name,
                         value = getter.call(actor) as Scale,
-                        onValueChanged = {
-                            setter.call(actor, it)
-                            notifySelectedInstanceUpdate()
-                        }
+                        onValueChanged = { applyValue(it) }
                     )
                 }
             }
@@ -162,10 +150,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
                         name = name,
                         value = getter.call(actor) as Float,
-                        onValueChanged = {
-                            setter.call(actor, it)
-                            notifySelectedInstanceUpdate()
-                        },
+                        onValueChanged = { applyValue(it) },
                     )
                 }
             }
@@ -176,10 +161,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
                         name = name,
                         value = getter.call(actor) as Int,
-                        onValueChanged = {
-                            setter.call(actor, it)
-                            notifySelectedInstanceUpdate()
-                        },
+                        onValueChanged = { applyValue(it) },
                     )
                 }
             }
@@ -189,10 +171,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                     StringPropertyEditor(
                         name = name,
                         value = getter.call(actor) as String,
-                        onValueChanged = {
-                            setter.call(actor, it)
-                            notifySelectedInstanceUpdate()
-                        }
+                        onValueChanged = { applyValue(it) }
                     )
                 }
             }
@@ -202,10 +181,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                     SceneUnitPropertyEditor(
                         name = name,
                         value = getter.call(actor) as SceneUnit,
-                        onValueChanged = {
-                            setter.call(actor, it)
-                            notifySelectedInstanceUpdate()
-                        },
+                        onValueChanged = { applyValue(it) },
                     )
                 }
             }

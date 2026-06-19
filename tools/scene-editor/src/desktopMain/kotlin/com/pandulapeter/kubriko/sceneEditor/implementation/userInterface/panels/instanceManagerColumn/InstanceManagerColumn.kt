@@ -49,6 +49,7 @@ internal fun InstanceManagerColumn(
     deselectSelectedInstance: () -> Unit,
     locateSelectedInstance: () -> Unit,
     deleteSelectedInstance: () -> Unit,
+    onBeforeInstanceChange: (editKey: Any) -> Unit,
     notifySelectedInstanceUpdate: () -> Unit,
     colorEditorMode: ColorEditorMode,
     angleEditorMode: AngleEditorMode,
@@ -88,6 +89,7 @@ internal fun InstanceManagerColumn(
                         .mapNotNull { property ->
                             property.toPropertyEditor(
                                 actor = selectedInstance,
+                                onBeforeChange = onBeforeInstanceChange,
                                 notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
                                 colorEditorMode = colorEditorMode,
                                 angleEditorMode = angleEditorMode,
@@ -99,6 +101,7 @@ internal fun InstanceManagerColumn(
                                     index = 0,
                                     element = createBodyPropertyEditor(
                                         getActor = { selectedInstance },
+                                        onBeforeChange = onBeforeInstanceChange,
                                         notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
                                         angleEditorMode = angleEditorMode,
                                     )

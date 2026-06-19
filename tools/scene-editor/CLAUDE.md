@@ -30,6 +30,7 @@ The editor runs **two separate Kubriko instances**:
 - **Snap**: `snapMode: StateFlow<Pair<Int, Int>>` (x-grid, y-grid in scene units; 0 = disabled). Applied via `SceneOffset.snapped(snapMode)`.
 - **Scene I/O**: `loadMap(path)` / `saveScene(path)` use coroutine-based `loadFile` / `saveFile` helpers. `syncScene()` is used in `Connected` mode.
 - **Filter**: `filterText` filters the instance browser and visible-actor list by `typeId` (case-insensitive contains).
+- **Undo/redo & dirty tracking**: `UndoRedoHistory` (in `helpers/`) keeps two bounded stacks of `SceneSnapshot(serializedScene, isSceneModified)`. A snapshot is the serialized scene plus the unsaved-changes flag, so undo/redo also restore the Save button state (`isSceneModified` drives whether Save is enabled and the `*` suffix on the file name). Pre-change snapshots are recorded at interaction boundaries — `onBeforeActorDrag` (drag start), before add/remove, and `onBeforePropertyChange(editKey)` for the property panel, where consecutive edits sharing an `editKey` coalesce into one step. Loading, `New`, and saving reset the dirty flag (and loading/`New` clear the history). Keyboard shortcuts (Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z, Ctrl/Cmd+Y) are handled by `KeyboardInputListener`.
 
 ## Property inspector
 

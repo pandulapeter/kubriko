@@ -25,12 +25,14 @@ import kotlin.reflect.full.memberProperties
 
 internal fun createBodyPropertyEditor(
     getActor: () -> Positionable,
+    onBeforeChange: (editKey: Any) -> Unit,
     notifySelectedInstanceUpdate: () -> Unit,
     angleEditorMode: AngleEditorMode,
 ): @Composable () -> Unit {
     return {
         BodyPropertyEditor(
             getActor = getActor,
+            onBeforeChange = onBeforeChange,
             notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
             angleEditorMode = angleEditorMode,
         )
@@ -40,6 +42,7 @@ internal fun createBodyPropertyEditor(
 @Composable
 internal fun BodyPropertyEditor(
     getActor: () -> Positionable,
+    onBeforeChange: (editKey: Any) -> Unit,
     notifySelectedInstanceUpdate: () -> Unit,
     angleEditorMode: AngleEditorMode,
 ) {
@@ -55,6 +58,7 @@ internal fun BodyPropertyEditor(
         name = "position",
         value = body.position,
         onValueChanged = {
+            onBeforeChange("body.position")
             body.position = it
             notifySelectedInstanceUpdate()
         }
@@ -64,6 +68,7 @@ internal fun BodyPropertyEditor(
             name = "pivot",
             value = body.pivot,
             onValueChanged = {
+                onBeforeChange("body.pivot")
                 body.pivot = it
                 notifySelectedInstanceUpdate()
             },
@@ -75,6 +80,7 @@ internal fun BodyPropertyEditor(
             name = "size",
             value = body.size,
             onValueChanged = {
+                onBeforeChange("body.size")
                 body.size = it
                 notifySelectedInstanceUpdate()
             }
@@ -83,6 +89,7 @@ internal fun BodyPropertyEditor(
             name = "scale",
             value = body.scale,
             onValueChanged = {
+                onBeforeChange("body.scale")
                 body.scale = it
                 notifySelectedInstanceUpdate()
             },
@@ -91,6 +98,7 @@ internal fun BodyPropertyEditor(
             name = "rotation",
             value = body.rotation,
             onValueChanged = {
+                onBeforeChange("body.rotation")
                 body.rotation = it
                 notifySelectedInstanceUpdate()
             },

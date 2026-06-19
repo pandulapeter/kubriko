@@ -86,6 +86,7 @@ internal fun Modifier.handleMouseDrag(
     getSelectedActor: () -> Editable<*>?,
     getSnapMode: () -> Pair<Int, Int>,
     getMouseSceneOffset: () -> SceneOffset,
+    onActorDragStarted: () -> Unit,
     notifySelectedInstanceUpdate: () -> Unit,
 ): Modifier = onDrag(
     matcher = PointerMatcher.mouse(PointerButton.Tertiary),
@@ -94,12 +95,16 @@ internal fun Modifier.handleMouseDrag(
 }.onDrag(
     matcher = PointerMatcher.mouse(PointerButton.Primary),
 ) { screenCoordinates ->
+    val isFirstDragEvent = !isDragging
     isDragging = true
     if (keyboardInputManager.run { isKeyPressed(Key.ShiftLeft) || isKeyPressed(Key.ShiftRight) }) {
         viewportManager.addToCameraPosition(-screenCoordinates)
     } else {
         startOffset?.let { startOffset ->
             getSelectedActor()?.let { selectedActor ->
+                if (isFirstDragEvent) {
+                    onActorDragStarted()
+                }
                 selectedActor.body.position = (getMouseSceneOffset() - startOffset).snapped(getSnapMode())
                 notifySelectedInstanceUpdate()
             }

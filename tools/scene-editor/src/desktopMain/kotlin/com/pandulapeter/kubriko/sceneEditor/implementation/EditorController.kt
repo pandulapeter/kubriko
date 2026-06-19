@@ -24,6 +24,7 @@ import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.GridOverlay
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.KeyboardInputListener
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.boundingBoxCollisionMask
+import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.UndoRedoHistory
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.UserPreferences
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.saveFile
@@ -59,7 +60,13 @@ internal class EditorController(
     private val userPreferences = UserPreferences(kubriko.get())
     private val editorActors = listOf(
         GridOverlay(viewportManager, userPreferences),
-        KeyboardInputListener(viewportManager, ::navigateBack),
+        KeyboardInputListener(
+            viewportManager = viewportManager,
+            keyboardInputManager = keyboardInputManager,
+            navigateBack = ::navigateBack,
+            onUndo = ::onUndo,
+            onRedo = ::onRedo,
+        ),
     )
     private val allEditableActors = actorManager.allActors
         .map { it.filterIsInstance<Editable<*>>() }
@@ -115,6 +122,12 @@ internal class EditorController(
     private val _shouldShowLoadingIndicator = MutableStateFlow(false)
     val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
     var previewOverlayActor: Editable<*>? = null
+    private val undoRedoHistory = UndoRedoHistory()
+    val canUndo = undoRedoHistory.canUndo
+    val canRedo = undoRedoHistory.canRedo
+    private val _isSceneModified = MutableStateFlow(false)
+    val isSceneModified = _isSceneModified.asStateFlow()
+    private var pendingPropertyEditKey: Any? = null
     val snapMode = combine(
         userPreferences.snapX,
         userPreferences.snapY,
@@ -133,6 +146,7 @@ internal class EditorController(
                 parseJson(
                     json = sceneEditorMode.sceneJson,
                 )
+                onSceneReplaced()
             }
         }
     }
@@ -157,7 +171,9 @@ internal class EditorController(
                 if (actorAtPosition == null) {
                     if (currentSelectedActor == null) {
                         previewOverlayActor?.let {
+                            recordSnapshot()
                             actorManager.add(it)
+                            markSceneAsModified()
                             selectActor(it)
                             previewOverlayActor = null
                         }
@@ -177,7 +193,9 @@ internal class EditorController(
                 if (actorAtPosition == _selectedActor.value) {
                     removeSelectedActor()
                 } else {
+                    recordSnapshot()
                     actorManager.remove(actorAtPosition)
+                    markSceneAsModified()
                 }
             }
         }
@@ -187,16 +205,23 @@ internal class EditorController(
         .filter { sceneOffset.isCollidingWith(it.body.boundingBoxCollisionMask) }
         .minByOrNull { (it as? Visible)?.drawingOrder ?: 0f }
 
-    fun selectActor(actor: Editable<*>) = _selectedActor.update {
-        if (selectedUpdatableActor.value.first == actor) {
-            null
-        } else {
-            actor
+    fun selectActor(actor: Editable<*>) {
+        pendingPropertyEditKey = null
+        _selectedActor.update {
+            if (selectedUpdatableActor.value.first == actor) {
+                null
+            } else {
+                actor
+            }
         }
     }
 
     fun removeSelectedActor() = _selectedActor.update { selectedActor ->
-        selectedActor?.let { actorManager.remove(selectedActor) }
+        selectedActor?.let {
+            recordSnapshot()
+            actorManager.remove(it)
+            markSceneAsModified()
+        }
         null
     }
 
@@ -208,7 +233,10 @@ internal class EditorController(
         }
     }
 
-    fun notifySelectedActorUpdate() = triggerActorUpdate.update { !it }
+    fun notifySelectedActorUpdate() {
+        markSceneAsModified()
+        triggerActorUpdate.update { !it }
+    }
 
     fun onColorEditorModeChanged(colorEditorMode: ColorEditorMode) = userPreferences.colorEditorMode.update { colorEditorMode }
 
@@ -220,7 +248,68 @@ internal class EditorController(
 
     fun selectActorType(typeId: String?) = _selectedTypeId.update { currentValue -> if (currentValue == typeId) null else typeId }
 
-    fun deselectSelectedActor() = _selectedActor.update { null }
+    fun deselectSelectedActor() {
+        pendingPropertyEditKey = null
+        _selectedActor.update { null }
+    }
+
+    fun onUndo() {
+        undoRedoHistory.performUndo(takeSnapshot())?.let(::restoreSnapshot)
+        pendingPropertyEditKey = null
+    }
+
+    fun onRedo() {
+        undoRedoHistory.performRedo(takeSnapshot())?.let(::restoreSnapshot)
+        pendingPropertyEditKey = null
+    }
+
+    /**
+     * Records the pre-change state of the scene before a property of the selected actor is edited.
+     * Consecutive edits sharing the same [editKey] are coalesced into a single undo step, so dragging a
+     * slider or typing into a field does not flood the history.
+     */
+    fun onBeforePropertyChange(editKey: Any) {
+        if (editKey != pendingPropertyEditKey) {
+            undoRedoHistory.recordAction(takeSnapshot())
+            pendingPropertyEditKey = editKey
+        }
+    }
+
+    fun onBeforeActorDrag() = recordSnapshot()
+
+    private fun recordSnapshot() {
+        undoRedoHistory.recordAction(takeSnapshot())
+        pendingPropertyEditKey = null
+    }
+
+    private fun takeSnapshot() = UndoRedoHistory.SceneSnapshot(
+        serializedScene = serializationManager.serializeActors(allEditableActors.value),
+        isSceneModified = _isSceneModified.value,
+    )
+
+    private fun restoreSnapshot(snapshot: UndoRedoHistory.SceneSnapshot) {
+        val previousSelection = _selectedActor.value
+        val previousSelectionType = previousSelection?.let { it::class }
+        val previousSelectionIndex = previousSelection
+            ?.let { allEditableActors.value.indexOf(it) }
+            ?.takeIf { it >= 0 }
+        val restoredActors = serializationManager.deserializeActors(snapshot.serializedScene)
+        replaceSceneActors(restoredActors)
+        _selectedActor.update {
+            previousSelectionIndex
+                ?.let(restoredActors::getOrNull)
+                ?.takeIf { restored -> restored::class == previousSelectionType }
+        }
+        _isSceneModified.update { snapshot.isSceneModified }
+    }
+
+    private fun markSceneAsModified() = _isSceneModified.update { true }
+
+    private fun onSceneReplaced() {
+        undoRedoHistory.reset()
+        _isSceneModified.update { false }
+        pendingPropertyEditKey = null
+    }
 
     fun reset() {
         viewportManager.setCameraPosition(SceneOffset.Zero)
@@ -228,6 +317,7 @@ internal class EditorController(
         _selectedActor.update { null }
         actorManager.removeAll()
         actorManager.add(editorActors)
+        onSceneReplaced()
     }
 
     fun loadMap(path: String) {
@@ -235,6 +325,7 @@ internal class EditorController(
         launch {
             loadFile(path)?.let { json ->
                 parseJson(json)
+                onSceneReplaced()
                 updateCurrentFolderPathAndFileName(path)
                 _shouldShowLoadingIndicator.update { false }
             }
@@ -242,10 +333,13 @@ internal class EditorController(
     }
 
     private fun parseJson(json: String) {
-        val actors = serializationManager.deserializeActors(json)
+        replaceSceneActors(serializationManager.deserializeActors(json))
+        _selectedActor.update { null }
+    }
+
+    private fun replaceSceneActors(actors: List<Editable<*>>) {
         actorManager.removeAll()
         actorManager.add(actors + editorActors)
-        _selectedActor.update { null }
     }
 
     fun syncScene() {
@@ -261,6 +355,8 @@ internal class EditorController(
                 content = serializationManager.serializeActors(allEditableActors.value),
             )
             updateCurrentFolderPathAndFileName(path)
+            _isSceneModified.update { false }
+            pendingPropertyEditKey = null
         }
     }
 
