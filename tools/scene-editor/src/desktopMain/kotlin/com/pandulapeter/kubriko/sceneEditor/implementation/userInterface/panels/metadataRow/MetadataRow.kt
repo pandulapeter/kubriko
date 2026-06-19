@@ -9,15 +9,23 @@
  */
 package com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.metadataRow
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.sceneEditor.implementation.SceneEditorInteractionMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorSurface
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorTextInput
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorTextLabel
@@ -33,6 +41,8 @@ internal fun MetadataRow(
     mouseSceneOffset: SceneOffset,
     snapMode: Pair<Int, Int>,
     onSnapModeChanged: (Pair<Int, Int>) -> Unit,
+    interactionMode: SceneEditorInteractionMode,
+    onInteractionModeSelected: (SceneEditorInteractionMode) -> Unit,
 ) = EditorSurface(
     modifier = modifier,
 ) {
@@ -73,5 +83,40 @@ internal fun MetadataRow(
         EditorTextLabel(
             text = "${mouseSceneOffset.x.raw.roundToInt()}:${mouseSceneOffset.y.raw.roundToInt()}",
         )
+        VerticalDivider(
+            modifier = Modifier.height(24.dp).padding(horizontal = 8.dp),
+        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            SceneEditorInteractionMode.entries.forEach { mode ->
+                InteractionModeRadioButton(
+                    mode = mode,
+                    isSelected = interactionMode == mode,
+                    onSelected = { onInteractionModeSelected(mode) },
+                )
+            }
+        }
     }
+}
+
+@Composable
+private fun InteractionModeRadioButton(
+    mode: SceneEditorInteractionMode,
+    isSelected: Boolean,
+    onSelected: () -> Unit,
+) = Row(
+    modifier = Modifier.clickable(onClick = onSelected),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.spacedBy(2.dp),
+) {
+    RadioButton(
+        modifier = Modifier.scale(0.6f).size(16.dp),
+        selected = isSelected,
+        onClick = onSelected,
+    )
+    EditorTextLabel(
+        text = mode.label,
+    )
 }

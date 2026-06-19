@@ -74,6 +74,7 @@ internal class EditorController(
             navigateBack = ::navigateBack,
             onUndo = ::onUndo,
             onRedo = ::onRedo,
+            onInteractionModeSelected = ::setInteractionMode,
         ),
     )
     private val allEditableActors = actorManager.allActors
@@ -138,6 +139,8 @@ internal class EditorController(
     val shouldShowVisibleOnly = _shouldShowVisibleOnly.asStateFlow()
     private val _shouldShowLoadingIndicator = MutableStateFlow(false)
     val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
+    private val _interactionMode = MutableStateFlow(SceneEditorInteractionMode.Translate)
+    val interactionMode = _interactionMode.asStateFlow()
     var previewOverlayActor: Editable<*>? = null
     private val undoRedoHistory = UndoRedoHistory()
     val canUndo = undoRedoHistory.canUndo
@@ -182,6 +185,8 @@ internal class EditorController(
     fun onShouldShowVisibleOnlyToggled() = _shouldShowVisibleOnly.update { currentValue ->
         !currentValue
     }
+
+    fun setInteractionMode(interactionMode: SceneEditorInteractionMode) = _interactionMode.update { interactionMode }
 
     fun getSelectedActor() = selectedUpdatableActor.value.first
 

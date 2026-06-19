@@ -108,6 +108,7 @@ internal fun EditorUserInterface(
                                             keyboardInputManager = editorController.keyboardInputManager,
                                             viewportManager = editorController.viewportManager,
                                             getSelectedActor = editorController::getSelectedActor,
+                                            getInteractionMode = { editorController.interactionMode.value },
                                             isPlacingNewInstance = editorController::isPlacingNewInstance,
                                             getSnapMode = { editorController.snapMode.value },
                                             getMouseSceneOffset = editorController::getMouseWorldCoordinates,
@@ -156,6 +157,8 @@ internal fun EditorUserInterface(
                     mouseSceneOffset = editorController.mouseSceneOffset.collectAsState().value,
                     snapMode = editorController.snapMode.collectAsState().value,
                     onSnapModeChanged = editorController::onSnapModeChanged,
+                    interactionMode = editorController.interactionMode.collectAsState().value,
+                    onInteractionModeSelected = editorController::setInteractionMode,
                 )
             }
             FileManagerRow(

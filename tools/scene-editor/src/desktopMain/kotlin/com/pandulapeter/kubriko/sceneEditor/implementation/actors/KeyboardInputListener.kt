@@ -14,6 +14,7 @@ import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.sceneEditor.implementation.SceneEditorInteractionMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.handleKeyPressed
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.handleKeys
 import kotlinx.collections.immutable.ImmutableSet
@@ -25,6 +26,7 @@ internal class KeyboardInputListener(
     private val navigateBack: () -> Unit,
     private val onUndo: () -> Unit,
     private val onRedo: () -> Unit,
+    private val onInteractionModeSelected: (SceneEditorInteractionMode) -> Unit,
 ) : KeyboardInputAware, Unique {
 
     private val isShortcutModifierActive
@@ -46,6 +48,8 @@ internal class KeyboardInputListener(
                 Key.Z -> if (isShiftActive) onRedo() else onUndo()
                 Key.Y -> onRedo()
             }
+        } else if (!isTextInputFocused()) {
+            SceneEditorInteractionMode.entries.firstOrNull { it.shortcut == key }?.let(onInteractionModeSelected)
         }
     }
 

@@ -19,15 +19,26 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
+import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.collision.extensions.isCollidingWith
+import com.pandulapeter.kubriko.helpers.extensions.angleTowards
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
+import com.pandulapeter.kubriko.sceneEditor.implementation.SceneEditorInteractionMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.snapped
+import com.pandulapeter.kubriko.types.AngleRadians
+import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
+
+private const val MINIMUM_INTERACTIVE_SCALE = 0.05f
 
 private var startOffset: SceneOffset? = null
 private var isDragging = false
+private var dragStartMouseSceneOffset = SceneOffset.Zero
+private var dragStartScale = Scale.Unit
+private var dragStartRotation = AngleRadians.Zero
+private var dragStartPointerAngle = AngleRadians.Zero
 
 @OptIn(ExperimentalComposeUiApi::class)
 internal fun Modifier.handleMouseClick(
@@ -40,7 +51,14 @@ internal fun Modifier.handleMouseClick(
         PointerButton.Primary -> getSelectedActor()?.let { selectedActor ->
             getMouseSceneOffset().let { mouseSceneOffset ->
                 if (mouseSceneOffset.isCollidingWith(selectedActor.body.boundingBoxCollisionMask)) {
-                    startOffset = mouseSceneOffset - selectedActor.body.position
+                    val body = selectedActor.body
+                    startOffset = mouseSceneOffset - body.position
+                    dragStartMouseSceneOffset = mouseSceneOffset
+                    if (body is BoxBody) {
+                        dragStartScale = body.scale
+                        dragStartRotation = body.rotation
+                        dragStartPointerAngle = body.position.angleTowards(mouseSceneOffset)
+                    }
                 }
             }
         }
@@ -84,6 +102,7 @@ internal fun Modifier.handleMouseDrag(
     keyboardInputManager: KeyboardInputManager,
     viewportManager: ViewportManager,
     getSelectedActor: () -> Editable<*>?,
+    getInteractionMode: () -> SceneEditorInteractionMode,
     isPlacingNewInstance: () -> Boolean,
     getSnapMode: () -> Pair<Int, Int>,
     getMouseSceneOffset: () -> SceneOffset,
@@ -105,7 +124,33 @@ internal fun Modifier.handleMouseDrag(
             if (isFirstDragEvent) {
                 onActorDragStarted()
             }
-            selectedActor.body.position = (getMouseSceneOffset() - dragStartOffset).snapped(getSnapMode())
+            val mouseSceneOffset = getMouseSceneOffset()
+            val body = selectedActor.body
+            when (getInteractionMode()) {
+                SceneEditorInteractionMode.Translate ->
+                    body.position = (mouseSceneOffset - dragStartOffset).snapped(getSnapMode())
+
+                SceneEditorInteractionMode.Scale -> if (body is BoxBody) {
+                    val width = body.size.width.raw
+                    val height = body.size.height.raw
+                    body.scale = Scale(
+                        horizontal = if (width > 0f) {
+                            (dragStartScale.horizontal + (mouseSceneOffset.x - dragStartMouseSceneOffset.x).raw / width).coerceAtLeast(MINIMUM_INTERACTIVE_SCALE)
+                        } else {
+                            dragStartScale.horizontal
+                        },
+                        vertical = if (height > 0f) {
+                            (dragStartScale.vertical + (mouseSceneOffset.y - dragStartMouseSceneOffset.y).raw / height).coerceAtLeast(MINIMUM_INTERACTIVE_SCALE)
+                        } else {
+                            dragStartScale.vertical
+                        },
+                    )
+                }
+
+                SceneEditorInteractionMode.Rotate -> if (body is BoxBody) {
+                    body.rotation = dragStartRotation + (body.position.angleTowards(mouseSceneOffset) - dragStartPointerAngle)
+                }
+            }
             notifySelectedInstanceUpdate()
         }
     } else if (isShiftPressed || !isPlacingNewInstance()) {

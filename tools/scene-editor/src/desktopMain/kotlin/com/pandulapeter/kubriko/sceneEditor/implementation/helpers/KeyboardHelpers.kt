@@ -11,29 +11,33 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.helpers
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
-import com.pandulapeter.kubriko.keyboardInput.extensions.KeyboardDirectionState
 import com.pandulapeter.kubriko.keyboardInput.extensions.KeyboardZoomState
-import com.pandulapeter.kubriko.keyboardInput.extensions.directionState
 import com.pandulapeter.kubriko.keyboardInput.extensions.zoomState
 import com.pandulapeter.kubriko.manager.ViewportManager
 
 private const val CAMERA_SPEED = 15f
 private const val CAMERA_SPEED_DIAGONAL = 0.7071f * CAMERA_SPEED
 
+/**
+ * Pans and zooms the camera from the held keys. Panning is intentionally bound to the arrow keys only
+ * (not the plugin's `directionState`, which also accepts WASD) so the W/A/S/D letters stay free for the
+ * editor's own shortcuts.
+ */
 internal fun ViewportManager.handleKeys(keys: Set<Key>) {
-    addToCameraPosition(
-        when (keys.directionState) {
-            KeyboardDirectionState.NONE -> Offset.Zero
-            KeyboardDirectionState.LEFT -> Offset(-CAMERA_SPEED, 0f)
-            KeyboardDirectionState.UP_LEFT -> Offset(-CAMERA_SPEED_DIAGONAL, -CAMERA_SPEED_DIAGONAL)
-            KeyboardDirectionState.UP -> Offset(0f, -CAMERA_SPEED)
-            KeyboardDirectionState.UP_RIGHT -> Offset(CAMERA_SPEED_DIAGONAL, -CAMERA_SPEED_DIAGONAL)
-            KeyboardDirectionState.RIGHT -> Offset(CAMERA_SPEED, 0f)
-            KeyboardDirectionState.DOWN_RIGHT -> Offset(CAMERA_SPEED_DIAGONAL, CAMERA_SPEED_DIAGONAL)
-            KeyboardDirectionState.DOWN -> Offset(0f, CAMERA_SPEED)
-            KeyboardDirectionState.DOWN_LEFT -> Offset(-CAMERA_SPEED_DIAGONAL, CAMERA_SPEED_DIAGONAL)
-        }
-    )
+    val horizontal = when {
+        keys.contains(Key.DirectionLeft) && !keys.contains(Key.DirectionRight) -> -1
+        keys.contains(Key.DirectionRight) && !keys.contains(Key.DirectionLeft) -> 1
+        else -> 0
+    }
+    val vertical = when {
+        keys.contains(Key.DirectionUp) && !keys.contains(Key.DirectionDown) -> -1
+        keys.contains(Key.DirectionDown) && !keys.contains(Key.DirectionUp) -> 1
+        else -> 0
+    }
+    if (horizontal != 0 || vertical != 0) {
+        val speed = if (horizontal != 0 && vertical != 0) CAMERA_SPEED_DIAGONAL else CAMERA_SPEED
+        addToCameraPosition(Offset(horizontal * speed, vertical * speed))
+    }
     multiplyScaleFactor(
         when (keys.zoomState) {
             KeyboardZoomState.NONE -> 1f
