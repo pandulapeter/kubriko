@@ -73,6 +73,16 @@ that explains what the code already says.
 - After editing, search the codebase for each symbol and resource you stopped using and confirm it
   has no remaining references before finishing.
 
+## Keep CLAUDE.md files in sync
+
+- **After a significant change, update the relevant `CLAUDE.md`.** Each module has its own `CLAUDE.md`
+  (plus the root one); when a change alters something they describe — module architecture, a state
+  holder's responsibilities, a UI surface the dependency graph, data types — update the matching section
+  in the same change so the docs never drift from the code.
+- **Only when it matters.** Routine edits that don't change any documented behavior need no doc update.
+  Match the existing prose style and keep it terse; don't add a `CLAUDE.md` section for something that
+  wasn't documented before unless it genuinely warrants one.
+
 ## Always
 
 - Start every new source file with the MPL-2.0 license header (copy from a sibling file).
