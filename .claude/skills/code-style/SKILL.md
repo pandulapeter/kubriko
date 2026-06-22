@@ -45,6 +45,9 @@ that explains what the code already says.
   (e.g. `JOYSTICK_ENABLED`, `SHOW_MINI_MAP`). Keep them as standalone conditions; don't fold them into
   a larger boolean expression (it both obscures the toggle and trips the "expression can be simplified"
   inspection).
+- **Always use trailing commas** on the last element of any multi-line comma-separated list — function
+  parameters and arguments, constructor parameters, collection literals, `enum` entries, `when` with
+  multiple guards, etc. This keeps diffs minimal and reordering clean.
 - Match the formatting, indentation, and idiom of the surrounding file rather than reformatting to a
   personal preference.
 
@@ -72,6 +75,17 @@ that explains what the code already says.
   string/drawable resources.
 - After editing, search the codebase for each symbol and resource you stopped using and confirm it
   has no remaining references before finishing.
+
+## Refactor old code when a change outgrows it
+
+- **Don't be afraid to refactor existing code when your change makes it better.** A new feature
+  often leaves a name, signature, or structure that no longer fits — fix it as part of the change
+  rather than bolting on and moving on.
+- **Rename when scope changes.** If a Composable called `…Toggles` gains a slider, or a `loadFile`
+  helper starts saving too, the old name now lies — rename it (and every call site) to match what it
+  now does. Keep the rename complete: no straggler references to the old name.
+- Stay within the spirit of the change. This is about leaving touched code cleaner, not a license for
+  sweeping unrelated rewrites.
 
 ## Keep CLAUDE.md files in sync
 
