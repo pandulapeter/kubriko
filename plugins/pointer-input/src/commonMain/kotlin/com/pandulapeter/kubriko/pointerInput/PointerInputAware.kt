@@ -40,6 +40,11 @@ interface PointerInputAware : Actor {
     /**
      * Called when a pointer is released.
      *
+     * Also dispatched for every held pointer when the window loses focus (the platform may steal an
+     * in-flight touch without sending a release), so actors that track pointer state should treat this
+     * as the authoritative signal to clear it. In that case [screenOffset] is the pointer's last known
+     * position.
+     *
      * @param pointerId The unique ID of the pointer.
      * @param screenOffset The position of the pointer in screen pixels.
      */

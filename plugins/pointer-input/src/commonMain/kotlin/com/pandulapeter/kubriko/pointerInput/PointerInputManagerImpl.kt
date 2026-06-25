@@ -86,8 +86,12 @@ internal class PointerInputManagerImpl(
         stateManager.isFocused
             .filterNot { it }
             .onEach {
+                val heldPointers = _pressedPointerPositions.value
                 _pressedPointerPositions.update { persistentMapOf() }
                 pointersPressedSinceLastTick.clear()
+                heldPointers.forEach { (id, position) ->
+                    pointerInputAwareActors.value.forEach { it.onPointerReleased(id, position) }
+                }
             }
             .launchIn(scope)
     }

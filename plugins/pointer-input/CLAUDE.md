@@ -54,8 +54,12 @@ captured from `LocalDensity` in the manager's `Composable()` override and applie
 logical pixels to physical screen coordinates.
 
 ## Focus safety
-On focus loss (`StateManager.isFocused = false`), `_pressedPointerPositions` is cleared to prevent
-stuck-pointer state. New press events are guarded by `isFocused.value` checks inside the event loop.
+On focus loss (`StateManager.isFocused = false`), `_pressedPointerPositions` and the
+`pointersPressedSinceLastTick` latch are cleared. Before clearing, a synthetic `onPointerReleased` is
+dispatched for every held pointer (at its last known position) — the platform can steal an in-flight
+touch (e.g. dragging down the iOS status bar) without sending a release, so actors that track pointer
+state across frames would otherwise be stuck with a ghost pointer. New press events are guarded by
+`isFocused.value` checks inside the event loop.
 
 ## `isActiveAboveViewport` parameter
 Determines whether input is captured from the full window (`processOverlayModifier`) or only when
