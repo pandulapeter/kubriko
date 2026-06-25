@@ -25,7 +25,7 @@ Key setup in `onCreate`:
 
 - `minSdk` / `compileSdk` / `targetSdk` — from `libs.versions` in the version catalog.
 - Debug build: `applicationIdSuffix = ".debug"`, signed with the bundled `internal.keystore` (password: `android`).
-- Release build: minification and resource shrinking enabled; signing credentials come from `gradle.properties`.
+- Release build: minification and resource shrinking enabled; signing credentials come from `gradle.properties` (public fallback uses `internal.keystore`). Override privately by adding any of the four keys to the gitignored `local.properties`: `showcase.androidKeyAlias`, `showcase.androidKeyPassword`, `showcase.androidKeystoreFile`, `showcase.androidKeystorePassword`.
 - ProGuard rules in `proguard-rules.pro`.
 - Compile/target JVM: **17** (not 21; the Android toolchain uses 17).
 

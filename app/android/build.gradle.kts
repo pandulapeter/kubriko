@@ -1,3 +1,4 @@
+import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 /*
@@ -9,6 +10,13 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
+
+val localProperties = Properties().also { properties ->
+    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use(properties::load)
+}
+
+fun findProperty(key: String) = localProperties.getProperty(key) ?: project.findProperty(key).toString()
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
@@ -46,17 +54,16 @@ android {
             storePassword = "android"
         }
         create(releaseSigningConfig) {
-            keyAlias = project.findProperty("showcase.androidKeyAlias").toString()
-            keyPassword = project.findProperty("showcase.androidKeyPassword").toString()
-            storeFile = file(project.findProperty("showcase.androidKeystoreFile").toString())
-            storePassword = project.findProperty("showcase.androidKeystorePassword").toString()
+            keyAlias = findProperty("showcase.androidKeyAlias")
+            keyPassword = findProperty("showcase.androidKeyPassword")
+            storeFile = file(findProperty("showcase.androidKeystoreFile"))
+            storePassword = findProperty("showcase.androidKeystorePassword")
         }
     }
     buildTypes {
         debug {
             isDebuggable = true
             isMinifyEnabled = false
-            isShrinkResources = false
             versionNameSuffix = "-debug"
             applicationIdSuffix = ".debug"
             signingConfig = signingConfigs.getByName(internalSigningConfig)
