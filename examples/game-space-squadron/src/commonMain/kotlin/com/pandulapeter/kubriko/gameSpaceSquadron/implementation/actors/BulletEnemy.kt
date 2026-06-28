@@ -12,7 +12,6 @@ package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors
 import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors.base.Bullet
-import com.pandulapeter.kubriko.helpers.extensions.distanceTo
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -28,20 +27,12 @@ internal class BulletEnemy(
     bulletBaseSpeed = 0.5f.sceneUnit,
     speedIncrement = { 1 + it * 0.05f },
 ) {
-    override val collidableTypes = listOf(Ship::class)
+    override fun canHit(collidable: Collidable) = collidable is Ship
 
-    override fun onCollisionDetected(collidables: List<Collidable>) {
-        collidables.filterIsInstance<Ship>().firstOrNull()?.let { ship ->
-            if (body.position.distanceTo(ship.body.position) < CollisionLimit) {
-                audioManager.playShipHitSoundEffect()
-                actorManager.add(CameraShakeEffect())
-                actorManager.remove(this)
-                ship.onHit(false)
-            }
-        }
-    }
-
-    companion object {
-        private val CollisionLimit = 64f.sceneUnit
+    override fun onHit(target: Collidable) {
+        audioManager.playShipHitSoundEffect()
+        actorManager.add(CameraShakeEffect())
+        actorManager.remove(this)
+        (target as Ship).onHit(false)
     }
 }

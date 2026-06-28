@@ -16,8 +16,10 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.collision.CollisionDetector
-import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
+import com.pandulapeter.kubriko.collision.Collidable
+import com.pandulapeter.kubriko.collision.CollisionManager
+import com.pandulapeter.kubriko.collision.extensions.segmentCast
+import com.pandulapeter.kubriko.collision.mask.CollisionMask
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.ScoreManager
@@ -44,18 +46,15 @@ internal abstract class Bullet(
     private val bulletColor: Color,
     private val bulletBaseSpeed: SceneUnit,
     private val speedIncrement: (Int) -> Float,
-) : Visible, Dynamic, ParticleEmitter<BulletParticleState>, CollisionDetector {
+) : Visible, Dynamic, ParticleEmitter<BulletParticleState> {
     override val body = BoxBody(
         initialPosition = initialPosition,
         initialSize = SceneSize(10f.sceneUnit, 10f.sceneUnit),
     )
     private val radius = body.size.width / 2f
-    override val collisionMask = CircleCollisionMask(
-        initialRadius = radius,
-        initialPosition = body.position,
-    )
     protected lateinit var actorManager: ActorManager
     protected lateinit var audioManager: AudioManager
+    private lateinit var collisionManager: CollisionManager
     private lateinit var gameplayManager: GameplayManager
     private lateinit var scoreManager: ScoreManager
     private lateinit var stateManager: StateManager
@@ -66,9 +65,24 @@ internal abstract class Bullet(
         getEmissionsPerMillisecond = { 0.15f }
     )
 
+    // Reused every frame so sweeping the bullet's path for hits stays allocation-free.
+    private val targetMasks = ArrayList<CollisionMask>()
+    private val targetCandidates = ArrayList<Collidable>()
+
+    /**
+     * Whether this bullet can hit the given [collidable] this frame.
+     */
+    protected abstract fun canHit(collidable: Collidable): Boolean
+
+    /**
+     * Applies this bullet's effect to the nearest [target] its movement crossed this frame.
+     */
+    protected abstract fun onHit(target: Collidable)
+
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
         audioManager = kubriko.get()
+        collisionManager = kubriko.get()
         gameplayManager = kubriko.get()
         scoreManager = kubriko.get()
         stateManager = kubriko.get()
@@ -78,14 +92,38 @@ internal abstract class Bullet(
 
     override fun update(deltaTimeInMilliseconds: Int) {
         if (stateManager.isRunning.value) {
+            val previousPosition = body.position
             body.position += Offset(
                 x = direction.cos,
                 y = direction.sin,
             ) * bulletBaseSpeed * deltaTimeInMilliseconds * speedIncrement(scoreManager.score.value)
             if (body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager)) {
-                collisionMask.position = body.position
+                detectHit(previousPosition)
             } else {
                 actorManager.remove(this)
+            }
+        }
+    }
+
+    // Sweeps the segment the bullet actually travelled this frame rather than testing only its end
+    // position, so a fast shot (or a frame hitch) cannot tunnel straight through a target.
+    private fun detectHit(previousPosition: SceneOffset) {
+        targetMasks.clear()
+        targetCandidates.clear()
+        val collidables = collisionManager.collidables.value
+        for (index in collidables.indices) {
+            val collidable = collidables[index]
+            if (canHit(collidable)) {
+                targetCandidates.add(collidable)
+                targetMasks.add(collidable.collisionMask)
+            }
+        }
+        val hit = targetMasks.segmentCast(start = previousPosition, end = body.position) ?: return
+        for (index in targetCandidates.indices) {
+            val candidate = targetCandidates[index]
+            if (candidate.collisionMask === hit.mask) {
+                onHit(candidate)
+                return
             }
         }
     }

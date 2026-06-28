@@ -13,7 +13,7 @@ A vertical-scrolling space shooter where the player controls a ship to dodge and
 
 ## Plugins used
 
-- **collision** (`CollisionManager`): ship vs. aliens, bullets vs. ships/aliens, collectables vs. ship — all with `CircleCollisionMask` or `BoxCollisionMask`.
+- **collision** (`CollisionManager`): ship vs. aliens and collectables vs. ship use `CollisionDetector` with `CircleCollisionMask` or `BoxCollisionMask`; bullets vs. ships/aliens instead `segmentCast` each frame against `CollisionManager.collidables` so fast shots cannot tunnel past a target.
 - **keyboard-input** (`KeyboardInputManager`): arrow keys move `ShipDestination`; Spacebar fires.
 - **pointer-input** (`PointerInputManager`, `isActiveAboveViewport = true`): relative mouse movement drives `ShipDestination`; any pointer press fires bullets. Uses `tryToMoveHoveringPointer` to re-center the cursor after each movement event so the ship doesn't get stuck at an edge.
 - **particles** (`ParticleManager`): `BulletParticleState` trails behind every bullet (continuous emission); `ExplosionParticleState` bursts 100 particles on each explosion.
@@ -27,7 +27,7 @@ A vertical-scrolling space shooter where the player controls a ship to dodge and
 - **`Ship`** (`Visible`, `Dynamic`, `Group`, `KeyboardInputAware`, `PointerInputAware`, `Collidable`, `Unique`): player ship. Uses `ShipAnimationWrapper` (inner class) to animate the sprite based on horizontal movement direction — the sprite steps forward when banking and steps back when straightening up. Groups with `ShipDestination`.
 - **`ShipDestination`** (`Positionable`, `PointerInputAware`, `KeyboardInputAware`, `Dynamic`): invisible point actor that is the target the ship smoothly interpolates towards. Decouples input from physics so movement feels analog regardless of input type.
 - **`AlienShip`** (`Visible`, `Dynamic`, `Collidable`, `CollisionDetector`): scrolls downward at a speed scaled by viewport height. Fires at the player ship with random timing. Spawns `PowerUp` or `Shield` with low probability on death. Resets to a random X position above the viewport when it exits the bottom.
-- **`Bullet` / `BulletPlayer` / `BulletEnemy`**: abstract `Bullet` base (`Visible`, `Dynamic`, `ParticleEmitter`, `CollisionDetector`) with direction/speed params. Player bullets travel upward; enemy bullets aim at the current ship position using `directionTowards`.
+- **`Bullet` / `BulletPlayer` / `BulletEnemy`**: abstract `Bullet` base (`Visible`, `Dynamic`, `ParticleEmitter`) with direction/speed params. Not collidable itself: each frame it `segmentCast`s its travelled path against `CollisionManager.collidables` (filtered by a per-subclass `canHit`) and applies `onHit` to the nearest target — sweeping the path instead of overlap-testing the end position avoids tunneling at high speed. Player bullets travel upward; enemy bullets aim at the current ship position using `directionTowards`.
 - **`Explosion`** (`ParticleEmitter<ExplosionParticleState>`): burst emitter that removes itself once emission is complete. Also increments score.
 - **`PowerUp` / `Shield`**: both extend `Collectable` (base class for animated collectables that drift downward). `PowerUp` grants 6 additional spread shots; `Shield` restores 2 health points.
 - **`CameraShakeEffect`** (`Dynamic`): short-lived actor that randomises `ViewportManager.scaleFactor` and `CameraShakeManager.rotation` on every frame for a screen-shake duration, then removes itself.

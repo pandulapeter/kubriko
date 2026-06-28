@@ -27,17 +27,11 @@ internal class BulletPlayer(
     bulletBaseSpeed = 1.sceneUnit,
     speedIncrement = { 1 + it * 0.025f },
 ) {
-    override val collidableTypes = listOf(AlienShip::class)
+    override fun canHit(collidable: Collidable) = collidable is AlienShip && !collidable.isShrinking
 
-    override fun onCollisionDetected(collidables: List<Collidable>) {
-        var isPlayingExplosion = false
-        collidables.filterIsInstance<AlienShip>().filterNot { it.isShrinking }.forEach { alienShip ->
-            actorManager.remove(this)
-            if (!isPlayingExplosion) {
-                audioManager.playExplosionSmallSoundEffect()
-                isPlayingExplosion = true
-            }
-            alienShip.onHit(true)
-        }
+    override fun onHit(target: Collidable) {
+        actorManager.remove(this)
+        audioManager.playExplosionSmallSoundEffect()
+        (target as AlienShip).onHit(true)
     }
 }
