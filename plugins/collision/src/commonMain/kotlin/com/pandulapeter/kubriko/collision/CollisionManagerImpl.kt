@@ -25,14 +25,14 @@ internal class CollisionManagerImpl(
 ) : CollisionManager(isLoggingEnabled, instanceNameForLogging) {
 
     private val actorManager by manager<ActorManager>()
-    private val collisionDetectors by autoInitializingLazy {
+    override val collisionDetectors by autoInitializingLazy {
         actorManager.allActors.map { allActors ->
             allActors.filterIsInstance<CollisionDetector>().toImmutableList()
         }
             .flowOn(Dispatchers.Default)
             .asStateFlowOnMainThread(persistentListOf())
     }
-    private val collidables by autoInitializingLazy {
+    override val collidables by autoInitializingLazy {
         actorManager.allActors.map { allActors ->
             allActors.filterIsInstance<Collidable>().toImmutableList()
         }

@@ -10,6 +10,8 @@
 package com.pandulapeter.kubriko.collision
 
 import com.pandulapeter.kubriko.manager.Manager
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Manager responsible for handling collision detection between [Collidable] actors.
@@ -24,6 +26,20 @@ sealed class CollisionManager(
     instanceNameForLogging = instanceNameForLogging,
     classNameForLogging = "CollisionManager",
 ) {
+
+    /**
+     * The [Collidable] actors currently present in the scene, kept in sync with the active actors.
+     *
+     * Exposed so game code can run its own queries against the world (collecting obstacle masks for
+     * [com.pandulapeter.kubriko.collision.extensions.slidingMovement], testing whether a spawn point is
+     * clear, etc.) without re-deriving the list from the actor list itself.
+     */
+    abstract val collidables: StateFlow<ImmutableList<Collidable>>
+
+    /**
+     * The [CollisionDetector] actors currently present in the scene, kept in sync with the active actors.
+     */
+    abstract val collisionDetectors: StateFlow<ImmutableList<CollisionDetector>>
 
     companion object {
         /**
