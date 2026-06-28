@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.collision.extensions
 
 import com.pandulapeter.kubriko.collision.Collidable
+import com.pandulapeter.kubriko.collision.CollisionManager
 import com.pandulapeter.kubriko.collision.CollisionResult
 import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.collision.mask.CollisionMask
@@ -78,6 +79,40 @@ fun CollisionMask.slidingMovement(
     } finally {
         position = origin
     }
+}
+
+/**
+ * Convenience overload of [slidingMovement] that sources the obstacles from [collisionManager] instead
+ * of a hand-built list: every current [Collidable] except this one (and except any rejected by
+ * [isObstacle]) becomes an obstacle. Returns the part of [desiredMovement] this actor can travel,
+ * sliding along the obstacles it would otherwise pass through.
+ *
+ * This rebuilds the obstacle list on every call, so for an actor that moves each frame the
+ * [CollisionMask]-list overload of [slidingMovement] (fed a list the caller refreshes only when the set
+ * of obstacles actually changes) avoids the per-frame allocation. Reach for this one when the
+ * convenience outweighs that.
+ *
+ * @param desiredMovement The movement the actor would make if nothing were in the way.
+ * @param collisionManager The manager whose [CollisionManager.collidables] supply the obstacles.
+ * @param maximumSlideIterations The number of allowed overlap-resolution passes.
+ * @param isObstacle Decides which collidables block this actor; defaults to all of them.
+ * @return The largest collision-free movement, as described on [slidingMovement].
+ */
+fun Collidable.slidingMovement(
+    desiredMovement: SceneOffset,
+    collisionManager: CollisionManager,
+    maximumSlideIterations: Int = 4,
+    isObstacle: (Collidable) -> Boolean = { true },
+): SceneOffset {
+    val candidates = collisionManager.collidables.value
+    val obstacles = ArrayList<CollisionMask>(candidates.size)
+    for (index in candidates.indices) {
+        val candidate = candidates[index]
+        if (candidate !== this && isObstacle(candidate)) {
+            obstacles.add(candidate.collisionMask)
+        }
+    }
+    return collisionMask.slidingMovement(desiredMovement, obstacles, maximumSlideIterations)
 }
 
 /**
