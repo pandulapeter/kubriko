@@ -39,50 +39,42 @@ fun CollisionMask.collisionResultWith(
 )
 
 /**
- * Computes the part of [desiredMovement] this mask can travel without overlapping any of the given
- * [obstacles], sliding along their surfaces so an angled approach glides around an obstacle's edge
+ * Computes the part of [desiredMovement] this mask can travel without ending up overlapping any of the
+ * given [obstacles], sliding along their surfaces so an angled approach glides around an obstacle's edge
  * instead of stopping dead against it.
  *
- * When the full movement is blocked, the component pointing into the closest obstacle is removed and
- * the remaining tangential movement is retried, so the actor keeps as much of its speed as it can
- * while following the obstacle's contour. Only a head-on approach (movement aimed straight at the
- * contact) comes to a full stop. Intended for kinematic actors (ones moved by writing their position
- * directly, without the physics plugin) that should be blocked by solid scenery: apply the returned
- * offset to the actor's position instead of [desiredMovement]. The mask is probed at candidate
- * positions during the call and restored to its original position before returning, so the caller
- * stays in control of when the movement is committed.
+ * The mask is advanced to the target position and then pushed back out of any overlap along the
+ * obstacles' contact normals. For convex obstacles this push-out is what produces the slide: it cancels
+ * the part of the movement aimed into the obstacle while leaving the tangential part, so the actor keeps
+ * as much of its speed as it can while following the obstacle's contour. Only a head-on approach
+ * (movement aimed straight at the contact) is pushed fully back and settles at the surface with no net
+ * movement. The deepest overlap is resolved first and the step repeats up to [maximumSlideIterations]
+ * times to settle corners where pushing out of one obstacle pushes into another.
+ *
+ * Intended for kinematic actors (ones moved by writing their position directly, without the physics
+ * plugin) that should be blocked by solid scenery: apply the returned offset to the actor's position
+ * instead of [desiredMovement]. The mask is probed at candidate positions during the call and restored to
+ * its original position before returning, so the caller stays in control of when the movement is committed.
  *
  * @param desiredMovement The movement the actor would make if nothing were in the way.
  * @param obstacles The masks that should block movement. The receiver is ignored if it is present.
- * @param maximumSlideIterations The number of allowed sliding attempts.
+ * @param maximumSlideIterations The number of allowed overlap-resolution passes.
  * @return The largest collision-free movement: [desiredMovement] when the path is clear, a shorter
  * offset tangential to the blocking obstacle when it can slide, or [SceneOffset.Zero] when it cannot.
  */
 fun CollisionMask.slidingMovement(
     desiredMovement: SceneOffset,
     obstacles: List<CollisionMask>,
-    maximumSlideIterations: Int = 2,
+    maximumSlideIterations: Int = 4,
 ): SceneOffset {
     val origin = position
     try {
         position = origin + desiredMovement
-        if (!collidesWithAny(obstacles)) {
-            return desiredMovement
-        }
-        var attempt = desiredMovement
-        // Each pass slides the movement along the surface it currently hits; a second pass handles
-        // the corner where the slid movement runs into another obstacle. Movement that still
-        // collides after that settles to a stop rather than risk passing through.
         repeat(maximumSlideIterations) {
-            val blocking = deepestCollision(obstacles) ?: return attempt
-            val penetratingAmount = attempt.dot(blocking.contactNormal)
-            if (penetratingAmount <= SceneUnit.Zero) {
-                return SceneOffset.Zero
-            }
-            attempt -= blocking.contactNormal * penetratingAmount
-            position = origin + attempt
+            val blocking = deepestCollision(obstacles) ?: return position - origin
+            position -= blocking.contactNormal * blocking.penetration
         }
-        return if (collidesWithAny(obstacles)) SceneOffset.Zero else attempt
+        return position - origin
     } finally {
         position = origin
     }
@@ -119,10 +111,9 @@ fun CollisionMask.depenetrationFrom(
 }
 
 /**
- * Boolean-only collision test: runs the same broad and narrow phase as [collisionResultWith] but
- * never constructs a [CollisionResult] (the detection loop in CollisionManagerImpl only needs the
- * yes/no answer, and the result object would otherwise be allocated for every colliding pair on
- * every frame).
+ * Returns whether this mask overlaps any of the given [obstacles], skipping the receiver if it appears
+ * among them. Uses the allocation-free boolean narrow phase ([hasCollisionWith]) and stops at the first
+ * overlap, so it is cheaper than collecting a [CollisionResult] when only a yes/no answer is needed.
  */
 fun CollisionMask.collidesWithAny(
     obstacles: List<CollisionMask>,
