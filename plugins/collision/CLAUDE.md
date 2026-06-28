@@ -52,7 +52,13 @@ Pass `shouldSkipAxisAlignedBoundingBoxCheck = true` to `collisionResultWith()` o
 - `slidingMovement(desiredMovement, obstacles, maximumSlideIterations = 4)` — returns the portion of the intended movement that stays collision-free. It advances the receiver to the target, then pushes it back out of any overlap along the obstacle's `contactNormal` scaled by penetration (deepest overlap first, repeated up to `maximumSlideIterations` times). For convex obstacles the push-out cancels the component aimed into the obstacle and leaves the tangential one, so an angled approach glides around a round obstacle's edge while a head-on hit settles at the surface. Probes the receiver mask at candidate positions and restores it before returning (the caller commits the result); free movement builds no `CollisionResult` (nothing overlaps), so it stays allocation-free.
 - `depenetrationFrom(obstacles)` — returns the offset that separates the receiver from any obstacle it already overlaps (sum of each `CollisionResult`'s `contactNormal × penetration`), for recovering from spawn-inside-scenery cases the sweep cannot prevent.
 
-Both skip the receiver if it appears in `obstacles`.
+All skip the receiver if it appears in `obstacles`. `slidingMovement` also has a `Collidable.slidingMovement(desiredMovement, collisionManager, …, isObstacle)` overload that builds the obstacle list from `CollisionManager.collidables` itself (rebuilt every call — the mask-list overload is the allocation-free path for per-frame movers).
+
+For custom response that needs the contact details rather than a resolved movement, `deepestCollisionWith(obstacles)` and `firstCollisionWith(obstacles)` return the `CollisionResult` for the deepest / first overlapping obstacle (or `null`).
+
+## Raycasting (`RaycastExtensions.kt`)
+
+`raycast(origin, direction, maxDistance)` (on a single `CollisionMask` or a `List<CollisionMask>`) returns the nearest `RaycastHit` (`mask`, `point`, outward `normal`, `distance`) where the ray **enters** a mask, or `null`. `List<CollisionMask>.segmentCast(start, end)` is the "is anything between these two points?" convenience. Circle (quadratic) and polygon (per-edge entry, back-facing edges skipped) are supported; point masks are never hit; a ray starting inside a mask returns `null` (it enters no surface). The list form does a bounding-box reject before the per-shape math. For line-of-sight, hitscan, and screen-point picking.
 
 ## Mask Hierarchy
 
@@ -80,6 +86,7 @@ Mutable 2×2 matrix stored as two `SceneOffset` rows. `transposeInto(dest)` writ
 - `CollisionDetector extends Collidable` — receives `onCollisionDetected(List<Collidable>)`; declare `collidableTypes: List<KClass<out Collidable>>`
 - `CollisionDetector` is never reported colliding with itself (`candidate !== detector`)
 - To get `CollisionResult` (contact point, normal, depth): call `collisionMask.collisionResultWith(other.collisionMask)` inside the callback
+- `CollisionManager.collidables` / `collisionDetectors` are public `StateFlow`s of the current actors, so game code can run its own queries (obstacle gathering, raycasts, spawn-clear checks) without re-deriving the lists from `ActorManager`
 
 ## Gotchas
 

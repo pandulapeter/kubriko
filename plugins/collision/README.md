@@ -16,6 +16,7 @@ The `collision` plugin provides high-performance collision detection for Kubriko
 - **Spatial Partitioning**: Optimized detection that handles many objects efficiently.
 - **Multiple Mask Shapes**: Supports Points, Circles, Boxes, and Polygons.
 - **Trait Integration**: Simple integration using the `Collidable` and `CollisionDetector` traits.
+- **Movement & Queries**: Slide kinematic actors along obstacles, and raycast the world for line-of-sight, hitscan, or picking.
 
 ## Usage
 
@@ -69,7 +70,18 @@ body.position += allowed
 collisionMask.position = body.position
 ```
 
-`depenetrationFrom(obstacles)` complements it by returning the offset that separates an actor already overlapping an obstacle (e.g. one that spawned inside scenery).
+`depenetrationFrom(obstacles)` complements it by returning the offset that separates an actor already overlapping an obstacle (e.g. one that spawned inside scenery). A `Collidable.slidingMovement(desiredMovement, collisionManager)` overload can also gather the obstacles from the manager for you.
+
+### 5. Query the World (Optional)
+
+Cast a ray (or a segment between two points) against collision masks — useful for line-of-sight, hitscan weapons, or picking a shape under the cursor:
+
+```kotlin
+val hit = walls.map { it.collisionMask }.segmentCast(start = eye, end = target)
+val canSee = hit == null // nothing blocks the line between eye and target
+```
+
+`CollisionManager.collidables` exposes the current collidable actors, so these queries can run against the live world without tracking the list yourself.
 
 ## Supported Masks
 
