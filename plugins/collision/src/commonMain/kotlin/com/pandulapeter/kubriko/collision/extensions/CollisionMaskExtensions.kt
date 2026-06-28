@@ -39,6 +39,117 @@ fun CollisionMask.collisionResultWith(
 )
 
 /**
+ * Computes the part of [desiredMovement] this mask can travel without overlapping any of the given
+ * [obstacles], sliding along their surfaces so an angled approach glides around an obstacle's edge
+ * instead of stopping dead against it.
+ *
+ * When the full movement is blocked, the component pointing into the closest obstacle is removed and
+ * the remaining tangential movement is retried, so the actor keeps as much of its speed as it can
+ * while following the obstacle's contour. Only a head-on approach (movement aimed straight at the
+ * contact) comes to a full stop. Intended for kinematic actors (ones moved by writing their position
+ * directly, without the physics plugin) that should be blocked by solid scenery: apply the returned
+ * offset to the actor's position instead of [desiredMovement]. The mask is probed at candidate
+ * positions during the call and restored to its original position before returning, so the caller
+ * stays in control of when the movement is committed.
+ *
+ * @param desiredMovement The movement the actor would make if nothing were in the way.
+ * @param obstacles The masks that should block movement. The receiver is ignored if it is present.
+ * @return The largest collision-free movement: [desiredMovement] when the path is clear, a shorter
+ * offset tangential to the blocking obstacle when it can slide, or [SceneOffset.Zero] when it cannot.
+ */
+fun CollisionMask.slidingMovement(
+    desiredMovement: SceneOffset,
+    obstacles: List<CollisionMask>,
+): SceneOffset {
+    val origin = position
+    try {
+        position = origin + desiredMovement
+        if (!collidesWithAny(obstacles)) {
+            return desiredMovement
+        }
+        var attempt = desiredMovement
+        // Each pass slides the movement along the surface it currently hits; a second pass handles
+        // the corner where the slid movement runs into another obstacle. Movement that still
+        // collides after that settles to a stop rather than risk passing through.
+        repeat(MAXIMUM_SLIDE_ITERATIONS) {
+            val blocking = deepestCollision(obstacles) ?: return attempt
+            val penetratingAmount = attempt.dot(blocking.contactNormal)
+            if (penetratingAmount <= SceneUnit.Zero) {
+                return SceneOffset.Zero
+            }
+            attempt -= blocking.contactNormal * penetratingAmount
+            position = origin + attempt
+        }
+        return if (collidesWithAny(obstacles)) SceneOffset.Zero else attempt
+    } finally {
+        position = origin
+    }
+}
+
+/**
+ * Computes an offset that pushes this mask out of any of the given [obstacles] it currently
+ * overlaps, summing the resolution vector (contact normal scaled by penetration depth) of each
+ * overlap.
+ *
+ * This recovers from overlaps a [slidingMovement] sweep cannot prevent, such as an actor that
+ * spawned inside scenery or scenery that was placed on top of it: apply the returned offset to the
+ * actor's position to separate it.
+ *
+ * @param obstacles The masks to separate from. The receiver is ignored if it is present.
+ * @return The offset that resolves the overlaps, or [SceneOffset.Zero] when there is none.
+ */
+fun CollisionMask.depenetrationFrom(
+    obstacles: List<CollisionMask>,
+): SceneOffset {
+    var push = SceneOffset.Zero
+    for (index in obstacles.indices) {
+        val obstacle = obstacles[index]
+        if (obstacle !== this) {
+            collisionResultWith(
+                other = obstacle,
+                shouldSkipAxisAlignedBoundingBoxCheck = false,
+            )?.let { result ->
+                push -= result.contactNormal * result.penetration
+            }
+        }
+    }
+    return push
+}
+
+private fun CollisionMask.collidesWithAny(
+    obstacles: List<CollisionMask>,
+): Boolean {
+    for (index in obstacles.indices) {
+        val obstacle = obstacles[index]
+        if (obstacle !== this && hasCollisionWith(obstacle)) {
+            return true
+        }
+    }
+    return false
+}
+
+private fun CollisionMask.deepestCollision(
+    obstacles: List<CollisionMask>,
+): CollisionResult? {
+    var deepest: CollisionResult? = null
+    for (index in obstacles.indices) {
+        val obstacle = obstacles[index]
+        if (obstacle !== this) {
+            val result = collisionResultWith(
+                other = obstacle,
+                shouldSkipAxisAlignedBoundingBoxCheck = false,
+            )
+            if (result != null && (deepest == null || result.penetration > deepest.penetration)) {
+                deepest = result
+            }
+        }
+    }
+    return deepest
+}
+
+private const val MAXIMUM_SLIDE_ITERATIONS = 2
+
+/**
  * Boolean-only collision test: runs the same broad and narrow phase as [collisionResultWith] but
  * never constructs a [CollisionResult] (the detection loop in CollisionManagerImpl only needs the
  * yes/no answer, and the result object would otherwise be allocated for every colliding pair on

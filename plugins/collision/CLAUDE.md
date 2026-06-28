@@ -45,6 +45,15 @@ Detection is O(D × T × C′): D = detectors, T = collidableTypes per detector,
 
 Pass `shouldSkipAxisAlignedBoundingBoxCheck = true` to `collisionResultWith()` only when AABB overlap is guaranteed.
 
+## Kinematic Movement Response
+
+`CollisionMaskExtensions.kt` also exposes two helpers for actors moved by writing their position directly (no physics plugin) that should be blocked by solid obstacles:
+
+- `slidingMovement(desiredMovement, obstacles)` — returns the portion of the intended movement that stays collision-free. When blocked, it removes the component pointing into the closest obstacle (`CollisionResult.contactNormal`) and retries the tangential remainder — up to `MAXIMUM_SLIDE_ITERATIONS` passes — so an angled approach glides around a round obstacle's edge and only a head-on hit stops. Probes the receiver mask at candidate positions and restores it before returning (the caller commits the result). The no-collision path is allocation-free (boolean `hasCollisionWith` fast path); `CollisionResult`s are only built once movement is actually blocked.
+- `depenetrationFrom(obstacles)` — returns the offset that separates the receiver from any obstacle it already overlaps (sum of each `CollisionResult`'s `contactNormal × penetration`), for recovering from spawn-inside-scenery cases the sweep cannot prevent.
+
+Both skip the receiver if it appears in `obstacles`.
+
 ## Mask Hierarchy
 
 ```

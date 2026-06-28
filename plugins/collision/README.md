@@ -56,6 +56,21 @@ class Bullet : Actor(), CollisionDetector {
 }
 ```
 
+### 4. Block Movement (Optional)
+
+For actors moved by writing their position directly (without the physics plugin) that should be stopped by solid obstacles, `slidingMovement` returns the portion of an intended movement that stays collision-free, sliding along obstacles instead of passing through them:
+
+```kotlin
+val allowed = collisionMask.slidingMovement(
+    desiredMovement = velocity * deltaTimeInMilliseconds,
+    obstacles = walls.map { it.collisionMask },
+)
+body.position += allowed
+collisionMask.position = body.position
+```
+
+`depenetrationFrom(obstacles)` complements it by returning the offset that separates an actor already overlapping an obstacle (e.g. one that spawned inside scenery).
+
 ## Supported Masks
 
 Several shapes are supported out of the box:
