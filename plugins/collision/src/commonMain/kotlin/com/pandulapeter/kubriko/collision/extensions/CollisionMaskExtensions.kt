@@ -118,7 +118,13 @@ fun CollisionMask.depenetrationFrom(
     return push
 }
 
-private fun CollisionMask.collidesWithAny(
+/**
+ * Boolean-only collision test: runs the same broad and narrow phase as [collisionResultWith] but
+ * never constructs a [CollisionResult] (the detection loop in CollisionManagerImpl only needs the
+ * yes/no answer, and the result object would otherwise be allocated for every colliding pair on
+ * every frame).
+ */
+fun CollisionMask.collidesWithAny(
     obstacles: List<CollisionMask>,
 ): Boolean {
     for (index in obstacles.indices) {
@@ -155,7 +161,7 @@ private fun CollisionMask.deepestCollision(
  * yes/no answer, and the result object would otherwise be allocated for every colliding pair on
  * every frame).
  */
-internal fun CollisionMask.hasCollisionWith(other: CollisionMask): Boolean = collisionCheck(
+fun CollisionMask.hasCollisionWith(other: CollisionMask): Boolean = collisionCheck(
     other = other,
     shouldSkipAxisAlignedBoundingBoxCheck = false,
     shouldCollectResult = false,
