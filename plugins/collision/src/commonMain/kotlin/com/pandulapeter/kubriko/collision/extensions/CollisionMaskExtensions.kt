@@ -71,7 +71,7 @@ fun CollisionMask.slidingMovement(
     try {
         position = origin + desiredMovement
         repeat(maximumSlideIterations) {
-            val blocking = deepestCollision(obstacles) ?: return position - origin
+            val blocking = deepestCollisionWith(obstacles) ?: return position - origin
             position -= blocking.contactNormal * blocking.penetration
         }
         return position - origin
@@ -127,7 +127,16 @@ fun CollisionMask.collidesWithAny(
     return false
 }
 
-private fun CollisionMask.deepestCollision(
+/**
+ * Returns the [CollisionResult] for the obstacle this mask overlaps most deeply, or `null` when it
+ * overlaps none of them. The receiver is skipped if it appears among [obstacles].
+ *
+ * Useful for custom kinematic response that needs the contact details (normal, depth, point): resolve
+ * the worst overlap first and re-test, which is exactly how [slidingMovement] slides along obstacles.
+ *
+ * @param obstacles The masks to test against. The receiver is ignored if it is present.
+ */
+fun CollisionMask.deepestCollisionWith(
     obstacles: List<CollisionMask>,
 ): CollisionResult? {
     var deepest: CollisionResult? = null
@@ -144,6 +153,30 @@ private fun CollisionMask.deepestCollision(
         }
     }
     return deepest
+}
+
+/**
+ * Returns the [CollisionResult] for the first obstacle this mask overlaps, or `null` when it overlaps
+ * none of them, stopping at the first hit. The receiver is skipped if it appears among [obstacles].
+ *
+ * Cheaper than [deepestCollisionWith] when any one contact is enough (a bullet that hits a wall, a
+ * sensor that only needs to know what it touched first).
+ *
+ * @param obstacles The masks to test against. The receiver is ignored if it is present.
+ */
+fun CollisionMask.firstCollisionWith(
+    obstacles: List<CollisionMask>,
+): CollisionResult? {
+    for (index in obstacles.indices) {
+        val obstacle = obstacles[index]
+        if (obstacle !== this) {
+            collisionResultWith(
+                other = obstacle,
+                shouldSkipAxisAlignedBoundingBoxCheck = false,
+            )?.let { return it }
+        }
+    }
+    return null
 }
 
 /**
