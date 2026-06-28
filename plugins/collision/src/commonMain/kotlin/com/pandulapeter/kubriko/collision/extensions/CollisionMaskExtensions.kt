@@ -54,12 +54,14 @@ fun CollisionMask.collisionResultWith(
  *
  * @param desiredMovement The movement the actor would make if nothing were in the way.
  * @param obstacles The masks that should block movement. The receiver is ignored if it is present.
+ * @param maximumSlideIterations The number of allowed sliding attempts.
  * @return The largest collision-free movement: [desiredMovement] when the path is clear, a shorter
  * offset tangential to the blocking obstacle when it can slide, or [SceneOffset.Zero] when it cannot.
  */
 fun CollisionMask.slidingMovement(
     desiredMovement: SceneOffset,
     obstacles: List<CollisionMask>,
+    maximumSlideIterations: Int = 2,
 ): SceneOffset {
     val origin = position
     try {
@@ -71,7 +73,7 @@ fun CollisionMask.slidingMovement(
         // Each pass slides the movement along the surface it currently hits; a second pass handles
         // the corner where the slid movement runs into another obstacle. Movement that still
         // collides after that settles to a stop rather than risk passing through.
-        repeat(MAXIMUM_SLIDE_ITERATIONS) {
+        repeat(maximumSlideIterations) {
             val blocking = deepestCollision(obstacles) ?: return attempt
             val penetratingAmount = attempt.dot(blocking.contactNormal)
             if (penetratingAmount <= SceneUnit.Zero) {
@@ -146,8 +148,6 @@ private fun CollisionMask.deepestCollision(
     }
     return deepest
 }
-
-private const val MAXIMUM_SLIDE_ITERATIONS = 2
 
 /**
  * Boolean-only collision test: runs the same broad and narrow phase as [collisionResultWith] but
