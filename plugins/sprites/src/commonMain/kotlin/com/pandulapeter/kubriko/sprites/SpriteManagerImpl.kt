@@ -128,7 +128,7 @@ internal class SpriteManagerImpl(
     }
 
     @OptIn(InternalResourceApi::class, ExperimentalResourceApi::class)
-    internal open suspend fun loadImage(spriteResource: SpriteResource): ImageBitmap? = try {
+    internal suspend fun loadImage(spriteResource: SpriteResource): ImageBitmap? = try {
         getDrawableResourceBytes(
             getSystemResourceEnvironment(),
             spriteResource.drawableResource
