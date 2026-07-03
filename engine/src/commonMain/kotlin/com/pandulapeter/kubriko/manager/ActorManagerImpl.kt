@@ -37,6 +37,7 @@ import com.pandulapeter.kubriko.helpers.extensions.transformForViewport
 import com.pandulapeter.kubriko.helpers.extensions.transformViewport
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -57,6 +58,7 @@ internal class ActorManagerImpl(
     private val initialActors: List<Actor>,
     private val shouldUpdateActorsWhileNotRunning: Boolean,
     private val shouldPutFarAwayActorsToSleep: Boolean,
+    private val farAwayActorSleepMargin: SceneUnit?,
     private val invisibleActorMinimumRefreshTimeInMillis: Long,
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
@@ -249,7 +251,8 @@ internal class ActorManagerImpl(
         lastViewportSizeForDynamic = viewportSize
         lastDynamicRefreshTime = metadataManager.activeRuntimeInMilliseconds.value
 
-        val edgeBuffer = minOf(viewportSize.width / scaleFactor.horizontal, viewportSize.height / scaleFactor.vertical) / 2f
+        val edgeBuffer = farAwayActorSleepMargin?.raw
+            ?: (minOf(viewportSize.width / scaleFactor.horizontal, viewportSize.height / scaleFactor.vertical) / 2f)
         val halfScaledWidth = viewportSize.width / (scaleFactor.horizontal * 2f)
         val halfScaledHeight = viewportSize.height / (scaleFactor.vertical * 2f)
 

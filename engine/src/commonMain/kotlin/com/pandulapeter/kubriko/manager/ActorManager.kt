@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.manager
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.StateFlow
 
@@ -88,6 +89,10 @@ sealed class ActorManager(
          * @param initialActors The actors to start the game with. Their addition might not happen in the very first frame.
          * @param shouldUpdateActorsWhileNotRunning Whether [Dynamic] actors should receive updates even when the game is paused.
          * @param shouldPutFarAwayActorsToSleep Whether [Dynamic] actors far outside the viewport should stop receiving updates.
+         * @param farAwayActorSleepMargin How far outside the viewport's scene-space bounds a [Dynamic] actor may stray before it is
+         * put to sleep. `null` falls back to half the viewport's smaller scaled dimension. Only relevant when
+         * [shouldPutFarAwayActorsToSleep] is enabled. Size it to comfortably cover the distance the camera and the actors can travel
+         * between two checks (see [invisibleActorMinimumRefreshTimeInMillis]) so actors always wake before they scroll into view.
          * @param invisibleActorMinimumRefreshTimeInMillis Controls the frequency of the automatic visibility check for [Visible] actors.
          * @param isLoggingEnabled Whether to enable logging for this manager.
          * @param instanceNameForLogging Optional name for logging purposes.
@@ -96,6 +101,7 @@ sealed class ActorManager(
             initialActors: List<Actor> = emptyList(),
             shouldUpdateActorsWhileNotRunning: Boolean = false,
             shouldPutFarAwayActorsToSleep: Boolean = true,
+            farAwayActorSleepMargin: SceneUnit? = null,
             invisibleActorMinimumRefreshTimeInMillis: Long = 0,
             isLoggingEnabled: Boolean = false,
             instanceNameForLogging: String? = null,
@@ -103,6 +109,7 @@ sealed class ActorManager(
             initialActors = initialActors,
             shouldUpdateActorsWhileNotRunning = shouldUpdateActorsWhileNotRunning,
             shouldPutFarAwayActorsToSleep = shouldPutFarAwayActorsToSleep,
+            farAwayActorSleepMargin = farAwayActorSleepMargin,
             invisibleActorMinimumRefreshTimeInMillis = invisibleActorMinimumRefreshTimeInMillis,
             isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = instanceNameForLogging,
