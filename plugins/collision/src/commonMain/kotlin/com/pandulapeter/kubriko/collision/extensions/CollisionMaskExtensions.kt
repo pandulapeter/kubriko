@@ -18,13 +18,13 @@ import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.distanceTo
 import com.pandulapeter.kubriko.helpers.extensions.dot
 import com.pandulapeter.kubriko.helpers.extensions.isOverlapping
-import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.normal
 import com.pandulapeter.kubriko.helpers.extensions.normalized
 import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
+import kotlin.math.sqrt
 
 fun Collidable.isCollidingWith(
     other: Collidable
@@ -284,28 +284,37 @@ private val incidentFaceVertexesBuffer = arrayOf(SceneOffset.Zero, SceneOffset.Z
 private val contactVectorsFoundBuffer = arrayOf(SceneOffset.Zero, SceneOffset.Zero)
 private val clipOutBuffer = arrayOf(SceneOffset.Zero, SceneOffset.Zero)
 
+// The most frequent narrow-phase pair; raw floats with a squared-distance early-out keep the
+// common no-collision case free of square roots and boxing.
 private fun checkCircleToCircleCollision(
     circleA: CircleCollisionMask,
     circleB: CircleCollisionMask,
     shouldCollectResult: Boolean,
 ): CollisionResult? {
-    val normal = circleB.position.minus(circleA.position)
-    val distance = normal.length()
-    val radius = circleA.radius + circleB.radius
-    return if (distance >= radius) null
-    else if (!shouldCollectResult) COLLISION_DETECTED
-    else if (distance == SceneUnit.Zero) CollisionResult(
-        contact = circleA.position,
-        contactNormal = SceneOffset.Down,
-        penetration = radius,
-    )
-    else normal.normalized().let { contactNormal ->
-        CollisionResult(
-            contact = contactNormal.scalar(circleA.radius) + circleB.position,
-            contactNormal = contactNormal,
-            penetration = radius - distance
+    val normalX = circleB.position.x.raw - circleA.position.x.raw
+    val normalY = circleB.position.y.raw - circleA.position.y.raw
+    val radius = circleA.radius.raw + circleB.radius.raw
+    val distanceSquared = normalX * normalX + normalY * normalY
+    if (distanceSquared >= radius * radius) {
+        return null
+    }
+    if (!shouldCollectResult) {
+        return COLLISION_DETECTED
+    }
+    val distance = sqrt(distanceSquared)
+    if (distance == 0f) {
+        return CollisionResult(
+            contact = circleA.position,
+            contactNormal = SceneOffset.Down,
+            penetration = radius.sceneUnit,
         )
     }
+    val contactNormal = SceneOffset((normalX / distance).sceneUnit, (normalY / distance).sceneUnit)
+    return CollisionResult(
+        contact = contactNormal.scalar(circleA.radius) + circleB.position,
+        contactNormal = contactNormal,
+        penetration = (radius - distance).sceneUnit,
+    )
 }
 
 

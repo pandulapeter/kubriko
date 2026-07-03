@@ -29,26 +29,25 @@ fun AxisAlignedBoundingBox.isWithinViewportBounds(
     viewportEdgeBuffer = (viewportManager as ViewportManagerImpl).viewportEdgeBuffer,
 )
 
+// Raw-float math: this runs for every actor on every visibility refresh, and the SceneUnit
+// operator chain would box through the generic comparisons.
 internal fun AxisAlignedBoundingBox.isWithinViewportBounds(
     scaledHalfViewportSize: SceneSize,
     viewportCenter: SceneOffset,
     viewportEdgeBuffer: SceneUnit,
-): Boolean = left <= viewportCenter.x + scaledHalfViewportSize.width + viewportEdgeBuffer &&
-        top <= viewportCenter.y + scaledHalfViewportSize.height + viewportEdgeBuffer &&
-        right >= viewportCenter.x - scaledHalfViewportSize.width - viewportEdgeBuffer &&
-        bottom >= viewportCenter.y - scaledHalfViewportSize.height - viewportEdgeBuffer
+): Boolean {
+    val horizontalReach = scaledHalfViewportSize.width.raw + viewportEdgeBuffer.raw
+    val verticalReach = scaledHalfViewportSize.height.raw + viewportEdgeBuffer.raw
+    return minXRaw <= viewportCenter.x.raw + horizontalReach &&
+            minYRaw <= viewportCenter.y.raw + verticalReach &&
+            maxXRaw >= viewportCenter.x.raw - horizontalReach &&
+            maxYRaw >= viewportCenter.y.raw - verticalReach
+}
 
 /**
- * Checks if this bounding box overlaps with [other].
+ * Checks if this bounding box overlaps with [other]. Boxes that merely touch at an edge do not count as overlapping.
  */
-fun AxisAlignedBoundingBox.isOverlapping(other: AxisAlignedBoundingBox): Boolean {
-    val overlapTopLeft = SceneOffset(
-        x = maxOf(left, other.left),
-        y = maxOf(top, other.top)
-    )
-    val overlapBottomRight = SceneOffset(
-        x = minOf(right, other.right),
-        y = minOf(bottom, other.bottom)
-    )
-    return !(overlapTopLeft.x >= overlapBottomRight.x || overlapTopLeft.y >= overlapBottomRight.y)
-}
+// Raw-int math: this is the broad-phase test every collision and raycast query funnels through,
+// so it must not box SceneUnits through generic minOf/maxOf.
+fun AxisAlignedBoundingBox.isOverlapping(other: AxisAlignedBoundingBox): Boolean =
+    minXRaw < other.maxXRaw && other.minXRaw < maxXRaw && minYRaw < other.maxYRaw && other.minYRaw < maxYRaw

@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.drawscope.DrawStyle
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.helpers.extensions.clamp
 import com.pandulapeter.kubriko.helpers.extensions.length
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -34,9 +35,11 @@ class CircleCollisionMask(
 ) : PointCollisionMask(
     initialPosition = initialPosition,
 ), ComplexCollisionMask {
+    // Assigned every frame for moving masks, so the negative guard is raw math instead of a clamp
+    // that boxes through nullable SceneUnits.
     var radius = initialRadius.clamp(min = SceneUnit.Zero)
         set(value) {
-            val newValue = value.clamp(min = SceneUnit.Zero)
+            val newValue = if (value.raw < 0f) SceneUnit.Zero else value
             if (field != newValue) {
                 field = newValue
                 isAxisAlignedBoundingBoxDirty = true
@@ -46,10 +49,14 @@ class CircleCollisionMask(
 
     override fun isSceneOffsetInside(sceneOffset: SceneOffset) = (position - sceneOffset).length() <= radius
 
-    override fun updateAxisAlignedBoundingBox() = AxisAlignedBoundingBox(
-        min = SceneOffset.Zero - size.center + position,
-        max = SceneOffset(size.width, size.height) - size.center + position,
-    )
+    // Matches the padding of the size property (radius + half a unit each way) without going through it.
+    override fun updateAxisAlignedBoundingBox(): AxisAlignedBoundingBox {
+        val extent = radius.raw + 0.5f
+        return AxisAlignedBoundingBox(
+            min = SceneOffset((position.x.raw - extent).sceneUnit, (position.y.raw - extent).sceneUnit),
+            max = SceneOffset((position.x.raw + extent).sceneUnit, (position.y.raw + extent).sceneUnit),
+        )
+    }
 
     override fun DrawScope.drawDebugBounds(color: Color, style: DrawStyle) = this@CircleCollisionMask.size.raw.let { size ->
         drawCircle(
