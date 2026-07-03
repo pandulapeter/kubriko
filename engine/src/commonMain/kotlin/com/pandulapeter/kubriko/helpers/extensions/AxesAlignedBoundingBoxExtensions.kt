@@ -47,7 +47,7 @@ internal fun AxisAlignedBoundingBox.isWithinViewportBounds(
 /**
  * Checks if this bounding box overlaps with [other]. Boxes that merely touch at an edge do not count as overlapping.
  */
-// Raw-int math: this is the broad-phase test every collision and raycast query funnels through,
+// Raw-float math: this is the broad-phase test every collision and raycast query funnels through,
 // so it must not box SceneUnits through generic minOf/maxOf.
 fun AxisAlignedBoundingBox.isOverlapping(other: AxisAlignedBoundingBox): Boolean =
     minXRaw < other.maxXRaw && other.minXRaw < maxXRaw && minYRaw < other.maxYRaw && other.minYRaw < maxYRaw

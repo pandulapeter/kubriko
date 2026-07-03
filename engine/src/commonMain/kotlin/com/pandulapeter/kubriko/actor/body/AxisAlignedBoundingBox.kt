@@ -9,40 +9,28 @@
  */
 package com.pandulapeter.kubriko.actor.body
 
-import androidx.compose.ui.util.fastRoundToInt
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
-import kotlin.jvm.JvmInline
 
 /**
  * An axis-aligned rectangle used for collision detection and visibility checks.
  *
- * This class is optimized for memory and performance, using a packed [Long] to store
- * its coordinates in a quantized format.
- *
- * TODO: Please note the existence of the QUANT_SHIFT constant. It limits the maximum size of the scene!
- * Future versions of Kubriko should make that constant configurable, or get rid of it completely.
+ * Each [Body] and collision mask owns a single instance that it mutates in place as it moves, so
+ * per-frame updates allocate nothing and scene coordinates carry full [Float] range and precision.
+ * Consumers should read the current values through the owner's property rather than storing the
+ * box - a stored reference keeps reflecting the owner's latest bounds.
  */
-@JvmInline
-value class AxisAlignedBoundingBox(private val packed: Long) {
+class AxisAlignedBoundingBox(min: SceneOffset, max: SceneOffset) {
 
-    constructor(min: SceneOffset, max: SceneOffset) : this(
-        (((quantizeMin(min.x.raw.fastRoundToInt()) and 0xFFFF).toLong()) shl 48) or
-                (((quantizeMin(min.y.raw.fastRoundToInt()) and 0xFFFF).toLong()) shl 32) or
-                (((quantizeMax(max.x.raw.fastRoundToInt()) and 0xFFFF).toLong()) shl 16) or
-                (((quantizeMax(max.y.raw.fastRoundToInt()) and 0xFFFF).toLong()))
-    )
-
-    private val minXQ: Int get() = (packed shr 48).toShort().toInt()
-    private val minYQ: Int get() = (packed shr 32).toShort().toInt()
-    private val maxXQ: Int get() = (packed shr 16).toShort().toInt()
-    private val maxYQ: Int get() = packed.toShort().toInt()
-
-    val minXRaw: Int get() = minXQ shl QUANT_SHIFT
-    val minYRaw: Int get() = minYQ shl QUANT_SHIFT
-    val maxXRaw: Int get() = maxXQ shl QUANT_SHIFT
-    val maxYRaw: Int get() = maxYQ shl QUANT_SHIFT
+    var minXRaw: Float = min.x.raw
+        private set
+    var minYRaw: Float = min.y.raw
+        private set
+    var maxXRaw: Float = max.x.raw
+        private set
+    var maxYRaw: Float = max.y.raw
+        private set
 
     val left get() = minXRaw.sceneUnit
     val top get() = minYRaw.sceneUnit
@@ -56,22 +44,13 @@ value class AxisAlignedBoundingBox(private val packed: Long) {
             height = bottom - top,
         )
 
-    companion object {
-        const val QUANT_SHIFT: Int = 4 // Lower value results in more precision but limits the size of the scene
-        private const val STEP: Int = 1 shl QUANT_SHIFT
-        private const val MASK: Int = STEP - 1
-
-        private fun clampToShort(i: Int) = i.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt())
-
-        private fun floorToStep(raw: Int) = raw and MASK.inv()
-
-        private fun ceilToStep(raw: Int): Int {
-            val floored = floorToStep(raw)
-            return if (raw == floored) raw else floored + STEP
-        }
-
-        private fun quantizeMin(raw: Int): Int = clampToShort(floorToStep(raw) shr QUANT_SHIFT)
-
-        private fun quantizeMax(raw: Int): Int = clampToShort(ceilToStep(raw) shr QUANT_SHIFT)
+    /**
+     * Overwrites the bounds in place. Only the [Body] or collision mask that owns this box should call this.
+     */
+    fun update(min: SceneOffset, max: SceneOffset) {
+        minXRaw = min.x.raw
+        minYRaw = min.y.raw
+        maxXRaw = max.x.raw
+        maxYRaw = max.y.raw
     }
 }

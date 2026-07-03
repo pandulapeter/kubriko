@@ -25,18 +25,23 @@ open class PointCollisionMask internal constructor(
     initialPosition: SceneOffset,
 ) : CollisionMask {
     protected var isAxisAlignedBoundingBoxDirty = true
-    override var axisAlignedBoundingBox = AxisAlignedBoundingBox(
-        min = SceneOffset.Zero,
-        max = SceneOffset.Zero,
+    private val cachedAxisAlignedBoundingBox = AxisAlignedBoundingBox(
+        min = initialPosition,
+        max = initialPosition,
     )
+
+    /**
+     * A single instance mutated in place as the mask moves - read through this property instead of storing the box.
+     */
+    override val axisAlignedBoundingBox: AxisAlignedBoundingBox
         get() {
             if (isAxisAlignedBoundingBoxDirty) {
-                field = updateAxisAlignedBoundingBox()
+                updateAxisAlignedBoundingBox(cachedAxisAlignedBoundingBox)
                 // Without clearing the flag the cache never takes effect and every read recomputes
                 // the bounding box (a full vertex transform for polygon masks).
                 isAxisAlignedBoundingBoxDirty = false
             }
-            return field
+            return cachedAxisAlignedBoundingBox
         }
     override var position = initialPosition
         set(value) {
@@ -46,7 +51,7 @@ open class PointCollisionMask internal constructor(
             }
         }
 
-    protected open fun updateAxisAlignedBoundingBox() = AxisAlignedBoundingBox(
+    protected open fun updateAxisAlignedBoundingBox(target: AxisAlignedBoundingBox) = target.update(
         min = position,
         max = position,
     )

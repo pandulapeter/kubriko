@@ -50,9 +50,9 @@ class CircleCollisionMask(
     override fun isSceneOffsetInside(sceneOffset: SceneOffset) = (position - sceneOffset).length() <= radius
 
     // Matches the padding of the size property (radius + half a unit each way) without going through it.
-    override fun updateAxisAlignedBoundingBox(): AxisAlignedBoundingBox {
+    override fun updateAxisAlignedBoundingBox(target: AxisAlignedBoundingBox) {
         val extent = radius.raw + 0.5f
-        return AxisAlignedBoundingBox(
+        target.update(
             min = SceneOffset((position.x.raw - extent).sceneUnit, (position.y.raw - extent).sceneUnit),
             max = SceneOffset((position.x.raw + extent).sceneUnit, (position.y.raw + extent).sceneUnit),
         )

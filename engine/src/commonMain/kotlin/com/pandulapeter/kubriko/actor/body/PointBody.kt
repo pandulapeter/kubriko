@@ -22,34 +22,24 @@ import com.pandulapeter.kubriko.types.SceneOffset
 open class PointBody internal constructor(
     initialPosition: SceneOffset,
 ) : Body {
-    // Stored as a non-null value class plus a validity flag instead of a nullable field:
-    // a nullable inline class field boxes its underlying Long on every cache store.
-    private var cachedAxisAlignedBoundingBox = AxisAlignedBoundingBox(
-        min = SceneOffset.Zero,
-        max = SceneOffset.Zero,
+    private val cachedAxisAlignedBoundingBox = AxisAlignedBoundingBox(
+        min = initialPosition,
+        max = initialPosition,
     )
-    private var isAxisAlignedBoundingBoxCached = false
 
     /**
-     * The axis-aligned bounding box of the point body.
+     * The axis-aligned bounding box of the point body. A single instance mutated in place - read
+     * through this property instead of storing the box.
      */
-    override var axisAlignedBoundingBox: AxisAlignedBoundingBox
+    override val axisAlignedBoundingBox: AxisAlignedBoundingBox
         get() {
             if (isAxisAlignedBoundingBoxDirty) {
-                isAxisAlignedBoundingBoxCached = false
+                updateAxisAlignedBoundingBox(cachedAxisAlignedBoundingBox)
                 isAxisAlignedBoundingBoxDirty = false
-            }
-            if (!isAxisAlignedBoundingBoxCached) {
-                cachedAxisAlignedBoundingBox = createAxisAlignedBoundingBox()
-                isAxisAlignedBoundingBoxCached = true
             }
             return cachedAxisAlignedBoundingBox
         }
-        protected set(value) {
-            cachedAxisAlignedBoundingBox = value
-            isAxisAlignedBoundingBoxCached = true
-        }
-    protected var isAxisAlignedBoundingBoxDirty = false
+    protected var isAxisAlignedBoundingBoxDirty = true
 
     /**
      * The current position of the body in the scene.
@@ -71,7 +61,7 @@ open class PointBody internal constructor(
         initialPosition = position,
     )
 
-    protected open fun createAxisAlignedBoundingBox() = AxisAlignedBoundingBox(
+    protected open fun updateAxisAlignedBoundingBox(target: AxisAlignedBoundingBox) = target.update(
         min = position,
         max = position,
     )
