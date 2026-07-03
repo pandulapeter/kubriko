@@ -17,7 +17,11 @@ internal fun Project.configurePublicArtifact(
     artifactId: String,
 ) = extension.apply {
     publishToMavenCentral()
-    signAllPublications()
+    // Signing is only possible when the keys are configured (Maven Central releases); publishToMavenLocal for
+    // local development must keep working without them.
+    if (project.providers.gradleProperty("signingInMemoryKey").isPresent || project.providers.gradleProperty("signing.keyId").isPresent) {
+        signAllPublications()
+    }
     coordinates(
         groupId = "io.github.pandulapeter.kubriko",
         artifactId = artifactId,
