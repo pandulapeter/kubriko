@@ -10,15 +10,20 @@
 package com.pandulapeter.kubriko.shaders.extensions
 
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.RenderEffect
 import androidx.compose.ui.graphics.asComposeRenderEffect
+import androidx.compose.ui.graphics.asSkiaBitmap
 import com.pandulapeter.kubriko.shaders.ContentShader
 import com.pandulapeter.kubriko.shaders.Shader
 import com.pandulapeter.kubriko.shaders.collection.BlurShader
 import org.jetbrains.skia.FilterTileMode
+import org.jetbrains.skia.Image
 import org.jetbrains.skia.ImageFilter
 import org.jetbrains.skia.RuntimeEffect
 import org.jetbrains.skia.RuntimeShaderBuilder
+import org.jetbrains.skia.SamplingMode
+import org.jetbrains.skia.Shader as SkiaShader
 
 
 internal actual fun <T : Shader.State> createRenderEffect(
@@ -80,4 +85,16 @@ private class ShaderUniformProviderImpl(
     override fun uniform(name: String, value: Float) = runtimeShaderBuilder.uniform(name, value)
 
     override fun uniform(name: String, value1: Float, value2: Float) = runtimeShaderBuilder.uniform(name, value1, value2)
+
+    // Cached by bitmap identity so re-applying the same instance every frame skips the conversion.
+    private val childShaderCache = mutableMapOf<String, Pair<ImageBitmap, SkiaShader>>()
+
+    override fun uniform(name: String, value: ImageBitmap) {
+        val cached = childShaderCache[name]
+        val childShader = if (cached != null && cached.first === value) cached.second else Image
+            .makeFromBitmap(value.asSkiaBitmap())
+            .makeShader(FilterTileMode.CLAMP, FilterTileMode.CLAMP, SamplingMode.LINEAR)
+            .also { childShaderCache[name] = value to it }
+        runtimeShaderBuilder.child(name, childShader)
+    }
 }

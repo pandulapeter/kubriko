@@ -9,12 +9,15 @@
  */
 package com.pandulapeter.kubriko.shaders.extensions
 
+import android.graphics.BitmapShader
 import android.graphics.RenderEffect
 import android.graphics.RuntimeShader
 import android.graphics.Shader.TileMode
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asComposeRenderEffect
 import com.pandulapeter.kubriko.shaders.ContentShader
 import com.pandulapeter.kubriko.shaders.Shader
@@ -82,4 +85,20 @@ private class ShaderUniformProviderImpl(
     override fun uniform(name: String, value: Float) = runtimeShader.setFloatUniform(name, value)
 
     override fun uniform(name: String, value1: Float, value2: Float) = runtimeShader.setFloatUniform(name, value1, value2)
+
+    // Cached by bitmap identity so re-applying the same instance every frame skips the conversion.
+    private val childShaderCache = mutableMapOf<String, Pair<ImageBitmap, BitmapShader>>()
+
+    override fun uniform(name: String, value: ImageBitmap) {
+        val cached = childShaderCache[name]
+        val childShader = if (cached != null && cached.first === value) cached.second else BitmapShader(
+            value.asAndroidBitmap(),
+            TileMode.CLAMP,
+            TileMode.CLAMP,
+        ).also {
+            it.filterMode = BitmapShader.FILTER_MODE_LINEAR
+            childShaderCache[name] = value to it
+        }
+        runtimeShader.setInputShader(name, childShader)
+    }
 }
