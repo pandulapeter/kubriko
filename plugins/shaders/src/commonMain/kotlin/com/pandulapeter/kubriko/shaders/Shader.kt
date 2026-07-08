@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubriko.shaders
 
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.RenderEffect
 import com.pandulapeter.kubriko.actor.traits.LayerAware
 import com.pandulapeter.kubriko.shaders.extensions.ShaderUniformProvider
 
@@ -47,11 +49,30 @@ interface Shader<T : Shader.State> : LayerAware {
      */
     interface State {
         /**
+         * A cheap marker for whether the uniform values held by this state changed since it was last
+         * read. When it reports the same value as the previous frame (and the layer size is also
+         * unchanged), the native `RenderEffect` is reused instead of rebuilt. Defaults to
+         * [DIRTINESS_UNKNOWN], which always forces a rebuild — the safe behavior for implementations
+         * that don't override it. Override with e.g. a value derived from the uniforms themselves
+         * (bumped only when they actually change) to skip rebuilding while a shader is static, such as
+         * during an idle-throttled tick rate.
+         */
+        val dirtinessToken: Int get() = DIRTINESS_UNKNOWN
+
+        /**
          * Applies the uniforms to the shader.
          *
          * @receiver The provider used to set uniform values.
          */
         fun ShaderUniformProvider.applyUniforms() = Unit
+
+        companion object {
+            /**
+             * The default [dirtinessToken]: never compares as equal to a previous token, so the
+             * `RenderEffect` is rebuilt on every frame.
+             */
+            const val DIRTINESS_UNKNOWN = Int.MIN_VALUE
+        }
     }
 
     /**
@@ -60,6 +81,9 @@ interface Shader<T : Shader.State> : LayerAware {
     class Cache {
         internal var runtimeShader: Any? = null
         internal var uniformProvider: ShaderUniformProvider? = null
+        internal var cachedRenderEffect: RenderEffect? = null
+        internal var cachedDirtinessToken: Int = State.DIRTINESS_UNKNOWN
+        internal var cachedSize: Size? = null
     }
 
     companion object {

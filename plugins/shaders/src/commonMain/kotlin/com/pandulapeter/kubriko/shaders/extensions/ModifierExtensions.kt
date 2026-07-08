@@ -23,7 +23,20 @@ fun <T : Shader.State> Modifier.shader(
 ) = this then graphicsLayer {
     @Suppress("UNUSED_EXPRESSION") gameTime.value  // Invalidates the Canvas, causing a refresh on every frame
     clip = true
-    renderEffect = createRenderEffect(shader, size)
+    val cache = shader.shaderCache
+    val dirtinessToken = shader.shaderState.dirtinessToken
+    renderEffect = if (dirtinessToken != Shader.State.DIRTINESS_UNKNOWN &&
+        dirtinessToken == cache.cachedDirtinessToken &&
+        size == cache.cachedSize
+    ) {
+        cache.cachedRenderEffect
+    } else {
+        createRenderEffect(shader, size).also {
+            cache.cachedRenderEffect = it
+            cache.cachedDirtinessToken = dirtinessToken
+            cache.cachedSize = size
+        }
+    }
 }
 
 internal expect fun <T : Shader.State> createRenderEffect(

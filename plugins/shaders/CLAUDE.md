@@ -62,3 +62,10 @@ empty. Subclassing `BlurShader` works but cannot override the SKSL code path.
 `Modifier.shader()` reads `gameTime.value` inside the `graphicsLayer` lambda purely to invalidate
 the `Canvas` every frame. Without this read, Compose would skip recomposition when only shader
 uniforms change.
+
+## RenderEffect reuse
+`createRenderEffect` still runs every frame by default, since `Shader.State.dirtinessToken`
+defaults to always-dirty. A shader whose uniforms only change on genuine updates (not every tick,
+e.g. while idle-throttled) can override `dirtinessToken` with a value bumped only on real change;
+`Modifier.shader()` then reuses the cached `RenderEffect` from `Shader.Cache` instead of rebuilding
+it, as long as the layer size also matches.
