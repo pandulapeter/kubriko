@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.implementation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.WindowState
 import com.pandulapeter.kubriko.manager.MetadataManager
+import com.pandulapeter.kubriko.types.TargetFrameRate
 import org.apache.commons.lang3.SystemUtils
 
 internal actual fun getDefaultFocusDebounce() = 0L
@@ -37,5 +38,8 @@ internal actual fun getPlatform(): MetadataManager.Platform = when {
 internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) {
     LifecycleFocusEffect(onFocusChanged = onFocusChanged)
 }
+
+@Composable
+internal actual fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate) = Unit
 
 lateinit var windowState: WindowState

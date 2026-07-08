@@ -17,6 +17,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.pandulapeter.kubriko.manager.MetadataManager
+import com.pandulapeter.kubriko.types.TargetFrameRate
 
 internal expect fun getDefaultFocusDebounce(): Long
 
@@ -24,6 +25,14 @@ internal expect fun getPlatform(): MetadataManager.Platform
 
 @Composable
 internal expect fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit)
+
+/**
+ * Hints the platform to align the display's actual refresh rate with the current [targetFrameRate],
+ * so a variable-refresh panel can step down while the game loop is throttled instead of staying
+ * pinned at its maximum. No-op on platforms without such a mechanism.
+ */
+@Composable
+internal expect fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate)
 
 @Composable
 internal fun LifecycleFocusEffect(

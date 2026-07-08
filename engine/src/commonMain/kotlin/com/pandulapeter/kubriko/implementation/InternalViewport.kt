@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Modifier
@@ -50,6 +51,9 @@ fun InternalViewport(
     PlatformFocusEffect { isFocused ->
         kubrikoImpl.stateManager.updateFocus(isFocused)
     }
+
+    // Align the display's actual refresh rate with the game loop's throttle where the platform allows.
+    PlatformFrameRateHint(kubrikoImpl.viewportManager.targetFrameRate.collectAsState().value)
 
     // Engine initialization and viewport-backed frame loop
     LaunchedEffect(Unit) {

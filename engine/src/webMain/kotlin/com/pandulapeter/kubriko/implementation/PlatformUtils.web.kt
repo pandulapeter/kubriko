@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.implementation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import com.pandulapeter.kubriko.manager.MetadataManager
+import com.pandulapeter.kubriko.types.TargetFrameRate
 import kotlinx.browser.document
 import kotlinx.browser.window
 import org.w3c.dom.Window
@@ -45,6 +46,9 @@ internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) {
         }
     }
 }
+
+@Composable
+internal actual fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate) = Unit
 
 fun Window.isRunningOnAndroid() =
     navigator.userAgent.contains("Android")

@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.implementation
 
 import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.manager.MetadataManager
+import com.pandulapeter.kubriko.types.TargetFrameRate
 import platform.UIKit.UIDevice
 
 internal actual fun getDefaultFocusDebounce() = 0L
@@ -23,3 +24,6 @@ internal actual fun getPlatform(): MetadataManager.Platform = MetadataManager.Pl
 internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) {
     LifecycleFocusEffect(onFocusChanged = onFocusChanged)
 }
+
+@Composable
+internal actual fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate) = Unit
