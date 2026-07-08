@@ -54,14 +54,30 @@ captured from `LocalDensity` in the manager's `Composable()` override and applie
 logical pixels to physical screen coordinates.
 
 ## Focus safety
-On focus loss (`StateManager.isFocused = false`), `_pressedPointerPositions` and the
-`pointersPressedSinceLastTick` latch are cleared. Before clearing, a synthetic `onPointerReleased` is
-dispatched for every held pointer (at its last known position) — the platform can steal an in-flight
-touch (e.g. dragging down the iOS status bar) without sending a release, so actors that track pointer
-state across frames would otherwise be stuck with a ghost pointer. New press events are guarded by
-`isFocused.value` checks inside the event loop.
+On focus loss (`StateManager.isFocused = false`), `_pressedPointerPositions`, `pendingPositionUpdates`,
+and the `pointersPressedSinceLastTick` latch are all cleared. Before clearing, a synthetic
+`onPointerReleased` is dispatched for every held pointer (at its last known position) — the platform
+can steal an in-flight touch (e.g. dragging down the iOS status bar) without sending a release, so
+actors that track pointer state across frames would otherwise be stuck with a ghost pointer. New press
+events are guarded by `isFocused.value` checks inside the event loop.
 
 ## `isActiveAboveViewport` parameter
 Determines whether input is captured from the full window (`processOverlayModifier`) or only when
 the pointer is inside the viewport (`processModifier`). Both paths track their respective
 `onGloballyPositioned` offset for the coordinate adjustment described above.
+
+## Throttled position publishing and idle combines
+A pointer's move-while-held events write into `pendingPositionUpdates` (a plain, in-place mutated
+map) instead of `_pressedPointerPositions` directly; `onUpdate` flushes it into the persistent map
+once per tick via a single `puttingAll`, so a high-frequency stream of move events pays one
+structural-sharing map update per tick instead of one per raw event. `onPointerOffsetChanged` still
+fires immediately per event — only the polled `pressedPointerPositions`/`handleActivePointers` path is
+batched to tick cadence. Release events remove the id from `pendingPositionUpdates` too, so a
+pointer released before the next flush can't be resurrected by a stale queued position.
+
+`pressedPointerPositions` and `hoveringPointerPosition` derive from `SharingStarted.WhileSubscribed()`
+combines, so they do no work while nothing is collecting them (idle-throttled ticks, or simply no UI
+displaying pointer state). Each is wrapped in a local `SyncStateFlow` whose `.value` always recomputes
+synchronously from the upstream flows' own `.value`s, so reads stay correct even while the underlying
+combine is idle — this mirrors the engine's own `SyncStateFlow` (not reused directly: it's `internal`
+to the `engine` module and not visible across the module boundary).

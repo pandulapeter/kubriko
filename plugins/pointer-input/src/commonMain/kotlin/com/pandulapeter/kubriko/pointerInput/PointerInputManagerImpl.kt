@@ -25,17 +25,21 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.manager.StateManager
+import com.pandulapeter.kubriko.pointerInput.implementation.SyncStateFlow
 import com.pandulapeter.kubriko.pointerInput.implementation.gestureDetector
 import com.pandulapeter.kubriko.pointerInput.implementation.isMultiTouchEnabled
 import com.pandulapeter.kubriko.pointerInput.implementation.setPointerPosition
+import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
 internal class PointerInputManagerImpl(
@@ -52,28 +56,34 @@ internal class PointerInputManagerImpl(
     private val rootOffset = MutableStateFlow(Offset.Zero)
     private val viewportOffset = MutableStateFlow(Offset.Zero)
     private val _pressedPointerPositions = MutableStateFlow(persistentMapOf<PointerId, Offset>())
+    // Move-driven position updates land here (plain, in-place mutated map) instead of going straight
+    // into the persistent _pressedPointerPositions map, which would otherwise pay a structural-sharing
+    // put on every raw pointer move event; onUpdate() flushes this once per tick instead.
+    private val pendingPositionUpdates = mutableMapOf<PointerId, Offset>()
     override val pressedPointerPositions by autoInitializingLazy {
-        combine(
+        val combinedFlow = combine(
             _pressedPointerPositions,
             rootOffset,
             viewportOffset,
         ) { unprocessed, rootOffset, viewportOffset ->
-            unprocessed.keys.associateWith {
-                unprocessed[it]!!.let {
-                    if (isActiveAboveViewport) it - viewportOffset + rootOffset else it
-                }
-            }.toPersistentMap()
-        }.asStateFlow(persistentMapOf())
+            resolvePressedPointerPositions(unprocessed, rootOffset, viewportOffset)
+        }.stateIn(scope, SharingStarted.WhileSubscribed(), persistentMapOf())
+        SyncStateFlow(combinedFlow) {
+            resolvePressedPointerPositions(_pressedPointerPositions.value, rootOffset.value, viewportOffset.value)
+        }
     }
     private val _hoveringPointerPosition = MutableStateFlow<Offset?>(null)
     override val hoveringPointerPosition by autoInitializingLazy {
-        combine(
+        val combinedFlow = combine(
             _hoveringPointerPosition,
             rootOffset,
             viewportOffset,
         ) { rawPointerOffset, rootOffset, viewportOffset ->
-            if (isActiveAboveViewport) rawPointerOffset?.let { it - viewportOffset + rootOffset } else rawPointerOffset
-        }.asStateFlow(null)
+            resolveHoveringPointerPosition(rawPointerOffset, rootOffset, viewportOffset)
+        }.stateIn(scope, SharingStarted.WhileSubscribed(), null)
+        SyncStateFlow(combinedFlow) {
+            resolveHoveringPointerPosition(_hoveringPointerPosition.value, rootOffset.value, viewportOffset.value)
+        }
     }
     private var mouseId: PointerId? = null
     // Pointers pressed since the previous tick. Discrete onPointerPressed/onPointerReleased callbacks
@@ -88,6 +98,7 @@ internal class PointerInputManagerImpl(
             .onEach {
                 val heldPointers = _pressedPointerPositions.value
                 _pressedPointerPositions.update { persistentMapOf() }
+                pendingPositionUpdates.clear()
                 pointersPressedSinceLastTick.clear()
                 heldPointers.forEach { (id, position) ->
                     pointerInputAwareActors.value.forEach { it.onPointerReleased(id, position) }
@@ -97,6 +108,10 @@ internal class PointerInputManagerImpl(
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
+        if (pendingPositionUpdates.isNotEmpty()) {
+            _pressedPointerPositions.update { it.puttingAll(pendingPositionUpdates) }
+            pendingPositionUpdates.clear()
+        }
         val pressed = _pressedPointerPositions.value
         val activePointers = if (pointersPressedSinceLastTick.isEmpty()) {
             pressed
@@ -116,6 +131,22 @@ internal class PointerInputManagerImpl(
         }
         pointersPressedSinceLastTick.clear()
     }
+
+    private fun resolvePressedPointerPositions(
+        unprocessed: PersistentMap<PointerId, Offset>,
+        rootOffset: Offset,
+        viewportOffset: Offset,
+    ): PersistentMap<PointerId, Offset> = unprocessed.keys.associateWith { id ->
+        unprocessed[id]!!.let { position ->
+            if (isActiveAboveViewport) position - viewportOffset + rootOffset else position
+        }
+    }.toPersistentMap()
+
+    private fun resolveHoveringPointerPosition(
+        rawPointerOffset: Offset?,
+        rootOffset: Offset,
+        viewportOffset: Offset,
+    ): Offset? = if (isActiveAboveViewport) rawPointerOffset?.let { it - viewportOffset + rootOffset } else rawPointerOffset
 
     private var densityMultiplier = 1f
 
@@ -173,6 +204,9 @@ internal class PointerInputManagerImpl(
 
                             wasPressed && !isPressed -> {
                                 _pressedPointerPositions.update { it.removing(change.id) }
+                                // Drop a pending move for this id: it just got released, and flushing
+                                // it afterwards would resurrect it in _pressedPointerPositions.
+                                pendingPositionUpdates.remove(change.id)
                                 pointerInputAwareActors.value.forEach { it.onPointerReleased(id, change.position) }
                                 if (mouseId == id) {
                                     _hoveringPointerPosition.value = change.position
@@ -181,7 +215,7 @@ internal class PointerInputManagerImpl(
 
                             wasPressed && isPressed -> {
                                 if (stateManager.isFocused.value) {
-                                    _pressedPointerPositions.update { it.putting(change.id, change.position) }
+                                    pendingPositionUpdates[change.id] = change.position
                                     if (id == mouseId) {
                                         _hoveringPointerPosition.value = change.position
                                     }
