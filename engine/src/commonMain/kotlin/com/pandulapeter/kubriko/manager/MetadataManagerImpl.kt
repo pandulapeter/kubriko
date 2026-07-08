@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubriko.manager
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableLongStateOf
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoImpl
 import com.pandulapeter.kubriko.implementation.getPlatform
@@ -25,6 +27,12 @@ internal class MetadataManagerImpl(
     override val fps = _fps.asStateFlow()
     private val _totalRuntimeInMilliseconds = MutableStateFlow(0L)
     override val totalRuntimeInMilliseconds = _totalRuntimeInMilliseconds.asStateFlow()
+    // The per-tick Canvas invalidation signal (see ActorManagerImpl.Composable's `gameTime`): a
+    // primitive Compose snapshot state written directly here, so consumers read it without the
+    // boxed-Long StateFlow emission + collectAsState dispatch a flow-based read would cost every tick.
+    // totalRuntimeInMilliseconds stays a StateFlow purely as public API.
+    private val _gameTime = mutableLongStateOf(0L)
+    internal val gameTime: State<Long> get() = _gameTime
     private val _activeRuntimeInMilliseconds = MutableStateFlow(0L)
     override val activeRuntimeInMilliseconds = _activeRuntimeInMilliseconds.asStateFlow()
     override val platform by lazy { getPlatform() }
@@ -40,6 +48,7 @@ internal class MetadataManagerImpl(
             _activeRuntimeInMilliseconds.value += deltaTimeInMilliseconds
         }
         _totalRuntimeInMilliseconds.value += deltaTimeInMilliseconds
+        _gameTime.longValue = _totalRuntimeInMilliseconds.value
         fpsFrameCount++
         fpsAccumulatedTimeMs += deltaTimeInMilliseconds
         if (fpsAccumulatedTimeMs >= FPS_SAMPLE_INTERVAL_MS) {

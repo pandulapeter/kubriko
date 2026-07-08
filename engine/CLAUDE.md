@@ -38,7 +38,7 @@ Update-rate throttling is applied in `InternalViewport` against `ViewportManager
 1. **Outer Box**: applies `processOverlayModifier` from all Managers
 2. **Inner Box**: aspect-ratio layout, feeds size to `ViewportManagerImpl`, calls `Composable` for every Manager
 
-`ActorManagerImpl.Composable` iterates `layerIndices`, creates a `Canvas` per layer with `processModifier` applied, then inside each `onDraw` applies `transformViewport` (translate + scale around camera) and iterates the pre-sorted `sortedVisibleActorsByLayer[layerIndex]`. Overlay actors are drawn without the viewport transform. `gameTime.value` is read solely to invalidate the Canvas on every tick.
+`ActorManagerImpl.Composable` iterates `layerIndices`, creates a `Canvas` per layer with `processModifier` applied, then inside each `onDraw` applies `transformViewport` (translate + scale around camera) and iterates the pre-sorted `sortedVisibleActorsByLayer[layerIndex]`. Overlay actors are drawn without the viewport transform. `gameTime.value` is read solely to invalidate the Canvas on every tick. `gameTime` itself is `MetadataManagerImpl.gameTime`, a `mutableLongStateOf` written directly in `onUpdate` — a primitive Compose snapshot state, not a `collectAsState()` read of the public `totalRuntimeInMilliseconds` StateFlow, which stays around only as public API.
 
 ## Draw-Cache Invalidation
 

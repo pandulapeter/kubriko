@@ -97,6 +97,10 @@ sealed class ActorManager(
          * A shorter interval re-culls more promptly at the cost of a more frequent full scan; correctness (an actor never being drawn
          * late after scrolling into view) relies on `ViewportManager`'s `viewportEdgeBuffer` covering the distance the camera can travel
          * during one interval, since camera movement alone does not trigger an out-of-schedule re-cull.
+         * @param shouldComposeLayers Whether [Visible] actors should be drawn at all. Disable for a headless instance
+         * that only needs to run ticks and cull actors (e.g. one whose [visibleActorsWithinViewport] feeds another,
+         * actually-rendered [Kubriko] instance) — this skips composing the Canvas layers entirely, so the per-tick
+         * draw-list walk is never paid.
          * @param isLoggingEnabled Whether to enable logging for this manager.
          * @param instanceNameForLogging Optional name for logging purposes.
          */
@@ -106,6 +110,7 @@ sealed class ActorManager(
             shouldPutFarAwayActorsToSleep: Boolean = true,
             farAwayActorSleepMargin: SceneUnit? = null,
             invisibleActorMinimumRefreshTimeInMillis: Long = 100,
+            shouldComposeLayers: Boolean = true,
             isLoggingEnabled: Boolean = false,
             instanceNameForLogging: String? = null,
         ): ActorManager = ActorManagerImpl(
@@ -114,6 +119,7 @@ sealed class ActorManager(
             shouldPutFarAwayActorsToSleep = shouldPutFarAwayActorsToSleep,
             farAwayActorSleepMargin = farAwayActorSleepMargin,
             invisibleActorMinimumRefreshTimeInMillis = invisibleActorMinimumRefreshTimeInMillis,
+            shouldComposeLayers = shouldComposeLayers,
             isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = instanceNameForLogging,
         )

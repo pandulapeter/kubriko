@@ -60,6 +60,7 @@ internal class ActorManagerImpl(
     private val shouldPutFarAwayActorsToSleep: Boolean,
     private val farAwayActorSleepMargin: SceneUnit?,
     private val invisibleActorMinimumRefreshTimeInMillis: Long,
+    private val shouldComposeLayers: Boolean,
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
 ) : ActorManager(isLoggingEnabled, instanceNameForLogging) {
@@ -499,7 +500,8 @@ internal class ActorManagerImpl(
 
     @Composable
     override fun Composable(windowInsets: WindowInsets) {
-        val gameTime = metadataManager.totalRuntimeInMilliseconds.collectAsState(initial = 0L)
+        if (!shouldComposeLayers) return
+        val gameTime = metadataManager.gameTime
         val isKubrikoInitialized = isInitialized.collectAsState().value
         val layers = layerIndices.collectAsState().value
         Box(
