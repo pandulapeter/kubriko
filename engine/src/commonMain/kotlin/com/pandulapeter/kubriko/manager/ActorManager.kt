@@ -94,6 +94,9 @@ sealed class ActorManager(
          * [shouldPutFarAwayActorsToSleep] is enabled. Size it to comfortably cover the distance the camera and the actors can travel
          * between two checks (see [invisibleActorMinimumRefreshTimeInMillis]) so actors always wake before they scroll into view.
          * @param invisibleActorMinimumRefreshTimeInMillis Controls the frequency of the automatic visibility check for [Visible] actors.
+         * A shorter interval re-culls more promptly at the cost of a more frequent full scan; correctness (an actor never being drawn
+         * late after scrolling into view) relies on `ViewportManager`'s `viewportEdgeBuffer` covering the distance the camera can travel
+         * during one interval, since camera movement alone does not trigger an out-of-schedule re-cull.
          * @param isLoggingEnabled Whether to enable logging for this manager.
          * @param instanceNameForLogging Optional name for logging purposes.
          */
@@ -102,7 +105,7 @@ sealed class ActorManager(
             shouldUpdateActorsWhileNotRunning: Boolean = false,
             shouldPutFarAwayActorsToSleep: Boolean = true,
             farAwayActorSleepMargin: SceneUnit? = null,
-            invisibleActorMinimumRefreshTimeInMillis: Long = 0,
+            invisibleActorMinimumRefreshTimeInMillis: Long = 100,
             isLoggingEnabled: Boolean = false,
             instanceNameForLogging: String? = null,
         ): ActorManager = ActorManagerImpl(
