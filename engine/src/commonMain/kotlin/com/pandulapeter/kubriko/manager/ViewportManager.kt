@@ -63,9 +63,11 @@ sealed class ViewportManager(
     abstract val maximumScaleFactor: Float
 
     /**
-     * The target update frequency of the game loop. Defaults to [TargetFrameRate.DisplayDefault]
-     * (the device's maximum refresh rate). Can be changed at runtime via [setTargetFrameRate] to,
-     * for example, lower the update rate to save power while the game is idle.
+     * The target update frequency of the game loop. Defaults to [TargetFrameRate.Limit] at 60 fps,
+     * so a 120 Hz+ panel does not silently double the update/render cost for consumers that never
+     * set this explicitly; a 60 Hz panel is unaffected. Can be changed at runtime via
+     * [setTargetFrameRate] to, for example, lower the update rate further to save power while the
+     * game is idle, or raise it back to [TargetFrameRate.DisplayDefault] for a high-refresh feel.
      */
     abstract val targetFrameRate: StateFlow<TargetFrameRate>
 
@@ -165,6 +167,8 @@ sealed class ViewportManager(
          * @param maximumScaleFactor The maximum zoom level allowed.
          * @param viewportEdgeBuffer An extra margin around the viewport where actors are still considered visible.
          * @param initialTargetFrameRate The initial target frame rate for updates. Can be changed at runtime via [setTargetFrameRate].
+         * Defaults to a 60 fps [TargetFrameRate.Limit] rather than [TargetFrameRate.DisplayDefault], so a 120 Hz+ panel doesn't silently
+         * pay double the update/render cost; pass [TargetFrameRate.DisplayDefault] explicitly for the previous uncapped behavior.
          * @param isLoggingEnabled Whether to enable logging for this manager.
          * @param instanceNameForLogging Optional name for logging purposes.
          */
@@ -174,7 +178,7 @@ sealed class ViewportManager(
             minimumScaleFactor: Float = 0.2f,
             maximumScaleFactor: Float = 5f,
             viewportEdgeBuffer: SceneUnit = 0f.sceneUnit,
-            initialTargetFrameRate: TargetFrameRate = TargetFrameRate.DisplayDefault,
+            initialTargetFrameRate: TargetFrameRate = TargetFrameRate.Limit(60),
             isLoggingEnabled: Boolean = false,
             instanceNameForLogging: String? = null,
         ): ViewportManager = ViewportManagerImpl(

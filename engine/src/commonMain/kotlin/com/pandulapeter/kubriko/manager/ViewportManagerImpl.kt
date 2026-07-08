@@ -20,10 +20,14 @@ import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import com.pandulapeter.kubriko.types.TargetFrameRate
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.plus
 
 internal class ViewportManagerImpl(
     val aspectRatioMode: AspectRatioMode,
@@ -51,7 +55,7 @@ internal class ViewportManagerImpl(
     override val scaleFactor by autoInitializingLazy {
         val combinedFlow = combine(rawScaleFactor, scaleFactorMultiplier) { raw, multiplier ->
             raw * multiplier
-        }.asStateFlowOnMainThread(Scale.Unit)
+        }.stateIn(scope + Dispatchers.Main, SharingStarted.WhileSubscribed(), Scale.Unit)
 
         SyncStateFlow(combinedFlow) {
             rawScaleFactor.value * scaleFactorMultiplier.value
@@ -64,7 +68,7 @@ internal class ViewportManagerImpl(
                 viewportSize = viewportSize,
                 viewportScaleFactor = scale,
             )
-        }.asStateFlowOnMainThread(SceneOffset.Zero)
+        }.stateIn(scope + Dispatchers.Main, SharingStarted.WhileSubscribed(), SceneOffset.Zero)
         SyncStateFlow(combinedFlow) {
             Offset.Zero.toSceneOffset(
                 viewportCenter = cameraPosition.value,
@@ -80,7 +84,7 @@ internal class ViewportManagerImpl(
                 viewportSize = viewportSize,
                 viewportScaleFactor = scale,
             )
-        }.asStateFlowOnMainThread(SceneOffset.Zero)
+        }.stateIn(scope + Dispatchers.Main, SharingStarted.WhileSubscribed(), SceneOffset.Zero)
         SyncStateFlow(combinedFlow) {
             val currentSize = size.value
             Offset(currentSize.width, currentSize.height).toSceneOffset(

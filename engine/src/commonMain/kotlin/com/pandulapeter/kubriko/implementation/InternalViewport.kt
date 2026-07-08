@@ -27,6 +27,10 @@ import com.pandulapeter.kubriko.helpers.ViewportFrameTickSource
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.TargetFrameRate
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 
@@ -116,6 +120,34 @@ fun InternalViewport(
             }
         }
         while (isActive) {
+            val canTickNow = viewportTickSource != null &&
+                    !kubrikoImpl.viewportManager.size.value.isEmpty() &&
+                    (!viewportTickSource.shouldPauseOnFocusLoss || kubrikoImpl.stateManager.isFocused.value)
+            if (!canTickNow) {
+                if (viewportTickSource == null) {
+                    // No viewport-driven ticking is configured; this loop has nothing left to do.
+                    awaitCancellation()
+                }
+                // Suspend on the gate instead of waking at vsync while there is nothing to tick.
+                combine(kubrikoImpl.viewportManager.size, kubrikoImpl.stateManager.isFocused) { size, isFocused ->
+                    !size.isEmpty() && (!viewportTickSource.shouldPauseOnFocusLoss || isFocused)
+                }.first { it }
+                // Resuming: anchor the timeline to now so it doesn't emit one giant catch-up delta.
+                lastFrameTime = -1L
+                phaseInMilliseconds = 0f
+                displayFramesSinceTick = 0
+                continue
+            }
+            if (lastFrameTime != -1L) {
+                (kubrikoImpl.viewportManager.targetFrameRate.value as? TargetFrameRate.Limit)?.let { limit ->
+                    // Hybrid pacing: sleep through most of the interval instead of waking at every
+                    // vsync, then re-enter withFrameMillis so the wait still lands on a real frame.
+                    val remainingMs = (1000f / limit.framesPerSecond - phaseInMilliseconds).toLong() - 1L
+                    if (remainingMs > 0L) {
+                        delay(remainingMs)
+                    }
+                }
+            }
             withFrameMillis(onFrame)
         }
     }
