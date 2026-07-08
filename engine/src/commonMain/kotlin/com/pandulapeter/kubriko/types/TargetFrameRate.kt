@@ -44,6 +44,14 @@ sealed interface TargetFrameRate {
      * of 2 yields 60 fps on a 120 Hz panel but 30 fps on a 60 Hz one. [DisplayDivider] with a
      * divisor of 1 is equivalent to [DisplayDefault].
      *
+     * Because the rate is derived by counting actual display frames, [DisplayDivider] must run at the
+     * panel's native refresh rate. Combining it with any mechanism that lowers the display's real
+     * refresh rate — an OS panel-refresh hint, `Surface.setFrameRate`, or a system display setting —
+     * **compounds instead of stacking additively**: the divider then counts an already-reduced rate
+     * and drops the result a second time (a divisor of 2 while the panel is hinted from 120 Hz to
+     * 60 Hz yields 30 fps, not the expected 60). Use [Limit] for a target that should also let the
+     * panel step down, since it names an absolute rate the panel can settle on directly.
+     *
      * @param divisor The number of display frames per update. Must be greater than 0.
      */
     data class DisplayDivider(
