@@ -73,17 +73,20 @@ internal class PointerInputManagerImpl(
         }
     }
     private val _hoveringPointerPosition = MutableStateFlow<Offset?>(null)
+    /**
+     * Eagerly collected on purpose (unlike [pressedPointerPositions]): [tryToMoveHoveringPointer] reads
+     * this right after re-centering the cursor to detect whether the pointer moved, which only reflects
+     * the recenter with an active upstream collector. An idle [SharingStarted.WhileSubscribed] combine
+     * would report no change and break the Desktop relative-movement recenter trick.
+     */
     override val hoveringPointerPosition by autoInitializingLazy {
-        val combinedFlow = combine(
+        combine(
             _hoveringPointerPosition,
             rootOffset,
             viewportOffset,
         ) { rawPointerOffset, rootOffset, viewportOffset ->
             resolveHoveringPointerPosition(rawPointerOffset, rootOffset, viewportOffset)
-        }.stateIn(scope, SharingStarted.WhileSubscribed(), null)
-        SyncStateFlow(combinedFlow) {
-            resolveHoveringPointerPosition(_hoveringPointerPosition.value, rootOffset.value, viewportOffset.value)
-        }
+        }.asStateFlow(null)
     }
     private var mouseId: PointerId? = null
     // Pointers pressed since the previous tick. Discrete onPointerPressed/onPointerReleased callbacks
@@ -154,7 +157,7 @@ internal class PointerInputManagerImpl(
         val before = hoveringPointerPosition.value?.round()
         setPointerPosition(
             platform = metadataManager.platform,
-            offset = offset + if (isActiveAboveViewport) viewportOffset.value else viewportOffset.value,
+            offset = offset + viewportOffset.value,
             densityMultiplier = densityMultiplier,
         )
         val after = hoveringPointerPosition.value?.round()
