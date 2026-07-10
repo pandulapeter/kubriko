@@ -13,12 +13,14 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.os.Build
+import android.view.Display
 import android.view.Window
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalContext
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.types.TargetFrameRate
+import kotlin.math.roundToInt
 
 internal actual fun getDefaultFocusDebounce() = 350L
 
@@ -35,8 +37,34 @@ internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) {
 internal actual fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate) {
     val window = LocalContext.current.findActivity()?.window ?: return
     DisposableEffect(window, targetFrameRate) {
-        window.setPreferredRefreshRate(targetFrameRate.toPreferredRefreshRate())
-        onDispose { window.setPreferredRefreshRate(SYSTEM_DEFAULT_REFRESH_RATE) }
+        window.applyFrameRateHint(targetFrameRate)
+        onDispose { window.applyFrameRateHint(TargetFrameRate.DisplayDefault) }
+    }
+}
+
+/**
+ * Some panels ignore the [preferredRefreshRate] hint and stay in their highest refresh mode
+ * (observed on HyperOS), so a [TargetFrameRate.Limit] preferably names the panel's own display mode
+ * at the target rate, which the system honors as a hard request. The float hint remains the
+ * fallback when no mode matches the target rate at the current resolution. Both fields are always
+ * written so that changing the target releases whichever lever the previous one used.
+ */
+@Suppress("DEPRECATION") // preferredRefreshRate is the refresh-rate lever reachable from a Window across minSdk 29+.
+private fun Window.applyFrameRateHint(targetFrameRate: TargetFrameRate) {
+    val targetMode = (targetFrameRate as? TargetFrameRate.Limit)?.let { findDisplayMode(it) }
+    attributes = attributes.apply {
+        preferredDisplayModeId = targetMode?.modeId ?: SYSTEM_DEFAULT_DISPLAY_MODE
+        preferredRefreshRate = if (targetMode == null) targetFrameRate.toPreferredRefreshRate() else SYSTEM_DEFAULT_REFRESH_RATE
+    }
+}
+
+private fun Window.findDisplayMode(targetFrameRate: TargetFrameRate.Limit): Display.Mode? {
+    val display = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) context.display else @Suppress("DEPRECATION") windowManager.defaultDisplay
+    val currentMode = display?.mode ?: return null
+    return display.supportedModes.firstOrNull {
+        it.physicalWidth == currentMode.physicalWidth &&
+            it.physicalHeight == currentMode.physicalHeight &&
+            it.refreshRate.roundToInt() == targetFrameRate.framesPerSecond
     }
 }
 
@@ -49,16 +77,12 @@ private fun TargetFrameRate.toPreferredRefreshRate() = when (this) {
     is TargetFrameRate.Limit -> framesPerSecond.toFloat()
 }
 
-@Suppress("DEPRECATION") // preferredRefreshRate is the refresh-rate lever reachable from a Window across minSdk 29+.
-private fun Window.setPreferredRefreshRate(refreshRate: Float) {
-    attributes = attributes.apply { preferredRefreshRate = refreshRate }
-}
-
 private tailrec fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this
     is ContextWrapper -> baseContext.findActivity()
     else -> null
 }
 
-// 0 lets the system pick the mode, releasing any earlier hint so the panel returns to its default.
+// 0 lets the system pick, releasing any earlier hint so the panel returns to its default.
 private const val SYSTEM_DEFAULT_REFRESH_RATE = 0f
+private const val SYSTEM_DEFAULT_DISPLAY_MODE = 0
