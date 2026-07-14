@@ -53,6 +53,14 @@ cursor behavior). No-op on Android, iOS, Web. The `densityMultiplier` (= `1 / de
 captured from `LocalDensity` in the manager's `Composable()` override and applied to convert
 logical pixels to physical screen coordinates.
 
+The return value ("was the cursor actually moved, so expect one synthetic move event") is computed
+synchronously inside `setPointerPosition` by comparing the target AWT coordinates against
+`MouseInfo.getPointerInfo().location` before warping. It must NOT be derived by observing
+`hoveringPointerPosition` around the warp: the synthetic move event only arrives through the AWT
+queue later, so such a check just races the flow's background collector and returns timing noise —
+which breaks the skip-one-event parity used by the relative-movement games (Wallbreaker,
+Space Squadron).
+
 ## Focus safety
 On focus loss (`StateManager.isFocused = false`), `_pressedPointerPositions`, `pendingPositionUpdates`,
 and the `pointersPressedSinceLastTick` latch are all cleared. Before clearing, a synthetic

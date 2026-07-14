@@ -20,7 +20,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.round
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.MetadataManager
@@ -73,20 +72,17 @@ internal class PointerInputManagerImpl(
         }
     }
     private val _hoveringPointerPosition = MutableStateFlow<Offset?>(null)
-    /**
-     * Eagerly collected on purpose (unlike [pressedPointerPositions]): [tryToMoveHoveringPointer] reads
-     * this right after re-centering the cursor to detect whether the pointer moved, which only reflects
-     * the recenter with an active upstream collector. An idle [SharingStarted.WhileSubscribed] combine
-     * would report no change and break the Desktop relative-movement recenter trick.
-     */
     override val hoveringPointerPosition by autoInitializingLazy {
-        combine(
+        val combinedFlow = combine(
             _hoveringPointerPosition,
             rootOffset,
             viewportOffset,
         ) { rawPointerOffset, rootOffset, viewportOffset ->
             resolveHoveringPointerPosition(rawPointerOffset, rootOffset, viewportOffset)
-        }.asStateFlow(null)
+        }.stateIn(scope, SharingStarted.WhileSubscribed(), null)
+        SyncStateFlow(combinedFlow) {
+            resolveHoveringPointerPosition(_hoveringPointerPosition.value, rootOffset.value, viewportOffset.value)
+        }
     }
     private var mouseId: PointerId? = null
     // Pointers pressed since the previous tick. Discrete onPointerPressed/onPointerReleased callbacks
@@ -153,16 +149,11 @@ internal class PointerInputManagerImpl(
 
     private var densityMultiplier = 1f
 
-    override fun tryToMoveHoveringPointer(offset: Offset): Boolean {
-        val before = hoveringPointerPosition.value?.round()
-        setPointerPosition(
-            platform = metadataManager.platform,
-            offset = offset + viewportOffset.value,
-            densityMultiplier = densityMultiplier,
-        )
-        val after = hoveringPointerPosition.value?.round()
-        return before != after
-    }
+    override fun tryToMoveHoveringPointer(offset: Offset) = setPointerPosition(
+        platform = metadataManager.platform,
+        offset = offset + viewportOffset.value,
+        densityMultiplier = densityMultiplier,
+    )
 
     @Composable
     override fun processOverlayModifier(modifier: Modifier) = modifier.onGloballyPositioned { coordinates ->

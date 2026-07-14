@@ -13,11 +13,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.manager.MetadataManager
 
+/**
+ * Returns true only if the cursor was actually moved, meaning that a synthetic move event will follow.
+ * Callers rely on this contract to know whether the next move event should be filtered out.
+ */
 internal expect fun setPointerPosition(
     platform: MetadataManager.Platform,
     offset: Offset,
     densityMultiplier: Float,
-    )
+): Boolean
 
 internal expect fun Modifier.gestureDetector(
     onDragDetected: (Offset) -> Unit,

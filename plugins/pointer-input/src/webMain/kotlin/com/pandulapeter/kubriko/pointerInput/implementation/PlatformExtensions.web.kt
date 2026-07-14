@@ -22,7 +22,7 @@ internal actual fun setPointerPosition(
     platform: MetadataManager.Platform,
     offset: Offset,
     densityMultiplier: Float,
-) = Unit
+) = false
 
 @OptIn(ExperimentalComposeUiApi::class)
 internal actual fun Modifier.gestureDetector(

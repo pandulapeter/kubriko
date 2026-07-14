@@ -119,8 +119,11 @@ internal class GameplayManager : Manager() {
     }
 
     fun setCurrentLevel(level: String) {
-        physicsManager.simulationSpeed.value = 0f
-        _currentLevel.update { level }
+        // Resuming the level that's already loaded must not freeze the physics simulation.
+        if (_currentLevel.value != level) {
+            physicsManager.simulationSpeed.value = 0f
+            _currentLevel.update { level }
+        }
     }
 
     companion object {

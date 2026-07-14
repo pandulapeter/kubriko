@@ -19,7 +19,7 @@ internal actual fun setPointerPosition(
     platform: MetadataManager.Platform,
     offset: Offset,
     densityMultiplier: Float,
-) = Unit
+) = false
 
 internal actual fun Modifier.gestureDetector(
     onDragDetected: (Offset) -> Unit,
