@@ -29,7 +29,6 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.TargetFrameRate
 import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
@@ -141,16 +140,6 @@ fun InternalViewport(
                 phaseInMilliseconds = 0f
                 displayFramesSinceTick = 0
                 continue
-            }
-            if (lastFrameTime != -1L) {
-                (kubrikoImpl.viewportManager.targetFrameRate.value as? TargetFrameRate.Limit)?.let { limit ->
-                    // Hybrid pacing: sleep through most of the interval instead of waking at every
-                    // vsync, then re-enter withFrameMillis so the wait still lands on a real frame.
-                    val remainingMs = (1000f / limit.framesPerSecond - phaseInMilliseconds).toLong() - 1L
-                    if (remainingMs > 0L) {
-                        delay(remainingMs)
-                    }
-                }
             }
             withFrameMillis(onFrame)
         }
