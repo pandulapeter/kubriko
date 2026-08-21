@@ -48,7 +48,7 @@ internal class KeyboardInputManagerImpl(
     override fun onInitialize(kubriko: Kubriko) {
         stateManager.isFocused
             .filterNot { it }
-            .onEach { activeKeysCache.forEach(::onKeyReleased) }
+            .onEach { releaseAllActiveKeys() }
             .launchIn(scope)
     }
 
@@ -119,6 +119,12 @@ internal class KeyboardInputManagerImpl(
     private fun onKeyReleased(key: Key) {
         keyboardInputAwareActors.value.forEach { it.onKeyReleased(key) }
         activeKeysCache.remove(key)
+        isActiveKeysDirty = true
+    }
+
+    private fun releaseAllActiveKeys() {
+        activeKeysCache.forEach { key -> keyboardInputAwareActors.value.forEach { it.onKeyReleased(key) } }
+        activeKeysCache.clear()
         isActiveKeysDirty = true
     }
 }
