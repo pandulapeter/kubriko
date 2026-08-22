@@ -12,8 +12,10 @@ package com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.p
 import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.nativeCanvas
 
-// Vertex colors override the paint when no shader is set, so a plain paint is all that's needed.
-private val trianglePaint = android.graphics.Paint()
+// The framework hardcodes MODULATE for the vertex colors, and shader-less paints contribute their
+// own color to that product on some GPU backends, so the paint has to be opaque white - a default
+// (black) one multiplies every face down to black there.
+private val trianglePaint = android.graphics.Paint().apply { color = android.graphics.Color.WHITE }
 
 // Hardware-accelerated since API 29; minSdk is 29. The framework's vertexCount is the number of
 // floats consumed from [positions], so oversized arrays draw without trimming — zero copies.
