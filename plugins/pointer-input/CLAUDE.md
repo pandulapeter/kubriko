@@ -61,9 +61,28 @@ queue later, so such a check just races the flow's background collector and retu
 which breaks the skip-one-event parity used by the relative-movement games (Wallbreaker,
 Space Squadron).
 
+## Cancellation resilience
+Compose can cancel pointer input on the node at any time (on Android, `AndroidComposeView` does it
+whenever the tool type or input source of a MotionEvent changes — a palm/finger reclassification
+during a multi-finger gesture is enough). It signals this by synthesizing an event in which every
+held pointer is reported as released with the up-transition already consumed, then immediately
+re-delivers the still-down pointers as brand new presses.
+
+That synthetic release closely resembles a real finger lift: it is recognized by the up-transition
+being already consumed while the position and timestamp repeat the previous ones verbatim (the chained
+`detectTransformGestures` also consumes releases, but only ones that carry an actual position change,
+which is how an ordinary finger lift during a pinch stays distinguishable). Such a release is not
+dispatched right away: the pointer stays in `_pressedPointerPositions` and
+its id goes into `pointersPendingCancellation` with a short tick countdown. A pointer that comes
+back is dropped from that map and continues as a regular `onPointerOffsetChanged`, so actors never
+see a spurious press/release pair; a pointer that never returns (a genuine `ACTION_CANCEL`) is
+released from `onUpdate` once the countdown expires. Unconsumed releases are dispatched immediately
+as before, so normal taps keep their latency. The deferred release depends on ticks running: if the
+`TickSource` is stopped during the grace window, the release lands on the first tick after it resumes.
+
 ## Focus safety
 On focus loss (`StateManager.isFocused = false`), `_pressedPointerPositions`, `pendingPositionUpdates`,
-and the `pointersPressedSinceLastTick` latch are all cleared. Before clearing, a synthetic
+the `pointersPressedSinceLastTick` latch and `pointersPendingCancellation` are all cleared. Before clearing, a synthetic
 `onPointerReleased` is dispatched for every held pointer (at its last known position) — the platform
 can steal an in-flight touch (e.g. dragging down the iOS status bar) without sending a release, so
 actors that track pointer state across frames would otherwise be stuck with a ghost pointer. New press

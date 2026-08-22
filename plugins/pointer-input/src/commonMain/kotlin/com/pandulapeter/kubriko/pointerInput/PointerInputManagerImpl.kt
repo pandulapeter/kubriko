@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerId
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
@@ -90,6 +91,12 @@ internal class PointerInputManagerImpl(
     // (common at low frame rates) would otherwise never appear in the per-tick handleActivePointers map.
     // This latch surfaces such a pointer for exactly one tick. Cleared at the end of every onUpdate.
     private val pointersPressedSinceLastTick = mutableMapOf<PointerId, Offset>()
+    // Compose signals a cancellation by synthesizing an event in which every held pointer is reported as
+    // released with the up-transition already consumed - indistinguishable from a real finger lift, and
+    // typically followed at once by the still-down pointers arriving again as brand new presses. Releasing
+    // on such an event must therefore be deferred (this map holds the remaining ticks per pointer): a
+    // pointer that comes back resumes as a regular move, and only one that never does is truly released.
+    private val pointersPendingCancellation = mutableMapOf<PointerId, Int>()
 
     override fun onInitialize(kubriko: Kubriko) {
         stateManager.isFocused
@@ -99,6 +106,7 @@ internal class PointerInputManagerImpl(
                 _pressedPointerPositions.update { persistentMapOf() }
                 pendingPositionUpdates.clear()
                 pointersPressedSinceLastTick.clear()
+                pointersPendingCancellation.clear()
                 heldPointers.forEach { (id, position) ->
                     pointerInputAwareActors.value.forEach { it.onPointerReleased(id, position) }
                 }
@@ -110,6 +118,18 @@ internal class PointerInputManagerImpl(
         if (pendingPositionUpdates.isNotEmpty()) {
             _pressedPointerPositions.update { it.puttingAll(pendingPositionUpdates) }
             pendingPositionUpdates.clear()
+        }
+        if (pointersPendingCancellation.isNotEmpty()) {
+            val iterator = pointersPendingCancellation.iterator()
+            while (iterator.hasNext()) {
+                val entry = iterator.next()
+                if (entry.value > 1) {
+                    entry.setValue(entry.value - 1)
+                } else {
+                    iterator.remove()
+                    releasePointer(entry.key, _pressedPointerPositions.value[entry.key] ?: Offset.Zero)
+                }
+            }
         }
         val pressed = _pressedPointerPositions.value
         val activePointers = if (pointersPressedSinceLastTick.isEmpty()) {
@@ -129,6 +149,24 @@ internal class PointerInputManagerImpl(
             pointerInputAwareActors.value.forEach { it.handleActivePointers(activePointers) }
         }
         pointersPressedSinceLastTick.clear()
+    }
+
+    // Compose synthesizes a cancellation as a release that repeats the pointer's previous position and
+    // timestamp verbatim, with the up-transition already consumed. A real release is either unconsumed,
+    // or consumed by a gesture detector - and those only ever consume actual position changes, so the
+    // position check is what keeps an ordinary finger lift during a pinch from being read as a cancellation.
+    private val PointerInputChange.isCancellation
+        get() = isConsumed && position == previousPosition && uptimeMillis == previousUptimeMillis
+
+    private fun releasePointer(id: PointerId, position: Offset) {
+        _pressedPointerPositions.update { it.removing(id) }
+        // Drop a pending move for this id: it just got released, and flushing
+        // it afterwards would resurrect it in _pressedPointerPositions.
+        pendingPositionUpdates.remove(id)
+        pointerInputAwareActors.value.forEach { it.onPointerReleased(id, position) }
+        if (mouseId == id) {
+            _hoveringPointerPosition.value = position
+        }
     }
 
     private fun resolvePressedPointerPositions(
@@ -197,18 +235,17 @@ internal class PointerInputManagerImpl(
                             }
 
                             wasPressed && !isPressed -> {
-                                _pressedPointerPositions.update { it.removing(change.id) }
-                                // Drop a pending move for this id: it just got released, and flushing
-                                // it afterwards would resurrect it in _pressedPointerPositions.
-                                pendingPositionUpdates.remove(change.id)
-                                pointerInputAwareActors.value.forEach { it.onPointerReleased(id, change.position) }
-                                if (mouseId == id) {
-                                    _hoveringPointerPosition.value = change.position
+                                if (change.isCancellation) {
+                                    pointersPendingCancellation[id] = CANCELLATION_GRACE_PERIOD_IN_TICKS
+                                } else {
+                                    pointersPendingCancellation.remove(id)
+                                    releasePointer(id, change.position)
                                 }
                             }
 
                             wasPressed && isPressed -> {
                                 if (stateManager.isFocused.value) {
+                                    pointersPendingCancellation.remove(id)
                                     pendingPositionUpdates[change.id] = change.position
                                     if (id == mouseId) {
                                         _hoveringPointerPosition.value = change.position
@@ -253,4 +290,8 @@ internal class PointerInputManagerImpl(
             }
         },
     )
+
+    companion object {
+        private const val CANCELLATION_GRACE_PERIOD_IN_TICKS = 2
+    }
 }
