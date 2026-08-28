@@ -126,8 +126,11 @@ internal class PointerInputManagerImpl(
                 if (entry.value > 1) {
                     entry.setValue(entry.value - 1)
                 } else {
+                    // The key has to be read before the removal: on Kotlin/Native an entry is invalidated
+                    // (and throws) as soon as the map behind its iterator is structurally modified.
+                    val id = entry.key
                     iterator.remove()
-                    releasePointer(entry.key, _pressedPointerPositions.value[entry.key] ?: Offset.Zero)
+                    releasePointer(id, _pressedPointerPositions.value[id] ?: Offset.Zero)
                 }
             }
         }
