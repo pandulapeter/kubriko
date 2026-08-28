@@ -14,6 +14,7 @@ Broad-phase AABB + narrow-phase SAT collision detection dispatched to `Collision
 ## Key Files
 
 - `src/commonMain/.../CollisionManagerImpl.kt` — detection loop; owns `collisionBuffer`
+- `src/commonMain/.../SpatialHashGrid.kt` — public broad-phase index; backs the detection loop and consumer-side queries
 - `src/commonMain/.../CollisionDetector.kt` — actor trait receiving `onCollisionDetected`
 - `src/commonMain/.../mask/CollisionMask.kt` — sealed interface root
 - `src/commonMain/.../mask/PolygonCollisionMask.kt` — convex hull; base for `BoxCollisionMask`
@@ -24,15 +25,27 @@ Broad-phase AABB + narrow-phase SAT collision detection dispatched to `Collision
 
 1. Iterates only `CollisionDetector` instances (via `detectorsMirror`, an `ArrayList` mirror of the published list refilled on reference change — avoids per-frame persistent-list iterators)
 2. For each detector, iterates `collidableTypes` list
-3. Scans the type's pre-filtered candidate list (`collidablesByType`), skipping self. The per-type lists are built lazily via `KClass.isInstance` and invalidated when the collidable list changes — `isInstance` is reflective (slow on Wasm) and must not run per candidate per frame
-4. Broad phase: AABB overlap check (skip if no overlap)
-5. Narrow phase: type-dispatched algorithm via `hasCollisionWith` — the boolean-only twin of `collisionResultWith` that runs the same math but returns a pre-allocated sentinel instead of constructing a `CollisionResult` per colliding pair
-6. Matching collidables collected into `collisionBuffer: MutableList<Collidable>` (module-level, reused)
-7. `onCollisionDetected(collisionBuffer)` called only when at least one hit found
+3. Resolves the type's pre-filtered candidate list (`collidablesByType`). The per-type lists are built lazily via `KClass.isInstance` and invalidated when the collidable list changes — `isInstance` is reflective (slow on Wasm) and must not run per candidate per frame
+4. Broad phase: queries the type's `SpatialHashGrid` (`gridsByType`, indexed in step with the candidate list) with the detector's AABB, so only masks near the detector are considered. A type with fewer than `MINIMUM_CANDIDATES_FOR_BROAD_PHASE` candidates gets no grid — bucketing it would cost more than the scan it replaces — and falls back to walking the candidate list. Every live grid is re-bucketed once at the top of the tick, before any detector is served
+5. Candidate indices are copied into a reusable array and sorted, so a detector's collision list stays in candidate order rather than in whatever order the cell walk reached the masks
+6. Narrow phase: skipping self, a type-dispatched algorithm via `hasCollisionWith` — the boolean-only twin of `collisionResultWith` that runs the same math but returns a pre-allocated sentinel instead of constructing a `CollisionResult` per colliding pair
+7. Matching collidables collected into `collisionBuffer: MutableList<Collidable>` (module-level, reused)
+8. `onCollisionDetected(collisionBuffer)` called only when at least one hit found
 
 **Critical**: `collisionBuffer` is a **shared buffer cleared between iterations**. Never store a reference to it — copy contents if needed beyond the callback.
 
-Detection is O(D × T × C′): D = detectors, T = collidableTypes per detector, C′ = collidables matching the type. Keep `collidableTypes` lists narrow.
+Detection is O(D × T × C″): D = detectors, T = collidableTypes per detector, C″ = candidates of that type near the detector. Keep `collidableTypes` lists narrow.
+
+## SpatialHashGrid
+
+A uniform hashed-cell index over a set of `CollisionMask`s. Public, because game code needs the same broad phase for its own bounded queries; the detection loop is just its first consumer.
+
+- Cell contents are index-linked lists in flat arrays: `bucketHeads[hash]` points at a bucket's first entry, `entryNextIndices` chains the rest, `entryMaskIndices` resolves an entry to its mask. Cells are hashed rather than stored densely, so world size costs nothing; a hash collision only adds candidates, which the exact bounds check filters back out
+- Masks are identified by the index `add` returns. The grid stores nothing else, so payloads and filter flags live in consumer-owned arrays parallel to those indices
+- `findCandidates` writes into the reusable `candidateIndices` buffer and returns the count; a mask reachable through several cells is reported once (`queryStamps` stamped per query, the counter only ever incrementing so the array needs clearing only when it grows)
+- Cell size is derived from the mean mask extent at each `rebuild`, not configured — the engine cannot know a game's scale, and a constant would be wrong for most of them
+- Two escapes keep degenerate input from dominating: a mask spanning more than `MAXIMUM_CELLS_PER_MASK` cells (a map-edge slab) is held aside in `oversizedMaskIndices` and offered to every query instead of being bucketed, and a query rectangle spanning more than `MAXIMUM_CELLS_PER_QUERY` cells tests every mask instead of walking cells (an unbounded one would not terminate)
+- Not thread-safe; queries must not be interleaved, since they share one result buffer and one stamp counter
 
 ## Narrow-Phase Algorithms
 

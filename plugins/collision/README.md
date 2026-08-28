@@ -13,7 +13,7 @@ The `collision` plugin provides high-performance collision detection for Kubriko
 
 ## Features
 
-- **Spatial Partitioning**: Optimized detection that handles many objects efficiently.
+- **Spatial Partitioning**: A spatial hash grid broad phase, so detection cost scales with local crowding rather than with the size of the scene. Also exposed as `SpatialHashGrid` for your own queries.
 - **Multiple Mask Shapes**: Supports Points, Circles, Boxes, and Polygons.
 - **Trait Integration**: Simple integration using the `Collidable` and `CollisionDetector` traits.
 - **Movement & Queries**: Slide kinematic actors along obstacles, and raycast the world for line-of-sight, hitscan, or picking.
@@ -82,6 +82,24 @@ val canSee = hit == null // nothing blocks the line between eye and target
 ```
 
 `CollisionManager.collidables` exposes the current collidable actors, so these queries can run against the live world without tracking the list yourself.
+
+### 6. Index Your Own Queries (Optional)
+
+The same broad phase the detection loop runs on is available directly as `SpatialHashGrid`, for game code that asks "what is near me?" many times per frame (avoidance probes, area-of-effect checks, path clearance). Masks are identified by the index `add` returns, so anything a candidate has to resolve back to — the actor, a payload, a filter flag — lives in an array of your own kept parallel to those indices:
+
+```kotlin
+grid.clear()
+for (obstacle in obstacles) grid.add(obstacle.collisionMask)
+grid.rebuild() // once per tick, after the masks have moved
+
+val candidateCount = grid.findCandidates(left, top, right, bottom)
+val candidates = grid.candidateIndices
+for (index in 0 until candidateCount) {
+    val mask = grid.maskAt(candidates[index])
+}
+```
+
+Cells size themselves to the masks in the grid, and the result buffer is reused, so steady-state querying allocates nothing.
 
 ## Supported Masks
 

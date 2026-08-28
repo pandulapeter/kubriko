@@ -53,6 +53,14 @@ internal class CollisionManagerImpl(
     private val collidablesByType = HashMap<KClass<out Collidable>, ArrayList<Collidable>>()
     private var lastCollidablesForTypeCache: ImmutableList<Collidable>? = null
 
+    // Broad phase: one grid per type, indexed in step with that type's candidate list, so a detector
+    // tests the masks near it rather than every candidate of the type. Types with few candidates get
+    // no grid at all - bucketing them would cost more than the scan it replaces. The grids are also
+    // held in a flat list, since every one of them has to be re-bucketed once per frame.
+    private val gridsByType = HashMap<KClass<out Collidable>, SpatialHashGrid>()
+    private val grids = ArrayList<SpatialHashGrid>()
+    private var candidateIndices = IntArray(INITIAL_CANDIDATE_CAPACITY)
+
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
         val detectors = collisionDetectors.value
         if (detectors !== lastMirroredDetectors) {
@@ -64,26 +72,36 @@ internal class CollisionManagerImpl(
         if (allCollidables !== lastCollidablesForTypeCache) {
             lastCollidablesForTypeCache = allCollidables
             collidablesByType.clear()
+            gridsByType.clear()
+            grids.clear()
+        }
+        for (gridIndex in grids.indices) {
+            grids[gridIndex].rebuild()
         }
         for (detectorIndex in detectorsMirror.indices) {
             val detector = detectorsMirror[detectorIndex]
             val types = detector.collidableTypes
             for (typeIndex in types.indices) {
                 val type = types[typeIndex]
-                val candidates = collidablesByType.getOrPut(type) {
-                    val filtered = ArrayList<Collidable>()
-                    for (candidate in allCollidables) {
-                        if (type.isInstance(candidate)) {
-                            filtered.add(candidate)
-                        }
-                    }
-                    filtered
-                }
+                val candidates = collidablesByType[type] ?: buildCandidates(type, allCollidables)
                 collisionBuffer.clear()
-                for (candidateIndex in candidates.indices) {
-                    val candidate = candidates[candidateIndex]
-                    if (candidate !== detector && detector.isCollidingWith(candidate)) {
-                        collisionBuffer.add(candidate)
+                val grid = gridsByType[type]
+                if (grid == null) {
+                    for (candidateIndex in candidates.indices) {
+                        collectIfColliding(detector, candidates[candidateIndex])
+                    }
+                } else {
+                    val bounds = detector.collisionMask.axisAlignedBoundingBox
+                    val candidateCount = grid.findCandidates(bounds.left, bounds.top, bounds.right, bounds.bottom)
+                    if (candidateIndices.size < candidateCount) {
+                        candidateIndices = IntArray(candidateCount * 2)
+                    }
+                    grid.candidateIndices.copyInto(candidateIndices, 0, 0, candidateCount)
+                    // A detector's collision list stays in candidate order, which the grid's cell walk
+                    // reaches the same masks in an arbitrary order of.
+                    candidateIndices.sort(0, candidateCount)
+                    for (candidateIndex in 0 until candidateCount) {
+                        collectIfColliding(detector, candidates[candidateIndices[candidateIndex]])
                     }
                 }
                 if (collisionBuffer.isNotEmpty()) {
@@ -91,5 +109,39 @@ internal class CollisionManagerImpl(
                 }
             }
         }
+    }
+
+    private fun collectIfColliding(detector: CollisionDetector, candidate: Collidable) {
+        if (candidate !== detector && detector.isCollidingWith(candidate)) {
+            collisionBuffer.add(candidate)
+        }
+    }
+
+    private fun buildCandidates(
+        type: KClass<out Collidable>,
+        allCollidables: ImmutableList<Collidable>,
+    ): ArrayList<Collidable> {
+        val candidates = ArrayList<Collidable>()
+        for (candidate in allCollidables) {
+            if (type.isInstance(candidate)) {
+                candidates.add(candidate)
+            }
+        }
+        collidablesByType[type] = candidates
+        if (candidates.size >= MINIMUM_CANDIDATES_FOR_BROAD_PHASE) {
+            val grid = SpatialHashGrid()
+            for (candidateIndex in candidates.indices) {
+                grid.add(candidates[candidateIndex].collisionMask)
+            }
+            grid.rebuild()
+            gridsByType[type] = grid
+            grids.add(grid)
+        }
+        return candidates
+    }
+
+    private companion object {
+        const val INITIAL_CANDIDATE_CAPACITY = 64
+        const val MINIMUM_CANDIDATES_FOR_BROAD_PHASE = 32
     }
 }
