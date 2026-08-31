@@ -90,6 +90,7 @@ Expand the sections below to see the complete list of all Kubriko dependencies h
 
 - `io.github.pandulapeter.kubriko:plugin-audio-playback`
 - `io.github.pandulapeter.kubriko:plugin-collision`
+- `io.github.pandulapeter.kubriko:plugin-gamepad-input`
 - `io.github.pandulapeter.kubriko:plugin-keyboard-input`
 - `io.github.pandulapeter.kubriko:plugin-particles`
 - `io.github.pandulapeter.kubriko:plugin-persistence`

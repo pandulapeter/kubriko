@@ -17,6 +17,7 @@ Some plugins also introduce new [Actor](https://github.com/pandulapeter/kubriko/
 ## Modules
 - [audio-playback](https://github.com/pandulapeter/kubriko/tree/main/plugins/auido-playback) - For playing music and sound effects.
 - [collision](https://github.com/pandulapeter/kubriko/tree/main/plugins/collision) - For detecting overlapping Actors.
+- [gamepad-input](https://github.com/pandulapeter/kubriko/tree/main/plugins/gamepad-input) - For detecting game controller input.
 - [keyboard-input](https://github.com/pandulapeter/kubriko/tree/main/plugins/keyboard-input) - For detecting key presses.
 - [particles](https://github.com/pandulapeter/kubriko/tree/main/plugins/particles) - For drawing particle effects.
 - [persistence](https://github.com/pandulapeter/kubriko/tree/main/plugins/persistence) - For loading and saving data from / to local storage.

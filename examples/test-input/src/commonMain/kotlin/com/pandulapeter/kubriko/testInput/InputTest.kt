@@ -11,7 +11,6 @@ package com.pandulapeter.kubriko.testInput
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -30,6 +29,7 @@ import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.testInput.implementation.InputTestStateHolder
 import com.pandulapeter.kubriko.testInput.implementation.InputTestStateHolderImpl
+import com.pandulapeter.kubriko.testInput.implementation.ui.Gamepads
 import com.pandulapeter.kubriko.testInput.implementation.ui.Keyboard
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import kubriko.examples.test_input.generated.resources.Res
@@ -53,7 +53,7 @@ fun InputTest(
     Column(
         modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest),
     ) {
-        Box(
+        Column(
             modifier = Modifier
                 .windowInsetsPadding(windowInsets)
                 .padding(16.dp),
@@ -61,6 +61,9 @@ fun InputTest(
             InfoPanel(
                 stringResource = Res.string.description,
                 isVisible = StateHolder.isInfoPanelVisible.value,
+            )
+            Gamepads(
+                gamepads = stateHolder.inputTestManager.gamepads.collectAsState().value,
             )
         }
         Keyboard(

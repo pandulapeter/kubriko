@@ -209,6 +209,7 @@ Each plugin requires its Manager to be passed to `Kubriko.newInstance()`. Omitti
 |---|---|---|---|
 | `audio-playback` | `MusicManager` (streaming, looping, volume), `SoundManager` (low-latency SFX, simultaneous) | — | `plugin-audio-playback` |
 | `collision` | `CollisionManager` | `Collidable` (defines `CollisionMask`), `CollisionDetector : Collidable` (receives `onCollisionDetected`) | `plugin-collision` |
+| `gamepad-input` | `GamepadInputManager` | `GamepadInputAware` (`handleGamepadState`, `onGamepadButtonPressed`/`Released`, `onGamepadConnected`/`Disconnected`) | `plugin-gamepad-input` |
 | `keyboard-input` | `KeyboardInputManager` | `KeyboardInputAware` (`onKeyPressed`, `onKeyReleased`, `handleActiveKeys`) | `plugin-keyboard-input` |
 | `particles` | `ParticleManager(cacheSize)` | `ParticleEmitter<S>` (continuous or burst emission, pooled `ParticleState`) | `plugin-particles` |
 | `persistence` | `PersistenceManager(fileName)` | — | `plugin-persistence` |
@@ -221,6 +222,8 @@ Each plugin requires its Manager to be passed to `Kubriko.newInstance()`. Omitti
 **Collision masks**: `PointCollisionMask`, `CircleCollisionMask`, `BoxCollisionMask` (rotatable), `PolygonCollisionMask`.
 
 **Audio formats**: SFX → WAV (max 48k bitrate for Android). Music → MP3 (max 320 kbps). Audio playback only works on Android and Desktop (JVM).
+
+**Gamepads**: up to four controllers, reported through one layout on all four platforms. Face buttons are named by position (`SOUTH`/`EAST`/`WEST`/`NORTH`), sticks use the engine's Y-down convention. Desktop support comes from Jamepad (the libGDX SDL2 binding), the only third-party runtime dependency in `plugins/`.
 
 **Shaders**: Written in SKSL. Built-in collection in `com.pandulapeter.kubriko.shaders.collection`: `BlurShader`, `ChromaticAberrationShader`, `RippleShader`, `VignetteShader`, `ComicShader`, `SmoothPixelationShader`. Shaders are Actors.
 

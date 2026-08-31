@@ -9,6 +9,6 @@
 -->
 # Input Test
 
-Playground for testing keyboard and pointer input.
+Playground for testing keyboard, pointer and gamepad input.
 
-This module provides a sandbox for verifying that touch, mouse, and keyboard events are correctly captured and processed by the engine.
+This module provides a sandbox for verifying that touch, mouse, keyboard and game controller events are correctly captured and processed by the engine.

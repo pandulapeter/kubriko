@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.testInput.implementation
 
 import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.gamepadInput.GamepadInputManager
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shared.StateHolder
@@ -44,11 +45,16 @@ internal class InputTestStateHolderImpl(
         isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
+    private val gamepadInputManager = GamepadInputManager.newInstance(
+        isLoggingEnabled = isLoggingEnabled,
+        instanceNameForLogging = LOG_TAG,
+    )
     val inputTestManager = InputTestManager()
     private val _kubriko = MutableStateFlow(
         Kubriko.newInstance(
             pointerInputManager,
             keyboardInputManager,
+            gamepadInputManager,
             inputTestManager,
             isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG,

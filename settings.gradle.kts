@@ -54,6 +54,7 @@ include(
     ":examples:shared",
     ":plugins:audio-playback",
     ":plugins:collision",
+    ":plugins:gamepad-input",
     ":plugins:keyboard-input",
     ":plugins:particles",
     ":plugins:persistence",
