@@ -66,3 +66,11 @@ left acting on an input that is no longer there.
 - Do not allocate inside `handleGamepadState` — it runs every tick for every connected gamepad
 - Android only: setting the generic motion listener on the decorView replaces any listener already there
 - Jamepad ships native libraries for Windows, macOS and Linux, which adds a few MB to a desktop distributable
+- Desktop ships `src/desktopMain/resources/kubriko-gamepad-mappings.txt`, and it is not optional: Jamepad loads a
+  mapping database during `initSDLGamepad` and prints a caught `IOException` at full stack-trace volume when it
+  finds none, its own default path (`/gamecontrollerdb.txt`) naming a file the artifact does not contain. The
+  bundled file is deliberately empty of mappings - SDL's compiled-in database stays in charge either way, so the
+  only thing it changes is the noise. It sits at the classpath root because that is where Jamepad looks, under
+  Kubriko's own name rather than the default one so that a game shipping a real `gamecontrollerdb.txt` keeps it.
+  SDL accepts a comment-only database, but never let the file become empty: `SDL_RWFromMem` rejects a zero-length
+  buffer, which would put the stack trace back.

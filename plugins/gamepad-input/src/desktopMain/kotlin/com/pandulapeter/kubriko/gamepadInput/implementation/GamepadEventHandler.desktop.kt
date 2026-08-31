@@ -87,6 +87,14 @@ internal actual fun createGamepadEventHandler(): GamepadEventHandler = object : 
  * A failure to load the native library leaves the plugin inert rather than taking the game down with it: a
  * desktop build that can't reach a gamepad is still perfectly playable with a keyboard.
  */
+/**
+ * The mapping database handed to Jamepad, which insists on loading one and prints a stack trace when it can't -
+ * its own default path naming a file it does not ship. The bundled one is deliberately empty, leaving SDL's
+ * compiled-in database and its native drivers in charge; the name is Kubriko's own rather than the
+ * `gamecontrollerdb.txt` Jamepad looks for by default, so a game that ships that file keeps its own copy.
+ */
+private const val MAPPINGS_PATH = "/kubriko-gamepad-mappings.txt"
+
 private object JamepadRuntime {
 
     private var controllerManager: ControllerManager? = null
@@ -97,7 +105,10 @@ private object JamepadRuntime {
     fun acquire(): ControllerManager? {
         if (controllerManager == null && !isUnavailable) {
             controllerManager = try {
-                ControllerManager(Configuration().apply { maxNumControllers = MAX_GAMEPAD_COUNT }).apply { initSDLGamepad() }
+                ControllerManager(
+                    Configuration().apply { maxNumControllers = MAX_GAMEPAD_COUNT },
+                    MAPPINGS_PATH,
+                ).apply { initSDLGamepad() }
             } catch (_: Throwable) {
                 isUnavailable = true
                 null

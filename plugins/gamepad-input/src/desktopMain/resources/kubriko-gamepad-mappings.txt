@@ -1,0 +1,9 @@
+# SDL controller mappings for plugin-gamepad-input.
+#
+# Jamepad loads a mapping database at startup and prints a stack trace when it cannot find one, its own default
+# path pointing at a file it does not ship. Kubriko relies on the database compiled into SDL itself, together
+# with SDL's native drivers for the common controllers, so this file exists to satisfy that load rather than to
+# add mappings of its own - an empty database is what leaves SDL's built-in one in charge.
+#
+# Mappings in the SDL_GameControllerDB format can be added below if a controller ever needs one:
+# https://github.com/mdqinc/SDL_GameControllerDB
