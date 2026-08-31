@@ -72,11 +72,20 @@ internal actual fun createGamepadEventHandler(): GamepadEventHandler = object : 
                 gamepad.applyTriggers(slot)
             }
 
+            in DPAD_BUTTONS -> {
+                keyDpadButtons[slot] = if (isPressed) {
+                    keyDpadButtons[slot] or button.bitMask
+                } else {
+                    keyDpadButtons[slot] and button.bitMask.inv()
+                }
+                gamepad.applyDpad(slot)
+            }
+
             else -> gamepad.setButton(button, isPressed)
         }
         // The directional pad also arrives through the hat axes, and the keyboard-input plugin turns the same key
         // codes into arrow keys. Leaving them unhandled keeps both working.
-        !DPAD_KEY_CODES.contains(event.keyCode)
+        button !in DPAD_BUTTONS
     }
 
     @Composable
@@ -140,7 +149,7 @@ internal actual fun createGamepadEventHandler(): GamepadEventHandler = object : 
             return
         }
         deviceIds[slot] = deviceId
-        releaseTriggers(slot)
+        releaseAxisState(slot)
         gamepads?.get(slot)?.let { gamepad ->
             gamepad.reset()
             gamepad.isConnected = true
@@ -150,15 +159,17 @@ internal actual fun createGamepadEventHandler(): GamepadEventHandler = object : 
 
     private fun releaseSlot(slot: Int) {
         deviceIds[slot] = NO_DEVICE
-        releaseTriggers(slot)
+        releaseAxisState(slot)
         gamepads?.get(slot)?.reset()
     }
 
-    private fun releaseTriggers(slot: Int) {
+    private fun releaseAxisState(slot: Int) {
         axisTriggers[slot.leftTriggerIndex] = 0f
         axisTriggers[slot.rightTriggerIndex] = 0f
         keyTriggers[slot.leftTriggerIndex] = 0f
         keyTriggers[slot.rightTriggerIndex] = 0f
+        hatDpadButtons[slot] = 0
+        keyDpadButtons[slot] = 0
     }
 
     private fun slotOf(deviceId: Int) = deviceIds.indexOfFirst { it == deviceId }
@@ -175,15 +186,25 @@ internal actual fun createGamepadEventHandler(): GamepadEventHandler = object : 
         applyTriggers(slot)
         val hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X)
         val hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y)
-        setButton(GamepadButton.DPAD_LEFT, hatX < -HAT_THRESHOLD)
-        setButton(GamepadButton.DPAD_RIGHT, hatX > HAT_THRESHOLD)
-        setButton(GamepadButton.DPAD_UP, hatY < -HAT_THRESHOLD)
-        setButton(GamepadButton.DPAD_DOWN, hatY > HAT_THRESHOLD)
+        var hatButtons = 0
+        if (hatX < -HAT_THRESHOLD) hatButtons = hatButtons or GamepadButton.DPAD_LEFT.bitMask
+        if (hatX > HAT_THRESHOLD) hatButtons = hatButtons or GamepadButton.DPAD_RIGHT.bitMask
+        if (hatY < -HAT_THRESHOLD) hatButtons = hatButtons or GamepadButton.DPAD_UP.bitMask
+        if (hatY > HAT_THRESHOLD) hatButtons = hatButtons or GamepadButton.DPAD_DOWN.bitMask
+        hatDpadButtons[slot] = hatButtons
+        applyDpad(slot)
     }
 
     private fun RawGamepadState.applyTriggers(slot: Int) {
         leftTrigger = max(axisTriggers[slot.leftTriggerIndex], keyTriggers[slot.leftTriggerIndex])
         rightTrigger = max(axisTriggers[slot.rightTriggerIndex], keyTriggers[slot.rightTriggerIndex])
+    }
+
+    private fun RawGamepadState.applyDpad(slot: Int) {
+        val dpadButtons = hatDpadButtons[slot] or keyDpadButtons[slot]
+        for (button in DPAD_BUTTONS) {
+            setButton(button, dpadButtons and button.bitMask != 0)
+        }
     }
 }
 
@@ -201,11 +222,11 @@ private val InputDevice.isGamepad
     get() = sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD ||
             sources and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK
 
-private val DPAD_KEY_CODES = intArrayOf(
-    KeyEvent.KEYCODE_DPAD_UP,
-    KeyEvent.KEYCODE_DPAD_DOWN,
-    KeyEvent.KEYCODE_DPAD_LEFT,
-    KeyEvent.KEYCODE_DPAD_RIGHT,
+private val DPAD_BUTTONS = arrayOf(
+    GamepadButton.DPAD_UP,
+    GamepadButton.DPAD_DOWN,
+    GamepadButton.DPAD_LEFT,
+    GamepadButton.DPAD_RIGHT,
 )
 
 private fun Int.toGamepadButton() = when (this) {

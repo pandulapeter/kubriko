@@ -33,6 +33,11 @@ The manager, not the platform code, applies the radial dead zone and derives the
 `RIGHT_TRIGGER` buttons from the analog values. Triggers are the one input every platform reports differently
 (axis, button, or both), so normalising them in one place is what keeps the layout identical everywhere.
 
+On Android the triggers and the D-pad each arrive from two independent sources - an axis and a key event - which
+the handler keeps in separate per-slot arrays and merges (larger value, or bitwise OR). Writing either source
+straight into `RawGamepadState` would let the axis path, which runs on every motion event, clear what the key
+path set on a device that only has one of the two.
+
 Buttons are diffed against the previous tick to produce the discrete pressed/released callbacks. On focus loss
 and on disconnection every held button is reported as released and the state is zeroed, so an Actor can't be
 left acting on an input that is no longer there.
@@ -41,7 +46,7 @@ left acting on an input that is no longer there.
 
 | Platform | Backend | Gotcha |
 |---|---|---|
-| Android | `OnGenericMotionListener` on the decorView + `OnUnhandledKeyEventListener` | The D-pad is read from the hat axes, because `keyboard-input` may consume the `KEYCODE_DPAD_*` events first |
+| Android | `OnGenericMotionListener` on the decorView + `OnUnhandledKeyEventListener` | Consuming the joystick motion events suppresses the system's synthetic `KEYCODE_DPAD_*` events for the left stick |
 | Desktop (JVM) | Jamepad (SDL2) | One SDL instance per process, reference counted across `Kubriko` instances; a native library that fails to load leaves the plugin inert |
 | iOS | `GameController` framework | Vertical axes point upwards there and are negated; controllers without an extended profile are ignored |
 | Web (Wasm) | Gamepad API | Gamepads stay invisible until the player presses a button; only the "standard" mapping is interpreted |
