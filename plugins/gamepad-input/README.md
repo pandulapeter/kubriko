@@ -21,6 +21,8 @@ be written once.
 - **Actor Integration**: add the `GamepadInputAware` trait to any actor to receive gamepad event callbacks.
 - **Hot plugging**: gamepads can be connected and disconnected while the game is running, and slots are sticky,
   so player one doesn't change controller when player two leaves.
+- **Menu navigation**: the gamepad can drive Compose's own focus system, on every platform, for as long as a
+  menu is up.
 
 ## Usage
 
@@ -55,7 +57,35 @@ class PlayerActor : Actor, GamepadInputAware {
 }
 ```
 
-### 3. Accessing Gamepad State Manually
+### 3. Navigating a Menu
+
+Set `isFocusNavigationEnabled` while a menu is on screen, and the left stick and the D-pad move Compose's focus
+between its controls. Tell each control what the south button should do to it:
+
+```kotlin
+LaunchedEffect(isMenuOpen) { gamepadManager.isFocusNavigationEnabled = isMenuOpen }
+
+Row(
+    modifier = Modifier
+        .clickable(onClick = ::toggleSound)
+        .onGamepadActivation(gamepadManager, onActivation = ::toggleSound),
+) {
+    // ...
+}
+```
+
+Focus traversal, focus order and focus visuals stay Compose's own; the plugin only supplies the direction and
+the activation. Nothing needs to be focused when the menu opens - the first push of the stick enters the UI on
+its own. Moving the focus also puts the window into keyboard input mode, the way the arrow keys do, so a menu
+reached after a tap or a mouse click still has controls that can hold the focus and show that they do.
+
+Content shown in a `Popup` or a `Dialog` gets a focus system of its own from Compose, so hand the sticks to it
+by placing a `GamepadFocusNavigationHost(gamepadManager)` inside; the one behind it takes them back when it is
+dismissed. The host's `onBack` is what the east face button runs, so each screen says for itself what backing
+out of it means. Turn it off again once the game takes its controls back, or every push of the stick will also
+move the focus around the UI behind it.
+
+### 4. Accessing Gamepad State Manually
 
 You can also query the manager directly from other managers or actors:
 
@@ -86,7 +116,8 @@ what you need while you have them and copy anything you want to keep.
   buttons in an order this plugin has no way to interpret.
 - **Android**: the plugin consumes the joystick motion events it recognizes, which stops the system from
   synthesizing `KEYCODE_DPAD_*` events out of the left stick for UI focus navigation. Stick input reaches the
-  game through this plugin instead of through `keyboard-input`.
+  game through this plugin instead of through `keyboard-input`, and menus are navigated through
+  `isFocusNavigationEnabled`, which behaves the same here as everywhere else.
 - **Desktop**: Jamepad ships the native libraries it needs, which adds a few MB to a packaged distributable. If
   they fail to load, the plugin reports no gamepads rather than failing the game.
 

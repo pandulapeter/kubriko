@@ -18,6 +18,7 @@ trait, in a single layout shared by all four platforms.
   zone, diffs the buttons and dispatches to the Actors
 - `src/commonMain/.../GamepadState.kt` — the public, reused per-slot state object
 - `src/commonMain/.../GamepadButton.kt` — the shared button layout; `bitMask` is the ordinal-derived bit
+- `src/commonMain/.../GamepadFocusNavigation.kt` — the app-facing half of focus navigation: `GamepadFocusNavigationHost` and the `onGamepadActivation` Modifier with the focus-event node behind it
 - `src/commonMain/.../implementation/RawGamepadState.kt` — what the platform handlers write into
 - `src/*/kotlin/.../GamepadEventHandler.*.kt` — platform-specific backend (one per target)
 
@@ -38,6 +39,44 @@ the handler keeps in separate per-slot arrays and merges (larger value, or bitwi
 straight into `RawGamepadState` would let the axis path, which runs on every motion event, clear what the key
 path set on a device that only has one of the two.
 
+## Focus Navigation
+
+`isFocusNavigationEnabled` makes the gamepad walk **Compose's own focus**, and it is entirely common code — no
+platform backend has any part in it, so every target behaves identically. The left stick (reduced to whichever
+axis it leans on hardest, Compose having no diagonal to move focus in) and the D-pad call
+`FocusManager.moveFocus`, repeating on a delay while a direction is held, the way a held arrow key does.
+
+A directional search only walks the **siblings** of the focused Composable, so a focus parked on a container -
+a root that holds it so the game can read keys, which is what most games with a menu look like - has nowhere to
+step. A failed step therefore falls back to `FocusDirection.Enter`, which is what Compose does for a D-pad
+center, but only while the focus is on nothing the manager knows about: once it is on a declared control,
+reaching the end of a list steps out of it rather than dropping into that control's own insides.
+
+The one thing Compose cannot do for us is **activate** the focused control: `clickable` reacts to Enter, Space
+and D-pad-center *key events*, and there is no public, portable way to put a key event into the focus system.
+So a control declares its own action with `Modifier.onGamepadActivation(manager) { … }`, whose `Modifier.Node`
+implements `FocusEventModifierNode` and claims a single slot on the manager while it is the focused one.
+`GamepadButton.SOUTH` invokes whatever holds that slot. Everything else — traversal order, geometry, focus
+state, focus visuals — stays Compose's.
+
+It runs off the frames of the composition (`Manager.Composable`), not off `onUpdate`, so the menus a game shows
+while it is paused stay navigable with its loop stopped. `LocalFocusManager` read there is the **window's**, not
+the viewport's, so the focus it moves is the whole UI's.
+
+Gamepad input also claims `InputMode.Keyboard` on the host's `InputModeManager`, the same claim Compose makes for
+the arrow keys. Compose decides from the window's input mode both whether a `clickable` is a focus target at all
+and whether holding the focus is worth drawing, and a tap or a mouse click puts it into touch mode - without the
+claim, a player who touched the screen once would be left steering a focus nothing draws, or none at all.
+
+Which composition the sticks drive is a **stack**, not that one manager: Compose gives a `Popup` or a `Dialog` a
+focus system of its own, so content shown in one places a `GamepadFocusNavigationHost` and the innermost host on
+screen wins, with the one behind it taking the sticks back on dismissal. The viewport hosts the window's own, so
+a game only ever places one for content Compose has moved out of the window - or to claim the host's `onBack`,
+which is what `GamepadButton.EAST` runs and the reason a screen with nothing of its own to focus may still want
+one. The focused activation targets are a stack for the same reason: a popup's focus system has its own focused
+control while the one that opened it goes on holding the focus behind it, so dismissing the popup leaves that
+control current again without Compose having to focus it a second time.
+
 Buttons are diffed against the previous tick to produce the discrete pressed/released callbacks. On focus loss
 and on disconnection every held button is reported as released and the state is zeroed, so an Actor can't be
 left acting on an input that is no longer there.
@@ -55,6 +94,8 @@ left acting on an input that is no longer there.
 
 - `handleGamepadState(gamepad)` — called every tick, once per **connected** gamepad; nothing is dispatched for
   empty slots
+- `isFocusNavigationEnabled` is meant to be on only while a menu is up; a game reading the same stick would
+  otherwise have every push also move the focus around the UI behind it
 - `GamepadState` instances are reused - consumers that want to keep values must copy them out
 - `gamepads` is a plain `List` rather than a `StateFlow`, because its entries mutate in place; observe
   `connectedGamepadCount` for hot plugging instead

@@ -41,10 +41,62 @@ sealed class GamepadInputManager(
     abstract val connectedGamepadCount: StateFlow<Int>
 
     /**
+     * Whether the gamepad drives Compose's focus system: the left stick and the directional pad move the focus
+     * between the focusable Composables of the whole window, and [GamepadButton.SOUTH] activates the focused
+     * one - see [onGamepadActivation], which is how a control says what activating it does.
+     *
+     * Focus traversal itself is Compose's own ([FocusManager.moveFocus]), so a menu is walked in the order and
+     * the geometry Compose already resolves, and the same focus that a keyboard's arrow keys move. The
+     * repeating while a direction is held matches what a held arrow key does.
+     *
+     * Off by default, because a game reading the same stick would otherwise have every push also move the focus
+     * around the UI behind it. Turn it on for as long as a menu is on screen and off again once the game takes
+     * its controls back; the focus stops moving the moment it goes off, wherever it had got to.
+     *
+     * Needs the [Kubriko] instance this manager belongs to to be both composed and running, the same as every
+     * other gamepad value: the state a stopped instance holds is the state it stopped with.
+     */
+    abstract var isFocusNavigationEnabled: Boolean
+
+    /**
      * Returns true if the specified [button] of the gamepad in the specified [gamepadIndex] slot is currently
      * pressed. Returns false for empty slots and for indices outside [MAX_GAMEPAD_COUNT].
      */
     abstract fun isButtonPressed(gamepadIndex: Int, button: GamepadButton): Boolean
+
+    /**
+     * The [onGamepadActivation] targets that are focused, innermost last. One focus system only ever has one of
+     * them focused, but a popup brings a focus system of its own, and the control that opened it goes on holding
+     * the focus behind it - so this is a stack, and dismissing the popup leaves that control current again
+     * without it having to be focused a second time.
+     */
+    private val focusedActivationTargets = mutableListOf<GamepadActivationNode>()
+
+    internal val focusedActivationTarget get() = focusedActivationTargets.lastOrNull()
+
+    internal fun onActivationTargetFocused(node: GamepadActivationNode) {
+        focusedActivationTargets.remove(node)
+        focusedActivationTargets.add(node)
+    }
+
+    internal fun onActivationTargetUnfocused(node: GamepadActivationNode) {
+        focusedActivationTargets.remove(node)
+    }
+
+    /**
+     * The compositions the sticks could be driving, innermost last: the window's own, plus one for every `Popup`
+     * or `Dialog` currently hosting navigation (see [GamepadFocusNavigationHost]). A stack rather than a single
+     * slot so that dismissing a popup hands the sticks back to whatever opened it.
+     */
+    internal val focusNavigationHosts = mutableListOf<GamepadFocusNavigationHostState>()
+
+    internal fun onFocusNavigationHostAttached(host: GamepadFocusNavigationHostState) {
+        focusNavigationHosts.add(host)
+    }
+
+    internal fun onFocusNavigationHostDetached(host: GamepadFocusNavigationHostState) {
+        focusNavigationHosts.remove(host)
+    }
 
     companion object {
         /**
