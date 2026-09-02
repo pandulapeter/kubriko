@@ -474,28 +474,27 @@ internal class ActorManagerImpl(
         }
     }
 
+    // Enqueued on the caller's own thread rather than from a coroutine, which is what makes operations
+    // reach the loop above in the order they were issued: a coroutine each leaves that order to the
+    // dispatcher, and a removal arriving before the addition it undoes finds nothing to remove. The
+    // unbounded channel is what allows it - enqueueing never suspends. Only the ordering is the
+    // caller's; the processing stays on the loop.
     override fun add(vararg actors: Actor) {
         if (actors.isEmpty()) return
-        scope.launch {
-            operationChannel.send(Operation.Add(actors.toList()))
-        }
+        operationChannel.trySend(Operation.Add(actors.toList()))
     }
 
     override fun add(actors: Collection<Actor>) = add(actors = actors.toTypedArray())
 
     override fun remove(vararg actors: Actor) {
         if (actors.isEmpty()) return
-        scope.launch {
-            operationChannel.send(Operation.Remove(actors.toList()))
-        }
+        operationChannel.trySend(Operation.Remove(actors.toList()))
     }
 
     override fun remove(actors: Collection<Actor>) = remove(actors = actors.toTypedArray())
 
     override fun removeAll() {
-        scope.launch {
-            operationChannel.send(Operation.RemoveAll)
-        }
+        operationChannel.trySend(Operation.RemoveAll)
     }
 
     @Composable
