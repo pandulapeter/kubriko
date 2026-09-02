@@ -12,11 +12,14 @@ package com.pandulapeter.kubriko.implementation
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.hardware.display.DisplayManager
 import android.os.Build
 import android.view.Display
 import android.view.Window
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.types.TargetFrameRate
@@ -42,6 +45,33 @@ internal actual fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate) {
     }
 }
 
+@Composable
+internal actual fun PlatformMaximumDisplayRefreshRateEffect(onMaximumDisplayRefreshRateChanged: (Float?) -> Unit) {
+    val context = LocalContext.current
+    val currentOnMaximumDisplayRefreshRateChanged by rememberUpdatedState(onMaximumDisplayRefreshRateChanged)
+    DisposableEffect(context) {
+        fun update() = currentOnMaximumDisplayRefreshRateChanged(context.findDisplay()?.maximumRefreshRate())
+        val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as? DisplayManager
+        val displayListener = object : DisplayManager.DisplayListener {
+            override fun onDisplayAdded(displayId: Int) = update()
+            override fun onDisplayRemoved(displayId: Int) = update()
+            override fun onDisplayChanged(displayId: Int) = update()
+        }
+        displayManager?.registerDisplayListener(displayListener, null)
+        update()
+        onDispose { displayManager?.unregisterDisplayListener(displayListener) }
+    }
+}
+
+/**
+ * The panel's ceiling at the resolution it is running at: switching resolution can unlock rates the
+ * current one doesn't offer, and those are not rates the game can actually be shown at.
+ */
+private fun Display.maximumRefreshRate() = mode?.let { currentMode ->
+    supportedModes.filter { it.physicalWidth == currentMode.physicalWidth && it.physicalHeight == currentMode.physicalHeight }
+        .maxOfOrNull { it.refreshRate }
+}
+
 /**
  * Some panels ignore the [preferredRefreshRate] hint and stay in their highest refresh mode
  * (observed on HyperOS), so a [TargetFrameRate.Limit] preferably names one of the panel's own display
@@ -59,7 +89,7 @@ private fun Window.applyFrameRateHint(targetFrameRate: TargetFrameRate) {
 }
 
 private fun Window.findDisplayMode(targetFrameRate: TargetFrameRate.Limit): Display.Mode? {
-    val display = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) context.display else @Suppress("DEPRECATION") windowManager.defaultDisplay
+    val display = context.findDisplay()
     val currentMode = display?.mode ?: return null
     val candidates = display.supportedModes.filter {
         it.physicalWidth == currentMode.physicalWidth && it.physicalHeight == currentMode.physicalHeight
@@ -81,6 +111,9 @@ private fun TargetFrameRate.toPreferredRefreshRate() = when (this) {
     TargetFrameRate.DisplayDefault, is TargetFrameRate.DisplayDivider -> SYSTEM_DEFAULT_REFRESH_RATE
     is TargetFrameRate.Limit -> framesPerSecond.toFloat()
 }
+
+private fun Context.findDisplay(): Display? =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) display else @Suppress("DEPRECATION") findActivity()?.windowManager?.defaultDisplay
 
 private tailrec fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this

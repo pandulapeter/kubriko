@@ -54,6 +54,9 @@ fun InternalViewport(
     // Align the display's actual refresh rate with the game loop's throttle where the platform allows.
     PlatformFrameRateHint(kubrikoImpl.viewportManager.targetFrameRate.collectAsState().value)
 
+    // Publish what the display is capable of, so a game can offer frame rates that suit the panel.
+    PlatformMaximumDisplayRefreshRateEffect { kubrikoImpl.metadataManager.updateMaximumDisplayRefreshRateInternal(it) }
+
     // Engine initialization and viewport-backed frame loop
     LaunchedEffect(Unit) {
         val tickSource = kubrikoImpl.tickSource

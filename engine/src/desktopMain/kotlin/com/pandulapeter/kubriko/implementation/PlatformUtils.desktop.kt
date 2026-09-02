@@ -10,10 +10,13 @@
 package com.pandulapeter.kubriko.implementation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.window.WindowState
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.types.TargetFrameRate
 import org.apache.commons.lang3.SystemUtils
+import java.awt.DisplayMode
+import java.awt.GraphicsEnvironment
 
 internal actual fun getDefaultFocusDebounce() = 0L
 
@@ -41,5 +44,16 @@ internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) {
 
 @Composable
 internal actual fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate) = Unit
+
+@Composable
+internal actual fun PlatformMaximumDisplayRefreshRateEffect(onMaximumDisplayRefreshRateChanged: (Float?) -> Unit) {
+    DisposableEffect(Unit) {
+        // The primary screen rather than the one the window happens to sit on: AWT reports the rate per
+        // screen device, and a headless environment has none at all.
+        val displayMode = runCatching { GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice.displayMode }.getOrNull()
+        onMaximumDisplayRefreshRateChanged(displayMode?.refreshRate?.takeIf { it != DisplayMode.REFRESH_RATE_UNKNOWN }?.toFloat())
+        onDispose { }
+    }
+}
 
 lateinit var windowState: WindowState

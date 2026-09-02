@@ -34,6 +34,13 @@ internal expect fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit)
 @Composable
 internal expect fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate)
 
+/**
+ * Reports the highest refresh rate the display showing the game can present at, and reports again
+ * whenever the display changes. Passes null on platforms that don't expose it.
+ */
+@Composable
+internal expect fun PlatformMaximumDisplayRefreshRateEffect(onMaximumDisplayRefreshRateChanged: (Float?) -> Unit)
+
 @Composable
 internal fun LifecycleFocusEffect(
     activeLifecycleState: Lifecycle.State = Lifecycle.State.RESUMED,

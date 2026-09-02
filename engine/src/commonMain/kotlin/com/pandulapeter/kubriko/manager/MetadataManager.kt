@@ -39,6 +39,17 @@ sealed class MetadataManager(
     abstract val activeRuntimeInMilliseconds: StateFlow<Long>
 
     /**
+     * The highest refresh rate the display showing the game can present at, in Hz, or `null` while
+     * the platform does not report one (the web, where browsers expose no such API). This is the
+     * panel's own ceiling, not the rate it is currently running at, so it is unaffected by any
+     * refresh-rate hint a [com.pandulapeter.kubriko.types.TargetFrameRate] applies - which makes it
+     * the rate to derive a frame rate menu from, since targets that divide it evenly are the ones a
+     * variable-refresh panel can settle on and present with even pacing. Follows the display, so it
+     * updates when the device unfolds or the window moves to another screen.
+     */
+    abstract val maximumDisplayRefreshRate: StateFlow<Float?>
+
+    /**
      * Information about the platform the game is running on.
      */
     abstract val platform: Platform

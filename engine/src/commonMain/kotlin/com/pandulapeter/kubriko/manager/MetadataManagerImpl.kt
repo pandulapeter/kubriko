@@ -35,12 +35,18 @@ internal class MetadataManagerImpl(
     internal val gameTime: State<Long> get() = _gameTime
     private val _activeRuntimeInMilliseconds = MutableStateFlow(0L)
     override val activeRuntimeInMilliseconds = _activeRuntimeInMilliseconds.asStateFlow()
+    private val _maximumDisplayRefreshRate = MutableStateFlow<Float?>(null)
+    override val maximumDisplayRefreshRate = _maximumDisplayRefreshRate.asStateFlow()
     override val platform by lazy { getPlatform() }
     private var fpsFrameCount = 0
     private var fpsAccumulatedTimeMs = 0L
 
     override fun onInitialize(kubriko: Kubriko) {
         stateManager = (kubriko as KubrikoImpl).stateManager
+    }
+
+    internal fun updateMaximumDisplayRefreshRateInternal(maximumDisplayRefreshRate: Float?) {
+        _maximumDisplayRefreshRate.value = maximumDisplayRefreshRate
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {

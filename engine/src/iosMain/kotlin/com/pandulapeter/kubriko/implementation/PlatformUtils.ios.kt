@@ -10,9 +10,11 @@
 package com.pandulapeter.kubriko.implementation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.types.TargetFrameRate
 import platform.UIKit.UIDevice
+import platform.UIKit.UIScreen
 
 internal actual fun getDefaultFocusDebounce() = 0L
 
@@ -27,3 +29,11 @@ internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) {
 
 @Composable
 internal actual fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate) = Unit
+
+@Composable
+internal actual fun PlatformMaximumDisplayRefreshRateEffect(onMaximumDisplayRefreshRateChanged: (Float?) -> Unit) {
+    DisposableEffect(Unit) {
+        onMaximumDisplayRefreshRateChanged(UIScreen.mainScreen.maximumFramesPerSecond.toFloat())
+        onDispose { }
+    }
+}

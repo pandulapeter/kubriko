@@ -138,6 +138,7 @@ ViewportManager.newInstance(
 
 **`MetadataManager`**
 - `fps`, `totalRuntimeInMilliseconds`, `activeRuntimeInMilliseconds` — observable perf counters.
+- `maximumDisplayRefreshRate: StateFlow<Float?>` — the panel's own ceiling in Hz (not the rate it currently runs at, so an engine refresh-rate hint doesn't move it), `null` on the web. Targets that divide it evenly are the ones a variable-refresh panel can settle on and present with even pacing, so it is what a frame rate menu should be built from.
 - `platform: Platform` — sealed hierarchy: `Android`, `Desktop.MacOS/Linux/Windows`, `IOS`, `Web`.
 
 ### Actors (`actor/Actor.kt`)

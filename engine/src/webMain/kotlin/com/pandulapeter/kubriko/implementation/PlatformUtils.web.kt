@@ -50,6 +50,11 @@ internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) {
 @Composable
 internal actual fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate) = Unit
 
+// Browsers expose no refresh rate: it is only observable by timing animation frames, which is the
+// page's own measurement to make rather than something the platform reports.
+@Composable
+internal actual fun PlatformMaximumDisplayRefreshRateEffect(onMaximumDisplayRefreshRateChanged: (Float?) -> Unit) = Unit
+
 fun Window.isRunningOnAndroid() =
     navigator.userAgent.contains("Android")
 
