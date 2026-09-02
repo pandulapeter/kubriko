@@ -92,7 +92,13 @@ fun InternalViewport(
                         is TargetFrameRate.Limit -> {
                             phaseInMilliseconds += frameDelta
                             val interval = 1000f / targetFrameRate.framesPerSecond
-                            if (phaseInMilliseconds >= interval) {
+                            // Tick on whichever display frame lands closest to the deadline instead of on the
+                            // first one past it: display frames arrive on a grid the target rarely divides, so
+                            // demanding a full interval postpones every near-miss by a whole frame and quantizes
+                            // the achieved rate down to a fraction of the target - most visibly when the panel
+                            // itself runs at the target rate (see PlatformFrameRateHint), where the two throttles
+                            // compound instead of stacking.
+                            if (phaseInMilliseconds >= interval - frameDelta / 2f) {
                                 viewportTickSource.tick((frameTimeInMilliseconds - lastProcessedFrameTime).toInt())
                                 lastProcessedFrameTime = frameTimeInMilliseconds
                                 phaseInMilliseconds -= interval
