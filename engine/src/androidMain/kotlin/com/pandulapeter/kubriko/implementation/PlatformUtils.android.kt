@@ -44,10 +44,10 @@ internal actual fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate) {
 
 /**
  * Some panels ignore the [preferredRefreshRate] hint and stay in their highest refresh mode
- * (observed on HyperOS), so a [TargetFrameRate.Limit] preferably names the panel's own display mode
- * at the target rate, which the system honors as a hard request. The float hint remains the
- * fallback when no mode matches the target rate at the current resolution. Both fields are always
- * written so that changing the target releases whichever lever the previous one used.
+ * (observed on HyperOS), so a [TargetFrameRate.Limit] preferably names one of the panel's own display
+ * modes, which the system honors as a hard request. The float hint remains the fallback when the
+ * supported modes are unknown. Both fields are always written so that changing the target releases
+ * whichever lever the previous one used.
  */
 @Suppress("DEPRECATION") // preferredRefreshRate is the refresh-rate lever reachable from a Window across minSdk 29+.
 private fun Window.applyFrameRateHint(targetFrameRate: TargetFrameRate) {
@@ -61,11 +61,16 @@ private fun Window.applyFrameRateHint(targetFrameRate: TargetFrameRate) {
 private fun Window.findDisplayMode(targetFrameRate: TargetFrameRate.Limit): Display.Mode? {
     val display = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) context.display else @Suppress("DEPRECATION") windowManager.defaultDisplay
     val currentMode = display?.mode ?: return null
-    return display.supportedModes.firstOrNull {
-        it.physicalWidth == currentMode.physicalWidth &&
-            it.physicalHeight == currentMode.physicalHeight &&
-            it.refreshRate.roundToInt() == targetFrameRate.framesPerSecond
+    val candidates = display.supportedModes.filter {
+        it.physicalWidth == currentMode.physicalWidth && it.physicalHeight == currentMode.physicalHeight
     }
+    // The game loop can throttle a display frame away but never conjure one, so a panel slower than the
+    // target caps the achieved rate at the panel's own: ask for the slowest mode that still covers the
+    // target - an exact match where the panel has one, the next one up where it doesn't (a 90 fps target
+    // on a panel whose modes step 120, 80, 60 runs at 120 and ticks three frames out of four, rather than
+    // settling at 80). The fastest mode is the best available when even that falls short of the target.
+    return candidates.filter { it.refreshRate.roundToInt() >= targetFrameRate.framesPerSecond }.minByOrNull { it.refreshRate }
+        ?: candidates.maxByOrNull { it.refreshRate }
 }
 
 private fun TargetFrameRate.toPreferredRefreshRate() = when (this) {
