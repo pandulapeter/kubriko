@@ -31,8 +31,7 @@
     <string name="welcome_learning_1">The project repository also hosts a number of helpful learning materials. To start using the engine for creating your own games, follow the guide for setting up a new project, or read the documentation.</string>
     <string name="welcome_getting_started">Getting started</string>
     <string name="welcome_documentation">Documentation</string>
-    <string name="welcome_learning_2">Watching the step by step tutorial videos is another great way to understand how the games in this Showcase are implemented. You can also join our Discord server to discuss more advanced topics with the community, or to promote your own creations.</string>
-    <string name="welcome_tutorials">Tutorial videos</string>
+    <string name="welcome_learning_2">Joining our Discord server is another great way to understand how the games in this Showcase are implemented. You can discuss more advanced topics with the community, or promote your own creations.</string>
     <string name="welcome_community">Join the community</string>
     <string name="welcome_license">Kubriko is under active development and will evolve together with the games that are being created with it. The library is open source and completely free to use under MPL 2.0.</string>
     <string name="welcome_app_details">This app contains a number of examples that present what the engine is capable of. %1$s</string>

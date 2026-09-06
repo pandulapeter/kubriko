@@ -15,7 +15,7 @@
 This repository contains the source code of the Kotlin Multiplatform library and its plugins / tooling, as well as the Kubriko Showcase application that demonstrates the engine's capabilities.
 
 > [!IMPORTANT]  
-> Kubriko is in early stages of development. The API might change and bugs can be present. The documentation and the tutorials are not yet finalized.
+> Kubriko is in early stages of development. The API might change and bugs can be present. The documentation is not yet finalized.
 
 ## 🎮 Overview
 Kubriko aims to offer a lightweight, scalable, and easy-to-use solution for creating simple 2D games for **Android**, **Desktop** (Windows, Linux, macOS), **iOS** and **Web**.
@@ -50,12 +50,11 @@ You can find the pre-built applications following these links:
 > Some of the links above might not be available / up to date, so the best way to try Kubriko Showcase is to build the project yourself.
 
 ## 📚 Learning
-Follow the links below to get started with the first steps of integrating the library, to read the full documentation, to watch step by step videos on how to approach
-specific types problems, or to join our Discord server where you can discuss more advanced topics with the community, or promote your own creations.
+Follow the links below to get started with the first steps of integrating the library, to read the full documentation,
+or to join our Discord server where you can discuss more advanced topics with the community, or promote your own creations.
 
 [<img src="documentation/images/badge_getting_started.png" alt="Getting started" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_01.md)
 [<img src="documentation/images/badge_documentation.png" alt="Documentation" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md)
-[<img src="documentation/images/badge_tutorial_videos.png" alt="Tutorial videos" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/TUTORIAL_VIDEOS.md)
 [<img src="documentation/images/badge_community.png" alt="Join the community" height="32px" />](https://discord.gg/RTK4pqbuVR)
 
 Another way to learn about Kubriko is to explore this repository and understand how the various examples are implemented.

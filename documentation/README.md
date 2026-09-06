@@ -30,7 +30,6 @@ the [artifact ID-s listed in the main Readme](https://github.com/pandulapeter/ku
 feel free to consult the resources below:
 
 [<img src="images/badge_getting_started.png" alt="Getting started" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_01.md)
-[<img src="images/badge_tutorial_videos.png" alt="Tutorial videos" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/TUTORIAL_VIDEOS.md)
 
 ## Components of a game
 

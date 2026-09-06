@@ -46,7 +46,6 @@ import kubriko.app.shared.generated.resources.ic_documentation
 import kubriko.app.shared.generated.resources.ic_expand
 import kubriko.app.shared.generated.resources.ic_getting_started
 import kubriko.app.shared.generated.resources.ic_github
-import kubriko.app.shared.generated.resources.ic_youtube
 import kubriko.app.shared.generated.resources.welcome_app_details
 import kubriko.app.shared.generated.resources.welcome_app_details_call_to_action_collapsed
 import kubriko.app.shared.generated.resources.welcome_app_details_call_to_action_expanded
@@ -66,7 +65,6 @@ import kubriko.app.shared.generated.resources.welcome_license
 import kubriko.app.shared.generated.resources.welcome_message
 import kubriko.app.shared.generated.resources.welcome_more_details
 import kubriko.app.shared.generated.resources.welcome_repository
-import kubriko.app.shared.generated.resources.welcome_tutorials
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -140,24 +138,12 @@ internal fun WelcomeScreen(
                     style = MaterialTheme.typography.bodySmall,
                     text = stringResource(Res.string.welcome_learning_2),
                 )
-                FlowRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    LargeButton(
-                        icon = Res.drawable.ic_youtube,
-                        title = Res.string.welcome_tutorials,
-                        onButtonPressed = { uriHandler.openUri("https://github.com/pandulapeter/kubriko/blob/main/documentation/TUTORIAL_VIDEOS.md") },
-                    )
-                    LargeButton(
-                        icon = Res.drawable.ic_discord,
-                        title = Res.string.welcome_community,
-                        onButtonPressed = { uriHandler.openUri("https://discord.gg/RTK4pqbuVR") },
-                    )
-                }
+                LargeButton(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    icon = Res.drawable.ic_discord,
+                    title = Res.string.welcome_community,
+                    onButtonPressed = { uriHandler.openUri("https://discord.gg/RTK4pqbuVR") },
+                )
                 Text(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     style = MaterialTheme.typography.bodySmall,
@@ -232,7 +218,6 @@ internal sealed interface WelcomeScreenStateHolder : StateHolder {
                 && preloadedImageVector(Res.drawable.ic_discord).value != null
                 && preloadedImageVector(Res.drawable.ic_documentation).value != null
                 && preloadedImageVector(Res.drawable.ic_getting_started).value != null
-                && preloadedImageVector(Res.drawable.ic_youtube).value != null
 
         @Composable
         private fun areStringResourcesLoaded() = preloadedString(Res.string.welcome_message).value.isNotBlank()
@@ -244,7 +229,6 @@ internal sealed interface WelcomeScreenStateHolder : StateHolder {
                 && preloadedString(Res.string.welcome_getting_started).value.isNotBlank()
                 && preloadedString(Res.string.welcome_documentation).value.isNotBlank()
                 && preloadedString(Res.string.welcome_learning_2).value.isNotBlank()
-                && preloadedString(Res.string.welcome_tutorials).value.isNotBlank()
                 && preloadedString(Res.string.welcome_community).value.isNotBlank()
                 && preloadedString(Res.string.welcome_license).value.isNotBlank()
                 && preloadedString(Res.string.welcome_app_details).value.isNotBlank()

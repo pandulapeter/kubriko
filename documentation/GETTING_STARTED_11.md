@@ -80,7 +80,6 @@ for how these pieces fit together at a larger scale.
 ### And if you get stuck
 
 [<img src="images/badge_documentation.png" alt="Documentation" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md)
-[<img src="images/badge_tutorial_videos.png" alt="Tutorial videos" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/TUTORIAL_VIDEOS.md)
 [<img src="images/badge_community.png" alt="Join the community" height="32px" />](https://discord.gg/RTK4pqbuVR)
 
 The Discord server is there for the questions the documentation doesn't answer.
