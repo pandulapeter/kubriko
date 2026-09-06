@@ -18,6 +18,11 @@ Despite Compose WASM support being in [Alpha](https://kotlinlang.org/docs/wasm-o
 - Audio playback issues (sometimes the music or sound effects simply just don't start).
 - Frequent app freezes that can last 10-20 seconds. Sudden jumps in the memory required by the app seems to trigger these problems, like loading screens.
 
+### Gamepad support
+The [Gamepad API](https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API) is more restricted than what the other platforms offer, so the [gamepad-input](https://github.com/pandulapeter/kubriko/tree/main/plugins/gamepad-input) plugin can do less on the web than elsewhere. These are browser-level decisions that no plugin can work around.
+- Browsers hide gamepads from the page until one of their buttons has been pressed, as a fingerprinting countermeasure. A controller that is plugged in and switched on therefore doesn't exist as far as the game is concerned until the player uses it once, which is worth keeping in mind when writing a "press start" screen.
+- Only controllers the browser can fit into its ["standard" mapping](https://w3c.github.io/gamepad/#remapping) are interpreted. Anything else reports its buttons and axes in an order that has no defined meaning, so the plugin ignores it rather than guessing.
+
 ## Desktop limitations
 ### Missing multi-touch support
 Multitouch on the JVM doesn't work on the Compose level. [Here's a relevant ticket](https://youtrack.jetbrains.com/issue/CMP-2209/Desktop.-Unable-to-zoom-using-detectTransformGestures-in-Modifier.pointerInput-using-touch-screens). I don't consider this such an important issue as on the web, as Windows / Linux systems with touch screens generally have other input methods as well.

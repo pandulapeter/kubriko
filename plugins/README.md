@@ -11,11 +11,11 @@
 This folder contains all the plugin submodules that can be added to games that need their specific functionality.
 
 ## Implementation
-Each plugin exposes a [Manager](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/manager/Manager.kt) subclass that needs to be added to the [Kubriko]((https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/Kubriko.kt)) `newInstance()` function. 
+Each plugin exposes a [Manager](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/manager/Manager.kt) subclass that needs to be added to the [Kubriko](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/Kubriko.kt) `newInstance()` function.
 Some plugins also introduce new [Actor](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/Actor.kt) Traits.
 
 ## Modules
-- [audio-playback](https://github.com/pandulapeter/kubriko/tree/main/plugins/auido-playback) - For playing music and sound effects.
+- [audio-playback](https://github.com/pandulapeter/kubriko/tree/main/plugins/audio-playback) - For playing music and sound effects.
 - [collision](https://github.com/pandulapeter/kubriko/tree/main/plugins/collision) - For detecting overlapping Actors.
 - [gamepad-input](https://github.com/pandulapeter/kubriko/tree/main/plugins/gamepad-input) - For detecting game controller input.
 - [keyboard-input](https://github.com/pandulapeter/kubriko/tree/main/plugins/keyboard-input) - For detecting key presses.

@@ -17,6 +17,9 @@ Read the KDoc comments of the linked files for more information.
 - [Collidable](https://github.com/pandulapeter/kubriko/blob/main/plugins/collision/src/commonMain/kotlin/com/pandulapeter/kubriko/collision/Collidable.kt)
 - [CollisionDetector](https://github.com/pandulapeter/kubriko/blob/main/plugins/collision/src/commonMain/kotlin/com/pandulapeter/kubriko/collision/CollisionDetector.kt)
 
+## Gamepad Input plugin
+- [GamepadInputAware](https://github.com/pandulapeter/kubriko/blob/main/plugins/gamepad-input/src/commonMain/kotlin/com/pandulapeter/kubriko/gamepadInput/GamepadInputAware.kt)
+
 ## Keyboard Input plugin
 - [KeyboardInputAware](https://github.com/pandulapeter/kubriko/blob/main/plugins/keyboard-input/src/commonMain/kotlin/com/pandulapeter/kubriko/keyboardInput/KeyboardInputAware.kt)
 

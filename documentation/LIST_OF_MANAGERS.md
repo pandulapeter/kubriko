@@ -1,5 +1,5 @@
 # List of Managers
-This page lists all the [Managers]((https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/manager/Manager.kt)) provided by Kubriko.
+This page lists all the [Managers](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/manager/Manager.kt) provided by Kubriko.
 Read the KDoc comments of the linked files for more information.
 
 ## Engine
@@ -14,6 +14,9 @@ Read the KDoc comments of the linked files for more information.
 
 ## Collision plugin
 - [CollisionManager](https://github.com/pandulapeter/kubriko/blob/main/plugins/collision/src/commonMain/kotlin/com/pandulapeter/kubriko/collision/CollisionManager.kt)
+
+## Gamepad Input plugin
+- [GamepadInputManager](https://github.com/pandulapeter/kubriko/blob/main/plugins/gamepad-input/src/commonMain/kotlin/com/pandulapeter/kubriko/gamepadInput/GamepadInputManager.kt)
 
 ## Keyboard Input plugin
 - [KeyboardInputManager](https://github.com/pandulapeter/kubriko/blob/main/plugins/keyboard-input/src/commonMain/kotlin/com/pandulapeter/kubriko/keyboardInput/KeyboardInputManager.kt)
