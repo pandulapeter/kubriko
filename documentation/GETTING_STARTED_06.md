@@ -1,37 +1,25 @@
 # Getting started
 
-These pages guide you through creating your first Kubriko game from scratch.
+These pages guide you through building your first Kubriko game, one small step at a time.
 
 [<img src="images/badge_previous.png" alt="Previous page" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_05.md)
 [<img src="images/badge_next.png" alt="Next page" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_07.md)
 
 ## 6 - Setting things in motion
 
-As admiring a static circle might get a bit boring after a while, it's time to make our game more exciting by making the ball move!
+A static circle gets boring quickly, so let's make the ball move.
 
-As mentioned before, Actors new learn skills by implementing more Trait interfaces. To be able to update its body's state in every frame, the `Ball` Actor
-should become [Dynamic](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Dynamic.kt) (
-besides already
-being [Visible](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Visible.kt)).
+Actors learn new skills by implementing more Traits. To do something on every frame, the `Ball` needs the
+**[Dynamic](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Dynamic.kt)** Trait
+alongside `Visible`:
 
 ```kotlin
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
-import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
-import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
 
 class Ball : Visible, Dynamic {
-    private val radius = 40.sceneUnit
-    override val body = BoxBody(
-        initialSize = SceneSize(
-            width = radius * 2,
-            height = radius * 2,
-        ),
-    )
+
+    // ...
 
     private var horizontalSpeed = 0.5f.sceneUnit
     private var verticalSpeed = 0.5f.sceneUnit
@@ -43,53 +31,44 @@ class Ball : Visible, Dynamic {
         ) * deltaTimeInMilliseconds
     }
 
-    override fun DrawScope.draw() {
-        drawCircle(
-            color = Color.Green,
-            radius = radius.raw,
-            center = body.pivot.raw,
-        )
-        drawCircle(
-            color = Color.Black,
-            radius = radius.raw,
-            center = body.pivot.raw,
-            style = Stroke(),
-        )
-    }
+    // ...
 }
 ```
 
-Just a couple of additions here: we've implemented the `Dynamic` interface that brought in the `update()` function. Here we move the ball by incrementing its
-offset with a value composed by the newly added `horizontalSpeed` and `verticalSpeed` components, multiplied with `deltaTimeInMilliseconds`.
+`Dynamic` brings in a single function, `update()`, and the engine calls it on every frame while the game is running.
+
+### Why deltaTimeInMilliseconds matters
+
+`deltaTimeInMilliseconds` is how much time passed since the previous frame. Multiplying your movement by it is not optional, it is what keeps your game fair.
+
+One player's device runs at 60 frames per second, another's at 120. Without delta time, the ball would move twice as fast on the second device.
+Even on a single device the frame rate fluctuates whenever something heavy happens. Multiplying by delta time cancels all of that out:
+the ball covers the same distance per second no matter how many frames it took to get there.
+
+So our speeds are really "scene units per millisecond": at `0.5f`, the ball crosses 500 scene units every second.
+
+Run the game and the ball rolls off diagonally, never to be seen again.
 
 > [!NOTE]
-> The `update()` function is invoked by Kubriko's `ActorManager` in every frame, as long as the game is running. The `deltaTimeInMilliseconds` parameter
-> provides the number of milliseconds that have passed since drawing the previous frame. It is important to multiply any motion's parameters with this value so
-> that we can compensate for changes in the frame rate. Some devices might run our game at 120 FPS, while others only at 90 or 60. Performance-heavy processing
-> can introduce fluctuations in the frame rate even on the same device. Using delta time keeps the gameplay balanced by compensating for these fluctuations.
+> Kubriko's axes follow the same convention as Compose: X grows to the right, and **Y grows downwards**.
+> So a positive `verticalSpeed` moves the ball *down*, which is worth remembering when something moves the wrong way.
 
-If you run the game now, you should see that the ball moves diagonally out of the viewport.
+> [!TIP]
+> If you ever need a fixed time step (a physics simulation, or a deterministic replay), the frame-based loop can be swapped for a fixed-rate or a manual
+> `TickSource`. The [TickSource documentation](https://github.com/pandulapeter/kubriko/blob/main/documentation/TICK_SOURCE.md) explains how, and why
+> `update()` gets the same delta time either way.
 
-> [!NOTE]
-> Kubriko's coordinate system directions are consistent with Compose: the X axis is incremented from left to right while the Y axis from top to bottom.
+### Staying inside the viewport
 
-Again, once the ball leaves the screen things do get a bit boring, so let's prevent that from happening!
+To keep the ball on screen, we need to know where the edges of the screen are. That's what `ViewportManager` is for.
 
-To be able to constrain it within the viewport, we should
-get access to the viewport dimensions. There's another built-in manager that's responsible for
-this: [ViewportManager](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/manager/ViewportManager.kt). You
-should already be able to inject
-the `ViewportManager` instance into `Ball` by saving its reference via the `manager<ViewportManager>()` delegate in `GameplayManager` and passing it through the
-constructor of `Ball` in the `onInitialize()` function, but let's look at a different approach now:
+We could pass it in through the `Ball` constructor, the same way `GameplayManager` gets `ActorManager`. But Actors have their own way of getting hold of
+Managers, and it's worth seeing:
 
 ```kotlin
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.traits.Dynamic
-import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.manager.ViewportManager
-
-// ...
 
 class Ball : Visible, Dynamic {
 
@@ -103,62 +82,58 @@ class Ball : Visible, Dynamic {
 }
 ```
 
-The `onAdded()` function is part of the
-base [Actor](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/Actor.kt) interface and is invoked by
-`ActorManager` the moment the `Actor` is added to the Scene. As we receive
-the `Kubriko` instance as an argument, we can grab references to any registered `Manager` instances from it using the `get` extension function. Make sure you
-import the
-reified inline function as in the example above.
+`onAdded()` comes from the base `Actor` interface, and the engine calls it the moment the Actor joins the scene. It hands you the `Kubriko` instance,
+and the `get()` extension pulls any registered Manager out of it. (Its counterpart, `onRemoved()`, is called when the Actor leaves the scene.)
 
-Now that we can ask the dimensions of the screen from `ViewportManager`, let's modify the `update()` function to make the ball bounce back from the edges of the
-viewport:
+> [!TIP]
+> Make sure you import `com.pandulapeter.kubriko.helpers.extensions.get`. It is the reified version, which is what makes `kubriko.get()` work without
+> naming the type twice.
+
+Now we can bounce. Replace `update()` with this:
 
 ```kotlin
-private var previousPosition = body.position
+import com.pandulapeter.kubriko.helpers.extensions.constrainedWithin
 
 override fun update(deltaTimeInMilliseconds: Int) {
-    val viewportTopLeft = viewportManager.topLeft.value
-    val viewportBottomRight = viewportManager.bottomRight.value
-    val offset = SceneOffset(
+    val topLeft = viewportManager.topLeft.value + SceneOffset(radius, radius)
+    val bottomRight = viewportManager.bottomRight.value - SceneOffset(radius, radius)
+    val speed = SceneOffset(
         x = horizontalSpeed,
         y = verticalSpeed,
     )
-    val nextPosition = (body.position + offset * deltaTimeInMilliseconds).constrainedWithin(
-        topLeft = viewportTopLeft,
-        bottomRight = viewportBottomRight,
+    val nextPosition = (body.position + speed * deltaTimeInMilliseconds).constrainedWithin(
+        topLeft = topLeft,
+        bottomRight = bottomRight,
     )
-    var shouldJumpBackToPreviousPosition = false
-    if (nextPosition.x == viewportTopLeft.x || nextPosition.x == viewportBottomRight.x) {
-        shouldJumpBackToPreviousPosition = true
+    if (nextPosition.x <= topLeft.x || nextPosition.x >= bottomRight.x) {
         horizontalSpeed *= -1
     }
-    if (nextPosition.y == viewportTopLeft.y || nextPosition.y == viewportBottomRight.y) {
-        shouldJumpBackToPreviousPosition = true
+    if (nextPosition.y <= topLeft.y || nextPosition.y >= bottomRight.y) {
         verticalSpeed *= -1
     }
-    if (shouldJumpBackToPreviousPosition) {
-        body.position = previousPosition
-    }
-    previousPosition = body.position
     body.position = nextPosition
 }
 ```
 
-Okay, let's see what's going on here. First we've created an instance variable that holds the position of the Body from the previous frame. This is useful
-because whenever the ball is on the edge of the screen, we should move it back to its previous position, to prevent it from getting stuck.
+Reading it from the top:
 
-In the `update()` function first we make sure that the next position of the ball is within the viewport bounds by using the `constrainedWithin()` extension
-function. But then we test this position against the edges of the screen, and only move the `Body` to it if there was no collision. However, if the ball has
-reached one of the edges, we move it back to its previous position as mentioned before, and flip the relevant component of the speed vector so that it will
-change its movement direction starting with the next frame.
+1. `topLeft` and `bottomRight` describe the visible area of the world. We shrink that area by the ball's radius, so the ball bounces when its *edge*
+   touches the wall rather than its center. (Remember from page 4: `body.position` is the center of the ball.)
+2. We work out where the ball wants to go next, then `constrainedWithin()` pulls that position back inside the allowed area if it overshot.
+3. If the constrained position ended up exactly on one of the edges, the ball must have hit that wall, so we flip the matching speed component.
+   From the next frame on it travels the other way.
+
+Run the game and the ball bounces around the window. Try it on desktop or web and resize the window while it's running: the walls move with it, and the
+ball keeps up without any extra work.
 
 > [!NOTE]
-> While the `ViewportManager` usually deals with screen coordinates, the values coming from the `topLeft` and `bottomRight` Flows are converted to `SceneOffset`
-> for convenience. This means that they take into consideration pan and zoom and will always point to the world space coordinates that are marked by the top-left
-> and the bottom-right corners of the viewport respectively.
+> `topLeft` and `bottomRight` are `StateFlow`s, which is why we read `.value`. The `ViewportManager` reports the viewport's `size` in screen pixels, but
+> these two corners are converted to `SceneOffset` for convenience, and they already account for the camera's position and zoom. They always point at the
+> world coordinates in the corners of the viewport.
 
-Run the app now to see how the bouncing works! Testing it on desktop or web is especially useful, since you can check how seamlessly the game responds to
-changing the window size at runtime.
+> [!NOTE]
+> To save work, the engine stops calling `update()` on `Dynamic` Actors that drift far outside the viewport. Our ball can't leave, so this never affects it.
+> If one of your Actors *should* keep running off-screen (a timer, an enemy walking towards the player), override `isAlwaysActive` to return `true`.
 
 [<img src="images/badge_previous.png" alt="Previous page" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_05.md)
 [<img src="images/badge_next.png" alt="Next page" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_07.md)

@@ -1,42 +1,53 @@
 # Getting started
 
-These pages guide you through creating your first Kubriko game from scratch.
+These pages guide you through building your first Kubriko game, one small step at a time.
 
 [<img src="images/badge_previous.png" alt="Previous page" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_01.md)
 [<img src="images/badge_next.png" alt="Next page" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_03.md)
 
-## 2 - Adding the Kubriko engine dependency
+## 2 - Adding the Kubriko dependency
 
-Open the `libs.versions.toml` file from your project's `gradle` folder.
-This file is the version catalog for all the third party dependencies of your project.
+Kubriko is published to [Maven Central](https://repo1.maven.org/maven2/io/github/pandulapeter/kubriko/), so adding it is just a matter of
+declaring a dependency.
 
-It already contains a number of dependencies (some of which are unused and can safely be deleted). We need to add Kubriko to the list.
-To do that, first define the version reference by adding a new line to the `[versions]` section:
+### Declaring the version
+
+Open `gradle/libs.versions.toml`. This file is the version catalog: a single place that lists the versions of every third party library your project uses.
+The wizard already filled it with a few entries (some of which you may not need and can delete later).
+
+Add a new line to the `[versions]` section:
 
 ```toml
 kubriko = "0.7.0"
 ```
 
-Use the latest release version of Kubriko that can be found [here](https://github.com/pandulapeter/kubriko/releases).
-Regularly update this version number to get access to the latest features and bug fixes.
+Use the newest release, which you can find on the [releases page](https://github.com/pandulapeter/kubriko/releases). It is worth updating this number every
+now and then, to pick up new features and bug fixes.
 
-While we're here, we should make sure that the following three versions in your project's `libs.versions.toml` are at least equal to the versions defined for
-Kubriko. Cross-reference these dependency versions with their counterparts from [here](https://github.com/pandulapeter/kubriko/blob/main/gradle/libs.versions.toml) and update where necessary.
+### Matching the shared versions
 
+Kubriko is built on top of Compose Multiplatform, so a few versions in your project have to be at least as new as the ones Kubriko itself uses.
+Compare these entries with [Kubriko's own version catalog](https://github.com/pandulapeter/kubriko/blob/main/gradle/libs.versions.toml) and bump them if yours are older:
+
+- `compose-multiplatform`
+- `kotlin`
 - `android-compileSdk` (only if your project supports Android)
 - `android-minSdk` (only if your project supports Android)
-- `compose-multiplatform`
 
-> [!IMPORTANT]  
-> Trying to use versions incompatible with Kubriko might prevent certain targets from compiling.
+> [!IMPORTANT]
+> Older versions can cause confusing build failures on some targets. If a platform suddenly refuses to compile after adding Kubriko, this is the first thing to check.
+> A too-low `android-compileSdk`, for example, fails with a wall of messages like *"requires libraries and applications that depend on it to compile against
+> version 37 or later of the Android APIs"*.
 
-Next, define the library reference by adding a new line to the `[libraries]` section:
+### Adding the library
+
+Add the engine to the `[libraries]` section of the same file:
 
 ```toml
 kubriko-engine = { group = "io.github.pandulapeter.kubriko", name = "engine", version.ref = "kubriko" }
 ```
 
-After this we need to reference the library in the game module's `build.gradle.kts` file (by default the module is named `composeApp`):
+Then reference it from the `shared` module's `build.gradle.kts`. That's the module your game code lives in, so that's the only place that needs it:
 
 ```kotlin
 kotlin {
@@ -51,30 +62,57 @@ kotlin {
 }
 ```
 
-If your project supports Android, we should also update a couple of other lines in this file to ensure compatibility with some of Kubriko's features:
+This single dependency gives you the engine: the game loop, the viewport, the Actor system, and four built-in Managers. Everything else (input, collisions,
+audio, physics, and so on) lives in optional plugins that you add the same way, whenever you need them. Their artifacts follow one pattern,
+`io.github.pandulapeter.kubriko:plugin-<name>`, and the complete list is in the
+[main Readme](https://github.com/pandulapeter/kubriko/tree/main?tab=readme-ov-file#-artifacts). We'll add the first plugin on page 7.
+
+### Java version
+
+Kubriko is compiled with **Java 21**, so every module that touches it has to be built with Java 21 as well. In the `shared` module:
 
 ```kotlin
 kotlin {
-    androidTarget {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
-        }
-    }
+    jvmToolchain(21)
     //...
 }
-//...
+```
+
+Do the same in `desktopApp`, and set the Android app module to match:
+
+```kotlin
 android {
-    //..
+    //...
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
     }
 }
 ```
 
-If your project supports Web, make sure to delete the `js()` block from the `kotlin { ... }` block - Kubriko only supports the `wasmJs()` target.
+The wizard usually picks an older Java version, so this is a change you will almost certainly need to make. If you skip it, the build fails with:
 
-Make sure to sync the project after changing the build script.
+```
+Cannot inline bytecode built with JVM target 21 into bytecode that is being built with JVM target 17.
+```
+
+which is exactly this problem.
+
+### One note about the Web target
+
+If your project supports Web, delete the `js()` block from the `kotlin { ... }` block. Kubriko only supports the newer `wasmJs()` target.
+
+Sync the project after all these changes. If Gradle finishes without complaints, the engine is on your classpath and you are ready to use it.
+
+> [!NOTE]
+> The Web target of Compose Multiplatform is still in alpha, and games built with Kubriko inherit its limitations, especially in iOS browsers.
+> The [known issues page](https://github.com/pandulapeter/kubriko/blob/main/documentation/KNOWN_ISSUES.md) lists what to expect on each platform.
 
 [<img src="images/badge_previous.png" alt="Previous page" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_01.md)
 [<img src="images/badge_next.png" alt="Next page" height="32px" />](https://github.com/pandulapeter/kubriko/blob/main/documentation/GETTING_STARTED_03.md)
