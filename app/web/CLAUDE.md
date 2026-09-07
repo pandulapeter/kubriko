@@ -35,4 +35,10 @@ The web target is the only platform that drives browser navigation. `KubrikoShow
 ./gradlew :app:web:wasmJsBrowserDistribution      # Production build
 ```
 
+## Load time
+
+The production distribution is post-processed by the `injectWebPreloads` task in `build.gradle.kts`, which adds `<link rel="preload">` tags to the distributed `index.html` for the two wasm binaries and every resource the first frame waits for (fonts, string tables, icons, the welcome-screen and isometric-demo images). The app requests those resources strictly one after the other, so without preloading each one costs a network round trip. The preload set is defined by `webPreloadPatterns`; every pattern must match at least one file, so renaming or removing a preloaded resource fails the build until the pattern is updated. The dev server does not get the preloads. Production webpack source maps are disabled since they are never deployed.
+
+The loading screen shown by `index.html` while the wasm downloads uses `metadata/logo.webp`; keep that image small since it competes with the wasm download for bandwidth.
+
 Known limitations: iOS browsers have significant issues (performance, audio, frequent freezes). Chrome/Firefox desktop is near-JVM quality.
