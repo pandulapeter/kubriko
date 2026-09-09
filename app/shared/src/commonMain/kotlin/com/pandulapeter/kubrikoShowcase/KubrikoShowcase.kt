@@ -15,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.unit.dp
@@ -37,9 +38,14 @@ fun KubrikoShowcase(
     onFullscreenModeToggled: () -> Unit,
     deeplink: String? = selectedShowcaseEntry.value.deeplink,
     onDestinationChanged: (String?) -> Unit = { selectedShowcaseEntry.value = it.processDeeplink() },
+    onFirstFrameDrawn: () -> Unit = {},
 ) = KubrikoTheme(
     areResourcesLoaded = ResourceLoader.areResourcesLoaded() && ShowcaseEntry.entries.all { it.areResourcesLoaded() },
 ) {
+    LaunchedEffect(Unit) {
+        withFrameNanos {}
+        onFirstFrameDrawn()
+    }
     LaunchedEffect(deeplink) {
         selectedShowcaseEntry.value = deeplink.processDeeplink()
     }

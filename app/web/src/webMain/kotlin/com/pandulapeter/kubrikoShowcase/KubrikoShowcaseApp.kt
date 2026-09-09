@@ -23,6 +23,7 @@ import org.w3c.dom.events.Event
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     ComposeViewport(
+        viewportContainerId = COMPOSE_VIEWPORT_CONTAINER_ID,
         configure = {
             isA11YEnabled = false
         }
@@ -77,9 +78,17 @@ fun main() {
                 }
                 window.dispatchEvent(Event(EVENT_POP_STATE))
             },
+            onFirstFrameDrawn = ::hideLoadingScreen,
         )
     }
 }
 
+/**
+ * Fades out the loading screen that index.html shows while the app downloads and starts.
+ */
+@ExperimentalWasmJsInterop
+private fun hideLoadingScreen(): Unit = js("hideLoadingScreen()")
+
+private const val COMPOSE_VIEWPORT_CONTAINER_ID = "composeViewport"
 private const val EVENT_POP_STATE = "popstate"
 private const val EVENT_FULLSCREEN_CHANGE = "fullscreenchange"

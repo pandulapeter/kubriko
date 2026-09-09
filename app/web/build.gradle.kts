@@ -57,10 +57,12 @@ val webPreloadPatterns = listOf(
 /**
  * Injects `<link rel="preload">` tags into the distributed index.html so that the browser starts fetching the wasm
  * binaries and the first-frame resources while it is still parsing the HTML, in parallel instead of sequentially.
+ * It also injects the uncompressed size of every preloaded file, which the loading screen's progress bar measures
+ * the downloads against. The injected block is delimited by markers so that re-running the task replaces it.
  */
 val injectWebPreloads by tasks.registering {
     group = "distribution"
-    description = "Adds preload links for the wasm binaries and first-frame resources to the distributed index.html."
+    description = "Adds preload links and a size table for the wasm binaries and first-frame resources to the distributed index.html."
     val distributionDirectory = layout.buildDirectory.dir("dist/wasmJs/productionExecutable")
     inputs.dir(distributionDirectory)
     outputs.upToDateWhen { false }
@@ -73,13 +75,18 @@ val injectWebPreloads by tasks.registering {
         }.distinct()
         val indexFile = distributionFolder.resolve("index.html")
         val closingHeadTag = "</head>"
-        val indexContent = indexFile.readText()
+        val startMarker = "<!-- injectWebPreloads:start -->"
+        val endMarker = "<!-- injectWebPreloads:end -->"
+        val indexContent = indexFile.readText().replace(Regex("\\s*${Regex.escape(startMarker)}.*?${Regex.escape(endMarker)}", RegexOption.DOT_MATCHES_ALL), "")
         check(indexContent.contains(closingHeadTag)) { "The distributed index.html has no closing head tag to inject the preload links before." }
         val preloadLinks = preloadPaths.joinToString(separator = "") { path ->
             "    <link rel=\"preload\" href=\"$path\" as=\"fetch\" crossorigin=\"anonymous\">\n"
         }
-        indexFile.writeText(indexContent.replaceFirst(closingHeadTag, preloadLinks + closingHeadTag))
-        val totalSizeInKilobytes = preloadPaths.sumOf { distributionFolder.resolve(it).length() } / 1024
+        val preloadSizes = preloadPaths.associateWith { distributionFolder.resolve(it).length() }
+        val sizeTable = groovy.json.JsonOutput.toJson(preloadSizes)
+        val injectedBlock = "    $startMarker\n$preloadLinks    <script>window.kubrikoResourceSizes = $sizeTable;</script>\n    $endMarker\n"
+        indexFile.writeText(indexContent.replaceFirst(closingHeadTag, injectedBlock + closingHeadTag))
+        val totalSizeInKilobytes = preloadSizes.values.sum() / 1024
         logger.lifecycle("Injected ${preloadPaths.size} preload links ($totalSizeInKilobytes KB) into ${indexFile.name}.")
     }
 }

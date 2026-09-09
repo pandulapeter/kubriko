@@ -46,15 +46,12 @@
             overflow: hidden;
         }
 
-        canvas#ComposeTarget {
+        #composeViewport {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 10;
-            touch-action: none;
-            pointer-events: auto;
         }
 
         .loadingScreen {
@@ -66,9 +63,12 @@
             background-color: #6060AA;
             color: white;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 5;
+            gap: 24px;
+            z-index: 20;
+            transition: opacity 0.4s ease-out;
             -webkit-user-select: none;
             -khtml-user-select: none;
             -moz-user-select: none;
@@ -76,19 +76,138 @@
             user-select: none;
         }
 
+        .loadingScreen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
         .loadingScreen img {
             width: 100px;
             height: 100px;
         }
+
+        .loadingProgress {
+            width: 100px;
+            height: 4px;
+            border-radius: 2px;
+            background-color: rgba(255, 255, 255, 0.25);
+            overflow: hidden;
+            visibility: hidden;
+        }
+
+        .loadingProgress.tracking {
+            visibility: visible;
+        }
+
+        .loadingProgress div {
+            width: 0;
+            height: 100%;
+            background-color: white;
+            transition: width 0.15s linear;
+        }
+
+        .loadingProgress.complete div {
+            animation: loadingPulse 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes loadingPulse {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0.4;
+            }
+        }
     </style>
 </head>
 <body>
-<div>
-    <canvas id="ComposeTarget"></canvas>
-    <div class="loadingScreen">
-        <img src="metadata/logo.webp" alt="Loading...">
+<div id="composeViewport"></div>
+<div class="loadingScreen" id="loadingScreen">
+    <img src="metadata/logo.webp" alt="Loading...">
+    <div class="loadingProgress" id="loadingProgress">
+        <div></div>
     </div>
-    <script src="web.js"></script>
 </div>
+<script type="text/javascript">
+    // Reports download progress for the resources the app fetches before its first frame, then hands the page
+    // over to the app. The production build injects the uncompressed size of every such resource as
+    // `kubrikoResourceSizes`; the sizes cannot come from the responses because the server compresses them.
+    // Every tracked fetch is wrapped in a stream that counts the bytes as they arrive, which keeps the wasm
+    // binaries on the streaming compilation path.
+    (function () {
+        const loadingScreen = document.getElementById('loadingScreen');
+        const progressBar = document.getElementById('loadingProgress');
+        const progressFill = progressBar.firstElementChild;
+        const originalFetch = window.fetch;
+        const expectedSizes = new Map();
+        const receivedSizes = new Map();
+        let expectedTotal = 0;
+        let receivedTotal = 0;
+        let completedCount = 0;
+        const resolve = (input) => new URL(input instanceof Request ? input.url : String(input), document.baseURI).href;
+        const report = (url, receivedBytes) => {
+            const expectedBytes = expectedSizes.get(url);
+            const previousBytes = receivedSizes.get(url) || 0;
+            const currentBytes = Math.min(receivedBytes, expectedBytes);
+            receivedSizes.set(url, currentBytes);
+            receivedTotal += currentBytes - previousBytes;
+            progressFill.style.width = (100 * receivedTotal / expectedTotal) + '%';
+            if (receivedBytes >= expectedBytes && previousBytes < expectedBytes && ++completedCount === expectedSizes.size) {
+                stopTracking();
+                progressBar.classList.add('complete');
+            }
+        };
+        const stopTracking = () => {
+            if (window.fetch === trackingFetch) {
+                window.fetch = originalFetch;
+            }
+        };
+        const trackingFetch = function (input, init) {
+            const url = resolve(input);
+            if (!expectedSizes.has(url)) {
+                return originalFetch.call(window, input, init);
+            }
+            return originalFetch.call(window, input, init).then((response) => {
+                if (!response.ok || !response.body) {
+                    return response;
+                }
+                let receivedBytes = 0;
+                const counter = new TransformStream({
+                    transform(chunk, controller) {
+                        receivedBytes += chunk.byteLength;
+                        report(url, receivedBytes);
+                        controller.enqueue(chunk);
+                    },
+                    flush() {
+                        report(url, expectedSizes.get(url));
+                    },
+                });
+                return new Response(response.body.pipeThrough(counter), {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers,
+                });
+            });
+        };
+        window.hideLoadingScreen = () => {
+            stopTracking();
+            loadingScreen.classList.add('hidden');
+            loadingScreen.addEventListener('transitionend', () => loadingScreen.remove(), { once: true });
+        };
+        const sizes = window.kubrikoResourceSizes;
+        if (!sizes || typeof TransformStream === 'undefined') {
+            return;
+        }
+        for (const path in sizes) {
+            expectedSizes.set(resolve(path), sizes[path]);
+            expectedTotal += sizes[path];
+        }
+        if (expectedTotal > 0) {
+            window.fetch = trackingFetch;
+            progressBar.classList.add('tracking');
+        }
+    })();
+</script>
+<script src="web.js"></script>
 </body>
 </html>

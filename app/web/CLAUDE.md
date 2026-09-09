@@ -13,7 +13,7 @@ Kotlin/Wasm browser application. `fun main()` in `KubrikoShowcaseApp.kt` is the 
 
 ## Entry point
 
-`ComposeViewport(configure = { isA11YEnabled = false }) { ... }` mounts the Compose tree into the browser viewport. Accessibility is disabled because it causes significant performance degradation on the Wasm target.
+`ComposeViewport(viewportContainerId = "composeViewport", configure = { isA11YEnabled = false }) { ... }` mounts the Compose tree into the full-page `#composeViewport` element of `index.html`. It gets its own container because `ComposeViewport` clears whatever element it mounts into, and the loading screen has to outlive the mount. Accessibility is disabled because it causes significant performance degradation on the Wasm target.
 
 ## Browser history / deeplink integration
 
@@ -37,8 +37,10 @@ The web target is the only platform that drives browser navigation. `KubrikoShow
 
 ## Load time
 
-The production distribution is post-processed by the `injectWebPreloads` task in `build.gradle.kts`, which adds `<link rel="preload">` tags to the distributed `index.html` for the two wasm binaries and every resource the first frame waits for (fonts, string tables, icons, the welcome-screen and isometric-demo images). The app requests those resources strictly one after the other, so without preloading each one costs a network round trip. The preload set is defined by `webPreloadPatterns`; every pattern must match at least one file, so renaming or removing a preloaded resource fails the build until the pattern is updated. The dev server does not get the preloads. Production webpack source maps are disabled since they are never deployed.
+The production distribution is post-processed by the `injectWebPreloads` task in `build.gradle.kts`, which adds `<link rel="preload">` tags to the distributed `index.html` for the two wasm binaries and every resource the first frame waits for (fonts, string tables, icons, the welcome-screen and isometric-demo images). The app requests those resources strictly one after the other, so without preloading each one costs a network round trip. The preload set is defined by `webPreloadPatterns`; every pattern must match at least one file, so renaming or removing a preloaded resource fails the build until the pattern is updated. The task also injects the uncompressed size of each preloaded file as `window.kubrikoResourceSizes`, and wraps everything it injects in marker comments so that re-running it replaces the block instead of duplicating it. The dev server does not get the preloads. Production webpack source maps are disabled since they are never deployed.
 
-The loading screen shown by `index.html` while the wasm downloads uses `metadata/logo.webp`; keep that image small since it competes with the wasm download for bandwidth.
+The loading screen in `index.html` shows a progress bar driven by a `window.fetch` wrapper that streams every fetched resource listed in the size table through a byte counter, so the wasm binaries stay on the streaming compilation path. Sizes have to come from the build because the host compresses the responses, which makes `Content-Length` useless; without the table (on the dev server) the bar stays hidden. The screen sits above the canvas and is faded out by `hideLoadingScreen()`, which the Kotlin entry point calls through `KubrikoShowcase`'s `onFirstFrameDrawn` callback once the first real frame has been drawn, so there is no flash of an empty canvas. The logo uses `metadata/logo.webp`; keep that image small since it competes with the wasm download for bandwidth.
+
+The wasm binaries dominate the download; the host serves them gzipped, and the file names are content hashes so revalidation after the host's short cache lifetime is a cheap 304.
 
 Known limitations: iOS browsers have significant issues (performance, audio, frequent freezes). Chrome/Firefox desktop is near-JVM quality.
