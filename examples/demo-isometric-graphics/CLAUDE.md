@@ -60,8 +60,9 @@ Tesselar declared its `Kubriko` instances and managers as module-level singleton
 - `implementation/renderer/data` — serializable model (`Cuboid`, `CuboidModel`, animations, `Vec3`,
   `RenderableCuboid(Model)`). `@Serializable` is used only to **load** the JSON models at runtime.
 - `implementation/renderer/planar` — top-down/flat projection used by the minimap and as the base
-  class for the logic actors; includes the `TriangleBatch` mesh helper (with an `expect`/`actual`
-  `drawTriangles` per platform) and the grid-line caches.
+  class for the logic actors; includes the grid-line caches. The mesh helper they fill is the
+  engine's `TriangleBatch` (`com.pandulapeter.kubriko.helpers`); this module used to vendor its own
+  cut-down copy.
 - `implementation/renderer/volumetric` — isometric 3D rendering (`VolumetricRenderManager`,
   `VolumetricCuboidRenderer`, batch renderer, mip chains).
 - `implementation/logic` — `ControlManager`, `LogicManager` (loads `character.json` + `tree.json`,
@@ -91,6 +92,6 @@ At full rate `onUpdate` runs every vsync, so the snapshot updates every frame an
 
 ## Platform notes
 
-- `TriangleBatch` has an `expect fun drawTriangles` in `commonMain` with an Android actual
-  (`android.graphics`) and a shared Skiko actual in `desktopMain`, `iosMain`, and `webMain`.
+- Geometry goes to the canvas through the engine's `TriangleBatch`, so its per-platform upload path
+  applies here — including the Wasm adapter that hands Skia a whole mesh in one copy.
 - Multi-touch (pinch-zoom) works on Android, iOS, and Web; all platforms with a mouse also support scroll-wheel zoom.

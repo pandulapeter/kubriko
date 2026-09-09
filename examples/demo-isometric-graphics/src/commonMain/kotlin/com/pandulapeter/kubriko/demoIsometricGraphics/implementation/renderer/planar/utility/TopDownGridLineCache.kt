@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.utility
 
+import com.pandulapeter.kubriko.helpers.TriangleBatch
+
 // Caches the top-down (minimap) grid line geometry between frames — as a triangle mesh, not a
 // stroked Path: Skia software-rasterizes complex stroked paths into coverage masks on every
 // transform change, while a vertex mesh is transformed on the GPU for free. The mesh is built in

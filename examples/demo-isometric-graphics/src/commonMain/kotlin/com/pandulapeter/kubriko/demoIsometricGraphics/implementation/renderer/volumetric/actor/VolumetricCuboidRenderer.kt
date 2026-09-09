@@ -28,7 +28,7 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.Cuboid
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.RenderableCuboid
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.utility.TriangleBatch
+import com.pandulapeter.kubriko.helpers.TriangleBatch
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.volumetric.utility.TextureMipChain
 
 open class VolumetricCuboidRenderer(
@@ -414,7 +414,7 @@ open class VolumetricCuboidRenderer(
                         ax = projX[a] + centerX, ay = projY[a] + centerY,
                         bx = projX[b] + centerX, by = projY[b] + centerY,
                         halfWidth = halfWidth,
-                        argb = OUTLINE_ARGB,
+                        argbA = OUTLINE_ARGB,
                     )
                 }
                 edgeMask = edgeMask ushr 1

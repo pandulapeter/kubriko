@@ -31,6 +31,14 @@ here, together with [custom types](https://github.com/pandulapeter/kubriko/tree/
 public API and some
 helpful [extension functions](https://github.com/pandulapeter/kubriko/tree/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/helpers/extensions).
 
+Finally, it offers [TriangleBatch](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/helpers/TriangleBatch.kt),
+an optional drawing primitive for scenes made of many small shapes: triangles, quads, lines and strokes are accumulated into flat vertex and index arrays and
+rasterized with a single native call rather than one canvas operation each. On the Web the upload goes through an adapter that hands Skia the whole mesh in one
+copy, which for a large batch is the difference between a playable and an unplayable frame rate.
+
+It is opt-in. A `Visible` actor still draws through a plain `DrawScope`, and ordinary `drawRect` / `drawCircle` / `drawPath` calls are unaffected by any of this —
+a game benefits only where it builds its geometry into a batch instead. See `demo-isometric-graphics` for a scene that does.
+
 Check out the [documentation](https://github.com/pandulapeter/kubriko/blob/main/documentation/README.md) for more details about these components.
 
 ## Core Concepts

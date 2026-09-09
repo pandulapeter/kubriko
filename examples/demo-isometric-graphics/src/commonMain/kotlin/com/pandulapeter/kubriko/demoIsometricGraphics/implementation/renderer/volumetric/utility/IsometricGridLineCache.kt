@@ -10,7 +10,7 @@
 package com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.volumetric.utility
 
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.utility.GridMap
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.utility.TriangleBatch
+import com.pandulapeter.kubriko.helpers.TriangleBatch
 import kotlin.math.ceil
 import kotlin.math.floor
 

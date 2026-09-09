@@ -26,6 +26,7 @@ Requires **JDK 21** (the Kotlin Multiplatform toolchain pins language version 21
 ./gradlew :app:web:wasmJsBrowserDevelopmentRun   # Run the Showcase app in a browser
 ./gradlew :app:android:installDebug   # Install the Showcase app on a connected Android device/emulator
 ./gradlew test                        # Run JVM/common unit tests across modules
+node engine/src/webMain/checkTriangleBridge.mjs  # Check the bridge's embedded JS
 ./gradlew :engine:desktopTest --tests "com.pandulapeter.kubriko.SomeTest"   # Single test
 ./gradlew publishToMavenCentral --no-configuration-cache   # Publish (CI uses this)
 ```
@@ -201,6 +202,21 @@ val timer = Timer(timeInMilliseconds = 500L, shouldTriggerMultipleTimes = false)
 // In Dynamic.update():
 timer.update(deltaTimeInMilliseconds)
 ```
+
+### `TriangleBatch` (`helpers/TriangleBatch.kt`)
+Accumulates triangles, quads, lines and strokes from many actors into flat vertex/index arrays and rasterizes them with a single native `drawVertices` call, instead of one canvas operation per shape. A scene built from many small shapes is the case this exists for — per-shape canvas calls are what makes such a scene unusable on the web and expensive on Android.
+
+**This is opt-in, not an engine-wide speedup.** `Visible.draw()` still hands each actor a plain `DrawScope`, and ordinary `drawRect`/`drawCircle`/`drawPath` calls go straight to Compose and Skia as they always have. Nothing gets faster by upgrading; a game benefits only by restructuring its drawing to fill a batch. `demo-isometric-graphics` is the in-repo example of a game that does.
+
+- Fill it during `draw`, then `flush(canvas)`; painter's order is emission order, so anything that has to go through another code path (a bitmap, a different paint) means flushing first.
+- Buffers are reused across frames and steady-state filling does not allocate. Vertices are shared through an index array; `addVertex`/`addTexturedVertex` return indices for geometry whose shapes share corners.
+- `texture` modulates the vertex colors by a tiling pattern sampled per vertex; `TriangleBatchSupport.isTextureSampledPerVertex()` reports whether the device honors that at all (some Android drivers silently drop the coordinates — the probe is the only way to know, and it is cached per process).
+- A batch holds at most `TriangleBatch.MAX_INDEXED_VERTICES` unique vertices between resets. An owner that keeps one persistent batch instead of flushing per frame must check `willOverflow` and roll over.
+- `replace = true` composites source-replace instead of source-over, for a translucent group drawn into its own offscreen layer.
+
+Platform draw paths live in `implementation/TriangleMesh.*.kt`: Android passes counts and draws straight from the batch's arrays; the Skia targets have no count parameter, so `TriangleMeshBuffers` trims into per-size bucket mirrors. **Web additionally routes through `WasmTriangleBridge`**, which stages the mesh in linear memory and copies it into Skia's heap in one call — Skiko's public path crosses the Wasm boundary once per scalar, which dominates the frame on any real batch. The bridge validates Skiko's expected exports and draw arity and falls back to the public path, so a Skiko upgrade degrades rather than breaks; it cannot detect a same-signature semantic change, so re-verify it (and confirm the fast path is still taken) whenever Skiko or Kotlin/Wasm is bumped. `engine/src/webMain/checkTriangleBridge.mjs` exercises the JavaScript it embeds without any dependencies; `engine/src/webMain/README.md` says when it is worth running and what it cannot catch.
+
+The bridge is the only place in the engine that calls `drawVertices`, so it accelerates batched drawing and nothing else.
 
 ## Plugins
 

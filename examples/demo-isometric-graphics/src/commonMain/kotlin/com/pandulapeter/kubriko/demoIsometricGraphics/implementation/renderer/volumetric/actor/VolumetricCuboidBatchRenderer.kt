@@ -13,12 +13,12 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.helpers.TriangleBatch
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.utility.TriangleBatch
 
 // Draws every tracked cuboid in a single actor: VolumetricRenderManager keeps [renderers] sorted
 // by depth, and this actor walks the list back to front, emitting solid faces and outlines into a
