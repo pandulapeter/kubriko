@@ -2,7 +2,7 @@
 This page lists all the long-term, high-level issues that I'm aware of regarding Kubriko, and gives additional context on them. For smaller and more specific bugs see the [Issues page](https://github.com/pandulapeter/kubriko/issues).
 
 ## Web limitations
-The [Kubriko Showcase web app](https://pandulapeter.github.io/kubriko/) has been used for testing.
+The [Kubriko Showcase web app](https://pandulapeter.com/kubriko/) has been used for testing.
 
 ### General performance and bugs
 Despite Compose WASM support being in [Alpha](https://kotlinlang.org/docs/wasm-overview.html), in general, I was pleasantly surprised by how stable the overall experience feels, especially on macOS and Windows.

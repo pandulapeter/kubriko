@@ -132,7 +132,7 @@ internal fun AboutScreen(
             LargeButton(
                 icon = Res.drawable.ic_website,
                 title = Res.string.other_about_visit_my_website,
-                onButtonPressed = { uriHandler.openUri("https://pandulapeter.github.io/") },
+                onButtonPressed = { uriHandler.openUri("https://pandulapeter.com/") },
             )
         }
 
@@ -148,7 +148,7 @@ internal fun AboutScreen(
         LargeButton(
             icon = Res.drawable.ic_privacy_policy,
             title = Res.string.other_about_privacy_policy,
-            onButtonPressed = { uriHandler.openUri("https://pandulapeter.github.io/legal/privacy_policy-kubriko.html") },
+            onButtonPressed = { uriHandler.openUri("https://pandulapeter.com/legal/privacy_policy-kubriko.html") },
         )
         Text(
             text = stringResource(Res.string.other_about_content_license),

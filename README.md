@@ -44,7 +44,7 @@ You can find the pre-built applications following these links:
 [<img src="./documentation/images/badge_windows.png" alt="Download for Windows" height="32px" />](https://store.steampowered.com/app/3585120/Kubriko_Showcase/)
 [<img src="./documentation/images/badge_macos.png" alt="Download for macOS" height="32px" />](https://store.steampowered.com/app/3585120/Kubriko_Showcase/)
 [<img src="./documentation/images/badge_linux.png" alt="Download for Linux" height="32px" />](https://store.steampowered.com/app/3585120/Kubriko_Showcase/)
-[<img src="./documentation/images/badge_web.png" alt="Download for Web" height="32px" />](https://pandulapeter.github.io/kubriko/)
+[<img src="./documentation/images/badge_web.png" alt="Open in browser" height="32px" />](https://pandulapeter.com/kubriko/)
 
 > [!NOTE]
 > Some of the links above might not be available / up to date, so the best way to try Kubriko Showcase is to build the project yourself.

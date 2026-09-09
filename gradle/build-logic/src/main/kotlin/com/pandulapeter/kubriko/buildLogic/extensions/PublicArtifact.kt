@@ -43,7 +43,7 @@ internal fun Project.configurePublicArtifact(
             developer {
                 id.set("pandulapeter")
                 name.set("Pandula Péter")
-                url.set("https://pandulapeter.github.io/")
+                url.set("https://pandulapeter.com/")
                 email.set("pandulapeter@gmail.com")
             }
         }

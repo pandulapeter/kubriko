@@ -49,7 +49,7 @@ The pre-built Kubriko Showcase application can be accessed using the following l
 [<img src="../documentation/images/badge_windows.png" alt="Download for Windows" height="33px" />](https://store.steampowered.com/app/3585120/Kubriko_Showcase/)
 [<img src="../documentation/images/badge_macos.png" alt="Download for macOS" height="33px" />](https://store.steampowered.com/app/3585120/Kubriko_Showcase/)
 [<img src="../documentation/images/badge_linux.png" alt="Download for Linux" height="33px" />](https://store.steampowered.com/app/3585120/Kubriko_Showcase/)
-[<img src="../documentation/images/badge_web.png" alt="Download for Web" height="33px" />](https://pandulapeter.github.io/kubriko/)
+[<img src="../documentation/images/badge_web.png" alt="Open in browser" height="33px" />](https://pandulapeter.com/kubriko/)
 
 ## Implementation
 
