@@ -1,4 +1,4 @@
-name: Publish
+name: '[Library] Publish'
 on:
   release:
     types: [released, prereleased]
