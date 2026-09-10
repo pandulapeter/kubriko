@@ -11,7 +11,8 @@
 <resources>
 
     <string name="description">Press and hold one or more keys on the physical keyboard to test that the engine properly detects the keyboard events. Move / click the mouse or touch the screen to verify the pointer event detection. Keep in mind that multi-touch support doesn\'t work on Desktop. Connect a gamepad to see its sticks, triggers and buttons reported below.</string>
-    <string name="gamepad_none">No gamepad connected. In the browser a gamepad only appears after one of its buttons has been pressed.</string>
+    <string name="gamepad_none">No gamepad connected.</string>
+    <string name="gamepad_none_web">No gamepad connected. In the browser a gamepad only appears after one of its buttons has been pressed.</string>
     <string name="gamepad_header">Gamepad %1$s: %2$s</string>
     <string name="gamepad_unknown_name">Unknown</string>
     <string name="gamepad_sticks">Left stick: %1$s / %2$s — Right stick: %3$s / %4$s</string>

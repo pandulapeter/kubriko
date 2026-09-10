@@ -64,6 +64,7 @@ fun InputTest(
             )
             Gamepads(
                 gamepads = stateHolder.inputTestManager.gamepads.collectAsState().value,
+                isRunningInBrowser = stateHolder.isRunningInBrowser,
             )
         }
         Keyboard(

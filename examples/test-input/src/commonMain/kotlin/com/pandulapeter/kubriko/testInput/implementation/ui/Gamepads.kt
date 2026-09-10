@@ -25,6 +25,7 @@ import kubriko.examples.test_input.generated.resources.gamepad_buttons
 import kubriko.examples.test_input.generated.resources.gamepad_buttons_none
 import kubriko.examples.test_input.generated.resources.gamepad_header
 import kubriko.examples.test_input.generated.resources.gamepad_none
+import kubriko.examples.test_input.generated.resources.gamepad_none_web
 import kubriko.examples.test_input.generated.resources.gamepad_sticks
 import kubriko.examples.test_input.generated.resources.gamepad_triggers
 import kubriko.examples.test_input.generated.resources.gamepad_unknown_name
@@ -35,6 +36,7 @@ import kotlin.math.roundToInt
 internal fun Gamepads(
     modifier: Modifier = Modifier,
     gamepads: ImmutableList<GamepadSnapshot>,
+    isRunningInBrowser: Boolean,
 ) = Panel(
     modifier = modifier,
 ) {
@@ -43,7 +45,7 @@ internal fun Gamepads(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (gamepads.isEmpty()) {
-            GamepadText(text = stringResource(Res.string.gamepad_none))
+            GamepadText(text = stringResource(if (isRunningInBrowser) Res.string.gamepad_none_web else Res.string.gamepad_none))
         } else {
             gamepads.forEach { gamepad ->
                 GamepadText(

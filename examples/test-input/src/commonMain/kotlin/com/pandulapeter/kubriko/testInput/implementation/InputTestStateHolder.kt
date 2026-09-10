@@ -12,7 +12,9 @@ package com.pandulapeter.kubriko.testInput.implementation
 import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.gamepadInput.GamepadInputManager
+import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
+import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.testInput.implementation.managers.InputTestManager
@@ -61,6 +63,7 @@ internal class InputTestStateHolderImpl(
         )
     )
     override val kubriko = _kubriko.asStateFlow()
+    val isRunningInBrowser = _kubriko.value.get<MetadataManager>().platform is MetadataManager.Platform.Web
 
     override fun dispose() = kubriko.value.dispose()
 }
