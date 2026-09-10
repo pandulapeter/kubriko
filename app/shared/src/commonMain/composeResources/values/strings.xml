@@ -94,7 +94,7 @@
 
     <!-- Test - Input -->
     <string name="test_input">Input</string>
-    <string name="test_input_subtitle">Playground for testing keyboard and pointer input</string>
+    <string name="test_input_subtitle">Playground for testing keyboard, pointer and gamepad input</string>
 
     <!-- Other - Licenses -->
     <string name="other_licenses">Licenses</string>

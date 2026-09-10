@@ -24,6 +24,15 @@ The single shared interface every example's state holder implements. It defines:
 - `fun dispose()` — releases all Kubriko instances and associated resources.
 - `companion object { val isInfoPanelVisible = mutableStateOf(true) }` — shared Compose state that the Showcase app's info panel observes to show/hide contextual help text. Stored here so all examples can write to it without depending on the app module.
 
+### `ui/GameRipple.kt` and `ui/GameButton.kt` (`commonMain`)
+
+The games style their ripples more strongly than Material 3 allows: Material 3 removed the ripple alpha from `RippleConfiguration`, and its own components build their ripple inside `Surface`, where a theme can no longer reach it.
+
+- `gameRipple(color, rippleAlpha)` — an `IndicationNodeFactory` built on the public `createRippleModifierNode`, carrying the exact alphas each game's theme is designed around. Themes provide it via `LocalIndication`.
+- `GameButton(...)` — a `FloatingActionButton` replacement: a non-clickable `Surface` (same shape, colors and 6dp/8dp hover elevation) wrapping a `Box` whose `clickable` takes its indication from `LocalIndication`. This puts the state layer above the container but below the content, exactly where Material draws it, while keeping the custom alphas.
+
+Themes still provide `LocalRippleConfiguration` with the non-deprecated single-argument `RippleConfiguration(color)` so any Material component that builds its own ripple (currently only Annoyed Penguins' `Slider`) keeps the right ripple color.
+
 ### `ResourceLoader.web.kt` (`webMain`)
 
 A single `getFixedUri(path, rootPathName)` utility function for constructing absolute audio/asset URIs on Wasm/JS targets. The function reads `window.location.pathname` and resolves the deploy root path so that audio preloading works correctly whether the Showcase app is served at the root or a sub-path. All example modules that load audio on Web delegate URI construction to this function.

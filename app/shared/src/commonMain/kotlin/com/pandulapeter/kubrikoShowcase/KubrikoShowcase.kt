@@ -16,9 +16,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.withFrameNanos
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.unit.dp
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
@@ -30,7 +31,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlin.coroutines.cancellation.CancellationException
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun KubrikoShowcase(
     isInFullscreenMode: Boolean?,
@@ -52,7 +52,10 @@ fun KubrikoShowcase(
     LaunchedEffect(selectedShowcaseEntry.value) {
         onDestinationChanged(selectedShowcaseEntry.value?.deeplink)
     }
-    BackHandler(selectedShowcaseEntry.value != null) {
+    NavigationBackHandler(
+        state = rememberNavigationEventState(NavigationEventInfo.None),
+        isBackEnabled = selectedShowcaseEntry.value != null,
+    ) {
         val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
         try {
             if (activeStateHolder?.navigateBack(

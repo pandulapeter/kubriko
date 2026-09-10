@@ -60,7 +60,7 @@ val webPreloadPatterns = listOf(
  * It also injects the uncompressed size of every preloaded file, which the loading screen's progress bar measures
  * the downloads against. The injected block is delimited by markers so that re-running the task replaces it.
  */
-val injectWebPreloads by tasks.registering {
+val injectWebPreloads = tasks.register("injectWebPreloads") {
     group = "distribution"
     description = "Adds preload links and a size table for the wasm binaries and first-frame resources to the distributed index.html."
     val distributionDirectory = layout.buildDirectory.dir("dist/wasmJs/productionExecutable")

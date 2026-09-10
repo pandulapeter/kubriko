@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,6 +26,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.shared.ui.GameButton
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -40,7 +40,7 @@ internal fun BlockysJourneyButton(
 ) {
     val isActive = remember { mutableStateOf(false) }
     val scale by animateFloatAsState(if (isActive.value) 1.125f else 1f)
-    FloatingActionButton(
+    GameButton(
         modifier = modifier
             .height(40.dp)
             .scale(scale)

@@ -12,7 +12,6 @@ package com.pandulapeter.kubriko.gameWallbreaker.implementation.ui
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.shared.ui.GameButton
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
@@ -43,7 +43,7 @@ internal fun WallbreakerButton(
 ) {
     val resolvedContainerColor = containerColor ?: if (isSystemInDarkTheme()) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary
     val scale = remember { mutableStateOf(1f) }
-    FloatingActionButton(
+    GameButton(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .size(40.dp)

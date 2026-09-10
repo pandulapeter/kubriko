@@ -11,29 +11,31 @@ android-compileSdk = "37"
 android-minSdk = "29"
 androidx-activity = "1.13.0" # https://developer.android.com/jetpack/androidx/releases/activity
 androidx-core-splashScreen = "1.2.0" # https://developer.android.com/jetpack/androidx/releases/core
+androidx-navigationEvent = "1.1.0" # https://developer.android.com/jetpack/androidx/releases/navigationevent
 apache-commonsLang = "3.20.0" # https://github.com/apache/commons-lang/tags
 codingfeline-buildkonfig = "0.22.0" # https://github.com/yshrsmz/BuildKonfig/releases
 compose-lifecycle = "2.11.0" # https://github.com/JetBrains/compose-multiplatform/releases
 compose-material3 = "1.12.0-alpha03" # https://github.com/JetBrains/compose-multiplatform/releases
 compose-multiplatform = "1.12.0" # https://github.com/JetBrains/compose-multiplatform/releases
 google-material = "1.14.0" # https://github.com/material-components/material-components-android/releases
-gradle = "9.3.1" # https://developer.android.com/build/releases/gradle-plugin
+gradle = "9.4.0" # https://developer.android.com/build/releases/gradle-plugin
 jamepad = "2.30.0.0" # https://github.com/libgdx/jamepad/releases
 jlayer = "1.0.3" # https://github.com/umjammer/jlayer/releases
-kotlin = "2.4.10" # https://github.com/JetBrains/kotlin/releases
+kotlin = "2.4.20" # https://github.com/JetBrains/kotlin/releases
 kotlinx-coroutines = "1.11.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinx-datetime = "0.8.0" # https://github.com/Kotlin/kotlinx-datetime/releases
-kotlinx-immutable = "0.5.1" # https://github.com/Kotlin/kotlinx.collections.immutable/releases
+kotlinx-immutable = "0.5.2" # https://github.com/Kotlin/kotlinx.collections.immutable/releases
 kotlinx-serialization = "1.11.0" # https://github.com/Kotlin/kotlinx.serialization/releases
 vanniktech-publish = "0.37.0" # https://github.com/vanniktech/gradle-maven-publish-plugin/releases
 
 [libraries]
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity" }
 androidx-core-splashScreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-core-splashScreen" }
+androidx-navigationEvent-compose = { group = "org.jetbrains.androidx.navigationevent", name = "navigationevent-compose", version.ref = "androidx-navigationEvent" }
 apache-commonsLang = { group = "org.apache.commons", name = "commons-lang3", version.ref = "apache-commonsLang" }
-compose-backHandler = { group = "org.jetbrains.compose.ui", name = "ui-backhandler", version.ref = "compose-multiplatform" }
 compose-foundation = { group = "org.jetbrains.compose.foundation", name = "foundation", version.ref = "compose-multiplatform" }
 compose-material3 = { group = "org.jetbrains.compose.material3", name = "material3", version.ref = "compose-material3" }
+compose-materialRipple = { group = "org.jetbrains.compose.material", name = "material-ripple", version.ref = "compose-multiplatform" }
 compose-resources = { group = "org.jetbrains.compose.components", name = "components-resources", version.ref = "compose-multiplatform" }
 compose-runtime = { group = "org.jetbrains.compose.runtime", name = "runtime", version.ref = "compose-multiplatform" }
 compose-ui = { group = "org.jetbrains.compose.ui", name = "ui", version.ref = "compose-multiplatform" }

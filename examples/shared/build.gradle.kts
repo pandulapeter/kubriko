@@ -18,6 +18,8 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(projects.engine)
+            api(libs.compose.material3)
+            api(libs.compose.materialRipple)
         }
     }
 }

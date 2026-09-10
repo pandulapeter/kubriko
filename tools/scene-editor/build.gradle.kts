@@ -25,7 +25,7 @@ kotlin {
             api(projects.tools.sceneEditorApi)
             implementation(libs.compose.resources)
         }
-        val desktopMain by getting {
+        getByName("desktopMain") {
             dependencies {
                 implementation(projects.plugins.collision)
                 implementation(projects.plugins.keyboardInput)

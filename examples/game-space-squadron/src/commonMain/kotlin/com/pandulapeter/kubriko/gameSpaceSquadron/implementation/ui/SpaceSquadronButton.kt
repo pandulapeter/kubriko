@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +34,7 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.shared.ui.GameButton
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
@@ -52,7 +52,7 @@ internal fun SpaceSquadronButton(
 ) {
     val isActive = remember { mutableStateOf(false) }
     val alpha by animateFloatAsState(if (isActive.value) 1f else 0f)
-    FloatingActionButton(
+    GameButton(
         modifier = modifier
             .spaceSquadronUIElementBorder()
             .height(40.dp)

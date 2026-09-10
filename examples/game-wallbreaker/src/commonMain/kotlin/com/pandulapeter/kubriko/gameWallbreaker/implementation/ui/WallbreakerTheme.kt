@@ -21,11 +21,11 @@ import androidx.compose.material3.RippleConfiguration
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
+import com.pandulapeter.kubriko.shared.ui.gameRipple
 import kubriko.examples.game_wallbreaker.generated.resources.Res
 import kubriko.examples.game_wallbreaker.generated.resources.kanit_regular
 import org.jetbrains.compose.resources.Font
@@ -50,11 +50,11 @@ internal fun WallbreakerTheme(
     ),
 ) {
     CompositionLocalProvider(
-        LocalIndication provides ripple(color = Color.Black),
-        LocalRippleConfiguration provides RippleConfiguration(
+        LocalIndication provides gameRipple(
             color = Color.Black,
             rippleAlpha = RippleAlpha(0.2f, 0.2f, 0.2f, 0.2f),
-        )
+        ),
+        LocalRippleConfiguration provides RippleConfiguration(Color.Black),
     ) {
         content()
     }

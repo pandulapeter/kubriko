@@ -44,7 +44,7 @@ kotlin {
             implementation(if (isBuildConfigurationValueEnabled("isDebugMenuEnabled")) projects.tools.debugMenu else projects.tools.debugMenuNoop)
             implementation(projects.tools.uiComponents)
             implementation(libs.compose.resources)
-            implementation(libs.compose.backHandler)
+            implementation(libs.androidx.navigationEvent.compose)
         }
     }
 }
