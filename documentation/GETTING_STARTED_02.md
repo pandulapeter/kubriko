@@ -18,7 +18,7 @@ The wizard already filled it with a few entries (some of which you may not need 
 Add a new line to the `[versions]` section:
 
 ```toml
-kubriko = "0.7.0"
+kubriko = "0.7.1"
 ```
 
 Use the newest release, which you can find on the [releases page](https://github.com/pandulapeter/kubriko/releases). It is worth updating this number every
