@@ -26,3 +26,5 @@ There is no native system fullscreen on iOS — it is purely a UI-level affordan
 ## Build / run
 
 There is no `gradlew` run task for iOS. Build and run via Xcode or the IDE run configuration. The Xcode project is located at `app/ios/` (look for `*.xcodeproj` / `*.xcworkspace`).
+
+Version and build number come from `gradle.properties` (`showcase.versionName`, `showcase.iosBuildNumber`). A "Set version from gradle.properties" build phase writes them into the built `Info.plist`, so `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` are deliberately absent from `project.pbxproj` — editing the Version/Build fields in Xcode's General tab has no effect. Bump the properties instead.
