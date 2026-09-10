@@ -15,6 +15,8 @@ import com.pandulapeter.kubriko.logger.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.nanoseconds
@@ -32,11 +34,17 @@ abstract class TickSource {
     protected var isInitialized = false
         private set
 
+    private val _isRunning = MutableStateFlow(false)
+
     /**
      * Whether the [TickSource] is currently emitting ticks.
      */
-    protected var isRunning = false
-        private set
+    protected var isRunning: Boolean
+        get() = _isRunning.value
+        private set(value) {
+            _isRunning.value = value
+        }
+    internal val isRunningInternal: StateFlow<Boolean> get() = _isRunning
     private lateinit var _scope: CoroutineScope
     private lateinit var kubrikoImpl: KubrikoImpl
 

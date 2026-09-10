@@ -31,7 +31,6 @@ import com.pandulapeter.kubriko.pointerInput.implementation.isMultiTouchEnabled
 import com.pandulapeter.kubriko.pointerInput.implementation.setPointerPosition
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
-import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -41,6 +40,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlin.concurrent.Volatile
 
 internal class PointerInputManagerImpl(
     private val isActiveAboveViewport: Boolean,
@@ -172,15 +172,43 @@ internal class PointerInputManagerImpl(
         }
     }
 
+    // The last translation, kept as one object so a concurrent reader can never see a source map paired
+    // with another call's offsets or result. Every .value read of the public flow resolves the positions,
+    // and the collector transforms them again, so many actors polling one unchanged input would otherwise
+    // each rebuild the same map.
+    private class ResolvedPointerPositions(
+        val source: PersistentMap<PointerId, Offset>,
+        val rootOffset: Offset,
+        val viewportOffset: Offset,
+        val positions: PersistentMap<PointerId, Offset>,
+    )
+
+    @Volatile
+    private var lastResolvedPointerPositions: ResolvedPointerPositions? = null
+
     private fun resolvePressedPointerPositions(
         unprocessed: PersistentMap<PointerId, Offset>,
         rootOffset: Offset,
         viewportOffset: Offset,
-    ): PersistentMap<PointerId, Offset> = unprocessed.keys.associateWith { id ->
-        unprocessed[id]!!.let { position ->
-            if (isActiveAboveViewport) position - viewportOffset + rootOffset else position
+    ): PersistentMap<PointerId, Offset> {
+        // Without translation the source map is already the answer, and it is immutable.
+        if (!isActiveAboveViewport) return unprocessed
+        val cached = lastResolvedPointerPositions
+        if (cached != null &&
+            cached.source === unprocessed &&
+            cached.rootOffset == rootOffset &&
+            cached.viewportOffset == viewportOffset
+        ) {
+            return cached.positions
         }
-    }.toPersistentMap()
+        val positions = unprocessed.builder().apply {
+            unprocessed.forEach { (id, position) ->
+                put(id, position - viewportOffset + rootOffset)
+            }
+        }.build()
+        lastResolvedPointerPositions = ResolvedPointerPositions(unprocessed, rootOffset, viewportOffset, positions)
+        return positions
+    }
 
     private fun resolveHoveringPointerPosition(
         rawPointerOffset: Offset?,

@@ -27,6 +27,7 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlin.math.abs
@@ -100,6 +101,13 @@ internal class GamepadInputManagerImpl(
             timeUntilNextFocusStepInMilliseconds = FOCUS_REPEAT_DELAY
             var previousFrameTimeNanos = 0L
             while (isActive) {
+                if (_connectedGamepadCount.value == 0) {
+                    // Nothing to navigate with, so suspend rather than wake at every frame to read four
+                    // disconnected pads. onUpdate() keeps polling for controllers and publishes the count
+                    // that resumes this loop; the reset makes the first frame after it a zero delta.
+                    _connectedGamepadCount.first { it > 0 }
+                    previousFrameTimeNanos = 0L
+                }
                 withFrameNanos { frameTimeNanos ->
                     val deltaTimeInMilliseconds = if (previousFrameTimeNanos == 0L) {
                         0f

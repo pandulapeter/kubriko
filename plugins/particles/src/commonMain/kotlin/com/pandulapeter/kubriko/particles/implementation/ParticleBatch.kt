@@ -50,7 +50,6 @@ internal class ParticleBatch(
 
     fun beginFrame(
         deltaTimeInMilliseconds: Int,
-        isRunning: Boolean,
         recycle: (ParticleEmitter.ParticleState) -> Unit,
     ) {
         val working = if (workingIsA) bufferA else bufferB
@@ -58,7 +57,7 @@ internal class ParticleBatch(
         val source = renderList
         for (i in source.indices) {
             val state = source[i]
-            if (!isRunning || state.update(deltaTimeInMilliseconds)) {
+            if (state.update(deltaTimeInMilliseconds)) {
                 working.add(state)
             } else {
                 recycle(state)

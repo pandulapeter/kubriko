@@ -48,24 +48,17 @@ internal actual fun createSoundPlayer(
 
     override suspend fun play(cachedSound: Any) = withContext(Dispatchers.Default) {
         cachedSound as List<AVAudioPlayer>
-        
-        // Try to find an available player with a reasonable retry limit
-        val maxAttempts = 10
         var attempts = 0
         var wasSoundPlayed = false
-        
-        while (!wasSoundPlayed && attempts < maxAttempts) {
-            val availablePlayer = cachedSound.firstOrNull { !it.playing }
-            if (availablePlayer != null) {
-                wasSoundPlayed = availablePlayer.play()
-            } else {
-                // Small delay before retrying
-                delay(5)
+
+        while (!wasSoundPlayed && attempts < MAXIMUM_ATTEMPTS) {
+            wasSoundPlayed = cachedSound.firstOrNull { !it.playing }?.play() == true
+            if (!wasSoundPlayed) {
                 attempts++
+                delay(RETRY_DELAY_IN_MILLISECONDS)
             }
         }
-        
-        // Fallback: If still not played after max attempts, force-restart the first player
+
         if (!wasSoundPlayed) {
             cachedSound.firstOrNull()?.let { player ->
                 player.stop()
@@ -86,3 +79,6 @@ internal actual fun createSoundPlayer(
 
     override fun dispose() = Unit
 }
+
+private const val MAXIMUM_ATTEMPTS = 10
+private const val RETRY_DELAY_IN_MILLISECONDS = 5L

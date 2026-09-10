@@ -84,6 +84,7 @@ interface Shader<T : Shader.State> : LayerAware {
         internal var cachedRenderEffect: RenderEffect? = null
         internal var cachedDirtinessToken: Int = State.DIRTINESS_UNKNOWN
         internal var cachedSize: Size? = null
+        internal var cachedState: State? = null
     }
 
     companion object {

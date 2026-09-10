@@ -16,6 +16,12 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.RenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import com.pandulapeter.kubriko.shaders.Shader
+import com.pandulapeter.kubriko.shaders.collection.BlurShader
+import com.pandulapeter.kubriko.shaders.collection.ChromaticAberrationShader
+import com.pandulapeter.kubriko.shaders.collection.ComicShader
+import com.pandulapeter.kubriko.shaders.collection.RippleShader
+import com.pandulapeter.kubriko.shaders.collection.SmoothPixelationShader
+import com.pandulapeter.kubriko.shaders.collection.VignetteShader
 
 fun <T : Shader.State> Modifier.shader(
     shader: Shader<T>,
@@ -24,20 +30,35 @@ fun <T : Shader.State> Modifier.shader(
     @Suppress("UNUSED_EXPRESSION") gameTime.value  // Invalidates the Canvas, causing a refresh on every frame
     clip = true
     val cache = shader.shaderCache
-    val dirtinessToken = shader.shaderState.dirtinessToken
-    renderEffect = if (dirtinessToken != Shader.State.DIRTINESS_UNKNOWN &&
-        dirtinessToken == cache.cachedDirtinessToken &&
-        size == cache.cachedSize
-    ) {
+    val shaderState = shader.shaderState
+    val dirtinessToken = shaderState.dirtinessToken
+    val canReuseRenderEffect = size == cache.cachedSize && if (dirtinessToken == Shader.State.DIRTINESS_UNKNOWN) {
+        shaderState.hasValueEquality && shaderState == cache.cachedState
+    } else {
+        dirtinessToken == cache.cachedDirtinessToken
+    }
+    renderEffect = if (canReuseRenderEffect) {
         cache.cachedRenderEffect
     } else {
         createRenderEffect(shader, size).also {
             cache.cachedRenderEffect = it
             cache.cachedDirtinessToken = dirtinessToken
             cache.cachedSize = size
+            cache.cachedState = shaderState
         }
     }
 }
+
+// The built-in states are immutable data classes, so equal values prove equal uniforms — which none of
+// them can express through the dirtiness token, whose default forces a rebuild on every invalidation.
+// A custom state may compare by identity or hold mutable fields, so it keeps that fallback.
+private val Shader.State.hasValueEquality
+    get() = this is BlurShader.State ||
+            this is ChromaticAberrationShader.State ||
+            this is ComicShader.State ||
+            this is RippleShader.State ||
+            this is SmoothPixelationShader.State ||
+            this is VignetteShader.State
 
 internal expect fun <T : Shader.State> createRenderEffect(
     shader: Shader<T>,

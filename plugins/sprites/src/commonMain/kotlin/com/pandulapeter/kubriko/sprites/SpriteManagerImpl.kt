@@ -44,6 +44,11 @@ internal class SpriteManagerImpl(
     private val cache = MutableStateFlow(persistentMapOf<SpriteResource, ImageBitmap?>())
     private val pendingWarmingUp = MutableStateFlow(persistentMapOf<SpriteResource, ImageBitmap>())
 
+    // One canonical SpriteResource per DrawableResource. Games reach cached sprites through the
+    // DrawableResource overload from their drawing code and from AnimatedSprite callbacks, which
+    // otherwise wraps the resource afresh on every one of those lookups.
+    private val defaultSpriteResources = MutableStateFlow(persistentMapOf<DrawableResource, SpriteResource>())
+
     override fun getLoadingProgress(drawableResources: Collection<DrawableResource>) = if (drawableResources.isEmpty()) flowOf(1f) else
         getSpriteLoadingProgress(drawableResources.map { it.toSpriteResource() })
 
@@ -54,7 +59,18 @@ internal class SpriteManagerImpl(
     }
 
     override fun get(drawableResource: DrawableResource): ImageBitmap? =
-        get(drawableResource.toSpriteResource())
+        get(drawableResource.asDefaultSpriteResource())
+
+    private fun DrawableResource.asDefaultSpriteResource(): SpriteResource {
+        defaultSpriteResources.value[this]?.let { return it }
+        val spriteResource = toSpriteResource()
+        defaultSpriteResources.update { current ->
+            if (current.containsKey(this)) current else current.putting(this, spriteResource)
+        }
+        // Read back rather than returning the local: a concurrent caller may have won the update, and
+        // every lookup has to land on the same instance for this to be a cache at all.
+        return defaultSpriteResources.value.getValue(this)
+    }
 
     override fun unload(drawableResource: DrawableResource) = unload(drawableResource.toSpriteResource())
 

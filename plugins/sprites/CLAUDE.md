@@ -43,7 +43,10 @@ promoted from `pendingWarmingUp` to the main cache regardless of whether the Can
 `DrawableResource` is the raw Compose resource handle. `SpriteResource` wraps it with an optional
 `Rotation` (NONE/90/180/270). The same `DrawableResource` with different rotations is stored as
 separate cache entries. Use `DrawableResource.toSpriteResource(rotation)` as the idiomatic
-conversion. Calling `get(DrawableResource)` delegates to `get(resource.toSpriteResource())`.
+conversion. Calling `get(DrawableResource)` delegates to the `SpriteResource` overload through
+`defaultSpriteResources`, a canonical rotation-NONE wrapper per `DrawableResource` — games reach
+cached sprites through this overload from drawing code and `AnimatedSprite` callbacks, so it must not
+allocate a wrapper per lookup.
 
 ## AnimatedSprite frame layout
 Frames are packed row-first in a single sprite sheet `ImageBitmap`. Construction parameters:

@@ -280,9 +280,15 @@ private fun CollisionMask.collisionCheck(
 
 private val polygonPolygonAData = AxisData()
 private val polygonPolygonBData = AxisData()
-private val incidentFaceVertexesBuffer = arrayOf(SceneOffset.Zero, SceneOffset.Zero)
-private val contactVectorsFoundBuffer = arrayOf(SceneOffset.Zero, SceneOffset.Zero)
-private val clipOutBuffer = arrayOf(SceneOffset.Zero, SceneOffset.Zero)
+// Two-vertex scratch faces held as raw coordinates. SceneOffset is a value class, so an
+// Array<SceneOffset> boxes every vertex written into it - and polygon clipping rewrites these slots
+// for every polygon pair, including pairs the caller only wants a Boolean answer for.
+private val incidentFaceVertexXs = FloatArray(2)
+private val incidentFaceVertexYs = FloatArray(2)
+private val contactVectorXs = FloatArray(2)
+private val contactVectorYs = FloatArray(2)
+private val clipOutXs = FloatArray(2)
+private val clipOutYs = FloatArray(2)
 
 // The most frequent narrow-phase pair; raw floats with a squared-distance early-out keep the
 // common no-collision case free of square roots and boxing.
@@ -450,8 +456,13 @@ private fun checkPolygonToPolygonCollision(
     }
 
     //Incident faces vertexes in world space
-    incidentFaceVertexesBuffer[0] = incidentPoly.rotationMatrix.times(incidentPoly.vertices[incidentIndex]) + incidentPoly.position
-    incidentFaceVertexesBuffer[1] = incidentPoly.rotationMatrix.times(incidentPoly.vertices[if (incidentIndex + 1 >= incidentPoly.vertices.size) 0 else incidentIndex + 1]) + incidentPoly.position
+    val incidentFaceVertex1 = incidentPoly.rotationMatrix.times(incidentPoly.vertices[incidentIndex]) + incidentPoly.position
+    val incidentFaceVertex2 =
+        incidentPoly.rotationMatrix.times(incidentPoly.vertices[if (incidentIndex + 1 >= incidentPoly.vertices.size) 0 else incidentIndex + 1]) + incidentPoly.position
+    incidentFaceVertexXs[0] = incidentFaceVertex1.x.raw
+    incidentFaceVertexYs[0] = incidentFaceVertex1.y.raw
+    incidentFaceVertexXs[1] = incidentFaceVertex2.x.raw
+    incidentFaceVertexYs[1] = incidentFaceVertex2.y.raw
 
     //Gets vertex's of reference polygon reference face in world space
     var v1 = referencePoly.vertices[referenceFaceIndex]
@@ -465,11 +476,11 @@ private fun checkPolygonToPolygonCollision(
     val negSide = -refTangent.dot(v1)
     val posSide = refTangent.dot(v2)
     // Clips the incident face against the reference
-    var np = clip(-refTangent, negSide, incidentFaceVertexesBuffer)
+    var np = clip(-refTangent, negSide)
     if (np < 2) {
         return null
     }
-    np = clip(refTangent, posSide, incidentFaceVertexesBuffer)
+    np = clip(refTangent, posSide)
     if (np < 2) {
         return null
     }
@@ -484,20 +495,22 @@ private fun checkPolygonToPolygonCollision(
 
     //Discards points that are positive/above the reference face
     for (i in 0..1) {
-        val separation = refFaceNormal.dot(incidentFaceVertexesBuffer[i]) - refFaceNormal.dot(v1)
+        val separation = refFaceNormal.dot(incidentFaceVertexAt(i)) - refFaceNormal.dot(v1)
         if (separation <= SceneUnit.Zero) {
-            contactVectorsFoundBuffer[contactsFound] = incidentFaceVertexesBuffer[i]
+            contactVectorXs[contactsFound] = incidentFaceVertexXs[i]
+            contactVectorYs[contactsFound] = incidentFaceVertexYs[i]
             totalPen += -separation
             contactsFound++
         }
     }
-    val contactPoint: SceneOffset?
+    val firstContactVector = SceneOffset(contactVectorXs[0].sceneUnit, contactVectorYs[0].sceneUnit)
+    val contactPoint: SceneOffset
     val penetration: SceneUnit
     if (contactsFound == 1) {
-        contactPoint = contactVectorsFoundBuffer[0]
+        contactPoint = firstContactVector
         penetration = totalPen
     } else {
-        contactPoint = contactVectorsFoundBuffer[1].plus(contactVectorsFoundBuffer[0]).scalar(0.5f)
+        contactPoint = SceneOffset(contactVectorXs[1].sceneUnit, contactVectorYs[1].sceneUnit).plus(firstContactVector).scalar(0.5f)
         penetration = totalPen / 2
     }
     return CollisionResult(
@@ -555,23 +568,41 @@ private fun findAxisOfMinPenetration(
 
 private fun selectionBias(a: SceneUnit, b: SceneUnit) = a >= b * BIAS_RELATIVE + a * BIAS_ABSOLUTE
 
-private fun clip(planeTangent: SceneOffset, offset: SceneUnit, incidentFaces: Array<SceneOffset>): Int {
+private fun incidentFaceVertexAt(index: Int) = SceneOffset(incidentFaceVertexXs[index].sceneUnit, incidentFaceVertexYs[index].sceneUnit)
+
+private fun clip(planeTangent: SceneOffset, offset: SceneUnit): Int {
     var num = 0
-    clipOutBuffer[0] = incidentFaces[0]
-    clipOutBuffer[1] = incidentFaces[1]
-    val dist = planeTangent.dot(incidentFaces[0]) - offset
-    val dist1 = planeTangent.dot(incidentFaces[1]) - offset
-    if (dist <= SceneUnit.Zero) clipOutBuffer[num++] = incidentFaces[0]
-    if (dist1 <= SceneUnit.Zero) clipOutBuffer[num++] = incidentFaces[1]
+    clipOutXs[0] = incidentFaceVertexXs[0]
+    clipOutYs[0] = incidentFaceVertexYs[0]
+    clipOutXs[1] = incidentFaceVertexXs[1]
+    clipOutYs[1] = incidentFaceVertexYs[1]
+    val incidentFaceVertex1 = incidentFaceVertexAt(0)
+    val incidentFaceVertex2 = incidentFaceVertexAt(1)
+    val dist = planeTangent.dot(incidentFaceVertex1) - offset
+    val dist1 = planeTangent.dot(incidentFaceVertex2) - offset
+    if (dist <= SceneUnit.Zero) {
+        clipOutXs[num] = incidentFaceVertexXs[0]
+        clipOutYs[num] = incidentFaceVertexYs[0]
+        num++
+    }
+    if (dist1 <= SceneUnit.Zero) {
+        clipOutXs[num] = incidentFaceVertexXs[1]
+        clipOutYs[num] = incidentFaceVertexYs[1]
+        num++
+    }
     if (dist * dist1 < SceneUnit.Zero) {
         val interp = dist / (dist - dist1)
         if (num < 2) {
-            clipOutBuffer[num] = incidentFaces[1].minus(incidentFaces[0]).scalar(interp).plus(incidentFaces[0])
+            val clippedVertex = incidentFaceVertex2.minus(incidentFaceVertex1).scalar(interp).plus(incidentFaceVertex1)
+            clipOutXs[num] = clippedVertex.x.raw
+            clipOutYs[num] = clippedVertex.y.raw
             num++
         }
     }
-    incidentFaces[0] = clipOutBuffer[0]
-    incidentFaces[1] = clipOutBuffer[1]
+    incidentFaceVertexXs[0] = clipOutXs[0]
+    incidentFaceVertexYs[0] = clipOutYs[0]
+    incidentFaceVertexXs[1] = clipOutXs[1]
+    incidentFaceVertexYs[1] = clipOutYs[1]
     return num
 }
 

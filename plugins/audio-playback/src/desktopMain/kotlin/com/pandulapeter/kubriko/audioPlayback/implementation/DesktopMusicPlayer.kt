@@ -20,8 +20,9 @@ import javazoom.jl.player.FactoryRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.BufferedInputStream
@@ -40,7 +41,8 @@ internal class DesktopMusicPlayer(
     private var decoder: Decoder? = null
     private var bitstream: Bitstream? = null
     private var musicPlayingJob: Job? = null
-    private var isMusicPaused = false
+    // A flow rather than a flag, so the decoding loop can suspend on a resume instead of polling for one.
+    private val isMusicPaused = MutableStateFlow(false)
     private var shouldLoop = false
 
     @Volatile
@@ -49,7 +51,7 @@ internal class DesktopMusicPlayer(
     @Volatile
     private var rightVolume = 1f
 
-    val isPlaying get() = musicPlayingJob?.isActive == true && !isMusicPaused
+    val isPlaying get() = musicPlayingJob?.isActive == true && !isMusicPaused.value
 
     init {
         rebuildDecoderChain()
@@ -68,7 +70,7 @@ internal class DesktopMusicPlayer(
             startPlayback(scope)
         } else {
             // Resume from pause without recreating the coroutine.
-            isMusicPaused = false
+            isMusicPaused.value = false
         }
     }
 
@@ -79,8 +81,10 @@ internal class DesktopMusicPlayer(
                     var hasNextFrame: Boolean=false
                     do {
                         ensureActive()
-                        if (isMusicPaused) {
-                            delay(16)
+                        if (isMusicPaused.value) {
+                            // Suspend until resumed rather than waking to re-read the flag; the decoder
+                            // and the bitstream keep their position either way.
+                            isMusicPaused.first { !it }
                             continue
                         }
                         hasNextFrame = playFrame()
@@ -93,22 +97,22 @@ internal class DesktopMusicPlayer(
             } finally {
                 // Make sure we are ready for the next invocation once the coroutine finishes.
                 rebuildDecoderChain()
-                isMusicPaused = false
+                isMusicPaused.value = false
                 musicPlayingJob = null
             }
         }
     }
 
     fun pause() {
-        // Flag checked inside the playback loop – decoding stops while keeping the bitstream position.
-        isMusicPaused = true
+        // Checked inside the playback loop – decoding stops while keeping the bitstream position.
+        isMusicPaused.value = true
     }
 
     fun stop() {
         // Cancel the decoding coroutine and rebuild the decoder/device so the next playback starts clean.
         musicPlayingJob?.cancel()
         musicPlayingJob = null
-        isMusicPaused = false
+        isMusicPaused.value = false
         rebuildDecoderChain()
     }
 

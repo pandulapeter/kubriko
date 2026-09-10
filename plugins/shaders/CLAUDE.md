@@ -64,8 +64,12 @@ the `Canvas` every frame. Without this read, Compose would skip recomposition wh
 uniforms change.
 
 ## RenderEffect reuse
-`createRenderEffect` still runs every frame by default, since `Shader.State.dirtinessToken`
-defaults to always-dirty. A shader whose uniforms only change on genuine updates (not every tick,
-e.g. while idle-throttled) can override `dirtinessToken` with a value bumped only on real change;
-`Modifier.shader()` then reuses the cached `RenderEffect` from `Shader.Cache` instead of rebuilding
-it, as long as the layer size also matches.
+`Modifier.shader()` reuses the cached `RenderEffect` from `Shader.Cache` whenever the layer size is
+unchanged and one of two things holds:
+- The state's `dirtinessToken` matches the cached one. It defaults to always-dirty, so this is opt-in:
+  a custom shader whose uniforms only change on genuine updates (not every tick, e.g. while
+  idle-throttled) overrides it with a value bumped only on real change.
+- The state is one of the six built-in `collection` state types and compares equal to the cached one.
+  They are immutable data classes, so value equality proves the uniforms are equal — which none of
+  them can express through the token. The type check is deliberately a closed list: a custom state may
+  compare by identity or hold mutable fields, so it keeps the always-dirty fallback.

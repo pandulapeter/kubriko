@@ -136,10 +136,12 @@ class BoxBody(
             val y2 = scaledLeft * sin + scaledBottom * cos + pivotY
             val x3 = scaledRight * cos - scaledBottom * sin + pivotX
             val y3 = scaledRight * sin + scaledBottom * cos + pivotY
-            minX = minOf(x0, x1, x2, x3)
-            minY = minOf(y0, y1, y2, y3)
-            maxX = maxOf(x0, x1, x2, x3)
-            maxY = maxOf(y0, y1, y2, y3)
+            // Nested two-argument calls: the four-argument overloads are vararg and would allocate a
+            // FloatArray on every refresh.
+            minX = minOf(minOf(x0, x1), minOf(x2, x3))
+            minY = minOf(minOf(y0, y1), minOf(y2, y3))
+            maxX = maxOf(maxOf(x0, x1), maxOf(x2, x3))
+            maxY = maxOf(maxOf(y0, y1), maxOf(y2, y3))
         }
         val positionX = position.x.raw
         val positionY = position.y.raw

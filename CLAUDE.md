@@ -104,8 +104,8 @@ ActorManager.newInstance(
     invisibleActorMinimumRefreshTimeInMillis: Long = 0,
 )
 ```
-- `add(vararg Actor)` / `add(Collection<Actor>)` — batched, background-thread addition; `Actor.onAdded(kubriko)` fires on main thread just before.
-- `remove(vararg Actor)` / `remove(Collection<Actor>)` / `removeAll()` — batched, background-thread removal; `Actor.onRemoved()` fires on main thread just after.
+- `add(vararg Actor)` / `add(Collection<Actor>)` — batched, background-thread addition; `Actor.onAdded(kubriko)` fires just before, on that same background thread.
+- `remove(vararg Actor)` / `remove(Collection<Actor>)` / `removeAll()` — batched, background-thread removal; `Actor.onRemoved()` fires just after, on that same background thread.
 - `allActors: StateFlow<ImmutableList<Actor>>`, `visibleActorsWithinViewport`, `activeDynamicActors` — observable collections.
 - `shouldPutFarAwayActorsToSleep` — `Dynamic` actors outside the viewport stop receiving `update()` unless `isAlwaysActive = true`.
 
@@ -145,8 +145,8 @@ ViewportManager.newInstance(
 ### Actors (`actor/Actor.kt`)
 ```kotlin
 interface Actor {
-    fun onAdded(kubriko: Kubriko) = Unit   // main thread, right before addition
-    fun onRemoved() = Unit                  // main thread, right after removal
+    fun onAdded(kubriko: Kubriko) = Unit   // batch processor thread, right before addition
+    fun onRemoved() = Unit                  // batch processor thread, right after removal
 }
 ```
 In-game objects or responsibilities. Added/removed at runtime via `ActorManager`. Capabilities come entirely from Traits.

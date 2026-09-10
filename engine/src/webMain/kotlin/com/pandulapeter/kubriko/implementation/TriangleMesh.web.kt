@@ -28,26 +28,35 @@ private val trianglePaint = Paint().apply { color = -1 }
 // The source-replace variant; the vertex colors still pass through unchanged.
 private val replaceTrianglePaint = Paint().apply { color = -1; blendMode = BlendMode.SRC }
 
-private var shaderSource: ImageBitmap? = null
-private var shaderPaint: Paint? = null
+// A handful of identity-keyed slots rather than one: two textured batches drawn in a stable A, B order
+// evicted each other from a single slot, rebuilding the image wrapper and shader on every draw. The fixed
+// size keeps native resources bounded, and an evicted entry is dropped exactly as the single slot was.
+private const val TEXTURE_PAINT_CACHE_SIZE = 4
+private val texturePaintSources = arrayOfNulls<ImageBitmap>(TEXTURE_PAINT_CACHE_SIZE)
+private val texturePaints = arrayOfNulls<Paint>(TEXTURE_PAINT_CACHE_SIZE)
+private var nextTexturePaintSlot = 0
 
-// Rebuilt only when the pattern itself changes, which for a catalog generated once per process is never.
 // Mipmapped sampling is what lets a pattern average itself away as the camera pulls back instead of aliasing
 // into a shimmer.
 private fun texturePaintFor(texture: ImageBitmap, replace: Boolean): Paint {
-    if (shaderSource !== texture) {
-        val image = Image.makeFromBitmap(texture.asSkiaBitmap())
-        shaderPaint = Paint().apply {
-            color = -1
-            shader = image.makeShader(
-                FilterTileMode.REPEAT,
-                FilterTileMode.REPEAT,
-                FilterMipmap(FilterMode.LINEAR, MipmapMode.LINEAR),
-            )
+    for (i in texturePaintSources.indices) {
+        if (texturePaintSources[i] === texture) {
+            return texturePaints[i]!!.apply { blendMode = if (replace) BlendMode.SRC else BlendMode.SRC_OVER }
         }
-        shaderSource = texture
     }
-    return shaderPaint!!.apply { blendMode = if (replace) BlendMode.SRC else BlendMode.SRC_OVER }
+    val image = Image.makeFromBitmap(texture.asSkiaBitmap())
+    val paint = Paint().apply {
+        color = -1
+        shader = image.makeShader(
+            FilterTileMode.REPEAT,
+            FilterTileMode.REPEAT,
+            FilterMipmap(FilterMode.LINEAR, MipmapMode.LINEAR),
+        )
+    }
+    texturePaintSources[nextTexturePaintSlot] = texture
+    texturePaints[nextTexturePaintSlot] = paint
+    nextTexturePaintSlot = (nextTexturePaintSlot + 1) % TEXTURE_PAINT_CACHE_SIZE
+    return paint.apply { blendMode = if (replace) BlendMode.SRC else BlendMode.SRC_OVER }
 }
 
 internal actual fun drawTriangles(

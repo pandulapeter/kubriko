@@ -19,7 +19,7 @@ interface Disposable : Actor {
 
     /**
      * Called by the engine to release resources.
-     * This is invoked immediately before [onRemoved].
+     * This is invoked immediately before [onRemoved], on the same background thread.
      */
     fun dispose()
 }

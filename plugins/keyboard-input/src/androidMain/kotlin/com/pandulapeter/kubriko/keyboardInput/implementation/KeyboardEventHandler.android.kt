@@ -16,12 +16,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 private const val DEBOUNCE_TIME_MILLIS = 70L
@@ -33,8 +34,10 @@ internal actual fun createKeyboardEventHandler(
     onKeyReleased: (Key) -> Unit,
     coroutineScope: CoroutineScope,
 ): KeyboardEventHandler = object : KeyboardEventHandler {
-    private val isActive = MutableStateFlow(false)
+    private val isListening = MutableStateFlow(false)
     private val keyReleasedTimestamps = mutableMapOf<Key, Long>()
+    private val pendingReleaseSignal = Channel<Unit>(Channel.CONFLATED)
+    private var pendingReleaseJob: Job? = null
     private val keyListener = View.OnUnhandledKeyEventListener { _, event ->
         event?.toKey()?.let { key ->
             when (event.action) {
@@ -49,6 +52,7 @@ internal actual fun createKeyboardEventHandler(
 
                 KeyEvent.ACTION_UP -> {
                     keyReleasedTimestamps[key] = System.currentTimeMillis()
+                    pendingReleaseSignal.trySend(Unit)
                     true
                 }
 
@@ -62,10 +66,10 @@ internal actual fun createKeyboardEventHandler(
     override fun isValid() = currentActivity === LocalContext.current
 
     init {
-        isActive.onEach { isActive ->
+        isListening.onEach { isListening ->
             currentActivity?.window?.decorView?.rootView?.let { view ->
                 try {
-                    if (isActive) {
+                    if (isListening) {
                         view.addOnUnhandledKeyEventListener(keyListener)
                     } else {
                         view.removeOnUnhandledKeyEventListener(keyListener)
@@ -78,28 +82,39 @@ internal actual fun createKeyboardEventHandler(
     }
 
     override fun startListening() {
-        coroutineScope.launch {
-            while (isActive) {
-                delay(DEBOUNCE_TIME_MILLIS)
+        pendingReleaseJob?.cancel()
+        pendingReleaseJob = coroutineScope.launch {
+            // The release deadlines are evaluated on a fixed grid anchored to this point, so that a key
+            // released while the loop is idle is not reported any sooner than it would have been by a
+            // free-running loop.
+            val phaseAnchor = System.currentTimeMillis()
+            while (true) {
+                if (keyReleasedTimestamps.isEmpty()) {
+                    pendingReleaseSignal.receive()
+                }
+                val elapsedSinceAnchor = System.currentTimeMillis() - phaseAnchor
+                delay(DEBOUNCE_TIME_MILLIS - elapsedSinceAnchor % DEBOUNCE_TIME_MILLIS)
                 if (keyReleasedTimestamps.isNotEmpty()) {
                     val currentTime = System.currentTimeMillis()
-                    keyReleasedTimestamps
-                        .filter { (_, releaseTime) -> currentTime - releaseTime > DEBOUNCE_TIME_MILLIS }
-                        .map { it.key }
-                        .let { releasedKeys ->
-                            releasedKeys.forEach { key ->
-                                onKeyReleased(key)
-                                keyReleasedTimestamps.remove(key)
-                            }
+                    val iterator = keyReleasedTimestamps.entries.iterator()
+                    while (iterator.hasNext()) {
+                        val entry = iterator.next()
+                        if (currentTime - entry.value > DEBOUNCE_TIME_MILLIS) {
+                            val key = entry.key
+                            iterator.remove()
+                            onKeyReleased(key)
                         }
+                    }
                 }
             }
         }
-        isActive.update { true }
+        isListening.update { true }
     }
 
     override fun stopListening() {
-        isActive.update { false }
+        pendingReleaseJob?.cancel()
+        pendingReleaseJob = null
+        isListening.update { false }
         try {
             currentActivity?.window?.decorView?.rootView?.removeOnUnhandledKeyEventListener(keyListener)
         } catch (_: ArrayIndexOutOfBoundsException) {

@@ -50,15 +50,15 @@ internal class CollisionManagerImpl(
     // Candidates pre-filtered per collidable type. KClass.isInstance is reflective (notably slow on
     // Wasm) and the result cannot change while the actor list is unchanged, so the filtering runs
     // once per type per actor-list change instead of per candidate per detector per frame.
-    private val collidablesByType = HashMap<KClass<out Collidable>, ArrayList<Collidable>>()
-    private var lastCollidablesForTypeCache: ImmutableList<Collidable>? = null
-
+    //
     // Broad phase: one grid per type, indexed in step with that type's candidate list, so a detector
     // tests the masks near it rather than every candidate of the type. Types with few candidates get
     // no grid at all - bucketing them would cost more than the scan it replaces. The grids are also
     // held in a flat list, since every one of them has to be re-bucketed once per frame.
-    private val gridsByType = HashMap<KClass<out Collidable>, SpatialHashGrid>()
+    private val cachesByType = HashMap<KClass<out Collidable>, CollidableTypeCache>()
     private val grids = ArrayList<SpatialHashGrid>()
+    private var lastCollidablesForTypeCache: ImmutableList<Collidable>? = null
+    private var candidateGeneration = 0
     private var candidateIndices = IntArray(INITIAL_CANDIDATE_CAPACITY)
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
@@ -71,8 +71,14 @@ internal class CollisionManagerImpl(
         val allCollidables = collidables.value
         if (allCollidables !== lastCollidablesForTypeCache) {
             lastCollidablesForTypeCache = allCollidables
-            collidablesByType.clear()
-            gridsByType.clear()
+            // Every type index is now stale, but its candidate list and grid are refilled rather than
+            // replaced, so a spawn- or despawn-heavy scene keeps the storage that makes the steady-state
+            // broad phase cheap. Emptying them here is what releases the actors that left the scene.
+            candidateGeneration++
+            for (cache in cachesByType.values) {
+                cache.candidates.clear()
+                cache.grid?.clear()
+            }
             grids.clear()
         }
         for (gridIndex in grids.indices) {
@@ -83,9 +89,13 @@ internal class CollisionManagerImpl(
             val types = detector.collidableTypes
             for (typeIndex in types.indices) {
                 val type = types[typeIndex]
-                val candidates = collidablesByType[type] ?: buildCandidates(type, allCollidables)
+                val cache = cachesByType[type] ?: CollidableTypeCache().also { cachesByType[type] = it }
+                if (cache.generation != candidateGeneration) {
+                    refreshCandidates(cache, type, allCollidables)
+                }
+                val candidates = cache.candidates
                 collisionBuffer.clear()
-                val grid = gridsByType[type]
+                val grid = if (cache.isGridInUse) cache.grid else null
                 if (grid == null) {
                     for (candidateIndex in candidates.indices) {
                         collectIfColliding(detector, candidates[candidateIndex])
@@ -117,27 +127,43 @@ internal class CollisionManagerImpl(
         }
     }
 
-    private fun buildCandidates(
+    private fun refreshCandidates(
+        cache: CollidableTypeCache,
         type: KClass<out Collidable>,
         allCollidables: ImmutableList<Collidable>,
-    ): ArrayList<Collidable> {
-        val candidates = ArrayList<Collidable>()
+    ) {
+        val candidates = cache.candidates
+        candidates.clear()
         for (candidate in allCollidables) {
             if (type.isInstance(candidate)) {
                 candidates.add(candidate)
             }
         }
-        collidablesByType[type] = candidates
+        cache.generation = candidateGeneration
         if (candidates.size >= MINIMUM_CANDIDATES_FOR_BROAD_PHASE) {
-            val grid = SpatialHashGrid()
+            val grid = cache.grid ?: SpatialHashGrid().also { cache.grid = it }
+            grid.clear()
             for (candidateIndex in candidates.indices) {
                 grid.add(candidates[candidateIndex].collisionMask)
             }
             grid.rebuild()
-            gridsByType[type] = grid
             grids.add(grid)
+            cache.isGridInUse = true
+        } else {
+            cache.grid?.clear()
+            cache.isGridInUse = false
         }
-        return candidates
+    }
+
+    private class CollidableTypeCache {
+        val candidates = ArrayList<Collidable>()
+        var generation = -1
+
+        // Kept across membership changes rather than discarded, so its buckets and entry arrays survive.
+        // Null until the type first has enough candidates to be worth bucketing, and retained (but unused)
+        // if it later drops below that threshold, so a type hovering around it does not churn grids.
+        var grid: SpatialHashGrid? = null
+        var isGridInUse = false
     }
 
     private companion object {

@@ -193,6 +193,9 @@ internal class ActorManagerImpl(
             _visibleActorsWithinViewport.value = visibleScratch.toImmutableList()
         }
 
+        // Everything below only feeds the draw loop, so a headless instance stops here.
+        if (!shouldComposeLayers) return
+
         // Pre-group by layer and pre-sort by drawingOrder so the draw loop is a plain indexed walk.
         // A brand-new map is published on every rebuild and never mutated afterwards, so the render
         // thread can read it lock-free even when a background TickSource drives onUpdate() off the
@@ -324,9 +327,10 @@ internal class ActorManagerImpl(
         val cameraPosition = viewportManager.cameraPosition.value
         val scaleFactor = viewportManager.scaleFactor.value
 
-        // Rebuild overlay draw cache only when the overlay list reference changes
+        // Rebuild overlay draw cache only when the overlay list reference changes; a headless
+        // instance never draws, so it has no cache to keep current.
         val currentOverlays = overlayActors.value
-        if (currentOverlays !== lastOverlayActors) {
+        if (shouldComposeLayers && currentOverlays !== lastOverlayActors) {
             lastOverlayActors = currentOverlays
             sortedOverlayActorsByLayer = if (currentOverlays.isEmpty()) {
                 emptyMap()
@@ -406,7 +410,15 @@ internal class ActorManagerImpl(
 
     @OptIn(ExperimentalUuidApi::class)
     private fun processBatch(batch: List<Operation>) {
-        var workingList = _allActors.value
+        val publishedList = _allActors.value
+        // One mutable working copy plus a membership index for the whole batch: rebuilding the full
+        // actor list per operation made a batch of individual calls quadratic, and the membership
+        // checks below turned bulk removal into an O(removals x actors) scan.
+        val workingList = ArrayList<Actor>(publishedList.size)
+        workingList.addAll(publishedList)
+        val workingSet = HashSet<Actor>(workingList.size * 2)
+        workingSet.addAll(workingList)
+        var didChange = false
         val newlyAdded = LinkedHashSet<Actor>()
         val newlyRemoved = LinkedHashSet<Actor>()
         for (op in batch) {
@@ -426,26 +438,39 @@ internal class ActorManagerImpl(
                     for (a in newActors) {
                         if (a is Identifiable && a.name == null) a.name = Uuid.random().toString()
                     }
-                    val uniqueTypesToReplace = latestUniqueByClass.keys
-                    workingList.forEach {
-                        if (it::class in uniqueTypesToReplace) {
-                            newlyRemoved.add(it)
-                            newlyAdded.remove(it)
+                    if (latestUniqueByClass.isNotEmpty()) {
+                        val uniqueTypesToReplace = latestUniqueByClass.keys
+                        val iterator = workingList.iterator()
+                        while (iterator.hasNext()) {
+                            val actor = iterator.next()
+                            if (actor::class in uniqueTypesToReplace) {
+                                iterator.remove()
+                                workingSet.remove(actor)
+                                newlyRemoved.add(actor)
+                                newlyAdded.remove(actor)
+                                didChange = true
+                            }
                         }
                     }
-                    workingList = (workingList.filterNot { it::class in uniqueTypesToReplace } + newActors).toImmutableList()
-                    newActors.forEach {
-                        newlyAdded.add(it)
-                        newlyRemoved.remove(it)
+                    if (newActors.isNotEmpty()) {
+                        workingList.addAll(newActors)
+                        workingSet.addAll(newActors)
+                        didChange = true
+                        newActors.forEach {
+                            newlyAdded.add(it)
+                            newlyRemoved.remove(it)
+                        }
                     }
                 }
 
                 is Operation.Remove -> {
                     val flattenedActors = flattenActors(op.actors).asReversed()
-                    val validRemovals = flattenedActors.filter { workingList.contains(it) }
+                    val validRemovals = flattenedActors.filter { it in workingSet }
                     if (validRemovals.isNotEmpty()) {
-                        val removalCollection = if (validRemovals.size > 10) validRemovals.toHashSet() else validRemovals
-                        workingList = workingList.filterNot { it in removalCollection }.toImmutableList()
+                        val removalSet = validRemovals.toHashSet()
+                        workingList.removeAll(removalSet)
+                        workingSet.removeAll(removalSet)
+                        didChange = true
                         validRemovals.forEach {
                             newlyRemoved.add(it)
                             newlyAdded.remove(it)
@@ -454,18 +479,24 @@ internal class ActorManagerImpl(
                 }
 
                 is Operation.RemoveAll -> {
-                    workingList.forEach {
-                        newlyRemoved.add(it)
-                        newlyAdded.remove(it)
+                    if (workingList.isNotEmpty()) {
+                        workingList.forEach {
+                            newlyRemoved.add(it)
+                            newlyAdded.remove(it)
+                        }
+                        workingList.clear()
+                        workingSet.clear()
+                        didChange = true
                     }
-                    workingList = persistentListOf()
                 }
             }
         }
         if (newlyAdded.isNotEmpty()) {
             newlyAdded.forEach { it.onAdded(kubrikoImpl) }
         }
-        _allActors.value = workingList
+        if (didChange) {
+            _allActors.value = workingList.toImmutableList()
+        }
         if (newlyRemoved.isNotEmpty()) {
             newlyRemoved.forEach {
                 (it as? Disposable)?.dispose()
@@ -484,14 +515,20 @@ internal class ActorManagerImpl(
         operationChannel.trySend(Operation.Add(actors.toList()))
     }
 
-    override fun add(actors: Collection<Actor>) = add(actors = actors.toTypedArray())
+    override fun add(actors: Collection<Actor>) {
+        if (actors.isEmpty()) return
+        operationChannel.trySend(Operation.Add(actors.toList()))
+    }
 
     override fun remove(vararg actors: Actor) {
         if (actors.isEmpty()) return
         operationChannel.trySend(Operation.Remove(actors.toList()))
     }
 
-    override fun remove(actors: Collection<Actor>) = remove(actors = actors.toTypedArray())
+    override fun remove(actors: Collection<Actor>) {
+        if (actors.isEmpty()) return
+        operationChannel.trySend(Operation.Remove(actors.toList()))
+    }
 
     override fun removeAll() {
         operationChannel.trySend(Operation.RemoveAll)

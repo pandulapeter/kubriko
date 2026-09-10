@@ -83,6 +83,7 @@ fun InternalViewport(
                 val frameDelta = (frameTimeInMilliseconds - lastFrameTime).toInt()
                 lastFrameTime = frameTimeInMilliseconds
                 val canTick = viewportTickSource != null &&
+                        viewportTickSource.isRunningInternal.value &&
                         !kubrikoImpl.viewportManager.size.value.isEmpty() &&
                         (!viewportTickSource.shouldPauseOnFocusLoss || kubrikoImpl.stateManager.isFocused.value)
                 if (canTick) {
@@ -133,6 +134,7 @@ fun InternalViewport(
         }
         while (isActive) {
             val canTickNow = viewportTickSource != null &&
+                    viewportTickSource.isRunningInternal.value &&
                     !kubrikoImpl.viewportManager.size.value.isEmpty() &&
                     (!viewportTickSource.shouldPauseOnFocusLoss || kubrikoImpl.stateManager.isFocused.value)
             if (!canTickNow) {
@@ -141,8 +143,12 @@ fun InternalViewport(
                     awaitCancellation()
                 }
                 // Suspend on the gate instead of waking at vsync while there is nothing to tick.
-                combine(kubrikoImpl.viewportManager.size, kubrikoImpl.stateManager.isFocused) { size, isFocused ->
-                    !size.isEmpty() && (!viewportTickSource.shouldPauseOnFocusLoss || isFocused)
+                combine(
+                    kubrikoImpl.viewportManager.size,
+                    kubrikoImpl.stateManager.isFocused,
+                    viewportTickSource.isRunningInternal,
+                ) { size, isFocused, isTickSourceRunning ->
+                    isTickSourceRunning && !size.isEmpty() && (!viewportTickSource.shouldPauseOnFocusLoss || isFocused)
                 }.first { it }
                 // Resuming: anchor the timeline to now so it doesn't emit one giant catch-up delta.
                 lastFrameTime = -1L

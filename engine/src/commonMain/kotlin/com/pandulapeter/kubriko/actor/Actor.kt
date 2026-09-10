@@ -20,14 +20,18 @@ import com.pandulapeter.kubriko.manager.Manager
 interface Actor {
 
     /**
-     * Called from the main thread right before the actor is added to the [ActorManager].
+     * Called right before the actor is added to the [ActorManager], on the background thread that
+     * processes the batch of additions - not the main thread. Anything that must run on the main
+     * thread has to be dispatched there explicitly.
      *
      * @param kubriko The [Kubriko] instance the actor was added to. Could be used to get references to [Manager] instances.
      */
     fun onAdded(kubriko: Kubriko) = Unit
 
     /**
-     * Called from the main thread right after the actor is removed from the [ActorManager].
+     * Called right after the actor is removed from the [ActorManager], on the background thread that
+     * processes the batch of removals - not the main thread. Anything that must run on the main
+     * thread has to be dispatched there explicitly.
      */
     fun onRemoved() = Unit
 }

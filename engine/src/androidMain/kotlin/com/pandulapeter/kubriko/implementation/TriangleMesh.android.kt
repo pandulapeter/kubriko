@@ -35,31 +35,42 @@ private val replaceTrianglePaint = Paint().apply {
 // right filter for a plane seen at a grazing angle, which a square filter kernel has to blur or alias through.
 private const val MAX_ANISOTROPY = 4
 
-private var shaderSource: ImageBitmap? = null
-private var shaderPaint: Paint? = null
+// A handful of identity-keyed slots rather than one: two textured batches drawn in a stable A, B order
+// evicted each other from a single slot, rebuilding the Paint and BitmapShader on every draw. The fixed
+// size keeps native resources bounded, and an evicted entry is dropped exactly as the single slot was.
+private const val TEXTURE_PAINT_CACHE_SIZE = 4
+private val texturePaintSources = arrayOfNulls<ImageBitmap>(TEXTURE_PAINT_CACHE_SIZE)
+private val texturePaints = arrayOfNulls<Paint>(TEXTURE_PAINT_CACHE_SIZE)
+private var nextTexturePaintSlot = 0
 
-// Rebuilt only when the pattern itself changes, which for a catalog generated once per process is never.
 private fun texturePaintFor(texture: ImageBitmap, replace: Boolean): Paint {
-    if (shaderSource !== texture) {
-        val bitmap = texture.asAndroidBitmap().apply { setHasMipMap(true) }
-        shaderPaint = Paint().apply {
-            color = android.graphics.Color.WHITE
-            // The fallback sampling wherever the anisotropic path is not honoured; a shader built with
-            // FILTER_MODE_DEFAULT takes its filter from the paint.
-            isFilterBitmap = true
-            shader = BitmapShader(bitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT).apply {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                    maxAnisotropy = MAX_ANISOTROPY
-                } else {
-                    filterMode = BitmapShader.FILTER_MODE_LINEAR
-                }
+    for (i in texturePaintSources.indices) {
+        if (texturePaintSources[i] === texture) {
+            return texturePaints[i]!!.withBlendMode(replace)
+        }
+    }
+    val bitmap = texture.asAndroidBitmap().apply { setHasMipMap(true) }
+    val paint = Paint().apply {
+        color = android.graphics.Color.WHITE
+        // The fallback sampling wherever the anisotropic path is not honoured; a shader built with
+        // FILTER_MODE_DEFAULT takes its filter from the paint.
+        isFilterBitmap = true
+        shader = BitmapShader(bitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT).apply {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                maxAnisotropy = MAX_ANISOTROPY
+            } else {
+                filterMode = BitmapShader.FILTER_MODE_LINEAR
             }
         }
-        shaderSource = texture
     }
-    return shaderPaint!!.apply {
-        blendMode = if (replace) android.graphics.BlendMode.SRC else android.graphics.BlendMode.SRC_OVER
-    }
+    texturePaintSources[nextTexturePaintSlot] = texture
+    texturePaints[nextTexturePaintSlot] = paint
+    nextTexturePaintSlot = (nextTexturePaintSlot + 1) % TEXTURE_PAINT_CACHE_SIZE
+    return paint.withBlendMode(replace)
+}
+
+private fun Paint.withBlendMode(replace: Boolean) = apply {
+    blendMode = if (replace) android.graphics.BlendMode.SRC else android.graphics.BlendMode.SRC_OVER
 }
 
 internal actual fun drawTriangles(
