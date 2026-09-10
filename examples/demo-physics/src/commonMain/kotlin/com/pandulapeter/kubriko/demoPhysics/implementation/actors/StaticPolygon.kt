@@ -42,7 +42,7 @@ internal class StaticPolygon private constructor(state: State) : RigidBody, Visi
         rotation = body.rotation
     }
 
-    @set:Exposed
+    @set:Exposed(name = "isRotating")
     var isRotating = state.isRotating
 
     override fun update(deltaTimeInMilliseconds: Int) {

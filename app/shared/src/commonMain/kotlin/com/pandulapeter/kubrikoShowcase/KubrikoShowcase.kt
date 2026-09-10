@@ -39,65 +39,70 @@ fun KubrikoShowcase(
     deeplink: String? = selectedShowcaseEntry.value.deeplink,
     onDestinationChanged: (String?) -> Unit = { selectedShowcaseEntry.value = it.processDeeplink() },
     onFirstFrameDrawn: () -> Unit = {},
-) = KubrikoTheme(
-    areResourcesLoaded = ResourceLoader.areResourcesLoaded() && ShowcaseEntry.entries.all { it.areResourcesLoaded() },
 ) {
     LaunchedEffect(Unit) {
+        // The second frame only resumes once the first one has been presented, so the host page's loading screen
+        // is handed over to content that is already on screen rather than to an empty canvas.
+        withFrameNanos {}
         withFrameNanos {}
         onFirstFrameDrawn()
     }
-    LaunchedEffect(deeplink) {
-        selectedShowcaseEntry.value = deeplink.processDeeplink()
-    }
-    LaunchedEffect(selectedShowcaseEntry.value) {
-        onDestinationChanged(selectedShowcaseEntry.value?.deeplink)
-    }
-    NavigationBackHandler(
-        state = rememberNavigationEventState(NavigationEventInfo.None),
-        isBackEnabled = selectedShowcaseEntry.value != null,
+    KubrikoTheme(
+        areResourcesLoaded = ResourceLoader.areResourcesLoaded() && ShowcaseEntry.entries.all { it.areResourcesLoaded() },
     ) {
-        val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
-        try {
-            if (activeStateHolder?.navigateBack(
-                    isInFullscreenMode = getIsInFullscreenMode() == true,
-                    onFullscreenModeToggled = onFullscreenModeToggled,
-                ) == false
-            ) {
-                activeStateHolder.stopMusic()
-                selectedShowcaseEntry.value = null
+        LaunchedEffect(deeplink) {
+            selectedShowcaseEntry.value = deeplink.processDeeplink()
+        }
+        LaunchedEffect(selectedShowcaseEntry.value) {
+            onDestinationChanged(selectedShowcaseEntry.value?.deeplink)
+        }
+        NavigationBackHandler(
+            state = rememberNavigationEventState(NavigationEventInfo.None),
+            isBackEnabled = selectedShowcaseEntry.value != null,
+        ) {
+            val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
+            try {
+                if (activeStateHolder?.navigateBack(
+                        isInFullscreenMode = getIsInFullscreenMode() == true,
+                        onFullscreenModeToggled = onFullscreenModeToggled,
+                    ) == false
+                ) {
+                    activeStateHolder.stopMusic()
+                    selectedShowcaseEntry.value = null
+                }
+            } catch (_: CancellationException) {
             }
-        } catch (_: CancellationException) {
         }
-    }
-    BoxWithConstraints {
-        val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
-        val scope = rememberCoroutineScope()
-        LaunchedEffect(activeStateHolder) {
-            activeStateHolder?.backNavigationIntent?.onEach {
-                if (getIsInFullscreenMode() == true) {
-                    onFullscreenModeToggled()
-                }
-                selectedShowcaseEntry.value = null
-            }?.launchIn(scope)
+        BoxWithConstraints {
+            val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
+            val scope = rememberCoroutineScope()
+            LaunchedEffect(activeStateHolder) {
+                activeStateHolder?.backNavigationIntent?.onEach {
+                    if (getIsInFullscreenMode() == true) {
+                        onFullscreenModeToggled()
+                    }
+                    selectedShowcaseEntry.value = null
+                }?.launchIn(scope)
+            }
+            ShowcaseContent(
+                shouldUseCompactUi = maxWidth < 640.dp,
+                shouldUseWideSideMenu = maxWidth >= 1200.dp,
+                allShowcaseEntries = ShowcaseEntry.entries,
+                getSelectedShowcaseEntry = { selectedShowcaseEntry.value },
+                selectedShowcaseEntry = selectedShowcaseEntry.value,
+                onShowcaseEntrySelected = { showcaseEntry ->
+                    if (showcaseEntry?.getStateHolder() != activeStateHolder) {
+                        activeStateHolder?.stopMusic()
+                        selectedShowcaseEntry.value = showcaseEntry
+                    }
+                },
+                activeKubrikoInstance = activeStateHolder?.kubriko?.collectAsState(null)?.value,
+                isInFullscreenMode = isInFullscreenMode,
+                onFullscreenModeToggled = onFullscreenModeToggled,
+                isInfoPanelVisible = StateHolder.isInfoPanelVisible.value,
+                toggleInfoPanelVisibility = { StateHolder.isInfoPanelVisible.value = !StateHolder.isInfoPanelVisible.value },
+            )
         }
-        ShowcaseContent(
-            shouldUseCompactUi = maxWidth < 640.dp,
-            shouldUseWideSideMenu = maxWidth >= 1200.dp,
-            allShowcaseEntries = ShowcaseEntry.entries,
-            getSelectedShowcaseEntry = { selectedShowcaseEntry.value },
-            selectedShowcaseEntry = selectedShowcaseEntry.value,
-            onShowcaseEntrySelected = { showcaseEntry ->
-                if (showcaseEntry?.getStateHolder() != activeStateHolder) {
-                    activeStateHolder?.stopMusic()
-                    selectedShowcaseEntry.value = showcaseEntry
-                }
-            },
-            activeKubrikoInstance = activeStateHolder?.kubriko?.collectAsState(null)?.value,
-            isInFullscreenMode = isInFullscreenMode,
-            onFullscreenModeToggled = onFullscreenModeToggled,
-            isInfoPanelVisible = StateHolder.isInfoPanelVisible.value,
-            toggleInfoPanelVisibility = { StateHolder.isInfoPanelVisible.value = !StateHolder.isInfoPanelVisible.value },
-        )
     }
 }
 

@@ -45,10 +45,10 @@ internal class BlockysJourneyGameStateHolderImpl(
 ) : BlockysJourneyGameStateHolder {
 
     val backgroundSerializationManager = EditableMetadata.newSerializationManagerInstance(
-        EditableMetadata.create<Blocky, Blocky.State> {
+        EditableMetadata.create<Blocky, Blocky.State>(typeId = "Blocky") {
             Blocky.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(256.sceneUnit, 256.sceneUnit)))
         },
-        EditableMetadata.create<Block, Block.State> {
+        EditableMetadata.create<Block, Block.State>(typeId = "Block") {
             Block.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(512.sceneUnit, 512.sceneUnit)))
         },
         isLoggingEnabled = isLoggingEnabled,

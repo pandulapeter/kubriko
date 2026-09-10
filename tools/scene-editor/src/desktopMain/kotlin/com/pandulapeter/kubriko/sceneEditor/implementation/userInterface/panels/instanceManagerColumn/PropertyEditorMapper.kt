@@ -82,7 +82,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
         setter.call(actor, value)
         notifySelectedInstanceUpdate()
     }
-    editableProperty.name.ifBlank { name }.let { name ->
+    editableProperty.name.let { name ->
         when (returnType) {
             booleanType -> {
                 {

@@ -55,7 +55,7 @@ To make an actor appear in the Scene Editor, it must implement the `Editable<T>`
 ```kotlin
 class PlayerActor private constructor(state: State) : Visible, Editable<PlayerActor> {
 
-    @set:Exposed
+    @set:Exposed(name = "speed")
     var speed: Float = state.speed
 
     @set:Exposed(name = "Movement direction")
@@ -65,7 +65,7 @@ class PlayerActor private constructor(state: State) : Visible, Editable<PlayerAc
 }
 ```
 
-`@Exposed` displays the property's own name by default; pass `name = "..."` only when you want a different label.
+`@Exposed` always takes the label to display. It is not derived from the property name, because that name only exists at runtime through reflection and minified builds rename it.
 
 ### 4. Registering Editable Actors
 
@@ -73,14 +73,14 @@ The editor needs an `EditableMetadata` entry per actor type, bundled into a `Ser
 
 ```kotlin
 val serializationManager = EditableMetadata.newSerializationManagerInstance(
-    EditableMetadata.create<PlayerActor, PlayerActor.State> { position ->
+    EditableMetadata.create<PlayerActor, PlayerActor.State>(typeId = "PlayerActor") { position ->
         PlayerActor.State(body = BoxBody(initialPosition = position))
     },
     // ...further actor types
 )
 ```
 
-`typeId` defaults to the actor's simple class name. Because the `typeId` is written into saved scene files, pass an explicit `typeId = "..."` if you want it to stay stable across class renames.
+`typeId` is written into saved scene files, so it must be a literal rather than something derived from the class name: minified builds rename the class, and a scene saved before the rename would no longer load.
 
 ## Public Artifact
 

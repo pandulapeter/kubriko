@@ -8,7 +8,6 @@
  * https://mozilla.org/MPL/2.0/.
  */
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.compose.desktop.application.tasks.AbstractProguardTask
 
 plugins {
     alias(libs.plugins.compose)
@@ -68,6 +67,7 @@ compose.desktop {
                 menuGroup = "kubriko-showcase"
             }
             buildTypes.release.proguard {
+                configurationFiles.from(project.file("proguard-rules.pro"))
                 isEnabled.set(true)
                 optimize.set(true)
                 obfuscate.set(true)

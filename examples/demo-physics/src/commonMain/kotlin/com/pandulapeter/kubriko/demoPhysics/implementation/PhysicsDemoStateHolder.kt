@@ -68,13 +68,13 @@ internal class PhysicsDemoStateHolderImpl(
 ) : PhysicsDemoStateHolder {
 
     val serializationManager = EditableMetadata.newSerializationManagerInstance(
-        EditableMetadata.create<StaticBox, StaticBox.State> {
+        EditableMetadata.create<StaticBox, StaticBox.State>(typeId = "StaticBox") {
             StaticBox.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit)))
         },
-        EditableMetadata.create<StaticCircle, StaticCircle.State> {
+        EditableMetadata.create<StaticCircle, StaticCircle.State>(typeId = "StaticCircle") {
             StaticCircle.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit)))
         },
-        EditableMetadata.create<StaticPolygon, StaticPolygon.State> {
+        EditableMetadata.create<StaticPolygon, StaticPolygon.State>(typeId = "StaticPolygon") {
             StaticPolygon.State(
                 body = BoxBody(
                     initialPosition = it,
@@ -91,13 +91,13 @@ internal class PhysicsDemoStateHolderImpl(
                 },
             )
         },
-        EditableMetadata.create<DynamicBox, DynamicBox.State> {
+        EditableMetadata.create<DynamicBox, DynamicBox.State>(typeId = "DynamicBox") {
             DynamicBox.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit)))
         },
-        EditableMetadata.create<DynamicChain, DynamicChain.State> {
+        EditableMetadata.create<DynamicChain, DynamicChain.State>(typeId = "DynamicChain") {
             DynamicChain.State(linkCount = 20, initialCenterOffset = it)
         },
-        EditableMetadata.create<DynamicCircle, DynamicCircle.State> {
+        EditableMetadata.create<DynamicCircle, DynamicCircle.State>(typeId = "DynamicCircle") {
             DynamicCircle.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit)))
         },
         isLoggingEnabled = isLoggingEnabled,

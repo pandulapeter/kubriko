@@ -83,15 +83,15 @@ class EditableMetadata<T : Editable<T>>(
          * deserialization logic can be derived automatically instead of being passed in.
          *
          * @param S The [Serializable.State] type of the actor, used to deserialize scene files.
-         * @param typeId A unique string that identifies the actor type. Defaults to the actor's simple class name.
-         * Note that this value is written into serialized scenes, so changing it (or renaming the class while
-         * relying on the default) invalidates previously saved scene files.
+         * @param typeId A unique string that identifies the actor type. This value is written into serialized
+         * scenes, so it must be a literal that stays stable across class renames - deriving it from a class
+         * name would break on obfuscated builds, where the name the scene file was written with no longer exists.
          * @param json The [Json] instance used to deserialize the state. Defaults to a lenient instance that
          * ignores unknown keys.
          * @param instantiate A function that creates a new [S] for an actor at the given [SceneOffset].
          */
         inline fun <reified T : Editable<T>, reified S : Serializable.State<T>> create(
-            typeId: String = requireNotNull(T::class.simpleName) { "Cannot derive a typeId for an anonymous Editable type; pass typeId explicitly." },
+            typeId: String,
             json: Json = Json { ignoreUnknownKeys = true },
             noinline instantiate: (SceneOffset) -> S,
         ): EditableMetadata<T> = EditableMetadata(

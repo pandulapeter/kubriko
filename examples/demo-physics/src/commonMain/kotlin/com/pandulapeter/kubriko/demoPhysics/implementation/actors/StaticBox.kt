@@ -38,7 +38,7 @@ internal class StaticBox private constructor(state: State) : RigidBody, Visible,
         rotation = body.rotation
     }
 
-    @set:Exposed
+    @set:Exposed(name = "isRotating")
     var isRotating = state.isRotating
 
     override fun update(deltaTimeInMilliseconds: Int) {

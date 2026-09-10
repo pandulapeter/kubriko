@@ -46,13 +46,13 @@ internal class PerformanceDemoStateHolderImpl(
 ) : PerformanceDemoStateHolder {
 
     val serializationManager = EditableMetadata.newSerializationManagerInstance(
-        EditableMetadata.create<Camera, Camera.State> {
+        EditableMetadata.create<Camera, Camera.State>(typeId = "Camera") {
             Camera.State(body = PointBody(initialPosition = it))
         },
-        EditableMetadata.create<BoxWithCircle, BoxWithCircle.State> {
+        EditableMetadata.create<BoxWithCircle, BoxWithCircle.State>(typeId = "BoxWithCircle") {
             BoxWithCircle.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit)))
         },
-        EditableMetadata.create<MovingBox, MovingBox.State> {
+        EditableMetadata.create<MovingBox, MovingBox.State>(typeId = "MovingBox") {
             MovingBox.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit)))
         },
         isLoggingEnabled = isLoggingEnabled,

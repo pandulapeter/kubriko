@@ -52,16 +52,16 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
 ) : AnnoyedPenguinsGameStateHolder {
 
     val serializationManager = EditableMetadata.newSerializationManagerInstance(
-        EditableMetadata.create<DestructibleBlock, DestructibleBlock.State> {
+        EditableMetadata.create<DestructibleBlock, DestructibleBlock.State>(typeId = "DestructibleBlock") {
             DestructibleBlock.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(128.sceneUnit, 128.sceneUnit)))
         },
-        EditableMetadata.create<Ground, Ground.State> {
+        EditableMetadata.create<Ground, Ground.State>(typeId = "Ground") {
             Ground.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(128.sceneUnit, 128.sceneUnit)))
         },
-        EditableMetadata.create<Slingshot, Slingshot.State> {
+        EditableMetadata.create<Slingshot, Slingshot.State>(typeId = "Slingshot") {
             Slingshot.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(422.sceneUnit, 924.sceneUnit)))
         },
-        EditableMetadata.create<Star, Star.State> {
+        EditableMetadata.create<Star, Star.State>(typeId = "Star") {
             Star.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(256.sceneUnit, 256.sceneUnit)))
         },
         isLoggingEnabled = isLoggingEnabled,
