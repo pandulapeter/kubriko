@@ -1,0 +1,73 @@
+name: '[Showcase] Publish Web'
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  WEBSITE_REPOSITORY: pandulapeter/pandulapeter.github.io
+  WEBSITE_BRANCH: master
+  WEBSITE_SUBDIRECTORY: kubriko
+
+jobs:
+  build:
+    name: Build and Publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: 21
+          cache: 'gradle'
+      - name: Read version information
+        id: version
+        run: |
+          VERSION_NAME=$(sed -n 's/^showcase\.versionName=//p' gradle.properties)
+          if [ -z "$VERSION_NAME" ]; then
+            echo "Could not read showcase.versionName from gradle.properties" >&2
+            exit 1
+          fi
+          echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "Publishing version $VERSION_NAME"
+      - name: Build web distribution
+        run: |
+          ./gradlew :app:web:wasmJsBrowserDistribution \
+            -Pshowcase.areTestExamplesEnabled=false \
+            -Pshowcase.isDebugMenuEnabled=false \
+            -Pshowcase.isSceneEditorEnabled=false \
+            -Pshowcase.shouldShowUnfinishedGames=true
+      - name: Check out the website repository
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ env.WEBSITE_REPOSITORY }}
+          ref: ${{ env.WEBSITE_BRANCH }}
+          ssh-key: ${{ secrets.WEBSITE_DEPLOY_KEY }}
+          path: website
+      - name: Copy the distribution into the website
+        run: |
+          DISTRIBUTION=app/web/build/dist/wasmJs/productionExecutable
+          if [ ! -f "$DISTRIBUTION/index.html" ]; then
+            echo "The web distribution is missing from $DISTRIBUTION" >&2
+            exit 1
+          fi
+          mkdir -p "website/$WEBSITE_SUBDIRECTORY"
+          rsync --archive --delete "$DISTRIBUTION/" "website/$WEBSITE_SUBDIRECTORY/"
+          echo "Copied $(find "$DISTRIBUTION" -type f | wc -l | tr -d ' ') files into $WEBSITE_SUBDIRECTORY/"
+      - name: Commit and push to the website
+        working-directory: website
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add --all "$WEBSITE_SUBDIRECTORY"
+          if git diff --cached --quiet; then
+            echo "The published web app is already up to date, nothing to push."
+            exit 0
+          fi
+          git status --short "$WEBSITE_SUBDIRECTORY"
+          git commit --message "Update Kubriko web app."
+          git push origin "$WEBSITE_BRANCH"
