@@ -28,3 +28,12 @@ There is no native system fullscreen on iOS — it is purely a UI-level affordan
 There is no `gradlew` run task for iOS. Build and run via Xcode or the IDE run configuration. The Xcode project is located at `app/ios/` (look for `*.xcodeproj` / `*.xcworkspace`).
 
 Version and build number come from `gradle.properties` (`showcase.versionName`, `showcase.iosBuildNumber`). A "Set version from gradle.properties" build phase writes them into the built `Info.plist`, so `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` are deliberately absent from `project.pbxproj` — editing the Version/Build fields in Xcode's General tab has no effect. Bump the properties instead.
+
+## Publishing
+
+The `[Showcase] Publish iOS` workflow archives, signs and uploads the app to App Store Connect. Two details of this project shape it:
+
+- The only scheme (`[iOS] Showcase`) lives under `xcuserdata`, which a CI runner never sees, so `xcodebuild` there falls back to the scheme it auto-creates from the target. The workflow builds `-scheme iosApp -configuration Release`, which also makes it independent of any scheme's archive configuration.
+- Xcode drives Gradle through the `embedAndSignAppleFrameworkForXcode` build phase, so there is no command line for the workflow to add `-P` overrides to. It rewrites the four `showcase.*` feature flags in `gradle.properties` before archiving instead, which is also what gets the matching values into `BuildConfig`.
+
+Bump `showcase.iosBuildNumber` before every run — App Store Connect rejects a build number it has already seen. Upload is as far as automation goes: the build still has to finish processing, and reaching the App Store needs a manual submission for review.
