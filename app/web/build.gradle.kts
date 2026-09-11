@@ -38,20 +38,23 @@ kotlin {
     }
 }
 
+fun isBuildConfigurationValueEnabled(key: String) = project.findProperty("showcase.$key").toString() == "true"
+
 /**
  * Everything the Showcase waits for before drawing its first frame, as glob patterns relative to the distribution folder.
  * The app requests these one after the other, so without preloading each of them costs a full network round trip.
  * Every pattern must match at least one file so that a renamed or removed resource fails the build instead of silently
- * losing its preload.
+ * losing its preload, which is why a pattern covering a module that `gradle.properties` can swap for a `-noop` blank is
+ * only listed when that module is part of the build.
  */
-val webPreloadPatterns = listOf(
+val webPreloadPatterns = listOfNotNull(
     "*.wasm",
     "composeResources/kubriko.tools.ui_components.generated.resources/font/*.ttf",
     "composeResources/*/values/*.cvr",
     "composeResources/kubriko.app.shared.generated.resources/drawable/*",
     "composeResources/kubriko.examples.demo_*.generated.resources/drawable/*.xml",
     "composeResources/kubriko.examples.demo_isometric_graphics.generated.resources/drawable/*.webp",
-    "composeResources/kubriko.examples.test_*.generated.resources/drawable/*.xml",
+    "composeResources/kubriko.examples.test_*.generated.resources/drawable/*.xml".takeIf { isBuildConfigurationValueEnabled("areTestExamplesEnabled") },
 )
 
 /**
