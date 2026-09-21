@@ -1,0 +1,46 @@
+name: 'Set up steamcmd'
+description: 'Installs steamcmd on a Linux runner, restores a saved login token and verifies that it still signs in.'
+
+inputs:
+  username:
+    description: 'Name of the Steam build account'
+    required: true
+  config-vdf-base64:
+    description: 'Base64 of the config.vdf that steamcmd wrote after an interactive login of the build account'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install steamcmd
+      shell: bash
+      run: |
+        # steamcmd is a 32 bit binary. It keeps its login token in ~/Steam/config no matter where it
+        # runs from, so installing it into ~/Steam leaves a single directory to restore and clean up.
+        sudo apt-get update --quiet
+        sudo apt-get install --yes --quiet lib32gcc-s1
+        mkdir -p "$HOME/Steam"
+        curl --fail --silent --show-error --location https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz | tar -xz -C "$HOME/Steam"
+        echo "STEAMCMD=$HOME/Steam/steamcmd.sh" >> "$GITHUB_ENV"
+    - name: Restore the login token
+      shell: bash
+      env:
+        STEAM_CONFIG_VDF_BASE64: ${{ inputs.config-vdf-base64 }}
+      run: |
+        mkdir -p "$HOME/Steam/config"
+        printf '%s' "$STEAM_CONFIG_VDF_BASE64" | base64 --decode > "$HOME/Steam/config/config.vdf"
+        chmod 600 "$HOME/Steam/config/config.vdf"
+    - name: Verify the login
+      shell: bash
+      env:
+        STEAM_USERNAME: ${{ inputs.username }}
+      run: |
+        # Without a usable token steamcmd asks for the password, which the closed stdin turns into a failure.
+        if ! "$STEAMCMD" +login "$STEAM_USERNAME" +quit < /dev/null; then
+          echo "" >&2
+          echo "steamcmd could not sign in as the build account with the saved token." >&2
+          echo "The token expires after a few months and is revoked by a password change. Renew it by signing in" >&2
+          echo "locally with 'steamcmd +login <username> +quit', then store the new config.vdf:" >&2
+          echo "  base64 -i ~/Library/Application\ Support/Steam/config/config.vdf | gh secret set STEAM_CONFIG_VDF_BASE64 --repo ${{ github.repository }}" >&2
+          exit 1
+        fi

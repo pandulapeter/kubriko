@@ -1,0 +1,442 @@
+name: '[Showcase] Publish Desktop'
+
+on:
+  workflow_dispatch:
+    inputs:
+      steam_branch:
+        description: 'Steam branch to set the build live on. Steam refuses "default" here, leave it empty to only upload.'
+        type: string
+        required: false
+        default: 'prerelease'
+      run_smoke_test:
+        description: 'Launch each build on its runner and fail if it does not stay up'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: showcase-desktop-publish
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  STEAM_APP_ID: 3585120
+  STEAM_DEPOT_ID_WINDOWS: ${{ vars.STEAM_DEPOT_ID_WINDOWS }}
+  STEAM_DEPOT_ID_MACOS: ${{ vars.STEAM_DEPOT_ID_MACOS }}
+  STEAM_DEPOT_ID_LINUX: ${{ vars.STEAM_DEPOT_ID_LINUX }}
+  DEVELOPMENT_TEAM: N45A6ZHDGY
+  DISTRIBUTION_DIRECTORY: app/desktop/build/compose/binaries/main-release/app
+
+jobs:
+  verify:
+    name: Verify the configuration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the secrets and variables
+        env:
+          STEAM_BRANCH: ${{ inputs.steam_branch }}
+          STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+          STEAM_CONFIG_VDF_BASE64: ${{ secrets.STEAM_CONFIG_VDF_BASE64 }}
+          MACOS_DEVELOPER_ID_CERTIFICATE_BASE64: ${{ secrets.MACOS_DEVELOPER_ID_CERTIFICATE_BASE64 }}
+          MACOS_DEVELOPER_ID_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        run: |
+          # The three builds take a while, so everything that can be wrong with the configuration is
+          # reported here, before any of them starts.
+          PROBLEMS=0
+          problem() {
+            echo "  $1 - $2" >&2
+            PROBLEMS=$((PROBLEMS + 1))
+          }
+          if [ "$STEAM_BRANCH" = "default" ]; then
+            problem steam_branch "Steam does not let a build script set the default branch live, use a beta branch and promote the build in Steamworks"
+          elif ! [[ "$STEAM_BRANCH" =~ ^[A-Za-z0-9_-]*$ ]]; then
+            problem steam_branch "expected the name of a Steam branch, made of letters, digits, dashes and underscores"
+          fi
+          for PLATFORM in WINDOWS MACOS LINUX; do
+            NAME="STEAM_DEPOT_ID_$PLATFORM"
+            if [ -z "${!NAME}" ]; then
+              problem "$NAME" "repository variable is empty or unset"
+            elif ! [[ "${!NAME}" =~ ^[0-9]+$ ]]; then
+              problem "$NAME" "expected a numeric depot ID, as listed on the Depots page of Steamworks"
+            fi
+          done
+          if [ "$PROBLEMS" -eq 0 ] && [ "$(printf '%s\n' "$STEAM_DEPOT_ID_WINDOWS" "$STEAM_DEPOT_ID_MACOS" "$STEAM_DEPOT_ID_LINUX" | sort -u | wc -l)" -ne 3 ]; then
+            problem STEAM_DEPOT_ID_ "the three depot IDs have to differ, or one platform overwrites another"
+          fi
+          if [ -z "$STEAM_USERNAME" ]; then
+            problem STEAM_USERNAME "empty or unset"
+          fi
+          if [ -z "$STEAM_CONFIG_VDF_BASE64" ]; then
+            problem STEAM_CONFIG_VDF_BASE64 "empty or unset"
+          elif ! CONFIG_VDF=$(base64 --decode <<< "$STEAM_CONFIG_VDF_BASE64" 2> /dev/null); then
+            problem STEAM_CONFIG_VDF_BASE64 "not valid base64, expected the output of 'base64 -i config.vdf'"
+          elif ! grep -q 'InstallConfigStore' <<< "$CONFIG_VDF"; then
+            problem STEAM_CONFIG_VDF_BASE64 "decodes to something other than the config.vdf of steamcmd"
+          fi
+          if [ -z "$MACOS_DEVELOPER_ID_CERTIFICATE_BASE64" ]; then
+            problem MACOS_DEVELOPER_ID_CERTIFICATE_BASE64 "empty or unset"
+          elif ! base64 --decode <<< "$MACOS_DEVELOPER_ID_CERTIFICATE_BASE64" > /dev/null 2>&1; then
+            problem MACOS_DEVELOPER_ID_CERTIFICATE_BASE64 "not valid base64, expected the output of 'base64 -i <certificate>.p12'"
+          fi
+          if [ -z "$MACOS_DEVELOPER_ID_CERTIFICATE_PASSWORD" ]; then
+            problem MACOS_DEVELOPER_ID_CERTIFICATE_PASSWORD "empty or unset, expected the password the .p12 was exported with"
+          fi
+          if [ -z "$ASC_KEY_ID" ]; then
+            problem APP_STORE_CONNECT_KEY_ID "empty or unset"
+          elif ! [[ "$ASC_KEY_ID" =~ ^[A-Z0-9]{10}$ ]]; then
+            problem APP_STORE_CONNECT_KEY_ID "expected 10 upper case letters and digits, as in the AuthKey_<id>.p8 file name"
+          fi
+          if [ -z "$ASC_ISSUER_ID" ]; then
+            problem APP_STORE_CONNECT_ISSUER_ID "empty or unset"
+          elif ! [[ "$ASC_ISSUER_ID" =~ ^[0-9a-fA-F-]{36}$ ]]; then
+            problem APP_STORE_CONNECT_ISSUER_ID "expected a UUID, found ${#ASC_ISSUER_ID} characters"
+          fi
+          if [ -z "$ASC_PRIVATE_KEY" ]; then
+            problem APP_STORE_CONNECT_PRIVATE_KEY "empty or unset"
+          elif ! grep -q 'BEGIN PRIVATE KEY' <<< "$ASC_PRIVATE_KEY"; then
+            problem APP_STORE_CONNECT_PRIVATE_KEY "expected the contents of the AuthKey_<id>.p8 file, including its BEGIN PRIVATE KEY line"
+          fi
+          if [ "$PROBLEMS" -gt 0 ]; then
+            echo "" >&2
+            echo "Set secrets from a terminal that can prompt for hidden input, and variables with their value:" >&2
+            echo "  gh secret set <name> --repo ${{ github.repository }}" >&2
+            echo "  gh variable set <name> --body <value> --repo ${{ github.repository }}" >&2
+            exit 1
+          fi
+          echo "The configuration is complete and looks well formed."
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Verify the Steam login
+        uses: ./.github/actions/set-up-steamcmd
+        with:
+          username: ${{ secrets.STEAM_USERNAME }}
+          config-vdf-base64: ${{ secrets.STEAM_CONFIG_VDF_BASE64 }}
+      - name: Clean up credentials
+        if: always()
+        run: rm -rf "$HOME/Steam/config"
+
+  build:
+    name: Build for ${{ matrix.name }}
+    needs: verify
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - platform: windows
+            name: Windows
+            runner: windows-latest
+            content_root: 'Kubriko Showcase'
+            launcher: 'Kubriko Showcase.exe'
+          - platform: macos
+            name: macOS
+            runner: macos-latest
+            content_root: '.'
+            launcher: 'Kubriko Showcase.app/Contents/MacOS/Kubriko Showcase'
+            icon: 'Kubriko Showcase.app/Contents/Resources/Kubriko Showcase.icns'
+          - platform: linux
+            name: Linux
+            runner: ubuntu-latest
+            content_root: 'Kubriko Showcase'
+            launcher: 'bin/Kubriko Showcase'
+            icon: 'lib/Kubriko Showcase.png'
+    steps:
+      - name: Disable line ending conversion
+        if: matrix.platform == 'windows'
+        run: |
+          # Git for Windows would check the Gradle wrapper script out with CRLF line endings, which bash cannot run.
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          # The desktop build asks the Gradle toolchain for Temurin by vendor, as ProGuard needs a JDK that ships its jmods.
+          distribution: 'temurin'
+          java-version: 21
+          cache: 'gradle'
+      - name: Set up code signing
+        if: matrix.platform == 'macos'
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.MACOS_DEVELOPER_ID_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.MACOS_DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/signing.keychain-db"
+          KEYCHAIN_PASSWORD=$(uuidgen)
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          echo "$CERTIFICATE_BASE64" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          if ! security import "$RUNNER_TEMP/certificate.p12" -k "$KEYCHAIN_PATH" -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign -t cert -f pkcs12; then
+            rm -f "$RUNNER_TEMP/certificate.p12"
+            echo "Could not import the certificate, which usually means MACOS_DEVELOPER_ID_CERTIFICATE_PASSWORD is not the password the .p12 was exported with." >&2
+            exit 1
+          fi
+          rm "$RUNNER_TEMP/certificate.p12"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" > /dev/null
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
+          ASC_KEY_PATH="$RUNNER_TEMP/AuthKey_$ASC_KEY_ID.p8"
+          printf '%s\n' "$ASC_PRIVATE_KEY" > "$ASC_KEY_PATH"
+          chmod 600 "$ASC_KEY_PATH"
+          echo "ASC_KEY_PATH=$ASC_KEY_PATH" >> "$GITHUB_ENV"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+          if ! security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep -q 'Developer ID Application'; then
+            echo "The certificate imported but left no Developer ID Application signing identity behind." >&2
+            echo "Export the .p12 from the My Certificates tab of Keychain Access so that it carries the private key, not just the certificate." >&2
+            exit 1
+          fi
+      - name: Build release distribution
+        run: |
+          ./gradlew :app:desktop:createReleaseDistributable \
+            -Pshowcase.areTestExamplesEnabled=false \
+            -Pshowcase.isDebugMenuEnabled=false \
+            -Pshowcase.isSceneEditorEnabled=false \
+            -Pshowcase.shouldShowUnfinishedGames=true \
+            ${KEYCHAIN_PATH:+"-Pcompose.desktop.mac.signing.keychain=$KEYCHAIN_PATH"}
+      - name: Verify the distribution
+        working-directory: ${{ env.DISTRIBUTION_DIRECTORY }}/${{ matrix.content_root }}
+        env:
+          LAUNCHER: ${{ matrix.launcher }}
+          ICON: ${{ matrix.icon }}
+        run: |
+          # These paths are what the launch options in Steamworks point at, so a Compose or jpackage
+          # upgrade that moves them has to fail here instead of reaching players.
+          if [ ! -f "$LAUNCHER" ]; then
+            echo "The launcher is missing from the distribution, expected it at $LAUNCHER" >&2
+            find . -maxdepth 2 >&2
+            exit 1
+          fi
+          if [ "${{ matrix.platform }}" != "windows" ] && [ ! -x "$LAUNCHER" ]; then
+            echo "The launcher at $LAUNCHER is not executable" >&2
+            exit 1
+          fi
+          if [ -n "$ICON" ] && [ ! -s "$ICON" ]; then
+            echo "The app icon is missing from the distribution, expected it at $ICON" >&2
+            exit 1
+          fi
+          echo "The distribution holds $(find . -type f | wc -l | tr -d ' ') files in $(du -sh . | cut -f1)."
+      - name: Verify the signature
+        if: matrix.platform == 'macos'
+        working-directory: ${{ env.DISTRIBUTION_DIRECTORY }}
+        run: |
+          codesign --verify --deep --strict --verbose=2 "Kubriko Showcase.app"
+          codesign --display --verbose=2 "Kubriko Showcase.app" 2>&1 | tee "$RUNNER_TEMP/signature.txt"
+          if ! grep -q "^TeamIdentifier=$DEVELOPMENT_TEAM$" "$RUNNER_TEMP/signature.txt" || ! grep -q '^Authority=Developer ID Application' "$RUNNER_TEMP/signature.txt"; then
+            echo "The app is not signed with the Developer ID Application certificate of team $DEVELOPMENT_TEAM" >&2
+            exit 1
+          fi
+      - name: Launch the app
+        if: inputs.run_smoke_test
+        working-directory: ${{ env.DISTRIBUTION_DIRECTORY }}/${{ matrix.content_root }}
+        env:
+          LAUNCHER: ${{ matrix.launcher }}
+        run: |
+          # A release build that loses a class to ProGuard or a native library to packaging dies while
+          # starting up, so staying up for a while is a cheap sign of a healthy build.
+          if [ "${{ matrix.platform }}" = "linux" ]; then
+            sudo apt-get update --quiet
+            sudo apt-get install --yes --quiet xvfb libxtst6 libxi6 libxrender1 libgl1
+            xvfb-run --auto-servernum "./$LAUNCHER" > "$RUNNER_TEMP/launch.log" 2>&1 &
+          else
+            "./$LAUNCHER" > "$RUNNER_TEMP/launch.log" 2>&1 &
+          fi
+          LAUNCHER_PID=$!
+          for SECOND in $(seq 1 30); do
+            sleep 1
+            if ! kill -0 "$LAUNCHER_PID" 2> /dev/null; then
+              echo "The app exited within $SECOND seconds of being launched, its output follows." >&2
+              cat "$RUNNER_TEMP/launch.log" >&2
+              exit 1
+            fi
+          done
+          echo "The app was still running after 30 seconds."
+          cat "$RUNNER_TEMP/launch.log"
+          if [ "${{ matrix.platform }}" = "windows" ]; then
+            taskkill //F //T //IM "$(basename "$LAUNCHER")" || true
+          else
+            kill "$LAUNCHER_PID" 2> /dev/null || true
+            pkill -f "$(basename "$LAUNCHER")" || true
+          fi
+      - name: Notarize the app
+        if: matrix.platform == 'macos'
+        working-directory: ${{ env.DISTRIBUTION_DIRECTORY }}
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          # The Compose plugin only notarizes installers, while Steam delivers the bare app bundle.
+          ditto -c -k --keepParent "Kubriko Showcase.app" "$RUNNER_TEMP/notarization.zip"
+          xcrun notarytool submit "$RUNNER_TEMP/notarization.zip" \
+            --key "$ASC_KEY_PATH" \
+            --key-id "$ASC_KEY_ID" \
+            --issuer "$ASC_ISSUER_ID" \
+            --wait \
+            --output-format json | tee "$RUNNER_TEMP/notarization.json"
+          echo ""
+          if [ "$(jq --raw-output '.status' "$RUNNER_TEMP/notarization.json")" != "Accepted" ]; then
+            echo "Apple did not accept the app for notarization, its log follows." >&2
+            xcrun notarytool log "$(jq --raw-output '.id' "$RUNNER_TEMP/notarization.json")" \
+              --key "$ASC_KEY_PATH" \
+              --key-id "$ASC_KEY_ID" \
+              --issuer "$ASC_ISSUER_ID" >&2 || true
+            exit 1
+          fi
+          xcrun stapler staple "Kubriko Showcase.app"
+          spctl --assess --type execute --verbose=2 "Kubriko Showcase.app"
+      - name: Package the distribution
+        run: |
+          # Artifacts are stored as zip files, which would strip the executable bits that the macOS
+          # and Linux launchers and runtimes rely on. COPYFILE_DISABLE keeps the tar of macOS from adding
+          # a ._ entry for the extended attributes of every file, which Linux would unpack into the depot.
+          COPYFILE_DISABLE=1 tar -cf distribution.tar -C "$DISTRIBUTION_DIRECTORY/${{ matrix.content_root }}" .
+      - name: Upload the distribution
+        uses: actions/upload-artifact@v7
+        with:
+          name: steam-content-${{ matrix.platform }}
+          path: distribution.tar
+          if-no-files-found: error
+          retention-days: 7
+      - name: Clean up credentials
+        if: always() && matrix.platform == 'macos'
+        run: |
+          if [ -n "$KEYCHAIN_PATH" ] && [ -f "$KEYCHAIN_PATH" ]; then
+            security delete-keychain "$KEYCHAIN_PATH"
+          fi
+          rm -f "$RUNNER_TEMP"/AuthKey_*.p8
+
+  publish:
+    name: Publish to Steam
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Read version information
+        id: version
+        run: |
+          VERSION_NAME=$(sed -n 's/^showcase\.versionName=//p' gradle.properties)
+          if [ -z "$VERSION_NAME" ]; then
+            echo "Could not read showcase.versionName from gradle.properties" >&2
+            exit 1
+          fi
+          echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "Publishing version $VERSION_NAME"
+      - name: Download the distributions
+        uses: actions/download-artifact@v8
+        with:
+          pattern: steam-content-*
+          path: ${{ runner.temp }}/artifacts
+      - name: Unpack the distributions
+        run: |
+          for PLATFORM in windows macos linux; do
+            mkdir -p "$RUNNER_TEMP/steam/content/$PLATFORM"
+            tar -xpf "$RUNNER_TEMP/artifacts/steam-content-$PLATFORM/distribution.tar" -C "$RUNNER_TEMP/steam/content/$PLATFORM"
+          done
+          for LAUNCHER in 'windows/Kubriko Showcase.exe' 'macos/Kubriko Showcase.app/Contents/MacOS/Kubriko Showcase' 'linux/bin/Kubriko Showcase'; do
+            if [ ! -f "$RUNNER_TEMP/steam/content/$LAUNCHER" ]; then
+              echo "The launcher is missing from the unpacked content, expected it at $LAUNCHER" >&2
+              exit 1
+            fi
+          done
+          for LAUNCHER in 'macos/Kubriko Showcase.app/Contents/MacOS/Kubriko Showcase' 'linux/bin/Kubriko Showcase'; do
+            if [ ! -x "$RUNNER_TEMP/steam/content/$LAUNCHER" ]; then
+              echo "The launcher at $LAUNCHER lost its executable bit on the way here" >&2
+              exit 1
+            fi
+          done
+          STRAY_FILES=$(find "$RUNNER_TEMP/steam/content" -name '._*' -o -name '.DS_Store')
+          if [ -n "$STRAY_FILES" ]; then
+            echo "The content holds macOS metadata files that do not belong into a depot:" >&2
+            echo "$STRAY_FILES" >&2
+            exit 1
+          fi
+          du -sh "$RUNNER_TEMP/steam/content"/*
+      - name: Set up steamcmd
+        uses: ./.github/actions/set-up-steamcmd
+        with:
+          username: ${{ secrets.STEAM_USERNAME }}
+          config-vdf-base64: ${{ secrets.STEAM_CONFIG_VDF_BASE64 }}
+      - name: Upload the build to Steam
+        env:
+          STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+          STEAM_BRANCH: ${{ inputs.steam_branch }}
+          VERSION_NAME: ${{ steps.version.outputs.name }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/steam/output"
+          cat > "$RUNNER_TEMP/steam/app_build.vdf" <<VDF
+          "AppBuild"
+          {
+            "AppID" "$STEAM_APP_ID"
+            "Desc" "$VERSION_NAME (${GITHUB_SHA::7})"
+            "ContentRoot" "$RUNNER_TEMP/steam/content"
+            "BuildOutput" "$RUNNER_TEMP/steam/output"
+            "SetLive" "$STEAM_BRANCH"
+            "Depots"
+            {
+              "$STEAM_DEPOT_ID_WINDOWS"
+              {
+                "FileMapping"
+                {
+                  "LocalPath" "windows/*"
+                  "DepotPath" "."
+                  "Recursive" "1"
+                }
+              }
+              "$STEAM_DEPOT_ID_MACOS"
+              {
+                "FileMapping"
+                {
+                  "LocalPath" "macos/*"
+                  "DepotPath" "."
+                  "Recursive" "1"
+                }
+              }
+              "$STEAM_DEPOT_ID_LINUX"
+              {
+                "FileMapping"
+                {
+                  "LocalPath" "linux/*"
+                  "DepotPath" "."
+                  "Recursive" "1"
+                }
+              }
+            }
+          }
+          VDF
+          cat "$RUNNER_TEMP/steam/app_build.vdf"
+          if ! "$STEAMCMD" +login "$STEAM_USERNAME" +run_app_build "$RUNNER_TEMP/steam/app_build.vdf" +quit < /dev/null | tee "$RUNNER_TEMP/steam/steamcmd.log"; then
+            echo "" >&2
+            echo "steamcmd could not upload the build, its logs follow." >&2
+            find "$RUNNER_TEMP/steam/output" "$HOME/Steam/logs" -name '*.log' -o -name 'stderr.txt' 2> /dev/null | while read -r LOG; do
+              echo "--- $LOG" >&2
+              tail -n 100 "$LOG" >&2
+            done
+            exit 1
+          fi
+          BUILD_ID=$(sed -n 's/.*BuildID \([0-9]*\).*/\1/p' "$RUNNER_TEMP/steam/steamcmd.log" | tail -n 1)
+          {
+            echo "### Kubriko Showcase ${{ steps.version.outputs.name }} is on Steam"
+            echo ""
+            echo "Build ${BUILD_ID:-(see the log for its ID)} holds the Windows, macOS and Linux depots."
+            if [ -n "$STEAM_BRANCH" ]; then
+              echo "It is live on the \`$STEAM_BRANCH\` branch."
+            else
+              echo "It is not live on any branch."
+            fi
+            echo ""
+            echo "Steam only lets a person set the default branch live, which takes a confirmation in the Steam mobile app:"
+            echo "https://partner.steamgames.com/apps/builds/$STEAM_APP_ID"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Clean up credentials
+        if: always()
+        run: rm -rf "$HOME/Steam/config"
