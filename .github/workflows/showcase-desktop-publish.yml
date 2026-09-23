@@ -195,6 +195,22 @@ jobs:
             echo "Export the .p12 from the My Certificates tab of Keychain Access so that it carries the private key, not just the certificate." >&2
             exit 1
           fi
+          # The one signing identity that cannot be made per run: revoking a Developer ID certificate stops every app
+          # signed with it from launching, the build this run ships included. Expiring does not - notarized copies keep
+          # working - it only stops new builds, so it is renewed by hand every five years and announced well before.
+          CERTIFICATE_PEM="$RUNNER_TEMP/developer-id.pem"
+          security find-certificate -p -c "Developer ID Application" "$KEYCHAIN_PATH" > "$CERTIFICATE_PEM"
+          EXPIRY=$(openssl x509 -in "$CERTIFICATE_PEM" -noout -enddate | cut -d= -f2)
+          RENEWAL="Create a new Developer ID Application certificate (Account Holder only), export it with its private key as a .p12 and update MACOS_DEVELOPER_ID_CERTIFICATE_BASE64 and MACOS_DEVELOPER_ID_CERTIFICATE_PASSWORD. Do not revoke the old one."
+          if ! openssl x509 -in "$CERTIFICATE_PEM" -noout -checkend 0 > /dev/null; then
+            echo "::error::The Developer ID Application certificate expired on $EXPIRY. $RENEWAL" >&2
+            exit 1
+          elif ! openssl x509 -in "$CERTIFICATE_PEM" -noout -checkend $((90 * 24 * 60 * 60)) > /dev/null; then
+            echo "::warning::The Developer ID Application certificate expires on $EXPIRY. $RENEWAL"
+          else
+            echo "The Developer ID Application certificate is valid until $EXPIRY."
+          fi
+          rm "$CERTIFICATE_PEM"
       - name: Build release distribution
         run: |
           ./gradlew :app:desktop:createReleaseDistributable \

@@ -1,3 +1,11 @@
+# Builds the Showcase app for iOS, signs it for the App Store and uploads it to App Store Connect, where it lands in
+# TestFlight.
+#
+# Nothing it signs with is stored anywhere, so nothing of it can expire: the run creates an Apple Distribution
+# certificate for a key made on the runner through the App Store Connect API (.github/scripts/app_store_signing.py),
+# xcodebuild creates the App Store provisioning profile for it with the same key, and the certificate is revoked at the
+# end. That takes an API key with the Admin role.
+
 name: '[Showcase] Publish iOS'
 
 on:
@@ -18,28 +26,18 @@ jobs:
     steps:
       - name: Check the signing secrets
         env:
-          IOS_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
-          IOS_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
           ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
         run: |
           # `gh secret set` stores an empty value without complaining when it has no terminal to
           # prompt on, and an empty secret only surfaces much later as a cryptic codesign or
-          # xcodebuild failure. Check the shape of all five here, where the message can be useful.
+          # xcodebuild failure. Check the shape of all three here, where the message can be useful.
           PROBLEMS=0
           problem() {
             echo "  $1 - $2" >&2
             PROBLEMS=$((PROBLEMS + 1))
           }
-          if [ -z "$IOS_DISTRIBUTION_CERTIFICATE_BASE64" ]; then
-            problem IOS_DISTRIBUTION_CERTIFICATE_BASE64 "empty or unset"
-          elif ! printf '%s' "$IOS_DISTRIBUTION_CERTIFICATE_BASE64" | base64 --decode > /dev/null 2>&1; then
-            problem IOS_DISTRIBUTION_CERTIFICATE_BASE64 "not valid base64, expected the output of 'base64 -i <certificate>.p12'"
-          fi
-          if [ -z "$IOS_DISTRIBUTION_CERTIFICATE_PASSWORD" ]; then
-            problem IOS_DISTRIBUTION_CERTIFICATE_PASSWORD "empty or unset, expected the password the .p12 was exported with"
-          fi
           if [ -z "$ASC_KEY_ID" ]; then
             problem APP_STORE_CONNECT_KEY_ID "empty or unset"
           elif ! [[ "$ASC_KEY_ID" =~ ^[A-Z0-9]{10}$ ]]; then
@@ -61,7 +59,7 @@ jobs:
             echo "  gh secret set <name> --repo ${{ github.repository }}" >&2
             exit 1
           fi
-          echo "All five signing secrets are present and look well formed."
+          echo "All three signing secrets are present and look well formed."
       - name: Check out repository
         uses: actions/checkout@v5
       - name: Set up JDK 21
@@ -98,36 +96,29 @@ jobs:
           grep '^showcase\.' gradle.properties
       - name: Set up code signing
         env:
-          CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
-          CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
           ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
         run: |
+          # altool looks for the key by name in this directory, xcodebuild and the signing script are given the path.
+          ASC_KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8"
+          mkdir -p "$(dirname "$ASC_KEY_PATH")"
+          printf '%s\n' "$ASC_PRIVATE_KEY" > "$ASC_KEY_PATH"
+          chmod 600 "$ASC_KEY_PATH"
+          echo "ASC_KEY_PATH=$ASC_KEY_PATH" >> "$GITHUB_ENV"
+          export ASC_KEY_PATH
           KEYCHAIN_PATH="$RUNNER_TEMP/signing.keychain-db"
           KEYCHAIN_PASSWORD=$(uuidgen)
           echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          echo "$CERTIFICATE_BASE64" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
-          if ! security import "$RUNNER_TEMP/certificate.p12" -k "$KEYCHAIN_PATH" -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign -t cert -f pkcs12; then
-            rm -f "$RUNNER_TEMP/certificate.p12"
-            echo "Could not import the certificate, which usually means IOS_DISTRIBUTION_CERTIFICATE_PASSWORD is not the password the .p12 was exported with." >&2
-            exit 1
-          fi
-          rm "$RUNNER_TEMP/certificate.p12"
+          python3 .github/scripts/app_store_signing.py certificate DISTRIBUTION "$KEYCHAIN_PATH"
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" > /dev/null
           security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
-          # altool looks for the key by name in this directory, xcodebuild is given the path.
-          ASC_KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8"
-          mkdir -p "$(dirname "$ASC_KEY_PATH")"
-          printf '%s\n' "$ASC_PRIVATE_KEY" > "$ASC_KEY_PATH"
-          chmod 600 "$ASC_KEY_PATH"
-          echo "ASC_KEY_PATH=$ASC_KEY_PATH" >> "$GITHUB_ENV"
           security find-identity -v -p codesigning "$KEYCHAIN_PATH"
           if ! security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep -q 'Apple Distribution'; then
-            echo "The certificate imported but left no Apple Distribution signing identity behind." >&2
-            echo "Export the .p12 from the My Certificates tab of Keychain Access so that it carries the private key, not just the certificate." >&2
+            echo "The keychain holds no Apple Distribution signing identity for the certificate the run created." >&2
             exit 1
           fi
       - name: Archive the app
@@ -207,6 +198,17 @@ jobs:
             --apiIssuer "$ASC_ISSUER_ID"
           echo "Uploaded ${{ steps.version.outputs.name }} (${{ steps.version.outputs.build }}) to App Store Connect."
           echo "It has to finish processing before it shows up in TestFlight, then it needs a manual submission for review."
+      # Whatever the run got as far as creating, and nothing else, whether or not the build went through. The profile
+      # xcodebuild made for the certificate is left to it: the next run's xcodebuild makes a new one.
+      - name: Revoke the signing certificate
+        if: always()
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          if [ -f "$RUNNER_TEMP/app-store-signing.json" ]; then
+            python3 .github/scripts/app_store_signing.py cleanup
+          fi
       - name: Clean up credentials
         if: always()
         run: |
