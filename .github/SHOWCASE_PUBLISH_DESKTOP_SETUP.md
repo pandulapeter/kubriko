@@ -9,7 +9,7 @@
 -->
 # One-time setup for `[Showcase] Publish Desktop`
 
-Everything that [`showcase-desktop-publish.yml`](workflows/showcase-desktop-publish.yml) needs before its first run. The
+Everything that [`showcase-publish-desktop.yml`](workflows/showcase-publish-desktop.yml) needs before its first run. The
 workflow builds the Windows, macOS and Linux versions of the Showcase app, uploads them to Steam as a single build and sets
 that build live on a beta branch. Promoting it to the `default` branch stays a manual click, because
 [Steam does not let a build script do that](https://partner.steamgames.com/doc/sdk/uploading).
@@ -177,7 +177,7 @@ with a **Team Key** (not an Individual Key) that has at least the Developer role
 ## Releasing
 
 1. Bump `showcase.versionName` in `gradle.properties` and push it.
-2. Run [`[Showcase] Publish Desktop`](https://github.com/pandulapeter/kubriko/actions/workflows/showcase-desktop-publish.yml)
+2. Run [`[Showcase] Publish Desktop`](https://github.com/pandulapeter/kubriko/actions/workflows/showcase-publish-desktop.yml)
    with **Run workflow**.
 3. Optionally try the result: in the Steam client, right-click the app → **Properties** → **Betas** → `prerelease`.
 4. Open [SteamPipe → Builds](https://partner.steamgames.com/apps/builds/3585120) (the summary of the workflow run links to it),
