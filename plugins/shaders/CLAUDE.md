@@ -56,7 +56,9 @@ hardware layer whose own content is rendered first and then thrown away. The fil
 space exactly as the layer-space filter was (both see `fragCoord` in layer pixels under a translate-only
 transform), and nesting behaves the same: an outer generative shader replaces everything inside it, an inner one
 is what an outer `ContentShader` reads. The one difference is that translucent output is blended straight into
-its target instead of being stored at 8 bits first, at most one step per channel apart.
+its target instead of being stored at 8 bits first, at most one step per channel apart. The other is that on Android the fill is no longer a hardware layer HWUI can hold on to
+between frames: a game that wants a static scene cached (a paused one, say) puts it on a layer of its own rather than
+relying on the render effects it happens to have.
 
 ## Platform support
 - **Android**: requires API 33+ (Android 13 / TIRAMISU). `areShadersSupported = false` on older

@@ -6,6 +6,15 @@ item once it is done, and this file once it is empty.
 
 **Constraints:** no visible quality loss, no per-frame allocation, public API unchanged.
 
+## 0. Review status
+
+An adversarial review of `d8f7ee0`, `746068f` and `1249795` is **done**. Its two confirmed findings are handled:
+- `8bfecd6` fixes the gamepad poll boxing a focus direction every tick.
+- Android no longer caching generative fills as layers is documented in `plugins/shaders/CLAUDE.md`, and Tesselar
+  caches its paused scene itself.
+
+`8bfecd6` itself hasn't been reviewed.
+
 ## 1. Build and verify (nothing on this branch has been compiled yet)
 
 The cloud session that wrote these commits could not reach Google Maven, so every change was verified by reading
