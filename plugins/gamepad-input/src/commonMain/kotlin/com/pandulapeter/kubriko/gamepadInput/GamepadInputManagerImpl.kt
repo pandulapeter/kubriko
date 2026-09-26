@@ -242,6 +242,25 @@ internal class GamepadInputManagerImpl(
         return null
     }
 
+    /**
+     * Whether [readFocusDirection] would name a direction, without naming it: this runs on every tick, and a nullable
+     * [FocusDirection] is boxed. A stick leaning at least the threshold on the axis it leans on most is what the other
+     * reads as a direction.
+     */
+    private fun isAnyFocusDirectionHeld(): Boolean {
+        for (index in 0 until MAX_GAMEPAD_COUNT) {
+            val gamepad = gamepads[index]
+            if (!gamepad.isConnected) {
+                continue
+            }
+            if (gamepad.isPressed(GamepadButton.DPAD_LEFT) || gamepad.isPressed(GamepadButton.DPAD_RIGHT) ||
+                gamepad.isPressed(GamepadButton.DPAD_UP) || gamepad.isPressed(GamepadButton.DPAD_DOWN)
+            ) return true
+            if (maxOf(abs(gamepad.leftStickX), abs(gamepad.leftStickY)) >= FOCUS_STICK_THRESHOLD) return true
+        }
+        return false
+    }
+
     private fun isAnyGamepadPressing(button: GamepadButton): Boolean {
         for (index in 0 until MAX_GAMEPAD_COUNT) {
             if (gamepads[index].isConnected && gamepads[index].isPressed(button)) {
@@ -275,7 +294,7 @@ internal class GamepadInputManagerImpl(
             updateGamepad(gamepads[index], rawGamepads[index])
         }
         _connectedGamepadCount.value = connectedCount
-        hasFocusNavigationInput.value = connectedCount > 0 && (readFocusDirection() != null ||
+        hasFocusNavigationInput.value = isFocusNavigationEnabled && connectedCount > 0 && (isAnyFocusDirectionHeld() ||
                 isAnyGamepadPressing(GamepadButton.SOUTH) || isAnyGamepadPressing(GamepadButton.EAST))
     }
 
