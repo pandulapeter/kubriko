@@ -44,7 +44,7 @@ source only. Run `./gradlew build` and the showcase on every platform, then chec
   - headless `ActorManager`s keep constant layer and overlay lists;
   - `InternalViewport` calls `withFrameNanos` with the hoisted lambda (millisecond conversion inside).
 
-- **Pointer input** (the commit after `9c32d0f` that attaches it to the container only): every pointer event now
+- **Pointer input** (`ce67ad2`, container only): every pointer event now
   reaches actors once. Check Tesselar's wheel zoom on desktop and web. The engine used to report each wheel turn
   twice, and Tesselar's `isWheelZoomHandled` only swallowed the first, so a notch zoomed by Tesselar's step plus
   the engine's own. It should now zoom by Tesselar's step alone, as its docs intend, which feels smaller per notch.
