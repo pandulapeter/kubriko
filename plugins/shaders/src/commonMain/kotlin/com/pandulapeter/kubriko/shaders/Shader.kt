@@ -51,9 +51,10 @@ interface Shader<T : Shader.State> : LayerAware {
         /**
          * A cheap marker for whether the uniform values held by this state changed since it was last
          * read. When it reports the same value as the previous frame (and the layer size is also
-         * unchanged), the native `RenderEffect` is reused instead of rebuilt. Defaults to
-         * [DIRTINESS_UNKNOWN], which always forces a rebuild — the safe behavior for implementations
-         * that don't override it. Override with e.g. a value derived from the uniforms themselves
+         * unchanged), the uniforms aren't even applied, and the native `RenderEffect` (or, for a shader that
+         * isn't a [ContentShader], the native shader it fills its layer with) is reused instead of rebuilt.
+         * Defaults to [DIRTINESS_UNKNOWN], which always applies the uniforms — the safe behavior for
+         * implementations that don't override it; the result is then rebuilt only if one of them changed. Override with e.g. a value derived from the uniforms themselves
          * (bumped only when they actually change) to skip rebuilding while a shader is static, such as
          * during an idle-throttled tick rate.
          */
@@ -69,7 +70,7 @@ interface Shader<T : Shader.State> : LayerAware {
         companion object {
             /**
              * The default [dirtinessToken]: never compares as equal to a previous token, so the
-             * `RenderEffect` is rebuilt on every frame.
+             * uniforms are applied on every frame.
              */
             const val DIRTINESS_UNKNOWN = Int.MIN_VALUE
         }
@@ -82,6 +83,7 @@ interface Shader<T : Shader.State> : LayerAware {
         internal var runtimeShader: Any? = null
         internal var uniformProvider: ShaderUniformProvider? = null
         internal var cachedRenderEffect: RenderEffect? = null
+        internal var cachedPaint: Any? = null
         internal var cachedDirtinessToken: Int = State.DIRTINESS_UNKNOWN
         internal var cachedSize: Size? = null
         internal var cachedState: State? = null
