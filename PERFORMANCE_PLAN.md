@@ -64,12 +64,9 @@ These were found by reading code and not yet adversarially verified; re-check ea
 2. **`MetadataManagerImpl` boxes two `Long`s per tick** into `totalRuntimeInMilliseconds` /
    `activeRuntimeInMilliseconds`, which nothing collects in Tesselar. Keeping `.value` and collection semantics
    identical needs care. Optional.
-3. **The iOS gamepad poll allocates about 30 Kotlin wrappers per tick per controller**
-   (`plugins/gamepad-input/src/iosMain/.../GamepadEventHandler.ios.kt`). Resolve the `GCExtendedGamepad` element
-   objects once per connected controller, and read only `axis.value` / `button.pressed` per tick.
-4. **iOS copies every triangle batch into bucket mirrors** (`engine/src/iosMain/.../TriangleMesh.ios.kt`), although
+3. **iOS copies every triangle batch into bucket mirrors** (`engine/src/iosMain/.../TriangleMesh.ios.kt`), although
    the native draw takes explicit counts. The fix is a pinned fast path like `WasmTriangleBridge`. It couples to
    Skiko's ABI, so only do it if the saving, roughly 0.2-0.5 ms per frame, is worth the upkeep.
-5. **`slidingMovement` allocates a `CollisionResult` per overlapping obstacle per iteration**
+4. **`slidingMovement` allocates a `CollisionResult` per overlapping obstacle per iteration**
    (`plugins/collision/.../CollisionMaskExtensions.kt`). Track the deepest overlap in scratch floats instead,
    keeping the public functions bit-identical.

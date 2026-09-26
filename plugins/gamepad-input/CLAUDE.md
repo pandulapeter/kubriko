@@ -94,7 +94,7 @@ left acting on an input that is no longer there.
 |---|---|---|
 | Android | `OnGenericMotionListener` on the decorView + `OnUnhandledKeyEventListener` | Consuming the joystick motion events suppresses the system's synthetic `KEYCODE_DPAD_*` events for the left stick |
 | Desktop (JVM) | Jamepad (SDL2) | One SDL instance per process, reference counted across `Kubriko` instances; a native library that fails to load leaves the plugin inert |
-| iOS | `GameController` framework | Vertical axes point upwards there and are negated; controllers without an extended profile are ignored |
+| iOS | `GameController` framework | Vertical axes point upwards there and are negated; controllers without an extended profile are ignored. Each slot's element objects are resolved once when its controller connects, since every Objective-C object read off the profile is a fresh Kotlin wrapper and a poll would otherwise allocate one per element |
 | Web (Wasm) | Gamepad API | Gamepads stay invisible until the player presses a button; only the "standard" mapping is interpreted |
 
 ## Key API Details

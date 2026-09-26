@@ -24,6 +24,11 @@ internal actual fun createGamepadEventHandler(): GamepadEventHandler = object : 
 
     private var gamepads: Array<RawGamepadState>? = null
     private val controllers = arrayOfNulls<GCController>(MAX_GAMEPAD_COUNT)
+
+    // Every Objective-C object crossing into Kotlin gets a fresh wrapper, so reading a controller's elements off its
+    // profile on every poll would allocate about thirty of them a tick. They are the same objects for as long as the
+    // controller stays connected, so they are resolved once per slot and a poll only reads primitives through them.
+    private val elements = arrayOfNulls<GamepadElements>(MAX_GAMEPAD_COUNT)
     private var connectObserver: NSObjectProtocol? = null
     private var disconnectObserver: NSObjectProtocol? = null
 
@@ -55,13 +60,14 @@ internal actual fun createGamepadEventHandler(): GamepadEventHandler = object : 
         connectObserver = null
         disconnectObserver = null
         controllers.fill(null)
+        elements.fill(null)
         gamepads = null
     }
 
     override fun poll() {
         val gamepads = gamepads ?: return
         for (slot in controllers.indices) {
-            controllers[slot]?.extendedGamepad?.let { gamepads[slot].read(it) }
+            elements[slot]?.let { gamepads[slot].read(it) }
         }
     }
 
@@ -76,17 +82,20 @@ internal actual fun createGamepadEventHandler(): GamepadEventHandler = object : 
             val controller = controllers[slot]
             if (controller != null && !connectedControllers.contains(controller)) {
                 controllers[slot] = null
+                elements[slot] = null
                 gamepads?.get(slot)?.reset()
             }
         }
         connectedControllers.forEach { connectedController ->
             val controller = connectedController as? GCController ?: return@forEach
-            if (controller.extendedGamepad == null || controllers.contains(controller)) {
+            val extendedGamepad = controller.extendedGamepad
+            if (extendedGamepad == null || controllers.contains(controller)) {
                 return@forEach
             }
             val slot = controllers.indexOfFirst { it == null }
             if (slot != NO_SLOT) {
                 controllers[slot] = controller
+                elements[slot] = GamepadElements(extendedGamepad)
                 gamepads?.get(slot)?.let { gamepad ->
                     gamepad.reset()
                     gamepad.isConnected = true
@@ -96,30 +105,67 @@ internal actual fun createGamepadEventHandler(): GamepadEventHandler = object : 
         }
     }
 
-    private fun RawGamepadState.read(gamepad: GCExtendedGamepad) {
-        leftStickX = gamepad.leftThumbstick.xAxis.value
-        rightStickX = gamepad.rightThumbstick.xAxis.value
+    private fun RawGamepadState.read(elements: GamepadElements) {
+        leftStickX = elements.leftStickX.value
+        rightStickX = elements.rightStickX.value
         // The GameController framework points its vertical axes upwards, the engine points them downwards.
-        leftStickY = -gamepad.leftThumbstick.yAxis.value
-        rightStickY = -gamepad.rightThumbstick.yAxis.value
-        leftTrigger = gamepad.leftTrigger.value
-        rightTrigger = gamepad.rightTrigger.value
-        setButton(GamepadButton.SOUTH, gamepad.buttonA.isPressed())
-        setButton(GamepadButton.EAST, gamepad.buttonB.isPressed())
-        setButton(GamepadButton.WEST, gamepad.buttonX.isPressed())
-        setButton(GamepadButton.NORTH, gamepad.buttonY.isPressed())
-        setButton(GamepadButton.LEFT_SHOULDER, gamepad.leftShoulder.isPressed())
-        setButton(GamepadButton.RIGHT_SHOULDER, gamepad.rightShoulder.isPressed())
-        setButton(GamepadButton.LEFT_STICK, gamepad.leftThumbstickButton?.isPressed() == true)
-        setButton(GamepadButton.RIGHT_STICK, gamepad.rightThumbstickButton?.isPressed() == true)
-        setButton(GamepadButton.DPAD_UP, gamepad.dpad.up.isPressed())
-        setButton(GamepadButton.DPAD_DOWN, gamepad.dpad.down.isPressed())
-        setButton(GamepadButton.DPAD_LEFT, gamepad.dpad.left.isPressed())
-        setButton(GamepadButton.DPAD_RIGHT, gamepad.dpad.right.isPressed())
-        setButton(GamepadButton.START, gamepad.buttonMenu.isPressed())
-        setButton(GamepadButton.SELECT, gamepad.buttonOptions?.isPressed() == true)
-        setButton(GamepadButton.GUIDE, gamepad.buttonHome?.isPressed() == true)
+        leftStickY = -elements.leftStickY.value
+        rightStickY = -elements.rightStickY.value
+        leftTrigger = elements.leftTrigger.value
+        rightTrigger = elements.rightTrigger.value
+        for (index in READ_BUTTONS.indices) {
+            setButton(READ_BUTTONS[index], elements.buttons[index]?.isPressed() == true)
+        }
     }
 }
+
+/** One extended gamepad's elements, resolved once while its controller stays connected - see `elements` above. */
+private class GamepadElements(gamepad: GCExtendedGamepad) {
+    val leftStickX = gamepad.leftThumbstick.xAxis
+    val leftStickY = gamepad.leftThumbstick.yAxis
+    val rightStickX = gamepad.rightThumbstick.xAxis
+    val rightStickY = gamepad.rightThumbstick.yAxis
+    val leftTrigger = gamepad.leftTrigger
+    val rightTrigger = gamepad.rightTrigger
+
+    /** Indexed like [READ_BUTTONS]; null where the controller doesn't have that button. */
+    val buttons = arrayOf(
+        gamepad.buttonA,
+        gamepad.buttonB,
+        gamepad.buttonX,
+        gamepad.buttonY,
+        gamepad.leftShoulder,
+        gamepad.rightShoulder,
+        gamepad.leftThumbstickButton,
+        gamepad.rightThumbstickButton,
+        gamepad.dpad.up,
+        gamepad.dpad.down,
+        gamepad.dpad.left,
+        gamepad.dpad.right,
+        gamepad.buttonMenu,
+        gamepad.buttonOptions,
+        gamepad.buttonHome,
+    )
+}
+
+// The buttons read off the controller, in the order GamepadElements.buttons holds them. The triggers' own buttons are
+// left out: the manager derives those from the trigger values the same way on every platform.
+private val READ_BUTTONS = arrayOf(
+    GamepadButton.SOUTH,
+    GamepadButton.EAST,
+    GamepadButton.WEST,
+    GamepadButton.NORTH,
+    GamepadButton.LEFT_SHOULDER,
+    GamepadButton.RIGHT_SHOULDER,
+    GamepadButton.LEFT_STICK,
+    GamepadButton.RIGHT_STICK,
+    GamepadButton.DPAD_UP,
+    GamepadButton.DPAD_DOWN,
+    GamepadButton.DPAD_LEFT,
+    GamepadButton.DPAD_RIGHT,
+    GamepadButton.START,
+    GamepadButton.SELECT,
+    GamepadButton.GUIDE,
+)
 
 private const val NO_SLOT = -1
