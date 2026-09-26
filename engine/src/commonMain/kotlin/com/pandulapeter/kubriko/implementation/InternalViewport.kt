@@ -17,7 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.withFrameMillis
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Size
@@ -85,9 +85,11 @@ fun InternalViewport(
         // When the previous display frame was processed, on the clock the sleep below is measured against.
         val loopStartTimeMark = TimeSource.Monotonic.markNow()
         var lastFrameProcessedAtInMilliseconds = 0L
-        // Hoisted out of the loop: a lambda declared inline in the withFrameMillis call would capture
-        // the mutable locals and be re-allocated on every frame.
-        val onFrame: (Long) -> Unit = { frameTimeInMilliseconds ->
+        // Hoisted out of the loop: a lambda declared inline in the frame call would capture the mutable locals and
+        // be re-allocated on every frame. Nanoseconds rather than withFrameMillis, which wraps whatever it is given
+        // in a lambda of its own on every call.
+        val onFrame: (Long) -> Unit = { frameTimeInNanoseconds ->
+            val frameTimeInMilliseconds = frameTimeInNanoseconds / NANOSECONDS_PER_MILLISECOND
             lastFrameProcessedAtInMilliseconds = loopStartTimeMark.elapsedNow().inWholeMilliseconds
             if (lastFrameTime == -1L) {
                 lastFrameTime = frameTimeInMilliseconds
@@ -199,7 +201,7 @@ fun InternalViewport(
                     }
                 }
             }
-            withFrameMillis(onFrame)
+            withFrameNanos(onFrame)
         }
     }
 
@@ -246,3 +248,6 @@ fun InternalViewport(
         }
     }
 }
+
+// Compose hands frame times over in nanoseconds; the loop keeps its own time in milliseconds.
+private const val NANOSECONDS_PER_MILLISECOND = 1_000_000L

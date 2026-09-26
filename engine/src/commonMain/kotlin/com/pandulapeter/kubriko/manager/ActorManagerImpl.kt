@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Size
@@ -84,9 +85,18 @@ internal class ActorManagerImpl(
     private val overlayDrawingOrderComparator = Comparator<Overlay> { a, b ->
         (b.overlayDrawingOrder + 0f).compareTo(a.overlayDrawingOrder + 0f)
     }
+    // A headless instance never composes a layer or draws an overlay, so it doesn't follow either of these through
+    // every change of its actor list.
     private val layerIndices by autoInitializingLazy {
-        _allActors
-            .map { actors -> actors.filterIsInstance<LayerAware>().groupBy { it.layerIndex }.keys.sortedBy { it }.toImmutableList() }
+        if (!shouldComposeLayers) MutableStateFlow<ImmutableList<Int?>>(persistentListOf()).asStateFlow() else _allActors
+            .map { actors ->
+                // Only the distinct indices are needed, not every actor grouped under its own.
+                val indices = HashSet<Int?>()
+                for (actor in actors) {
+                    if (actor is LayerAware) indices.add(actor.layerIndex)
+                }
+                indices.sortedWith(nullsFirst(naturalOrder())).toImmutableList()
+            }
             .distinctUntilChanged()
             .flowOn(Dispatchers.Default)
             .asStateFlowOnMainThread(persistentListOf())
@@ -106,7 +116,7 @@ internal class ActorManagerImpl(
             .asStateFlowOnMainThread(persistentListOf())
     }
     private val overlayActors by autoInitializingLazy {
-        _allActors
+        if (!shouldComposeLayers) MutableStateFlow<ImmutableList<Overlay>>(persistentListOf()).asStateFlow() else _allActors
             .map { actors -> actors.filterIsInstance<Overlay>().toImmutableList() }
             .distinctUntilChanged()
             .flowOn(Dispatchers.Default)
@@ -539,13 +549,25 @@ internal class ActorManagerImpl(
         if (!shouldComposeLayers) return
         val gameTime = metadataManager.gameTime
         val isKubrikoInitialized = isInitialized.collectAsState().value
-        val layers = layerIndices.collectAsState().value
         Box(
             modifier = if (isKubrikoInitialized) kubrikoImpl.managers.fold(Modifier.clipToBounds()) { modifierToProcess, manager ->
                 manager.processModifierInternal(modifierToProcess, null, gameTime)
             } else Modifier.clipToBounds(),
         ) {
-            layers.forEach { layerIndex ->
+            Layers(gameTime)
+        }
+    }
+
+    /**
+     * A scope of its own, so that a layer coming or going recomposes only the layers rather than rebuilding the
+     * container's whole modifier chain (restarting its pointer handlers among others), and keyed by index, so that
+     * one appearing in front of the others doesn't hand every later layer's node to a different layer.
+     */
+    @Composable
+    private fun Layers(gameTime: State<Long>) {
+        val layers = layerIndices.collectAsState().value
+        layers.forEach { layerIndex ->
+            key(layerIndex) {
                 Layer(
                     gameTime = gameTime,
                     layerIndex = layerIndex,
