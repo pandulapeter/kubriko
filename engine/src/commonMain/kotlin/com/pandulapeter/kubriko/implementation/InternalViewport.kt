@@ -29,10 +29,13 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.TargetFrameRate
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
+import kotlin.math.roundToInt
+import kotlin.time.TimeSource
 
 @Composable
 fun InternalViewport(
@@ -72,9 +75,20 @@ fun InternalViewport(
         var phaseInMilliseconds = 0f
         // Display-frame counter for TargetFrameRate.DisplayDivider; emits on every divisor-th frame.
         var displayFramesSinceTick = 0
+        // The panel's own frame interval: the gap between the last two display frames awaited back to back,
+        // 0 until two such frames have been seen. Frames slept through (see below) are never observed, so only
+        // the ones that aren't keep it current.
+        var displayFrameInterval = 0f
+        // Whether the loop slept through display frames before awaiting the current one, in which case its
+        // delta spans several of them and says nothing about the panel's interval.
+        var hasSkippedDisplayFrames = false
+        // When the previous display frame was processed, on the clock the sleep below is measured against.
+        val loopStartTimeMark = TimeSource.Monotonic.markNow()
+        var lastFrameProcessedAtInMilliseconds = 0L
         // Hoisted out of the loop: a lambda declared inline in the withFrameMillis call would capture
         // the mutable locals and be re-allocated on every frame.
         val onFrame: (Long) -> Unit = { frameTimeInMilliseconds ->
+            lastFrameProcessedAtInMilliseconds = loopStartTimeMark.elapsedNow().inWholeMilliseconds
             if (lastFrameTime == -1L) {
                 lastFrameTime = frameTimeInMilliseconds
                 lastProcessedFrameTime = frameTimeInMilliseconds
@@ -82,6 +96,9 @@ fun InternalViewport(
             } else {
                 val frameDelta = (frameTimeInMilliseconds - lastFrameTime).toInt()
                 lastFrameTime = frameTimeInMilliseconds
+                if (!hasSkippedDisplayFrames && frameDelta > 0) {
+                    displayFrameInterval = frameDelta.toFloat()
+                }
                 val canTick = viewportTickSource != null &&
                         viewportTickSource.isRunningInternal.value &&
                         !kubrikoImpl.viewportManager.size.value.isEmpty() &&
@@ -101,8 +118,10 @@ fun InternalViewport(
                             // demanding a full interval postpones every near-miss by a whole frame and quantizes
                             // the achieved rate down to a fraction of the target - most visibly when the panel
                             // itself runs at the target rate (see PlatformFrameRateHint), where the two throttles
-                            // compound instead of stacking.
-                            if (phaseInMilliseconds >= interval - frameDelta / 2f) {
+                            // compound instead of stacking. After a sleep the delta spans several display frames,
+                            // so the tolerance is half of the panel's own interval rather than of the delta.
+                            val displayFrame = if (hasSkippedDisplayFrames) displayFrameInterval else frameDelta.toFloat()
+                            if (phaseInMilliseconds >= interval - displayFrame / 2f) {
                                 viewportTickSource.tick((frameTimeInMilliseconds - lastProcessedFrameTime).toInt())
                                 lastProcessedFrameTime = frameTimeInMilliseconds
                                 phaseInMilliseconds -= interval
@@ -115,7 +134,11 @@ fun InternalViewport(
                         }
 
                         is TargetFrameRate.DisplayDivider -> {
-                            displayFramesSinceTick++
+                            displayFramesSinceTick += if (hasSkippedDisplayFrames) {
+                                (frameDelta / displayFrameInterval).roundToInt().coerceAtLeast(1)
+                            } else {
+                                1
+                            }
                             if (displayFramesSinceTick >= targetFrameRate.divisor) {
                                 viewportTickSource.tick((frameTimeInMilliseconds - lastProcessedFrameTime).toInt())
                                 lastProcessedFrameTime = frameTimeInMilliseconds
@@ -131,6 +154,7 @@ fun InternalViewport(
                     displayFramesSinceTick = 0
                 }
             }
+            hasSkippedDisplayFrames = false
         }
         while (isActive) {
             val canTickNow = viewportTickSource != null &&
@@ -155,6 +179,25 @@ fun InternalViewport(
                 phaseInMilliseconds = 0f
                 displayFramesSinceTick = 0
                 continue
+            }
+            // Awaiting a display frame is what schedules one: on every Skia-backed platform the whole window is
+            // then drawn again, whether or not a tick changed anything. A throttled target sleeps through the
+            // frames that can't carry its next tick instead, and wakes half a display frame before the one that
+            // can, so that one is the next frame awaited - the tick decision above still runs on its real time.
+            if (lastFrameTime != -1L && displayFrameInterval > 0f) {
+                val displayFramesUntilTick = when (val targetFrameRate = kubrikoImpl.viewportManager.targetFrameRate.value) {
+                    TargetFrameRate.DisplayDefault -> 1
+                    is TargetFrameRate.Limit -> ((1000f / targetFrameRate.framesPerSecond - phaseInMilliseconds) / displayFrameInterval).roundToInt()
+                    is TargetFrameRate.DisplayDivider -> targetFrameRate.divisor - displayFramesSinceTick
+                }
+                if (displayFramesUntilTick >= 2) {
+                    val sleepInMilliseconds = ((displayFramesUntilTick - 0.5f) * displayFrameInterval).toLong() -
+                            (loopStartTimeMark.elapsedNow().inWholeMilliseconds - lastFrameProcessedAtInMilliseconds)
+                    if (sleepInMilliseconds > 0L) {
+                        hasSkippedDisplayFrames = true
+                        delay(sleepInMilliseconds)
+                    }
+                }
             }
             withFrameMillis(onFrame)
         }
