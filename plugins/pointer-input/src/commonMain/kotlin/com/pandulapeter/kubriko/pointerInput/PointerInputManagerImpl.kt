@@ -228,14 +228,20 @@ internal class PointerInputManagerImpl(
     override fun processOverlayModifier(modifier: Modifier) = modifier.onGloballyPositioned { coordinates ->
         rootOffset.value = coordinates.positionInRoot()
     }.run {
-        if (isActiveAboveViewport) pointerInputHandlingModifier() else this
+        if (isActiveAboveViewport) then(pointerInputHandling) else this
     }
 
     @Composable
-    override fun processModifier(modifier: Modifier, layerIndex: Int?, gameTime: State<Long>) = modifier.onGloballyPositioned { coordinates ->
-        viewportOffset.value = coordinates.positionInRoot()
-    }.run {
-        if (isActiveAboveViewport) this else pointerInputHandlingModifier()
+    override fun processModifier(modifier: Modifier, layerIndex: Int?, gameTime: State<Long>): Modifier {
+        // Only on the layers' container, which spans exactly what every layer does: the container is on the path of
+        // every event a layer's handler sees, so a handler on the layers as well would handle each event twice - a
+        // press reported as a press and then again as a move, a wheel turn zooming twice.
+        if (layerIndex != null) return modifier
+        return modifier.onGloballyPositioned { coordinates ->
+            viewportOffset.value = coordinates.positionInRoot()
+        }.run {
+            if (isActiveAboveViewport) this else then(pointerInputHandling)
+        }
     }
 
     @Composable
@@ -243,7 +249,9 @@ internal class PointerInputManagerImpl(
         densityMultiplier = 1 / LocalDensity.current.density
     }
 
-    private fun Modifier.pointerInputHandlingModifier() = pointerInput(Unit) {
+    // Built once, so that recomposing whatever carries it hands Compose the very same elements and leaves their handlers
+    // running, where fresh lambdas would restart them and drop a gesture in progress.
+    private val pointerInputHandling: Modifier by lazy { Modifier.pointerInput(Unit) {
         awaitPointerEventScope {
             while (true) {
                 val event = awaitPointerEvent()
@@ -320,7 +328,7 @@ internal class PointerInputManagerImpl(
                 pointerInputAwareActors.value.forEach { it.onPointerZoom(offset, factor) }
             }
         },
-    )
+    ) }
 
     companion object {
         private const val CANCELLATION_GRACE_PERIOD_IN_TICKS = 2

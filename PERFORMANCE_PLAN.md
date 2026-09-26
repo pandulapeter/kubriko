@@ -44,37 +44,32 @@ source only. Run `./gradlew build` and the showcase on every platform, then chec
   - headless `ActorManager`s keep constant layer and overlay lists;
   - `InternalViewport` calls `withFrameNanos` with the hoisted lambda (millisecond conversion inside).
 
+- **Pointer input** (the commit after `9c32d0f` that attaches it to the container only): every pointer event now
+  reaches actors once. Check Tesselar's wheel zoom on desktop and web. The engine used to report each wheel turn
+  twice, and Tesselar's `isWheelZoomHandled` only swallowed the first, so a notch zoomed by Tesselar's step plus
+  the engine's own. It should now zoom by Tesselar's step alone, as its docs intend, which feels smaller per notch.
+
 Then release, and bump the version in Tesselar.
 
 ## 2. Audit findings not implemented yet
 
 These were found by reading code and not yet adversarially verified; re-check each before implementing.
 
-1. **Pointer input is attached to the layer container and to every layer**
-   (`plugins/pointer-input/.../PointerInputManagerImpl.kt` `processModifier`). Every event is processed twice, a
-   press also produces a spurious `onPointerOffsetChanged`, and the wheel zoom may be reported twice on desktop and
-   web. Proposed fix:
-   - Attach only when `layerIndex == null`.
-   - Hoist the `pointerInput(Unit) { }` handler into a stable property, so the container's recompositions stop
-     restarting its coroutines.
-
-   This changes the observable callback count, so check Tesselar's `ControlOverlayManager.onPointerZoom`
-   (`isWheelZoomHandled`) and camera drag.
-2. **`SyncStateFlow.value` boxes `Scale`/`SceneOffset` on every read**
+1. **`SyncStateFlow.value` boxes `Scale`/`SceneOffset` on every read**
    (`engine/.../implementation/SyncStateFlow.kt`). The engine reads `scaleFactor` once per layer per frame, even for
    layers holding only overlays. Proposed fixes:
    - Compute the transform only for layers with `Visible` actors.
    - Add an internal unboxed `currentScaleFactor()`.
    - Memoize the result by input identity.
-3. **`MetadataManagerImpl` boxes two `Long`s per tick** into `totalRuntimeInMilliseconds` /
+2. **`MetadataManagerImpl` boxes two `Long`s per tick** into `totalRuntimeInMilliseconds` /
    `activeRuntimeInMilliseconds`, which nothing collects in Tesselar. Keeping `.value` and collection semantics
    identical needs care. Optional.
-4. **The iOS gamepad poll allocates about 30 Kotlin wrappers per tick per controller**
+3. **The iOS gamepad poll allocates about 30 Kotlin wrappers per tick per controller**
    (`plugins/gamepad-input/src/iosMain/.../GamepadEventHandler.ios.kt`). Resolve the `GCExtendedGamepad` element
    objects once per connected controller, and read only `axis.value` / `button.pressed` per tick.
-5. **iOS copies every triangle batch into bucket mirrors** (`engine/src/iosMain/.../TriangleMesh.ios.kt`), although
+4. **iOS copies every triangle batch into bucket mirrors** (`engine/src/iosMain/.../TriangleMesh.ios.kt`), although
    the native draw takes explicit counts. The fix is a pinned fast path like `WasmTriangleBridge`. It couples to
    Skiko's ABI, so only do it if the saving, roughly 0.2-0.5 ms per frame, is worth the upkeep.
-6. **`slidingMovement` allocates a `CollisionResult` per overlapping obstacle per iteration**
+5. **`slidingMovement` allocates a `CollisionResult` per overlapping obstacle per iteration**
    (`plugins/collision/.../CollisionMaskExtensions.kt`). Track the deepest overlap in scratch floats instead,
    keeping the public functions bit-identical.

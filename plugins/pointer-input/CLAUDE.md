@@ -14,8 +14,12 @@ All positions delivered to `PointerInputAware` callbacks are in **screen pixels*
 not scene units. The manager does not project to scene space; actors must do that themselves using
 `ViewportManager` bounds if they need scene-space coordinates.
 
-When `isActiveAboveViewport = false` (default), the modifier attaches to the viewport layer and
-positions are relative to the viewport top-left. When `isActiveAboveViewport = true`, the modifier
+When `isActiveAboveViewport = false` (default), the modifier attaches to the container of the viewport's
+layers (`processModifier` with a null layer index) and to no layer itself, and positions are relative to the
+viewport top-left. The container spans exactly what each layer does and is on the path of every event a layer
+sees, so a handler on the layers too would handle each event twice: a press reported again as a move, a wheel
+turn zooming twice. The handler chain is built once (`pointerInputHandling`), so a recomposition hands Compose
+the same elements and leaves the handlers running instead of restarting them mid-gesture. When `isActiveAboveViewport = true`, the modifier
 attaches to the overlay layer and positions are adjusted by `rootOffset - viewportOffset` to stay
 consistent with full-window coordinates.
 
