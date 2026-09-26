@@ -59,9 +59,16 @@ implements `FocusEventModifierNode` and claims a single slot on the manager whil
 `GamepadButton.SOUTH` invokes whatever holds that slot. Everything else — traversal order, geometry, focus
 state, focus visuals — stays Compose's.
 
-It runs off the frames of the composition (`Manager.Composable`), not off `onUpdate`, so the menus a game shows
-while it is paused stay navigable with its loop stopped. `LocalFocusManager` read there is the **window's**, not
-the viewport's, so the focus it moves is the whole UI's.
+It runs off the frames of the composition (`Manager.Composable`), not off `onUpdate`, so the focus is moved from
+the thread the composition runs on whichever one the game ticks on. **It only asks for frames while the pads are
+asking something of the focus**: the pad state it reads is only refreshed when `onUpdate` polls, so the loop sleeps
+until a poll finds a direction or one of its buttons held (plus the one frame that sees them let go, which is what
+keeps press and release edges exact), and while the window is unfocused, whose pads nobody polls - their last state
+is taken as the resting one when the focus comes back. A controller resting in a menu costs no frames, where a frame
+loop reading unchanged state would redraw the whole window at the display's rate on most platforms. A game that
+wants its menus navigable while paused therefore has to keep ticking the instance that holds this manager, as
+before. `LocalFocusManager` read there is the **window's**, not the viewport's, so the focus it moves is the whole
+UI's.
 
 Gamepad input also claims `InputMode.Keyboard` on the host's `InputModeManager`, the same claim Compose makes for
 the arrow keys. Compose decides from the window's input mode both whether a `clickable` is a focus target at all

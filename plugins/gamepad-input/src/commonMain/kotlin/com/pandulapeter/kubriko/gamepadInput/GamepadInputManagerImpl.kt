@@ -63,6 +63,24 @@ internal class GamepadInputManagerImpl(
     private var wasActivationButtonPressed = false
     private var wasBackButtonPressed = false
 
+    // Whether the pads asked anything of the focus when they were last polled - what wakes the frame loop below, which
+    // otherwise sleeps: the state it reads only changes when onUpdate() polls, so a frame with nothing held would
+    // only ask for a display frame, and a redraw of the whole window on most platforms, to learn nothing.
+    private val hasFocusNavigationInput = MutableStateFlow(false)
+    private var previousFocusFrameTimeNanos = 0L
+    private var hadFocusNavigationInput = false
+
+    // Held rather than written inline, so that awaiting a frame doesn't allocate a lambda every time.
+    private val onFocusNavigationFrame: (Long) -> Unit = { frameTimeNanos ->
+        val deltaTimeInMilliseconds = if (previousFocusFrameTimeNanos == 0L) {
+            0f
+        } else {
+            ((frameTimeNanos - previousFocusFrameTimeNanos) / NANOSECONDS_PER_MILLISECOND).coerceAtMost(MAXIMUM_FRAME_TIME)
+        }
+        previousFocusFrameTimeNanos = frameTimeNanos
+        hadFocusNavigationInput = updateFocusNavigation(deltaTimeInMilliseconds)
+    }
+
     // Scratch storage for applyDeadZone(), which has to return two values without allocating.
     private var deadZonedX = 0f
     private var deadZonedY = 0f
@@ -84,50 +102,64 @@ internal class GamepadInputManagerImpl(
     /**
      * Walks Compose's own focus with the gamepad, for as long as [isFocusNavigationEnabled] is on.
      *
-     * Driven by the frames of the composition rather than by [onUpdate], so that the menus a game shows while it
-     * is paused - the very surfaces this exists for - are navigable while its loop is stopped. Which focus
-     * system it walks is read per frame rather than captured here, so that a popup opening and closing moves the
-     * sticks between them (see [GamepadFocusNavigationHost]).
+     * Driven by the frames of the composition rather than by [onUpdate], so that the focus is moved from the thread
+     * the composition runs on, whichever one the game's ticks run on. Frames are only asked for while the pads are
+     * asking something of the focus, though, and for the one frame after that sees them let go: the state read here
+     * only changes when [onUpdate] polls it, so the loop sleeps until a poll finds something held - and while the
+     * window is unfocused, whose pads nobody polls. Which focus system it walks is read per frame rather than
+     * captured here, so that a popup opening and closing moves the sticks between them (see
+     * [GamepadFocusNavigationHost]).
      */
     @Composable
     private fun FocusNavigationEffect() {
         LaunchedEffect(Unit) {
-            // Whatever the sticks and the buttons are already doing at the moment navigation is turned on is
-            // taken as their resting state, so a menu that opens under a held control doesn't immediately act on
-            // it: only what the player does next counts.
-            wasActivationButtonPressed = isAnyGamepadPressing(GamepadButton.SOUTH)
-            wasBackButtonPressed = isAnyGamepadPressing(GamepadButton.EAST)
-            focusDirection = readFocusDirection()
-            timeUntilNextFocusStepInMilliseconds = FOCUS_REPEAT_DELAY
-            var previousFrameTimeNanos = 0L
+            restFocusNavigation()
             while (isActive) {
                 if (_connectedGamepadCount.value == 0) {
                     // Nothing to navigate with, so suspend rather than wake at every frame to read four
                     // disconnected pads. onUpdate() keeps polling for controllers and publishes the count
                     // that resumes this loop; the reset makes the first frame after it a zero delta.
                     _connectedGamepadCount.first { it > 0 }
-                    previousFrameTimeNanos = 0L
+                    previousFocusFrameTimeNanos = 0L
                 }
-                withFrameNanos { frameTimeNanos ->
-                    val deltaTimeInMilliseconds = if (previousFrameTimeNanos == 0L) {
-                        0f
-                    } else {
-                        ((frameTimeNanos - previousFrameTimeNanos) / NANOSECONDS_PER_MILLISECOND).coerceAtMost(MAXIMUM_FRAME_TIME)
-                    }
-                    previousFrameTimeNanos = frameTimeNanos
-                    updateFocusNavigation(deltaTimeInMilliseconds)
+                if (!stateManager.isFocused.value) {
+                    // What the pads last reported is stale until the window is polled again, so it is taken as
+                    // their resting state once the focus is back, the way it is when navigation is turned on.
+                    stateManager.isFocused.first { it }
+                    restFocusNavigation()
+                    continue
                 }
+                if (!hadFocusNavigationInput && !hasFocusNavigationInput.value) {
+                    hasFocusNavigationInput.first { it }
+                    previousFocusFrameTimeNanos = 0L
+                }
+                withFrameNanos(onFocusNavigationFrame)
             }
         }
     }
 
-    private fun updateFocusNavigation(deltaTimeInMilliseconds: Float) {
-        val host = focusNavigationHosts.lastOrNull() ?: return
-        val focusManager = host.focusManager
+    /**
+     * Takes whatever the sticks and the buttons are doing right now as their resting state, so a menu that opens
+     * under a held control doesn't immediately act on it: only what the player does next counts.
+     */
+    private fun restFocusNavigation() {
+        wasActivationButtonPressed = isAnyGamepadPressing(GamepadButton.SOUTH)
+        wasBackButtonPressed = isAnyGamepadPressing(GamepadButton.EAST)
+        focusDirection = readFocusDirection()
+        timeUntilNextFocusStepInMilliseconds = FOCUS_REPEAT_DELAY
+        previousFocusFrameTimeNanos = 0L
+        hadFocusNavigationInput = false
+    }
+
+    /** Returns whether the pads asked anything of the focus on this frame. */
+    private fun updateFocusNavigation(deltaTimeInMilliseconds: Float): Boolean {
         val isActivationButtonPressed = isAnyGamepadPressing(GamepadButton.SOUTH)
         val isBackButtonPressed = isAnyGamepadPressing(GamepadButton.EAST)
         val direction = readFocusDirection()
-        if (isActivationButtonPressed || isBackButtonPressed || direction != null) {
+        val hasInput = isActivationButtonPressed || isBackButtonPressed || direction != null
+        val host = focusNavigationHosts.lastOrNull() ?: return hasInput
+        val focusManager = host.focusManager
+        if (hasInput) {
             // Compose decides whether a control can hold the focus at all, and whether holding it is worth
             // drawing, from the last kind of input the window saw: a tap or a mouse click puts it into touch
             // mode, where a control that is only clickable stops being a focus target and stops showing that it
@@ -147,19 +179,20 @@ internal class GamepadInputManagerImpl(
         }
         if (direction == null) {
             focusDirection = null
-            return
+            return hasInput
         }
         if (direction != focusDirection) {
             focusDirection = direction
             timeUntilNextFocusStepInMilliseconds = FOCUS_REPEAT_DELAY
             moveFocus(focusManager, direction)
-            return
+            return hasInput
         }
         timeUntilNextFocusStepInMilliseconds -= deltaTimeInMilliseconds
         if (timeUntilNextFocusStepInMilliseconds <= 0f) {
             timeUntilNextFocusStepInMilliseconds += FOCUS_REPEAT_INTERVAL
             moveFocus(focusManager, direction)
         }
+        return hasInput
     }
 
     /**
@@ -228,6 +261,7 @@ internal class GamepadInputManagerImpl(
                 wasFocused = false
                 releaseAllGamepads()
             }
+            hasFocusNavigationInput.value = false
             return
         }
         wasFocused = true
@@ -241,6 +275,8 @@ internal class GamepadInputManagerImpl(
             updateGamepad(gamepads[index], rawGamepads[index])
         }
         _connectedGamepadCount.value = connectedCount
+        hasFocusNavigationInput.value = connectedCount > 0 && (readFocusDirection() != null ||
+                isAnyGamepadPressing(GamepadButton.SOUTH) || isAnyGamepadPressing(GamepadButton.EAST))
     }
 
     private fun updateGamepad(gamepad: GamepadState, rawGamepad: RawGamepadState) {
@@ -367,6 +403,7 @@ internal class GamepadInputManagerImpl(
             rawGamepads[index].reset()
         }
         _connectedGamepadCount.value = 0
+        hasFocusNavigationInput.value = false
     }
 
     override fun onDispose() = stopListening()
