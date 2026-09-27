@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.helpers.extensions
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.manager.ViewportManagerImpl
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
@@ -24,7 +25,7 @@ import com.pandulapeter.kubriko.types.SceneUnit
 fun Offset.toSceneOffset(viewportManager: ViewportManager): SceneOffset = toSceneOffset(
     viewportCenter = viewportManager.cameraPosition.value,
     viewportSize = viewportManager.size.value,
-    viewportScaleFactor = viewportManager.scaleFactor.value,
+    viewportScaleFactor = (viewportManager as ViewportManagerImpl).currentScaleFactor(),
 )
 
 /**

@@ -13,6 +13,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.util.lerp
 import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.manager.ViewportManagerImpl
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -163,7 +164,7 @@ val List<SceneOffset>.center
  * Converts this [SceneOffset] to a screen [Offset].
  */
 fun SceneOffset.toOffset(viewportManager: ViewportManager): Offset = toOffset(
-    viewportScaleFactor = viewportManager.scaleFactor.value,
+    viewportScaleFactor = (viewportManager as ViewportManagerImpl).currentScaleFactor(),
 )
 
 /**

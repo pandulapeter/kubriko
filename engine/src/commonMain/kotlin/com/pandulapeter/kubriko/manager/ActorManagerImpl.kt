@@ -335,7 +335,7 @@ internal class ActorManagerImpl(
         val viewportSize = viewportManager.size.value
         // Read camera and scale once per tick; both update functions share the same snapshot
         val cameraPosition = viewportManager.cameraPosition.value
-        val scaleFactor = viewportManager.scaleFactor.value
+        val scaleFactor = viewportManager.currentScaleFactor()
 
         // Rebuild overlay draw cache only when the overlay list reference changes; a headless
         // instance never draws, so it has no cache to keep current.
@@ -591,20 +591,20 @@ internal class ActorManagerImpl(
             },
             onDraw = {
                 @Suppress("UNUSED_EXPRESSION") gameTime.value
-                val viewportCenter = viewportManager.cameraPosition.value
-                val viewportSize = viewportManager.size.value
-                val scaleFactor = viewportManager.scaleFactor.value
-                withTransform(
-                    transformBlock = {
-                        transformViewport(
-                            viewportCenter = viewportCenter,
-                            shiftedViewportOffset = (viewportSize / 2f) - viewportCenter,
-                            viewportScaleFactor = scaleFactor,
-                        )
-                    },
-                    drawBlock = {
-                        val visibles = sortedVisibleActorsByLayer[layerIndex]
-                        if (!visibles.isNullOrEmpty()) {
+                val visibles = sortedVisibleActorsByLayer[layerIndex]
+                if (!visibles.isNullOrEmpty()) {
+                    val viewportCenter = viewportManager.cameraPosition.value
+                    val viewportSize = viewportManager.size.value
+                    val scaleFactor = viewportManager.currentScaleFactor()
+                    withTransform(
+                        transformBlock = {
+                            transformViewport(
+                                viewportCenter = viewportCenter,
+                                shiftedViewportOffset = (viewportSize / 2f) - viewportCenter,
+                                viewportScaleFactor = scaleFactor,
+                            )
+                        },
+                        drawBlock = {
                             val canvas = drawContext.canvas
                             val transform = drawContext.transform
                             for (i in visibles.indices) {
@@ -626,9 +626,9 @@ internal class ActorManagerImpl(
                                     canvas.restore()
                                 }
                             }
-                        }
-                    }
-                )
+                        },
+                    )
+                }
                 val overlays = sortedOverlayActorsByLayer[layerIndex]
                 if (!overlays.isNullOrEmpty()) {
                     for (i in overlays.indices) {

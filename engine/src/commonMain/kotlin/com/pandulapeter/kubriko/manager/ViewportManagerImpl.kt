@@ -57,9 +57,7 @@ internal class ViewportManagerImpl(
             raw * multiplier
         }.stateIn(scope + Dispatchers.Main, SharingStarted.WhileSubscribed(), Scale.Unit)
 
-        SyncStateFlow(combinedFlow) {
-            rawScaleFactor.value * scaleFactorMultiplier.value
-        }
+        SyncStateFlow(combinedFlow, ::currentScaleFactor)
     }
     override val topLeft by autoInitializingLazy {
         val combinedFlow = combine(cameraPosition, size, scaleFactor) { viewportCenter, viewportSize, scale ->
@@ -99,8 +97,14 @@ internal class ViewportManagerImpl(
         actorManager = (kubriko as KubrikoImpl).actorManager
     }
 
+    /**
+     * The same value as `scaleFactor.value`, for per-frame engine reads: the generic [SyncStateFlow] getter boxes a
+     * fresh [Scale] on every read, while this returns it unboxed.
+     */
+    fun currentScaleFactor() = _scaleFactor.value * scaleFactorMultiplier.value
+
     override fun addToCameraPosition(offset: Offset) = _cameraPosition.update { currentValue ->
-        currentValue + SceneOffset(offset / scaleFactor.value)
+        currentValue + SceneOffset(offset / currentScaleFactor())
     }
 
     override fun setCameraPosition(position: SceneOffset) = _cameraPosition.update { position }

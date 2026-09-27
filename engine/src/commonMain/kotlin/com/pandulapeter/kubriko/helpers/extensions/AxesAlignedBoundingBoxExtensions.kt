@@ -23,11 +23,13 @@ import com.pandulapeter.kubriko.types.SceneUnit
  */
 fun AxisAlignedBoundingBox.isWithinViewportBounds(
     viewportManager: ViewportManager,
-): Boolean = isWithinViewportBounds(
-    scaledHalfViewportSize = SceneSize(viewportManager.size.value / (viewportManager.scaleFactor.value * 2)),
-    viewportCenter = viewportManager.cameraPosition.value,
-    viewportEdgeBuffer = (viewportManager as ViewportManagerImpl).viewportEdgeBuffer,
-)
+): Boolean = (viewportManager as ViewportManagerImpl).let { viewportManagerImpl ->
+    isWithinViewportBounds(
+        scaledHalfViewportSize = SceneSize(viewportManagerImpl.size.value / (viewportManagerImpl.currentScaleFactor() * 2)),
+        viewportCenter = viewportManagerImpl.cameraPosition.value,
+        viewportEdgeBuffer = viewportManagerImpl.viewportEdgeBuffer,
+    )
+}
 
 // Raw-float math: this runs for every actor on every visibility refresh, and the SceneUnit
 // operator chain would box through the generic comparisons.
