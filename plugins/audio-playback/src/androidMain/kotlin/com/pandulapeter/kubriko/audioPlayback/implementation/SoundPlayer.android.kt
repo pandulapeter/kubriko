@@ -30,9 +30,12 @@ internal actual fun createSoundPlayer(
 
     /** Loads waiting for [SoundPool]'s completion callback, keyed by sample id. Only touched on the main thread. */
     private val pendingLoads = HashMap<Int, CancellableContinuation<Int?>>()
+
+    /** The most recent stream ids of each loaded sample, so a sample can't hold more than its share of streams. */
+    private val streamRings = HashMap<Int, StreamRing>()
     private val soundPool = remember {
         SoundPool.Builder()
-            .setMaxStreams(maximumSimultaneousStreamsOfTheSameSound)
+            .setMaxStreams(MAXIMUM_TOTAL_STREAMS)
             .setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_GAME)
@@ -66,7 +69,7 @@ internal actual fun createSoundPlayer(
             }
         } ?: return null
         // SoundPool delivers load callbacks on the main looper, so registering there keeps pendingLoads single-threaded.
-        return withContext(Dispatchers.Main) {
+        val loadedSampleId = withContext(Dispatchers.Main) {
             suspendCancellableCoroutine { continuation ->
                 val sampleId = fileDescriptor.use { soundPool.load(it, 1) }
                 if (sampleId == 0) {
@@ -76,19 +79,50 @@ internal actual fun createSoundPlayer(
                 }
             }
         }
+        if (loadedSampleId != null) {
+            synchronized(streamRings) {
+                streamRings[loadedSampleId] = StreamRing(IntArray(maximumSimultaneousStreamsOfTheSameSound.coerceAtLeast(1)))
+            }
+        }
+        return loadedSampleId
     }
 
     override suspend fun play(sound: Any) {
         withContext(Dispatchers.Default) {
-            soundPool.play(sound as Int, 1f, 1f, 1, 0, 1f)
+            sound as Int
+            synchronized(streamRings) {
+                val ring = streamRings[sound]
+                if (ring == null) {
+                    soundPool.play(sound, 1f, 1f, 1, 0, 1f)
+                } else {
+                    // SoundPool reports no end of stream, so the oldest stream of this sample is cut off to make room.
+                    val oldestStreamId = ring.streamIds[ring.cursor]
+                    if (oldestStreamId != 0) {
+                        soundPool.stop(oldestStreamId)
+                    }
+                    ring.streamIds[ring.cursor] = soundPool.play(sound, 1f, 1f, 1, 0, 1f)
+                    ring.cursor = (ring.cursor + 1) % ring.streamIds.size
+                }
+            }
         }
     }
 
     override fun dispose(cachedSound: Any) {
         cachedSound as Int
+        synchronized(streamRings) {
+            streamRings.remove(cachedSound)
+        }
         soundPool.stop(cachedSound)
         soundPool.unload(cachedSound)
     }
 
     override fun dispose() = soundPool.release()
 }
+
+private class StreamRing(
+    val streamIds: IntArray,
+) {
+    var cursor = 0
+}
+
+private const val MAXIMUM_TOTAL_STREAMS = 32
