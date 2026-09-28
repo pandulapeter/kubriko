@@ -11,7 +11,6 @@ package com.pandulapeter.kubriko.persistence.implementation
 
 import androidx.compose.runtime.Composable
 import platform.Foundation.NSUserDefaults
-import platform.Foundation.setValue
 
 @Composable
 internal actual fun createKeyValuePersistenceManager(fileName: String) = object : KeyValuePersistenceManager {
@@ -39,12 +38,12 @@ internal actual fun createKeyValuePersistenceManager(fileName: String) = object 
 
     override fun putFloat(key: String, value: Float) = preferences.setFloat(value, key.prefixed())
 
-    override fun getString(key: String, defaultValue: String): String {
-        preferences.registerDefaults(mapOf(key.prefixed() to defaultValue))
-        return preferences.stringForKey(key.prefixed()) ?: defaultValue
-    }
+    // Earlier versions saved strings under the bare key, so it is read once as a fallback (and never deleted, since the
+    // shared defaults domain may belong to the host app).
+    override fun getString(key: String, defaultValue: String) =
+        preferences.stringForKey(key.prefixed()) ?: preferences.stringForKey(key) ?: defaultValue
 
-    override fun putString(key: String, value: String) = preferences.setValue(value, key)
+    override fun putString(key: String, value: String) = preferences.setObject(value, forKey = key.prefixed())
 
     private fun String.prefixed() = "${fileName}_$this"
 }

@@ -35,10 +35,12 @@ Every `MutableStateFlow.value` change triggers a coroutine write on `Dispatchers
 |---|---|---|
 | Android | `SharedPreferences` (MODE_PRIVATE) | `fileName` = prefs file name; bare key names safe |
 | Desktop | `java.util.prefs.Preferences.userRoot().node(fileName)` | bare key names safe |
-| iOS | `NSUserDefaults.standardUserDefaults` | keys prefixed with `${fileName}_` |
+| iOS | `NSUserDefaults.standardUserDefaults` | every type stored under `${fileName}_key` |
 | Web | `localStorage` | keys prefixed with `${fileName}_` |
 
 iOS and Web prefix every stored key — changing `fileName` on those platforms silently loses all previously saved data.
+
+Older iOS builds wrote strings (and so `generic` values) under the bare key. When the prefixed key does not exist yet, `getString` falls back to the bare key once; the immediate save then moves the value under the prefixed key. The bare key is never deleted (the shared defaults domain may belong to the host app). Caveats, both limited to the first launch after the update: the bare key is shared by every `fileName`, so two managers with the same string key both import whichever wrote last; and a host-app key with the same name as a Kubriko key is imported once.
 
 ## `generic` Type
 
