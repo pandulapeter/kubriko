@@ -15,12 +15,13 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Returns a new [SceneUnit] clamped between the specified [min] and [max] values.
+ * Returns a new [SceneUnit] clamped between [min] and [max].
+ * A bound that is null leaves that side unbounded. If [min] is greater than [max], [min] wins.
  */
 fun SceneUnit.clamp(
     min: SceneUnit? = null,
     max: SceneUnit? = null,
-) = max(min?.raw ?: raw, min(max?.raw ?: raw, raw)).sceneUnit
+) = max(min?.raw ?: Float.NEGATIVE_INFINITY, min(max?.raw ?: Float.POSITIVE_INFINITY, raw)).sceneUnit
 
 /**
  * Returns the absolute value of this [SceneUnit].

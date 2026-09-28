@@ -17,7 +17,6 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -131,8 +130,6 @@ class SceneOffsetExtensionsTest {
         assertEquals(offset(-10f, 7f), offset(-40f, 7f).clamp(min = topLeft))
     }
 
-    // clamp(max = …) without a min never clamps: the missing min falls back to the offset itself, which max() then keeps.
-    @Ignore
     @Test
     fun clampWithOnlyAMaximumBoundsThatSide() {
         assertEquals(offset(1000f, 5f), offset(1000f, 7f).clamp(max = offset(Float.MAX_VALUE, 5f)))

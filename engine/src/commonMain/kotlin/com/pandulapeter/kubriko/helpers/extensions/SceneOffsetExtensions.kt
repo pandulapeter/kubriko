@@ -49,14 +49,15 @@ fun SceneOffset.constrainedWithin(topLeft: SceneOffset, bottomRight: SceneOffset
 }
 
 /**
- * Returns a new [SceneOffset] clamped between the specified [min] and [max] offsets.
+ * Returns a new [SceneOffset] with each component clamped between the matching components of [min] and [max].
+ * A bound that is null leaves that side unbounded. If a component of [min] is greater than that of [max], [min] wins.
  */
 fun SceneOffset.clamp(
     min: SceneOffset? = null,
     max: SceneOffset? = null,
 ) = SceneOffset(
-    x = max((min ?: this).x.raw, min((max ?: this).x.raw, x.raw)).sceneUnit,
-    y = max((min ?: this).y.raw, min((max ?: this).y.raw, y.raw)).sceneUnit
+    x = max(if (min == null) Float.NEGATIVE_INFINITY else min.x.raw, min(if (max == null) Float.POSITIVE_INFINITY else max.x.raw, x.raw)).sceneUnit,
+    y = max(if (min == null) Float.NEGATIVE_INFINITY else min.y.raw, min(if (max == null) Float.POSITIVE_INFINITY else max.y.raw, y.raw)).sceneUnit,
 )
 
 /**
