@@ -86,7 +86,8 @@ as before, so normal taps keep their latency. The deferred release depends on ti
 
 ## Focus safety
 On focus loss (`StateManager.isFocused = false`), `_pressedPointerPositions`, `pendingPositionUpdates`,
-the `pointersPressedSinceLastTick` latch and `pointersPendingCancellation` are all cleared. Before clearing, a synthetic
+the `pointersPressedSinceLastTick` latch and `pointersPendingCancellation` are all cleared on the main thread, where the
+pointer event loop mutates them. Before clearing, a synthetic
 `onPointerReleased` is dispatched for every held pointer (at its last known position) — the platform
 can steal an in-flight touch (e.g. dragging down the iOS status bar) without sending a release, so
 actors that track pointer state across frames would otherwise be stuck with a ghost pointer. New press

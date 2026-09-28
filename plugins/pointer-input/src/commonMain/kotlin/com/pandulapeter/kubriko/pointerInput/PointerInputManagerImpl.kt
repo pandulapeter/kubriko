@@ -31,6 +31,7 @@ import com.pandulapeter.kubriko.pointerInput.implementation.isMultiTouchEnabled
 import com.pandulapeter.kubriko.pointerInput.implementation.setPointerPosition
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -40,6 +41,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.plus
 import kotlin.concurrent.Volatile
 
 internal class PointerInputManagerImpl(
@@ -111,7 +113,7 @@ internal class PointerInputManagerImpl(
                     pointerInputAwareActors.value.forEach { it.onPointerReleased(id, position) }
                 }
             }
-            .launchIn(scope)
+            .launchIn(scope + Dispatchers.Main)
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
