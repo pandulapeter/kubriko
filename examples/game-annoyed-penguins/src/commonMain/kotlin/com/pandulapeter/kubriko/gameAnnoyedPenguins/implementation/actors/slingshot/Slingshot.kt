@@ -135,6 +135,9 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
     }
 
     override fun onRemoved() {
+        if (aimingPointerId != null) {
+            audioManager.setShouldPlayStretchingSoundEffect(false)
+        }
         actorManager.remove(activeFakePenguin, waitingFakePenguin, front)
     }
 
