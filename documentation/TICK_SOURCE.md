@@ -136,6 +136,7 @@ kubriko.dispose()
 
 When no viewport is mounted, viewport-dependent state such as `ViewportManager.size` may remain empty or unchanged. Managers and Actors intended for headless
 execution should avoid depending on current viewport dimensions unless those values are configured by the test, tool, or simulation environment.
+Dynamic actors are all updated while no viewport size is known; far-away sleeping starts once a viewport is measured.
 
 ## Extending TickSource
 

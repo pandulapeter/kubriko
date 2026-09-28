@@ -344,6 +344,13 @@ internal class ActorManagerImpl(
             } else if (!viewportManager.size.value.isEmpty()) {
                 updateActiveDynamicActors(viewportManager.cameraPosition.value, viewportManager.currentScaleFactor())
                 didCullDynamicActorsBeforeUpdate = true
+            } else {
+                // Without a measured viewport nothing is far away; the first measured size triggers a real cull.
+                lastDynamicActors = currentDynamicActors
+                lastViewportSizeForDynamic = null
+                if (_activeDynamicActors.value !== currentDynamicActors) {
+                    _activeDynamicActors.value = currentDynamicActors
+                }
             }
         }
 

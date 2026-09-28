@@ -35,12 +35,13 @@ sealed class ActorManager(
     abstract val allActors: StateFlow<ImmutableList<Actor>>
 
     /**
-     * All [Visible] actors that are currently within the viewport's boundaries.
+     * All [Visible] actors that are currently within the viewport's boundaries. Empty while the viewport has no size.
      */
     abstract val visibleActorsWithinViewport: StateFlow<ImmutableList<Visible>>
 
     /**
-     * All [Dynamic] actors that are currently active and should receive updates.
+     * All [Dynamic] actors that are currently active and should receive updates. While the viewport has no size (e.g. no
+     * `KubrikoViewport` is mounted), every [Dynamic] actor is active.
      */
     abstract val activeDynamicActors: StateFlow<ImmutableList<Dynamic>>
 
@@ -115,6 +116,7 @@ sealed class ActorManager(
          * `TickSource.start()`), after every Manager has been initialized; they are in [allActors] by the time `start()` returns.
          * @param shouldUpdateActorsWhileNotRunning Whether [Dynamic] actors should receive updates even when the game is paused.
          * @param shouldPutFarAwayActorsToSleep Whether [Dynamic] actors far outside the viewport should stop receiving updates.
+         * Has no effect while the viewport has no size (e.g. no `KubrikoViewport` is mounted): every Dynamic actor is updated then.
          * @param farAwayActorSleepMargin How far outside the viewport's scene-space bounds a [Dynamic] actor may stray before it is
          * put to sleep. `null` falls back to half the viewport's smaller scaled dimension. Only relevant when
          * [shouldPutFarAwayActorsToSleep] is enabled. Size it to comfortably cover the distance the camera and the actors can travel
