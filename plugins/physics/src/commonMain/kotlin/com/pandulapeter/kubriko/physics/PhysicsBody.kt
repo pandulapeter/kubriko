@@ -253,10 +253,11 @@ class PhysicsBody(
                 discriminant = sqrt(discriminant.raw).sceneUnit
                 val t1 = (-b - discriminant) / (a * 2)
                 if (t1.raw in 0.0..1.0) {
-                    if (t1 < maxDistance) {
-                        maxD = t1
-                        minPx = startPoint.x + endPoint.x * t1
-                        minPy = startPoint.y + endPoint.y * t1
+                    val hitDistance = ray.length() * t1.raw
+                    if (hitDistance < maxDistance) {
+                        maxD = hitDistance
+                        minPx = startPoint.x + ray.x * t1
+                        minPy = startPoint.y + ray.y * t1
                         intersectionFound = true
                         closestBody = physicalBody
                     }
