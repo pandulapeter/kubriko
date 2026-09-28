@@ -20,10 +20,12 @@ import com.pandulapeter.kubriko.manager.StateManager
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toImmutableSet
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.plus
 
 internal class KeyboardInputManagerImpl(
     isLoggingEnabled: Boolean,
@@ -49,7 +51,7 @@ internal class KeyboardInputManagerImpl(
         stateManager.isFocused
             .filterNot { it }
             .onEach { releaseAllActiveKeys() }
-            .launchIn(scope)
+            .launchIn(scope + Dispatchers.Main)
     }
 
     @Composable

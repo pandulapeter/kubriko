@@ -35,7 +35,7 @@ so the following tick rebuilds the snapshot without it. Discrete `onKeyPressed`/
 fire off-tick and were never affected; this only fixes the polling path. `isKeyPressed` stays strictly
 live (no latch) per its contract — use `handleActiveKeys` (or `onKeyPressed`) for tick-accurate taps.
 
-On focus loss, all active keys are flushed immediately to prevent stuck-key state.
+On focus loss, all active keys are flushed immediately, on the main thread like the platform key events, to prevent stuck-key state.
 
 ## Platform Differences
 
