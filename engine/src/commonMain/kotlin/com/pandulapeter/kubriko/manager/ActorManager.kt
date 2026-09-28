@@ -48,6 +48,8 @@ sealed class ActorManager(
      * The actual addition logic will happen in a background thread so the result might not be instantaneous.
      * Multiple calls invoked in the same frame will be batched, and are applied in the order they were made.
      * Each actor's onAdded() callback function will get invoked just before the actual addition, on that same background thread.
+     * Adding an actor that is already in the scene has no effect. (Membership uses `equals`: an actor equal to one in the
+     * scene is treated as already present.)
      */
     abstract fun add(vararg actors: Actor)
 
@@ -56,6 +58,8 @@ sealed class ActorManager(
      * The actual addition logic will happen in a background thread so the result might not be instantaneous.
      * Multiple calls invoked in the same frame will be batched, and are applied in the order they were made.
      * Each actor's onAdded() callback function will get invoked just before the actual addition, on that same background thread.
+     * Adding an actor that is already in the scene has no effect. (Membership uses `equals`: an actor equal to one in the
+     * scene is treated as already present.)
      */
     abstract fun add(actors: Collection<Actor>)
 

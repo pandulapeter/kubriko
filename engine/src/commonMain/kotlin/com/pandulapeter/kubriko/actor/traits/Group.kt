@@ -17,6 +17,7 @@ import com.pandulapeter.kubriko.actor.Actor
  *
  * Nested groups are flattened; an actor reachable through several groups (or through a cycle of groups) is added
  * once. Actors are compared with `equals`, so actors should not override it.
+ * A child shared by several groups is added once; removing any of those groups removes it.
  */
 interface Group : Actor {
 

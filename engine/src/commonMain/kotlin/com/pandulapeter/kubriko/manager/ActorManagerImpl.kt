@@ -462,7 +462,7 @@ internal class ActorManagerImpl(
                         val iterator = workingList.iterator()
                         while (iterator.hasNext()) {
                             val actor = iterator.next()
-                            if (actor::class in uniqueTypesToReplace) {
+                            if (actor::class in uniqueTypesToReplace && actor !== latestUniqueByClass[actor::class]) {
                                 iterator.remove()
                                 workingSet.remove(actor)
                                 newlyRemoved.add(actor)
@@ -471,13 +471,12 @@ internal class ActorManagerImpl(
                             }
                         }
                     }
-                    if (newActors.isNotEmpty()) {
-                        workingList.addAll(newActors)
-                        workingSet.addAll(newActors)
-                        didChange = true
-                        newActors.forEach {
-                            newlyAdded.add(it)
-                            newlyRemoved.remove(it)
+                    for (a in newActors) {
+                        if (workingSet.add(a)) {
+                            workingList.add(a)
+                            didChange = true
+                            newlyAdded.add(a)
+                            newlyRemoved.remove(a)
                         }
                     }
                 }

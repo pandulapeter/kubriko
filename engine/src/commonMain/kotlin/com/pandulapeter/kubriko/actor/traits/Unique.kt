@@ -14,5 +14,6 @@ import com.pandulapeter.kubriko.actor.Actor
 /**
  * Marker interface that ensures that [Actor]s implementing it can only be added once to the Scene.
  * Adding a second [Unique] [Actor] instance of the same type will have the side effect of removing the first one.
+ * Adding the instance that is already in the scene has no effect.
  */
 interface Unique : Actor

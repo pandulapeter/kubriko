@@ -106,7 +106,7 @@ ActorManager.newInstance(
     invisibleActorMinimumRefreshTimeInMillis: Long = 0,
 )
 ```
-- `add(vararg Actor)` / `add(Collection<Actor>)` — batched, background-thread addition; `Actor.onAdded(kubriko)` fires just before, on that same background thread.
+- `add(vararg Actor)` / `add(Collection<Actor>)` — batched, background-thread addition; `Actor.onAdded(kubriko)` fires just before, on that same background thread; adding an actor that is already present is a no-op.
 - `remove(vararg Actor)` / `remove(Collection<Actor>)` / `removeAll()` — batched, background-thread removal; `Actor.onRemoved()` fires just after, on that same background thread.
 - `allActors: StateFlow<ImmutableList<Actor>>`, `visibleActorsWithinViewport`, `activeDynamicActors` — observable collections.
 - `shouldPutFarAwayActorsToSleep` — `Dynamic` actors outside the viewport stop receiving `update()` unless `isAlwaysActive = true`.
