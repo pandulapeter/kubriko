@@ -35,19 +35,11 @@ internal fun Project.configureKotlinMultiplatform(
         }
     }
     jvm("desktop")
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "ComposeApp"
-            isStatic = true
-        }
-    }
+    iosArm64()
+    iosSimulatorArm64()
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
-        binaries.executable()
     }
     sourceSets.getByName("commonTest").dependencies {
         implementation(libs.findLibrary("kotlin-test").get())
