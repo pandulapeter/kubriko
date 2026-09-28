@@ -53,4 +53,6 @@ internal fun Project.configureKotlinMultiplatform(
     // Running these needs a browser or an iOS simulator; their compilations still run, so commonTest must compile everywhere.
     tasks.withType(KotlinJsTest::class.java).configureEach { enabled = false }
     tasks.withType(KotlinNativeTest::class.java).configureEach { enabled = false }
+    // Libraries declare no Wasm executable, which this Compose check demands only for the browser test runs disabled above.
+    tasks.matching { it.name == "checkComposeUiTestConfigurationForWasmJs" }.configureEach { enabled = false }
 }
