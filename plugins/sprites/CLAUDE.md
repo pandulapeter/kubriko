@@ -24,6 +24,11 @@ not at draw time.
 3. **In pendingWarmingUp**: decoded but not yet GPU-warmed, returns `null`.
 4. **In cache with non-null value**: returns the `ImageBitmap`.
 
+A failed load is retried in the background with exponential backoff (500 ms doubling, capped at 8 s) for as long as the
+resource stays requested, so a transient failure recovers and loading progress can still reach `1f`. `unload()` ends
+the retries, and a load that finishes after `unload()` is discarded instead of making the sprite resident again. Only
+the first failure of a resource prints its stack trace; later ones are logged (when logging is enabled).
+
 Callers must handle `null` every frame until the sprite is ready. The typical pattern in
 `Dynamic.update()` is to early-return or draw a placeholder when `get()` returns `null`.
 

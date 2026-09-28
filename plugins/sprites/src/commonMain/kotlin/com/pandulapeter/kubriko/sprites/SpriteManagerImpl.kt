@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import com.pandulapeter.kubriko.sprites.helpers.toSpriteResource
 import com.pandulapeter.kubriko.sprites.implementation.toImageBitmap
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,6 +40,8 @@ import kotlin.time.Duration.Companion.milliseconds
 internal class SpriteManagerImpl(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
+    private val initialRetryDelayInMilliseconds: Long = INITIAL_RETRY_DELAY_MS,
+    private val imageLoader: (suspend (SpriteResource) -> ImageBitmap?)? = null,
 ) : SpriteManager(isLoggingEnabled, instanceNameForLogging) {
 
     private val cache = MutableStateFlow(persistentMapOf<SpriteResource, ImageBitmap?>())
@@ -120,13 +123,30 @@ internal class SpriteManagerImpl(
         if (resource in pendingWarmingUp.value) return null
         cache.update { it.putting(resource, null) }
         scope.launch {
-            val bitmap = loadImage(resource)
-            if (bitmap != null) {
-                pendingWarmingUp.update { it.putting(resource, bitmap) }
-                launch {
-                    delay(WARM_UP_TIMEOUT_MS.milliseconds)
-                    promoteToCache(resource)
+            var retryDelayInMilliseconds = initialRetryDelayInMilliseconds
+            var isFirstAttempt = true
+            while (true) {
+                val loadedBitmap = loadImage(resource, isFirstAttempt)
+                // A load that finishes after unload() is dropped, so the sprite does not become resident again.
+                if (resource !in cache.value) return@launch
+                if (loadedBitmap != null) {
+                    var isPublished = false
+                    pendingWarmingUp.update {
+                        isPublished = resource in cache.value
+                        if (isPublished) it.putting(resource, loadedBitmap) else it
+                    }
+                    if (isPublished) {
+                        launch {
+                            delay(WARM_UP_TIMEOUT_MS.milliseconds)
+                            promoteToCache(resource)
+                        }
+                    }
+                    return@launch
                 }
+                isFirstAttempt = false
+                delay(retryDelayInMilliseconds.milliseconds)
+                if (resource !in cache.value) return@launch
+                retryDelayInMilliseconds = (retryDelayInMilliseconds * 2).coerceAtMost(MAXIMUM_RETRY_DELAY_MS)
             }
         }
         return null
@@ -143,22 +163,36 @@ internal class SpriteManagerImpl(
         cache.update { it.removing(resource) }
     }
 
-    @OptIn(InternalResourceApi::class, ExperimentalResourceApi::class)
-    internal suspend fun loadImage(spriteResource: SpriteResource): ImageBitmap? = try {
-        getDrawableResourceBytes(
-            getSystemResourceEnvironment(),
-            spriteResource.drawableResource
-        ).toImageBitmap(
-            DensityQualifier.MDPI.dpi,
-            DensityQualifier.MDPI.dpi,
-            spriteResource.rotation
-        )
-    } catch (e: Exception) {
-        e.printStackTrace()
+    private suspend fun loadImage(spriteResource: SpriteResource, isFirstAttempt: Boolean): ImageBitmap? = try {
+        if (imageLoader == null) decodeImage(spriteResource) else imageLoader(spriteResource)
+    } catch (exception: CancellationException) {
+        throw exception
+    } catch (throwable: Throwable) {
+        // Kotlin/Wasm surfaces a rejected JavaScript promise as a JsException, which is not an Exception.
+        if (isFirstAttempt) {
+            throwable.printStackTrace()
+        } else {
+            log(
+                message = "Failed to load $spriteResource again, retrying",
+                details = throwable.message,
+            )
+        }
         null
     }
 
+    @OptIn(InternalResourceApi::class, ExperimentalResourceApi::class)
+    private suspend fun decodeImage(spriteResource: SpriteResource): ImageBitmap = getDrawableResourceBytes(
+        getSystemResourceEnvironment(),
+        spriteResource.drawableResource
+    ).toImageBitmap(
+        DensityQualifier.MDPI.dpi,
+        DensityQualifier.MDPI.dpi,
+        spriteResource.rotation
+    )
+
     companion object {
         private const val WARM_UP_TIMEOUT_MS = 100L
+        private const val INITIAL_RETRY_DELAY_MS = 500L
+        private const val MAXIMUM_RETRY_DELAY_MS = 8_000L
     }
 }

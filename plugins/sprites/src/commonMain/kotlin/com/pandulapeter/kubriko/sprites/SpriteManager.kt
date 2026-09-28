@@ -52,6 +52,8 @@ sealed class SpriteManager(
     /**
      * Retrieves the [ImageBitmap] for the given [drawableResource].
      * Returns null if the resource is not yet loaded.
+     * A resource that fails to load is retried in the background until it loads or is unloaded, so the result stays
+     * null meanwhile.
      */
     abstract fun get(drawableResource: DrawableResource): ImageBitmap?
 
@@ -78,6 +80,8 @@ sealed class SpriteManager(
     /**
      * Retrieves the [ImageBitmap] for the given sprite [resource].
      * Returns null if the resource is not yet loaded.
+     * A resource that fails to load is retried in the background until it loads or is unloaded, so the result stays
+     * null meanwhile.
      */
     abstract fun get(resource: SpriteResource): ImageBitmap?
 
