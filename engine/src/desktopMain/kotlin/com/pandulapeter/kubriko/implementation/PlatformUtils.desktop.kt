@@ -11,6 +11,8 @@ package com.pandulapeter.kubriko.implementation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.window.WindowState
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.types.TargetFrameRate
@@ -47,11 +49,12 @@ internal actual fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate) = Un
 
 @Composable
 internal actual fun PlatformMaximumDisplayRefreshRateEffect(onMaximumDisplayRefreshRateChanged: (Float?) -> Unit) {
+    val currentOnMaximumDisplayRefreshRateChanged by rememberUpdatedState(onMaximumDisplayRefreshRateChanged)
     DisposableEffect(Unit) {
         // The primary screen rather than the one the window happens to sit on: AWT reports the rate per
         // screen device, and a headless environment has none at all.
         val displayMode = runCatching { GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice.displayMode }.getOrNull()
-        onMaximumDisplayRefreshRateChanged(displayMode?.refreshRate?.takeIf { it != DisplayMode.REFRESH_RATE_UNKNOWN }?.toFloat())
+        currentOnMaximumDisplayRefreshRateChanged(displayMode?.refreshRate?.takeIf { it != DisplayMode.REFRESH_RATE_UNKNOWN }?.toFloat())
         onDispose { }
     }
 }

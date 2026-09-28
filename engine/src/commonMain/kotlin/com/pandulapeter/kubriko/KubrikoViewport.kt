@@ -19,7 +19,8 @@ import com.pandulapeter.kubriko.implementation.InternalViewport
  * This Composable should be embedded into applications to draw the game world and handle all related logic.
  *
  * @param modifier The [Modifier] to be applied to the viewport.
- * @param kubriko The [Kubriko] instance that will be used for the game within this Composable.
+ * @param kubriko The [Kubriko] instance that will be used for the game within this Composable. Passing a different instance
+ * restarts the viewport for it; the previous instance is not disposed.
  * @param windowInsets The [WindowInsets] to be used for the viewport.
  */
 @Composable

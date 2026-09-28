@@ -11,6 +11,8 @@ package com.pandulapeter.kubriko.implementation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.types.TargetFrameRate
 import kotlinx.browser.document
@@ -26,9 +28,10 @@ internal actual fun getPlatform(): MetadataManager.Platform = MetadataManager.Pl
 
 @Composable
 internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) {
+    val currentOnFocusChanged by rememberUpdatedState(onFocusChanged)
     DisposableEffect(Unit) {
         fun updateFocus() {
-            onFocusChanged(document.hasFocus())
+            currentOnFocusChanged(document.hasFocus())
         }
         val listener: (Event) -> Unit = { updateFocus() }
         window.addEventListener(EVENT_FOCUS, listener)
