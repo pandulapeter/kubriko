@@ -78,6 +78,8 @@ fun AnnoyedPenguinsGame(
     onFullscreenModeToggled: () -> Unit = {},
 ) = AnnoyedPenguinsTheme {
     stateHolder as AnnoyedPenguinsGameStateHolderImpl
+    // Touching kubriko first creates the instance that initializes stateManager.
+    val kubriko = stateHolder.kubriko.collectAsState().value
     KubrikoViewport(
         modifier = modifier.fillMaxSize().background(Color(0xff6bbfc9)),
         kubriko = stateHolder.backgroundKubriko,
@@ -103,7 +105,7 @@ fun AnnoyedPenguinsGame(
             )
             KubrikoViewport(
                 modifier = Modifier.alpha(gameAlpha * stateHolder.gameplayManager.gameViewportAlpha.collectAsState().value),
-                kubriko = stateHolder.kubriko.value,
+                kubriko = kubriko,
                 windowInsets = windowInsets,
             )
         }

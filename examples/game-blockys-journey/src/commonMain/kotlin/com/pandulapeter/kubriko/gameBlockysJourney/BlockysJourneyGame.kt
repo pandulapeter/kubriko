@@ -75,6 +75,8 @@ fun BlockysJourneyGame(
     onFullscreenModeToggled: () -> Unit = {},
 ) = BlockysJourneyTheme {
     stateHolder as BlockysJourneyGameStateHolderImpl
+    // Touching kubriko first creates the instance that initializes stateManager.
+    val kubriko = stateHolder.kubriko.collectAsState().value
     KubrikoViewport(
         modifier = modifier.fillMaxSize().background(Color.Black),
         kubriko = stateHolder.backgroundKubriko,
@@ -94,7 +96,7 @@ fun BlockysJourneyGame(
         )
         KubrikoViewport(
             modifier = Modifier.alpha(gameAlpha),
-            kubriko = stateHolder.kubriko.value,
+            kubriko = kubriko,
             windowInsets = windowInsets,
         )
         AnimatedVisibility(
