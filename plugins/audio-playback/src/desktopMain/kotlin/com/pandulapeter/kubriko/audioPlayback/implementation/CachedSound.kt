@@ -21,7 +21,6 @@ import javax.sound.sampled.LineEvent
  * Represents a cached sound with a pool of pre-loaded clips for simultaneous playback.
  */
 internal class CachedSound(
-    val uri: String,
     private val audioData: ByteArray,
     private val audioFormat: AudioFormat,
     private val maxSimultaneousStreams: Int

@@ -27,12 +27,7 @@ internal actual fun createSoundPlayer(
     maximumSimultaneousStreamsOfTheSameSound: Int,
 ) = object : SoundPlayer {
 
-    private val cachedSounds = mutableMapOf<String, CachedSound>()
-
     override suspend fun preload(uri: String): Any? = withContext(Dispatchers.IO) {
-        // Check if already cached
-        cachedSounds[uri]?.let { return@withContext it }
-
         try {
             val inputStream = URI(uri).let { resolvedUri ->
                 if (resolvedUri.isAbsolute) {
@@ -52,13 +47,11 @@ internal actual fun createSoundPlayer(
             }
 
             val cachedSound = CachedSound(
-                uri = uri,
                 audioData = audioData,
                 audioFormat = audioInputStream.format,
                 maxSimultaneousStreams = maximumSimultaneousStreamsOfTheSameSound
             )
 
-            cachedSounds[uri] = cachedSound
             audioInputStream.close()
             inputStream.close()
 
@@ -77,15 +70,9 @@ internal actual fun createSoundPlayer(
 
     override fun dispose(cachedSound: Any) {
         GlobalScope.launch(Dispatchers.IO) {
-            val sound = cachedSound as CachedSound
-            cachedSounds.remove(sound.uri)
-            sound.dispose()
+            (cachedSound as CachedSound).dispose()
         }
     }
 
-    override fun dispose() {
-        GlobalScope.launch(Dispatchers.IO) {
-            cachedSounds.clear()
-        }
-    }
+    override fun dispose() = Unit
 }
