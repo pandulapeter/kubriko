@@ -14,6 +14,7 @@ import com.pandulapeter.kubriko.collision.CollisionManager
 import com.pandulapeter.kubriko.collision.CollisionResult
 import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.collision.mask.CollisionMask
+import com.pandulapeter.kubriko.collision.mask.ComplexCollisionMask
 import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.distanceTo
 import com.pandulapeter.kubriko.helpers.extensions.dot
@@ -301,8 +302,38 @@ private fun CollisionMask.collisionCheck(
 ): CollisionResult? = if (shouldSkipAxisAlignedBoundingBoxCheck || axisAlignedBoundingBox.isOverlapping(other.axisAlignedBoundingBox)) {
     val collisionMaskA = this
     val collisionMaskB = other
+    val isPointA = collisionMaskA.isPoint()
+    val isPointB = collisionMaskB.isPoint()
     when {
-        collisionMaskA.isEmptyPolygon() || collisionMaskB.isEmptyPolygon() -> null
+        isPointA && isPointB -> null
+
+        isPointA && collisionMaskB is CircleCollisionMask -> checkPointToCircleCollision(
+            point = collisionMaskA.position,
+            circle = collisionMaskB,
+            shouldFlipContactNormal = false,
+            resultMode = resultMode,
+        )
+
+        isPointB && collisionMaskA is CircleCollisionMask -> checkPointToCircleCollision(
+            point = collisionMaskB.position,
+            circle = collisionMaskA,
+            shouldFlipContactNormal = true,
+            resultMode = resultMode,
+        )
+
+        isPointA && collisionMaskB is PolygonCollisionMask -> checkPointToPolygonCollision(
+            point = collisionMaskA.position,
+            polygon = collisionMaskB,
+            shouldFlipContactNormal = false,
+            resultMode = resultMode,
+        )
+
+        isPointB && collisionMaskA is PolygonCollisionMask -> checkPointToPolygonCollision(
+            point = collisionMaskB.position,
+            polygon = collisionMaskA,
+            shouldFlipContactNormal = true,
+            resultMode = resultMode,
+        )
 
         collisionMaskA is CircleCollisionMask && collisionMaskB is CircleCollisionMask -> checkCircleToCircleCollision(
             circleA = collisionMaskA,
@@ -336,7 +367,8 @@ private fun CollisionMask.collisionCheck(
     null
 }
 
-private fun CollisionMask.isEmptyPolygon() = this is PolygonCollisionMask && vertices.isEmpty()
+/** A bare point mask, or a polygon without vertices, which behaves like a point at its position. */
+private fun CollisionMask.isPoint() = this !is ComplexCollisionMask || (this is PolygonCollisionMask && vertices.isEmpty())
 
 private val polygonPolygonAData = AxisData()
 private val polygonPolygonBData = AxisData()
@@ -385,6 +417,75 @@ private fun checkCircleToCircleCollision(
     )
 }
 
+
+/**
+ * The contact normal points from the point towards the circle's center, or the other way around when
+ * [shouldFlipContactNormal] is set (the circle is mask A).
+ */
+private fun checkPointToCircleCollision(
+    point: SceneOffset,
+    circle: CircleCollisionMask,
+    shouldFlipContactNormal: Boolean,
+    resultMode: Int,
+): CollisionResult? {
+    val normalX = circle.position.x.raw - point.x.raw
+    val normalY = circle.position.y.raw - point.y.raw
+    val radius = circle.radius.raw
+    val distanceSquared = normalX * normalX + normalY * normalY
+    if (distanceSquared >= radius * radius) {
+        return null
+    }
+    if (resultMode == RESULT_NONE) {
+        return COLLISION_DETECTED
+    }
+    val distance = sqrt(distanceSquared)
+    val contactNormal = if (distance == 0f) {
+        SceneOffset.Down
+    } else {
+        SceneOffset((normalX / distance).sceneUnit, (normalY / distance).sceneUnit)
+    }
+    return collisionResult(
+        resultMode = resultMode,
+        contact = point,
+        contactNormal = if (shouldFlipContactNormal) -contactNormal else contactNormal,
+        penetration = (radius - distance).sceneUnit,
+    )
+}
+
+/**
+ * The contact normal is the inward normal of the polygon face closest to the point, or the outward one when
+ * [shouldFlipContactNormal] is set (the polygon is mask A).
+ */
+private fun checkPointToPolygonCollision(
+    point: SceneOffset,
+    polygon: PolygonCollisionMask,
+    shouldFlipContactNormal: Boolean,
+    resultMode: Int,
+): CollisionResult? {
+    if (!polygon.isSceneOffsetInside(point)) {
+        return null
+    }
+    if (resultMode == RESULT_NONE) {
+        return COLLISION_DETECTED
+    }
+    val pointInPolygonSpace = polygon.transposedRotationMatrix.times(point - polygon.position)
+    var separation = (-Float.MAX_VALUE).sceneUnit
+    var faceNormalIndex = 0
+    for (i in polygon.vertices.indices) {
+        val distance = polygon.normals[i].dot(pointInPolygonSpace - polygon.vertices[i])
+        if (distance > separation) {
+            separation = distance
+            faceNormalIndex = i
+        }
+    }
+    val outwardNormal = polygon.rotationMatrix.times(polygon.normals[faceNormalIndex])
+    return collisionResult(
+        resultMode = resultMode,
+        contact = point,
+        contactNormal = if (shouldFlipContactNormal) outwardNormal else -outwardNormal,
+        penetration = -separation,
+    )
+}
 
 private fun checkCircleToPolygonCollision(
     circle: CircleCollisionMask,

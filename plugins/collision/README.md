@@ -14,7 +14,7 @@ The `collision` plugin provides high-performance collision detection for Kubriko
 ## Features
 
 - **Spatial Partitioning**: A spatial hash grid broad phase, so detection cost scales with local crowding rather than with the size of the scene. Also exposed as `SpatialHashGrid` for your own queries.
-- **Multiple Mask Shapes**: Supports Points, Circles, Boxes, and Polygons.
+- **Multiple Mask Shapes**: Supports Points, Circles, Boxes, and Polygons (points collide with circles and polygons, not with other points).
 - **Trait Integration**: Simple integration using the `Collidable` and `CollisionDetector` traits.
 - **Movement & Queries**: Slide kinematic actors along obstacles, and raycast the world for line-of-sight, hitscan, or picking.
 
