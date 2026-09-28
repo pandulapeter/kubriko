@@ -42,7 +42,7 @@ On focus loss, all active keys are flushed immediately, on the main thread like 
 | Platform | Backend | Gotcha |
 |---|---|---|
 | Desktop (JVM) | AWT `KeyEvent` | Only left-side modifiers detected (left Shift, left Ctrl, etc.) |
-| Web (Wasm) | `KeyboardEvent.code` | Many keys return `Key(-1)` (unmapped); test on target |
+| Web (Wasm) | `KeyboardEvent.code` | Many keys return `Key(-1)` (unmapped); test on target. Keys held when the window loses focus are reported as released then, since the browser sends no `keyup` for them |
 | Android | `KeyEvent` | 70 ms debounce workaround for unreliable held-key events; the debounce loop runs on the main thread with the key listener |
 | iOS | Zero-size UIView first-responder | Limited key support; software keyboard only |
 

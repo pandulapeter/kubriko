@@ -38,14 +38,22 @@ internal actual fun createKeyboardEventHandler(
         }
     }
 
+    /** The browser sends no keyup for a key released while the window is not focused. */
+    private val blurListener: (Event) -> Unit = {
+        pressedKeys.forEach { code -> onKeyReleased(mapKeyboardEventCodeToKey(code)) }
+        pressedKeys.clear()
+    }
+
     override fun startListening() {
         window.addEventListener("keydown", keyDownListener)
         window.addEventListener("keyup", keyUpListener)
+        window.addEventListener("blur", blurListener)
     }
 
     override fun stopListening() {
         window.removeEventListener("keydown", keyDownListener)
         window.removeEventListener("keyup", keyUpListener)
+        window.removeEventListener("blur", blurListener)
         pressedKeys.clear()
     }
 
