@@ -7,7 +7,8 @@ numeric edge cases, contract vs. behaviour. Per-frame allocation work was out of
 live stress run of the engine and the collision/physics plugins, then one writer per lane that re-verified every
 finding against `0008d027` (pure logic proven with throwaway probe tests, since deleted) and wrote the plans.
 
-92 plans: `00` (test setup, lands first) plus 91 fixes in six lanes. 35 carry a **Decision needed** line.
+100 plans: `00` (test setup and shared fixtures, lands first), 91 fixes in six lanes, and 8 test-only plans from the
+testing extension below. 35 carry a **Decision needed** line; the testing extension adds none.
 
 **Challenge pass (done 2026-09-28).** After the user found a flaw in plan 05's fix, five fresh challengers tried to
 break every plan: each fix was traced through the documented usage (`documentation/*.md`, `CLAUDE.md`, KDoc), every
@@ -26,6 +27,52 @@ Tesselar. Result: **60 sound, 31 amended, 0 dropped, 0 new decisions**, and one 
 - Tests that would have passed at HEAD, or only after a later plan (`03`, `05`, `16`, `17`, `51`), were fixed or
   labelled; `57` uses a fake `ImageBitmap`, since library test classpaths have no native Skia runtime.
 - `02`/`03` document that actor identity is `equals`-based (data-class actors that compare equal count as one).
+
+**Testing extension (added 2026-09-28, at `e86d3748`).** The repository has no tests, and the fix plans each add
+regression tests for one bug. The extension adds the harness those tests share and the contract tests that no bug
+asked for:
+- `00` is extended with the unpublished `:tools:test-fixtures` module, which every module's `desktopTest` depends
+  on. It provides a manual-tick instance, `tickUntil`, a deterministic actor-queue drain (`awaitProcessed`, built
+  on a sentinel actor through public API only, so no API decision), counting actors, an uncaught-exception
+  recorder and per-thread allocation measurement.
+  - It was proven in a throwaway worktree. The engine's own tests can depend on it and still see `internal`
+    members; `awaitProcessed` works at HEAD; `:engine:build` runs no Wasm or iOS tests; and nothing test-scoped
+    reaches the published metadata.
+- `01` builds its harness on the fixtures. `47`, `49`, `51` and `57` drop their hand-rolled polling loops for them.
+- New contract-test plans run at the **end of their lane**, so they pin the fixed behaviour rather than the bugs:
+  - Lane A: `26` geometry types and bodies, `27` viewport and coordinate conversion, `28` allocation budgets for the
+    tick loop, `BoxBody`, `Timer` and `TriangleBatch` (the Performance rule, enforced), and `29` lifecycle
+    invariants under seeded churn (the stress run, made repeatable).
+  - Lane C: `62` collision masks, plus a broad-phase-vs-brute-force differential test; `63` round-trips for all
+    eleven type serializers; `64` physics invariants and bit-for-bit determinism.
+  - Lane E: `89`, CI that runs `desktopTest` on every push and pull request, nightly with `KUBRIKO_STRESS=1`, and
+    before `[Library] Publish`.
+- Test-only plans never change production code. A contract test that fails because the code contradicts its own
+  documentation is `@Ignore`d with a reason and reported, and becomes a follow-up plan.
+- Not covered on purpose: rendering (no native Skia on test classpaths), the aspect-ratio multiplier (computed in
+  composition), Compose UI tests, and characterization tests of behaviour this sweep is about to change.
+- In the plans, `tick(N)` always means **one** tick of `N` ms, as `ManualTickSource.tick` reads. `00`'s
+  `ManualKubriko.tick(deltaTimeInMilliseconds = 16, count = 1)` takes the delta first for that reason.
+- **Challenge of the lane C/E part (2026-09-28):** `62`, `63`, `64` and `89` amended, `47` and `49` amended in their
+  Tests sections, `51` and `57` sound; `00`'s `ManualKubriko.tick` got its delta-first signature (with count first,
+  `49`'s `tick(Int.MAX_VALUE)` would have run two billion ticks). The notable corrections: the angle serializers
+  write normalized values, so `63` pins that instead of a raw round trip; `64`'s resting-ball tolerances fit a
+  ~10-unit-per-step impact and its scenes start apart so the asynchronous body list cannot fake a determinism
+  failure; `62` uses the real `collisionResultWith` signature and keeps float-rounding-sensitive placements out of
+  the invariance checks; `89`'s two jobs upload differently named artifacts. Each plan's `**Challenged:**` line has
+  the details.
+- **Challenge of the engine part (2026-09-28):** `00`, `26`, `27`, `28` and `29` amended, `01` sound, none dropped.
+  One probe run at `e86d3748` measured about 88 B per tick at both 100 and 10 000 actors, and 0 B for the `BoxBody`
+  refresh, `Timer` and `TriangleBatch`, so `28`'s budgets stand. The notable corrections:
+  - The fixtures need `kotlin-test-junit` explicitly, because a main source set does not get the JUnit flavour.
+  - `SceneOffset.toOffset(viewportManager)` converts a vector, not a position, so `26`/`27` assert a delta
+    round-trip instead of an inverse.
+  - `29`'s invariants were narrowed to what `01`–`09` actually guarantee: same-tick update after removal is
+    allowed, invariant 4 is checked on an operation-free tick, `Blocker`s are excluded from membership, and the
+    cross-thread dispose test asserts only `08`/`09`'s guarantees.
+- **Follow-ups raised by the challenge, not filed:**
+  - `SceneOffset.toOffset`'s KDoc does not say that it converts a vector and ignores the camera.
+  - An out-of-range `initialScaleFactor` is stored unclamped, and nothing documents whether that is intended.
 
 ## Headlines
 
@@ -54,7 +101,7 @@ Tesselar. Result: **60 sound, 31 amended, 0 dropped, 0 new decisions**, and one 
 
 | # | Plan | Sev | Lane |
 |---|---|---|---|
-| 00 | Add a unit test setup to the library modules | high | pre-lane |
+| 00 | Add a unit test setup and shared test fixtures to the library modules | high | pre-lane |
 | 01 | Isolate actor callback failures so a batch always completes and is published | high | A |
 | 02 | Guard Group flattening against cycles and repeated members | high | A |
 | 03 | Ignore additions of actors that are already in the scene | high | A |
@@ -80,6 +127,10 @@ Tesselar. Result: **60 sound, 31 amended, 0 dropped, 0 new decisions**, and one 
 | 23 | Convert degrees without wrapping; take AngleDegrees' sine and cosine in radians | medium | A |
 | 24 | Ignore non-finite camera positions and scale factors | low | A |
 | 25 | Correct stale engine documentation | low | A |
+| 26 | Add contract tests for the geometry types, extensions and bodies (tests only) | medium | A |
+| 27 | Add contract tests for the viewport camera and scene–screen conversion (tests only) | medium | A |
+| 28 | Guard the engine hot paths' allocation budgets and TriangleBatch bookkeeping (tests only) | medium | A |
+| 29 | Check the actor lifecycle invariants under seeded churn (tests only) | high | A |
 | 30 | Give each desktop music playback job its own decoder chain | high | B |
 | 31 | Dispose every loaded player in `MusicManager.unloadAll()` | medium | B |
 | 32 | Resume each Android sound load with its own sample id | high | B |
@@ -112,6 +163,9 @@ Tesselar. Result: **60 sound, 31 amended, 0 dropped, 0 new decisions**, and one 
 | 59 | Fix the frame row for sprite sheets rotated by 270° | low | C |
 | 60 | Make `deserializeActors` fail as a whole for any bad actor | medium | C |
 | 61 | Default a missing BoxBody pivot to the decoded size's center | low | C |
+| 62 | Add contract tests for collision masks and the collision manager's broad phase (tests only) | medium | C |
+| 63 | Add round-trip tests for every serialization type serializer (tests only) | medium | C |
+| 64 | Check physics simulation invariants and determinism (tests only) | medium | C |
 | 65 | Render the game viewport from the noop debug menu | high | D |
 | 66 | Apply `OverlayOnly`'s modifier to its root | medium | D |
 | 67 | Key debug overlays by Kubriko instance and release them on dispose | medium | D |
@@ -136,6 +190,7 @@ Tesselar. Result: **60 sound, 31 amended, 0 dropped, 0 new decisions**, and one 
 | 86 | Remove the unobserved iOS window size notifications | low | E |
 | 87 | Hide the iOS status bar through SwiftUI in full screen | low | E |
 | 88 | Reset web full screen state when the browser refuses | low | E |
+| 89 | Run the unit tests in CI, nightly in stress mode, and before publishing | high | E |
 | 90 | Count Wallbreaker bricks on the tick thread; add persistent actors once | medium | F |
 | 91 | Make the games' sound-effect queues thread-safe | medium | F |
 | 92 | Create the game Kubriko before reading its StateManager | medium | F |
@@ -151,15 +206,15 @@ Tesselar. Result: **60 sound, 31 amended, 0 dropped, 0 new decisions**, and one 
 
 Every lane applies its plans in numeric order (dependencies are already encoded in the numbering: `32` → `33` → `34`;
 `45` → `46`; `49`–`51` share `PhysicsManagerImpl.kt`; `67` → `68`; `69` → `72` share `EditorController.kt`; `84` →
-`85`; `92` → `93` → `99`; `32` → `33` → `34`, then `38`; `55` → `56`).
+`85`; `92` → `93` → `99`; `32` → `33` → `34`, then `38`; `55` → `56`; the test-only plans `26`–`29`, `62`–`64` and `89` come last in their lanes on purpose).
 
 | Lane | Area | Plans | Artifacts | Files owned |
 |---|---|---|---|---|
-| A | engine core | 01–25 | `engine` | `engine/**`, root `CLAUDE.md`, `documentation/TICK_SOURCE.md`, and Annoyed Penguins' `Penguin.kt`, `StarIndicator.kt`, `base/DestructiblePhysicsObject.kt` (for `22`), and the `onUpdate` hunk of Annoyed Penguins' `managers/GameplayManager.kt` (for `20`) |
+| A | engine core | 01–29 | `engine` | `engine/**`, root `CLAUDE.md`, `documentation/TICK_SOURCE.md`, and Annoyed Penguins' `Penguin.kt`, `StarIndicator.kt`, `base/DestructiblePhysicsObject.kt` (for `22`), and the `onUpdate` hunk of Annoyed Penguins' `managers/GameplayManager.kt` (for `20`) |
 | B | plugins: audio & input | 30–44 | `plugin-audio-playback`, `plugin-keyboard-input`, `plugin-pointer-input`, `plugin-gamepad-input` | `plugins/{audio-playback,keyboard-input,pointer-input,gamepad-input}/**` |
-| C | plugins: data, physics & rendering | 45–61 | `plugin-persistence`, `-particles`, `-shaders`, `-physics`, `-collision`, `-sprites`, `-serialization` | `plugins/{persistence,particles,shaders,physics,collision,sprites,serialization}/**`, `documentation/GETTING_STARTED_08.md` (only if `56` takes option B) |
+| C | plugins: data, physics & rendering | 45–64 | `plugin-persistence`, `-particles`, `-shaders`, `-physics`, `-collision`, `-sprites`, `-serialization` | `plugins/{persistence,particles,shaders,physics,collision,sprites,serialization}/**`, `documentation/GETTING_STARTED_08.md` (only if `56` takes option B) |
 | D | tools | 65–79 | `tool-debug-menu*`, `tool-scene-editor*`, `tool-ui-components` | `tools/**` |
-| E | Showcase app | 80–88 | — (not published) | `app/**` |
+| E | Showcase app, then CI | 80–89 | — (not published) | `app/**`, `.github/workflows/**` and one sentence of root `CLAUDE.md`'s Testing paragraph (for `89`) |
 | F | examples | 90–99 | — (not published) | `examples/**` except lane A's three Annoyed Penguins files; shares `managers/GameplayManager.kt` with lane A (`95` edits `onInitialize`/`loadScene`, `20` edits `onUpdate`) |
 
 **Merge order: A → B → C → D → F → E.** A first because every other lane runs on the engine and its
@@ -167,8 +222,9 @@ ActorManager fixes (`03`, `04`, `06`) change callback timing the plugin, tool an
 Plugins next, then tools (which consume plugins — `71` relies on `60`'s failure semantics but works either way),
 then examples, and the Showcase app last because it composes all of them.
 
-**Shared files.** One file is edited by two lanes: Annoyed Penguins' `GameplayManager.kt` (lane A's `20` edits `onUpdate`, lane F's `95` edits `onInitialize`/`loadScene`; separate hunks, so the cherry-pick should apply cleanly). Otherwise no two lanes edit the same file. Root `CLAUDE.md` is edited by `00` (before the lanes) and then only
-by lane A; each plugin/tool/example keeps its own `CLAUDE.md`. `strings.xml`: lane D edits only
+**Shared files.** One file is edited by two lanes: Annoyed Penguins' `GameplayManager.kt` (lane A's `20` edits `onUpdate`, lane F's `95` edits `onInitialize`/`loadScene`; separate hunks, so the cherry-pick should apply cleanly). Otherwise no two lanes edit the same file. Root `CLAUDE.md` is edited by `00` (before the lanes), then by lane A, and
+by lane E's `89`, which adds one sentence to the Testing paragraph that `00` created and `29` extended (lane E merges last,
+so keep both sides' sentences); each plugin/tool/example keeps its own `CLAUDE.md`. `strings.xml`: lane D edits only
 `tools/scene-editor/src/desktopMain/composeResources/values/strings.xml`; lane E adds an app string only if decision
 `82` goes against the recommendation. If a cherry-pick still conflicts, merge `CLAUDE.md` paragraphs and `strings.xml`
 word by word, keeping every sentence and key from both sides.
@@ -287,6 +343,9 @@ batch). Execute every plan with its recommended option. Each plan's Fix section 
 Probe sources are kept in the session scratchpad (`stress/`, `laneC/`), not in the repository.
 
 ## Manual checks owed
+
+- **CI (`89`):** after the push, confirm `[Library] Tests` ran green on `main`, and dispatch it once by hand to see the
+  nightly `stress-tests` job pass.
 
 Each plan's **Manual check** section is authoritative; these are the ones that need a device, OS or browser:
 

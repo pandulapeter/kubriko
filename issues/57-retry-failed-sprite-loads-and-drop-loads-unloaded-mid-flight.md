@@ -1,6 +1,8 @@
 # Retry failed sprite loads with backoff, and discard a load whose sprite was unloaded while it ran
 
-**Challenged:** amended — the test no longer creates `ImageBitmap(1, 1)`: that allocates a Skia bitmap, and the plugin's desktop test classpath has only `skiko-awt`, not the native `skiko-awt-runtime-<os>` (nothing in `kubriko-compose-library` adds `compose.desktop.currentOs`), so it would fail to load the native library; the fake loader returns a small test implementation of the `ImageBitmap` interface instead.
+**Challenged:** amended — the test no longer creates `ImageBitmap(1, 1)`: that allocates a Skia bitmap, and the plugin's desktop test classpath has only `skiko-awt`, not the native `skiko-awt-runtime-<os>` (nothing in `kubriko-compose-library` adds `compose.desktop.currentOs`), so it would fail to load the native library; the fake loader returns a small test implementation of the `ImageBitmap` interface instead. Testing extension: sound — nothing here depends on ticks or on the actor queue (loads and the warm-up run on the Kubriko scope's `Dispatchers.Default`), so `awaitCondition` replaces the polling loop one for one; the "wait past the 100 ms warm-up" step stays a plain sleep, because it proves that something does not happen.
+
+**Extended (testing extension):** uses the shared `:tools:test-fixtures` harness instead of a hand-rolled manual-tick instance and polling loop.
 
 **Kind:** bug  ·  **Severity:** medium  ·  **Platforms:** all (transient failures mostly on Web)  ·  **Artifact:** `plugin-sprites`
 **Files:** `plugins/sprites/src/commonMain/kotlin/com/pandulapeter/kubriko/sprites/SpriteManagerImpl.kt`, `plugins/sprites/src/commonMain/kotlin/com/pandulapeter/kubriko/sprites/SpriteManager.kt` (KDoc only), `plugins/sprites/src/desktopTest/kotlin/com/pandulapeter/kubriko/sprites/SpriteLoadRetryTest.kt` (new), `plugins/sprites/CLAUDE.md`
@@ -47,6 +49,8 @@ real bitmap is needed.
 - A loader that fails twice and then succeeds, with a 10 ms initial backoff: poll `get(resource)` (2 s timeout) → eventually non-null; `getSpriteLoadingProgress(listOf(resource)).first { it == 1f }` completes.
 - A loader that suspends on a `CompletableDeferred` until released: `get(resource)`, `unload(resource)`, release the deferred with a bitmap, wait past the 100 ms warm-up → `get` returns `null` again **and** starts a new load (the loader's call count goes up), i.e. the old bitmap was not published.
 - Dispose the instance at the end of each test.
+
+Build the instance with `newManualKubriko(spriteManager)` from `:tools:test-fixtures` (plan `00`), and poll with the fixtures' `awaitCondition` instead of a hand-rolled loop.
 
 Run `./gradlew :plugins:sprites:desktopTest`.
 

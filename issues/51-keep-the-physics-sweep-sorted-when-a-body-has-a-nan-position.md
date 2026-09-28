@@ -1,6 +1,8 @@
 # Keep the physics sweep-and-prune sorted when a body's bounds are NaN
 
-**Challenged:** amended — the test as written passed at HEAD (pairs added in ascending x order are already sorted, so the NaN barrier never splits a pair); it now adds every pair's first body, then the NaN body, then every second body, which loses all but one pair at HEAD, and waits for *any* body to move rather than the first pair.
+**Challenged:** amended — the test as written passed at HEAD (pairs added in ascending x order are already sorted, so the NaN barrier never splits a pair); it now adds every pair's first body, then the NaN body, then every second body, which loses all but one pair at HEAD, and waits for *any* body to move rather than the first pair. Testing extension: sound — `tickUntil` ticks and then checks, so the assertion reads the positions of the first tick that stepped the registered bodies (one 16 ms tick is exactly one sub-step, and the single `add(list)` publishes all 401 bodies in one list); the text now also keeps the `NaN` body out of the poll and the assertion.
+
+**Extended (testing extension):** uses the shared `:tools:test-fixtures` harness instead of a hand-rolled manual-tick instance and polling loop.
 
 **Kind:** bug  ·  **Severity:** medium  ·  **Platforms:** all  ·  **Artifact:** `plugin-physics`
 **Files:** `plugins/physics/src/commonMain/kotlin/com/pandulapeter/kubriko/physics/PhysicsManagerImpl.kt`, `plugins/physics/src/desktopTest/kotlin/com/pandulapeter/kubriko/physics/SweepAndPruneNanTest.kt` (new), `plugins/physics/CLAUDE.md`
@@ -43,6 +45,8 @@ ascending order — a first body directly followed by its partner — are alread
 prove nothing.) Start a manual-tick Kubriko instance and tick 16 ms at a time until **any** body's position changes
 (poll, 2 s timeout — the async registration). Assert that after that same tick every pair's two bodies moved
 (positions differ from their start). At HEAD 199 of the 200 pairs are untouched; after the fix all move.
+
+Build the instance with `newManualKubriko(ActorManager.newInstance(shouldComposeLayers = false, shouldPutFarAwayActorsToSleep = false), PhysicsManager.newInstance(initialGravity = SceneOffset.Zero))` from `:tools:test-fixtures` (plan `00`). The registration poll is `tickUntil { bodies.any { it.physicsBody.position != its start } }` over the 400 finite bodies only (leave the `NaN` body out of the poll and the assertion), and the assertion reads positions right after the tick that `tickUntil` returned on.
 
 Run `./gradlew :plugins:physics:desktopTest`.
 

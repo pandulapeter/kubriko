@@ -1,11 +1,13 @@
 # Isolate actor callback failures so a batch of actor operations always completes and is published
 
-**Challenged:** amended — the rethrow's per-platform effect is stated accurately (it is not the same path as an `update()` exception under `viewportFrames()`), and the handler assertion now awaits the asynchronous rethrow instead of racing it.
+**Challenged:** amended — the rethrow's per-platform effect is stated accurately (it is not the same path as an `update()` exception under `viewportFrames()`), and the handler assertion now awaits the asynchronous rethrow instead of racing it. Testing extension: sound — the fixtures it imports exist in plan `00`, `newTestKubriko` is the only helper needing `internal` API, and the rethrow goes to the scope's `SupervisorJob`, so it cannot cancel the processor that `awaitProcessed` relies on.
+
+**Extended (testing extension):** the harness is built on `:tools:test-fixtures` from plan `00`; only `newTestKubriko` (which needs `internal` engine API) is still defined here.
 
 **Decision needed:** when an actor's `onAdded`/`dispose`/`onRemoved` throws, should the engine surface it as a crash after finishing the batch, or only log it? — recommended: finish the batch, then rethrow the first failure through the Kubriko scope (it surfaces like an exception thrown from `update()`).
 
 **Kind:** bug  ·  **Severity:** high  ·  **Platforms:** all  ·  **Artifact:** `engine`
-**Files:** `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/manager/ActorManagerImpl.kt`, `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/Actor.kt` (KDoc), `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Disposable.kt` (KDoc), `engine/src/desktopTest/kotlin/com/pandulapeter/kubriko/ActorTestHarness.kt` (new), `engine/src/desktopTest/kotlin/com/pandulapeter/kubriko/ActorCallbackFailureTest.kt` (new), `engine/CLAUDE.md` (Actor Batch Processing)
+**Files:** `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/manager/ActorManagerImpl.kt`, `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/Actor.kt` (KDoc), `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits/Disposable.kt` (KDoc), `engine/src/desktopTest/kotlin/com/pandulapeter/kubriko/ActorTestHarness.kt` (new; builds on `:tools:test-fixtures`), `engine/src/desktopTest/kotlin/com/pandulapeter/kubriko/ActorCallbackFailureTest.kt` (new), `engine/CLAUDE.md` (Actor Batch Processing)
 
 ## Problem
 
@@ -60,13 +62,12 @@ No per-frame cost: this is the batch path, not the tick path.
 
 ## Tests
 
-Create a shared desktop test harness (later actor plans reuse it), `engine/src/desktopTest/kotlin/com/pandulapeter/kubriko/ActorTestHarness.kt` (MPL header), containing:
-- `fun awaitCondition(timeoutInMilliseconds: Long = 5_000, condition: () -> Boolean)` — polls with `Thread.sleep(2)` and fails the test on timeout.
-- `class CountingActor : Dynamic` with `AtomicInteger` counters `added`, `removed`, `disposed`, `updates` (implements `Disposable` too), optional `onAddedAction: (() -> Unit)?` / `onRemovedAction`.
-- `fun newTestKubriko(vararg managers: Manager, actorManager: ActorManager = ActorManager.newInstance()): Pair<KubrikoImpl, ManualTickSource>` that creates the instance with `TickSource.manual()`, calls `start()`, and sets `viewportManager.updateSize(Size(1920f, 1080f))` (internal; accessible from the module's tests).
-- A `Blocker` actor whose `onAdded` blocks on a `CountDownLatch` until released, so a test can force several operations into one batch (add the blocker, wait until it entered `onAdded`, issue the operations, release).
+Create the engine's test harness, `engine/src/desktopTest/kotlin/com/pandulapeter/kubriko/ActorTestHarness.kt` (MPL header). Later actor plans reuse it. `awaitCondition`, `CountingActor`, `Blocker`, `awaitProcessed` and `recordingUncaughtExceptions` already exist in `:tools:test-fixtures` (plan `00`), which every module's `desktopTest` depends on. Import them; do not redefine them. The harness adds only what needs engine internals:
+- `fun newTestKubriko(vararg managers: Manager, actorManager: ActorManager = ActorManager.newInstance()): Pair<KubrikoImpl, ManualTickSource>`. It creates the instance with `TickSource.manual()`, calls `start()`, and calls `viewportManager.updateSize(Size(1920f, 1080f))` (internal, but accessible from the module's own tests).
 
-`ActorCallbackFailureTest` (install a `Thread.setDefaultUncaughtExceptionHandler` that records throwables, restore it after):
+Where a later plan says "await presence" or "await absence" of an actor that the test itself added or removed, use `actorManager.awaitProcessed()` instead of polling. Keep `awaitCondition` for signals that come from another thread, such as the asynchronous rethrow below.
+
+`ActorCallbackFailureTest` (wrap each test in `recordingUncaughtExceptions { recorded -> … }` from the fixtures):
 - `throwingOnAddedDoesNotDropTheRestOfTheBatch` — in one batch add `before`, a `thrower` whose `onAdded` throws, `after`; await `allActors.size == 3` (or 2 if the thrower is to be excluded — assert the chosen semantics: recommended keeps the thrower in the list since its addition already happened from the engine's point of view); assert `before.added == 1`, `after.added == 1`, and (recommended option) `awaitCondition { recorded.isNotEmpty() }` — the rethrow is launched after the list is published, so it can arrive after `allActors` already has 3 entries — then assert the handler recorded exactly one `IllegalStateException` from the thrower. Do not run these tests inside `runTest`: `kotlinx-coroutines-test` (plan 00) installs an exception collector that would capture the rethrow before the default handler sees it.
 - `throwingDisposeStillCallsOnRemovedAndOtherRemovals` — add three actors, the middle one's `dispose()` throws; remove all three in one call; await `allActors.isEmpty()`; assert every actor's `removed == 1`.
 - `processorKeepsWorkingAfterAFailure` — after a throwing batch, a later `add(x)` is still processed (`awaitCondition { x in allActors.value }`).

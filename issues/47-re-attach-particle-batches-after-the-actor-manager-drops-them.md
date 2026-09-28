@@ -1,6 +1,8 @@
 # Re-attach particle batches after the actor manager drops them, clearing their particles
 
-**Challenged:** sound
+**Challenged:** sound. Testing extension: amended — after the second `tickUntil` the test calls `awaitProcessed()` before counting, so a duplicate `add` queued during those ticks is applied before the "exactly one" assertion instead of racing it.
+
+**Extended (testing extension):** uses the shared `:tools:test-fixtures` harness instead of a hand-rolled manual-tick instance and polling loop.
 
 **Kind:** bug  ·  **Severity:** high  ·  **Platforms:** all  ·  **Artifact:** `plugin-particles`
 **Files:** `plugins/particles/src/commonMain/kotlin/com/pandulapeter/kubriko/particles/ParticleManagerImpl.kt`, `plugins/particles/src/commonMain/kotlin/com/pandulapeter/kubriko/particles/implementation/ParticleBatch.kt`, `plugins/particles/src/desktopTest/kotlin/com/pandulapeter/kubriko/particles/ParticleBatchReattachTest.kt` (new), `plugins/particles/CLAUDE.md`
@@ -35,6 +37,8 @@ private fun batchFor(drawingOrder: Float): ParticleBatch {
 ## Tests
 
 `ParticleBatchReattachTest` in `desktopTest` (`ParticleBatch` is internal, visible to the module's tests): build `Kubriko.newInstance(ActorManager.newInstance(shouldComposeLayers = false), ParticleManager.newInstance(cacheSize = 10), tickSource = TickSource.manual())`, `start()`, add an emitter actor with `Mode.Continuous` and a trivial `ParticleState`, tick until `allActors` contains a `ParticleBatch` (poll with a 2 s timeout, ticking 16 ms each round). Call `removeAll()`, poll until `allActors` is empty, then tick and poll until a `ParticleBatch` is present again; assert exactly one instance of it is present (no duplicate add). Dispose the instance at the end.
+
+Build the instance with `newManualKubriko(ActorManager.newInstance(shouldComposeLayers = false), ParticleManager.newInstance(cacheSize = 10))` from `:tools:test-fixtures` (plan `00`). Each "tick and poll" is `tickUntil { … }`, and "poll until `allActors` is empty" after `removeAll()` is `actorManager.awaitProcessed()` (no tick runs while it waits, so the batch cannot re-attach early). After the second `tickUntil` returns, call `actorManager.awaitProcessed()` once more and only then count the `ParticleBatch` instances: every tick before the re-add was applied may have queued another `add`, and without the drain the count would read the list before those duplicates land (the plugin lane runs on the engine before plan `03`, which does not de-duplicate).
 
 Run `./gradlew :plugins:particles:desktopTest`.
 

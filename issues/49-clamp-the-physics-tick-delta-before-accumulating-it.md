@@ -1,6 +1,8 @@
 # Clamp the physics tick delta before adding it to the fixed-timestep accumulator
 
-**Challenged:** sound
+**Challenged:** sound. Testing extension: amended — the big deltas are passed by name (`tick(deltaTimeInMilliseconds = …)`), so no reading of the fixture's `tick` can turn `tick(Int.MAX_VALUE)` into two billion ticks.
+
+**Extended (testing extension):** uses the shared `:tools:test-fixtures` harness instead of a hand-rolled manual-tick instance and polling loop.
 
 **Kind:** bug  ·  **Severity:** low  ·  **Platforms:** all  ·  **Artifact:** `plugin-physics`
 **Files:** `plugins/physics/src/commonMain/kotlin/com/pandulapeter/kubriko/physics/PhysicsManagerImpl.kt`, `plugins/physics/src/desktopTest/kotlin/com/pandulapeter/kubriko/physics/PhysicsAccumulatorTest.kt` (new)
@@ -26,6 +28,8 @@ Clamp before adding: `accumulatedTimeInMilliseconds += minOf(deltaTimeInMillisec
 ## Tests
 
 `PhysicsAccumulatorTest` in `desktopTest`: `Kubriko.newInstance(ActorManager.newInstance(shouldComposeLayers = false, shouldPutFarAwayActorsToSleep = false), PhysicsManager.newInstance(initialGravity = SceneOffset.Zero), tickSource = TickSource.manual())`, `start()`, add one `RigidBody` actor with a `CircleCollisionMask` and `isAffectedByGravity = false`. Set its `physicsBody.velocity` to `(10, 0)` and tick 16 ms at a time until its `physicsBody.position` changes (poll, 2 s timeout — this waits for the async actor registration). Then `tick(20)`, `tick(Int.MAX_VALUE)`, record the position, tick 16 ms ten times and assert the position changed. Dispose at the end.
+
+Build the instance with `newManualKubriko(…)` from `:tools:test-fixtures` (plan `00`), passing the same two Managers. The registration poll is `tickUntil { physicsBody.position != start }`; it leaves the accumulator at `0`, so the next tick's 20 ms leaves the remainder `4` that the overflow needs. Write the two garbage ticks as `tick(deltaTimeInMilliseconds = 20)` and `tick(deltaTimeInMilliseconds = Int.MAX_VALUE)` (or `tickSource.tick(…)`), and the ten 16 ms ticks as `repeat(10) { tick() }`.
 
 Run `./gradlew :plugins:physics:desktopTest`.
 
