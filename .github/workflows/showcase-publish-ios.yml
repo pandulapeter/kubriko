@@ -16,7 +16,7 @@ permissions:
 
 env:
   XCODE_PROJECT: app/ios/iosApp/iosApp.xcodeproj
-  XCODE_SCHEME: iosApp
+  XCODE_SCHEME: "[iOS] Showcase Release"
   DEVELOPMENT_TEAM: N45A6ZHDGY
 
 jobs:
