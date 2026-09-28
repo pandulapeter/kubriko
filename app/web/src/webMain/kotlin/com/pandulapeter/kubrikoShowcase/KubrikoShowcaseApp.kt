@@ -59,7 +59,14 @@ fun main() {
                             document.exitFullscreen()
                         }
                     } else {
-                        document.documentElement?.requestFullscreen()
+                        try {
+                            document.documentElement?.requestFullscreen()?.catch {
+                                isInFullscreenMode.value = false
+                                null
+                            }
+                        } catch (_: Throwable) {
+                            isInFullscreenMode.value = false
+                        }
                     }
                 }
             },

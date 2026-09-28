@@ -26,7 +26,7 @@ The web target is the only platform that drives browser navigation. `KubrikoShow
 
 ## Fullscreen handling
 
-`isInFullscreenMode` is `null` on iPhone browsers (fullscreen is not supported / meaningful), and `false` otherwise. The `onFullscreenModeToggled` callback calls `document.documentElement?.requestFullscreen()` / `document.exitFullscreen()`. A `fullscreenchange` event listener syncs the state if the user exits fullscreen via the browser's own UI.
+`isInFullscreenMode` is `null` on iPhone browsers (fullscreen is not supported / meaningful), and `false` otherwise. The `onFullscreenModeToggled` callback calls `document.documentElement?.requestFullscreen()` / `document.exitFullscreen()`. A `fullscreenchange` event listener syncs the state if the user exits fullscreen via the browser's own UI. If the browser refuses the request (the returned promise rejects, or the method is missing and throws), the state is set back to `false`.
 
 ## Build / run
 
