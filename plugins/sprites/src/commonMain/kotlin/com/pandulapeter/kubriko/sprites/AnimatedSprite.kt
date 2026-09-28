@@ -114,7 +114,8 @@ class AnimatedSprite(
     private fun normalizeImageIndex(shouldLoop: Boolean) {
         if (frameIndex >= frameCount - 1 || frameIndex < 0) {
             _frameIndex = if (shouldLoop) {
-                _frameIndex % frameCount
+                // Kotlin's % keeps the dividend's sign, so a backward step past frame 0 needs the extra wrap.
+                ((_frameIndex % frameCount) + frameCount) % frameCount
             } else {
                 if (_frameIndex < 0) 0f else frameCount - 1f
             }
