@@ -133,7 +133,11 @@ abstract class Manager(
      */
     protected open fun onInitialize(kubriko: Kubriko) = Unit
 
-    internal fun onUpdateInternal(deltaTimeInMilliseconds: Int) = onUpdate(deltaTimeInMilliseconds)
+    internal fun onUpdateInternal(deltaTimeInMilliseconds: Int) {
+        // A Manager shared with an instance that has already disposed it must not be updated by the others.
+        if (!_isInitialized.value) return
+        onUpdate(deltaTimeInMilliseconds)
+    }
 
     /**
      * Called on every frame update of the game loop.

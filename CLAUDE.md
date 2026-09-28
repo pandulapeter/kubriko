@@ -310,7 +310,7 @@ class MyManager : Manager() {
 }
 ```
 
-**Multiple Kubriko instances**: valid (e.g. a background layer and a game layer sharing some Managers). Each instance has its own Manager set. Managers can be shared between instances.
+**Multiple Kubriko instances**: valid (e.g. a background layer and a game layer sharing some Managers). Each instance has its own Manager set. A Manager can be passed to several instances, with these rules: it is initialized by — and its `scope` and `manager<T>()` delegates belong to — the first instance that starts (for a Manager of one of the four built-in types, which every instance initializes in its constructor: the first instance created); it receives `onUpdate` on every tick of every instance it belongs to; it is disposed as soon as any of those instances is disposed, so dispose them together. Share only Managers that tolerate this — such as `MusicManager`, `SoundManager`, `SpriteManager`, or a custom Manager holding no per-instance state; never share an `ActorManager`, `PhysicsManager`, or other per-scene state.
 
 ## Performance
 

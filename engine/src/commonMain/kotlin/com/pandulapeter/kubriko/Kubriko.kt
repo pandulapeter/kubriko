@@ -48,7 +48,7 @@ sealed interface Kubriko {
     /**
      * Disposes of this [Kubriko] instance and all its [Manager]s.
      * This should be called when the game engine is no longer needed.
-     * Actors still in the scene receive `Disposable.dispose()`.
+     * Actors still in the scene receive `Disposable.dispose()`. Managers shared with other instances are disposed too.
      */
     fun dispose()
 
@@ -60,7 +60,9 @@ sealed interface Kubriko {
          * implementations will be automatically added.
          *
          * @param manager Optional custom [Manager] implementations. If several Managers of the same class are passed, only
-         * the first one is used. A default Manager is only created for a built-in type that none of them provides.
+         * the first one is used. A default Manager is only created for a built-in type that none of them provides. A Manager
+         * can be passed to several instances: it belongs to the first instance that initializes it, is updated by every one of
+         * them, and is disposed as soon as any of them is disposed.
          * @param tickSource Optional custom [TickSource] implementation.
          * @param isLoggingEnabled Whether to enable logging for this instance.
          * @param instanceNameForLogging Optional name to use for this instance in log messages.

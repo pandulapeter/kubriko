@@ -66,7 +66,7 @@ Every `Manager` goes through a defined lifecycle managed by the `Kubriko` instan
 3. `onDispose()`: Called when the engine is shut down.
 
 Managers are added to the engine at the moment of creation and can not be removed later on.
-For components that need a more limited lifecycle use Actors. For more complex projects, multiple instances of Kubriko could be used.
+For components that need a more limited lifecycle use Actors. For more complex projects, multiple instances of Kubriko could be used. A Manager shared between instances is disposed as soon as any of them is disposed, so dispose the instances that share it together.
 
 ### TickSource
 
