@@ -25,9 +25,9 @@ Requires **JDK 21** (the Kotlin Multiplatform toolchain pins language version 21
 ./gradlew :app:desktop:run            # Run the Showcase app on Desktop (JVM)
 ./gradlew :app:web:wasmJsBrowserDevelopmentRun   # Run the Showcase app in a browser
 ./gradlew :app:android:installDebug   # Install the Showcase app on a connected Android device/emulator
-./gradlew test                        # Run JVM/common unit tests across modules
+./gradlew desktopTest                 # Run the unit tests of every module on the desktop JVM
 node engine/src/webMain/checkTriangleBridge.mjs  # Check the bridge's embedded JS
-./gradlew :engine:desktopTest --tests "com.pandulapeter.kubriko.SomeTest"   # Single test
+./gradlew :engine:desktopTest --tests "com.pandulapeter.kubriko.TestSetupTest"   # Single test
 ./gradlew publishToMavenCentral --no-configuration-cache   # Publish (CI uses this)
 ```
 
@@ -41,6 +41,8 @@ iOS runs from Xcode / the IDE run configuration (Mac only); there is no `gradlew
 - `showcase.isDebugMenuEnabled`, `showcase.isSceneEditorEnabled` — swap real tool modules for `-noop` ones
 - `showcase.shouldShowUnfinishedGames`
 - `library.version` — the published artifact version
+
+**Testing**: `commonTest` runs on the desktop JVM only (the Wasm and iOS test tasks are disabled), so JVM-only APIs go in `desktopTest`. Every module's `desktopTest` already depends on `:tools:test-fixtures` (manual-tick instance, `awaitProcessed`, counting actors, allocation measurement) — use it instead of hand-rolling a harness. Library test classpaths have no native Skia runtime, so tests must not create a real `ImageBitmap` or draw.
 
 ## Module layout
 
@@ -260,6 +262,7 @@ Not for production builds. Swapped in/out via `gradle.properties` flags (`isDebu
 - **`scene-editor-api`** / **`scene-editor-noop`** — same -api/-noop split as debug-menu.
 - **`logger`** (`tool-logger`) — `Logger.log(message, details, source, importance)`. Observable via `Logger.logs: StateFlow`. Already part of the engine's API; no separate dependency needed for basic logging.
 - **`ui-components`** — Compose components for the Kubriko visual style, shared by tools and the Showcase app.
+- **`test-fixtures`** (unpublished) — JVM helpers for this repository's own unit tests; every module's `desktopTest` depends on it.
 
 The `Editable` trait from `scene-editor-api` can be combined with `Serializable` for full scene save/load integration.
 

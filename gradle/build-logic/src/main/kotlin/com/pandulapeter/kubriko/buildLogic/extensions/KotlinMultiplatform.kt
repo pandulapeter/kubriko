@@ -15,6 +15,8 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.configure
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
+import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
 
 internal fun Project.configureKotlinMultiplatform(
     extension: KotlinMultiplatformExtension
@@ -47,4 +49,16 @@ internal fun Project.configureKotlinMultiplatform(
         browser()
         binaries.executable()
     }
+    sourceSets.getByName("commonTest").dependencies {
+        implementation(libs.findLibrary("kotlin-test").get())
+        implementation(libs.findLibrary("kotlinx-coroutines-test").get())
+    }
+    if (path != ":tools:test-fixtures") {
+        sourceSets.getByName("desktopTest").dependencies {
+            implementation(project(":tools:test-fixtures"))
+        }
+    }
+    // Running these needs a browser or an iOS simulator; their compilations still run, so commonTest must compile everywhere.
+    tasks.withType(KotlinJsTest::class.java).configureEach { enabled = false }
+    tasks.withType(KotlinNativeTest::class.java).configureEach { enabled = false }
 }

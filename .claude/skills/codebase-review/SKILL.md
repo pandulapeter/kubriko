@@ -156,7 +156,7 @@ and the manual checks owed; update the memory. **Do not push.**
   `TickSource`, `TriangleBatch`); the plugins; the tools (debug menu, scene editor); the Showcase app and its
   platform shells; the examples. Per-frame paths are reviewed for allocations and redundant work — see the
   Performance section of `CLAUDE.md`.
-- **Tests:** `./gradlew test`, or `./gradlew :<module>:desktopTest` for the modules a lane touched. A change to the
+- **Tests:** `./gradlew desktopTest`, or `./gradlew :<module>:desktopTest` for the modules a lane touched. A change to the
   web bridge's embedded JS also runs `node engine/src/webMain/checkTriangleBridge.mjs`.
 - **Compile checks:** `./gradlew :<module>:build` for each module touched; the Showcase on the platform a change is
   specific to (`:app:desktop:run` is not needed — compiling is). Full build after the last lane: `./gradlew build`.

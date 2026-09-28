@@ -70,5 +70,6 @@ include(
     ":tools:scene-editor",
     ":tools:scene-editor-api",
     ":tools:scene-editor-noop",
+    ":tools:test-fixtures",
     ":tools:ui-components",
 )

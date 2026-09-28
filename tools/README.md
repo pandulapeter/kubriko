@@ -18,4 +18,5 @@ This folder contains all the tooling submodules that can be added to games to en
 - [scene-editor](https://github.com/pandulapeter/kubriko/tree/main/tools/scene-editor) - A desktop-only editor that can be used to arrange and customize Actors within a scene.
 - [scene-editor-api](https://github.com/pandulapeter/kubriko/tree/main/tools/scene-editor-api) - Defines the public API of the Scene Editor.
 - [scene-editor-noop](https://github.com/pandulapeter/kubriko/tree/main/tools/scene-editor-noop) - Blank implementation of the Scene Editor public API .
+- [test-fixtures](https://github.com/pandulapeter/kubriko/tree/main/tools/test-fixtures) - Shared helpers for this repository's own unit tests. Not published.
 - [ui-components](https://github.com/pandulapeter/kubriko/tree/main/tools/ui-components) - Composables that define the Kubriko look, shared by the editor and the Showcase app.
