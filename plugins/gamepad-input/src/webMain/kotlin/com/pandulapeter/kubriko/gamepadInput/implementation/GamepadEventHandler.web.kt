@@ -19,6 +19,7 @@ import kotlin.js.ExperimentalWasmJsInterop
 internal actual fun createGamepadEventHandler(): GamepadEventHandler = object : GamepadEventHandler {
 
     private var gamepads: Array<RawGamepadState>? = null
+    private var isGamepadApiBlocked = false
 
     @Composable
     override fun isValid() = true
@@ -33,7 +34,13 @@ internal actual fun createGamepadEventHandler(): GamepadEventHandler = object : 
 
     override fun poll() {
         val gamepads = gamepads ?: return
-        val gamepadCount = refreshGamepads()
+        if (isGamepadApiBlocked) return
+        var gamepadCount = refreshGamepads()
+        if (gamepadCount < 0) {
+            // A permissions policy can't change for the life of the page, so there is no point in asking again.
+            isGamepadApiBlocked = true
+            gamepadCount = 0
+        }
         for (slot in gamepads.indices) {
             val gamepad = gamepads[slot]
             if (slot >= gamepadCount || !isGamepadConnected(slot)) {
@@ -86,8 +93,9 @@ private const val RIGHT_TRIGGER_BUTTON = 7
 
 // The browser hands out a fresh snapshot array on every getGamepads() call, so it is taken once per tick and
 // parked on the JavaScript side: reading it from there keeps the number of calls crossing the boundary down.
+// Returns -1 when the page's permissions policy blocks the Gamepad API (getGamepads() throws a SecurityError).
 private fun refreshGamepads(): Int =
-    js("(() => { const pads = navigator.getGamepads ? navigator.getGamepads() : []; globalThis.__kubrikoGamepads = pads; return pads.length; })()")
+    js("(() => { try { const pads = navigator.getGamepads ? navigator.getGamepads() : []; globalThis.__kubrikoGamepads = pads; return pads.length; } catch (e) { globalThis.__kubrikoGamepads = []; return -1; } })()")
 
 private fun isGamepadConnected(index: Int): Boolean =
     js("(() => { const pad = globalThis.__kubrikoGamepads[index]; return !!pad && pad.connected; })()")
