@@ -43,7 +43,8 @@ sealed class ViewportManager(
     abstract val size: StateFlow<Size>
 
     /**
-     * The raw scale factor being applied to the scene before any clamping or aspect ratio adjustments.
+     * The scale factor set through [setScaleFactor] / [multiplyScaleFactor] (already clamped to
+     * [minimumScaleFactor]..[maximumScaleFactor]), before the adjustment the [AspectRatioMode] applies.
      */
     abstract val rawScaleFactor: StateFlow<Scale>
 
@@ -166,9 +167,9 @@ sealed class ViewportManager(
          * Creates a new [ViewportManager] instance.
          *
          * @param aspectRatioMode How the viewport should scale to fit the screen.
-         * @param initialScaleFactor The starting zoom level.
-         * @param minimumScaleFactor The minimum zoom level allowed.
-         * @param maximumScaleFactor The maximum zoom level allowed.
+         * @param initialScaleFactor The starting zoom level, clamped to [minimumScaleFactor]..[maximumScaleFactor] like every later change.
+         * @param minimumScaleFactor The minimum zoom level allowed, applied to [initialScaleFactor], [setScaleFactor] and [multiplyScaleFactor].
+         * @param maximumScaleFactor The maximum zoom level allowed, applied to [initialScaleFactor], [setScaleFactor] and [multiplyScaleFactor].
          * @param viewportEdgeBuffer An extra margin around the viewport where actors are still considered visible.
          * @param initialTargetFrameRate The initial target frame rate for updates. Can be changed at runtime via [setTargetFrameRate].
          * Defaults to a 60 fps [TargetFrameRate.Limit] rather than [TargetFrameRate.DisplayDefault], so a 120 Hz+ panel doesn't silently

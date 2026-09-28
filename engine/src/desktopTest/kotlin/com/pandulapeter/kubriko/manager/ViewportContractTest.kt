@@ -88,6 +88,22 @@ class ViewportContractTest {
     }
 
     @Test
+    fun initialScaleFactorIsClampedToItsBounds() {
+        withViewport(ViewportManager.newInstance(initialScaleFactor = 50f, minimumScaleFactor = 0.5f, maximumScaleFactor = 2f)) { viewportManager ->
+            assertEquals(Scale(2f, 2f), viewportManager.rawScaleFactor.value)
+        }
+        withViewport(ViewportManager.newInstance(initialScaleFactor = 0.01f, minimumScaleFactor = 0.5f, maximumScaleFactor = 2f)) { viewportManager ->
+            assertEquals(Scale(0.5f, 0.5f), viewportManager.rawScaleFactor.value)
+        }
+        withViewport(ViewportManager.newInstance(minimumScaleFactor = 2f, maximumScaleFactor = 4f)) { viewportManager ->
+            assertEquals(Scale(2f, 2f), viewportManager.rawScaleFactor.value)
+        }
+        withViewport(ViewportManager.newInstance(initialScaleFactor = 1.5f, minimumScaleFactor = 0.5f, maximumScaleFactor = 2f)) { viewportManager ->
+            assertEquals(Scale(1.5f, 1.5f), viewportManager.rawScaleFactor.value)
+        }
+    }
+
+    @Test
     fun visibleAreaMatchesTheCamera() = withViewport { viewportManager ->
         forEachCameraAndScale(viewportManager) { camera, scale ->
             val topLeft = viewportManager.topLeft.value

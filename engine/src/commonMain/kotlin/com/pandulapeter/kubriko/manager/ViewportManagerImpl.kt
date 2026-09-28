@@ -48,7 +48,7 @@ internal class ViewportManagerImpl(
     private val _size = MutableStateFlow(Size.Zero)
     override val size = _size.asStateFlow()
     val scaleFactorMultiplier = MutableStateFlow(Scale.Unit)
-    private val _scaleFactor = MutableStateFlow(Scale(initialScaleFactor, initialScaleFactor))
+    private val _scaleFactor = initialScaleFactor.coerceAtLeast(minimumScaleFactor).coerceAtMost(maximumScaleFactor).let { MutableStateFlow(Scale(it, it)) }
     override val rawScaleFactor by autoInitializingLazy {
         _scaleFactor.asStateFlow()
     }
