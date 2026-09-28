@@ -55,7 +55,7 @@ fun SmallSlider(
         interactionSource = interactionSource,
         thumb = {
             Spacer(
-                modifier
+                Modifier
                     .size(4.dp, 16.dp)
                     .hoverable(interactionSource = interactionSource)
                     .background(MaterialTheme.colorScheme.primary, CircleShape)

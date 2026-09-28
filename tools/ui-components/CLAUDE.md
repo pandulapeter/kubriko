@@ -40,7 +40,7 @@ Typography uses `Public Sans Regular` across all Material3 text styles.
 | `SmallSwitch` | Compact labeled toggle switch | `title: String`, `isChecked`, `onCheckedChanged` |
 | `TextInput` | `BasicTextField` styled with theme colors | `value`, `onValueChanged`, `enabled`, `onFocusChanged` (balanced — also fires `false` on dispose if focused) |
 | `LoadingIndicator` | 24 dp circular progress, 3 dp stroke | — |
-| `LoadingOverlay` | Fullscreen overlay; shows `LoadingIndicator` bottom-start while loading | `shouldShowLoadingIndicator`, `content` slot |
+| `LoadingOverlay` | Fullscreen overlay; shows `LoadingIndicator` bottom-start while loading; `modifier` applies to both the content and the overlay container | `shouldShowLoadingIndicator`, `content` slot |
 
 ## Utilities
 
