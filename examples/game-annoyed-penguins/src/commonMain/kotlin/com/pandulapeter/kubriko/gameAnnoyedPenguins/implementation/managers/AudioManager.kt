@@ -49,13 +49,15 @@ internal class AudioManager(
     @OptIn(FlowPreview::class)
     override fun onInitialize(kubriko: Kubriko) {
         if (!isForSceneEditor) {
+            // Not deduplicated: MusicManager pauses on any focus loss, even one too brief to pass the debounce, so every
+            // focused emission has to resume the music.
             combine(
                 stateManager.isFocused.debounce(100),
                 userPreferencesManager.isMusicEnabled,
                 shouldStopMusic,
             ) { isFocused, isMusicEnabled, shouldStopMusic ->
                 Triple(isFocused, isMusicEnabled, shouldStopMusic)
-            }.distinctUntilChanged().onEach { (isFocused, isMusicEnabled, shouldStopMusic) ->
+            }.onEach { (isFocused, isMusicEnabled, shouldStopMusic) ->
                 if (isMusicEnabled && isFocused && !shouldStopMusic) {
                     musicManager.play(
                         uri = getResourceUri(URI_MUSIC, webRootPathName),
