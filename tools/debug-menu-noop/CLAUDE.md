@@ -19,7 +19,7 @@ No-op implementation of `DebugMenuContract`. Swapped in when `isDebugMenuEnabled
 
 - `isVisible` is a permanently-false `MutableStateFlow`
 - `toggleVisibility()` is a no-op
-- All four detailed composable overloads (`invoke`, `Horizontal`, `Vertical`, `OverlayOnly`) return `Unit` and render only `content()`
+- `invoke` and `OverlayOnly` render `kubrikoViewport()` inside a `Box(modifier)`; `Horizontal` and `Vertical` render nothing
 - The simple overloads with `= Unit` bodies in `DebugMenuContract` are inherited without override
 
 ## When to Modify

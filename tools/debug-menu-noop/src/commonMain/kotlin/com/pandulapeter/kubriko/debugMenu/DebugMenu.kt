@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.debugMenu
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,7 +23,8 @@ import kotlinx.coroutines.flow.asStateFlow
  * No-op implementation of [DebugMenuContract].
  *
  * This object can be used in release builds to satisfy dependencies without including the full
- * debug menu implementation. All operations are non-functional.
+ * debug menu implementation. The panels and the visibility toggle do nothing, while [invoke] and
+ * [OverlayOnly] render the given `kubrikoViewport` unchanged.
  */
 object DebugMenu : DebugMenuContract {
 
@@ -41,7 +43,11 @@ object DebugMenu : DebugMenuContract {
         kubrikoViewport: @Composable () -> Unit,
         verticalDebugMenuWidth: Dp,
         horizontalDebugMenuHeight: Dp,
-    ) = Unit
+    ) = Box(
+        modifier = modifier,
+    ) {
+        kubrikoViewport()
+    }
 
     @Composable
     override fun Horizontal(
@@ -69,5 +75,9 @@ object DebugMenu : DebugMenuContract {
         kubriko: Kubriko?,
         kubrikoViewport: @Composable () -> Unit,
         buttonAlignment: Alignment?,
-    ) = Unit
+    ) = Box(
+        modifier = modifier,
+    ) {
+        kubrikoViewport()
+    }
 }

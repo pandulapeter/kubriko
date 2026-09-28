@@ -39,7 +39,7 @@ interface DebugMenuContract {
 }
 ```
 
-All four composable overloads have default `= Unit` implementations in the interface — the noop module inherits them without override. The real implementation overrides all four.
+The detailed overloads have `= Unit` default bodies in the interface; both the real and the noop implementation override all four.
 
 ## Usage Pattern
 
