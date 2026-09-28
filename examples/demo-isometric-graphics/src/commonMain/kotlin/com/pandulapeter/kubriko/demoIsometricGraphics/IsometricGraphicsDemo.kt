@@ -26,10 +26,8 @@ fun createIsometricGraphicsDemoStateHolder(
 
 @Composable
 fun IsometricGraphicsDemo(
+    stateHolder: IsometricGraphicsDemoStateHolder,
     modifier: Modifier = Modifier,
-    stateHolder: IsometricGraphicsDemoStateHolder = createIsometricGraphicsDemoStateHolder(
-        isLoggingEnabled = false,
-    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as IsometricGraphicsDemoStateHolderImpl

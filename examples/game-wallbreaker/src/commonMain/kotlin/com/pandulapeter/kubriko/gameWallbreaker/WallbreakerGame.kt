@@ -49,11 +49,8 @@ fun createWallbreakerGameStateHolder(
 
 @Composable
 fun WallbreakerGame(
+    stateHolder: WallbreakerGameStateHolder,
     modifier: Modifier = Modifier,
-    stateHolder: WallbreakerGameStateHolder = createWallbreakerGameStateHolder(
-        webRootPathName = "",
-        isLoggingEnabled = false,
-    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     isInFullscreenMode: Boolean? = null,
     onFullscreenModeToggled: () -> Unit = {},

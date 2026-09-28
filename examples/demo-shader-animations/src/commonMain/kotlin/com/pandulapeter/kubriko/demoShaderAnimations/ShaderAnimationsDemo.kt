@@ -49,10 +49,8 @@ fun createShaderAnimationsDemoStateHolder(
 
 @Composable
 fun ShaderAnimationsDemo(
+    stateHolder: ShaderAnimationsDemoStateHolder,
     modifier: Modifier = Modifier,
-    stateHolder: ShaderAnimationsDemoStateHolder = createShaderAnimationsDemoStateHolder(
-        isLoggingEnabled = false,
-    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as ShaderAnimationsDemoStateHolderImpl

@@ -47,11 +47,8 @@ fun createSpaceSquadronGameStateHolder(
 
 @Composable
 fun SpaceSquadronGame(
+    stateHolder: SpaceSquadronGameStateHolder,
     modifier: Modifier = Modifier,
-    stateHolder: SpaceSquadronGameStateHolder = createSpaceSquadronGameStateHolder(
-        webRootPathName = "",
-        isLoggingEnabled = false,
-    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     isInFullscreenMode: Boolean? = null,
     onFullscreenModeToggled: () -> Unit = {},

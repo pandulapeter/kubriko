@@ -67,12 +67,8 @@ fun createAnnoyedPenguinsGameStateHolder(
 
 @Composable
 fun AnnoyedPenguinsGame(
+    stateHolder: AnnoyedPenguinsGameStateHolder,
     modifier: Modifier = Modifier,
-    stateHolder: AnnoyedPenguinsGameStateHolder = createAnnoyedPenguinsGameStateHolder(
-        webRootPathName = "",
-        isSceneEditorEnabled = true,
-        isLoggingEnabled = false,
-    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     isInFullscreenMode: Boolean? = null,
     onFullscreenModeToggled: () -> Unit = {},

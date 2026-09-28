@@ -31,11 +31,8 @@ fun createAudioTestStateHolder(
 
 @Composable
 fun AudioTest(
+    stateHolder: AudioTestStateHolder,
     modifier: Modifier = Modifier,
-    stateHolder: AudioTestStateHolder = createAudioTestStateHolder(
-        webRootPathName = "",
-        isLoggingEnabled = false,
-    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as AudioTestStateHolderImpl

@@ -22,9 +22,7 @@ fun createCollisionTestStateHolder(
 
 @Composable
 fun CollisionTest(
+    stateHolder: CollisionTestStateHolder,
     modifier: Modifier = Modifier,
-    stateHolder: CollisionTestStateHolder = createCollisionTestStateHolder(
-        isLoggingEnabled = false,
-    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) = Unit

@@ -64,12 +64,8 @@ fun createBlockysJourneyGameStateHolder(
 
 @Composable
 fun BlockysJourneyGame(
+    stateHolder: BlockysJourneyGameStateHolder,
     modifier: Modifier = Modifier,
-    stateHolder: BlockysJourneyGameStateHolder = createBlockysJourneyGameStateHolder(
-        webRootPathName = "",
-        isSceneEditorEnabled = true,
-        isLoggingEnabled = false,
-    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     isInFullscreenMode: Boolean? = null,
     onFullscreenModeToggled: () -> Unit = {},

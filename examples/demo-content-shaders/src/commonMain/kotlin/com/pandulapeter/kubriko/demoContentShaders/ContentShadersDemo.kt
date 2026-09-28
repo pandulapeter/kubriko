@@ -40,10 +40,8 @@ fun createContentShadersDemoStateHolder(
 
 @Composable
 fun ContentShadersDemo(
+    stateHolder: ContentShadersDemoStateHolder,
     modifier: Modifier = Modifier,
-    stateHolder: ContentShadersDemoStateHolder = createContentShadersDemoStateHolder(
-        isLoggingEnabled = false,
-    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as ContentShadersDemoStateHolderImpl

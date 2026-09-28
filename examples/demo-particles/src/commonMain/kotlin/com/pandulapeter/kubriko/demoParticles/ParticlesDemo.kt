@@ -28,10 +28,8 @@ fun createParticlesDemoStateHolder(
 
 @Composable
 fun ParticlesDemo(
+    stateHolder: ParticlesDemoStateHolder,
     modifier: Modifier = Modifier,
-    stateHolder: ParticlesDemoStateHolder = createParticlesDemoStateHolder(
-        isLoggingEnabled = false,
-    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as ParticlesDemoStateHolderImpl

@@ -30,11 +30,8 @@ fun createPhysicsDemoStateHolder(
 
 @Composable
 fun PhysicsDemo(
+    stateHolder: PhysicsDemoStateHolder,
     modifier: Modifier = Modifier,
-    stateHolder: PhysicsDemoStateHolder = createPhysicsDemoStateHolder(
-        isSceneEditorEnabled = true,
-        isLoggingEnabled = false,
-    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as PhysicsDemoStateHolderImpl

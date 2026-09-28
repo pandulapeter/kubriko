@@ -30,11 +30,8 @@ fun createPerformanceDemoStateHolder(
 
 @Composable
 fun PerformanceDemo(
+    stateHolder: PerformanceDemoStateHolder,
     modifier: Modifier = Modifier,
-    stateHolder: PerformanceDemoStateHolder = createPerformanceDemoStateHolder(
-        isSceneEditorEnabled = true,
-        isLoggingEnabled = false,
-    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as PerformanceDemoStateHolderImpl

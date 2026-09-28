@@ -43,10 +43,8 @@ fun createInputTestStateHolder(
 
 @Composable
 fun InputTest(
+    stateHolder: InputTestStateHolder,
     modifier: Modifier = Modifier,
-    stateHolder: InputTestStateHolder = createInputTestStateHolder(
-        isLoggingEnabled = false,
-    ),
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as InputTestStateHolderImpl
