@@ -103,7 +103,9 @@ ActorManager.newInstance(
     initialActors: List<Actor> = emptyList(),
     shouldUpdateActorsWhileNotRunning: Boolean = false,
     shouldPutFarAwayActorsToSleep: Boolean = true,
-    invisibleActorMinimumRefreshTimeInMillis: Long = 0,
+    farAwayActorSleepMargin: SceneUnit? = null,
+    invisibleActorMinimumRefreshTimeInMillis: Long = 100,
+    shouldComposeLayers: Boolean = true,
 )
 ```
 - `add(vararg Actor)` / `add(Collection<Actor>)` — batched, background-thread addition; `Actor.onAdded(kubriko)` fires just before, on that same background thread (for operations issued before `start()`: synchronously on the thread calling `start()`); adding an actor that is already present is a no-op.
@@ -130,13 +132,13 @@ ViewportManager.newInstance(
     minimumScaleFactor: Float = 0.2f,
     maximumScaleFactor: Float = 5f,
     viewportEdgeBuffer: SceneUnit = 0f.sceneUnit,
-    initialTargetFrameRate: TargetFrameRate = TargetFrameRate.DisplayDefault,
+    initialTargetFrameRate: TargetFrameRate = TargetFrameRate.Limit(60),
 )
 ```
 - `AspectRatioMode` variants: `Dynamic` (matches screen), `FitHorizontal(width)`, `FitVertical(height)`, `Fixed(ratio, width, alignment)`, `Stretched(size)`.
 - `cameraPosition`, `size` (pixels), `scaleFactor`, `topLeft`, `bottomRight` — observable state.
 - `setCameraPosition(SceneOffset)`, `addToCameraPosition(Offset)`, `setScaleFactor(Float)`, `multiplyScaleFactor(Float)` — camera control.
-- `targetFrameRate: StateFlow<TargetFrameRate>` / `setTargetFrameRate(TargetFrameRate)` — runtime update-rate control. `TargetFrameRate.DisplayDefault` (default) ticks every display frame (device maximum); `TargetFrameRate.Limit(fps)` caps to an absolute, refresh-rate-independent rate; `TargetFrameRate.DisplayDivider(divisor)` ticks every `divisor`-th display frame (the classic frame-divider behavior, so the rate scales with the panel's refresh rate). A throttled target sleeps through the display frames between its ticks rather than awaiting each one, so a low `Limit` no longer costs a redraw per vsync on the Skia-backed platforms (see `engine/CLAUDE.md` → Tick Dispatch).
+- `targetFrameRate: StateFlow<TargetFrameRate>` / `setTargetFrameRate(TargetFrameRate)` — runtime update-rate control. `TargetFrameRate.Limit(fps)` (default `Limit(60)`) caps to an absolute, refresh-rate-independent rate; `TargetFrameRate.DisplayDefault` ticks every display frame (device maximum); `TargetFrameRate.DisplayDivider(divisor)` ticks every `divisor`-th display frame (the classic frame-divider behavior, so the rate scales with the panel's refresh rate). A throttled target sleeps through the display frames between its ticks rather than awaiting each one, so a low `Limit` no longer costs a redraw per vsync on the Skia-backed platforms (see `engine/CLAUDE.md` → Tick Dispatch).
 - Coordinate conversion (scene ↔ screen) is handled internally; use `topLeft`/`bottomRight` for world-space bounds.
 
 **`MetadataManager`**

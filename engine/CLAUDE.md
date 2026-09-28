@@ -18,7 +18,7 @@ The sealed-interface core of Kubriko: wires Managers, Actors, the tick loop, and
 - `ActorManagerImpl.kt` — batched add/remove via `Channel<Operation>`; owns draw-cache rebuilding
 - `SyncStateFlow.kt` — computes `.value` synchronously, preventing 1-frame lag on combined viewport bounds
 - `PlatformUtils.kt` (+ actuals) — `PlatformFocusEffect`, `PlatformFrameRateHint`, `getPlatform()`, `getDefaultFocusDebounce()`. Android debounce = 350 ms; Desktop = 0 ms
-- `AxisAlignedBoundingBox.kt` — packs four 16-bit quantized coords into one `Long`. `QUANT_SHIFT = 4` means 16-unit precision; caps usable scene coords at ~±524 k scene units
+- `AxisAlignedBoundingBox.kt` — four `Float` bounds, mutated in place by the owning body or collision mask, so per-frame updates allocate nothing; full `Float` range and precision
 
 ## Initialization Order
 
@@ -83,7 +83,6 @@ Any Manager can override (all run every frame — keep allocation-free):
 ## Gotchas
 
 - `drawingOrder` comparator adds `+ 0f` to normalize `-0.0f` → `+0.0f`; without this TimSort throws `IllegalArgumentException`
-- `AxisAlignedBoundingBox` quantizes to multiples of 16 — positions between steps appear at the next multiple in culling (conservative, intentional)
 - `Manager.scope` is `KubrikoImpl` cast to `CoroutineScope` (`SupervisorJob + Dispatchers.Default`); child failures don't cancel the engine
 - Default Managers are prepended only for built-in types no user Manager provides; among user Managers of the same class the first one wins (`distinctBy`)
 - `SyncStateFlow.value` bypasses coroutine-backed `StateFlow` — safe only if underlying state is thread-safe; collectors also receive `getSyncValue()`, never the delegate's placeholder

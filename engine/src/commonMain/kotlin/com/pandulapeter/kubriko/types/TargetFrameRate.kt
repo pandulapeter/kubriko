@@ -20,7 +20,8 @@ sealed interface TargetFrameRate {
 
     /**
      * Updates occur on every display frame, so the game loop runs at the device's maximum refresh
-     * rate. This is the default.
+     * rate. Pass it to `ViewportManager.newInstance` or `setTargetFrameRate` for uncapped updates; the default is
+     * `Limit(60)`.
      */
     data object DisplayDefault : TargetFrameRate
 
