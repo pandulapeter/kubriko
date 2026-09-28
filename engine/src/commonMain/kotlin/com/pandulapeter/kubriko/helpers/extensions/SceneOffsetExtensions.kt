@@ -162,14 +162,19 @@ val List<SceneOffset>.center
     }
 
 /**
- * Converts this [SceneOffset] to a screen [Offset].
+ * Converts this scene-space vector (a distance or direction, such as the difference of two positions) to screen pixels,
+ * applying only the viewport's current scale factor.
+ *
+ * This is not a position conversion: the camera position and the viewport size are ignored, so it does not give an
+ * actor's on-screen location, and it is not the inverse of [Offset.toSceneOffset].
  */
 fun SceneOffset.toOffset(viewportManager: ViewportManager): Offset = toOffset(
     viewportScaleFactor = (viewportManager as ViewportManagerImpl).currentScaleFactor(),
 )
 
 /**
- * Converts this [SceneOffset] to a screen [Offset] using the given [viewportScaleFactor].
+ * Converts this scene-space vector to screen pixels by multiplying it with [viewportScaleFactor].
+ * Like the [ViewportManager] overload, it ignores the camera position; see there.
  */
 fun SceneOffset.toOffset(
     viewportScaleFactor: Scale,

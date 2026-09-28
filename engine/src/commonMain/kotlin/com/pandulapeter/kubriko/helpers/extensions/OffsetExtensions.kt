@@ -18,7 +18,9 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
- * Converts this screen [Offset] to a [SceneOffset].
+ * Converts this screen position (in pixels, relative to the viewport's top-left corner) to the scene position it shows,
+ * using the camera position, viewport size and scale factor of [viewportManager].
+ * To convert a pixel distance or direction instead, divide it by the scale factor: `SceneOffset(pixels / viewportManager.scaleFactor.value)`.
  *
  * @param viewportManager The [ViewportManager] used for conversion.
  */
@@ -29,7 +31,7 @@ fun Offset.toSceneOffset(viewportManager: ViewportManager): SceneOffset = toScen
 )
 
 /**
- * Converts this screen [Offset] to a [SceneOffset].
+ * Converts this screen position (in pixels, relative to the viewport's top-left corner) to the scene position it shows.
  *
  * @param viewportCenter The current center of the camera in the scene.
  * @param viewportSize The size of the viewport in screen pixels.
