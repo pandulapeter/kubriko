@@ -86,5 +86,5 @@ Any Manager can override (all run every frame — keep allocation-free):
 - `AxisAlignedBoundingBox` quantizes to multiples of 16 — positions between steps appear at the next multiple in culling (conservative, intentional)
 - `Manager.scope` is `KubrikoImpl` cast to `CoroutineScope` (`SupervisorJob + Dispatchers.Default`); child failures don't cancel the engine
 - Default Managers are prepended; user-supplied same-type Manager wins via last-wins deduplication
-- `SyncStateFlow.value` bypasses coroutine-backed `StateFlow` — safe only if underlying state is thread-safe
+- `SyncStateFlow.value` bypasses coroutine-backed `StateFlow` — safe only if underlying state is thread-safe; collectors also receive `getSyncValue()`, never the delegate's placeholder
 - `SyncStateFlow.value` boxes an inline value class on every read (its getter is generic), so per-frame engine code reads the scale factor through `ViewportManagerImpl.currentScaleFactor()` instead of `scaleFactor.value`

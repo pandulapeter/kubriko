@@ -10,8 +10,11 @@
 package com.pandulapeter.kubriko.implementation
 
 import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 
 /**
  * A custom StateFlow wrapper that intercepts `.value` reads to calculate them synchronously.
@@ -23,9 +26,16 @@ internal class SyncStateFlow<T>(
     private val getSyncValue: () -> T
 ) : StateFlow<T> {
 
-    override val replayCache: List<T> get() = delegate.replayCache
+    override val replayCache: List<T> get() = listOf(getSyncValue())
 
-    override suspend fun collect(collector: FlowCollector<T>): Nothing = delegate.collect(collector)
+    /**
+     * The delegate only schedules the emissions: every emitted value, the first one included, is the synchronously
+     * computed current one, so collectors never see the delegate's placeholder.
+     */
+    override suspend fun collect(collector: FlowCollector<T>): Nothing {
+        delegate.map { getSyncValue() }.distinctUntilChanged().collect(collector)
+        awaitCancellation()
+    }
 
     override val value: T get() = getSyncValue()
 }
