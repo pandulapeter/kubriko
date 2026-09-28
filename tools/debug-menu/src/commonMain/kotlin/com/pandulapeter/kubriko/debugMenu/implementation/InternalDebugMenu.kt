@@ -81,7 +81,9 @@ internal object InternalDebugMenu {
     private val debugMenuKubrikoRegistry = RefCountedRegistry<Kubriko, Kubriko>(
         create = { kubriko ->
             Kubriko.newInstance(
-                kubriko.get<ViewportManager>(),
+                ViewportManager.newInstance(
+                    initialTargetFrameRate = kubriko.get<ViewportManager>().targetFrameRate.value,
+                ),
                 DebugMenuManager(kubriko),
             )
         },

@@ -15,7 +15,7 @@ Real implementation of the debug menu overlay: log viewer, actor body visualizer
 
 - `DebugMenu.kt` — public `object` implementing `DebugMenuContract`; delegates to `InternalDebugMenu`
 - `InternalDebugMenu.kt` — singleton; owns an internal `Kubriko` instance (for `PersistenceManager`), a per-game overlay Kubriko, keyed by the game `Kubriko` instance and reference-counted across `OverlayOnly`, `Horizontal` and `Vertical` (the last one to leave composition disposes it), and all persisted settings
-- `DebugMenuManager.kt` — `Manager + Overlay + Unique`; added to a separate per-game Kubriko instance sharing the game's `ViewportManager`; draws cyan body bounds and magenta collision mask outlines over `visibleActorsWithinViewport`
+- `DebugMenuManager.kt` — `Manager + Overlay + Unique`; added to a separate per-game Kubriko instance with its own `ViewportManager` (mirroring the game's `targetFrameRate`); it reads camera, scale and size from the game's and assumes the game canvas is centered in the overlay area; draws cyan body bounds and magenta collision mask outlines over `visibleActorsWithinViewport`
 - `DebugMenuContainer.kt` — Composable layout switching between Horizontal/Vertical panels
 - `RefCountedRegistry.kt` — main-thread, reference-counted key → value holder backing the per-game overlays
 

@@ -54,6 +54,7 @@ internal class DebugMenuManager(
             it.removeAll()
             it.add(this)
         }
+        gameViewportManager.targetFrameRate.onEach(kubriko.get<ViewportManager>()::setTargetFrameRate).launchIn(scope)
         combine(
             gameMetadataManager.fps,
             combine(gameActorManager.allActors, gameActorManager.visibleActorsWithinViewport) { all, visible -> all to visible },
@@ -87,8 +88,16 @@ internal class DebugMenuManager(
         if (shouldDrawBodyOverlays || shouldDrawCollisionMaskOverlays) {
             gameViewportManager.cameraPosition.value.let { viewportCenter ->
                 gameViewportManager.scaleFactor.value.let { scaleFactor ->
+                    val gameSize = gameViewportManager.size.value
+                    // The overlay fills its whole area, so this assumes the game canvas is centered within it.
+                    val gameCanvasLeft = (size.width - gameSize.width) / 2f
+                    val gameCanvasTop = (size.height - gameSize.height) / 2f
                     withTransform(
                         transformBlock = {
+                            translate(
+                                left = gameCanvasLeft,
+                                top = gameCanvasTop,
+                            )
                             transformViewport(
                                 viewportCenter = viewportCenter,
                                 shiftedViewportOffset = (gameViewportManager.size.value / 2f) - viewportCenter,
