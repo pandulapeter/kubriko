@@ -52,6 +52,11 @@ sealed class SerializationManager<MD : SerializableMetadata<out T>, out T : Seri
 
     /**
      * Deserializes a string representation into a list of actors.
+     *
+     * Returns an empty list when [serializedStates] is not a valid scene or any registered actor in it cannot be
+     * restored (the failure is logged); actors whose type ID is not registered are skipped. An empty scene also
+     * returns an empty list, so a caller that must tell "empty" from "failed" checks the input (an empty scene
+     * serializes as `[]`).
      */
     abstract fun deserializeActors(serializedStates: String): List<T>
 

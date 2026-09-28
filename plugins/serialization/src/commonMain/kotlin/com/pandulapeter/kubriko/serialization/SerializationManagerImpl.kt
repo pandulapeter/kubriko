@@ -11,8 +11,8 @@ package com.pandulapeter.kubriko.serialization
 
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.reflect.KClass
 
 internal class SerializationManagerImpl<MD : SerializableMetadata<out T>, out T : Serializable<out T>>(
@@ -49,7 +49,14 @@ internal class SerializationManagerImpl<MD : SerializableMetadata<out T>, out T 
         json.decodeFromString<List<ActorStateWrapper>>(serializedStates).mapNotNull { wrapper ->
             typeIdsToDeserializers[wrapper.typeId]?.invoke(wrapper.serializedState)?.restore()
         }
-    } catch (_: SerializationException) {
+    } catch (exception: CancellationException) {
+        throw exception
+    } catch (throwable: Throwable) {
+        // All or nothing: a partially restored scene is easy to miss, and saving it would lose the actors left out.
+        log(
+            message = "Failed to deserialize actors",
+            details = throwable.message,
+        )
         emptyList()
     }
 

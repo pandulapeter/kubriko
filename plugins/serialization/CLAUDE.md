@@ -28,14 +28,17 @@ construction time. The metadata holds:
 
 The convenience factory `SerializableMetadata<reified T>(typeId, deserializeState)` captures
 `T::class` automatically. Unknown `typeId` values encountered during deserialization are silently
-skipped. A `SerializationException` from the outer JSON parse returns an empty list.
+skipped. Loading is all-or-nothing: any failure — the outer JSON, one actor's `deserializeState`, or one
+`restore()` throwing anything — is logged and returns an empty list (a partial scene is easy to miss and, once
+saved, loses the actors left out).
 
 ## Save/load flow
 - **Save**: `serializationManager.serializeActors(actors)` — iterates the list, calls
   `actor.save().serialize()` for each, skips actors whose `KClass` is not registered. Returns a
   JSON string.
 - **Load**: `serializationManager.deserializeActors(json)` — decodes the array, calls
-  `deserializeState(inner).restore()` for each registered type, returns the resulting actor list.
+  `deserializeState(inner).restore()` for each registered type, returns the resulting actor list, or an empty
+  list if any of that fails.
   The caller is responsible for adding restored actors to `ActorManager`.
 - Neither call touches `ActorManager` directly; triggering save/load is entirely the caller's
   responsibility (e.g., from a custom Manager or a scene-editor integration).

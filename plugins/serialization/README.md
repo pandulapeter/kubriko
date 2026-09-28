@@ -80,6 +80,8 @@ val serializedData = serializationManager.serializeActors(myActors)
 val loadedActors = serializationManager.deserializeActors(serializedData)
 ```
 
+Loading is all-or-nothing: if the data is not a valid scene or any registered actor in it cannot be restored, `deserializeActors` returns an empty list (actors of unregistered types are simply skipped).
+
 ## Public Artifact
 
 The artifact for this module is:
