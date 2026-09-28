@@ -163,9 +163,15 @@ internal class WebMusicPlayer private constructor(
                 null
             } else {
                 val arrayBuffer = response.arrayBuffer().await()
+                val decodingContext = AudioContext()
+                val audioBuffer = try {
+                    decodingContext.decodeAudioData(arrayBuffer).await()
+                } finally {
+                    decodingContext.close()
+                }
                 WebMusicPlayer(
                     scope = scope,
-                    audioBuffer = AudioContext().decodeAudioData(arrayBuffer).await(),
+                    audioBuffer = audioBuffer,
                 )
             }
         } catch (exception: Throwable) {
