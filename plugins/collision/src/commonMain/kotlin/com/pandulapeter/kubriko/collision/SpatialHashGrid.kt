@@ -127,6 +127,10 @@ class SpatialHashGrid {
         val bucketMask = bucketHeads.size - 1
         for (maskIndex in masks.indices) {
             val bounds = masks[maskIndex].axisAlignedBoundingBox
+            if (!bounds.minXRaw.isFinite() || !bounds.maxXRaw.isFinite() || !bounds.minYRaw.isFinite() || !bounds.maxYRaw.isFinite()) {
+                addOversized(maskIndex)
+                continue
+            }
             val minCellX = cellCoordinate(bounds.minXRaw)
             val maxCellX = cellCoordinate(bounds.maxXRaw)
             val minCellY = cellCoordinate(bounds.minYRaw)
@@ -238,11 +242,18 @@ class SpatialHashGrid {
     private fun refreshCellSize() {
         if (masks.isEmpty()) return
         var extentSum = 0f
+        var countedMaskCount = 0
         for (index in masks.indices) {
             val bounds = masks[index].axisAlignedBoundingBox
-            extentSum += (bounds.maxXRaw - bounds.minXRaw) + (bounds.maxYRaw - bounds.minYRaw)
+            val extent = (bounds.maxXRaw - bounds.minXRaw) + (bounds.maxYRaw - bounds.minYRaw)
+            // One NaN or infinite mask would otherwise collapse every mask into a single cell.
+            if (extent.isFinite()) {
+                extentSum += extent
+                countedMaskCount++
+            }
         }
-        val meanExtent = extentSum / (masks.size * 2)
+        if (countedMaskCount == 0) return
+        val meanExtent = extentSum / (countedMaskCount * 2)
         inverseCellSize = 1f / (meanExtent * CELLS_PER_MEAN_MASK_EXTENT).coerceAtLeast(MINIMUM_CELL_SIZE)
     }
 

@@ -47,6 +47,7 @@ A uniform hashed-cell index over a set of `CollisionMask`s. Public, because game
 - `findCandidates` writes into the reusable `candidateIndices` buffer and returns the count; a mask reachable through several cells is reported once (`queryStamps` stamped per query, the counter only ever incrementing so the array needs clearing only when it grows)
 - Cell size is derived from the mean mask extent at each `rebuild`, not configured — the engine cannot know a game's scale, and a constant would be wrong for most of them
 - Two escapes keep degenerate input from dominating: a mask spanning more than `MAXIMUM_CELLS_PER_MASK` cells (a map-edge slab) is held aside in `oversizedMaskIndices` and offered to every query instead of being bucketed, and a query rectangle spanning more than `MAXIMUM_CELLS_PER_QUERY` cells tests every mask instead of walking cells (an unbounded one would not terminate)
+- Masks with non-finite (`NaN` or infinite) bounds are ignored when sizing cells and kept in the oversized list, so one bad mask can neither collapse every mask into one cell nor be bucketed at cell `(0, 0)`
 - Not thread-safe; queries must not be interleaved, since they share one result buffer and one stamp counter
 
 ## Narrow-Phase Algorithms
