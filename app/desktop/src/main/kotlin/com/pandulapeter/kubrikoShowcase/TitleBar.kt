@@ -139,11 +139,11 @@ internal fun TitleBarInsets(
     isFullscreen: Boolean,
     content: @Composable () -> Unit,
 ) {
-    if (titleBar == null || isFullscreen) return content()
     val platformInsets = LocalPlatformWindowInsets.current
-    val titleBarHeight = with(LocalDensity.current) { titleBar.height.roundToPx() }
+    val density = LocalDensity.current
+    val titleBarHeight = titleBar?.takeUnless { isFullscreen }?.let { with(density) { it.height.roundToPx() } }
     val insets = remember(platformInsets, titleBarHeight) {
-        object : PlatformWindowInsets by platformInsets {
+        if (titleBarHeight == null) platformInsets else object : PlatformWindowInsets by platformInsets {
             override val captionBar = PlatformInsets(top = titleBarHeight)
             override val systemBars = PlatformInsets(top = titleBarHeight)
 

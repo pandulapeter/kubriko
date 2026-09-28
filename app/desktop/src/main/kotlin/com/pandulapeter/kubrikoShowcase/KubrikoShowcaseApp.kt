@@ -89,11 +89,11 @@ fun main() {
                     }
                 }
                 window.minimumSize = Dimension(400, 400)
+                titleBar?.let { TitleBarAppearance(window = window, titleBar = it) }
                 TitleBarInsets(
                     titleBar = titleBar,
                     isFullscreen = windowState.placement == WindowPlacement.Fullscreen,
                 ) {
-                    titleBar?.let { TitleBarAppearance(window = window, titleBar = it) }
                     KubrikoShowcase(
                         isInFullscreenMode = isInFullscreenMode.value,
                         getIsInFullscreenMode = { isInFullscreenMode.value },
