@@ -181,7 +181,9 @@ object DebugMenu : DebugMenuContract {
                 InternalDebugMenu.clearGameKubriko(kubriko)
             }
         }
-        Box {
+        Box(
+            modifier = modifier,
+        ) {
             // We only need this to initialize the PersistenceManager of InternalDebugMenu so that user settings can get restored.
             KubrikoViewport(
                 modifier = Modifier.size(0.dp),
@@ -191,7 +193,6 @@ object DebugMenu : DebugMenuContract {
             val debugMenuKubriko = InternalDebugMenu.debugMenuKubriko.collectAsState().value[kubriko?.instanceName]
             if (debugMenuKubriko != null) {
                 KubrikoViewport(
-                    modifier = modifier,
                     kubriko = debugMenuKubriko,
                 )
             }

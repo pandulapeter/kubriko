@@ -29,6 +29,7 @@ Real implementation of the debug menu overlay: log viewer, actor body visualizer
 - `invoke` auto-selects Horizontal (portrait, `maxWidth < maxHeight`) or Vertical (landscape)
 - Vertical panel width: 192 dp; Horizontal panel height: 160 dp
 - Four overloads in the API: `invoke` (auto), `Horizontal`, `Vertical`, `OverlayOnly`
+- `OverlayOnly` applies `modifier` to its root; the debug overlay viewport fills that root.
 
 ## Log Viewer
 
