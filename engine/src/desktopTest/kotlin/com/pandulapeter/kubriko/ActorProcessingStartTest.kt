@@ -82,10 +82,7 @@ class ActorProcessingStartTest {
         val actor = CountingActor()
         val tickSource = TickSource.manual()
         val kubriko = Kubriko.newInstance(
-            ActorManager.newInstance(
-                initialActors = listOf(actor),
-                shouldPutFarAwayActorsToSleep = false,
-            ),
+            ActorManager.newInstance(initialActors = listOf(actor)),
             tickSource = tickSource,
         )
         tickSource.start()

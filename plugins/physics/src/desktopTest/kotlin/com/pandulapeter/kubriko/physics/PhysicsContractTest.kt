@@ -238,7 +238,7 @@ class PhysicsContractTest {
     ) {
         val physicsManager = PhysicsManager.newInstance(initialGravity = gravity)
         val kubriko = newManualKubriko(
-            ActorManager.newInstance(shouldComposeLayers = false, shouldPutFarAwayActorsToSleep = false),
+            ActorManager.newInstance(shouldComposeLayers = false),
             physicsManager,
         )
         try {

@@ -21,7 +21,7 @@ class SweepAndPruneNanTest {
     @Test
     fun nanBodyDoesNotHideOtherContacts() {
         val kubriko = newManualKubriko(
-            ActorManager.newInstance(shouldComposeLayers = false, shouldPutFarAwayActorsToSleep = false),
+            ActorManager.newInstance(shouldComposeLayers = false),
             PhysicsManager.newInstance(initialGravity = SceneOffset.Zero),
         )
         try {

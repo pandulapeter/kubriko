@@ -66,10 +66,9 @@ class ManualKubriko(
  * Creates a [ManualKubriko] with the provided [managers] and a [TickSource.manual], started unless [shouldStart] is
  * false.
  *
- * Without a `KubrikoViewport` the viewport has no size. Until the engine stops putting actors of a zero-sized
- * viewport to sleep, a test that relies on `Dynamic` updates must pass
- * `ActorManager.newInstance(shouldPutFarAwayActorsToSleep = false)`. Engine tests that need a sized viewport use the
- * engine's own `newTestKubriko`.
+ * Without a `KubrikoViewport` the viewport has no size: every `Dynamic` actor is updated and
+ * `visibleActorsWithinViewport` stays empty. Engine tests that need a sized viewport use the engine's own
+ * `newTestKubriko`.
  */
 fun newManualKubriko(
     vararg managers: Manager,
