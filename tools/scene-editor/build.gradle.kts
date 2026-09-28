@@ -7,6 +7,8 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
+import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
+
 plugins {
     id("kubriko-compose-library")
     id("kubriko-public-artifact")
@@ -15,6 +17,8 @@ plugins {
 artifactMetadata {
     artifactId = "tool-scene-editor"
 }
+
+val isDebugMenuEnabled = project.findProperty("showcase.isDebugMenuEnabled") == "true"
 
 kotlin {
     android {
@@ -31,11 +35,19 @@ kotlin {
                 implementation(projects.plugins.keyboardInput)
                 implementation(projects.plugins.persistence)
                 implementation(projects.plugins.pointerInput)
-                implementation(if (project.findProperty("showcase.isDebugMenuEnabled") == "true") projects.tools.debugMenu else projects.tools.debugMenuNoop)
+                implementation(if (isDebugMenuEnabled) projects.tools.debugMenu else projects.tools.debugMenuNoop)
                 implementation(projects.tools.uiComponents)
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlin.reflect)
             }
+        }
+    }
+}
+
+if (!isDebugMenuEnabled) {
+    tasks.withType<AbstractPublishToMaven>().configureEach {
+        doFirst {
+            throw GradleException("tool-scene-editor is published against tool-debug-menu: publish with showcase.isDebugMenuEnabled=true.")
         }
     }
 }

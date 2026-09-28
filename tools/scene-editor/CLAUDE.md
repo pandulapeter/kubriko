@@ -22,6 +22,8 @@ The editor runs **two separate Kubriko instances**:
 
 Both instances and the `EditorController` scope are disposed when `InternalSceneEditor` leaves composition (a `DisposableEffect`), never in the close handler.
 
+The debug menu dependency follows `showcase.isDebugMenuEnabled` for local Showcase builds; publishing requires the flag to be `true`, so the released artifact always depends on `tool-debug-menu`.
+
 ## `EditorController`
 
 `CoroutineScope` (SupervisorJob + Dispatchers.Default) that owns all mutable editor state:
