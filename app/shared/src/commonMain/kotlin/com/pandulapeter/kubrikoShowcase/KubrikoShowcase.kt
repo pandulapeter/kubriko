@@ -18,7 +18,6 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
@@ -34,8 +33,6 @@ import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntryType
 import com.pandulapeter.kubrikoShowcase.implementation.ui.ResourceLoader
 import com.pandulapeter.kubrikoShowcase.implementation.ui.ShowcaseContent
 import com.pandulapeter.kubrikoShowcase.implementation.ui.getStateHolder
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
@@ -93,14 +90,13 @@ fun KubrikoShowcase(
             }
             BoxWithConstraints {
                 val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
-                val scope = rememberCoroutineScope()
                 LaunchedEffect(activeStateHolder) {
-                    activeStateHolder?.backNavigationIntent?.onEach {
+                    activeStateHolder?.backNavigationIntent?.collect {
                         if (getIsInFullscreenMode() == true) {
                             onFullscreenModeToggled()
                         }
                         selectedShowcaseEntry.value = null
-                    }?.launchIn(scope)
+                    }
                 }
                 ShowcaseContent(
                     shouldUseCompactUi = maxWidth < 640.dp,
