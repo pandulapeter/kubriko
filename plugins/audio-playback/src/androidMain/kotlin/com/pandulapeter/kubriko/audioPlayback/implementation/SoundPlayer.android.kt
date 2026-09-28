@@ -15,17 +15,21 @@ import android.media.SoundPool
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import java.io.IOException
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 @Composable
 internal actual fun createSoundPlayer(
     maximumSimultaneousStreamsOfTheSameSound: Int,
 ) = object : SoundPlayer {
     private val context = LocalContext.current.applicationContext
-    private var preloadListeners = mutableListOf<PreloadListener>()
+
+    /** Loads waiting for [SoundPool]'s completion callback, keyed by sample id. Only touched on the main thread. */
+    private val pendingLoads = HashMap<Int, CancellableContinuation<Int?>>()
     private val soundPool = remember {
         SoundPool.Builder()
             .setMaxStreams(maximumSimultaneousStreamsOfTheSameSound)
@@ -37,9 +41,15 @@ internal actual fun createSoundPlayer(
             )
             .build()
             .apply {
-                setOnLoadCompleteListener { _, sampleId, status ->
-                    if (status == 0) {
-                        preloadListeners.forEach { it.onSampleLoaded(sampleId) }
+                setOnLoadCompleteListener { pool, sampleId, status ->
+                    val continuation = pendingLoads.remove(sampleId) ?: return@setOnLoadCompleteListener
+                    if (status == 0 && continuation.isActive) {
+                        continuation.resume(sampleId) { _, _, _ -> pool.unload(sampleId) }
+                    } else {
+                        pool.unload(sampleId)
+                        if (continuation.isActive) {
+                            continuation.resume(null)
+                        }
                     }
                 }
             }
@@ -47,16 +57,24 @@ internal actual fun createSoundPlayer(
 
     private fun Context.getFileDescriptor(uri: String) = assets.openFd(uri.removePrefix("file:///android_asset/"))
 
-    override suspend fun preload(uri: String) = withContext(Dispatchers.IO) {
-        suspendCoroutine { continuation ->
-            val preloadListener = object : PreloadListener {
-                override fun onSampleLoaded(sampleId: Int) {
-                    preloadListeners.remove(this)
-                    continuation.resume(sampleId)
+    override suspend fun preload(uri: String): Int? {
+        val fileDescriptor = withContext(Dispatchers.IO) {
+            try {
+                context.getFileDescriptor(uri)
+            } catch (_: IOException) {
+                null
+            }
+        } ?: return null
+        // SoundPool delivers load callbacks on the main looper, so registering there keeps pendingLoads single-threaded.
+        return withContext(Dispatchers.Main) {
+            suspendCancellableCoroutine { continuation ->
+                val sampleId = fileDescriptor.use { soundPool.load(it, 1) }
+                if (sampleId == 0) {
+                    continuation.resume(null)
+                } else {
+                    pendingLoads[sampleId] = continuation
                 }
             }
-            preloadListeners.add(preloadListener)
-            soundPool.load(context.getFileDescriptor(uri), 1)
         }
     }
 
@@ -73,8 +91,4 @@ internal actual fun createSoundPlayer(
     }
 
     override fun dispose() = soundPool.release()
-}
-
-private interface PreloadListener {
-    fun onSampleLoaded(sampleId: Int)
 }
