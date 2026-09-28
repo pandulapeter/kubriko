@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.shaders.extensions.shader
 import kotlinx.collections.immutable.persistentListOf
@@ -27,16 +28,7 @@ internal class ShaderManagerImpl(
     private val actorManager by manager<ActorManager>()
     private val shaders by autoInitializingLazy {
         actorManager.allActors.map { allActors ->
-            val result = ArrayList<Shader<*>>()
-            val seenStates = HashSet<Any?>()
-            allActors.forEach { actor ->
-                if (actor is Shader<*>) {
-                    if (seenStates.add(actor.shaderState)) {
-                        result.add(actor)
-                    }
-                }
-            }
-            result.toImmutableList()
+            allActors.distinctShaders().toImmutableList()
         }.asStateFlowOnMainThread(persistentListOf())
     }
 
@@ -52,3 +44,19 @@ internal class ShaderManagerImpl(
         return currentModifier
     }
 }
+
+/**
+ * The shaders in this list, skipping true duplicates: a shader of the same class, on the same layer and with an equal
+ * state as one kept earlier would only apply the same effect twice.
+ */
+internal fun List<Actor>.distinctShaders(): List<Shader<*>> {
+    val result = ArrayList<Shader<*>>()
+    forEach { actor ->
+        if (actor is Shader<*> && result.none { it.isDuplicateOf(actor) }) {
+            result.add(actor)
+        }
+    }
+    return result
+}
+
+private fun Shader<*>.isDuplicateOf(other: Shader<*>) = this::class == other::class && layerIndex == other.layerIndex && shaderState == other.shaderState

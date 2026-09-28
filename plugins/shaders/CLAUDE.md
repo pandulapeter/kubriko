@@ -18,10 +18,11 @@ modifier filling the layer's bounds for any other `Shader` (see ContentShader vs
 match the overlay pass (`layerIndex = null` in the call). Order within a layer follows the order
 actors appear in `ActorManager.allActors`.
 
-## Deduplication by shaderState identity
-`ShaderManagerImpl` builds its shader list by checking `seenStates.add(actor.shaderState)`. If two
-actors share the same `shaderState` object reference, only the first is registered. This is an
-intentional deduplication guard, not a bug; ensure each shader actor holds its own state instance.
+## Deduplication of true duplicates
+`ShaderManagerImpl` builds its shader list with `distinctShaders()`, which skips a shader only when an
+earlier one has the same class, the same `layerIndex` and an equal (`equals`) `shaderState` — applying
+it again would only repeat the same effect (this also collapses one instance added twice). The same
+shader on different layers, or different shader classes with equal-looking states, all render.
 
 ## Compiled shader caching
 Each `Shader` actor owns a `Shader.Cache` that holds a platform-specific compiled program object
