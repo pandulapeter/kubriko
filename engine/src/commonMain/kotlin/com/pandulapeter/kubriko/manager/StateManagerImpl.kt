@@ -39,6 +39,12 @@ internal class StateManagerImpl(
         }
     }
 
+    /**
+     * The number of `KubrikoViewport`s currently showing this instance. Only touched from composition, i.e. the UI
+     * thread, on every platform.
+     */
+    internal var attachedViewportCount = 0
+
     fun updateFocus(isFocused: Boolean) = _isFocused.update { isFocused }
 
     override fun updateIsRunning(isRunning: Boolean) = _isRunning.update { isRunning }

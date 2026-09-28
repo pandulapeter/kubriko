@@ -118,7 +118,7 @@ StateManager.newInstance(
     focusDebounce: Long = platform default,
 )
 ```
-- `isFocused: StateFlow<Boolean>` — set by the engine from the viewport focus state.
+- `isFocused: StateFlow<Boolean>` — set by the engine from the viewport focus state; false once the last viewport showing the instance leaves composition (a never-shown, headless instance stays focused).
 - `isRunning: StateFlow<Boolean>` — false when paused or not focused.
 - `updateIsRunning(Boolean)` — pause/resume; only effective while `isFocused` is true.
 

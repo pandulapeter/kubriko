@@ -28,6 +28,8 @@ sealed class StateManager(
     /**
      * Whether the game window or viewport currently has focus.
      * The value is automatically updated by the engine.
+     * Becomes false when the last `KubrikoViewport` showing this instance leaves composition, and follows the platform's
+     * focus again once one is shown. An instance that has never been shown in a viewport (headless use) stays focused.
      */
     abstract val isFocused: StateFlow<Boolean>
 

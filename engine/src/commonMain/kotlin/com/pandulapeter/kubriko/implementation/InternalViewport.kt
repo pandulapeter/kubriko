@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.key
@@ -52,6 +53,18 @@ fun InternalViewport(
 
     // A different instance gets a fresh composition: its effects start for it, and the previous one's are disposed.
     key(kubrikoImpl) {
+        // One instance can be shown by several viewports at once, so only the last one leaving reports it unfocused.
+        DisposableEffect(kubrikoImpl) {
+            val stateManager = kubrikoImpl.stateManager
+            stateManager.attachedViewportCount++
+            onDispose {
+                stateManager.attachedViewportCount--
+                if (stateManager.attachedViewportCount == 0) {
+                    stateManager.updateFocus(false)
+                }
+            }
+        }
+
         // Focus handling
         PlatformFocusEffect { isFocused ->
             kubrikoImpl.stateManager.updateFocus(isFocused)
