@@ -195,7 +195,7 @@ private fun ExpandedContent(
     val coroutineScope = rememberCoroutineScope()
     LaunchedEffect(shouldUseCompactUi) {
         val lazyListState = if (shouldUseCompactUi) collapsedLazyListState else expandedLazyListState
-        val menuItemIndex = selectedShowcaseEntry.menuItemIndex
+        val menuItemIndex = allShowcaseEntries.menuItemIndex(selectedShowcaseEntry)
         if (!lazyListState.isScrollInProgress) {
             if (lazyListState.firstVisibleItemIndex >= menuItemIndex || (lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) <= menuItemIndex) {
                 coroutineScope.launch { lazyListState.scrollToItem(menuItemIndex) }
@@ -205,7 +205,7 @@ private fun ExpandedContent(
     LaunchedEffect(selectedShowcaseEntry) {
         val lazyListState = if (shouldUseCompactUi) collapsedLazyListState else expandedLazyListState
         if (!lazyListState.isScrollInProgress) {
-            val itemIndex = (if (shouldUseCompactUi) selectedShowcaseEntry ?: previouslyFocusedShowcaseEntry.value else selectedShowcaseEntry).menuItemIndex
+            val itemIndex = allShowcaseEntries.menuItemIndex(if (shouldUseCompactUi) selectedShowcaseEntry ?: previouslyFocusedShowcaseEntry.value else selectedShowcaseEntry)
             if (lazyListState.firstVisibleItemIndex >= itemIndex) {
                 coroutineScope.launch { lazyListState.animateScrollToItem(itemIndex) }
             } else if ((lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) <= itemIndex && !shouldUseCompactUi) {
@@ -367,15 +367,6 @@ private val ShowcaseEntry?.hasDebugMenu
     get() = when (this?.type) {
         null, ShowcaseEntryType.OTHER -> false
         else -> true
-    }
-
-private val ShowcaseEntry?.menuItemIndex
-    get() = when (this?.type) {
-        null -> 0
-        ShowcaseEntryType.GAME -> ShowcaseEntry.entries.indexOf(this) + 2
-        ShowcaseEntryType.DEMO -> ShowcaseEntry.entries.indexOf(this) + 3
-        ShowcaseEntryType.TEST -> ShowcaseEntry.entries.indexOf(this) + 4
-        ShowcaseEntryType.OTHER -> ShowcaseEntry.entries.indexOf(this) + if (BuildConfig.ARE_TEST_EXAMPLES_ENABLED) 4 else 5
     }
 
 private val TopBarHeight = 64.dp

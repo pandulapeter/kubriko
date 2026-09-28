@@ -48,8 +48,7 @@ internal fun LazyListScope.menu(
     selectedShowcaseEntry: ShowcaseEntry?,
     onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
 ) = allShowcaseEntries
-    .filter { it.isAvailable }
-    .groupBy { it.type }
+    .groupedForMenu()
     .let { groups ->
         groups.forEach { (type, entries) ->
             item(type.name) {
@@ -71,6 +70,24 @@ internal fun LazyListScope.menu(
             }
         }
     }
+
+/**
+ * The index of [showcaseEntry]'s row in a list that has exactly one item before [menu] (the Welcome row), or 0 for
+ * the Welcome row itself and for an entry the menu does not list.
+ */
+internal fun List<ShowcaseEntry>.menuItemIndex(showcaseEntry: ShowcaseEntry?): Int {
+    if (showcaseEntry == null) return 0
+    var index = 1
+    groupedForMenu().forEach { (_, entries) ->
+        index++ // The category label
+        val position = entries.indexOf(showcaseEntry)
+        if (position >= 0) return index + position
+        index += entries.size
+    }
+    return 0
+}
+
+private fun List<ShowcaseEntry>.groupedForMenu() = filter { it.isAvailable }.groupBy { it.type }
 
 @Composable
 internal fun MenuItem(
