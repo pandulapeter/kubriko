@@ -35,6 +35,7 @@ sealed class SoundManager(
 
     /**
      * Returns a [Flow] representing the loading progress of the specified [uris].
+     * A file that fails to load counts as settled, so the progress still reaches 1, and playing it again retries the load.
      *
      * @param uris The identifiers of the sounds to check.
      * @return A flow emitting values between 0.0 and 1.0.

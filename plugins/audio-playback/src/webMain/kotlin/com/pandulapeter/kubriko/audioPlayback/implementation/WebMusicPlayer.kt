@@ -12,6 +12,7 @@
 package com.pandulapeter.kubriko.audioPlayback.implementation
 
 import kotlinx.browser.window
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -20,13 +21,11 @@ import kotlinx.coroutines.launch
 import org.khronos.webgl.ArrayBuffer
 import kotlin.js.Promise
 
-internal class WebMusicPlayer(
+internal class WebMusicPlayer private constructor(
     private val scope: CoroutineScope,
-    private val uri: String,
-    onPreloadReady: (WebMusicPlayer) -> Unit,
+    private var audioBuffer: AudioBuffer?,
 ) {
     private var audioContext: AudioContext? = null
-    private var audioBuffer: AudioBuffer? = null
     private var sourceNode: AudioBufferSourceNode? = null
     private var channelSplitterNode: ChannelSplitterNode? = null
     private var channelMergerNode: ChannelMergerNode? = null
@@ -40,14 +39,6 @@ internal class WebMusicPlayer(
     private var leftVolume = 1f
     private var rightVolume = 1f
 
-    init {
-        scope.launch(Dispatchers.Default) {
-            val response = window.fetch(uri).await()
-            val arrayBuffer = response.arrayBuffer().await()
-            audioBuffer = AudioContext().decodeAudioData(arrayBuffer).await()
-            onPreloadReady(this@WebMusicPlayer)
-        }
-    }
 
     /**
      * Starts playback – when [shouldRestart] is true we rewind the position before starting.
@@ -155,6 +146,25 @@ internal class WebMusicPlayer(
         channelMergerNode = null
         leftGainNode = null
         rightGainNode = null
+    }
+
+    companion object {
+        /** Fetches and decodes [uri], or returns `null` when either step fails. */
+        suspend fun load(scope: CoroutineScope, uri: String): WebMusicPlayer? = try {
+            val response = window.fetch(uri).await()
+            if (!response.ok) {
+                null
+            } else {
+                val arrayBuffer = response.arrayBuffer().await()
+                WebMusicPlayer(
+                    scope = scope,
+                    audioBuffer = AudioContext().decodeAudioData(arrayBuffer).await(),
+                )
+            }
+        } catch (exception: Throwable) {
+            if (exception is CancellationException) throw exception
+            null
+        }
     }
 }
 

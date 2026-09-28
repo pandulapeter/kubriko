@@ -14,21 +14,25 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.FileInputStream
+import java.io.IOException
 import java.net.URI
+import java.net.URISyntaxException
 
 @Composable
 internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object : MusicPlayer {
 
     override suspend fun preload(uri: String) = withContext(Dispatchers.IO) {
-        DesktopMusicPlayer(
-            inputStream = URI(uri).let { resolvedUri ->
-                if (resolvedUri.isAbsolute) {
-                    resolvedUri.toURL().openStream()
-                } else {
-                    FileInputStream(resolvedUri.toString())
-                }
-            },
-        )
+        try {
+            val resolvedUri = URI(uri)
+            val inputStream = if (resolvedUri.isAbsolute) resolvedUri.toURL().openStream() else FileInputStream(resolvedUri.toString())
+            DesktopMusicPlayer(inputStream)
+        } catch (_: IOException) {
+            null
+        } catch (_: URISyntaxException) {
+            null
+        } catch (_: IllegalArgumentException) {
+            null
+        }
     }
 
     override suspend fun play(cachedMusic: Any, shouldLoop: Boolean, shouldRestart: Boolean) {

@@ -16,20 +16,12 @@ import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 @Composable
 internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object : MusicPlayer {
 
     override suspend fun preload(uri: String) = withContext(Dispatchers.Default) {
-        suspendCoroutine { continuation ->
-            WebMusicPlayer(
-                scope = coroutineScope,
-                uri = uri,
-                onPreloadReady = { continuation.resume(it) },
-            )
-        }
+        WebMusicPlayer.load(coroutineScope, uri)
     }
 
     override suspend fun play(cachedMusic: Any, shouldLoop: Boolean, shouldRestart: Boolean) = withContext(Dispatchers.Default) {

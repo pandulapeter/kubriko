@@ -38,6 +38,7 @@ sealed class MusicManager(
 
     /**
      * Returns a [Flow] representing the loading progress of the specified [uri].
+     * A file that fails to load counts as settled, so the progress still reaches 1, and playing it again retries the load.
      *
      * @param uri The identifier of the music file to check.
      * @return A flow emitting values between 0.0 and 1.0.
@@ -46,6 +47,7 @@ sealed class MusicManager(
 
     /**
      * Returns a [Flow] representing the cumulative loading progress of the specified [uris].
+     * A file that fails to load counts as settled, so the progress still reaches 1, and playing it again retries the load.
      *
      * @param uris The identifiers of the music files to check.
      * @return A flow emitting values between 0.0 and 1.0.

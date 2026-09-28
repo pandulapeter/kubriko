@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.audioPlayback.implementation
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,8 +17,11 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
+import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CountDownLatch
@@ -26,6 +30,7 @@ import kotlin.concurrent.thread
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
@@ -45,6 +50,10 @@ class AudioCacheTest {
 
         fun complete(uri: String, value: Any?) {
             pending.getValue(uri).poll().complete(value)
+        }
+
+        fun fail(uri: String, exception: Throwable) {
+            pending.getValue(uri).poll().completeExceptionally(exception)
         }
 
         fun hasPendingLoad(uri: String) = pending[uri]?.isNotEmpty() == true
@@ -179,6 +188,69 @@ class AudioCacheTest {
         } finally {
             scope.cancel()
         }
+    }
+
+    @Test
+    fun loadReturningNullSettlesTheEntry() = runTest {
+        val loader = FakeLoader()
+        val failedUris = mutableListOf<String>()
+        val cache = AudioCache().apply { attach(backgroundScope, loader.load, onFailed = { failedUris.add(it) }) {} }
+        val result = async { cache.get(URI) }
+        testScheduler.runCurrent()
+        loader.complete(URI, null)
+        assertNull(result.await())
+        assertNotNull(cache.entries.first()[URI])
+        assertNull(cache.loaded(URI))
+        assertEquals(listOf(URI), failedUris)
+    }
+
+    @Test
+    fun loadThrowingSettlesTheEntryWithoutFailingTheScope() = runTest {
+        val loader = FakeLoader()
+        val scope = CoroutineScope(SupervisorJob() + StandardTestDispatcher(testScheduler))
+        val cache = AudioCache().apply { attach(scope, loader.load) {} }
+        cache.preload(URI)
+        testScheduler.runCurrent()
+        loader.fail(URI, IOException())
+        testScheduler.runCurrent()
+        assertTrue(scope.isActive)
+        assertNotNull(cache.entries.first()[URI])
+        assertNull(cache.loaded(URI))
+        scope.cancel()
+    }
+
+    @Test
+    fun failedEntryIsRetriedWhileStillCountingAsSettled() = runTest {
+        val loader = FakeLoader()
+        val cache = AudioCache().apply { attach(backgroundScope, loader.load) {} }
+        cache.preload(URI)
+        testScheduler.runCurrent()
+        loader.complete(URI, null)
+        testScheduler.runCurrent()
+        val first = async { cache.get(URI) }
+        val second = async { cache.get(URI) }
+        testScheduler.runCurrent()
+        assertEquals(2, loader.callCount.get())
+        assertNotNull(cache.entries.first()[URI])
+        val value = Any()
+        loader.complete(URI, value)
+        assertSame(value, first.await())
+        assertSame(value, second.await())
+        assertSame(value, cache.loaded(URI))
+    }
+
+    @Test
+    fun cancelledLoadDoesNotSettleTheEntry() = runTest {
+        val loader = FakeLoader()
+        val failedUris = mutableListOf<String>()
+        val cache = AudioCache().apply { attach(backgroundScope, loader.load, onFailed = { failedUris.add(it) }) {} }
+        cache.preload(URI)
+        testScheduler.runCurrent()
+        loader.fail(URI, CancellationException())
+        testScheduler.runCurrent()
+        assertTrue(cache.entries.first().containsKey(URI))
+        assertNull(cache.entries.first()[URI])
+        assertTrue(failedUris.isEmpty())
     }
 
     private companion object {

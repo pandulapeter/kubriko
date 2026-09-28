@@ -51,6 +51,12 @@ internal class MusicManagerImpl(
             audioCache.attach(
                 scope = scope,
                 loader = { uri -> load(player, uri) },
+                onFailed = { uri ->
+                    log(
+                        message = "Failed to load $uri.",
+                        importance = Logger.Importance.HIGH,
+                    )
+                },
                 onDiscarded = { music -> player.dispose(music) },
             )
             stateManager.isFocused

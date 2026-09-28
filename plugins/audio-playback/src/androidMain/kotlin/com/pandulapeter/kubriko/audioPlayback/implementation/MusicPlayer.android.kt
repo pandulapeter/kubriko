@@ -16,8 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
+import java.io.IOException
 
 @Composable
 internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object : MusicPlayer {
@@ -26,20 +25,23 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
     private fun Context.getFileDescriptor(uri: String) = assets.openFd(uri.removePrefix("file:///android_asset/"))
 
     override suspend fun preload(uri: String) = withContext(Dispatchers.IO) {
-        suspendCoroutine { continuation ->
-            MediaPlayer().apply {
-                val fileDescriptor = context.getFileDescriptor(uri)
-                setDataSource(
+        val mediaPlayer = MediaPlayer()
+        try {
+            context.getFileDescriptor(uri).use { fileDescriptor ->
+                mediaPlayer.setDataSource(
                     fileDescriptor.fileDescriptor,
                     fileDescriptor.startOffset,
-                    fileDescriptor.length
+                    fileDescriptor.length,
                 )
-                fileDescriptor.close()
-                setOnPreparedListener {
-                    continuation.resume(this)
-                }
-                prepare()
             }
+            mediaPlayer.prepare()
+            mediaPlayer
+        } catch (_: IOException) {
+            mediaPlayer.release()
+            null
+        } catch (_: IllegalStateException) {
+            mediaPlayer.release()
+            null
         }
     }
 

@@ -18,7 +18,6 @@ import platform.AVFAudio.AVAudioPlayer
 import platform.AVFAudio.AVAudioSession
 import platform.AVFAudio.AVAudioSessionCategoryPlayback
 import platform.AVFAudio.setActive
-import platform.Foundation.NSURL
 
 @Suppress("UNCHECKED_CAST")
 @OptIn(ExperimentalForeignApi::class)
@@ -35,15 +34,7 @@ internal actual fun createSoundPlayer(
     }
 
     override suspend fun preload(uri: String) = withContext(Dispatchers.Default) {
-        buildList {
-            repeat(maximumSimultaneousStreamsOfTheSameSound) {
-                add(
-                    AVAudioPlayer(NSURL.URLWithString(URLString = uri)!!, error = null).apply {
-                        prepareToPlay()
-                    }
-                )
-            }
-        }
+        List(maximumSimultaneousStreamsOfTheSameSound) { createPreparedAudioPlayer(uri) ?: return@withContext null }
     }
 
     override suspend fun play(cachedSound: Any) = withContext(Dispatchers.Default) {

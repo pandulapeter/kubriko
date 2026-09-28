@@ -36,11 +36,10 @@ import kotlin.math.roundToInt
  * closes it when it ends, so a cancelled job can never touch the chain of the job that replaced it.
  */
 internal class DesktopMusicPlayer(
-    inputStream: InputStream?,
+    inputStream: InputStream,
 ) {
     // Buffer the entire input stream so that we can rewind / restart playback cheaply.
-    private val audioData: ByteArray = inputStream?.use(InputStream::readBytes)
-        ?: throw IllegalArgumentException("Desktop music player requires a non-null input stream.")
+    private val audioData: ByteArray = inputStream.use(InputStream::readBytes)
 
     private val lock = Any()
 

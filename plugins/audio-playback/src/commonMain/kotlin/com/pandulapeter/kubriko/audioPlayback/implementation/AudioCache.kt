@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.audioPlayback.implementation
 
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
@@ -28,6 +29,9 @@ import kotlin.concurrent.Volatile
  * load, whether a finished load is stored or discarded, what [remove] and [clear] return) is taken from the snapshot
  * that won. Every loaded value is handed out for disposal exactly once: by [remove] / [clear], or to the
  * `onDiscarded` callback passed to [attach].
+ *
+ * A load that returns `null` or throws marks its URI as failed. A failed URI counts as settled in [entries], and the
+ * next [preload] or [get] retries it while it keeps counting as settled.
  */
 internal class AudioCache {
 
@@ -35,11 +39,15 @@ internal class AudioCache {
         /** [deferred] is null while no loader is attached. */
         class Loading(val deferred: Deferred<Any?>?) : Slot
         class Loaded(val value: Any) : Slot
+        class Failed(val retry: Deferred<Any?>?) : Slot
     }
+
+    private object LoadFailed
 
     private class Attachment(
         val scope: CoroutineScope,
         val loader: suspend (String) -> Any?,
+        val onFailed: (String) -> Unit,
         val onDiscarded: (Any) -> Unit,
     )
 
@@ -48,8 +56,19 @@ internal class AudioCache {
     @Volatile
     private var attachment: Attachment? = null
 
-    /** Every known URI mapped to its loaded value, or to `null` while it is loading. */
-    val entries: Flow<Map<String, Any?>> = slots.map { slots -> slots.mapValues { (_, slot) -> (slot as? Slot.Loaded)?.value } }
+    /**
+     * Every known URI mapped to `null` while it is loading, or to a non-null value once it is settled: its loaded
+     * value, or an opaque marker when its load failed. Only [loaded] hands out values that can be played.
+     */
+    val entries: Flow<Map<String, Any?>> = slots.map { slots ->
+        slots.mapValues { (_, slot) ->
+            when (slot) {
+                is Slot.Loading -> null
+                is Slot.Loaded -> slot.value
+                is Slot.Failed -> LoadFailed
+            }
+        }
+    }
 
     val uris: Set<String> get() = slots.value.keys
 
@@ -58,9 +77,10 @@ internal class AudioCache {
     fun attach(
         scope: CoroutineScope,
         loader: suspend (String) -> Any?,
+        onFailed: (String) -> Unit = {},
         onDiscarded: (Any) -> Unit,
     ) {
-        attachment = Attachment(scope, loader, onDiscarded)
+        attachment = Attachment(scope, loader, onFailed, onDiscarded)
         slots.value.keys.forEach { uri -> acquire(uri, shouldAddIfMissing = false) }
     }
 
@@ -73,6 +93,7 @@ internal class AudioCache {
         return when (val slot = acquire(uri, shouldAddIfMissing = true)) {
             is Slot.Loaded -> slot.value
             is Slot.Loading -> slot.deferred?.await()
+            is Slot.Failed -> slot.retry?.await()
             null -> null
         }
     }
@@ -100,35 +121,51 @@ internal class AudioCache {
             when {
                 slot is Slot.Loaded -> return slot
                 slot is Slot.Loading && slot.deferred != null -> return slot
+                slot is Slot.Failed && slot.retry != null -> return slot
                 slot == null && !shouldAddIfMissing -> return null
             }
             val attachment = attachment
             if (attachment == null && slot != null) return slot
-            val newSlot = Slot.Loading(attachment?.let { load(uri, it) })
+            val deferred = attachment?.let { load(uri, it) }
+            val newSlot = if (slot is Slot.Failed) Slot.Failed(deferred) else Slot.Loading(deferred)
             if (slots.compareAndSet(current, current.putting(uri, newSlot))) {
-                newSlot.deferred?.start()
+                deferred?.start()
                 return newSlot
             }
-            newSlot.deferred?.cancel()
+            deferred?.cancel()
         }
     }
 
     private fun load(uri: String, attachment: Attachment) = attachment.scope.async(start = CoroutineStart.LAZY) {
-        val value = attachment.loader(uri)
-        if (value == null || store(uri, coroutineContext.job, value)) {
+        val value = try {
+            attachment.loader(uri)
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (_: Exception) {
+            null
+        }
+        if (settle(uri, coroutineContext.job, value)) {
+            if (value == null) {
+                attachment.onFailed(uri)
+            }
             value
         } else {
-            attachment.onDiscarded(value)
+            value?.let(attachment.onDiscarded)
             null
         }
     }
 
-    private fun store(uri: String, load: Any, value: Any): Boolean {
+    private fun settle(uri: String, load: Any, value: Any?): Boolean {
         while (true) {
             val current = slots.value
-            val slot = current[uri]
-            if (slot !is Slot.Loading || slot.deferred !== load) return false
-            if (slots.compareAndSet(current, current.putting(uri, Slot.Loaded(value)))) return true
+            val isCurrentLoad = when (val slot = current[uri]) {
+                is Slot.Loading -> slot.deferred === load
+                is Slot.Failed -> slot.retry === load
+                else -> false
+            }
+            if (!isCurrentLoad) return false
+            val settled = if (value == null) Slot.Failed(null) else Slot.Loaded(value)
+            if (slots.compareAndSet(current, current.putting(uri, settled))) return true
         }
     }
 }

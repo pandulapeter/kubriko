@@ -18,7 +18,6 @@ import platform.AVFAudio.AVAudioPlayer
 import platform.AVFAudio.AVAudioSession
 import platform.AVFAudio.AVAudioSessionCategoryPlayback
 import platform.AVFAudio.setActive
-import platform.Foundation.NSURL
 import platform.darwin.NSIntegerMax
 
 @OptIn(ExperimentalForeignApi::class)
@@ -33,9 +32,7 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
     }
 
     override suspend fun preload(uri: String) = withContext(Dispatchers.Default) {
-        AVAudioPlayer(NSURL.URLWithString(URLString = uri)!!, error = null).apply {
-            prepareToPlay()
-        }
+        createPreparedAudioPlayer(uri)
     }
 
     override suspend fun play(cachedMusic: Any, shouldLoop: Boolean, shouldRestart: Boolean) {

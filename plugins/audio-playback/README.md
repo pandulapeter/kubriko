@@ -53,6 +53,10 @@ val musicManager = kubriko.get<MusicManager>()
 musicManager.play(Res.getUri("music/theme.mp3"), shouldLoop = true)
 ```
 
+### 4. Files That Fail to Load
+
+A missing or undecodable file never crashes the game: the failure is logged, the file counts as settled in `getLoadingProgress()` (so a loading screen gated on it still finishes), and playing it again retries the load.
+
 ## Technical Details
 
 ### Supported Formats
