@@ -32,10 +32,25 @@ A sweep has two halves that happen in **separate turns**: the **review** writes 
 2. **Verify every finding against HEAD before it becomes a plan** — a second pass (writer agents per lane, or you)
    re-reads the code, and where a pure function is involved, proves it with a throwaway test in the scratchpad or an
    untracked probe test that is deleted afterwards. A finding that does not hold goes to the README's "Dropped after
-   verification" with one sentence why; it is never silently discarded.
+   verification" with one sentence why; it is never silently discarded. This proves the finding, not the fix — that is
+   step 5.
 3. **Group into lanes**: sets of plans whose files do not overlap, so each lane can run in its own worktree. Name
    files shared between lanes (module `CLAUDE.md` files, `strings.xml`) and how each lane may touch them. Pick a
    **merge order**: the lane others build on first, the lane that touches the most shared UI files last.
+4. **Write the plans** (section 2).
+5. **Challenge every fix before reporting** — verification proves a finding is real, not that its fix is right, and a
+   plan's own tests share its blind spots, so they pass with the flaw in place. Once the plans exist, fresh read-only
+   agents that did not write them (one per group of lanes, spawned in one message) try to break each fix:
+   - trace it through every usage pattern the project documents (guides, `CLAUDE.md`, KDoc examples) and every
+     in-repo caller — a fix that is right for the reported scenario can break a documented one;
+   - check it against every other plan, in any lane, that changes the same behaviour or relies on it;
+   - check the threading, ordering and lifecycle the fix itself introduces, not only the ones it removes;
+   - for a published API, check how the known consumers call it.
+
+   Plans that change timing, threading, lifecycle or a public contract get the closest look; a mechanical fix pinned
+   by its test gets a quick read. Each plan comes back **sound**, **amended** (the challenger rewrites the plan and adds
+   `**Challenged:** amended — <what changed>` under its header) or **dropped** (moved to "Dropped after verification"
+   with why). The README records that the challenge ran and what it changed. Only then report to the user.
 
 ## 2. The documents
 
@@ -70,7 +85,8 @@ shared-file rules; **Decisions** — each open question with the recommended def
 list with each lane's plan order, the subagent prompt with its placeholders filled in except the worktree path, the
 verification commands, the merge order, and the finish.
 
-Then report to the user in a few lines: the headline findings, the number of plans per lane, and the open decisions
+Then, after the challenge (step 5), report to the user in a few lines: the headline findings, the number of plans per
+lane, what the challenge amended or dropped, and the open decisions
 — asked with `AskUserQuestion`, recommendation first. Record the answers in the README and in memory.
 
 ## 3. Memory
@@ -81,8 +97,8 @@ skipped and why, and the manual checks still owed. Point the next sweep at it.
 
 ## 4. Execution (only when the user says so)
 
-**Preconditions** — stop and tell the user if any fails: the tree is clean apart from the plans folder; every open
-decision has an answer; the unit tests pass. Commit the plans first if they are untracked (`Add the <nth> review
+**Preconditions** — stop and tell the user if any fails: the tree is clean apart from the plans folder; the
+challenge (section 1, step 5) has run on every plan; every open decision has an answer; the unit tests pass. Commit the plans first if they are untracked (`Add the <nth> review
 plans.`), then note `START=$(git rev-parse HEAD)`.
 
 **Lanes** — one **detached** worktree per lane next to the checkout, so no branch is created:
@@ -133,6 +149,9 @@ and the manual checks owed; update the memory. **Do not push.**
   can observe) is a **decision** in the README, never a silent part of a plan: it breaks every game built on it,
   Tesselar first. Plans say which published artifact (`engine`, a plugin, a tool) a change ships in; public
   declarations they add need KDoc (see `code-style`).
+- **Consumers for the challenge:** Tesselar (`../Tesselar`) is the known consumer; the challenge greps it for every
+  public API a plan changes. The documented usage patterns live in `documentation/*.md` — the headless `TickSource`
+  flow in `documentation/TICK_SOURCE.md` is the one a first-sweep plan broke.
 - **Areas that make good reviewer splits:** the engine core (`Kubriko`, `KubrikoViewport`, managers, actors, traits,
   `TickSource`, `TriangleBatch`); the plugins; the tools (debug menu, scene editor); the Showcase app and its
   platform shells; the examples. Per-frame paths are reviewed for allocations and redundant work — see the
