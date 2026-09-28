@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -32,7 +33,7 @@ internal class AudioManager(
 ) : Manager() {
     private val musicManager by manager<MusicManager>()
     private val soundManager by manager<SoundManager>()
-    private val soundUrisToPlay = mutableSetOf<String>()
+    private val soundUrisToPlay = MutableStateFlow<Set<String>>(emptySet())
     private val shouldStopMusic = MutableStateFlow(false)
 
     @OptIn(FlowPreview::class)
@@ -62,10 +63,8 @@ internal class AudioManager(
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
-        if (soundUrisToPlay.isNotEmpty()) {
-            val uris = soundUrisToPlay.toList()
-            soundUrisToPlay.clear()
-            uris.forEach { soundManager.play(getResourceUri(it, webRootPathName)) }
+        if (soundUrisToPlay.value.isNotEmpty()) {
+            soundUrisToPlay.getAndUpdate { emptySet() }.forEach { soundManager.play(getResourceUri(it, webRootPathName)) }
         }
     }
 
@@ -93,7 +92,7 @@ internal class AudioManager(
 
     private fun playSoundEffect(uri: String) {
         if (userPreferencesManager.areSoundEffectsEnabled.value) {
-            soundUrisToPlay.add(uri)
+            soundUrisToPlay.update { it + uri }
         }
     }
 
