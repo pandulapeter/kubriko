@@ -65,5 +65,8 @@
     <string name="interaction_mode_translate">Translate</string>
     <string name="interaction_mode_scale">Scale</string>
     <string name="interaction_mode_rotate">Rotate</string>
+    <string name="error_scene_load_failed">Could not open %1$s as a scene.</string>
+    <string name="error_scene_save_failed">Could not save %1$s.</string>
+    <string name="error_connected_scene_invalid">The connected scene could not be read.</string>
 
 </resources>

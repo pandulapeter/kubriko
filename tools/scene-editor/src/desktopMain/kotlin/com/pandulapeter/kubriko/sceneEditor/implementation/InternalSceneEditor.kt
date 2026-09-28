@@ -45,6 +45,7 @@ import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
+import java.io.FilenameFilter
 
 @Composable
 internal fun InternalSceneEditor(
@@ -198,9 +199,9 @@ private fun FileDialog(
                     if (!scenesDirectoryFile.exists()) {
                         scenesDirectoryFile.mkdir()
                     }
-//                    filenameFilter = FilenameFilter { _, name ->
-//                        name.endsWith(".json")
-//                    }
+                    if (isForLoading) {
+                        filenameFilter = FilenameFilter { _, name -> name.endsWith(".json") }
+                    }
                     directory = currentFolderPath
                     if (!isForLoading) {
                         file = currentFileName

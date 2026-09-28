@@ -27,6 +27,7 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.actors.KeyboardInputL
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.boundingBoxCollisionMask
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.NavigateBackAction
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.UndoRedoHistory
+import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.deserializeSceneOrNull
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.UserPreferences
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.navigateBackAction
@@ -50,6 +51,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.IOException
 import kotlin.math.roundToInt
 import kotlin.reflect.full.isSubclassOf
 import kotlin.time.TimeSource
@@ -154,6 +157,8 @@ internal class EditorController(
     private var pendingPropertyEditKey: Any? = null
     private var cameraAnimationJob: Job? = null
     private var focusedTextInputCount = 0
+    private val _fileOperationError = MutableStateFlow<Pair<FileOperationError, String>?>(null)
+    val fileOperationError = _fileOperationError.asStateFlow()
     val snapMode = combine(
         userPreferences.snapX,
         userPreferences.snapY,
@@ -169,9 +174,15 @@ internal class EditorController(
             }
 
             is SceneEditorMode.Connected -> {
-                parseJson(
-                    json = sceneEditorMode.sceneJson,
-                )
+                val sceneJson = sceneEditorMode.sceneJson
+                if (sceneJson.isNotBlank()) {
+                    val actors = deserializeSceneOrNull(sceneJson, serializationManager::deserializeActors)
+                    if (actors == null) {
+                        _fileOperationError.update { FileOperationError.CONNECTED_SCENE_INVALID to "" }
+                    } else {
+                        replaceSceneActors(actors)
+                    }
+                }
                 onSceneReplaced()
             }
         }
@@ -386,20 +397,31 @@ internal class EditorController(
 
     fun loadMap(path: String) {
         _shouldShowLoadingIndicator.update { true }
-        launch {
-            loadFile(path)?.let { json ->
-                parseJson(json)
-                onSceneReplaced()
-                updateCurrentFolderPathAndFileName(path)
+        launch(Dispatchers.Main) {
+            try {
+                val json = loadFile(path)
+                val actors = withContext(Dispatchers.Default) {
+                    deserializeSceneOrNull(json, serializationManager::deserializeActors)
+                }
+                if (actors == null) {
+                    reportFileOperationError(FileOperationError.LOAD_FAILED, path)
+                } else {
+                    replaceSceneActors(actors)
+                    _selectedActor.update { null }
+                    onSceneReplaced()
+                    updateCurrentFolderPathAndFileName(path)
+                }
+            } catch (_: IOException) {
+                reportFileOperationError(FileOperationError.LOAD_FAILED, path)
+            } finally {
+                _shouldShowLoadingIndicator.update { false }
             }
-            _shouldShowLoadingIndicator.update { false }
         }
     }
 
-    private fun parseJson(json: String) {
-        replaceSceneActors(serializationManager.deserializeActors(json))
-        _selectedActor.update { null }
-    }
+    fun onFileOperationErrorShown() = _fileOperationError.update { null }
+
+    private fun reportFileOperationError(error: FileOperationError, path: String) = _fileOperationError.update { error to path.split('/').last() }
 
     private fun replaceSceneActors(actors: List<Editable<*>>) {
         clearSceneActors()
@@ -413,20 +435,27 @@ internal class EditorController(
     private fun clearSceneActors() = actorManager.remove(actorManager.allActors.value.filterNot { it in editorActors })
 
     fun syncScene() {
+        val onSceneJsonChanged = (sceneEditorMode as? SceneEditorMode.Connected)?.onSceneJsonChanged ?: return
+        val content = serializationManager.serializeActors(allEditableActors.value)
         launch {
-            (sceneEditorMode as? SceneEditorMode.Connected)?.onSceneJsonChanged?.invoke(serializationManager.serializeActors(allEditableActors.value))
+            onSceneJsonChanged(content)
         }
     }
 
     fun saveScene(path: String) {
-        launch {
-            saveFile(
-                path = path,
-                content = serializationManager.serializeActors(allEditableActors.value),
-            )
-            updateCurrentFolderPathAndFileName(path)
-            _isSceneModified.update { false }
-            pendingPropertyEditKey = null
+        val content = serializationManager.serializeActors(allEditableActors.value)
+        launch(Dispatchers.Main) {
+            try {
+                saveFile(
+                    path = path,
+                    content = content,
+                )
+                updateCurrentFolderPathAndFileName(path)
+                _isSceneModified.update { false }
+                pendingPropertyEditKey = null
+            } catch (_: IOException) {
+                reportFileOperationError(FileOperationError.SAVE_FAILED, path)
+            }
         }
     }
 
@@ -460,4 +489,10 @@ internal class EditorController(
         private fun SceneOffset.isRoughlyAt(other: SceneOffset) =
             raw.x.roundToInt() == other.raw.x.roundToInt() && raw.y.roundToInt() == other.raw.y.roundToInt()
     }
+}
+
+internal enum class FileOperationError {
+    LOAD_FAILED,
+    SAVE_FAILED,
+    CONNECTED_SCENE_INVALID,
 }

@@ -22,8 +22,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
@@ -31,6 +35,7 @@ import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
+import com.pandulapeter.kubriko.sceneEditor.implementation.FileOperationError
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseClick
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseDrag
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseMove
@@ -41,6 +46,11 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.instanceManagerColumn.InstanceManagerColumn
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.metadataRow.MetadataRow
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
+import kubriko.tools.scene_editor.generated.resources.Res
+import kubriko.tools.scene_editor.generated.resources.error_connected_scene_invalid
+import kubriko.tools.scene_editor.generated.resources.error_scene_load_failed
+import kubriko.tools.scene_editor.generated.resources.error_scene_save_failed
+import org.jetbrains.compose.resources.stringResource
 
 private val fileManagerRowHeight = 32.dp
 private val metadataRowHeight = 32.dp
@@ -56,8 +66,24 @@ internal fun EditorUserInterface(
     openSettings: () -> Unit,
     overlayKubriko: Kubriko,
 ) = KubrikoTheme {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val fileOperationError = editorController.fileOperationError.collectAsState().value
+    val fileOperationErrorMessage = fileOperationError?.let { (error, fileName) ->
+        when (error) {
+            FileOperationError.LOAD_FAILED -> stringResource(Res.string.error_scene_load_failed, fileName)
+            FileOperationError.SAVE_FAILED -> stringResource(Res.string.error_scene_save_failed, fileName)
+            FileOperationError.CONNECTED_SCENE_INVALID -> stringResource(Res.string.error_connected_scene_invalid)
+        }
+    }
+    LaunchedEffect(fileOperationError) {
+        if (fileOperationErrorMessage != null) {
+            snackbarHostState.showSnackbar(fileOperationErrorMessage)
+            editorController.onFileOperationErrorShown()
+        }
+    }
     Scaffold(
         modifier = modifier,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { paddingValues ->
         Box(
             modifier = Modifier.fillMaxWidth().padding(paddingValues),
