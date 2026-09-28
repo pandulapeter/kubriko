@@ -58,7 +58,7 @@ class ProximityExplosion(
         for (b in bodiesEffected) {
             val blastDir = b.position - epicenter
             val distance = blastDir.length()
-            if (distance == SceneUnit.Zero) return
+            if (distance == SceneUnit.Zero) continue
             //Not physically correct as it should be blast * radius to object ^ 2 as the pressure of an explosion in 2D dissipates
             val invDistance = SceneUnit.Unit / distance
             val impulseMag = blastPower * invDistance

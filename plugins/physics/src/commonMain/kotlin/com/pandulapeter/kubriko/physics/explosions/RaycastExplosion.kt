@@ -75,7 +75,7 @@ class RaycastExplosion(
         for (ray in raysInContact) {
             val blastDir = ray.coordinates.minus(rayScatter.epicenter)
             val distance = blastDir.length()
-            if (distance == SceneUnit.Zero) return
+            if (distance == SceneUnit.Zero) continue
             val invDistance = 1f / distance.raw
             val impulseMag = blastDir.normalized().scalar(blastPower * invDistance)
             ray.body.let { body ->
