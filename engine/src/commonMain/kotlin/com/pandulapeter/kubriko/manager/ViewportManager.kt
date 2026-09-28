@@ -83,6 +83,7 @@ sealed class ViewportManager(
 
     /**
      * Offsets the camera by a specific amount.
+     * Non-finite values are ignored.
      *
      * @param offset The amount to move the camera in screen pixels.
      */
@@ -90,6 +91,7 @@ sealed class ViewportManager(
 
     /**
      * Moves the camera to a specific coordinate in the scene.
+     * Non-finite values are ignored.
      *
      * @param position The new center position for the camera.
      */
@@ -97,6 +99,7 @@ sealed class ViewportManager(
 
     /**
      * Sets a new scale factor (zoom level) for the camera.
+     * NaN is ignored (for a multiplication: a NaN result); infinite values are clamped like any other.
      *
      * @param scaleFactor The new scale level.
      */
@@ -104,6 +107,7 @@ sealed class ViewportManager(
 
     /**
      * Multiplies the current scale factor by a given amount.
+     * NaN is ignored (for a multiplication: a NaN result); infinite values are clamped like any other.
      *
      * @param scaleFactor The multiplier to apply to the current zoom level.
      */

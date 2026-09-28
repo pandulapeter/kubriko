@@ -103,26 +103,41 @@ internal class ViewportManagerImpl(
      */
     fun currentScaleFactor() = _scaleFactor.value * scaleFactorMultiplier.value
 
-    override fun addToCameraPosition(offset: Offset) = _cameraPosition.update { currentValue ->
-        currentValue + SceneOffset(offset / currentScaleFactor())
+    override fun addToCameraPosition(offset: Offset) {
+        if (!offset.x.isFinite() || !offset.y.isFinite()) return
+        _cameraPosition.update { currentValue ->
+            currentValue + SceneOffset(offset / currentScaleFactor())
+        }
     }
 
-    override fun setCameraPosition(position: SceneOffset) = _cameraPosition.update { position }
+    override fun setCameraPosition(position: SceneOffset) {
+        if (!position.x.raw.isFinite() || !position.y.raw.isFinite()) return
+        _cameraPosition.update { position }
+    }
 
-    override fun setScaleFactor(scaleFactor: Float) = _scaleFactor.update {
-        scaleFactor.coerceIn(minimumScaleFactor, maximumScaleFactor).let { adjustedScaleFactor ->
-            Scale(
-                horizontal = adjustedScaleFactor,
-                vertical = adjustedScaleFactor,
-            )
+    override fun setScaleFactor(scaleFactor: Float) {
+        if (scaleFactor.isNaN()) return
+        _scaleFactor.update {
+            scaleFactor.coerceIn(minimumScaleFactor, maximumScaleFactor).let { adjustedScaleFactor ->
+                Scale(
+                    horizontal = adjustedScaleFactor,
+                    vertical = adjustedScaleFactor,
+                )
+            }
         }
     }
 
     override fun multiplyScaleFactor(scaleFactor: Float) = _scaleFactor.update { currentValue ->
-        Scale(
-            horizontal = (currentValue.horizontal * scaleFactor).coerceIn(minimumScaleFactor, maximumScaleFactor),
-            vertical = (currentValue.vertical * scaleFactor).coerceIn(minimumScaleFactor, maximumScaleFactor),
-        )
+        val horizontal = currentValue.horizontal * scaleFactor
+        val vertical = currentValue.vertical * scaleFactor
+        if (horizontal.isNaN() || vertical.isNaN()) {
+            currentValue
+        } else {
+            Scale(
+                horizontal = horizontal.coerceIn(minimumScaleFactor, maximumScaleFactor),
+                vertical = vertical.coerceIn(minimumScaleFactor, maximumScaleFactor),
+            )
+        }
     }
 
     override fun setTargetFrameRate(targetFrameRate: TargetFrameRate) = _targetFrameRate.update { targetFrameRate }
