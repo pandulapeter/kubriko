@@ -9,9 +9,7 @@
  */
 package com.pandulapeter.kubriko.physics.implementation
 
-import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.SceneUnit
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -26,7 +24,7 @@ internal fun lineIntersect(line1Start: SceneOffset, line1End: SceneOffset, line2
     val x4 = line2End.x
     val y4 = line2End.y
     val denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
-    if (denominator == SceneUnit.Zero) {
+    if (denominator.raw == 0f) {
         return null
     }
     val x = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / denominator
@@ -48,21 +46,23 @@ internal fun lineIntersect(line1Start: SceneOffset, line1End: SceneOffset, line2
 
 
 internal fun isPointOnLine(lineStart: SceneOffset, lineEnd: SceneOffset, point: SceneOffset): Boolean {
-    if (lineStart.x == lineEnd.x) {
-        return point.x == lineStart.x && ((point.y >= lineStart.y && point.y <= lineEnd.y) || (point.y <= lineStart.y && point.y >= lineEnd.y))
-    } else if (lineStart.y == lineEnd.y) {
-        return point.y == lineStart.y && ((point.x >= lineStart.x && point.x <= lineEnd.x) || (point.x <= lineStart.x && point.x >= lineEnd.x))
+    val startX = lineStart.x.raw
+    val startY = lineStart.y.raw
+    val endX = lineEnd.x.raw
+    val endY = lineEnd.y.raw
+    val pointX = point.x.raw
+    val pointY = point.y.raw
+    val deltaX = endX - startX
+    val deltaY = endY - startY
+    val cross = deltaX * (pointY - startY) - deltaY * (pointX - startX)
+    if (cross * cross >= ON_LINE_TOLERANCE_SQUARED * (deltaX * deltaX + deltaY * deltaY)) {
+        return false
     }
-
-    val a = (lineEnd.y - lineStart.y) / (lineEnd.x - lineStart.x)
-    val b = lineStart.y - a * lineStart.x
-    if (abs((point.y - (a * point.x + b)).raw) < 0.01) {
-        val smallerX = min(lineStart.x.raw, lineEnd.x.raw).sceneUnit
-        val smallerY = min(lineStart.y.raw, lineEnd.y.raw).sceneUnit
-        val biggerX = max(lineStart.x.raw, lineEnd.x.raw).sceneUnit
-        val biggerY = max(lineStart.y.raw, lineEnd.y.raw).sceneUnit
-
-        return point.x.raw in smallerX..biggerX && point.y.raw in smallerY..biggerY
+    return if (abs(deltaX) >= abs(deltaY)) {
+        pointX >= min(startX, endX) && pointX <= max(startX, endX)
+    } else {
+        pointY >= min(startY, endY) && pointY <= max(startY, endY)
     }
-    return false
 }
+
+private const val ON_LINE_TOLERANCE_SQUARED = 0.0001f // The point may be up to 0.01 scene units off the line.
