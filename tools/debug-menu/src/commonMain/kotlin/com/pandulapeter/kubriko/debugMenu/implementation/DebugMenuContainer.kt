@@ -13,7 +13,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -28,8 +28,11 @@ internal fun DebugMenuContainer(
     shouldUseVerticalLayout: Boolean,
     debugMenuTheme: @Composable (@Composable () -> Unit) -> Unit,
 ) = debugMenuTheme {
-    LaunchedEffect(kubriko) {
-        InternalDebugMenu.setGameKubriko(kubriko)
+    DisposableEffect(kubriko) {
+        kubriko?.let(InternalDebugMenu::registerGameKubriko)
+        onDispose {
+            kubriko?.let(InternalDebugMenu::unregisterGameKubriko)
+        }
     }
     Surface(
         modifier = modifier,

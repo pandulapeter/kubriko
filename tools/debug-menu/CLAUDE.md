@@ -14,13 +14,14 @@ Real implementation of the debug menu overlay: log viewer, actor body visualizer
 ## Key Files
 
 - `DebugMenu.kt` — public `object` implementing `DebugMenuContract`; delegates to `InternalDebugMenu`
-- `InternalDebugMenu.kt` — singleton; owns an internal `Kubriko` instance (for `PersistenceManager`), a per-game Kubriko map keyed by `instanceName`, and all persisted settings
+- `InternalDebugMenu.kt` — singleton; owns an internal `Kubriko` instance (for `PersistenceManager`), a per-game overlay Kubriko, keyed by the game `Kubriko` instance and reference-counted across `OverlayOnly`, `Horizontal` and `Vertical` (the last one to leave composition disposes it), and all persisted settings
 - `DebugMenuManager.kt` — `Manager + Overlay + Unique`; added to a separate per-game Kubriko instance sharing the game's `ViewportManager`; draws cyan body bounds and magenta collision mask outlines over `visibleActorsWithinViewport`
 - `DebugMenuContainer.kt` — Composable layout switching between Horizontal/Vertical panels
+- `RefCountedRegistry.kt` — main-thread, reference-counted key → value holder backing the per-game overlays
 
 ## Architecture
 
-`setGameKubriko(kubriko)` creates a per-instance debug Kubriko keyed by `kubriko.instanceName`. Each game gets its own `DebugMenuManager` overlay — multi-instance support works by creating isolated debug overlays. `clearGameKubriko` disposes the overlay Kubriko for that instance.
+`registerGameKubriko(kubriko)` / `unregisterGameKubriko(kubriko)` maintain a per-game overlay Kubriko, keyed by the game `Kubriko` instance and reference-counted (`RefCountedRegistry`) across `OverlayOnly`, `Horizontal` and `Vertical`; the last one to leave composition disposes it. Each game gets its own `DebugMenuManager` overlay — multi-instance support works by creating isolated debug overlays.
 
 `InternalDebugMenu` uses persistence file name `"kubrikoDebugMenu"` for settings.
 
@@ -37,7 +38,7 @@ Reads directly from `Logger.logs`. Filters by LOW/MEDIUM/HIGH importance and tex
 
 ## Gotchas
 
-- The debug menu uses its own internal `Kubriko` instance — do not pass it to `setGameKubriko`
+- The debug menu uses its own internal `Kubriko` instance — do not pass it to `registerGameKubriko`
 - Actor body outlines are drawn by `DebugMenuManager` as an `Overlay` — they are in screen-space overlaid on top of the game world, not in scene coordinates
 - Visibility toggle and overlay enable/disable states are persisted and survive app restarts
 - Depends on `debug-menu-api`; consumers must also depend on `debug-menu-api`, never on this module directly in production

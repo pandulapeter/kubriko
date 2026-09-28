@@ -176,9 +176,9 @@ object DebugMenu : DebugMenuContract {
         buttonAlignment: Alignment?,
     ) {
         DisposableEffect(kubriko) {
-            InternalDebugMenu.setGameKubriko(kubriko)
+            kubriko?.let(InternalDebugMenu::registerGameKubriko)
             onDispose {
-                InternalDebugMenu.clearGameKubriko(kubriko)
+                kubriko?.let(InternalDebugMenu::unregisterGameKubriko)
             }
         }
         Box(
@@ -190,7 +190,7 @@ object DebugMenu : DebugMenuContract {
                 kubriko = InternalDebugMenu.internalKubriko,
             )
             kubrikoViewport()
-            val debugMenuKubriko = InternalDebugMenu.debugMenuKubriko.collectAsState().value[kubriko?.instanceName]
+            val debugMenuKubriko = kubriko?.let { InternalDebugMenu.debugMenuKubriko.collectAsState().value[it] }
             if (debugMenuKubriko != null) {
                 KubrikoViewport(
                     kubriko = debugMenuKubriko,
