@@ -11,8 +11,7 @@ package com.pandulapeter.kubriko.uiComponents.utilities
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.Font
@@ -35,7 +34,7 @@ actual fun preloadedFont(
         weight = weight,
         style = style
     )
-    return remember(resource) { derivedStateOf { font } }
+    return rememberUpdatedState(font)
 }
 
 @Composable
@@ -43,7 +42,7 @@ actual fun preloadedImageBitmap(
     resource: DrawableResource,
 ): State<ImageBitmap?> {
     val image = imageResource(resource)
-    return remember(resource) { derivedStateOf { image } }
+    return rememberUpdatedState(image)
 }
 
 @Composable
@@ -51,5 +50,5 @@ actual fun preloadedImageVector(
     resource: DrawableResource,
 ): State<ImageVector?> {
     val vector = vectorResource(resource)
-    return remember(resource) { derivedStateOf { vector } }
+    return rememberUpdatedState(vector)
 }
