@@ -28,6 +28,7 @@ internal abstract class BaseDynamicObject : RigidBody, Visible, Dynamic {
     private lateinit var actorManager: ActorManager
     private lateinit var viewportManager: ViewportManager
     abstract override val collisionMask: ComplexCollisionMask
+    override val isAlwaysActive = true
     protected val color = Color.hsv(
         hue = Random.nextFloat() * 360f,
         saturation = 0.3f,

@@ -68,6 +68,7 @@ internal class DynamicChain private constructor(private val state: State) : Grou
     override val actors = chainLinks + joints
     override val body = BoxBody()
     override val drawingOrder = -1f
+    override val isAlwaysActive = true
     private val offset = SceneOffset(ChainLink.Radius * 2, ChainLink.Radius * 2)
     private val color = Color.hsv(
         hue = Random.nextFloat() * 360f,

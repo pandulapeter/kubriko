@@ -68,7 +68,8 @@ spawns; the FAB icon updates accordingly.
 
 **Off-screen removal.** `BaseDynamicObject.update()` calls the `isWithinViewportBounds` extension on
 the actor's AABB, removing the actor when it leaves the viewport. This keeps the actor pool bounded
-without a manual culling pass.
+without a manual culling pass. Such actors set `isAlwaysActive = true`, so far-away sleeping (e.g. after the
+window is narrowed) cannot stop them from removing themselves.
 
 **`DynamicPolygon` does not use `Editable`.** Unlike boxes and circles, polygons are constructed
 entirely at runtime with random vertex counts (3–10 sides); they are not persisted in the scene
