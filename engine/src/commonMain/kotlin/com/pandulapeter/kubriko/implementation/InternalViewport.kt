@@ -98,6 +98,9 @@ fun InternalViewport(
             // Whether the loop slept through display frames before awaiting the current one, in which case its
             // delta spans several of them and says nothing about the panel's interval.
             var hasSkippedDisplayFrames = false
+            // How long the loop slept before awaiting the current frame (0 if it didn't), so that its own throttling
+            // is never mistaken for the app having been away.
+            var lastSleepInMilliseconds = 0L
             // When the previous display frame was processed, on the clock the sleep below is measured against.
             val loopStartTimeMark = TimeSource.Monotonic.markNow()
             var lastFrameProcessedAtInMilliseconds = 0L
@@ -107,9 +110,15 @@ fun InternalViewport(
             val onFrame: (Long) -> Unit = { frameTimeInNanoseconds ->
                 val frameTimeInMilliseconds = frameTimeInNanoseconds / NANOSECONDS_PER_MILLISECOND
                 lastFrameProcessedAtInMilliseconds = loopStartTimeMark.elapsedNow().inWholeMilliseconds
-                if (lastFrameTime == -1L) {
+                // A long gap between frames (the app was in the background) restarts the timeline like the first frame
+                // does, instead of being emitted as one giant delta.
+                if (lastFrameTime == -1L ||
+                    frameTimeInMilliseconds - lastFrameTime > MAXIMUM_FRAME_GAP_IN_MILLISECONDS + lastSleepInMilliseconds
+                ) {
                     lastFrameTime = frameTimeInMilliseconds
                     lastProcessedFrameTime = frameTimeInMilliseconds
+                    phaseInMilliseconds = 0f
+                    displayFramesSinceTick = 0
                     kubrikoImpl.metadataManager.onUpdateInternal(0)
                 } else {
                     val frameDelta = (frameTimeInMilliseconds - lastFrameTime).toInt()
@@ -173,6 +182,7 @@ fun InternalViewport(
                     }
                 }
                 hasSkippedDisplayFrames = false
+                lastSleepInMilliseconds = 0L
             }
             while (isActive) {
                 val canTickNow = viewportTickSource != null &&
@@ -213,6 +223,7 @@ fun InternalViewport(
                                 (loopStartTimeMark.elapsedNow().inWholeMilliseconds - lastFrameProcessedAtInMilliseconds)
                         if (sleepInMilliseconds > 0L) {
                             hasSkippedDisplayFrames = true
+                            lastSleepInMilliseconds = sleepInMilliseconds
                             delay(sleepInMilliseconds)
                         }
                     }
@@ -268,3 +279,5 @@ fun InternalViewport(
 
 // Compose hands frame times over in nanoseconds; the loop keeps its own time in milliseconds.
 private const val NANOSECONDS_PER_MILLISECOND = 1_000_000L
+
+private const val MAXIMUM_FRAME_GAP_IN_MILLISECONDS = 2_000L

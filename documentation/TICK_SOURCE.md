@@ -41,6 +41,10 @@ available, non-empty, and focused.
 
 Use this for normal games where rendering and engine updates should be coupled to the displayed viewport.
 
+A gap of more than two seconds between display frames (for example with `shouldPauseOnFocusLoss = false` while the app is in the background) restarts the
+timeline instead of being emitted as one delta, and that time is not added to `MetadataManager.totalRuntimeInMilliseconds` either. A game that wants to
+simulate the time it was away has to measure it with its own wall clock (such as `TimeSource.Monotonic` or the platform's lifecycle callbacks).
+
 ### Fixed rate
 
 ```kotlin

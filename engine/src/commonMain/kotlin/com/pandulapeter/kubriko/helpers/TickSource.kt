@@ -227,6 +227,10 @@ abstract class TickSource {
          * Creates the default viewport-frame based [TickSource].
          *
          * @param shouldPauseOnFocusLoss when true, ticks will only be emitted when the window is focused.
+         *
+         * A gap of more than two seconds between display frames (the app was in the background) restarts the timeline
+         * instead of being emitted as one delta; that time is not added to `MetadataManager.totalRuntimeInMilliseconds`
+         * either.
          */
         fun viewportFrames(
             shouldPauseOnFocusLoss: Boolean = true,
