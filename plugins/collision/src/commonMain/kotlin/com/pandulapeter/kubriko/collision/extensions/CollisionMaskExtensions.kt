@@ -302,6 +302,8 @@ private fun CollisionMask.collisionCheck(
     val collisionMaskA = this
     val collisionMaskB = other
     when {
+        collisionMaskA.isEmptyPolygon() || collisionMaskB.isEmptyPolygon() -> null
+
         collisionMaskA is CircleCollisionMask && collisionMaskB is CircleCollisionMask -> checkCircleToCircleCollision(
             circleA = collisionMaskA,
             circleB = collisionMaskB,
@@ -333,6 +335,8 @@ private fun CollisionMask.collisionCheck(
 } else {
     null
 }
+
+private fun CollisionMask.isEmptyPolygon() = this is PolygonCollisionMask && vertices.isEmpty()
 
 private val polygonPolygonAData = AxisData()
 private val polygonPolygonBData = AxisData()

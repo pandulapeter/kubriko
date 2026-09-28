@@ -57,7 +57,7 @@ A uniform hashed-cell index over a set of `CollisionMask`s. Public, because game
 | Circle–Circle | Distance vs. sum-of-radii |
 | Circle–Polygon / Polygon–Circle | SAT; circle transposed into polygon object space |
 | Polygon–Polygon | Full SAT + Sutherland–Hodgman clipping; uses pre-allocated static buffers (zero allocation) |
-| Point or mismatched | Returns `null` (no collision) |
+| Point or mismatched, or a polygon without vertices | Returns `null` (no collision) |
 
 Pass `shouldSkipAxisAlignedBoundingBoxCheck = true` to `collisionResultWith()` only when AABB overlap is guaranteed.
 
@@ -91,6 +91,8 @@ CollisionMask (sealed interface)
 `PolygonCollisionMask` silently convexifies input via Andrew's monotone chain algorithm. **Concave polygons are not supported** — shapes are convexified at construction time.
 
 `BoxCollisionMask` is centered on `initialPosition` (vertices derived from half-size).
+
+An empty or zero-size polygon (for example the default `PolygonCollisionMask()` or `BoxCollisionMask()`) behaves like a point at its position: point bounding box, `isSceneOffsetInside` true only at `position`, no debug outline. An empty one never reaches the circle/polygon narrow phase.
 
 ## RotationMatrix
 

@@ -123,6 +123,10 @@ open class PolygonCollisionMask internal constructor(
     }
 
     override fun isSceneOffsetInside(sceneOffset: SceneOffset): Boolean {
+        // A polygon without area (no vertices, or all of them coincident) has zero normals that would contain everything.
+        if (size == SceneSize.Zero) {
+            return sceneOffset == position
+        }
         for (i in vertices.indices) {
             val objectPoint = sceneOffset - (position + rotationMatrix.times(vertices[i]))
             if (objectPoint.dot(rotationMatrix.times(normals[i])) > SceneUnit.Zero) {
@@ -133,6 +137,10 @@ open class PolygonCollisionMask internal constructor(
     }
 
     override fun updateAxisAlignedBoundingBox(target: AxisAlignedBoundingBox) {
+        if (vertices.isEmpty()) {
+            super.updateAxisAlignedBoundingBox(target)
+            return
+        }
         val firstPoint = rotationMatrix.times(vertices[0])
         var minX = firstPoint.x
         var maxX = firstPoint.x
@@ -161,6 +169,7 @@ open class PolygonCollisionMask internal constructor(
 
 
     override fun DrawScope.drawDebugBounds(color: Color, style: DrawStyle) = this@PolygonCollisionMask.size.raw.let { size ->
+        if (vertices.isEmpty()) return@let
         val path = Path().apply {
             moveTo(vertices[0].x.raw + size.center.x, vertices[0].y.raw + size.center.y)
             for (i in 1 until vertices.size) {
