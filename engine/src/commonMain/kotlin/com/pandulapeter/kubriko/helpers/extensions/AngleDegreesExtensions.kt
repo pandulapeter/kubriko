@@ -15,17 +15,18 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * Converts this angle from degrees to radians.
+ * Converts this angle from degrees to radians. The value is not wrapped; use [AngleDegrees.normalized] (or
+ * `AngleRadians.normalized`) for that.
  */
-val AngleDegrees.rad get() = (normalized * (PI / 180f).toFloat()).rad
+val AngleDegrees.rad get() = (raw * (PI / 180f).toFloat()).rad
 
 
 /**
  * Returns the sine of this angle.
  */
-val AngleDegrees.sin get() = sin(normalized)
+val AngleDegrees.sin get() = sin(rad.raw)
 
 /**
  * Returns the cosine of this angle.
  */
-val AngleDegrees.cos get() = cos(normalized)
+val AngleDegrees.cos get() = cos(rad.raw)
