@@ -182,9 +182,9 @@ Decouples the update loop from the viewport. Passed to `Kubriko.newInstance()`.
 | `TickSource.fixedFrequency(ticksPerSecond)` | Coroutine-based; delta = measured elapsed time. Re-syncs if behind. First tick delta = 0. Requires explicit `start()`. |
 | `TickSource.manual()` | Advances only on explicit `tick(deltaTimeInMilliseconds)`. Deterministic; use for tests/replay. Requires `start()`. |
 
-Lifecycle: `start()` initializes Kubriko if needed, applies queued actor operations, and begins emitting ticks; `stop()` suspends ticks; `kubriko.dispose()` stops and disposes everything. Calling `start()`/`stop()` multiple times is safe.
+Lifecycle: `start()` initializes Kubriko if needed, applies queued actor operations, and begins emitting ticks; `stop()` suspends ticks; `kubriko.dispose()` stops and disposes everything. Calling `start()`/`stop()` multiple times is safe, from any thread (`onStart()`/`onStop()` never overlap).
 
-Custom TickSource: extend `TickSource`, call `emitTick(delta)` from any timing source. Override `onStart()`/`onStop()`/`onDispose()` for resource management. Use `onInitialize(kubriko)` if you need the Kubriko instance before start. `emitTick()` is safe to call before `start()`.
+Custom TickSource: extend `TickSource`, call `emitTick(delta)` from any timing source (never concurrently with itself). Override `onStart()`/`onStop()`/`onDispose()` for resource management. Use `onInitialize(kubriko)` if you need the Kubriko instance before start. `emitTick()` is safe to call before `start()`.
 
 ### Coordinate system
 Two parallel systems, both share Compose's convention (X left→right, Y top→down):

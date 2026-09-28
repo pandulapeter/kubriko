@@ -25,6 +25,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlin.concurrent.Volatile
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.reflect.KClass
 
 internal class KubrikoImpl(
@@ -85,16 +87,24 @@ internal class KubrikoImpl(
         )
     }
 
+    @OptIn(ExperimentalAtomicApi::class)
+    private val isInitializationClaimed = AtomicBoolean(false)
+    @Volatile
     private var isInitialized = false
     @Volatile
     private var isDisposed = false
     internal val isDisposedInternal get() = isDisposed
 
+    /**
+     * Exactly one caller initializes the instance. A concurrent caller returns without waiting (waiting would deadlock a
+     * re-entrant `start()` from inside initialization); ticks are held back by [onTick] until initialization is done.
+     */
+    @OptIn(ExperimentalAtomicApi::class)
     internal fun initializeInternal() {
         if (isDisposed) {
             throw IllegalStateException("Cannot initialize a disposed Kubriko instance. Create a new instance instead.")
         }
-        if (!isInitialized) {
+        if (isInitializationClaimed.compareAndSet(expectedValue = false, newValue = true)) {
             log("Initializing Manager instances...")
             managers.forEach { it.initializeInternal(this) }
             if (stateManager.shouldAutoStart) {
@@ -156,6 +166,7 @@ internal class KubrikoImpl(
     }
 
     internal fun onTick(deltaTimeInMilliseconds: Int) {
+        if (!isInitialized) return
         for (i in managersForTick.indices) {
             if (isDisposed) return
             managersForTick[i].onUpdateInternal(deltaTimeInMilliseconds)

@@ -19,6 +19,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlin.concurrent.Volatile
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.TimeSource
 
@@ -39,12 +44,13 @@ abstract class TickSource {
     /**
      * Whether the [TickSource] is currently emitting ticks.
      */
-    protected var isRunning: Boolean
+    protected val isRunning: Boolean
         get() = _isRunning.value
-        private set(value) {
-            _isRunning.value = value
-        }
     internal val isRunningInternal: StateFlow<Boolean> get() = _isRunning
+    @OptIn(ExperimentalAtomicApi::class)
+    private val isApplyingTransition = AtomicBoolean(false)
+    @Volatile
+    private var isStartApplied = false
     private lateinit var _scope: CoroutineScope
     private lateinit var kubrikoImpl: KubrikoImpl
 
@@ -86,51 +92,76 @@ abstract class TickSource {
      * Initializes the attached [Kubriko] instance and starts this [TickSource].
      * Applies every actor operation queued before the first start before returning.
      *
-     * Calling this function multiple times is safe.
+     * Calling this function multiple times is safe. Safe to call from any thread; concurrent calls are applied in order
+     * and [onStart]/[onStop] never overlap.
      */
     fun start() {
         kubrikoImpl.initializeInternal()
-        if (!isRunning) {
+        if (_isRunning.compareAndSet(expect = false, update = true)) {
             log(
                 message = "Starting...",
                 importance = Logger.Importance.LOW,
             )
-            isRunning = true
-            onStart()
-            log(
-                message = "Started.",
-                importance = Logger.Importance.MEDIUM,
-            )
+            applyRequestedState()
         }
     }
 
     /**
      * Stops this [TickSource] without disposing the attached [Kubriko] instance.
      *
-     * Calling this function multiple times is safe.
+     * Calling this function multiple times is safe. Safe to call from any thread; concurrent calls are applied in order
+     * and [onStart]/[onStop] never overlap.
      */
     fun stop() {
-        if (isRunning) {
+        if (_isRunning.compareAndSet(expect = true, update = false)) {
             log(
                 message = "Stopping...",
                 importance = Logger.Importance.LOW,
             )
-            isRunning = false
-            onStop()
-            log(
-                message = "Stopped.",
-                importance = Logger.Importance.MEDIUM,
-            )
+            applyRequestedState()
         }
     }
 
     /**
-     * Called when this [TickSource] starts.
+     * Brings the applied state in line with the requested one without blocking: whoever claims the transition flag
+     * applies every pending transition, and the others leave theirs to it. After releasing the flag the claimer checks
+     * once more, so a request that arrived while it was releasing is not lost.
+     */
+    @OptIn(ExperimentalAtomicApi::class)
+    private fun applyRequestedState() {
+        while (isApplyingTransition.compareAndSet(expectedValue = false, newValue = true)) {
+            try {
+                while (isStartApplied != _isRunning.value) {
+                    if (_isRunning.value) {
+                        isStartApplied = true
+                        onStart()
+                        log(
+                            message = "Started.",
+                            importance = Logger.Importance.MEDIUM,
+                        )
+                    } else {
+                        isStartApplied = false
+                        onStop()
+                        log(
+                            message = "Stopped.",
+                            importance = Logger.Importance.MEDIUM,
+                        )
+                    }
+                }
+            } finally {
+                isApplyingTransition.store(false)
+            }
+            if (isStartApplied == _isRunning.value) return
+        }
+    }
+
+    /**
+     * Called when this [TickSource] starts. Never called concurrently with itself or with [onStop].
      */
     protected open fun onStart() = Unit
 
     /**
-     * Called when this [TickSource] stops.
+     * Called when this [TickSource] stops. Never called concurrently with itself or with [onStart].
      */
     protected open fun onStop() = Unit
 
@@ -159,6 +190,9 @@ abstract class TickSource {
 
     /**
      * Emits one engine tick.
+     *
+     * Must not be called concurrently with itself: ticks drive non-thread-safe engine state. A source should emit from
+     * one thread or coroutine at a time.
      */
     protected fun emitTick(deltaTimeInMilliseconds: Int) {
         if (!isRunning) return
@@ -243,12 +277,16 @@ internal class FixedRateTickSource(
         require(intervalInMilliseconds > 0L) { "intervalInMilliseconds must be greater than 0." }
     }
 
+    private val loopMutex = Mutex()
+
     override fun onStart() {
         job = scope.launch {
-            emitTick(0)
-            while (isActive) {
-                delay(intervalInMilliseconds)
-                emitTick(intervalInMilliseconds.toInt())
+            loopMutex.withLock {
+                emitTick(0)
+                while (isActive) {
+                    delay(intervalInMilliseconds)
+                    emitTick(intervalInMilliseconds.toInt())
+                }
             }
         }
     }
@@ -269,22 +307,26 @@ internal class FixedFrequencyTickSource(
         require(ticksPerSecond > 0) { "ticksPerSecond must be greater than 0." }
     }
 
+    private val loopMutex = Mutex()
+
     override fun onStart() {
         job = scope.launch {
-            emitTick(0)
-            var lastTickTime = TimeSource.Monotonic.markNow()
-            var nextTickStart = lastTickTime
-            while (isActive) {
-                val remainingTime = targetInterval - nextTickStart.elapsedNow()
-                if (remainingTime.isPositive()) {
-                    delay(remainingTime.inWholeMilliseconds.coerceAtLeast(1L))
-                }
-                val currentTime = TimeSource.Monotonic.markNow()
-                emitTick(lastTickTime.elapsedNow().inWholeMilliseconds.toInt())
-                lastTickTime = currentTime
-                nextTickStart += targetInterval
-                if ((targetInterval - nextTickStart.elapsedNow()).isNegative()) {
-                    nextTickStart = currentTime
+            loopMutex.withLock {
+                emitTick(0)
+                var lastTickTime = TimeSource.Monotonic.markNow()
+                var nextTickStart = lastTickTime
+                while (isActive) {
+                    val remainingTime = targetInterval - nextTickStart.elapsedNow()
+                    if (remainingTime.isPositive()) {
+                        delay(remainingTime.inWholeMilliseconds.coerceAtLeast(1L))
+                    }
+                    val currentTime = TimeSource.Monotonic.markNow()
+                    emitTick(lastTickTime.elapsedNow().inWholeMilliseconds.toInt())
+                    lastTickTime = currentTime
+                    nextTickStart += targetInterval
+                    if ((targetInterval - nextTickStart.elapsedNow()).isNegative()) {
+                        nextTickStart = currentTime
+                    }
                 }
             }
         }
@@ -295,3 +337,4 @@ internal class FixedFrequencyTickSource(
         job = null
     }
 }
+

@@ -114,7 +114,8 @@ Calling `kubriko.dispose()`:
 - disposes Managers
 - cancels the Kubriko coroutine scope
 
-Calling `start()` or `stop()` multiple times is safe.
+Calling `start()` or `stop()` multiple times is safe, from any thread: concurrent calls are applied in order, and `onStart()`/`onStop()` are never called
+concurrently. If two threads call `start()` at once, exactly one of them initializes the Managers; ticks are held back until that has finished.
 
 ## Headless usage
 
@@ -152,7 +153,8 @@ class ExternalClockTickSource : TickSource() {
 ```
 
 `emitTick()` only forwards updates while the TickSource is running, so external callbacks can safely call it before or after `start()` if that simplifies
-integration.
+integration. It must not be called concurrently with itself, though: ticks drive non-thread-safe engine state, so a source should emit from one thread or
+coroutine at a time.
 
 For sources that allocate resources, override the lifecycle callbacks:
 
