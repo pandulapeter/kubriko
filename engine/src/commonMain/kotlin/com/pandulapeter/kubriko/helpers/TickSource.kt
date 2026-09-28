@@ -300,12 +300,12 @@ internal class FixedRateTickSource(
 internal class FixedFrequencyTickSource(
     ticksPerSecond: Int,
 ) : TickSource() {
-    private val targetInterval = (1_000_000_000L / ticksPerSecond).nanoseconds
-    private var job: Job? = null
-
     init {
         require(ticksPerSecond > 0) { "ticksPerSecond must be greater than 0." }
     }
+
+    private val targetInterval = (1_000_000_000L / ticksPerSecond).nanoseconds
+    private var job: Job? = null
 
     private val loopMutex = Mutex()
 
