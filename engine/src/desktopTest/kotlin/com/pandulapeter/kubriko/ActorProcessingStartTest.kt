@@ -78,6 +78,23 @@ class ActorProcessingStartTest {
     }
 
     @Test
+    fun firstTickAfterStartUpdatesInitialActors() = repeat(200) {
+        val actor = CountingActor()
+        val tickSource = TickSource.manual()
+        val kubriko = Kubriko.newInstance(
+            ActorManager.newInstance(
+                initialActors = listOf(actor),
+                shouldPutFarAwayActorsToSleep = false,
+            ),
+            tickSource = tickSource,
+        )
+        tickSource.start()
+        tickSource.tick(16)
+        assertEquals(1, actor.updates.get())
+        kubriko.dispose()
+    }
+
+    @Test
     fun preStartCallbacksRunOnTheStartingThread() {
         val actor = CountingActor()
         val tickSource = TickSource.manual()

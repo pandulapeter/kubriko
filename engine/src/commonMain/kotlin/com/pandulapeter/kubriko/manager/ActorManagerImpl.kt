@@ -103,27 +103,14 @@ internal class ActorManagerImpl(
             .flowOn(Dispatchers.Default)
             .asStateFlowOnMainThread(persistentListOf())
     }
-    private val dynamicActors by autoInitializingLazy {
-        _allActors
-            .map { actors -> actors.filterIsInstance<Dynamic>().toImmutableList() }
-            .distinctUntilChanged()
-            .flowOn(Dispatchers.Default)
-            .asStateFlowOnMainThread(persistentListOf())
-    }
-    private val visibleActors by autoInitializingLazy {
-        _allActors
-            .map { actors -> actors.filterIsInstance<Visible>().toImmutableList() }
-            .distinctUntilChanged()
-            .flowOn(Dispatchers.Default)
-            .asStateFlowOnMainThread(persistentListOf())
-    }
-    private val overlayActors by autoInitializingLazy {
-        if (!shouldComposeLayers) MutableStateFlow<ImmutableList<Overlay>>(persistentListOf()).asStateFlow() else _allActors
-            .map { actors -> actors.filterIsInstance<Overlay>().toImmutableList() }
-            .distinctUntilChanged()
-            .flowOn(Dispatchers.Default)
-            .asStateFlowOnMainThread(persistentListOf())
-    }
+    /**
+     * This and the two lists below are derived by the batch processor itself and published before [allActors] (so
+     * before any removal callback), rather than through a main-thread hop that would keep feeding removed actors to
+     * the tick loop for a while.
+     */
+    private val dynamicActors = MutableStateFlow<ImmutableList<Dynamic>>(persistentListOf())
+    private val visibleActors = MutableStateFlow<ImmutableList<Visible>>(persistentListOf())
+    private val overlayActors = MutableStateFlow<ImmutableList<Overlay>>(persistentListOf())
 
     // Pre-grouped and pre-sorted draw caches — rebuilt in onUpdate() when inputs change, read in onDraw()
     private var sortedVisibleActorsByLayer: Map<Int?, List<Visible>> = emptyMap()
@@ -346,6 +333,20 @@ internal class ActorManagerImpl(
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
+        // Refreshed before the update loop, so that a batch applied since the previous tick is already reflected in
+        // the actors updated by this one.
+        var didCullDynamicActorsBeforeUpdate = false
+        val currentDynamicActors = dynamicActors.value
+        if (currentDynamicActors !== lastDynamicActors) {
+            if (!shouldPutFarAwayActorsToSleep) {
+                lastDynamicActors = currentDynamicActors
+                _activeDynamicActors.value = currentDynamicActors
+            } else if (!viewportManager.size.value.isEmpty()) {
+                updateActiveDynamicActors(viewportManager.cameraPosition.value, viewportManager.currentScaleFactor())
+                didCullDynamicActorsBeforeUpdate = true
+            }
+        }
+
         if (shouldUpdateActorsWhileNotRunning || stateManager.isRunning.value) {
             val currentActiveDynamicActors = activeDynamicActors.value
             if (currentActiveDynamicActors !== lastMirroredActiveDynamicActors) {
@@ -396,7 +397,7 @@ internal class ActorManagerImpl(
         }
 
         // Rebuild active dynamic actor list when actors, viewport dimensions, or the throttle interval elapses
-        if (shouldPutFarAwayActorsToSleep) {
+        if (shouldPutFarAwayActorsToSleep && !didCullDynamicActorsBeforeUpdate) {
             val activeTime = metadataManager.activeRuntimeInMilliseconds.value
             val dynamicActorsList = dynamicActors.value
             if (!viewportSize.isEmpty()) {
@@ -407,8 +408,6 @@ internal class ActorManagerImpl(
                     updateActiveDynamicActors(cameraPosition, scaleFactor)
                 }
             }
-        } else if (_activeDynamicActors.value !== dynamicActors.value) {
-            _activeDynamicActors.value = dynamicActors.value
         }
     }
 
@@ -527,6 +526,7 @@ internal class ActorManagerImpl(
             firstFailure = runActorCallback(actor, "onAdded", firstFailure) { actor.onAdded(kubrikoImpl) }
         }
         if (didChange) {
+            publishDerivedActorLists(workingList)
             _allActors.value = workingList.toImmutableList()
         }
         for (actor in newlyRemoved) {
@@ -539,6 +539,20 @@ internal class ActorManagerImpl(
         if (failure != null) {
             scope.launch { throw failure }
         }
+    }
+
+    private fun publishDerivedActorLists(actors: List<Actor>) {
+        val dynamics = ArrayList<Dynamic>()
+        val visibles = ArrayList<Visible>()
+        val overlays = ArrayList<Overlay>()
+        for (actor in actors) {
+            if (actor is Dynamic) dynamics.add(actor)
+            if (actor is Visible) visibles.add(actor)
+            if (shouldComposeLayers && actor is Overlay) overlays.add(actor)
+        }
+        if (!dynamicActors.value.contentEquals(dynamics)) dynamicActors.value = dynamics.toImmutableList()
+        if (!visibleActors.value.contentEquals(visibles)) visibleActors.value = visibles.toImmutableList()
+        if (!overlayActors.value.contentEquals(overlays)) overlayActors.value = overlays.toImmutableList()
     }
 
     /**

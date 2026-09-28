@@ -43,6 +43,10 @@ interface Actor {
      *
      * An exception thrown here does not prevent the rest of the batch from being applied; it is rethrown afterwards
      * on the Kubriko scope.
+     *
+     * The actor receives no further `update()` from ticks that start after this is called, and is not drawn in frames
+     * rendered after such a tick. A frame already prepared before that tick may still draw it once, so `draw()` must not
+     * fail on state released here.
      */
     fun onRemoved() = Unit
 }
