@@ -25,14 +25,17 @@ dependencies {
     implementation(projects.examples.gameBlockysJourney)
     implementation(compose.desktop.currentOs)
     implementation(libs.compose.resources)
+    implementation(libs.jbr.api)
 }
 
 compose.desktop {
     application {
         mainClass = "com.pandulapeter.kubrikoShowcase.KubrikoShowcaseAppKt"
+        // The JetBrains Runtime is what lets the content be laid out under the title bar on Windows and the window
+        // buttons follow the theme (TitleBar.kt). The build Gradle provisions ships the jmods ProGuard needs.
         javaHome = javaToolchains.launcherFor {
             languageVersion.set(JavaLanguageVersion.of(21))
-            vendor.set(JvmVendorSpec.ADOPTIUM)
+            vendor.set(JvmVendorSpec.JETBRAINS)
         }.get().metadata.installationPath.asFile.absolutePath
         nativeDistributions {
             packageName = "Kubriko Showcase"

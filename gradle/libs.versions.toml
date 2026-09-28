@@ -20,6 +20,7 @@ compose-multiplatform = "1.12.1" # https://github.com/JetBrains/compose-multipla
 google-material = "1.14.0" # https://github.com/material-components/material-components-android/releases
 gradle = "9.4.1" # https://developer.android.com/build/releases/gradle-plugin
 jamepad = "2.30.0.0" # https://github.com/libgdx/jamepad/releases
+jbr-api = "1.10.1" # https://github.com/JetBrains/JetBrainsRuntimeApi/releases
 jlayer = "1.0.3" # https://github.com/umjammer/jlayer/releases
 kotlin = "2.4.20" # https://github.com/JetBrains/kotlin/releases
 kotlinx-coroutines = "1.11.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
@@ -43,6 +44,7 @@ compose-lifecycle-runtime = { group = "org.jetbrains.androidx.lifecycle", name =
 google-material = { group = "com.google.android.material", name = "material", version.ref = "google-material" }
 gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "gradle" }
 jamepad = { group = "com.badlogicgames.jamepad", name = "jamepad", version.ref = "jamepad" }
+jbr-api = { module = "org.jetbrains.runtime:jbr-api", version.ref = "jbr-api" }
 jlayer = { group = "com.github.umjammer", name = "jlayer", version.ref = "jlayer" }
 kotlin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect" }

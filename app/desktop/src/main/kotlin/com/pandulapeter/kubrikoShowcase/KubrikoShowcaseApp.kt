@@ -11,13 +11,17 @@ package com.pandulapeter.kubrikoShowcase
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.awt.SwingWindow
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowDecoration
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
@@ -37,6 +41,7 @@ import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.WindowStateListener
 
+@OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     System.setProperty("apple.awt.application.name", "Kubriko Showcase")
     application {
@@ -56,56 +61,66 @@ fun main() {
         fun KubrikoShowcaseWindow(
             undecorated: Boolean,
             resizable: Boolean,
-        ) = Window(
-            onCloseRequest = ::exitApplication,
-            state = windowState,
-            title = "Kubriko Showcase",
-            undecorated = undecorated,
-            resizable = resizable,
-            icon = painterResource(Res.drawable.ic_icon),
         ) {
-            DisposableEffect(Unit) {
-                val listener = WindowStateListener {
-                    if (isInFullscreenMode.value) {
-                        isInFullscreenMode.value = windowState.placement == WindowPlacement.Fullscreen
-                    }
-                }
-                window.addWindowStateListener(listener)
-                onDispose {
-                    window.removeWindowStateListener(listener)
-                }
-            }
-            window.minimumSize = Dimension(400, 400)
-            KubrikoShowcase(
-                isInFullscreenMode = isInFullscreenMode.value,
-                getIsInFullscreenMode = { isInFullscreenMode.value },
-                onFullscreenModeToggled = {
-                    isInFullscreenMode.value.let { currentValue ->
-                        isInFullscreenMode.value = !currentValue
-                        if (currentValue) {
-                            previousWindowPlacement.value?.let { previousWindowPlacement ->
-                                windowState.placement = previousWindowPlacement
-                                windowState.size = windowSize.value
-                                previousWindowLocation.value?.let {
-                                    window.setLocation(it.x, it.y)
-                                }
-                                previousBounds.value?.let {
-                                    coroutineScope.launch {
-                                        delay(100)
-                                        window.bounds = it
-                                    }
-                                }
-                            }
-                        } else {
-                            windowSize.value = windowState.size
-                            previousBounds.value = window.bounds
-                            previousWindowPlacement.value = windowState.placement
-                            previousWindowLocation.value = window.location
-                            windowState.placement = WindowPlacement.Fullscreen
+            var titleBar by remember { mutableStateOf<ExtendedTitleBar?>(null) }
+            SwingWindow(
+                onCloseRequest = ::exitApplication,
+                state = windowState,
+                title = "Kubriko Showcase",
+                decoration = if (undecorated) WindowDecoration.Undecorated() else WindowDecoration.SystemDefault,
+                resizable = resizable,
+                icon = painterResource(Res.drawable.ic_icon),
+                init = { window -> if (!undecorated) titleBar = window.extendContentIntoTitleBar() },
+            ) {
+                DisposableEffect(Unit) {
+                    val listener = WindowStateListener {
+                        if (isInFullscreenMode.value) {
+                            isInFullscreenMode.value = windowState.placement == WindowPlacement.Fullscreen
                         }
                     }
-                },
-            )
+                    window.addWindowStateListener(listener)
+                    onDispose {
+                        window.removeWindowStateListener(listener)
+                    }
+                }
+                window.minimumSize = Dimension(400, 400)
+                TitleBarInsets(
+                    titleBar = titleBar,
+                    isFullscreen = windowState.placement == WindowPlacement.Fullscreen,
+                ) {
+                    titleBar?.let { TitleBarAppearance(window = window, titleBar = it) }
+                    KubrikoShowcase(
+                        isInFullscreenMode = isInFullscreenMode.value,
+                        getIsInFullscreenMode = { isInFullscreenMode.value },
+                        onFullscreenModeToggled = {
+                            isInFullscreenMode.value.let { currentValue ->
+                                isInFullscreenMode.value = !currentValue
+                                if (currentValue) {
+                                    previousWindowPlacement.value?.let { previousWindowPlacement ->
+                                        windowState.placement = previousWindowPlacement
+                                        windowState.size = windowSize.value
+                                        previousWindowLocation.value?.let {
+                                            window.setLocation(it.x, it.y)
+                                        }
+                                        previousBounds.value?.let {
+                                            coroutineScope.launch {
+                                                delay(100)
+                                                window.bounds = it
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    windowSize.value = windowState.size
+                                    previousBounds.value = window.bounds
+                                    previousWindowPlacement.value = windowState.placement
+                                    previousWindowLocation.value = window.location
+                                    windowState.placement = WindowPlacement.Fullscreen
+                                }
+                            }
+                        },
+                    )
+                }
+            }
         }
         AnnoyedPenguinsGameSceneEditor(
             defaultSceneFolderPath = "../../examples/game-annoyed-penguins/src/commonMain/composeResources/files/scenes"

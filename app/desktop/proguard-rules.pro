@@ -17,6 +17,10 @@
     public static void main(java.lang.String[]);
 }
 
+# App-specific: the JetBrains Runtime API (the Showcase's title bar) binds its implementation in the runtime by the
+# names of its interfaces and their methods, so they have to keep them, or every service reads as unsupported.
+-keep class com.jetbrains.** { *; }
+
 # Kubriko (engine): needed if you serialize game state (plugin-serialization, plugin-persistence,
 # the Scene Editor). Generic attributes for reflection-adjacent code, plus enum values()/valueOf().
 -keepattributes Signature,InnerClasses,EnclosingMethod,SourceFile,LineNumberTable
