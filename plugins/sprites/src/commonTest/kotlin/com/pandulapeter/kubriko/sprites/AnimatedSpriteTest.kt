@@ -56,6 +56,44 @@ class AnimatedSpriteTest {
         assertEquals(0, sprite.frameIndex)
     }
 
+    @Test
+    fun everyOrientationMapsEveryFrameToItsOwnCellInsideTheSheet() {
+        listOf(6, 5).forEach { frameCount ->
+            SpriteResource.Rotation.entries.forEach { orientation ->
+                val sprite = AnimatedSprite(
+                    getImageBitmap = { null },
+                    frameSize = IntSize(1, 1),
+                    frameCount = frameCount,
+                    framesPerRow = FRAMES_PER_ROW,
+                    orientation = orientation,
+                )
+                val cells = (0 until frameCount).map { sprite.getXIndex(it) to sprite.getYIndex(it) }
+                val isRotatedSideways = orientation == SpriteResource.Rotation.DEGREES_90 || orientation == SpriteResource.Rotation.DEGREES_270
+                val columnCount = if (isRotatedSideways) ROW_COUNT else FRAMES_PER_ROW
+                val rowCount = if (isRotatedSideways) FRAMES_PER_ROW else ROW_COUNT
+
+                assertEquals(frameCount, cells.toSet().size, "$orientation maps several frames of $frameCount to one cell: $cells")
+                cells.forEach { (x, y) ->
+                    assertTrue(x in 0 until columnCount && y in 0 until rowCount, "$orientation maps a frame outside the sheet: $cells")
+                }
+            }
+        }
+    }
+
+    @Test
+    fun rotationBy270DegreesWalksTheFirstRowUpwards() {
+        val sprite = AnimatedSprite(
+            getImageBitmap = { null },
+            frameSize = IntSize(1, 1),
+            frameCount = 6,
+            framesPerRow = FRAMES_PER_ROW,
+            orientation = SpriteResource.Rotation.DEGREES_270,
+        )
+
+        assertEquals(0 to FRAMES_PER_ROW - 1, sprite.getXIndex(0) to sprite.getYIndex(0))
+        assertEquals(0 to FRAMES_PER_ROW - 2, sprite.getXIndex(1) to sprite.getYIndex(1))
+    }
+
     private fun animatedSprite() = AnimatedSprite(
         getImageBitmap = { null },
         frameSize = IntSize(1, 1),
@@ -63,4 +101,9 @@ class AnimatedSpriteTest {
         framesPerRow = 2,
         framesPerSecond = 1000f,
     )
+
+    private companion object {
+        const val FRAMES_PER_ROW = 3
+        const val ROW_COUNT = 2
+    }
 }

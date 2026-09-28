@@ -122,7 +122,7 @@ class AnimatedSprite(
         }
     }
 
-    private fun getXIndex(frameIndex: Int) = when (orientation) {
+    internal fun getXIndex(frameIndex: Int) = when (orientation) {
         Rotation.NONE ->
             frameIndex % framesPerRow
 
@@ -136,7 +136,7 @@ class AnimatedSprite(
             frameIndex / framesPerRow
     }
 
-    private fun getYIndex(frameIndex: Int) = when (orientation) {
+    internal fun getYIndex(frameIndex: Int) = when (orientation) {
         Rotation.NONE ->
             frameIndex / framesPerRow
 
@@ -147,7 +147,7 @@ class AnimatedSprite(
             frameIndex % framesPerRow
 
         Rotation.DEGREES_270 ->
-            framesPerRow - 1 - frameIndex / framesPerRow
+            framesPerRow - 1 - frameIndex % framesPerRow
     }
 
     /**
