@@ -11,9 +11,12 @@ package com.pandulapeter.kubriko.sceneEditor.implementation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.awt.AwtWindow
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -74,14 +77,7 @@ internal fun InternalSceneEditor(
     val isSaveFileChooserOpen = remember { mutableStateOf(false) }
     val isSettingsOpen = remember { mutableStateOf(false) }
 
-    lateinit var overlayKubriko: Kubriko
-
-    fun disposeAndClose() {
-        editorKubriko.dispose()
-        overlayKubriko.dispose()
-        onCloseRequest()
-    }
-
+    val currentOnCloseRequest by rememberUpdatedState(onCloseRequest)
     val editorController = remember {
         EditorController(
             kubriko = editorKubriko,
@@ -92,14 +88,13 @@ internal fun InternalSceneEditor(
                 if (isSettingsOpen.value) {
                     isSettingsOpen.value = false
                 } else if (!isLoadFileChooserOpen.value && !isSaveFileChooserOpen.value) {
-                    disposeAndClose()
+                    currentOnCloseRequest()
                 }
             },
         )
     }
     val overlayManager = remember { OverlayManager(editorController) }
-
-    overlayKubriko = remember {
+    val overlayKubriko = remember {
         Kubriko.newInstance(
             ViewportManager.newInstance(
                 aspectRatioMode = ViewportManager.AspectRatioMode.Dynamic,
@@ -109,9 +104,17 @@ internal fun InternalSceneEditor(
             overlayManager,
         )
     }
+    // Registered before the windows so that their viewports are torn down before the instances they render.
+    DisposableEffect(Unit) {
+        onDispose {
+            editorController.dispose()
+            overlayKubriko.dispose()
+            editorKubriko.dispose()
+        }
+    }
 
     Window(
-        onCloseRequest = ::disposeAndClose,
+        onCloseRequest = { currentOnCloseRequest() },
         title = title,
     ) {
         window.minimumSize = Dimension(600, 400)

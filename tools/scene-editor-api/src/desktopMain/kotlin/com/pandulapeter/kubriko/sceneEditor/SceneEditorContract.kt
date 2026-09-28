@@ -46,7 +46,9 @@ interface SceneEditorContract {
      * @param customManagers Additional engine managers to include in the editor's engine instance.
      * @param sceneEditorMode The operational mode of the editor.
      * @param title The title of the editor.
-     * @param onCloseRequest Callback when the user attempts to close the editor.
+     * @param onCloseRequest Called when the user asks to close the editor (window close button or Escape). The editor stays
+     * open until the caller removes it from composition; it then disposes its Kubriko instances, including
+     * [serializationManager] and [customManagers].
      */
     @Composable
     operator fun invoke(

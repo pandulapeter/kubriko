@@ -20,6 +20,8 @@ The editor runs **two separate Kubriko instances**:
 
 `InternalSceneEditor` (Composable) creates and wires both instances; `EditorController` is the central coordinator that both read.
 
+Both instances and the `EditorController` scope are disposed when `InternalSceneEditor` leaves composition (a `DisposableEffect`), never in the close handler.
+
 ## `EditorController`
 
 `CoroutineScope` (SupervisorJob + Dispatchers.Default) that owns all mutable editor state:
