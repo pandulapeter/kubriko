@@ -20,9 +20,7 @@ import com.pandulapeter.kubriko.physics.implementation.Arbiter
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 
 internal class PhysicsManagerImpl(
     initialGravity: SceneOffset,
@@ -33,15 +31,15 @@ internal class PhysicsManagerImpl(
 ) : PhysicsManager(isLoggingEnabled, instanceNameForLogging) {
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
-    private val rigidBodies by lazy {
+    private val rigidBodies by autoInitializingLazy {
         actorManager.allActors
             .map { it.filterIsInstance<RigidBody>().map { it.physicsBody } }
-            .stateIn(scope, SharingStarted.Eagerly, emptyList())
+            .asStateFlow(emptyList())
     }
-    private val joints by lazy {
+    private val joints by autoInitializingLazy {
         actorManager.allActors
             .map { it.filterIsInstance<JointWrapper>().map { it.physicsJoint } }
-            .stateIn(scope, SharingStarted.Eagerly, emptyList())
+            .asStateFlow(emptyList())
     }
     private val arbiters = mutableListOf<Arbiter>()
     private val arbiterPool = ArrayList<Arbiter>()
