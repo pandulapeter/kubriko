@@ -24,12 +24,17 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import kotlin.math.roundToInt
 
+/**
+ * Streams one MP3 track. Every playback job builds its own decoder chain (decoder, audio device and bitstream) and
+ * closes it when it ends, so a cancelled job can never touch the chain of the job that replaced it.
+ */
 internal class DesktopMusicPlayer(
     inputStream: InputStream?,
 ) {
@@ -37,12 +42,15 @@ internal class DesktopMusicPlayer(
     private val audioData: ByteArray = inputStream?.use(InputStream::readBytes)
         ?: throw IllegalArgumentException("Desktop music player requires a non-null input stream.")
 
-    private var audioDevice: AudioDevice? = null
-    private var decoder: Decoder? = null
-    private var bitstream: Bitstream? = null
+    private val lock = Any()
+
+    @Volatile
     private var musicPlayingJob: Job? = null
+
     // A flow rather than a flag, so the decoding loop can suspend on a resume instead of polling for one.
     private val isMusicPaused = MutableStateFlow(false)
+
+    @Volatile
     private var shouldLoop = false
 
     @Volatile
@@ -53,52 +61,64 @@ internal class DesktopMusicPlayer(
 
     val isPlaying get() = musicPlayingJob?.isActive == true && !isMusicPaused.value
 
-    init {
-        rebuildDecoderChain()
-    }
-
     /** Starts playback; when [shouldRestart] is true we rewind to the beginning before playing. */
-    fun play(scope: CoroutineScope, shouldLoop: Boolean, shouldRestart: Boolean) {
+    fun play(scope: CoroutineScope, shouldLoop: Boolean, shouldRestart: Boolean) = synchronized(lock) {
         this.shouldLoop = shouldLoop
-
         if (shouldRestart) {
-            // Cancel current playback + fully rebuild the decoder chain before restarting.
-            stop()
+            cancelCurrentJob()
         }
-
+        isMusicPaused.value = false
         if (musicPlayingJob == null) {
-            startPlayback(scope)
-        } else {
-            // Resume from pause without recreating the coroutine.
-            isMusicPaused.value = false
+            musicPlayingJob = startPlayback(scope)
         }
     }
 
-    private fun startPlayback(scope: CoroutineScope) {
-        musicPlayingJob = scope.launch(Dispatchers.Default) {
-            try {
+    private fun startPlayback(scope: CoroutineScope) = scope.launch(Dispatchers.Default) {
+        var bitstream: Bitstream? = null
+        var audioDevice: AudioDevice? = null
+        var hasEndedOnItsOwn = false
+        try {
+            val decoder = Decoder()
+            val device = FactoryRegistry.systemRegistry().createAudioDevice().also { it.open(decoder) }
+            audioDevice = device
+            var currentBitstream = createBitstream()
+            bitstream = currentBitstream
+            do {
+                var hasNextFrame: Boolean
                 do {
-                    var hasNextFrame: Boolean=false
-                    do {
-                        ensureActive()
-                        if (isMusicPaused.value) {
-                            // Suspend until resumed rather than waking to re-read the flag; the decoder
-                            // and the bitstream keep their position either way.
-                            isMusicPaused.first { !it }
-                            continue
-                        }
-                        hasNextFrame = playFrame()
-                    } while (hasNextFrame && isActive)
-                    if (shouldLoop && isActive) {
-                        // For loops we only rewind the bitstream so playback restarts from the first frame.
-                        rewindBitstreamOnly()
+                    ensureActive()
+                    if (isMusicPaused.value) {
+                        // Suspend until resumed rather than waking to re-read the flag; the decoder
+                        // and the bitstream keep their position either way.
+                        isMusicPaused.first { !it }
+                        hasNextFrame = true
+                        continue
                     }
-                } while (shouldLoop && isActive)
-            } finally {
-                // Make sure we are ready for the next invocation once the coroutine finishes.
-                rebuildDecoderChain()
-                isMusicPaused.value = false
-                musicPlayingJob = null
+                    hasNextFrame = playFrame(currentBitstream, decoder, device)
+                } while (hasNextFrame && isActive)
+                if (shouldLoop && isActive) {
+                    // For loops we only rewind the bitstream so playback restarts from the first frame.
+                    closeBitstream(currentBitstream)
+                    currentBitstream = createBitstream()
+                    bitstream = currentBitstream
+                }
+            } while (shouldLoop && isActive)
+            hasEndedOnItsOwn = isActive
+        } catch (_: JavaLayerException) {
+        } finally {
+            closeBitstream(bitstream)
+            audioDevice?.let { device ->
+                // A cancelled job cuts its audio instead of playing out the buffered tail over whatever comes next.
+                if (hasEndedOnItsOwn) {
+                    runCatching { device.flush() }
+                }
+                runCatching { device.close() }
+            }
+            synchronized(lock) {
+                if (musicPlayingJob === coroutineContext.job) {
+                    musicPlayingJob = null
+                    isMusicPaused.value = false
+                }
             }
         }
     }
@@ -108,19 +128,17 @@ internal class DesktopMusicPlayer(
         isMusicPaused.value = true
     }
 
-    fun stop() {
-        // Cancel the decoding coroutine and rebuild the decoder/device so the next playback starts clean.
+    fun stop() = synchronized(lock) {
+        cancelCurrentJob()
+    }
+
+    private fun cancelCurrentJob() {
         musicPlayingJob?.cancel()
         musicPlayingJob = null
         isMusicPaused.value = false
-        rebuildDecoderChain()
     }
 
-    fun dispose() {
-        stop()
-        closeAudioDevice()
-        closeBitstream()
-    }
+    fun dispose() = stop()
 
     fun setVolume(leftVolume: Float, rightVolume: Float) {
         // Store the latest volume so that it can be applied on the next decoded frame.
@@ -128,26 +146,23 @@ internal class DesktopMusicPlayer(
         this.rightVolume = rightVolume
     }
 
-    private fun playFrame(): Boolean {
-        val currentBitstream = bitstream ?: return false
-        val currentDecoder = decoder ?: return false
-        val currentAudioDevice = audioDevice ?: return false
-        return try {
-            val header: Header = currentBitstream.readFrame() ?: return false
-            val output = currentDecoder.decodeFrame(header, currentBitstream) as SampleBuffer
+    private fun playFrame(bitstream: Bitstream, decoder: Decoder, audioDevice: AudioDevice): Boolean = try {
+        val header: Header? = bitstream.readFrame()
+        if (header == null) {
+            false
+        } else {
+            val output = decoder.decodeFrame(header, bitstream) as SampleBuffer
             applyVolume(output)
-            synchronized(currentAudioDevice) {
-                currentAudioDevice.write(output.buffer, 0, output.bufferLength)
-            }
-            currentBitstream.closeFrame()
+            audioDevice.write(output.buffer, 0, output.bufferLength)
+            bitstream.closeFrame()
             true
-        } catch (_: BitstreamException) {
-            false
-        } catch (_: JavaLayerException) {
-            false
-        } catch (_: ArrayIndexOutOfBoundsException) {
-            false
         }
+    } catch (_: BitstreamException) {
+        false
+    } catch (_: JavaLayerException) {
+        false
+    } catch (_: ArrayIndexOutOfBoundsException) {
+        false
     }
 
     /**
@@ -179,36 +194,9 @@ internal class DesktopMusicPlayer(
         return scaled.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
     }
 
-    private fun rebuildDecoderChain() {
-        closeBitstream()
-        closeAudioDevice()
-        val newDecoder = Decoder()
-        val newDevice = FactoryRegistry.systemRegistry().createAudioDevice().also { device ->
-            device.open(newDecoder)
-        }
-        decoder = newDecoder
-        audioDevice = newDevice
-        bitstream = createBitstream()
-    }
-
-    private fun rewindBitstreamOnly() {
-        closeBitstream()
-        bitstream = createBitstream()
-    }
-
     private fun createBitstream() = Bitstream(BufferedInputStream(ByteArrayInputStream(audioData)))
 
-    private fun closeAudioDevice() {
-        audioDevice?.let { device ->
-            runCatching { device.flush() }
-            runCatching { device.close() }
-        }
-        audioDevice = null
-        decoder = null
-    }
-
-    private fun closeBitstream() {
+    private fun closeBitstream(bitstream: Bitstream?) {
         runCatching { bitstream?.close() } // Bitstream#close throws when already closed – swallow it.
-        bitstream = null
     }
 }

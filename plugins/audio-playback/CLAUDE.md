@@ -53,6 +53,6 @@ All logic is coroutine- or callback-driven. Zero per-frame cost.
 ## Gotchas
 
 - Audio formats: SFX → WAV (max 48k bitrate on Android); Music → MP3 (max 320 kbps)
-- Desktop: `rebuildDecoderChain()` recreates `Decoder + AudioDevice` on every `stop()`/restart
+- Desktop: each music playback job builds its own `Decoder + AudioDevice + Bitstream` chain and closes it when it ends, so a cancelled job never touches the one that replaced it
 - iOS: `stop()` is actually a pause — the playback position is preserved
 - Web: iOS Safari has significant audio issues (see root CLAUDE.md)
