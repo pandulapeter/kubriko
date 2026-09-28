@@ -55,14 +55,14 @@ object BoxBodySerializer : KSerializer<BoxBody> {
         return decoder.decodeStructure(descriptor) {
             var position = SceneOffset.Zero
             var size = SceneSize.Zero
-            var pivot = size.center
+            var pivot: SceneOffset? = null
             var scale = Scale.Unit
             var rotation = AngleRadians.Zero
             while (true) {
                 when (val index = decodeElementIndex(descriptor)) {
                     0 -> position = decodeSerializableElement(descriptor, 0, SceneOffsetSerializer, position)
                     1 -> size = decodeSerializableElement(descriptor, 1, SceneSizeSerializer, size)
-                    2 -> pivot = decodeSerializableElement(descriptor, 2, SceneOffsetSerializer, pivot)
+                    2 -> pivot = decodeSerializableElement(descriptor, 2, SceneOffsetSerializer, SceneOffset.Zero)
                     3 -> scale = decodeSerializableElement(descriptor, 3, ScaleSerializer, scale)
                     4 -> rotation = decodeSerializableElement(descriptor, 4, AngleRadiansSerializer, rotation)
                     CompositeDecoder.DECODE_DONE -> break
@@ -72,7 +72,7 @@ object BoxBodySerializer : KSerializer<BoxBody> {
             BoxBody(
                 initialPosition = position,
                 initialSize = size,
-                initialPivot = pivot,
+                initialPivot = pivot ?: size.center,
                 initialScale = scale,
                 initialRotation = rotation,
             )
