@@ -17,10 +17,11 @@ Streaming music and pooled SFX. Reliably works on Android and Desktop; iOS and W
 - `src/commonMain/.../SoundManager.kt` / `SoundManagerImpl.kt` — low-latency SFX with pooling
 - `src/commonMain/.../implementation/MusicPlayer.kt` — `expect` interface, one `actual` per platform
 - `src/commonMain/.../implementation/SoundPlayer.kt` — `expect` interface, one `actual` per platform
+- `src/commonMain/.../implementation/AudioCache.kt` — loaded values of both managers, with one in-flight load per URI shared by `preload()` and `play()`
 
 ## Critical: Players Are Created in `Composable()`, Not `onInitialize()`
 
-`MusicPlayer`/`SoundPlayer` instances are created inside `Manager.Composable()`, meaning **audio is unavailable until the first composition of `KubrikoViewport`**. Call `preload()` early to hide loading latency; `play()` before composition queues a deferred load.
+`MusicPlayer`/`SoundPlayer` instances are created inside `Manager.Composable()`, meaning **audio is unavailable until the first composition of `KubrikoViewport`**. Call `preload()` early to hide loading latency: it queues a load that starts once the player exists. `play()` before the first composition is ignored.
 
 ## Platform Backends
 
@@ -33,7 +34,7 @@ Streaming music and pooled SFX. Reliably works on Android and Desktop; iOS and W
 
 ## MusicManager Internals
 
-- Cache is `MutableStateFlow<PersistentMap<String, Any?>>` — `null` = loading in progress
+- `AudioCache` keeps every URI in one atomically updated map (loading or loaded); `preload()` and `play()` share its single load per URI, a load that finishes after `unload()`/`unloadAll()` is disposed instead of stored, and every player is disposed exactly once
 - `play()` checks `stateManager.isFocused.value` first; silently suppressed when unfocused
 - On focus loss, music is paused via `debounce(musicPauseDelayOnFocusLoss)`. Focus regain does **not** auto-resume — the game must call `play()` again
 - `setVolume(uri, volume)` stores per-URI volume; applied just before each `play()` call

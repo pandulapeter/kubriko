@@ -11,17 +11,14 @@ package com.pandulapeter.kubriko.audioPlayback
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
+import com.pandulapeter.kubriko.audioPlayback.implementation.AudioCache
 import com.pandulapeter.kubriko.audioPlayback.implementation.SoundPlayer
 import com.pandulapeter.kubriko.audioPlayback.implementation.createSoundPlayer
 import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.manager.StateManager
-import kotlinx.collections.immutable.persistentMapOf
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 internal class SoundManagerImpl(
@@ -29,84 +26,64 @@ internal class SoundManagerImpl(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
 ) : SoundManager(isLoggingEnabled, instanceNameForLogging) {
-    private val cache = MutableStateFlow(persistentMapOf<String, Any?>())
+    private val audioCache = AudioCache()
     private var soundPlayer: SoundPlayer? = null
     private val stateManager by manager<StateManager>()
 
     @Composable
     override fun Composable(windowInsets: WindowInsets) {
         if (soundPlayer == null) {
-            soundPlayer = createSoundPlayer(maximumSimultaneousStreamsOfTheSameSound).also { soundPlayer ->
-                scope.launch {
-                    cache.value.keys.forEach { uri ->
-                        soundPlayer.preload(uri)?.let { sound -> addToCache(uri, sound) }
-                    }
-                }
-            }
-        }
-    }
-
-    override fun getLoadingProgress(uris: Collection<String>) = if (uris.isEmpty()) flowOf(1f) else cache.map { cache ->
-        cache.filter { (key, _) -> key in uris }.count { (_, value) -> value != null }.toFloat() / uris.size
-    }.distinctUntilChanged()
-
-    override fun preload(vararg uris: String) = preload(uris.toSet())
-
-    override fun preload(uris: Collection<String>) {
-        uris.forEach { uri ->
-            if (!cache.value.contains(uri)) {
-                addToCache(uri, null)
-                scope.launch {
-                    soundPlayer?.preload(uri)?.let { sound -> addToCache(uri, sound) }
-                }
-            }
-        }
-    }
-
-    private fun addToCache(uri: String, sound: Any?) {
-        if (sound == null) {
-            log(
-                message = "Preloading ${uri}...",
-                importance = Logger.Importance.LOW,
+            val player = createSoundPlayer(maximumSimultaneousStreamsOfTheSameSound)
+            soundPlayer = player
+            audioCache.attach(
+                scope = scope,
+                loader = { uri -> load(player, uri) },
+                onDiscarded = { sound -> player.dispose(sound) },
             )
-        } else {
+        }
+    }
+
+    private suspend fun load(player: SoundPlayer, uri: String): Any? {
+        log(
+            message = "Preloading ${uri}...",
+            importance = Logger.Importance.LOW,
+        )
+        return player.preload(uri)?.also {
             log(
                 message = "${uri.substringAfterLast('/')} preloaded.",
                 importance = Logger.Importance.MEDIUM,
             )
         }
-        cache.update { it.putting(uri, sound) }
     }
+
+    override fun getLoadingProgress(uris: Collection<String>) = if (uris.isEmpty()) flowOf(1f) else audioCache.entries.map { cache ->
+        cache.filter { (key, _) -> key in uris }.count { (_, value) -> value != null }.toFloat() / uris.size
+    }.distinctUntilChanged()
+
+    override fun preload(vararg uris: String) = preload(uris.toSet())
+
+    override fun preload(uris: Collection<String>) = uris.forEach(audioCache::preload)
 
     override fun play(uri: String) {
         scope.launch {
             if (stateManager.isFocused.value) {
                 soundPlayer?.let { soundPlayer ->
-                    val cachedSound = cache.value[uri]
-                    if (cachedSound == null) {
-                        soundPlayer.preload(uri)?.let { sound ->
-                            addToCache(uri, sound)
-                            soundPlayer.play(sound)
-                        }
-                    } else {
-                        soundPlayer.play(cachedSound)
-                    }
+                    audioCache.get(uri)?.let { sound -> soundPlayer.play(sound) }
                 }
             }
         }
     }
 
     override fun unload(uri: String) {
-        scope.launch {
-            cache.value[uri]?.let { sound -> soundPlayer?.dispose(sound) }
-            cache.update { it.removing(uri) }
+        audioCache.remove(uri)?.let { sound ->
+            soundPlayer?.let { soundPlayer -> scope.launch { soundPlayer.dispose(sound) } }
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun onDispose() {
+        val unloaded = audioCache.clear()
         soundPlayer?.let { soundPlayer ->
-            cache.value.values.filterNotNull().forEach { sound -> soundPlayer.dispose(sound) }
+            unloaded.forEach { sound -> soundPlayer.dispose(sound) }
             soundPlayer.dispose()
         }
         soundPlayer = null
