@@ -42,7 +42,7 @@ iOS runs from Xcode / the IDE run configuration (Mac only); there is no `gradlew
 - `showcase.shouldShowUnfinishedGames`
 - `library.version` — the published artifact version
 
-**Testing**: `commonTest` runs on the desktop JVM only (the Wasm and iOS test tasks are disabled), so JVM-only APIs go in `desktopTest`. Every module's `desktopTest` already depends on `:tools:test-fixtures` (manual-tick instance, `awaitProcessed`, counting actors, allocation measurement) — use it instead of hand-rolling a harness. Library test classpaths have no native Skia runtime, so tests must not create a real `ImageBitmap` or draw. `KUBRIKO_STRESS=1 ./gradlew :engine:desktopTest` runs the long randomized suites (`ActorLifecycleChurnTest`), as the nightly CI job does.
+**Testing**: `commonTest` runs on the desktop JVM only (the Wasm and iOS test tasks are disabled), so JVM-only APIs go in `desktopTest`. Every module's `desktopTest` already depends on `:tools:test-fixtures` (manual-tick instance, `awaitProcessed`, counting actors, allocation measurement) — use it instead of hand-rolling a harness. Library test classpaths have no native Skia runtime, so tests must not create a real `ImageBitmap` or draw. `KUBRIKO_STRESS=1 ./gradlew :engine:desktopTest` runs the long randomized suites (`ActorLifecycleChurnTest`), as the nightly CI job does. `[Library] Tests` (`.github/workflows/tests.yml`) runs `desktopTest` on every push to `main` and every pull request, and nightly with `KUBRIKO_STRESS=1`; `[Library] Publish` refuses to publish when a test fails.
 
 ## Module layout
 

@@ -14,6 +14,8 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: 21
+      - name: Run unit tests
+        run: ./gradlew desktopTest --no-configuration-cache
       - name: Publish to MavenCentral
         run: ./gradlew publishToMavenCentral --no-configuration-cache
         env:
