@@ -31,8 +31,8 @@ dependencies {
 compose.desktop {
     application {
         mainClass = "com.pandulapeter.kubrikoShowcase.KubrikoShowcaseAppKt"
-        // The JetBrains Runtime is what lets the content be laid out under the title bar on Windows and the window
-        // buttons follow the theme (TitleBar.kt). The build Gradle provisions ships the jmods ProGuard needs.
+        // The JetBrains Runtime is what lets the content be laid out under a title bar that still behaves as one
+        // and the window buttons follow the theme (TitleBar.kt). The build Gradle provisions ships the jmods ProGuard needs.
         javaHome = javaToolchains.launcherFor {
             languageVersion.set(JavaLanguageVersion.of(21))
             vendor.set(JvmVendorSpec.JETBRAINS)
