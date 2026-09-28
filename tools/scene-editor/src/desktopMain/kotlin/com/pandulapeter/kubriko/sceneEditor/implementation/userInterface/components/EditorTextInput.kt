@@ -29,6 +29,7 @@ internal fun EditorTextInput(
     title: String? = null,
     hint: String? = null,
     value: String,
+    suffix: String? = null,
     onValueChanged: (String) -> Unit,
     enabled: Boolean = true,
     shouldUseHorizontalLayout: Boolean = false,
@@ -68,6 +69,11 @@ internal fun EditorTextInput(
                     text = hint,
                 )
             }
+        }
+        if (suffix != null) {
+            EditorText(
+                text = suffix,
+            )
         }
         extraContent?.invoke()
     }

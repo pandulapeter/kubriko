@@ -14,12 +14,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.roundToInt
+import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.formatEditorNumber
+import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.parseEditorNumber
 
 @Composable
 internal fun EditorNumberInput(
@@ -34,6 +38,12 @@ internal fun EditorNumberInput(
     shouldRound: Boolean = false,
     extraContent: (@Composable () -> Unit)? = null,
 ) {
+    var text by remember { mutableStateOf(formatEditorNumber(value, shouldRound)) }
+    LaunchedEffect(value, shouldRound) {
+        if (parseEditorNumber(text) != value) {
+            text = formatEditorNumber(value, shouldRound)
+        }
+    }
     Column(
         modifier = modifier,
     ) {
@@ -45,11 +55,11 @@ internal fun EditorNumberInput(
             EditorTextInput(
                 modifier = Modifier.weight(1f),
                 title = name,
-                value = (if (shouldRound) value.roundToInt().toString() else "%.2f".format(value)) + suffix,
-                onValueChanged = { newValue ->
-                    newValue.toFloatOrNull()?.let {
-                        onValueChanged(if (valueRange == null) it else min(valueRange.endInclusive, max(valueRange.start, it)))
-                    }
+                value = text,
+                suffix = suffix.takeIf { it.isNotEmpty() },
+                onValueChanged = { newText ->
+                    text = newText
+                    parseEditorNumber(newText)?.let { onValueChanged(valueRange?.let { range -> it.coerceIn(range) } ?: it) }
                 },
                 enabled = enabled,
                 extraContent = extraContent,
