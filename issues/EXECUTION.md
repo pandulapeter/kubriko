@@ -21,7 +21,8 @@ or dispatch a workflow.
    `code-style` first). Run `./gradlew desktopTest`, `./gradlew :engine:build :tools:test-fixtures:build` and the
    metadata check from its step 2. Then `git rm issues/00-*.md` in the same commit, and commit it with one sentence
    (e.g. `Add a unit test setup and shared test fixtures to the library modules.`). Every lane depends on the fixtures, so do not cut `START` until this passes.
-3. `START=$(git rev-parse HEAD)` — record it; every lane is cut from it.
+3. Apply plan `100` (added during execution; decision: before the lanes) the same way, with its own commit.
+4. `START=$(git rev-parse HEAD)` — record it; every lane is cut from it.
 
 ## 3. Lanes
 

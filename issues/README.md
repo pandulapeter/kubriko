@@ -201,6 +201,7 @@ asked for:
 | 97 | Size the isometric demo's culling region to the projected view | medium | F |
 | 98 | Arm Space Squadron's Spacebar guard only on game over | low | F |
 | 99 | Keep Annoyed Penguins' game viewport composed while a level loads (companion of `13`) | medium | F |
+| 100 | Stop linking iOS frameworks and Wasm executables for every library module (added during execution) | medium | pre-lane |
 
 ## Lanes
 
@@ -276,6 +277,7 @@ batch). Execute every plan with its recommended option. Each plan's Fix section 
 | 79 | Caller's modifier on the root only in SmallSlider/LoadingOverlay? | Yes |
 | 82 | A link that can't be opened: fail silently or tell the user? | Silently |
 | 93 | Example composables: make `stateHolder` required, or remember a default? | Required |
+| 100 | Plan `100` (added during execution, challenged sound): land before the lanes, after the lanes, or only keep the plan? | Before the lanes, right after `00`, so every lane's `:<module>:build` check skips the unused binaries |
 
 ## Checked and found solid
 
@@ -344,6 +346,7 @@ Probe sources are kept in the session scratchpad (`stress/`, `laneC/`), not in t
 
 ## Manual checks owed
 
+- **iOS and web (`100`):** run the Showcase from Xcode and load the web distribution once, to confirm both still start.
 - **CI (`89`):** after the push, confirm `[Library] Tests` ran green on `main`, and dispatch it once by hand to see the
   nightly `stress-tests` job pass.
 
