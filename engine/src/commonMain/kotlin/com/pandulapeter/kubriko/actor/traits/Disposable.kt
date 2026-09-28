@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.actor.traits
 
+import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.manager.ActorManager
 
@@ -20,6 +21,8 @@ interface Disposable : Actor {
     /**
      * Called by the engine to release resources.
      * This is invoked immediately before [onRemoved], on the same thread.
+     * Also called, without a following `onRemoved()`, for every actor still in the scene when the owning [Kubriko] instance
+     * is disposed — on the thread that called `Kubriko.dispose()`.
      *
      * An exception thrown here does not prevent [onRemoved] or the rest of the batch from being applied; it is
      * rethrown afterwards on the Kubriko scope.

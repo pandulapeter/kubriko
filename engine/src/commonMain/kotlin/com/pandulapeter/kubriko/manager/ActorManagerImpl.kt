@@ -44,6 +44,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -52,6 +53,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.reflect.KClass
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -78,6 +81,9 @@ internal class ActorManagerImpl(
     private lateinit var kubrikoImpl: KubrikoImpl
     private val operationChannel = Channel<Operation>(Channel.UNLIMITED)
     private var isProcessingStarted = false
+    private var processorJob: Job? = null
+    @OptIn(ExperimentalAtomicApi::class)
+    private val isDisposing = AtomicBoolean(false)
     private val drawingOrderComparator = Comparator<Visible> { a, b ->
         // +0f normalizes -0.0f to +0.0f: Float.compareTo distinguishes them via bit patterns,
         // causing A > B and B > C but A == C when one value is -0.0f, which violates the
@@ -307,9 +313,25 @@ internal class ActorManagerImpl(
             val firstOperation = operationChannel.tryReceive().getOrNull() ?: break
             processBatchStartingWith(firstOperation)
         }
-        scope.launch(Dispatchers.Default) {
+        processorJob = scope.launch(Dispatchers.Default) {
             while (isActive) {
                 processBatchStartingWith(operationChannel.receive())
+            }
+        }
+    }
+
+    /**
+     * Releases the resources of the actors still in the scene: [Disposable.dispose] only, since [Actor.onRemoved]
+     * carries game logic that must not fire on teardown.
+     */
+    @OptIn(ExperimentalAtomicApi::class)
+    override fun onDispose() {
+        isDisposing.store(true)
+        processorJob?.cancel()
+        processorJob = null
+        for (actor in _allActors.value) {
+            if (actor is Disposable) {
+                runActorCallback(actor, "dispose", null) { actor.dispose() }
             }
         }
     }
@@ -452,7 +474,7 @@ internal class ActorManagerImpl(
         return result
     }
 
-    @OptIn(ExperimentalUuidApi::class)
+    @OptIn(ExperimentalUuidApi::class, ExperimentalAtomicApi::class)
     private fun processBatch(batch: List<Operation>) {
         val publishedList = _allActors.value
         // One mutable working copy plus a membership index for the whole batch: rebuilding the full
@@ -536,6 +558,7 @@ internal class ActorManagerImpl(
             publishDerivedActorLists(workingList)
             _allActors.value = workingList.toImmutableList()
         }
+        if (isDisposing.load()) return
         for (actor in newlyRemoved) {
             if (actor is Disposable) {
                 firstFailure = runActorCallback(actor, "dispose", firstFailure) { actor.dispose() }

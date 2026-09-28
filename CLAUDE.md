@@ -70,7 +70,7 @@ val kubriko = Kubriko.newInstance(
 )
 ```
 - Owns all Managers and thus the entire game state.
-- `kubriko.dispose()` stops the TickSource, disposes all Managers, cancels the coroutine scope.
+- `kubriko.dispose()` stops the TickSource, disposes all Managers (actors still in the scene receive `Disposable.dispose()`, but not `onRemoved()`), cancels the coroutine scope.
 - `kubriko.get<T: Manager>()` retrieves a Manager by type (throws if not registered or disposed).
 - The internal Manager set is deduplicated by type; the last instance added wins. Default Managers (see below) are auto-added unless explicitly overridden.
 - Custom subclasses of the four built-in `Manager` sealed classes are **not** supported; always use `.newInstance()`.
@@ -162,7 +162,7 @@ In-game objects or responsibilities. Added/removed at runtime via `ActorManager`
 | `Positionable` | Has a `body: PointBody` (position in scene). |
 | `LayerAware` | Belongs to a rendering layer via `layerIndex: Int?` (default `0`; layers drawn in increasing order). |
 | `Overlay : LayerAware` | Draws directly onto the viewport (not world-space): `DrawScope.drawToViewport()`. `overlayDrawingOrder` controls paint order. |
-| `Disposable` | `dispose()` is called by the engine before `onRemoved()`. Use for resource cleanup. |
+| `Disposable` | `dispose()` is called by the engine before `onRemoved()`, and (without `onRemoved()`) for every actor still in the scene when the Kubriko instance is disposed. Use for resource cleanup. |
 | `Group` | Contains `actors: List<Actor>`; adding/removing a `Group` adds/removes all its children simultaneously. |
 | `Identifiable` | Optional `name: String?`; auto-assigned if null when added. Names are **not** enforced unique. |
 | `Unique` | Marker interface — ensures only one instance of this type exists at a time. Adding a second automatically removes the first. |

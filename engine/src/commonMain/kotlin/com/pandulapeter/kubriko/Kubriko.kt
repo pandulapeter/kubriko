@@ -48,6 +48,7 @@ sealed interface Kubriko {
     /**
      * Disposes of this [Kubriko] instance and all its [Manager]s.
      * This should be called when the game engine is no longer needed.
+     * Actors still in the scene receive `Disposable.dispose()`.
      */
     fun dispose()
 
