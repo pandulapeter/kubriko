@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowDecoration
 import androidx.compose.ui.window.WindowPlacement
+import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.pandulapeter.kubriko.demoPerformance.PerformanceDemoSceneEditor
@@ -57,6 +58,7 @@ fun main() {
         val previousBounds = remember { mutableStateOf<Rectangle?>(null) }
         val previousWindowPlacement = remember { mutableStateOf<WindowPlacement?>(null) }
         val previousWindowLocation = remember { mutableStateOf<Point?>(null) }
+        val previousWindowPosition = remember { mutableStateOf<WindowPosition?>(null) }
         val windowSize = remember { mutableStateOf(windowState.size) }
         val isInFullscreenMode = remember { mutableStateOf(false) }
 
@@ -104,13 +106,17 @@ fun main() {
                                     previousWindowPlacement.value?.let { previousWindowPlacement ->
                                         windowState.placement = previousWindowPlacement
                                         windowState.size = windowSize.value
-                                        previousWindowLocation.value?.let {
-                                            window.setLocation(it.x, it.y)
-                                        }
-                                        previousBounds.value?.let {
-                                            coroutineScope.launch {
-                                                delay(100)
-                                                window.bounds = it
+                                        if (isRunningOnWindows) {
+                                            previousWindowPosition.value?.let { windowState.position = it }
+                                        } else {
+                                            previousWindowLocation.value?.let {
+                                                window.setLocation(it.x, it.y)
+                                            }
+                                            previousBounds.value?.let {
+                                                coroutineScope.launch {
+                                                    delay(100)
+                                                    window.bounds = it
+                                                }
                                             }
                                         }
                                     }
@@ -119,6 +125,7 @@ fun main() {
                                     previousBounds.value = window.bounds
                                     previousWindowPlacement.value = windowState.placement
                                     previousWindowLocation.value = window.location
+                                    previousWindowPosition.value = windowState.position
                                     windowState.placement = WindowPlacement.Fullscreen
                                 }
                             }

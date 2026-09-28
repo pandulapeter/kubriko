@@ -24,7 +24,7 @@ Fullscreen is platform-specific on Desktop:
 - **Windows**: The `Window` Composable is recreated via `key(isInFullscreenMode.value)` when toggling, because Windows requires `undecorated = true` + `resizable = false` for true fullscreen. `WindowPlacement.Fullscreen` alone is not sufficient on Windows.
 - **macOS / Linux**: The window is never recreated; `windowState.placement = WindowPlacement.Fullscreen` is used directly, and `undecorated`/`resizable` remain unchanged.
 
-When entering fullscreen, the previous `WindowPlacement`, `windowState.size`, window location, and AWT `window.bounds` are saved to restore them accurately on exit. A 100ms `delay` is needed before restoring `window.bounds` on exit (race condition with the Compose window re-render).
+When entering fullscreen, the previous `WindowPlacement`, `windowState.size`, `windowState.position`, window location, and AWT `window.bounds` are saved to restore them accurately on exit. On Windows the position is restored through `windowState.position`, because the window is recreated and reads it from there. On macOS / Linux the same window survives the toggle, so its location and `window.bounds` are restored directly; a 100ms `delay` is needed before restoring `window.bounds` on exit (race condition with the Compose window re-render).
 
 A `WindowStateListener` detects if the user exits fullscreen via OS gestures (e.g. pressing Escape on macOS) and syncs the `isInFullscreenMode` state.
 
