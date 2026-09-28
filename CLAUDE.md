@@ -72,7 +72,7 @@ val kubriko = Kubriko.newInstance(
 - Owns all Managers and thus the entire game state.
 - `kubriko.dispose()` stops the TickSource, disposes all Managers (actors still in the scene receive `Disposable.dispose()`, but not `onRemoved()`), cancels the coroutine scope.
 - `kubriko.get<T: Manager>()` retrieves a Manager by type (throws if not registered or disposed).
-- The internal Manager set is deduplicated by type; the last instance added wins. Default Managers (see below) are auto-added unless explicitly overridden.
+- The internal Manager set is deduplicated by class; the first instance of a class wins. Default Managers (see below) are auto-added unless explicitly overridden.
 - Custom subclasses of the four built-in `Manager` sealed classes are **not** supported; always use `.newInstance()`.
 - Persist the `Kubriko` instance across configuration changes (e.g. in a `remember {}` or ViewModel).
 

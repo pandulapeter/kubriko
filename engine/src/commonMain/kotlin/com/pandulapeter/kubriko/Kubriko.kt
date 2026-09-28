@@ -59,7 +59,8 @@ sealed interface Kubriko {
          * If not provided, the default [ActorManager], [MetadataManager], [StateManager], and [ViewportManager]
          * implementations will be automatically added.
          *
-         * @param manager Optional custom [Manager] implementations.
+         * @param manager Optional custom [Manager] implementations. If several Managers of the same class are passed, only
+         * the first one is used. A default Manager is only created for a built-in type that none of them provides.
          * @param tickSource Optional custom [TickSource] implementation.
          * @param isLoggingEnabled Whether to enable logging for this instance.
          * @param instanceNameForLogging Optional name to use for this instance in log messages.
