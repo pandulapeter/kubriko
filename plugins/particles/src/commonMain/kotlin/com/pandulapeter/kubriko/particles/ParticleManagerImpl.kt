@@ -46,8 +46,8 @@ internal class ParticleManagerImpl(
     }
     private val cache: MutableMap<KClass<out ParticleEmitter.ParticleState>, ArrayDeque<ParticleEmitter.ParticleState>> = mutableMapOf()
 
-    // One rendering actor per distinct drawingOrder, created lazily and kept for the lifetime of the
-    // manager. There are very few distinct values in practice, so a linear scan keyed on the Float
+    // One rendering actor per distinct drawingOrder, created lazily and kept (re-added if removed) for the lifetime of
+    // the manager. There are very few distinct values in practice, so a linear scan keyed on the Float
     // avoids boxing it as a map key on every emission.
     private val batches = ArrayList<ParticleBatch>()
 
@@ -70,11 +70,26 @@ internal class ParticleManagerImpl(
         }
         return ParticleBatch(drawingOrder).also { batch ->
             batches.add(batch)
-            actorManager.add(batch)
+            attach(batch)
         }
     }
 
+    private fun attach(batch: ParticleBatch) {
+        batch.markPending()
+        actorManager.add(batch)
+    }
+
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
+        // ActorManager.removeAll() also removes the batches: their particles are dropped like any other removed actor,
+        // and the batch itself comes back so later particles are drawn again. Done while paused too, as a reset scene
+        // may be paused.
+        for (i in batches.indices) {
+            val batch = batches[i]
+            if (batch.attachmentState == ParticleBatch.DETACHED) {
+                batch.dropAll(recycle)
+                attach(batch)
+            }
+        }
         // A paused scene neither ages, emits nor recycles anything, so preparing the buffers would only
         // copy every live particle into the other one to publish the same render list again. Leaving the
         // current one published keeps the particles on screen and following the camera.

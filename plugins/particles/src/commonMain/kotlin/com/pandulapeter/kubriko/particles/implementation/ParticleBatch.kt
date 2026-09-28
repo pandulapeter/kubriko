@@ -44,8 +44,35 @@ internal class ParticleBatch(
 
     private var viewportManager: ViewportManager? = null
 
+    /**
+     * Whether the batch is in the [com.pandulapeter.kubriko.manager.ActorManager]: [DETACHED], [PENDING] (added, not
+     * yet processed) or [ATTACHED]. The manager re-adds a detached batch, and [PENDING] keeps it from being queued twice.
+     */
+    @Volatile
+    var attachmentState = DETACHED
+        private set
+
     override fun onAdded(kubriko: Kubriko) {
         viewportManager = kubriko.get()
+        attachmentState = ATTACHED
+    }
+
+    override fun onRemoved() {
+        attachmentState = DETACHED
+    }
+
+    fun markPending() {
+        attachmentState = PENDING
+    }
+
+    fun dropAll(recycle: (ParticleEmitter.ParticleState) -> Unit) {
+        val source = renderList
+        for (i in source.indices) {
+            recycle(source[i])
+        }
+        bufferA.clear()
+        bufferB.clear()
+        renderList = emptyList()
     }
 
     fun beginFrame(
@@ -106,5 +133,11 @@ internal class ParticleBatch(
                 canvas.restore()
             }
         }
+    }
+
+    companion object {
+        const val DETACHED = 0
+        const val PENDING = 1
+        const val ATTACHED = 2
     }
 }

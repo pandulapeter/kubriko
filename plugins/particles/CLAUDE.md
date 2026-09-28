@@ -9,24 +9,25 @@
 -->
 # plugin-particles
 
-Object-pooled particle system. Emitters spawn short-lived `Particle` Actors backed by reusable `ParticleState` instances.
+Object-pooled particle system. Emitters spawn short-lived particles backed by reusable `ParticleState` instances. Particles are not Actors: they are drawn by internal `ParticleBatch` actors.
 
 ## Key Files
 
-- `src/commonMain/.../ParticleManagerImpl.kt` — owns the pool cache keyed by `KClass<ParticleState>`
-- `src/commonMain/.../ParticleEmitter.kt` — trait interface implemented by emitter Actors
-- `src/commonMain/.../Particle.kt` — internal Actor wrapping a `ParticleState`; implements `Visible + Dynamic`
-- `src/commonMain/.../ParticleState.kt` — base class for per-particle mutable state
+- `src/commonMain/.../ParticleManagerImpl.kt` — owns the pool cache keyed by `KClass<ParticleState>`, emits, ages and recycles particles, and owns the batches
+- `src/commonMain/.../ParticleEmitter.kt` — trait interface implemented by emitter Actors; also defines `ParticleState` and `Mode`
+- `src/commonMain/.../implementation/ParticleBatch.kt` — internal `Visible` actor that draws every live particle of one `drawingOrder`
+
+## Batching
+
+One `ParticleBatch` exists per distinct `drawingOrder`, created lazily and kept for the lifetime of the manager, so particles still interleave correctly with the rest of the scene. Each batch is double-buffered: the tick thread fills the working buffer (`beginFrame` ages and recycles, `addParticle` appends, `endFrame` publishes it with one volatile write) while the render thread only reads the published list.
+
+When `ActorManager.removeAll()` (or any removal) takes a batch out of the scene, the manager re-adds it on the next tick — even while paused — and drops (recycles) its live particles at that point, so a scene reset also clears the particles on screen. A pending state keeps the batch from being queued twice while its re-add is in flight.
 
 ## Object Pool Design
 
-Two-layer pool — zero allocations at steady state:
-1. `ParticleManagerImpl.cache`: `Map<KClass<ParticleState>, ArrayDeque<Particle>>` — available instances keyed by state type
-2. `Particle.onRemoved()` returns itself to the cache automatically
+Zero allocations at steady state: `ParticleManagerImpl.cache` is a `Map<KClass<ParticleState>, ArrayDeque<ParticleState>>` of available instances keyed by state type. A particle whose `update` returns false (or that is dropped with its batch) goes back into it; emission pops from it and calls `reuseParticleState` before falling back to `createParticleState`.
 
 `cacheSize` in `ParticleManager.newInstance(cacheSize)` is **per state type**, not global.
-
-`Particle<S>` delegates `body`, `drawingOrder`, `draw()`, and `update()` to the `ParticleState` it wraps — the state object IS the rendering/logic unit.
 
 ## Emission Modes
 
