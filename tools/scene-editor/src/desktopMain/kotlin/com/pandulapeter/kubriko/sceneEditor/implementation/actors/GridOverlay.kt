@@ -18,7 +18,12 @@ import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.helpers.extensions.minus
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.MAX_GRID_LINES_PER_AXIS
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.UserPreferences
+import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.alignGridLineIndex
+import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.firstGridLineIndex
+import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.gridLineStep
+import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.lastGridLineIndex
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 
@@ -45,51 +50,57 @@ internal class GridOverlay(
                 val viewportBottomRight = viewportManager.bottomRight.value
                 val strokeWidth = 2f / (viewportScaleFactor.horizontal + viewportScaleFactor.vertical)
 
-                if (gridCellSizeX > 0) {
-                    // Calculate the starting point for vertical lines and ensure alignment with (0,0)
-                    var startX = (viewportTopLeft.x / gridCellSizeX).raw.toInt() * gridCellSizeX
-                    if (startX > viewportTopLeft.x.raw) startX -= gridCellSizeX
-                    val startXLineIndex = (startX / gridCellSizeX).toInt()
-
-                    // Draw vertical grid lines
-                    var currentX = startX
-                    var iterationX = 0
-                    while (currentX <= viewportBottomRight.x.raw) {
-                        val alpha = if ((startXLineIndex + iterationX) % 10 == 0) ALPHA_MAJOR else ALPHA_MINOR
-                        drawLine(
-                            color = Color.Gray.copy(alpha = alpha),
-                            start = Offset(currentX, viewportTopLeft.y.raw),
-                            end = Offset(currentX, viewportBottomRight.y.raw),
-                            strokeWidth = strokeWidth
-                        )
-                        currentX += gridCellSizeX
-                        iterationX++
-                    }
-                }
-
-                if (gridCellSizeY > 0) {
-                    // Calculate the starting point for horizontal lines, aligning with (0,0)
-                    var startY = (viewportTopLeft.y / gridCellSizeY).raw.toInt() * gridCellSizeY
-                    if (startY > viewportTopLeft.y.raw) startY -= gridCellSizeY
-                    val startYLineIndex = (startY / gridCellSizeY).toInt()
-
-                    // Draw horizontal grid lines
-                    var currentY = startY
-                    var iterationY = 0
-                    while (currentY <= viewportBottomRight.y.raw) {
-                        val alpha = if ((startYLineIndex + iterationY) % 10 == 0) ALPHA_MAJOR else ALPHA_MINOR
-                        drawLine(
-                            color = Color.Gray.copy(alpha = alpha),
-                            start = Offset(viewportTopLeft.x.raw, currentY),
-                            end = Offset(viewportBottomRight.x.raw, currentY),
-                            strokeWidth = strokeWidth
-                        )
-                        currentY += gridCellSizeY
-                        iterationY++
-                    }
-                }
+                drawGridLines(
+                    isVertical = true,
+                    cellSize = gridCellSizeX,
+                    scale = viewportScaleFactor.horizontal,
+                    min = viewportTopLeft.x.raw,
+                    max = viewportBottomRight.x.raw,
+                    crossMin = viewportTopLeft.y.raw,
+                    crossMax = viewportBottomRight.y.raw,
+                    strokeWidth = strokeWidth,
+                )
+                drawGridLines(
+                    isVertical = false,
+                    cellSize = gridCellSizeY,
+                    scale = viewportScaleFactor.vertical,
+                    min = viewportTopLeft.y.raw,
+                    max = viewportBottomRight.y.raw,
+                    crossMin = viewportTopLeft.x.raw,
+                    crossMax = viewportBottomRight.x.raw,
+                    strokeWidth = strokeWidth,
+                )
             },
         )
+    }
+
+    private fun DrawScope.drawGridLines(
+        isVertical: Boolean,
+        cellSize: Float,
+        scale: Float,
+        min: Float,
+        max: Float,
+        crossMin: Float,
+        crossMax: Float,
+        strokeWidth: Float,
+    ) {
+        if (cellSize <= 0f) return
+        val step = gridLineStep(cellSize, scale)
+        if (step == 0L) return
+        val first = alignGridLineIndex(firstGridLineIndex(min, cellSize), step)
+        val last = lastGridLineIndex(max, cellSize)
+        if ((last - first) / step > MAX_GRID_LINES_PER_AXIS) return
+        var index = first
+        while (index <= last) {
+            val position = (index * cellSize.toDouble()).toFloat()
+            drawLine(
+                color = if (index % 10 == 0L) COLOR_MAJOR else COLOR_MINOR,
+                start = if (isVertical) Offset(position, crossMin) else Offset(crossMin, position),
+                end = if (isVertical) Offset(position, crossMax) else Offset(crossMax, position),
+                strokeWidth = strokeWidth,
+            )
+            index += step
+        }
     }
 
     private fun DrawTransform.transformViewport(
@@ -109,7 +120,7 @@ internal class GridOverlay(
     }
 
     companion object {
-        private const val ALPHA_MAJOR = 0.4f
-        private const val ALPHA_MINOR = 0.2f
+        private val COLOR_MAJOR = Color.Gray.copy(alpha = 0.4f)
+        private val COLOR_MINOR = Color.Gray.copy(alpha = 0.2f)
     }
 }
