@@ -87,7 +87,7 @@ internal class UIManager(
             .onEach { gameplayManager.pauseGame() }
             .launchIn(scope)
         gameplayManager.isGameOver
-            .filter { true }
+            .filter { it }
             .onEach {
                 if (keyboardInputManager.isKeyPressed(Key.Spacebar)) {
                     shouldDismissNextSpacebarRelease = true
