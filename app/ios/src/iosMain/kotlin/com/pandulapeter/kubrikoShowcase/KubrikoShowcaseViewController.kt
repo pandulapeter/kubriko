@@ -12,7 +12,6 @@ package com.pandulapeter.kubrikoShowcase
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.window.ComposeUIViewController
 import kotlinx.cinterop.ExperimentalForeignApi
-import platform.UIKit.UIApplication
 import platform.UIKit.UIViewAutoresizingFlexibleHeight
 import platform.UIKit.UIViewAutoresizingFlexibleWidth
 import platform.UIKit.UIViewController
@@ -20,9 +19,7 @@ import platform.UIKit.addChildViewController
 import platform.UIKit.didMoveToParentViewController
 
 @OptIn(ExperimentalForeignApi::class)
-fun KubrikoShowcaseViewController() = object : UIViewController(nibName = null, bundle = null) {
-
-    override fun prefersStatusBarHidden() = isInFullscreenMode.value
+fun KubrikoShowcaseViewController(onFullscreenModeChanged: (Boolean) -> Unit) = object : UIViewController(nibName = null, bundle = null) {
 
     private val composeViewController = ComposeUIViewController {
         KubrikoShowcase(
@@ -30,7 +27,7 @@ fun KubrikoShowcaseViewController() = object : UIViewController(nibName = null, 
             getIsInFullscreenMode = { isInFullscreenMode.value },
             onFullscreenModeToggled = {
                 isInFullscreenMode.value = !isInFullscreenMode.value
-                UIApplication.sharedApplication.keyWindow?.rootViewController?.setNeedsStatusBarAppearanceUpdate()
+                onFullscreenModeChanged(isInFullscreenMode.value)
             },
         )
     }

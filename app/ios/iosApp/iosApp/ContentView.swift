@@ -12,17 +12,24 @@ import SwiftUI
 import ComposeApp
 
 struct ComposeView: UIViewControllerRepresentable {
-    
+    @Binding var isStatusBarHidden: Bool
+
     func makeUIViewController(context: Context) -> UIViewController {
-        KubrikoShowcaseViewControllerKt.KubrikoShowcaseViewController()
+        let isStatusBarHidden = $isStatusBarHidden
+        return KubrikoShowcaseViewControllerKt.KubrikoShowcaseViewController(
+            onFullscreenModeChanged: { isFullscreen in isStatusBarHidden.wrappedValue = isFullscreen.boolValue }
+        )
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
 }
 
 struct ContentView: View {
+    @State private var isStatusBarHidden = false
+
     var body: some View {
-        ComposeView()
+        ComposeView(isStatusBarHidden: $isStatusBarHidden)
             .ignoresSafeArea()
+            .statusBarHidden(isStatusBarHidden)
     }
 }

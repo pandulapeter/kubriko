@@ -9,17 +9,17 @@
 -->
 # app/ios — iOS entry point
 
-Kotlin/Native iOS module. The Xcode project calls `KubrikoShowcaseViewController()` to get a `UIViewController` that hosts the shared `KubrikoShowcase` Composable.
+Kotlin/Native iOS module. The Xcode project calls `KubrikoShowcaseViewController(onFullscreenModeChanged)` to get a `UIViewController` that hosts the shared `KubrikoShowcase` Composable.
 
 ## Entry point
 
-`KubrikoShowcaseViewController()` returns a custom `UIViewController` subclass. The Compose UI is embedded by creating a `ComposeUIViewController` as a child view controller, then adding its view with `UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight` so it fills the parent.
+`KubrikoShowcaseViewController(onFullscreenModeChanged)` returns a custom `UIViewController` subclass. `ContentView.swift`'s `ComposeView` passes the callback, which feeds `ContentView`'s `@State`. The Compose UI is embedded by creating a `ComposeUIViewController` as a child view controller, then adding its view with `UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight` so it fills the parent.
 
 ## Fullscreen handling
 
 Fullscreen state is a file-level `mutableStateOf<Boolean>`. Toggling it:
 1. Flips the `isInFullscreenMode` state (consumed by `KubrikoShowcase` to hide/show the top bar).
-2. Calls `UIApplication.sharedApplication.keyWindow?.rootViewController?.setNeedsStatusBarAppearanceUpdate()` to trigger a re-query of `prefersStatusBarHidden()`, which returns `isInFullscreenMode.value`. This hides the iOS status bar in fullscreen mode.
+2. Calls `onFullscreenModeChanged` with the new value, which drives `ContentView`'s `.statusBarHidden` and so hides the iOS status bar in fullscreen mode. The app's root is SwiftUI's hosting controller, which takes the status bar from that modifier and does not consult the embedded controller's `prefersStatusBarHidden()`.
 
 There is no native system fullscreen on iOS — it is purely a UI-level affordance (hiding the in-app top bar and the status bar).
 
