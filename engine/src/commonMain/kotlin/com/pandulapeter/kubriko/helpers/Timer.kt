@@ -12,6 +12,10 @@ package com.pandulapeter.kubriko.helpers
 /**
  * A utility class for handling time-based events.
  *
+ * A repeating timer keeps its schedule: time past the deadline counts toward the next period, and it fires at most once
+ * per [update]. A one-shot timer with a zero or negative duration fires on its first [update]. Negative deltas are
+ * ignored.
+ *
  * @param timeInMilliseconds The duration of the timer.
  * @param shouldTriggerMultipleTimes Whether the timer should restart automatically after finishing.
  * @param onDone Callback invoked when the timer reaches zero.
@@ -25,18 +29,9 @@ class Timer(
      * The time remaining until the timer finishes.
      */
     var remainingTimeInMilliseconds = timeInMilliseconds
-        private set(value) {
-            field = if (value > 0) {
-                value
-            } else {
-                onDone()
-                if (shouldTriggerMultipleTimes) {
-                    timeInMilliseconds
-                } else {
-                    0
-                }
-            }
-        }
+        private set
+
+    private var hasFinished = false
 
     /**
      * Updates the timer. This should be called on every frame of the game loop.
@@ -44,8 +39,18 @@ class Timer(
      * @param deltaTimeInMilliseconds The time elapsed since the last update.
      */
     fun update(deltaTimeInMilliseconds: Int) {
-        if (remainingTimeInMilliseconds > 0 || shouldTriggerMultipleTimes) {
-            remainingTimeInMilliseconds -= deltaTimeInMilliseconds
+        if (hasFinished) return
+        remainingTimeInMilliseconds -= deltaTimeInMilliseconds.coerceAtLeast(0)
+        if (remainingTimeInMilliseconds > 0) return
+        if (shouldTriggerMultipleTimes && timeInMilliseconds > 0) {
+            val overshoot = -remainingTimeInMilliseconds % timeInMilliseconds
+            remainingTimeInMilliseconds = timeInMilliseconds - overshoot
+        } else if (shouldTriggerMultipleTimes) {
+            remainingTimeInMilliseconds = timeInMilliseconds
+        } else {
+            remainingTimeInMilliseconds = 0
+            hasFinished = true
         }
+        onDone()
     }
 }

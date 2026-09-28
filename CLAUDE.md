@@ -204,6 +204,7 @@ val timer = Timer(timeInMilliseconds = 500L, shouldTriggerMultipleTimes = false)
 // In Dynamic.update():
 timer.update(deltaTimeInMilliseconds)
 ```
+A repeating timer carries the overshoot into its next period (firing at most once per `update`), a zero/negative-duration one-shot fires on its first `update`, and negative deltas are ignored.
 
 ### `TriangleBatch` (`helpers/TriangleBatch.kt`)
 Accumulates triangles, quads, lines and strokes from many actors into flat vertex/index arrays and rasterizes them with a single native `drawVertices` call, instead of one canvas operation per shape. A scene built from many small shapes is the case this exists for — per-shape canvas calls are what makes such a scene unusable on the web and expensive on Android.

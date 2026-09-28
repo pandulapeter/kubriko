@@ -110,9 +110,9 @@ internal class GameplayManager : Manager() {
         if (!stateManager.isRunning.value) {
             blurShader.update(deltaTimeInMilliseconds)
         }
-        if (collectedStarCount.value == totalStarCount.value && totalStarCount.value != 0) {
+        if (_currentLevel.value != null && collectedStarCount.value == totalStarCount.value && totalStarCount.value != 0) {
             gameEndTimer.update(deltaTimeInMilliseconds)
-            if (gameEndTimer.remainingTimeInMilliseconds.toFloat() != GAME_END_DELAY) {
+            if (_currentLevel.value != null) {
                 _gameViewportAlpha.update { max(0f, gameEndTimer.remainingTimeInMilliseconds / GAME_END_DELAY) }
             }
         }
