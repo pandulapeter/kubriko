@@ -643,11 +643,10 @@ internal class ActorManagerImpl(
     override fun Composable(windowInsets: WindowInsets) {
         if (!shouldComposeLayers) return
         val gameTime = metadataManager.gameTime
-        val isKubrikoInitialized = isInitialized.collectAsState().value
         Box(
-            modifier = if (isKubrikoInitialized) kubrikoImpl.managers.fold(Modifier.clipToBounds()) { modifierToProcess, manager ->
+            modifier = kubrikoImpl.managers.fold(Modifier.clipToBounds()) { modifierToProcess, manager ->
                 manager.processModifierInternal(modifierToProcess, null, gameTime)
-            } else Modifier.clipToBounds(),
+            },
         ) {
             Layers(gameTime)
         }

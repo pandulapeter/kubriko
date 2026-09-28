@@ -78,6 +78,8 @@ Any Manager can override (all run every frame — keep allocation-free):
 - `processModifier(modifier, layerIndex, gameTime)` — injects a `Modifier` on each layer Canvas
 - `processOverlayModifier(modifier)` — injects a `Modifier` on the outer overlay Box
 
+`Composable()` and both modifier hooks are only called once the Manager has been initialized (`Manager`'s internal entry points gate on its own `isInitialized`).
+
 ## Gotchas
 
 - `drawingOrder` comparator adds `+ 0f` to normalize `-0.0f` → `+0.0f`; without this TimSort throws `IllegalArgumentException`

@@ -68,19 +68,23 @@ abstract class Manager(
     private val autoInitializingLazyManagers = mutableListOf<LazyManager<*>>()
 
     @Composable
-    internal fun processOverlayModifierInternal(modifier: Modifier) = processOverlayModifier(modifier)
+    internal fun processOverlayModifierInternal(modifier: Modifier) =
+        if (isInitialized.collectAsState().value) processOverlayModifier(modifier) else modifier
 
     /**
      * Allows the manager to apply modifiers to the overlay layer of the viewport.
+     * Only called once this Manager has been initialized.
      */
     @Composable
     protected open fun processOverlayModifier(modifier: Modifier): Modifier = modifier
 
     @Composable
-    internal fun processModifierInternal(modifier: Modifier, layerIndex: Int?, gameTime: State<Long>) = processModifier(modifier, layerIndex, gameTime)
+    internal fun processModifierInternal(modifier: Modifier, layerIndex: Int?, gameTime: State<Long>) =
+        if (isInitialized.collectAsState().value) processModifier(modifier, layerIndex, gameTime) else modifier
 
     /**
      * Allows the manager to apply modifiers to the game world layers.
+     * Only called once this Manager has been initialized.
      */
     @Composable
     protected open fun processModifier(modifier: Modifier, layerIndex: Int?, gameTime: State<Long>): Modifier = modifier
