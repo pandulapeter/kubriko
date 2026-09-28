@@ -62,7 +62,9 @@ internal class WebMusicPlayer private constructor(
 
     fun pause() {
         if (!isPlaying) return
-        pausedAt = (audioContext?.currentTime ?: 0.0) - startedAt
+        val elapsed = (audioContext?.currentTime ?: 0.0) - startedAt
+        val duration = audioBuffer?.duration ?: 0.0
+        pausedAt = if (duration > 0.0) elapsed % duration else 0.0
         stopInternal(resetPosition = false)
     }
 
@@ -111,6 +113,11 @@ internal class WebMusicPlayer private constructor(
         val source = context.createBufferSource().apply {
             this.buffer = buffer
             loop = shouldLoop
+        }
+        source.onended = {
+            if (sourceNode === source) {
+                stopInternal(resetPosition = true)
+            }
         }
         val splitter = context.createChannelSplitter(2)
         val merger = context.createChannelMerger(2)
@@ -180,11 +187,14 @@ internal external class AudioContext : JsAny {
     val currentTime: Double
 }
 
-internal external class AudioBuffer : JsAny
+internal external class AudioBuffer : JsAny {
+    val duration: Double
+}
 
 internal external class AudioBufferSourceNode : AudioNode {
     var buffer: AudioBuffer?
     var loop: Boolean
+    var onended: ((JsAny) -> Unit)?
     fun start(time: Double = definedExternally, resume: Double = definedExternally)
     fun stop(time: Double = definedExternally)
 }
