@@ -12,13 +12,17 @@ package com.pandulapeter.kubrikoShowcase
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.unit.dp
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
@@ -56,63 +60,67 @@ fun KubrikoShowcase(
         withFrameNanos {}
         onFirstFrameDrawn()
     }
-    KubrikoTheme(
-        areResourcesLoaded = ResourceLoader.areResourcesLoaded() && ShowcaseEntry.entries.all { it.areResourcesLoaded() },
-    ) {
-        val backgroundColor = MaterialTheme.colorScheme.surface
-        SideEffect { onBackgroundColorChanged(backgroundColor) }
-        LaunchedEffect(deeplink) {
-            selectedShowcaseEntry.value = deeplink.processDeeplink()
-        }
-        LaunchedEffect(selectedShowcaseEntry.value) {
-            onDestinationChanged(selectedShowcaseEntry.value?.deeplink)
-        }
-        NavigationBackHandler(
-            state = rememberNavigationEventState(NavigationEventInfo.None),
-            isBackEnabled = selectedShowcaseEntry.value != null,
+    val platformUriHandler = LocalUriHandler.current
+    val uriHandler = remember(platformUriHandler) { SafeUriHandler(platformUriHandler) }
+    CompositionLocalProvider(LocalUriHandler provides uriHandler) {
+        KubrikoTheme(
+            areResourcesLoaded = ResourceLoader.areResourcesLoaded() && ShowcaseEntry.entries.all { it.areResourcesLoaded() },
         ) {
-            val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
-            try {
-                if (activeStateHolder?.navigateBack(
-                        isInFullscreenMode = getIsInFullscreenMode() == true,
-                        onFullscreenModeToggled = onFullscreenModeToggled,
-                    ) == false
-                ) {
-                    activeStateHolder.stopMusic()
-                    selectedShowcaseEntry.value = null
+            val backgroundColor = MaterialTheme.colorScheme.surface
+            SideEffect { onBackgroundColorChanged(backgroundColor) }
+            LaunchedEffect(deeplink) {
+                selectedShowcaseEntry.value = deeplink.processDeeplink()
+            }
+            LaunchedEffect(selectedShowcaseEntry.value) {
+                onDestinationChanged(selectedShowcaseEntry.value?.deeplink)
+            }
+            NavigationBackHandler(
+                state = rememberNavigationEventState(NavigationEventInfo.None),
+                isBackEnabled = selectedShowcaseEntry.value != null,
+            ) {
+                val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
+                try {
+                    if (activeStateHolder?.navigateBack(
+                            isInFullscreenMode = getIsInFullscreenMode() == true,
+                            onFullscreenModeToggled = onFullscreenModeToggled,
+                        ) == false
+                    ) {
+                        activeStateHolder.stopMusic()
+                        selectedShowcaseEntry.value = null
+                    }
+                } catch (_: CancellationException) {
                 }
-            } catch (_: CancellationException) {
             }
-        }
-        BoxWithConstraints {
-            val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
-            val scope = rememberCoroutineScope()
-            LaunchedEffect(activeStateHolder) {
-                activeStateHolder?.backNavigationIntent?.onEach {
-                    if (getIsInFullscreenMode() == true) {
-                        onFullscreenModeToggled()
-                    }
-                    selectedShowcaseEntry.value = null
-                }?.launchIn(scope)
+            BoxWithConstraints {
+                val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
+                val scope = rememberCoroutineScope()
+                LaunchedEffect(activeStateHolder) {
+                    activeStateHolder?.backNavigationIntent?.onEach {
+                        if (getIsInFullscreenMode() == true) {
+                            onFullscreenModeToggled()
+                        }
+                        selectedShowcaseEntry.value = null
+                    }?.launchIn(scope)
+                }
+                ShowcaseContent(
+                    shouldUseCompactUi = maxWidth < 640.dp,
+                    shouldUseWideSideMenu = maxWidth >= 1200.dp,
+                    allShowcaseEntries = ShowcaseEntry.entries,
+                    getSelectedShowcaseEntry = { selectedShowcaseEntry.value },
+                    selectedShowcaseEntry = selectedShowcaseEntry.value,
+                    onShowcaseEntrySelected = { showcaseEntry ->
+                        if (showcaseEntry?.getStateHolder() != activeStateHolder) {
+                            activeStateHolder?.stopMusic()
+                            selectedShowcaseEntry.value = showcaseEntry
+                        }
+                    },
+                    activeKubrikoInstance = activeStateHolder?.kubriko?.collectAsState(null)?.value,
+                    isInFullscreenMode = isInFullscreenMode,
+                    onFullscreenModeToggled = onFullscreenModeToggled,
+                    isInfoPanelVisible = StateHolder.isInfoPanelVisible.value,
+                    toggleInfoPanelVisibility = { StateHolder.isInfoPanelVisible.value = !StateHolder.isInfoPanelVisible.value },
+                )
             }
-            ShowcaseContent(
-                shouldUseCompactUi = maxWidth < 640.dp,
-                shouldUseWideSideMenu = maxWidth >= 1200.dp,
-                allShowcaseEntries = ShowcaseEntry.entries,
-                getSelectedShowcaseEntry = { selectedShowcaseEntry.value },
-                selectedShowcaseEntry = selectedShowcaseEntry.value,
-                onShowcaseEntrySelected = { showcaseEntry ->
-                    if (showcaseEntry?.getStateHolder() != activeStateHolder) {
-                        activeStateHolder?.stopMusic()
-                        selectedShowcaseEntry.value = showcaseEntry
-                    }
-                },
-                activeKubrikoInstance = activeStateHolder?.kubriko?.collectAsState(null)?.value,
-                isInFullscreenMode = isInFullscreenMode,
-                onFullscreenModeToggled = onFullscreenModeToggled,
-                isInfoPanelVisible = StateHolder.isInfoPanelVisible.value,
-                toggleInfoPanelVisibility = { StateHolder.isInfoPanelVisible.value = !StateHolder.isInfoPanelVisible.value },
-            )
         }
     }
 }
@@ -144,3 +152,19 @@ private fun String?.processDeeplink() = this?.trim()?.lowercase()?.split("/")?.f
 }
 
 private val selectedShowcaseEntry = mutableStateOf<ShowcaseEntry?>(null)
+
+/**
+ * Opens links through the platform's handler, ignoring the ones nothing on the device can open (a `mailto:` link
+ * without a mail app, for example), for which the platform handlers throw.
+ */
+private class SafeUriHandler(
+    private val platformUriHandler: UriHandler,
+) : UriHandler {
+
+    override fun openUri(uri: String) {
+        try {
+            platformUriHandler.openUri(uri)
+        } catch (_: Exception) {
+        }
+    }
+}
