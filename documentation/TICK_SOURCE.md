@@ -87,7 +87,7 @@ tickSource.tick(deltaTimeInMilliseconds = 16)
 ```
 
 `TickSource.manual()` returns a `ManualTickSource`. It advances only when `tick()` is called. This is the most deterministic option and is useful for unit tests,
-replays, and editor tools that need frame-by-frame control.
+replays, and editor tools that need frame-by-frame control. The initial actors are in the scene before the first `tick()`.
 
 ## Lifecycle
 
@@ -97,6 +97,7 @@ Calling `start()`:
 
 - initializes the attached Kubriko instance if needed
 - initializes Managers if they have not already been initialized
+- applies all actor additions and removals queued before it, before returning
 - marks the TickSource as running
 - calls `onStart()`
 

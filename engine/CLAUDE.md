@@ -24,6 +24,8 @@ The sealed-interface core of Kubriko: wires Managers, Actors, the tick loop, and
 
 `KubrikoImpl.init {}` initializes built-in Managers and TickSource immediately at construction. Custom Managers wait for `TickSource.start()` — with `viewportFrames()` this happens inside `InternalViewport`'s `LaunchedEffect`. Consequence: `Manager.scope` and `manager<T>()` delegates are unavailable until the viewport is composed.
 
+At the end of `initializeInternal()` the ActorManager applies the operations queued so far synchronously, on the calling thread — repeating until the callbacks enqueue nothing more — then starts its batch processor. So `onAdded` always sees initialized Managers, and the first tick sees the initial scene.
+
 `manager<T>()` delegates resolve at `initializeInternal` time (before `onInitialize` is called). `autoInitializingLazy {}` triggers after `onInitialize` returns.
 
 ## Tick Dispatch
@@ -62,7 +64,7 @@ The visibility / active-dynamic cull scan is throttled by `invisibleActorMinimum
 
 Every callback runs in its own `try`: a throwing `onAdded`/`dispose`/`onRemoved` is logged and skips nothing else (the batch is still published and every other callback still runs, including that actor's `onRemoved` after a failed `dispose`), and the batch's first failure is rethrown afterwards from a fresh coroutine on the Kubriko scope, so the processor loop survives it.
 
-**All three callbacks run on the processor's own `Dispatchers.Default` coroutine, not the main thread.** An actor's `onAdded`/`onRemoved`/`dispose` must dispatch anything main-thread-confined itself; the public KDoc on `Actor` and `ActorManager` says so too, and must keep saying so if the threading is ever revisited.
+**All three callbacks run on the processor's own `Dispatchers.Default` coroutine — except for operations queued before the first `start()`, which run on the thread calling it (the main thread under `viewportFrames()`).** An actor's `onAdded`/`onRemoved`/`dispose` must dispatch anything main-thread-confined itself, and must not assume it is off the main thread either; the public KDoc on `Actor` and `ActorManager` says so too, and must keep saying so if the threading is ever revisited.
 
 The whole batch runs against **one** mutable `ArrayList` working copy plus a `HashSet` membership index, and publishes a single `toImmutableList()` snapshot at the end — and only when something actually changed. Rebuilding the full list per operation made a batch of individual `add`/`remove` calls quadratic, and testing membership with `List.contains` made bulk removal O(removals × actors). The unique-replacement scan is skipped outright when the batch adds no `Unique` actors. The published list is never mutated, so old snapshots handed to consumers stay valid.
 

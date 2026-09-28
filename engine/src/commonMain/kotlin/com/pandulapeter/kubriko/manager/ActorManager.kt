@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.manager
 
+import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
@@ -52,6 +53,8 @@ sealed class ActorManager(
      * scene is treated as already present.)
      * An actor added and removed before the batch is applied still receives `onAdded()` followed by `onRemoved()`; an actor
      * removed and re-added in one batch stays in the scene without either callback.
+     * Operations issued before the instance is started are queued and applied synchronously during `start()`, on the thread
+     * that calls it. Later operations are applied asynchronously on a background thread.
      */
     abstract fun add(vararg actors: Actor)
 
@@ -64,6 +67,8 @@ sealed class ActorManager(
      * scene is treated as already present.)
      * An actor added and removed before the batch is applied still receives `onAdded()` followed by `onRemoved()`; an actor
      * removed and re-added in one batch stays in the scene without either callback.
+     * Operations issued before the instance is started are queued and applied synchronously during `start()`, on the thread
+     * that calls it. Later operations are applied asynchronously on a background thread.
      */
     abstract fun add(actors: Collection<Actor>)
 
@@ -74,6 +79,8 @@ sealed class ActorManager(
      * Each actor's onRemoved() callback function will get invoked just after the actual removal, on that same background thread.
      * An actor added and removed before the batch is applied still receives `onAdded()` followed by `onRemoved()`; an actor
      * removed and re-added in one batch stays in the scene without either callback.
+     * Operations issued before the instance is started are queued and applied synchronously during `start()`, on the thread
+     * that calls it. Later operations are applied asynchronously on a background thread.
      */
     abstract fun remove(vararg actors: Actor)
 
@@ -84,6 +91,8 @@ sealed class ActorManager(
      * Each actor's onRemoved() callback function will get invoked just after the actual removal, on that same background thread.
      * An actor added and removed before the batch is applied still receives `onAdded()` followed by `onRemoved()`; an actor
      * removed and re-added in one batch stays in the scene without either callback.
+     * Operations issued before the instance is started are queued and applied synchronously during `start()`, on the thread
+     * that calls it. Later operations are applied asynchronously on a background thread.
      */
     abstract fun remove(actors: Collection<Actor>)
 
@@ -93,6 +102,8 @@ sealed class ActorManager(
      * Each actor's onRemoved() callback function will get invoked just after the actual removal, on that same background thread.
      * An actor added and removed before the batch is applied still receives `onAdded()` followed by `onRemoved()`; an actor
      * removed and re-added in one batch stays in the scene without either callback.
+     * Operations issued before the instance is started are queued and applied synchronously during `start()`, on the thread
+     * that calls it. Later operations are applied asynchronously on a background thread.
      */
     abstract fun removeAll()
 
@@ -100,7 +111,8 @@ sealed class ActorManager(
         /**
          * Creates a new [ActorManager] instance.
          *
-         * @param initialActors The actors to start the game with. Their addition might not happen in the very first frame.
+         * @param initialActors The actors to start the game with. Added when the [Kubriko] instance is started (the first
+         * `TickSource.start()`), after every Manager has been initialized; they are in [allActors] by the time `start()` returns.
          * @param shouldUpdateActorsWhileNotRunning Whether [Dynamic] actors should receive updates even when the game is paused.
          * @param shouldPutFarAwayActorsToSleep Whether [Dynamic] actors far outside the viewport should stop receiving updates.
          * @param farAwayActorSleepMargin How far outside the viewport's scene-space bounds a [Dynamic] actor may stray before it is

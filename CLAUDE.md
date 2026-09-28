@@ -106,8 +106,8 @@ ActorManager.newInstance(
     invisibleActorMinimumRefreshTimeInMillis: Long = 0,
 )
 ```
-- `add(vararg Actor)` / `add(Collection<Actor>)` — batched, background-thread addition; `Actor.onAdded(kubriko)` fires just before, on that same background thread; adding an actor that is already present is a no-op.
-- `remove(vararg Actor)` / `remove(Collection<Actor>)` / `removeAll()` — batched, background-thread removal; `Actor.onRemoved()` fires just after, on that same background thread.
+- `add(vararg Actor)` / `add(Collection<Actor>)` — batched, background-thread addition; `Actor.onAdded(kubriko)` fires just before, on that same background thread (for operations issued before `start()`: synchronously on the thread calling `start()`); adding an actor that is already present is a no-op.
+- `remove(vararg Actor)` / `remove(Collection<Actor>)` / `removeAll()` — batched, background-thread removal; `Actor.onRemoved()` fires just after, on that same background thread (for operations issued before `start()`: synchronously on the thread calling `start()`).
 - `allActors: StateFlow<ImmutableList<Actor>>`, `visibleActorsWithinViewport`, `activeDynamicActors` — observable collections.
 - `shouldPutFarAwayActorsToSleep` — `Dynamic` actors outside the viewport stop receiving `update()` unless `isAlwaysActive = true`.
 
@@ -147,8 +147,8 @@ ViewportManager.newInstance(
 ### Actors (`actor/Actor.kt`)
 ```kotlin
 interface Actor {
-    fun onAdded(kubriko: Kubriko) = Unit   // batch processor thread, right before addition
-    fun onRemoved() = Unit                  // batch processor thread, right after removal
+    fun onAdded(kubriko: Kubriko) = Unit   // batch processor thread (before start(): the thread calling start()), right before addition
+    fun onRemoved() = Unit                  // batch processor thread (before start(): the thread calling start()), right after removal
 }
 ```
 In-game objects or responsibilities. Added/removed at runtime via `ActorManager`. Capabilities come entirely from Traits.
@@ -182,7 +182,7 @@ Decouples the update loop from the viewport. Passed to `Kubriko.newInstance()`.
 | `TickSource.fixedFrequency(ticksPerSecond)` | Coroutine-based; delta = measured elapsed time. Re-syncs if behind. First tick delta = 0. Requires explicit `start()`. |
 | `TickSource.manual()` | Advances only on explicit `tick(deltaTimeInMilliseconds)`. Deterministic; use for tests/replay. Requires `start()`. |
 
-Lifecycle: `start()` initializes Kubriko if needed and begins emitting ticks; `stop()` suspends ticks; `kubriko.dispose()` stops and disposes everything. Calling `start()`/`stop()` multiple times is safe.
+Lifecycle: `start()` initializes Kubriko if needed, applies queued actor operations, and begins emitting ticks; `stop()` suspends ticks; `kubriko.dispose()` stops and disposes everything. Calling `start()`/`stop()` multiple times is safe.
 
 Custom TickSource: extend `TickSource`, call `emitTick(delta)` from any timing source. Override `onStart()`/`onStop()`/`onDispose()` for resource management. Use `onInitialize(kubriko)` if you need the Kubriko instance before start. `emitTick()` is safe to call before `start()`.
 

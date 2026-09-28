@@ -84,6 +84,7 @@ abstract class TickSource {
 
     /**
      * Initializes the attached [Kubriko] instance and starts this [TickSource].
+     * Applies every actor operation queued before the first start before returning.
      *
      * Calling this function multiple times is safe.
      */

@@ -19,7 +19,7 @@ interface Disposable : Actor {
 
     /**
      * Called by the engine to release resources.
-     * This is invoked immediately before [onRemoved], on the same background thread.
+     * This is invoked immediately before [onRemoved], on the same thread.
      *
      * An exception thrown here does not prevent [onRemoved] or the rest of the batch from being applied; it is
      * rethrown afterwards on the Kubriko scope.

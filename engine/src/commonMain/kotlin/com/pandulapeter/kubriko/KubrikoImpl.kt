@@ -97,6 +97,7 @@ internal class KubrikoImpl(
             if (stateManager.shouldAutoStart) {
                 stateManager.updateIsRunning(true)
             }
+            actorManager.startProcessingOperations()
             isInitialized = true
             log("Initialized.")
         }

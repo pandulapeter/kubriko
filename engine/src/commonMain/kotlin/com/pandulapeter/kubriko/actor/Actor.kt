@@ -23,9 +23,10 @@ import com.pandulapeter.kubriko.manager.Manager
 interface Actor {
 
     /**
-     * Called right before the actor is added to the [ActorManager], on the background thread that
-     * processes the batch of additions - not the main thread. Anything that must run on the main
-     * thread has to be dispatched there explicitly.
+     * Called right before the actor is added to the [ActorManager]. Every Manager of the instance is initialized by the time this is called. Called on the background
+     * batch thread, or — for operations issued before the instance started — on the thread that called
+     * `TickSource.start()` (the main thread when `KubrikoViewport` starts it). Either way, anything main-thread-confined
+     * must be dispatched explicitly.
      *
      * An exception thrown here does not prevent the rest of the batch from being applied; it is rethrown afterwards
      * on the Kubriko scope.
@@ -35,9 +36,10 @@ interface Actor {
     fun onAdded(kubriko: Kubriko) = Unit
 
     /**
-     * Called right after the actor is removed from the [ActorManager], on the background thread that
-     * processes the batch of removals - not the main thread. Anything that must run on the main
-     * thread has to be dispatched there explicitly.
+     * Called right after the actor is removed from the [ActorManager]. Every Manager of the instance is initialized by the time this is called. Called on the background
+     * batch thread, or — for operations issued before the instance started — on the thread that called
+     * `TickSource.start()` (the main thread when `KubrikoViewport` starts it). Either way, anything main-thread-confined
+     * must be dispatched explicitly.
      *
      * An exception thrown here does not prevent the rest of the batch from being applied; it is rethrown afterwards
      * on the Kubriko scope.

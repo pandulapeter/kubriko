@@ -77,6 +77,7 @@ internal class ActorManagerImpl(
     override val activeDynamicActors = _activeDynamicActors.asStateFlow()
     private lateinit var kubrikoImpl: KubrikoImpl
     private val operationChannel = Channel<Operation>(Channel.UNLIMITED)
+    private var isProcessingStarted = false
     private val drawingOrderComparator = Comparator<Visible> { a, b ->
         // +0f normalizes -0.0f to +0.0f: Float.compareTo distinguishes them via bit patterns,
         // causing A > B and B > C but A == C when one value is -0.0f, which violates the
@@ -303,27 +304,45 @@ internal class ActorManagerImpl(
         metadataManager = kubriko.metadataManager
         stateManager = kubriko.stateManager
         viewportManager = kubriko.viewportManager
+        add(initialActors)
+    }
+
+    /**
+     * Applies every operation queued so far synchronously on the calling thread, round after round until the
+     * callbacks enqueue nothing more, then starts the background batch processor. Runs once per instance, when the
+     * Kubriko instance is first started, so that `onAdded` always sees every Manager initialized and the first tick
+     * sees the initial scene.
+     */
+    internal fun startProcessingOperations() {
+        if (isProcessingStarted) return
+        isProcessingStarted = true
+        while (true) {
+            val firstOperation = operationChannel.tryReceive().getOrNull() ?: break
+            processBatchStartingWith(firstOperation)
+        }
         scope.launch(Dispatchers.Default) {
             while (isActive) {
-                try {
-                    val firstOp = operationChannel.receive()
-                    val batch = mutableListOf(firstOp)
-                    while (true) {
-                        val op = operationChannel.tryReceive().getOrNull() ?: break
-                        batch.add(op)
-                    }
-                    processBatch(batch)
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    log(
-                        message = "Actor batch processing failed.",
-                        details = e.stackTraceToString(),
-                    )
-                }
+                processBatchStartingWith(operationChannel.receive())
             }
         }
-        add(initialActors)
+    }
+
+    private fun processBatchStartingWith(firstOperation: Operation) {
+        try {
+            val batch = mutableListOf(firstOperation)
+            while (true) {
+                val operation = operationChannel.tryReceive().getOrNull() ?: break
+                batch.add(operation)
+            }
+            processBatch(batch)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(
+                message = "Actor batch processing failed.",
+                details = e.stackTraceToString(),
+            )
+        }
     }
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
