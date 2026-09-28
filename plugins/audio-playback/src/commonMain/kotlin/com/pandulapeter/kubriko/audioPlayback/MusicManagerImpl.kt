@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 internal class MusicManagerImpl(
     isLoggingEnabled: Boolean,
@@ -52,7 +53,7 @@ internal class MusicManagerImpl(
                 }
             }
             stateManager.isFocused
-                .debounce(musicPauseDelayOnFocusLoss)
+                .debounce(musicPauseDelayOnFocusLoss.milliseconds)
                 .filterNot { it }
                 .onEach { cache.value.keys.forEach(::pause) }
                 .launchIn(scope)

@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.update
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(FlowPreview::class)
 internal class StateManagerImpl(
@@ -26,7 +27,7 @@ internal class StateManagerImpl(
 
     private val _isFocused = MutableStateFlow(true)
     override val isFocused by autoInitializingLazy {
-        _isFocused.debounce(focusDebounce).asStateFlowOnMainThread(true)
+        _isFocused.debounce(focusDebounce.milliseconds).asStateFlowOnMainThread(true)
     }
     private val _isRunning = MutableStateFlow(false)
     override val isRunning by autoInitializingLazy {

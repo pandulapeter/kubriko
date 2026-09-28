@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlin.time.Duration.Companion.milliseconds
 
 internal class AudioManager(
     private val isForSceneEditor: Boolean,
@@ -52,7 +53,7 @@ internal class AudioManager(
             // Not deduplicated: MusicManager pauses on any focus loss, even one too brief to pass the debounce, so every
             // focused emission has to resume the music.
             combine(
-                stateManager.isFocused.debounce(100),
+                stateManager.isFocused.debounce(100.milliseconds),
                 userPreferencesManager.isMusicEnabled,
                 shouldStopMusic,
             ) { isFocused, isMusicEnabled, shouldStopMusic ->
@@ -68,7 +69,7 @@ internal class AudioManager(
                 }
             }.launchIn(scope)
             combine(
-                stateManager.isRunning.debounce(100),
+                stateManager.isRunning.debounce(100.milliseconds),
                 userPreferencesManager.areSoundEffectsEnabled,
                 shouldStopMusic,
                 shouldPlayStretchingSound,
