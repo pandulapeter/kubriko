@@ -27,6 +27,7 @@ import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -65,16 +66,16 @@ internal class GameplayManager : Manager() {
     val gameViewportAlpha = _gameViewportAlpha.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
-        currentLevel
-            .onEach { loadScene(AllLevels[it]) }
-            .launchIn(scope)
+        scope.launch {
+            currentLevel.collectLatest { loadScene(AllLevels[it]) }
+        }
         stateManager.isRunning
             .onEach { if (it) actorManager.remove(blurShader) else actorManager.add(blurShader) }
             .launchIn(scope)
     }
 
     @OptIn(ExperimentalResourceApi::class)
-    private fun loadScene(sceneName: String?) = scope.launch {
+    private suspend fun loadScene(sceneName: String?) {
         _collectedStarCount.update { 0 }
         _totalStarCount.update { 0 }
         if (sceneName == null) {
