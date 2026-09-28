@@ -26,9 +26,11 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlin.concurrent.Volatile
 import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.AtomicReference
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.reflect.KClass
 
+@OptIn(ExperimentalAtomicApi::class)
 internal class KubrikoImpl(
     vararg manager: Manager,
     internal val tickSource: TickSource,
@@ -67,7 +69,11 @@ internal class KubrikoImpl(
     }
     // Tick dispatch iterates this array by index: List.forEach would allocate an iterator on every tick.
     private val managersForTick: Array<Manager> = managers.toTypedArray()
-    private val managerCache = mutableMapOf<KClass<out Manager>, Manager>()
+    /**
+     * Copy-on-write, so that lookups from several threads (actor callbacks, composition, the tick thread) stay
+     * lock-free; the map is only copied on the first lookup of each type.
+     */
+    private val managerCache = AtomicReference<Map<KClass<out Manager>, Manager>>(emptyMap())
     val actorManager = requireAndVerify<ActorManager, ActorManagerImpl>("ActorManager")
     val metadataManager = requireAndVerify<MetadataManager, MetadataManagerImpl>("MetadataManager")
     val stateManager = requireAndVerify<StateManager, StateManagerImpl>("StateManager")
@@ -87,7 +93,6 @@ internal class KubrikoImpl(
         )
     }
 
-    @OptIn(ExperimentalAtomicApi::class)
     private val isInitializationClaimed = AtomicBoolean(false)
     @Volatile
     private var isInitialized = false
@@ -99,7 +104,6 @@ internal class KubrikoImpl(
      * Exactly one caller initializes the instance. A concurrent caller returns without waiting (waiting would deadlock a
      * re-entrant `start()` from inside initialization); ticks are held back by [onTick] until initialization is done.
      */
-    @OptIn(ExperimentalAtomicApi::class)
     internal fun initializeInternal() {
         if (isDisposed) {
             throw IllegalStateException("Cannot initialize a disposed Kubriko instance. Create a new instance instead.")
@@ -127,11 +131,14 @@ internal class KubrikoImpl(
         if (isDisposed) {
             throw IllegalStateException("Cannot access Managers on a disposed Kubriko instance.")
         }
-        val cached = managerCache[managerType] as? T
+        val cached = managerCache.load()[managerType] as? T
         if (cached != null) return cached
         val found = managers.firstOrNull { managerType.isInstance(it) } as? T
             ?: throw IllegalStateException("${managerType.simpleName} has not been registered in Kubriko.newInstance().")
-        managerCache[managerType] = found
+        while (true) {
+            val current = managerCache.load()
+            if (managerCache.compareAndSet(current, current + (managerType to found))) break
+        }
         return found
     }
 
@@ -141,7 +148,7 @@ internal class KubrikoImpl(
         tickSource.onDisposeInternal()
         managers.forEach { it.onDisposeInternal() }
         cancel()
-        managerCache.clear()
+        managerCache.store(emptyMap())
         isInitialized = false
         isDisposed = true
         log(
