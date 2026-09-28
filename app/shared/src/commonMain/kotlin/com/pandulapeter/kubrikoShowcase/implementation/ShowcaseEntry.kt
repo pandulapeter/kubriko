@@ -19,6 +19,7 @@ import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimat
 import com.pandulapeter.kubriko.testAudio.implementation.AudioTestStateHolder
 import com.pandulapeter.kubriko.testCollision.implementation.CollisionTestStateHolder
 import com.pandulapeter.kubriko.testInput.implementation.InputTestStateHolder
+import com.pandulapeter.kubrikoShowcase.BuildConfig
 import com.pandulapeter.kubrikoShowcase.implementation.ui.about.AboutScreenStateHolder
 import com.pandulapeter.kubrikoShowcase.implementation.ui.licenses.LicensesScreenStateHolder
 import kubriko.app.shared.generated.resources.Res
@@ -165,6 +166,14 @@ internal enum class ShowcaseEntry(
         areResourcesLoaded = { AboutScreenStateHolder.areResourcesLoaded() },
     ),
 }
+
+/** Whether this build offers the entry at all: test entries need the test examples, unfinished ones the unfinished games flag. */
+internal val ShowcaseEntry.isAvailable: Boolean
+    get() = when {
+        type == ShowcaseEntryType.TEST && !BuildConfig.ARE_TEST_EXAMPLES_ENABLED -> false
+        !isProductionReady && !BuildConfig.SHOULD_SHOW_UNFINISHED_GAMES -> false
+        else -> true
+    }
 
 internal enum class ShowcaseEntryType(
     val titleStringResource: StringResource,

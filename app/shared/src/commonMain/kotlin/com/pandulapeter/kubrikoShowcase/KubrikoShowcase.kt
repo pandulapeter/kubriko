@@ -29,7 +29,7 @@ import androidx.navigationevent.compose.rememberNavigationEventState
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
-import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntryType
+import com.pandulapeter.kubrikoShowcase.implementation.isAvailable
 import com.pandulapeter.kubrikoShowcase.implementation.ui.ResourceLoader
 import com.pandulapeter.kubrikoShowcase.implementation.ui.ShowcaseContent
 import com.pandulapeter.kubrikoShowcase.implementation.ui.getStateHolder
@@ -143,9 +143,7 @@ private val ShowcaseEntry?.deeplink
 
 private fun String?.processDeeplink() = this?.trim()?.lowercase()?.split("/")?.filterNot { it.isBlank() }?.lastOrNull().let { deeplink ->
     ShowcaseEntry.entries.firstOrNull { it.deeplink == deeplink }
-}.let {
-    if (it?.type == ShowcaseEntryType.TEST && !BuildConfig.ARE_TEST_EXAMPLES_ENABLED) null else it
-}
+}?.takeIf { it.isAvailable }
 
 private val selectedShowcaseEntry = mutableStateOf<ShowcaseEntry?>(null)
 

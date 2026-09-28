@@ -25,6 +25,8 @@ There is no navigation library. Navigation state is a single `mutableStateOf<Sho
 - `isProductionReady` — gates entries behind `showcase.shouldShowUnfinishedGames` build flag.
 - Test entries additionally require `showcase.areTestExamplesEnabled`; if disabled their `-noop` implementations are linked instead.
 
+Both gates are one predicate, `ShowcaseEntry.isAvailable`, which the menu filters by and deeplinks resolve through, so a deeplink only opens an entry the menu shows.
+
 Deeplinks are simple strings (`"wallbreaker"`, `"physics"`, etc.) processed by `String?.processDeeplink()`. The web target uses these for browser history; other platforms expose the current deeplink via `onDestinationChanged` for optional deep-link support.
 
 ## StateHolder lifecycle and multi-instance management

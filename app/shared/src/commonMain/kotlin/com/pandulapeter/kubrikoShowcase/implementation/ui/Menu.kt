@@ -35,9 +35,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubrikoShowcase.BuildConfig
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
-import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntryType
+import com.pandulapeter.kubrikoShowcase.implementation.isAvailable
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
@@ -49,8 +48,7 @@ internal fun LazyListScope.menu(
     selectedShowcaseEntry: ShowcaseEntry?,
     onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
 ) = allShowcaseEntries
-    .filter { if (BuildConfig.ARE_TEST_EXAMPLES_ENABLED) true else it.type != ShowcaseEntryType.TEST }
-    .filter { if (BuildConfig.SHOULD_SHOW_UNFINISHED_GAMES) true else it.isProductionReady }
+    .filter { it.isAvailable }
     .groupBy { it.type }
     .let { groups ->
         groups.forEach { (type, entries) ->
