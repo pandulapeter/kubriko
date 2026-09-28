@@ -16,7 +16,6 @@ build
 /app/android/release.keystore
 /captures
 .externalNativeBuild
-*/iosApp/iosApp.xcodeproj/xcuserdata/*
-*/iosApp/iosApp.xcodeproj/project.xcworkspace/xcuserdata/*
+xcuserdata/
 /kotlin-js-store/
 /.release-notes/
