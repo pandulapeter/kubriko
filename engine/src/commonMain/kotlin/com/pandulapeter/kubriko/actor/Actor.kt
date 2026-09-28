@@ -16,6 +16,9 @@ import com.pandulapeter.kubriko.manager.Manager
 /**
  * Represents an object in the game world managed by [ActorManager].
  * Actors can have various traits and behaviors defined by implementing additional interfaces.
+ *
+ * An actor added and removed before the batch is applied still receives [onAdded] followed by [onRemoved]; an actor
+ * removed and re-added in one batch stays in the scene without either callback.
  */
 interface Actor {
 

@@ -466,7 +466,6 @@ internal class ActorManagerImpl(
                                 iterator.remove()
                                 workingSet.remove(actor)
                                 newlyRemoved.add(actor)
-                                newlyAdded.remove(actor)
                                 didChange = true
                             }
                         }
@@ -475,8 +474,9 @@ internal class ActorManagerImpl(
                         if (workingSet.add(a)) {
                             workingList.add(a)
                             didChange = true
-                            newlyAdded.add(a)
-                            newlyRemoved.remove(a)
+                            if (!newlyRemoved.remove(a)) {
+                                newlyAdded.add(a)
+                            }
                         }
                     }
                 }
@@ -489,19 +489,13 @@ internal class ActorManagerImpl(
                         workingList.removeAll(removalSet)
                         workingSet.removeAll(removalSet)
                         didChange = true
-                        validRemovals.forEach {
-                            newlyRemoved.add(it)
-                            newlyAdded.remove(it)
-                        }
+                        newlyRemoved.addAll(validRemovals)
                     }
                 }
 
                 is Operation.RemoveAll -> {
                     if (workingList.isNotEmpty()) {
-                        workingList.forEach {
-                            newlyRemoved.add(it)
-                            newlyAdded.remove(it)
-                        }
+                        newlyRemoved.addAll(workingList)
                         workingList.clear()
                         workingSet.clear()
                         didChange = true

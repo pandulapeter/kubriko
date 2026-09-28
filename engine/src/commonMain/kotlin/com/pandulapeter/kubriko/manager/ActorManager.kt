@@ -50,6 +50,8 @@ sealed class ActorManager(
      * Each actor's onAdded() callback function will get invoked just before the actual addition, on that same background thread.
      * Adding an actor that is already in the scene has no effect. (Membership uses `equals`: an actor equal to one in the
      * scene is treated as already present.)
+     * An actor added and removed before the batch is applied still receives `onAdded()` followed by `onRemoved()`; an actor
+     * removed and re-added in one batch stays in the scene without either callback.
      */
     abstract fun add(vararg actors: Actor)
 
@@ -60,6 +62,8 @@ sealed class ActorManager(
      * Each actor's onAdded() callback function will get invoked just before the actual addition, on that same background thread.
      * Adding an actor that is already in the scene has no effect. (Membership uses `equals`: an actor equal to one in the
      * scene is treated as already present.)
+     * An actor added and removed before the batch is applied still receives `onAdded()` followed by `onRemoved()`; an actor
+     * removed and re-added in one batch stays in the scene without either callback.
      */
     abstract fun add(actors: Collection<Actor>)
 
@@ -68,6 +72,8 @@ sealed class ActorManager(
      * The actual removal logic will happen in a background thread so the result might not be instantaneous.
      * Multiple calls invoked in the same frame will be batched, and are applied in the order they were made.
      * Each actor's onRemoved() callback function will get invoked just after the actual removal, on that same background thread.
+     * An actor added and removed before the batch is applied still receives `onAdded()` followed by `onRemoved()`; an actor
+     * removed and re-added in one batch stays in the scene without either callback.
      */
     abstract fun remove(vararg actors: Actor)
 
@@ -76,6 +82,8 @@ sealed class ActorManager(
      * The actual removal logic will happen in a background thread so the result might not be instantaneous.
      * Multiple calls invoked in the same frame will be batched, and are applied in the order they were made.
      * Each actor's onRemoved() callback function will get invoked just after the actual removal, on that same background thread.
+     * An actor added and removed before the batch is applied still receives `onAdded()` followed by `onRemoved()`; an actor
+     * removed and re-added in one batch stays in the scene without either callback.
      */
     abstract fun remove(actors: Collection<Actor>)
 
@@ -83,6 +91,8 @@ sealed class ActorManager(
      * Removes all [Actor]s from the game.
      * The actual removal logic will happen in a background thread so the result might not be instantaneous.
      * Each actor's onRemoved() callback function will get invoked just after the actual removal, on that same background thread.
+     * An actor added and removed before the batch is applied still receives `onAdded()` followed by `onRemoved()`; an actor
+     * removed and re-added in one batch stays in the scene without either callback.
      */
     abstract fun removeAll()
 
