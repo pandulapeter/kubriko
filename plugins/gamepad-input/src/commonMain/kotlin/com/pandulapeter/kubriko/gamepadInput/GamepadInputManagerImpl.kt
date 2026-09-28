@@ -88,7 +88,7 @@ internal class GamepadInputManagerImpl(
     @Composable
     override fun Composable(windowInsets: WindowInsets) {
         if (gamepadEventHandler?.isValid() == false) {
-            stopListening()
+            stopListening(shouldNotifyActors = true)
         }
         if (gamepadEventHandler == null && isInitialized.value) {
             gamepadEventHandler = createGamepadEventHandler().also { it.startListening(rawGamepads) }
@@ -278,7 +278,7 @@ internal class GamepadInputManagerImpl(
         if (!isFocused) {
             if (wasFocused) {
                 wasFocused = false
-                releaseAllGamepads()
+                releaseAllInputs()
             }
             hasFocusNavigationInput.value = false
             return
@@ -396,15 +396,24 @@ internal class GamepadInputManagerImpl(
         }
     }
 
-    private fun releaseAllGamepads() {
+    /**
+     * Zeroes the inputs of every gamepad and reports every held button as released, while keeping the gamepads
+     * connected: losing the focus doesn't unplug anything, so regaining it mustn't announce the same pads again.
+     */
+    private fun releaseAllInputs() {
         for (index in 0 until MAX_GAMEPAD_COUNT) {
-            releaseGamepad(gamepads[index])
+            val gamepad = gamepads[index]
+            val previousButtons = gamepad.pressedButtons
+            gamepad.releaseInputs()
+            if (previousButtons != 0) {
+                notifyButtonChanges(gamepad, previousButtons, 0)
+            }
         }
     }
 
     /**
      * Zeroes the state of a gamepad and reports every button that was held down as released, so that losing
-     * focus or a controller can't leave an Actor acting on an input that is no longer there.
+     * a controller can't leave an Actor acting on an input that is no longer there.
      */
     private fun releaseGamepad(gamepad: GamepadState) {
         val previousButtons = gamepad.pressedButtons
@@ -414,18 +423,27 @@ internal class GamepadInputManagerImpl(
         }
     }
 
-    private fun stopListening() {
+    /**
+     * Drops the platform handler and resets every slot. With [shouldNotifyActors], every connected gamepad is also
+     * reported disconnected, so that the connection the next handler reports is paired with it.
+     */
+    private fun stopListening(shouldNotifyActors: Boolean) {
         gamepadEventHandler?.stopListening()
         gamepadEventHandler = null
-        releaseAllGamepads()
         for (index in 0 until MAX_GAMEPAD_COUNT) {
+            val gamepad = gamepads[index]
+            val wasConnected = gamepad.isConnected
+            releaseGamepad(gamepad)
+            if (shouldNotifyActors && wasConnected) {
+                notifyDisconnected(gamepad)
+            }
             rawGamepads[index].reset()
         }
         _connectedGamepadCount.value = 0
         hasFocusNavigationInput.value = false
     }
 
-    override fun onDispose() = stopListening()
+    override fun onDispose() = stopListening(shouldNotifyActors = false)
 }
 
 // How far a stick has to lean before it counts as asking for a direction. Well above the dead zone, so that a

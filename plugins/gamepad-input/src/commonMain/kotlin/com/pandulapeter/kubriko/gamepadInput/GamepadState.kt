@@ -96,6 +96,10 @@ class GamepadState internal constructor(
     internal fun reset() {
         isConnected = false
         name = null
+        releaseInputs()
+    }
+
+    internal fun releaseInputs() {
         leftStickX = 0f
         leftStickY = 0f
         rightStickX = 0f

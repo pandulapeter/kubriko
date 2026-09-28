@@ -85,8 +85,9 @@ control while the one that opened it goes on holding the focus behind it, so dis
 control current again without Compose having to focus it a second time.
 
 Buttons are diffed against the previous tick to produce the discrete pressed/released callbacks. On focus loss
-and on disconnection every held button is reported as released and the state is zeroed, so an Actor can't be
-left acting on an input that is no longer there.
+the inputs are zeroed and every held button is reported as released, but the pad stays connected (no second
+`onGamepadConnected` on refocus). On disconnection - including a replaced platform handler - the pad is also
+reported disconnected. Either way an Actor can't be left acting on an input that is no longer there.
 
 ## Platform Differences
 
