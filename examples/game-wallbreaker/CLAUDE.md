@@ -16,7 +16,7 @@ A classic Breakout-style game where the player controls a paddle to keep a ball 
 - **collision** (`CollisionManager`): `Ball` (as `CollisionDetector`) listens for collisions with `Brick` and `Paddle` (both `Collidable`), using `CircleCollisionMask` for the ball and `BoxCollisionMask` for bricks and paddle.
 - **keyboard-input** (`KeyboardInputManager`): left/right arrow keys move the paddle; Spacebar launches the ball from the positioning state.
 - **pointer-input** (`PointerInputManager`, `isActiveAboveViewport = true`): relative mouse movement controls paddle X position. Uses `tryToMoveHoveringPointer` to re-center the cursor after each delta so the paddle does not get clamped at the viewport edge.
-- **shaders** (`ShaderManager`): three built-in shaders (`SmoothPixelationShader`, `VignetteShader`, `ChromaticAberrationShader`) are added to the actor list via `GameplayManager.actors`. Background uses a custom `FogShader` (SKSL, credits deusnovus on Shadertoy) in a separate `backgroundKubriko`.
+- **shaders** (`ShaderManager`): three built-in shaders (`SmoothPixelationShader`, `VignetteShader`, `ChromaticAberrationShader`) are added once by `GameplayManager.onInitialize`. Background uses a custom `FogShader` (SKSL, credits deusnovus on Shadertoy) in a separate `backgroundKubriko`.
 - **audio-playback** (`MusicManager`, `SoundManager`): background music plus SFX for paddle hit, brick pop, edge bounce, level cleared, game over.
 - **persistence** (`PersistenceManager`): high score persisted under `"kubrikoWallbreaker"`.
 
@@ -24,7 +24,7 @@ A classic Breakout-style game where the player controls a paddle to keep a ball 
 
 - **`Paddle`** (`Visible`, `Collidable`, `PointerInputAware`, `KeyboardInputAware`, `Dynamic`, `Unique`): horizontal-only movement. Pointer input uses relative deltas multiplied by `POINTER_SPEED_MULTIPLIER = 1.5f` and the same cursor-recentering trick as Space Squadron.
 - **`Ball`** (`Visible`, `Dynamic`, `CollisionDetector`, `PointerInputAware`, `KeyboardInputAware`, `Unique`): four-state machine: `UNINITIALIZED → POSITIONING → LAUNCHED → GAME_OVER`. In `POSITIONING` the ball follows the paddle's X. On launch, direction is `(baseSpeedX=1, baseSpeedY=-1)`. Speed = `InitialSpeed(0.6) + ScoreIncrement(0.005) * score`, capped at `MaximumSpeed(1.8)`. When hitting the bottom edge, transitions to `GAME_OVER` and calls `GameplayManager.onGameOver()`.
-- **`Brick`** (`Visible`, `Collidable`): static 100×40 scene-unit rectangle. Has a random HSV hue; `randomizeHue()` is called at the start of each level.
+- **`Brick`** (`Visible`, `Collidable`): static 100×40 scene-unit rectangle. Has a random HSV hue; `randomizeHue()` is called at the start of each level. `isDestroyed` is set by the ball on the hit, so a brick awaiting removal cannot be hit twice.
 - **`BrickPopEffect`** (`Visible`, `Dynamic`): short-lived actor that scales down from the destroyed brick's position while fading out. Also applies a brief `ViewportManager.setScaleFactor` wobble per frame as a screen-shake substitute — no separate shake manager.
 - **`FogShader`** (`Shader`, `Dynamic`, `Unique`): time-driven SKSL fog shader running in `backgroundKubriko`.
 
@@ -36,9 +36,9 @@ Two `Kubriko` instances run side-by-side:
 
 `ViewportManager` uses `AspectRatioMode.Fixed(ratio = 1f, width = 1200.sceneUnit)` — the viewport is always square, keeping the brick grid layout consistent across all screen sizes.
 
-`GameplayManager` itself implements `Manager`, `Unique`, and `Group` so it can own the pre-allocated `bricks` list and inject the shaders as `actors`. The brick grid (10 columns × 10 rows) is created once at construction time and reused across levels; only `randomizeHue()` is called per level to avoid reallocation.
+`GameplayManager` is a plain `Manager` that owns the pre-allocated `bricks` list. It adds the paddle, the shaders and `UIManager` once, and re-adds only the bricks and a new `Ball` per level. The brick grid (10 columns × 10 rows) is created once at construction time and reused across levels; only `randomizeHue()` is called per level to avoid reallocation.
 
-Level completion is detected by a coroutine in `onInitialize` that observes `ScoreManager.score` and checks whether any `Brick` actors remain.
+Level completion is counted on the tick thread: `Ball` calls `GameplayManager.onBrickDestroyed()`, which starts the next level when every brick of the grid has been destroyed.
 
 ## Input handling
 
@@ -50,6 +50,6 @@ Level completion is detected by a coroutine in `onInitialize` that observes `Sco
 
 - `Ball.onCollisionDetected` resolves the bounce direction geometrically by comparing the ball's position to the `AxisAlignedBoundingBox` corners/edges of the collided object, rather than using angle reflection. This makes the logic deterministic and avoids floating-point drift.
 - When `Ball` hits a `Paddle`, the `isCollidingWithPaddle` flag suppresses repeat sound effects for continuous paddle contact during a single bounce.
-- `GameplayManager.restartGame` removes bricks, ball, and paddle separately from `allActors` rather than calling `removeAll()`, preserving the `GameplayManager` itself (which is also in the actor list as a `Group`).
+- `GameplayManager.restartGame` removes only the bricks and the ball rather than calling `removeAll()`; the paddle, shaders and `UIManager` stay in the scene.
 - `LoadingManager` tracks both audio and a custom font (`kanit_regular`) before allowing the game to be shown, preventing unstyled text flicker.
 - `PointerInputManager` is constructed with `isActiveAboveViewport = true` so the paddle responds to pointer events even when the score overlay is under the pointer.

@@ -172,100 +172,102 @@ internal class Ball(
         var shouldPlayBrickPopSoundEffect = false
         var shouldPlayPaddleHitSoundEffect = false
         if (state == State.LAUNCHED) {
-            (collidables.filterIsInstance<Paddle>().firstOrNull() ?: collidables.filterIsInstance<Brick>()
-                .minBy { it.body.position.distanceTo(body.position) }).let { collidable ->
-                if (collidable is Brick) {
-                    body.position = previousPosition
-                    isCollidingWithPaddle = false
-                    shouldPlayBrickPopSoundEffect = true
-                    actorManager.remove(collidable)
-                    actorManager.add(
-                        BrickPopEffect(
-                            position = collidable.body.position,
-                            hue = collidable.hue,
-                        )
+            val collidable = collidables.filterIsInstance<Paddle>().firstOrNull()
+                ?: collidables.filterIsInstance<Brick>().filterNot { it.isDestroyed }.minByOrNull { it.body.position.distanceTo(body.position) }
+                ?: return
+            if (collidable is Brick) {
+                body.position = previousPosition
+                isCollidingWithPaddle = false
+                shouldPlayBrickPopSoundEffect = true
+                collidable.isDestroyed = true
+                actorManager.remove(collidable)
+                actorManager.add(
+                    BrickPopEffect(
+                        position = collidable.body.position,
+                        hue = collidable.hue,
                     )
-                    scoreManager.incrementScore()
+                )
+                scoreManager.incrementScore()
+                gameManager.onBrickDestroyed()
+            }
+            when {
+                body.position.x < collidable.body.axisAlignedBoundingBox.left &&
+                        body.position.y < collidable.body.axisAlignedBoundingBox.top -> {
+                    // Top-left corner
+                    baseSpeedX = -1
+                    baseSpeedY = -1
                 }
-                when {
-                    body.position.x < collidable.body.axisAlignedBoundingBox.left &&
-                            body.position.y < collidable.body.axisAlignedBoundingBox.top -> {
-                        // Top-left corner
-                        baseSpeedX = -1
-                        baseSpeedY = -1
-                    }
 
-                    body.position.x > collidable.body.axisAlignedBoundingBox.left &&
-                            body.position.x < collidable.body.axisAlignedBoundingBox.right &&
-                            body.position.y < collidable.body.axisAlignedBoundingBox.top -> {
-                        // Top
-                        baseSpeedY = -1
-                    }
-
-                    body.position.x > collidable.body.axisAlignedBoundingBox.right &&
-                            body.position.y < collidable.body.axisAlignedBoundingBox.top -> {
-                        // Top-right corner
-                        baseSpeedX = -1
-                        baseSpeedY = -1
-                    }
-
-                    body.position.x < collidable.body.axisAlignedBoundingBox.left &&
-                            body.position.y > collidable.body.axisAlignedBoundingBox.top &&
-                            body.position.y < collidable.body.axisAlignedBoundingBox.bottom -> {
-                        // Left
-                        baseSpeedX = -1
-                    }
-
-                    body.position.x > collidable.body.axisAlignedBoundingBox.right &&
-                            body.position.y > collidable.body.axisAlignedBoundingBox.top &&
-                            body.position.y < collidable.body.axisAlignedBoundingBox.bottom -> {
-                        // Right
-                        baseSpeedX = 1
-                    }
-
-                    body.position.x < collidable.body.axisAlignedBoundingBox.left &&
-                            body.position.y > collidable.body.axisAlignedBoundingBox.bottom -> {
-                        // Bottom-left corner
-                        baseSpeedX = -1
-                        baseSpeedY = 1
-                    }
-
-                    body.position.x > collidable.body.axisAlignedBoundingBox.left &&
-                            body.position.x < collidable.body.axisAlignedBoundingBox.right &&
-                            body.position.y > collidable.body.axisAlignedBoundingBox.bottom -> {
-                        // Bottom
-                        baseSpeedY = 1
-                    }
-
-                    body.position.x > collidable.body.axisAlignedBoundingBox.right &&
-                            body.position.y > collidable.body.axisAlignedBoundingBox.bottom -> {
-                        // Bottom-right corner
-                        baseSpeedX = 1
-                        baseSpeedY = 1
-                    }
+                body.position.x > collidable.body.axisAlignedBoundingBox.left &&
+                        body.position.x < collidable.body.axisAlignedBoundingBox.right &&
+                        body.position.y < collidable.body.axisAlignedBoundingBox.top -> {
+                    // Top
+                    baseSpeedY = -1
                 }
-                if (collidable is Paddle) {
-                    if (!isCollidingWithPaddle) {
-                        isCollidingWithPaddle = true
-                        shouldPlayPaddleHitSoundEffect = true
-                    }
-                    if (body.position.y < collidable.body.axisAlignedBoundingBox.top) {
+
+                body.position.x > collidable.body.axisAlignedBoundingBox.right &&
+                        body.position.y < collidable.body.axisAlignedBoundingBox.top -> {
+                    // Top-right corner
+                    baseSpeedX = -1
+                    baseSpeedY = -1
+                }
+
+                body.position.x < collidable.body.axisAlignedBoundingBox.left &&
+                        body.position.y > collidable.body.axisAlignedBoundingBox.top &&
+                        body.position.y < collidable.body.axisAlignedBoundingBox.bottom -> {
+                    // Left
+                    baseSpeedX = -1
+                }
+
+                body.position.x > collidable.body.axisAlignedBoundingBox.right &&
+                        body.position.y > collidable.body.axisAlignedBoundingBox.top &&
+                        body.position.y < collidable.body.axisAlignedBoundingBox.bottom -> {
+                    // Right
+                    baseSpeedX = 1
+                }
+
+                body.position.x < collidable.body.axisAlignedBoundingBox.left &&
+                        body.position.y > collidable.body.axisAlignedBoundingBox.bottom -> {
+                    // Bottom-left corner
+                    baseSpeedX = -1
+                    baseSpeedY = 1
+                }
+
+                body.position.x > collidable.body.axisAlignedBoundingBox.left &&
+                        body.position.x < collidable.body.axisAlignedBoundingBox.right &&
+                        body.position.y > collidable.body.axisAlignedBoundingBox.bottom -> {
+                    // Bottom
+                    baseSpeedY = 1
+                }
+
+                body.position.x > collidable.body.axisAlignedBoundingBox.right &&
+                        body.position.y > collidable.body.axisAlignedBoundingBox.bottom -> {
+                    // Bottom-right corner
+                    baseSpeedX = 1
+                    baseSpeedY = 1
+                }
+            }
+            if (collidable is Paddle) {
+                if (!isCollidingWithPaddle) {
+                    isCollidingWithPaddle = true
+                    shouldPlayPaddleHitSoundEffect = true
+                }
+                if (body.position.y < collidable.body.axisAlignedBoundingBox.top) {
+                    body.position = SceneOffset(
+                        x = body.position.x,
+                        y = paddle.body.position.y - collidable.body.pivot.y - Radius,
+                    )
+                } else {
+                    if (body.position.x <= collidable.body.axisAlignedBoundingBox.left) {
                         body.position = SceneOffset(
-                            x = body.position.x,
-                            y = paddle.body.position.y - collidable.body.pivot.y - Radius,
+                            x = collidable.body.axisAlignedBoundingBox.left - Radius,
+                            y = body.position.y,
                         )
-                    } else {
-                        if (body.position.x <= collidable.body.axisAlignedBoundingBox.left) {
-                            body.position = SceneOffset(
-                                x = collidable.body.axisAlignedBoundingBox.left - Radius,
-                                y = body.position.y,
-                            )
-                        } else if (body.position.x >= collidable.body.axisAlignedBoundingBox.right) {
-                            body.position = SceneOffset(
-                                x = collidable.body.axisAlignedBoundingBox.right + Radius,
-                                y = body.position.y,
-                            )
-                        }
+                    } else if (body.position.x >= collidable.body.axisAlignedBoundingBox.right) {
+                        body.position = SceneOffset(
+                            x = collidable.body.axisAlignedBoundingBox.right + Radius,
+                            y = body.position.y,
+                        )
                     }
                 }
             }

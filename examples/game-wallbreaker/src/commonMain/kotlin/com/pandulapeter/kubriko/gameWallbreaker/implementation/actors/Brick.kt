@@ -37,6 +37,7 @@ internal class Brick(
             color = createColor()
         }
     private var color = createColor()
+    var isDestroyed = false
 
     fun randomizeHue() {
         hue = randomHue()

@@ -10,8 +10,6 @@
 package com.pandulapeter.kubriko.gameWallbreaker.implementation.managers
 
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.traits.Group
-import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Ball
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Brick
 import com.pandulapeter.kubriko.gameWallbreaker.implementation.actors.Paddle
@@ -24,12 +22,10 @@ import com.pandulapeter.kubriko.shaders.collection.VignetteShader
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 
 internal class GameplayManager(
     private val stateManager: StateManager,
-) : Manager(), Unique, Group {
+) : Manager() {
 
     private val actorManager by manager<ActorManager>()
     private val audioManager by manager<AudioManager>()
@@ -49,27 +45,32 @@ internal class GameplayManager(
             )
         }
     }
-    override val actors by lazy {
-        bricks + listOf(
+    private var destroyedBrickCount = 0
+
+    override fun onInitialize(kubriko: Kubriko) {
+        actorManager.add(
             paddle,
             SmoothPixelationShader(),
             VignetteShader(),
             ChromaticAberrationShader(),
             uiManager,
         )
+        startLevel()
     }
 
-    override fun onInitialize(kubriko: Kubriko) {
-        initializeScene()
-        scoreManager.score
-            .onEach { if (actorManager.allActors.value.isNotEmpty() && actorManager.allActors.value.filterIsInstance<Brick>().isEmpty()) onLevelCleared() }
-            .launchIn(scope)
-    }
-
-    private fun initializeScene() {
+    private fun startLevel() {
         _isGameOver.value = false
-        bricks.forEach { it.randomizeHue() }
-        actorManager.add(listOf(Ball(paddle), this))
+        destroyedBrickCount = 0
+        bricks.forEach {
+            it.isDestroyed = false
+            it.randomizeHue()
+        }
+        actorManager.add(bricks + Ball(paddle))
+    }
+
+    fun onBrickDestroyed() {
+        destroyedBrickCount++
+        if (destroyedBrickCount == bricks.size) onLevelCleared()
     }
 
     fun pauseGame() {
@@ -79,8 +80,8 @@ internal class GameplayManager(
 
     private fun onLevelCleared() {
         audioManager.playLevelClearedSoundEffect()
-        actorManager.remove(actorManager.allActors.value.let { it.filterIsInstance<Ball>() + it.filterIsInstance<Paddle>() })
-        initializeScene()
+        actorManager.remove(actorManager.allActors.value.filterIsInstance<Ball>())
+        startLevel()
     }
 
     fun onGameOver() {
@@ -106,8 +107,8 @@ internal class GameplayManager(
         } else if (uiManager.isCloseConfirmationDialogVisible.value) {
             uiManager.toggleCloseConfirmationDialogVisibility()
         } else {
-            actorManager.remove(actorManager.allActors.value.let { it.filterIsInstance<Brick>() + it.filterIsInstance<Ball>() + it.filterIsInstance<Paddle>() })
-            initializeScene()
+            actorManager.remove(bricks + actorManager.allActors.value.filterIsInstance<Ball>())
+            startLevel()
             scoreManager.resetScore()
             resumeGame()
         }
