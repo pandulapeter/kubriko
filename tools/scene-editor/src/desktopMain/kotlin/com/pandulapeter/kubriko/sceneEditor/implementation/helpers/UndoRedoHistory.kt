@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.helpers
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlin.reflect.KClass
 
 internal class UndoRedoHistory {
 
@@ -66,13 +67,40 @@ internal class UndoRedoHistory {
     /**
      * A point-in-time copy of the scene. [isSceneModified] is part of the snapshot so that undoing or
      * redoing also restores the unsaved-changes state, keeping the Save button in sync with the history.
+     * [actorIds] holds the editor's id of every serialized actor, in order, so the selection can be restored.
      */
-    data class SceneSnapshot(
+    class SceneSnapshot(
         val serializedScene: String,
         val isSceneModified: Boolean,
+        val actorIds: LongArray,
     )
 
     companion object {
         private const val MAX_STACK_SIZE = 25
     }
 }
+
+/**
+ * Returns the index of the restored actor that had [selectedId] when the snapshot was taken, or null when nothing
+ * was selected, the actor did not exist yet, or the restored list no longer lines up with [snapshotIds].
+ */
+internal fun restoredSelectionIndex(
+    selectedId: Long?,
+    snapshotIds: LongArray,
+    restoredCount: Int,
+): Int? {
+    if (selectedId == null || restoredCount != snapshotIds.size) {
+        return null
+    }
+    return snapshotIds.indexOf(selectedId).takeIf { it >= 0 }
+}
+
+/**
+ * Returns the index of the actor in [actorClasses] that adding an actor of [newClass] replaces (the engine keeps
+ * only the latest [com.pandulapeter.kubriko.actor.traits.Unique] actor of a class), or -1 when nothing is replaced.
+ */
+internal fun indexOfReplacedUnique(
+    actorClasses: List<KClass<*>>,
+    newClass: KClass<*>,
+    isUnique: Boolean,
+) = if (isUnique) actorClasses.indexOf(newClass) else -1

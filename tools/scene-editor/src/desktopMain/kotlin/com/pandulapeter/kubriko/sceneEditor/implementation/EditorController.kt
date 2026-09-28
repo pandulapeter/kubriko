@@ -28,9 +28,11 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.boundingBo
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.NavigateBackAction
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.UndoRedoHistory
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.deserializeSceneOrNull
+import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.indexOfReplacedUnique
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.UserPreferences
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.navigateBackAction
+import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.restoredSelectionIndex
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.saveFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.AngleEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.ColorEditorMode
@@ -53,6 +55,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import java.util.IdentityHashMap
 import kotlin.math.roundToInt
 import kotlin.reflect.full.isSubclassOf
 import kotlin.time.TimeSource
@@ -157,6 +160,9 @@ internal class EditorController(
     private var pendingPropertyEditKey: Any? = null
     private var cameraAnimationJob: Job? = null
     private var focusedTextInputCount = 0
+    private val sceneActors = mutableListOf<Editable<*>>()
+    private val sceneActorIds = IdentityHashMap<Editable<*>, Long>()
+    private var nextSceneActorId = 0L
     private val _fileOperationError = MutableStateFlow<Pair<FileOperationError, String>?>(null)
     val fileOperationError = _fileOperationError.asStateFlow()
     val snapMode = combine(
@@ -217,7 +223,7 @@ internal class EditorController(
                     if (currentSelectedActor == null) {
                         previewOverlayActor?.let {
                             recordSnapshot()
-                            actorManager.add(it)
+                            addSceneActor(it)
                             markSceneAsModified()
                             selectActor(it)
                             previewOverlayActor = null
@@ -239,7 +245,7 @@ internal class EditorController(
                     removeSelectedActor()
                 } else {
                     recordSnapshot()
-                    actorManager.remove(actorAtPosition)
+                    removeSceneActor(actorAtPosition)
                     markSceneAsModified()
                 }
             }
@@ -264,7 +270,7 @@ internal class EditorController(
     fun removeSelectedActor() = _selectedActor.update { selectedActor ->
         selectedActor?.let {
             recordSnapshot()
-            actorManager.remove(it)
+            removeSceneActor(it)
             markSceneAsModified()
         }
         null
@@ -353,22 +359,20 @@ internal class EditorController(
     }
 
     private fun takeSnapshot() = UndoRedoHistory.SceneSnapshot(
-        serializedScene = serializationManager.serializeActors(allEditableActors.value),
+        serializedScene = serializationManager.serializeActors(sceneActors),
         isSceneModified = _isSceneModified.value,
+        actorIds = LongArray(sceneActors.size) { sceneActorIds.getValue(sceneActors[it]) },
     )
 
     private fun restoreSnapshot(snapshot: UndoRedoHistory.SceneSnapshot) {
-        val previousSelection = _selectedActor.value
-        val previousSelectionType = previousSelection?.let { it::class }
-        val previousSelectionIndex = previousSelection
-            ?.let { allEditableActors.value.indexOf(it) }
-            ?.takeIf { it >= 0 }
+        val selectedId = _selectedActor.value?.let(sceneActorIds::get)
         val restoredActors = serializationManager.deserializeActors(snapshot.serializedScene)
-        replaceSceneActors(restoredActors)
+        val ids = snapshot.actorIds.takeIf { it.size == restoredActors.size }
+        clearSceneActors()
+        restoredActors.forEachIndexed { index, actor -> trackSceneActor(actor, ids?.get(index) ?: nextSceneActorId++) }
+        actorManager.add(restoredActors)
         _selectedActor.update {
-            previousSelectionIndex
-                ?.let(restoredActors::getOrNull)
-                ?.takeIf { restored -> restored::class == previousSelectionType }
+            restoredSelectionIndex(selectedId, snapshot.actorIds, restoredActors.size)?.let(restoredActors::get)
         }
         _isSceneModified.update { snapshot.isSceneModified }
     }
@@ -425,25 +429,51 @@ internal class EditorController(
 
     private fun replaceSceneActors(actors: List<Editable<*>>) {
         clearSceneActors()
+        actors.forEach { trackSceneActor(it) }
         actorManager.add(actors)
     }
 
+    private fun addSceneActor(actor: Editable<*>) {
+        trackSceneActor(actor)
+        actorManager.add(actor)
+    }
+
+    private fun removeSceneActor(actor: Editable<*>) {
+        sceneActors.remove(actor)
+        sceneActorIds.remove(actor)
+        actorManager.remove(actor)
+    }
+
     /**
-     * Removes the scene's actors while keeping [editorActors] registered. Clearing everything and re-adding
-     * the editor's own actors would race the startup auto-load and drop the grid until the next scene change.
+     * Records [actor] as part of the scene. The scene is tracked here rather than read back from [ActorManager],
+     * whose batched updates lag behind the editor's own actions. A [Unique] actor replaces the tracked one of the
+     * same class, mirroring what [ActorManager] does with the actors themselves.
      */
-    private fun clearSceneActors() = actorManager.remove(actorManager.allActors.value.filterNot { it in editorActors })
+    private fun trackSceneActor(actor: Editable<*>, id: Long = nextSceneActorId++) {
+        val replacedIndex = indexOfReplacedUnique(sceneActors.map { it::class }, actor::class, actor is Unique)
+        if (replacedIndex >= 0) {
+            sceneActorIds.remove(sceneActors.removeAt(replacedIndex))
+        }
+        sceneActors.add(actor)
+        sceneActorIds[actor] = id
+    }
+
+    private fun clearSceneActors() {
+        actorManager.remove(sceneActors.toList())
+        sceneActors.clear()
+        sceneActorIds.clear()
+    }
 
     fun syncScene() {
         val onSceneJsonChanged = (sceneEditorMode as? SceneEditorMode.Connected)?.onSceneJsonChanged ?: return
-        val content = serializationManager.serializeActors(allEditableActors.value)
+        val content = serializationManager.serializeActors(sceneActors)
         launch {
             onSceneJsonChanged(content)
         }
     }
 
     fun saveScene(path: String) {
-        val content = serializationManager.serializeActors(allEditableActors.value)
+        val content = serializationManager.serializeActors(sceneActors)
         launch(Dispatchers.Main) {
             try {
                 saveFile(
