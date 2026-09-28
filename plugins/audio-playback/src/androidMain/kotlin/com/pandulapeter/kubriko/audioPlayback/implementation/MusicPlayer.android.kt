@@ -80,7 +80,7 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
     }
 
     override fun dispose(cachedMusic: Any) {
-        stop(cachedMusic)
+        runCatching { stop(cachedMusic) }
         (cachedMusic as MediaPlayer).release()
     }
 

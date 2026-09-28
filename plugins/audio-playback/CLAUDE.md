@@ -37,7 +37,7 @@ Streaming music and pooled SFX. Reliably works on Android and Desktop; iOS and W
 - `play()` checks `stateManager.isFocused.value` first; silently suppressed when unfocused
 - On focus loss, music is paused via `debounce(musicPauseDelayOnFocusLoss)`. Focus regain does **not** auto-resume — the game must call `play()` again
 - `setVolume(uri, volume)` stores per-URI volume; applied just before each `play()` call
-- `unloadAll()` clears cache but does not dispose the manager; `play()` after it triggers a fresh load
+- `unloadAll()` disposes every loaded player (stopping any that play) and clears the cache, without disposing the manager; `play()` after it triggers a fresh load
 
 ## SoundManager Internals
 

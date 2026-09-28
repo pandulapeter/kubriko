@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -147,15 +148,12 @@ internal class MusicManagerImpl(
         }
     }
 
-    /**
-     * unload all data currently in cache
-     */
     override fun unloadAll() {
-        val curCache = cache.value
-        for (c in curCache) {
-            unload(c.key)
+        val unloaded = cache.getAndUpdate { persistentMapOf() }
+        val musicPlayer = musicPlayer ?: return
+        scope.launch {
+            unloaded.values.forEach { music -> if (music != null) musicPlayer.dispose(music) }
         }
-        cache.update { persistentMapOf() }
     }
 
 
