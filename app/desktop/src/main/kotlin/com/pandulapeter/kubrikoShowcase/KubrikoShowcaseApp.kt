@@ -18,7 +18,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.awt.SwingWindow
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowDecoration
@@ -36,6 +38,9 @@ import kotlinx.coroutines.launch
 import kubriko.app.desktop.generated.resources.Res
 import kubriko.app.desktop.generated.resources.ic_icon
 import org.jetbrains.compose.resources.painterResource
+import java.awt.Color
+import java.awt.Component
+import java.awt.Container
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
@@ -118,6 +123,7 @@ fun main() {
                                 }
                             }
                         },
+                        onBackgroundColorChanged = { color -> window.setUndrawnAreaColor(Color(color.toArgb())) },
                     )
                 }
             }
@@ -149,4 +155,20 @@ fun main() {
             )
         }
     }
+}
+
+/**
+ * What the window shows wherever the Showcase has not been drawn yet - the edge a fast resize uncovers before the next
+ * frame fills it - which is white unless it is told otherwise. On macOS that is the window's own background, and the
+ * native surface the content is rendered into, a heavyweight component that takes its color when it is created rather
+ * than following its ancestors'. On Windows it is the opaque Swing panels between the two as well, which Swing repaints
+ * the uncovered edge with before the next frame arrives, in the look and feel's panel gray.
+ */
+private fun ComposeWindow.setUndrawnAreaColor(color: Color) {
+    background = color
+    fun Component.paintUndrawnArea() {
+        if (isWindows || !isLightweight) background = color
+        (this as? Container)?.components?.forEach { it.paintUndrawnArea() }
+    }
+    rootPane.paintUndrawnArea()
 }

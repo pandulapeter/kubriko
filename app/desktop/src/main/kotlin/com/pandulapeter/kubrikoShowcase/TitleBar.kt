@@ -156,7 +156,7 @@ internal fun TitleBarInsets(
 
 private val isMacOs = System.getProperty("os.name").orEmpty().lowercase().contains("mac")
 
-private val isWindows = System.getProperty("os.name").orEmpty().lowercase().contains("windows")
+internal val isWindows = System.getProperty("os.name").orEmpty().lowercase().contains("windows")
 
 /** The height of a macOS title bar without a toolbar, in points, which is what a dp is at the window's density. */
 private val MAC_TITLE_BAR_HEIGHT = 28.dp

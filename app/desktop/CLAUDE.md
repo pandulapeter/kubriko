@@ -34,6 +34,8 @@ On macOS and Windows the window's content is laid out under the system title bar
 
 The strip (28dp on macOS, 32dp on Windows) reaches the shared UI as a top system bar inset (`TitleBarInsets`, which overrides Compose Desktop's internal `LocalPlatformWindowInsets`), so `WindowInsets.safeDrawing` keeps content clear of it, as it does for a phone's status bar. A window in `WindowPlacement.Fullscreen` gets no inset. `TitleBarAppearance` draws the buttons for the current system theme (`apple.awt.windowAppearance`, `controls.dark`), polled the same way `KubrikoTheme` polls it. Both properties exist only in the JetBrains Runtime.
 
+What a fast resize uncovers before the next frame fills it is kept on the theme's surface color, reported by `KubrikoShowcase`'s `onBackgroundColorChanged` (`setUndrawnAreaColor`): the window's own background and that of the heavyweight surface the content is rendered into, which does not follow the window's, and on Windows that of every component of the window, since Swing repaints the uncovered edge with the opaque panels between the two, in the look and feel's panel gray.
+
 ## Scene Editors
 
 The desktop app registers scene editors for examples that support them. These launch as separate windows (handled by the scene-editor tool) and write scenes directly into source directories:

@@ -10,12 +10,15 @@
 package com.pandulapeter.kubrikoShowcase
 
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
@@ -31,6 +34,11 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlin.coroutines.cancellation.CancellationException
 
+/**
+ * @param onBackgroundColorChanged Called with the theme's surface color whenever it changes, for the shells whose window
+ * shows a color of its own where the Showcase has not drawn yet: the desktop's, when it is resized faster than the
+ * content is laid out again.
+ */
 @Composable
 fun KubrikoShowcase(
     isInFullscreenMode: Boolean?,
@@ -39,6 +47,7 @@ fun KubrikoShowcase(
     deeplink: String? = selectedShowcaseEntry.value.deeplink,
     onDestinationChanged: (String?) -> Unit = { selectedShowcaseEntry.value = it.processDeeplink() },
     onFirstFrameDrawn: () -> Unit = {},
+    onBackgroundColorChanged: (Color) -> Unit = {},
 ) {
     LaunchedEffect(Unit) {
         // The second frame only resumes once the first one has been presented, so the host page's loading screen
@@ -50,6 +59,8 @@ fun KubrikoShowcase(
     KubrikoTheme(
         areResourcesLoaded = ResourceLoader.areResourcesLoaded() && ShowcaseEntry.entries.all { it.areResourcesLoaded() },
     ) {
+        val backgroundColor = MaterialTheme.colorScheme.surface
+        SideEffect { onBackgroundColorChanged(backgroundColor) }
         LaunchedEffect(deeplink) {
             selectedShowcaseEntry.value = deeplink.processDeeplink()
         }
