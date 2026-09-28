@@ -72,6 +72,8 @@ Every callback runs in its own `try`: a throwing `onAdded`/`dispose`/`onRemoved`
 
 The whole batch runs against **one** mutable `ArrayList` working copy plus a `HashSet` membership index, and publishes a single `toImmutableList()` snapshot at the end — and only when something actually changed. Rebuilding the full list per operation made a batch of individual `add`/`remove` calls quadratic, and testing membership with `List.contains` made bulk removal O(removals × actors). The unique-replacement scan is skipped outright when the batch adds no `Unique` actors. The published list is never mutated, so old snapshots handed to consumers stay valid.
 
+`ActorLifecycleChurnTest` checks the callback-pairing and membership contract under seeded, randomized churn; any change to `processBatch` must keep it green with `KUBRIKO_STRESS=1`.
+
 ## Manager Composable Extension Points
 
 Any Manager can override (all run every frame — keep allocation-free):
