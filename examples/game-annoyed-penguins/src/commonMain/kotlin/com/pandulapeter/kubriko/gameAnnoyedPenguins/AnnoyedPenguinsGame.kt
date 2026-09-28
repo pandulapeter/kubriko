@@ -90,21 +90,18 @@ fun AnnoyedPenguinsGame(
         enter = fadeIn() + scaleIn(initialScale = 0.88f),
         exit = scaleOut(targetScale = 0.88f) + fadeOut(),
     ) {
-        AnimatedVisibility(
-            visible = !isLoadingLevel,
-            enter = fadeIn(),
-            exit = fadeOut(),
-        ) {
-            val gameAlpha by animateFloatAsState(
-                targetValue = if (isGameRunning) 1f else 0.5f,
-                animationSpec = tween(),
-            )
-            KubrikoViewport(
-                modifier = Modifier.alpha(gameAlpha * stateHolder.gameplayManager.gameViewportAlpha.collectAsState().value),
-                kubriko = kubriko,
-                windowInsets = windowInsets,
-            )
-        }
+        val loadingAlpha by animateFloatAsState(
+            targetValue = if (isLoadingLevel) 0f else 1f,
+        )
+        val gameAlpha by animateFloatAsState(
+            targetValue = if (isGameRunning) 1f else 0.5f,
+            animationSpec = tween(),
+        )
+        KubrikoViewport(
+            modifier = Modifier.alpha(loadingAlpha * gameAlpha * stateHolder.gameplayManager.gameViewportAlpha.collectAsState().value),
+            kubriko = kubriko,
+            windowInsets = windowInsets,
+        )
         AnimatedVisibility(
             visible = isGameRunning && !isLoadingLevel,
             enter = slideIn { IntOffset(0, -it.height) },
