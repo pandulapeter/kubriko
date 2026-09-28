@@ -384,8 +384,10 @@ internal class ActorManagerImpl(
                 activeDynamicMirror.addAll(currentActiveDynamicActors)
             }
             for (i in activeDynamicMirror.indices) {
+                if (kubrikoImpl.isDisposedInternal) return
                 activeDynamicMirror[i].update(deltaTimeInMilliseconds)
             }
+            if (kubrikoImpl.isDisposedInternal) return
         }
 
         val viewportSize = viewportManager.size.value

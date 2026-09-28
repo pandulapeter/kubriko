@@ -24,6 +24,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlin.concurrent.Volatile
 import kotlin.reflect.KClass
 
 internal class KubrikoImpl(
@@ -85,7 +86,9 @@ internal class KubrikoImpl(
     }
 
     private var isInitialized = false
+    @Volatile
     private var isDisposed = false
+    internal val isDisposedInternal get() = isDisposed
 
     internal fun initializeInternal() {
         if (isDisposed) {
@@ -154,6 +157,7 @@ internal class KubrikoImpl(
 
     internal fun onTick(deltaTimeInMilliseconds: Int) {
         for (i in managersForTick.indices) {
+            if (isDisposed) return
             managersForTick[i].onUpdateInternal(deltaTimeInMilliseconds)
         }
     }
