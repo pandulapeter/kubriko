@@ -52,10 +52,9 @@ import kubriko.tools.scene_editor.generated.resources.ic_collapse
 import kubriko.tools.scene_editor.generated.resources.ic_expand
 import org.jetbrains.compose.resources.stringResource
 import kotlin.reflect.KMutableProperty
+import kotlin.reflect.KType
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.starProjectedType
-import kotlin.reflect.full.withNullability
 import kotlin.reflect.jvm.isAccessible
 
 private val booleanType = Boolean::class.createType()
@@ -66,8 +65,39 @@ private val sceneOffsetType = SceneOffset::class.createType()
 private val scaleType = Scale::class.createType()
 private val floatType = Float::class.createType()
 private val intType = Int::class.createType()
-private val stringType = String::class.starProjectedType.withNullability(true)
 private val sceneUnitType = SceneUnit::class.createType()
+
+internal enum class PropertyEditorKind {
+    BOOLEAN,
+    COLOR,
+    ANGLE_DEGREES,
+    ANGLE_RADIANS,
+    SCENE_OFFSET,
+    SCALE,
+    FLOAT,
+    INT,
+    STRING,
+    SCENE_UNIT,
+}
+
+/**
+ * Picks the editor for a property type. Only [String] is matched regardless of nullability; every other type must
+ * match exactly (non-null).
+ */
+internal fun KType.toPropertyEditorKind(): PropertyEditorKind? = if (classifier == String::class) {
+    PropertyEditorKind.STRING
+} else when (this) {
+    booleanType -> PropertyEditorKind.BOOLEAN
+    colorType -> PropertyEditorKind.COLOR
+    angleDegreesType -> PropertyEditorKind.ANGLE_DEGREES
+    angleRadiansType -> PropertyEditorKind.ANGLE_RADIANS
+    sceneOffsetType -> PropertyEditorKind.SCENE_OFFSET
+    scaleType -> PropertyEditorKind.SCALE
+    floatType -> PropertyEditorKind.FLOAT
+    intType -> PropertyEditorKind.INT
+    sceneUnitType -> PropertyEditorKind.SCENE_UNIT
+    else -> null
+}
 
 internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
     actor: T,
@@ -83,8 +113,8 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
         notifySelectedInstanceUpdate()
     }
     editableProperty.name.let { name ->
-        when (returnType) {
-            booleanType -> {
+        when (returnType.toPropertyEditorKind()) {
+            PropertyEditorKind.BOOLEAN -> {
                 {
                     BooleanPropertyEditor(
                         name = name,
@@ -94,7 +124,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 }
             }
 
-            colorType -> {
+            PropertyEditorKind.COLOR -> {
                 {
                     ColorPropertyEditor(
                         name = name,
@@ -105,7 +135,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 }
             }
 
-            angleDegreesType -> {
+            PropertyEditorKind.ANGLE_DEGREES -> {
                 {
                     RotationPropertyEditor(
                         name = name,
@@ -116,7 +146,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 }
             }
 
-            angleRadiansType -> {
+            PropertyEditorKind.ANGLE_RADIANS -> {
                 {
                     RotationPropertyEditor(
                         name = name,
@@ -127,7 +157,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 }
             }
 
-            sceneOffsetType -> {
+            PropertyEditorKind.SCENE_OFFSET -> {
                 {
                     SceneOffsetPropertyEditor(
                         name = name,
@@ -137,7 +167,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 }
             }
 
-            scaleType -> {
+            PropertyEditorKind.SCALE -> {
                 {
                     ScalePropertyEditor(
                         name = name,
@@ -147,7 +177,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 }
             }
 
-            floatType -> {
+            PropertyEditorKind.FLOAT -> {
                 {
                     FloatPropertyEditor(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
@@ -158,7 +188,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 }
             }
 
-            intType -> {
+            PropertyEditorKind.INT -> {
                 {
                     IntPropertyEditor(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
@@ -169,17 +199,17 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 }
             }
 
-            stringType -> {
+            PropertyEditorKind.STRING -> {
                 {
                     StringPropertyEditor(
                         name = name,
-                        value = getter.call(actor) as String,
+                        value = (getter.call(actor) as String?).orEmpty(),
                         onValueChanged = { applyValue(it) }
                     )
                 }
             }
 
-            sceneUnitType -> {
+            PropertyEditorKind.SCENE_UNIT -> {
                 {
                     SceneUnitPropertyEditor(
                         name = name,
@@ -189,7 +219,7 @@ internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
                 }
             }
 
-            else -> null
+            null -> null
         }
     }
 }

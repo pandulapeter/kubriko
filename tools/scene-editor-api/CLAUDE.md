@@ -33,7 +33,7 @@ Supported setter types (anything else is silently ignored):
 - `Boolean` — rendered as a checkbox
 - `Float` — rendered as a number input
 - `Int` — rendered as a number input
-- `String?` — rendered as a text input
+- `String` or `String?` — rendered as a text input (`null` shows as empty)
 - `SceneUnit` — rendered as a number input
 - `SceneOffset` — rendered as two number inputs (x, y)
 - `Scale` — rendered as two number inputs (horizontal, vertical)
