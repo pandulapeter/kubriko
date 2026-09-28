@@ -80,7 +80,7 @@ internal class PhysicsManagerImpl(
         // `* simulationSpeed / 100` scaling, so simulationSpeed still behaves as a pure time multiplier:
         // the sub-step count tracks real elapsed time while each step advances by simulationSpeed times
         // the fixed quantum.
-        accumulatedTimeInMilliseconds += deltaTimeInMilliseconds
+        accumulatedTimeInMilliseconds += minOf(deltaTimeInMilliseconds, MAXIMUM_ACCUMULATED_DELTA_IN_MILLISECONDS)
         val subStepDt = FIXED_TIME_STEP_IN_MILLISECONDS * simulationSpeed.value / 100f
         var stepsRemaining = MAXIMUM_SUB_STEPS_PER_TICK
         var didStep = false
@@ -321,5 +321,9 @@ internal class PhysicsManagerImpl(
         // 8 steps cover a single ~128 ms tick, so frame rates down to ~7.5 FPS stay fully time-accurate;
         // below that the simulation degrades gracefully (runs slower) instead of becoming unstable.
         const val MAXIMUM_SUB_STEPS_PER_TICK = 8
+
+        // Any delta at or above this already runs every sub-step and then has its backlog dropped, so clamping to it
+        // changes nothing except keeping the Int accumulator from overflowing on a garbage delta.
+        const val MAXIMUM_ACCUMULATED_DELTA_IN_MILLISECONDS = FIXED_TIME_STEP_IN_MILLISECONDS * (MAXIMUM_SUB_STEPS_PER_TICK + 1)
     }
 }
