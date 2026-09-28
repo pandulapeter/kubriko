@@ -28,6 +28,8 @@ Convention plugins for all Kubriko modules. The `includeBuild("gradle")` in root
 
 All targets use JDK 21 toolchain (`jvmToolchain(21)`).
 
+The iOS and Wasm test runs are disabled (they need a simulator or a browser), along with their dependencies and the test binaries they would consume; their `compileTestKotlin*` compilations still run in `build`, so `commonTest` must compile for every target. The Wasm test tasks are matched by name, so re-check the `:engine:build --dry-run` task count after a KGP upgrade.
+
 ## Version constraints
 
 - Build-logic itself compiles against **JDK 17** (`sourceCompatibility`, `targetCompatibility`, `jvmTarget` all set to 17).

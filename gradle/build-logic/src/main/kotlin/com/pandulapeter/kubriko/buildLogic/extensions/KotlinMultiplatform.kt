@@ -15,8 +15,11 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.configure
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.plugin.mpp.TestExecutable
+import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrLink
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
 internal fun Project.configureKotlinMultiplatform(
     extension: KotlinMultiplatformExtension
@@ -51,8 +54,19 @@ internal fun Project.configureKotlinMultiplatform(
         }
     }
     // Running these needs a browser or an iOS simulator; their compilations still run, so commonTest must compile everywhere.
-    tasks.withType(KotlinJsTest::class.java).configureEach { enabled = false }
-    tasks.withType(KotlinNativeTest::class.java).configureEach { enabled = false }
+    // A disabled task's dependencies still run, so the runs also drop their dependencies (the repo-wide npm install) and
+    // the test binaries they would have consumed are not linked.
+    tasks.withType(KotlinJsTest::class.java).configureEach {
+        enabled = false
+        setDependsOn(emptyList<Any>())
+    }
+    tasks.withType(KotlinNativeTest::class.java).configureEach {
+        enabled = false
+        setDependsOn(emptyList<Any>())
+    }
+    tasks.withType(KotlinNativeLink::class.java).matching { it.binary is TestExecutable }.configureEach { enabled = false }
+    tasks.withType(KotlinJsIrLink::class.java).matching { it.name.startsWith("compileTest") }.configureEach { enabled = false }
+    tasks.matching { it.name.startsWith("wasmJsTestTest") && it.name.endsWith("ExecutableCompileSync") }.configureEach { enabled = false }
     // Libraries declare no Wasm executable, which this Compose check demands only for the browser test runs disabled above.
     tasks.matching { it.name == "checkComposeUiTestConfigurationForWasmJs" }.configureEach { enabled = false }
 }
