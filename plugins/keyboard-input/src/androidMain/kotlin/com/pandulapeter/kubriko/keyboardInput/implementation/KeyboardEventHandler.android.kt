@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 
 private const val DEBOUNCE_TIME_MILLIS = 70L
 
@@ -78,12 +80,12 @@ internal actual fun createKeyboardEventHandler(
                 } catch (_: NullPointerException) {
                 }
             }
-        }.launchIn(coroutineScope)
+        }.launchIn(coroutineScope + Dispatchers.Main)
     }
 
     override fun startListening() {
         pendingReleaseJob?.cancel()
-        pendingReleaseJob = coroutineScope.launch {
+        pendingReleaseJob = coroutineScope.launch(Dispatchers.Main) {
             // The release deadlines are evaluated on a fixed grid anchored to this point, so that a key
             // released while the loop is idle is not reported any sooner than it would have been by a
             // free-running loop.
