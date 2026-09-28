@@ -55,7 +55,7 @@ internal abstract class DestructiblePhysicsObject<T : DestructiblePhysicsObject<
 
     override fun update(deltaTimeInMilliseconds: Int) {
         if (deltaTimeInMilliseconds > 0) {
-            if (body.position.y > viewportManager.bottomRight.value.y + viewportManager.size.value.toSceneSize(viewportManager).height && body.position.y > lowestGroundY) {
+            if (body.position.y > viewportManager.bottomRight.value.y + viewportManager.size.value.toSceneSize(viewportManager).height / 2 && body.position.y > lowestGroundY) {
                 actorManager.remove(this)
             } else {
                 body.position = physicsBody.position

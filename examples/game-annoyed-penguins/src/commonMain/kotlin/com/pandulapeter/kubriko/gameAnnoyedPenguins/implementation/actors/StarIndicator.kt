@@ -63,7 +63,7 @@ internal class StarIndicator(
         body.position = calculateIndicatorPosition(
             starPosition = star.body.position,
             viewportCenter = viewportManager.cameraPosition.value,
-            viewportSize = viewportManager.size.value.toSceneSize(viewportManager),
+            halfViewportSize = viewportManager.size.value.toSceneSize(viewportManager) / 2,
         )
         if (star !in actorManager.allActors.value) {
             actorManager.remove(this)
@@ -73,10 +73,10 @@ internal class StarIndicator(
     private fun calculateIndicatorPosition(
         starPosition: SceneOffset,
         viewportCenter: SceneOffset,
-        viewportSize: SceneSize
+        halfViewportSize: SceneSize
     ): SceneOffset {
-        val halfWidth = viewportSize.width
-        val halfHeight = viewportSize.height
+        val halfWidth = halfViewportSize.width
+        val halfHeight = halfViewportSize.height
         val direction = starPosition - viewportCenter
         if (abs(direction.x) <= halfWidth && abs(direction.y) <= halfHeight) {
             return starPosition

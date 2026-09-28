@@ -85,7 +85,7 @@ internal class Penguin(
         super.update(deltaTimeInMilliseconds)
         body.position = SceneOffset(physicsBody.position.x, physicsBody.position.y)
         body.rotation = physicsBody.rotation
-        if (body.position.y > viewportManager.bottomRight.value.y + viewportManager.size.value.toSceneSize(viewportManager).height && !shouldBeFollowedByCamera) {
+        if (body.position.y > viewportManager.bottomRight.value.y + viewportManager.size.value.toSceneSize(viewportManager).height / 2 && !shouldBeFollowedByCamera) {
             actorManager.remove(this)
         } else {
             collisionMask.position = body.position

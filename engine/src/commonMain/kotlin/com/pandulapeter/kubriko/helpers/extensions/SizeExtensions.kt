@@ -47,20 +47,33 @@ operator fun Size.div(scale: Scale) = Size(
  * @param viewportManager The [ViewportManager] used for conversion.
  */
 fun Size.toSceneSize(viewportManager: ViewportManager): SceneSize = toSceneSize(
-    viewportSize = viewportManager.size.value,
     viewportScaleFactor = (viewportManager as ViewportManagerImpl).currentScaleFactor(),
 )
 
 /**
- * Converts this screen [Size] to a [SceneSize].
+ * Converts this screen [Size] to a [SceneSize] at the given viewport scale.
  *
- * @param viewportSize The size of the viewport in screen pixels.
  * @param viewportScaleFactor The current scale factor of the viewport.
  */
 fun Size.toSceneSize(
-    viewportSize: Size,
     viewportScaleFactor: Scale,
 ): SceneSize = SceneSize(
-    width = (width - viewportSize.width / 2).sceneUnit,
-    height = (height - viewportSize.height / 2).sceneUnit,
+    width = width.sceneUnit,
+    height = height.sceneUnit,
 ) / viewportScaleFactor
+
+/**
+ * Converts this screen [Size] to a [SceneSize].
+ *
+ * @param viewportSize Ignored: a size does not depend on the viewport's size.
+ * @param viewportScaleFactor The current scale factor of the viewport.
+ */
+@Deprecated(
+    message = "A size does not depend on the viewport's size.",
+    replaceWith = ReplaceWith("toSceneSize(viewportScaleFactor)"),
+)
+@Suppress("UNUSED_PARAMETER")
+fun Size.toSceneSize(
+    viewportSize: Size,
+    viewportScaleFactor: Scale,
+): SceneSize = toSceneSize(viewportScaleFactor)
