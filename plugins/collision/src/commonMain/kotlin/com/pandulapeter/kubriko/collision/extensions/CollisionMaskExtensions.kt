@@ -34,10 +34,30 @@ fun Collidable.isCollidingWith(
 fun CollisionMask.collisionResultWith(
     other: CollisionMask,
     shouldSkipAxisAlignedBoundingBoxCheck: Boolean,
+): CollisionResult? = collisionResultWith(
+    other = other,
+    shouldSkipAxisAlignedBoundingBoxCheck = shouldSkipAxisAlignedBoundingBoxCheck,
+    reusableResult = null,
+)
+
+/**
+ * Allocation-free variant of [collisionResultWith] for callers that query the same pair every frame: when
+ * [reusableResult] is not `null` it is overwritten with the new contact details and returned instead of a
+ * new [CollisionResult]. Returns `null` (leaving [reusableResult] untouched) when the masks do not overlap.
+ *
+ * @param other The mask to test against.
+ * @param shouldSkipAxisAlignedBoundingBoxCheck Skips the bounding box pre-check, for callers that already ran a broad phase.
+ * @param reusableResult A result from an earlier call to overwrite, or `null` to allocate a new one.
+ */
+fun CollisionMask.collisionResultWith(
+    other: CollisionMask,
+    shouldSkipAxisAlignedBoundingBoxCheck: Boolean,
+    reusableResult: CollisionResult?,
 ): CollisionResult? = collisionCheck(
     other = other,
     shouldSkipAxisAlignedBoundingBoxCheck = shouldSkipAxisAlignedBoundingBoxCheck,
     resultMode = RESULT_OBJECT,
+    reusableResult = reusableResult,
 )
 
 /**
@@ -267,7 +287,7 @@ private val COLLISION_DETECTED = CollisionResult(
 /** The narrow phase only reports whether the masks overlap. */
 private const val RESULT_NONE = 0
 
-/** The narrow phase allocates a [CollisionResult]. */
+/** The narrow phase overwrites the caller's reusable [CollisionResult], or allocates one when there is none. */
 private const val RESULT_OBJECT = 1
 
 /** The narrow phase writes the contact normal and penetration into [scratchContactNormal] and [scratchPenetration]. */
@@ -280,6 +300,7 @@ private var deepestOverlapPenetration = SceneUnit.Zero
 
 private fun collisionResult(
     resultMode: Int,
+    reusableResult: CollisionResult?,
     contact: SceneOffset,
     contactNormal: SceneOffset,
     penetration: SceneUnit,
@@ -287,6 +308,11 @@ private fun collisionResult(
     scratchContactNormal = contactNormal
     scratchPenetration = penetration
     COLLISION_DETECTED
+} else if (reusableResult != null) {
+    reusableResult.contact = contact
+    reusableResult.contactNormal = contactNormal
+    reusableResult.penetration = penetration
+    reusableResult
 } else {
     CollisionResult(
         contact = contact,
@@ -299,6 +325,7 @@ private fun CollisionMask.collisionCheck(
     other: CollisionMask,
     shouldSkipAxisAlignedBoundingBoxCheck: Boolean,
     resultMode: Int,
+    reusableResult: CollisionResult? = null,
 ): CollisionResult? = if (shouldSkipAxisAlignedBoundingBoxCheck || axisAlignedBoundingBox.isOverlapping(other.axisAlignedBoundingBox)) {
     val collisionMaskA = this
     val collisionMaskB = other
@@ -312,6 +339,7 @@ private fun CollisionMask.collisionCheck(
             circle = collisionMaskB,
             shouldFlipContactNormal = false,
             resultMode = resultMode,
+            reusableResult = reusableResult,
         )
 
         isPointB && collisionMaskA is CircleCollisionMask -> checkPointToCircleCollision(
@@ -319,6 +347,7 @@ private fun CollisionMask.collisionCheck(
             circle = collisionMaskA,
             shouldFlipContactNormal = true,
             resultMode = resultMode,
+            reusableResult = reusableResult,
         )
 
         isPointA && collisionMaskB is PolygonCollisionMask -> checkPointToPolygonCollision(
@@ -326,6 +355,7 @@ private fun CollisionMask.collisionCheck(
             polygon = collisionMaskB,
             shouldFlipContactNormal = false,
             resultMode = resultMode,
+            reusableResult = reusableResult,
         )
 
         isPointB && collisionMaskA is PolygonCollisionMask -> checkPointToPolygonCollision(
@@ -333,12 +363,14 @@ private fun CollisionMask.collisionCheck(
             polygon = collisionMaskA,
             shouldFlipContactNormal = true,
             resultMode = resultMode,
+            reusableResult = reusableResult,
         )
 
         collisionMaskA is CircleCollisionMask && collisionMaskB is CircleCollisionMask -> checkCircleToCircleCollision(
             circleA = collisionMaskA,
             circleB = collisionMaskB,
             resultMode = resultMode,
+            reusableResult = reusableResult,
         )
 
         collisionMaskA is CircleCollisionMask && collisionMaskB is PolygonCollisionMask -> checkCircleToPolygonCollision(
@@ -346,6 +378,7 @@ private fun CollisionMask.collisionCheck(
             polygon = collisionMaskB,
             shouldFlipContactNormal = false,
             resultMode = resultMode,
+            reusableResult = reusableResult,
         )
 
         collisionMaskA is PolygonCollisionMask && collisionMaskB is CircleCollisionMask -> checkCircleToPolygonCollision(
@@ -353,12 +386,14 @@ private fun CollisionMask.collisionCheck(
             polygon = collisionMaskA,
             shouldFlipContactNormal = true,
             resultMode = resultMode,
+            reusableResult = reusableResult,
         )
 
         collisionMaskA is PolygonCollisionMask && collisionMaskB is PolygonCollisionMask -> checkPolygonToPolygonCollision(
             polygonA = collisionMaskA,
             polygonB = collisionMaskB,
             resultMode = resultMode,
+            reusableResult = reusableResult,
         )
 
         else -> null
@@ -388,6 +423,7 @@ private fun checkCircleToCircleCollision(
     circleA: CircleCollisionMask,
     circleB: CircleCollisionMask,
     resultMode: Int,
+    reusableResult: CollisionResult?,
 ): CollisionResult? {
     val normalX = circleB.position.x.raw - circleA.position.x.raw
     val normalY = circleB.position.y.raw - circleA.position.y.raw
@@ -403,6 +439,7 @@ private fun checkCircleToCircleCollision(
     if (distance == 0f) {
         return collisionResult(
             resultMode = resultMode,
+            reusableResult = reusableResult,
             contact = circleA.position,
             contactNormal = SceneOffset.Down,
             penetration = radius.sceneUnit,
@@ -411,6 +448,7 @@ private fun checkCircleToCircleCollision(
     val contactNormal = SceneOffset((normalX / distance).sceneUnit, (normalY / distance).sceneUnit)
     return collisionResult(
         resultMode = resultMode,
+        reusableResult = reusableResult,
         contact = contactNormal.scalar(circleA.radius) + circleB.position,
         contactNormal = contactNormal,
         penetration = (radius - distance).sceneUnit,
@@ -427,6 +465,7 @@ private fun checkPointToCircleCollision(
     circle: CircleCollisionMask,
     shouldFlipContactNormal: Boolean,
     resultMode: Int,
+    reusableResult: CollisionResult?,
 ): CollisionResult? {
     val normalX = circle.position.x.raw - point.x.raw
     val normalY = circle.position.y.raw - point.y.raw
@@ -446,6 +485,7 @@ private fun checkPointToCircleCollision(
     }
     return collisionResult(
         resultMode = resultMode,
+        reusableResult = reusableResult,
         contact = point,
         contactNormal = if (shouldFlipContactNormal) -contactNormal else contactNormal,
         penetration = (radius - distance).sceneUnit,
@@ -461,6 +501,7 @@ private fun checkPointToPolygonCollision(
     polygon: PolygonCollisionMask,
     shouldFlipContactNormal: Boolean,
     resultMode: Int,
+    reusableResult: CollisionResult?,
 ): CollisionResult? {
     if (!polygon.isSceneOffsetInside(point)) {
         return null
@@ -481,6 +522,7 @@ private fun checkPointToPolygonCollision(
     val outwardNormal = polygon.rotationMatrix.times(polygon.normals[faceNormalIndex])
     return collisionResult(
         resultMode = resultMode,
+        reusableResult = reusableResult,
         contact = point,
         contactNormal = if (shouldFlipContactNormal) outwardNormal else -outwardNormal,
         penetration = -separation,
@@ -492,6 +534,7 @@ private fun checkCircleToPolygonCollision(
     polygon: PolygonCollisionMask,
     shouldFlipContactNormal: Boolean,
     resultMode: Int,
+    reusableResult: CollisionResult?,
 ): CollisionResult? {
 
     //Transpose effectively removes the rotation thus allowing the OBB vs OBB detection to become AABB vs OBB
@@ -533,6 +576,7 @@ private fun checkCircleToPolygonCollision(
         else polygon.rotationMatrix.times((vector1 - polyToCircleVec).normalized()).let { contactNormal ->
             collisionResult(
                 resultMode = resultMode,
+                reusableResult = reusableResult,
                 contact = polygon.rotationMatrix.times(vector1) + polygon.position,
                 contactNormal = if (shouldFlipContactNormal) -contactNormal else contactNormal,
                 penetration = circle.radius - distBetweenObj,
@@ -554,6 +598,7 @@ private fun checkCircleToPolygonCollision(
         else polygon.rotationMatrix.times(vector2.minus(polyToCircleVec).normalized()).let { contactNormal ->
             collisionResult(
                 resultMode = resultMode,
+                reusableResult = reusableResult,
                 contact = polygon.rotationMatrix.times(vector2) + polygon.position,
                 contactNormal = if (shouldFlipContactNormal) -contactNormal else contactNormal,
                 penetration = circle.radius - distBetweenObj,
@@ -566,6 +611,7 @@ private fun checkCircleToPolygonCollision(
         else polygon.rotationMatrix.times(polygon.normals[faceNormalIndex]).let { contactNormal ->
             collisionResult(
                 resultMode = resultMode,
+                reusableResult = reusableResult,
                 contact = circle.position.plus(-contactNormal.scalar(circle.radius)),
                 contactNormal = if (shouldFlipContactNormal) contactNormal else -contactNormal,
                 penetration = circle.radius - distFromEdgeToCircle,
@@ -583,6 +629,7 @@ private fun checkPolygonToPolygonCollision(
     polygonA: PolygonCollisionMask,
     polygonB: PolygonCollisionMask,
     resultMode: Int,
+    reusableResult: CollisionResult?,
 ): CollisionResult? {
     findAxisOfMinPenetration(polygonPolygonAData, polygonA, polygonB)
     if (polygonPolygonAData.penetration >= SceneUnit.Zero) {
@@ -686,6 +733,7 @@ private fun checkPolygonToPolygonCollision(
     }
     return collisionResult(
         resultMode = resultMode,
+        reusableResult = reusableResult,
         contact = contactPoint,
         contactNormal = if (flip) -refFaceNormal else refFaceNormal,
         penetration = penetration

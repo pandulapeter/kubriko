@@ -26,7 +26,6 @@ import com.pandulapeter.kubriko.types.SceneSize
 import kotlin.math.abs
 import kotlin.math.sqrt
 import kotlin.random.Random
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -171,7 +170,6 @@ class PhysicsContractTest {
         assertTrue(allocatedBytesPerTick <= ALLOCATION_BUDGET_IN_BYTES, "Measured $allocatedBytesPerTick B/tick.")
     }
 
-    @Ignore("measured 1 266 B/tick with 200 contacts")
     @Test
     fun steadyStateTickAllocationWithContacts() = withPhysics { kubriko, _ ->
         val floor = box(x = 0f, y = 500f, width = 6_000f, height = 100f, density = 0f)
@@ -181,7 +179,19 @@ class PhysicsContractTest {
 
         val allocatedBytesPerTick = measureAllocatedBytesPerRun(warmUpRuns = 2_000, measuredRuns = 500) { kubriko.tick() }
 
-        println("Measured $allocatedBytesPerTick B/tick with 200 contacts.")
+        assertTrue(allocatedBytesPerTick <= ALLOCATION_BUDGET_IN_BYTES, "Measured $allocatedBytesPerTick B/tick.")
+    }
+
+    @Test
+    fun steadyStateTickAllocationWithRestingContacts() = withPhysics { kubriko, _ ->
+        val floor = box(x = 0f, y = 500f, width = 6_000f, height = 100f, density = 0f)
+        val bodies = List(200) { index -> circle(x = (index - 100) * 25f, y = 430f, restitution = 0f) }
+        kubriko.actorManager.add(listOf(floor) + bodies)
+        kubriko.tick(count = 600)
+
+        val allocatedBytesPerTick = measureAllocatedBytesPerRun(warmUpRuns = 2_000, measuredRuns = 500) { kubriko.tick() }
+
+        assertTrue(allocatedBytesPerTick <= ALLOCATION_BUDGET_IN_BYTES, "Measured $allocatedBytesPerTick B/tick.")
     }
 
     /**

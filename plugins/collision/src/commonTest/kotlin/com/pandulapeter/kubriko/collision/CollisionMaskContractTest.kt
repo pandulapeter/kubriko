@@ -29,6 +29,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class CollisionMaskContractTest {
@@ -123,6 +124,28 @@ class CollisionMaskContractTest {
                 assertTrue(result.penetration.raw >= 0f, "$message: penetration ${result.penetration}")
             } else {
                 assertNull(result, message)
+            }
+        }
+    }
+
+    @Test
+    fun reusableResultIsOverwrittenOnOverlapAndUntouchedOtherwise() = forEveryOrderedPair { first, second ->
+        Placement.entries.forEach { placement ->
+            val (a, b) = place(first, second, placement, SceneOffset.Zero)
+            val reusableResult = CollisionResult(contact = offset(123f, 456f), contactNormal = offset(0f, 1f), penetration = 7f.sceneUnit)
+            val expected = a.collisionResultWith(b, shouldSkipAxisAlignedBoundingBoxCheck = false)
+            val result = a.collisionResultWith(b, shouldSkipAxisAlignedBoundingBoxCheck = false, reusableResult = reusableResult)
+            val message = "${first.name} vs ${second.name}, $placement"
+            if (expected != null) {
+                assertSame(reusableResult, result, message)
+                assertEquals(expected.contact, reusableResult.contact, message)
+                assertEquals(expected.contactNormal, reusableResult.contactNormal, message)
+                assertEquals(expected.penetration, reusableResult.penetration, message)
+            } else {
+                assertNull(result, message)
+                assertEquals(offset(123f, 456f), reusableResult.contact, message)
+                assertEquals(offset(0f, 1f), reusableResult.contactNormal, message)
+                assertEquals(7f.sceneUnit, reusableResult.penetration, message)
             }
         }
     }

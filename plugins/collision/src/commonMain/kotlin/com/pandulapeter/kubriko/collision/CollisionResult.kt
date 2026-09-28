@@ -20,7 +20,14 @@ import com.pandulapeter.kubriko.types.SceneUnit
  * @property penetration The depth of the overlap between the two objects.
  */
 class CollisionResult internal constructor(
-    val contact: SceneOffset,
-    val contactNormal: SceneOffset,
-    val penetration: SceneUnit,
-)
+    contact: SceneOffset,
+    contactNormal: SceneOffset,
+    penetration: SceneUnit,
+) {
+    var contact = contact
+        internal set
+    var contactNormal = contactNormal
+        internal set
+    var penetration = penetration
+        internal set
+}

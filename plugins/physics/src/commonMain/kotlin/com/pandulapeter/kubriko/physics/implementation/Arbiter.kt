@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubriko.physics.implementation
 
+import com.pandulapeter.kubriko.collision.CollisionResult
 import com.pandulapeter.kubriko.collision.extensions.collisionResultWith
 import com.pandulapeter.kubriko.helpers.extensions.cross
 import com.pandulapeter.kubriko.helpers.extensions.dot
@@ -39,22 +40,25 @@ internal class Arbiter(
         dynamicFriction = (bodyA.dynamicFriction + bodyB.dynamicFriction) / 2
         isColliding = false
     }
-    val contacts = arrayOf(SceneOffset.Zero, SceneOffset.Zero)
+    var contact = SceneOffset.Zero
     var contactNormal = SceneOffset.Zero
     var isColliding = false
     var restitution = 0f
     private var penetration = SceneUnit.Zero
+    private var collisionResult: CollisionResult? = null
 
     fun narrowPhaseCheck() {
         restitution = bodyA.restitution.coerceAtMost(bodyB.restitution)
         bodyA.collisionMask.collisionResultWith(
             other = bodyB.collisionMask,
             shouldSkipAxisAlignedBoundingBoxCheck = true,
-        )?.let { collisionResult ->
+            reusableResult = collisionResult,
+        )?.let { result ->
+            collisionResult = result
             isColliding = true
-            contacts[0] = collisionResult.contact
-            contactNormal = collisionResult.contactNormal
-            penetration = collisionResult.penetration
+            contact = result.contact
+            contactNormal = result.contactNormal
+            penetration = result.penetration
         }
     }
 
@@ -77,8 +81,8 @@ internal class Arbiter(
      * Solves the current contact manifold and applies impulses based on any contacts found.
      */
     fun solve() {
-        val contactA = contacts[0] - bodyA.position
-        val contactB = contacts[0] - bodyB.position
+        val contactA = contact - bodyA.position
+        val contactB = contact - bodyB.position
 
         //Relative velocity created from equation found in GDC talk of box2D lite.
         var relativeVel = bodyB.velocity

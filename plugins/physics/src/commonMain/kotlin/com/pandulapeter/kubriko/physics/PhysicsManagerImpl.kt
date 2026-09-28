@@ -121,7 +121,9 @@ internal class PhysicsManagerImpl(
     // current positions, integrate, then resolve penetration. Collisions are re-detected every sub-step,
     // which is what prevents tunneling when a tick is split into several steps.
     private fun step(dt: Float) {
-        arbiterPool.addAll(arbiters)
+        for (i in arbiters.indices) {
+            arbiterPool.add(arbiters[i])
+        }
         arbiters.clear()
         // Collision detection (broad and narrow phase) reads each body's collisionMask, but integration and
         // penetration resolution move physicsBody.position/rotation. Those two are otherwise only reconciled

@@ -63,6 +63,8 @@ A uniform hashed-cell index over a set of `CollisionMask`s. Public, because game
 
 Pass `shouldSkipAxisAlignedBoundingBoxCheck = true` to `collisionResultWith()` only when AABB overlap is guaranteed.
 
+A caller that queries the same pair every frame can pass `reusableResult` to the three-argument `collisionResultWith()` overload: an overlap overwrites that `CollisionResult` (its properties have `internal set`) and returns it instead of allocating a new one; no overlap returns `null` and leaves it untouched. The physics plugin's `Arbiter` uses this.
+
 ## Kinematic Movement Response
 
 `CollisionMaskExtensions.kt` also exposes two helpers for actors moved by writing their position directly (no physics plugin) that should be blocked by solid obstacles:

@@ -124,6 +124,8 @@ Add the `JointWrapper` actor to the scene alongside the bodies it connects.
 
 `PhysicsManagerImpl` pools `Arbiter` objects to avoid per-frame allocation. Do not hold references to arbiters beyond the physics update — they are recycled every tick.
 
+The pool is refilled with an indexed loop (not `addAll`, which copies through `toArray()`), an arbiter's contact is an unboxed `SceneOffset` field, and each arbiter reuses its own `CollisionResult` through the `reusableResult` overload of `collisionResultWith`, so contacts cost no allocation per step.
+
 ## Broad Phase: Sweep-and-Prune
 
 `broadPhaseCheck()` keeps body indices sorted by AABB left edge (insertion sort over reusable `IntArray`/`FloatArray` scratch buffers — nearly O(n) per frame thanks to temporal coherence; the order is reset to identity whenever the `rigidBodies` list reference changes). Each body is then only tested against neighbors whose x-extents can still overlap. AABBs are read once per body per frame into the scratch arrays.
