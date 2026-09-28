@@ -77,6 +77,7 @@ internal class ControlOverlayManager(
     private val keyboardMovementSpeed = SceneUnit.Unit
     private var millisSinceLastInteraction = 0
     private var isFrameRateThrottled = false
+    private var lastLogicCullingScale = Float.NaN
 
     override fun onInitialize(kubriko: Kubriko) {
         kubriko.get<ActorManager>().add(this)
@@ -102,6 +103,33 @@ internal class ControlOverlayManager(
             val targetFrameRate = if (shouldThrottle) IDLE_TARGET_FRAME_RATE else TargetFrameRate.DisplayDefault
             viewportManager.setTargetFrameRate(targetFrameRate)
             logicViewportManager.setTargetFrameRate(targetFrameRate)
+        }
+        updateLogicCullingScale()
+    }
+
+    /**
+     * Sizes the logic viewport so that its visibleActorsWithinViewport (the culling input of the isometric
+     * view) covers the ground under every screen corner: radius is the distance from the camera to the
+     * farthest such point, which does not depend on worldRotation. The change guard is required, as
+     * setScaleFactor boxes a Scale on every call.
+     */
+    private fun updateLogicCullingScale() {
+        val viewportSize = viewportManager.size.value
+        val logicViewportSize = logicViewportManager.size.value
+        if (viewportSize.isEmpty() || logicViewportSize.isEmpty()) return
+        val renderState = volumetricRenderManager.renderState.value
+        val isometricScale = viewportManager.scaleFactor.value.horizontal
+        val worldUnitInPixels = renderState.zoom * SQRT_2
+        val halfWidth = viewportSize.width / (2f * isometricScale)
+        val halfHeight = viewportSize.height / (2f * isometricScale) +
+            (VolumetricRenderManager.FOCUS_HEIGHT + MAXIMUM_MODEL_HEIGHT) * worldUnitInPixels / 0.75f
+        val alongX = halfWidth / worldUnitInPixels
+        val alongY = 2f * halfHeight / (worldUnitInPixels * renderState.tilt)
+        val radius = sqrt((alongX * alongX + alongY * alongY) / 2f) + MOVEMENT_MARGIN
+        val cullingScale = minOf(logicViewportSize.width, logicViewportSize.height) / (2f * radius)
+        if (cullingScale != lastLogicCullingScale) {
+            lastLogicCullingScale = cullingScale
+            logicViewportManager.setScaleFactor(cullingScale)
         }
     }
 
@@ -268,6 +296,13 @@ internal class ControlOverlayManager(
     private companion object {
         const val IDLE_FRAME_RATE_TIMEOUT_MS = 2000
         val IDLE_TARGET_FRAME_RATE = TargetFrameRate.DisplayDivider(2)
+        const val SQRT_2 = 1.4142135f
+
+        /** The top of the tallest model in world units: the tree's foliage (positionZ + sizeZ / 2 = 550) at Tree's maximum height factor (1.2). */
+        const val MAXIMUM_MODEL_HEIGHT = 660f
+
+        /** MainCharacter's maximum speed (0.5 units/ms) over the logic ActorManager's re-cull interval (500 ms). */
+        const val MOVEMENT_MARGIN = 250f
     }
 
     private fun SceneOffset.calculateMovementDirection() =

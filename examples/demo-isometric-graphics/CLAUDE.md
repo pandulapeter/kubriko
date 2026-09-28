@@ -26,8 +26,9 @@ demo's state holder:
 
 - **`logicKubriko`** (`LOG_TAG_LOGIC = "IsometricGraphicsLogic"`) — drives game logic in plain
   Cartesian space: the `ActorManager` (with `invisibleActorMinimumRefreshTimeInMillis = 500`),
-  `logicViewportManager` (scale `0.04`), `ControlManager`, `LogicManager`, `TextureResolver`, and a
-  `SpriteManager`.
+  `logicViewportManager` (scale set every isometric tick by `ControlOverlayManager` so the culling square
+  covers the projected isometric view; the minimap draws at a fixed `0.04`), `ControlManager`,
+  `LogicManager`, `TextureResolver`, and a `SpriteManager`.
 - **`isometricKubriko`** (`LOG_TAG = "IsometricGraphics"`) — pure rendering: `volumetricViewportManager`,
   `VolumetricRenderManager`, `ControlOverlayManager`, `KeyboardInputManager`, `PointerInputManager`.
 

@@ -63,6 +63,7 @@ internal class IsometricGraphicsDemoStateHolderImpl(
     // region logic instance
     val logicViewportManager = ViewportManager.newInstance(
         initialScaleFactor = 0.04f,
+        minimumScaleFactor = 0.001f,
         isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG_LOGIC,
     )

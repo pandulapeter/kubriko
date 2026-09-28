@@ -53,10 +53,11 @@ import kotlin.time.Duration.Companion.milliseconds
 
 private const val SHOW_MINI_MAP = true
 private const val MINI_MAP_REFRESH_MS = 64L
+private const val MINI_MAP_SCALE = 0.04f
 
 // 128 dp circular top-down minimap, drawn as a lightweight overlay instead of rendering
-// stateHolder.logicKubriko's actors: camera offset and scale are read live (full-frame-rate scrolling while
-// moving, zero redraws while idle), while marker world positions are sampled by MiniMapSampler
+// stateHolder.logicKubriko's actors, at the fixed MINI_MAP_SCALE: the camera offset is read live (full-frame-rate
+// scrolling while moving, zero redraws while idle), while marker world positions are sampled by MiniMapSampler
 // every MINI_MAP_REFRESH_MS. Markers tolerate the sampling lag because the main character is
 // pinned to the center (camera = character position) and scenery is world-static.
 @Composable
@@ -68,8 +69,9 @@ internal fun MiniMap(
     modifier = modifier.size(128.dp),
 ) {
     // Kept invisible but composed: this viewport sizes stateHolder.logicViewportManager and keeps
-    // stateHolder.logicKubriko's loop running — its visibleActorsWithinViewport flow is the culling
-    // input for the volumetric pipeline. The visible minimap is the overlay below.
+    // stateHolder.logicKubriko's loop running. Its scale is set by ControlOverlayManager so that
+    // visibleActorsWithinViewport, the culling input for the volumetric pipeline, covers the isometric
+    // view. The visible minimap is the overlay below.
     KubrikoViewport(
         modifier = Modifier
             .matchParentSize()
@@ -79,7 +81,6 @@ internal fun MiniMap(
     if (SHOW_MINI_MAP) {
         val worldRotationState = stateHolder.volumetricRenderManager.worldRotation.collectAsState()
         val cameraOffsetState = stateHolder.controlManager.cameraOffset.collectAsState()
-        val scaleFactorState = stateHolder.logicViewportManager.scaleFactor.collectAsState()
         val sampler = remember { MiniMapSampler() }
         val samplerVersion = remember { mutableStateOf(0) }
         val surfaceColor = MaterialTheme.colorScheme.surfaceContainerHighest
@@ -87,9 +88,8 @@ internal fun MiniMap(
         LaunchedEffect(Unit) {
             val actorManager = stateHolder.logicKubriko.get<ActorManager>()
             while (true) {
-                val scale = stateHolder.logicViewportManager.scaleFactor.value.horizontal
-                if (scale > 0f && sampler.sample(
-                        scale = scale,
+                if (sampler.sample(
+                        scale = MINI_MAP_SCALE,
                         actors = actorManager.visibleActorsWithinViewport.value,
                     )
                 ) {
@@ -117,11 +117,10 @@ internal fun MiniMap(
                 .graphicsLayer { rotationZ = worldRotationState.value.deg.normalized + 45f }
                 .drawBehind {
                     samplerVersion.value // Establishes the invalidation dependency on new samples.
-                    // Camera and scale are read live so the minimap scrolls at full frame
-                    // rate while moving; both stop changing when the character stands
-                    // still, so being idle costs no redraws at all.
-                    val scale = scaleFactorState.value.horizontal
-                    if (scale <= 0f) return@drawBehind
+                    // The camera is read live so the minimap scrolls at full frame rate while
+                    // moving; it stops changing when the character stands still, so being idle
+                    // costs no redraws at all.
+                    val scale = MINI_MAP_SCALE
                     val cameraOffset = cameraOffsetState.value
                     drawTopDownGrid(
                         gridLinesPath = topDownPath,
