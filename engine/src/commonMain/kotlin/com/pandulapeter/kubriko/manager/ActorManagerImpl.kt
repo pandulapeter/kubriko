@@ -410,13 +410,15 @@ internal class ActorManagerImpl(
 
     private fun flattenActors(initialActors: List<Actor>): List<Actor> {
         val result = ArrayList<Actor>()
+        val visited = HashSet<Actor>()
         val queue = ArrayDeque(initialActors)
         while (queue.isNotEmpty()) {
             val current = queue.removeFirst()
+            if (!visited.add(current)) continue
             result.add(current)
             if (current is Group) {
                 for (child in current.actors) {
-                    if (child !== current) {
+                    if (child !in visited) {
                         queue.addLast(child)
                     }
                 }

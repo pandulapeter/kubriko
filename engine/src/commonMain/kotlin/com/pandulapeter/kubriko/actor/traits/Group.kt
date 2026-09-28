@@ -14,6 +14,9 @@ import com.pandulapeter.kubriko.actor.Actor
 /**
  * Represents an actor that contains a list of other actors.
  * It is useful for adding or removing multiple Actors simultaneously to / from the scene.
+ *
+ * Nested groups are flattened; an actor reachable through several groups (or through a cycle of groups) is added
+ * once. Actors are compared with `equals`, so actors should not override it.
  */
 interface Group : Actor {
 
