@@ -24,6 +24,9 @@ interface Actor {
      * processes the batch of additions - not the main thread. Anything that must run on the main
      * thread has to be dispatched there explicitly.
      *
+     * An exception thrown here does not prevent the rest of the batch from being applied; it is rethrown afterwards
+     * on the Kubriko scope.
+     *
      * @param kubriko The [Kubriko] instance the actor was added to. Could be used to get references to [Manager] instances.
      */
     fun onAdded(kubriko: Kubriko) = Unit
@@ -32,6 +35,9 @@ interface Actor {
      * Called right after the actor is removed from the [ActorManager], on the background thread that
      * processes the batch of removals - not the main thread. Anything that must run on the main
      * thread has to be dispatched there explicitly.
+     *
+     * An exception thrown here does not prevent the rest of the batch from being applied; it is rethrown afterwards
+     * on the Kubriko scope.
      */
     fun onRemoved() = Unit
 }

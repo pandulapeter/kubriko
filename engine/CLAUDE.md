@@ -60,6 +60,8 @@ The visibility / active-dynamic cull scan is throttled by `invisibleActorMinimum
 
 `add`/`remove`/`removeAll` send `Operation` instances to an `UNLIMITED` `Channel`, processed on `Dispatchers.Default`. Processor drains full channel each cycle, then: flattens `Group` actors (BFS, cycle-guarded), evicts earlier `Unique` instances, assigns UUIDs to unnamed `Identifiable` actors, calls `onAdded` before updating `_allActors`, then `Disposable.dispose()` and `onRemoved` after.
 
+Every callback runs in its own `try`: a throwing `onAdded`/`dispose`/`onRemoved` is logged and skips nothing else (the batch is still published and every other callback still runs, including that actor's `onRemoved` after a failed `dispose`), and the batch's first failure is rethrown afterwards from a fresh coroutine on the Kubriko scope, so the processor loop survives it.
+
 **All three callbacks run on the processor's own `Dispatchers.Default` coroutine, not the main thread.** An actor's `onAdded`/`onRemoved`/`dispose` must dispatch anything main-thread-confined itself; the public KDoc on `Actor` and `ActorManager` says so too, and must keep saying so if the threading is ever revisited.
 
 The whole batch runs against **one** mutable `ArrayList` working copy plus a `HashSet` membership index, and publishes a single `toImmutableList()` snapshot at the end — and only when something actually changed. Rebuilding the full list per operation made a batch of individual `add`/`remove` calls quadratic, and testing membership with `List.contains` made bulk removal O(removals × actors). The unique-replacement scan is skipped outright when the batch adds no `Unique` actors. The published list is never mutated, so old snapshots handed to consumers stay valid.

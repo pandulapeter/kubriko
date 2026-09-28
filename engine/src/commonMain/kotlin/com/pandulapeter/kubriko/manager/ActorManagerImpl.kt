@@ -42,6 +42,7 @@ import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -312,7 +313,13 @@ internal class ActorManagerImpl(
                         batch.add(op)
                     }
                     processBatch(batch)
-                } catch (_: Exception) {
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    log(
+                        message = "Actor batch processing failed.",
+                        details = e.stackTraceToString(),
+                    )
                 }
             }
         }
@@ -501,18 +508,46 @@ internal class ActorManagerImpl(
                 }
             }
         }
-        if (newlyAdded.isNotEmpty()) {
-            newlyAdded.forEach { it.onAdded(kubrikoImpl) }
+        var firstFailure: Exception? = null
+        for (actor in newlyAdded) {
+            firstFailure = runActorCallback(actor, "onAdded", firstFailure) { actor.onAdded(kubrikoImpl) }
         }
         if (didChange) {
             _allActors.value = workingList.toImmutableList()
         }
-        if (newlyRemoved.isNotEmpty()) {
-            newlyRemoved.forEach {
-                (it as? Disposable)?.dispose()
-                it.onRemoved()
+        for (actor in newlyRemoved) {
+            if (actor is Disposable) {
+                firstFailure = runActorCallback(actor, "dispose", firstFailure) { actor.dispose() }
             }
+            firstFailure = runActorCallback(actor, "onRemoved", firstFailure) { actor.onRemoved() }
         }
+        val failure = firstFailure
+        if (failure != null) {
+            scope.launch { throw failure }
+        }
+    }
+
+    /**
+     * Runs one actor callback in isolation, so that a throwing actor never keeps the rest of the batch from being
+     * applied. Returns the first failure of the batch: [firstFailure] if there already was one, otherwise the
+     * exception thrown by [callback] (if any).
+     */
+    private inline fun runActorCallback(
+        actor: Actor,
+        callbackName: String,
+        firstFailure: Exception?,
+        callback: () -> Unit,
+    ): Exception? = try {
+        callback()
+        firstFailure
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        log(
+            message = "Actor callback failed: $callbackName of $actor.",
+            details = e.stackTraceToString(),
+        )
+        firstFailure ?: e
     }
 
     // Enqueued on the caller's own thread rather than from a coroutine, which is what makes operations
