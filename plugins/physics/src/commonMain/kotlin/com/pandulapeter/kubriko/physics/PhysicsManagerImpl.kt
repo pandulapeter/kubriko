@@ -244,7 +244,9 @@ internal class PhysicsManagerImpl(
         // One bounding box read per body (the pair loop below would otherwise re-read them O(n²) times).
         for (i in 0 until bodyCount) {
             val aabb = bodies[i].collisionMask.axisAlignedBoundingBox
-            sweepMinX[i] = aabb.left.raw
+            val left = aabb.left.raw
+            // The sort cannot order NaN, so such a body (which overlaps nothing) goes last instead of splitting it.
+            sweepMinX[i] = if (left.isNaN()) Float.POSITIVE_INFINITY else left
             sweepMaxX[i] = aabb.right.raw
         }
         // Insertion sort by minX; nearly sorted from the previous frame.

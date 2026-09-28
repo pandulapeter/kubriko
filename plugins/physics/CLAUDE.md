@@ -130,6 +130,6 @@ Add the `JointWrapper` actor to the scene alongside the bodies it connects.
 
 **Order preservation is load-bearing**: candidate pairs are packed into a `LongArray` as `(minIndex shl 32) or maxIndex` and sorted before the narrow phase, restoring the exact `(i, j)` order of a naive nested loop. The sequential impulse solver iterates arbiters in insertion order, so changing pair order would change simulation results. Do not "optimize away" the pair sort.
 
-The `>=` x-axis break condition matches `isOverlapping` exactly (touching edges count as non-overlapping), so the sweep prunes no pair the full AABB check would have accepted.
+The `>=` x-axis break condition matches `isOverlapping` exactly (touching edges count as non-overlapping), so the sweep prunes no pair the full AABB check would have accepted. Bodies with `NaN` bounds sort last (their left edge is read as `+inf`) and never collide, so one bad body cannot unsort the array and hide other bodies' contacts.
 
 `applyLinearDrag` early-returns when `linearDampening == 0f` (the default) or velocity is zero — a zero drag force is a no-op — and reuses the computed magnitude instead of calling `normalized()`, which would take the same square root twice.
