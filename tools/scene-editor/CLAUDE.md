@@ -52,7 +52,7 @@ Scene files are plain JSON produced by `SerializationManager.serializeActors(Lis
 
 ## Navigation (keyboard)
 
-`KeyboardInputListener` actor in `editorKubriko` handles Escape (deselect actor → deselect type → close editor), undo/redo shortcuts, the T/S/R interaction-mode shortcuts (gated while a text input is focused), and the arrow-key camera pan + `+`/`-` zoom (via `ViewportManager.handleKeys`). The editor deliberately pans with the arrow keys only — the plugin's `directionState` also accepts WASD, but the editor's own `handleKeys` ignores those letters so T/S (and W/A/D) stay free as shortcuts.
+`KeyboardInputListener` actor in `editorKubriko` handles Escape (deselect actor → deselect type → close editor, the last step only when the scene has no unsaved changes; with the Settings window open it closes that instead), undo/redo shortcuts, the T/S/R interaction-mode shortcuts (gated while a text input is focused), and the arrow-key camera pan + `+`/`-` zoom (via `ViewportManager.handleKeys`). The editor deliberately pans with the arrow keys only — the plugin's `directionState` also accepts WASD, but the editor's own `handleKeys` ignores those letters so T/S (and W/A/D) stay free as shortcuts.
 
 The active interaction mode lives in `EditorController.interactionMode` (default `Translate`, in-memory). It drives `handleMouseDrag` in `ModifierExtensions.kt`: a left-drag that started on the selected actor translates its `position` (snapped), or — for a `BoxBody` — sets `scale` (axis-independent: horizontal drag → horizontal scale, vertical drag → vertical scale, relative to the unscaled size) or `rotation` (orbit around the pivot at `body.position`). Shift-drag and middle-mouse always pan regardless of mode.
 
@@ -60,7 +60,7 @@ The active interaction mode lives in `EditorController.interactionMode` (default
 
 - `LocalTextInputFocusReporter` (a `staticCompositionLocalOf`) carries a `(Boolean) -> Unit` reporter, provided in `InternalSceneEditor` around the editor UI. This avoids threading a focus callback through every property editor.
 - The shared `ui-components` `TextInput` accepts an `onFocusChanged` callback and reports a **balanced** focus state — it emits `false` on dispose if it was focused, so the count can't leak when a focused field is removed (e.g. selecting a different actor). `EditorTextInput` and the HEX field in `ColorPropertyEditor` are the only call sites that forward the local into it.
-- `EditorController` keeps `focusedTextInputCount`; `KeyboardInputListener.handleActiveKeys` skips `ViewportManager.handleKeys` while it is `> 0`. Discrete shortcuts (Escape, undo/redo) are **not** gated.
+- `EditorController` keeps `focusedTextInputCount`; `KeyboardInputListener.handleActiveKeys` skips `ViewportManager.handleKeys` while it is `> 0`. Escape is gated too; undo/redo shortcuts are not.
 
 ## Persistence
 

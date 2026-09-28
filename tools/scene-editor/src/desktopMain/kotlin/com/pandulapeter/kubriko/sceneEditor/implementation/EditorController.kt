@@ -25,9 +25,11 @@ import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.GridOverlay
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.KeyboardInputListener
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.boundingBoxCollisionMask
+import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.NavigateBackAction
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.UndoRedoHistory
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.UserPreferences
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
+import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.navigateBackAction
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.saveFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.AngleEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.ColorEditorMode
@@ -57,6 +59,7 @@ internal class EditorController(
     val sceneEditorMode: SceneEditorMode,
     defaultSceneFilename: String?,
     defaultSceneFolderPath: String,
+    private val isSettingsOpen: () -> Boolean,
     private val onCloseRequest: () -> Unit,
 ) : CoroutineScope {
 
@@ -432,16 +435,19 @@ internal class EditorController(
         _currentFileName.update { path.split('/').last() }
     }
 
-    private fun navigateBack() {
-        if (selectedUpdatableActor.value.first == null) {
-            if (selectedTypeId.value == null) {
-                onCloseRequest()
-            } else {
-                selectActorType(null)
-            }
-        } else {
-            deselectSelectedActor()
-        }
+    private fun navigateBack() = when (
+        navigateBackAction(
+            hasSelectedActor = getSelectedActor() != null,
+            hasSelectedType = selectedTypeId.value != null,
+            isSettingsOpen = isSettingsOpen(),
+            isSceneModified = isSceneModified.value,
+            isTextInputFocused = focusedTextInputCount > 0,
+        )
+    ) {
+        NavigateBackAction.DESELECT_ACTOR -> deselectSelectedActor()
+        NavigateBackAction.DESELECT_TYPE -> selectActorType(null)
+        NavigateBackAction.CLOSE -> onCloseRequest()
+        NavigateBackAction.NONE -> Unit
     }
 
     companion object {

@@ -15,7 +15,6 @@ import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.implementation.SceneEditorInteractionMode
-import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.handleKeyPressed
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.handleKeys
 import kotlinx.collections.immutable.ImmutableSet
 
@@ -53,8 +52,9 @@ internal class KeyboardInputListener(
         }
     }
 
-    override fun onKeyReleased(key: Key) = handleKeyPressed(
-        key = key,
-        onNavigateBackRequested = navigateBack,
-    )
+    override fun onKeyReleased(key: Key) {
+        if (key == Key.Escape || key == Key.Back) {
+            navigateBack()
+        }
+    }
 }

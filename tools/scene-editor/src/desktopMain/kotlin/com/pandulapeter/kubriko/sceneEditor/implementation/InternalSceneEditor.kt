@@ -84,6 +84,7 @@ internal fun InternalSceneEditor(
             sceneEditorMode = sceneEditorMode,
             defaultSceneFilename = defaultSceneFilename,
             defaultSceneFolderPath = defaultSceneFolderPath,
+            isSettingsOpen = { isSettingsOpen.value },
             onCloseRequest = {
                 if (isSettingsOpen.value) {
                     isSettingsOpen.value = false
