@@ -64,6 +64,8 @@ val userProfileFlow = persistenceManager.generic(
 )
 ```
 
+The deserializer only ever sees previously stored values; when nothing is stored, or when it throws, the flow falls back to `defaultValue`.
+
 ## Public Artifact
 
 The artifact for this module is:

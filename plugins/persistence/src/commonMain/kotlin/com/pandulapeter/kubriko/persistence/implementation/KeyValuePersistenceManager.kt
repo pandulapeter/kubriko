@@ -27,6 +27,8 @@ internal interface KeyValuePersistenceManager {
 
     fun getString(key: String, defaultValue: String): String
 
+    fun getStringOrNull(key: String): String?
+
     fun putString(key: String, value: String)
 }
 

@@ -38,10 +38,11 @@ internal actual fun createKeyValuePersistenceManager(fileName: String) = object 
 
     override fun putFloat(key: String, value: Float) = preferences.setFloat(value, key.prefixed())
 
+    override fun getString(key: String, defaultValue: String) = getStringOrNull(key) ?: defaultValue
+
     // Earlier versions saved strings under the bare key, so it is read once as a fallback (and never deleted, since the
     // shared defaults domain may belong to the host app).
-    override fun getString(key: String, defaultValue: String) =
-        preferences.stringForKey(key.prefixed()) ?: preferences.stringForKey(key) ?: defaultValue
+    override fun getStringOrNull(key: String) = preferences.stringForKey(key.prefixed()) ?: preferences.stringForKey(key)
 
     override fun putString(key: String, value: String) = preferences.setObject(value, forKey = key.prefixed())
 

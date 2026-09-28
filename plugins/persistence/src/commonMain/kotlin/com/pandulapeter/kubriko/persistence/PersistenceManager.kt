@@ -84,10 +84,15 @@ sealed class PersistenceManager(
      *
      * Changes to the flow's value will be automatically saved to local storage.
      *
+     * The [deserializer] is only called with a previously stored string. [defaultValue] is used when nothing is stored
+     * or when the [deserializer] throws. A value the backend refuses to store (for example one over the desktop
+     * backend's 80-character key or 8192-character value limit, or one over the browser's storage quota) is not
+     * persisted; later changes are still attempted.
+     *
      * @param key The unique key for this value.
-     * @param defaultValue The value to return if no value is found in storage.
+     * @param defaultValue The value to return if no value is found in storage, or if the stored one cannot be read.
      * @param serializer A function that converts the value to a string.
-     * @param deserializer A function that converts the string back to the value.
+     * @param deserializer A function that converts a previously stored string back to the value.
      */
     abstract fun <T> generic(
         key: String,

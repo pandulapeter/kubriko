@@ -35,6 +35,8 @@ internal actual fun createKeyValuePersistenceManager(fileName: String) = object 
 
     override fun getString(key: String, defaultValue: String) = preferences.getItem(key.prefixed()) ?: defaultValue
 
+    override fun getStringOrNull(key: String): String? = preferences.getItem(key.prefixed())
+
     override fun putString(key: String, value: String) = preferences.setItem(key.prefixed(), value)
 
     private fun String.prefixed() = "${fileName}_$this"

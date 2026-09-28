@@ -48,7 +48,7 @@ Older iOS builds wrote strings (and so `generic` values) under the bare key. Whe
 persistenceManager.generic("key", defaultValue, serializer = { it.toJson() }, deserializer = { it.fromJson() })
 ```
 
-Stored as a `String`. A null/empty stored string yields `defaultValue` (null from deserializer silently falls back). Prefer `kotlinx.serialization` JSON.
+Stored as a `String`. The deserializer is only called with a previously stored string: nothing stored yields `defaultValue` without calling it, and a deserializer that returns null or throws also falls back to `defaultValue`. Every load and save is non-throwing — failures are logged (when logging is enabled) and a failed save leaves storage as it was, while the next change is attempted again. Prefer `kotlinx.serialization` JSON.
 
 ## Typical Usage
 
@@ -68,4 +68,5 @@ class PrefsManager(private val persistenceManager: PersistenceManager) : Manager
 
 - Multiple `Kubriko` instances sharing one `PersistenceManager` share the same key namespace — use distinct key prefixes per game area
 - `unloadAll()` / `unload()` are fire-and-forget coroutines; resources are not freed synchronously
+- Desktop's `java.util.prefs` rejects keys over 80 characters and values over 8192 characters, and the browser's `localStorage` has a quota — such values are silently not persisted (the in-memory flow still holds them)
 - Do not call `persistenceManager.boolean(...)` inside `onUpdate` — each call allocates a wrapper if the key is new

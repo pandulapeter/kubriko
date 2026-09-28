@@ -32,5 +32,7 @@ internal actual fun createKeyValuePersistenceManager(fileName: String) = object 
 
     override fun getString(key: String, defaultValue: String) = preferences.getString(key, defaultValue) ?: defaultValue
 
+    override fun getStringOrNull(key: String): String? = preferences.getString(key, null)
+
     override fun putString(key: String, value: String) = preferences.edit().putString(key, value).apply()
 }

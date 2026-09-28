@@ -10,7 +10,6 @@
 package com.pandulapeter.kubriko.persistence.implementation
 
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
 
 internal sealed class PersistedPropertyWrapper<T>(
     val key: kotlin.String,
@@ -18,18 +17,48 @@ internal sealed class PersistedPropertyWrapper<T>(
 ) {
     val flow = MutableStateFlow(defaultValue)
 
-    abstract fun load(keyValuePersistenceManager: KeyValuePersistenceManager)
+    /**
+     * Replaces the value with the stored one. Never throws: on failure the value is left unchanged (initially [defaultValue]), [onFailure] is
+     * called and `false` is returned.
+     */
+    fun load(
+        keyValuePersistenceManager: KeyValuePersistenceManager,
+        onFailure: (Throwable) -> Unit = {},
+    ) = try {
+        flow.value = readValue(keyValuePersistenceManager)
+        true
+    } catch (throwable: Throwable) {
+        onFailure(throwable)
+        false
+    }
 
-    abstract fun save(keyValuePersistenceManager: KeyValuePersistenceManager)
+    /**
+     * Stores the current value. Never throws: on failure the storage is left as it was, [onFailure] is called and
+     * `false` is returned.
+     */
+    fun save(
+        keyValuePersistenceManager: KeyValuePersistenceManager,
+        onFailure: (Throwable) -> Unit = {},
+    ) = try {
+        writeValue(keyValuePersistenceManager)
+        true
+    } catch (throwable: Throwable) {
+        onFailure(throwable)
+        false
+    }
+
+    protected abstract fun readValue(keyValuePersistenceManager: KeyValuePersistenceManager): T
+
+    protected abstract fun writeValue(keyValuePersistenceManager: KeyValuePersistenceManager)
 
     class Boolean(
         key: kotlin.String,
         defaultValue: kotlin.Boolean,
     ) : PersistedPropertyWrapper<kotlin.Boolean>(key, defaultValue) {
 
-        override fun load(keyValuePersistenceManager: KeyValuePersistenceManager) = flow.update { keyValuePersistenceManager.getBoolean(key, defaultValue) }
+        override fun readValue(keyValuePersistenceManager: KeyValuePersistenceManager) = keyValuePersistenceManager.getBoolean(key, defaultValue)
 
-        override fun save(keyValuePersistenceManager: KeyValuePersistenceManager) = keyValuePersistenceManager.putBoolean(key, flow.value)
+        override fun writeValue(keyValuePersistenceManager: KeyValuePersistenceManager) = keyValuePersistenceManager.putBoolean(key, flow.value)
     }
 
     class Int(
@@ -37,9 +66,9 @@ internal sealed class PersistedPropertyWrapper<T>(
         defaultValue: kotlin.Int,
     ) : PersistedPropertyWrapper<kotlin.Int>(key, defaultValue) {
 
-        override fun load(keyValuePersistenceManager: KeyValuePersistenceManager) = flow.update { keyValuePersistenceManager.getInt(key, defaultValue) }
+        override fun readValue(keyValuePersistenceManager: KeyValuePersistenceManager) = keyValuePersistenceManager.getInt(key, defaultValue)
 
-        override fun save(keyValuePersistenceManager: KeyValuePersistenceManager) = keyValuePersistenceManager.putInt(key, flow.value)
+        override fun writeValue(keyValuePersistenceManager: KeyValuePersistenceManager) = keyValuePersistenceManager.putInt(key, flow.value)
     }
 
     class Float(
@@ -47,9 +76,9 @@ internal sealed class PersistedPropertyWrapper<T>(
         defaultValue: kotlin.Float,
     ) : PersistedPropertyWrapper<kotlin.Float>(key, defaultValue) {
 
-        override fun load(keyValuePersistenceManager: KeyValuePersistenceManager) = flow.update { keyValuePersistenceManager.getFloat(key, defaultValue) }
+        override fun readValue(keyValuePersistenceManager: KeyValuePersistenceManager) = keyValuePersistenceManager.getFloat(key, defaultValue)
 
-        override fun save(keyValuePersistenceManager: KeyValuePersistenceManager) = keyValuePersistenceManager.putFloat(key, flow.value)
+        override fun writeValue(keyValuePersistenceManager: KeyValuePersistenceManager) = keyValuePersistenceManager.putFloat(key, flow.value)
     }
 
     class String(
@@ -57,9 +86,9 @@ internal sealed class PersistedPropertyWrapper<T>(
         defaultValue: kotlin.String,
     ) : PersistedPropertyWrapper<kotlin.String>(key, defaultValue) {
 
-        override fun load(keyValuePersistenceManager: KeyValuePersistenceManager) = flow.update { keyValuePersistenceManager.getString(key, defaultValue) }
+        override fun readValue(keyValuePersistenceManager: KeyValuePersistenceManager) = keyValuePersistenceManager.getString(key, defaultValue)
 
-        override fun save(keyValuePersistenceManager: KeyValuePersistenceManager) = keyValuePersistenceManager.putString(key, flow.value)
+        override fun writeValue(keyValuePersistenceManager: KeyValuePersistenceManager) = keyValuePersistenceManager.putString(key, flow.value)
     }
 
     class Generic<T>(
@@ -69,8 +98,9 @@ internal sealed class PersistedPropertyWrapper<T>(
         private val deserializer: (kotlin.String) -> T?,
     ) : PersistedPropertyWrapper<T>(key, defaultValue) {
 
-        override fun load(keyValuePersistenceManager: KeyValuePersistenceManager) = flow.update { deserializer(keyValuePersistenceManager.getString(key, "")) ?: defaultValue }
+        override fun readValue(keyValuePersistenceManager: KeyValuePersistenceManager) =
+            keyValuePersistenceManager.getStringOrNull(key)?.let(deserializer) ?: defaultValue
 
-        override fun save(keyValuePersistenceManager: KeyValuePersistenceManager) = keyValuePersistenceManager.putString(key, serializer(flow.value))
+        override fun writeValue(keyValuePersistenceManager: KeyValuePersistenceManager) = keyValuePersistenceManager.putString(key, serializer(flow.value))
     }
 }

@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.persistence
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
+import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.persistence.implementation.KeyValuePersistenceManager
 import com.pandulapeter.kubriko.persistence.implementation.PersistedPropertyWrapper
 import com.pandulapeter.kubriko.persistence.implementation.createKeyValuePersistenceManager
@@ -33,10 +34,7 @@ internal class PersistenceManagerImpl(
         if (keyValuePersistenceManager == null && isInitialized.value) {
             keyValuePersistenceManager = createKeyValuePersistenceManager(fileName = fileName).also { keyValuePersistenceManager ->
                 scope.launch(Dispatchers.Default) {
-                    stateFlowMap.values.forEach { wrapper ->
-                        wrapper.load(keyValuePersistenceManager)
-                        wrapper.flow.onEach { wrapper.save(keyValuePersistenceManager) }.launchIn(scope)
-                    }
+                    stateFlowMap.values.forEach { wrapper -> wrapper.connect(keyValuePersistenceManager) }
                 }
             }
         }
@@ -77,13 +75,21 @@ internal class PersistenceManagerImpl(
 
     private fun <T> PersistedPropertyWrapper<T>.initialize() = this.also { wrapper ->
         keyValuePersistenceManager?.let { keyValuePersistenceManager ->
-            scope.launch(Dispatchers.Default) {
-                wrapper.load(keyValuePersistenceManager)
-                wrapper.flow.onEach { wrapper.save(keyValuePersistenceManager) }.launchIn(scope)
-            }
+            scope.launch(Dispatchers.Default) { wrapper.connect(keyValuePersistenceManager) }
         }
         stateFlowMap[key] = wrapper
     }
+
+    private fun PersistedPropertyWrapper<*>.connect(keyValuePersistenceManager: KeyValuePersistenceManager) {
+        load(keyValuePersistenceManager) { logFailure("load", it) }
+        flow.onEach { save(keyValuePersistenceManager) { logFailure("save", it) } }.launchIn(scope)
+    }
+
+    private fun PersistedPropertyWrapper<*>.logFailure(operation: String, throwable: Throwable) = log(
+        message = "Failed to $operation \"$key\"",
+        details = throwable.message,
+        importance = Logger.Importance.HIGH,
+    )
 
     override fun onDispose() {
         keyValuePersistenceManager = null
