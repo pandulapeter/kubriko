@@ -36,7 +36,7 @@ android {
         applicationId = "com.pandulapeter.kubrikoShowcase"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.compileSdk.get().toInt()
-        versionCode = project.findProperty("showcase.androidVersionCode").toString().toInt()
+        versionCode = project.findProperty("showcase.buildNumber").toString().toInt()
         versionName = project.findProperty("showcase.versionName").toString()
     }
     packaging {

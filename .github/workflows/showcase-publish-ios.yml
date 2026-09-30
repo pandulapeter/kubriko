@@ -1,18 +1,42 @@
 # Builds the Showcase app for iOS, signs it for the App Store and uploads it to App Store Connect, where it lands in
-# TestFlight.
+# TestFlight. It then waits for the build to be processed and submits it for review with the release notes as its
+# "What's New", to be released as soon as Apple approves it. A green run means submitted, not accepted — review answers
+# by email. Where another version is still waiting for Apple, the build stays in TestFlight unsubmitted and the run ends
+# with a warning instead. With "submit" off it stops short of the submission and leaves the version prepared in App Store
+# Connect, for screenshots to be added to and the version submitted from there.
 #
 # Nothing it signs with is stored anywhere, so nothing of it can expire: the run creates an Apple Distribution
 # certificate for a key made on the runner through the App Store Connect API (.github/scripts/app_store_signing.py),
-# xcodebuild creates the App Store provisioning profile for it with the same key, and the certificate is revoked at the
-# end. That takes an API key with the Admin role.
+# xcodebuild creates the App Store provisioning profile for it with the same key, and the certificate is revoked by a
+# later run once the build it signed is no longer waiting for Apple, since that build is refused if it is revoked before
+# App Review approves it (or at the end of this one, if it uploaded nothing). That takes an API key with the Admin role,
+# and actions: write for the artifact that carries the certificate's id from one run to the next.
+#
+# App Store Connect only accepts a build number it has not seen yet, so repeating an upload takes the build number
+# override, which leaves the checked-in gradle.properties as it was.
 
 name: '[Showcase] Publish iOS'
 
 on:
   workflow_dispatch:
+    inputs:
+      build_number:
+        description: 'Build number to upload under instead of showcase.buildNumber (for a repeated upload)'
+        type: string
+        required: false
+      release_notes:
+        description: '"What''s New" override, use \n for line breaks (leave empty to generate it from the commit log)'
+        type: string
+        required: false
+      submit:
+        description: 'Submit for review (off: leave the version prepared in App Store Connect, to add screenshots to)'
+        type: boolean
+        default: true
 
 permissions:
   contents: read
+  # To find, read and delete the signing identities an earlier run kept for its build (app_store_signing.py).
+  actions: write
 
 env:
   XCODE_PROJECT: app/ios/iosApp/iosApp.xcodeproj
@@ -35,7 +59,7 @@ jobs:
           # xcodebuild failure. Check the shape of all three here, where the message can be useful.
           PROBLEMS=0
           problem() {
-            echo "  $1 - $2" >&2
+            echo "::error::$1: $2" >&2
             PROBLEMS=$((PROBLEMS + 1))
           }
           if [ -z "$ASC_KEY_ID" ]; then
@@ -62,6 +86,8 @@ jobs:
           echo "All three signing secrets are present and look well formed."
       - name: Check out repository
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
@@ -70,17 +96,71 @@ jobs:
           cache: 'gradle'
       - name: Read version information
         id: version
+        env:
+          BUILD_NUMBER_OVERRIDE: ${{ inputs.build_number }}
         run: |
-          VERSION_NAME=$(sed -n 's/^showcase\.versionName=//p' gradle.properties)
-          BUILD_NUMBER=$(sed -n 's/^showcase\.iosBuildNumber=//p' gradle.properties)
+          VERSION_NAME=$(sed -n 's/^showcase\.versionName=//p' gradle.properties | tr -d '\r')
+          BUILD_NUMBER=$(sed -n 's/^showcase\.buildNumber=//p' gradle.properties | tr -d '\r')
           if [ -z "$VERSION_NAME" ] || [ -z "$BUILD_NUMBER" ]; then
-            echo "Could not read showcase.versionName / showcase.iosBuildNumber from gradle.properties" >&2
+            echo "::error::Could not read showcase.versionName / showcase.buildNumber from gradle.properties" >&2
             exit 1
+          fi
+          # The version build phase of the Xcode project reads gradle.properties alone, so that is where the override goes.
+          if [ -n "$BUILD_NUMBER_OVERRIDE" ]; then
+            if ! [[ "$BUILD_NUMBER_OVERRIDE" =~ ^[0-9]+$ ]]; then
+              echo "::error::The build number override has to be a whole number, not \"$BUILD_NUMBER_OVERRIDE\"." >&2
+              exit 1
+            fi
+            BUILD_NUMBER=$BUILD_NUMBER_OVERRIDE
+            sed -i '' "s/^showcase\.buildNumber=.*/showcase.buildNumber=$BUILD_NUMBER/" gradle.properties
           fi
           echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
           echo "build=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
           echo "Publishing version $VERSION_NAME ($BUILD_NUMBER)"
           xcodebuild -version
+      - name: Generate release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_NOTES_OVERRIDE: ${{ inputs.release_notes }}
+        run: |
+          if [ -n "$RELEASE_NOTES_OVERRIDE" ]; then
+            printf '%b\n' "$RELEASE_NOTES_OVERRIDE" > release_notes.txt
+          else
+            WORKFLOW_FILE=$(basename "${GITHUB_WORKFLOW_REF%%@*}")
+            LAST_SHA=$(gh run list --workflow "$WORKFLOW_FILE" --branch "${{ github.ref_name }}" --status success --limit 1 --json headSha --jq '.[0].headSha // empty' || true)
+            if [ -n "$LAST_SHA" ]; then
+              RANGE="$LAST_SHA..HEAD"
+            else
+              RANGE="-n 20"
+            fi
+            git log $RANGE --pretty=format:'- %s' > release_notes.txt
+          fi
+          if [ ! -s release_notes.txt ]; then
+            printf -- '- Version %s\n' "${{ steps.version.outputs.name }}" > release_notes.txt
+          fi
+          # App Store Connect refuses a "What's New" over 4000 characters, so a long commit log is cut at a line boundary.
+          python3 - release_notes.txt "$RUNNER_TEMP/release-notes.txt" <<'PYTHON'
+          import sys
+
+          LIMIT = 4000
+          lines = open(sys.argv[1], encoding="utf-8").read().splitlines()
+          kept, total = [], 0
+          for line in lines:
+              total += len(line) + 1
+              if total > LIMIT:
+                  break
+              kept.append(line)
+          if not kept and lines:
+              first = lines[0][:LIMIT - 1]
+              kept = [first.rsplit(" ", 1)[0] if " " in first else first]
+          if len(kept) < len(lines):
+              print(f"::warning::The release notes were cut to {LIMIT} characters.")
+          with open(sys.argv[2], "w", encoding="utf-8") as output:
+              output.write("\n".join(kept) + "\n")
+          PYTHON
+          rm release_notes.txt
+          echo "Generated release notes:"
+          cat "$RUNNER_TEMP/release-notes.txt"
       - name: Apply the production build configuration
         run: |
           # Xcode drives the Gradle build of the shared framework, so the overrides that the
@@ -88,7 +168,7 @@ jobs:
           for OVERRIDE in areTestExamplesEnabled=false isDebugMenuEnabled=false isSceneEditorEnabled=false shouldShowUnfinishedGames=true; do
             KEY=${OVERRIDE%%=*}
             if ! grep -q "^showcase\.$KEY=" gradle.properties; then
-              echo "showcase.$KEY is missing from gradle.properties" >&2
+              echo "::error::showcase.$KEY is missing from gradle.properties" >&2
               exit 1
             fi
             sed -i '' "s/^showcase\.$KEY=.*/showcase.$OVERRIDE/" gradle.properties
@@ -99,6 +179,7 @@ jobs:
           ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           # altool looks for the key by name in this directory, xcodebuild and the signing script are given the path.
           ASC_KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8"
@@ -107,6 +188,9 @@ jobs:
           chmod 600 "$ASC_KEY_PATH"
           echo "ASC_KEY_PATH=$ASC_KEY_PATH" >> "$GITHUB_ENV"
           export ASC_KEY_PATH
+          # What earlier runs kept for the builds they uploaded, revoked before this one makes its own - except for a
+          # build that is still waiting for Apple, which would be refused without it.
+          python3 .github/scripts/app_store_signing.py cleanup-earlier app-store-signing-ios com.pandulapeter.kubrikoShowcase IOS
           KEYCHAIN_PATH="$RUNNER_TEMP/signing.keychain-db"
           KEYCHAIN_PASSWORD=$(uuidgen)
           echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
@@ -118,7 +202,7 @@ jobs:
           security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
           security find-identity -v -p codesigning "$KEYCHAIN_PATH"
           if ! security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep -q 'Apple Distribution'; then
-            echo "The keychain holds no Apple Distribution signing identity for the certificate the run created." >&2
+            echo "::error::The keychain holds no Apple Distribution signing identity for the certificate the run created." >&2
             exit 1
           fi
       - name: Archive the app
@@ -145,7 +229,7 @@ jobs:
           ARCHIVED_BUILD=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$PLIST")
           echo "Archived $ARCHIVED_NAME ($ARCHIVED_BUILD)"
           if [ "$ARCHIVED_NAME" != "${{ steps.version.outputs.name }}" ] || [ "$ARCHIVED_BUILD" != "${{ steps.version.outputs.build }}" ]; then
-            echo "The archive does not carry the version from gradle.properties" >&2
+            echo "::error::The archive does not carry ${{ steps.version.outputs.name }} (${{ steps.version.outputs.build }})." >&2
             exit 1
           fi
       - name: Export the IPA
@@ -182,26 +266,52 @@ jobs:
             -authenticationKeyID "$ASC_KEY_ID" \
             -authenticationKeyIssuerID "$ASC_ISSUER_ID"
       - name: Upload to App Store Connect
+        id: upload
         env:
           ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
         run: |
           IPA=$(find "$RUNNER_TEMP/export" -name '*.ipa' -maxdepth 1 | head -n 1)
           if [ -z "$IPA" ]; then
-            echo "No IPA was exported to $RUNNER_TEMP/export" >&2
+            echo "::error::No IPA was exported to $RUNNER_TEMP/export" >&2
             exit 1
           fi
+          # Before the upload, since a step that fails after it would revoke the certificate of the build it uploaded.
+          python3 .github/scripts/app_store_signing.py record-build IOS "${{ steps.version.outputs.name }}" "${{ steps.version.outputs.build }}"
           xcrun altool --upload-app \
             --type ios \
             --file "$IPA" \
             --apiKey "$ASC_KEY_ID" \
             --apiIssuer "$ASC_ISSUER_ID"
           echo "Uploaded ${{ steps.version.outputs.name }} (${{ steps.version.outputs.build }}) to App Store Connect."
-          echo "It has to finish processing before it shows up in TestFlight, then it needs a manual submission for review."
-      # Whatever the run got as far as creating, and nothing else, whether or not the build went through. The profile
-      # xcodebuild made for the certificate is left to it: the next run's xcodebuild makes a new one.
+          echo "It appears in TestFlight once App Store Connect has processed it."
+      # Waits for App Store Connect to process the build, which can take half an hour, and submits it with the release
+      # notes as its "What's New" - in the draft version already prepared in App Store Connect where there is one, whose
+      # screenshots and release option are kept (.github/scripts/app_store_submission.py).
+      - name: Submit for review
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          SUBMIT: ${{ inputs.submit }}
+        run: |
+          PREPARE=()
+          [ "$SUBMIT" = true ] || PREPARE=(--prepare)
+          python3 .github/scripts/app_store_submission.py com.pandulapeter.kubrikoShowcase IOS \
+            "${{ steps.version.outputs.name }}" "${{ steps.version.outputs.build }}" "$RUNNER_TEMP/release-notes.txt" "${PREPARE[@]}"
+      # A build has to stay signed by a valid certificate until it is approved, so a run that uploaded one leaves what it
+      # created to the later runs of this workflow, which revoke it before they make their own once the build is no
+      # longer waiting for Apple.
+      - name: Keep the signing certificate for the build under review
+        if: always() && steps.upload.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-store-signing-ios
+          path: ${{ runner.temp }}/app-store-signing.json
+          retention-days: 90
+      # Whatever the run got as far as creating, and nothing else, when the build did not get as far as App Store
+      # Connect. The profile xcodebuild made for the certificate is left to it: the next run's xcodebuild makes a new one.
       - name: Revoke the signing certificate
-        if: always()
+        if: always() && steps.upload.outcome != 'success'
         env:
           ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}

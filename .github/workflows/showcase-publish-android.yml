@@ -1,3 +1,6 @@
+# Builds the signed release bundle of the Showcase app and uploads it to the production track of the Play Console. With
+# "submit" off the release is left as a draft in the Play Console, to be rolled out from there.
+
 name: '[Showcase] Publish Android'
 
 on:
@@ -7,6 +10,10 @@ on:
         description: 'Release notes override, use \n for line breaks (leave empty to generate them from the commit log)'
         type: string
         required: false
+      submit:
+        description: 'Send the release for review (off: leave it as a draft in the Play Console, to change the listing first)'
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -31,9 +38,9 @@ jobs:
         id: version
         run: |
           VERSION_NAME=$(sed -n 's/^showcase\.versionName=//p' gradle.properties)
-          VERSION_CODE=$(sed -n 's/^showcase\.androidVersionCode=//p' gradle.properties)
+          VERSION_CODE=$(sed -n 's/^showcase\.buildNumber=//p' gradle.properties)
           if [ -z "$VERSION_NAME" ] || [ -z "$VERSION_CODE" ]; then
-            echo "Could not read showcase.versionName / showcase.androidVersionCode from gradle.properties" >&2
+            echo "::error::Could not read showcase.versionName / showcase.buildNumber from gradle.properties" >&2
             exit 1
           fi
           echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
@@ -60,22 +67,58 @@ jobs:
           if [ ! -s release_notes.txt ]; then
             printf -- '- Version %s\n' "${{ steps.version.outputs.name }}" > release_notes.txt
           fi
-          awk '{ total += length($0) + 1; if (total > 500) exit; print }' release_notes.txt > whatsnew/whatsnew-en-US
+          # The Play Store rejects the whole release when the notes are over its 500 character limit, so they are cut
+          # at a line boundary rather than mid-sentence. Characters, not bytes: awk on the runner is mawk, whose
+          # length() counts bytes, and would cut a text with accented letters short of what fits.
+          python3 - release_notes.txt whatsnew/whatsnew-en-US <<'PYTHON'
+          import sys
+
+          LIMIT = 500
+          lines = open(sys.argv[1], encoding="utf-8").read().splitlines()
+          kept, total = [], 0
+          for line in lines:
+              total += len(line) + 1
+              if total > LIMIT:
+                  break
+              kept.append(line)
+          if not kept and lines:
+              # A first line over the limit on its own is cut at the last word that fits rather than leaving the listing
+              # with nothing to say.
+              first = lines[0][:LIMIT - 1]
+              kept = [first.rsplit(" ", 1)[0] if " " in first else first]
+          if len(kept) < len(lines):
+              print(f"::warning::{sys.argv[2]} was cut to {LIMIT} characters.")
+          with open(sys.argv[2], "w", encoding="utf-8") as output:
+              output.write("\n".join(kept) + "\n")
+          PYTHON
           echo "Generated release notes:"
           cat whatsnew/whatsnew-en-US
       - name: Decode release keystore
-        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > app/android/release.keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > app/android/release.keystore
+      # The signing secrets go through local.properties rather than -P: a value on the command line is in the runner's
+      # process list for the whole build, and a secret interpolated into the script is re-read by the shell, so a password
+      # holding a $, a backtick or a quote would sign the bundle with something other than what is in the secret store.
+      # Backslashes are doubled because java.util.Properties treats one as an escape inside a value.
       - name: Build release bundle
+        env:
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
+          escape() { printf '%s' "${1//\\/\\\\}"; }
+          {
+            printf 'showcase.androidKeyAlias=%s\n' "$(escape "$ANDROID_KEY_ALIAS")"
+            printf 'showcase.androidKeyPassword=%s\n' "$(escape "$ANDROID_KEY_PASSWORD")"
+            printf 'showcase.androidKeystoreFile=release.keystore\n'
+            printf 'showcase.androidKeystorePassword=%s\n' "$(escape "$ANDROID_KEYSTORE_PASSWORD")"
+          } > local.properties
           ./gradlew :app:android:bundleRelease \
             -Pshowcase.areTestExamplesEnabled=false \
             -Pshowcase.isDebugMenuEnabled=false \
             -Pshowcase.isSceneEditorEnabled=false \
-            -Pshowcase.shouldShowUnfinishedGames=true \
-            -Pshowcase.androidKeyAlias="${{ secrets.ANDROID_KEY_ALIAS }}" \
-            -Pshowcase.androidKeyPassword="${{ secrets.ANDROID_KEY_PASSWORD }}" \
-            -Pshowcase.androidKeystoreFile=release.keystore \
-            -Pshowcase.androidKeystorePassword="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}"
+            -Pshowcase.shouldShowUnfinishedGames=true
       - name: Upload bundle to the Play Console
         uses: r0adkll/upload-google-play@v1.1.5
         with:
@@ -85,6 +128,7 @@ jobs:
           mappingFile: app/android/build/outputs/mapping/release/mapping.txt
           releaseName: ${{ steps.version.outputs.name }} (${{ steps.version.outputs.code }})
           tracks: production
-          status: completed
+          # A draft is rolled out from the Play Console once whatever the release needs there has been done by hand.
+          status: ${{ inputs.submit && 'completed' || 'draft' }}
           changesNotSentForReview: false
           whatsNewDirectory: whatsnew
