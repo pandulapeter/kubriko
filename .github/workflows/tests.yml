@@ -5,6 +5,12 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  # For the publishing workflows, which run the unit tests before anything is released.
+  workflow_call:
+    inputs:
+      unit_tests_only:
+        type: boolean
+        default: true
   schedule:
     - cron: '17 3 * * *'
 
@@ -38,7 +44,8 @@ jobs:
 
   stress-tests:
     name: Stress tests
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    # A called workflow sees its caller's event, so a release dispatched by hand would run these too without the input.
+    if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && !inputs.unit_tests_only
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
