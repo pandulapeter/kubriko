@@ -39,8 +39,11 @@ runs:
         if ! "$STEAMCMD" +login "$STEAM_USERNAME" +quit < /dev/null; then
           echo "" >&2
           echo "steamcmd could not sign in as the build account with the saved token." >&2
-          echo "The token expires after a few months and is revoked by a password change. Renew it by signing in" >&2
-          echo "locally with 'steamcmd +login <username> +quit', then store the new config.vdf:" >&2
-          echo "  base64 -i ~/Library/Application\ Support/Steam/config/config.vdf | gh secret set STEAM_CONFIG_VDF_BASE64 --repo ${{ github.repository }}" >&2
+          echo "::error::The saved Steam login token has expired or was revoked." >&2
+          echo "The token expires after a few months and is revoked by a password change. Renew it locally:" >&2
+          echo "  cd ~/steamcmd && HOME=~/steamcmd-home ./steamcmd.sh +login <build account name> +quit" >&2
+          echo "  base64 -i ~/steamcmd-home/Library/Application\ Support/Steam/config/config.vdf | gh secret set STEAM_CONFIG_VDF_BASE64 --repo ${{ github.repository }}" >&2
+          echo "Then continue this run with Re-run jobs -> Re-run failed jobs, which uses the new token." >&2
+          echo "The full steps: .github/SHOWCASE_PUBLISH_DESKTOP_SETUP.md, 'Renewing the Steam login token'." >&2
           exit 1
         fi

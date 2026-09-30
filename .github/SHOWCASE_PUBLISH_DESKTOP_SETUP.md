@@ -118,22 +118,27 @@ room to try it first.
 `steamcmd` asks for the password and the Steam Guard code once, then keeps a token in its `config.vdf` file. The workflow
 restores that file instead of knowing the password.
 
+On macOS, steamcmd keeps `config.vdf` in `~/Library/Application Support/Steam/config/`, the same file the Steam client
+uses, which may hold the sign-in of your personal account as well. Pointing `HOME` at a folder of its own keeps the build
+account's token in a file that holds nothing else:
+
 ```bash
-mkdir ~/steamcmd && cd ~/steamcmd
+mkdir -p ~/steamcmd ~/steamcmd-home
+cd ~/steamcmd
 curl -sqL https://steamcdn-a.akamaihd.net/client/installer/steamcmd_osx.tar.gz | tar zxf -
-./steamcmd.sh +login <build_account_name> +quit
+HOME=~/steamcmd-home ./steamcmd.sh +login <build_account_name> +quit
 ```
 
 Enter the password and the Steam Guard code when asked. A second run of the last command should now sign in without asking
 anything, which confirms that the token was saved. Then, from the root of the repository:
 
 ```bash
-base64 -i ~/Library/Application\ Support/Steam/config/config.vdf | gh secret set STEAM_CONFIG_VDF_BASE64
-gh secret set STEAM_USERNAME    # prompts for the value: the account name, not the email address
+base64 -i ~/steamcmd-home/Library/Application\ Support/Steam/config/config.vdf | gh secret set STEAM_CONFIG_VDF_BASE64
+gh secret set STEAM_USERNAME --body <build_account_name>    # the account name, not the email address
 ```
 
-The token expires after a few months, and changing the password of the account revokes it. When that happens, the first
-job of the workflow fails within a minute and prints these same commands. Treat `config.vdf` like a password.
+Keep `~/steamcmd` and `~/steamcmd-home`: they are what [renewing the token](#renewing-the-steam-login-token) uses. Treat
+`~/steamcmd-home` like a password.
 
 ## 6. Store the depot IDs
 
@@ -176,20 +181,69 @@ with a **Team Key** (not an Individual Key) that has at least the Developer role
 
 ## Releasing
 
-1. Bump `showcase.versionName` in `gradle.properties` and push it.
-2. Run [`[Showcase] Publish Desktop`](https://github.com/pandulapeter/kubriko/actions/workflows/showcase-publish-desktop.yml)
-   with **Run workflow**.
+1. Bump `showcase.versionName` and `showcase.buildNumber` in `gradle.properties` and push them.
+2. Run [`[Showcase] Publish all`](https://github.com/pandulapeter/kubriko/actions/workflows/showcase-publish-all.yml), which
+   runs the tests and then publishes every platform, or
+   [`[Showcase] Publish Desktop`](https://github.com/pandulapeter/kubriko/actions/workflows/showcase-publish-desktop.yml)
+   to publish the desktop builds alone, with **Run workflow**.
 3. Optionally try the result: in the Steam client, right-click the app → **Properties** → **Betas** → `prerelease`.
 4. Open [SteamPipe → Builds](https://partner.steamgames.com/apps/builds/3585120) (the summary of the workflow run links to it),
    pick `default` in the *Set build live on branch* dropdown of the new build, click **Preview Change**, then
    **Set Build Live Now**, and confirm it in the Steam mobile app.
+
+## Renewing the Steam login token
+
+The token expires after a few months, and changing the password of the build account revokes it. Either way, the
+*Verify the Steam login* step of the first job fails within a minute, before anything is built, with *steamcmd could not
+sign in as the build account with the saved token*. To renew it:
+
+1. Sign in again, which asks for the password and a Steam Guard code once more:
+   ```bash
+   cd ~/steamcmd
+   HOME=~/steamcmd-home ./steamcmd.sh +login <build_account_name> +quit
+   ```
+   Without the folders of step 5 (a new Mac, say), redo [step 5](#5-save-the-login-token-of-the-build-account) instead.
+2. Run the same line again: it has to sign in without asking anything.
+3. Store the new token:
+   ```bash
+   base64 -i ~/steamcmd-home/Library/Application\ Support/Steam/config/config.vdf | gh secret set STEAM_CONFIG_VDF_BASE64 --repo pandulapeter/kubriko
+   ```
+4. [Continue the run that failed](#continuing-a-failed-run) rather than starting a new one.
+
+## Continuing a failed run
+
+A re-run uses the same commit and the same inputs as the original run, but the secrets and variables as they are at the
+time of the re-run, so it picks up a renewed token or a fixed secret.
+
+1. Open the failed run on the [Actions](https://github.com/pandulapeter/kubriko/actions) page.
+2. Click **Re-run jobs** → **Re-run failed jobs**. Only the jobs that failed, and the ones that were skipped because of
+   them, run again. Jobs that succeeded are not repeated.
+
+What that repeats, depending on where the run stopped:
+
+| Stopped in | What a re-run of the failed jobs does |
+|---|---|
+| *Verify the configuration* | Nothing was built yet: the whole workflow runs again. |
+| *Build for …* | Rebuilds only the platforms that failed; the finished ones keep their uploaded distribution. |
+| *Publish to Steam* | Uploads the three distributions the build jobs already made, without building anything again. |
+
+The distributions are kept for **7 days** (`retention-days` of the upload step). A publish job re-run later than that
+finds nothing to download and fails, and the run has to be started again from scratch.
+
+Within [`[Showcase] Publish all`](workflows/showcase-publish-all.yml) the same applies: **Re-run failed jobs** on that run
+repeats the failed part of the desktop workflow and leaves the platforms that went through alone. Start a new run of
+`[Showcase] Publish all` only if every platform should be published again, since Google Play and App Store Connect refuse a
+build number they have already received.
+
+A run that was cancelled, or whose runner was lost, counts as failed and is continued the same way. Re-running is
+possible for 30 days after the original run.
 
 ## When a run fails
 
 | Symptom | Likely cause |
 |---|---|
 | *Verify the configuration* lists problems | A secret or variable is missing or malformed, the message says which. |
-| *Verify the Steam login* fails | The token expired or was revoked, redo [step 5](#5-save-the-login-token-of-the-build-account). |
+| *Verify the Steam login* fails | The token expired or was revoked, see [Renewing the Steam login token](#renewing-the-steam-login-token). |
 | *Set up code signing* finds no identity | The `.p12` was exported without its private key, redo [step 7](#7-export-the-developer-id-certificate). |
 | *Notarize the app* is rejected | The log of Apple is printed in the step. An authentication error instead points at [step 8](#8-confirm-that-the-app-store-connect-key-can-notarize). |
 | *Launch the app* fails on one platform | Either a real startup crash (the output of the app is printed), or the runner could not open a window. Re-run with `run_smoke_test` unchecked to tell the two apart. |
