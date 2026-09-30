@@ -30,8 +30,8 @@ on:
 
 permissions:
   contents: read
-  # To find the previous release run, and for the signing identities the iOS workflow keeps between runs.
-  actions: write
+  # To find the previous release run, which the build number is compared with.
+  actions: read
 
 concurrency:
   group: showcase-publish-all
@@ -106,11 +106,9 @@ jobs:
     name: iOS
     needs: [prepare, tests]
     uses: ./.github/workflows/showcase-publish-ios.yml
-    # The signing identities of the last upload are kept in an artifact until a later run revokes them (see
-    # app_store_signing.py).
     permissions:
       contents: read
-      actions: write
+      actions: read
     with:
       release_notes: ${{ inputs.release_notes }}
       submit: ${{ inputs.app_store_submit }}

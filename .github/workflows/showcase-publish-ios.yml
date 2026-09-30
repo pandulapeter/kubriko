@@ -5,12 +5,12 @@
 # with a warning instead. With "submit" off it stops short of the submission and leaves the version prepared in App Store
 # Connect, for screenshots to be added to and the version submitted from there.
 #
-# Nothing it signs with is stored anywhere, so nothing of it can expire: the run creates an Apple Distribution
-# certificate for a key made on the runner through the App Store Connect API (.github/scripts/app_store_signing.py),
-# xcodebuild creates the App Store provisioning profile for it with the same key, and the certificate is revoked by a
-# later run once the build it signed is no longer waiting for Apple, since that build is refused if it is revoked before
-# App Review approves it (or at the end of this one, if it uploaded nothing). That takes an API key with the Admin role,
-# and actions: write for the artifact that carries the certificate's id from one run to the next.
+# It signs with the team's long-lived Apple Distribution certificate, kept with its private key in the
+# IOS_DISTRIBUTION_CERTIFICATE_* secrets, and xcodebuild creates the App Store provisioning profile for it through the App
+# Store Connect API. The certificate is not made per run, since the team shares its two Apple Distribution certificates
+# with Campfire, whose pipeline holds one while its builds wait for review. It is never revoked by the run either:
+# revoking it would get every build it signed that is still waiting for App Review refused. It expires after a year; the
+# run warns 90 days before and fails once it has, both times printing how to renew it (RENEWAL_STEPS below).
 #
 # App Store Connect only accepts a build number it has not seen yet, so repeating an upload takes the build number
 # override, which leaves the checked-in gradle.properties as it was.
@@ -47,13 +47,30 @@ on:
 
 permissions:
   contents: read
-  # To find, read and delete the signing identities an earlier run kept for its build (app_store_signing.py).
-  actions: write
+  # To find the last successful run, which the generated release notes start from.
+  actions: read
 
 env:
   XCODE_PROJECT: app/ios/iosApp/iosApp.xcodeproj
   XCODE_SCHEME: "[iOS] Showcase Release"
   DEVELOPMENT_TEAM: N45A6ZHDGY
+  # Printed wherever the distribution certificate is missing, broken, expired or about to expire.
+  RENEWAL_STEPS: |
+    To renew the Apple Distribution certificate:
+      1. Xcode -> Settings -> Accounts -> the team -> Manage Certificates -> + -> Apple Distribution. This leaves the new
+         certificate with its private key in the login keychain. (Nothing to create if the secret only holds a broken or
+         wrong export of a certificate that is still valid: go on with step 2.)
+         Apple allows two Apple Distribution certificates for the team. If it refuses a new one, open
+         https://developer.apple.com/account/resources/certificates/list and revoke the old Kubriko one first - but only
+         once no Kubriko Showcase build signed with it is waiting for App Review, as revoking it gets such a build refused.
+         Leave the one made by the API key alone: Campfire's pipeline holds it for its own build under review.
+      2. Keychain Access -> login keychain -> My Certificates -> "Apple Distribution: PETER PANDULA (N45A6ZHDGY)" with the
+         latest expiry -> Export as ~/Desktop/AppleDistribution.p12 with a password. The My Certificates tab matters: it
+         exports the private key along with the certificate.
+      3. base64 -i ~/Desktop/AppleDistribution.p12 | gh secret set IOS_DISTRIBUTION_CERTIFICATE_BASE64 --repo pandulapeter/kubriko
+      4. gh secret set IOS_DISTRIBUTION_CERTIFICATE_PASSWORD --repo pandulapeter/kubriko   (from a terminal, so it can prompt)
+      5. rm ~/Desktop/AppleDistribution.p12
+      6. Continue the failed run: Re-run jobs -> Re-run failed jobs, which picks up the new secrets.
 
 jobs:
   build:
@@ -65,10 +82,12 @@ jobs:
           ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+          CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
         run: |
           # `gh secret set` stores an empty value without complaining when it has no terminal to
           # prompt on, and an empty secret only surfaces much later as a cryptic codesign or
-          # xcodebuild failure. Check the shape of all three here, where the message can be useful.
+          # xcodebuild failure. Check the shape of all of them here, where the message can be useful.
           PROBLEMS=0
           problem() {
             echo "::error::$1: $2" >&2
@@ -89,13 +108,29 @@ jobs:
           elif ! printf '%s' "$ASC_PRIVATE_KEY" | grep -q 'BEGIN PRIVATE KEY'; then
             problem APP_STORE_CONNECT_PRIVATE_KEY "expected the contents of the AuthKey_<id>.p8 file, including its BEGIN PRIVATE KEY line"
           fi
+          CERTIFICATE_PROBLEM=false
+          if [ -z "$CERTIFICATE_BASE64" ]; then
+            problem IOS_DISTRIBUTION_CERTIFICATE_BASE64 "empty or unset"
+            CERTIFICATE_PROBLEM=true
+          elif ! base64 --decode <<< "$CERTIFICATE_BASE64" > /dev/null 2>&1; then
+            problem IOS_DISTRIBUTION_CERTIFICATE_BASE64 "not valid base64, expected the output of 'base64 -i <certificate>.p12'"
+            CERTIFICATE_PROBLEM=true
+          fi
+          if [ -z "$CERTIFICATE_PASSWORD" ]; then
+            problem IOS_DISTRIBUTION_CERTIFICATE_PASSWORD "empty or unset, expected the password the .p12 was exported with"
+            CERTIFICATE_PROBLEM=true
+          fi
           if [ "$PROBLEMS" -gt 0 ]; then
             echo "" >&2
-            echo "Set them from a terminal that can prompt for hidden input:" >&2
-            echo "  gh secret set <name> --repo ${{ github.repository }}" >&2
+            if [ "$CERTIFICATE_PROBLEM" = true ]; then
+              echo "$RENEWAL_STEPS" >&2
+            else
+              echo "Set them from a terminal that can prompt for hidden input, then re-run the failed jobs:" >&2
+              echo "  gh secret set <name> --repo ${{ github.repository }}" >&2
+            fi
             exit 1
           fi
-          echo "All three signing secrets are present and look well formed."
+          echo "All signing secrets are present and look well formed."
       - name: Check out repository
         uses: actions/checkout@v5
         with:
@@ -191,30 +226,55 @@ jobs:
           ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
-          GH_TOKEN: ${{ github.token }}
+          CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
         run: |
-          # altool looks for the key by name in this directory, xcodebuild and the signing script are given the path.
+          # altool looks for the key by name in this directory, xcodebuild and the submission script are given the path.
           ASC_KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8"
           mkdir -p "$(dirname "$ASC_KEY_PATH")"
           printf '%s\n' "$ASC_PRIVATE_KEY" > "$ASC_KEY_PATH"
           chmod 600 "$ASC_KEY_PATH"
           echo "ASC_KEY_PATH=$ASC_KEY_PATH" >> "$GITHUB_ENV"
-          export ASC_KEY_PATH
-          # What earlier runs kept for the builds they uploaded, revoked before this one makes its own - except for a
-          # build that is still waiting for Apple, which would be refused without it.
-          python3 .github/scripts/app_store_signing.py cleanup-earlier app-store-signing-ios com.pandulapeter.kubrikoShowcase IOS
           KEYCHAIN_PATH="$RUNNER_TEMP/signing.keychain-db"
           KEYCHAIN_PASSWORD=$(uuidgen)
           echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          python3 .github/scripts/app_store_signing.py certificate DISTRIBUTION "$KEYCHAIN_PATH"
+          base64 --decode <<< "$CERTIFICATE_BASE64" > "$RUNNER_TEMP/certificate.p12"
+          if ! security import "$RUNNER_TEMP/certificate.p12" -k "$KEYCHAIN_PATH" -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign -t cert -f pkcs12; then
+            rm -f "$RUNNER_TEMP/certificate.p12"
+            echo "::error::Could not import IOS_DISTRIBUTION_CERTIFICATE_BASE64, which usually means IOS_DISTRIBUTION_CERTIFICATE_PASSWORD is not the password the .p12 was exported with." >&2
+            echo "$RENEWAL_STEPS" >&2
+            exit 1
+          fi
+          rm "$RUNNER_TEMP/certificate.p12"
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" > /dev/null
           security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
           security find-identity -v -p codesigning "$KEYCHAIN_PATH"
-          if ! security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep -q 'Apple Distribution'; then
-            echo "::error::The keychain holds no Apple Distribution signing identity for the certificate the run created." >&2
+          # An expired certificate is no longer a valid identity, so its expiry is read from the certificate itself.
+          CERTIFICATE_PEM="$RUNNER_TEMP/distribution.pem"
+          if ! security find-certificate -p -c "Apple Distribution" "$KEYCHAIN_PATH" > "$CERTIFICATE_PEM" 2> /dev/null || [ ! -s "$CERTIFICATE_PEM" ]; then
+            echo "::error::IOS_DISTRIBUTION_CERTIFICATE_BASE64 holds no Apple Distribution certificate." >&2
+            echo "$RENEWAL_STEPS" >&2
+            exit 1
+          fi
+          EXPIRY=$(openssl x509 -in "$CERTIFICATE_PEM" -noout -enddate | cut -d= -f2)
+          if ! openssl x509 -in "$CERTIFICATE_PEM" -noout -checkend 0 > /dev/null; then
+            rm "$CERTIFICATE_PEM"
+            echo "::error::The Apple Distribution certificate expired on $EXPIRY." >&2
+            echo "$RENEWAL_STEPS" >&2
+            exit 1
+          elif ! openssl x509 -in "$CERTIFICATE_PEM" -noout -checkend $((90 * 24 * 60 * 60)) > /dev/null; then
+            echo "::warning::The Apple Distribution certificate expires on $EXPIRY. Renew it before then, the steps are in the log of this step."
+            echo "$RENEWAL_STEPS"
+          else
+            echo "The Apple Distribution certificate is valid until $EXPIRY."
+          fi
+          rm "$CERTIFICATE_PEM"
+          if ! security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep -q "Apple Distribution: .*($DEVELOPMENT_TEAM)"; then
+            echo "::error::The keychain holds no usable Apple Distribution signing identity of team $DEVELOPMENT_TEAM. The .p12 was probably exported without its private key, or belongs to another team." >&2
+            echo "$RENEWAL_STEPS" >&2
             exit 1
           fi
       - name: Archive the app
@@ -278,7 +338,6 @@ jobs:
             -authenticationKeyID "$ASC_KEY_ID" \
             -authenticationKeyIssuerID "$ASC_ISSUER_ID"
       - name: Upload to App Store Connect
-        id: upload
         env:
           ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
@@ -288,8 +347,6 @@ jobs:
             echo "::error::No IPA was exported to $RUNNER_TEMP/export" >&2
             exit 1
           fi
-          # Before the upload, since a step that fails after it would revoke the certificate of the build it uploaded.
-          python3 .github/scripts/app_store_signing.py record-build IOS "${{ steps.version.outputs.name }}" "${{ steps.version.outputs.build }}"
           xcrun altool --upload-app \
             --type ios \
             --file "$IPA" \
@@ -310,27 +367,6 @@ jobs:
           [ "$SUBMIT" = true ] || PREPARE=(--prepare)
           python3 .github/scripts/app_store_submission.py com.pandulapeter.kubrikoShowcase IOS \
             "${{ steps.version.outputs.name }}" "${{ steps.version.outputs.build }}" "$RUNNER_TEMP/release-notes.txt" "${PREPARE[@]}"
-      # A build has to stay signed by a valid certificate until it is approved, so a run that uploaded one leaves what it
-      # created to the later runs of this workflow, which revoke it before they make their own once the build is no
-      # longer waiting for Apple.
-      - name: Keep the signing certificate for the build under review
-        if: always() && steps.upload.outcome == 'success'
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-store-signing-ios
-          path: ${{ runner.temp }}/app-store-signing.json
-          retention-days: 90
-      # Whatever the run got as far as creating, and nothing else, when the build did not get as far as App Store
-      # Connect. The profile xcodebuild made for the certificate is left to it: the next run's xcodebuild makes a new one.
-      - name: Revoke the signing certificate
-        if: always() && steps.upload.outcome != 'success'
-        env:
-          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-        run: |
-          if [ -f "$RUNNER_TEMP/app-store-signing.json" ]; then
-            python3 .github/scripts/app_store_signing.py cleanup
-          fi
       - name: Clean up credentials
         if: always()
         run: |
