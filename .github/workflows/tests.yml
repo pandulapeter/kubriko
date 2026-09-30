@@ -1,8 +1,6 @@
 name: '[Library] Tests'
 
 on:
-  push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
   # For the publishing workflows, which run the unit tests before anything is released.
