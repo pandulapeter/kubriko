@@ -1,7 +1,7 @@
 name: '[Showcase] Publish Web'
 
 on:
-  # Called by showcase-release.yml, or dispatched by hand to publish the web build alone.
+  # Called by showcase-publish-all.yml, or dispatched by hand to publish the web build alone.
   workflow_call:
   workflow_dispatch:
 

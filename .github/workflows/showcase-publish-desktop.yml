@@ -1,7 +1,7 @@
 name: '[Showcase] Publish Desktop'
 
 on:
-  # The same inputs twice: called by showcase-release.yml, or dispatched by hand to publish the desktop builds alone.
+  # The same inputs twice: called by showcase-publish-all.yml, or dispatched by hand to publish the desktop builds alone.
   workflow_call:
     inputs:
       steam_branch:

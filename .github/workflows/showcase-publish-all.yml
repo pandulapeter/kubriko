@@ -5,7 +5,7 @@
 # The release notes are the output of the showcase-release-notes skill: one line, with \n for every line break, sent to
 # Google Play and to App Store Connect alike.
 
-name: '[Showcase] Release'
+name: '[Showcase] Publish all'
 
 on:
   workflow_dispatch:
@@ -34,7 +34,7 @@ permissions:
   actions: write
 
 concurrency:
-  group: showcase-release
+  group: showcase-publish-all
 
 jobs:
   prepare:

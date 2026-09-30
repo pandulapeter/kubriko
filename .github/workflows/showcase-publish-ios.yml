@@ -18,7 +18,7 @@
 name: '[Showcase] Publish iOS'
 
 on:
-  # The same inputs twice: called by showcase-release.yml, or dispatched by hand to publish iOS alone.
+  # The same inputs twice: called by showcase-publish-all.yml, or dispatched by hand to publish iOS alone.
   workflow_call:
     inputs:
       build_number:
