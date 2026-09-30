@@ -44,6 +44,5 @@ runs:
           echo "  cd ~/steamcmd && HOME=~/steamcmd-home ./steamcmd.sh +login <build account name> +quit" >&2
           echo "  base64 -i ~/steamcmd-home/Library/Application\ Support/Steam/config/config.vdf | gh secret set STEAM_CONFIG_VDF_BASE64 --repo ${{ github.repository }}" >&2
           echo "Then continue this run with Re-run jobs -> Re-run failed jobs, which uses the new token." >&2
-          echo "The full steps: .github/SHOWCASE_PUBLISH_DESKTOP_SETUP.md, 'Renewing the Steam login token'." >&2
           exit 1
         fi
