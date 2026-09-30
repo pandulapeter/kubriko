@@ -1,6 +1,16 @@
 name: '[Showcase] Publish Desktop'
 
 on:
+  # The same inputs twice: called by showcase-release.yml, or dispatched by hand to publish the desktop builds alone.
+  workflow_call:
+    inputs:
+      steam_branch:
+        type: string
+        required: false
+        default: 'prerelease'
+      run_smoke_test:
+        type: boolean
+        default: true
   workflow_dispatch:
     inputs:
       steam_branch:

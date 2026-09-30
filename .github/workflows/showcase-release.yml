@@ -1,0 +1,135 @@
+# Releases the Showcase app everywhere at once: runs the unit tests, then calls the Android, iOS, web and desktop
+# publishing workflows side by side. Each of them can still be dispatched by hand, and a platform that failed here can be
+# run again from the run's page without repeating the ones that went through.
+#
+# The release notes are the output of the showcase-release-notes skill: one line, with \n for every line break, sent to
+# Google Play and to App Store Connect alike.
+
+name: '[Showcase] Release'
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_notes:
+        description: 'Release notes, use \n for line breaks (at most 500 characters, Google Play''s limit)'
+        type: string
+        required: true
+      play_store_submit:
+        description: 'Send the Android release for review (off: leave it as a draft in the Play Console)'
+        type: boolean
+        default: true
+      app_store_submit:
+        description: 'Submit the iOS build for review (off: leave the version prepared in App Store Connect)'
+        type: boolean
+        default: true
+      steam_branch:
+        description: 'Steam branch to set the desktop builds live on. Steam refuses "default" here, leave it empty to only upload.'
+        type: string
+        required: false
+        default: 'prerelease'
+
+permissions:
+  contents: read
+  # To find the previous release run, and for the signing identities the iOS workflow keeps between runs.
+  actions: write
+
+concurrency:
+  group: showcase-release
+
+jobs:
+  prepare:
+    name: Check the version and the release notes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      # Both stores refuse a build number they have seen, but each says so only after its build has been made and
+      # signed and the other platforms have gone out.
+      - name: Check the build number against the previous release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          CURRENT=$(sed -n 's/^showcase\.buildNumber=//p' gradle.properties | tr -d '\r')
+          if ! [[ "$CURRENT" =~ ^[0-9]+$ ]]; then
+            echo "::error::Could not read showcase.buildNumber from gradle.properties as a number ($CURRENT)." >&2
+            exit 1
+          fi
+          WORKFLOW_FILE=$(basename "${GITHUB_WORKFLOW_REF%%@*}")
+          LAST_SHA=$(gh run list --workflow "$WORKFLOW_FILE" --status success --limit 1 --json headSha --jq '.[0].headSha // empty')
+          if [ -z "$LAST_SHA" ]; then
+            echo "There is no earlier release run to compare showcase.buildNumber ($CURRENT) with."
+            exit 0
+          fi
+          # A commit from before the platforms shared one counter carries one per store; the highest of them is the
+          # number every store has seen by now.
+          PREVIOUS=$(git show "$LAST_SHA:gradle.properties" \
+            | sed -n -E 's/^showcase\.(buildNumber|androidVersionCode|iosBuildNumber)=//p' | tr -d '\r' | sort -n | tail -n 1)
+          if [ -n "$PREVIOUS" ] && [ "$CURRENT" -le "$PREVIOUS" ]; then
+            echo "::error::showcase.buildNumber is $CURRENT, but the previous release (${LAST_SHA:0:8}) already had $PREVIOUS. Raise it in gradle.properties." >&2
+            exit 1
+          fi
+          echo "showcase.buildNumber: $PREVIOUS at ${LAST_SHA:0:8}, $CURRENT now"
+      # The Android workflow would cut longer notes short rather than fail, and a listing cut mid-changelog is best
+      # noticed before anything is published.
+      - name: Check the release notes
+        env:
+          RELEASE_NOTES: ${{ inputs.release_notes }}
+        run: |
+          printf '%b' "$RELEASE_NOTES" > "$RUNNER_TEMP/release-notes.txt"
+          LENGTH=$(python3 -c 'import sys; print(len(open(sys.argv[1], encoding="utf-8").read().strip()))' "$RUNNER_TEMP/release-notes.txt")
+          if [ "$LENGTH" -gt 500 ]; then
+            echo "::error::The release notes are $LENGTH characters long, and Google Play takes 500." >&2
+            exit 1
+          fi
+          echo "Release notes ($LENGTH characters):"
+          cat "$RUNNER_TEMP/release-notes.txt"
+
+  tests:
+    name: Tests
+    uses: ./.github/workflows/tests.yml
+
+  android:
+    name: Android
+    needs: [prepare, tests]
+    uses: ./.github/workflows/showcase-publish-android.yml
+    permissions:
+      contents: read
+      actions: read
+    with:
+      release_notes: ${{ inputs.release_notes }}
+      submit: ${{ inputs.play_store_submit }}
+    secrets: inherit
+
+  ios:
+    name: iOS
+    needs: [prepare, tests]
+    uses: ./.github/workflows/showcase-publish-ios.yml
+    # The signing identities of the last upload are kept in an artifact until a later run revokes them (see
+    # app_store_signing.py).
+    permissions:
+      contents: read
+      actions: write
+    with:
+      release_notes: ${{ inputs.release_notes }}
+      submit: ${{ inputs.app_store_submit }}
+    secrets: inherit
+
+  web:
+    name: Web
+    needs: [prepare, tests]
+    uses: ./.github/workflows/showcase-publish-web.yml
+    permissions:
+      contents: read
+    secrets: inherit
+
+  desktop:
+    name: Desktop
+    needs: [prepare, tests]
+    uses: ./.github/workflows/showcase-publish-desktop.yml
+    permissions:
+      contents: read
+    with:
+      steam_branch: ${{ inputs.steam_branch }}
+    secrets: inherit

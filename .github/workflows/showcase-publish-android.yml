@@ -4,6 +4,15 @@
 name: '[Showcase] Publish Android'
 
 on:
+  # The same inputs twice: called by showcase-release.yml, or dispatched by hand to publish Android alone.
+  workflow_call:
+    inputs:
+      release_notes:
+        type: string
+        required: false
+      submit:
+        type: boolean
+        default: true
   workflow_dispatch:
     inputs:
       release_notes:

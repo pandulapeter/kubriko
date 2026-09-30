@@ -18,6 +18,18 @@
 name: '[Showcase] Publish iOS'
 
 on:
+  # The same inputs twice: called by showcase-release.yml, or dispatched by hand to publish iOS alone.
+  workflow_call:
+    inputs:
+      build_number:
+        type: string
+        required: false
+      release_notes:
+        type: string
+        required: false
+      submit:
+        type: boolean
+        default: true
   workflow_dispatch:
     inputs:
       build_number:

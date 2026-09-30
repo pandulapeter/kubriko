@@ -1,6 +1,6 @@
 ---
 name: showcase-release-notes
-description: Write paste-ready release notes for the Kubriko Showcase app — one short plain-text changelog that fits every store, plus the single-line `\n`-escaped form the `release_notes` input of the `[Showcase] Publish Android` and `[Showcase] Publish iOS` workflows takes. Invoke this skill WHENEVER the task involves Showcase app release notes — publishing the Showcase, bumping `showcase.versionName` / `showcase.buildNumber`, or any request to draft a "what's new" / store changelog for the Showcase. This is the ONLY correct way to produce them; never summarize the changes by hand. Not for the library's GitHub release notes (that is the `release-notes` skill), and not triggered by ordinary code edits.
+description: Write paste-ready release notes for the Kubriko Showcase app — one short plain-text changelog that fits every store, plus the single-line `\n`-escaped form the `release_notes` input of the `[Showcase] Release` workflow (and of the Android and iOS publishing workflows it calls) takes. Invoke this skill WHENEVER the task involves Showcase app release notes — publishing the Showcase, bumping `showcase.versionName` / `showcase.buildNumber`, or any request to draft a "what's new" / store changelog for the Showcase. This is the ONLY correct way to produce them; never summarize the changes by hand. Not for the library's GitHub release notes (that is the `release-notes` skill), and not triggered by ordinary code edits.
 ---
 
 # Kubriko Showcase release notes
@@ -84,9 +84,10 @@ module names, class names, Gradle, Managers or Traits.
 8. **Report back briefly:**
    - the path, and that the file is a throwaway to delete after pasting;
    - the character count against the 500 limit;
-   - that the escaped line goes into the `release_notes` input of both `[Showcase] Publish Android` and
-     `[Showcase] Publish iOS`, and the plain text into anything filled in by hand (the Steam
-     announcement, a store console);
+   - that the escaped line goes into the `release_notes` input of `[Showcase] Release`, which runs the
+     tests and then publishes Android, iOS, web and desktop with it (or of `[Showcase] Publish Android` /
+     `[Showcase] Publish iOS` when one platform is published alone), and the plain text into anything
+     filled in by hand (the Steam announcement, a store console);
    - whether `showcase.versionName` and `showcase.buildNumber` look raised since the boundary commit.
      If either is unchanged, say so: Play and App Store Connect both refuse a build number they have
      seen, and Apple takes no new build for a version already on the store.
