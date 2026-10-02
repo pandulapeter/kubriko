@@ -51,8 +51,7 @@ jobs:
           STEAM_BRANCH: ${{ inputs.steam_branch }}
           STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
           STEAM_CONFIG_VDF_BASE64: ${{ secrets.STEAM_CONFIG_VDF_BASE64 }}
-          MACOS_DEVELOPER_ID_CERTIFICATE_BASE64: ${{ secrets.MACOS_DEVELOPER_ID_CERTIFICATE_BASE64 }}
-          MACOS_DEVELOPER_ID_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+          DEVELOPER_ID_SIGNING_KEY: ${{ secrets.DEVELOPER_ID_SIGNING_KEY }}
           ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
@@ -90,13 +89,10 @@ jobs:
           elif ! grep -q 'InstallConfigStore' <<< "$CONFIG_VDF"; then
             problem STEAM_CONFIG_VDF_BASE64 "decodes to something other than the config.vdf of steamcmd"
           fi
-          if [ -z "$MACOS_DEVELOPER_ID_CERTIFICATE_BASE64" ]; then
-            problem MACOS_DEVELOPER_ID_CERTIFICATE_BASE64 "empty or unset"
-          elif ! base64 --decode <<< "$MACOS_DEVELOPER_ID_CERTIFICATE_BASE64" > /dev/null 2>&1; then
-            problem MACOS_DEVELOPER_ID_CERTIFICATE_BASE64 "not valid base64, expected the output of 'base64 -i <certificate>.p12'"
-          fi
-          if [ -z "$MACOS_DEVELOPER_ID_CERTIFICATE_PASSWORD" ]; then
-            problem MACOS_DEVELOPER_ID_CERTIFICATE_PASSWORD "empty or unset, expected the password the .p12 was exported with"
+          if [ -z "$DEVELOPER_ID_SIGNING_KEY" ]; then
+            problem DEVELOPER_ID_SIGNING_KEY "empty or unset"
+          elif ! grep -q -- '-----BEGIN \(RSA \)\{0,1\}PRIVATE KEY-----' <<< "$DEVELOPER_ID_SIGNING_KEY"; then
+            problem DEVELOPER_ID_SIGNING_KEY "expected an unencrypted RSA private key as PEM text, BEGIN PRIVATE KEY line included"
           fi
           if [ -z "$ASC_KEY_ID" ]; then
             problem APP_STORE_CONNECT_KEY_ID "empty or unset"
@@ -175,52 +171,37 @@ jobs:
       - name: Set up code signing
         if: matrix.platform == 'macos'
         env:
-          CERTIFICATE_BASE64: ${{ secrets.MACOS_DEVELOPER_ID_CERTIFICATE_BASE64 }}
-          CERTIFICATE_PASSWORD: ${{ secrets.MACOS_DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+          DEVELOPER_ID_SIGNING_KEY: ${{ secrets.DEVELOPER_ID_SIGNING_KEY }}
           ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
         run: |
+          ASC_KEY_PATH="$RUNNER_TEMP/AuthKey_$ASC_KEY_ID.p8"
+          printf '%s\n' "$ASC_PRIVATE_KEY" > "$ASC_KEY_PATH"
+          chmod 600 "$ASC_KEY_PATH"
+          echo "ASC_KEY_PATH=$ASC_KEY_PATH" >> "$GITHUB_ENV"
+          export ASC_KEY_PATH
           KEYCHAIN_PATH="$RUNNER_TEMP/signing.keychain-db"
           KEYCHAIN_PASSWORD=$(uuidgen)
           echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          echo "$CERTIFICATE_BASE64" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
-          if ! security import "$RUNNER_TEMP/certificate.p12" -k "$KEYCHAIN_PATH" -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign -t cert -f pkcs12; then
-            rm -f "$RUNNER_TEMP/certificate.p12"
-            echo "Could not import the certificate, which usually means MACOS_DEVELOPER_ID_CERTIFICATE_PASSWORD is not the password the .p12 was exported with." >&2
-            exit 1
-          fi
-          rm "$RUNNER_TEMP/certificate.p12"
+          # The Developer ID certificate made for the key, renewed through the API half a year before it expires where
+          # Apple lets the API key do that, and announced with the steps to do it by hand where it does not
+          # (.github/scripts/app_store_signing.py). It is never revoked: that would stop every copy already shipped from
+          # launching, the one this run ships included. Expiring does not, as notarized copies keep launching.
+          export APPLE_SIGNING_KEY_PATH="$RUNNER_TEMP/developer-id-signing-key.pem"
+          (umask 077 && printf '%s\n' "$DEVELOPER_ID_SIGNING_KEY" > "$APPLE_SIGNING_KEY_PATH")
+          python3 .github/scripts/app_store_signing.py certificate DEVELOPER_ID_APPLICATION_G2,DEVELOPER_ID_APPLICATION "$KEYCHAIN_PATH"
+          rm "$APPLE_SIGNING_KEY_PATH"
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" > /dev/null
           security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
-          ASC_KEY_PATH="$RUNNER_TEMP/AuthKey_$ASC_KEY_ID.p8"
-          printf '%s\n' "$ASC_PRIVATE_KEY" > "$ASC_KEY_PATH"
-          chmod 600 "$ASC_KEY_PATH"
-          echo "ASC_KEY_PATH=$ASC_KEY_PATH" >> "$GITHUB_ENV"
           security find-identity -v -p codesigning "$KEYCHAIN_PATH"
           if ! security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep -q 'Developer ID Application'; then
-            echo "The certificate imported but left no Developer ID Application signing identity behind." >&2
-            echo "Export the .p12 from the My Certificates tab of Keychain Access so that it carries the private key, not just the certificate." >&2
+            echo "::error::The keychain holds no Developer ID Application signing identity for the signing key." >&2
             exit 1
           fi
-          # The one signing identity that cannot be made per run: revoking a Developer ID certificate stops every app
-          # signed with it from launching, the build this run ships included. Expiring does not - notarized copies keep
-          # working - it only stops new builds, so it is renewed by hand every five years and announced well before.
-          CERTIFICATE_PEM="$RUNNER_TEMP/developer-id.pem"
-          security find-certificate -p -c "Developer ID Application" "$KEYCHAIN_PATH" > "$CERTIFICATE_PEM"
-          EXPIRY=$(openssl x509 -in "$CERTIFICATE_PEM" -noout -enddate | cut -d= -f2)
-          RENEWAL="Create a new Developer ID Application certificate (Account Holder only), export it with its private key as a .p12 and update MACOS_DEVELOPER_ID_CERTIFICATE_BASE64 and MACOS_DEVELOPER_ID_CERTIFICATE_PASSWORD. Do not revoke the old one."
-          if ! openssl x509 -in "$CERTIFICATE_PEM" -noout -checkend 0 > /dev/null; then
-            echo "::error::The Developer ID Application certificate expired on $EXPIRY. $RENEWAL" >&2
-            exit 1
-          elif ! openssl x509 -in "$CERTIFICATE_PEM" -noout -checkend $((90 * 24 * 60 * 60)) > /dev/null; then
-            echo "::warning::The Developer ID Application certificate expires on $EXPIRY. $RENEWAL"
-          else
-            echo "The Developer ID Application certificate is valid until $EXPIRY."
-          fi
-          rm "$CERTIFICATE_PEM"
       - name: Build release distribution
         run: |
           ./gradlew :app:desktop:createReleaseDistributable \
