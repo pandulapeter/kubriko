@@ -164,8 +164,9 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
-          # Runs Gradle. The desktop build asks the Gradle toolchain for the JetBrains Runtime by vendor, which it downloads.
-          distribution: 'temurin'
+          # Runs Gradle, and is the JetBrains Runtime the desktop build asks the Gradle toolchain for by vendor: Foojay lists none of
+          # this version, so Gradle cannot download it.
+          distribution: 'jetbrains'
           java-version: 21
           cache: 'gradle'
       - name: Set up code signing
