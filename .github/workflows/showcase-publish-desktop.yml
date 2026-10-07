@@ -163,6 +163,10 @@ jobs:
         uses: actions/checkout@v5
       - name: Set up JDK 21
         uses: actions/setup-java@v5
+        # The JetBrains runtime is looked up through the GitHub API, which setup-java only authenticates with this
+        # variable (not its token input); unauthenticated, the runner's shared address runs out of requests.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         with:
           # Runs Gradle, and is the JetBrains Runtime the desktop build asks the Gradle toolchain for by vendor: Foojay lists none of
           # this version, so Gradle cannot download it.

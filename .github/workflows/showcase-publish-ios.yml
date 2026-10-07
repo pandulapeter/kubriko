@@ -107,6 +107,10 @@ jobs:
           fetch-depth: 0
       - name: Set up JDK 21
         uses: actions/setup-java@v5
+        # The JetBrains runtime is looked up through the GitHub API, which setup-java only authenticates with this
+        # variable (not its token input); unauthenticated, the runner's shared address runs out of requests.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         with:
           distribution: 'jetbrains'
           java-version: 21
