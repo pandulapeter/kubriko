@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -42,8 +43,6 @@ import kubriko.tools.scene_editor.generated.resources.unique_prefix
 import kubriko.tools.scene_editor.generated.resources.unknown_actor_type
 import org.jetbrains.compose.resources.stringResource
 import kotlin.reflect.KClass
-import kotlin.reflect.KMutableProperty
-import kotlin.reflect.full.memberProperties
 
 @Composable
 internal fun InstanceManagerColumn(
@@ -77,6 +76,7 @@ internal fun InstanceManagerColumn(
                     onDeleteClicked = deleteSelectedInstance,
                 )
             }
+            val exposedProperties = remember(selectedInstance?.let { it::class }) { selectedInstance?.let { exposedMutableProperties(it::class) }.orEmpty() }
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -93,9 +93,7 @@ internal fun InstanceManagerColumn(
                         )
                     }
                 } else {
-                    selectedInstance::class.memberProperties
-                        .filterIsInstance<KMutableProperty<*>>()
-                        .sortedBy { it.name }
+                    exposedProperties
                         .mapNotNull { property ->
                             property.toPropertyEditor(
                                 actor = selectedInstance,

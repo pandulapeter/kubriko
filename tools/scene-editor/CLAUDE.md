@@ -38,7 +38,7 @@ The debug menu dependency follows `showcase.isDebugMenuEnabled` for local Showca
 
 ## Property inspector
 
-`PropertyEditorMapper.kt` uses Kotlin reflection to discover all `KMutableProperty` members of the selected actor where the setter is annotated with `@Exposed`. Property type is matched against a pre-built set of `KType` constants (`toPropertyEditorKind`; `String` regardless of nullability) (no allocation per-frame — discovery only happens on selection change). The displayed label is `@Exposed.name`. See `scene-editor-api/CLAUDE.md` for the full list of supported types.
+`PropertyEditorMapper.kt` uses Kotlin reflection to discover all `KMutableProperty` members of the selected actor where the setter is annotated with `@Exposed`. Property type is matched against a pre-built set of `KType` constants (`toPropertyEditorKind`; `String` regardless of nullability). The exposed properties are discovered once per actor class (`exposedMutableProperties`, remembered by `InstanceManagerColumn`); the editor lambdas are rebuilt from that list on recomposition. The displayed label is `@Exposed.name`. See `scene-editor-api/CLAUDE.md` for the full list of supported types.
 
 ## JSON scene format
 

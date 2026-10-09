@@ -34,9 +34,16 @@ import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
+import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
+
+internal fun exposedMutableProperties(type: KClass<*>): List<KMutableProperty<*>> = type.memberProperties
+    .filterIsInstance<KMutableProperty<*>>()
+    .filter { it.setter.findAnnotation<Exposed>() != null }
+    .sortedBy { it.name }
 
 internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
     actor: T,
