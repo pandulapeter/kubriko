@@ -15,7 +15,7 @@ Compose Desktop (JVM) app launched via `fun main()` in `KubrikoShowcaseApp.kt`.
 
 `application { ... }` block creates the Compose Desktop application. Initial window size is 860×660dp; minimum size is enforced via AWT `window.minimumSize = Dimension(400, 400)`.
 
-`windowState` is stored in an internal engine extension property (`com.pandulapeter.kubriko.implementation.windowState`) so other desktop-only modules (like the Scene Editor) can access it.
+`windowState` is stored in a public top-level engine property (`com.pandulapeter.kubriko.implementation.windowState`), which `plugin-pointer-input` reads to move the cursor.
 
 ## Fullscreen handling
 

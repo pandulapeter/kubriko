@@ -59,4 +59,9 @@ internal actual fun PlatformMaximumDisplayRefreshRateEffect(onMaximumDisplayRefr
     }
 }
 
+/**
+ * The state of the desktop window showing the game. Assign it from the `application { }` block,
+ * `windowState = rememberWindowState(...)`, for `PointerInputManager.tryToMoveHoveringPointer` to work; while it is
+ * unset that function returns false.
+ */
 lateinit var windowState: WindowState

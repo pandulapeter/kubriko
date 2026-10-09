@@ -67,7 +67,7 @@ val hoveringPosition = pointerManager.hoveringPointerPosition.value
 
 ### Platform Limitations
 - **Multitouch**: Multitouch support is fully available on Android, iOS, and Web (Wasm). On Desktop (JVM), only a single pointer (the mouse) is typically supported, though some touch-enabled hardware may vary.
-- **Pointer Movement**: The `tryToMoveHoveringPointer` function is only supported on Desktop and may require specific platform permissions.
+- **Pointer Movement**: The `tryToMoveHoveringPointer` function is only supported on Desktop and may require specific platform permissions. On desktop it needs the engine's `windowState` (`com.pandulapeter.kubriko.implementation.windowState`) to be set, `windowState = rememberWindowState(...)`; while it is unset the function returns `false`.
 
 ## Public Artifact
 

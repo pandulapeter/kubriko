@@ -33,8 +33,14 @@ internal actual fun setPointerPosition(
     if (platform is MetadataManager.Platform.Desktop.Linux) {
         return false
     }
-    val x = (windowState.position.x.value + offset.x * densityMultiplier).roundToInt()
-    val y = (windowState.position.y.value + offset.y * densityMultiplier).roundToInt()
+    val windowPosition = try {
+        windowState.position
+    } catch (_: UninitializedPropertyAccessException) {
+        return false
+    }
+    if (!windowPosition.isSpecified) return false
+    val x = (windowPosition.x.value + offset.x * densityMultiplier).roundToInt()
+    val y = (windowPosition.y.value + offset.y * densityMultiplier).roundToInt()
     val currentPosition = MouseInfo.getPointerInfo()?.location
     if (currentPosition != null && currentPosition.x == x && currentPosition.y == y) {
         return false
