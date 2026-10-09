@@ -135,7 +135,7 @@ same-named helper scripts and committed into the wrong worktree:
 
    ```
    test "$(git cat-file commit HEAD | sed '1,/^$/d' | wc -l | tr -d ' ')" = "1" || echo "MORE THAN ONE LINE"
-   git log -1 --format=%B | grep -qiE 'co-authored|claude|session|generated' && echo "ATTRIBUTION"
+   git log -1 --format=%B | grep -qiE 'co-authored|generated with|claude code|anthropic\.com' && echo "ATTRIBUTION"
    ```
 
    Never branch, merge, rebase, push, bump the version or dispatch a workflow from a lane.
@@ -152,7 +152,7 @@ whole. Run the tests after each lane and the full build after the last; a break 
 
 **Finish**: plan files still present are the skipped ones — leave them, with the README trimmed to them, or ask the
 user whether to delete the folder. Final checks: `git log --format=%B START..HEAD | grep -ciE
-'co-authored|claude|session|generated'` prints 0, `git log --oneline START..HEAD` is one line per plan, `git status`
+'co-authored|generated with|claude code|anthropic\.com'` prints 0, `git log --oneline START..HEAD` is one line per plan, `git status`
 is clean and `git worktree list` shows only the checkout. Report the commit count, the skipped plans with reasons,
 and the manual checks owed (copy them out of the README first, since the next step deletes it); update the memory.
 
