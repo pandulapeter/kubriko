@@ -57,6 +57,8 @@ musicManager.play(Res.getUri("music/theme.mp3"), shouldLoop = true)
 
 A missing or undecodable file never crashes the game: the failure is logged, the file counts as settled in `getLoadingProgress()` (so a loading screen gated on it still finishes), and playing it again retries the load.
 
+On the web, every audio file is fetched, so its URI has to be same-origin or served with CORS headers; a cross-origin file without CORS fails to load. Compose Resources URIs (`Res.getUri(...)`) are same-origin.
+
 ## Technical Details
 
 ### Supported Formats

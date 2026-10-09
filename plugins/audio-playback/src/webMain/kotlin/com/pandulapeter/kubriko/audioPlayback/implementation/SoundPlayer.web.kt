@@ -13,45 +13,69 @@ package com.pandulapeter.kubriko.audioPlayback.implementation
 
 import androidx.compose.runtime.Composable
 import kotlinx.browser.document
+import kotlinx.browser.window
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.await
 import kotlinx.coroutines.withContext
 import org.w3c.dom.HTMLAudioElement
+import org.w3c.dom.url.URL
 
-@Suppress("UNCHECKED_CAST")
 @Composable
 internal actual fun createSoundPlayer(
     maximumSimultaneousStreamsOfTheSameSound: Int,
 ) = object : SoundPlayer {
 
+    /**
+     * The file is fetched once and shared by the element pool through an object URL. Waiting for the elements to
+     * load instead would hang on iOS Safari, which loads no media before a user gesture.
+     */
     override suspend fun preload(uri: String) = withContext(Dispatchers.Default) {
-        buildList {
-            repeat(maximumSimultaneousStreamsOfTheSameSound) {
-                add(
-                    (document.createElement("audio") as HTMLAudioElement).apply {
-                        src = uri
-                    }
+        try {
+            val response = window.fetch(uri).await()
+            if (!response.ok) {
+                null
+            } else {
+                val objectUrl = URL.createObjectURL(response.blob().await())
+                WebCachedSound(
+                    objectUrl = objectUrl,
+                    elements = List(maximumSimultaneousStreamsOfTheSameSound) {
+                        (document.createElement("audio") as HTMLAudioElement).apply {
+                            src = objectUrl
+                        }
+                    },
                 )
             }
+        } catch (exception: Throwable) {
+            if (exception is CancellationException) throw exception
+            null
         }
     }
 
     override suspend fun play(cachedSound: Any) {
-        cachedSound as List<HTMLAudioElement>
+        cachedSound as WebCachedSound
         withContext(Dispatchers.Default) {
-            cachedSound.firstOrNull { it.paused }?.play()
+            // The browser rejects plays before the first user gesture; the element stays paused and is reused.
+            cachedSound.elements.firstOrNull { it.paused }?.play()?.catch { null }
         }
     }
 
     override fun dispose(cachedSound: Any) {
-        cachedSound as List<HTMLAudioElement>
-        cachedSound.forEach {
+        cachedSound as WebCachedSound
+        cachedSound.elements.forEach {
             if (!it.paused) {
                 it.pause()
             }
             it.src = ""
             it.remove()
         }
+        URL.revokeObjectURL(cachedSound.objectUrl)
     }
 
     override fun dispose() = Unit
 }
+
+private class WebCachedSound(
+    val objectUrl: String,
+    val elements: List<HTMLAudioElement>,
+)
