@@ -13,18 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
-import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.types.TargetFrameRate
 import kotlinx.browser.document
 import kotlinx.browser.window
-import org.w3c.dom.Window
 import org.w3c.dom.events.Event
-
-internal actual fun getDefaultFocusDebounce() = 0L
-
-internal actual fun getPlatform(): MetadataManager.Platform = MetadataManager.Platform.Web(
-    userAgent = window.navigator.userAgent,
-)
 
 @Composable
 internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) {
@@ -59,15 +51,6 @@ internal actual fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate) = Un
  */
 @Composable
 internal actual fun PlatformMaximumDisplayRefreshRateEffect(onMaximumDisplayRefreshRateChanged: (Float?) -> Unit) = Unit
-
-fun Window.isRunningOnAndroid() =
-    navigator.userAgent.contains("Android")
-
-fun Window.isRunningOnIphone() =
-    navigator.userAgent.contains("iPhone") || (!navigator.userAgent.contains("Chrome") && navigator.maxTouchPoints > 0 && window.innerWidth / window.innerHeight > 1.6)
-
-fun Window.isRunningOnIpad() =
-    navigator.userAgent.contains("iPad") || (!navigator.userAgent.contains("Chrome") && navigator.maxTouchPoints > 0 && window.innerWidth / window.innerHeight <= 1.6)
 
 private const val EVENT_BLUR = "blur"
 private const val EVENT_FOCUS = "focus"

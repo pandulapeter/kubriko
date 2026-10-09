@@ -13,16 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
-import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.types.TargetFrameRate
-import platform.UIKit.UIDevice
 import platform.UIKit.UIScreen
-
-internal actual fun getDefaultFocusDebounce() = 0L
-
-internal actual fun getPlatform(): MetadataManager.Platform = MetadataManager.Platform.IOS(
-    iOSVersion = UIDevice.currentDevice.systemVersion,
-)
 
 @Composable
 internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) {

@@ -23,6 +23,7 @@ import com.pandulapeter.kubriko.implementation.InternalViewport
  * restarts the viewport for it; the previous instance is not disposed.
  * @param windowInsets The [WindowInsets] to be used for the viewport.
  */
+@Suppress("DEPRECATION")
 @Composable
 fun KubrikoViewport(
     modifier: Modifier = Modifier,

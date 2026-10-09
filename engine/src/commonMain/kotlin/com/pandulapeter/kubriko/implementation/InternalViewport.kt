@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.onSizeChanged
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoImpl
+import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.helpers.ViewportFrameTickSource
 import com.pandulapeter.kubriko.manager.ViewportManager
 import kotlinx.coroutines.awaitCancellation
@@ -34,6 +35,17 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlin.time.TimeSource
 
+/**
+ * The implementation behind [KubrikoViewport], not meant to be called directly.
+ *
+ * @param modifier The [Modifier] to be applied to the viewport.
+ * @param kubriko The [Kubriko] instance shown by the viewport.
+ * @param windowInsets The [WindowInsets] to be used for the viewport.
+ */
+@Deprecated(
+    message = "Use KubrikoViewport.",
+    replaceWith = ReplaceWith("KubrikoViewport(modifier, kubriko, windowInsets)", "com.pandulapeter.kubriko.KubrikoViewport"),
+)
 @Composable
 fun InternalViewport(
     modifier: Modifier = Modifier,

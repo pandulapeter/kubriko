@@ -14,14 +14,17 @@ The sealed-interface core of Kubriko: wires Managers, Actors, the tick loop, and
 ## Key Internal Files
 
 - `KubrikoImpl.kt` — sole concrete `Kubriko`; holds `managers: List<Manager>`, drives `onTick`
-- `InternalViewport.kt` — actual Composable; runs the `withFrameNanos` loop, feeds size/focus into Managers
+- `InternalViewport.kt` — actual Composable; runs the `withFrameNanos` loop, feeds size/focus into Managers. Public by accident and `@Deprecated` in favor of `KubrikoViewport`; to become internal in the next binary-breaking release
 - `FrameTickScheduler.kt` — the frame loop's pure throttle: which display frames tick, and how long to sleep between them
 - `ActorManagerImpl.kt` — the Manager: the update loop and `Composable`
 - `ActorBatchProcessor.kt` — batched add/remove via `Channel<Operation>`
 - `ActorCuller.kt` — culling and the draw caches
 - `Layers.kt` — the per-layer Canvases
 - `SyncStateFlow.kt` — computes `.value` synchronously, preventing 1-frame lag on combined viewport bounds
-- `PlatformUtils.kt` (+ actuals) — `PlatformFocusEffect` (Android, desktop and iOS delegate to the shared `LifecycleFocusEffect`), `PlatformFrameRateHint`, `PlatformMaximumDisplayRefreshRateEffect`, `getPlatform()`, `getDefaultFocusDebounce()`. Android debounce = 350 ms; desktop, iOS and web = 0 ms
+- `Platform.kt` (+ actuals) — `getPlatform()`, `getDefaultFocusDebounce()`. Android debounce = 350 ms; desktop, iOS and web = 0 ms
+- `PlatformEffects.kt` (+ actuals) — `PlatformFocusEffect` (Android, desktop and iOS delegate to the shared `LifecycleFocusEffect` in `LifecycleFocusEffect.kt`), `PlatformFrameRateHint`, `PlatformMaximumDisplayRefreshRateEffect`
+- `WindowState.desktop.kt` — the public `windowState` that `plugin-pointer-input` reads on desktop; keeps the JVM facade `PlatformUtils_desktopKt` through `@file:JvmName`
+- `BrowserDetection.kt` (web) — the public `Window.isRunningOnAndroid/Iphone/Ipad()` checks the Showcase's web shell uses
 - `AxisAlignedBoundingBox.kt` — four `Float` bounds, mutated in place by the owning body or collision mask, so per-frame updates allocate nothing; full `Float` range and precision
 
 ## Initialization Order

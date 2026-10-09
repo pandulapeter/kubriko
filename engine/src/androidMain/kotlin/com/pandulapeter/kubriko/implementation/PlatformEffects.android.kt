@@ -21,15 +21,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
-import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.types.TargetFrameRate
 import kotlin.math.roundToInt
-
-internal actual fun getDefaultFocusDebounce() = 350L
-
-internal actual fun getPlatform(): MetadataManager.Platform = MetadataManager.Platform.Android(
-    androidSdkVersion = Build.VERSION.SDK_INT,
-)
 
 @Composable
 internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) {
