@@ -25,10 +25,12 @@ Add the `PersistenceManager` to your `Kubriko` instance:
 
 ```kotlin
 val kubriko = Kubriko.newInstance(
-    PersistenceManager.newInstance(fileName = "my_game_prefs"),
+    PersistenceManager.newInstance(fileName = "com.example.mygame"),
     // ... other managers
 )
 ```
+
+Pick a `fileName` that is unique to your game, such as a reverse-domain name: on desktop and the web the storage is shared with every other program of the same user or every page of the same origin, so two games using the same name (including the default `"kubrikoPreferences"`) overwrite each other's values. The name must not contain `/`, should be at most 80 characters long, and should not change between releases, as changing it loses the previously saved values.
 
 ### 2. Access Persisted Values
 

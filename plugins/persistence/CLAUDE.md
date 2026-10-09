@@ -34,11 +34,11 @@ Every `MutableStateFlow.value` change triggers a coroutine write on `Dispatchers
 | Platform | Backend | Key scoping |
 |---|---|---|
 | Android | `SharedPreferences` (MODE_PRIVATE) | `fileName` = prefs file name; bare key names safe |
-| Desktop | `java.util.prefs.Preferences.userRoot().node(fileName)` | bare key names safe |
+| Desktop | `java.util.prefs.Preferences.userRoot().node(fileName)` | bare key names safe within the node; the node is shared by every JVM program of the user |
 | iOS | `NSUserDefaults.standardUserDefaults` | every type stored under `${fileName}_key` |
-| Web | `localStorage` | keys prefixed with `${fileName}_` |
+| Web | `localStorage` | keys prefixed with `${fileName}_`; shared by every page of the same origin |
 
-iOS and Web prefix every stored key — changing `fileName` on those platforms silently loses all previously saved data.
+On desktop and the web, `fileName` is the whole namespace outside the app, so it has to be unique per game (a reverse-domain name); two games keeping the default `"kubrikoPreferences"` overwrite each other's values. Changing `fileName` silently loses all previously saved data on every platform (Android selects another `SharedPreferences` file, desktop another node, iOS and the web another key prefix).
 
 Older iOS builds wrote strings (and so `generic` values) under the bare key. When the prefixed key does not exist yet, `getString` falls back to the bare key once; the immediate save then moves the value under the prefixed key. The bare key is never deleted (the shared defaults domain may belong to the host app). Caveats, both limited to the first launch after the update: the bare key is shared by every `fileName`, so two managers with the same string key both import whichever wrote last; and a host-app key with the same name as a Kubriko key is imported once.
 
@@ -66,6 +66,7 @@ class PrefsManager(private val persistenceManager: PersistenceManager) : Manager
 
 ## Gotchas
 
+- `fileName` must not contain `/` (a path separator for `java.util.prefs` and Android's `getSharedPreferences`, both throw) and should be at most 80 characters (`Preferences.MAX_NAME_LENGTH`)
 - Multiple `Kubriko` instances sharing one `PersistenceManager` share the same key namespace — use distinct key prefixes per game area
 - Desktop's `java.util.prefs` rejects keys over 80 characters and values over 8192 characters, and the browser's `localStorage` has a quota — such values are silently not persisted (the in-memory flow still holds them)
 - Do not call `persistenceManager.boolean(...)` inside `onUpdate` — each call allocates a wrapper if the key is new

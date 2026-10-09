@@ -105,7 +105,13 @@ sealed class PersistenceManager(
         /**
          * Creates a new [PersistenceManager] instance.
          *
-         * @param fileName The name of the storage file.
+         * @param fileName The name of the storage namespace. On desktop (a `java.util.prefs` user node) and on the web
+         * (a `localStorage` key prefix) this namespace is shared with every other program the user runs or every page of
+         * the same origin, so it should be unique to the game, such as a reverse-domain name (`"com.example.mygame"`).
+         * The default `"kubrikoPreferences"` is shared by every game that keeps it. Changing the name later loses the
+         * previously saved values, as every platform looks them up only under the current name. It must not contain `/`
+         * (a path separator for both `java.util.prefs` and Android's `getSharedPreferences`) and should be at most
+         * 80 characters long (the longest node name `java.util.prefs` accepts).
          * @param isLoggingEnabled Whether to enable logging for this manager.
          * @param instanceNameForLogging Optional name for logging purposes.
          */
