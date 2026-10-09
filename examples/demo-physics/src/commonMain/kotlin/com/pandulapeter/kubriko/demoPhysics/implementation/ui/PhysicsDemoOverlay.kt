@@ -31,13 +31,7 @@ import com.pandulapeter.kubriko.uiComponents.FloatingButton
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.LoadingOverlay
 import kubriko.examples.demo_physics.generated.resources.Res
-import kubriko.examples.demo_physics.generated.resources.chain
 import kubriko.examples.demo_physics.generated.resources.description
-import kubriko.examples.demo_physics.generated.resources.explosion
-import kubriko.examples.demo_physics.generated.resources.ic_chain
-import kubriko.examples.demo_physics.generated.resources.ic_explosion
-import kubriko.examples.demo_physics.generated.resources.ic_shape
-import kubriko.examples.demo_physics.generated.resources.shape
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -74,19 +68,9 @@ internal fun PhysicsDemoOverlay(
             }
             Spacer(modifier = Modifier.width(8.dp))
             FloatingButton(
-                icon = when (actionType) {
-                    ActionType.SHAPE -> Res.drawable.ic_shape
-                    ActionType.CHAIN -> Res.drawable.ic_chain
-                    ActionType.EXPLOSION -> Res.drawable.ic_explosion
-                },
+                icon = actionType.icon,
                 onButtonPressed = onActionTypeButtonPressed,
-                contentDescription = stringResource(
-                    when (actionType) {
-                        ActionType.SHAPE -> Res.string.shape
-                        ActionType.CHAIN -> Res.string.chain
-                        ActionType.EXPLOSION -> Res.string.explosion
-                    }
-                ),
+                contentDescription = stringResource(actionType.contentDescription),
             )
         }
     }

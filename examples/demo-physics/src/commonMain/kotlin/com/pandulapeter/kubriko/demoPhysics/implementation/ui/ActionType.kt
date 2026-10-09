@@ -9,8 +9,21 @@
  */
 package com.pandulapeter.kubriko.demoPhysics.implementation.ui
 
-internal enum class ActionType {
-    SHAPE,
-    CHAIN,
-    EXPLOSION,
+import kubriko.examples.demo_physics.generated.resources.Res
+import kubriko.examples.demo_physics.generated.resources.chain
+import kubriko.examples.demo_physics.generated.resources.explosion
+import kubriko.examples.demo_physics.generated.resources.ic_chain
+import kubriko.examples.demo_physics.generated.resources.ic_explosion
+import kubriko.examples.demo_physics.generated.resources.ic_shape
+import kubriko.examples.demo_physics.generated.resources.shape
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.StringResource
+
+internal enum class ActionType(
+    val icon: DrawableResource,
+    val contentDescription: StringResource,
+) {
+    SHAPE(Res.drawable.ic_shape, Res.string.shape),
+    CHAIN(Res.drawable.ic_chain, Res.string.chain),
+    EXPLOSION(Res.drawable.ic_explosion, Res.string.explosion),
 }
