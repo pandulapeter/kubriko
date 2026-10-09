@@ -110,9 +110,10 @@ Shared-file rules: a lane edits only its own modules' `CLAUDE.md` files; only la
 G60 reach into demo-performance/demo-physics, the demo overlays and `app/`; E50 edits `examples/demo-physics/CLAUDE.md`
 (locate by text, D22 edits it first). Schedule those after the Now lanes merge.
 
-## Decisions (awaiting the user)
+## Decisions
 
-Recommended option first.
+**Answered 2026-10-09: the recommended option for every plan below** (P50 fix, E51 return `false`, G58 remove the
+death-explosion point asked individually; the rest accepted as a batch). Do not re-ask.
 
 - **E50** split `ActorManagerImpl`: unify the two viewport-bounds tests as one helper with identical arithmetic, as a
   second commit (vs keep both / reuse `isWithinViewportBounds`, which can flip an edge actor); keep the name `Layers`.
