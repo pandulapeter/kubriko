@@ -15,7 +15,9 @@ trait, in a single layout shared by all four platforms.
 ## Key Files
 
 - `src/commonMain/.../GamepadInputManagerImpl.kt` — polls the platform handler once per tick, applies the dead
-  zone, diffs the buttons and dispatches to the Actors
+  zone, diffs the buttons and dispatches to the Actors; hosts the composition's focus-navigation frame loop
+- `src/commonMain/.../implementation/GamepadFocusNavigator.kt` — the focus-navigation state and per-frame step
+  (direction, repeat delay, activation and back edges) the manager's frame loop delegates to
 - `src/commonMain/.../GamepadState.kt` — the public, reused per-slot state object
 - `src/commonMain/.../GamepadButton.kt` — the shared button layout; `bitMask` is the ordinal-derived bit
 - `src/commonMain/.../GamepadFocusNavigationHost.kt` — the app-facing half of focus navigation: the `GamepadFocusNavigationHost` Composable
@@ -62,7 +64,9 @@ implements `FocusEventModifierNode` and claims a single slot on the manager whil
 `GamepadButton.SOUTH` invokes whatever holds that slot. Everything else — traversal order, geometry, focus
 state, focus visuals — stays Compose's.
 
-It runs off the frames of the composition (`Manager.Composable`), not off `onUpdate`, so the focus is moved from
+The per-frame step and its state live in `GamepadFocusNavigator`, which reads the pads, the host stack and the
+focused activation target and can be tested with a fake `FocusManager`; the manager keeps the frame loop below and
+calls into it. It runs off the frames of the composition (`Manager.Composable`), not off `onUpdate`, so the focus is moved from
 the thread the composition runs on whichever one the game ticks on. **It only asks for frames while the pads are
 asking something of the focus**: the pad state it reads is only refreshed when `onUpdate` polls, so the loop sleeps
 until a poll finds a direction or one of its buttons held (plus the one frame that sees them let go, which is what

@@ -16,12 +16,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
-import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.focus.FocusManager
-import androidx.compose.ui.input.InputMode
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.gamepadInput.GamepadInputManager.Companion.MAX_GAMEPAD_COUNT
 import com.pandulapeter.kubriko.gamepadInput.implementation.GamepadEventHandler
+import com.pandulapeter.kubriko.gamepadInput.implementation.GamepadFocusNavigator
 import com.pandulapeter.kubriko.gamepadInput.implementation.RawGamepadState
 import com.pandulapeter.kubriko.gamepadInput.implementation.createGamepadEventHandler
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -31,7 +29,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
-import kotlin.math.abs
 import kotlin.math.hypot
 
 internal class GamepadInputManagerImpl(
@@ -61,34 +58,12 @@ internal class GamepadInputManagerImpl(
     override var isFocusNavigationEnabled by mutableStateOf(false)
 
     /**
-     * The direction the focus is currently being walked in, and how long it has been held that way. Together
-     * they are what turns a stick that is simply pushed and left there into the repeat a held arrow key has.
-     */
-    private var focusDirection: FocusDirection? = null
-    private var timeUntilNextFocusStepInMilliseconds = 0f
-    private var wasActivationButtonPressed = false
-    private var wasBackButtonPressed = false
-
-    /**
      * Whether the pads asked anything of the focus when they were last polled - what wakes the frame loop below, which
      * otherwise sleeps: the state it reads only changes when onUpdate() polls, so a frame with nothing held would
      * only ask for a display frame, and a redraw of the whole window on most platforms, to learn nothing.
      */
     private val hasFocusNavigationInput = MutableStateFlow(false)
-    private var previousFocusFrameTimeNanos = 0L
-    private var hadFocusNavigationInput = false
-
-    /** Held rather than written inline, so that awaiting a frame doesn't allocate a lambda every time. */
-    private val onFocusNavigationFrame: (Long) -> Unit = { frameTimeNanos ->
-        val deltaTimeInMilliseconds = if (previousFocusFrameTimeNanos == 0L) {
-            0f
-        } else {
-            ((frameTimeNanos - previousFocusFrameTimeNanos) / NANOSECONDS_PER_MILLISECOND).coerceAtMost(MAXIMUM_FRAME_TIME)
-        }
-        previousFocusFrameTimeNanos = frameTimeNanos
-        hadFocusNavigationInput = updateFocusNavigation(deltaTimeInMilliseconds)
-    }
-
+    private val focusNavigator = GamepadFocusNavigator(gamepads, this)
     /** Scratch storage for applyDeadZone(), which has to return two values without allocating. */
     private var deadZonedX = 0f
     private var deadZonedY = 0f
@@ -127,161 +102,29 @@ internal class GamepadInputManagerImpl(
     @Composable
     private fun FocusNavigationEffect() {
         LaunchedEffect(Unit) {
-            restFocusNavigation()
+            focusNavigator.restFocusNavigation()
             while (isActive) {
                 if (_connectedGamepadCount.value == 0) {
                     // Nothing to navigate with, so suspend rather than wake at every frame to read four
                     // disconnected pads. onUpdate() keeps polling for controllers and publishes the count
                     // that resumes this loop; the reset makes the first frame after it a zero delta.
                     _connectedGamepadCount.first { it > 0 }
-                    previousFocusFrameTimeNanos = 0L
+                    focusNavigator.previousFocusFrameTimeNanos = 0L
                 }
                 if (!stateManager.isFocused.value) {
                     // What the pads last reported is stale until the window is polled again, so it is taken as
                     // their resting state once the focus is back, the way it is when navigation is turned on.
                     stateManager.isFocused.first { it }
-                    restFocusNavigation()
+                    focusNavigator.restFocusNavigation()
                     continue
                 }
-                if (!hadFocusNavigationInput && !hasFocusNavigationInput.value) {
+                if (!focusNavigator.hadFocusNavigationInput && !hasFocusNavigationInput.value) {
                     hasFocusNavigationInput.first { it }
-                    previousFocusFrameTimeNanos = 0L
+                    focusNavigator.previousFocusFrameTimeNanos = 0L
                 }
-                withFrameNanos(onFocusNavigationFrame)
+                withFrameNanos(focusNavigator.onFocusNavigationFrame)
             }
         }
-    }
-
-    /**
-     * Takes whatever the sticks and the buttons are doing right now as their resting state, so a menu that opens
-     * under a held control doesn't immediately act on it: only what the player does next counts.
-     */
-    private fun restFocusNavigation() {
-        wasActivationButtonPressed = isAnyGamepadPressing(GamepadButton.SOUTH)
-        wasBackButtonPressed = isAnyGamepadPressing(GamepadButton.EAST)
-        focusDirection = readFocusDirection()
-        timeUntilNextFocusStepInMilliseconds = FOCUS_REPEAT_DELAY
-        previousFocusFrameTimeNanos = 0L
-        hadFocusNavigationInput = false
-    }
-
-    /** Returns whether the pads asked anything of the focus on this frame. */
-    private fun updateFocusNavigation(deltaTimeInMilliseconds: Float): Boolean {
-        val isActivationButtonPressed = isAnyGamepadPressing(GamepadButton.SOUTH)
-        val isBackButtonPressed = isAnyGamepadPressing(GamepadButton.EAST)
-        val direction = readFocusDirection()
-        val hasInput = isActivationButtonPressed || isBackButtonPressed || direction != null
-        val host = focusNavigationHosts.lastOrNull() ?: return hasInput
-        val focusManager = host.focusManager
-        if (hasInput) {
-            // Compose decides whether a control can hold the focus at all, and whether holding it is worth
-            // drawing, from the last kind of input the window saw: a tap or a mouse click puts it into touch
-            // mode, where a control that is only clickable stops being a focus target and stops showing that it
-            // is one. A gamepad is a directional input like the arrow keys, so it makes the same claim they do -
-            // without this, a player who touched the screen once would be left steering a focus nothing draws.
-            host.inputModeManager.requestInputMode(InputMode.Keyboard)
-        }
-        val wasActivationPressed = wasActivationButtonPressed
-        wasActivationButtonPressed = isActivationButtonPressed
-        if (isActivationButtonPressed && !wasActivationPressed) {
-            focusedActivationTarget?.activate()
-        }
-        val wasBackPressed = wasBackButtonPressed
-        wasBackButtonPressed = isBackButtonPressed
-        if (isBackButtonPressed && !wasBackPressed && host.hasOnBack()) {
-            host.onBack()
-        }
-        if (direction == null) {
-            focusDirection = null
-            return hasInput
-        }
-        if (direction != focusDirection) {
-            focusDirection = direction
-            timeUntilNextFocusStepInMilliseconds = FOCUS_REPEAT_DELAY
-            moveFocus(focusManager, direction)
-            return hasInput
-        }
-        timeUntilNextFocusStepInMilliseconds -= deltaTimeInMilliseconds
-        if (timeUntilNextFocusStepInMilliseconds <= 0f) {
-            timeUntilNextFocusStepInMilliseconds += FOCUS_REPEAT_INTERVAL
-            moveFocus(focusManager, direction)
-        }
-        return hasInput
-    }
-
-    /**
-     * One step of the focus in [direction], falling back to entering whatever holds the focus when there is
-     * nowhere to step to.
-     *
-     * A directional search only ever walks the *siblings* of the focused Composable, so a focus parked on a
-     * container - a root that holds it so that the game can read keys, which is the shape of most games that
-     * have a menu at all - has nowhere to go, and the first push of the stick would otherwise do nothing at all.
-     * Entering is what Compose does for a D-pad center, and it is what gets the focus into a menu that has just
-     * come on screen. Only ever tried while the focus is on nothing this manager knows (see [onGamepadActivation]),
-     * so that reaching the end of a list steps out of it rather than dropping into the focused control's own
-     * insides.
-     */
-    private fun moveFocus(focusManager: FocusManager, direction: FocusDirection) {
-        if (!focusManager.moveFocus(direction) && focusedActivationTarget == null) {
-            focusManager.moveFocus(FocusDirection.Enter)
-        }
-    }
-
-    /**
-     * The direction the first gamepad that is asking for one wants the focus moved in, or null while none is.
-     *
-     * A stick is reduced to the one axis it leans on the most, so a diagonal push picks a single direction
-     * instead of walking the focus twice - Compose has no diagonal to move the focus in.
-     */
-    private fun readFocusDirection(): FocusDirection? {
-        for (index in 0 until MAX_GAMEPAD_COUNT) {
-            val gamepad = gamepads[index]
-            if (!gamepad.isConnected) {
-                continue
-            }
-            if (gamepad.isPressed(GamepadButton.DPAD_LEFT)) return FocusDirection.Left
-            if (gamepad.isPressed(GamepadButton.DPAD_RIGHT)) return FocusDirection.Right
-            if (gamepad.isPressed(GamepadButton.DPAD_UP)) return FocusDirection.Up
-            if (gamepad.isPressed(GamepadButton.DPAD_DOWN)) return FocusDirection.Down
-            val stickX = gamepad.leftStickX
-            val stickY = gamepad.leftStickY
-            if (abs(stickX) > abs(stickY)) {
-                if (stickX <= -FOCUS_STICK_THRESHOLD) return FocusDirection.Left
-                if (stickX >= FOCUS_STICK_THRESHOLD) return FocusDirection.Right
-            } else {
-                if (stickY <= -FOCUS_STICK_THRESHOLD) return FocusDirection.Up
-                if (stickY >= FOCUS_STICK_THRESHOLD) return FocusDirection.Down
-            }
-        }
-        return null
-    }
-
-    /**
-     * Whether [readFocusDirection] would name a direction, without naming it: this runs on every tick, and a nullable
-     * [FocusDirection] is boxed. A stick leaning at least the threshold on the axis it leans on most is what the other
-     * reads as a direction.
-     */
-    private fun isAnyFocusDirectionHeld(): Boolean {
-        for (index in 0 until MAX_GAMEPAD_COUNT) {
-            val gamepad = gamepads[index]
-            if (!gamepad.isConnected) {
-                continue
-            }
-            if (gamepad.isPressed(GamepadButton.DPAD_LEFT) || gamepad.isPressed(GamepadButton.DPAD_RIGHT) ||
-                gamepad.isPressed(GamepadButton.DPAD_UP) || gamepad.isPressed(GamepadButton.DPAD_DOWN)
-            ) return true
-            if (maxOf(abs(gamepad.leftStickX), abs(gamepad.leftStickY)) >= FOCUS_STICK_THRESHOLD) return true
-        }
-        return false
-    }
-
-    private fun isAnyGamepadPressing(button: GamepadButton): Boolean {
-        for (index in 0 until MAX_GAMEPAD_COUNT) {
-            if (gamepads[index].isConnected && gamepads[index].isPressed(button)) {
-                return true
-            }
-        }
-        return false
     }
 
     override fun isButtonPressed(gamepadIndex: Int, button: GamepadButton) =
@@ -308,8 +151,8 @@ internal class GamepadInputManagerImpl(
             updateGamepad(gamepads[index], rawGamepads[index])
         }
         _connectedGamepadCount.value = connectedCount
-        hasFocusNavigationInput.value = isFocusNavigationEnabled && connectedCount > 0 && (isAnyFocusDirectionHeld() ||
-                isAnyGamepadPressing(GamepadButton.SOUTH) || isAnyGamepadPressing(GamepadButton.EAST))
+        hasFocusNavigationInput.value = isFocusNavigationEnabled && connectedCount > 0 && (focusNavigator.isAnyFocusDirectionHeld() ||
+                focusNavigator.isAnyGamepadPressing(GamepadButton.SOUTH) || focusNavigator.isAnyGamepadPressing(GamepadButton.EAST))
     }
 
     private fun updateGamepad(gamepad: GamepadState, rawGamepad: RawGamepadState) {
@@ -459,21 +302,3 @@ internal class GamepadInputManagerImpl(
 
     override fun onDispose() = stopListening(shouldNotifyActors = false)
 }
-
-/**
- * How far a stick has to lean before it counts as asking for a direction. Well above the dead zone, so that a
- * stick resting slightly off center never walks the focus on its own.
- */
-private const val FOCUS_STICK_THRESHOLD = 0.5f
-
-/**
- * What a held direction does, in milliseconds: the pause before it starts repeating, and the pace it repeats at
- * afterwards. Matches the feel of a held arrow key rather than any one platform's exact numbers.
- */
-private const val FOCUS_REPEAT_DELAY = 400f
-private const val FOCUS_REPEAT_INTERVAL = 120f
-
-private const val NANOSECONDS_PER_MILLISECOND = 1_000_000f
-
-/** A frame the platform sat on must not turn into one huge jump through the focus. */
-private const val MAXIMUM_FRAME_TIME = 100f
