@@ -37,6 +37,10 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.EditorU
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.LocalTextInputFocusReporter
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.Settings
 import com.pandulapeter.kubriko.serialization.SerializationManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kubriko.tools.scene_editor.generated.resources.Res
 import kubriko.tools.scene_editor.generated.resources.editor_settings
 import kubriko.tools.scene_editor.generated.resources.file_dialog_title
@@ -79,8 +83,10 @@ internal fun InternalSceneEditor(
     val isSettingsOpen = remember { mutableStateOf(false) }
 
     val currentOnCloseRequest by rememberUpdatedState(onCloseRequest)
+    val editorScope = remember { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
     val editorController = remember {
         EditorController(
+            scope = editorScope,
             kubriko = editorKubriko,
             sceneEditorMode = sceneEditorMode,
             defaultSceneFilename = defaultSceneFilename,
@@ -109,7 +115,7 @@ internal fun InternalSceneEditor(
     // Registered before the windows so that their viewports are torn down before the instances they render.
     DisposableEffect(Unit) {
         onDispose {
-            editorController.dispose()
+            editorScope.cancel()
             overlayKubriko.dispose()
             editorKubriko.dispose()
         }

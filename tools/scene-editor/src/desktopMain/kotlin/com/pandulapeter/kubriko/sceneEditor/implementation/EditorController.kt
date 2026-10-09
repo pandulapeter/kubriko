@@ -33,9 +33,6 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.
 import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,15 +43,14 @@ import kotlinx.coroutines.flow.update
 import kotlin.reflect.full.isSubclassOf
 
 internal class EditorController(
+    private val scope: CoroutineScope,
     val kubriko: Kubriko,
     val sceneEditorMode: SceneEditorMode,
     defaultSceneFilename: String?,
     defaultSceneFolderPath: String,
     private val isSettingsOpen: () -> Boolean,
     private val onCloseRequest: () -> Unit,
-) : CoroutineScope {
-
-    override val coroutineContext = SupervisorJob() + Dispatchers.Default
+) {
     private val actorManager = kubriko.get<ActorManager>()
     val viewportManager = kubriko.get<ViewportManager>()
     val keyboardInputManager = kubriko.get<KeyboardInputManager>()
@@ -74,7 +70,7 @@ internal class EditorController(
     )
     private val allEditableActors = actorManager.allActors
         .map { it.filterIsInstance<Editable<*>>() }
-        .stateIn(this, SharingStarted.Eagerly, emptyList())
+        .stateIn(scope, SharingStarted.Eagerly, emptyList())
     private val _filterText = MutableStateFlow("")
     val filterText = _filterText.asStateFlow()
     val filteredAllEditableActors = combine(
@@ -82,16 +78,16 @@ internal class EditorController(
         filterText,
     ) { allEditableActors, filterText ->
         allEditableActors.filter { serializationManager.getTypeId(it::class)?.contains(filterText, true) == true }
-    }.stateIn(this, SharingStarted.Eagerly, emptyList())
+    }.stateIn(scope, SharingStarted.Eagerly, emptyList())
     val filteredVisibleActorsWithinViewport = combine(
         actorManager.visibleActorsWithinViewport.map { it.filterIsInstance<Editable<*>>() },
         filterText,
     ) { visibleActorsWithinViewport, filterText ->
         visibleActorsWithinViewport.filter { serializationManager.getTypeId(it::class)?.contains(filterText, true) == true }
-    }.stateIn(this, SharingStarted.Eagerly, emptyList())
+    }.stateIn(scope, SharingStarted.Eagerly, emptyList())
     val totalActorCount = actorManager.allActors
         .map { it.filterIsInstance<Editable<*>>().count() }
-        .stateIn(this, SharingStarted.Eagerly, 0)
+        .stateIn(scope, SharingStarted.Eagerly, 0)
     private val mouseScreenCoordinates = MutableStateFlow(Offset.Zero)
     val mouseSceneOffset = combine(
         mouseScreenCoordinates,
@@ -103,9 +99,9 @@ internal class EditorController(
             viewportSize = viewportSize,
             viewportScaleFactor = viewportManager.scaleFactor.value,
         )
-    }.stateIn(this, SharingStarted.Eagerly, SceneOffset.Zero)
+    }.stateIn(scope, SharingStarted.Eagerly, SceneOffset.Zero)
     private val selection = EditorSelection(
-        scope = this,
+        scope = scope,
         cameraPosition = viewportManager.cameraPosition,
         instantiatePreview = ::instantiatePreview,
     )
@@ -131,7 +127,7 @@ internal class EditorController(
     val canRedo = sceneDocument.canRedo
     val isSceneModified = sceneDocument.isSceneModified
     private val sceneFiles = SceneFiles(
-        scope = this,
+        scope = scope,
         sceneEditorMode = sceneEditorMode,
         defaultSceneFilename = defaultSceneFilename,
         defaultSceneFolderPath = defaultSceneFolderPath,
@@ -143,7 +139,7 @@ internal class EditorController(
     val shouldShowLoadingIndicator = sceneFiles.shouldShowLoadingIndicator
     val fileOperationError = sceneFiles.fileOperationError
     private val cameraAnimator = CameraAnimator(
-        scope = this,
+        scope = scope,
         viewportManager = viewportManager,
     )
     private var focusedTextInputCount = 0
@@ -152,7 +148,7 @@ internal class EditorController(
         userPreferences.snapY,
     ) { snapX, snapY ->
         snapX to snapY
-    }.stateIn(this, SharingStarted.Eagerly, 0 to 0)
+    }.stateIn(scope, SharingStarted.Eagerly, 0 to 0)
 
     init {
         actorManager.add(editorActors)
@@ -282,11 +278,6 @@ internal class EditorController(
     fun onBeforePropertyChange(editKey: Any) = sceneDocument.onBeforePropertyChange(editKey)
 
     fun onBeforeActorDrag() = sceneDocument.recordSnapshot()
-
-    fun dispose() {
-        cameraAnimator.cancel()
-        cancel()
-    }
 
     fun reset() {
         cameraAnimator.cancel()
