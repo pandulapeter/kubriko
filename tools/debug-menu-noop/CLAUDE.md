@@ -20,7 +20,7 @@ No-op implementation of `DebugMenuContract`. Swapped in when `isDebugMenuEnabled
 - `isVisible` is a permanently-false `MutableStateFlow`
 - `toggleVisibility()` is a no-op
 - `invoke` and `OverlayOnly` render `kubrikoViewport()` inside a `Box(modifier)`; `Horizontal` and `Vertical` render nothing
-- The simple overloads with `= Unit` bodies in `DebugMenuContract` are inherited without override
+- The simple overloads are inherited from `DebugMenuContract`, where they delegate to the detailed ones; the noop overrides the four detailed overloads.
 
 ## When to Modify
 
