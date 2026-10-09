@@ -10,17 +10,9 @@
 package com.pandulapeter.kubriko.demoContentShaders.implementation
 
 import androidx.compose.runtime.Composable
-import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.demoContentShaders.implementation.managers.ContentShadersDemoManager
-import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.manager.ViewportManager
-import com.pandulapeter.kubriko.shaders.ShaderManager
 import com.pandulapeter.kubriko.shared.StateHolder
-import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kubriko.examples.demo_content_shaders.generated.resources.Res
 import kubriko.examples.demo_content_shaders.generated.resources.blur
 import kubriko.examples.demo_content_shaders.generated.resources.chromatic_aberration
@@ -56,42 +48,3 @@ sealed interface ContentShadersDemoStateHolder : StateHolder {
                 && preloadedString(Res.string.smooth_pixelation).value.isNotBlank()
     }
 }
-
-internal class ContentShadersDemoStateHolderImpl(
-    isLoggingEnabled: Boolean,
-) : ContentShadersDemoStateHolder {
-
-    private val viewportManager = ViewportManager.newInstance(
-        aspectRatioMode = ViewportManager.AspectRatioMode.Stretched(SceneSize(2000.sceneUnit, 2000.sceneUnit)),
-        isLoggingEnabled = isLoggingEnabled,
-        instanceNameForLogging = LOG_TAG,
-    )
-    val shaderManager = ShaderManager.newInstance(
-        isLoggingEnabled = isLoggingEnabled,
-        instanceNameForLogging = LOG_TAG,
-    )
-    private val contentShadersDemoManager = ContentShadersDemoManager()
-    private val _kubriko = MutableStateFlow(
-        Kubriko.newInstance(
-            viewportManager,
-            shaderManager,
-            contentShadersDemoManager,
-            isLoggingEnabled = isLoggingEnabled,
-            instanceNameForLogging = LOG_TAG,
-        )
-    )
-    override val kubriko = _kubriko.asStateFlow()
-
-    override fun dispose() = kubriko.value.dispose()
-
-    override fun navigateBack(
-        isInFullscreenMode: Boolean,
-        onFullscreenModeToggled: () -> Unit,
-    ) = contentShadersDemoManager.areControlsExpanded.value.also {
-        if (it) {
-            contentShadersDemoManager.toggleControlsExpanded()
-        }
-    }
-}
-
-private const val LOG_TAG = "ContentShaders"
