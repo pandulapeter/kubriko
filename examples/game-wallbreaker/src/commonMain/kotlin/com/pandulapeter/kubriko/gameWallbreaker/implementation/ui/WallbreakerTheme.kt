@@ -26,6 +26,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import com.pandulapeter.kubriko.shared.ui.gameRipple
+import com.pandulapeter.kubriko.shared.ui.withFontFamily
 import kubriko.examples.game_wallbreaker.generated.resources.Res
 import kubriko.examples.game_wallbreaker.generated.resources.kanit_regular
 import org.jetbrains.compose.resources.Font
@@ -40,7 +41,7 @@ internal fun WallbreakerTheme(
         primary = Color(0xcfd5e3bf),
         onPrimary = Color.Black,
     ),
-    typography = WallbreakerTypography(),
+    typography = Typography().withFontFamily(KanitRegularFontFamily()),
     shapes = Shapes(
         extraSmall = Shape,
         small = Shape,
@@ -66,28 +67,6 @@ private val Shape: CornerBasedShape = RoundedCornerShape(
     bottomStart = CornerSize(0),
     bottomEnd = CornerSize(0),
 )
-
-@Composable
-private fun WallbreakerTypography() = Typography().run {
-    val fontFamily = KanitRegularFontFamily()
-    copy(
-        displayLarge = displayLarge.copy(fontFamily = fontFamily),
-        displayMedium = displayMedium.copy(fontFamily = fontFamily),
-        displaySmall = displaySmall.copy(fontFamily = fontFamily),
-        headlineLarge = headlineLarge.copy(fontFamily = fontFamily),
-        headlineMedium = headlineMedium.copy(fontFamily = fontFamily),
-        headlineSmall = headlineSmall.copy(fontFamily = fontFamily),
-        titleLarge = titleLarge.copy(fontFamily = fontFamily),
-        titleMedium = titleMedium.copy(fontFamily = fontFamily),
-        titleSmall = titleSmall.copy(fontFamily = fontFamily),
-        bodyLarge = bodyLarge.copy(fontFamily = fontFamily),
-        bodyMedium = bodyMedium.copy(fontFamily = fontFamily),
-        bodySmall = bodySmall.copy(fontFamily = fontFamily),
-        labelLarge = labelLarge.copy(fontFamily = fontFamily),
-        labelMedium = labelMedium.copy(fontFamily = fontFamily),
-        labelSmall = labelSmall.copy(fontFamily = fontFamily)
-    )
-}
 
 @Composable
 private fun KanitRegularFontFamily() = FontFamily(

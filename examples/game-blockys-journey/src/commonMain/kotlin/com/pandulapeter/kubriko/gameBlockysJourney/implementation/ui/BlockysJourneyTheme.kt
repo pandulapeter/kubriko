@@ -23,6 +23,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import com.pandulapeter.kubriko.shared.ui.gameRipple
+import com.pandulapeter.kubriko.shared.ui.withFontFamily
 import kubriko.examples.game_blockys_journey.generated.resources.Res
 import kubriko.examples.game_blockys_journey.generated.resources.medieval_sharp
 import org.jetbrains.compose.resources.Font
@@ -36,7 +37,7 @@ internal fun BlockysJourneyTheme(
         primary = Color(0xffb3af8d),
         onPrimary = Color(0xff29261a),
     ),
-    typography = BlockysJourneyTypography(),
+    typography = Typography().withFontFamily(MedievalSharpFontFamily()),
     shapes = Shapes(
         extraSmall = BlockysJourneyUIElementShape,
         small = BlockysJourneyUIElementShape,
@@ -54,28 +55,6 @@ internal fun BlockysJourneyTheme(
     ) {
         content()
     }
-}
-
-@Composable
-private fun BlockysJourneyTypography() = Typography().run {
-    val fontFamily = MedievalSharpFontFamily()
-    copy(
-        displayLarge = displayLarge.copy(fontFamily = fontFamily),
-        displayMedium = displayMedium.copy(fontFamily = fontFamily),
-        displaySmall = displaySmall.copy(fontFamily = fontFamily),
-        headlineLarge = headlineLarge.copy(fontFamily = fontFamily),
-        headlineMedium = headlineMedium.copy(fontFamily = fontFamily),
-        headlineSmall = headlineSmall.copy(fontFamily = fontFamily),
-        titleLarge = titleLarge.copy(fontFamily = fontFamily),
-        titleMedium = titleMedium.copy(fontFamily = fontFamily),
-        titleSmall = titleSmall.copy(fontFamily = fontFamily),
-        bodyLarge = bodyLarge.copy(fontFamily = fontFamily),
-        bodyMedium = bodyMedium.copy(fontFamily = fontFamily),
-        bodySmall = bodySmall.copy(fontFamily = fontFamily),
-        labelLarge = labelLarge.copy(fontFamily = fontFamily),
-        labelMedium = labelMedium.copy(fontFamily = fontFamily),
-        labelSmall = labelSmall.copy(fontFamily = fontFamily)
-    )
 }
 
 @Composable

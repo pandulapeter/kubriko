@@ -33,6 +33,13 @@ The games style their ripples more strongly than Material 3 allows: Material 3 r
 
 Themes still provide `LocalRippleConfiguration` with the non-deprecated single-argument `RippleConfiguration(color)` so any Material component that builds its own ripple (currently only Annoyed Penguins' `Slider`) keeps the right ripple color.
 
+### `ui/GameHover.kt` and `ui/GameTypography.kt` (`commonMain`)
+
+Styling helpers every game's buttons and theme would otherwise repeat:
+
+- `Modifier.gameHover(onEnter, onExit)` — calls the latest callbacks when a hovering pointer enters or leaves the element. Each game button keeps its own highlight state and plays its hover sound from `onEnter`.
+- `Typography.withFontFamily(fontFamily)` — a copy of the typography with all fifteen text styles in the given font. Each theme loads its font in its own `@Composable` and calls `Typography().withFontFamily(...)`.
+
 ### `ResourceLoader.web.kt` (`webMain`)
 
 A single `getFixedUri(path, rootPathName)` utility function for constructing absolute audio/asset URIs on Wasm/JS targets. The function reads `window.location.pathname` and resolves the deploy root path so that audio preloading works correctly whether the Showcase app is served at the root or a sub-path. All example modules that load audio on Web delegate URI construction to this function.

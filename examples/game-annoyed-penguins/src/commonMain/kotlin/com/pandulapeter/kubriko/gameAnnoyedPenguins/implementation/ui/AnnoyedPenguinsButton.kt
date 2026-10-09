@@ -23,10 +23,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.shared.ui.GameButton
+import com.pandulapeter.kubriko.shared.ui.gameHover
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -45,23 +44,13 @@ internal fun AnnoyedPenguinsButton(
             .height(40.dp)
             .scale(scale)
             .run { if (icon == null) defaultMinSize(minWidth = 72.dp) else width(40.dp) }
-            .pointerInput(Unit) {
-                awaitPointerEventScope {
-                    while (true) {
-                        val event = awaitPointerEvent()
-                        when (event.type) {
-                            PointerEventType.Enter -> {
-                                isActive.value = true
-                                onPointerEnter()
-                            }
-
-                            PointerEventType.Exit -> {
-                                isActive.value = false
-                            }
-                        }
-                    }
-                }
-            },
+            .gameHover(
+                onEnter = {
+                    isActive.value = true
+                    onPointerEnter()
+                },
+                onExit = { isActive.value = false },
+            ),
         containerColor = MaterialTheme.colorScheme.primary,
         contentColor = MaterialTheme.colorScheme.onPrimary,
         onClick = onButtonPressed,

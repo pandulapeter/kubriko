@@ -22,10 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.shared.ui.GameButton
+import com.pandulapeter.kubriko.shared.ui.gameHover
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
@@ -47,23 +46,13 @@ internal fun WallbreakerButton(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .size(40.dp)
-            .pointerInput(Unit) {
-                awaitPointerEventScope {
-                    while (true) {
-                        val event = awaitPointerEvent()
-                        when (event.type) {
-                            PointerEventType.Enter -> {
-                                scale.value = 0.8f
-                                onPointerEnter()
-                            }
-
-                            PointerEventType.Exit -> {
-                                scale.value = 1f
-                            }
-                        }
-                    }
-                }
-            },
+            .gameHover(
+                onEnter = {
+                    scale.value = 0.8f
+                    onPointerEnter()
+                },
+                onExit = { scale.value = 1f },
+            ),
         containerColor = resolvedContainerColor,
         contentColor = contentColor ?: MaterialTheme.colorScheme.onPrimary,
         onClick = onButtonPressed,

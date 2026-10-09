@@ -30,16 +30,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.shared.ui.GameButton
+import com.pandulapeter.kubriko.shared.ui.gameHover
+import kotlin.math.max
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import kotlin.math.max
 
 @Composable
 internal fun SpaceSquadronButton(
@@ -60,23 +59,13 @@ internal fun SpaceSquadronButton(
                 if (shouldShowTitle) this else width(40.dp)
             }
             .alpha(max(alpha, 0.7f))
-            .pointerInput(Unit) {
-                awaitPointerEventScope {
-                    while (true) {
-                        val event = awaitPointerEvent()
-                        when (event.type) {
-                            PointerEventType.Enter -> {
-                                isActive.value = true
-                                onPointerEnter()
-                            }
-
-                            PointerEventType.Exit -> {
-                                isActive.value = false
-                            }
-                        }
-                    }
-                }
-            },
+            .gameHover(
+                onEnter = {
+                    isActive.value = true
+                    onPointerEnter()
+                },
+                onExit = { isActive.value = false },
+            ),
         containerColor = if (isSystemInDarkTheme()) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary,
         contentColor = lerp(MaterialTheme.colorScheme.onPrimary, Color.White, alpha),
         onClick = onButtonPressed,

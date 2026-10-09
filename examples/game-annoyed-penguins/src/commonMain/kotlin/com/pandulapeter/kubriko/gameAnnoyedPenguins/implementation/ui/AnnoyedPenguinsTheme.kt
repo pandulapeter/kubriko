@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.shared.ui.gameRipple
+import com.pandulapeter.kubriko.shared.ui.withFontFamily
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import kubriko.examples.game_annoyed_penguins.generated.resources.permanent_marker
 import org.jetbrains.compose.resources.Font
@@ -40,7 +41,7 @@ internal fun AnnoyedPenguinsTheme(
         primary = Color(0xff456385),
         onPrimary = Color.White,
     ),
-    typography = AnnoyedPenguinsTypography(),
+    typography = Typography().withFontFamily(PermanentMarkerFontFamily()),
     shapes = Shapes(
         extraSmall = AnnoyedPenguinsUIElementShape,
         small = AnnoyedPenguinsUIElementShape,
@@ -66,28 +67,6 @@ private val AnnoyedPenguinsUIElementShape: CornerBasedShape = RoundedCornerShape
     bottomStart = CornerSize(32.dp),
     bottomEnd = CornerSize(32.dp),
 )
-
-@Composable
-private fun AnnoyedPenguinsTypography() = Typography().run {
-    val fontFamily = PermanentMarkerFontFamily()
-    copy(
-        displayLarge = displayLarge.copy(fontFamily = fontFamily),
-        displayMedium = displayMedium.copy(fontFamily = fontFamily),
-        displaySmall = displaySmall.copy(fontFamily = fontFamily),
-        headlineLarge = headlineLarge.copy(fontFamily = fontFamily),
-        headlineMedium = headlineMedium.copy(fontFamily = fontFamily),
-        headlineSmall = headlineSmall.copy(fontFamily = fontFamily),
-        titleLarge = titleLarge.copy(fontFamily = fontFamily),
-        titleMedium = titleMedium.copy(fontFamily = fontFamily),
-        titleSmall = titleSmall.copy(fontFamily = fontFamily),
-        bodyLarge = bodyLarge.copy(fontFamily = fontFamily),
-        bodyMedium = bodyMedium.copy(fontFamily = fontFamily),
-        bodySmall = bodySmall.copy(fontFamily = fontFamily),
-        labelLarge = labelLarge.copy(fontFamily = fontFamily),
-        labelMedium = labelMedium.copy(fontFamily = fontFamily),
-        labelSmall = labelSmall.copy(fontFamily = fontFamily)
-    )
-}
 
 @Composable
 private fun PermanentMarkerFontFamily() = FontFamily(
