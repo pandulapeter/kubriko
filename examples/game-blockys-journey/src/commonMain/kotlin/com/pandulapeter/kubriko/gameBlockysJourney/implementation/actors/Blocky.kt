@@ -137,18 +137,6 @@ internal class Blocky private constructor(
             Direction.NORTH_EAST -> Direction.EAST
         }
 
-    private val Direction.nextDirectionCounterClockwise
-        get() = when (this) {
-            Direction.EAST -> Direction.NORTH_EAST
-            Direction.SOUTH_EAST -> Direction.EAST
-            Direction.SOUTH -> Direction.SOUTH_EAST
-            Direction.SOUTH_WEST -> Direction.SOUTH
-            Direction.WEST -> Direction.SOUTH_WEST
-            Direction.NORTH_WEST -> Direction.WEST
-            Direction.NORTH -> Direction.NORTH_WEST
-            Direction.NORTH_EAST -> Direction.NORTH
-        }
-
     @kotlinx.serialization.Serializable
     data class State(
         @SerialName("body") val body: SerializableBoxBody = BoxBody(),
