@@ -20,9 +20,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -43,16 +41,10 @@ import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolder
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolderImpl
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.GameplayManager
-import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.AnnoyedPenguinsButton
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.AnnoyedPenguinsTheme
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.GameplayHud
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.MenuOverlay
-import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.StarCounter
-import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.ZoomSlider
 import kotlinx.collections.immutable.toImmutableList
-import kubriko.examples.game_annoyed_penguins.generated.resources.Res
-import kubriko.examples.game_annoyed_penguins.generated.resources.ic_pause
-import kubriko.examples.game_annoyed_penguins.generated.resources.pause
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun AnnoyedPenguinsGame(
@@ -96,37 +88,23 @@ fun AnnoyedPenguinsGame(
             enter = slideIn { IntOffset(0, -it.height) },
             exit = slideOut { IntOffset(0, -it.height) },
         ) {
-            Row(
-                modifier = Modifier
-                    .windowInsetsPadding(windowInsets)
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                AnnoyedPenguinsButton(
-                    onButtonPressed = {
-                        stateHolder.audioManager.playButtonToggleSoundEffect()
-                        stateHolder.stateManager.updateIsRunning(false)
-                    },
-                    icon = Res.drawable.ic_pause,
-                    title = stringResource(Res.string.pause),
-                    onPointerEnter = stateHolder.audioManager::playButtonHoverSoundEffect,
-                )
-                ZoomSlider(
-                    modifier = Modifier.weight(1f),
-                    minimumScaleFactor = stateHolder.viewportManager.minimumScaleFactor,
-                    maximumScaleFactor = stateHolder.viewportManager.maximumScaleFactor,
-                    currentScaleFactor = stateHolder.viewportManager.rawScaleFactor.collectAsState().value.vertical,
-                    updateScaleFactor = {
-                        stateHolder.gameplayManager.onScaleFactorChanged()
-                        stateHolder.viewportManager.setScaleFactor(it)
-                    },
-                )
-                StarCounter(
-                    collectedStarCount = stateHolder.gameplayManager.collectedStarCount.collectAsState().value,
-                    totalStarCount = stateHolder.gameplayManager.totalStarCount.collectAsState().value,
-                )
-            }
+            GameplayHud(
+                windowInsets = windowInsets,
+                onPauseButtonPressed = {
+                    stateHolder.audioManager.playButtonToggleSoundEffect()
+                    stateHolder.stateManager.updateIsRunning(false)
+                },
+                onButtonHover = stateHolder.audioManager::playButtonHoverSoundEffect,
+                minimumScaleFactor = stateHolder.viewportManager.minimumScaleFactor,
+                maximumScaleFactor = stateHolder.viewportManager.maximumScaleFactor,
+                currentScaleFactor = stateHolder.viewportManager.rawScaleFactor.collectAsState().value.vertical,
+                onScaleFactorChanged = {
+                    stateHolder.gameplayManager.onScaleFactorChanged()
+                    stateHolder.viewportManager.setScaleFactor(it)
+                },
+                collectedStarCount = stateHolder.gameplayManager.collectedStarCount.collectAsState().value,
+                totalStarCount = stateHolder.gameplayManager.totalStarCount.collectAsState().value,
+            )
         }
         AnimatedVisibility(
             visible = !isGameRunning,
