@@ -45,7 +45,7 @@ internal class IsometricGraphicsDemoStateHolderImpl(
         instanceNameForLogging = LOG_TAG_LOGIC,
     )
     val controlManager = ControlManager()
-    val textureManager = TextureResolver()
+    val textureResolver = TextureResolver()
     private val logicManager = LogicManager()
     val shouldShowLoadingIndicator = logicManager.shouldShowLoadingIndicator
     private val logicActorManager = ActorManager.newInstance(
@@ -58,7 +58,7 @@ internal class IsometricGraphicsDemoStateHolderImpl(
         logicViewportManager,
         controlManager,
         logicManager,
-        textureManager,
+        textureResolver,
         SpriteManager.newInstance(
             isLoggingEnabled = isLoggingEnabled,
             instanceNameForLogging = LOG_TAG_LOGIC,

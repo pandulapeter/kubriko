@@ -57,9 +57,9 @@ internal class ControlOverlayManager(
     private val stateManager by manager<StateManager>()
     var isJoystickEnabled: Boolean = true
     private var joystickPointerId: PointerId? = null
-    private var _joystickOrigin = MutableStateFlow<Offset?>(null)
+    private val _joystickOrigin = MutableStateFlow<Offset?>(null)
     val joystickOrigin = _joystickOrigin.asStateFlow()
-    private var _joystickDirection = MutableStateFlow<AngleRadians?>(null)
+    private val _joystickDirection = MutableStateFlow<AngleRadians?>(null)
     val joystickDirection = _joystickDirection.asStateFlow()
     private val joystickDeadZoneSq = 100f
     var joystickMaxRadiusPx: Float = 200f
@@ -68,7 +68,7 @@ internal class ControlOverlayManager(
     var paddingPx: Float = 0f
     var leftInsetPx: Float = 0f
     var bottomInsetPx: Float = 0f
-    private var _joystickSpeedFactor = MutableStateFlow(0f)
+    private val _joystickSpeedFactor = MutableStateFlow(0f)
     val joystickSpeedFactor = _joystickSpeedFactor.asStateFlow()
     private var cameraPointerId: PointerId? = null
     private var cameraLastPosition: Offset? = null

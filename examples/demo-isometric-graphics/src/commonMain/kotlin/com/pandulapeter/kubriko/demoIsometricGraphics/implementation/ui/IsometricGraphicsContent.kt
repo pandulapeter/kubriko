@@ -95,7 +95,7 @@ internal fun IsometricGraphicsContent(
     LaunchedEffect(isReadyToRender.value) {
         if (!isReadyToRender.value) return@LaunchedEffect
         while (image.value == null) {
-            image.value = stateHolder.textureManager.resolveTexture("map")
+            image.value = stateHolder.textureResolver.resolveTexture("map")
             if (image.value == null) {
                 delay(50L.milliseconds)
             }
