@@ -14,12 +14,13 @@ Blank substitute for `examples/test-collision`, compiled into the Showcase app w
 
 ## What it contains
 
-Two files that mirror the public API surface of `test-collision` but do nothing:
+Three files that mirror the public API surface of `test-collision` but do nothing:
 
 - `CollisionTest.kt` — `createCollisionTestStateHolder()` returns `CollisionTestStateHolderImpl()`;
   the `CollisionTest` composable renders nothing (`= Unit`).
 - `CollisionTestStateHolder.kt` — `CollisionTestStateHolder` sealed interface with
-  `areResourcesLoaded()` always returning `true`; `CollisionTestStateHolderImpl` holds
+  `areResourcesLoaded()` always returning `true`.
+- `CollisionTestStateHolderImpl.kt` — `CollisionTestStateHolderImpl` holds
   `kubriko = emptyFlow<Kubriko?>()` and a no-op `dispose()`.
 
 ## Rules for editing
