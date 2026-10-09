@@ -30,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Matrix
@@ -50,6 +52,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.IsometricGraphicsDemoStateHolderImpl
+import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.gameplay.resources.TextureResolver
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.utility.GridMap
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.volumetric.actor.VolumetricCuboidRenderer
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.volumetric.manager.VolumetricRenderManager
@@ -71,6 +74,9 @@ private const val JOYSTICK_ENABLED = true
 
 private val CROSSFADE_SETTLE_DELAY = 350L.milliseconds
 
+private val JoystickBaseRadius = 64.dp
+private val JoystickKnobRadius = 20.dp
+
 @Composable
 internal fun IsometricGraphicsContent(
     stateHolder: IsometricGraphicsDemoStateHolderImpl,
@@ -91,16 +97,10 @@ internal fun IsometricGraphicsContent(
         delay(CROSSFADE_SETTLE_DELAY)
         isReadyToRender.value = true
     }
-    val image = remember { mutableStateOf<ImageBitmap?>(null) }
-    LaunchedEffect(isReadyToRender.value) {
-        if (!isReadyToRender.value) return@LaunchedEffect
-        while (image.value == null) {
-            image.value = stateHolder.textureResolver.resolveTexture("map")
-            if (image.value == null) {
-                delay(50L.milliseconds)
-            }
-        }
-    }
+    val image = rememberMapTexture(
+        textureResolver = stateHolder.textureResolver,
+        isReadyToRender = isReadyToRender.value,
+    )
     val gridMap = remember(image.value) { image.value?.let(::GridMap) }
     val gridLinesPath = remember { Path() }
     val gridLineCache = remember { IsometricGridLineCache() }
@@ -111,9 +111,9 @@ internal fun IsometricGraphicsContent(
     val density = LocalDensity.current
     val currentOrigin = joystickOrigin.value
     val currentDirection = joystickDirection.value
-    val joystickMaxRadiusPx = with(density) { 64.dp.toPx() }
+    val joystickMaxRadiusPx = with(density) { JoystickBaseRadius.toPx() }
     val joystickVisualRadiusPx = joystickMaxRadiusPx // Visual background radius (128dp diameter / 2 = 64dp)
-    val joystickTriggerRadiusPx = joystickVisualRadiusPx * 2f // Touch target is 1.5x the visual size
+    val joystickTriggerRadiusPx = joystickVisualRadiusPx * 2f // Touch target is twice the visual radius
     val paddingPx = with(density) { 16.dp.toPx() }
     val layoutDirection = LocalLayoutDirection.current
     val safeDrawingInsets = WindowInsets.safeDrawing
@@ -164,70 +164,23 @@ internal fun IsometricGraphicsContent(
     if (isReadyToRender.value) {
         KubrikoViewport(
             modifier = Modifier
-                .drawBehind {
-                    val state = renderState.value
-                    val offset = state.cameraOffset
-                    val worldRotation = state.worldRotation
-                    val zoom = state.zoom
-                    val tilt = state.tilt
-                    drawIsometricGrid(
-                        gridLinesPath = gridLinesPath,
-                        isoMatrix = isoMatrix,
-                        gridColor = Color.Black,
-                        tileWidth = 100.sceneUnit,
-                        tileHeight = 100.sceneUnit,
-                        cameraPosition = offset,
-                        worldRotation = worldRotation,
-                        zoom = zoom * 2f,
-                        tilt = tilt,
-                        gridMap = gridMap,
-                        stroke = stroke,
-                        size = size.value,
-                        focusHeight = VolumetricRenderManager.FOCUS_HEIGHT,
-                        lineCache = gridLineCache,
-                    )
-                },
+                .isometricGrid(
+                    renderState = renderState,
+                    gridLinesPath = gridLinesPath,
+                    isoMatrix = isoMatrix,
+                    gridMap = gridMap,
+                    stroke = stroke,
+                    size = size,
+                    lineCache = gridLineCache,
+                ),
             kubriko = stateHolder.isometricKubriko,
         )
         if (JOYSTICK_ENABLED) {
-            Box {
-                Box(
-                    modifier = Modifier
-                        .graphicsLayer {
-                            val radius = with(density) { 64.dp.toPx() }
-                            translationX = animatedJoystickOrigin.x - radius
-                            translationY = animatedJoystickOrigin.y - radius
-                        }
-                        .size(128.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.surface.copy(alpha = animatedJoystickAlpha * 0.75f),
-                            shape = CircleShape,
-                        )
-                        .border(
-                            width = 2.dp,
-                            color = Color.Black.copy(alpha = animatedJoystickAlpha),
-                            shape = CircleShape,
-                        )
-                )
-                Box(
-                    modifier = Modifier
-                        .graphicsLayer {
-                            val radius = with(density) { 20.dp.toPx() }
-                            translationX = animatedJoystickOrigin.x + animatedKnobOffset.x - radius
-                            translationY = animatedJoystickOrigin.y + animatedKnobOffset.y - radius
-                        }
-                        .size(40.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.surface.copy(alpha = animatedJoystickAlpha),
-                            shape = CircleShape,
-                        )
-                        .border(
-                            width = 2.dp,
-                            color = Color.Black.copy(alpha = animatedJoystickAlpha),
-                            shape = CircleShape,
-                        )
-                )
-            }
+            Joystick(
+                origin = { animatedJoystickOrigin },
+                knobOffset = { animatedKnobOffset },
+                alpha = animatedJoystickAlpha,
+            )
         }
     }
     Column(
@@ -259,5 +212,100 @@ internal fun IsometricGraphicsContent(
     LoadingOverlay(
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
         shouldShowLoadingIndicator = !isReadyToRender.value || stateHolder.shouldShowLoadingIndicator.collectAsState().value,
+    )
+}
+
+@Composable
+private fun rememberMapTexture(
+    textureResolver: TextureResolver,
+    isReadyToRender: Boolean,
+): State<ImageBitmap?> {
+    val image = remember { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(isReadyToRender) {
+        if (!isReadyToRender) return@LaunchedEffect
+        while (image.value == null) {
+            image.value = textureResolver.resolveTexture("map")
+            if (image.value == null) {
+                delay(50L.milliseconds)
+            }
+        }
+    }
+    return image
+}
+
+private fun Modifier.isometricGrid(
+    renderState: State<VolumetricRenderManager.RenderState>,
+    gridLinesPath: Path,
+    isoMatrix: Matrix,
+    gridMap: GridMap?,
+    stroke: Stroke,
+    size: State<Size>,
+    lineCache: IsometricGridLineCache,
+) = drawBehind {
+    val state = renderState.value
+    val offset = state.cameraOffset
+    val worldRotation = state.worldRotation
+    val zoom = state.zoom
+    val tilt = state.tilt
+    drawIsometricGrid(
+        gridLinesPath = gridLinesPath,
+        isoMatrix = isoMatrix,
+        gridColor = Color.Black,
+        tileWidth = 100.sceneUnit,
+        tileHeight = 100.sceneUnit,
+        cameraPosition = offset,
+        worldRotation = worldRotation,
+        zoom = zoom * 2f,
+        tilt = tilt,
+        gridMap = gridMap,
+        stroke = stroke,
+        size = size.value,
+        focusHeight = VolumetricRenderManager.FOCUS_HEIGHT,
+        lineCache = lineCache,
+    )
+}
+
+@Composable
+private fun Joystick(
+    origin: () -> Offset,
+    knobOffset: () -> Offset,
+    alpha: Float,
+) = Box {
+    val density = LocalDensity.current
+    Box(
+        modifier = Modifier
+            .graphicsLayer {
+                val radius = with(density) { JoystickBaseRadius.toPx() }
+                translationX = origin().x - radius
+                translationY = origin().y - radius
+            }
+            .size(JoystickBaseRadius * 2)
+            .background(
+                color = MaterialTheme.colorScheme.surface.copy(alpha = alpha * 0.75f),
+                shape = CircleShape,
+            )
+            .border(
+                width = 2.dp,
+                color = Color.Black.copy(alpha = alpha),
+                shape = CircleShape,
+            )
+    )
+    Box(
+        modifier = Modifier
+            .graphicsLayer {
+                val radius = with(density) { JoystickKnobRadius.toPx() }
+                translationX = origin().x + knobOffset().x - radius
+                translationY = origin().y + knobOffset().y - radius
+            }
+            .size(JoystickKnobRadius * 2)
+            .background(
+                color = MaterialTheme.colorScheme.surface.copy(alpha = alpha),
+                shape = CircleShape,
+            )
+            .border(
+                width = 2.dp,
+                color = Color.Black.copy(alpha = alpha),
+                shape = CircleShape,
+            )
     )
 }
