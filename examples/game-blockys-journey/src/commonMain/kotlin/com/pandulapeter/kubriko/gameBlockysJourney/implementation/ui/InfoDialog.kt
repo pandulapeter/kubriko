@@ -38,7 +38,7 @@ internal fun InfoDialog(
     modifier = modifier.fillMaxSize(),
 ) {
     Text(
-        modifier = modifier
+        modifier = Modifier
             .align(Alignment.Center)
             .verticalScroll(rememberScrollState())
             .windowInsetsPadding(windowInsets)
