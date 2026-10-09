@@ -24,9 +24,9 @@ import kubriko.app.shared.generated.resources.other_licenses_mit
 import kubriko.app.shared.generated.resources.other_licenses_mpl_2_0
 import kubriko.app.shared.generated.resources.other_licenses_music_note
 
-fun createLicensesScreenStateHolder(): LicensesScreenStateHolder = LicensesScreenStateHolderImpl()
+internal fun createLicensesScreenStateHolder(): LicensesScreenStateHolder = LicensesScreenStateHolderImpl()
 
-sealed interface LicensesScreenStateHolder : StateHolder {
+internal sealed interface LicensesScreenStateHolder : StateHolder {
 
     companion object {
         @Composable

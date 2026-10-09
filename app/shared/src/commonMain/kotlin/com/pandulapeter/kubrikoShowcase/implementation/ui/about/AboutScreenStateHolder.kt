@@ -43,9 +43,9 @@ import kubriko.app.shared.generated.resources.other_about_spread_the_word
 import kubriko.app.shared.generated.resources.other_about_visit_my_website
 import kubriko.app.shared.generated.resources.other_about_write_a_review
 
-fun createAboutScreenStateHolder(): AboutScreenStateHolder = AboutScreenStateHolderImpl()
+internal fun createAboutScreenStateHolder(): AboutScreenStateHolder = AboutScreenStateHolderImpl()
 
-sealed interface AboutScreenStateHolder : StateHolder {
+internal sealed interface AboutScreenStateHolder : StateHolder {
 
     companion object {
         @Composable
