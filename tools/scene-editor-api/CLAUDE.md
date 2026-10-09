@@ -30,7 +30,7 @@ annotation class Exposed(val name: String)
 Apply to **property setters** of an `Editable` actor to surface them in the property inspector panel. The editor discovers them at runtime via Kotlin reflection (`KMutableProperty.setter.findAnnotation<Exposed>()`). `name` is required and must be a string literal: falling back to `KMutableProperty.name` would show the obfuscated name on a minified build, since that is the only name left there.
 
 Supported setter types (anything else is silently ignored):
-- `Boolean` — rendered as a checkbox
+- `Boolean` — rendered as a switch
 - `Float` — rendered as a number input
 - `Int` — rendered as a number input
 - `String` or `String?` — rendered as a text input (`null` shows as empty)
@@ -38,7 +38,7 @@ Supported setter types (anything else is silently ignored):
 - `SceneOffset` — rendered as two number inputs (x, y)
 - `Scale` — rendered as two number inputs (horizontal, vertical)
 - `AngleRadians` / `AngleDegrees` — rendered as a rotation editor (wheel or numeric, user-configurable)
-- `Color` — rendered as a color picker (RGB sliders or hex, user-configurable)
+- `Color` — rendered as a hex field, a swatch and an alpha slider, plus RGB or HSV sliders (user-configurable)
 
 ### `EditableMetadata<T>`
 Extends `SerializableMetadata<T>` with an `instantiate: (SceneOffset) -> Serializable.State<T>` lambda. This lets the editor create a new default instance at a given scene position when the user places an actor.
@@ -78,4 +78,4 @@ Key parameters shared by both:
 - `Connected(sceneJson, onSceneJsonChanged)` — editor mirrors an external JSON string; changes are pushed back via the callback. Used for live in-app editing where the game and editor share scene state.
 
 ## Constant
-`IS_SCENE_EDITOR_AVAILABLE` — `false` in the `-noop` module, not defined in `-api` (check the noop for this guard). The real `scene-editor` module does not define this constant.
+`IS_SCENE_EDITOR_AVAILABLE` — not defined in `-api`; both `scene-editor` and `scene-editor-noop` declare it as `false`, so it cannot tell them apart, and nothing in the repo reads it. Its intended meaning is still an open decision.
