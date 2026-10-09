@@ -43,7 +43,8 @@ All five shaders extend `TimeDrivenShader<State>` (`Shader<State>` + `Dynamic`),
 - `layerIndex = null` — renders over all world layers (full-screen overlay)
 
 **`Dynamic` contract:** `update()` advances `shaderState.time` from
-`MetadataManager.activeRuntimeInMilliseconds % 100000 / 1000f` so the animation pauses when the
+`shaderTimeInSeconds(MetadataManager.activeRuntimeInMilliseconds)`
+(examples/shared; wraps once an hour) so the animation pauses when the
 app loses focus without timestamp drift.
 
 `updateState(state)` is called by `ShaderAnimationsDemoManager` when the user adjusts controls; it

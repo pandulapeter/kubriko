@@ -26,6 +26,7 @@ import com.pandulapeter.kubriko.serialization.typeSerializers.SerializablePointB
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
+import kotlin.math.PI
 
 internal class Camera private constructor(state: State) : Unique, Dynamic, Positionable, Editable<Camera> {
     override val body = state.body
@@ -40,7 +41,7 @@ internal class Camera private constructor(state: State) : Unique, Dynamic, Posit
     private var acc = 0f
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        acc += deltaTimeInMilliseconds
+        acc = (acc + deltaTimeInMilliseconds) % CAMERA_PERIOD_IN_MILLISECONDS
         (acc / 5000f).rad.let { angle ->
             body.position = SceneOffset(
                 x = angle.cos.sceneUnit,
@@ -66,5 +67,6 @@ internal class Camera private constructor(state: State) : Unique, Dynamic, Posit
 
     companion object {
         private const val PATH_RADIUS = 2500
+        private const val CAMERA_PERIOD_IN_MILLISECONDS = 2f * PI.toFloat() * 5000f
     }
 }

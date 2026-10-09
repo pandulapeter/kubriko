@@ -16,6 +16,7 @@ import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shaders.Shader
 import com.pandulapeter.kubriko.shaders.extensions.ShaderUniformProvider
+import com.pandulapeter.kubriko.shared.shaderTimeInSeconds
 
 /**
  * Credit: deusnovus, Manel Martos Roldán
@@ -36,11 +37,11 @@ internal class FogShader(
         metadataManager = kubriko.get()
     }
 
-    private var time = 0f
+    private var timeInMilliseconds = 0L
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        time += deltaTimeInMilliseconds
-        shaderState = shaderState.copy(time = time / 1000f)
+        timeInMilliseconds += deltaTimeInMilliseconds
+        shaderState = shaderState.copy(time = shaderTimeInSeconds(timeInMilliseconds))
     }
 
     data class State(

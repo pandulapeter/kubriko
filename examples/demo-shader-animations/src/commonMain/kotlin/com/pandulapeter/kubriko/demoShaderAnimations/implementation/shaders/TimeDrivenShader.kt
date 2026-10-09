@@ -14,6 +14,7 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shaders.Shader
+import com.pandulapeter.kubriko.shared.shaderTimeInSeconds
 
 /**
  * A [Shader] whose `time` uniform follows the instance's active runtime, so the animation pauses with the game.
@@ -33,7 +34,7 @@ internal abstract class TimeDrivenShader<S : Shader.State>(
     }
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        time = (metadataManager.activeRuntimeInMilliseconds.value % 100000L) / 1000f
+        time = shaderTimeInSeconds(metadataManager.activeRuntimeInMilliseconds.value)
         shaderState = shaderState.withTime(time)
     }
 

@@ -13,6 +13,7 @@ import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.shaders.Shader
 import com.pandulapeter.kubriko.shaders.extensions.ShaderUniformProvider
+import com.pandulapeter.kubriko.shared.shaderTimeInSeconds
 
 /**
  * Credit: Birdmachine
@@ -27,11 +28,11 @@ internal class GalaxyShader(
     override val shaderCode = CODE
     override val shaderCache = Shader.Cache()
 
-    private var time = 0f
+    private var timeInMilliseconds = 0L
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        time += deltaTimeInMilliseconds
-        shaderState = shaderState.copy(time = time / 1000f)
+        timeInMilliseconds += deltaTimeInMilliseconds
+        shaderState = shaderState.copy(time = shaderTimeInSeconds(timeInMilliseconds))
     }
 
     data class State(
