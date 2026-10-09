@@ -14,8 +14,8 @@ A top-down isometric-style world where "Blocky" (a character) walks autonomously
 ## Plugins used
 
 - `audio-playback` — `MusicManager` + `SoundManager` for background music and SFX.
-- `pointer-input` — `PointerInputManager` (`isActiveAboveViewport = true`).
-- `keyboard-input` — `KeyboardInputManager`.
+- `pointer-input` — `PointerInputManager` (`isActiveAboveViewport = true`) (registered, but not used by any actor yet).
+- `keyboard-input` — `KeyboardInputManager` (registered, but not used by any actor yet).
 - `shaders` — `ShaderManager` for the pause-screen `RippleShader` (built-in collection).
 - `sprites` — `SpriteManager` for directional sprite sheets (8 directions × sprite sheet).
 - `persistence` — `PersistenceManager` (file `kubrikoBlockysJourney`) for user preferences.
@@ -23,7 +23,7 @@ A top-down isometric-style world where "Blocky" (a character) walks autonomously
 
 ## Architecture: two Kubriko instances
 
-`backgroundKubriko` runs loading, serialization, and audio preloading independently of the main instance. The `SerializationManager` and `SpriteManager` are both shared between instances so the level can be loaded and prerendered before the main game starts.
+`backgroundKubriko` runs loading, serialization, and audio preloading independently of the main instance. `SerializationManager` lives only in `backgroundKubriko`, which loads the level; `MusicManager`, `SoundManager`, `SpriteManager` and `LoadingManager` are registered in both instances, so resources load once and the level is prerendered before the main game starts.
 
 `ViewportManager` uses `FitVertical(1440.sceneUnit)`.
 
