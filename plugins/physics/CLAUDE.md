@@ -14,6 +14,7 @@ Impulse-based rigid-body physics via KPhysics/JPhysics. Depends on `plugin-colli
 ## Key Files
 
 - `src/commonMain/.../PhysicsManagerImpl.kt` — update loop, broad/narrow phase, arbiter pool, joint solving
+- `src/commonMain/.../implementation/SweepAndPrune.kt` — the broad phase's pair finder (`findPairs`)
 - `src/commonMain/.../PhysicsBody.kt` — wraps a `ComplexCollisionMask`; holds velocity, force, mass, friction, restitution
 - `src/commonMain/.../RigidBody.kt` — Actor trait; extends `Collidable`
 - `src/commonMain/.../JointWrapper.kt` — Actor trait exposing a `Joint` to the simulation
@@ -127,7 +128,7 @@ The pool is refilled with an indexed loop (not `addAll`, which copies through `t
 
 ## Broad Phase: Sweep-and-Prune
 
-`broadPhaseCheck()` keeps body indices sorted by AABB left edge (insertion sort over reusable `IntArray`/`FloatArray` scratch buffers — nearly O(n) per frame thanks to temporal coherence; the order is reset to identity whenever the `rigidBodies` list reference changes). Each body is then only tested against neighbors whose x-extents can still overlap. AABBs are read once per body per frame into the scratch arrays.
+`SweepAndPrune.findPairs()` (`implementation/SweepAndPrune.kt`, called from `broadPhaseCheck()`) keeps body indices sorted by AABB left edge (insertion sort over reusable `IntArray`/`FloatArray` scratch buffers — nearly O(n) per frame thanks to temporal coherence; the order is reset to identity whenever the `rigidBodies` list reference changes). Each body is then only tested against neighbors whose x-extents can still overlap. AABBs are read once per body per frame into the scratch arrays.
 
 **Order preservation is load-bearing**: candidate pairs are packed into a `LongArray` as `(minIndex shl 32) or maxIndex` and sorted before the narrow phase, restoring the exact `(i, j)` order of a naive nested loop. The sequential impulse solver iterates arbiters in insertion order, so changing pair order would change simulation results. Do not "optimize away" the pair sort.
 
