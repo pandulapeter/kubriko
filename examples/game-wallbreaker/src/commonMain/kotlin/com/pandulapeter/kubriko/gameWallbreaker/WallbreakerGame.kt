@@ -47,85 +47,87 @@ fun WallbreakerGame(
     isInFullscreenMode: Boolean? = null,
     onFullscreenModeToggled: () -> Unit = {},
 ) = WallbreakerTheme {
-    stateHolder as WallbreakerGameStateHolderImpl
-    val isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value
-    val isGameLoaded = stateHolder.backgroundLoadingManager.isGameLoaded()
-    SideEffect {
-        stateHolder.backgroundLoadingManager.isLoadingDone = isGameLoaded
-    }
-    KubrikoViewport(
-        modifier = modifier
-            .fillMaxSize()
-            .background(if (stateHolder.shaderManager.areShadersSupported) Color.Black else Color.DarkGray),
-        kubriko = stateHolder.backgroundKubriko,
-    )
-    AnimatedVisibility(
+    Box(
         modifier = modifier,
-        visible = !isGameLoaded,
-        enter = EnterTransition.None,
-        exit = fadeOut(),
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets).padding(16.dp),
-        ) {
-            LoadingIndicator(modifier = Modifier.align(Alignment.BottomStart))
+        stateHolder as WallbreakerGameStateHolderImpl
+        val isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value
+        val isGameLoaded = stateHolder.backgroundLoadingManager.isGameLoaded()
+        SideEffect {
+            stateHolder.backgroundLoadingManager.isLoadingDone = isGameLoaded
         }
-    }
-    AnimatedVisibility(
-        modifier = modifier,
-        visible = isGameLoaded,
-        enter = fadeIn() + scaleIn(initialScale = 0.88f),
-        exit = scaleOut(targetScale = 0.88f) + fadeOut(),
-    ) {
         KubrikoViewport(
-            modifier = Modifier.windowInsetsPadding(windowInsets).background(Color.White.copy(alpha = 0.05f)),
-            kubriko = stateHolder.kubriko.collectAsState().value,
-            windowInsets = windowInsets,
+            modifier = Modifier
+                .fillMaxSize()
+                .background(if (stateHolder.shaderManager.areShadersSupported) Color.Black else Color.DarkGray),
+            kubriko = stateHolder.backgroundKubriko,
         )
-        val isFocused = stateHolder.stateManager.isFocused.collectAsState().value
-        val isInfoDialogVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value
-        val isCloseConfirmationDialogVisible = stateHolder.uiManager.isCloseConfirmationDialogVisible.collectAsState().value
-        GameOverlay(
-            gameAreaModifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
-            isGameRunning = isGameRunning,
-            score = stateHolder.scoreManager.score.collectAsState().value,
-            highScore = stateHolder.scoreManager.highScore.collectAsState().value,
-            onPauseButtonPressed = stateHolder.gameplayManager::pauseGame,
-            onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
-        )
-        MenuOverlay(
-            modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
-            isVisible = !isGameRunning,
-            isActive = !isInfoDialogVisible && !isCloseConfirmationDialogVisible,
-            shouldShowResumeButton = !stateHolder.gameplayManager.isGameOver.collectAsState().value,
-            onResumeButtonPressed = stateHolder.gameplayManager::resumeGame,
-            onRestartButtonPressed = stateHolder.gameplayManager::restartGame,
-            onInfoButtonPressed = stateHolder.uiManager::onInfoButtonPressed,
-            onExitButtonPressed = stateHolder.uiManager::onCloseConfirmationToggled,
-            areSoundEffectsEnabled = isFocused && stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
-            onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
-            isMusicEnabled = isFocused && stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
-            onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
-            isInFullscreenMode = isInFullscreenMode,
-            onFullscreenModeToggled = { stateHolder.uiManager.onFullscreenToggled(onFullscreenModeToggled) },
-            onButtonHover = {
-                if (!stateHolder.stateManager.isRunning.value) {
-                    stateHolder.audioManager.playHoverSoundEffect()
-                }
-            },
-        )
-        InfoDialogOverlay(
-            modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
-            isVisible = isInfoDialogVisible,
-            onInfoDialogClosed = stateHolder.uiManager::onInfoDialogClosed,
-            onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
-        )
-        CloseConfirmationDialogOverlay(
-            modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
-            isVisible = isCloseConfirmationDialogVisible,
-            onCloseConfirmed = stateHolder.uiManager::onCloseConfirmed,
-            onCloseCancelled = stateHolder.uiManager::onCloseConfirmationToggled,
-            onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
-        )
+        AnimatedVisibility(
+            visible = !isGameLoaded,
+            enter = EnterTransition.None,
+            exit = fadeOut(),
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets).padding(16.dp),
+            ) {
+                LoadingIndicator(modifier = Modifier.align(Alignment.BottomStart))
+            }
+        }
+        AnimatedVisibility(
+            visible = isGameLoaded,
+            enter = fadeIn() + scaleIn(initialScale = 0.88f),
+            exit = scaleOut(targetScale = 0.88f) + fadeOut(),
+        ) {
+            KubrikoViewport(
+                modifier = Modifier.windowInsetsPadding(windowInsets).background(Color.White.copy(alpha = 0.05f)),
+                kubriko = stateHolder.kubriko.collectAsState().value,
+                windowInsets = windowInsets,
+            )
+            val isFocused = stateHolder.stateManager.isFocused.collectAsState().value
+            val isInfoDialogVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value
+            val isCloseConfirmationDialogVisible = stateHolder.uiManager.isCloseConfirmationDialogVisible.collectAsState().value
+            GameOverlay(
+                gameAreaModifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
+                isGameRunning = isGameRunning,
+                score = stateHolder.scoreManager.score.collectAsState().value,
+                highScore = stateHolder.scoreManager.highScore.collectAsState().value,
+                onPauseButtonPressed = stateHolder.gameplayManager::pauseGame,
+                onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
+            )
+            MenuOverlay(
+                modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
+                isVisible = !isGameRunning,
+                isActive = !isInfoDialogVisible && !isCloseConfirmationDialogVisible,
+                shouldShowResumeButton = !stateHolder.gameplayManager.isGameOver.collectAsState().value,
+                onResumeButtonPressed = stateHolder.gameplayManager::resumeGame,
+                onRestartButtonPressed = stateHolder.gameplayManager::restartGame,
+                onInfoButtonPressed = stateHolder.uiManager::onInfoButtonPressed,
+                onExitButtonPressed = stateHolder.uiManager::onCloseConfirmationToggled,
+                areSoundEffectsEnabled = isFocused && stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
+                onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
+                isMusicEnabled = isFocused && stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
+                onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
+                isInFullscreenMode = isInFullscreenMode,
+                onFullscreenModeToggled = { stateHolder.uiManager.onFullscreenToggled(onFullscreenModeToggled) },
+                onButtonHover = {
+                    if (!stateHolder.stateManager.isRunning.value) {
+                        stateHolder.audioManager.playHoverSoundEffect()
+                    }
+                },
+            )
+            InfoDialogOverlay(
+                modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
+                isVisible = isInfoDialogVisible,
+                onInfoDialogClosed = stateHolder.uiManager::onInfoDialogClosed,
+                onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
+            )
+            CloseConfirmationDialogOverlay(
+                modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
+                isVisible = isCloseConfirmationDialogVisible,
+                onCloseConfirmed = stateHolder.uiManager::onCloseConfirmed,
+                onCloseCancelled = stateHolder.uiManager::onCloseConfirmationToggled,
+                onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
+            )
+        }
     }
 }

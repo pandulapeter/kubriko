@@ -60,100 +60,103 @@ fun BlockysJourneyGame(
     isInFullscreenMode: Boolean? = null,
     onFullscreenModeToggled: () -> Unit = {},
 ) = BlockysJourneyTheme {
-    stateHolder as BlockysJourneyGameStateHolderImpl
-    // Touching kubriko first creates the instance that initializes stateManager.
-    val kubriko = stateHolder.kubriko.collectAsState().value
-    KubrikoViewport(
-        modifier = modifier.fillMaxSize().background(Color.Black),
-        kubriko = stateHolder.backgroundKubriko,
-        windowInsets = windowInsets,
-    )
-    val isGameLoaded = stateHolder.sharedLoadingManager.isGameLoaded()
-    SideEffect {
-        stateHolder.sharedLoadingManager.isLoadingDone = isGameLoaded
-    }
-    val isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value
-    val isGameFocused = stateHolder.stateManager.isFocused.collectAsState().value
-    AnimatedVisibility(
-        visible = isGameLoaded,
-        enter = fadeIn() + scaleIn(initialScale = 0.88f),
-        exit = scaleOut(targetScale = 0.88f) + fadeOut(),
+    Box(
+        modifier = modifier,
     ) {
-        val gameAlpha by animateFloatAsState(
-            targetValue = if (isGameRunning) 1f else 0.2f,
-            animationSpec = tween(),
-        )
+        stateHolder as BlockysJourneyGameStateHolderImpl
+        // Touching kubriko first creates the instance that initializes stateManager.
+        val kubriko = stateHolder.kubriko.collectAsState().value
         KubrikoViewport(
-            modifier = Modifier.alpha(gameAlpha),
-            kubriko = kubriko,
+            modifier = Modifier.fillMaxSize().background(Color.Black),
+            kubriko = stateHolder.backgroundKubriko,
             windowInsets = windowInsets,
         )
+        val isGameLoaded = stateHolder.sharedLoadingManager.isGameLoaded()
+        SideEffect {
+            stateHolder.sharedLoadingManager.isLoadingDone = isGameLoaded
+        }
+        val isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value
+        val isGameFocused = stateHolder.stateManager.isFocused.collectAsState().value
         AnimatedVisibility(
-            visible = isGameRunning,
-            enter = slideIn { IntOffset(0, -it.height) } + fadeIn(),
-            exit = fadeOut() + slideOut { IntOffset(0, -it.height) },
+            visible = isGameLoaded,
+            enter = fadeIn() + scaleIn(initialScale = 0.88f),
+            exit = scaleOut(targetScale = 0.88f) + fadeOut(),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth()
-                    .windowInsetsPadding(windowInsets)
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            val gameAlpha by animateFloatAsState(
+                targetValue = if (isGameRunning) 1f else 0.2f,
+                animationSpec = tween(),
+            )
+            KubrikoViewport(
+                modifier = Modifier.alpha(gameAlpha),
+                kubriko = kubriko,
+                windowInsets = windowInsets,
+            )
+            AnimatedVisibility(
+                visible = isGameRunning,
+                enter = slideIn { IntOffset(0, -it.height) } + fadeIn(),
+                exit = fadeOut() + slideOut { IntOffset(0, -it.height) },
             ) {
-                BlockysJourneyButton(
-                    onButtonPressed = {
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                        .windowInsetsPadding(windowInsets)
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    BlockysJourneyButton(
+                        onButtonPressed = {
+                            stateHolder.audioManager.playButtonToggleSoundEffect()
+                            stateHolder.stateManager.updateIsRunning(false)
+                        },
+                        icon = Res.drawable.ic_pause,
+                        title = stringResource(Res.string.pause),
+                        onPointerEnter = stateHolder.audioManager::playButtonHoverSoundEffect,
+                    )
+                    UnfinishedDisclaimer(
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+            AnimatedVisibility(
+                visible = !isGameRunning,
+                enter = slideIn { IntOffset(0, -it.height) } + fadeIn(),
+                exit = fadeOut() + slideOut { IntOffset(0, -it.height) },
+            ) {
+                MenuOverlay(
+                    windowInsets = windowInsets,
+                    onInfoButtonPressed = stateHolder.uiManager::onInfoButtonPressed,
+                    onCloseButtonPressed = stateHolder.uiManager::onCloseConfirmationToggled,
+                    onCloseConfirmed = stateHolder.uiManager::onCloseConfirmed,
+                    areSoundEffectsEnabled = isGameFocused && stateHolder.sharedUserPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
+                    onSoundEffectsToggled = stateHolder.sharedUserPreferencesManager::onAreSoundEffectsEnabledChanged,
+                    isMusicEnabled = isGameFocused && stateHolder.sharedUserPreferencesManager.isMusicEnabled.collectAsState().value,
+                    onMusicToggled = stateHolder.sharedUserPreferencesManager::onIsMusicEnabledChanged,
+                    isInFullscreenMode = isInFullscreenMode,
+                    onFullscreenModeToggled = { stateHolder.uiManager.onFullscreenToggled(onFullscreenModeToggled) },
+                    playToggleSoundEffect = stateHolder.audioManager::playButtonToggleSoundEffect,
+                    playHoverSoundEffect = stateHolder.audioManager::playButtonHoverSoundEffect,
+                    isInfoDialogVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
+                    isCloseConfirmationDialogVisible = stateHolder.uiManager.isCloseConfirmationDialogVisible.collectAsState().value,
+                    onPlayButtonPressed = {
                         stateHolder.audioManager.playButtonToggleSoundEffect()
-                        stateHolder.stateManager.updateIsRunning(false)
+                        stateHolder.stateManager.updateIsRunning(true)
                     },
-                    icon = Res.drawable.ic_pause,
-                    title = stringResource(Res.string.pause),
-                    onPointerEnter = stateHolder.audioManager::playButtonHoverSoundEffect,
-                )
-                UnfinishedDisclaimer(
-                    modifier = Modifier.weight(1f),
+                    isSceneEditorEnabled = stateHolder.isSceneEditorEnabled,
                 )
             }
         }
         AnimatedVisibility(
-            visible = !isGameRunning,
-            enter = slideIn { IntOffset(0, -it.height) } + fadeIn(),
-            exit = fadeOut() + slideOut { IntOffset(0, -it.height) },
+            visible = !isGameLoaded,
+            enter = EnterTransition.None,
+            exit = fadeOut(),
         ) {
-            MenuOverlay(
-                windowInsets = windowInsets,
-                onInfoButtonPressed = stateHolder.uiManager::onInfoButtonPressed,
-                onCloseButtonPressed = stateHolder.uiManager::onCloseConfirmationToggled,
-                onCloseConfirmed = stateHolder.uiManager::onCloseConfirmed,
-                areSoundEffectsEnabled = isGameFocused && stateHolder.sharedUserPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
-                onSoundEffectsToggled = stateHolder.sharedUserPreferencesManager::onAreSoundEffectsEnabledChanged,
-                isMusicEnabled = isGameFocused && stateHolder.sharedUserPreferencesManager.isMusicEnabled.collectAsState().value,
-                onMusicToggled = stateHolder.sharedUserPreferencesManager::onIsMusicEnabledChanged,
-                isInFullscreenMode = isInFullscreenMode,
-                onFullscreenModeToggled = { stateHolder.uiManager.onFullscreenToggled(onFullscreenModeToggled) },
-                playToggleSoundEffect = stateHolder.audioManager::playButtonToggleSoundEffect,
-                playHoverSoundEffect = stateHolder.audioManager::playButtonHoverSoundEffect,
-                isInfoDialogVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
-                isCloseConfirmationDialogVisible = stateHolder.uiManager.isCloseConfirmationDialogVisible.collectAsState().value,
-                onPlayButtonPressed = {
-                    stateHolder.audioManager.playButtonToggleSoundEffect()
-                    stateHolder.stateManager.updateIsRunning(true)
-                },
-                isSceneEditorEnabled = stateHolder.isSceneEditorEnabled,
-            )
-        }
-    }
-    AnimatedVisibility(
-        modifier = modifier,
-        visible = !isGameLoaded,
-        enter = EnterTransition.None,
-        exit = fadeOut(),
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .windowInsetsPadding(windowInsets)
-                .padding(16.dp),
-        ) {
-            LoadingIndicator(modifier = Modifier.align(Alignment.BottomStart))
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(windowInsets)
+                    .padding(16.dp),
+            ) {
+                LoadingIndicator(modifier = Modifier.align(Alignment.BottomStart))
+            }
         }
     }
 }

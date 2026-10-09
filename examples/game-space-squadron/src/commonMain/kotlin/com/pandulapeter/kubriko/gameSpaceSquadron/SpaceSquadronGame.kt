@@ -45,59 +45,56 @@ fun SpaceSquadronGame(
     isInFullscreenMode: Boolean? = null,
     onFullscreenModeToggled: () -> Unit = {},
 ) = SpaceSquadronTheme {
-    stateHolder as SpaceSquadronGameStateHolderImpl
-    val isGameLoaded = stateHolder.backgroundLoadingManager.isGameLoaded()
-    SideEffect {
-        stateHolder.backgroundLoadingManager.isLoadingDone = isGameLoaded
-    }
-    KubrikoViewport(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.Black)
-            .rotate(stateHolder.cameraShakeManager.rotation.collectAsState().value),
-        kubriko = stateHolder.backgroundKubriko,
-    )
-    AnimatedVisibility(
+    Box(
         modifier = modifier,
-        visible = !isGameLoaded,
-        enter = EnterTransition.None,
-        exit = fadeOut(),
     ) {
-        Box(
+        stateHolder as SpaceSquadronGameStateHolderImpl
+        val isGameLoaded = stateHolder.backgroundLoadingManager.isGameLoaded()
+        SideEffect {
+            stateHolder.backgroundLoadingManager.isLoadingDone = isGameLoaded
+        }
+        KubrikoViewport(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.25f))
-                .windowInsetsPadding(windowInsets)
-                .padding(16.dp),
-        ) {
-            LoadingIndicator(modifier = Modifier.align(Alignment.BottomStart))
-        }
-    }
-    AnimatedVisibility(
-        visible = isGameLoaded,
-        enter = fadeIn() + scaleIn(initialScale = 0.88f),
-        exit = scaleOut(targetScale = 0.88f) + fadeOut(),
-    ) {
-        KubrikoViewport(
-            kubriko = stateHolder.kubriko.collectAsState().value,
-            windowInsets = windowInsets,
+                .background(Color.Black)
+                .rotate(stateHolder.cameraShakeManager.rotation.collectAsState().value),
+            kubriko = stateHolder.backgroundKubriko,
         )
         AnimatedVisibility(
-            visible = stateHolder.uiManager.isCloseConfirmationDialogVisible.collectAsState().value,
-            enter = fadeIn(),
+            visible = !isGameLoaded,
+            enter = EnterTransition.None,
             exit = fadeOut(),
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(0.5f)),
-            )
+                    .background(Color.Black.copy(alpha = 0.25f))
+                    .windowInsetsPadding(windowInsets)
+                    .padding(16.dp),
+            ) {
+                LoadingIndicator(modifier = Modifier.align(Alignment.BottomStart))
+            }
         }
         AnimatedVisibility(
             visible = isGameLoaded,
-            enter = fadeIn() + scaleIn(),
-            exit = scaleOut() + fadeOut(),
+            enter = fadeIn() + scaleIn(initialScale = 0.88f),
+            exit = scaleOut(targetScale = 0.88f) + fadeOut(),
         ) {
+            KubrikoViewport(
+                kubriko = stateHolder.kubriko.collectAsState().value,
+                windowInsets = windowInsets,
+            )
+            AnimatedVisibility(
+                visible = stateHolder.uiManager.isCloseConfirmationDialogVisible.collectAsState().value,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(0.5f)),
+                )
+            }
             val isFocused = stateHolder.stateManager.isFocused.collectAsState().value
             MenuOverlay(
                 modifier = Modifier.windowInsetsPadding(windowInsets),

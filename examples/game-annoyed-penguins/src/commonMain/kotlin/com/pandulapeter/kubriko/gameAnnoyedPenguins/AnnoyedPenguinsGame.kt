@@ -53,105 +53,108 @@ fun AnnoyedPenguinsGame(
     isInFullscreenMode: Boolean? = null,
     onFullscreenModeToggled: () -> Unit = {},
 ) = AnnoyedPenguinsTheme {
-    stateHolder as AnnoyedPenguinsGameStateHolderImpl
-    // Touching kubriko first creates the instance that initializes stateManager.
-    val kubriko = stateHolder.kubriko.collectAsState().value
-    KubrikoViewport(
-        modifier = modifier.fillMaxSize().background(Color(0xff6bbfc9)),
-        kubriko = stateHolder.backgroundKubriko,
-        windowInsets = windowInsets,
-    )
-    val isGameLoaded = stateHolder.backgroundLoadingManager.isGameLoaded()
-    SideEffect {
-        stateHolder.backgroundLoadingManager.isLoadingDone = isGameLoaded
-    }
-    val isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value
-    val isGameFocused = stateHolder.stateManager.isFocused.collectAsState().value
-    val isLoadingLevel = stateHolder.gameplayManager.isLoadingLevel.collectAsState().value
-    AnimatedVisibility(
-        visible = isGameLoaded,
-        enter = fadeIn() + scaleIn(initialScale = 0.88f),
-        exit = scaleOut(targetScale = 0.88f) + fadeOut(),
+    Box(
+        modifier = modifier,
     ) {
-        val loadingAlpha by animateFloatAsState(
-            targetValue = if (isLoadingLevel) 0f else 1f,
-        )
-        val gameAlpha by animateFloatAsState(
-            targetValue = if (isGameRunning) 1f else 0.5f,
-            animationSpec = tween(),
-        )
+        stateHolder as AnnoyedPenguinsGameStateHolderImpl
+        // Touching kubriko first creates the instance that initializes stateManager.
+        val kubriko = stateHolder.kubriko.collectAsState().value
         KubrikoViewport(
-            modifier = Modifier.alpha(loadingAlpha * gameAlpha * stateHolder.gameplayManager.gameViewportAlpha.collectAsState().value),
-            kubriko = kubriko,
+            modifier = Modifier.fillMaxSize().background(Color(0xff6bbfc9)),
+            kubriko = stateHolder.backgroundKubriko,
             windowInsets = windowInsets,
         )
+        val isGameLoaded = stateHolder.backgroundLoadingManager.isGameLoaded()
+        SideEffect {
+            stateHolder.backgroundLoadingManager.isLoadingDone = isGameLoaded
+        }
+        val isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value
+        val isGameFocused = stateHolder.stateManager.isFocused.collectAsState().value
+        val isLoadingLevel = stateHolder.gameplayManager.isLoadingLevel.collectAsState().value
         AnimatedVisibility(
-            visible = isGameRunning && !isLoadingLevel,
-            enter = slideIn { IntOffset(0, -it.height) },
-            exit = slideOut { IntOffset(0, -it.height) },
+            visible = isGameLoaded,
+            enter = fadeIn() + scaleIn(initialScale = 0.88f),
+            exit = scaleOut(targetScale = 0.88f) + fadeOut(),
         ) {
-            GameplayHud(
-                windowInsets = windowInsets,
-                onPauseButtonPressed = {
-                    stateHolder.audioManager.playButtonToggleSoundEffect()
-                    stateHolder.stateManager.updateIsRunning(false)
-                },
-                onButtonHover = stateHolder.audioManager::playButtonHoverSoundEffect,
-                minimumScaleFactor = stateHolder.viewportManager.minimumScaleFactor,
-                maximumScaleFactor = stateHolder.viewportManager.maximumScaleFactor,
-                currentScaleFactor = stateHolder.viewportManager.rawScaleFactor.collectAsState().value.vertical,
-                onScaleFactorChanged = {
-                    stateHolder.gameplayManager.onScaleFactorChanged()
-                    stateHolder.viewportManager.setScaleFactor(it)
-                },
-                collectedStarCount = stateHolder.gameplayManager.collectedStarCount.collectAsState().value,
-                totalStarCount = stateHolder.gameplayManager.totalStarCount.collectAsState().value,
+            val loadingAlpha by animateFloatAsState(
+                targetValue = if (isLoadingLevel) 0f else 1f,
             )
+            val gameAlpha by animateFloatAsState(
+                targetValue = if (isGameRunning) 1f else 0.5f,
+                animationSpec = tween(),
+            )
+            KubrikoViewport(
+                modifier = Modifier.alpha(loadingAlpha * gameAlpha * stateHolder.gameplayManager.gameViewportAlpha.collectAsState().value),
+                kubriko = kubriko,
+                windowInsets = windowInsets,
+            )
+            AnimatedVisibility(
+                visible = isGameRunning && !isLoadingLevel,
+                enter = slideIn { IntOffset(0, -it.height) },
+                exit = slideOut { IntOffset(0, -it.height) },
+            ) {
+                GameplayHud(
+                    windowInsets = windowInsets,
+                    onPauseButtonPressed = {
+                        stateHolder.audioManager.playButtonToggleSoundEffect()
+                        stateHolder.stateManager.updateIsRunning(false)
+                    },
+                    onButtonHover = stateHolder.audioManager::playButtonHoverSoundEffect,
+                    minimumScaleFactor = stateHolder.viewportManager.minimumScaleFactor,
+                    maximumScaleFactor = stateHolder.viewportManager.maximumScaleFactor,
+                    currentScaleFactor = stateHolder.viewportManager.rawScaleFactor.collectAsState().value.vertical,
+                    onScaleFactorChanged = {
+                        stateHolder.gameplayManager.onScaleFactorChanged()
+                        stateHolder.viewportManager.setScaleFactor(it)
+                    },
+                    collectedStarCount = stateHolder.gameplayManager.collectedStarCount.collectAsState().value,
+                    totalStarCount = stateHolder.gameplayManager.totalStarCount.collectAsState().value,
+                )
+            }
+            AnimatedVisibility(
+                visible = !isGameRunning,
+                enter = slideIn { IntOffset(0, -it.height) },
+                exit = slideOut { IntOffset(0, -it.height) },
+            ) {
+                MenuOverlay(
+                    windowInsets = windowInsets,
+                    currentLevel = stateHolder.gameplayManager.currentLevel.collectAsState().value,
+                    allLevels = GameplayManager.LevelNames,
+                    onInfoButtonPressed = stateHolder.uiManager::onInfoButtonPressed,
+                    onCloseButtonPressed = stateHolder.uiManager::onCloseConfirmationToggled,
+                    onCloseConfirmed = stateHolder.uiManager::onCloseConfirmed,
+                    areSoundEffectsEnabled = isGameFocused && stateHolder.sharedUserPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
+                    onSoundEffectsToggled = stateHolder.sharedUserPreferencesManager::onAreSoundEffectsEnabledChanged,
+                    isMusicEnabled = isGameFocused && stateHolder.sharedUserPreferencesManager.isMusicEnabled.collectAsState().value,
+                    onMusicToggled = stateHolder.sharedUserPreferencesManager::onIsMusicEnabledChanged,
+                    isInFullscreenMode = isInFullscreenMode,
+                    onFullscreenModeToggled = { stateHolder.uiManager.onFullscreenToggled(onFullscreenModeToggled) },
+                    playToggleSoundEffect = stateHolder.audioManager::playButtonToggleSoundEffect,
+                    playHoverSoundEffect = stateHolder.audioManager::playButtonHoverSoundEffect,
+                    isInfoDialogVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
+                    isCloseConfirmationDialogVisible = stateHolder.uiManager.isCloseConfirmationDialogVisible.collectAsState().value,
+                    onLevelSelected = { level ->
+                        stateHolder.audioManager.playButtonToggleSoundEffect()
+                        stateHolder.gameplayManager.setCurrentLevel(level)
+                        stateHolder.stateManager.updateIsRunning(true)
+                    },
+                    isSceneEditorEnabled = stateHolder.isSceneEditorEnabled,
+                )
+            }
         }
         AnimatedVisibility(
-            visible = !isGameRunning,
-            enter = slideIn { IntOffset(0, -it.height) },
-            exit = slideOut { IntOffset(0, -it.height) },
+            visible = !isGameLoaded || isLoadingLevel,
+            enter = if (isLoadingLevel) fadeIn() else EnterTransition.None,
+            exit = fadeOut(),
         ) {
-            MenuOverlay(
-                windowInsets = windowInsets,
-                currentLevel = stateHolder.gameplayManager.currentLevel.collectAsState().value,
-                allLevels = GameplayManager.LevelNames,
-                onInfoButtonPressed = stateHolder.uiManager::onInfoButtonPressed,
-                onCloseButtonPressed = stateHolder.uiManager::onCloseConfirmationToggled,
-                onCloseConfirmed = stateHolder.uiManager::onCloseConfirmed,
-                areSoundEffectsEnabled = isGameFocused && stateHolder.sharedUserPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
-                onSoundEffectsToggled = stateHolder.sharedUserPreferencesManager::onAreSoundEffectsEnabledChanged,
-                isMusicEnabled = isGameFocused && stateHolder.sharedUserPreferencesManager.isMusicEnabled.collectAsState().value,
-                onMusicToggled = stateHolder.sharedUserPreferencesManager::onIsMusicEnabledChanged,
-                isInFullscreenMode = isInFullscreenMode,
-                onFullscreenModeToggled = { stateHolder.uiManager.onFullscreenToggled(onFullscreenModeToggled) },
-                playToggleSoundEffect = stateHolder.audioManager::playButtonToggleSoundEffect,
-                playHoverSoundEffect = stateHolder.audioManager::playButtonHoverSoundEffect,
-                isInfoDialogVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
-                isCloseConfirmationDialogVisible = stateHolder.uiManager.isCloseConfirmationDialogVisible.collectAsState().value,
-                onLevelSelected = { level ->
-                    stateHolder.audioManager.playButtonToggleSoundEffect()
-                    stateHolder.gameplayManager.setCurrentLevel(level)
-                    stateHolder.stateManager.updateIsRunning(true)
-                },
-                isSceneEditorEnabled = stateHolder.isSceneEditorEnabled,
-            )
-        }
-    }
-    AnimatedVisibility(
-        modifier = modifier,
-        visible = !isGameLoaded || isLoadingLevel,
-        enter = if (isLoadingLevel) fadeIn() else EnterTransition.None,
-        exit = fadeOut(),
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .windowInsetsPadding(windowInsets)
-                .padding(16.dp),
-        ) {
-            LoadingIndicator(modifier = Modifier.align(Alignment.BottomStart))
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(windowInsets)
+                    .padding(16.dp),
+            ) {
+                LoadingIndicator(modifier = Modifier.align(Alignment.BottomStart))
+            }
         }
     }
 }
