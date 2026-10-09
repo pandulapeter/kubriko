@@ -12,7 +12,6 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.overlay
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.DrawTransform
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.withTransform
@@ -28,8 +27,8 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
+import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.transformViewport
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.snapped
-import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
@@ -156,22 +155,6 @@ internal class OverlayManager(
                 )
             }
         }
-    }
-
-    private fun DrawTransform.transformViewport(
-        viewportCenter: SceneOffset,
-        shiftedViewportOffset: SceneOffset,
-        viewportScaleFactor: Scale,
-    ) {
-        translate(
-            left = shiftedViewportOffset.x.raw,
-            top = shiftedViewportOffset.y.raw,
-        )
-        scale(
-            scaleX = viewportScaleFactor.horizontal,
-            scaleY = viewportScaleFactor.vertical,
-            pivot = viewportCenter.raw,
-        )
     }
 
     companion object {

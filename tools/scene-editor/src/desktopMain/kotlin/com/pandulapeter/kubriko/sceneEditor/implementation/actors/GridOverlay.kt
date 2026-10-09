@@ -12,20 +12,18 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.actors
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.DrawTransform
 import androidx.compose.ui.graphics.drawscope.withTransform
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.helpers.extensions.minus
 import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.transformViewport
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.MAX_GRID_LINES_PER_AXIS
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.UserPreferences
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.alignGridLineIndex
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.firstGridLineIndex
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.gridLineStep
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.lastGridLineIndex
-import com.pandulapeter.kubriko.types.Scale
-import com.pandulapeter.kubriko.types.SceneOffset
 
 internal class GridOverlay(
     private val viewportManager: ViewportManager,
@@ -101,22 +99,6 @@ internal class GridOverlay(
             )
             index += step
         }
-    }
-
-    private fun DrawTransform.transformViewport(
-        viewportCenter: SceneOffset,
-        shiftedViewportOffset: SceneOffset,
-        viewportScaleFactor: Scale,
-    ) {
-        translate(
-            left = shiftedViewportOffset.x.raw,
-            top = shiftedViewportOffset.y.raw,
-        )
-        scale(
-            scaleX = viewportScaleFactor.horizontal,
-            scaleY = viewportScaleFactor.vertical,
-            pivot = viewportCenter.raw,
-        )
     }
 
     companion object {
