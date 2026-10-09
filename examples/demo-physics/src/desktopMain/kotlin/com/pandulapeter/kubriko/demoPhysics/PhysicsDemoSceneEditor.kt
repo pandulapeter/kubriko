@@ -18,6 +18,9 @@ import com.pandulapeter.kubriko.demoPhysics.implementation.managers.PhysicsDemoM
 import com.pandulapeter.kubriko.demoPhysics.implementation.sceneJson
 import com.pandulapeter.kubriko.sceneEditor.SceneEditor
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
+import kubriko.examples.demo_physics.generated.resources.Res
+import kubriko.examples.demo_physics.generated.resources.scene_editor_title
+import org.jetbrains.compose.resources.stringResource
 
 fun main() = SceneEditor.show(
     defaultSceneFilename = PhysicsDemoManager.SCENE_NAME,
@@ -43,7 +46,7 @@ fun PhysicsDemoSceneEditor(
             defaultSceneFolderPath = defaultSceneFolderPath,
             serializationManager = stateHolder.serializationManager,
             customManagers = emptyList(),
-            title = "Scene Editor - Physics Demo",
+            title = stringResource(Res.string.scene_editor_title),
             onCloseRequest = { isSceneEditorVisible.value = false },
             sceneEditorMode = sceneJson?.let { sceneJson ->
                 SceneEditorMode.Connected(
