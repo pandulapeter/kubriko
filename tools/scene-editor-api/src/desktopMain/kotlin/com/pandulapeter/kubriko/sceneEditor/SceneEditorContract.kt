@@ -38,13 +38,11 @@ interface SceneEditorContract {
     )
 
     /**
-     * Embeds the Scene Editor as a Composable.
+     * Embeds the Scene Editor as a Composable. It opens no scene file and runs in [SceneEditorMode.Normal].
      *
-     * @param defaultSceneFilename The name of the scene file to load by default.
      * @param defaultSceneFolderPath The path to the folder containing scene files.
      * @param serializationManager The manager used for serializing/deserializing actors.
      * @param customManagers Additional engine managers to include in the editor's engine instance.
-     * @param sceneEditorMode The operational mode of the editor.
      * @param title The title of the editor.
      * @param onCloseRequest Called when the user asks to close the editor (window close button or Escape). The editor stays
      * open until the caller removes it from composition; it then disposes its Kubriko instances, including
@@ -67,6 +65,19 @@ interface SceneEditorContract {
         onCloseRequest = onCloseRequest,
     )
 
+    /**
+     * Embeds the Scene Editor as a Composable, loading [defaultSceneFilename] from [defaultSceneFolderPath] if not null, in
+     * [SceneEditorMode.Normal].
+     *
+     * @param defaultSceneFilename The name of the scene file to load by default, or null to open no file.
+     * @param defaultSceneFolderPath The path to the folder containing scene files.
+     * @param serializationManager The manager used for serializing/deserializing actors.
+     * @param customManagers Additional engine managers to include in the editor's engine instance.
+     * @param title The title of the editor.
+     * @param onCloseRequest Called when the user asks to close the editor (window close button or Escape). The editor stays
+     * open until the caller removes it from composition; it then disposes its Kubriko instances, including
+     * [serializationManager] and [customManagers].
+     */
     // TODO: Remove this function once default arguments in member Composables become supported.
     // https://issuetracker.google.com/issues/165812010
     @Composable
@@ -87,6 +98,19 @@ interface SceneEditorContract {
         onCloseRequest = onCloseRequest,
     )
 
+    /**
+     * Embeds the Scene Editor as a Composable. This is the overload implementations provide; the others delegate to it.
+     *
+     * @param defaultSceneFilename The name of the scene file to load by default, or null to open no file.
+     * @param defaultSceneFolderPath The path to the folder containing scene files.
+     * @param serializationManager The manager used for serializing/deserializing actors.
+     * @param customManagers Additional engine managers to include in the editor's engine instance.
+     * @param sceneEditorMode The operational mode of the editor.
+     * @param title The title of the editor.
+     * @param onCloseRequest Called when the user asks to close the editor (window close button or Escape). The editor stays
+     * open until the caller removes it from composition; it then disposes its Kubriko instances, including
+     * [serializationManager] and [customManagers].
+     */
     @Composable
     operator fun invoke(
         defaultSceneFilename: String?, // TODO: = null,
