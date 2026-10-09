@@ -10,14 +10,9 @@
 package com.pandulapeter.kubriko.demoParticles.implementation
 
 import androidx.compose.runtime.Composable
-import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.demoParticles.implementation.managers.ParticlesDemoManager
-import com.pandulapeter.kubriko.particles.ParticleManager
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kubriko.examples.demo_particles.generated.resources.Res
 import kubriko.examples.demo_particles.generated.resources.burst
 import kubriko.examples.demo_particles.generated.resources.collapse_controls
@@ -47,36 +42,3 @@ sealed interface ParticlesDemoStateHolder : StateHolder {
                 && preloadedString(Res.string.burst).value.isNotBlank()
     }
 }
-
-internal class ParticlesDemoStateHolderImpl(
-    isLoggingEnabled: Boolean,
-) : ParticlesDemoStateHolder {
-
-    private val particleManager = ParticleManager.newInstance(
-        isLoggingEnabled = isLoggingEnabled,
-        instanceNameForLogging = LOG_TAG,
-    )
-    private val particlesDemoManager = ParticlesDemoManager()
-    private val _kubriko = MutableStateFlow(
-        Kubriko.newInstance(
-            particleManager,
-            particlesDemoManager,
-            isLoggingEnabled = isLoggingEnabled,
-            instanceNameForLogging = LOG_TAG,
-        )
-    )
-    override val kubriko = _kubriko.asStateFlow()
-
-    override fun dispose() = kubriko.value.dispose()
-
-    override fun navigateBack(
-        isInFullscreenMode: Boolean,
-        onFullscreenModeToggled: () -> Unit,
-    ) = particlesDemoManager.areControlsExpanded.value.also {
-        if (it) {
-            particlesDemoManager.toggleControlsExpanded()
-        }
-    }
-}
-
-private const val LOG_TAG = "Particles"
