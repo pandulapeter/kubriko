@@ -125,7 +125,16 @@ private fun TargetFrameRate.toPreferredRefreshRate() = when (this) {
 }
 
 private fun Context.findDisplay(): Display? =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) display else @Suppress("DEPRECATION") findActivity()?.windowManager?.defaultDisplay
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        try {
+            display
+        } catch (_: UnsupportedOperationException) {
+            // A context not associated with a display (a Service, for example) is drawn on the default one.
+            (getSystemService(Context.DISPLAY_SERVICE) as? DisplayManager)?.getDisplay(Display.DEFAULT_DISPLAY)
+        }
+    } else {
+        @Suppress("DEPRECATION") findActivity()?.windowManager?.defaultDisplay
+    }
 
 private tailrec fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this
