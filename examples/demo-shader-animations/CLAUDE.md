@@ -65,16 +65,16 @@ stay alive for the lifetime of the state holder, keeping GPU shader caches warm.
 
 **Generic `ShaderAnimationsDemoManager<SHADER, STATE>`.** The Manager is parameterised by both
 the shader type and its state type. An `updater: (SHADER, STATE) -> Unit` lambda is passed at
-construction time; this avoids any cast and keeps the manager reusable for all five shaders without
-a sealed hierarchy.
+construction time, so the Manager itself needs no cast and stays reusable for all five shaders
+without a sealed hierarchy; the controls UI still casts the selected Manager to its concrete type.
 
 **`ShaderAnimationDemoHolder.`** A plain non-Manager class that bundles a `Kubriko`, its
 `ShaderManager`, and its `ShaderAnimationsDemoManager`. All five holders are created eagerly in
 `ShaderAnimationsDemoStateHolderImpl.shaderAnimationDemoHolders` (persistent map keyed by
 `ShaderAnimationDemoType` enum) so they are all available without lazy initialisation delays.
 
-**Controls state machine.** `ControlsState` is a three-value enum (`COLLAPSED`, `EXPANDED`,
-`CODE_VISIBLE`) rather than two booleans, preventing the illegal state of both panels showing
+**Controls state machine.** `ControlsState` is a three-value enum (`COLLAPSED`, `EXPANDED_CODE`,
+`EXPANDED_CONTROLS`) rather than two booleans, preventing the illegal state of both panels showing
 simultaneously.
 
 ## Platform-specific considerations

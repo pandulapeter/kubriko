@@ -225,10 +225,3 @@ private fun Controls(
     }
     Spacer(modifier = Modifier.height(16.dp))
 }
-
-
-internal enum class ControlsState {
-    COLLAPSED,
-    EXPANDED_CODE,
-    EXPANDED_CONTROLS;
-}
