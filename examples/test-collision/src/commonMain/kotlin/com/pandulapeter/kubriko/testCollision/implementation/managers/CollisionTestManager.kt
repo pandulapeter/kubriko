@@ -25,16 +25,16 @@ internal class CollisionTestManager : Manager() {
         (0..ACTOR_COUNT).map {
             DraggableCollidableActor.newRandomShape(
                 initialPosition = SceneOffset(
-                    x = ((RADIUS_AROUND_RAY_EMITTER + AREA_LIMIT * Random.nextFloat()) * (if (Random.nextBoolean()) 1f else -1f)).sceneUnit,
-                    y = ((RADIUS_AROUND_RAY_EMITTER + AREA_LIMIT * Random.nextFloat()) * (if (Random.nextBoolean()) 1f else -1f)).sceneUnit,
+                    x = ((MINIMUM_DISTANCE_FROM_ORIGIN + AREA_LIMIT * Random.nextFloat()) * (if (Random.nextBoolean()) 1f else -1f)).sceneUnit,
+                    y = ((MINIMUM_DISTANCE_FROM_ORIGIN + AREA_LIMIT * Random.nextFloat()) * (if (Random.nextBoolean()) 1f else -1f)).sceneUnit,
                 )
             )
-        } // + RayEmitter()
+        }
     )
 
     companion object {
         private const val ACTOR_COUNT = 64
         const val AREA_LIMIT = 512
-        private const val RADIUS_AROUND_RAY_EMITTER = 24
+        private const val MINIMUM_DISTANCE_FROM_ORIGIN = 24
     }
 }

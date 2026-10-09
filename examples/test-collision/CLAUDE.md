@@ -19,8 +19,6 @@ Only enabled in the Showcase app when `showcase.areTestExamplesEnabled=true` in 
 - `PointerInputAware` drag interaction: pointer press, release, and position tracking in scene coordinates
 - Viewport aspect ratio mode `FitVertical` — the scene always fits its full height on screen
 - 65 randomly-placed, randomly-shaped actors running simultaneously (stress test for collision performance)
-- `RayEmitter` actor (currently commented out in `CollisionTestManager`) — a draggable actor that casts
-  32 rays from its centre; can be re-enabled to visualise ray-vs-mask intersection
 
 ## Module structure
 
@@ -36,7 +34,6 @@ implementation/
     DraggableActor.kt                   — abstract base: Visible + CollisionDetector + PointerInputAware + Dynamic;
                                           handles drag logic and per-frame rotation for polygon masks
     DraggableCollidableActor.kt         — concrete collidable; newRandomShape() picks box/polygon/circle randomly
-    RayEmitter.kt                       — draggable actor that draws 32 outward rays; currently unused
 ```
 
 ## Key patterns
@@ -49,6 +46,6 @@ implementation/
 - Polygon actors auto-rotate each frame (unless being dragged); the rotation is applied to both `body.rotation`
   and `collisionMask.rotation` in sync.
 - `collidableTypes = listOf(DraggableCollidableActor::class)` means collision detection is restricted to
-  `DraggableCollidableActor` instances only; `RayEmitter` does not register as a collidable target.
+  `DraggableCollidableActor` instances only.
 - `AREA_LIMIT = 512` (scene units) is used by both `CollisionTestManager` for random placement and
   by `CollisionTestStateHolderImpl` as the `FitVertical` height so the two stay in sync.
