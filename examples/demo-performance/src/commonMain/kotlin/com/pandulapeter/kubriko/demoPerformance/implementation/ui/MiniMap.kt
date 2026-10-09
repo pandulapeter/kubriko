@@ -54,7 +54,6 @@ internal fun MiniMap(
                     val activeDynamicActors = getAllActiveDynamicActors()
                     @Suppress("UNUSED_EXPRESSION") gameTime  // This line invalidates the Canvas, causing a refresh on every frame
                     allVisibleActors
-                        //.map {  to  }
                         .forEach { actor ->
                             drawCircle(
                                 color = when {

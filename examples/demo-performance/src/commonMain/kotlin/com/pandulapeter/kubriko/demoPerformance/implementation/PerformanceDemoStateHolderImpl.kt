@@ -51,7 +51,7 @@ internal class PerformanceDemoStateHolderImpl(
             invisibleActorMinimumRefreshTimeInMillis = 500,
         )
     }
-    val performanceDemoManager by lazy {
+    private val performanceDemoManager by lazy {
         PerformanceDemoManager(
             sceneJson = sceneJson,
             isSceneEditorEnabled = isSceneEditorEnabled,

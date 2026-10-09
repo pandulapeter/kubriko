@@ -26,7 +26,7 @@ import com.pandulapeter.kubriko.types.SceneUnit
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
 
-class BoxWithCircle private constructor(state: State) : Visible, Dynamic, Editable<BoxWithCircle> {
+internal class BoxWithCircle private constructor(state: State) : Visible, Dynamic, Editable<BoxWithCircle> {
     override val body = state.body
 
     @set:Exposed(name = "isRotatingClockwise")

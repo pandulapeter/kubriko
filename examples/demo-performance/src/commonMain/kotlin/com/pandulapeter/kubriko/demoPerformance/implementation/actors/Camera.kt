@@ -19,8 +19,6 @@ import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.helpers.extensions.sin
-import com.pandulapeter.kubriko.manager.ActorManager
-import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.serialization.Serializable
@@ -29,16 +27,12 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
 
-class Camera private constructor(state: State) : Unique, Dynamic, Positionable, Editable<Camera> {
+internal class Camera private constructor(state: State) : Unique, Dynamic, Positionable, Editable<Camera> {
     override val body = state.body
 
-    private lateinit var actorManager: ActorManager
-    private lateinit var stateManager: StateManager
     private lateinit var viewportManager: ViewportManager
 
     override fun onAdded(kubriko: Kubriko) {
-        actorManager = kubriko.get()
-        stateManager = kubriko.get()
         viewportManager = kubriko.get()
         update(0)
     }
