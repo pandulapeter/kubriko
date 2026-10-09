@@ -15,15 +15,16 @@ import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioInputStream
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Clip
+import javax.sound.sampled.Line
 import javax.sound.sampled.LineEvent
 
 /**
  * Represents a cached sound with a pool of pre-loaded clips for simultaneous playback.
  */
-internal class CachedSound(
+internal class CachedSound private constructor(
     private val audioData: ByteArray,
     private val audioFormat: AudioFormat,
-    private val maxSimultaneousStreams: Int
+    private val maxSimultaneousStreams: Int,
 ) {
     private val clipPool = ConcurrentLinkedQueue<Clip>()
     private val activeClips = mutableSetOf<Clip>()
@@ -89,6 +90,22 @@ internal class CachedSound(
                 runCatching { clip.close() }
             }
             activeClips.clear()
+        }
+    }
+
+    companion object {
+        /**
+         * Returns `null` when none of the clips opens, so the sound counts as a failed load. On a system with no Clip
+         * line at all (no audio device) the empty sound is returned instead: retrying cannot fix that, and every
+         * `play()` of a failed sound would retry the load.
+         */
+        fun create(audioData: ByteArray, audioFormat: AudioFormat, maxSimultaneousStreams: Int): CachedSound? {
+            val cachedSound = CachedSound(audioData, audioFormat, maxSimultaneousStreams)
+            if (cachedSound.clipPool.isEmpty() && AudioSystem.isLineSupported(Line.Info(Clip::class.java))) {
+                cachedSound.dispose()
+                return null
+            }
+            return cachedSound
         }
     }
 }

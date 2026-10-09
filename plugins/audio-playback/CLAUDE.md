@@ -47,6 +47,7 @@ Streaming music and pooled SFX. Reliably works on Android and Desktop; iOS and W
 - `maximumSimultaneousStreamsOfTheSameSound` (default 5): per-sound limit on every platform — a ring of the last N stream ids per sample on Android (the `SoundPool` itself allows 32 streams in total), pre-created `Clip` count on Desktop, `AVAudioPlayer`/`HTMLAudioElement` clone count on iOS/Web
 - Android: `SoundPool` reports no end of stream, so the N+1th play of a sound cuts off its oldest stream (Desktop drops the new one instead)
 - Desktop clips return to pool via `LineEvent.Type.STOP`. If all clips are busy, the sound is **silently dropped** (no queuing)
+- Desktop: a sound none of whose clips opens (a format the mixer rejects, exhausted mixer lines) is a failed load, logged and retried; on a system with no Clip line at all (no audio device) it stays loaded and its plays are dropped
 - `play()` checks `stateManager.isFocused.value` — suppressed when unfocused
 - No per-call volume or loop control in SFX; use `MusicManager` for those features
 

@@ -37,25 +37,20 @@ internal actual fun createSoundPlayer(
                 }
             }
 
-            val bufferedStream = BufferedInputStream(inputStream)
-            val audioInputStream = AudioSystem.getAudioInputStream(bufferedStream)
-
-            // Read all audio data into memory
-            val audioData = ByteArrayOutputStream().use { output ->
-                audioInputStream.copyTo(output)
-                output.toByteArray()
+            inputStream.use {
+                AudioSystem.getAudioInputStream(BufferedInputStream(inputStream)).use { audioInputStream ->
+                    // Read all audio data into memory
+                    val audioData = ByteArrayOutputStream().use { output ->
+                        audioInputStream.copyTo(output)
+                        output.toByteArray()
+                    }
+                    CachedSound.create(
+                        audioData = audioData,
+                        audioFormat = audioInputStream.format,
+                        maxSimultaneousStreams = maximumSimultaneousStreamsOfTheSameSound,
+                    )
+                }
             }
-
-            val cachedSound = CachedSound(
-                audioData = audioData,
-                audioFormat = audioInputStream.format,
-                maxSimultaneousStreams = maximumSimultaneousStreamsOfTheSameSound
-            )
-
-            audioInputStream.close()
-            inputStream.close()
-
-            cachedSound
         } catch (_: Exception) {
             null
         }
