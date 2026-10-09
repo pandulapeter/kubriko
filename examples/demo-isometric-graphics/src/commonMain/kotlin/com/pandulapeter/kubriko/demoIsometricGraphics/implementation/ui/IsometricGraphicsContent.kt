@@ -246,7 +246,13 @@ internal fun IsometricGraphicsContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
             ) {
-                MiniMap(stateHolder = stateHolder, gridMap = gridMap)
+                MiniMap(
+                    logicKubriko = stateHolder.logicKubriko,
+                    logicVisibleActors = stateHolder.logicVisibleActors,
+                    worldRotation = stateHolder.volumetricRenderManager.worldRotation,
+                    cameraOffset = stateHolder.controlManager.cameraOffset,
+                    gridMap = gridMap,
+                )
             }
         }
     }

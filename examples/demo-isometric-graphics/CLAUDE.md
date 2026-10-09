@@ -53,8 +53,8 @@ Tesselar declared its `Kubriko` instances and managers as module-level singleton
 - `ControlOverlayManager` (in `isometricKubriko`) takes `controlManager` and `logicViewportManager`
   via its constructor, and resolves `VolumetricRenderManager` with the `manager<T>()` delegate.
 - `MainCharacter` resolves its `ControlManager` via `kubriko.get()` in `onAdded`.
-- The composables `IsometricGraphicsContent` and `MiniMap` take the state holder as a parameter
-  rather than reading globals.
+- The composable `IsometricGraphicsContent` takes the state holder as a parameter rather than
+  reading globals; `MiniMap` takes only the flows it reads.
 
 ## Key types
 

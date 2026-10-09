@@ -29,17 +29,20 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
-import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.IsometricGraphicsDemoStateHolderImpl
+import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.helpers.extensions.deg
-import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.types.AngleRadians
+import com.pandulapeter.kubriko.types.SceneOffset
+import kotlinx.collections.immutable.ImmutableList
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.actor.PlanarCuboidRenderer
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.utility.GridMap
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.utility.TopDownGridLineCache
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.planar.utility.drawTopDownGrid
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.StateFlow
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val SHOW_MINI_MAP = true
@@ -47,41 +50,43 @@ private const val MINI_MAP_REFRESH_MS = 64L
 private const val MINI_MAP_SCALE = 0.04f
 
 // 128 dp circular top-down minimap, drawn as a lightweight overlay instead of rendering
-// stateHolder.logicKubriko's actors, at the fixed MINI_MAP_SCALE: the camera offset is read live (full-frame-rate
+// `logicKubriko`'s actors, at the fixed MINI_MAP_SCALE: the camera offset is read live (full-frame-rate
 // scrolling while moving, zero redraws while idle), while marker world positions are sampled by MiniMapSampler
 // every MINI_MAP_REFRESH_MS. Markers tolerate the sampling lag because the main character is
 // pinned to the center (camera = character position) and scenery is world-static.
 @Composable
 internal fun MiniMap(
-    stateHolder: IsometricGraphicsDemoStateHolderImpl,
+    logicKubriko: Kubriko,
+    logicVisibleActors: StateFlow<ImmutableList<Visible>>,
+    worldRotation: StateFlow<AngleRadians>,
+    cameraOffset: StateFlow<SceneOffset>,
     gridMap: GridMap?,
     modifier: Modifier = Modifier,
 ) = Box(
     modifier = modifier.size(128.dp),
 ) {
-    // Kept invisible but composed: this viewport sizes stateHolder.logicViewportManager and keeps
-    // stateHolder.logicKubriko's loop running. Its scale is set by ControlOverlayManager so that
+    // Kept invisible but composed: this viewport sizes `logicKubriko`'s `ViewportManager` and keeps
+    // `logicKubriko`'s loop running. Its scale is set by ControlOverlayManager so that
     // visibleActorsWithinViewport, the culling input for the volumetric pipeline, covers the isometric
     // view. The visible minimap is the overlay below.
     KubrikoViewport(
         modifier = Modifier
             .matchParentSize()
             .alpha(0f),
-        kubriko = stateHolder.logicKubriko,
+        kubriko = logicKubriko,
     )
     if (SHOW_MINI_MAP) {
-        val worldRotationState = stateHolder.volumetricRenderManager.worldRotation.collectAsState()
-        val cameraOffsetState = stateHolder.controlManager.cameraOffset.collectAsState()
+        val worldRotationState = worldRotation.collectAsState()
+        val cameraOffsetState = cameraOffset.collectAsState()
         val sampler = remember { MiniMapSampler() }
         val samplerVersion = remember { mutableStateOf(0) }
         val surfaceColor = MaterialTheme.colorScheme.surfaceContainerHighest
         val outlineColor = Color.Black
         LaunchedEffect(Unit) {
-            val actorManager = stateHolder.logicKubriko.get<ActorManager>()
             while (true) {
                 if (sampler.sample(
                         scale = MINI_MAP_SCALE,
-                        actors = actorManager.visibleActorsWithinViewport.value,
+                        actors = logicVisibleActors.value,
                     )
                 ) {
                     samplerVersion.value++

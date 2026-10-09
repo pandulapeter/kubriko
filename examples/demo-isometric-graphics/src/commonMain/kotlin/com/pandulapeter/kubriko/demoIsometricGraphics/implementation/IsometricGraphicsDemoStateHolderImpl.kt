@@ -53,6 +53,7 @@ internal class IsometricGraphicsDemoStateHolderImpl(
         isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG_LOGIC,
     )
+    val logicVisibleActors = logicActorManager.visibleActorsWithinViewport
     val logicKubriko = Kubriko.newInstance(
         logicActorManager,
         logicViewportManager,
