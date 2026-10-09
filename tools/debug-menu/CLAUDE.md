@@ -32,6 +32,7 @@ Real implementation of the debug menu overlay: log viewer, actor body visualizer
 - Default sizes: `invoke` uses a 192 dp wide vertical panel and a 160 dp tall horizontal one; the simple `Horizontal` overload is 180 dp tall, `Vertical` 192 dp wide
 - Four overloads in the API: `invoke` (auto), `Horizontal`, `Vertical`, `OverlayOnly`
 - `OverlayOnly` applies `modifier` to its root; the debug overlay viewport fills that root.
+- Both share `implementation/DebugMenuOverlay` (game viewport, debug overlay viewport, toggle button): `invoke` keeps the toggle button inside its `windowInsets`; `OverlayOnly` has no insets parameter and places the button 16 dp from the corner, ignoring insets.
 
 ## Log Viewer
 

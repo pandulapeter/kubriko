@@ -14,7 +14,6 @@ import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -27,31 +26,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuContainer
+import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuOverlay
 import com.pandulapeter.kubriko.debugMenu.implementation.InternalDebugMenu
-import kubriko.tools.debug_menu.generated.resources.Res
-import kubriko.tools.debug_menu.generated.resources.debug_menu
-import kubriko.tools.debug_menu.generated.resources.ic_debug_off
-import kubriko.tools.debug_menu.generated.resources.ic_debug_on
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 
 /**
  * The default implementation of the [DebugMenuContract].
@@ -87,11 +72,12 @@ object DebugMenu : DebugMenuContract {
                 Row(
                     modifier = Modifier.weight(1f),
                 ) {
-                    OverlayOnly(
+                    DebugMenuOverlay(
                         modifier = Modifier.weight(1f),
                         kubriko = kubriko,
                         kubrikoViewport = kubrikoViewport,
                         buttonAlignment = buttonAlignment,
+                        windowInsets = windowInsets,
                     )
                     Vertical(
                         modifier = Modifier,
@@ -174,49 +160,11 @@ object DebugMenu : DebugMenuContract {
         kubriko: Kubriko?,
         kubrikoViewport: @Composable () -> Unit,
         buttonAlignment: Alignment?,
-    ) {
-        DisposableEffect(kubriko) {
-            kubriko?.let(InternalDebugMenu::registerGameKubriko)
-            onDispose {
-                kubriko?.let(InternalDebugMenu::unregisterGameKubriko)
-            }
-        }
-        Box(
-            modifier = modifier,
-        ) {
-            // We only need this to initialize the PersistenceManager of InternalDebugMenu so that user settings can get restored.
-            KubrikoViewport(
-                modifier = Modifier.size(0.dp),
-                kubriko = InternalDebugMenu.internalKubriko,
-            )
-            kubrikoViewport()
-            val debugMenuKubriko = kubriko?.let { InternalDebugMenu.debugMenuKubriko.collectAsState().value[it] }
-            if (debugMenuKubriko != null) {
-                KubrikoViewport(
-                    kubriko = debugMenuKubriko,
-                )
-            }
-            if (buttonAlignment != null) {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(16.dp),
-                ) {
-                    val isDebugMenuVisible = isVisible.collectAsState().value
-                    FloatingActionButton(
-                        modifier = Modifier.size(40.dp).align(buttonAlignment),
-                        containerColor = if (isSystemInDarkTheme()) {
-                            if (isDebugMenuVisible) MaterialTheme.colorScheme.primary else FloatingActionButtonDefaults.containerColor
-                        } else {
-                            if (isDebugMenuVisible) FloatingActionButtonDefaults.containerColor else MaterialTheme.colorScheme.primary
-                        },
-                        onClick = ::toggleVisibility,
-                    ) {
-                        Icon(
-                            painter = painterResource(if (isDebugMenuVisible) Res.drawable.ic_debug_on else Res.drawable.ic_debug_off),
-                            contentDescription = stringResource(Res.string.debug_menu),
-                        )
-                    }
-                }
-            }
-        }
-    }
+    ) = DebugMenuOverlay(
+        modifier = modifier,
+        kubriko = kubriko,
+        kubrikoViewport = kubrikoViewport,
+        buttonAlignment = buttonAlignment,
+        windowInsets = WindowInsets(0, 0, 0, 0),
+    )
 }
