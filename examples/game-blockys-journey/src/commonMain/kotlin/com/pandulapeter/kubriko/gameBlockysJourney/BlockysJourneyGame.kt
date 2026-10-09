@@ -28,9 +28,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,6 +45,7 @@ import com.pandulapeter.kubriko.gameBlockysJourney.implementation.ui.BlockysJour
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.ui.BlockysJourneyTheme
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.ui.MenuOverlay
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.ui.UnfinishedDisclaimer
+import com.pandulapeter.kubriko.uiComponents.LoadingIndicator
 import kubriko.examples.game_blockys_journey.generated.resources.Res
 import kubriko.examples.game_blockys_journey.generated.resources.ic_pause
 import kubriko.examples.game_blockys_journey.generated.resources.pause
@@ -162,10 +161,7 @@ fun BlockysJourneyGame(
                 .windowInsetsPadding(windowInsets)
                 .padding(16.dp),
         ) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.BottomStart).size(24.dp),
-                strokeWidth = 3.dp,
-            )
+            LoadingIndicator(modifier = Modifier.align(Alignment.BottomStart))
         }
     }
 }
