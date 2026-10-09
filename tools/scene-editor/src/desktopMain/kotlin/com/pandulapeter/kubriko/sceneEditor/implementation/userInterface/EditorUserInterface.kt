@@ -101,51 +101,11 @@ internal fun EditorUserInterface(
                         Spacer(
                             modifier = Modifier.fillMaxHeight().width(instanceBrowserColumnWidth),
                         )
-                        Box(
+                        SceneViewport(
                             modifier = Modifier.weight(1f),
-                        ) {
-                            DebugMenu(
-                                kubriko = editorController.kubriko,
-                                isEnabled = editorController.isDebugMenuEnabled.collectAsState().value,
-                            ) {
-                                KubrikoViewport(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                                    kubriko = editorController.kubriko,
-                                )
-                                EditorOverlay(
-                                    // TODO: Migrate to PonterInputAware
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .handleMouseClick(
-                                            getSelectedActor = editorController::getSelectedActor,
-                                            getMouseSceneOffset = editorController::getMouseWorldCoordinates,
-                                            onLeftClick = editorController::onLeftClick,
-                                            onRightClick = editorController::onRightClick,
-                                        )
-                                        .handleMouseMove(
-                                            onMouseMove = editorController::onMouseMove,
-                                        )
-                                        .handleMouseZoom(
-                                            viewportManager = editorController.viewportManager,
-                                        )
-                                        .handleMouseDrag(
-                                            keyboardInputManager = editorController.keyboardInputManager,
-                                            viewportManager = editorController.viewportManager,
-                                            getSelectedActor = editorController::getSelectedActor,
-                                            getInteractionMode = { editorController.interactionMode.value },
-                                            isPlacingNewInstance = editorController::isPlacingNewInstance,
-                                            getSnapMode = { editorController.snapMode.value },
-                                            getMouseSceneOffset = editorController::getMouseWorldCoordinates,
-                                            onActorDragStarted = editorController::onBeforeActorDrag,
-                                            notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
-                                        ),
-                                    shouldShowLoadingIndicator = editorController.shouldShowLoadingIndicator.collectAsState().value,
-                                    overlayKubriko = overlayKubriko,
-                                )
-                            }
-                        }
+                            editorController = editorController,
+                            overlayKubriko = overlayKubriko,
+                        )
                         InstanceManagerColumn(
                             modifier = Modifier.fillMaxHeight().width(instanceManagerColumnWidth),
                             registeredTypeIds = editorController.serializationManager.registeredTypeIds.toList(),
@@ -203,5 +163,56 @@ internal fun EditorUserInterface(
                 onSettingsIconClicked = openSettings,
             )
         }
+    }
+}
+
+@Composable
+private fun SceneViewport(
+    modifier: Modifier,
+    editorController: EditorController,
+    overlayKubriko: Kubriko,
+) = Box(
+    modifier = modifier,
+) {
+    DebugMenu(
+        kubriko = editorController.kubriko,
+        isEnabled = editorController.isDebugMenuEnabled.collectAsState().value,
+    ) {
+        KubrikoViewport(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            kubriko = editorController.kubriko,
+        )
+        EditorOverlay(
+            // TODO: Migrate to PointerInputAware
+            modifier = Modifier
+                .fillMaxSize()
+                .handleMouseClick(
+                    getSelectedActor = editorController::getSelectedActor,
+                    getMouseSceneOffset = editorController::getMouseWorldCoordinates,
+                    onLeftClick = editorController::onLeftClick,
+                    onRightClick = editorController::onRightClick,
+                )
+                .handleMouseMove(
+                    onMouseMove = editorController::onMouseMove,
+                )
+                .handleMouseZoom(
+                    viewportManager = editorController.viewportManager,
+                )
+                .handleMouseDrag(
+                    keyboardInputManager = editorController.keyboardInputManager,
+                    viewportManager = editorController.viewportManager,
+                    getSelectedActor = editorController::getSelectedActor,
+                    getInteractionMode = { editorController.interactionMode.value },
+                    isPlacingNewInstance = editorController::isPlacingNewInstance,
+                    getSnapMode = { editorController.snapMode.value },
+                    getMouseSceneOffset = editorController::getMouseWorldCoordinates,
+                    onActorDragStarted = editorController::onBeforeActorDrag,
+                    notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
+                ),
+            shouldShowLoadingIndicator = editorController.shouldShowLoadingIndicator.collectAsState().value,
+            overlayKubriko = overlayKubriko,
+        )
     }
 }
