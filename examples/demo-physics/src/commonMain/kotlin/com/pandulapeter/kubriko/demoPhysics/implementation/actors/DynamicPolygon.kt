@@ -9,11 +9,7 @@
  */
 package com.pandulapeter.kubriko.demoPhysics.implementation.actors
 
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Fill
-import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
 import com.pandulapeter.kubriko.physics.PhysicsBody
@@ -29,23 +25,5 @@ internal class DynamicPolygon(
         restitution = 0.4f
     }
 
-    override fun DrawScope.draw() {
-        val path = Path().apply {
-            moveTo(collisionMask.vertices[0].x.raw + body.pivot.x.raw, collisionMask.vertices[0].y.raw + body.pivot.y.raw)
-            for (i in 1 until collisionMask.vertices.size) {
-                lineTo(collisionMask.vertices[i].x.raw + body.pivot.x.raw, collisionMask.vertices[i].y.raw + body.pivot.y.raw)
-            }
-            close()
-        }
-        drawPath(
-            path = path,
-            color = color,
-            style = Fill,
-        )
-        drawPath(
-            path = path,
-            color = Color.Black,
-            style = Stroke(width = 2f),
-        )
-    }
+    override fun DrawScope.draw() = drawPolygon(collisionMask.vertices, body.pivot, color)
 }

@@ -10,10 +10,7 @@
 package com.pandulapeter.kubriko.demoPhysics.implementation.actors
 
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Fill
-import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Visible
@@ -53,25 +50,7 @@ internal class StaticPolygon private constructor(state: State) : RigidBody, Visi
         }
     }
 
-    override fun DrawScope.draw() {
-        val path = Path().apply {
-            moveTo(collisionMask.vertices[0].x.raw + body.pivot.x.raw, collisionMask.vertices[0].y.raw + body.pivot.y.raw)
-            for (i in 1 until collisionMask.vertices.size) {
-                lineTo(collisionMask.vertices[i].x.raw + body.pivot.x.raw, collisionMask.vertices[i].y.raw + body.pivot.y.raw)
-            }
-            close()
-        }
-        drawPath(
-            path = path,
-            color = Color.DarkGray,
-            style = Fill,
-        )
-        drawPath(
-            path = path,
-            color = Color.Black,
-            style = Stroke(width = 2f),
-        )
-    }
+    override fun DrawScope.draw() = drawPolygon(collisionMask.vertices, body.pivot, Color.DarkGray)
 
     override fun save() = State(
         body = body,

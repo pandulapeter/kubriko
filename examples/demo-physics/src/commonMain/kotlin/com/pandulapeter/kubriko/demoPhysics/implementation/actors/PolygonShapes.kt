@@ -9,6 +9,11 @@
  */
 package com.pandulapeter.kubriko.demoPhysics.implementation.actors
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.helpers.extensions.cos
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.helpers.extensions.sin
@@ -23,4 +28,24 @@ internal fun randomPolygonVertices(): List<SceneOffset> = (3..10).random().let {
             y = (30..120).random().sceneUnit * angle.sin,
         )
     }
+}
+
+internal fun DrawScope.drawPolygon(vertices: List<SceneOffset>, pivot: SceneOffset, fillColor: Color) {
+    val path = Path().apply {
+        moveTo(vertices[0].x.raw + pivot.x.raw, vertices[0].y.raw + pivot.y.raw)
+        for (i in 1 until vertices.size) {
+            lineTo(vertices[i].x.raw + pivot.x.raw, vertices[i].y.raw + pivot.y.raw)
+        }
+        close()
+    }
+    drawPath(
+        path = path,
+        color = fillColor,
+        style = Fill,
+    )
+    drawPath(
+        path = path,
+        color = Color.Black,
+        style = Stroke(width = 2f),
+    )
 }
