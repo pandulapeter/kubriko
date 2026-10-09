@@ -48,7 +48,7 @@ Typography uses `Public Sans Regular` across all Material3 text styles.
 - `preloadedImageBitmap(DrawableResource)` — `State<ImageBitmap?>`, null while loading.
 - `preloadedImageVector(DrawableResource)` — `State<ImageVector?>`, null while loading. Used by `FloatingButton` to safely render icons.
 - `preloadedString(StringResource)` — `State<String>`, empty string while loading.
-- `ShareManager` — `interface` with `isSharingSupported: Boolean` and `shareText(text: String)`. Obtain via `rememberShareManager()` composable. Platform implementations share text to the OS share sheet (Android/iOS), clipboard (Desktop), or Web API. On iOS the sheet is presented from the active scene's top-most view controller, as a centered popover on iPad.
+- `ShareManager` — `interface` with `isSharingSupported: Boolean` and `shareText(text: String)`. Obtain via `rememberShareManager()` composable. Android and iOS share text through the OS share sheet; on Desktop and Web `isSharingSupported` is `false` and `shareText` does nothing. On iOS the sheet is presented from the active scene's top-most view controller, as a centered popover on iPad.
 
 ## Usage in existing tools
 
