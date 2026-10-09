@@ -200,8 +200,10 @@ land the simple ones in the same session. Everything above still holds, with the
 - **Moves in published modules are API changes too.** A public top-level function, property or Composable compiles
   into the JVM facade class of its file (`KubrikoViewportKt`), so moving it to another file breaks every consumer
   compiled against the old version; a public class moved to another package breaks source and binary alike. A
-  refactor plan in a published module keeps public top-level declarations in their files and public types in their
-  packages, or raises a decision. Private and internal code moves freely.
+  refactor plan in a published module keeps public types in their packages and public top-level declarations in
+  their files — or splits such a file keeping its facade (`@file:JvmName("<OldName>Kt")` with
+  `@file:JvmMultifileClass` on every part, as `code-style` says) — or raises a decision. Private and internal code
+  moves freely.
 - **Consumers for the challenge:** Tesselar (`../Tesselar`) is the known consumer; the challenge greps it for every
   public API a plan changes. The documented usage patterns live in `documentation/*.md` — the headless `TickSource`
   flow in `documentation/TICK_SOURCE.md` is the one a first-sweep plan broke.
