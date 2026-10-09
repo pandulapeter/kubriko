@@ -46,6 +46,9 @@ open class PolygonCollisionMask internal constructor(
     initialPosition = initialPosition,
 ), ComplexCollisionMask {
     val vertices = generateConvexHull(unprocessedVertices)
+    /**
+     * The matrix of the current [rotation], updated in place whenever the rotation changes.
+     */
     var rotationMatrix = RotationMatrix(initialRotation)
         private set
     internal val transposedRotationMatrix = RotationMatrix()
@@ -181,6 +184,13 @@ open class PolygonCollisionMask internal constructor(
     }
 
     companion object {
+        /**
+         * Creates a [PolygonCollisionMask] from the convex hull of [vertices], centered on its centroid.
+         *
+         * @param vertices The vertices of the polygon, empty by default (the mask then behaves like a point).
+         * @param initialPosition The center position of the mask in scene units, the scene origin by default.
+         * @param initialRotation The initial rotation of the polygon in radians, zero by default.
+         */
         operator fun invoke(
             vertices: List<SceneOffset> = emptyList(),
             initialPosition: SceneOffset = SceneOffset.Zero,

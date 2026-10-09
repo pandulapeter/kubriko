@@ -24,6 +24,10 @@ import com.pandulapeter.kubriko.types.SceneOffset
 open class PointCollisionMask internal constructor(
     initialPosition: SceneOffset,
 ) : CollisionMask {
+    /**
+     * Whether the cached bounding box is out of date. A subclass sets it whenever something that affects the box
+     * changes, and [updateAxisAlignedBoundingBox] is then called on the next read of [axisAlignedBoundingBox].
+     */
     protected var isAxisAlignedBoundingBoxDirty = true
     private val cachedAxisAlignedBoundingBox = AxisAlignedBoundingBox(
         min = initialPosition,
@@ -51,6 +55,11 @@ open class PointCollisionMask internal constructor(
             }
         }
 
+    /**
+     * Writes the current bounding box of the mask into [target] in place. A subclass with a shape overrides it.
+     *
+     * @param target The cached bounding box to update.
+     */
     protected open fun updateAxisAlignedBoundingBox(target: AxisAlignedBoundingBox) = target.update(
         min = position,
         max = position,
@@ -64,6 +73,11 @@ open class PointCollisionMask internal constructor(
     )
 
     companion object {
+        /**
+         * Creates a [PointCollisionMask].
+         *
+         * @param initialPosition The position of the point in scene units, the scene origin by default.
+         */
         operator fun invoke(
             initialPosition: SceneOffset = SceneOffset.Zero,
         ) = PointCollisionMask(

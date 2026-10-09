@@ -14,6 +14,12 @@ import com.pandulapeter.kubriko.collision.mask.ComplexCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.isInside
 import com.pandulapeter.kubriko.types.SceneOffset
 
+/**
+ * Whether this point collides with [collisionMask]. For a [ComplexCollisionMask] it is an inside test (the bounding
+ * box first, then the exact shape); for a point mask it is exact equality with the mask's position.
+ *
+ * @param collisionMask The mask to test against.
+ */
 fun SceneOffset.isCollidingWith(
     collisionMask: CollisionMask
 ) = if (collisionMask is ComplexCollisionMask) {

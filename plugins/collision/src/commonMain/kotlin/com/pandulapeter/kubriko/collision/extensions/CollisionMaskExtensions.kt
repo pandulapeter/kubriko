@@ -22,10 +22,24 @@ import com.pandulapeter.kubriko.collision.mask.CollisionMask
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
+/**
+ * Whether the collision masks of this Collidable and [other] overlap. Only answers yes or no, so it never
+ * allocates (it delegates to [hasCollisionWith]).
+ *
+ * @param other The Collidable to test against.
+ */
 fun Collidable.isCollidingWith(
     other: Collidable
 ) = collisionMask.hasCollisionWith(other.collisionMask)
 
+/**
+ * The contact details of the overlap between this mask and [other], or `null` when they do not overlap.
+ * Allocates a new [CollisionResult] for every hit: for a pair queried every frame, use the overload that takes a
+ * `reusableResult`.
+ *
+ * @param other The mask to test against.
+ * @param shouldSkipAxisAlignedBoundingBoxCheck Skips the bounding box pre-check, for callers that already ran a broad phase.
+ */
 fun CollisionMask.collisionResultWith(
     other: CollisionMask,
     shouldSkipAxisAlignedBoundingBoxCheck: Boolean,
