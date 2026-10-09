@@ -80,79 +80,48 @@ internal class InputTestManager : Manager(), KeyboardInputAware, PointerInputAwa
 
     override fun DrawScope.drawToViewport() {
         pointerInputManager.hoveringPointerPosition.value?.let { pointerOffset ->
-            drawLine(
-                color = Color.Black,
-                start = Offset(pointerOffset.x, 0f),
-                end = Offset(pointerOffset.x, size.height),
-                strokeWidth = 4f,
-            )
-            drawLine(
-                color = Color.White,
-                start = Offset(pointerOffset.x, 0f),
-                end = Offset(pointerOffset.x, size.height),
-                strokeWidth = 2f,
-            )
-            drawLine(
-                color = Color.Black,
-                start = Offset(0f, pointerOffset.y),
-                end = Offset(size.width, pointerOffset.y),
-                strokeWidth = 4f,
-            )
-            drawLine(
-                color = Color.White,
-                start = Offset(0f, pointerOffset.y),
-                end = Offset(size.width, pointerOffset.y),
-                strokeWidth = 2f,
-            )
-            drawCircle(
-                color = Color.White,
-                radius = 20f,
-                center = pointerOffset,
-            )
-            drawCircle(
-                color = Color.Black,
-                radius = 20f,
-                center = pointerOffset,
-                style = Stroke(),
-            )
+            drawCrosshair(pointerOffset, Color.White, 20f)
         }
         pointerInputManager.pressedPointerPositions.value.forEach { (pointerId, pointerOffset) ->
-            val color = pointerId.toColor()
-            drawLine(
-                color = Color.Black,
-                start = Offset(pointerOffset.x, 0f),
-                end = Offset(pointerOffset.x, size.height),
-                strokeWidth = 4f,
-            )
-            drawLine(
-                color = color,
-                start = Offset(pointerOffset.x, 0f),
-                end = Offset(pointerOffset.x, size.height),
-                strokeWidth = 2f,
-            )
-            drawLine(
-                color = Color.Black,
-                start = Offset(0f, pointerOffset.y),
-                end = Offset(size.width, pointerOffset.y),
-                strokeWidth = 4f,
-            )
-            drawLine(
-                color = color,
-                start = Offset(0f, pointerOffset.y),
-                end = Offset(size.width, pointerOffset.y),
-                strokeWidth = 2f,
-            )
-            drawCircle(
-                color = color,
-                radius = 40f,
-                center = pointerOffset,
-            )
-            drawCircle(
-                color = Color.Black,
-                radius = 40f,
-                center = pointerOffset,
-                style = Stroke(),
-            )
+            drawCrosshair(pointerOffset, pointerId.toColor(), 40f)
         }
+    }
+
+    private fun DrawScope.drawCrosshair(position: Offset, color: Color, radius: Float) {
+        drawLine(
+            color = Color.Black,
+            start = Offset(position.x, 0f),
+            end = Offset(position.x, size.height),
+            strokeWidth = 4f,
+        )
+        drawLine(
+            color = color,
+            start = Offset(position.x, 0f),
+            end = Offset(position.x, size.height),
+            strokeWidth = 2f,
+        )
+        drawLine(
+            color = Color.Black,
+            start = Offset(0f, position.y),
+            end = Offset(size.width, position.y),
+            strokeWidth = 4f,
+        )
+        drawLine(
+            color = color,
+            start = Offset(0f, position.y),
+            end = Offset(size.width, position.y),
+            strokeWidth = 2f,
+        )
+        drawCircle(
+            color = color,
+            radius = radius,
+            center = position,
+        )
+        drawCircle(
+            color = Color.Black,
+            radius = radius,
+            center = position,
+            style = Stroke(),
+        )
     }
 }
