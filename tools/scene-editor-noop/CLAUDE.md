@@ -14,15 +14,8 @@ No-op swap for `scene-editor`. Activated when `showcase.isSceneEditorEnabled=fal
 ## Contents
 
 - `SceneEditor` (Desktop only) — `object` implementing `SceneEditorContract`. Both `show()` and `invoke()` are stubs that return `Unit`. Safe to call; nothing happens.
-- `IS_SCENE_EDITOR_AVAILABLE = false` (commonMain) — constant available on all platforms. Use this guard to conditionally show editor launch buttons in the app UI. The real `scene-editor` module does not declare this constant; its absence signals the real implementation is linked.
+- `IS_SCENE_EDITOR_AVAILABLE = false` (commonMain) — exists so the module has a common source and builds for iOS (completely empty KMP modules cannot be built for iOS). The real `scene-editor` module declares the same constant, also `false`, so it cannot tell the two apart, and nothing in the repo reads it. Whether it should become a real availability guard is an open decision; until then do not use it as one.
 
 ## Usage pattern
 
-```kotlin
-if (IS_SCENE_EDITOR_AVAILABLE) {
-    // show a "Launch Editor" button
-}
-// SceneEditor.show(...) is always safe to call regardless
-```
-
-The noop exists because completely empty KMP modules cannot be built for iOS; the constant satisfies the compiler without pulling in any editor logic.
+`SceneEditor.show(...)` and `SceneEditor(...)` are always safe to call; with the noop linked nothing happens.
