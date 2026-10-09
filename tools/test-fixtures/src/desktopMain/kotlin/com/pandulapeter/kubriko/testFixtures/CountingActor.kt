@@ -13,8 +13,6 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.actor.traits.Disposable
 import com.pandulapeter.kubriko.actor.traits.Dynamic
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
@@ -59,23 +57,5 @@ open class CountingActor(
 
     override fun update(deltaTimeInMilliseconds: Int) {
         updates.incrementAndGet()
-    }
-}
-
-/**
- * An actor whose [onAdded] signals [entered] and then blocks the actor processor until [release] is counted down
- * (at most 5 s). Used to force several operations into one batch: add it, await [entered], issue the operations, then
- * release it.
- */
-class Blocker : Actor {
-    /** Counted down when [onAdded] starts. */
-    val entered = CountDownLatch(1)
-
-    /** Count it down to let [onAdded] return. */
-    val release = CountDownLatch(1)
-
-    override fun onAdded(kubriko: Kubriko) {
-        entered.countDown()
-        release.await(5, TimeUnit.SECONDS)
     }
 }
