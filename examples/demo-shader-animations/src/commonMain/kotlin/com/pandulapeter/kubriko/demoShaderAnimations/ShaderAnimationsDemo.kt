@@ -60,22 +60,10 @@ fun ShaderAnimationsDemo(
         Column(
             modifier = modifier.fillMaxSize(),
         ) {
-            SecondaryScrollableTabRow(
-                edgePadding = 0.dp,
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.secondary,
-                selectedTabIndex = selectedDemoType.ordinal,
-                divider = {},
-            ) {
-                ShaderAnimationDemoType.entries.forEach { demoType ->
-                    Tab(
-                        modifier = Modifier.height(42.dp),
-                        text = { Text(stringResource(demoType.nameStringResource)) },
-                        selected = demoType == selectedDemoType,
-                        onClick = { stateHolder.onSelectedDemoTypeChanged(demoType) }
-                    )
-                }
-            }
+            ShaderAnimationTabs(
+                selectedDemoType = selectedDemoType,
+                onSelectedDemoTypeChanged = stateHolder::onSelectedDemoTypeChanged,
+            )
             Box(
                 modifier = Modifier.fillMaxSize(),
             ) {
@@ -99,14 +87,42 @@ fun ShaderAnimationsDemo(
             }
         }
     } else {
-        Box(
-            modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets).padding(16.dp)
-        ) {
-            Text(
-                modifier = Modifier.fillMaxWidth(0.75f).align(Alignment.Center),
-                textAlign = TextAlign.Center,
-                text = stringResource(Res.string.shaders_not_supported),
-            )
-        }
+        ShadersNotSupportedMessage(
+            windowInsets = windowInsets,
+        )
     }
+}
+
+@Composable
+private fun ShaderAnimationTabs(
+    selectedDemoType: ShaderAnimationDemoType,
+    onSelectedDemoTypeChanged: (ShaderAnimationDemoType) -> Unit,
+) = SecondaryScrollableTabRow(
+    edgePadding = 0.dp,
+    containerColor = MaterialTheme.colorScheme.surface,
+    contentColor = MaterialTheme.colorScheme.secondary,
+    selectedTabIndex = selectedDemoType.ordinal,
+    divider = {},
+) {
+    ShaderAnimationDemoType.entries.forEach { demoType ->
+        Tab(
+            modifier = Modifier.height(42.dp),
+            text = { Text(stringResource(demoType.nameStringResource)) },
+            selected = demoType == selectedDemoType,
+            onClick = { onSelectedDemoTypeChanged(demoType) }
+        )
+    }
+}
+
+@Composable
+private fun ShadersNotSupportedMessage(
+    windowInsets: WindowInsets,
+) = Box(
+    modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets).padding(16.dp)
+) {
+    Text(
+        modifier = Modifier.fillMaxWidth(0.75f).align(Alignment.Center),
+        textAlign = TextAlign.Center,
+        text = stringResource(Res.string.shaders_not_supported),
+    )
 }
