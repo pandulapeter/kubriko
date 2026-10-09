@@ -118,7 +118,8 @@ internal class Ball(
             State.LAUNCHED -> {
                 body.position = body.position.constrainedWithin(viewportTopLeft, viewportBottomRight)
                 val speed = min(InitialSpeed + SpeedIncrement * scoreManager.score.value, MaximumSpeed)
-                val nextPosition = body.position + SceneOffset(speed * baseSpeedX, speed * baseSpeedY) * deltaTimeInMilliseconds
+                val movementDeltaInMilliseconds = deltaTimeInMilliseconds.coerceAtMost(MAXIMUM_MOVEMENT_DELTA_IN_MILLISECONDS)
+                val nextPosition = body.position + SceneOffset(speed * baseSpeedX, speed * baseSpeedY) * movementDeltaInMilliseconds
                 var shouldPlayEdgeBounceSoundEffect = false
                 if (nextPosition.x < viewportTopLeft.x || nextPosition.x > viewportBottomRight.x) {
                     baseSpeedX *= -1
@@ -254,7 +255,12 @@ internal class Ball(
     companion object {
         private val InitialSpeed = 0.6f.sceneUnit
         private val SpeedIncrement = 0.005f.sceneUnit
-        private val MaximumSpeed = 1.8f.sceneUnit
-        private val Radius = 20f.sceneUnit
+        internal val MaximumSpeed = 1.8f.sceneUnit
+        internal val Radius = 20f.sceneUnit
+
+        /**
+         * Caps the time a single tick moves the ball by, so a long frame cannot carry it past the paddle or a brick row.
+         */
+        const val MAXIMUM_MOVEMENT_DELTA_IN_MILLISECONDS = 33
     }
 }
