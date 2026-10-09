@@ -121,7 +121,7 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
     private val shaderManager by lazy {
         ShaderManager.newInstance(
             isLoggingEnabled = isLoggingEnabled,
-            instanceNameForLogging = LOG_TAG_BACKGROUND,
+            instanceNameForLogging = LOG_TAG,
         )
     }
     val backgroundLoadingManager by lazy {
