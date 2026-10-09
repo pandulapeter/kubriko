@@ -29,6 +29,11 @@ internal enum class Dependency(
         url = "https://github.com/androidx/androidx/blob/androidx-main/LICENSE.txt",
         type = LicenseType.APACHE_2_0,
     ),
+    ANDROID_X_NAVIGATION_EVENT(
+        dependencyName = "AndroidX NavigationEvent",
+        url = "https://github.com/androidx/androidx/blob/androidx-main/LICENSE.txt",
+        type = LicenseType.APACHE_2_0,
+    ),
     APACHE_COMMONS_LANG(
         dependencyName = "Apache CommonsLang",
         url = "https://github.com/apache/commons-lang/blob/master/LICENSE.txt",
@@ -52,6 +57,16 @@ internal enum class Dependency(
     GRADLE_MAVEN_PUBLISH_PLUGIN(
         dependencyName = "Gradle Maven Publish Plugin",
         url = "https://github.com/vanniktech/gradle-maven-publish-plugin/blob/main/LICENSE",
+        type = LicenseType.APACHE_2_0,
+    ),
+    JAMEPAD(
+        dependencyName = "Jamepad",
+        url = "https://github.com/libgdx/Jamepad/blob/master/LICENSE",
+        type = LicenseType.APACHE_2_0,
+    ),
+    JETBRAINS_RUNTIME_API(
+        dependencyName = "JetBrains Runtime API",
+        url = "https://github.com/JetBrains/JetBrainsRuntimeApi/blob/main/LICENSE",
         type = LicenseType.APACHE_2_0,
     ),
     KOTLIN(
@@ -104,6 +119,11 @@ internal enum class Dependency(
         url = "https://creativecommons.org/licenses/by/4.0/",
         type = LicenseType.CCBY_4_0,
     ),
+    JETBRAINS_RUNTIME(
+        dependencyName = "JetBrains Runtime",
+        url = "https://github.com/JetBrains/JetBrainsRuntime/blob/main/LICENSE",
+        type = LicenseType.GPL_2_0_CLASSPATH_EXCEPTION,
+    ),
     JLAYER(
         dependencyName = "JLayer",
         url = "https://github.com/umjammer/jlayer/blob/master/LICENSE.txt",
@@ -128,5 +148,10 @@ internal enum class Dependency(
         dependencyName = "Kubriko",
         url = "https://github.com/pandulapeter/kubriko/blob/main/LICENSE",
         type = LicenseType.MPL_2_0,
+    ),
+    SDL2(
+        dependencyName = "SDL2",
+        url = "https://github.com/libsdl-org/SDL/blob/SDL2/LICENSE.txt",
+        type = LicenseType.ZLIB,
     ),
 }

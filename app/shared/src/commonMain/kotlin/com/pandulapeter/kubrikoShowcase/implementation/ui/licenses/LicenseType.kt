@@ -13,9 +13,11 @@ import kubriko.app.shared.generated.resources.Res
 import kubriko.app.shared.generated.resources.other_licenses_apache_2_0
 import kubriko.app.shared.generated.resources.other_licenses_cc0_1_0
 import kubriko.app.shared.generated.resources.other_licenses_ccby_4_0
+import kubriko.app.shared.generated.resources.other_licenses_gpl_2_0_classpath_exception
 import kubriko.app.shared.generated.resources.other_licenses_lgpl_2_1
 import kubriko.app.shared.generated.resources.other_licenses_mit
 import kubriko.app.shared.generated.resources.other_licenses_mpl_2_0
+import kubriko.app.shared.generated.resources.other_licenses_zlib
 import org.jetbrains.compose.resources.StringResource
 
 internal enum class LicenseType(
@@ -30,6 +32,9 @@ internal enum class LicenseType(
     CCBY_4_0(
         licenseName = Res.string.other_licenses_ccby_4_0,
     ),
+    GPL_2_0_CLASSPATH_EXCEPTION(
+        licenseName = Res.string.other_licenses_gpl_2_0_classpath_exception,
+    ),
     LGPL_2_1(
         licenseName = Res.string.other_licenses_lgpl_2_1,
     ),
@@ -38,5 +43,8 @@ internal enum class LicenseType(
     ),
     MPL_2_0(
         licenseName = Res.string.other_licenses_mpl_2_0,
+    ),
+    ZLIB(
+        licenseName = Res.string.other_licenses_zlib,
     ),
 }
