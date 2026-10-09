@@ -50,6 +50,8 @@ internal class AudioTestManager(
     private val stateManager by manager<StateManager>()
     private val isTrack1Playing = mutableStateOf(false)
     private val isTrack2Playing = mutableStateOf(false)
+    private val isTrack1Looping = mutableStateOf(true)
+    private val isTrack2Looping = mutableStateOf(true)
     private val track1Uri = getResourceUri(URI_MUSIC_1, webRootPathName)
     private val track2Uri = getResourceUri(URI_MUSIC_2, webRootPathName)
     private val shouldStopMusic = MutableStateFlow(false)
@@ -76,7 +78,7 @@ internal class AudioTestManager(
 
     fun stopMusicBeforeDispose() = shouldStopMusic.update { true }
 
-    private fun togglePlayback(uri: String, isPlaying: Boolean) = if (isPlaying) musicManager.pause(uri) else musicManager.play(uri)
+    private fun togglePlayback(uri: String, isPlaying: Boolean, shouldLoop: Boolean) = if (isPlaying) musicManager.pause(uri) else musicManager.play(uri, shouldLoop)
 
     @Composable
     override fun Composable(windowInsets: WindowInsets) = Column(
@@ -94,8 +96,10 @@ internal class AudioTestManager(
             title = stringResource(Res.string.music_track_1),
             isLoaded = remember { musicManager.getLoadingProgress(track1Uri) }.collectAsState(0f).value == 1f,
             isPlaying = isTrack1Playing.value,
-            onPlayPauseClicked = { togglePlayback(track1Uri, isTrack1Playing.value) },
+            isLooping = isTrack1Looping.value,
+            onPlayPauseClicked = { togglePlayback(track1Uri, isTrack1Playing.value, isTrack1Looping.value) },
             onStopClicked = { musicManager.stop(track1Uri) },
+            onLoopClicked = { isTrack1Looping.value = !isTrack1Looping.value },
         )
         Spacer(
             modifier = Modifier.height(8.dp),
@@ -104,8 +108,10 @@ internal class AudioTestManager(
             title = stringResource(Res.string.music_track_2),
             isLoaded = remember { musicManager.getLoadingProgress(track2Uri) }.collectAsState(0f).value == 1f,
             isPlaying = isTrack2Playing.value,
-            onPlayPauseClicked = { togglePlayback(track2Uri, isTrack2Playing.value) },
+            isLooping = isTrack2Looping.value,
+            onPlayPauseClicked = { togglePlayback(track2Uri, isTrack2Playing.value, isTrack2Looping.value) },
             onStopClicked = { musicManager.stop(track2Uri) },
+            onLoopClicked = { isTrack2Looping.value = !isTrack2Looping.value },
         )
     }
 

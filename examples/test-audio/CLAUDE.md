@@ -45,6 +45,9 @@ implementation/
   directly inside the Kubriko viewport overlay — no separate Compose layer needed for UI.
 - `isTrack1Playing` / `isTrack2Playing` are `mutableStateOf` updated in `onUpdate()` each tick to drive
   the play/pause button icon reactively. **Do not capture these in lambdas from hot paths.**
+- `isTrack1Looping` / `isTrack2Looping` (initially `true`) are passed as `shouldLoop` to the next
+  `MusicManager.play()`; since `play()` on a playing track is a no-op, the loop button is disabled while
+  its track plays.
 - The `webRootPathName` parameter threads through `StateHolder` → `Manager` → `ResourceLoader` to handle
   the Showcase web app's path-prefix quirk; normal apps can pass `""`.
 - `stopMusicBeforeDispose()` sets a `MutableStateFlow<Boolean>` flag; a coroutine in `onInitialize` reacts

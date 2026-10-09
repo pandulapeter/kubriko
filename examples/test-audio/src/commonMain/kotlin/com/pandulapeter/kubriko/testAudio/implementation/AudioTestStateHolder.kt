@@ -20,6 +20,7 @@ import kubriko.examples.test_audio.generated.resources.ic_loop_on
 import kubriko.examples.test_audio.generated.resources.ic_pause
 import kubriko.examples.test_audio.generated.resources.ic_play
 import kubriko.examples.test_audio.generated.resources.ic_stop
+import kubriko.examples.test_audio.generated.resources.loop_off
 import kubriko.examples.test_audio.generated.resources.loop_on
 import kubriko.examples.test_audio.generated.resources.music_track_1
 import kubriko.examples.test_audio.generated.resources.music_track_2
@@ -48,5 +49,6 @@ sealed interface AudioTestStateHolder : StateHolder {
                 && preloadedString(Res.string.pause).value.isNotBlank()
                 && preloadedString(Res.string.stop).value.isNotBlank()
                 && preloadedString(Res.string.loop_on).value.isNotBlank()
+                && preloadedString(Res.string.loop_off).value.isNotBlank()
     }
 }

@@ -29,10 +29,12 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.uiComponents.LoadingIndicator
 import com.pandulapeter.kubriko.uiComponents.Panel
 import kubriko.examples.test_audio.generated.resources.Res
+import kubriko.examples.test_audio.generated.resources.ic_loop_off
 import kubriko.examples.test_audio.generated.resources.ic_loop_on
 import kubriko.examples.test_audio.generated.resources.ic_pause
 import kubriko.examples.test_audio.generated.resources.ic_play
 import kubriko.examples.test_audio.generated.resources.ic_stop
+import kubriko.examples.test_audio.generated.resources.loop_off
 import kubriko.examples.test_audio.generated.resources.loop_on
 import kubriko.examples.test_audio.generated.resources.pause
 import kubriko.examples.test_audio.generated.resources.play
@@ -47,8 +49,10 @@ internal fun MusicControls(
     title: String,
     isLoaded: Boolean,
     isPlaying: Boolean,
+    isLooping: Boolean,
     onPlayPauseClicked: () -> Unit,
     onStopClicked: () -> Unit,
+    onLoopClicked: () -> Unit,
 ) = Panel {
     Column(
         modifier = Modifier.padding(8.dp),
@@ -78,11 +82,12 @@ internal fun MusicControls(
                 isEnabled = isPlaying,
                 onClick = onStopClicked,
             )
+            // Looping is applied when playback starts, so it can only be toggled while the track is not playing.
             ControlButton(
-                icon = Res.drawable.ic_loop_on,
-                contentDescription = Res.string.loop_on,
-                isEnabled = false,
-                onClick = {},
+                icon = if (isLooping) Res.drawable.ic_loop_on else Res.drawable.ic_loop_off,
+                contentDescription = if (isLooping) Res.string.loop_on else Res.string.loop_off,
+                isEnabled = !isPlaying,
+                onClick = onLoopClicked,
             )
         }
     }
