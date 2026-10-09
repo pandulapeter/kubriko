@@ -70,6 +70,7 @@ Injected at build time via the `buildkonfig` plugin:
 - `implementation/ShowcaseEntry.kt` — enum of all entries and `ShowcaseEntryType`.
 - `implementation/ui/ExampleScreen.kt` — `StateHolder` pool, per-entry `ExampleScreen` Composable, disposal logic.
 - `implementation/ui/ShowcaseContent.kt` — responsive layout orchestration.
-- `implementation/ui/Menu.kt` — `LazyListScope.menu()` extension, `MenuItem`, `MenuCategoryLabel`.
+- `implementation/ui/Menu.kt` — `LazyListScope.menu()` extension, `menuItemIndex()`, `MenuCategoryLabel`.
+- `implementation/ui/MenuItem.kt` — one selectable menu row (title + subtitle).
 - `implementation/ui/TopBar.kt` — top app bar with back/info/debug buttons.
 - `implementation/ui/ResourceLoader.kt` — resource preload gate for shared UI resources.
