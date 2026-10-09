@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -68,6 +69,9 @@ fun BlockysJourneyGame(
         windowInsets = windowInsets,
     )
     val isGameLoaded = stateHolder.sharedLoadingManager.isGameLoaded()
+    SideEffect {
+        stateHolder.sharedLoadingManager.isLoadingDone = isGameLoaded
+    }
     val isGameRunning = stateHolder.stateManager.isRunning.collectAsState().value
     val isGameFocused = stateHolder.stateManager.isFocused.collectAsState().value
     AnimatedVisibility(

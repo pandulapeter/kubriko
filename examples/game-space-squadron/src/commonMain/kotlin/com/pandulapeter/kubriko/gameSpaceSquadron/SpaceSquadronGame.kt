@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,6 +47,9 @@ fun SpaceSquadronGame(
 ) = SpaceSquadronTheme {
     stateHolder as SpaceSquadronGameStateHolderImpl
     val isGameLoaded = stateHolder.backgroundLoadingManager.isGameLoaded()
+    SideEffect {
+        stateHolder.backgroundLoadingManager.isLoadingDone = isGameLoaded
+    }
     KubrikoViewport(
         modifier = modifier
             .fillMaxSize()

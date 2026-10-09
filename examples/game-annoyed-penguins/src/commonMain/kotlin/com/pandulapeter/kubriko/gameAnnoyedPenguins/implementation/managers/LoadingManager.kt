@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
@@ -23,7 +24,6 @@ import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.update
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import kubriko.examples.game_annoyed_penguins.generated.resources.back
 import kubriko.examples.game_annoyed_penguins.generated.resources.close_confirmation
@@ -83,7 +83,6 @@ internal class LoadingManager(
     }
     private val isFontLoaded = MutableStateFlow(false)
     var isLoadingDone = false
-        private set
 
     override fun onInitialize(kubriko: Kubriko) {
         musicManager.preload(musicUris)
@@ -92,16 +91,19 @@ internal class LoadingManager(
     }
 
     @Composable
-    fun isGameLoaded() = (isInitialized.collectAsState().value
+    fun isGameLoaded() = isInitialized.collectAsState().value
             && areMenuResourcesLoaded()
-            && areGameResourcesLoaded.collectAsState().value).also {
-        isLoadingDone = it
-    }
+            && areGameResourcesLoaded.collectAsState().value
 
     @Composable
     override fun Composable(windowInsets: WindowInsets) {
         if (!isFontLoaded.value) {
-            isFontLoaded.update { preloadedFont(Res.font.permanent_marker).value != null }
+            val font = preloadedFont(Res.font.permanent_marker).value
+            LaunchedEffect(font) {
+                if (font != null) {
+                    isFontLoaded.value = true
+                }
+            }
         }
     }
 

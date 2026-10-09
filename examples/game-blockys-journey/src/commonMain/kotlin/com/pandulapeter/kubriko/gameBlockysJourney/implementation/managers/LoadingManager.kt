@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
@@ -99,7 +100,6 @@ internal class LoadingManager(
     private val isFontLoaded = MutableStateFlow(false)
     private val isLevelLoaded = MutableStateFlow(false)
     var isLoadingDone = false
-        private set
     var actors = emptyList<Actor>()
         private set
 
@@ -118,17 +118,20 @@ internal class LoadingManager(
     }
 
     @Composable
-    fun isGameLoaded() = (isInitialized.collectAsState().value
+    fun isGameLoaded() = isInitialized.collectAsState().value
             && areMenuResourcesLoaded()
             && isLevelLoaded.collectAsState().value
-            && areGameResourcesLoaded.collectAsState().value).also {
-        isLoadingDone = it
-    }
+            && areGameResourcesLoaded.collectAsState().value
 
     @Composable
     override fun Composable(windowInsets: WindowInsets) {
         if (!isFontLoaded.value) {
-            isFontLoaded.update { preloadedFont(Res.font.medieval_sharp).value != null }
+            val font = preloadedFont(Res.font.medieval_sharp).value
+            LaunchedEffect(font) {
+                if (font != null) {
+                    isFontLoaded.value = true
+                }
+            }
         }
     }
 
