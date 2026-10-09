@@ -28,7 +28,7 @@ internal class MetadataManagerImpl(
     private val _totalRuntimeInMilliseconds = MutableStateFlow(0L)
     override val totalRuntimeInMilliseconds = _totalRuntimeInMilliseconds.asStateFlow()
     /**
-     * The per-tick Canvas invalidation signal (see [ActorManagerImpl]'s layer Canvas): a
+     * The per-tick Canvas invalidation signal (see [Layers]): a
      * primitive Compose snapshot state written directly here, so consumers read it without the
      * boxed-Long StateFlow emission + collectAsState dispatch a flow-based read would cost every tick.
      * totalRuntimeInMilliseconds stays a StateFlow purely as public API.

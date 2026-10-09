@@ -45,7 +45,7 @@ rigid bodies (circular) and `linkCount - 1` `JointToBody` spring joints connecti
 The chain's `BoxBody` is kept up to date each frame in `refreshBodySize()` by computing the AABB of
 all link positions. It reads `ChainLink.physicsBody.position` (the authoritative physics state),
 **not** `ChainLink.body.position`: as a `Group` parent this actor updates before its child links in
-the same tick (BFS flatten order in `ActorManagerImpl`), so the links' render bodies still hold the
+the same tick (BFS flatten order in `ActorBatchProcessor`), so the links' render bodies still hold the
 previous tick's position when `refreshBodySize()` runs. `physicsBody.position` is the same value the
 links copy into their render bodies this tick, so bounds and path stay in sync.
 The chain draws a smooth quadratic-Bezier path through all link centres using two `drawPath` calls
