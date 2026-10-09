@@ -15,9 +15,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import platform.AVFAudio.AVAudioPlayer
-import platform.AVFAudio.AVAudioSession
-import platform.AVFAudio.AVAudioSessionCategoryPlayback
-import platform.AVFAudio.setActive
 import platform.darwin.NSIntegerMax
 
 @OptIn(ExperimentalForeignApi::class)
@@ -25,10 +22,7 @@ import platform.darwin.NSIntegerMax
 internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object : MusicPlayer {
 
     init {
-        AVAudioSession.sharedInstance().apply {
-            setCategory(AVAudioSessionCategoryPlayback, error = null)
-            setActive(true, error = null)
-        }
+        configureAudioSession()
     }
 
     override suspend fun preload(uri: String) = withContext(Dispatchers.Default) {

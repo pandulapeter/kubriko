@@ -66,6 +66,12 @@ A missing or undecodable file never crashes the game: the failure is logged, the
 ### Volume Control
 `MusicManager` supports per-track volume control as well as a default volume setting.
 
+### iOS audio session
+Kubriko sets the `Ambient` audio session category (it mixes with other apps' audio and follows the silent switch) unless
+the app has already set its own category before the first composition of `KubrikoViewport`, in which case that category
+is kept. For example, to play game audio even with the silent switch on:
+`AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback, error = null)`
+
 ## Public Artifact
 
 The artifact for this module is:

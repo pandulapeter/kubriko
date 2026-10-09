@@ -29,7 +29,7 @@ Streaming music and pooled SFX. Reliably works on Android and Desktop; iOS and W
 |---|---|---|---|
 | Android | `MediaPlayer` | `SoundPool` | `musicPauseDelayOnFocusLoss = 0` |
 | Desktop | JLayer (MP3 via `libs.jlayer`), `javax.sound.sampled` | `Clip` pool | Entire file buffered into `ByteArray` at load; volume applied by scaling `SampleBuffer` samples per frame |
-| iOS | `AVAudioPlayer` + `AVAudioSessionCategoryPlayback` | `AVAudioPlayer` clones | `stop()` effectively pauses (known TODO) |
+| iOS | `AVAudioPlayer` + `AVAudioSessionCategoryAmbient` (only while the session is still at the system default `SoloAmbient`; a host-configured category is kept) | `AVAudioPlayer` clones | `stop()` effectively pauses (known TODO) |
 | Web | Web Audio API / `AudioContext` | `HTMLAudioElement` pool | `musicPauseDelayOnFocusLoss = 100 ms`; music started before the first user gesture (autoplay policy) is resumed on the first gesture; Chrome Android bug: `dispose()` may not stop music — a 250 ms deferred second `dispose()` is used as workaround |
 
 ## MusicManager Internals

@@ -15,9 +15,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import platform.AVFAudio.AVAudioPlayer
-import platform.AVFAudio.AVAudioSession
-import platform.AVFAudio.AVAudioSessionCategoryPlayback
-import platform.AVFAudio.setActive
 
 @Suppress("UNCHECKED_CAST")
 @OptIn(ExperimentalForeignApi::class)
@@ -27,10 +24,7 @@ internal actual fun createSoundPlayer(
 ) = object : SoundPlayer {
 
     init {
-        AVAudioSession.sharedInstance().apply {
-            setCategory(AVAudioSessionCategoryPlayback, error = null)
-            setActive(true, error = null)
-        }
+        configureAudioSession()
     }
 
     override suspend fun preload(uri: String) = withContext(Dispatchers.Default) {
