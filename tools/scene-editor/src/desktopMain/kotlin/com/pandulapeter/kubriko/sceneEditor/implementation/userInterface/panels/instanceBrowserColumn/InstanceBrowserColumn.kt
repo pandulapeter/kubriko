@@ -55,7 +55,8 @@ internal fun InstanceBrowserColumn(
     shouldShowVisibleOnly: Boolean,
     allInstances: List<Editable<*>>,
     visibleInstances: List<Editable<*>>,
-    selectedUpdatableInstance: Pair<Editable<*>?, Boolean>,
+    selectedInstance: Editable<*>?,
+    selectedInstanceRevision: Int,
     onShouldShowVisibleOnlyToggled: () -> Unit,
     selectInstance: (Editable<*>) -> Unit,
     resolveTypeId: (KClass<out Editable<*>>) -> String?,
@@ -73,15 +74,17 @@ internal fun InstanceBrowserColumn(
             modifier = Modifier.fillMaxSize()
         ) {
             items(if (shouldShowVisibleOnly) visibleInstances else allInstances) { instance ->
+                // Reading the revision recomposes the names when the selected actor changes in place.
+                @Suppress("UNUSED_EXPRESSION") selectedInstanceRevision
                 EditorText(
                     modifier = Modifier.fillMaxWidth()
                         .background(
-                            color = if (instance == selectedUpdatableInstance.first) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                            color = if (instance == selectedInstance) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
                         ).clickable { selectInstance(instance) }.padding(
                             horizontal = 8.dp,
                             vertical = 2.dp,
                         ),
-                    color = if (instance == selectedUpdatableInstance.first) contentColorFor(MaterialTheme.colorScheme.primaryContainer) else LocalContentColor.current,
+                    color = if (instance == selectedInstance) contentColorFor(MaterialTheme.colorScheme.primaryContainer) else LocalContentColor.current,
                     text = instance.getName(resolveTypeId(instance::class)),
                 )
             }

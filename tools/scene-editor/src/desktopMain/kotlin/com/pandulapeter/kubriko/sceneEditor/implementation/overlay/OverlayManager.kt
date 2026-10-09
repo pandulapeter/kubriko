@@ -46,7 +46,7 @@ internal class OverlayManager(
     }
 
     override fun update(deltaTimeInMilliseconds: Int) {
-        if (editorController.selectedUpdatableActor.value.first == null) {
+        if (editorController.selectedActor.value == null) {
             if (alpha > 0) {
                 alpha = max(0f, alpha - deltaTimeInMilliseconds * HIGHLIGHT_BACKGROUND_FADE_SPEED)
             }
@@ -74,7 +74,7 @@ internal class OverlayManager(
                         )
                     },
                     drawBlock = {
-                        editorController.selectedUpdatableActor.value.first?.let { highlighted ->
+                        editorController.selectedActor.value?.let { highlighted ->
                             val strokeBack = Stroke(
                                 width = 16f / (scaleFactor.horizontal + scaleFactor.vertical),
                                 join = StrokeJoin.Round,

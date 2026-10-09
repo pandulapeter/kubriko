@@ -104,25 +104,15 @@ internal class EditorController(
             viewportScaleFactor = viewportManager.scaleFactor.value,
         )
     }.stateIn(this, SharingStarted.Eagerly, SceneOffset.Zero)
-    private val triggerActorUpdate = MutableStateFlow(false)
-    private val _selectedActor = MutableStateFlow<Editable<*>?>(null)
-    val selectedUpdatableActor = combine(
-        _selectedActor,
-        triggerActorUpdate,
-    ) { actor, triggerActorUpdate ->
-        actor to triggerActorUpdate
-    }.stateIn(this, SharingStarted.Eagerly, null to false)
-    val canLocateSelectedActor = combine(
-        _selectedActor,
-        viewportManager.cameraPosition,
-        triggerActorUpdate,
-    ) { selectedActor, cameraPosition, _ ->
-        (selectedActor as? Visible)?.let { visibleActor ->
-            !cameraPosition.isRoughlyAt(visibleActor.body.position)
-        } ?: false
-    }.stateIn(this, SharingStarted.Eagerly, false)
-    private val _selectedTypeId = MutableStateFlow<String?>(null)
-    val selectedTypeId = _selectedTypeId.asStateFlow()
+    private val selection = EditorSelection(
+        scope = this,
+        cameraPosition = viewportManager.cameraPosition,
+        instantiatePreview = ::instantiatePreview,
+    )
+    val selectedActor = selection.selectedActor
+    val selectedActorRevision = selection.selectedActorRevision
+    val canLocateSelectedActor = selection.canLocateSelectedActor
+    val selectedTypeId = selection.selectedTypeId
     val colorEditorMode = userPreferences.colorEditorMode
     val angleEditorMode = userPreferences.angleEditorMode
     val isDebugMenuEnabled = userPreferences.isDebugMenuEnabled
@@ -130,8 +120,7 @@ internal class EditorController(
     val shouldShowVisibleOnly = _shouldShowVisibleOnly.asStateFlow()
     private val _interactionMode = MutableStateFlow(SceneEditorInteractionMode.Translate)
     val interactionMode = _interactionMode.asStateFlow()
-    private var _previewOverlayActor: Editable<*>? = null
-    val previewOverlayActor get() = _previewOverlayActor
+    val previewOverlayActor get() = selection.previewOverlayActor
     private val sceneDocument = SceneDocument(
         serialize = serializationManager::serializeActors,
         deserialize = serializationManager::deserializeActors,
@@ -194,7 +183,7 @@ internal class EditorController(
 
     fun setInteractionMode(interactionMode: SceneEditorInteractionMode) = _interactionMode.update { interactionMode }
 
-    fun getSelectedActor() = _selectedActor.value
+    fun getSelectedActor() = selectedActor.value
 
     fun isPlacingNewInstance() = previewOverlayActor != null && getSelectedActor() == null
 
@@ -203,7 +192,7 @@ internal class EditorController(
     fun onLeftClick(screenCoordinates: Offset) {
         val positionInWorld = screenCoordinates.toSceneOffset(viewportManager)
         findActorOnPosition(positionInWorld).let { actorAtPosition ->
-            _selectedActor.value.let { currentSelectedActor ->
+            selectedActor.value.let { currentSelectedActor ->
                 if (actorAtPosition == null) {
                     if (currentSelectedActor == null) {
                         previewOverlayActor?.let {
@@ -211,7 +200,7 @@ internal class EditorController(
                             sceneDocument.addSceneActor(it)
                             sceneDocument.markSceneAsModified()
                             selectActor(it)
-                            _previewOverlayActor = selectedTypeId.value?.let(::instantiatePreview)
+                            selection.renewPreview()
                         }
                     } else {
                         deselectSelectedActor()
@@ -226,7 +215,7 @@ internal class EditorController(
     fun onRightClick(screenCoordinates: Offset) {
         findActorOnPosition(screenCoordinates.toSceneOffset(viewportManager)).let { actorAtPosition ->
             if (actorAtPosition != null) {
-                if (actorAtPosition == _selectedActor.value) {
+                if (actorAtPosition == selectedActor.value) {
                     removeSelectedActor()
                 } else {
                     sceneDocument.recordSnapshot()
@@ -243,34 +232,28 @@ internal class EditorController(
 
     fun selectActor(actor: Editable<*>) {
         sceneDocument.clearPendingPropertyEdit()
-        _selectedActor.update { currentSelectedActor ->
-            if (currentSelectedActor == actor) {
-                null
-            } else {
-                actor
-            }
-        }
+        selection.toggleActor(actor)
     }
 
     fun removeSelectedActor() {
-        val selectedActor = _selectedActor.value ?: return
+        val actor = selectedActor.value ?: return
         sceneDocument.recordSnapshot()
-        sceneDocument.removeSceneActor(selectedActor)
+        sceneDocument.removeSceneActor(actor)
         sceneDocument.markSceneAsModified()
-        _selectedActor.value = null
+        selection.setSelectedActor(null)
     }
 
     fun onMouseMove(screenCoordinates: Offset) = mouseScreenCoordinates.update { screenCoordinates }
 
     fun locateSelectedActor() {
-        (_selectedActor.value as? Visible)?.let { visibleTrait ->
+        (selectedActor.value as? Visible)?.let { visibleTrait ->
             cameraAnimator.animateCameraTo(visibleTrait.body.position)
         }
     }
 
     fun notifySelectedActorUpdate() {
         sceneDocument.markSceneAsModified()
-        triggerActorUpdate.update { !it }
+        selection.notifySelectedActorUpdate()
     }
 
     fun onColorEditorModeChanged(colorEditorMode: ColorEditorMode) = userPreferences.colorEditorMode.update { colorEditorMode }
@@ -281,10 +264,7 @@ internal class EditorController(
 
     fun onFilterTextChanged(filterText: String) = _filterText.update { filterText }
 
-    fun selectActorType(typeId: String?) {
-        _selectedTypeId.update { currentValue -> if (currentValue == typeId) null else typeId }
-        _previewOverlayActor = selectedTypeId.value?.let(::instantiatePreview)
-    }
+    fun selectActorType(typeId: String?) = selection.toggleType(typeId)
 
     private fun instantiatePreview(typeId: String) = serializationManager.getMetadata(typeId)?.instantiate?.invoke(SceneOffset.Zero)?.restore()
 
@@ -292,12 +272,12 @@ internal class EditorController(
 
     fun deselectSelectedActor() {
         sceneDocument.clearPendingPropertyEdit()
-        _selectedActor.update { null }
+        selection.setSelectedActor(null)
     }
 
-    fun onUndo() = sceneDocument.undo(_selectedActor.value) { restoredSelection -> _selectedActor.update { restoredSelection } }
+    fun onUndo() = sceneDocument.undo(selectedActor.value, selection::setSelectedActor)
 
-    fun onRedo() = sceneDocument.redo(_selectedActor.value) { restoredSelection -> _selectedActor.update { restoredSelection } }
+    fun onRedo() = sceneDocument.redo(selectedActor.value, selection::setSelectedActor)
 
     fun onBeforePropertyChange(editKey: Any) = sceneDocument.onBeforePropertyChange(editKey)
 
@@ -312,14 +292,14 @@ internal class EditorController(
         cameraAnimator.cancel()
         viewportManager.setCameraPosition(SceneOffset.Zero)
         sceneFiles.resetFileName()
-        _selectedActor.update { null }
+        selection.setSelectedActor(null)
         sceneDocument.clearSceneActors()
         sceneDocument.onSceneReplaced()
     }
 
     fun loadMap(path: String) = sceneFiles.loadMap(path) { actors ->
         sceneDocument.replaceSceneActors(actors)
-        _selectedActor.update { null }
+        selection.setSelectedActor(null)
         sceneDocument.onSceneReplaced()
     }
 

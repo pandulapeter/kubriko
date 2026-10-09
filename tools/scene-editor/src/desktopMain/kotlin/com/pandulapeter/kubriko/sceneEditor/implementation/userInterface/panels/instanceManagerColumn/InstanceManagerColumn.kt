@@ -49,7 +49,8 @@ internal fun InstanceManagerColumn(
     modifier: Modifier = Modifier,
     registeredTypeIds: List<String>,
     selectedTypeId: String?,
-    selectedUpdatableInstance: Pair<Editable<*>?, Boolean>,
+    selectedInstance: Editable<*>?,
+    selectedInstanceRevision: Int,
     resolveTypeId: (KClass<out Editable<*>>) -> String?,
     isTypeUnique: (String) -> Boolean,
     selectTypeId: (String) -> Unit,
@@ -64,74 +65,74 @@ internal fun InstanceManagerColumn(
 ) = EditorSurface(
     modifier = modifier,
 ) {
-    selectedUpdatableInstance.first.let { selectedInstance ->
-        Column {
-            if (selectedInstance != null) {
-                SelectedInstanceHeader(
-                    instanceTypeName = resolveTypeId(selectedInstance::class) ?: stringResource(Res.string.unknown_actor_type),
-                    isUnique = selectedInstance is Unique,
-                    onDeselectClicked = deselectSelectedInstance,
-                    isLocateEnabled = canLocateSelectedInstance,
-                    onLocateClicked = locateSelectedInstance,
-                    onDeleteClicked = deleteSelectedInstance,
-                )
-            }
-            val exposedProperties = remember(selectedInstance?.let { it::class }) { selectedInstance?.let { exposedMutableProperties(it::class) }.orEmpty() }
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                if (selectedInstance == null) {
-                    items(
-                        items = registeredTypeIds,
-                        key = { "typeRadioButton_${it}" },
-                    ) { typeId ->
-                        EditorRadioButton(
-                            label = if (isTypeUnique(typeId)) stringResource(Res.string.unique_prefix, typeId) else typeId,
-                            isSelected = typeId == selectedTypeId,
-                            onSelectionChanged = { selectTypeId(typeId) },
+    // Reading the revision recomposes the property editors when the selected actor changes in place.
+    @Suppress("UNUSED_EXPRESSION") selectedInstanceRevision
+    Column {
+        if (selectedInstance != null) {
+            SelectedInstanceHeader(
+                instanceTypeName = resolveTypeId(selectedInstance::class) ?: stringResource(Res.string.unknown_actor_type),
+                isUnique = selectedInstance is Unique,
+                onDeselectClicked = deselectSelectedInstance,
+                isLocateEnabled = canLocateSelectedInstance,
+                onLocateClicked = locateSelectedInstance,
+                onDeleteClicked = deleteSelectedInstance,
+            )
+        }
+        val exposedProperties = remember(selectedInstance?.let { it::class }) { selectedInstance?.let { exposedMutableProperties(it::class) }.orEmpty() }
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            if (selectedInstance == null) {
+                items(
+                    items = registeredTypeIds,
+                    key = { "typeRadioButton_${it}" },
+                ) { typeId ->
+                    EditorRadioButton(
+                        label = if (isTypeUnique(typeId)) stringResource(Res.string.unique_prefix, typeId) else typeId,
+                        isSelected = typeId == selectedTypeId,
+                        onSelectionChanged = { selectTypeId(typeId) },
+                    )
+                }
+            } else {
+                exposedProperties
+                    .mapNotNull { property ->
+                        property.toPropertyEditor(
+                            actor = selectedInstance,
+                            onBeforeChange = onBeforeInstanceChange,
+                            notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
+                            colorEditorMode = colorEditorMode,
+                            angleEditorMode = angleEditorMode,
                         )
                     }
-                } else {
-                    exposedProperties
-                        .mapNotNull { property ->
-                            property.toPropertyEditor(
-                                actor = selectedInstance,
-                                onBeforeChange = onBeforeInstanceChange,
-                                notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
-                                colorEditorMode = colorEditorMode,
-                                angleEditorMode = angleEditorMode,
+                    .let { controls ->
+                        val allControls = controls.toMutableList().apply {
+                            add(
+                                index = 0,
+                                element = createBodyPropertyEditor(
+                                    getActor = { selectedInstance },
+                                    onBeforeChange = onBeforeInstanceChange,
+                                    notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
+                                    angleEditorMode = angleEditorMode,
+                                )
                             )
                         }
-                        .let { controls ->
-                            val allControls = controls.toMutableList().apply {
-                                add(
-                                    index = 0,
-                                    element = createBodyPropertyEditor(
-                                        getActor = { selectedInstance },
-                                        onBeforeChange = onBeforeInstanceChange,
-                                        notifySelectedInstanceUpdate = notifySelectedInstanceUpdate,
-                                        angleEditorMode = angleEditorMode,
-                                    )
-                                )
-                            }
-                            item(key = "actorEditor") {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp),
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    allControls.forEachIndexed { index, lambda ->
-                                        lambda()
-                                        if (index != allControls.lastIndex) {
-                                            HorizontalDivider()
-                                        }
+                        item(key = "actorEditor") {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                allControls.forEachIndexed { index, lambda ->
+                                    lambda()
+                                    if (index != allControls.lastIndex) {
+                                        HorizontalDivider()
                                     }
                                 }
                             }
                         }
-                }
+                    }
             }
         }
     }
