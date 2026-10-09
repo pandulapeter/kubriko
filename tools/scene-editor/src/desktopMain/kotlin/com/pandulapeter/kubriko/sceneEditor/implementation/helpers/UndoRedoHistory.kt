@@ -11,7 +11,6 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.helpers
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlin.reflect.KClass
 
 internal class UndoRedoHistory {
 
@@ -94,13 +93,3 @@ internal fun restoredSelectionIndex(
     }
     return snapshotIds.indexOf(selectedId).takeIf { it >= 0 }
 }
-
-/**
- * Returns the index of the actor in [actorClasses] that adding an actor of [newClass] replaces (the engine keeps
- * only the latest [com.pandulapeter.kubriko.actor.traits.Unique] actor of a class), or -1 when nothing is replaced.
- */
-internal fun indexOfReplacedUnique(
-    actorClasses: List<KClass<*>>,
-    newClass: KClass<*>,
-    isUnique: Boolean,
-) = if (isUnique) actorClasses.indexOf(newClass) else -1

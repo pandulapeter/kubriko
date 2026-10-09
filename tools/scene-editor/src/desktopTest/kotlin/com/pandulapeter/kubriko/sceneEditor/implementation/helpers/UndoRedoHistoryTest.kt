@@ -18,10 +18,6 @@ import kotlin.test.assertTrue
 
 class UndoRedoHistoryTest {
 
-    private class A
-    private class B
-    private class C
-
     private fun snapshot(name: String) = UndoRedoHistory.SceneSnapshot(
         serializedScene = name,
         isSceneModified = false,
@@ -39,14 +35,6 @@ class UndoRedoHistoryTest {
     @Test
     fun undoingADeletionKeepsTheSameActorSelected() {
         assertEquals(2, restoredSelectionIndex(selectedId = 3, snapshotIds = longArrayOf(1, 2, 3), restoredCount = 3))
-    }
-
-    @Test
-    fun onlyUniqueActorsOfTheSameClassAreReplaced() {
-        val classes = listOf(A::class, B::class)
-        assertEquals(1, indexOfReplacedUnique(classes, B::class, isUnique = true))
-        assertEquals(-1, indexOfReplacedUnique(classes, B::class, isUnique = false))
-        assertEquals(-1, indexOfReplacedUnique(classes, C::class, isUnique = true))
     }
 
     @Test
