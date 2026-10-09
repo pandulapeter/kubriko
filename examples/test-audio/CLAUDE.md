@@ -26,7 +26,8 @@ Audio playback works on Android and Desktop (JVM) only.
 ```
 AudioTest.kt                        — public Composable + createAudioTestStateHolder() factory
 implementation/
-  AudioTestStateHolder.kt           — sealed interface + Impl; creates MusicManager, SoundManager, AudioTestManager
+  AudioTestStateHolder.kt           — sealed interface + resource gate
+  AudioTestStateHolderImpl.kt       — creates MusicManager, SoundManager, AudioTestManager
   managers/
     AudioTestManager.kt             — Manager: preloads tracks, updates play-state every tick, renders controls UI
   utilities/
