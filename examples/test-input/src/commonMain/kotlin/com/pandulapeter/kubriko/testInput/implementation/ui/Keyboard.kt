@@ -144,7 +144,7 @@ private fun Key.toWrapper(activeKeys: Set<Key>) = KeyWrapper(
 )
 
 internal fun Key.keySize() = when (this) {
-    Key.Escape, Key.Backspace, Key.Tab, Key.Enter, Key.CapsLock, Key.ShiftRight, Key.ShiftRight -> Size.WIDE
+    Key.Escape, Key.Backspace, Key.Tab, Key.Enter, Key.CapsLock, Key.ShiftLeft, Key.ShiftRight -> Size.WIDE
     Key.Spacebar -> Size.EXTRA_WIDE
     else -> Size.NORMAL
 }
