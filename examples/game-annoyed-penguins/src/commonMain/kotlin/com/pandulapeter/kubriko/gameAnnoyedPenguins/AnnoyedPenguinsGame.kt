@@ -44,7 +44,6 @@ import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.Game
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.AnnoyedPenguinsTheme
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.GameplayHud
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.MenuOverlay
-import kotlinx.collections.immutable.toImmutableList
 
 @Composable
 fun AnnoyedPenguinsGame(
@@ -114,7 +113,7 @@ fun AnnoyedPenguinsGame(
             MenuOverlay(
                 windowInsets = windowInsets,
                 currentLevel = stateHolder.gameplayManager.currentLevel.collectAsState().value,
-                allLevels = GameplayManager.AllLevels.keys.toImmutableList(),
+                allLevels = GameplayManager.LevelNames,
                 onInfoButtonPressed = {
                     stateHolder.audioManager.playButtonToggleSoundEffect()
                     stateHolder.uiManager.toggleInfoDialogVisibility()

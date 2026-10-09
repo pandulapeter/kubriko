@@ -24,6 +24,7 @@ import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -134,5 +135,6 @@ internal class GameplayManager : Manager() {
             "Map 2" to "level_2.json",
             "Map 3" to "level_3.json",
         )
+        val LevelNames = AllLevels.keys.toImmutableList()
     }
 }
