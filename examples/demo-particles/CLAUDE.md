@@ -40,8 +40,8 @@ fields so the pool can hand the same instance back to a new particle.
 ≥ 1 or `body.scale.horizontal < 0.05`. Shrinking below 5% scale is used as an early-termination
 guard to avoid nearly-invisible particles consuming pool slots.
 
-`draw()` renders a filled HSV circle for the first 70% of lifetime, then a plain black-outline
-ghost for the fade-out tail, creating a sparkle-then-dissipate visual.
+`draw()` renders a filled HSV circle with a black outline for the first 70% of lifetime, then a
+fading filled black circle for the tail, creating a sparkle-then-dissipate visual.
 
 ## Non-obvious implementation patterns
 
