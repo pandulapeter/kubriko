@@ -1,0 +1,85 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubriko.demoPerformance.implementation
+
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.body.BoxBody
+import com.pandulapeter.kubriko.actor.body.PointBody
+import com.pandulapeter.kubriko.demoPerformance.implementation.actors.BoxWithCircle
+import com.pandulapeter.kubriko.demoPerformance.implementation.actors.Camera
+import com.pandulapeter.kubriko.demoPerformance.implementation.actors.MovingBox
+import com.pandulapeter.kubriko.demoPerformance.implementation.managers.PerformanceDemoManager
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
+import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
+import com.pandulapeter.kubriko.types.SceneSize
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
+internal class PerformanceDemoStateHolderImpl(
+    isSceneEditorEnabled: Boolean,
+    isLoggingEnabled: Boolean,
+) : PerformanceDemoStateHolder {
+
+    val serializationManager = EditableMetadata.newSerializationManagerInstance(
+        EditableMetadata.create<Camera, Camera.State>(typeId = "Camera") {
+            Camera.State(body = PointBody(initialPosition = it))
+        },
+        EditableMetadata.create<BoxWithCircle, BoxWithCircle.State>(typeId = "BoxWithCircle") {
+            BoxWithCircle.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit)))
+        },
+        EditableMetadata.create<MovingBox, MovingBox.State>(typeId = "MovingBox") {
+            MovingBox.State(body = BoxBody(initialPosition = it, initialSize = SceneSize(100.sceneUnit, 100.sceneUnit)))
+        },
+        isLoggingEnabled = isLoggingEnabled,
+        instanceNameForLogging = LOG_TAG,
+    )
+
+    // The properties below are lazily initialized because we don't need them when we only run the Scene Editor
+    private val actorManager by lazy {
+        ActorManager.newInstance(
+            isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = LOG_TAG,
+            invisibleActorMinimumRefreshTimeInMillis = 500,
+        )
+    }
+    val performanceDemoManager by lazy {
+        PerformanceDemoManager(
+            sceneJson = sceneJson,
+            isSceneEditorEnabled = isSceneEditorEnabled,
+        )
+    }
+    private val viewportManager by lazy {
+        ViewportManager.newInstance(
+            initialScaleFactor = 0.5f,
+            viewportEdgeBuffer = 400.sceneUnit,
+            isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = LOG_TAG,
+        )
+    }
+    private val _kubriko by lazy {
+        MutableStateFlow(
+            Kubriko.newInstance(
+                actorManager,
+                viewportManager,
+                performanceDemoManager,
+                serializationManager,
+                isLoggingEnabled = isLoggingEnabled,
+                instanceNameForLogging = LOG_TAG,
+            )
+        )
+    }
+    override val kubriko by lazy { _kubriko.asStateFlow() }
+
+    override fun dispose() = kubriko.value.dispose()
+}
+
+private const val LOG_TAG = "Performance"
