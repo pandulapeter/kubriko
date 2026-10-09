@@ -24,7 +24,6 @@ import kotlinx.datetime.toLocalDateTime
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-@OptIn(ExperimentalTime::class)
 @Composable
 internal fun LogEntry(
     modifier: Modifier = Modifier,
@@ -35,26 +34,29 @@ internal fun LogEntry(
         .padding(top = 2.dp),
     style = MaterialTheme.typography.labelSmall,
     color = getColor(entry.source),
-    text = entry.source.let { source ->
-        val timestamp = Instant.fromEpochMilliseconds(entry.timestamp).toLocalDateTime(TimeZone.currentSystemDefault()).time.let {
-            "${it.hour}:${it.minute}:${it.second}.${it.nanosecond / 1_000_000}"
-        }
-        val message = if (source == null) entry.message else "${entry.source}: ${entry.message}"
-        val suffix = if (entry.details.isNullOrBlank()) "" else "*"
-        "[$timestamp] $message$suffix"
-    }
+    text = logEntryText(entry, TimeZone.currentSystemDefault()),
 )
 
 // TODO: Allow consumers to override this behavior
 @Composable
 private fun getColor(source: String?) = if (source == null) LocalContentColor.current else Color.hsv(
-    hue = source.toHue(),
+    hue = sourceHue(source),
     saturation = 0.2f,
     value = if (isSystemInDarkTheme()) 0.9f else 0.6f,
 )
 
-private fun String.toHue(): Float {
-    val hash = substringAfterLast('@').hashCode()
+@OptIn(ExperimentalTime::class)
+internal fun logEntryText(entry: Logger.Entry, timeZone: TimeZone): String = entry.source.let { source ->
+    val timestamp = Instant.fromEpochMilliseconds(entry.timestamp).toLocalDateTime(timeZone).time.let {
+        "${it.hour}:${it.minute}:${it.second}.${it.nanosecond / 1_000_000}"
+    }
+    val message = if (source == null) entry.message else "${entry.source}: ${entry.message}"
+    val suffix = if (entry.details.isNullOrBlank()) "" else "*"
+    "[$timestamp] $message$suffix"
+}
+
+internal fun sourceHue(source: String): Float {
+    val hash = source.substringAfterLast('@').hashCode()
     val positiveHash = hash.toLong() and 0xFFFFFFFFL
     return (positiveHash % 360).toFloat()
 }
