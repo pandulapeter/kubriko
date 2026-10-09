@@ -18,6 +18,9 @@ import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
  * Models rayscatter explosions.
+ *
+ * @param epicenter The point the rays are cast from.
+ * @param noOfRays  The number of rays [castRays] spreads evenly around the epicenter.
  */
 class RayScatter(epicenter: SceneOffset, private val noOfRays: Int) {
     /**
@@ -26,6 +29,10 @@ class RayScatter(epicenter: SceneOffset, private val noOfRays: Int) {
      * @return Array of all rays part of the ray scatter.
      */
     internal val rays = mutableListOf<Ray>()
+
+    /**
+     * The point the rays are cast from. Setting it moves the start point of every ray already cast.
+     */
     var epicenter: SceneOffset = epicenter
         set(value) {
             field = value

@@ -12,7 +12,14 @@ package com.pandulapeter.kubriko.physics
 import com.pandulapeter.kubriko.actor.Actor
 import com.pandulapeter.kubriko.physics.joints.Joint
 
+/**
+ * An Actor that hands [physicsJoint] to the `PhysicsManager` of the Kubriko instance it is added to.
+ * Add it alongside the bodies the joint connects.
+ */
 interface JointWrapper : Actor {
 
+    /**
+     * The joint simulated while this Actor is in the scene.
+     */
     val physicsJoint: Joint
 }

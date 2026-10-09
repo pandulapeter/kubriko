@@ -23,7 +23,7 @@ import com.pandulapeter.kubriko.types.SceneUnit
  *
  * @param epicenter     Vector location of explosion epicenter.
  * @param noOfParticles Total number of particles the explosion has.
- * @param lifespan          The life time of the particle.
+ * @param lifespan      Currently unused (kept for signature compatibility).
  */
 class ParticleExplosion(private val epicenter: SceneOffset, private val noOfParticles: Int, private val lifespan: Float) {
     /**
@@ -34,12 +34,12 @@ class ParticleExplosion(private val epicenter: SceneOffset, private val noOfPart
     val particles = MutableList(noOfParticles) { PhysicsBody(CircleCollisionMask()) }
 
     /**
-     * Creates particles in the supplied world.
+     * Creates the particles around the epicenter. They are not added to any simulation: the caller adds them
+     * (e.g. through [RigidBody][com.pandulapeter.kubriko.physics.RigidBody] actors).
      *
      * @param size    The size of the particles.
      * @param density The density of the particles.
      * @param radius  The distance away from the epicenter the particles are placed.
-     * @param world   The world the particles are created in.
      */
     fun createParticles(size: SceneUnit, density: Int, radius: SceneUnit) {
         val separationAngle = AngleRadians.TwoPi / noOfParticles
@@ -60,7 +60,6 @@ class ParticleExplosion(private val epicenter: SceneOffset, private val noOfPart
             b.isAffectedByGravity = false
             b.linearDampening = 0f
             b.isParticle = true
-            //TODO: world.addBody(b)
             particles[i] = b
             distanceFromCentre = rotate.times(distanceFromCentre)
         }

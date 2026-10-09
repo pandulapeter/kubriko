@@ -31,6 +31,9 @@ class RaycastExplosion(
     distance: SceneUnit,
     worldBodies: List<PhysicsBody>,
 ) : Explosion {
+    /**
+     * The rays the explosion casts from its epicenter.
+     */
     val rayScatter: RayScatter = RayScatter(epicenter, noOfRays)
 
     /**

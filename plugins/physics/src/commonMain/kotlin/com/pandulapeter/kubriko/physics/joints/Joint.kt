@@ -32,6 +32,10 @@ sealed class Joint(
     protected val canGoSlack: Boolean,
     protected val offset: SceneOffset
 ) {
+    /**
+     * The scene position the joint is attached to on the first body: its position plus [offset] rotated by its
+     * rotation. Set at construction and recomputed on every [applyTension].
+     */
     var object1AttachmentPoint = physicsBody.position + RotationMatrix(physicsBody.rotation).times(offset)
 
     /**
