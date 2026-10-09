@@ -43,7 +43,7 @@ internal fun ZoomSlider(
         interactionSource = interactionSource,
         thumb = {
             Spacer(
-                modifier
+                Modifier
                     .size(16.dp, 16.dp)
                     .hoverable(interactionSource = interactionSource)
                     .background(MaterialTheme.colorScheme.primary, CircleShape)
