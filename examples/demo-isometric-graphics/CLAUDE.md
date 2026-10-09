@@ -19,8 +19,8 @@ module under `implementation/`.
 
 ## Entry point and state
 
-`IsometricGraphicsDemo` (`@Composable`, top-level package) renders `IsometricGraphicsContent` plus
-the standard Showcase `InfoPanel`. All state lives in `IsometricGraphicsDemoStateHolderImpl`
+`IsometricGraphicsDemo` (`@Composable`, top-level package) renders `IsometricGraphicsContent`, which
+also hosts the standard Showcase `InfoPanel`. All state lives in `IsometricGraphicsDemoStateHolderImpl`
 (`implementation/`), which owns **two** `Kubriko` instances and is created/disposed like every other
 demo's state holder:
 
@@ -38,7 +38,7 @@ demo's state holder:
 ## The bridge between the two instances
 
 `RenderableCuboidHolder` (`implementation/renderer/data/actor/`) is the key interface. Any actor in
-`logicKubriko` that implements it (`MainCharacter`, `Character`, `Tree` — all extend
+`logicKubriko` that implements it (`MainCharacter`, `Character`, `Tree`, `Bush` — all extend
 `PlanarCuboidModelRenderer`) automatically gets a `VolumetricCuboidRenderer` created in
 `isometricKubriko` when it enters the logic viewport. `VolumetricRenderManager` subscribes to
 `logicActorManager.visibleActorsWithinViewport` and to `ControlManager.cameraOffset`, diffing the
@@ -62,12 +62,11 @@ Tesselar declared its `Kubriko` instances and managers as module-level singleton
   `RenderableCuboid(Model)`). `@Serializable` is used only to **load** the JSON models at runtime.
 - `implementation/renderer/planar` — top-down/flat projection used by the minimap and as the base
   class for the logic actors; includes the grid-line caches. The mesh helper they fill is the
-  engine's `TriangleBatch` (`com.pandulapeter.kubriko.helpers`); this module used to vendor its own
-  cut-down copy.
+  engine's `TriangleBatch` (`com.pandulapeter.kubriko.helpers`).
 - `implementation/renderer/volumetric` — isometric 3D rendering (`VolumetricRenderManager`,
   `VolumetricCuboidRenderer`, batch renderer, mip chains).
-- `implementation/logic` — `ControlManager`, `LogicManager` (loads `character.json` + `tree.json`,
-  scatters trees), and the actors.
+- `implementation/logic` — `ControlManager`, `LogicManager` (loads `character.json`, `tree.json` and
+  `bush.json`, places up to 64 NPCs, 256 trees and 256 bushes), and the actors.
 - `implementation/gameplay/resources` — `TextureResolver` (sprite-backed) and `FileResolver`.
 - `implementation/ui` — `IsometricGraphicsContent` (viewport + joystick + minimap), `MiniMap`,
   `ControlOverlayManager`.
@@ -88,7 +87,7 @@ At full rate `onUpdate` runs every vsync, so the snapshot updates every frame an
 
 `commonMain/composeResources/`:
 - `drawable/` — `texture_01.webp`, `map_01.webp`.
-- `files/model/` — `character.json`, `tree.json` (read directly by `LogicManager` at runtime).
+- `files/model/` — `character.json`, `tree.json`, `bush.json` (read directly by `LogicManager` at runtime).
 - `values/strings.xml` — only the `description` shown in the `InfoPanel`.
 
 ## Platform notes
