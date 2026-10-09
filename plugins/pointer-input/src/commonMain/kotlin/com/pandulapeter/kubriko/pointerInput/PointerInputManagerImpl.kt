@@ -174,6 +174,65 @@ internal class PointerInputManagerImpl(
         }
     }
 
+    private fun handlePointerChange(change: PointerInputChange, eventType: PointerEventType) {
+        if (!isMultiTouchEnabled && change.id.value != 0L) return
+        val id = change.id
+        val wasPressed = _pressedPointerPositions.value.containsKey(id)
+        val isPressed = change.pressed
+        when {
+            !wasPressed && isPressed -> {
+                if (stateManager.isFocused.value) {
+                    _pressedPointerPositions.update { it.putting(change.id, change.position) }
+                    pointersPressedSinceLastTick[id] = change.position
+                    pointerInputAwareActors.value.forEach { it.onPointerPressed(id, change.position) }
+                    if (mouseId == id) {
+                        _hoveringPointerPosition.value = change.position
+                    }
+                }
+            }
+
+            wasPressed && !isPressed -> {
+                if (change.isCancellation) {
+                    pointersPendingCancellation[id] = CANCELLATION_GRACE_PERIOD_IN_TICKS
+                } else {
+                    pointersPendingCancellation.remove(id)
+                    releasePointer(id, change.position)
+                }
+            }
+
+            wasPressed && isPressed -> {
+                if (stateManager.isFocused.value) {
+                    pointersPendingCancellation.remove(id)
+                    pendingPositionUpdates[change.id] = change.position
+                    if (id == mouseId) {
+                        _hoveringPointerPosition.value = change.position
+                    }
+                    pointerInputAwareActors.value.forEach { it.onPointerOffsetChanged(id, change.position) }
+                }
+            }
+
+            eventType == PointerEventType.Move -> {
+                if (stateManager.isFocused.value) {
+                    mouseId = id
+                    _hoveringPointerPosition.value = change.position
+                    pointerInputAwareActors.value.forEach { it.onPointerOffsetChanged(id, change.position) }
+                }
+            }
+
+            eventType == PointerEventType.Enter -> {
+                if (stateManager.isFocused.value) {
+                    pointerInputAwareActors.value.forEach { it.onPointerEnteringTheViewport() }
+                }
+            }
+
+            eventType == PointerEventType.Exit -> {
+                if (stateManager.isFocused.value) {
+                    pointerInputAwareActors.value.forEach { it.onPointerLeavingTheViewport() }
+                }
+            }
+        }
+    }
+
     // The last translation, kept as one object so a concurrent reader can never see a source map paired
     // with another call's offsets or result. Every .value read of the public flow resolves the positions,
     // and the collector transforms them again, so many actors polling one unchanged input would otherwise
@@ -258,64 +317,7 @@ internal class PointerInputManagerImpl(
             while (true) {
                 val event = awaitPointerEvent()
                 if (isInitialized.value) {
-                    event.changes.forEach { change ->
-                        if (!isMultiTouchEnabled && change.id.value != 0L) return@forEach
-                        val id = change.id
-                        val wasPressed = _pressedPointerPositions.value.containsKey(id)
-                        val isPressed = change.pressed
-                        when {
-                            !wasPressed && isPressed -> {
-                                if (stateManager.isFocused.value) {
-                                    _pressedPointerPositions.update { it.putting(change.id, change.position) }
-                                    pointersPressedSinceLastTick[id] = change.position
-                                    pointerInputAwareActors.value.forEach { it.onPointerPressed(id, change.position) }
-                                    if (mouseId == id) {
-                                        _hoveringPointerPosition.value = change.position
-                                    }
-                                }
-                            }
-
-                            wasPressed && !isPressed -> {
-                                if (change.isCancellation) {
-                                    pointersPendingCancellation[id] = CANCELLATION_GRACE_PERIOD_IN_TICKS
-                                } else {
-                                    pointersPendingCancellation.remove(id)
-                                    releasePointer(id, change.position)
-                                }
-                            }
-
-                            wasPressed && isPressed -> {
-                                if (stateManager.isFocused.value) {
-                                    pointersPendingCancellation.remove(id)
-                                    pendingPositionUpdates[change.id] = change.position
-                                    if (id == mouseId) {
-                                        _hoveringPointerPosition.value = change.position
-                                    }
-                                    pointerInputAwareActors.value.forEach { it.onPointerOffsetChanged(id, change.position) }
-                                }
-                            }
-
-                            event.type == PointerEventType.Move -> {
-                                if (stateManager.isFocused.value) {
-                                    mouseId = id
-                                    _hoveringPointerPosition.value = change.position
-                                    pointerInputAwareActors.value.forEach { it.onPointerOffsetChanged(id, change.position) }
-                                }
-                            }
-
-                            event.type == PointerEventType.Enter -> {
-                                if (stateManager.isFocused.value) {
-                                    pointerInputAwareActors.value.forEach { it.onPointerEnteringTheViewport() }
-                                }
-                            }
-
-                            event.type == PointerEventType.Exit -> {
-                                if (stateManager.isFocused.value) {
-                                    pointerInputAwareActors.value.forEach { it.onPointerLeavingTheViewport() }
-                                }
-                            }
-                        }
-                    }
+                    event.changes.forEach { change -> handlePointerChange(change, event.type) }
                 }
             }
         }
