@@ -132,64 +132,19 @@ internal fun MenuOverlay(
                             contentDescription = null,
                         )
                     }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                            .padding(top = 16.dp),
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            AnnoyedPenguinsButton(
-                                onButtonPressed = onCloseButtonPressed,
-                                icon = Res.drawable.ic_exit,
-                                title = stringResource(Res.string.close_confirmation_positive),
-                                onPointerEnter = playHoverSoundEffect,
-                            )
-                            AnnoyedPenguinsButton(
-                                icon = Res.drawable.ic_information,
-                                title = stringResource(Res.string.information),
-                                onButtonPressed = onInfoButtonPressed,
-                                onPointerEnter = playHoverSoundEffect,
-                            )
-                            if (isSceneEditorEnabled) {
-                                PlatformSpecificContent(
-                                    playHoverSoundEffect = playHoverSoundEffect,
-                                    playToggleSoundEffect = playToggleSoundEffect,
-                                )
-                            }
-                        }
-                        Spacer(
-                            modifier = Modifier
-                                .defaultMinSize(minWidth = 6.dp)
-                                .weight(1f),
-                        )
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            AnnoyedPenguinsButton(
-                                onButtonPressed = onSoundEffectsToggled,
-                                icon = if (areSoundEffectsEnabled) Res.drawable.ic_sound_effects_on else Res.drawable.ic_sound_effects_off,
-                                title = stringResource(if (areSoundEffectsEnabled) Res.string.sound_effects_disable else Res.string.sound_effects_enable),
-                                onPointerEnter = playHoverSoundEffect,
-                            )
-                            AnnoyedPenguinsButton(
-                                onButtonPressed = onMusicToggled,
-                                icon = if (isMusicEnabled) Res.drawable.ic_music_on else Res.drawable.ic_music_off,
-                                title = stringResource(if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable),
-                                onPointerEnter = playHoverSoundEffect,
-                            )
-                            isInFullscreenMode?.let {
-                                AnnoyedPenguinsButton(
-                                    onButtonPressed = onFullscreenModeToggled,
-                                    icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
-                                    title = stringResource(if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter),
-                                    onPointerEnter = playHoverSoundEffect,
-                                )
-                            }
-                        }
-                    }
+                    MenuTopBar(
+                        onCloseButtonPressed = onCloseButtonPressed,
+                        onInfoButtonPressed = onInfoButtonPressed,
+                        isSceneEditorEnabled = isSceneEditorEnabled,
+                        areSoundEffectsEnabled = areSoundEffectsEnabled,
+                        onSoundEffectsToggled = onSoundEffectsToggled,
+                        isMusicEnabled = isMusicEnabled,
+                        onMusicToggled = onMusicToggled,
+                        isInFullscreenMode = isInFullscreenMode,
+                        onFullscreenModeToggled = onFullscreenModeToggled,
+                        playHoverSoundEffect = playHoverSoundEffect,
+                        playToggleSoundEffect = playToggleSoundEffect,
+                    )
                 }
                 Box(
                     modifier = Modifier
@@ -201,35 +156,13 @@ internal fun MenuOverlay(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                                .background(
-                                    shape = CircleShape,
-                                    color = Color.White.copy(alpha = 0.9f)
-                                )
-                                .border(
-                                    shape = CircleShape,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    width = 2.dp,
-                                )
-                                .clip(CircleShape)
-                                .horizontalScroll(levelSelectorScrollState)
-                                .padding(
-                                    vertical = 8.dp,
-                                    horizontal = 16.dp,
-                                ),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            allLevels.forEach { level ->
-                                AnnoyedPenguinsButton(
-                                    onButtonPressed = { onLevelSelected(level) },
-                                    title = if (currentLevel == level) stringResource(Res.string.resume) else level,
-                                    onPointerEnter = playHoverSoundEffect,
-                                )
-                            }
-                        }
+                        LevelSelector(
+                            allLevels = allLevels,
+                            currentLevel = currentLevel,
+                            onLevelSelected = onLevelSelected,
+                            playHoverSoundEffect = playHoverSoundEffect,
+                            scrollState = levelSelectorScrollState,
+                        )
                     }
                 }
             }
@@ -256,6 +189,115 @@ internal fun MenuOverlay(
             modifier = Modifier.windowInsetsPadding(windowInsets),
             onCloseConfirmed = onCloseConfirmed,
             onCloseCancelled = onCloseButtonPressed,
+            onPointerEnter = playHoverSoundEffect,
+        )
+    }
+}
+
+@Composable
+private fun MenuTopBar(
+    onCloseButtonPressed: () -> Unit,
+    onInfoButtonPressed: () -> Unit,
+    isSceneEditorEnabled: Boolean,
+    areSoundEffectsEnabled: Boolean,
+    onSoundEffectsToggled: () -> Unit,
+    isMusicEnabled: Boolean,
+    onMusicToggled: () -> Unit,
+    isInFullscreenMode: Boolean?,
+    onFullscreenModeToggled: () -> Unit,
+    playHoverSoundEffect: () -> Unit,
+    playToggleSoundEffect: () -> Unit,
+) = Row(
+    modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp)
+        .padding(top = 16.dp),
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        AnnoyedPenguinsButton(
+            onButtonPressed = onCloseButtonPressed,
+            icon = Res.drawable.ic_exit,
+            title = stringResource(Res.string.close_confirmation_positive),
+            onPointerEnter = playHoverSoundEffect,
+        )
+        AnnoyedPenguinsButton(
+            icon = Res.drawable.ic_information,
+            title = stringResource(Res.string.information),
+            onButtonPressed = onInfoButtonPressed,
+            onPointerEnter = playHoverSoundEffect,
+        )
+        if (isSceneEditorEnabled) {
+            PlatformSpecificContent(
+                playHoverSoundEffect = playHoverSoundEffect,
+                playToggleSoundEffect = playToggleSoundEffect,
+            )
+        }
+    }
+    Spacer(
+        modifier = Modifier
+            .defaultMinSize(minWidth = 6.dp)
+            .weight(1f),
+    )
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        AnnoyedPenguinsButton(
+            onButtonPressed = onSoundEffectsToggled,
+            icon = if (areSoundEffectsEnabled) Res.drawable.ic_sound_effects_on else Res.drawable.ic_sound_effects_off,
+            title = stringResource(if (areSoundEffectsEnabled) Res.string.sound_effects_disable else Res.string.sound_effects_enable),
+            onPointerEnter = playHoverSoundEffect,
+        )
+        AnnoyedPenguinsButton(
+            onButtonPressed = onMusicToggled,
+            icon = if (isMusicEnabled) Res.drawable.ic_music_on else Res.drawable.ic_music_off,
+            title = stringResource(if (isMusicEnabled) Res.string.music_disable else Res.string.music_enable),
+            onPointerEnter = playHoverSoundEffect,
+        )
+        isInFullscreenMode?.let {
+            AnnoyedPenguinsButton(
+                onButtonPressed = onFullscreenModeToggled,
+                icon = if (isInFullscreenMode) Res.drawable.ic_fullscreen_exit else Res.drawable.ic_fullscreen_enter,
+                title = stringResource(if (isInFullscreenMode) Res.string.fullscreen_exit else Res.string.fullscreen_enter),
+                onPointerEnter = playHoverSoundEffect,
+            )
+        }
+    }
+}
+
+@Composable
+private fun LevelSelector(
+    allLevels: ImmutableList<String>,
+    currentLevel: String?,
+    onLevelSelected: (String) -> Unit,
+    playHoverSoundEffect: () -> Unit,
+    scrollState: ScrollState,
+) = Row(
+    modifier = Modifier
+        .padding(horizontal = 16.dp)
+        .background(
+            shape = CircleShape,
+            color = Color.White.copy(alpha = 0.9f)
+        )
+        .border(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primary,
+            width = 2.dp,
+        )
+        .clip(CircleShape)
+        .horizontalScroll(scrollState)
+        .padding(
+            vertical = 8.dp,
+            horizontal = 16.dp,
+        ),
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
+    verticalAlignment = Alignment.CenterVertically,
+) {
+    allLevels.forEach { level ->
+        AnnoyedPenguinsButton(
+            onButtonPressed = { onLevelSelected(level) },
+            title = if (currentLevel == level) stringResource(Res.string.resume) else level,
             onPointerEnter = playHoverSoundEffect,
         )
     }
