@@ -49,7 +49,7 @@ coroutine, while raw pointer events arrive synchronously in the event loop.
   filtering drops any event whose `id.value != 0L`.
 - **Android**, **iOS**, and **Web**: `isMultiTouchEnabled = true`; all pointer IDs are forwarded.
   `detectTransformGestures` correctly fires `onPointerZoom` from pinch gestures on all three.
-- Scroll-to-zoom factor formula: Desktop `1f - scrollDelta.y * 0.05f`; Web `1f - scrollDelta.y * 0.005f`; iOS `1f - scrollDelta.y * 0.05f`.
+- Scroll-to-zoom factor (`scrollZoomFactor`): `exp(-delta · k)`, k = 0.05 per wheel notch on Desktop/iOS and 0.005 per pixel on the Web (line/page delta modes converted to pixels first); always > 0 and symmetric (the exponent is clamped to ±10).
 
 ## Cursor control (`tryToMoveHoveringPointer`)
 Only functional on **Desktop** (uses `java.awt.Robot.mouseMove`). Skipped on Linux (Robot breaks

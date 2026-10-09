@@ -17,6 +17,8 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import com.pandulapeter.kubriko.manager.MetadataManager
+import kotlinx.browser.window
+import org.w3c.dom.events.WheelEvent
 
 internal actual fun setPointerPosition(
     platform: MetadataManager.Platform,
@@ -34,11 +36,22 @@ internal actual fun Modifier.gestureDetector(
         onZoomDetected(centroid, zoom)
     }
 }.onPointerEvent(PointerEventType.Scroll) {
+    val change = it.changes.first()
     onZoomDetected(
-        it.changes.first().position,
-        1f - it.changes.first().scrollDelta.y * 0.005f
+        change.position,
+        scrollZoomFactor(change.scrollDelta.y * (it.nativeEvent as? WheelEvent).pixelsPerDeltaUnit(), 0.005f),
     )
 }
+
+/** Compose passes the browser's raw `deltaY` on, whatever unit its `deltaMode` says it is in. */
+private fun WheelEvent?.pixelsPerDeltaUnit() = when (this?.deltaMode) {
+    WheelEvent.DOM_DELTA_LINE -> PIXELS_PER_LINE
+    WheelEvent.DOM_DELTA_PAGE -> window.innerHeight.toFloat()
+    else -> 1f
+}
+
+/** Chrome's own line height, for its 3-line, 100 pixel notch. */
+private const val PIXELS_PER_LINE = 100f / 3f
 
 // TODO: https://youtrack.jetbrains.com/issue/CMP-6957/Web.-detectTransformGestures-doesnt-catch-zoom-and-rotation-gestures
 internal actual val isMultiTouchEnabled = true

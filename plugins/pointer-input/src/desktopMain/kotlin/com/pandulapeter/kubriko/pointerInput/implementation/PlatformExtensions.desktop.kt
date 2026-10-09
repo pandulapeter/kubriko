@@ -61,7 +61,7 @@ internal actual fun Modifier.gestureDetector(
 }.onPointerEvent(PointerEventType.Scroll) {
     onZoomDetected(
         it.changes.first().position,
-        1f - it.changes.first().scrollDelta.y * 0.05f
+        scrollZoomFactor(it.changes.first().scrollDelta.y, 0.05f),
     )
 }
 

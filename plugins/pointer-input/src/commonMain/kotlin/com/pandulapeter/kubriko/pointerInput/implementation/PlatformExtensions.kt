@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.pointerInput.implementation
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import com.pandulapeter.kubriko.manager.MetadataManager
+import kotlin.math.exp
 
 /**
  * Returns true only if the cursor was actually moved, meaning that a synthetic move event will follow.
@@ -29,3 +30,15 @@ internal expect fun Modifier.gestureDetector(
 ): Modifier
 
 internal expect val isMultiTouchEnabled: Boolean
+
+/**
+ * Turns a scroll delta into a zoom factor that is always positive and finite, and symmetric: scrolling by `d` and
+ * then by `-d` returns to the starting scale. The exponent is clamped because a Float `exp` underflows to 0 and
+ * overflows to Infinity well within the deltas a coalesced fast spin can report.
+ */
+internal fun scrollZoomFactor(scrollDelta: Float, sensitivity: Float): Float {
+    if (!scrollDelta.isFinite()) return 1f
+    return exp((-scrollDelta * sensitivity).coerceIn(-MAX_ZOOM_EXPONENT, MAX_ZOOM_EXPONENT))
+}
+
+private const val MAX_ZOOM_EXPONENT = 10f
