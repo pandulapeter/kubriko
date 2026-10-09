@@ -93,8 +93,10 @@ internal class ActorManagerImpl(
     private val overlayDrawingOrderComparator = Comparator<Overlay> { a, b ->
         (b.overlayDrawingOrder + 0f).compareTo(a.overlayDrawingOrder + 0f)
     }
-    // A headless instance never composes a layer or draws an overlay, so it doesn't follow either of these through
-    // every change of its actor list.
+    /**
+     * The distinct layer indices, sorted with `null` first. A headless instance never composes a layer, so it doesn't
+     * follow every change of its actor list.
+     */
     private val layerIndices by autoInitializingLazy {
         if (!shouldComposeLayers) MutableStateFlow<ImmutableList<Int?>>(persistentListOf()).asStateFlow() else _allActors
             .map { actors ->
@@ -118,42 +120,50 @@ internal class ActorManagerImpl(
     private val visibleActors = MutableStateFlow<ImmutableList<Visible>>(persistentListOf())
     private val overlayActors = MutableStateFlow<ImmutableList<Overlay>>(persistentListOf())
 
-    // Pre-grouped and pre-sorted draw caches — rebuilt in onUpdate() when inputs change, read in onDraw()
+    /**
+     * This and [sortedOverlayActorsByLayer] are the draw caches, grouped by layer and sorted by drawing order: rebuilt
+     * in [onUpdate] when their inputs change, read by each layer's Canvas.
+     */
     private var sortedVisibleActorsByLayer: Map<Int?, List<Visible>> = emptyMap()
     private var sortedOverlayActorsByLayer: Map<Int?, List<Overlay>> = emptyMap()
 
-    // Reusable scratch buffers for visibility / active culling. Only ever touched on the tick thread
-    // inside onUpdate(), never published anywhere, so they add no cross-thread sharing and let us cull
-    // without allocating an intermediate list every frame.
+    /**
+     * This and [dynamicScratch] are reusable cull buffers. Only ever touched on the tick thread inside [onUpdate] and
+     * never published, so they add no cross-thread sharing and let culling run without allocating an intermediate list.
+     */
     private val visibleScratch = ArrayList<Visible>()
     private val dynamicScratch = ArrayList<Dynamic>()
 
-    // Mirror of the published active Dynamic list for the update loop: iterating the persistent list
-    // directly would allocate a trie iterator every frame, while the ArrayList mirror is indexable in
-    // O(1). Refilled only when the published list reference changes; tick-thread-private.
+    /**
+     * Mirror of the published active Dynamic list for the update loop: iterating the persistent list directly would
+     * allocate a trie iterator every frame, while the ArrayList mirror is indexable in O(1). Refilled only when the
+     * published list reference changes; tick-thread-private.
+     */
     private val activeDynamicMirror = ArrayList<Dynamic>()
     private var lastMirroredActiveDynamicActors: ImmutableList<Dynamic>? = null
 
-    // Draw-cache reuse snapshots: the published list reference identifies the culled set, and the
-    // primitive arrays capture each actor's drawingOrder/layerIndex at the last rebuild. When all
-    // three are unchanged, the previously published sortedVisibleActorsByLayer is still correct and
-    // the per-frame HashMap + ArrayList + sort rebuild can be skipped entirely (typical for static
-    // scenes, menus, and paused games). Tick-thread-private.
+    /**
+     * This and the two arrays below are the draw-cache reuse snapshots: the published list reference identifies the
+     * culled set, and the primitive arrays capture each actor's drawingOrder/layerIndex at the last rebuild. When all
+     * three are unchanged, the previously published sortedVisibleActorsByLayer is still correct and the per-frame
+     * HashMap + ArrayList + sort rebuild can be skipped entirely (typical for static scenes, menus, and paused games).
+     * Tick-thread-private.
+     */
     private var drawCacheActors: ImmutableList<Visible>? = null
     private var drawCacheDrawingOrders = FloatArray(0)
     private var drawCacheLayerIndices = LongArray(0)
 
-    // Visibility cache invalidation tracking
+    /** This and the two below record when, and against which inputs, the visible set was last culled. */
     private var lastVisibleActors: ImmutableList<Visible>? = null
     private var lastVisibleRefreshTime = -1L
     private var lastViewportSizeForVisible: Size? = null
 
-    // Dynamic actor cache invalidation tracking
+    /** This and the two below record when, and against which inputs, the active Dynamic set was last culled. */
     private var lastDynamicActors: ImmutableList<Dynamic>? = null
     private var lastDynamicRefreshTime = -1L
     private var lastViewportSizeForDynamic: Size? = null
 
-    // Overlay cache invalidation tracking
+    /** The overlay list [sortedOverlayActorsByLayer] was last built from. */
     private var lastOverlayActors: ImmutableList<Overlay>? = null
 
     private fun updateVisibleActorsWithinViewport(viewportCenter: SceneOffset, scaleFactor: Scale) {
@@ -172,10 +182,9 @@ internal class ActorManagerImpl(
         val rightBound = viewportCenter.x.raw + halfScaledWidth + edgeBuffer
         val bottomBound = viewportCenter.y.raw + halfScaledHeight + edgeBuffer
 
-        // Cull into the reusable scratch buffer instead of List.filter, which would allocate a fresh
-        // ArrayList every frame (the predicate already inlines, so only the result list was the cost).
-        // Iterate the source via its iterator: `actors` is a persistent vector whose indexed get() is
-        // a trie walk, so a for-each is cheaper than indexing it per element.
+        // Cull into the reusable scratch buffer rather than a filtered copy. Iterate the source via its
+        // iterator: `actors` is a persistent vector whose indexed get() is a trie walk, so a for-each is
+        // cheaper than indexing it.
         visibleScratch.clear()
         for (actor in actors) {
             if (actor.isAlwaysVisible) {
@@ -250,7 +259,7 @@ internal class ActorManagerImpl(
         }
     }
 
-    // Long-encoded layerIndex snapshot value; Long.MIN_VALUE marks null (no Int maps to it).
+    /** Long-encoded layerIndex snapshot value; Long.MIN_VALUE marks null (no Int maps to it). */
     private fun Int?.encodeLayerIndex() = this?.toLong() ?: Long.MIN_VALUE
 
     private fun updateActiveDynamicActors(viewportCenter: SceneOffset, scaleFactor: Scale) {
@@ -442,11 +451,12 @@ internal class ActorManagerImpl(
         }
     }
 
-    // Reference-equality, allocation-free comparison of a published list against a freshly culled
-    // scratch buffer. Actors don't override equals, so identity comparison is the correct notion of
-    // "same set in the same order" and lets us detect when re-publishing the StateFlow is unnecessary.
-    // The receiver is the published persistent list (iterated, since its indexed get() is a trie walk);
-    // `other` is the scratch ArrayList (indexed, genuinely O(1)).
+    /**
+     * Reference-equality, allocation-free comparison of a published list against a freshly culled scratch buffer.
+     * Actors don't override equals, so identity comparison is the correct notion of "same set in the same order" and
+     * tells when re-publishing the StateFlow is unnecessary. The receiver is the published persistent list (iterated,
+     * since its indexed get() is a trie walk); `other` is the scratch ArrayList (indexed, genuinely O(1)).
+     */
     private fun <T> List<T>.contentEquals(other: List<T>): Boolean {
         if (size != other.size) return false
         var i = 0
@@ -479,9 +489,8 @@ internal class ActorManagerImpl(
     @OptIn(ExperimentalUuidApi::class, ExperimentalAtomicApi::class)
     private fun processBatch(batch: List<Operation>) {
         val publishedList = _allActors.value
-        // One mutable working copy plus a membership index for the whole batch: rebuilding the full
-        // actor list per operation made a batch of individual calls quadratic, and the membership
-        // checks below turned bulk removal into an O(removals x actors) scan.
+        // One mutable working copy plus a membership index for the whole batch, so a batch of individual calls stays
+        // linear and bulk removal never scans the whole list per removed actor.
         val workingList = ArrayList<Actor>(publishedList.size)
         workingList.addAll(publishedList)
         val workingSet = HashSet<Actor>(workingList.size * 2)
@@ -610,11 +619,13 @@ internal class ActorManagerImpl(
         firstFailure ?: e
     }
 
-    // Enqueued on the caller's own thread rather than from a coroutine, which is what makes operations
-    // reach the loop above in the order they were issued: a coroutine each leaves that order to the
-    // dispatcher, and a removal arriving before the addition it undoes finds nothing to remove. The
-    // unbounded channel is what allows it - enqueueing never suspends. Only the ordering is the
-    // caller's; the processing stays on the loop.
+    /**
+     * This and the other enqueuing functions below send on the caller's own thread rather than from a coroutine, which
+     * is what makes operations reach the processor in the order they were issued: a coroutine each would leave that
+     * order to the dispatcher, and a removal arriving before the addition it undoes would find nothing to remove. The
+     * unbounded channel is what allows it - enqueueing never suspends. Only the ordering is the caller's; the
+     * processing stays on the processor.
+     */
     override fun add(vararg actors: Actor) {
         if (actors.isEmpty()) return
         operationChannel.trySend(Operation.Add(actors.toList()))
