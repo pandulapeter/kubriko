@@ -120,7 +120,13 @@ internal class ParticlesDemoManager : Manager(), ParticleEmitter<DemoParticleSta
                             .align(Alignment.BottomEnd)
                             .padding(end = 16.dp, bottom = 16.dp)
                             .width(240.dp),
-                        particlesDemoManager = this@ParticlesDemoManager,
+                        emissionRate = emissionRate.collectAsState().value,
+                        onEmissionRateChanged = ::setEmissionRate,
+                        isEmittingContinuously = isEmittingContinuously.collectAsState().value,
+                        onEmittingContinuouslyChanged = ::onEmittingContinuouslyChanged,
+                        onBurstButtonPressed = ::burst,
+                        lifespan = lifespan.collectAsState().value,
+                        onLifespanChanged = ::setLifespan,
                     )
                 }
             }

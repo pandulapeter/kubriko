@@ -17,10 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.demoParticles.implementation.managers.ParticlesDemoManager
 import com.pandulapeter.kubriko.uiComponents.LargeButton
 import com.pandulapeter.kubriko.uiComponents.Panel
 import com.pandulapeter.kubriko.uiComponents.SmallSliderWithTitle
@@ -35,18 +33,24 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun EmitterPropertiesPanel(
     modifier: Modifier,
-    particlesDemoManager: ParticlesDemoManager,
+    emissionRate: Float,
+    onEmissionRateChanged: (Float) -> Unit,
+    isEmittingContinuously: Boolean,
+    onEmittingContinuouslyChanged: () -> Unit,
+    onBurstButtonPressed: () -> Unit,
+    lifespan: Float,
+    onLifespanChanged: (Float) -> Unit,
 ) = Panel(
     modifier = modifier,
 ) {
     EmitterControls(
-        emissionRate = particlesDemoManager.emissionRate.collectAsState().value,
-        onEmissionRateChanged = particlesDemoManager::setEmissionRate,
-        isEmittingContinuously = particlesDemoManager.isEmittingContinuously.collectAsState().value,
-        onEmittingContinuouslyChanged = particlesDemoManager::onEmittingContinuouslyChanged,
-        onBurstButtonPressed = particlesDemoManager::burst,
-        lifespan = particlesDemoManager.lifespan.collectAsState().value,
-        onLifespanChanged = particlesDemoManager::setLifespan,
+        emissionRate = emissionRate,
+        onEmissionRateChanged = onEmissionRateChanged,
+        isEmittingContinuously = isEmittingContinuously,
+        onEmittingContinuouslyChanged = onEmittingContinuouslyChanged,
+        onBurstButtonPressed = onBurstButtonPressed,
+        lifespan = lifespan,
+        onLifespanChanged = onLifespanChanged,
     )
 }
 
