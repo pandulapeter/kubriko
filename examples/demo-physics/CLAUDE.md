@@ -54,8 +54,9 @@ added/removed atomically with the chain.
 
 **`Bomb`** (`Visible`, `Dynamic`) — spawned on explosion taps. On `onAdded` it immediately creates
 a `ProximityExplosion` and calls `update()` on all current `RigidBody` physics bodies within
-750 su. Each subsequent frame it grows, fades, and repeatedly calls `applyBlastImpulse(25 000 000
-su)` until alpha ≤ 0, then removes itself.
+750 su. Each subsequent frame it grows, fades, and calls `applyBlastImpulse` with 1 500 000 su of blast
+power per millisecond of its 100 ms life covered by that tick, so the explosion's strength does not
+depend on the tick rate, then removes itself once the lifetime is used up.
 
 ## Non-obvious implementation patterns
 

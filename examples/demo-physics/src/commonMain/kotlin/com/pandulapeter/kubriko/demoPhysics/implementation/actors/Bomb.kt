@@ -22,6 +22,8 @@ import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.explosions.ProximityExplosion
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
+import kotlin.math.max
+import kotlin.math.min
 
 internal class Bomb(
     epicenter: SceneOffset,
@@ -32,7 +34,7 @@ internal class Bomb(
         initialPosition = epicenter,
     )
     private lateinit var actorManager: ActorManager
-    private var alpha = 1f
+    private var remainingLifetimeInMilliseconds = LIFETIME_IN_MILLISECONDS
     private val explosion = ProximityExplosion(
         epicenter = epicenter,
         proximity = 750.sceneUnit,
@@ -46,17 +48,24 @@ internal class Bomb(
     override fun update(deltaTimeInMilliseconds: Int) {
         body.size += SceneSize(5.sceneUnit, 5.sceneUnit) * deltaTimeInMilliseconds
         body.pivot = body.size.center
-        alpha -= 0.01f * deltaTimeInMilliseconds
-        if (alpha <= 0) {
+        val activeTimeInMilliseconds = min(deltaTimeInMilliseconds, remainingLifetimeInMilliseconds)
+        remainingLifetimeInMilliseconds -= deltaTimeInMilliseconds
+        if (activeTimeInMilliseconds > 0) {
+            explosion.applyBlastImpulse((BLAST_POWER_PER_MILLISECOND * activeTimeInMilliseconds).sceneUnit)
+        }
+        if (remainingLifetimeInMilliseconds <= 0) {
             actorManager.remove(this)
-        } else {
-            explosion.applyBlastImpulse(25000000.sceneUnit)
         }
     }
 
     override fun DrawScope.draw() = drawCircle(
-        color = Color.White.copy(alpha = alpha),
+        color = Color.White.copy(alpha = max(0f, remainingLifetimeInMilliseconds / LIFETIME_IN_MILLISECONDS.toFloat())),
         radius = body.size.width.raw / 2f,
         center = body.size.center.raw,
     )
+
+    companion object {
+        private const val LIFETIME_IN_MILLISECONDS = 100
+        private const val BLAST_POWER_PER_MILLISECOND = 1_500_000f
+    }
 }
