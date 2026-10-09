@@ -20,7 +20,7 @@ internal class ShaderAnimationDemoHolder<SHADER : Shader<STATE>, STATE : Shader.
     nameForLogging: String,
     isLoggingEnabled: Boolean,
 ) {
-    private val shaderManager = ShaderManager.newInstance(
+    val shaderManager = ShaderManager.newInstance(
         isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = "$LOG_TAG-$nameForLogging",
     )

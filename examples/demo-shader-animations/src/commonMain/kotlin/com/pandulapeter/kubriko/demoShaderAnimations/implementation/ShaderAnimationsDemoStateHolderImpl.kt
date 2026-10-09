@@ -15,7 +15,6 @@ import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.Grad
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.NoodleShader
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.WarpShader
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.ControlsState
-import com.pandulapeter.kubriko.shaders.ShaderManager
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,7 +25,6 @@ internal class ShaderAnimationsDemoStateHolderImpl(
     isLoggingEnabled: Boolean,
 ) : ShaderAnimationsDemoStateHolder {
 
-    val shaderManager = ShaderManager.newInstance()
     val shaderAnimationDemoHolders = ShaderAnimationDemoType.entries.associateWith {
         when (it) {
             ShaderAnimationDemoType.CLOUD -> ShaderAnimationDemoHolder(
@@ -65,6 +63,7 @@ internal class ShaderAnimationsDemoStateHolderImpl(
             )
         }
     }.toPersistentMap()
+    val areShadersSupported = shaderAnimationDemoHolders.values.first().shaderManager.areShadersSupported
     private val _selectedDemoType = MutableStateFlow(ShaderAnimationDemoType.entries.first())
     val selectedDemoType = _selectedDemoType.asStateFlow()
     private val _controlsState = MutableStateFlow(ControlsState.COLLAPSED)

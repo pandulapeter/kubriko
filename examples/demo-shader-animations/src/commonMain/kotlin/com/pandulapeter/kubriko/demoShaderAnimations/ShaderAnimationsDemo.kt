@@ -54,7 +54,7 @@ fun ShaderAnimationsDemo(
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
 ) {
     stateHolder as ShaderAnimationsDemoStateHolderImpl
-    if (stateHolder.shaderManager.areShadersSupported) {
+    if (stateHolder.areShadersSupported) {
         val selectedDemoType = stateHolder.selectedDemoType.collectAsState().value
         val controlsState = stateHolder.controlsState.collectAsState().value
         Column(
