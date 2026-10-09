@@ -27,8 +27,16 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 
+/**
+ * A [BoxBody] encoded with [BoxBodySerializer]: use it as a property type in a `@Serializable` state class.
+ */
 typealias SerializableBoxBody = @Serializable(with = BoxBodySerializer::class) BoxBody
 
+/**
+ * Encodes a [BoxBody] as a structure of its `position`, `size`, `pivot`, `scale` and `rotation`. Its descriptor
+ * name is `"rectangleBody"`, kept for compatibility with saved scenes. A missing pivot decodes to the center of
+ * the size.
+ */
 @Suppress("EXTERNAL_SERIALIZER_USELESS")
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = BoxBody::class)

@@ -25,8 +25,14 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 
+/**
+ * A [SceneOffset] encoded with [SceneOffsetSerializer]: use it as a property type in a `@Serializable` state class.
+ */
 typealias SerializableSceneOffset = @Serializable(with = SceneOffsetSerializer::class) SceneOffset
 
+/**
+ * Encodes a [SceneOffset] as a structure of its `x` and `y` floats, with the descriptor name `"sceneOffset"`.
+ */
 @Suppress("EXTERNAL_SERIALIZER_USELESS")
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = SceneOffset::class)

@@ -20,8 +20,14 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
+/**
+ * A [Color] encoded with [ColorSerializer]: use it as a property type in a `@Serializable` state class.
+ */
 typealias SerializableColor = @Serializable(with = ColorSerializer::class) Color
 
+/**
+ * Encodes a [Color] as a long primitive holding its packed value, with the descriptor name `"color"`.
+ */
 @Suppress("EXTERNAL_SERIALIZER_USELESS")
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = Color::class)

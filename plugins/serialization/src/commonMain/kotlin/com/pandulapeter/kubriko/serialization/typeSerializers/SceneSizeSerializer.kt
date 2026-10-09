@@ -25,8 +25,14 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 
+/**
+ * A [SceneSize] encoded with [SceneSizeSerializer]: use it as a property type in a `@Serializable` state class.
+ */
 typealias SerializableSceneSize = @Serializable(with = SceneSizeSerializer::class) SceneSize
 
+/**
+ * Encodes a [SceneSize] as a structure of its `width` and `height` floats, with the descriptor name `"sceneSize"`.
+ */
 @Suppress("EXTERNAL_SERIALIZER_USELESS")
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = SceneSize::class)

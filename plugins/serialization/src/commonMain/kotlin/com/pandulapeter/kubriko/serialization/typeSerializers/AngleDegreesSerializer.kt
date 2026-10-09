@@ -21,8 +21,15 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
+/**
+ * A [AngleDegrees] encoded with [AngleDegreesSerializer]: use it as a property type in a `@Serializable` state class.
+ */
 typealias SerializableAngleDegrees = @Serializable(with = AngleDegreesSerializer::class) AngleDegrees
 
+/**
+ * Encodes an [AngleDegrees] as a float primitive holding its normalized value, with the descriptor
+ * name `"angleDegrees"`.
+ */
 @Suppress("EXTERNAL_SERIALIZER_USELESS")
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = AngleDegrees::class)

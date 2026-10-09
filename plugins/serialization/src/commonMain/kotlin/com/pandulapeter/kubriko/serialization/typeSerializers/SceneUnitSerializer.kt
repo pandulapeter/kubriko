@@ -21,8 +21,14 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
+/**
+ * A [SceneUnit] encoded with [SceneUnitSerializer]: use it as a property type in a `@Serializable` state class.
+ */
 typealias SerializableSceneUnit = @Serializable(with = SceneUnitSerializer::class) SceneUnit
 
+/**
+ * Encodes a [SceneUnit] as a float primitive holding its raw value, with the descriptor name `"sceneUnit"`.
+ */
 @Suppress("EXTERNAL_SERIALIZER_USELESS")
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = SceneUnit::class)

@@ -24,8 +24,14 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 
+/**
+ * A [Size] encoded with [SizeSerializer]: use it as a property type in a `@Serializable` state class.
+ */
 typealias SerializableSize = @Serializable(with = SizeSerializer::class) Size
 
+/**
+ * Encodes a [Size] as a structure of its `width` and `height` floats, with the descriptor name `"size"`.
+ */
 @Suppress("EXTERNAL_SERIALIZER_USELESS")
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = Size::class)

@@ -24,8 +24,14 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 
+/**
+ * A [PointBody] encoded with [PointBodySerializer]: use it as a property type in a `@Serializable` state class.
+ */
 typealias SerializablePointBody = @Serializable(with = PointBodySerializer::class) PointBody
 
+/**
+ * Encodes a [PointBody] as a structure of its `position`, with the descriptor name `"pointBody"`.
+ */
 @Suppress("EXTERNAL_SERIALIZER_USELESS")
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = PointBody::class)

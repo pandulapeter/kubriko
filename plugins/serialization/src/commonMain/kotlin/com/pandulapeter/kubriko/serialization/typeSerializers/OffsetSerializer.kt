@@ -24,8 +24,14 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 
+/**
+ * A [Offset] encoded with [OffsetSerializer]: use it as a property type in a `@Serializable` state class.
+ */
 typealias SerializableOffset = @Serializable(with = OffsetSerializer::class) Offset
 
+/**
+ * Encodes an [Offset] as a structure of its `x` and `y` floats, with the descriptor name `"offset"`.
+ */
 @Suppress("EXTERNAL_SERIALIZER_USELESS")
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = Offset::class)

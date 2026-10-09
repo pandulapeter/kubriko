@@ -24,8 +24,14 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 
+/**
+ * A [Scale] encoded with [ScaleSerializer]: use it as a property type in a `@Serializable` state class.
+ */
 typealias SerializableScale = @Serializable(with = ScaleSerializer::class) Scale
 
+/**
+ * Encodes a [Scale] as a structure of its `horizontal` and `vertical` floats, with the descriptor name `"scale"`.
+ */
 @Suppress("EXTERNAL_SERIALIZER_USELESS")
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = Scale::class)
