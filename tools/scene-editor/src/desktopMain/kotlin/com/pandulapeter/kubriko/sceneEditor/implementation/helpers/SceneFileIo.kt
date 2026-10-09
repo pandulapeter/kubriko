@@ -9,15 +9,16 @@
  */
 package com.pandulapeter.kubriko.sceneEditor.implementation.helpers
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-internal suspend fun loadFile(path: String) = withContext(Dispatchers.IO) {
+internal suspend fun loadFile(path: String, dispatcher: CoroutineDispatcher = Dispatchers.IO) = withContext(dispatcher) {
     File(path).readBytes().decodeToString()
 }
 
-internal suspend fun saveFile(path: String, content: String) = withContext(Dispatchers.IO) {
+internal suspend fun saveFile(path: String, content: String, dispatcher: CoroutineDispatcher = Dispatchers.IO) = withContext(dispatcher) {
     File(path).let { file ->
         file.parentFile?.mkdirs()
         if (!file.exists()) {

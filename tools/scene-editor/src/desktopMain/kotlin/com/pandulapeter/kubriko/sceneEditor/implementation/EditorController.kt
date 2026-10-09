@@ -26,11 +26,8 @@ import com.pandulapeter.kubriko.sceneEditor.implementation.actors.GridOverlay
 import com.pandulapeter.kubriko.sceneEditor.implementation.actors.KeyboardInputListener
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.boundingBoxCollisionMask
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.NavigateBackAction
-import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.deserializeSceneOrNull
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.UserPreferences
-import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.loadFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.navigateBackAction
-import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.saveFile
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.AngleEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.ColorEditorMode
 import com.pandulapeter.kubriko.serialization.SerializationManager
@@ -50,8 +47,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.IOException
 import kotlin.math.roundToInt
 import kotlin.reflect.full.isSubclassOf
 import kotlin.time.TimeSource
@@ -137,14 +132,8 @@ internal class EditorController(
     val colorEditorMode = userPreferences.colorEditorMode
     val angleEditorMode = userPreferences.angleEditorMode
     val isDebugMenuEnabled = userPreferences.isDebugMenuEnabled
-    private val _currentFolderPath = MutableStateFlow(defaultSceneFolderPath)
-    val currentFolderPath = _currentFolderPath.asStateFlow()
-    private val _currentFileName = MutableStateFlow(defaultSceneFilename ?: DEFAULT_SCENE_FILE_NAME)
-    val currentFileName = _currentFileName.asStateFlow()
     private val _shouldShowVisibleOnly = MutableStateFlow(true)
     val shouldShowVisibleOnly = _shouldShowVisibleOnly.asStateFlow()
-    private val _shouldShowLoadingIndicator = MutableStateFlow(false)
-    val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
     private val _interactionMode = MutableStateFlow(SceneEditorInteractionMode.Translate)
     val interactionMode = _interactionMode.asStateFlow()
     private var _previewOverlayActor: Editable<*>? = null
@@ -158,10 +147,20 @@ internal class EditorController(
     val canUndo = sceneDocument.canUndo
     val canRedo = sceneDocument.canRedo
     val isSceneModified = sceneDocument.isSceneModified
+    private val sceneFiles = SceneFiles(
+        scope = this,
+        sceneEditorMode = sceneEditorMode,
+        defaultSceneFilename = defaultSceneFilename,
+        defaultSceneFolderPath = defaultSceneFolderPath,
+        serializeScene = sceneDocument::serializeScene,
+        deserializeScene = serializationManager::deserializeActors,
+    )
+    val currentFolderPath = sceneFiles.currentFolderPath
+    val currentFileName = sceneFiles.currentFileName
+    val shouldShowLoadingIndicator = sceneFiles.shouldShowLoadingIndicator
+    val fileOperationError = sceneFiles.fileOperationError
     private var cameraAnimationJob: Job? = null
     private var focusedTextInputCount = 0
-    private val _fileOperationError = MutableStateFlow<Pair<FileOperationError, String>?>(null)
-    val fileOperationError = _fileOperationError.asStateFlow()
     val snapMode = combine(
         userPreferences.snapX,
         userPreferences.snapY,
@@ -177,15 +176,7 @@ internal class EditorController(
             }
 
             is SceneEditorMode.Connected -> {
-                val sceneJson = sceneEditorMode.sceneJson
-                if (sceneJson.isNotBlank()) {
-                    val actors = deserializeSceneOrNull(sceneJson, serializationManager::deserializeActors)
-                    if (actors == null) {
-                        _fileOperationError.update { FileOperationError.CONNECTED_SCENE_INVALID to "" }
-                    } else {
-                        sceneDocument.replaceSceneActors(actors)
-                    }
-                }
+                sceneFiles.readConnectedScene(sceneEditorMode.sceneJson)?.let(sceneDocument::replaceSceneActors)
                 sceneDocument.onSceneReplaced()
             }
         }
@@ -346,68 +337,23 @@ internal class EditorController(
     fun reset() {
         cameraAnimationJob?.cancel()
         viewportManager.setCameraPosition(SceneOffset.Zero)
-        _currentFileName.update { DEFAULT_SCENE_FILE_NAME }
+        sceneFiles.resetFileName()
         _selectedActor.update { null }
         sceneDocument.clearSceneActors()
         sceneDocument.onSceneReplaced()
     }
 
-    fun loadMap(path: String) {
-        _shouldShowLoadingIndicator.update { true }
-        launch(Dispatchers.Main) {
-            try {
-                val json = loadFile(path)
-                val actors = withContext(Dispatchers.Default) {
-                    deserializeSceneOrNull(json, serializationManager::deserializeActors)
-                }
-                if (actors == null) {
-                    reportFileOperationError(FileOperationError.LOAD_FAILED, path)
-                } else {
-                    sceneDocument.replaceSceneActors(actors)
-                    _selectedActor.update { null }
-                    sceneDocument.onSceneReplaced()
-                    updateCurrentFolderPathAndFileName(path)
-                }
-            } catch (_: IOException) {
-                reportFileOperationError(FileOperationError.LOAD_FAILED, path)
-            } finally {
-                _shouldShowLoadingIndicator.update { false }
-            }
-        }
+    fun loadMap(path: String) = sceneFiles.loadMap(path) { actors ->
+        sceneDocument.replaceSceneActors(actors)
+        _selectedActor.update { null }
+        sceneDocument.onSceneReplaced()
     }
 
-    fun onFileOperationErrorShown() = _fileOperationError.update { null }
+    fun onFileOperationErrorShown() = sceneFiles.onFileOperationErrorShown()
 
-    private fun reportFileOperationError(error: FileOperationError, path: String) = _fileOperationError.update { error to path.split('/').last() }
+    fun syncScene() = sceneFiles.syncScene()
 
-    fun syncScene() {
-        val onSceneJsonChanged = (sceneEditorMode as? SceneEditorMode.Connected)?.onSceneJsonChanged ?: return
-        val content = sceneDocument.serializeScene()
-        launch {
-            onSceneJsonChanged(content)
-        }
-    }
-
-    fun saveScene(path: String) {
-        val content = sceneDocument.serializeScene()
-        launch(Dispatchers.Main) {
-            try {
-                saveFile(
-                    path = path,
-                    content = content,
-                )
-                updateCurrentFolderPathAndFileName(path)
-                sceneDocument.onSceneSaved()
-            } catch (_: IOException) {
-                reportFileOperationError(FileOperationError.SAVE_FAILED, path)
-            }
-        }
-    }
-
-    private fun updateCurrentFolderPathAndFileName(path: String) {
-        _currentFolderPath.update { path.split('/').let { it.take(it.size - 1) }.joinToString("/") }
-        _currentFileName.update { path.split('/').last() }
-    }
+    fun saveScene(path: String) = sceneFiles.saveScene(path, sceneDocument::onSceneSaved)
 
     private fun navigateBack() = when (
         navigateBackAction(
@@ -425,7 +371,6 @@ internal class EditorController(
     }
 
     companion object {
-        private const val DEFAULT_SCENE_FILE_NAME = "scene_untitled.json"
         private const val CAMERA_ANIMATION_DURATION_MS = 350f
         private const val CAMERA_ANIMATION_FRAME_DELAY_MS = 8L
 
