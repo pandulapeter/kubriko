@@ -16,7 +16,8 @@ Real implementation of the debug menu overlay: log viewer, actor body visualizer
 - `DebugMenu.kt` — public `object` implementing `DebugMenuContract`; delegates to `InternalDebugMenu`
 - `InternalDebugMenu.kt` — singleton; owns an internal `Kubriko` instance (for `PersistenceManager`), a per-game overlay Kubriko, keyed by the game `Kubriko` instance and reference-counted across `OverlayOnly`, `Horizontal` and `Vertical` (the last one to leave composition disposes it), and all persisted settings
 - `DebugMenuManager.kt` — `Manager + Overlay + Unique`; added to a separate per-game Kubriko instance with its own `ViewportManager` (mirroring the game's `targetFrameRate`); it reads camera, scale and size from the game's and assumes the game canvas is centered in the overlay area; draws cyan body bounds and magenta collision mask outlines over `visibleActorsWithinViewport`
-- `DebugMenuContainer.kt` — Composable layout switching between Horizontal/Vertical panels
+- `DebugMenuContainer.kt` — the panel root: registers the game Kubriko with `InternalDebugMenu`, draws the panel `Surface`, and collects the `InternalDebugMenu`/`Logger` state it passes down to `ui/DebugMenuContents` (including the `logsHeader` slot)
+- `ui/` — the panel's Composables: `DebugMenuContents` (metadata, overlay switches, log list), `LogsHeader` (importance toggles, text filter, clear button; plain state and callbacks only), `LogEntry` (one log line)
 - `RefCountedRegistry.kt` — main-thread, reference-counted key → value holder backing the per-game overlays
 
 ## Architecture
@@ -27,14 +28,14 @@ Real implementation of the debug menu overlay: log viewer, actor body visualizer
 
 ## Layout
 
-- `invoke` auto-selects Horizontal (portrait, `maxWidth < maxHeight`) or Vertical (landscape)
-- Vertical panel width: 192 dp; Horizontal panel height: 160 dp
+- `invoke` auto-selects Horizontal (portrait, `maxWidth < maxHeight`, in `DebugMenu.invoke`'s `BoxWithConstraints`) or Vertical (landscape)
+- Default sizes: `invoke` uses a 192 dp wide vertical panel and a 160 dp tall horizontal one; the simple `Horizontal` overload is 180 dp tall, `Vertical` 192 dp wide
 - Four overloads in the API: `invoke` (auto), `Horizontal`, `Vertical`, `OverlayOnly`
 - `OverlayOnly` applies `modifier` to its root; the debug overlay viewport fills that root.
 
 ## Log Viewer
 
-Reads directly from `Logger.logs`. Filters by LOW/MEDIUM/HIGH importance and text (both persisted). Source entries are color-coded using HSV hashing of the source string suffix.
+Shows `InternalDebugMenu.logs`: a `combine` of `Logger.logs` with the LOW/MEDIUM/HIGH importance toggles and the text filter (both persisted). `LogEntry` formats each line with `logEntryText` and color-codes entries with a source by an HSV hue hashed from the source string's suffix (`sourceHue`).
 
 ## Gotchas
 
