@@ -51,6 +51,7 @@ internal fun EditorSlider(
     )
     SideEffect {
         if (valueRange == null && add.value != 0f) {
+            @Suppress("DEPRECATION")
             onValueChanged(value + add.value.toDifference())
         }
     }
@@ -91,6 +92,11 @@ internal fun EditorSlider(
     )
 }
 
+/**
+ * The step curve of the Scene Editor's unbounded slider: maps the slider's offset from its center (−5…5) to a signed
+ * step that grows exponentially with the offset, reaching ±10 at the ends.
+ */
+@Deprecated("Implementation detail of the Scene Editor's slider; it will become internal.", level = DeprecationLevel.WARNING)
 fun Float.toDifference(): Float {
     val a = absoluteValue / 1000
     val b = ln(2000.0) / 5
