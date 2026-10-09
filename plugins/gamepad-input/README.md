@@ -112,8 +112,8 @@ what you need while you have them and copy anything you want to keep.
 
 ### Platform Limitations
 - **Web**: browsers hide gamepads until one of their buttons has been pressed, so a controller only shows up
-  after the player has used it once. Controllers the browser can't fit into its "standard" mapping report their
-  buttons in an order this plugin has no way to interpret.
+  after the player has used it once. Controllers the browser can't fit into its "standard" mapping are not reported
+  at all (they would deliver their buttons in an order this plugin has no way to interpret).
 - **Android**: the plugin consumes the joystick motion events it recognizes, which stops the system from
   synthesizing `KEYCODE_DPAD_*` events out of the left stick for UI focus navigation. Stick input reaches the
   game through this plugin instead of through `keyboard-input`, and menus are navigated through

@@ -98,7 +98,7 @@ private fun refreshGamepads(): Int =
     js("(() => { try { const pads = navigator.getGamepads ? navigator.getGamepads() : []; globalThis.__kubrikoGamepads = pads; return pads.length; } catch (e) { globalThis.__kubrikoGamepads = []; return -1; } })()")
 
 private fun isGamepadConnected(index: Int): Boolean =
-    js("(() => { const pad = globalThis.__kubrikoGamepads[index]; return !!pad && pad.connected; })()")
+    js("(() => { const pad = globalThis.__kubrikoGamepads[index]; return !!pad && pad.connected && pad.mapping === 'standard'; })()")
 
 private fun getGamepadId(index: Int): String =
     js("globalThis.__kubrikoGamepads[index].id")
