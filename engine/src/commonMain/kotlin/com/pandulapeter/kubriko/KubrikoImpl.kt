@@ -20,6 +20,7 @@ import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.StateManagerImpl
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.manager.ViewportManagerImpl
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -36,10 +37,11 @@ internal class KubrikoImpl(
     internal val tickSource: TickSource,
     override val isLoggingEnabled: Boolean,
     internal val instanceNameForLogging: String?,
+    internal val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : Kubriko, CoroutineScope {
 
     override val instanceName = instanceNameForLogging ?: toString().substringAfterLast('@')
-    override val coroutineContext = SupervisorJob() + Dispatchers.Default
+    override val coroutineContext = SupervisorJob() + dispatcher
     val managers: List<Manager> = buildList {
         addAll(manager.distinctBy { it::class })
         if (none { it is ActorManager }) add(

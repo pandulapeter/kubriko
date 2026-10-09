@@ -101,7 +101,7 @@ internal class ActorManagerImpl(
         add(initialActors)
     }
 
-    internal fun startProcessingOperations() = batchProcessor.start(kubrikoImpl, scope)
+    internal fun startProcessingOperations() = batchProcessor.start(kubrikoImpl, scope, kubrikoImpl.dispatcher)
 
     override fun onDispose() = batchProcessor.dispose()
 

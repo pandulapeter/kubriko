@@ -22,8 +22,8 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -68,7 +68,7 @@ internal class ActorBatchProcessor(
      * Kubriko instance is first started, so that `onAdded` always sees every Manager initialized and the first tick
      * sees the initial scene.
      */
-    fun start(kubrikoImpl: KubrikoImpl, scope: CoroutineScope) {
+    fun start(kubrikoImpl: KubrikoImpl, scope: CoroutineScope, dispatcher: CoroutineDispatcher) {
         if (isProcessingStarted) return
         isProcessingStarted = true
         this.kubrikoImpl = kubrikoImpl
@@ -77,7 +77,7 @@ internal class ActorBatchProcessor(
             val firstOperation = operationChannel.tryReceive().getOrNull() ?: break
             processBatchStartingWith(firstOperation)
         }
-        processorJob = scope.launch(Dispatchers.Default) {
+        processorJob = scope.launch(dispatcher) {
             while (isActive) {
                 processBatchStartingWith(operationChannel.receive())
             }

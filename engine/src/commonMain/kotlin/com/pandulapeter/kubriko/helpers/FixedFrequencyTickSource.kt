@@ -14,17 +14,16 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.time.Duration.Companion.nanoseconds
-import kotlin.time.TimeSource
 
 internal class FixedFrequencyTickSource(
     ticksPerSecond: Int,
+    private val clock: TickClock = TickClock.Monotonic,
 ) : TickSource() {
     init {
         require(ticksPerSecond > 0) { "ticksPerSecond must be greater than 0." }
     }
 
-    private val targetInterval = (1_000_000_000L / ticksPerSecond).nanoseconds
+    private val targetIntervalInNanoseconds = 1_000_000_000L / ticksPerSecond
     private var job: Job? = null
 
     private val loopMutex = Mutex()
@@ -33,18 +32,18 @@ internal class FixedFrequencyTickSource(
         job = scope.launch {
             loopMutex.withLock {
                 emitTick(0)
-                var lastTickTime = TimeSource.Monotonic.markNow()
+                var lastTickTime = clock.nowInNanoseconds()
                 var nextTickStart = lastTickTime
                 while (isActive) {
-                    val remainingTime = targetInterval - nextTickStart.elapsedNow()
-                    if (remainingTime.isPositive()) {
-                        delay(remainingTime.inWholeMilliseconds.coerceAtLeast(1L))
+                    val remainingTime = targetIntervalInNanoseconds - (clock.nowInNanoseconds() - nextTickStart)
+                    if (remainingTime > 0L) {
+                        delay((remainingTime / NANOSECONDS_PER_MILLISECOND).coerceAtLeast(1L))
                     }
-                    val currentTime = TimeSource.Monotonic.markNow()
-                    emitTick(lastTickTime.elapsedNow().inWholeMilliseconds.toInt())
+                    val currentTime = clock.nowInNanoseconds()
+                    emitTick(((clock.nowInNanoseconds() - lastTickTime) / NANOSECONDS_PER_MILLISECOND).toInt())
                     lastTickTime = currentTime
-                    nextTickStart += targetInterval
-                    if ((targetInterval - nextTickStart.elapsedNow()).isNegative()) {
+                    nextTickStart += targetIntervalInNanoseconds
+                    if (targetIntervalInNanoseconds - (clock.nowInNanoseconds() - nextTickStart) < 0L) {
                         nextTickStart = currentTime
                     }
                 }
@@ -57,3 +56,5 @@ internal class FixedFrequencyTickSource(
         job = null
     }
 }
+
+private const val NANOSECONDS_PER_MILLISECOND = 1_000_000L

@@ -16,6 +16,8 @@ import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.testFixtures.CountingActor
 import com.pandulapeter.kubriko.testFixtures.awaitCondition
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -45,13 +47,17 @@ class ActorProcessingStartTest {
             }
         }
         val tickSource = TickSource.manual()
-        val kubriko = Kubriko.newInstance(
+        val scheduler = TestCoroutineScheduler()
+        val kubriko = KubrikoImpl(
             ActorManager.newInstance(initialActors = listOf(actor)),
             RecordingManager(),
             tickSource = tickSource,
+            isLoggingEnabled = false,
+            instanceNameForLogging = null,
+            dispatcher = StandardTestDispatcher(scheduler),
         )
         val actorManager = kubriko.get<ActorManager>()
-        Thread.sleep(100)
+        scheduler.advanceUntilIdle()
         assertTrue(actorManager.allActors.value.isEmpty())
         assertNull(recordedInitialization.get())
         tickSource.start()
