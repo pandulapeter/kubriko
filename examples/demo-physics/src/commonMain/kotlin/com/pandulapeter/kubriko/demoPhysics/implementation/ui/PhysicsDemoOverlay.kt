@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.demoPhysics.implementation.PlatformSpecificContent
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.FloatingButton
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
@@ -40,7 +41,7 @@ internal fun PhysicsDemoOverlay(
     shouldShowLoadingIndicator: Boolean,
     actionType: ActionType,
     onActionTypeButtonPressed: () -> Unit,
-    isSceneEditorEnabled: Boolean,
+    sceneEditorConnection: SceneEditorConnection?,
 ) = Box {
     LoadingOverlay(
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
@@ -63,8 +64,10 @@ internal fun PhysicsDemoOverlay(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,
         ) {
-            if (isSceneEditorEnabled) {
-                PlatformSpecificContent()
+            if (sceneEditorConnection != null) {
+                PlatformSpecificContent(
+                    sceneEditorConnection = sceneEditorConnection,
+                )
             }
             Spacer(modifier = Modifier.width(8.dp))
             FloatingButton(

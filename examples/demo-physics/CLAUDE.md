@@ -75,6 +75,9 @@ file, so no `State`/`serialize()` boilerplate is needed.
 
 ## Platform-specific considerations
 
-- `PlatformSpecificContent` (expect/actual) exposes the Scene Editor button on Desktop only.
+- `PlatformSpecificContent(sceneEditorConnection)` (expect/actual) exposes the Scene Editor button on Desktop only.
 - Source sets: `desktopMain`, `androidMain`, `iosMain`, `webMain`.
-- `PhysicsDemoSceneEditor` (Desktop only) launches the tool-scene-editor for the physics scene.
+- `PhysicsDemoSceneEditor(sceneEditorConnection, defaultSceneFolderPath)` (Desktop only) launches the tool-scene-editor
+  for the physics scene in connected mode: the `SceneEditorConnection` (`examples/shared`) the Showcase passes to
+  `createPhysicsDemoStateHolder` opens and closes the window and carries the scene JSON both ways. Without a connection
+  (every platform but Desktop) the demo loads its scene directly.

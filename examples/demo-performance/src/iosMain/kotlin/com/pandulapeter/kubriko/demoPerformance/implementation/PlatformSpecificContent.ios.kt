@@ -10,9 +10,9 @@
 package com.pandulapeter.kubriko.demoPerformance.implementation
 
 import androidx.compose.runtime.Composable
-import kotlinx.coroutines.flow.MutableStateFlow
-
-internal actual val sceneJson: MutableStateFlow<String>? = null
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 
 @Composable
-internal actual fun PlatformSpecificContent() = Unit
+internal actual fun PlatformSpecificContent(
+    sceneEditorConnection: SceneEditorConnection,
+) = Unit

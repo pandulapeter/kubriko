@@ -36,6 +36,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 import kubriko.examples.game_blockys_journey.generated.resources.Res
 import kubriko.examples.game_blockys_journey.generated.resources.close_confirmation_positive
 import kubriko.examples.game_blockys_journey.generated.resources.fullscreen_enter
@@ -75,7 +76,7 @@ internal fun MenuOverlay(
     isInfoDialogVisible: Boolean,
     isCloseConfirmationDialogVisible: Boolean,
     onPlayButtonPressed: () -> Unit,
-    isSceneEditorEnabled: Boolean,
+    sceneEditorConnection: SceneEditorConnection?,
 ) = Box {
     AnimatedVisibility(
         visible = isInfoDialogVisible,
@@ -144,7 +145,7 @@ internal fun MenuOverlay(
                 onMusicToggled = onMusicToggled,
                 playToggleSoundEffect = playToggleSoundEffect,
                 playHoverSoundEffect = playHoverSoundEffect,
-                isSceneEditorEnabled = isSceneEditorEnabled,
+                sceneEditorConnection = sceneEditorConnection,
             )
         }
     }
@@ -215,7 +216,7 @@ private fun BottomControlsRow(
     onMusicToggled: () -> Unit,
     playToggleSoundEffect: () -> Unit,
     playHoverSoundEffect: () -> Unit,
-    isSceneEditorEnabled: Boolean,
+    sceneEditorConnection: SceneEditorConnection?,
 ) = Row(
     modifier = modifier,
 ) {
@@ -228,8 +229,9 @@ private fun BottomControlsRow(
             onButtonPressed = onInfoButtonPressed,
             onPointerEnter = playHoverSoundEffect,
         )
-        if (isSceneEditorEnabled) {
+        if (sceneEditorConnection != null) {
             PlatformSpecificContent(
+                sceneEditorConnection = sceneEditorConnection,
                 playHoverSoundEffect = playHoverSoundEffect,
                 playToggleSoundEffect = playToggleSoundEffect,
             )

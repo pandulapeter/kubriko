@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoShowcase.implementation
 
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 import com.pandulapeter.kubriko.shared.StateHolder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -33,7 +34,11 @@ class ShowcaseSessionTest {
     }
 
     private val createdStateHolders = mutableListOf<Pair<ShowcaseEntry, FakeStateHolder>>()
-    private val session = ShowcaseSession { entry -> FakeStateHolder().also { createdStateHolders += entry to it } }
+    private val handedConnections = mutableListOf<SceneEditorConnection>()
+    private val session = ShowcaseSession { entry, sceneEditorConnection ->
+        handedConnections += sceneEditorConnection
+        FakeStateHolder().also { createdStateHolders += entry to it }
+    }
 
     @Test
     fun holderForReturnsTheSameInstanceUntilReleased() {
@@ -70,5 +75,25 @@ class ShowcaseSessionTest {
         session.select(null)
         assertNull(session.selectedEntry.value)
         assertFalse(session.isSelected(ShowcaseEntry.PHYSICS))
+    }
+
+    @Test
+    fun sceneEditorConnectionOutlivesTheReleasedHolder() {
+        val connection = session.sceneEditorConnectionFor(ShowcaseEntry.PHYSICS)
+        connection.toggle()
+        session.holderFor(ShowcaseEntry.PHYSICS)
+        session.release(ShowcaseEntry.PHYSICS)
+        session.holderFor(ShowcaseEntry.PHYSICS)
+        assertEquals(listOf(connection, connection), handedConnections)
+        assertSame(connection, session.sceneEditorConnectionFor(ShowcaseEntry.PHYSICS))
+        assertTrue(connection.isVisible.value)
+    }
+
+    @Test
+    fun eachEntryHasItsOwnSceneEditorConnection() {
+        assertNotSame(
+            session.sceneEditorConnectionFor(ShowcaseEntry.PHYSICS),
+            session.sceneEditorConnectionFor(ShowcaseEntry.PERFORMANCE),
+        )
     }
 }

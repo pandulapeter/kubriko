@@ -14,8 +14,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.BlockysJourneyGameStateHolderImpl
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers.LoadingManager
-import com.pandulapeter.kubriko.gameBlockysJourney.implementation.ui.isSceneEditorVisible
 import com.pandulapeter.kubriko.sceneEditor.SceneEditor
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 import kubriko.examples.game_blockys_journey.generated.resources.Res
 import kubriko.examples.game_blockys_journey.generated.resources.scene_editor_title
 import org.jetbrains.compose.resources.stringResource
@@ -23,6 +23,7 @@ import org.jetbrains.compose.resources.stringResource
 fun main() = BlockysJourneyGameStateHolderImpl(
     webRootPathName = "",
     isSceneEditorEnabled = true,
+    sceneEditorConnection = null,
     isLoggingEnabled = false,
 ).let { stateHolder ->
     SceneEditor.show(
@@ -33,13 +34,15 @@ fun main() = BlockysJourneyGameStateHolderImpl(
 
 @Composable
 fun BlockysJourneyGameSceneEditor(
+    sceneEditorConnection: SceneEditorConnection,
     defaultSceneFolderPath: String,
 ) {
-    if (isSceneEditorVisible.collectAsState().value) {
+    if (sceneEditorConnection.isVisible.collectAsState().value) {
         val stateHolder = remember {
             BlockysJourneyGameStateHolderImpl(
                 webRootPathName = "",
                 isSceneEditorEnabled = true,
+                sceneEditorConnection = null,
                 isLoggingEnabled = false,
             )
         }
@@ -49,7 +52,7 @@ fun BlockysJourneyGameSceneEditor(
             serializationManager = stateHolder.backgroundSerializationManager,
             customManagers = stateHolder.customManagersForSceneEditor,
             title = stringResource(Res.string.scene_editor_title),
-            onCloseRequest = { isSceneEditorVisible.value = false },
+            onCloseRequest = sceneEditorConnection::close,
         )
     }
 }

@@ -22,6 +22,7 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 import com.pandulapeter.kubriko.shared.dismissLoadingWhen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,7 +36,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.MissingResourceException
 
 internal class PerformanceDemoManager(
-    private val sceneJson: MutableStateFlow<String>?,
+    private val sceneEditorConnection: SceneEditorConnection?,
     private val isSceneEditorEnabled: Boolean,
 ) : Manager() {
     private val actorManager by manager<ActorManager>()
@@ -51,7 +52,7 @@ internal class PerformanceDemoManager(
             isLoaded = { it.isNotEmpty() },
             onLoaded = { _shouldShowLoadingIndicator.update { false } },
         )
-        sceneJson?.filter { it.isNotBlank() }?.onEach(::processJson)?.launchIn(scope)
+        sceneEditorConnection?.sceneJson?.filter { it.isNotBlank() }?.onEach(::processJson)?.launchIn(scope)
         loadMap()
     }
 
@@ -66,14 +67,14 @@ internal class PerformanceDemoManager(
         getAllVisibleActors = { actorManager.allActors.value.filterIsInstance<Visible>() },
         getAllVisibleActorsWithinViewport = { actorManager.visibleActorsWithinViewport.value },
         getAllActiveDynamicActors = { actorManager.activeDynamicActors.value.filterIsInstance<Visible>() },
-        isSceneEditorEnabled = isSceneEditorEnabled,
+        sceneEditorConnection = sceneEditorConnection?.takeIf { isSceneEditorEnabled },
     )
 
     @OptIn(ExperimentalResourceApi::class)
     private fun loadMap() = scope.launch {
         try {
             val json = Res.readBytes("files/scenes/$SCENE_NAME").decodeToString()
-            sceneJson?.update { json } ?: processJson(json)
+            sceneEditorConnection?.sceneJson?.update { json } ?: processJson(json)
         } catch (_: MissingResourceException) {
         }
     }

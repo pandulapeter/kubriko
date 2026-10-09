@@ -19,6 +19,7 @@ import com.pandulapeter.kubriko.gameAnnoyedPenguins.createAnnoyedPenguinsGameSta
 import com.pandulapeter.kubriko.gameBlockysJourney.createBlockysJourneyGameStateHolder
 import com.pandulapeter.kubriko.gameSpaceSquadron.createSpaceSquadronGameStateHolder
 import com.pandulapeter.kubriko.gameWallbreaker.createWallbreakerGameStateHolder
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.testAudio.createAudioTestStateHolder
 import com.pandulapeter.kubriko.testCollision.createCollisionTestStateHolder
@@ -28,8 +29,14 @@ import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import com.pandulapeter.kubrikoShowcase.implementation.ui.about.createAboutScreenStateHolder
 import com.pandulapeter.kubrikoShowcase.implementation.ui.licenses.createLicensesScreenStateHolder
 
-/** Creates the [StateHolder] of the example or screen [entry] opens. */
-internal fun createShowcaseStateHolder(entry: ShowcaseEntry): StateHolder = when (entry) {
+/**
+ * Creates the [StateHolder] of the example or screen [entry] opens. The examples with a scene editor receive
+ * [sceneEditorConnection] where the platform has scene editor windows.
+ */
+internal fun createShowcaseStateHolder(
+    entry: ShowcaseEntry,
+    sceneEditorConnection: SceneEditorConnection,
+): StateHolder = when (entry) {
     ShowcaseEntry.WALLBREAKER -> createWallbreakerGameStateHolder(
         webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
         isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
@@ -43,12 +50,14 @@ internal fun createShowcaseStateHolder(entry: ShowcaseEntry): StateHolder = when
     ShowcaseEntry.ANNOYED_PENGUINS -> createAnnoyedPenguinsGameStateHolder(
         webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
         isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+        sceneEditorConnection = sceneEditorConnection.takeIf { isSceneEditorWindowAvailable },
         isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
     )
 
     ShowcaseEntry.BLOCKYS_JOURNEY -> createBlockysJourneyGameStateHolder(
         webRootPathName = BuildConfig.WEB_ROOT_PATH_NAME,
         isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+        sceneEditorConnection = sceneEditorConnection.takeIf { isSceneEditorWindowAvailable },
         isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
     )
 
@@ -66,11 +75,13 @@ internal fun createShowcaseStateHolder(entry: ShowcaseEntry): StateHolder = when
 
     ShowcaseEntry.PERFORMANCE -> createPerformanceDemoStateHolder(
         isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+        sceneEditorConnection = sceneEditorConnection.takeIf { isSceneEditorWindowAvailable },
         isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
     )
 
     ShowcaseEntry.PHYSICS -> createPhysicsDemoStateHolder(
         isSceneEditorEnabled = BuildConfig.IS_SCENE_EDITOR_ENABLED,
+        sceneEditorConnection = sceneEditorConnection.takeIf { isSceneEditorWindowAvailable },
         isLoggingEnabled = BuildConfig.IS_DEBUG_MENU_ENABLED,
     )
 

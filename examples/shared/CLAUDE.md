@@ -24,6 +24,10 @@ The single shared interface every example's state holder implements. It defines:
 - `fun dispose()` — releases all Kubriko instances and associated resources.
 - `companion object { val isInfoPanelVisible = mutableStateOf(true) }` — shared Compose state that the Showcase app's info panel observes to show/hide contextual help text. Stored here so all examples can write to it without depending on the app module.
 
+### `SceneEditorConnection` (`commonMain`)
+
+Ties an example's in-game "Editor" button to its desktop scene editor window (Annoyed Penguins, Blocky's Journey, Performance, Physics): `isVisible` / `toggle()` / `close()`, plus `sceneJson`, the scene the Performance and Physics demos exchange with the editor in connected mode. The Showcase's session owns one per entry for the whole process and passes it both to the example's state holder factory (on Desktop only; `null` elsewhere) and to the editor window Composable, so the two share no module-level state.
+
 ### `LoadingDismissal.kt` (`commonMain`)
 
 `Flow<T>.dismissLoadingWhen(scope, isLoaded, onLoaded)` — runs `onLoaded` `LoadingDismissalDelay` (300 ms) after every new value `isLoaded` accepts (a value equal to the last accepted one is skipped). The Performance and Physics demos hide their loading overlay with it once their scene's actors arrive, again after every scene-editor reload.

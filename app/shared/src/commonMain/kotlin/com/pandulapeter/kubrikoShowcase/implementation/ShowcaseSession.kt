@@ -13,22 +13,25 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubrikoShowcase.implementation.ui.createShowcaseStateHolder
 
 /**
- * The Showcase's process-scoped state: the selected entry, the [StateHolder]s of the entries that are open and the
- * welcome screen's expanded section. It outlives the Activity on Android, so a running game survives a configuration
- * change.
+ * The Showcase's process-scoped state: the selected entry, the [StateHolder]s of the entries that are open, their
+ * [SceneEditorConnection]s and the welcome screen's expanded section. It outlives the Activity on Android, so a running
+ * game survives a configuration change.
  *
- * @param createStateHolder Builds the [StateHolder] of an entry the first time it is needed.
+ * @param createStateHolder Builds the [StateHolder] of an entry the first time it is needed, handing it the entry's
+ * [SceneEditorConnection].
  */
 internal class ShowcaseSession(
-    private val createStateHolder: (ShowcaseEntry) -> StateHolder = ::createShowcaseStateHolder,
+    private val createStateHolder: (ShowcaseEntry, SceneEditorConnection) -> StateHolder = ::createShowcaseStateHolder,
 ) {
     private val _selectedEntry = mutableStateOf<ShowcaseEntry?>(null)
     val selectedEntry: State<ShowcaseEntry?> = _selectedEntry
     private val stateHolders = mutableMapOf<ShowcaseEntry, StateHolder>()
+    private val sceneEditorConnections = mutableMapOf<ShowcaseEntry, SceneEditorConnection>()
 
     /** Whether the compact welcome screen shows its "more details" section. */
     var isWelcomeMoreInfoVisible by mutableStateOf(false)
@@ -42,7 +45,15 @@ internal class ShowcaseSession(
     fun isSelected(entry: ShowcaseEntry) = _selectedEntry.value == entry
 
     /** The [StateHolder] of [entry], created if it does not exist yet. */
-    fun holderFor(entry: ShowcaseEntry): StateHolder = stateHolders.getOrPut(entry) { createStateHolder(entry) }
+    fun holderFor(entry: ShowcaseEntry): StateHolder = stateHolders.getOrPut(entry) {
+        createStateHolder(entry, sceneEditorConnectionFor(entry))
+    }
+
+    /**
+     * The [SceneEditorConnection] of [entry]. It is created once and never released, so a scene editor window stays
+     * connected while the entry's [StateHolder] is released and created again.
+     */
+    fun sceneEditorConnectionFor(entry: ShowcaseEntry): SceneEditorConnection = sceneEditorConnections.getOrPut(entry, ::SceneEditorConnection)
 
     /** Disposes the [StateHolder] of [entry], if it has one, so the next [holderFor] creates a new one. */
     fun release(entry: ShowcaseEntry) {

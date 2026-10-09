@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.demoPerformance.implementation.PlatformSpecificContent
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
@@ -52,7 +53,7 @@ internal fun PerformanceDemoOverlay(
     getAllVisibleActors: () -> List<Visible>,
     getAllVisibleActorsWithinViewport: () -> List<Visible>,
     getAllActiveDynamicActors: () -> List<Visible>,
-    isSceneEditorEnabled: Boolean,
+    sceneEditorConnection: SceneEditorConnection?,
 ) = Box {
     LoadingOverlay(
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
@@ -90,14 +91,16 @@ internal fun PerformanceDemoOverlay(
             }
         }
     }
-    if (isSceneEditorEnabled) {
+    if (sceneEditorConnection != null) {
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .windowInsetsPadding(windowInsets)
                 .padding(16.dp),
         ) {
-            PlatformSpecificContent()
+            PlatformSpecificContent(
+                sceneEditorConnection = sceneEditorConnection,
+            )
         }
     }
 }

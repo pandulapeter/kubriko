@@ -10,9 +10,9 @@
 package com.pandulapeter.kubriko.demoPerformance.implementation
 
 import androidx.compose.runtime.Composable
-import kotlinx.coroutines.flow.MutableStateFlow
-
-internal expect val sceneJson: MutableStateFlow<String>?
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 
 @Composable
-internal expect fun PlatformSpecificContent()
+internal expect fun PlatformSpecificContent(
+    sceneEditorConnection: SceneEditorConnection,
+)

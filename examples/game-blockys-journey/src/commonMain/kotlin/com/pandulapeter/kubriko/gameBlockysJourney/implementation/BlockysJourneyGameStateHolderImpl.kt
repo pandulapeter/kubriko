@@ -28,6 +28,7 @@ import com.pandulapeter.kubriko.persistence.PersistenceManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.shaders.ShaderManager
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 import com.pandulapeter.kubriko.sprites.SpriteManager
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.coroutines.channels.BufferOverflow
@@ -37,9 +38,13 @@ import kotlinx.coroutines.flow.asStateFlow
 
 internal class BlockysJourneyGameStateHolderImpl(
     webRootPathName: String,
-    val isSceneEditorEnabled: Boolean,
+    isSceneEditorEnabled: Boolean,
+    sceneEditorConnection: SceneEditorConnection?,
     isLoggingEnabled: Boolean,
 ) : BlockysJourneyGameStateHolder {
+
+    /** The connection to the desktop scene editor window, `null` where the editor button is not shown. */
+    val sceneEditorConnection = sceneEditorConnection?.takeIf { isSceneEditorEnabled }
 
     val backgroundSerializationManager = EditableMetadata.newSerializationManagerInstance(
         EditableMetadata.create<Blocky, Blocky.State>(typeId = "Blocky") {

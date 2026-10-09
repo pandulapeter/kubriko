@@ -140,7 +140,7 @@ fun BlockysJourneyGame(
                         stateHolder.audioManager.playButtonToggleSoundEffect()
                         stateHolder.stateManager.updateIsRunning(true)
                     },
-                    isSceneEditorEnabled = stateHolder.isSceneEditorEnabled,
+                    sceneEditorConnection = stateHolder.sceneEditorConnection,
                 )
             }
         }

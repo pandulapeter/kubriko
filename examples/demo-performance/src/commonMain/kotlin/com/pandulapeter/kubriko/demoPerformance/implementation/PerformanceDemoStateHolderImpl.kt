@@ -20,12 +20,14 @@ import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 internal class PerformanceDemoStateHolderImpl(
     isSceneEditorEnabled: Boolean,
+    sceneEditorConnection: SceneEditorConnection?,
     isLoggingEnabled: Boolean,
 ) : PerformanceDemoStateHolder {
 
@@ -53,7 +55,7 @@ internal class PerformanceDemoStateHolderImpl(
     }
     private val performanceDemoManager by lazy {
         PerformanceDemoManager(
-            sceneJson = sceneJson,
+            sceneEditorConnection = sceneEditorConnection,
             isSceneEditorEnabled = isSceneEditorEnabled,
         )
     }

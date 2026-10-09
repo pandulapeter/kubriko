@@ -13,11 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceDemoStateHolderImpl
-import com.pandulapeter.kubriko.demoPerformance.implementation.isSceneEditorVisible
 import com.pandulapeter.kubriko.demoPerformance.implementation.managers.PerformanceDemoManager
-import com.pandulapeter.kubriko.demoPerformance.implementation.sceneJson
 import com.pandulapeter.kubriko.sceneEditor.SceneEditor
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 import kubriko.examples.demo_performance.generated.resources.Res
 import kubriko.examples.demo_performance.generated.resources.scene_editor_title
 import org.jetbrains.compose.resources.stringResource
@@ -26,18 +25,21 @@ fun main() = SceneEditor.show(
     defaultSceneFilename = PerformanceDemoManager.SCENE_NAME,
     serializationManager = PerformanceDemoStateHolderImpl(
         isSceneEditorEnabled = true,
+        sceneEditorConnection = null,
         isLoggingEnabled = false,
     ).serializationManager,
 )
 
 @Composable
 fun PerformanceDemoSceneEditor(
+    sceneEditorConnection: SceneEditorConnection,
     defaultSceneFolderPath: String,
 ) {
-    if (isSceneEditorVisible.collectAsState().value) {
+    if (sceneEditorConnection.isVisible.collectAsState().value) {
         val stateHolder = remember {
             PerformanceDemoStateHolderImpl(
                 isSceneEditorEnabled = true,
+                sceneEditorConnection = null,
                 isLoggingEnabled = false,
             )
         }
@@ -47,13 +49,11 @@ fun PerformanceDemoSceneEditor(
             serializationManager = stateHolder.serializationManager,
             customManagers = emptyList(),
             title = stringResource(Res.string.scene_editor_title),
-            onCloseRequest = { isSceneEditorVisible.value = false },
-            sceneEditorMode = sceneJson?.let { sceneJson ->
-                SceneEditorMode.Connected(
-                    sceneJson = sceneJson.value,
-                    onSceneJsonChanged = { sceneJson.value = it },
-                )
-            } ?: SceneEditorMode.Normal,
+            onCloseRequest = sceneEditorConnection::close,
+            sceneEditorMode = SceneEditorMode.Connected(
+                sceneJson = sceneEditorConnection.sceneJson.value,
+                onSceneJsonChanged = { sceneEditorConnection.sceneJson.value = it },
+            ),
         )
     }
 }

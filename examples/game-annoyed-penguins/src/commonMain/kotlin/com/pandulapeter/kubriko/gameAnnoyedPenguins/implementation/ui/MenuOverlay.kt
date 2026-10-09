@@ -48,6 +48,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.Level
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 import kotlinx.collections.immutable.ImmutableList
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import kubriko.examples.game_annoyed_penguins.generated.resources.close_confirmation_positive
@@ -91,7 +92,7 @@ internal fun MenuOverlay(
     isInfoDialogVisible: Boolean,
     isCloseConfirmationDialogVisible: Boolean,
     onLevelSelected: (Level) -> Unit,
-    isSceneEditorEnabled: Boolean,
+    sceneEditorConnection: SceneEditorConnection?,
     levelSelectorScrollState: ScrollState = rememberScrollState(),
 ) = BoxWithConstraints {
     val shouldShowLogoVertically = maxHeight > 192.dp
@@ -137,7 +138,7 @@ internal fun MenuOverlay(
                     MenuTopBar(
                         onCloseButtonPressed = onCloseButtonPressed,
                         onInfoButtonPressed = onInfoButtonPressed,
-                        isSceneEditorEnabled = isSceneEditorEnabled,
+                        sceneEditorConnection = sceneEditorConnection,
                         areSoundEffectsEnabled = areSoundEffectsEnabled,
                         onSoundEffectsToggled = onSoundEffectsToggled,
                         isMusicEnabled = isMusicEnabled,
@@ -200,7 +201,7 @@ internal fun MenuOverlay(
 private fun MenuTopBar(
     onCloseButtonPressed: () -> Unit,
     onInfoButtonPressed: () -> Unit,
-    isSceneEditorEnabled: Boolean,
+    sceneEditorConnection: SceneEditorConnection?,
     areSoundEffectsEnabled: Boolean,
     onSoundEffectsToggled: () -> Unit,
     isMusicEnabled: Boolean,
@@ -230,8 +231,9 @@ private fun MenuTopBar(
             onButtonPressed = onInfoButtonPressed,
             onPointerEnter = playHoverSoundEffect,
         )
-        if (isSceneEditorEnabled) {
+        if (sceneEditorConnection != null) {
             PlatformSpecificContent(
+                sceneEditorConnection = sceneEditorConnection,
                 playHoverSoundEffect = playHoverSoundEffect,
                 playToggleSoundEffect = playToggleSoundEffect,
             )

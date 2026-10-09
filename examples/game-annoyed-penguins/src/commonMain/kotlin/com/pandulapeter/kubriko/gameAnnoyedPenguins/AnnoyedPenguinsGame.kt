@@ -138,7 +138,7 @@ fun AnnoyedPenguinsGame(
                         stateHolder.gameplayManager.setCurrentLevel(level)
                         stateHolder.stateManager.updateIsRunning(true)
                     },
-                    isSceneEditorEnabled = stateHolder.isSceneEditorEnabled,
+                    sceneEditorConnection = stateHolder.sceneEditorConnection,
                 )
             }
         }

@@ -10,25 +10,22 @@
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import kubriko.examples.game_annoyed_penguins.generated.resources.editor
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_editor
 import org.jetbrains.compose.resources.stringResource
 
-internal val isSceneEditorVisible = MutableStateFlow(false)
-
 @Composable
 internal actual fun PlatformSpecificContent(
+    sceneEditorConnection: SceneEditorConnection,
     playHoverSoundEffect: () -> Unit,
     playToggleSoundEffect: () -> Unit,
 ) {
-    val isEditorVisible = isSceneEditorVisible.collectAsState()
     AnnoyedPenguinsButton(
         onButtonPressed = {
             playToggleSoundEffect()
-            isSceneEditorVisible.value = !isEditorVisible.value
+            sceneEditorConnection.toggle()
         },
         icon = Res.drawable.ic_editor,
         title = stringResource(Res.string.editor),

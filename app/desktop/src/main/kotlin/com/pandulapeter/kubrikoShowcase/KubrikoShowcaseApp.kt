@@ -28,15 +28,19 @@ fun main() {
         )
         val fullscreenState = rememberDesktopFullscreenState()
         AnnoyedPenguinsGameSceneEditor(
+            sceneEditorConnection = ShowcaseSceneEditorConnections.annoyedPenguins,
             defaultSceneFolderPath = "../../examples/game-annoyed-penguins/src/commonMain/composeResources/files/scenes",
         )
         BlockysJourneyGameSceneEditor(
+            sceneEditorConnection = ShowcaseSceneEditorConnections.blockysJourney,
             defaultSceneFolderPath = "../../examples/game-blockys-journey/src/commonMain/composeResources/files/scenes",
         )
         PerformanceDemoSceneEditor(
+            sceneEditorConnection = ShowcaseSceneEditorConnections.performance,
             defaultSceneFolderPath = "../../examples/demo-performance/src/commonMain/composeResources/files/scenes",
         )
         PhysicsDemoSceneEditor(
+            sceneEditorConnection = ShowcaseSceneEditorConnections.physics,
             defaultSceneFolderPath = "../../examples/demo-physics/src/commonMain/composeResources/files/scenes",
         )
 

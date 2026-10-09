@@ -121,7 +121,7 @@ fun KubrikoShowcase(
     }
 }
 
-private val showcaseSession = ShowcaseSession()
+internal val showcaseSession = ShowcaseSession()
 
 /**
  * Opens links through the platform's handler, ignoring the ones nothing on the device can open (a `mailto:` link

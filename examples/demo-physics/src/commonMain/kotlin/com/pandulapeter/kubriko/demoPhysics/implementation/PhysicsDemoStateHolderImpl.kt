@@ -24,12 +24,14 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.PhysicsManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 internal class PhysicsDemoStateHolderImpl(
     isSceneEditorEnabled: Boolean,
+    sceneEditorConnection: SceneEditorConnection?,
     isLoggingEnabled: Boolean,
 ) : PhysicsDemoStateHolder {
 
@@ -86,7 +88,7 @@ internal class PhysicsDemoStateHolderImpl(
     }
     private val physicsDemoManager by lazy {
         PhysicsDemoManager(
-            sceneJson = sceneJson,
+            sceneEditorConnection = sceneEditorConnection,
             isSceneEditorEnabled = isSceneEditorEnabled,
         )
     }

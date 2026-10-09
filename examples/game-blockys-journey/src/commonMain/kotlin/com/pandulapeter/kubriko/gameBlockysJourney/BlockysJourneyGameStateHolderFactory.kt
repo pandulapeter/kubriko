@@ -11,13 +11,16 @@ package com.pandulapeter.kubriko.gameBlockysJourney
 
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.BlockysJourneyGameStateHolder
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.BlockysJourneyGameStateHolderImpl
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 
 fun createBlockysJourneyGameStateHolder(
     webRootPathName: String,
     isSceneEditorEnabled: Boolean,
+    sceneEditorConnection: SceneEditorConnection?,
     isLoggingEnabled: Boolean,
 ): BlockysJourneyGameStateHolder = BlockysJourneyGameStateHolderImpl(
     webRootPathName = webRootPathName,
     isSceneEditorEnabled = isSceneEditorEnabled,
+    sceneEditorConnection = sceneEditorConnection,
     isLoggingEnabled = isLoggingEnabled,
 )

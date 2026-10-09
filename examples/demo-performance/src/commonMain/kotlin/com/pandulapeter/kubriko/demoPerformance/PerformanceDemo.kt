@@ -19,12 +19,15 @@ import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceDemoStateHolder
 import com.pandulapeter.kubriko.demoPerformance.implementation.PerformanceDemoStateHolderImpl
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 
 fun createPerformanceDemoStateHolder(
     isSceneEditorEnabled: Boolean,
+    sceneEditorConnection: SceneEditorConnection?,
     isLoggingEnabled: Boolean,
 ): PerformanceDemoStateHolder = PerformanceDemoStateHolderImpl(
     isSceneEditorEnabled = isSceneEditorEnabled,
+    sceneEditorConnection = sceneEditorConnection,
     isLoggingEnabled = isLoggingEnabled,
 )
 

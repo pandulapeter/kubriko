@@ -44,6 +44,8 @@ The desktop app registers scene editors for examples that support them. These la
 - `PerformanceDemoSceneEditor` → `examples/demo-performance/.../files/scenes`
 - `PhysicsDemoSceneEditor` → `examples/demo-physics/.../files/scenes`
 
+Each editor window takes its example's `SceneEditorConnection` from `ShowcaseSceneEditorConnections` (`app/shared`), the same instance the Showcase's session hands to that example's state holder: the in-game button and the window's close button both go through it, and it lives as long as the process, so an open window survives the user leaving the example.
+
 Scene editors are only compiled when `showcase.isSceneEditorEnabled = true` in `gradle.properties`; otherwise the `-noop` implementation is linked.
 
 ## Build configuration

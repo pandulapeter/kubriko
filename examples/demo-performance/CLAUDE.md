@@ -60,9 +60,12 @@ collecting and snapshotting the actor lists.
 
 **Scene Editor integration on Desktop.** `PerformanceDemoSceneEditor` (Desktop only) launches the
 tool-scene-editor with the same `SerializationManager`, letting developers redesign the stress-test
-layout and observe the performance impact immediately.
+layout and observe the performance impact immediately. The window and the running demo talk through the
+`SceneEditorConnection` (`examples/shared`) the Showcase passes to `createPerformanceDemoStateHolder`: its
+`isVisible` drives the window and its `sceneJson` carries the scene both ways (connected mode). Without a connection
+(every platform but Desktop) the demo loads its scene directly.
 
 ## Platform-specific considerations
 
-- `PlatformSpecificContent` (expect/actual) exposes the Scene Editor launch button on Desktop only.
+- `PlatformSpecificContent(sceneEditorConnection)` (expect/actual) exposes the Scene Editor launch button on Desktop only.
 - The demo includes `desktopMain`, `androidMain`, `iosMain`, and `webMain` source sets.

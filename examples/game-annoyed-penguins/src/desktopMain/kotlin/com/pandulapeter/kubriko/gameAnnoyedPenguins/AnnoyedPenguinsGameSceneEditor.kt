@@ -13,8 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolderImpl
-import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.isSceneEditorVisible
 import com.pandulapeter.kubriko.sceneEditor.SceneEditor
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import kubriko.examples.game_annoyed_penguins.generated.resources.scene_editor_title
 import org.jetbrains.compose.resources.stringResource
@@ -22,6 +22,7 @@ import org.jetbrains.compose.resources.stringResource
 fun main() = AnnoyedPenguinsGameStateHolderImpl(
     webRootPathName = "",
     isSceneEditorEnabled = true,
+    sceneEditorConnection = null,
     isLoggingEnabled = false,
     isForSceneEditor = true,
 ).let { stateHolder ->
@@ -33,13 +34,15 @@ fun main() = AnnoyedPenguinsGameStateHolderImpl(
 
 @Composable
 fun AnnoyedPenguinsGameSceneEditor(
+    sceneEditorConnection: SceneEditorConnection,
     defaultSceneFolderPath: String,
 ) {
-    if (isSceneEditorVisible.collectAsState().value) {
+    if (sceneEditorConnection.isVisible.collectAsState().value) {
         val stateHolder = remember {
             AnnoyedPenguinsGameStateHolderImpl(
                 webRootPathName = "",
                 isSceneEditorEnabled = true,
+                sceneEditorConnection = null,
                 isLoggingEnabled = false,
                 isForSceneEditor = true,
             )
@@ -49,7 +52,7 @@ fun AnnoyedPenguinsGameSceneEditor(
             serializationManager = stateHolder.serializationManager,
             customManagers = stateHolder.customManagersForSceneEditor,
             title = stringResource(Res.string.scene_editor_title),
-            onCloseRequest = { isSceneEditorVisible.value = false },
+            onCloseRequest = sceneEditorConnection::close,
         )
     }
 }

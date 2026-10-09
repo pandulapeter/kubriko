@@ -10,9 +10,11 @@
 package com.pandulapeter.kubriko.gameBlockysJourney.implementation.ui
 
 import androidx.compose.runtime.Composable
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 
 @Composable
 internal expect fun PlatformSpecificContent(
+    sceneEditorConnection: SceneEditorConnection,
     playHoverSoundEffect: () -> Unit,
     playToggleSoundEffect: () -> Unit,
 )

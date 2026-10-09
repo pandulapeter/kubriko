@@ -7,12 +7,6 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko.demoPhysics.implementation
+package com.pandulapeter.kubrikoShowcase.implementation.ui
 
-import androidx.compose.runtime.Composable
-import com.pandulapeter.kubriko.shared.SceneEditorConnection
-
-@Composable
-internal expect fun PlatformSpecificContent(
-    sceneEditorConnection: SceneEditorConnection,
-)
+internal actual val isSceneEditorWindowAvailable = false

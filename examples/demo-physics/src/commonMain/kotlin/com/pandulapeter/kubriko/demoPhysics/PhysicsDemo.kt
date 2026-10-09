@@ -19,12 +19,15 @@ import androidx.compose.ui.Modifier
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoStateHolder
 import com.pandulapeter.kubriko.demoPhysics.implementation.PhysicsDemoStateHolderImpl
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 
 fun createPhysicsDemoStateHolder(
     isSceneEditorEnabled: Boolean,
+    sceneEditorConnection: SceneEditorConnection?,
     isLoggingEnabled: Boolean,
 ): PhysicsDemoStateHolder = PhysicsDemoStateHolderImpl(
     isSceneEditorEnabled = isSceneEditorEnabled,
+    sceneEditorConnection = sceneEditorConnection,
     isLoggingEnabled = isLoggingEnabled,
 )
 

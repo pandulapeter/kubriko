@@ -11,14 +11,17 @@ package com.pandulapeter.kubriko.gameAnnoyedPenguins
 
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolder
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolderImpl
+import com.pandulapeter.kubriko.shared.SceneEditorConnection
 
 fun createAnnoyedPenguinsGameStateHolder(
     webRootPathName: String,
     isSceneEditorEnabled: Boolean,
+    sceneEditorConnection: SceneEditorConnection?,
     isLoggingEnabled: Boolean,
 ): AnnoyedPenguinsGameStateHolder = AnnoyedPenguinsGameStateHolderImpl(
     webRootPathName = webRootPathName,
     isSceneEditorEnabled = isSceneEditorEnabled,
+    sceneEditorConnection = sceneEditorConnection,
     isLoggingEnabled = isLoggingEnabled,
     isForSceneEditor = false,
 )
