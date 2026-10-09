@@ -13,19 +13,11 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoImpl
 import com.pandulapeter.kubriko.logger.Logger
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlin.concurrent.Volatile
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
-import kotlin.time.Duration.Companion.nanoseconds
-import kotlin.time.TimeSource
 
 /**
  * Produces update ticks for the Kubriko engine.
@@ -251,94 +243,6 @@ abstract class TickSource {
         fun fixedFrequency(
             ticksPerSecond: Int,
         ): TickSource = FixedFrequencyTickSource(ticksPerSecond)
-    }
-}
-
-/**
- * A [TickSource] that advances only when [tick] is called.
- */
-class ManualTickSource : TickSource() {
-
-    /**
-     * Emits one engine tick with the provided delta time.
-     */
-    fun tick(deltaTimeInMilliseconds: Int) = emitTick(deltaTimeInMilliseconds)
-}
-
-internal class ViewportFrameTickSource(
-    val shouldPauseOnFocusLoss: Boolean,
-) : TickSource() {
-
-    internal fun tick(deltaTimeInMilliseconds: Int) = emitTick(deltaTimeInMilliseconds)
-}
-
-internal class FixedRateTickSource(
-    private val intervalInMilliseconds: Long,
-) : TickSource() {
-    private var job: Job? = null
-
-    init {
-        require(intervalInMilliseconds > 0L) { "intervalInMilliseconds must be greater than 0." }
-    }
-
-    private val loopMutex = Mutex()
-
-    override fun onStart() {
-        job = scope.launch {
-            loopMutex.withLock {
-                emitTick(0)
-                while (isActive) {
-                    delay(intervalInMilliseconds)
-                    emitTick(intervalInMilliseconds.toInt())
-                }
-            }
-        }
-    }
-
-    override fun onStop() {
-        job?.cancel()
-        job = null
-    }
-}
-
-internal class FixedFrequencyTickSource(
-    ticksPerSecond: Int,
-) : TickSource() {
-    init {
-        require(ticksPerSecond > 0) { "ticksPerSecond must be greater than 0." }
-    }
-
-    private val targetInterval = (1_000_000_000L / ticksPerSecond).nanoseconds
-    private var job: Job? = null
-
-    private val loopMutex = Mutex()
-
-    override fun onStart() {
-        job = scope.launch {
-            loopMutex.withLock {
-                emitTick(0)
-                var lastTickTime = TimeSource.Monotonic.markNow()
-                var nextTickStart = lastTickTime
-                while (isActive) {
-                    val remainingTime = targetInterval - nextTickStart.elapsedNow()
-                    if (remainingTime.isPositive()) {
-                        delay(remainingTime.inWholeMilliseconds.coerceAtLeast(1L))
-                    }
-                    val currentTime = TimeSource.Monotonic.markNow()
-                    emitTick(lastTickTime.elapsedNow().inWholeMilliseconds.toInt())
-                    lastTickTime = currentTime
-                    nextTickStart += targetInterval
-                    if ((targetInterval - nextTickStart.elapsedNow()).isNegative()) {
-                        nextTickStart = currentTime
-                    }
-                }
-            }
-        }
-    }
-
-    override fun onStop() {
-        job?.cancel()
-        job = null
     }
 }
 
