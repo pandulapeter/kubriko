@@ -255,7 +255,7 @@ private fun isTickingAllowed(kubrikoImpl: KubrikoImpl, viewportTickSource: Viewp
             !kubrikoImpl.viewportManager.size.value.isEmpty() &&
             (!viewportTickSource.shouldPauseOnFocusLoss || kubrikoImpl.stateManager.isFocused.value)
 
-// Compose hands frame times over in nanoseconds; the loop keeps its own time in milliseconds.
+/** Compose hands frame times over in nanoseconds; the loop keeps its own time in milliseconds. */
 private const val NANOSECONDS_PER_MILLISECOND = 1_000_000L
 
 private const val MAXIMUM_FRAME_GAP_IN_MILLISECONDS = 2_000L

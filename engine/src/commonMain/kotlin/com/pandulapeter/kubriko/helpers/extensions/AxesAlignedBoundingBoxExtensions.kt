@@ -31,8 +31,10 @@ fun AxisAlignedBoundingBox.isWithinViewportBounds(
     )
 }
 
-// Raw-float math: this runs for every actor on every visibility refresh, and the SceneUnit
-// operator chain would box through the generic comparisons.
+/**
+ * Raw-float math, so the per-frame checks games run through the public overload don't box SceneUnits through the
+ * operator chain.
+ */
 internal fun AxisAlignedBoundingBox.isWithinViewportBounds(
     scaledHalfViewportSize: SceneSize,
     viewportCenter: SceneOffset,
@@ -48,8 +50,9 @@ internal fun AxisAlignedBoundingBox.isWithinViewportBounds(
 
 /**
  * Checks if this bounding box overlaps with [other]. Boxes that merely touch at an edge do not count as overlapping.
+ *
+ * It compares raw floats and never boxes, since it is the broad-phase test every collision and raycast query funnels
+ * through.
  */
-// Raw-float math: this is the broad-phase test every collision and raycast query funnels through,
-// so it must not box SceneUnits through generic minOf/maxOf.
 fun AxisAlignedBoundingBox.isOverlapping(other: AxisAlignedBoundingBox): Boolean =
     minXRaw < other.maxXRaw && other.minXRaw < maxXRaw && minYRaw < other.maxYRaw && other.minYRaw < maxYRaw

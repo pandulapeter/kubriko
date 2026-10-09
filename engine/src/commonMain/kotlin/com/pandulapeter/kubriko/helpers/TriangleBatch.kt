@@ -53,9 +53,11 @@ class TriangleBatch {
     /** @see texture */
     var defaultV = 0f
 
-    // Texture coordinates are written only where a caller supplies them, and the gaps between those runs are
-    // filled with the default in one pass at draw time - so appending a vertex that samples nothing costs
-    // nothing at all, however many of them a frame holds (outlines alone are most of the batch).
+    /**
+     * Texture coordinates are written only where a caller supplies them, and the gaps between those runs are
+     * filled with the default in one pass at draw time - so appending a vertex that samples nothing costs
+     * nothing at all, however many of them a frame holds (outlines alone are most of the batch).
+     */
     private var texCoords = FloatArray(0)
     private var texCoordsWritten = 0
 
@@ -458,8 +460,10 @@ class TriangleBatch {
         reset()
     }
 
-    // Brings the written run up to [end] with the default coordinates. When both defaults are equal the gap - which is
-    // most of the batch - closes with a single fill rather than a strided walk.
+    /**
+     * Brings the written run up to [end] with the default coordinates. When both defaults are equal the gap - which is
+     * most of the batch - closes with a single fill rather than a strided walk.
+     */
     private fun padTexCoordsTo(end: Int) {
         if (texCoords.size < vertexCount * 2) texCoords = texCoords.copyOf(maxOf(vertexCount, colors.size) * 2)
         if (texCoordsWritten >= end) return

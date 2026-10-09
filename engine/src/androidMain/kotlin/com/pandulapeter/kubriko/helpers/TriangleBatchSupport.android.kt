@@ -23,21 +23,27 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
 
-// The probe has to go through the same pipeline the scene does, which rules out a Bitmap-backed Canvas: that one
-// rasterizes on the CPU and would report success on every device, including the ones this exists to catch. So it
-// renders a RenderNode into an ImageReader through HardwareRenderer - the display's own path, off the main thread
-// - and reads the result back.
+/**
+ * The probe has to go through the same pipeline the scene does, which rules out a Bitmap-backed Canvas: that one
+ * rasterizes on the CPU and would report success on every device, including the ones this exists to catch. So it
+ * renders a RenderNode into an ImageReader through HardwareRenderer - the display's own path, off the main thread
+ * - and reads the result back.
+ */
 private const val PROBE_SIZE = 8
 
-// The coordinates are asked well away from the origin, which is what makes this a question worth asking rather
-// than a formality: at the origin every device answers correctly, and it is only once a coordinate grows that a
-// half-float varying stops resolving a single texel. An even offset, so it names the same pair of texels of the
-// two-wide probe tile that the origin would.
+/**
+ * The coordinates are asked well away from the origin, which is what makes this a question worth asking rather
+ * than a formality: at the origin every device answers correctly, and it is only once a coordinate grows that a
+ * half-float varying stops resolving a single texel. An even offset, so it names the same pair of texels of the
+ * two-wide probe tile that the origin would.
+ */
 private const val PROBE_TEXEL_OFFSET = 1024f
 
-// One quad the width of the target, its left half naming an opaque texel and its right half a black one, drawn
-// through the same call shape the scene batch uses: colours, texture coordinates and an index array all present.
-// Nearest sampling, so the two halves come back as the texels themselves rather than as a blend of them.
+/**
+ * One quad the width of the target, its left half naming an opaque texel and its right half a black one, drawn
+ * through the same call shape the scene batch uses: colours, texture coordinates and an index array all present.
+ * Nearest sampling, so the two halves come back as the texels themselves rather than as a blend of them.
+ */
 private val PROBE_POSITIONS = floatArrayOf(
     0f, 0f,
     PROBE_SIZE.toFloat(), 0f,
@@ -53,8 +59,10 @@ private val PROBE_TEXTURE_COORDINATES = floatArrayOf(
 private val PROBE_COLORS = IntArray(4) { Color.WHITE }
 private val PROBE_INDICES = shortArrayOf(0, 1, 2, 0, 2, 3)
 
-// Far enough apart that only a genuinely varying sample clears it, and far below the full black-to-white step the
-// two texels actually name.
+/**
+ * Far enough apart that only a genuinely varying sample clears it, and far below the full black-to-white step the
+ * two texels actually name.
+ */
 private const val MINIMUM_HALF_DIFFERENCE = 64
 
 internal actual suspend fun probeTextureSampling(): Boolean = withContext(Dispatchers.Default) {
@@ -109,8 +117,10 @@ private fun probePaint() = Paint().apply {
     shader = BitmapShader(probeTile(), Shader.TileMode.REPEAT, Shader.TileMode.REPEAT)
 }
 
-// Two texels across: an opaque left column and a black right column, which is the whole difference the probe
-// reads. Repeated, so the offset above lands on the same pair the origin would.
+/**
+ * Two texels across: an opaque left column and a black right column, which is the whole difference the probe
+ * reads. Repeated, so the offset above lands on the same pair the origin would.
+ */
 private fun probeTile() = Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888).apply {
     setPixel(0, 0, Color.WHITE)
     setPixel(0, 1, Color.WHITE)

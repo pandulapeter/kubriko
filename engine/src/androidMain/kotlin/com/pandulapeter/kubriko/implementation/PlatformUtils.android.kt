@@ -121,6 +121,6 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
     else -> null
 }
 
-// 0 lets the system pick, releasing any earlier hint so the panel returns to its default.
+/** 0 lets the system pick, releasing any earlier hint so the panel returns to its default. */
 private const val SYSTEM_DEFAULT_REFRESH_RATE = 0f
 private const val SYSTEM_DEFAULT_DISPLAY_MODE = 0

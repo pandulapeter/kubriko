@@ -35,6 +35,9 @@ object TriangleBatchSupport {
     suspend fun isTextureSampledPerVertex() = cachedResult ?: probeTextureSampling().also { cachedResult = it }
 }
 
-// Draws a batch whose two halves name texels of different brightness and reports whether they came back
-// different. Called at most once per process. @see TriangleBatchSupport
+/**
+ * Draws a batch whose two halves name texels of different brightness and reports whether they came back
+ * different. Called at most once per process.
+ * @see TriangleBatchSupport
+ */
 internal expect suspend fun probeTextureSampling(): Boolean

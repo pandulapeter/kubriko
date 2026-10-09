@@ -22,22 +22,25 @@ import org.jetbrains.skia.MipmapMode
 import org.jetbrains.skia.Paint
 import org.jetbrains.skia.VertexMode
 
-// MODULATE multiplies the vertex colors with the opaque white paint, i.e. uses them as-is.
+/** MODULATE multiplies the vertex colors with the opaque white paint, i.e. uses them as-is. */
 private val trianglePaint = Paint().apply { color = -1 }
 
-// The source-replace variant; the vertex colors still pass through unchanged.
+/** The source-replace variant; the vertex colors still pass through unchanged. */
 private val replaceTrianglePaint = Paint().apply { color = -1; blendMode = BlendMode.SRC }
 
-// A handful of identity-keyed slots rather than one: two textured batches drawn in a stable A, B order
-// evicted each other from a single slot, rebuilding the image wrapper and shader on every draw. The fixed
-// size keeps native resources bounded, and an evicted entry is dropped exactly as the single slot was.
+/**
+ * A handful of identity-keyed slots, so textured batches drawn in a stable A, B order don't evict each other and
+ * rebuild the image wrapper and shader on every draw. The fixed size keeps native resources bounded.
+ */
 private const val TEXTURE_PAINT_CACHE_SIZE = 4
 private val texturePaintSources = arrayOfNulls<ImageBitmap>(TEXTURE_PAINT_CACHE_SIZE)
 private val texturePaints = arrayOfNulls<Paint>(TEXTURE_PAINT_CACHE_SIZE)
 private var nextTexturePaintSlot = 0
 
-// Mipmapped sampling is what lets a pattern average itself away as the camera pulls back instead of aliasing
-// into a shimmer.
+/**
+ * Mipmapped sampling is what lets a pattern average itself away as the camera pulls back instead of aliasing
+ * into a shimmer.
+ */
 private fun texturePaintFor(texture: ImageBitmap, replace: Boolean): Paint {
     for (i in texturePaintSources.indices) {
         if (texturePaintSources[i] === texture) {

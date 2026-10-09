@@ -9,6 +9,9 @@
  */
 package com.pandulapeter.kubriko.helpers
 
-// Skia rasterizes these batches itself instead of handing them to a device driver, so the texture coordinates
-// are honoured wherever this build runs and there is nothing to ask. @see TriangleBatchSupport
+/**
+ * Skia rasterizes these batches itself instead of handing them to a device driver, so the texture coordinates
+ * are honoured wherever this build runs and there is nothing to ask.
+ * @see TriangleBatchSupport
+ */
 internal actual suspend fun probeTextureSampling() = true

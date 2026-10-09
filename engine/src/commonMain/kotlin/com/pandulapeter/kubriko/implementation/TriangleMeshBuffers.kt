@@ -85,8 +85,10 @@ internal object TriangleMeshBuffers {
         this.texCoords = if (texCoords == null) null else trimmedTexCoords(texCoords, positionCount, this.positions.size)
     }
 
-    // Skia sizes the mesh from the arrays it is handed, so the coordinates have to be trimmed to match the
-    // positions exactly as those were; the padding repeats the last real one, which is never indexed.
+    /**
+     * Skia sizes the mesh from the arrays it is handed, so the coordinates have to be trimmed to match the
+     * positions exactly as those were; the padding repeats the last real one, which is never indexed.
+     */
     private fun trimmedTexCoords(texCoords: FloatArray, positionCount: Int, paddedPositionCount: Int): FloatArray {
         if (texCoords.size == paddedPositionCount) return texCoords
         // The positions were padded to a bucket unless the batch happened to be exactly full, in which case the
@@ -118,16 +120,21 @@ internal object TriangleMeshBuffers {
         return capacity
     }
 
-    // Buckets grow by a quarter per step, so the padding tops out at a quarter of the count it holds and the
-    // whole ladder stays a small multiple of the largest bucket in memory. Kept a multiple of three, so an
-    // index bucket's padding is whole triangles.
+    /**
+     * Buckets grow by a quarter per step, so the padding tops out at a quarter of the count it holds and the
+     * whole ladder stays a small multiple of the largest bucket in memory. Kept a multiple of three, so an
+     * index bucket's padding is whole triangles.
+     */
     private fun nextBucketCapacity(capacity: Int, maximum: Int) = minOf((capacity + capacity / 4 + 2) / 3 * 3, maximum)
 
     private const val BUCKET_COUNT = 32
     private const val MINIMUM_BUCKET_VERTEX_COUNT = 1024
     private const val MINIMUM_BUCKET_INDEX_COUNT = 1536
 
-    // The vertex ladder ends exactly at what a 16-bit index can address; a batch never holds more than that
-    // anyway. @see TriangleBatch.MAX_INDEXED_VERTICES
+    /**
+     * The vertex ladder ends exactly at what a 16-bit index can address; a batch never holds more than that
+     * anyway.
+     * @see TriangleBatch.MAX_INDEXED_VERTICES
+     */
     private const val MAXIMUM_BUCKET_VERTEX_COUNT = TriangleBatch.MAX_INDEXED_VERTICES
 }

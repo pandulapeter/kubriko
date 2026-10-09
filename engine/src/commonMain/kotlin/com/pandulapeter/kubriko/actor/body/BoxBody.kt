@@ -106,8 +106,10 @@ class BoxBody(
         initialRotation = rotation,
     )
 
-    // Raw float math on the four corners; building an Array<SceneOffset> here would box every
-    // value class element, and this runs once per frame for every moving/rotating/scaling body.
+    /**
+     * Raw float math on the four corners; building an Array<SceneOffset> here would box every
+     * value class element, and this runs once per frame for every moving/rotating/scaling body.
+     */
     override fun updateAxisAlignedBoundingBox(target: AxisAlignedBoundingBox) {
         val pivotX = pivot.x.raw
         val pivotY = pivot.y.raw

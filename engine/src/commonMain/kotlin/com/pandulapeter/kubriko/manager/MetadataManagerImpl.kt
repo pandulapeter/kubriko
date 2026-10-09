@@ -27,10 +27,12 @@ internal class MetadataManagerImpl(
     override val fps = _fps.asStateFlow()
     private val _totalRuntimeInMilliseconds = MutableStateFlow(0L)
     override val totalRuntimeInMilliseconds = _totalRuntimeInMilliseconds.asStateFlow()
-    // The per-tick Canvas invalidation signal (see ActorManagerImpl.Composable's `gameTime`): a
-    // primitive Compose snapshot state written directly here, so consumers read it without the
-    // boxed-Long StateFlow emission + collectAsState dispatch a flow-based read would cost every tick.
-    // totalRuntimeInMilliseconds stays a StateFlow purely as public API.
+    /**
+     * The per-tick Canvas invalidation signal (see [ActorManagerImpl]'s layer Canvas): a
+     * primitive Compose snapshot state written directly here, so consumers read it without the
+     * boxed-Long StateFlow emission + collectAsState dispatch a flow-based read would cost every tick.
+     * totalRuntimeInMilliseconds stays a StateFlow purely as public API.
+     */
     private val _gameTime = mutableLongStateOf(0L)
     internal val gameTime: State<Long> get() = _gameTime
     private val _activeRuntimeInMilliseconds = MutableStateFlow(0L)

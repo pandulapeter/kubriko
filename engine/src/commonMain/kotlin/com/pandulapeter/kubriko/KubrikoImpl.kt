@@ -67,7 +67,7 @@ internal class KubrikoImpl(
             )
         )
     }
-    // Tick dispatch iterates this array by index: List.forEach would allocate an iterator on every tick.
+    /** Tick dispatch iterates this array by index: List.forEach would allocate an iterator on every tick. */
     private val managersForTick: Array<Manager> = managers.toTypedArray()
     /**
      * Copy-on-write, so that lookups from several threads (actor callbacks, composition, the tick thread) stay

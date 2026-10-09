@@ -18,26 +18,31 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.nativeCanvas
 
-// Vertex colors override the paint when no shader is set, so a plain paint is all that's needed.
-// Opaque white ensures that on devices where the vertex colors are modulated with the paint
-// (rather than replacing it), they pass through unchanged.
+/**
+ * Vertex colors override the paint when no shader is set, so a plain paint is all that's needed.
+ * Opaque white ensures that on devices where the vertex colors are modulated with the paint
+ * (rather than replacing it), they pass through unchanged.
+ */
 private val trianglePaint = Paint().apply { color = android.graphics.Color.WHITE }
 
-// The source-replace variant; overlapping shapes occlude rather than blend inside a group's offscreen buffer.
+/** The source-replace variant; overlapping shapes occlude rather than blend inside a group's offscreen buffer. */
 private val replaceTrianglePaint = Paint().apply {
     color = android.graphics.Color.WHITE
     blendMode = android.graphics.BlendMode.SRC
 }
 
-// Mipmapped sampling is what lets a pattern average itself away as the camera pulls back instead of aliasing
-// into a shimmer, and the anisotropy is what asks for it: a BitmapShader built any other way samples at
-// SkMipmapMode.kNone whatever the bitmap says about mipmaps, so bilinear is all it ever gets. It is also the
-// right filter for a plane seen at a grazing angle, which a square filter kernel has to blur or alias through.
+/**
+ * Mipmapped sampling is what lets a pattern average itself away as the camera pulls back instead of aliasing
+ * into a shimmer, and the anisotropy is what asks for it: a BitmapShader built any other way samples at
+ * SkMipmapMode.kNone whatever the bitmap says about mipmaps, so bilinear is all it ever gets. It is also the
+ * right filter for a plane seen at a grazing angle, which a square filter kernel has to blur or alias through.
+ */
 private const val MAX_ANISOTROPY = 4
 
-// A handful of identity-keyed slots rather than one: two textured batches drawn in a stable A, B order
-// evicted each other from a single slot, rebuilding the Paint and BitmapShader on every draw. The fixed
-// size keeps native resources bounded, and an evicted entry is dropped exactly as the single slot was.
+/**
+ * A handful of identity-keyed slots, so textured batches drawn in a stable A, B order don't evict each other and
+ * rebuild the Paint and BitmapShader on every draw. The fixed size keeps native resources bounded.
+ */
 private const val TEXTURE_PAINT_CACHE_SIZE = 4
 private val texturePaintSources = arrayOfNulls<ImageBitmap>(TEXTURE_PAINT_CACHE_SIZE)
 private val texturePaints = arrayOfNulls<Paint>(TEXTURE_PAINT_CACHE_SIZE)
