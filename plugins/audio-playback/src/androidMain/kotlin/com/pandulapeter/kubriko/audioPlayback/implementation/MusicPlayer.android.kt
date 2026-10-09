@@ -52,8 +52,8 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
                 seekTo(0)
             }
             
+            isLooping = shouldLoop
             if (shouldLoop) {
-                isLooping = true
                 setOnCompletionListener(null)
             } else {
                 setOnCompletionListener { 
