@@ -9,14 +9,10 @@
  */
 package com.pandulapeter.kubriko.sprites.implementation
 
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.Matrix
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import com.pandulapeter.kubriko.sprites.SpriteResource
 import org.jetbrains.skia.Image
-import org.jetbrains.skia.Matrix33
 import org.jetbrains.skia.Paint
 import org.jetbrains.skia.Rect
 import org.jetbrains.skia.SamplingMode
