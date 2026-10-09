@@ -11,8 +11,6 @@ package com.pandulapeter.kubriko.manager
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.KubrikoImpl
 import com.pandulapeter.kubriko.helpers.extensions.div
 import com.pandulapeter.kubriko.helpers.extensions.toSceneOffset
 import com.pandulapeter.kubriko.implementation.SyncStateFlow
@@ -40,7 +38,6 @@ internal class ViewportManagerImpl(
     initialTargetFrameRate: TargetFrameRate,
 ) : ViewportManager(isLoggingEnabled, instanceNameForLogging) {
 
-    private lateinit var actorManager: ActorManagerImpl
     private val _targetFrameRate = MutableStateFlow(initialTargetFrameRate)
     override val targetFrameRate = _targetFrameRate.asStateFlow()
     private val _cameraPosition = MutableStateFlow(SceneOffset.Zero)
@@ -91,10 +88,6 @@ internal class ViewportManagerImpl(
                 viewportScaleFactor = scaleFactor.value,
             )
         }
-    }
-
-    override fun onInitialize(kubriko: Kubriko) {
-        actorManager = (kubriko as KubrikoImpl).actorManager
     }
 
     /**
