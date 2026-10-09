@@ -13,6 +13,7 @@ import com.pandulapeter.kubriko.implementation.FrameTickScheduler.Companion.NO_T
 import com.pandulapeter.kubriko.implementation.FrameTickScheduler.Companion.RE_ANCHOR
 import com.pandulapeter.kubriko.types.TargetFrameRate
 import kotlin.math.abs
+import kotlin.math.floor
 import kotlin.math.roundToLong
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -61,6 +62,35 @@ class FrameTickSchedulerTest {
             }
         }
         return tickingFrames
+    }
+
+    /** Runs the loop on a continuous clock against a vsync grid whose rate may change, returning the emitted deltas. */
+    private fun tickDeltasWithSleeps(
+        targetFrameRate: TargetFrameRate,
+        tickCount: Int,
+        refreshRateAt: (timeInMilliseconds: Double) -> Double,
+        lateFrameIndex: Int = -1,
+        lateByInMilliseconds: Double = 0.0,
+    ): List<Int> {
+        val scheduler = FrameTickScheduler()
+        val deltas = ArrayList<Int>()
+        var now = 0.0
+        var frameIndex = 0
+        while (deltas.size < tickCount) {
+            val sleep = scheduler.sleepBeforeNextFrame(now.roundToLong(), targetFrameRate)
+            if (sleep > 0L) {
+                scheduler.onSlept(sleep)
+                now += sleep
+            }
+            val period = 1000.0 / refreshRateAt(now)
+            var time = if (frameIndex == 0) 0.0 else (floor(now / period + 1e-9) + 1) * period
+            if (frameIndex == lateFrameIndex) time += lateByInMilliseconds
+            frameIndex++
+            val result = scheduler.frame(time.roundToLong(), targetFrameRate)
+            now = time
+            if (result >= 0) deltas.add(result)
+        }
+        return deltas
     }
 
     @Test
@@ -170,5 +200,39 @@ class FrameTickSchedulerTest {
         assertEquals(16, scheduler.frame(516, TargetFrameRate.DisplayDefault))
         scheduler.onResumed()
         assertEquals(RE_ANCHOR, scheduler.frame(532, TargetFrameRate.DisplayDefault))
+    }
+
+    @Test
+    fun displayDividerRecoversFromALateFrameBeforeItStartsSleeping() {
+        val deltas = tickDeltasWithSleeps(
+            targetFrameRate = TargetFrameRate.DisplayDivider(2),
+            tickCount = 120,
+            refreshRateAt = { 60.0 },
+            lateFrameIndex = 2,
+            lateByInMilliseconds = 33.3,
+        )
+        val average = deltas.takeLast(30).average()
+        assertTrue(abs(average - 33.3) <= 1.0, "average delta was $average")
+    }
+
+    @Test
+    fun displayDividerFollowsARefreshRateChangeWhileSleeping() {
+        val deltas = tickDeltasWithSleeps(
+            targetFrameRate = TargetFrameRate.DisplayDivider(2),
+            tickCount = 200,
+            refreshRateAt = { time -> if (time < 300.0) 60.0 else 120.0 },
+        )
+        val average = deltas.takeLast(30).average()
+        assertTrue(abs(average - 16.7) <= 1.0, "average delta was $average")
+    }
+
+    @Test
+    fun aReAnchorForgetsTheDisplayFrameInterval() {
+        val scheduler = FrameTickScheduler()
+        val target = TargetFrameRate.DisplayDivider(4)
+        scheduler.frame(0, target)
+        scheduler.frame(8, target)
+        assertEquals(RE_ANCHOR, scheduler.frame(3_008, target))
+        assertEquals(0L, scheduler.sleepBeforeNextFrame(3_008, target))
     }
 }

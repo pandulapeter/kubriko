@@ -36,10 +36,13 @@ internal class FrameTickScheduler {
 
     /**
      * The panel's own frame interval: the gap between the last two display frames awaited back to back,
-     * 0 until two such frames have been seen. Frames slept through (see below) are never observed, so only
-     * the ones that aren't keep it current.
+     * 0 until two such frames have been seen. Frames slept through (see below) are never observed, so the loop
+     * skips one sleep at least once a second to re-measure it, and it is cleared whenever the timeline restarts.
      */
     private var displayFrameInterval = 0f
+
+    /** Frame time of the last back-to-back measurement of [displayFrameInterval], -1 if there is none. */
+    private var intervalMeasuredAtInMilliseconds = -1L
 
     /**
      * Whether the loop slept through display frames before awaiting the current one, in which case its
@@ -77,12 +80,15 @@ internal class FrameTickScheduler {
             lastProcessedFrameTime = frameTimeInMilliseconds
             phaseInMilliseconds = 0f
             displayFramesSinceTick = 0
+            displayFrameInterval = 0f
+            intervalMeasuredAtInMilliseconds = -1L
             result = RE_ANCHOR
         } else {
             val frameDelta = (frameTimeInMilliseconds - lastFrameTime).toInt()
             lastFrameTime = frameTimeInMilliseconds
             if (!hasSkippedDisplayFrames && frameDelta > 0) {
                 displayFrameInterval = frameDelta.toFloat()
+                intervalMeasuredAtInMilliseconds = frameTimeInMilliseconds
             }
             if (canTick) {
                 when (targetFrameRate) {
@@ -146,7 +152,10 @@ internal class FrameTickScheduler {
      * should await right away.
      */
     fun sleepBeforeNextFrame(nowInMilliseconds: Long, targetFrameRate: TargetFrameRate): Long {
-        if (lastFrameTime != -1L && displayFrameInterval > 0f) {
+        if (lastFrameTime != -1L &&
+            displayFrameInterval > 0f &&
+            lastFrameTime - intervalMeasuredAtInMilliseconds < INTERVAL_REFRESH_PERIOD_IN_MILLISECONDS
+        ) {
             val displayFramesUntilTick = when (targetFrameRate) {
                 TargetFrameRate.DisplayDefault -> 1
                 is TargetFrameRate.Limit -> ((1000f / targetFrameRate.framesPerSecond - phaseInMilliseconds) / displayFrameInterval).roundToInt()
@@ -177,6 +186,8 @@ internal class FrameTickScheduler {
         lastFrameTime = -1L
         phaseInMilliseconds = 0f
         displayFramesSinceTick = 0
+        displayFrameInterval = 0f
+        intervalMeasuredAtInMilliseconds = -1L
     }
 
     companion object {
@@ -187,5 +198,6 @@ internal class FrameTickScheduler {
         const val RE_ANCHOR = -2
 
         private const val MAXIMUM_FRAME_GAP_IN_MILLISECONDS = 2_000L
+        private const val INTERVAL_REFRESH_PERIOD_IN_MILLISECONDS = 1_000L
     }
 }
