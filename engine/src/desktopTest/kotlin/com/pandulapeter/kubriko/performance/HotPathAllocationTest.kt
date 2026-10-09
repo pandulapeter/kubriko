@@ -20,12 +20,14 @@ import com.pandulapeter.kubriko.helpers.Timer
 import com.pandulapeter.kubriko.helpers.TriangleBatch
 import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
+import com.pandulapeter.kubriko.implementation.FrameTickScheduler
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.newTestKubriko
 import com.pandulapeter.kubriko.testFixtures.awaitProcessed
 import com.pandulapeter.kubriko.testFixtures.measureAllocatedBytesPerRun
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
+import com.pandulapeter.kubriko.types.TargetFrameRate
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -114,6 +116,23 @@ class HotPathAllocationTest {
         val bytes = measureAllocatedBytesPerRun { timer.update(16) }
         assertTrue(bytes < 1, "$bytes B per Timer update")
         assertTrue(fires > 0)
+    }
+
+    @Test
+    fun frameTickSchedulerDoesNotAllocate() {
+        val scheduler = FrameTickScheduler()
+        val targetFrameRate = TargetFrameRate.Limit(30)
+        var frameTime = 0L
+        var sink = 0L
+        val bytes = measureAllocatedBytesPerRun(warmUpRuns = 200, measuredRuns = 50) {
+            for (i in 0 until 300) {
+                frameTime += 8
+                sink += scheduler.onFrame(frameTime, frameTime, canTick = true, targetFrameRate = targetFrameRate)
+                sink += scheduler.sleepBeforeNextFrame(frameTime + 1, targetFrameRate)
+            }
+        }
+        assertTrue(bytes < 1, "$bytes B per 300 FrameTickScheduler frames")
+        assertTrue(sink != 0L)
     }
 
     @Test

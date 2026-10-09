@@ -27,13 +27,11 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoImpl
 import com.pandulapeter.kubriko.helpers.ViewportFrameTickSource
 import com.pandulapeter.kubriko.manager.ViewportManager
-import com.pandulapeter.kubriko.types.TargetFrameRate
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
-import kotlin.math.roundToInt
 import kotlin.time.TimeSource
 
 @Composable
@@ -78,105 +76,23 @@ fun InternalViewport(
             val tickSource = kubrikoImpl.tickSource
             val viewportTickSource = tickSource as? ViewportFrameTickSource
             viewportTickSource?.start()
-            // Timestamp of the previous display frame, used to derive the per-frame delta.
-            var lastFrameTime = -1L
-            // Timestamp of the last emitted tick; the emitted delta is the real time elapsed since it.
-            var lastProcessedFrameTime = -1L
-            // Subtract-interval accumulator for TargetFrameRate.Limit; preserves the remainder across
-            // frames so the achieved rate stays accurate on panels whose refresh rate is not an integer
-            // multiple of the target (resetting to zero would drift, e.g. 60 fps on 90 Hz -> 45 fps).
-            var phaseInMilliseconds = 0f
-            // Display-frame counter for TargetFrameRate.DisplayDivider; emits on every divisor-th frame.
-            var displayFramesSinceTick = 0
-            // The panel's own frame interval: the gap between the last two display frames awaited back to back,
-            // 0 until two such frames have been seen. Frames slept through (see below) are never observed, so only
-            // the ones that aren't keep it current.
-            var displayFrameInterval = 0f
-            // Whether the loop slept through display frames before awaiting the current one, in which case its
-            // delta spans several of them and says nothing about the panel's interval.
-            var hasSkippedDisplayFrames = false
-            // How long the loop slept before awaiting the current frame (0 if it didn't), so that its own throttling
-            // is never mistaken for the app having been away.
-            var lastSleepInMilliseconds = 0L
-            // When the previous display frame was processed, on the clock the sleep below is measured against.
+            val scheduler = FrameTickScheduler()
             val loopStartTimeMark = TimeSource.Monotonic.markNow()
-            var lastFrameProcessedAtInMilliseconds = 0L
-            // Hoisted out of the loop: a lambda declared inline in the frame call would capture the mutable locals and
-            // be re-allocated on every frame. Nanoseconds rather than withFrameMillis, which wraps whatever it is given
-            // in a lambda of its own on every call.
+            // Hoisted out of the loop: a lambda declared inline in the frame call would be re-allocated on every frame.
+            // Nanoseconds rather than withFrameMillis, which wraps whatever it is given in a lambda of its own on every
+            // call.
             val onFrame: (Long) -> Unit = { frameTimeInNanoseconds ->
-                val frameTimeInMilliseconds = frameTimeInNanoseconds / NANOSECONDS_PER_MILLISECOND
-                lastFrameProcessedAtInMilliseconds = loopStartTimeMark.elapsedNow().inWholeMilliseconds
-                // A long gap between frames (the app was in the background) restarts the timeline like the first frame
-                // does, instead of being emitted as one giant delta.
-                if (lastFrameTime == -1L ||
-                    frameTimeInMilliseconds - lastFrameTime > MAXIMUM_FRAME_GAP_IN_MILLISECONDS + lastSleepInMilliseconds
-                ) {
-                    lastFrameTime = frameTimeInMilliseconds
-                    lastProcessedFrameTime = frameTimeInMilliseconds
-                    phaseInMilliseconds = 0f
-                    displayFramesSinceTick = 0
-                    kubrikoImpl.metadataManager.onUpdateInternal(0)
-                } else {
-                    val frameDelta = (frameTimeInMilliseconds - lastFrameTime).toInt()
-                    lastFrameTime = frameTimeInMilliseconds
-                    if (!hasSkippedDisplayFrames && frameDelta > 0) {
-                        displayFrameInterval = frameDelta.toFloat()
-                    }
-                    val canTick = viewportTickSource != null && isTickingAllowed(kubrikoImpl, viewportTickSource)
-                    if (canTick) {
-                        when (val targetFrameRate = kubrikoImpl.viewportManager.targetFrameRate.value) {
-                            TargetFrameRate.DisplayDefault -> {
-                                viewportTickSource.tick((frameTimeInMilliseconds - lastProcessedFrameTime).toInt())
-                                lastProcessedFrameTime = frameTimeInMilliseconds
-                            }
-
-                            is TargetFrameRate.Limit -> {
-                                phaseInMilliseconds += frameDelta
-                                val interval = 1000f / targetFrameRate.framesPerSecond
-                                // Tick on whichever display frame lands closest to the deadline instead of on the
-                                // first one past it: display frames arrive on a grid the target rarely divides, so
-                                // demanding a full interval postpones every near-miss by a whole frame and quantizes
-                                // the achieved rate down to a fraction of the target - most visibly when the panel
-                                // itself runs at the target rate (see PlatformFrameRateHint), where the two throttles
-                                // compound instead of stacking. After a sleep the delta spans several display frames,
-                                // so the tolerance is half of the panel's own interval rather than of the delta.
-                                val displayFrame = if (hasSkippedDisplayFrames) displayFrameInterval else frameDelta.toFloat()
-                                if (phaseInMilliseconds >= interval - displayFrame / 2f) {
-                                    viewportTickSource.tick((frameTimeInMilliseconds - lastProcessedFrameTime).toInt())
-                                    lastProcessedFrameTime = frameTimeInMilliseconds
-                                    phaseInMilliseconds -= interval
-                                    // Catch-up guard: after a long stall (e.g. backgrounding) collapse the
-                                    // backlog instead of bursting many ticks to catch up.
-                                    if (phaseInMilliseconds >= interval) {
-                                        phaseInMilliseconds = 0f
-                                    }
-                                }
-                            }
-
-                            is TargetFrameRate.DisplayDivider -> {
-                                displayFramesSinceTick += if (hasSkippedDisplayFrames) {
-                                    (frameDelta / displayFrameInterval).roundToInt().coerceAtLeast(1)
-                                } else {
-                                    1
-                                }
-                                if (displayFramesSinceTick >= targetFrameRate.divisor) {
-                                    viewportTickSource.tick((frameTimeInMilliseconds - lastProcessedFrameTime).toInt())
-                                    lastProcessedFrameTime = frameTimeInMilliseconds
-                                    displayFramesSinceTick = 0
-                                }
-                            }
-                        }
-                    } else {
-                        // Paused: keep the timeline anchored to the latest frame so resuming does not
-                        // produce a single giant catch-up delta, and discard accumulated phase.
-                        lastProcessedFrameTime = frameTimeInMilliseconds
-                        phaseInMilliseconds = 0f
-                        displayFramesSinceTick = 0
-                    }
+                val result = scheduler.onFrame(
+                    frameTimeInMilliseconds = frameTimeInNanoseconds / NANOSECONDS_PER_MILLISECOND,
+                    processedAtInMilliseconds = loopStartTimeMark.elapsedNow().inWholeMilliseconds,
+                    canTick = viewportTickSource != null && isTickingAllowed(kubrikoImpl, viewportTickSource),
+                    targetFrameRate = kubrikoImpl.viewportManager.targetFrameRate.value,
+                )
+                when (result) {
+                    FrameTickScheduler.RE_ANCHOR -> kubrikoImpl.metadataManager.onUpdateInternal(0)
+                    FrameTickScheduler.NO_TICK -> Unit
+                    else -> viewportTickSource?.tick(result)
                 }
-                hasSkippedDisplayFrames = false
-                lastSleepInMilliseconds = 0L
             }
             while (isActive) {
                 val canTickNow = viewportTickSource != null && isTickingAllowed(kubrikoImpl, viewportTickSource)
@@ -193,31 +109,20 @@ fun InternalViewport(
                     ) { size, isFocused, isTickSourceRunning ->
                         isTickSourceRunning && !size.isEmpty() && (!viewportTickSource.shouldPauseOnFocusLoss || isFocused)
                     }.first { it }
-                    // Resuming: anchor the timeline to now so it doesn't emit one giant catch-up delta.
-                    lastFrameTime = -1L
-                    phaseInMilliseconds = 0f
-                    displayFramesSinceTick = 0
+                    scheduler.onResumed()
                     continue
                 }
                 // Awaiting a display frame is what schedules one: on every Skia-backed platform the whole window is
                 // then drawn again, whether or not a tick changed anything. A throttled target sleeps through the
                 // frames that can't carry its next tick instead, and wakes half a display frame before the one that
-                // can, so that one is the next frame awaited - the tick decision above still runs on its real time.
-                if (lastFrameTime != -1L && displayFrameInterval > 0f) {
-                    val displayFramesUntilTick = when (val targetFrameRate = kubrikoImpl.viewportManager.targetFrameRate.value) {
-                        TargetFrameRate.DisplayDefault -> 1
-                        is TargetFrameRate.Limit -> ((1000f / targetFrameRate.framesPerSecond - phaseInMilliseconds) / displayFrameInterval).roundToInt()
-                        is TargetFrameRate.DisplayDivider -> targetFrameRate.divisor - displayFramesSinceTick
-                    }
-                    if (displayFramesUntilTick >= 2) {
-                        val sleepInMilliseconds = ((displayFramesUntilTick - 0.5f) * displayFrameInterval).toLong() -
-                                (loopStartTimeMark.elapsedNow().inWholeMilliseconds - lastFrameProcessedAtInMilliseconds)
-                        if (sleepInMilliseconds > 0L) {
-                            hasSkippedDisplayFrames = true
-                            lastSleepInMilliseconds = sleepInMilliseconds
-                            delay(sleepInMilliseconds)
-                        }
-                    }
+                // can, so that one is the next frame awaited - the tick decision still runs on its real time.
+                val sleepInMilliseconds = scheduler.sleepBeforeNextFrame(
+                    nowInMilliseconds = loopStartTimeMark.elapsedNow().inWholeMilliseconds,
+                    targetFrameRate = kubrikoImpl.viewportManager.targetFrameRate.value,
+                )
+                if (sleepInMilliseconds > 0L) {
+                    scheduler.onSlept(sleepInMilliseconds)
+                    delay(sleepInMilliseconds)
                 }
                 withFrameNanos(onFrame)
             }
@@ -257,5 +162,3 @@ private fun isTickingAllowed(kubrikoImpl: KubrikoImpl, viewportTickSource: Viewp
 
 /** Compose hands frame times over in nanoseconds; the loop keeps its own time in milliseconds. */
 private const val NANOSECONDS_PER_MILLISECOND = 1_000_000L
-
-private const val MAXIMUM_FRAME_GAP_IN_MILLISECONDS = 2_000L
