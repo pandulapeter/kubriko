@@ -61,7 +61,7 @@ import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.vo
 import com.pandulapeter.kubriko.helpers.extensions.cos
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.helpers.extensions.sin
-import com.pandulapeter.kubriko.shared.StateHolder
+import com.pandulapeter.kubriko.shared.ui.LocalInfoPanelVisibility
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.LoadingOverlay
 import kotlinx.coroutines.delay
@@ -191,7 +191,7 @@ internal fun IsometricGraphicsContent(
     ) {
         InfoPanel(
             text = stringResource(Res.string.description),
-            isVisible = StateHolder.isInfoPanelVisible.value,
+            isVisible = LocalInfoPanelVisibility.current,
         )
         if (isReadyToRender.value) {
             Row(

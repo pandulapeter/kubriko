@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.demoPhysics.implementation.PlatformSpecificContent
 import com.pandulapeter.kubriko.shared.SceneEditorConnection
-import com.pandulapeter.kubriko.shared.StateHolder
+import com.pandulapeter.kubriko.shared.ui.LocalInfoPanelVisibility
 import com.pandulapeter.kubriko.uiComponents.FloatingButton
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.LoadingOverlay
@@ -57,7 +57,7 @@ internal fun PhysicsDemoOverlay(
     ) {
         InfoPanel(
             stringResource = Res.string.description,
-            isVisible = StateHolder.isInfoPanelVisible.value,
+            isVisible = LocalInfoPanelVisibility.current,
         )
         Spacer(modifier = Modifier.weight(1f))
         Row(

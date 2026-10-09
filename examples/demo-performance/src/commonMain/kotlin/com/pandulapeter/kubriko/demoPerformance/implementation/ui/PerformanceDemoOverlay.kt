@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.demoPerformance.implementation.PlatformSpecificContent
 import com.pandulapeter.kubriko.shared.SceneEditorConnection
-import com.pandulapeter.kubriko.shared.StateHolder
+import com.pandulapeter.kubriko.shared.ui.LocalInfoPanelVisibility
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.LoadingOverlay
@@ -67,7 +67,7 @@ internal fun PerformanceDemoOverlay(
     ) {
         InfoPanel(
             stringResource = Res.string.description,
-            isVisible = StateHolder.isInfoPanelVisible.value,
+            isVisible = LocalInfoPanelVisibility.current,
         )
         AnimatedVisibility(
             visible = areActorsLoaded,

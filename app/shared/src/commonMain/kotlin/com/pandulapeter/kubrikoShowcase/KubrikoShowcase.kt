@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
-import com.pandulapeter.kubriko.shared.StateHolder
+import com.pandulapeter.kubriko.shared.ui.LocalInfoPanelVisibility
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseSession
@@ -98,24 +98,26 @@ fun KubrikoShowcase(
                         showcaseSession.select(null)
                     }
                 }
-                ShowcaseContent(
-                    shouldUseCompactUi = maxWidth < 640.dp,
-                    shouldUseWideSideMenu = maxWidth >= 1200.dp,
-                    allShowcaseEntries = ShowcaseEntry.entries,
-                    session = showcaseSession,
-                    selectedShowcaseEntry = showcaseSession.selectedEntry.value,
-                    onShowcaseEntrySelected = { showcaseEntry ->
-                        if (showcaseEntry != showcaseSession.selectedEntry.value) {
-                            activeStateHolder?.stopMusic()
-                            showcaseSession.select(showcaseEntry)
-                        }
-                    },
-                    activeKubrikoInstance = activeStateHolder?.kubriko?.collectAsState(null)?.value,
-                    isInFullscreenMode = isInFullscreenMode,
-                    onFullscreenModeToggled = onFullscreenModeToggled,
-                    isInfoPanelVisible = StateHolder.isInfoPanelVisible.value,
-                    toggleInfoPanelVisibility = { StateHolder.isInfoPanelVisible.value = !StateHolder.isInfoPanelVisible.value },
-                )
+                CompositionLocalProvider(LocalInfoPanelVisibility provides showcaseSession.isInfoPanelVisible) {
+                    ShowcaseContent(
+                        shouldUseCompactUi = maxWidth < 640.dp,
+                        shouldUseWideSideMenu = maxWidth >= 1200.dp,
+                        allShowcaseEntries = ShowcaseEntry.entries,
+                        session = showcaseSession,
+                        selectedShowcaseEntry = showcaseSession.selectedEntry.value,
+                        onShowcaseEntrySelected = { showcaseEntry ->
+                            if (showcaseEntry != showcaseSession.selectedEntry.value) {
+                                activeStateHolder?.stopMusic()
+                                showcaseSession.select(showcaseEntry)
+                            }
+                        },
+                        activeKubrikoInstance = activeStateHolder?.kubriko?.collectAsState(null)?.value,
+                        isInFullscreenMode = isInFullscreenMode,
+                        onFullscreenModeToggled = onFullscreenModeToggled,
+                        isInfoPanelVisible = showcaseSession.isInfoPanelVisible,
+                        toggleInfoPanelVisibility = showcaseSession::toggleInfoPanelVisibility,
+                    )
+                }
             }
         }
     }

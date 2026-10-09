@@ -22,7 +22,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
-import com.pandulapeter.kubriko.shared.StateHolder
+import com.pandulapeter.kubriko.shared.ui.LocalInfoPanelVisibility
 import com.pandulapeter.kubriko.testCollision.implementation.CollisionTestStateHolder
 import com.pandulapeter.kubriko.testCollision.implementation.CollisionTestStateHolderImpl
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
@@ -55,7 +55,7 @@ fun CollisionTest(
         ) {
             InfoPanel(
                 stringResource = Res.string.description,
-                isVisible = StateHolder.isInfoPanelVisible.value,
+                isVisible = LocalInfoPanelVisibility.current,
             )
         }
     }

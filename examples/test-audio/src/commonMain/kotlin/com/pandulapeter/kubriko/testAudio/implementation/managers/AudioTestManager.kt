@@ -28,7 +28,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
-import com.pandulapeter.kubriko.shared.StateHolder
+import com.pandulapeter.kubriko.shared.ui.LocalInfoPanelVisibility
 import com.pandulapeter.kubriko.testAudio.implementation.ui.MusicControls
 import com.pandulapeter.kubriko.testAudio.implementation.utilities.getResourceUri
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
@@ -90,7 +90,7 @@ internal class AudioTestManager(
     ) {
         InfoPanel(
             stringResource = Res.string.description,
-            isVisible = StateHolder.isInfoPanelVisible.value,
+            isVisible = LocalInfoPanelVisibility.current,
         )
         MusicControls(
             title = stringResource(Res.string.music_track_1),

@@ -96,4 +96,13 @@ class ShowcaseSessionTest {
             session.sceneEditorConnectionFor(ShowcaseEntry.PERFORMANCE),
         )
     }
+
+    @Test
+    fun infoPanelStartsVisibleAndToggles() {
+        assertTrue(session.isInfoPanelVisible)
+        session.toggleInfoPanelVisibility()
+        assertFalse(session.isInfoPanelVisible)
+        session.toggleInfoPanelVisibility()
+        assertTrue(session.isInfoPanelVisible)
+    }
 }

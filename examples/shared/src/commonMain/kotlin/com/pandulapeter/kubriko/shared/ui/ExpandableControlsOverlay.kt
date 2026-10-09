@@ -27,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import org.jetbrains.compose.resources.StringResource
 
@@ -52,7 +51,7 @@ fun ExpandableControlsOverlay(
 ) {
     InfoPanel(
         stringResource = description,
-        isVisible = StateHolder.isInfoPanelVisible.value,
+        isVisible = LocalInfoPanelVisibility.current,
     )
     Spacer(
         modifier = Modifier.weight(1f),

@@ -22,7 +22,6 @@ The single shared interface every example's state holder implements. It defines:
 - `fun stopMusic()` — called by the Showcase shell just before a crossfade transition begins, so music stops slightly earlier than `dispose()` to avoid the audio cutting out mid-fade. Default is no-op.
 - `fun navigateBack(isInFullscreenMode, onFullscreenModeToggled): Boolean` — hook for the system back gesture/button; returns `true` if the event was consumed (e.g. to pause instead of exit). Default returns `false`.
 - `fun dispose()` — releases all Kubriko instances and associated resources.
-- `companion object { val isInfoPanelVisible = mutableStateOf(true) }` — shared Compose state that the Showcase app's info panel observes to show/hide contextual help text. Stored here so all examples can write to it without depending on the app module.
 
 ### `SceneEditorConnection` (`commonMain`)
 
@@ -31,6 +30,10 @@ Ties an example's in-game "Editor" button to its desktop scene editor window (An
 ### `LoadingDismissal.kt` (`commonMain`)
 
 `Flow<T>.dismissLoadingWhen(scope, isLoaded, onLoaded)` — runs `onLoaded` `LoadingDismissalDelay` (300 ms) after every new value `isLoaded` accepts (a value equal to the last accepted one is skipped). The Performance and Physics demos hide their loading overlay with it once their scene's actors arrive, again after every scene-editor reload.
+
+### `ui/LocalInfoPanelVisibility.kt` (`commonMain`)
+
+`LocalInfoPanelVisibility` — a `CompositionLocal` (default `true`) telling the examples whether to show their info panel. The Showcase provides it around its content from the visibility its session keeps; the demos' and tests' overlays (and `ExpandableControlsOverlay`) read `LocalInfoPanelVisibility.current`, including those composed from a Manager's `Composable()` override, which runs inside the viewport's composition.
 
 ### `ui/GameRipple.kt` and `ui/GameButton.kt` (`commonMain`)
 

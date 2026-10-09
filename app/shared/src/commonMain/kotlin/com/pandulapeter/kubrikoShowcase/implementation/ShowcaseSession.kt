@@ -19,7 +19,7 @@ import com.pandulapeter.kubrikoShowcase.implementation.ui.createShowcaseStateHol
 
 /**
  * The Showcase's process-scoped state: the selected entry, the [StateHolder]s of the entries that are open, their
- * [SceneEditorConnection]s and the welcome screen's expanded section. It outlives the Activity on Android, so a running
+ * [SceneEditorConnection]s, the examples' info panel visibility and the welcome screen's expanded section. It outlives the Activity on Android, so a running
  * game survives a configuration change.
  *
  * @param createStateHolder Builds the [StateHolder] of an entry the first time it is needed, handing it the entry's
@@ -33,6 +33,10 @@ internal class ShowcaseSession(
     private val stateHolders = mutableMapOf<ShowcaseEntry, StateHolder>()
     private val sceneEditorConnections = mutableMapOf<ShowcaseEntry, SceneEditorConnection>()
 
+    /** Whether the examples show their info panel, toggled by the top bar's info button. */
+    var isInfoPanelVisible by mutableStateOf(true)
+        private set
+
     /** Whether the compact welcome screen shows its "more details" section. */
     var isWelcomeMoreInfoVisible by mutableStateOf(false)
 
@@ -40,6 +44,10 @@ internal class ShowcaseSession(
     fun select(entry: ShowcaseEntry?) {
         entry?.let(::holderFor)
         _selectedEntry.value = entry
+    }
+
+    fun toggleInfoPanelVisibility() {
+        isInfoPanelVisible = !isInfoPanelVisible
     }
 
     fun isSelected(entry: ShowcaseEntry) = _selectedEntry.value == entry
