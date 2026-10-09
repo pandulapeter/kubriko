@@ -40,6 +40,14 @@ Styling helpers every game's buttons and theme would otherwise repeat:
 - `Modifier.gameHover(onEnter, onExit)` — calls the latest callbacks when a hovering pointer enters or leaves the element. Each game button keeps its own highlight state and plays its hover sound from `onEnter`.
 - `Typography.withFontFamily(fontFamily)` — a copy of the typography with all fifteen text styles in the given font. Each theme loads its font in its own `@Composable` and calls `Typography().withFontFamily(...)`.
 
+### `ui/ExpandableControlsOverlay.kt` and `ui/ExpandControlsButton.kt` (`commonMain`)
+
+- `ExpandableControlsOverlay(windowInsets, description, isExpanded, onToggle, panel)` — the overlay of the demos with a controls panel (Content Shaders, Particles): the info panel on top, and a panel that scales in and out of the bottom-end corner above the brush button. `panel` receives the modifier that places it.
+- `ExpandControlsButton(modifier, isExpanded, onToggle)` — that brush button on its own, also used by Shader Animations' control buttons.
+- `areExpandControlsButtonResourcesLoaded()` (`ui/ExpandControlsButtonResources.kt`) — preloads the button's icon and strings; the resource gate of every example using it calls it.
+
+This module has its own compose resources (`ic_brush`, `expand_controls`, `collapse_controls`) for these components. Its `Res` class stays internal, so examples reach the resources only through the components and the preload function.
+
 ### `ResourceLoader.web.kt` (`webMain`)
 
 A single `getFixedUri(path, rootPathName)` utility function for constructing absolute audio/asset URIs on Wasm/JS targets. The function reads `window.location.pathname` and resolves the deploy root path so that audio preloading works correctly whether the Showcase app is served at the root or a sub-path. All example modules that load audio on Web delegate URI construction to this function.

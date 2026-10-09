@@ -11,16 +11,13 @@ package com.pandulapeter.kubriko.demoContentShaders.implementation
 
 import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.shared.StateHolder
-import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
+import com.pandulapeter.kubriko.shared.ui.areExpandControlsButtonResourcesLoaded
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import kubriko.examples.demo_content_shaders.generated.resources.Res
 import kubriko.examples.demo_content_shaders.generated.resources.blur
 import kubriko.examples.demo_content_shaders.generated.resources.chromatic_aberration
-import kubriko.examples.demo_content_shaders.generated.resources.collapse_controls
 import kubriko.examples.demo_content_shaders.generated.resources.comic
 import kubriko.examples.demo_content_shaders.generated.resources.description
-import kubriko.examples.demo_content_shaders.generated.resources.expand_controls
-import kubriko.examples.demo_content_shaders.generated.resources.ic_brush
 import kubriko.examples.demo_content_shaders.generated.resources.ripple
 import kubriko.examples.demo_content_shaders.generated.resources.shaders_not_supported
 import kubriko.examples.demo_content_shaders.generated.resources.smooth_pixelation
@@ -30,16 +27,11 @@ sealed interface ContentShadersDemoStateHolder : StateHolder {
 
     companion object {
         @Composable
-        fun areResourcesLoaded() = areIconResourcesLoaded() && areStringResourcesLoaded()
-
-        @Composable
-        private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_brush).value != null
+        fun areResourcesLoaded() = areExpandControlsButtonResourcesLoaded() && areStringResourcesLoaded()
 
         @Composable
         private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank()
                 && preloadedString(Res.string.shaders_not_supported).value.isNotBlank()
-                && preloadedString(Res.string.expand_controls).value.isNotBlank()
-                && preloadedString(Res.string.collapse_controls).value.isNotBlank()
                 && preloadedString(Res.string.chromatic_aberration).value.isNotBlank()
                 && preloadedString(Res.string.ripple).value.isNotBlank()
                 && preloadedString(Res.string.comic).value.isNotBlank()

@@ -20,6 +20,8 @@ kotlin {
             api(projects.engine)
             api(libs.compose.material3)
             api(libs.compose.materialRipple)
+            implementation(projects.tools.uiComponents)
+            implementation(libs.compose.resources)
         }
     }
 }

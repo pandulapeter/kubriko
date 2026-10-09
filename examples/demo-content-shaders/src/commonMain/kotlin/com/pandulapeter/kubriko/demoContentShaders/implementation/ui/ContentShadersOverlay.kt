@@ -9,41 +9,24 @@
  */
 package com.pandulapeter.kubriko.demoContentShaders.implementation.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.demoContentShaders.implementation.ContentShadersState
-import com.pandulapeter.kubriko.shared.StateHolder
-import com.pandulapeter.kubriko.uiComponents.FloatingButton
-import com.pandulapeter.kubriko.uiComponents.InfoPanel
+import com.pandulapeter.kubriko.shared.ui.ExpandableControlsOverlay
 import com.pandulapeter.kubriko.uiComponents.Panel
 import com.pandulapeter.kubriko.uiComponents.SmallSwitch
 import kubriko.examples.demo_content_shaders.generated.resources.Res
 import kubriko.examples.demo_content_shaders.generated.resources.blur
 import kubriko.examples.demo_content_shaders.generated.resources.chromatic_aberration
-import kubriko.examples.demo_content_shaders.generated.resources.collapse_controls
 import kubriko.examples.demo_content_shaders.generated.resources.comic
 import kubriko.examples.demo_content_shaders.generated.resources.description
-import kubriko.examples.demo_content_shaders.generated.resources.expand_controls
-import kubriko.examples.demo_content_shaders.generated.resources.ic_brush
 import kubriko.examples.demo_content_shaders.generated.resources.ripple
 import kubriko.examples.demo_content_shaders.generated.resources.smooth_pixelation
 import kubriko.examples.demo_content_shaders.generated.resources.vignette
@@ -56,49 +39,19 @@ internal fun ContentShadersOverlay(
     state: ContentShadersState,
     onStateChanged: (ContentShadersState) -> Unit,
     onControlsToggled: () -> Unit,
-) = Column(
-    modifier = Modifier
-        .fillMaxSize()
-        .windowInsetsPadding(windowInsets)
-        .padding(16.dp),
-) {
-    InfoPanel(
-        stringResource = Res.string.description,
-        isVisible = StateHolder.isInfoPanelVisible.value,
-    )
-    Spacer(
-        modifier = Modifier.weight(1f),
-    )
-    Box(
-        modifier = Modifier.fillMaxWidth(),
+) = ExpandableControlsOverlay(
+    windowInsets = windowInsets,
+    description = Res.string.description,
+    isExpanded = areControlsExpanded,
+    onToggle = onControlsToggled,
+) { modifier ->
+    Panel(
+        modifier = modifier,
     ) {
-        this@Column.AnimatedVisibility(
-            visible = areControlsExpanded,
-            enter = fadeIn() + scaleIn(transformOrigin = TransformOrigin(1f, 1f)),
-            exit = scaleOut(transformOrigin = TransformOrigin(1f, 1f)) + fadeOut(),
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                Panel(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(bottom = 16.dp, end = 16.dp),
-                ) {
-                    Controls(
-                        modifier = Modifier.width(220.dp),
-                        state = state,
-                        onStateChanged = onStateChanged,
-                    )
-                }
-            }
-        }
-        FloatingButton(
-            modifier = Modifier.align(Alignment.BottomEnd),
-            icon = Res.drawable.ic_brush,
-            isSelected = areControlsExpanded,
-            contentDescription = stringResource(if (areControlsExpanded) Res.string.collapse_controls else Res.string.expand_controls),
-            onButtonPressed = onControlsToggled,
+        Controls(
+            modifier = Modifier.width(220.dp),
+            state = state,
+            onStateChanged = onStateChanged,
         )
     }
 }

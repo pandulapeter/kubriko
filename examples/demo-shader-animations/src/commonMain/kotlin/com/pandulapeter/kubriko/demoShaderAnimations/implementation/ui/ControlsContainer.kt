@@ -39,15 +39,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationDemoType
 import com.pandulapeter.kubriko.shared.StateHolder
+import com.pandulapeter.kubriko.shared.ui.ExpandControlsButton
 import com.pandulapeter.kubriko.uiComponents.FloatingButton
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.Panel
 import kubriko.examples.demo_shader_animations.generated.resources.Res
-import kubriko.examples.demo_shader_animations.generated.resources.collapse_controls
 import kubriko.examples.demo_shader_animations.generated.resources.description
-import kubriko.examples.demo_shader_animations.generated.resources.expand_controls
 import kubriko.examples.demo_shader_animations.generated.resources.hide_code
-import kubriko.examples.demo_shader_animations.generated.resources.ic_brush
 import kubriko.examples.demo_shader_animations.generated.resources.ic_code
 import kubriko.examples.demo_shader_animations.generated.resources.show_code
 import org.jetbrains.compose.resources.stringResource
@@ -132,12 +130,10 @@ private fun ControlButtons(
             onButtonPressed = { onControlsStateChanged(if (isSelected) ControlsState.COLLAPSED else ControlsState.EXPANDED_CODE) },
         )
     }
-    (controlsState == ControlsState.EXPANDED_CONTROLS).let { isSelected ->
-        FloatingButton(
-            icon = Res.drawable.ic_brush,
-            isSelected = isSelected,
-            contentDescription = stringResource(if (isSelected) Res.string.collapse_controls else Res.string.expand_controls),
-            onButtonPressed = { onControlsStateChanged(if (isSelected) ControlsState.COLLAPSED else ControlsState.EXPANDED_CONTROLS) },
+    (controlsState == ControlsState.EXPANDED_CONTROLS).let { isExpanded ->
+        ExpandControlsButton(
+            isExpanded = isExpanded,
+            onToggle = { onControlsStateChanged(if (isExpanded) ControlsState.COLLAPSED else ControlsState.EXPANDED_CONTROLS) },
         )
     }
 }
