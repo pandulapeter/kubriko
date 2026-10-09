@@ -141,7 +141,7 @@ internal fun EditorUserInterface(
                                             onActorDragStarted = editorController::onBeforeActorDrag,
                                             notifySelectedInstanceUpdate = editorController::notifySelectedActorUpdate,
                                         ),
-                                    editorController = editorController,
+                                    shouldShowLoadingIndicator = editorController.shouldShowLoadingIndicator.collectAsState().value,
                                     overlayKubriko = overlayKubriko,
                                 )
                             }

@@ -18,18 +18,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
-import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
 
 @Composable
 internal fun EditorOverlay(
     modifier: Modifier = Modifier,
-    editorController: EditorController,
+    shouldShowLoadingIndicator: Boolean,
     overlayKubriko: Kubriko,
 ) {
     KubrikoViewport(
@@ -37,7 +35,7 @@ internal fun EditorOverlay(
         kubriko = overlayKubriko,
     )
     AnimatedVisibility(
-        visible = editorController.shouldShowLoadingIndicator.collectAsState().value,
+        visible = shouldShowLoadingIndicator,
         enter = fadeIn(),
         exit = fadeOut(),
     ) {
