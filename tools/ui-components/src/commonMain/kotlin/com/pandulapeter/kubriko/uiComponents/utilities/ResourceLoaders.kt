@@ -23,6 +23,9 @@ import org.jetbrains.compose.resources.FontResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Returns a state holding the string of [resource], or an empty string until it has loaded.
+ */
 @Composable
 fun preloadedString(
     resource: StringResource,
@@ -30,6 +33,10 @@ fun preloadedString(
     value = stringResource(resource).takeIf { it.isNotBlank() }.orEmpty()
 }
 
+/**
+ * Returns a state holding the font of [resource] with the given [weight] and [style], or null until it has loaded. Only the
+ * web loads resources asynchronously; the other platforms provide the font on the first composition.
+ */
 @Composable
 expect fun preloadedFont(
     resource: FontResource,
@@ -37,11 +44,19 @@ expect fun preloadedFont(
     style: FontStyle = FontStyle.Normal
 ): State<Font?>
 
+/**
+ * Returns a state holding the bitmap of [resource], or null until it has loaded. Only the web loads resources
+ * asynchronously; the other platforms provide the bitmap on the first composition.
+ */
 @Composable
 expect fun preloadedImageBitmap(
     resource: DrawableResource,
 ): State<ImageBitmap?>
 
+/**
+ * Returns a state holding the vector image of [resource], or null until it has loaded. Only the web loads resources
+ * asynchronously; the other platforms provide the image on the first composition.
+ */
 @Composable
 expect fun preloadedImageVector(
     resource: DrawableResource,

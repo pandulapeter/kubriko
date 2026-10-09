@@ -11,8 +11,16 @@ package com.pandulapeter.kubriko.uiComponents.theme
 
 import androidx.compose.ui.graphics.Color
 
+/**
+ * The brand colors of the Kubriko visual style, used by [KubrikoTheme] to build its color schemes.
+ */
 object KubrikoColors {
+    /** The main brand color: `primary` and `primaryContainer` in both color schemes, and the background of the loading screen. */
     val brandPrimary = Color(0xFF6060AA)
+
+    /** The color of content drawn on top of [brandPrimary]: `onPrimary` and `onPrimaryContainer` in both color schemes. */
     val onBrandPrimary = Color(0xFFFDFDFD)
+
+    /** A lighter variant of [brandPrimary], used as `secondary` in the dark color scheme only. */
     val brandSecondary = Color(0xFF9090CC)
 }
