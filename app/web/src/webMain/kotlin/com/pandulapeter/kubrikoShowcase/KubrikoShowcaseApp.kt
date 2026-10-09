@@ -29,7 +29,7 @@ fun main() {
         }
     ) {
         val isInFullscreenMode = remember { mutableStateOf(if (window.isRunningOnIphone()) null else false) }
-        val initialPath = remember { window.location.pathname.removePrefix(BuildConfig.WEB_ROOT_PATH_NAME) }
+        val initialPath = remember { window.location.pathname }
         val rootPath = remember { if (window.location.pathname == "/") "/" else "/${BuildConfig.WEB_ROOT_PATH_NAME}/" }
         val currentPath = remember { mutableStateOf(window.location.pathname) }
         DisposableEffect(Unit) {
