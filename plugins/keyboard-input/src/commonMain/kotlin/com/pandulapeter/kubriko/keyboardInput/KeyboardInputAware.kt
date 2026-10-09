@@ -34,7 +34,8 @@ interface KeyboardInputAware : Actor {
     fun onKeyPressed(key: Key) = Unit
 
     /**
-     * Called when a key is released.
+     * Called when a key reported through [onKeyPressed] is released, or when the instance loses focus while it is
+     * held. Every release follows exactly one press.
      *
      * @param key The key that was released.
      */

@@ -49,6 +49,7 @@ On focus loss, all active keys are flushed immediately, on the main thread like 
 ## Key API Details
 
 - `onKeyPressed(key)` / `onKeyReleased(key)` — fire once per event, NOT on OS key-repeat
+- Every `onKeyReleased` follows exactly one `onKeyPressed` of the same instance (or is the focus-loss flush of a held key); a release of a key never reported as pressed is dropped. Presses are focus-gated, so this is what keeps the Desktop listener, which is JVM-wide (it sees every window's keys), from reporting other windows' keys
 - `handleActiveKeys(keys: Set<Key>)` — called every tick with the current held set; use for smooth movement
 - `isKeyPressed(key)` reads `activeKeysCache` (live), not the per-tick snapshot
 - `KeyboardInputAware` can be applied to **Managers** as well as Actors

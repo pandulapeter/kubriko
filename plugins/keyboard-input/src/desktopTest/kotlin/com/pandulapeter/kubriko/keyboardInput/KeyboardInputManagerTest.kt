@@ -72,6 +72,34 @@ class KeyboardInputManagerTest {
     }
 
     @Test
+    fun releasingAKeyThatWasNeverPressedIsNotReported() = withKeyboard { kubriko, manager, actor ->
+        manager.onKeyReleased(Key.B)
+        kubriko.tick()
+
+        assertEquals(emptyList(), actor.releasedKeys)
+        assertTrue(actor.activeKeySets.none { Key.B in it })
+    }
+
+    @Test
+    fun releasingAKeyTwiceReportsItOnce() = withKeyboard { _, manager, actor ->
+        manager.onKeyPressed(Key.A)
+        manager.onKeyReleased(Key.A)
+        manager.onKeyReleased(Key.A)
+
+        assertEquals(listOf(Key.A), actor.releasedKeys)
+    }
+
+    @Test
+    fun handlerSeesTheKeyAsPressedDuringItsRelease() = withKeyboard { _, manager, actor ->
+        val isPressedDuringRelease = mutableListOf<Boolean>()
+        actor.onRelease = { key -> isPressedDuringRelease.add(manager.isKeyPressed(key)) }
+        manager.onKeyPressed(Key.A)
+        manager.onKeyReleased(Key.A)
+
+        assertEquals(listOf(true), isPressedDuringRelease)
+    }
+
+    @Test
     fun isKeyPressedIsLiveBetweenTicks() = withKeyboard { _, manager, _ ->
         manager.onKeyPressed(Key.A)
         assertTrue(manager.isKeyPressed(Key.A))
@@ -108,6 +136,7 @@ class KeyboardInputManagerTest {
         val activeKeySets = mutableListOf<Set<Key>>()
         val pressedKeys = mutableListOf<Key>()
         val releasedKeys = mutableListOf<Key>()
+        var onRelease: (Key) -> Unit = {}
 
         override fun handleActiveKeys(activeKeys: ImmutableSet<Key>) {
             activeKeySets.add(activeKeys.toSet())
@@ -119,6 +148,7 @@ class KeyboardInputManagerTest {
 
         override fun onKeyReleased(key: Key) {
             releasedKeys.add(key)
+            onRelease(key)
         }
     }
 

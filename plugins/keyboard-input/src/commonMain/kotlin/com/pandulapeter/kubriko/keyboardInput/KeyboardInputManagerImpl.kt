@@ -120,9 +120,11 @@ internal class KeyboardInputManagerImpl(
     }
 
     internal fun onKeyReleased(key: Key) {
-        keyboardInputAwareActors.value.forEach { it.onKeyReleased(key) }
-        activeKeysCache.remove(key)
-        isActiveKeysDirty = true
+        if (activeKeysCache.contains(key)) {
+            keyboardInputAwareActors.value.forEach { it.onKeyReleased(key) }
+            activeKeysCache.remove(key)
+            isActiveKeysDirty = true
+        }
     }
 
     private fun releaseAllActiveKeys() {
