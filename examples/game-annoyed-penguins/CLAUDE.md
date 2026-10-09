@@ -49,7 +49,9 @@ Angry-Birds-style physics launcher. The player pulls back a slingshot to launch 
 
 ## Back navigation
 
-`navigateBack` (the Showcase's back handler) asks the pure `backNavigationAction(...)` in `implementation/BackNavigation.kt` what to do, in priority order: pause a running game, close the info dialog, resume a loaded level unless the close confirmation dialog is open, leave fullscreen, otherwise toggle the close confirmation dialog. Every branch but the last plays the toggle sound. `BackNavigationTest` pins the truth table.
+`navigateBack` (the Showcase's back handler) asks the pure `backNavigationAction(...)` in `implementation/BackNavigation.kt` what to do, in priority order: pause a running game, close the info dialog, resume a loaded level unless the close confirmation dialog is open, leave fullscreen, otherwise toggle the close confirmation dialog. Every branch plays the toggle sound. `BackNavigationTest` pins the truth table.
+
+The dialog, close and fullscreen buttons and the back presses that close a dialog go through `UIManager`'s intention-named methods (`onInfoButtonPressed`, `onInfoDialogClosed`, `onCloseConfirmationToggled`, `onCloseConfirmed`, `onFullscreenToggled`), which own the click sound; the entry Composable only passes method references.
 
 ## Input handling
 

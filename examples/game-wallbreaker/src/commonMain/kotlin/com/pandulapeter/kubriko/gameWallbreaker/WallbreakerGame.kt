@@ -96,23 +96,14 @@ fun WallbreakerGame(
             shouldShowResumeButton = !stateHolder.gameplayManager.isGameOver.collectAsState().value,
             onResumeButtonPressed = stateHolder.gameplayManager::resumeGame,
             onRestartButtonPressed = stateHolder.gameplayManager::restartGame,
-            onInfoButtonPressed = {
-                stateHolder.audioManager.playClickSoundEffect()
-                stateHolder.uiManager.toggleInfoDialogVisibility()
-            },
-            onExitButtonPressed = {
-                stateHolder.audioManager.playClickSoundEffect()
-                stateHolder.uiManager.toggleCloseConfirmationDialogVisibility()
-            },
+            onInfoButtonPressed = stateHolder.uiManager::onInfoButtonPressed,
+            onExitButtonPressed = stateHolder.uiManager::onCloseConfirmationToggled,
             areSoundEffectsEnabled = isFocused && stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
             onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
             isMusicEnabled = isFocused && stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
             onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
             isInFullscreenMode = isInFullscreenMode,
-            onFullscreenModeToggled = {
-                stateHolder.audioManager.playClickSoundEffect()
-                onFullscreenModeToggled()
-            },
+            onFullscreenModeToggled = { stateHolder.uiManager.onFullscreenToggled(onFullscreenModeToggled) },
             onButtonHover = {
                 if (!stateHolder.stateManager.isRunning.value) {
                     stateHolder.audioManager.playHoverSoundEffect()
@@ -122,17 +113,14 @@ fun WallbreakerGame(
         InfoDialogOverlay(
             modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
             isVisible = isInfoDialogVisible,
-            onInfoDialogClosed = stateHolder.uiManager::toggleInfoDialogVisibility,
+            onInfoDialogClosed = stateHolder.uiManager::onInfoDialogClosed,
             onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
         )
         CloseConfirmationDialogOverlay(
             modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets),
             isVisible = isCloseConfirmationDialogVisible,
-            onCloseConfirmed = {
-                stateHolder.audioManager.playClickSoundEffect()
-                stateHolder.backNavigationIntent.tryEmit(Unit)
-            },
-            onCloseCancelled = stateHolder.uiManager::toggleCloseConfirmationDialogVisibility,
+            onCloseConfirmed = stateHolder.uiManager::onCloseConfirmed,
+            onCloseCancelled = stateHolder.uiManager::onCloseConfirmationToggled,
             onButtonHover = stateHolder.audioManager::playHoverSoundEffect,
         )
     }

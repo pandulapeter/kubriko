@@ -113,27 +113,15 @@ fun AnnoyedPenguinsGame(
                 windowInsets = windowInsets,
                 currentLevel = stateHolder.gameplayManager.currentLevel.collectAsState().value,
                 allLevels = GameplayManager.LevelNames,
-                onInfoButtonPressed = {
-                    stateHolder.audioManager.playButtonToggleSoundEffect()
-                    stateHolder.uiManager.toggleInfoDialogVisibility()
-                },
-                onCloseButtonPressed = {
-                    stateHolder.audioManager.playButtonToggleSoundEffect()
-                    stateHolder.uiManager.toggleCloseConfirmationDialogVisibility()
-                },
-                onCloseConfirmed = {
-                    stateHolder.audioManager.playButtonToggleSoundEffect()
-                    stateHolder.backNavigationIntent.tryEmit(Unit)
-                },
+                onInfoButtonPressed = stateHolder.uiManager::onInfoButtonPressed,
+                onCloseButtonPressed = stateHolder.uiManager::onCloseConfirmationToggled,
+                onCloseConfirmed = stateHolder.uiManager::onCloseConfirmed,
                 areSoundEffectsEnabled = isGameFocused && stateHolder.sharedUserPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
                 onSoundEffectsToggled = stateHolder.sharedUserPreferencesManager::onAreSoundEffectsEnabledChanged,
                 isMusicEnabled = isGameFocused && stateHolder.sharedUserPreferencesManager.isMusicEnabled.collectAsState().value,
                 onMusicToggled = stateHolder.sharedUserPreferencesManager::onIsMusicEnabledChanged,
                 isInFullscreenMode = isInFullscreenMode,
-                onFullscreenModeToggled = {
-                    onFullscreenModeToggled()
-                    stateHolder.audioManager.playButtonToggleSoundEffect()
-                },
+                onFullscreenModeToggled = { stateHolder.uiManager.onFullscreenToggled(onFullscreenModeToggled) },
                 playToggleSoundEffect = stateHolder.audioManager::playButtonToggleSoundEffect,
                 playHoverSoundEffect = stateHolder.audioManager::playButtonHoverSoundEffect,
                 isInfoDialogVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,

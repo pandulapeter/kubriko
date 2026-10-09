@@ -91,9 +91,9 @@ internal class GameplayManager(
 
     fun resumeGame() {
         if (uiManager.isInfoDialogVisible.value) {
-            uiManager.toggleInfoDialogVisibility()
+            uiManager.onInfoDialogClosed()
         } else if (uiManager.isCloseConfirmationDialogVisible.value) {
-            uiManager.toggleCloseConfirmationDialogVisibility()
+            uiManager.onCloseConfirmationToggled()
         } else {
             audioManager.playClickSoundEffect()
             paddle.resetPointerTracking()
@@ -103,9 +103,9 @@ internal class GameplayManager(
 
     fun restartGame() {
         if (uiManager.isInfoDialogVisible.value) {
-            uiManager.toggleInfoDialogVisibility()
+            uiManager.onInfoDialogClosed()
         } else if (uiManager.isCloseConfirmationDialogVisible.value) {
-            uiManager.toggleCloseConfirmationDialogVisibility()
+            uiManager.onCloseConfirmationToggled()
         } else {
             actorManager.remove(bricks + actorManager.allActors.value.filterIsInstance<Ball>())
             startLevel()

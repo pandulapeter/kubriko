@@ -101,25 +101,16 @@ fun SpaceSquadronGame(
                 isInfoDialogVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
                 isCloseConfirmationDialogVisible = stateHolder.uiManager.isCloseConfirmationDialogVisible.collectAsState().value,
                 onPlayButtonPressed = stateHolder.gameplayManager::playGame,
-                onCloseConfirmationToggled = stateHolder.uiManager::toggleCloseConfirmationDialogVisibility,
-                onCloseConfirmed = {
-                    stateHolder.audioManager.playButtonToggleSoundEffect()
-                    stateHolder.backNavigationIntent.tryEmit(Unit)
-                },
+                onCloseConfirmationToggled = stateHolder.uiManager::onCloseConfirmationToggled,
+                onCloseConfirmed = stateHolder.uiManager::onCloseConfirmed,
                 onPauseButtonPressed = stateHolder.gameplayManager::pauseGame,
-                onInfoButtonPressed = {
-                    stateHolder.audioManager.playButtonToggleSoundEffect()
-                    stateHolder.uiManager.toggleInfoDialogVisibility()
-                },
+                onInfoButtonPressed = stateHolder.uiManager::onInfoButtonPressed,
                 areSoundEffectsEnabled = isFocused && stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
                 onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
                 isMusicEnabled = isFocused && stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
                 onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
                 isInFullscreenMode = isInFullscreenMode,
-                onFullscreenModeToggled = {
-                    stateHolder.audioManager.playButtonToggleSoundEffect()
-                    onFullscreenModeToggled()
-                },
+                onFullscreenModeToggled = { stateHolder.uiManager.onFullscreenToggled(onFullscreenModeToggled) },
                 onButtonHover = stateHolder.audioManager::playButtonHoverSoundEffect,
             )
         }

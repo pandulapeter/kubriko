@@ -49,6 +49,8 @@ Two `Kubriko` instances run side-by-side:
 
 `navigateBack` (the Showcase's back handler) asks the pure `backNavigationAction(...)` in `implementation/BackNavigation.kt` what to do, in priority order: pause a running game that is not over, close the info dialog, resume a started game unless the close confirmation dialog is open, leave fullscreen, otherwise toggle the close confirmation dialog. `BackNavigationTest` pins the truth table.
 
+The dialog, close and fullscreen buttons and the back presses that close a dialog go through `UIManager`'s intention-named methods (`onInfoButtonPressed`, `onInfoDialogClosed`, `onCloseConfirmationToggled`, `onCloseConfirmed`, `onFullscreenToggled`), which own the click sound; the entry Composable only passes method references.
+
 ## Input handling
 
 - **Mouse/touch**: `ShipDestination.onPointerOffsetChanged` uses relative delta (current minus previous position), multiplied by `POINTER_SENSITIVITY = 2f`, to update the destination. Every other event is skipped using the `shouldMoveShip` toggle to absorb the synthetic re-centering move that follows.

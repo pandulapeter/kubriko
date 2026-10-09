@@ -184,7 +184,9 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
         GameplayManager()
     }
     val uiManager by lazy {
-        UIManager()
+        UIManager(
+            onBackNavigationRequested = { backNavigationIntent.tryEmit(Unit) },
+        )
     }
     val backgroundKubriko by lazy {
         Kubriko.newInstance(
@@ -246,15 +248,20 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
                 isCloseConfirmationDialogVisible = uiManager.isCloseConfirmationDialogVisible.value,
                 isInFullscreenMode = isInFullscreenMode,
             )
-            if (action != BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION) {
-                audioManager.playButtonToggleSoundEffect()
-            }
             when (action) {
-                BackNavigationAction.PAUSE -> stateManager.updateIsRunning(false)
-                BackNavigationAction.CLOSE_INFO_DIALOG -> uiManager.toggleInfoDialogVisibility()
-                BackNavigationAction.RESUME -> stateManager.updateIsRunning(true)
-                BackNavigationAction.EXIT_FULLSCREEN -> onFullscreenModeToggled()
-                BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION -> uiManager.toggleCloseConfirmationDialogVisibility()
+                BackNavigationAction.PAUSE -> {
+                    audioManager.playButtonToggleSoundEffect()
+                    stateManager.updateIsRunning(false)
+                }
+
+                BackNavigationAction.CLOSE_INFO_DIALOG -> uiManager.onInfoDialogClosed()
+                BackNavigationAction.RESUME -> {
+                    audioManager.playButtonToggleSoundEffect()
+                    stateManager.updateIsRunning(true)
+                }
+
+                BackNavigationAction.EXIT_FULLSCREEN -> uiManager.onFullscreenToggled(onFullscreenModeToggled)
+                BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION -> uiManager.onCloseConfirmationToggled()
             }
         }
     }

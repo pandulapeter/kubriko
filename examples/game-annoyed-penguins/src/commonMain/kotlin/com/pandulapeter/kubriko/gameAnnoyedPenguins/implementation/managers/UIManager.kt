@@ -19,7 +19,9 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 
-internal class UIManager : Manager() {
+internal class UIManager(
+    private val onBackNavigationRequested: () -> Unit,
+) : Manager() {
 
     private val audioManager by manager<AudioManager>()
     private val stateManager by manager<StateManager>()
@@ -35,7 +37,28 @@ internal class UIManager : Manager() {
             .launchIn(scope)
     }
 
-    fun toggleInfoDialogVisibility() = _isInfoDialogVisible.update { !it }
+    fun onInfoButtonPressed() {
+        audioManager.playButtonToggleSoundEffect()
+        _isInfoDialogVisible.update { !it }
+    }
 
-    fun toggleCloseConfirmationDialogVisibility() = _isCloseConfirmationDialogVisible.update { !it.also { audioManager.playButtonToggleSoundEffect() } }
+    fun onInfoDialogClosed() {
+        audioManager.playButtonToggleSoundEffect()
+        _isInfoDialogVisible.value = false
+    }
+
+    fun onCloseConfirmationToggled() {
+        audioManager.playButtonToggleSoundEffect()
+        _isCloseConfirmationDialogVisible.update { !it }
+    }
+
+    fun onCloseConfirmed() {
+        audioManager.playButtonToggleSoundEffect()
+        onBackNavigationRequested()
+    }
+
+    fun onFullscreenToggled(onFullscreenModeToggled: () -> Unit) {
+        audioManager.playButtonToggleSoundEffect()
+        onFullscreenModeToggled()
+    }
 }

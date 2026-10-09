@@ -51,6 +51,7 @@ import kotlinx.coroutines.flow.update
 
 internal class UIManager(
     private val stateManager: StateManager,
+    private val onBackNavigationRequested: () -> Unit,
 ) : Manager(), KeyboardInputAware, Unique {
 
     private val actorManager by manager<ActorManager>()
@@ -142,7 +143,28 @@ internal class UIManager(
         }
     }
 
-    fun toggleInfoDialogVisibility() = _isInfoDialogVisible.update { !it.also { if (it) audioManager.playButtonToggleSoundEffect() } }
+    fun onInfoButtonPressed() {
+        audioManager.playButtonToggleSoundEffect()
+        _isInfoDialogVisible.update { !it }
+    }
 
-    fun toggleCloseConfirmationDialogVisibility() = _isCloseConfirmationDialogVisible.update { !it.also { audioManager.playButtonToggleSoundEffect() } }
+    fun onInfoDialogClosed() {
+        audioManager.playButtonToggleSoundEffect()
+        _isInfoDialogVisible.value = false
+    }
+
+    fun onCloseConfirmationToggled() {
+        audioManager.playButtonToggleSoundEffect()
+        _isCloseConfirmationDialogVisible.update { !it }
+    }
+
+    fun onCloseConfirmed() {
+        audioManager.playButtonToggleSoundEffect()
+        onBackNavigationRequested()
+    }
+
+    fun onFullscreenToggled(onFullscreenModeToggled: () -> Unit) {
+        audioManager.playButtonToggleSoundEffect()
+        onFullscreenModeToggled()
+    }
 }

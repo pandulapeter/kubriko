@@ -116,6 +116,7 @@ internal class SpaceSquadronGameStateHolderImpl(
     )
     val uiManager = UIManager(
         stateManager = stateManager,
+        onBackNavigationRequested = { backNavigationIntent.tryEmit(Unit) },
     )
     private val collisionManager = CollisionManager.newInstance(
         isLoggingEnabled = isLoggingEnabled,
@@ -178,14 +179,10 @@ internal class SpaceSquadronGameStateHolderImpl(
                 )
             ) {
                 BackNavigationAction.PAUSE -> gameplayManager.pauseGame()
-                BackNavigationAction.CLOSE_INFO_DIALOG -> uiManager.toggleInfoDialogVisibility()
+                BackNavigationAction.CLOSE_INFO_DIALOG -> uiManager.onInfoDialogClosed()
                 BackNavigationAction.RESUME -> gameplayManager.playGame()
-                BackNavigationAction.EXIT_FULLSCREEN -> {
-                    audioManager.playButtonToggleSoundEffect()
-                    onFullscreenModeToggled()
-                }
-
-                BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION -> uiManager.toggleCloseConfirmationDialogVisibility()
+                BackNavigationAction.EXIT_FULLSCREEN -> uiManager.onFullscreenToggled(onFullscreenModeToggled)
+                BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION -> uiManager.onCloseConfirmationToggled()
             }
         }
     }

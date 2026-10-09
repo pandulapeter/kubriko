@@ -56,7 +56,9 @@ The `turningTimer` fires every 650 ms and shifts to `nextDirectionClockwise`. No
 
 ## Back navigation
 
-`navigateBack` (the Showcase's back handler) asks the pure `backNavigationAction(...)` in `implementation/BackNavigation.kt` what to do, in priority order: pause a running game, close the info dialog, leave fullscreen, otherwise toggle the close confirmation dialog. A back press never resumes a paused game. Every branch but the last plays the toggle sound. `BackNavigationTest` pins the truth table.
+`navigateBack` (the Showcase's back handler) asks the pure `backNavigationAction(...)` in `implementation/BackNavigation.kt` what to do, in priority order: pause a running game, close the info dialog, leave fullscreen, otherwise toggle the close confirmation dialog. A back press never resumes a paused game. Every branch plays the toggle sound. `BackNavigationTest` pins the truth table.
+
+The dialog, close and fullscreen buttons and the back presses that close a dialog go through `UIManager`'s intention-named methods (`onInfoButtonPressed`, `onInfoDialogClosed`, `onCloseConfirmationToggled`, `onCloseConfirmed`, `onFullscreenToggled`), which own the click sound; the entry Composable only passes method references.
 
 ## Pause visual
 

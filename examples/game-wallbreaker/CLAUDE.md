@@ -44,6 +44,8 @@ Level completion is counted on the tick thread: `Ball` calls `GameplayManager.on
 
 `navigateBack` (the Showcase's back handler) asks the pure `backNavigationAction(...)` in `implementation/BackNavigation.kt` what to do, in priority order: pause a running game, close the info dialog, resume a started game (even behind the close confirmation dialog), leave fullscreen, otherwise toggle the close confirmation dialog. `BackNavigationTest` pins the truth table.
 
+The dialog, close and fullscreen buttons and the back presses that close a dialog go through `UIManager`'s intention-named methods (`onInfoButtonPressed`, `onInfoDialogClosed`, `onCloseConfirmationToggled`, `onCloseConfirmed`, `onFullscreenToggled`), which own the click sound; the entry Composable only passes method references.
+
 ## Input handling
 
 - **Mouse/touch**: `Paddle.onPointerOffsetChanged` uses relative delta with the cursor-recentering pattern (same as Space Squadron). The `shouldMovePaddle` boolean alternates every event to filter the synthetic cursor-center event.
