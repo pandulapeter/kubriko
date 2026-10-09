@@ -520,9 +520,3 @@ internal class EditorController(
             raw.x.roundToInt() == other.raw.x.roundToInt() && raw.y.roundToInt() == other.raw.y.roundToInt()
     }
 }
-
-internal enum class FileOperationError {
-    LOAD_FAILED,
-    SAVE_FAILED,
-    CONNECTED_SCENE_INVALID,
-}
