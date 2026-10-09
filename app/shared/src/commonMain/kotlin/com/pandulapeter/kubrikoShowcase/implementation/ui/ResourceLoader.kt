@@ -13,29 +13,12 @@ import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageBitmap
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
+import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
 import com.pandulapeter.kubrikoShowcase.implementation.ui.welcome.WelcomeScreenStateHolder
 import kubriko.app.shared.generated.resources.Res
 import kubriko.app.shared.generated.resources.back
 import kubriko.app.shared.generated.resources.debug_menu
-import kubriko.app.shared.generated.resources.demo_content_shaders
-import kubriko.app.shared.generated.resources.demo_content_shaders_subtitle
-import kubriko.app.shared.generated.resources.demo_particles
-import kubriko.app.shared.generated.resources.demo_particles_subtitle
-import kubriko.app.shared.generated.resources.demo_performance
-import kubriko.app.shared.generated.resources.demo_performance_subtitle
-import kubriko.app.shared.generated.resources.demo_physics
-import kubriko.app.shared.generated.resources.demo_physics_subtitle
-import kubriko.app.shared.generated.resources.demo_shader_animations
-import kubriko.app.shared.generated.resources.demo_shader_animations_subtitle
 import kubriko.app.shared.generated.resources.demos
-import kubriko.app.shared.generated.resources.game_annoyed_penguins
-import kubriko.app.shared.generated.resources.game_annoyed_penguins_subtitle
-import kubriko.app.shared.generated.resources.game_blockys_journey
-import kubriko.app.shared.generated.resources.game_blockys_journey_subtitle
-import kubriko.app.shared.generated.resources.game_space_squadron
-import kubriko.app.shared.generated.resources.game_space_squadron_subtitle
-import kubriko.app.shared.generated.resources.game_wallbreaker
-import kubriko.app.shared.generated.resources.game_wallbreaker_subtitle
 import kubriko.app.shared.generated.resources.games
 import kubriko.app.shared.generated.resources.ic_back
 import kubriko.app.shared.generated.resources.ic_collapse
@@ -53,16 +36,6 @@ import kubriko.app.shared.generated.resources.img_logo
 import kubriko.app.shared.generated.resources.info
 import kubriko.app.shared.generated.resources.kubriko_showcase
 import kubriko.app.shared.generated.resources.other
-import kubriko.app.shared.generated.resources.other_about
-import kubriko.app.shared.generated.resources.other_about_subtitle
-import kubriko.app.shared.generated.resources.other_licenses
-import kubriko.app.shared.generated.resources.other_licenses_subtitle
-import kubriko.app.shared.generated.resources.test_audio
-import kubriko.app.shared.generated.resources.test_audio_subtitle
-import kubriko.app.shared.generated.resources.test_collision
-import kubriko.app.shared.generated.resources.test_collision_subtitle
-import kubriko.app.shared.generated.resources.test_input
-import kubriko.app.shared.generated.resources.test_input_subtitle
 import kubriko.app.shared.generated.resources.tests
 import kubriko.app.shared.generated.resources.welcome
 import kubriko.app.shared.generated.resources.welcome_disclaimer
@@ -104,34 +77,10 @@ internal object ResourceLoader {
             && preloadedString(Res.string.debug_menu).value.isNotBlank()
             && preloadedString(Res.string.welcome).value.isNotBlank()
             && preloadedString(Res.string.welcome_subtitle).value.isNotBlank()
-            && preloadedString(Res.string.game_wallbreaker).value.isNotBlank()
-            && preloadedString(Res.string.game_wallbreaker_subtitle).value.isNotBlank()
-            && preloadedString(Res.string.game_space_squadron).value.isNotBlank()
-            && preloadedString(Res.string.game_space_squadron_subtitle).value.isNotBlank()
-            && preloadedString(Res.string.game_annoyed_penguins).value.isNotBlank()
-            && preloadedString(Res.string.game_annoyed_penguins_subtitle).value.isNotBlank()
-            && preloadedString(Res.string.game_blockys_journey).value.isNotBlank()
-            && preloadedString(Res.string.game_blockys_journey_subtitle).value.isNotBlank()
-            && preloadedString(Res.string.demo_content_shaders).value.isNotBlank()
-            && preloadedString(Res.string.demo_content_shaders_subtitle).value.isNotBlank()
-            && preloadedString(Res.string.demo_particles).value.isNotBlank()
-            && preloadedString(Res.string.demo_particles_subtitle).value.isNotBlank()
-            && preloadedString(Res.string.demo_performance).value.isNotBlank()
-            && preloadedString(Res.string.demo_performance_subtitle).value.isNotBlank()
-            && preloadedString(Res.string.demo_physics).value.isNotBlank()
-            && preloadedString(Res.string.demo_physics_subtitle).value.isNotBlank()
-            && preloadedString(Res.string.demo_shader_animations).value.isNotBlank()
-            && preloadedString(Res.string.demo_shader_animations_subtitle).value.isNotBlank()
-            && preloadedString(Res.string.test_audio).value.isNotBlank()
-            && preloadedString(Res.string.test_audio_subtitle).value.isNotBlank()
-            && preloadedString(Res.string.test_collision).value.isNotBlank()
-            && preloadedString(Res.string.test_collision_subtitle).value.isNotBlank()
-            && preloadedString(Res.string.test_input).value.isNotBlank()
-            && preloadedString(Res.string.test_input_subtitle).value.isNotBlank()
-            && preloadedString(Res.string.other_licenses).value.isNotBlank()
-            && preloadedString(Res.string.other_licenses_subtitle).value.isNotBlank()
-            && preloadedString(Res.string.other_about).value.isNotBlank()
-            && preloadedString(Res.string.other_about_subtitle).value.isNotBlank()
+            && ShowcaseEntry.entries.all { showcaseEntry ->
+                preloadedString(showcaseEntry.titleStringResource).value.isNotBlank()
+                        && preloadedString(showcaseEntry.subtitleStringResource).value.isNotBlank()
+            }
             && preloadedString(Res.string.welcome_disclaimer).value.isNotBlank()
 
 }

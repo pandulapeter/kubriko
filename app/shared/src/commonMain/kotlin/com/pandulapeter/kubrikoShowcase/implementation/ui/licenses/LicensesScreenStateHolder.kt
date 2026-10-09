@@ -16,12 +16,7 @@ import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kubriko.app.shared.generated.resources.Res
-import kubriko.app.shared.generated.resources.other_licenses_apache_2_0
-import kubriko.app.shared.generated.resources.other_licenses_cc0_1_0
 import kubriko.app.shared.generated.resources.other_licenses_content
-import kubriko.app.shared.generated.resources.other_licenses_lgpl_2_1
-import kubriko.app.shared.generated.resources.other_licenses_mit
-import kubriko.app.shared.generated.resources.other_licenses_mpl_2_0
 import kubriko.app.shared.generated.resources.other_licenses_music_note
 
 internal fun createLicensesScreenStateHolder(): LicensesScreenStateHolder = LicensesScreenStateHolderImpl()
@@ -34,11 +29,7 @@ internal sealed interface LicensesScreenStateHolder : StateHolder {
 
         @Composable
         private fun areStringResourcesLoaded() = preloadedString(Res.string.other_licenses_content).value.isNotBlank()
-                && preloadedString(Res.string.other_licenses_apache_2_0).value.isNotBlank()
-                && preloadedString(Res.string.other_licenses_cc0_1_0).value.isNotBlank()
-                && preloadedString(Res.string.other_licenses_lgpl_2_1).value.isNotBlank()
-                && preloadedString(Res.string.other_licenses_mit).value.isNotBlank()
-                && preloadedString(Res.string.other_licenses_mpl_2_0).value.isNotBlank()
+                && LicenseType.entries.all { preloadedString(it.licenseName).value.isNotBlank() }
                 && preloadedString(Res.string.other_licenses_music_note).value.isNotBlank()
     }
 }
