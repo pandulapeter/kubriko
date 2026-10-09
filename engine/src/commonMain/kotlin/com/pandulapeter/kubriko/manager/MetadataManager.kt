@@ -45,7 +45,9 @@ sealed class MetadataManager(
      * refresh-rate hint a [com.pandulapeter.kubriko.types.TargetFrameRate] applies - which makes it
      * the rate to derive a frame rate menu from, since targets that divide it evenly are the ones a
      * variable-refresh panel can settle on and present with even pacing. Follows the display, so it
-     * updates when the device unfolds or the window moves to another screen.
+     * updates when the device unfolds or the window moves to another screen. On iPhone, ProMotion
+     * rates above 60 Hz are only reported (and only presentable) when the app's `Info.plist` sets
+     * `CADisableMinimumFrameDurationOnPhone` to `true`.
      */
     abstract val maximumDisplayRefreshRate: StateFlow<Float?>
 
