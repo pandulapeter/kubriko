@@ -63,8 +63,6 @@ internal class UIManager(
     val isInfoDialogVisible = _isInfoDialogVisible.asStateFlow()
     private val _isCloseConfirmationDialogVisible = MutableStateFlow(false)
     val isCloseConfirmationDialogVisible = _isCloseConfirmationDialogVisible.asStateFlow()
-    private val shipHealth = MutableStateFlow(0)
-    private val multiShoot = MutableStateFlow(0)
     private var shouldDismissNextSpacebarRelease = false
 
     override fun onInitialize(kubriko: Kubriko) {
@@ -82,10 +80,6 @@ internal class UIManager(
             }
             .launchIn(scope)
     }
-
-    fun updateShipHealth(shipHealth: Int) = this.shipHealth.update { shipHealth }
-
-    fun updateShipMultiShoot(multiShoot: Int) = this.multiShoot.update { multiShoot }
 
     @Composable
     override fun processModifier(modifier: Modifier, layerIndex: Int?, gameTime: State<Long>) = modifier.pointerHoverIcon(
@@ -108,13 +102,15 @@ internal class UIManager(
                     .fillMaxSize()
                     .padding(16.dp),
             ) {
-                ShipStatusBars(
-                    modifier = Modifier
-                        .fillMaxWidth(0.5f)
-                        .align(Alignment.BottomEnd),
-                    healthFraction = shipHealth.collectAsState().value / Ship.MAX_HEALTH.toFloat(),
-                    multiShootFraction = multiShoot.collectAsState().value / Ship.MAX_MULTI_SHOOT.toFloat(),
-                )
+                gameplayManager.ship.collectAsState().value?.let { ship ->
+                    ShipStatusBars(
+                        modifier = Modifier
+                            .fillMaxWidth(0.5f)
+                            .align(Alignment.BottomEnd),
+                        healthFraction = ship.health.collectAsState().value / Ship.MAX_HEALTH.toFloat(),
+                        multiShootFraction = ship.multiShootCount.collectAsState().value / Ship.MAX_MULTI_SHOOT.toFloat(),
+                    )
+                }
             }
         }
         AnimatedVisibility(

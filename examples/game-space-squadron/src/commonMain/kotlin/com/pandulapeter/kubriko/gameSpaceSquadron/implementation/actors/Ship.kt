@@ -25,7 +25,6 @@ import com.pandulapeter.kubriko.collision.Collidable
 import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.UIManager
 import com.pandulapeter.kubriko.helpers.extensions.abs
 import com.pandulapeter.kubriko.helpers.extensions.distanceTo
 import com.pandulapeter.kubriko.helpers.extensions.get
@@ -44,14 +43,16 @@ import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.SceneUnit
-import kotlinx.collections.immutable.ImmutableSet
-import kotlinx.collections.immutable.PersistentMap
-import kubriko.examples.game_space_squadron.generated.resources.Res
-import kubriko.examples.game_space_squadron.generated.resources.sprite_ship
 import kotlin.math.abs
 import kotlin.math.hypot
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.PersistentMap
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kubriko.examples.game_space_squadron.generated.resources.Res
+import kubriko.examples.game_space_squadron.generated.resources.sprite_ship
 
 internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputAware, Collidable, Unique {
 
@@ -61,7 +62,6 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     private lateinit var spriteManager: SpriteManager
     private lateinit var stateManager: StateManager
     private lateinit var metadataManager: MetadataManager
-    private lateinit var uiManager: UIManager
     private lateinit var viewportManager: ViewportManager
     override val body = BoxBody(
         initialSize = SceneSize(
@@ -86,21 +86,21 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     private val shipDestination = ShipDestination()
     override val actors = listOf(shipDestination)
     private var lastShotTimestamp = 0L
-    private var remainingMultiShootCount = 0
+    private val _multiShootCount = MutableStateFlow(0)
+    val multiShootCount = _multiShootCount.asStateFlow()
+    private var remainingMultiShootCount
+        get() = _multiShootCount.value
         set(value) {
-            if (field != value) {
-                field = value
-                uiManager.updateShipMultiShoot(value)
-            }
+            _multiShootCount.value = value
         }
-    private var health = 0
+    private val _health = MutableStateFlow(0)
+    val health = _health.asStateFlow()
+    private var currentHealth
+        get() = _health.value
         set(value) {
-            if (field != value) {
-                field = value
-                uiManager.updateShipHealth(value)
-            }
+            _health.value = value
         }
-    val isShipAtMaxHealth get() = health == MAX_HEALTH
+    val isShipAtMaxHealth get() = currentHealth == MAX_HEALTH
     private var isShrinking = false
 
     override fun onAdded(kubriko: Kubriko) {
@@ -110,14 +110,12 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
         spriteManager = kubriko.get()
         stateManager = kubriko.get()
         metadataManager = kubriko.get()
-        uiManager = kubriko.get()
         viewportManager = kubriko.get()
         body.position = SceneOffset(
             x = SceneUnit.Zero,
             y = viewportManager.bottomRight.value.y * 2f,
         )
-        health = MAX_HEALTH
-        uiManager.updateShipMultiShoot(remainingMultiShootCount)
+        currentHealth = MAX_HEALTH
     }
 
     fun onPowerUpCollected() {
@@ -125,13 +123,13 @@ internal class Ship : Visible, Dynamic, Group, KeyboardInputAware, PointerInputA
     }
 
     fun onShieldCollected() {
-        health = min(health + 2, MAX_HEALTH)
+        currentHealth = min(currentHealth + 2, MAX_HEALTH)
     }
 
     fun onHit(isCollision: Boolean) {
         if (!isShrinking) {
-            health -= if (isCollision) 2 else 1
-            if (health <= 1) {
+            currentHealth -= if (isCollision) 2 else 1
+            if (currentHealth <= 1) {
                 isShrinking = true
                 audioManager.playExplosionLargeSoundEffect()
                 actorManager.add(

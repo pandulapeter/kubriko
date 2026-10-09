@@ -33,6 +33,8 @@ internal class GameplayManager(
     private val viewportManager by manager<ViewportManager>()
     private val _isGameOver = MutableStateFlow(true)
     val isGameOver = _isGameOver.asStateFlow()
+    private val _ship = MutableStateFlow<Ship?>(null)
+    val ship = _ship.asStateFlow()
     val speedMultiplier by lazy { viewportManager.size.map { it.height / 1280f }.asStateFlowOnMainThread(1f) }
     val scaleMultiplier by lazy { viewportManager.size.map { (it.height + it.width) / 3000f }.asStateFlowOnMainThread(1f) }
     val isGameStarted get() = actorManager.allActors.value.any { it is Ship }
@@ -48,7 +50,7 @@ internal class GameplayManager(
         if (isGameOver.value) {
             scoreManager.resetScore()
             _isGameOver.update { false }
-            actorManager.add(Ship())
+            actorManager.add(Ship().also { _ship.value = it })
             audioManager.playButtonPlaySoundEffect()
         } else {
             audioManager.playButtonToggleSoundEffect()

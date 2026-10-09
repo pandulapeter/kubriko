@@ -21,6 +21,7 @@ import com.pandulapeter.kubriko.collision.CollisionDetector
 import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.AudioManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.GameplayManager
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.ScoreManager
 import com.pandulapeter.kubriko.helpers.extensions.directionTowards
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.helpers.extensions.isWithinViewportBounds
@@ -51,6 +52,7 @@ internal class AlienShip(
     private lateinit var spriteManager: SpriteManager
     private lateinit var stateManager: StateManager
     private lateinit var metadataManager: MetadataManager
+    private lateinit var scoreManager: ScoreManager
     private lateinit var viewportManager: ViewportManager
     override val body = BoxBody(
         initialSize = SceneSize(
@@ -84,6 +86,7 @@ internal class AlienShip(
         spriteManager = kubriko.get()
         stateManager = kubriko.get()
         metadataManager = kubriko.get()
+        scoreManager = kubriko.get()
         viewportManager = kubriko.get()
     }
 
@@ -149,6 +152,7 @@ internal class AlienShip(
     fun onHit(canSpawnPowerup: Boolean) {
         if (!isShrinking) {
             isShrinking = true
+            scoreManager.incrementScore()
             actorManager.add(
                 Explosion(
                     position = body.position,

@@ -11,7 +11,6 @@ package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.actors
 
 import androidx.compose.ui.graphics.Color
 import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.managers.ScoreManager
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.particleStates.ExplosionParticleState
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -32,7 +31,6 @@ internal class Explosion(
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
-        kubriko.get<ScoreManager>().incrementScore()
     }
 
     override fun createParticleState() = ExplosionParticleState(
