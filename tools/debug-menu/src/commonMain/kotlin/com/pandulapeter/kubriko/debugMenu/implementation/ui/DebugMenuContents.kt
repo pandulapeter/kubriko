@@ -48,6 +48,7 @@ import kubriko.tools.debug_menu.generated.resources.body_overlay
 import kubriko.tools.debug_menu.generated.resources.collision_mask_overlay
 import kubriko.tools.debug_menu.generated.resources.debug_metadata
 import kubriko.tools.debug_menu.generated.resources.logs_empty
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
@@ -85,13 +86,15 @@ internal fun DebugMenuContents(
                     ),
                     debugMenuMetadata = debugMenuMetadata,
                 )
-                BodyOverlaySwitch(
-                    debugMenuMetadata = debugMenuMetadata,
-                    onIsBodyOverlayEnabledChanged = onIsBodyOverlayEnabledChanged,
+                OverlaySwitch(
+                    title = Res.string.body_overlay,
+                    isChecked = debugMenuMetadata.isBodyOverlayEnabled,
+                    onToggled = onIsBodyOverlayEnabledChanged,
                 )
-                CollisionMaskOverlaySwitch(
-                    debugMenuMetadata = debugMenuMetadata,
-                    onIsCollisionMaskOverlayEnabledChanged = onIsCollisionMaskOverlayEnabledChanged,
+                OverlaySwitch(
+                    title = Res.string.collision_mask_overlay,
+                    isChecked = debugMenuMetadata.isCollisionMaskOverlayEnabled,
+                    onToggled = onIsCollisionMaskOverlayEnabledChanged,
                 )
             }
             LogsHeader(
@@ -127,15 +130,17 @@ internal fun DebugMenuContents(
                     )
                 }
                 item("bodyOverlaySwitch") {
-                    BodyOverlaySwitch(
-                        debugMenuMetadata = debugMenuMetadata,
-                        onIsBodyOverlayEnabledChanged = onIsBodyOverlayEnabledChanged,
+                    OverlaySwitch(
+                        title = Res.string.body_overlay,
+                        isChecked = debugMenuMetadata.isBodyOverlayEnabled,
+                        onToggled = onIsBodyOverlayEnabledChanged,
                     )
                 }
                 item("collisionMaskOverlaySwitch") {
-                    CollisionMaskOverlaySwitch(
-                        debugMenuMetadata = debugMenuMetadata,
-                        onIsCollisionMaskOverlayEnabledChanged = onIsCollisionMaskOverlayEnabledChanged,
+                    OverlaySwitch(
+                        title = Res.string.collision_mask_overlay,
+                        isChecked = debugMenuMetadata.isCollisionMaskOverlayEnabled,
+                        onToggled = onIsCollisionMaskOverlayEnabledChanged,
                     )
                 }
             }
@@ -196,49 +201,26 @@ private fun Metadata(
 )
 
 @Composable
-private fun BodyOverlaySwitch(
-    debugMenuMetadata: DebugMenuMetadata,
-    onIsBodyOverlayEnabledChanged: () -> Unit,
+private fun OverlaySwitch(
+    title: StringResource,
+    isChecked: Boolean,
+    onToggled: () -> Unit,
 ) = Row(
     modifier = Modifier.selectable(
-        selected = debugMenuMetadata.isBodyOverlayEnabled,
-        onClick = onIsBodyOverlayEnabledChanged,
+        selected = isChecked,
+        onClick = onToggled,
     ).padding(start = 8.dp),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(4.dp),
 ) {
     Text(
         modifier = Modifier.weight(1f),
-        text = stringResource(Res.string.body_overlay),
+        text = stringResource(title),
         style = MaterialTheme.typography.bodySmall,
     )
     Switch(
         modifier = Modifier.scale(0.6f).height(24.dp),
-        checked = debugMenuMetadata.isBodyOverlayEnabled,
-        onCheckedChange = { onIsBodyOverlayEnabledChanged() },
-    )
-}
-
-@Composable
-private fun CollisionMaskOverlaySwitch(
-    debugMenuMetadata: DebugMenuMetadata,
-    onIsCollisionMaskOverlayEnabledChanged: () -> Unit,
-) = Row(
-    modifier = Modifier.selectable(
-        selected = debugMenuMetadata.isCollisionMaskOverlayEnabled,
-        onClick = onIsCollisionMaskOverlayEnabledChanged,
-    ).padding(start = 8.dp),
-    verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.spacedBy(4.dp),
-) {
-    Text(
-        modifier = Modifier.weight(1f),
-        text = stringResource(Res.string.collision_mask_overlay),
-        style = MaterialTheme.typography.bodySmall,
-    )
-    Switch(
-        modifier = Modifier.scale(0.6f).height(24.dp),
-        checked = debugMenuMetadata.isCollisionMaskOverlayEnabled,
-        onCheckedChange = { onIsCollisionMaskOverlayEnabledChanged() },
+        checked = isChecked,
+        onCheckedChange = { onToggled() },
     )
 }
