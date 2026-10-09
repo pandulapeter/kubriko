@@ -20,6 +20,7 @@ Key setup in `onCreate`:
 - `enableEdgeToEdge()` — full bleed rendering; `WindowInsets.safeDrawing` in the shared UI handles insets.
 - Fullscreen mode is a file-level `MutableStateFlow<Boolean>`. When `true`, system bars are hidden with `BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE`; when `false`, they are restored. The flow is observed via `lifecycleScope` so the window controller update runs outside of composition.
 - Deep links and back navigation are handled entirely by the shared `KubrikoShowcase` Composable.
+- The manifest declares `android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|density"`, so rotating, resizing the window, changing the display size, or connecting a controller or keyboard does not recreate the Activity (recreation would take every viewport out of composition and can pause a running game). Dark mode (`uiMode`) and locale changes still recreate it.
 
 ## Build configuration
 

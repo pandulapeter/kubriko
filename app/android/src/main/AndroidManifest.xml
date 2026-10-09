@@ -23,6 +23,7 @@
 
         <activity
             android:name=".KubrikoShowcaseActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|density"
             android:exported="true"
             android:resizeableActivity="true">
 
