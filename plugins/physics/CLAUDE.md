@@ -72,7 +72,7 @@ detected), joint blow-up (springs overshoot rest length), and stuck/repeating co
   body's `collisionMask`, but integration/penetration resolution move `physicsBody.position/rotation`; the
   owning actor's `update()` only reconciles them once per tick. Without the per-step sync, all sub-steps in
   one tick would detect collisions against frozen geometry — re-resolving the same stale penetration N times,
-  which exploded resting stacks and froze launched bodies at low frame rates. Do not remove this sync. Static
+  which explodes resting stacks and freezes launched bodies at low frame rates. Do not remove this sync. Static
   bodies (`invMass == 0`) are skipped because they never move during the simulation.
 - `MAXIMUM_SUB_STEPS_PER_TICK` (8) caps worst-case cost and prevents the spiral of death. Frame rates
   down to ~7.5 FPS stay fully time-accurate; below that the sim runs slower rather than exploding (backlog
