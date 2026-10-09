@@ -15,10 +15,13 @@ import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.sceneEditor.implementation.InternalSceneEditor
 import com.pandulapeter.kubriko.serialization.SerializationManager
 
+/**
+ * The real implementation of [SceneEditorContract]: a Desktop-only visual editor for [Editable] actors.
+ *
+ * Depend on `tool-scene-editor-noop` instead to strip it from release builds.
+ */
 object SceneEditor : SceneEditorContract {
-    /**
-     * TODO: Documentation
-     */
+
     override fun show(
         defaultSceneFilename: String?,
         defaultSceneFolderPath: String,
@@ -36,9 +39,6 @@ object SceneEditor : SceneEditorContract {
         )
     }
 
-    /**
-     * TODO: Documentation
-     */
     @Composable
     override operator fun invoke(
         defaultSceneFilename: String?,
