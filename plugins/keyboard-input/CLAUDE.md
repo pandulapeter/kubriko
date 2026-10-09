@@ -44,7 +44,7 @@ On focus loss, all active keys are flushed immediately, on the main thread like 
 | Desktop (JVM) | AWT `KeyEvent` | Only left-side modifiers detected (left Shift, left Ctrl, etc.) |
 | Web (Wasm) | `KeyboardEvent.code` | Many keys return `Key(-1)` (unmapped); test on target. Keys held when the window loses focus are reported as released then, since the browser sends no `keyup` for them |
 | Android | `KeyEvent` | 70 ms debounce workaround for unreliable held-key events; the debounce loop runs on the main thread with the key listener |
-| iOS | Zero-size UIView first-responder | Limited key support; software keyboard only |
+| iOS | GameController `GCKeyboard` (process-wide handler shared by all instances; it replaces any `keyChangedHandler` the app itself installs on the coalesced keyboard) | Hardware keyboards only (the software keyboard sends no key events); keys are heard whatever Compose has focused, like Desktop and Web. Keys held when the keyboard disconnects are reported as released then |
 
 ## Key API Details
 
