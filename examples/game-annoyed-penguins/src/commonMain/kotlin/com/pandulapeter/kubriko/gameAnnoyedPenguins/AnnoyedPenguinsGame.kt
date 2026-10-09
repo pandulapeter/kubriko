@@ -54,17 +54,6 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.ic_pause
 import kubriko.examples.game_annoyed_penguins.generated.resources.pause
 import org.jetbrains.compose.resources.stringResource
 
-fun createAnnoyedPenguinsGameStateHolder(
-    webRootPathName: String,
-    isSceneEditorEnabled: Boolean,
-    isLoggingEnabled: Boolean,
-): AnnoyedPenguinsGameStateHolder = AnnoyedPenguinsGameStateHolderImpl(
-    webRootPathName = webRootPathName,
-    isSceneEditorEnabled = isSceneEditorEnabled,
-    isLoggingEnabled = isLoggingEnabled,
-    isForSceneEditor = false,
-)
-
 @Composable
 fun AnnoyedPenguinsGame(
     stateHolder: AnnoyedPenguinsGameStateHolder,
