@@ -10,7 +10,6 @@
 package com.pandulapeter.kubriko.sceneEditor.implementation.actors
 
 import androidx.compose.ui.input.key.Key
-import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -22,10 +21,13 @@ class KeyboardInputListenerTest {
     private var redoCount = 0
     private var interactionModeSelectedCount = 0
 
-    private fun newListener() = KeyboardInputListener(
+    private fun newListener(
+        pressedKeys: Set<Key> = emptySet(),
+        isTextInputFocused: Boolean = false,
+    ) = KeyboardInputListener(
         viewportManager = ViewportManager.newInstance(),
-        keyboardInputManager = KeyboardInputManager.newInstance(),
-        isTextInputFocused = { false },
+        isKeyPressed = { it in pressedKeys },
+        isTextInputFocused = { isTextInputFocused },
         navigateBack = { navigateBackCount++ },
         onUndo = { undoCount++ },
         onRedo = { redoCount++ },
@@ -60,5 +62,30 @@ class KeyboardInputListenerTest {
         listener.onKeyReleased(Key.Back)
 
         assertEquals(1, navigateBackCount)
+    }
+
+    @Test
+    fun undoShortcutIsIgnoredWhileATextInputIsFocused() {
+        newListener(pressedKeys = setOf(Key.CtrlLeft), isTextInputFocused = true).onKeyPressed(Key.Z)
+
+        assertEquals(0, undoCount)
+    }
+
+    @Test
+    fun redoShortcutsAreIgnoredWhileATextInputIsFocused() {
+        newListener(pressedKeys = setOf(Key.CtrlLeft, Key.ShiftLeft), isTextInputFocused = true).onKeyPressed(Key.Z)
+        newListener(pressedKeys = setOf(Key.CtrlLeft), isTextInputFocused = true).onKeyPressed(Key.Y)
+
+        assertEquals(0, redoCount)
+    }
+
+    @Test
+    fun undoAndRedoShortcutsWorkWithoutTextFocus() {
+        newListener(pressedKeys = setOf(Key.CtrlLeft)).onKeyPressed(Key.Z)
+        newListener(pressedKeys = setOf(Key.CtrlLeft, Key.ShiftLeft)).onKeyPressed(Key.Z)
+        newListener(pressedKeys = setOf(Key.CtrlLeft)).onKeyPressed(Key.Y)
+
+        assertEquals(1, undoCount)
+        assertEquals(2, redoCount)
     }
 }

@@ -60,7 +60,7 @@ internal class EditorController(
         GridOverlay(viewportManager, userPreferences),
         KeyboardInputListener(
             viewportManager = viewportManager,
-            keyboardInputManager = keyboardInputManager,
+            isKeyPressed = keyboardInputManager::isKeyPressed,
             isTextInputFocused = { focusedTextInputCount > 0 },
             navigateBack = ::navigateBack,
             onUndo = ::onUndo,

@@ -12,7 +12,6 @@ package com.pandulapeter.kubriko.sceneEditor.implementation.actors
 import androidx.compose.ui.input.key.Key
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware
-import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.implementation.SceneEditorInteractionMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.handleKeys
@@ -20,7 +19,7 @@ import kotlinx.collections.immutable.ImmutableSet
 
 internal class KeyboardInputListener(
     private val viewportManager: ViewportManager,
-    private val keyboardInputManager: KeyboardInputManager,
+    private val isKeyPressed: (Key) -> Boolean,
     private val isTextInputFocused: () -> Boolean,
     private val navigateBack: () -> Unit,
     private val onUndo: () -> Unit,
@@ -29,11 +28,9 @@ internal class KeyboardInputListener(
 ) : KeyboardInputAware, Unique {
 
     private val isShortcutModifierActive
-        get() = keyboardInputManager.run {
-            isKeyPressed(Key.CtrlLeft) || isKeyPressed(Key.CtrlRight) || isKeyPressed(Key.MetaLeft) || isKeyPressed(Key.MetaRight)
-        }
+        get() = isKeyPressed(Key.CtrlLeft) || isKeyPressed(Key.CtrlRight) || isKeyPressed(Key.MetaLeft) || isKeyPressed(Key.MetaRight)
     private val isShiftActive
-        get() = keyboardInputManager.run { isKeyPressed(Key.ShiftLeft) || isKeyPressed(Key.ShiftRight) }
+        get() = isKeyPressed(Key.ShiftLeft) || isKeyPressed(Key.ShiftRight)
     private var isBackKeyPressed = false
 
     override fun handleActiveKeys(activeKeys: ImmutableSet<Key>) {
@@ -46,12 +43,14 @@ internal class KeyboardInputListener(
         if (key == Key.Escape || key == Key.Back) {
             isBackKeyPressed = true
         }
+        // A focused BasicTextField handles Ctrl/Cmd+Z/Y itself.
+        if (isTextInputFocused()) return
         if (isShortcutModifierActive) {
             when (key) {
                 Key.Z -> if (isShiftActive) onRedo() else onUndo()
                 Key.Y -> onRedo()
             }
-        } else if (!isTextInputFocused()) {
+        } else {
             SceneEditorInteractionMode.entries.firstOrNull { it.shortcut == key }?.let(onInteractionModeSelected)
         }
     }
