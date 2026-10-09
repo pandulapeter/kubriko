@@ -49,11 +49,13 @@ private const val SHOW_MINI_MAP = true
 private const val MINI_MAP_REFRESH_MS = 64L
 private const val MINI_MAP_SCALE = 0.04f
 
-// 128 dp circular top-down minimap, drawn as a lightweight overlay instead of rendering
-// `logicKubriko`'s actors, at the fixed MINI_MAP_SCALE: the camera offset is read live (full-frame-rate
-// scrolling while moving, zero redraws while idle), while marker world positions are sampled by MiniMapSampler
-// every MINI_MAP_REFRESH_MS. Markers tolerate the sampling lag because the main character is
-// pinned to the center (camera = character position) and scenery is world-static.
+/**
+ * 128 dp circular top-down minimap, drawn as a lightweight overlay instead of rendering
+ * `logicKubriko`'s actors, at the fixed MINI_MAP_SCALE: the camera offset is read live (full-frame-rate
+ * scrolling while moving, zero redraws while idle), while marker world positions are sampled by MiniMapSampler
+ * every MINI_MAP_REFRESH_MS. Markers tolerate the sampling lag because the main character is
+ * pinned to the center (camera = character position) and scenery is world-static.
+ */
 @Composable
 internal fun MiniMap(
     logicKubriko: Kubriko,

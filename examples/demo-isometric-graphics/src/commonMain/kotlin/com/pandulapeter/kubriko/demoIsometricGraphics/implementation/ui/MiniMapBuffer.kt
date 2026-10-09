@@ -11,10 +11,12 @@ package com.pandulapeter.kubriko.demoIsometricGraphics.implementation.ui
 
 import com.pandulapeter.kubriko.demoIsometricGraphics.implementation.renderer.data.actor.MiniMapMarker
 
-// Reusable sample storage for the minimap overlay. Marker positions and footprint half-sizes are
-// stored in screen-scaled pixels (world * viewport scale), quantized to half-pixel steps so the
-// sub-pixel wiggle of idle animations doesn't register as a content change. Colors are stored as
-// ARGB ints so writing them doesn't box Color values; arrays only ever grow.
+/**
+ * Reusable sample storage for the minimap overlay. Marker positions and footprint half-sizes are
+ * stored in screen-scaled pixels (world * viewport scale), quantized to half-pixel steps so the
+ * sub-pixel wiggle of idle animations doesn't register as a content change. Colors are stored as
+ * ARGB ints so writing them doesn't box Color values; arrays only ever grow.
+ */
 internal class MiniMapBuffer {
     var markerCount = 0
     var markerX = FloatArray(INITIAL_CAPACITY)

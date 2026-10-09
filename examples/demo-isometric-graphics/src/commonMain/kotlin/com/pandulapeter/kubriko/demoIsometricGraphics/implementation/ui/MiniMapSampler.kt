@@ -20,11 +20,13 @@ import kotlin.math.cos
 import kotlin.math.round
 import kotlin.math.sin
 
-// Double-buffered, allocation-free sampling: each tick writes into the back buffer and the
-// buffers are swapped only when the content actually changed, so steady-state sampling neither
-// allocates nor invalidates the minimap canvas. The camera offset is deliberately NOT part of the
-// sample — the draw reads it live for smooth full-frame-rate scrolling. Both sample() and buffer
-// reads happen on the main thread (LaunchedEffect + draw), so no synchronization is needed.
+/**
+ * Double-buffered, allocation-free sampling: each tick writes into the back buffer and the
+ * buffers are swapped only when the content actually changed, so steady-state sampling neither
+ * allocates nor invalidates the minimap canvas. The camera offset is deliberately NOT part of the
+ * sample — the draw reads it live for smooth full-frame-rate scrolling. Both sample() and buffer
+ * reads happen on the main thread (LaunchedEffect + draw), so no synchronization is needed.
+ */
 internal class MiniMapSampler {
     private var front = MiniMapBuffer()
     private var back = MiniMapBuffer()
@@ -32,7 +34,7 @@ internal class MiniMapSampler {
     private val modelIdHasPreferred = mutableSetOf<String>()
     val buffer: MiniMapBuffer get() = front
 
-    // Returns true when the new sample differs from the previous one.
+    /** Returns true when the new sample differs from the previous one. */
     fun sample(scale: Float, actors: List<*>): Boolean {
         modelIdToIndex.clear()
         modelIdHasPreferred.clear()
@@ -105,7 +107,7 @@ internal class MiniMapSampler {
         target.markerColor[index] = (cuboid.colorZPlus ?: Color.Black).toArgb()
     }
 
-    // Snaps to half-pixel steps: changes below 0.25 px don't count as new content.
+    /** Snaps to half-pixel steps: changes below 0.25 px don't count as new content. */
     private fun quantize(value: Float) = round(value * 2f) * 0.5f
 
     private companion object {
