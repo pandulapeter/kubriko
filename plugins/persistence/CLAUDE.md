@@ -67,6 +67,5 @@ class PrefsManager(private val persistenceManager: PersistenceManager) : Manager
 ## Gotchas
 
 - Multiple `Kubriko` instances sharing one `PersistenceManager` share the same key namespace — use distinct key prefixes per game area
-- `unloadAll()` / `unload()` are fire-and-forget coroutines; resources are not freed synchronously
 - Desktop's `java.util.prefs` rejects keys over 80 characters and values over 8192 characters, and the browser's `localStorage` has a quota — such values are silently not persisted (the in-memory flow still holds them)
 - Do not call `persistenceManager.boolean(...)` inside `onUpdate` — each call allocates a wrapper if the key is new
