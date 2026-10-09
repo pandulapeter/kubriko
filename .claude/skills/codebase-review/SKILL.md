@@ -6,7 +6,8 @@ description: The Kubriko review-sweep process — read-only area reviewers, one 
 # Codebase review sweeps
 
 A sweep has two halves that happen in **separate turns**: the **review** writes plans and changes no code; the
-**execution** lands them, and only starts when the user says so. Never roll from one into the other.
+**execution** lands them, and only starts when the user says so. Never roll from one into the other — unless the
+request itself asks for both ("do the simple ones now, plan the rest"): then section 5 says how.
 
 ## 0. Before anything
 
@@ -35,8 +36,10 @@ A sweep has two halves that happen in **separate turns**: the **review** writes 
    verification" with one sentence why; it is never silently discarded. This proves the finding, not the fix — that is
    step 5.
 3. **Group into lanes**: sets of plans whose files do not overlap, so each lane can run in its own worktree. Name
-   files shared between lanes (module `CLAUDE.md` files, `strings.xml`) and how each lane may touch them. Pick a
-   **merge order**: the lane others build on first, the lane that touches the most shared UI files last.
+   files shared between lanes (module `CLAUDE.md` files, `strings.xml`) and how each lane may touch them. A plan that
+   moves, splits or renames a file owns that file: every other plan that edits the same code goes in its lane, after
+   it, since a cherry-pick does not carry an edit into code another lane moved. Pick a **merge order**: the lane
+   others build on first, the lane that touches the most shared UI files last.
 4. **Write the plans** (section 2).
 5. **Challenge every fix before reporting** — verification proves a finding is real, not that its fix is right, and a
    plan's own tests share its blind spots, so they pass with the flaw in place. Once the plans exist, fresh read-only
@@ -69,6 +72,9 @@ All in the plans folder, untracked until the user commits them.
 ## Tests          the unit test to add (pure logic only), or why none can be written
 ## Manual check   what a person must do on a device, account or network to see it fixed
 ```
+
+A plan that only adds tests never touches production code: a test that fails on a real defect is `@Ignore`d with a
+reason and reported as a finding for a later plan.
 
 A plan is self-contained: an agent that reads only it and the files it names can carry it out. Quote code rather
 than relying on line numbers alone, since earlier lanes move lines. A plan may say "drop this plan if …" when its
@@ -104,7 +110,15 @@ plans.`), then note `START=$(git rev-parse HEAD)`.
 **Lanes** — one **detached** worktree per lane next to the checkout, so no branch is created:
 `git worktree add --detach ../<Repo>-lane-<x> START`. Spawn one `general-purpose` subagent per lane in a single
 message, each confined to its worktree. Cap concurrent Gradle builds (see the last section); start the rest of the
-lanes as earlier ones finish.
+lanes as earlier ones finish. A lane that builds on another lane's results is cut from the main checkout's `HEAD`
+after that lane merged, not from `START`; its cherry-pick range then starts at that base.
+
+Every lane prompt keeps the lanes apart — subagents share the session scratchpad, and one lane once ran another's
+same-named helper scripts and committed into the wrong worktree:
+- scratch files go to `<scratchpad>/lane-<x>/` only, and no lane runs a script it did not write;
+- every command starts with `cd <absolute worktree> &&` or uses `git -C <absolute worktree>`;
+- after every commit, `git show --stat HEAD` confirms the commit touched only that plan's files;
+- never `git stash` — the worktree is the isolation.
 
 **Per plan, in the lane's order** (the subagent's procedure):
 
@@ -128,8 +142,9 @@ lanes as earlier ones finish.
 7. Lane report: `NN: <hash> "<message>" — verified: <commands>; skipped manual: <what, why>`, then `Not done: NN —
    <why>`, then the final test result.
 
-**Merging**, in the README's order, as lanes report: in the main checkout,
-`git cherry-pick START..<lane HEAD>`. Resolve conflicts keeping both sides' intent — `CLAUDE.md` paragraphs and
+**Merging**, in the README's order, as lanes report: first list the paths each lane commit touched
+(`git -C <worktree> log --stat --format=%s <base>..HEAD`) and stop on any outside the lane's files; then, in the main
+checkout, `git cherry-pick <base>..<lane HEAD>`. Resolve conflicts keeping both sides' intent — `CLAUDE.md` paragraphs and
 `strings.xml` as a word-level three-way merge, every sentence and key from both sides kept, never one side's version
 whole. Run the tests after each lane and the full build after the last; a break is fixed by one more commit
 (`Fix the iOS build after the storage changes.`), never by rewriting landed commits. Then
@@ -139,7 +154,39 @@ whole. Run the tests after each lane and the full build after the last; a break 
 user whether to delete the folder. Final checks: `git log --format=%B START..HEAD | grep -ciE
 'co-authored|claude|session|generated'` prints 0, `git log --oneline START..HEAD` is one line per plan, `git status`
 is clean and `git worktree list` shows only the checkout. Report the commit count, the skipped plans with reasons,
-and the manual checks owed; update the memory. **Do not push.**
+and the manual checks owed (copy them out of the README first, since the next step deletes it); update the memory.
+
+**Last step**: when no plan file is left (only `README.md` and `EXECUTION.md`), delete the plans folder and commit it
+as `Remove the review plans.` without asking. If skipped plans remain, the folder stays until the user decides.
+**Do not push.**
+
+## 5. Structure and refactoring sweeps
+
+An angle of readability, SOLID, testability or file structure produces mostly refactors, and the user often asks to
+land the simple ones in the same session. Everything above still holds, with these additions.
+
+- **Behaviour is preserved.** A refactor plan changes no observable behaviour; a bug found on the way is its own plan
+  (`Kind: bug`) and its own commit, never folded into a move. A plan that would change a public contract is a
+  decision, as always.
+- **Simple or planned.** Each verified finding is marked **simple** — local, mechanical, behaviour-preserving, no
+  decision needed (split a file by its declarations, extract a private function or Composable, rename a private or
+  internal name, delete dead code, fix a stale doc reference) — or **planned**: it crosses modules, reshapes what
+  other code builds on, touches threading, lifecycle or public API, or needs a decision. When in doubt it is planned.
+- **"Do the simple ones now, plan the rest."** Both kinds become plan files (a simple one is short: Problem, Fix,
+  and "Tests: the existing ones"), the index marks the simple ones **Now**, and the challenge reads them quickly.
+  The **Now** plans then run straight through section 4 in this session — lanes, one commit each, merge, `git rm` of
+  each plan, with `Add the <nth> review plans.` committed first. The planned ones stay: re-check every quoted snippet
+  and file path in them against the new `HEAD` (the refactors moved code), update the README and `EXECUTION.md` to
+  that commit, and wait for the user to start them. The open decisions are asked before the **Now** plans run only if
+  one of them depends on the answer.
+- **A move carries everything with it.** Tests of the moved code, file-level annotations, flags and options of
+  moved scripts, and every reference in docs, `CLAUDE.md` files and skills. After a move or rename, grep the whole
+  repository for the old name and path. A refactor sweep once lost a lock test when code moved modules, a shell
+  script's `-e`, and nine references in the notes, and none of it failed a build.
+- **Check moves mechanically.** For a split or a move, compare the declarations before and after
+  (`git diff --color-moved=dimmed-zebra`, or the sorted declaration lists) rather than re-reading by eye.
+- **Afterwards**, offer a regression review of the landed range: its angle is "did these refactors preserve
+  behaviour", area by area against the commit before them.
 
 ## This repository: Kubriko
 
@@ -148,7 +195,13 @@ and the manual checks owed; update the memory. **Do not push.**
 - **Kubriko is a published library.** A fix that changes public API (a signature, a default, a behaviour a consumer
   can observe) is a **decision** in the README, never a silent part of a plan: it breaks every game built on it,
   Tesselar first. Plans say which published artifact (`engine`, a plugin, a tool) a change ships in; public
-  declarations they add need KDoc (see `code-style`).
+  declarations they add need KDoc (see `code-style`). The published modules are the ones applying
+  `kubriko-public-artifact`; `app/` and `examples/` are not published and may be restructured freely.
+- **Moves in published modules are API changes too.** A public top-level function, property or Composable compiles
+  into the JVM facade class of its file (`KubrikoViewportKt`), so moving it to another file breaks every consumer
+  compiled against the old version; a public class moved to another package breaks source and binary alike. A
+  refactor plan in a published module keeps public top-level declarations in their files and public types in their
+  packages, or raises a decision. Private and internal code moves freely.
 - **Consumers for the challenge:** Tesselar (`../Tesselar`) is the known consumer; the challenge greps it for every
   public API a plan changes. The documented usage patterns live in `documentation/*.md` — the headless `TickSource`
   flow in `documentation/TICK_SOURCE.md` is the one a first-sweep plan broke.
@@ -160,7 +213,8 @@ and the manual checks owed; update the memory. **Do not push.**
   web bridge's embedded JS also runs `node engine/src/webMain/checkTriangleBridge.mjs`.
 - **Compile checks:** `./gradlew :<module>:build` for each module touched; the Showcase on the platform a change is
   specific to (`:app:desktop:run` is not needed — compiling is). Full build after the last lane: `./gradlew build`.
-- **At most two concurrent Gradle builds.**
+- **At most two concurrent Gradle builds.** A KGP "FqNames can't be derived from DirtyData" error is a stale
+  incremental cache, not a code error — rerun before calling a lane red.
 - A behaviour change updates `CLAUDE.md` and, where a published guide describes it, the matching
   `documentation/*.md`. Nothing is published to Maven Central from a sweep; that is the user's release step.
 - Commit examples in this repo's voice: `Match the Showcase's desktop window background to its theme while
