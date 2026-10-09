@@ -102,7 +102,9 @@ internal fun DebugMenuContents(
     LazyColumn(
         modifier = if (shouldUseVerticalLayout) Modifier else Modifier.weight(1f),
         verticalArrangement = Arrangement.spacedBy(4.dp),
-        contentPadding = windowInsets.only(WindowInsetsSides.Vertical).asPaddingValues().let {
+        contentPadding = windowInsets.only(
+            if (shouldUseVerticalLayout) WindowInsetsSides.Vertical else WindowInsetsSides.Bottom,
+        ).asPaddingValues().let {
             PaddingValues(
                 start = it.calculateStartPadding(LocalLayoutDirection.current),
                 top = it.calculateTopPadding() + 8.dp,
