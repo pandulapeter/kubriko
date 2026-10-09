@@ -55,7 +55,7 @@ internal class GameplayManager : Manager() {
     val collectedStarCount = _collectedStarCount.asStateFlow()
     private val _totalStarCount = MutableStateFlow(0)
     val totalStarCount = _totalStarCount.asStateFlow()
-    private var gameEndTimer = Timer(
+    private val gameEndTimer = Timer(
         timeInMilliseconds = GAME_END_DELAY.roundToLong(),
         shouldTriggerMultipleTimes = true,
         onDone = {
