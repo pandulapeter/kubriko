@@ -29,7 +29,7 @@ Streaming music and pooled SFX. Reliably works on Android and Desktop; iOS and W
 |---|---|---|---|
 | Android | `MediaPlayer` | `SoundPool` | `musicPauseDelayOnFocusLoss = 0` |
 | Desktop | JLayer (MP3 via `libs.jlayer`), `javax.sound.sampled` | `Clip` pool | Entire file buffered into `ByteArray` at load; volume applied by scaling `SampleBuffer` samples per frame |
-| iOS | `AVAudioPlayer` + `AVAudioSessionCategoryAmbient` (only while the session is still at the system default `SoloAmbient`; a host-configured category is kept) | `AVAudioPlayer` clones | `stop()` effectively pauses (known TODO) |
+| iOS | `AVAudioPlayer` + `AVAudioSessionCategoryAmbient` (only while the session is still at the system default `SoloAmbient`; a host-configured category is kept) | `AVAudioPlayer` clones | |
 | Web | Web Audio API / `AudioContext` | `HTMLAudioElement` pool sharing one object URL; the file is fetched once at preload (a failed fetch is a failed load), so sound URIs must be same-origin or CORS-enabled, like music URIs | `musicPauseDelayOnFocusLoss = 100 ms`; music started before the first user gesture (autoplay policy) is resumed on the first gesture; Chrome Android bug: `dispose()` may not stop music — a 250 ms deferred second `dispose()` is used as workaround |
 
 ## MusicManager Internals
@@ -59,5 +59,4 @@ All logic is coroutine- or callback-driven. Zero per-frame cost.
 
 - Audio formats: SFX → WAV (max 48k bitrate on Android); Music → MP3 (max 320 kbps)
 - Desktop: each music playback job builds its own `Decoder + AudioDevice + Bitstream` chain and closes it when it ends, so a cancelled job never touches the one that replaced it
-- iOS: `stop()` is actually a pause — the playback position is preserved
 - Web: iOS Safari has significant audio issues (see root CLAUDE.md)

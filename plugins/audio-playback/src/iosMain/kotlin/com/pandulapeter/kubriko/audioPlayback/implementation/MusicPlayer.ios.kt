@@ -52,7 +52,6 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
         }
     }
 
-    // TODO: Works like a pause, not a stop
     override fun stop(cachedMusic: Any) {
         cachedMusic as AVAudioPlayer
         if (cachedMusic.isPlaying()) {
