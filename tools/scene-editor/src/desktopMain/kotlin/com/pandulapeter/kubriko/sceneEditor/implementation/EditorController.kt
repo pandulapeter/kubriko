@@ -34,10 +34,8 @@ import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -45,11 +43,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 import kotlin.reflect.full.isSubclassOf
-import kotlin.time.TimeSource
 
 internal class EditorController(
     val kubriko: Kubriko,
@@ -159,7 +153,10 @@ internal class EditorController(
     val currentFileName = sceneFiles.currentFileName
     val shouldShowLoadingIndicator = sceneFiles.shouldShowLoadingIndicator
     val fileOperationError = sceneFiles.fileOperationError
-    private var cameraAnimationJob: Job? = null
+    private val cameraAnimator = CameraAnimator(
+        scope = this,
+        viewportManager = viewportManager,
+    )
     private var focusedTextInputCount = 0
     val snapMode = combine(
         userPreferences.snapX,
@@ -267,30 +264,7 @@ internal class EditorController(
 
     fun locateSelectedActor() {
         (_selectedActor.value as? Visible)?.let { visibleTrait ->
-            animateCameraTo(visibleTrait.body.position)
-        }
-    }
-
-    private fun animateCameraTo(target: SceneOffset) {
-        val start = viewportManager.cameraPosition.value
-        val delta = target - start
-        cameraAnimationJob?.cancel()
-        cameraAnimationJob = launch {
-            val startMark = TimeSource.Monotonic.markNow()
-            var lastAnimatedPosition = start
-            while (isActive) {
-                // Any camera movement the animation did not perform means the user took over; yield to them.
-                if (viewportManager.cameraPosition.value != lastAnimatedPosition) {
-                    return@launch
-                }
-                val progress = (startMark.elapsedNow().inWholeMilliseconds.toFloat() / CAMERA_ANIMATION_DURATION_MS).coerceIn(0f, 1f)
-                lastAnimatedPosition = start + delta * easeInOut(progress)
-                viewportManager.setCameraPosition(lastAnimatedPosition)
-                if (progress >= 1f) {
-                    break
-                }
-                delay(CAMERA_ANIMATION_FRAME_DELAY_MS)
-            }
+            cameraAnimator.animateCameraTo(visibleTrait.body.position)
         }
     }
 
@@ -330,12 +304,12 @@ internal class EditorController(
     fun onBeforeActorDrag() = sceneDocument.recordSnapshot()
 
     fun dispose() {
-        cameraAnimationJob?.cancel()
+        cameraAnimator.cancel()
         cancel()
     }
 
     fun reset() {
-        cameraAnimationJob?.cancel()
+        cameraAnimator.cancel()
         viewportManager.setCameraPosition(SceneOffset.Zero)
         sceneFiles.resetFileName()
         _selectedActor.update { null }
@@ -368,15 +342,5 @@ internal class EditorController(
         NavigateBackAction.DESELECT_TYPE -> selectActorType(null)
         NavigateBackAction.CLOSE -> onCloseRequest()
         NavigateBackAction.NONE -> Unit
-    }
-
-    companion object {
-        private const val CAMERA_ANIMATION_DURATION_MS = 350f
-        private const val CAMERA_ANIMATION_FRAME_DELAY_MS = 8L
-
-        private fun easeInOut(progress: Float) = progress * progress * (3f - 2f * progress)
-
-        private fun SceneOffset.isRoughlyAt(other: SceneOffset) =
-            raw.x.roundToInt() == other.raw.x.roundToInt() && raw.y.roundToInt() == other.raw.y.roundToInt()
     }
 }
