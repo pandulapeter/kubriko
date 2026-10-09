@@ -14,12 +14,13 @@ Blank substitute for `examples/test-input`, compiled into the Showcase app when
 
 ## What it contains
 
-Two files that mirror the public API surface of `test-input` but do nothing:
+Three files that mirror the public API surface of `test-input` but do nothing:
 
 - `InputTest.kt` — `createInputTestStateHolder()` returns `InputTestStateHolderImpl()`;
   the `InputTest` composable renders nothing (`= Unit`).
 - `InputTestStateHolder.kt` — `InputTestStateHolder` sealed interface with
-  `areResourcesLoaded()` always returning `true`; `InputTestStateHolderImpl` holds
+  `areResourcesLoaded()` always returning `true`.
+- `InputTestStateHolderImpl.kt` — `InputTestStateHolderImpl` holds
   `kubriko = emptyFlow<Kubriko?>()` and a no-op `dispose()`.
 
 ## Rules for editing
