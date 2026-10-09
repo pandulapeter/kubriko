@@ -67,7 +67,8 @@ Injected at build time via the `buildkonfig` plugin:
 ## Key files
 
 - `KubrikoShowcase.kt` — entry Composable, deeplink logic, back-press handling, navigation state. Provides a `LocalUriHandler` that ignores links the platform cannot open instead of letting its handler throw.
-- `implementation/ShowcaseEntry.kt` — enum of all entries and `ShowcaseEntryType`.
+- `implementation/ShowcaseEntry.kt` — enum of all entries and `isAvailable`.
+- `implementation/ShowcaseEntryType.kt` — the menu categories (Games / Demos / Tests / Other) with their title and icon.
 - `implementation/ui/ExampleScreen.kt` — `StateHolder` pool, per-entry `ExampleScreen` Composable, disposal logic.
 - `implementation/ui/ShowcaseContent.kt` — responsive layout orchestration.
 - `implementation/ui/Menu.kt` — `LazyListScope.menu()` extension, `menuItemIndex()`, `MenuCategoryLabel`.

@@ -35,7 +35,6 @@ import kubriko.app.shared.generated.resources.demo_physics
 import kubriko.app.shared.generated.resources.demo_physics_subtitle
 import kubriko.app.shared.generated.resources.demo_shader_animations
 import kubriko.app.shared.generated.resources.demo_shader_animations_subtitle
-import kubriko.app.shared.generated.resources.demos
 import kubriko.app.shared.generated.resources.game_annoyed_penguins
 import kubriko.app.shared.generated.resources.game_annoyed_penguins_subtitle
 import kubriko.app.shared.generated.resources.game_blockys_journey
@@ -44,12 +43,6 @@ import kubriko.app.shared.generated.resources.game_space_squadron
 import kubriko.app.shared.generated.resources.game_space_squadron_subtitle
 import kubriko.app.shared.generated.resources.game_wallbreaker
 import kubriko.app.shared.generated.resources.game_wallbreaker_subtitle
-import kubriko.app.shared.generated.resources.games
-import kubriko.app.shared.generated.resources.ic_demos
-import kubriko.app.shared.generated.resources.ic_games
-import kubriko.app.shared.generated.resources.ic_other
-import kubriko.app.shared.generated.resources.ic_tests
-import kubriko.app.shared.generated.resources.other
 import kubriko.app.shared.generated.resources.other_about
 import kubriko.app.shared.generated.resources.other_about_subtitle
 import kubriko.app.shared.generated.resources.other_licenses
@@ -60,8 +53,6 @@ import kubriko.app.shared.generated.resources.test_collision
 import kubriko.app.shared.generated.resources.test_collision_subtitle
 import kubriko.app.shared.generated.resources.test_input
 import kubriko.app.shared.generated.resources.test_input_subtitle
-import kubriko.app.shared.generated.resources.tests
-import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 
 internal enum class ShowcaseEntry(
@@ -174,25 +165,3 @@ internal val ShowcaseEntry.isAvailable: Boolean
         !isProductionReady && !BuildConfig.SHOULD_SHOW_UNFINISHED_GAMES -> false
         else -> true
     }
-
-internal enum class ShowcaseEntryType(
-    val titleStringResource: StringResource,
-    val iconDrawableResource: DrawableResource,
-) {
-    GAME(
-        titleStringResource = Res.string.games,
-        iconDrawableResource = Res.drawable.ic_games,
-    ),
-    DEMO(
-        titleStringResource = Res.string.demos,
-        iconDrawableResource = Res.drawable.ic_demos,
-    ),
-    TEST(
-        titleStringResource = Res.string.tests,
-        iconDrawableResource = Res.drawable.ic_tests,
-    ),
-    OTHER(
-        titleStringResource = Res.string.other,
-        iconDrawableResource = Res.drawable.ic_other,
-    ),
-}
