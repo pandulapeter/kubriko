@@ -11,5 +11,6 @@
 <resources>
 
     <string name="editor">Editor</string>
+    <string name="scene_editor_title">Scene Editor - Blocky's Journey</string>
 
 </resources>

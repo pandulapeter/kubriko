@@ -16,6 +16,9 @@ import com.pandulapeter.kubriko.gameBlockysJourney.implementation.BlockysJourney
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.managers.LoadingManager
 import com.pandulapeter.kubriko.gameBlockysJourney.implementation.ui.isSceneEditorVisible
 import com.pandulapeter.kubriko.sceneEditor.SceneEditor
+import kubriko.examples.game_blockys_journey.generated.resources.Res
+import kubriko.examples.game_blockys_journey.generated.resources.scene_editor_title
+import org.jetbrains.compose.resources.stringResource
 
 fun main() = BlockysJourneyGameStateHolderImpl(
     webRootPathName = "",
@@ -45,7 +48,7 @@ fun BlockysJourneyGameSceneEditor(
             defaultSceneFolderPath = defaultSceneFolderPath,
             serializationManager = stateHolder.backgroundSerializationManager,
             customManagers = stateHolder.customManagersForSceneEditor,
-            title = "Scene Editor - Blocky's Journey",
+            title = stringResource(Res.string.scene_editor_title),
             onCloseRequest = { isSceneEditorVisible.value = false },
         )
     }
