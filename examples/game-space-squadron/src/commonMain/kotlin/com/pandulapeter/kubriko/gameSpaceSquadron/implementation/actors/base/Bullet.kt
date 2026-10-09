@@ -65,7 +65,7 @@ internal abstract class Bullet(
         getEmissionsPerMillisecond = { 0.15f }
     )
 
-    // Reused every frame so sweeping the bullet's path for hits stays allocation-free.
+    /** Reused every frame so sweeping the bullet's path for hits stays allocation-free (as is [targetCandidates]). */
     private val targetMasks = ArrayList<CollisionMask>()
     private val targetCandidates = ArrayList<Collidable>()
 
@@ -105,8 +105,7 @@ internal abstract class Bullet(
         }
     }
 
-    // Sweeps the segment the bullet actually travelled this frame rather than testing only its end
-    // position, so a fast shot (or a frame hitch) cannot tunnel straight through a target.
+    /** Sweeps the segment the bullet travelled this frame rather than testing only its end position, so a fast shot (or a frame hitch) cannot tunnel through a target. */
     private fun detectHit(previousPosition: SceneOffset) {
         targetMasks.clear()
         targetCandidates.clear()

@@ -42,8 +42,7 @@ internal class ShipDestination : Positionable, PointerInputAware, KeyboardInputA
     private var previousPointerOffset: SceneOffset? = null
     private var movementPointerId: PointerId? = null
 
-    // On desktop after each detected movement we programmatically move the cursor to the center of the screen.
-    // This next flag is there to make sure that that movement is filtered out.
+    /** On desktop the cursor is moved back to the centre after each movement; this flag filters out the event that move causes. */
     private var shouldMoveShip = true
 
     override fun onAdded(kubriko: Kubriko) {
