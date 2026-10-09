@@ -16,60 +16,97 @@ class BackNavigationTest {
 
     private val booleans = listOf(false, true)
 
+    private fun action(
+        isRunning: Boolean = false,
+        isGameOver: Boolean = false,
+        isInfoDialogVisible: Boolean = false,
+        isGameStarted: Boolean = false,
+        isCloseConfirmationDialogVisible: Boolean = false,
+        isInFullscreenMode: Boolean = false,
+    ) = backNavigationAction(
+        isRunning = isRunning,
+        isGameOver = isGameOver,
+        isInfoDialogVisible = isInfoDialogVisible,
+        isGameStarted = isGameStarted,
+        isCloseConfirmationDialogVisible = isCloseConfirmationDialogVisible,
+        isInFullscreenMode = isInFullscreenMode,
+    )
+
     @Test
     fun pausesWhileRunningWhateverElseIsTrue() {
-        for (isInfoDialogVisible in booleans) for (isGameStarted in booleans) for (isCloseConfirmationDialogVisible in booleans) for (isInFullscreenMode in booleans) {
+        for (info in booleans) for (started in booleans) for (confirmation in booleans) for (fullscreen in booleans) {
             assertEquals(
                 BackNavigationAction.PAUSE,
-                backNavigationAction(true, false, isInfoDialogVisible, isGameStarted, isCloseConfirmationDialogVisible, isInFullscreenMode),
+                action(
+                    isRunning = true,
+                    isInfoDialogVisible = info,
+                    isGameStarted = started,
+                    isCloseConfirmationDialogVisible = confirmation,
+                    isInFullscreenMode = fullscreen,
+                ),
             )
         }
     }
 
     @Test
     fun treatsARunningGameOverAsPaused() {
-        assertEquals(BackNavigationAction.CLOSE_INFO_DIALOG, backNavigationAction(true, true, true, true, false, false))
-        assertEquals(BackNavigationAction.RESUME, backNavigationAction(true, true, false, true, false, false))
-        assertEquals(BackNavigationAction.EXIT_FULLSCREEN, backNavigationAction(true, true, false, false, false, true))
-        assertEquals(BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION, backNavigationAction(true, true, false, false, false, false))
+        assertEquals(
+            BackNavigationAction.CLOSE_INFO_DIALOG,
+            action(isRunning = true, isGameOver = true, isInfoDialogVisible = true, isGameStarted = true),
+        )
+        assertEquals(BackNavigationAction.RESUME, action(isRunning = true, isGameOver = true, isGameStarted = true))
+        assertEquals(BackNavigationAction.EXIT_FULLSCREEN, action(isRunning = true, isGameOver = true, isInFullscreenMode = true))
+        assertEquals(BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION, action(isRunning = true, isGameOver = true))
     }
 
     @Test
     fun closesTheInfoDialogWhenPaused() {
-        for (isGameOver in booleans) for (isGameStarted in booleans) for (isCloseConfirmationDialogVisible in booleans) for (isInFullscreenMode in booleans) {
+        for (gameOver in booleans) for (started in booleans) for (confirmation in booleans) for (fullscreen in booleans) {
             assertEquals(
                 BackNavigationAction.CLOSE_INFO_DIALOG,
-                backNavigationAction(false, isGameOver, true, isGameStarted, isCloseConfirmationDialogVisible, isInFullscreenMode),
+                action(
+                    isGameOver = gameOver,
+                    isInfoDialogVisible = true,
+                    isGameStarted = started,
+                    isCloseConfirmationDialogVisible = confirmation,
+                    isInFullscreenMode = fullscreen,
+                ),
             )
         }
     }
 
     @Test
     fun resumesAStartedGameWhenNoDialogIsOpen() {
-        for (isGameOver in booleans) for (isInFullscreenMode in booleans) {
+        for (gameOver in booleans) for (fullscreen in booleans) {
             assertEquals(
                 BackNavigationAction.RESUME,
-                backNavigationAction(false, isGameOver, false, true, false, isInFullscreenMode),
+                action(isGameOver = gameOver, isGameStarted = true, isInFullscreenMode = fullscreen),
             )
         }
     }
 
     @Test
     fun doesNotResumeBehindTheCloseConfirmationDialog() {
-        assertEquals(BackNavigationAction.EXIT_FULLSCREEN, backNavigationAction(false, false, false, true, true, true))
-        assertEquals(BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION, backNavigationAction(false, false, false, true, true, false))
+        assertEquals(
+            BackNavigationAction.EXIT_FULLSCREEN,
+            action(isGameStarted = true, isCloseConfirmationDialogVisible = true, isInFullscreenMode = true),
+        )
+        assertEquals(
+            BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION,
+            action(isGameStarted = true, isCloseConfirmationDialogVisible = true),
+        )
     }
 
     @Test
     fun exitsFullscreenOrTogglesTheCloseConfirmationBeforeTheGameStarts() {
-        for (isGameOver in booleans) for (isCloseConfirmationDialogVisible in booleans) {
+        for (gameOver in booleans) for (confirmation in booleans) {
             assertEquals(
                 BackNavigationAction.EXIT_FULLSCREEN,
-                backNavigationAction(false, isGameOver, false, false, isCloseConfirmationDialogVisible, true),
+                action(isGameOver = gameOver, isCloseConfirmationDialogVisible = confirmation, isInFullscreenMode = true),
             )
             assertEquals(
                 BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION,
-                backNavigationAction(false, isGameOver, false, false, isCloseConfirmationDialogVisible, false),
+                action(isGameOver = gameOver, isCloseConfirmationDialogVisible = confirmation),
             )
         }
     }

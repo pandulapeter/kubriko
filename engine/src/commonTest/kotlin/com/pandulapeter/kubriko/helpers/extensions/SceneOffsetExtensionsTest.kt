@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.helpers.extensions
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -19,6 +20,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class SceneOffsetExtensionsTest {
@@ -104,13 +106,39 @@ class SceneOffsetExtensionsTest {
     }
 
     @Test
-    fun dotCrossAndNormal() {
+    fun normalIsPerpendicularAndTurnsClockwiseOnScreen() {
+        assertClose(SceneOffset.Down, SceneOffset.Right.normal())
         for (a in samples) {
-            assertEquals(0f, a.dot(a.normal()).raw + 0f)
+            assertEquals(0f, a.dot(a.normal()).raw + 0f, "dot of $a and its normal")
+            assertEquals(a.length(), a.normal().length(), "length of the normal of $a")
+        }
+    }
+
+    @Test
+    fun dotAndCrossOfKnownVectors() {
+        assertEquals(11f, offset(1f, 2f).dot(offset(3f, 4f)).raw)
+        assertEquals(1f, SceneOffset.Right.cross(SceneOffset.Down).raw)
+        assertEquals(0f, offset(2f, 4f).cross(offset(1f, 2f)).raw)
+    }
+
+    @Test
+    fun crossIsAntisymmetric() {
+        for (a in samples) {
             for (b in samples) {
                 assertClose(a.cross(b).raw, -b.cross(a).raw, "cross of $a and $b")
             }
         }
+    }
+
+    @Test
+    fun isInsideIncludesTheEdgesOfTheBox() {
+        val box = AxisAlignedBoundingBox(min = offset(-10f, -5f), max = offset(10f, 5f))
+
+        assertTrue(offset(0f, 0f).isInside(box))
+        assertTrue(offset(-10f, 5f).isInside(box))
+        assertTrue(offset(10f, -5f).isInside(box))
+        assertFalse(offset(10.01f, 0f).isInside(box))
+        assertFalse(offset(0f, -5.01f).isInside(box))
     }
 
     @Test
@@ -146,9 +174,27 @@ class SceneOffsetExtensionsTest {
     }
 
     @Test
-    fun centerOfARectanglesCorners() {
-        val corners = listOf(offset(-2f, 1f), offset(6f, 1f), offset(6f, 9f), offset(-2f, 9f))
-        assertEquals(offset(2f, 5f), corners.center)
+    fun centerIsTheMiddleOfTheBoundsOfThePoints() {
+        val points = listOf(offset(-2f, 1f), offset(6f, 1f), offset(1f, 3f), offset(6f, 9f), offset(-2f, 9f))
+
+        assertEquals(offset(2f, 5f), points.center)
+    }
+
+    @Test
+    fun centerOfASinglePointIsThatPoint() {
+        assertEquals(offset(3f, -7f), listOf(offset(3f, -7f)).center)
+    }
+
+    @Test
+    fun centerOfNoPointsIsZero() {
+        assertEquals(SceneOffset.Zero, emptyList<SceneOffset>().center)
+    }
+
+    @Test
+    fun directionConstructorAndAngleTowardsAreInverse() {
+        for (a in samples.filter { it != SceneOffset.Zero }) {
+            assertClose(a.normalized(), SceneOffset(SceneOffset.Zero.angleTowards(a)), "direction of $a")
+        }
     }
 
     @Test

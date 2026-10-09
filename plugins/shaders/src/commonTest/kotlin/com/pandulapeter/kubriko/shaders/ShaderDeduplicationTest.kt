@@ -34,6 +34,14 @@ class ShaderDeduplicationTest {
     }
 
     @Test
+    fun sameShaderWithDifferentStatesIsKept() {
+        val first = VignetteShader()
+        val second = VignetteShader(shaderState = VignetteShader.State(intensity = 10f))
+
+        assertKept(listOf(first, second), first, second)
+    }
+
+    @Test
     fun sameInstanceAddedTwiceIsKeptOnce() {
         val shader = VignetteShader()
 

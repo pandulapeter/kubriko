@@ -18,12 +18,13 @@ import com.pandulapeter.kubriko.manager.Manager
 import kotlin.test.fail
 
 /**
- * A [Kubriko] instance driven by a [ManualTickSource], for tests.
+ * A [Kubriko] instance driven by a [ManualTickSource], for tests. Closing it disposes the instance, so
+ * `newManualKubriko().use { ... }` disposes it even when an assertion fails.
  */
 class ManualKubriko(
     val kubriko: Kubriko,
     val tickSource: ManualTickSource,
-) {
+) : AutoCloseable {
     /**
      * The instance's [ActorManager].
      */
@@ -60,6 +61,11 @@ class ManualKubriko(
      * Disposes the underlying [Kubriko] instance.
      */
     fun dispose() = kubriko.dispose()
+
+    /**
+     * Disposes the underlying [Kubriko] instance.
+     */
+    override fun close() = dispose()
 }
 
 /**

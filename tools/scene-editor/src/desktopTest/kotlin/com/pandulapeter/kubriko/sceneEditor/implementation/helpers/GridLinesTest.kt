@@ -30,18 +30,18 @@ class GridLinesTest {
     }
 
     @Test
-    fun linesCloserThanTheMinimumSpacingAreInvisible() {
-        assertFalse(isGridLineVisible(1f, 0.1f))
-        assertFalse(isGridLineVisible(10f, 0.1f))
-        assertTrue(isGridLineVisible(32f, 1f))
-        assertTrue(isGridLineVisible(40f, 0.1f))
+    fun linesAreVisibleFromTheMinimumOnScreenSpacing() {
+        assertTrue(isGridLineVisible(MIN_GRID_LINE_SPACING_PX, 1f))
+        assertTrue(isGridLineVisible(MIN_GRID_LINE_SPACING_PX * 10, 0.1f))
+        assertFalse(isGridLineVisible(MIN_GRID_LINE_SPACING_PX * 0.9f, 1f))
+        assertFalse(isGridLineVisible(MIN_GRID_LINE_SPACING_PX * 5, 0.1f))
     }
 
     @Test
     fun denseGridsFallBackToMajorsAndThenToNothing() {
-        assertEquals(1L, gridLineStep(32f, 1f))
-        assertEquals(10L, gridLineStep(1f, 1f))
-        assertEquals(0L, gridLineStep(1f, 0.1f))
+        assertEquals(1L, gridLineStep(MIN_GRID_LINE_SPACING_PX, 1f))
+        assertEquals(10L, gridLineStep(MIN_GRID_LINE_SPACING_PX / 5, 1f))
+        assertEquals(0L, gridLineStep(MIN_GRID_LINE_SPACING_PX / 50, 1f))
     }
 
     @Test

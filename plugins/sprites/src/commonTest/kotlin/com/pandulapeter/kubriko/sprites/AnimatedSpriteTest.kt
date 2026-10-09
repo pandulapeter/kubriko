@@ -9,9 +9,11 @@
  */
 package com.pandulapeter.kubriko.sprites
 
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.IntSize
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class AnimatedSpriteTest {
@@ -57,6 +59,52 @@ class AnimatedSpriteTest {
     }
 
     @Test
+    fun forwardStepAdvancesByElapsedTimeTimesFrameRateAndSpeed() {
+        val sprite = slowAnimatedSprite()
+
+        sprite.stepForward(deltaTimeInMilliseconds = 100)
+        assertEquals(1, sprite.frameIndex)
+        sprite.stepForward(deltaTimeInMilliseconds = 100, speed = 2f)
+        assertEquals(3, sprite.frameIndex)
+    }
+
+    @Test
+    fun partialFramesAccumulateAcrossSteps() {
+        val sprite = slowAnimatedSprite()
+
+        repeat(14) { sprite.stepForward(deltaTimeInMilliseconds = 25) }
+
+        assertEquals(3, sprite.frameIndex)
+    }
+
+    @Test
+    fun nonLoopingForwardStepStopsAtTheLastFrame() {
+        val sprite = slowAnimatedSprite()
+
+        sprite.stepForward(deltaTimeInMilliseconds = 10_000)
+
+        assertEquals(9, sprite.frameIndex)
+        assertTrue(sprite.isLastFrame)
+        assertFalse(sprite.isFirstFrame)
+    }
+
+    @Test
+    fun isLoadedFollowsTheBitmapSource() {
+        var bitmap: ImageBitmap? = null
+        val sprite = AnimatedSprite(
+            getImageBitmap = { bitmap },
+            frameSize = IntSize(1, 1),
+            frameCount = 4,
+            framesPerRow = 2,
+        )
+        assertFalse(sprite.isLoaded)
+
+        bitmap = FakeImageBitmap()
+
+        assertTrue(sprite.isLoaded)
+    }
+
+    @Test
     fun everyOrientationMapsEveryFrameToItsOwnCellInsideTheSheet() {
         listOf(6, 5).forEach { frameCount ->
             SpriteResource.Rotation.entries.forEach { orientation ->
@@ -93,6 +141,14 @@ class AnimatedSpriteTest {
         assertEquals(0 to FRAMES_PER_ROW - 1, sprite.getXIndex(0) to sprite.getYIndex(0))
         assertEquals(0 to FRAMES_PER_ROW - 2, sprite.getXIndex(1) to sprite.getYIndex(1))
     }
+
+    private fun slowAnimatedSprite() = AnimatedSprite(
+        getImageBitmap = { null },
+        frameSize = IntSize(1, 1),
+        frameCount = 10,
+        framesPerRow = 5,
+        framesPerSecond = 10f,
+    )
 
     private fun animatedSprite() = AnimatedSprite(
         getImageBitmap = { null },

@@ -12,7 +12,6 @@ package com.pandulapeter.kubriko.testAudio
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -37,9 +36,7 @@ fun AudioTest(
 ) {
     stateHolder as AudioTestStateHolderImpl
     KubrikoViewport(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .windowInsetsPadding(windowInsets),
+        modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest),
         kubriko = stateHolder.kubriko.collectAsState().value,
         windowInsets = windowInsets,
     )

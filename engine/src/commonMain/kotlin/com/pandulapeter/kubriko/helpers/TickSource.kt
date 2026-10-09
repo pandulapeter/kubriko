@@ -123,8 +123,10 @@ abstract class TickSource {
     private fun applyRequestedState() {
         while (isApplyingTransition.compareAndSet(expectedValue = false, newValue = true)) {
             try {
-                while (isStartApplied != _isRunning.value) {
-                    if (_isRunning.value) {
+                while (true) {
+                    val isStartRequested = _isRunning.value
+                    if (isStartApplied == isStartRequested) break
+                    if (isStartRequested) {
                         isStartApplied = true
                         onStart()
                         log(

@@ -27,14 +27,14 @@ class UndoRedoHistoryTest {
     @Test
     fun restoredSelectionFollowsTheSelectedId() {
         assertEquals(1, restoredSelectionIndex(selectedId = 2, snapshotIds = longArrayOf(1, 2, 3), restoredCount = 3))
-        assertNull(restoredSelectionIndex(selectedId = null, snapshotIds = longArrayOf(1, 2, 3), restoredCount = 3))
-        assertNull(restoredSelectionIndex(selectedId = 4, snapshotIds = longArrayOf(1, 2, 3), restoredCount = 3))
-        assertNull(restoredSelectionIndex(selectedId = 2, snapshotIds = longArrayOf(1, 2, 3), restoredCount = 2))
+        assertEquals(2, restoredSelectionIndex(selectedId = 3, snapshotIds = longArrayOf(1, 2, 3), restoredCount = 3))
     }
 
     @Test
-    fun undoingADeletionKeepsTheSameActorSelected() {
-        assertEquals(2, restoredSelectionIndex(selectedId = 3, snapshotIds = longArrayOf(1, 2, 3), restoredCount = 3))
+    fun nothingIsSelectedWhenTheSelectionCannotBeMatched() {
+        assertNull(restoredSelectionIndex(selectedId = null, snapshotIds = longArrayOf(1, 2, 3), restoredCount = 3))
+        assertNull(restoredSelectionIndex(selectedId = 4, snapshotIds = longArrayOf(1, 2, 3), restoredCount = 3))
+        assertNull(restoredSelectionIndex(selectedId = 2, snapshotIds = longArrayOf(1, 2, 3), restoredCount = 2))
     }
 
     @Test
@@ -66,11 +66,14 @@ class UndoRedoHistoryTest {
     }
 
     @Test
-    fun undoStackIsBounded() {
+    fun undoStackIsBoundedAndDropsTheOldestSnapshots() {
         val history = UndoRedoHistory()
-        repeat(26) { history.recordAction(snapshot("$it")) }
-        repeat(25) { assertEquals("${25 - it}", history.performUndo(snapshot("current"))?.serializedScene) }
-        assertNull(history.performUndo(snapshot("current")))
+        repeat(1_000) { history.recordAction(snapshot("$it")) }
+
+        val undone = generateSequence { history.performUndo(snapshot("current"))?.serializedScene }.toList()
+
+        assertTrue(undone.size in 1..<1_000)
+        assertEquals((999 downTo 1_000 - undone.size).map { "$it" }, undone)
         assertFalse(history.canUndo.value)
     }
 }

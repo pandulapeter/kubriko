@@ -9,68 +9,118 @@
  */
 package com.pandulapeter.kubriko.manager
 
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import com.pandulapeter.kubriko.actor.Actor
-import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Visible
-import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.newTestKubriko
-import com.pandulapeter.kubriko.types.SceneOffset
-import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+/**
+ * The draw order the layers read from [ActorCuller]: the documented painter's order of `layerIndex`, `drawingOrder`
+ * and `overlayDrawingOrder` is only observable by drawing, which library tests cannot do.
+ */
 class ActorCullerTest {
 
-    private class Box(x: Float, y: Float) : Actor, Visible {
-        override val body = BoxBody(
-            initialPosition = SceneOffset(x.sceneUnit, y.sceneUnit),
-            initialSize = SceneSize(10f.sceneUnit, 10f.sceneUnit),
-            initialPivot = SceneOffset.Zero,
-        )
+    private val kubriko = newTestKubriko().first
+    private val visibleActors = MutableStateFlow<ImmutableList<Visible>>(persistentListOf())
+    private val overlayActors = MutableStateFlow<ImmutableList<Overlay>>(persistentListOf())
+    private val culler = ActorCuller(
+        viewportManager = kubriko.viewportManager,
+        metadataManager = kubriko.metadataManager,
+        farAwayActorSleepMargin = null,
+        invisibleActorMinimumRefreshTimeInMillis = 0,
+        shouldComposeLayers = true,
+        dynamicActors = MutableStateFlow<ImmutableList<Dynamic>>(persistentListOf()),
+        visibleActors = visibleActors,
+        overlayActors = overlayActors,
+        _visibleActorsWithinViewport = MutableStateFlow(persistentListOf()),
+        _activeDynamicActors = MutableStateFlow(persistentListOf()),
+    )
 
-        override fun DrawScope.draw() = Unit
+    private fun cull() = culler.refreshAfterUpdate(shouldPutFarAwayActorsToSleep = false, didCullDynamicActorsBeforeUpdate = false)
+
+    @AfterTest
+    fun tearDown() = kubriko.dispose()
+
+    @Test
+    fun visibleActorsAreGroupedByLayer() {
+        val background = TestVisible(0f, 0f, layerIndex = -1)
+        val foreground = TestVisible(0f, 0f, layerIndex = 3)
+        val unlayered = TestVisible(0f, 0f, layerIndex = null)
+        visibleActors.value = listOf<Visible>(foreground, unlayered, background).toImmutableList()
+
+        cull()
+
+        assertEquals(setOf(-1, 3, null), culler.sortedVisibleActorsByLayer.keys)
+        assertEquals(listOf<Visible>(background), culler.sortedVisibleActorsByLayer[-1])
+        assertEquals(listOf<Visible>(foreground), culler.sortedVisibleActorsByLayer[3])
+        assertEquals(listOf<Visible>(unlayered), culler.sortedVisibleActorsByLayer[null])
     }
 
     @Test
-    fun publishesExactlyTheActorsWhoseBoundsTouchTheViewport() {
-        // The 1920 x 1080 viewport is centered on the origin at scale 1 with no edge buffer: x in [-960, 960],
-        // y in [-540, 540].
-        val (kubriko, _) = newTestKubriko()
-        val inside = Box(0f, 0f)
-        val touchingRight = Box(960f, 0f)
-        val touchingLeft = Box(-970f, 0f)
-        val touchingTop = Box(0f, -550f)
-        val touchingBottom = Box(0f, 540f)
-        val pastRight = Box(960.5f, 0f)
-        val pastTop = Box(0f, -550.5f)
-        val visibleActorsWithinViewport = MutableStateFlow<ImmutableList<Visible>>(persistentListOf())
-        val culler = ActorCuller(
-            viewportManager = kubriko.viewportManager,
-            metadataManager = kubriko.metadataManager,
-            farAwayActorSleepMargin = null,
-            invisibleActorMinimumRefreshTimeInMillis = 100,
-            shouldComposeLayers = false,
-            dynamicActors = MutableStateFlow<ImmutableList<Dynamic>>(persistentListOf()),
-            visibleActors = MutableStateFlow(
-                listOf<Visible>(inside, touchingRight, touchingLeft, touchingTop, touchingBottom, pastRight, pastTop)
-                    .toImmutableList(),
-            ),
-            overlayActors = MutableStateFlow<ImmutableList<Overlay>>(persistentListOf()),
-            _visibleActorsWithinViewport = visibleActorsWithinViewport,
-            _activeDynamicActors = MutableStateFlow(persistentListOf()),
-        )
-        culler.refreshAfterUpdate(shouldPutFarAwayActorsToSleep = false, didCullDynamicActorsBeforeUpdate = false)
-        assertEquals(
-            listOf<Visible>(inside, touchingRight, touchingLeft, touchingTop, touchingBottom),
-            visibleActorsWithinViewport.value.toList(),
-        )
-        kubriko.dispose()
+    fun lowerDrawingOrderIsDrawnLater() {
+        val top = TestVisible(0f, 0f, drawingOrder = -5f)
+        val middle = TestVisible(0f, 0f, drawingOrder = 0f)
+        val bottom = TestVisible(0f, 0f, drawingOrder = 7.5f)
+        visibleActors.value = listOf<Visible>(middle, top, bottom).toImmutableList()
+
+        cull()
+
+        assertEquals(listOf<Visible>(bottom, middle, top), culler.sortedVisibleActorsByLayer[0])
+    }
+
+    @Test
+    fun culledActorsAreNotDrawn() {
+        val inside = TestVisible(0f, 0f)
+        val outside = TestVisible(5_000f, 0f)
+        visibleActors.value = listOf<Visible>(inside, outside).toImmutableList()
+
+        cull()
+
+        assertEquals(listOf<Visible>(inside), culler.sortedVisibleActorsByLayer[0])
+    }
+
+    @Test
+    fun drawingOrderChangeIsReflectedOnTheNextCull() {
+        val first = TestVisible(0f, 0f, drawingOrder = 1f)
+        val second = TestVisible(0f, 0f, drawingOrder = 2f)
+        visibleActors.value = listOf<Visible>(first, second).toImmutableList()
+        cull()
+
+        first.drawingOrder = 3f
+        cull()
+
+        assertEquals(listOf<Visible>(first, second), culler.sortedVisibleActorsByLayer[0])
+    }
+
+    @Test
+    fun layerIndexChangeIsReflectedOnTheNextCull() {
+        val actor = TestVisible(0f, 0f, layerIndex = 0)
+        visibleActors.value = listOf<Visible>(actor).toImmutableList()
+        cull()
+
+        actor.layerIndex = 2
+        cull()
+
+        assertEquals(setOf<Int?>(2), culler.sortedVisibleActorsByLayer.keys)
+    }
+
+    @Test
+    fun overlaysAreGroupedByLayerAndLowerOverlayDrawingOrderIsDrawnLater() {
+        val top = TestOverlay(overlayDrawingOrder = -1f)
+        val bottom = TestOverlay(overlayDrawingOrder = 1f)
+        val otherLayer = TestOverlay(layerIndex = 1)
+        overlayActors.value = listOf<Overlay>(top, otherLayer, bottom).toImmutableList()
+
+        cull()
+
+        assertEquals(listOf<Overlay>(bottom, top), culler.sortedOverlayActorsByLayer[0])
+        assertEquals(listOf<Overlay>(otherLayer), culler.sortedOverlayActorsByLayer[1])
     }
 }

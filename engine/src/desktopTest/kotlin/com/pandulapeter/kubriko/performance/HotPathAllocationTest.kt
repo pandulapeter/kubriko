@@ -18,13 +18,21 @@ import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.actor.traits.Visible
 import com.pandulapeter.kubriko.helpers.Timer
 import com.pandulapeter.kubriko.helpers.TriangleBatch
+import com.pandulapeter.kubriko.helpers.extensions.angleTowards
+import com.pandulapeter.kubriko.helpers.extensions.distanceTo
+import com.pandulapeter.kubriko.helpers.extensions.isOverlapping
+import com.pandulapeter.kubriko.helpers.extensions.isWithinViewportBounds
+import com.pandulapeter.kubriko.helpers.extensions.lerp
+import com.pandulapeter.kubriko.helpers.extensions.normalized
 import com.pandulapeter.kubriko.helpers.extensions.rad
+import com.pandulapeter.kubriko.helpers.extensions.rotateAround
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.implementation.FrameTickScheduler
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.newTestKubriko
 import com.pandulapeter.kubriko.testFixtures.awaitProcessed
 import com.pandulapeter.kubriko.testFixtures.measureAllocatedBytesPerRun
+import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import com.pandulapeter.kubriko.types.TargetFrameRate
@@ -133,6 +141,36 @@ class HotPathAllocationTest {
         }
         assertTrue(bytes < 1, "$bytes B per 300 FrameTickScheduler frames")
         assertTrue(sink != 0L)
+    }
+
+    @Test
+    fun sceneGeometryMathDoesNotAllocate() {
+        val center = SceneOffset(5f.sceneUnit, -3f.sceneUnit)
+        var position = SceneOffset(1f.sceneUnit, 2f.sceneUnit)
+        var sink = 0f
+        val bytes = measureAllocatedBytesPerRun {
+            position = (position + SceneOffset.Right * 0.5f).rotateAround(center, 0.01f.rad)
+            position = lerp(position, center, 0.1f) - SceneOffset.Down / 2f
+            sink += position.distanceTo(center).raw + position.normalized().x.raw + position.angleTowards(center).raw
+            sink += (SceneSize(4f.sceneUnit, 2f.sceneUnit) * Scale(2f, 0.5f)).width.raw
+        }
+        assertTrue(bytes < 1, "$bytes B per run of scene geometry math")
+        assertTrue(sink != 0f)
+    }
+
+    @Test
+    fun viewportBoundsCheckDoesNotAllocate() {
+        val (kubriko, _) = newTestKubriko()
+        val body = BoxBody(initialSize = SceneSize(10f.sceneUnit, 10f.sceneUnit))
+        val other = BoxBody(initialPosition = SceneOffset(5f.sceneUnit, 5f.sceneUnit), initialSize = SceneSize(10f.sceneUnit, 10f.sceneUnit))
+        var hits = 0
+        val bytes = measureAllocatedBytesPerRun {
+            if (body.axisAlignedBoundingBox.isWithinViewportBounds(kubriko.viewportManager)) hits++
+            if (body.axisAlignedBoundingBox.isOverlapping(other.axisAlignedBoundingBox)) hits++
+        }
+        kubriko.dispose()
+        assertTrue(bytes < 1, "$bytes B per viewport bounds check")
+        assertTrue(hits > 0)
     }
 
     @Test

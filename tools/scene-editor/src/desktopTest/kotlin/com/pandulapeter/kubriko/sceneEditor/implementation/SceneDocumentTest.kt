@@ -38,6 +38,13 @@ class SceneDocumentTest {
     }
 
     @Test
+    fun aRegularActorIsAddedAlongsideOthersOfItsClass() {
+        document.replaceSceneActors(listOf(PlainActor("a"), UniqueActor("U1")))
+        document.addSceneActor(PlainActor("b"))
+        assertEquals("a,U1,b", document.serializeScene())
+    }
+
+    @Test
     fun undoAfterADeleteRestoresTheActorAndKeepsTheSelection() {
         val first = PlainActor("a")
         val second = PlainActor("b")

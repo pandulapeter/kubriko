@@ -17,7 +17,8 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
 /**
- * An actor that counts its lifecycle callbacks and updates, and optionally runs an action in each callback.
+ * An actor that counts its lifecycle callbacks and updates, records the thread each callback last ran on, and optionally
+ * runs an action in each callback.
  */
 open class CountingActor(
     var onAddedAction: (() -> Unit)? = null,
@@ -39,6 +40,12 @@ open class CountingActor(
     /** The thread [onAdded] last ran on. */
     val onAddedThread = AtomicReference<Thread?>(null)
 
+    /** The thread [onRemoved] last ran on. */
+    val onRemovedThread = AtomicReference<Thread?>(null)
+
+    /** The thread [dispose] last ran on. */
+    val disposeThread = AtomicReference<Thread?>(null)
+
     override fun onAdded(kubriko: Kubriko) {
         onAddedThread.set(Thread.currentThread())
         added.incrementAndGet()
@@ -46,11 +53,13 @@ open class CountingActor(
     }
 
     override fun onRemoved() {
+        onRemovedThread.set(Thread.currentThread())
         removed.incrementAndGet()
         onRemovedAction?.invoke()
     }
 
     override fun dispose() {
+        disposeThread.set(Thread.currentThread())
         disposed.incrementAndGet()
         disposeAction?.invoke()
     }

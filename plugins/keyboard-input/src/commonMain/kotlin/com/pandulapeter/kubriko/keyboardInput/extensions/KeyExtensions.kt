@@ -134,7 +134,7 @@ val Key.displayName
         Key.Six, Key.NumPad6 -> "6"
         Key.Seven, Key.NumPad7 -> "7"
         Key.Eight, Key.NumPad8 -> "8"
-        Key.Nine, Key.Nine-> "9"
+        Key.Nine, Key.NumPad9 -> "9"
         Key.Zero, Key.NumPad0 -> "0"
         Key.Minus -> "-"
         Key.Plus -> "+"

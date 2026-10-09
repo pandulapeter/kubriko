@@ -27,7 +27,7 @@ Requires **JDK 21** (the Kotlin Multiplatform toolchain pins language version 21
 ./gradlew :app:android:installDebug   # Install the Showcase app on a connected Android device/emulator
 ./gradlew desktopTest                 # Run the unit tests of every module on the desktop JVM
 node engine/src/webMain/checkTriangleBridge.mjs  # Check the bridge's embedded JS
-./gradlew :engine:desktopTest --tests "com.pandulapeter.kubriko.TestSetupTest"   # Single test
+./gradlew :engine:desktopTest --tests "com.pandulapeter.kubriko.KubrikoTest"   # Single test
 ./gradlew publishToMavenCentral --no-configuration-cache   # Publish (CI uses this)
 ```
 

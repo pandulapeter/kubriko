@@ -18,21 +18,16 @@ import kotlin.test.assertEquals
 class SizeExtensionsTest {
 
     @Test
-    fun sizeIsDividedByScaleOnly() {
-        assertEquals(SceneSize(50f.sceneUnit, 25f.sceneUnit), Size(100f, 50f).toSceneSize(Scale(2f, 2f)))
+    fun toSceneSizeDividesEachDimensionByItsOwnScale() {
+        assertEquals(SceneSize(30f.sceneUnit, 90f.sceneUnit), Size(90f, 90f).toSceneSize(Scale(3f, 1f)))
     }
 
     @Test
     @Suppress("DEPRECATION")
-    fun deprecatedOverloadIgnoresViewportSize() {
+    fun deprecatedToSceneSizeIgnoresTheViewportSize() {
         assertEquals(
             SceneSize(50f.sceneUnit, 25f.sceneUnit),
             Size(100f, 50f).toSceneSize(viewportSize = Size(800f, 600f), viewportScaleFactor = Scale(2f, 2f)),
         )
-    }
-
-    @Test
-    fun nonUniformScale() {
-        assertEquals(SceneSize(30f.sceneUnit, 90f.sceneUnit), Size(90f, 90f).toSceneSize(Scale(3f, 1f)))
     }
 }

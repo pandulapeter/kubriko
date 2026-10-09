@@ -55,6 +55,23 @@ class KeyboardInputManagerTest {
     }
 
     @Test
+    fun keysHeldTogetherAreReportedInOneSet() = withKeyboard { kubriko, manager, actor ->
+        manager.onKeyPressed(Key.A)
+        manager.onKeyPressed(Key.W)
+        kubriko.tick()
+
+        assertEquals(listOf(setOf(Key.A, Key.W)), actor.activeKeySets)
+    }
+
+    @Test
+    fun releasingAKeyIsReportedOnce() = withKeyboard { _, manager, actor ->
+        manager.onKeyPressed(Key.A)
+        manager.onKeyReleased(Key.A)
+
+        assertEquals(listOf(Key.A), actor.releasedKeys)
+    }
+
+    @Test
     fun isKeyPressedIsLiveBetweenTicks() = withKeyboard { _, manager, _ ->
         manager.onKeyPressed(Key.A)
         assertTrue(manager.isKeyPressed(Key.A))
@@ -80,6 +97,7 @@ class KeyboardInputManagerTest {
             kubriko.tick(count = 3)
             actor.activeKeySets.clear()
             actor.pressedKeys.clear()
+            actor.releasedKeys.clear()
             block(kubriko, manager, actor)
         } finally {
             kubriko.dispose()
@@ -89,6 +107,7 @@ class KeyboardInputManagerTest {
     private class RecordingActor : KeyboardInputAware {
         val activeKeySets = mutableListOf<Set<Key>>()
         val pressedKeys = mutableListOf<Key>()
+        val releasedKeys = mutableListOf<Key>()
 
         override fun handleActiveKeys(activeKeys: ImmutableSet<Key>) {
             activeKeySets.add(activeKeys.toSet())
@@ -96,6 +115,10 @@ class KeyboardInputManagerTest {
 
         override fun onKeyPressed(key: Key) {
             pressedKeys.add(key)
+        }
+
+        override fun onKeyReleased(key: Key) {
+            releasedKeys.add(key)
         }
     }
 

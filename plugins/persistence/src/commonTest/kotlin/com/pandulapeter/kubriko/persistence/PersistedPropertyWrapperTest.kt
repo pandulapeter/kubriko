@@ -14,9 +14,51 @@ import com.pandulapeter.kubriko.persistence.implementation.PersistedPropertyWrap
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class PersistedPropertyWrapperTest {
+
+    @Test
+    fun savedValuesAreLoadedByTheNextWrapperOfTheKey() {
+        val store = InMemoryKeyValuePersistenceManager()
+        PersistedPropertyWrapper.Boolean("boolean", true).apply { flow.value = false }.save(store)
+        PersistedPropertyWrapper.Int("int", 0).apply { flow.value = 42 }.save(store)
+        PersistedPropertyWrapper.Float("float", 1f).apply { flow.value = 0.5f }.save(store)
+        PersistedPropertyWrapper.String("string", DEFAULT).apply { flow.value = "changed" }.save(store)
+        PersistedPropertyWrapper.Generic("generic", 0, serializer = { it.toString() }, deserializer = { it.toInt() }).apply { flow.value = 7 }.save(store)
+
+        assertEquals(false, PersistedPropertyWrapper.Boolean("boolean", true).loaded(store))
+        assertEquals(42, PersistedPropertyWrapper.Int("int", 0).loaded(store))
+        assertEquals(0.5f, PersistedPropertyWrapper.Float("float", 1f).loaded(store))
+        assertEquals("changed", PersistedPropertyWrapper.String("string", DEFAULT).loaded(store))
+        assertEquals(7, PersistedPropertyWrapper.Generic("generic", 0, serializer = { it.toString() }, deserializer = { it.toInt() }).loaded(store))
+    }
+
+    @Test
+    fun emptyStoreLoadsTheDefaults() {
+        val store = InMemoryKeyValuePersistenceManager()
+
+        assertEquals(true, PersistedPropertyWrapper.Boolean("boolean", true).loaded(store))
+        assertEquals(3, PersistedPropertyWrapper.Int("int", 3).loaded(store))
+        assertEquals(0.5f, PersistedPropertyWrapper.Float("float", 0.5f).loaded(store))
+        assertEquals(DEFAULT, PersistedPropertyWrapper.String("string", DEFAULT).loaded(store))
+    }
+
+    @Test
+    fun genericDeserializerReturningNullFallsBackToDefault() {
+        val store = InMemoryKeyValuePersistenceManager().apply { putString(KEY, "unknown") }
+        val wrapper = PersistedPropertyWrapper.Generic<String>(
+            key = KEY,
+            defaultValue = DEFAULT,
+            serializer = { it },
+            deserializer = { null },
+        )
+
+        assertTrue(wrapper.load(store))
+        assertEquals(DEFAULT, wrapper.flow.value)
+    }
 
     @Test
     fun genericWithEmptyStoreUsesDefaultWithoutCallingDeserializer() {
@@ -68,7 +110,7 @@ class PersistedPropertyWrapperTest {
         var reportedFailure: Throwable? = null
 
         assertFalse(wrapper.save(InMemoryKeyValuePersistenceManager(shouldThrowOnPut = true)) { reportedFailure = it })
-        assertTrue(reportedFailure != null)
+        assertNotNull(reportedFailure)
 
         val store = InMemoryKeyValuePersistenceManager()
         assertTrue(wrapper.save(store))
@@ -86,7 +128,12 @@ class PersistedPropertyWrapperTest {
         )
 
         assertFalse(wrapper.save(store))
-        assertEquals(null, store.getStringOrNull(KEY))
+        assertNull(store.getStringOrNull(KEY))
+    }
+
+    private fun <T> PersistedPropertyWrapper<T>.loaded(store: KeyValuePersistenceManager): T {
+        assertTrue(load(store))
+        return flow.value
     }
 
     private class InMemoryKeyValuePersistenceManager(

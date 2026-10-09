@@ -46,32 +46,74 @@ class GamepadFocusNavigatorTest {
     }
 
     @Test
-    fun heldDirectionStepsOnceThenRepeatsAfterTheDelayAtTheInterval() {
+    fun pressingADirectionStepsImmediately() {
         navigator.restFocusNavigation()
         press(GamepadButton.DPAD_RIGHT)
 
         navigator.updateFocusNavigation(0f)
-        assertEquals(1, focusManager.moves.size)
-        navigator.updateFocusNavigation(399f)
-        assertEquals(1, focusManager.moves.size)
-        navigator.updateFocusNavigation(1f)
-        assertEquals(2, focusManager.moves.size)
-        navigator.updateFocusNavigation(119f)
-        assertEquals(2, focusManager.moves.size)
-        navigator.updateFocusNavigation(1f)
-        assertEquals(3, focusManager.moves.size)
-        assertTrue(focusManager.moves.all { it == FocusDirection.Right })
+
+        assertEquals(listOf(FocusDirection.Right), focusManager.moves)
     }
 
     @Test
-    fun stickHasToLeanAtLeastTheThresholdToStep() {
+    fun heldDirectionWaitsBeforeRepeating() {
         navigator.restFocusNavigation()
-        gamepads[0].leftStickY = 0.49f
+        press(GamepadButton.DPAD_RIGHT)
         navigator.updateFocusNavigation(0f)
-        assertEquals(emptyList(), focusManager.moves)
 
-        gamepads[0].leftStickY = 0.5f
+        holdFor(milliseconds = 100)
+
+        assertEquals(1, focusManager.moves.size)
+    }
+
+    @Test
+    fun heldDirectionKeepsRepeatingFasterThanItsInitialDelay() {
+        navigator.restFocusNavigation()
+        press(GamepadButton.DPAD_DOWN)
         navigator.updateFocusNavigation(0f)
+        var timeUntilFirstRepeat = 0
+        while (focusManager.moves.size == 1 && timeUntilFirstRepeat < 10_000) {
+            navigator.updateFocusNavigation(FRAME_TIME.toFloat())
+            timeUntilFirstRepeat += FRAME_TIME
+        }
+
+        holdFor(milliseconds = timeUntilFirstRepeat * 3)
+
+        assertTrue(focusManager.moves.size > 5, "${focusManager.moves.size} steps")
+        assertTrue(focusManager.moves.all { it == FocusDirection.Down })
+    }
+
+    @Test
+    fun releasingAndPressingAgainStepsImmediately() {
+        navigator.restFocusNavigation()
+        press(GamepadButton.DPAD_LEFT)
+        navigator.updateFocusNavigation(0f)
+        release(GamepadButton.DPAD_LEFT)
+        navigator.updateFocusNavigation(FRAME_TIME.toFloat())
+
+        press(GamepadButton.DPAD_LEFT)
+        navigator.updateFocusNavigation(FRAME_TIME.toFloat())
+
+        assertEquals(listOf(FocusDirection.Left, FocusDirection.Left), focusManager.moves)
+    }
+
+    @Test
+    fun slightlyLeaningStickDoesNotStep() {
+        navigator.restFocusNavigation()
+        gamepads[0].leftStickY = 0.2f
+
+        navigator.updateFocusNavigation(0f)
+
+        assertEquals(emptyList(), focusManager.moves)
+    }
+
+    @Test
+    fun fullyLeaningStickSteps() {
+        navigator.restFocusNavigation()
+        gamepads[0].leftStickY = 1f
+
+        navigator.updateFocusNavigation(0f)
+
         assertEquals(listOf(FocusDirection.Down), focusManager.moves)
     }
 
@@ -165,6 +207,55 @@ class GamepadFocusNavigatorTest {
         assertEquals(false, navigator.isAnyFocusDirectionHeld())
     }
 
+    @Test
+    fun theInnermostHostReceivesTheStepsUntilItIsDetached() {
+        val popupFocusManager = RecordingFocusManager()
+        val popupHost = GamepadFocusNavigationHostState(
+            focusManager = popupFocusManager,
+            inputModeManager = RecordingInputModeManager(),
+            onBack = {},
+            hasOnBack = { true },
+        )
+        gamepadInputManager.onFocusNavigationHostAttached(popupHost)
+        navigator.restFocusNavigation()
+        press(GamepadButton.DPAD_UP)
+        navigator.updateFocusNavigation(0f)
+        release(GamepadButton.DPAD_UP)
+        navigator.updateFocusNavigation(FRAME_TIME.toFloat())
+
+        gamepadInputManager.onFocusNavigationHostDetached(popupHost)
+        press(GamepadButton.DPAD_UP)
+        navigator.updateFocusNavigation(FRAME_TIME.toFloat())
+
+        assertEquals(listOf(FocusDirection.Up), popupFocusManager.moves)
+        assertEquals(listOf(FocusDirection.Up), focusManager.moves)
+    }
+
+    @Test
+    fun unfocusingAPopupTargetMakesTheOneBehindItCurrentAgain() {
+        var activatedTarget = ""
+        val menuTarget = GamepadActivationNode(gamepadInputManager) { activatedTarget = "menu" }
+        val popupTarget = GamepadActivationNode(gamepadInputManager) { activatedTarget = "popup" }
+        gamepadInputManager.onActivationTargetFocused(menuTarget)
+        gamepadInputManager.onActivationTargetFocused(popupTarget)
+        navigator.restFocusNavigation()
+        press(GamepadButton.SOUTH)
+        navigator.updateFocusNavigation(FRAME_TIME.toFloat())
+        assertEquals("popup", activatedTarget)
+        release(GamepadButton.SOUTH)
+        navigator.updateFocusNavigation(FRAME_TIME.toFloat())
+
+        gamepadInputManager.onActivationTargetUnfocused(popupTarget)
+        press(GamepadButton.SOUTH)
+        navigator.updateFocusNavigation(FRAME_TIME.toFloat())
+
+        assertEquals("menu", activatedTarget)
+    }
+
+    private fun holdFor(milliseconds: Int) = repeat(milliseconds / FRAME_TIME) {
+        navigator.updateFocusNavigation(FRAME_TIME.toFloat())
+    }
+
     private fun press(button: GamepadButton) {
         gamepads[0].pressedButtons = gamepads[0].pressedButtons or button.bitMask
     }
@@ -194,5 +285,9 @@ class GamepadFocusNavigatorTest {
             requestedInputMode = inputMode
             return true
         }
+    }
+
+    private companion object {
+        const val FRAME_TIME = 16
     }
 }

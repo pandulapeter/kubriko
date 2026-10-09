@@ -16,47 +16,81 @@ class BackNavigationTest {
 
     private val booleans = listOf(false, true)
 
+    private fun action(
+        isRunning: Boolean = false,
+        isInfoDialogVisible: Boolean = false,
+        isLevelLoaded: Boolean = false,
+        isCloseConfirmationDialogVisible: Boolean = false,
+        isInFullscreenMode: Boolean = false,
+    ) = backNavigationAction(
+        isRunning = isRunning,
+        isInfoDialogVisible = isInfoDialogVisible,
+        isLevelLoaded = isLevelLoaded,
+        isCloseConfirmationDialogVisible = isCloseConfirmationDialogVisible,
+        isInFullscreenMode = isInFullscreenMode,
+    )
+
     @Test
     fun pausesWhileRunningWhateverElseIsTrue() {
-        for (isInfoDialogVisible in booleans) for (isLevelLoaded in booleans) for (isCloseConfirmationDialogVisible in booleans) for (isInFullscreenMode in booleans) {
+        for (info in booleans) for (loaded in booleans) for (confirmation in booleans) for (fullscreen in booleans) {
             assertEquals(
                 BackNavigationAction.PAUSE,
-                backNavigationAction(true, isInfoDialogVisible, isLevelLoaded, isCloseConfirmationDialogVisible, isInFullscreenMode),
+                action(
+                    isRunning = true,
+                    isInfoDialogVisible = info,
+                    isLevelLoaded = loaded,
+                    isCloseConfirmationDialogVisible = confirmation,
+                    isInFullscreenMode = fullscreen,
+                ),
             )
         }
     }
 
     @Test
     fun closesTheInfoDialogWhenPaused() {
-        for (isLevelLoaded in booleans) for (isCloseConfirmationDialogVisible in booleans) for (isInFullscreenMode in booleans) {
+        for (loaded in booleans) for (confirmation in booleans) for (fullscreen in booleans) {
             assertEquals(
                 BackNavigationAction.CLOSE_INFO_DIALOG,
-                backNavigationAction(false, true, isLevelLoaded, isCloseConfirmationDialogVisible, isInFullscreenMode),
+                action(
+                    isInfoDialogVisible = true,
+                    isLevelLoaded = loaded,
+                    isCloseConfirmationDialogVisible = confirmation,
+                    isInFullscreenMode = fullscreen,
+                ),
             )
         }
     }
 
     @Test
     fun resumesALoadedLevelWhenNoDialogIsOpen() {
-        for (isInFullscreenMode in booleans) {
-            assertEquals(
-                BackNavigationAction.RESUME,
-                backNavigationAction(false, false, true, false, isInFullscreenMode),
-            )
+        for (fullscreen in booleans) {
+            assertEquals(BackNavigationAction.RESUME, action(isLevelLoaded = true, isInFullscreenMode = fullscreen))
         }
     }
 
     @Test
     fun doesNotResumeBehindTheCloseConfirmationDialog() {
-        assertEquals(BackNavigationAction.EXIT_FULLSCREEN, backNavigationAction(false, false, true, true, true))
-        assertEquals(BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION, backNavigationAction(false, false, true, true, false))
+        assertEquals(
+            BackNavigationAction.EXIT_FULLSCREEN,
+            action(isLevelLoaded = true, isCloseConfirmationDialogVisible = true, isInFullscreenMode = true),
+        )
+        assertEquals(
+            BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION,
+            action(isLevelLoaded = true, isCloseConfirmationDialogVisible = true),
+        )
     }
 
     @Test
     fun exitsFullscreenOrTogglesTheCloseConfirmationWithoutALevel() {
-        for (isCloseConfirmationDialogVisible in booleans) {
-            assertEquals(BackNavigationAction.EXIT_FULLSCREEN, backNavigationAction(false, false, false, isCloseConfirmationDialogVisible, true))
-            assertEquals(BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION, backNavigationAction(false, false, false, isCloseConfirmationDialogVisible, false))
+        for (confirmation in booleans) {
+            assertEquals(
+                BackNavigationAction.EXIT_FULLSCREEN,
+                action(isCloseConfirmationDialogVisible = confirmation, isInFullscreenMode = true),
+            )
+            assertEquals(
+                BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION,
+                action(isCloseConfirmationDialogVisible = confirmation),
+            )
         }
     }
 }

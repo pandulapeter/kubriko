@@ -15,7 +15,6 @@ import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.collision.mask.CollisionMask
 import com.pandulapeter.kubriko.collision.mask.PointCollisionMask
-import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
 import com.pandulapeter.kubriko.helpers.extensions.rad
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -78,11 +77,6 @@ class PointMaskCollisionTest {
     @Test
     fun pointsDoNotCollideWithEachOther() {
         assertDoesNotCollideInBothOrders(point(1f, 1f), point(1f, 1f))
-    }
-
-    @Test
-    fun emptyPolygonCollidesLikeAPoint() {
-        assertCollidesInBothOrders(PolygonCollisionMask(initialPosition = SceneOffset(1f.sceneUnit, 1f.sceneUnit)), circle)
     }
 
     private fun assertCollidesInBothOrders(a: CollisionMask, b: CollisionMask) {

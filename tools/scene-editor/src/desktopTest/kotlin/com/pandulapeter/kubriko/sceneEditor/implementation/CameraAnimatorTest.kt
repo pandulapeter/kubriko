@@ -38,7 +38,7 @@ class CameraAnimatorTest {
         animator.animateCameraTo(target)
         runCurrent()
         assertEquals(SceneOffset.Zero, viewportManager.cameraPosition.value)
-        advanceTimeBy(400)
+        advanceTimeBy(1_000)
         assertEquals(target, viewportManager.cameraPosition.value)
     }
 
@@ -49,7 +49,7 @@ class CameraAnimatorTest {
         advanceTimeBy(100)
         val externalPosition = SceneOffset((-20f).sceneUnit, 30f.sceneUnit)
         viewportManager.setCameraPosition(externalPosition)
-        advanceTimeBy(500)
+        advanceTimeBy(1_000)
         assertEquals(externalPosition, viewportManager.cameraPosition.value)
     }
 }

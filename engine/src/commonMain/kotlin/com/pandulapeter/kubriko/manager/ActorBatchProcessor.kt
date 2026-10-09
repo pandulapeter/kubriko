@@ -68,6 +68,7 @@ internal class ActorBatchProcessor(
      * Kubriko instance is first started, so that `onAdded` always sees every Manager initialized and the first tick
      * sees the initial scene.
      */
+    @OptIn(ExperimentalAtomicApi::class)
     fun start(kubrikoImpl: KubrikoImpl, scope: CoroutineScope, dispatcher: CoroutineDispatcher) {
         if (isProcessingStarted) return
         isProcessingStarted = true
@@ -78,7 +79,7 @@ internal class ActorBatchProcessor(
             processBatchStartingWith(firstOperation)
         }
         processorJob = scope.launch(dispatcher) {
-            while (isActive) {
+            while (isActive && !isDisposing.load()) {
                 processBatchStartingWith(operationChannel.receive())
             }
         }
@@ -100,7 +101,9 @@ internal class ActorBatchProcessor(
         }
     }
 
+    @OptIn(ExperimentalAtomicApi::class)
     private fun processBatchStartingWith(firstOperation: Operation) {
+        if (isDisposing.load()) return
         try {
             val batch = mutableListOf(firstOperation)
             while (true) {

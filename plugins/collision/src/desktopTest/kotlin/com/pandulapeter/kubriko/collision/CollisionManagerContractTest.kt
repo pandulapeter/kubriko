@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.collision
 
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.collision.extensions.isCollidingWith
+import com.pandulapeter.kubriko.collision.extensions.slidingMovement
 import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.collision.mask.CollisionMask
 import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
@@ -48,7 +49,59 @@ class CollisionManagerContractTest {
     }
 
     @Test
-    fun noCallbackAfterRemoval() = withKubriko { collisionManager, kubriko ->
+    fun detectorHearsSubtypesOfItsTypes() = withKubriko { collisionManager, kubriko ->
+        val overlappingA = TypeA(circle(5f, 0f))
+        val overlappingB = TypeB(circle(-5f, 0f))
+        val detector = RecordingDetector(circle(0f, 0f), listOf(TestCollidable::class))
+        kubriko.register(collisionManager, overlappingA, overlappingB, detector)
+
+        detector.clear()
+        kubriko.tick()
+
+        assertEquals(setOf<Collidable>(overlappingA, overlappingB), detector.reported)
+    }
+
+    @Test
+    fun detectorIsNeverReportedCollidingWithItself() = withKubriko { collisionManager, kubriko ->
+        val first = RecordingDetector(circle(0f, 0f), listOf(RecordingDetector::class))
+        val second = RecordingDetector(circle(5f, 0f), listOf(RecordingDetector::class))
+        kubriko.register(collisionManager, first, second)
+
+        first.clear()
+        second.clear()
+        kubriko.tick()
+
+        assertEquals(setOf<Collidable>(second), first.reported)
+        assertEquals(setOf<Collidable>(first), second.reported)
+    }
+
+    @Test
+    fun detectorIsNotCalledWithoutOverlap() = withKubriko { collisionManager, kubriko ->
+        val farA = TypeA(circle(1_000f, 0f))
+        val detector = CountingDetector(circle(0f, 0f), listOf(TypeA::class))
+        kubriko.register(collisionManager, farA, detector)
+
+        kubriko.tick(count = 3)
+
+        assertEquals(0, detector.callCount)
+    }
+
+    @Test
+    fun managerSlidingMovementIsBlockedOnlyByTheCollidablesItAccepts() = withKubriko { collisionManager, kubriko ->
+        val mover = TypeA(circle(0f, 0f))
+        val solid = TypeA(circle(30f, 0f))
+        val ghost = TypeB(circle(-30f, 0f))
+        kubriko.register(collisionManager, mover, solid, ghost)
+
+        val blocked = mover.slidingMovement(SceneOffset(20f.sceneUnit, 0f.sceneUnit), collisionManager) { it is TypeA }
+        val unblocked = mover.slidingMovement(SceneOffset((-20f).sceneUnit, 0f.sceneUnit), collisionManager) { it is TypeA }
+
+        assertEquals(10f, blocked.x.raw, 1e-3f)
+        assertEquals(-20f, unblocked.x.raw, 1e-3f)
+    }
+
+    @Test
+    fun noCallbackAfterRemoval()= withKubriko { collisionManager, kubriko ->
         val overlappingA = TypeA(circle(5f, 0f))
         val overlappingB = TypeB(circle(5f, 0f))
         val detector = RecordingDetector(circle(0f, 0f), listOf(TypeA::class))

@@ -31,7 +31,7 @@ class BackNavigationTest {
     }
 
     @Test
-    fun resumesAStartedGameEvenBehindTheCloseConfirmationDialog() {
+    fun resumesAStartedGameWhenNoDialogIsOpen() {
         for (isInFullscreenMode in booleans) {
             assertEquals(BackNavigationAction.RESUME, backNavigationAction(false, false, true, isInFullscreenMode))
         }

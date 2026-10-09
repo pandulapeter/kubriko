@@ -15,55 +15,84 @@ import kotlin.test.assertEquals
 class TimerTest {
 
     @Test
-    fun zeroDurationOneShotFiresOnFirstUpdate() {
+    fun oneShotFiresWhenItsDurationElapses() {
+        var fires = 0
+        val timer = Timer(100) { fires++ }
+
+        timer.update(99)
+        assertEquals(0, fires)
+        assertEquals(1, timer.remainingTimeInMilliseconds)
+
+        timer.update(1)
+        assertEquals(1, fires)
+        assertEquals(0, timer.remainingTimeInMilliseconds)
+    }
+
+    @Test
+    fun oneShotFiresOnlyOnce() {
+        var fires = 0
+        val timer = Timer(100) { fires++ }
+
+        repeat(20) { timer.update(16) }
+
+        assertEquals(1, fires)
+        assertEquals(0, timer.remainingTimeInMilliseconds)
+    }
+
+    @Test
+    fun zeroDurationOneShotFiresOnItsFirstUpdateOnly() {
         var fires = 0
         val timer = Timer(0) { fires++ }
+
         timer.update(16)
         assertEquals(1, fires)
+
         repeat(5) { timer.update(16) }
         assertEquals(1, fires)
     }
 
     @Test
-    fun negativeDurationOneShotFiresOnce() {
+    fun negativeDurationOneShotFiresOnItsFirstUpdateOnly() {
         var fires = 0
         val timer = Timer(-5) { fires++ }
+
         timer.update(16)
         assertEquals(1, fires)
+
         repeat(5) { timer.update(16) }
         assertEquals(1, fires)
     }
 
     @Test
-    fun repeatingTimerKeepsItsRate() {
+    fun repeatingTimerCarriesItsOvershootIntoTheNextPeriod() {
         var fires = 0
-        val timer = Timer(100, true) { fires++ }
+        val timer = Timer(100, shouldTriggerMultipleTimes = true) { fires++ }
+
         repeat(625) { timer.update(16) }
+
         assertEquals(100, fires)
     }
 
     @Test
-    fun longStallFiresOnceAndKeepsPhase() {
+    fun repeatingTimerFiresAtMostOncePerUpdateAndKeepsItsPhase() {
         var fires = 0
-        val timer = Timer(100, true) { fires++ }
+        val timer = Timer(100, shouldTriggerMultipleTimes = true) { fires++ }
+
         timer.update(1050)
+
         assertEquals(1, fires)
         assertEquals(50, timer.remainingTimeInMilliseconds)
     }
 
     @Test
     fun negativeDeltaIsIgnored() {
-        val timer = Timer(100) {}
-        timer.update(-50)
-        assertEquals(100, timer.remainingTimeInMilliseconds)
-    }
-
-    @Test
-    fun oneShotFiresOnce() {
         var fires = 0
         val timer = Timer(100) { fires++ }
-        repeat(20) { timer.update(16) }
-        assertEquals(1, fires)
-        assertEquals(0, timer.remainingTimeInMilliseconds)
+
+        timer.update(-50)
+        assertEquals(100, timer.remainingTimeInMilliseconds)
+
+        timer.update(99)
+        assertEquals(0, fires)
     }
 }

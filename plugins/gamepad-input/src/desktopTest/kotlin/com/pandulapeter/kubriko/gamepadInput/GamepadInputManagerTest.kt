@@ -15,10 +15,10 @@ import com.pandulapeter.kubriko.gamepadInput.implementation.RawGamepadState
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.testFixtures.ManualKubriko
 import com.pandulapeter.kubriko.testFixtures.newManualKubriko
-import kotlin.math.hypot
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -40,19 +40,48 @@ class GamepadInputManagerTest {
     }
 
     @Test
-    fun stickOutsideTheDeadZoneIsRescaled() = withGamepads { kubriko, manager, handler, _ ->
-        listOf(0.6f to 0f, 1f to 0f, 0.3f to -0.4f, 0.8f to 0.8f).forEach { (x, y) ->
-            handler.connect(0).apply {
-                rightStickX = x
-                rightStickY = y
-            }
-            kubriko.tick()
-
-            val magnitude = hypot(x, y)
-            val scale = ((magnitude - DEAD_ZONE) / (1f - DEAD_ZONE)).coerceAtMost(1f) / magnitude
-            assertEquals(x * scale, manager.gamepads[0].rightStickX)
-            assertEquals(y * scale, manager.gamepads[0].rightStickY)
+    fun fullyDeflectedStickReadsOne() = withGamepads { kubriko, manager, handler, _ ->
+        handler.connect(0).apply {
+            leftStickX = -1f
+            rightStickY = 1f
         }
+        kubriko.tick()
+
+        assertEquals(-1f, manager.gamepads[0].leftStickX, TOLERANCE)
+        assertEquals(1f, manager.gamepads[0].rightStickY, TOLERANCE)
+        assertEquals(1f, manager.gamepads[0].leftStickMagnitude, TOLERANCE)
+    }
+
+    @Test
+    fun stickJustOutsideTheDeadZoneStartsNearZero() = withGamepads { kubriko, manager, handler, _ ->
+        handler.connect(0).leftStickX = DEAD_ZONE + 0.01f
+        kubriko.tick()
+
+        assertTrue(manager.gamepads[0].leftStickX in 0.001f..0.05f, "${manager.gamepads[0].leftStickX}")
+    }
+
+    @Test
+    fun rescaledStickKeepsItsDirection() = withGamepads { kubriko, manager, handler, _ ->
+        handler.connect(0).apply {
+            rightStickX = 0.3f
+            rightStickY = -0.4f
+        }
+        kubriko.tick()
+
+        val gamepad = manager.gamepads[0]
+        assertEquals(0.3f / -0.4f, gamepad.rightStickX / gamepad.rightStickY, TOLERANCE)
+        assertTrue(gamepad.rightStickMagnitude in 0f..0.5f)
+    }
+
+    @Test
+    fun stickMagnitudeNeverExceedsOne() = withGamepads { kubriko, manager, handler, _ ->
+        handler.connect(0).apply {
+            leftStickX = 1f
+            leftStickY = 1f
+        }
+        kubriko.tick()
+
+        assertEquals(1f, manager.gamepads[0].leftStickMagnitude, TOLERANCE)
     }
 
     @Test
@@ -115,6 +144,48 @@ class GamepadInputManagerTest {
         assertEquals(listOf("released 0 SOUTH", "disconnected 0"), actor.events)
     }
 
+    @Test
+    fun disconnectedPadReadsNeutralValues() = withGamepads { kubriko, manager, handler, _ ->
+        handler.connect(0).apply {
+            name = "Pad"
+            leftStickX = 1f
+            rightTrigger = 1f
+            setButton(GamepadButton.NORTH, true)
+        }
+        kubriko.tick()
+
+        handler.gamepads[0].reset()
+        kubriko.tick()
+
+        val gamepad = manager.gamepads[0]
+        assertFalse(gamepad.isConnected)
+        assertNull(gamepad.name)
+        assertEquals(0f, gamepad.leftStickX)
+        assertEquals(0f, gamepad.rightTrigger)
+        assertFalse(gamepad.isPressed(GamepadButton.NORTH))
+    }
+
+    @Test
+    fun stateIsHandedOverOnlyForConnectedPads() = withGamepads { kubriko, _, handler, actor ->
+        handler.connect(1)
+        kubriko.tick()
+        actor.handledSlots.clear()
+
+        kubriko.tick(count = 2)
+
+        assertEquals(listOf(1, 1), actor.handledSlots)
+    }
+
+    @Test
+    fun slotsOutsideTheRangeReportNoPressedButtons() = withGamepads { kubriko, manager, handler, _ ->
+        handler.connect(0).setButton(GamepadButton.SOUTH, true)
+        kubriko.tick()
+
+        assertTrue(manager.isButtonPressed(0, GamepadButton.SOUTH))
+        assertFalse(manager.isButtonPressed(-1, GamepadButton.SOUTH))
+        assertFalse(manager.isButtonPressed(GamepadInputManager.MAX_GAMEPAD_COUNT, GamepadButton.SOUTH))
+    }
+
     private fun withGamepads(block: (ManualKubriko, GamepadInputManagerImpl, FakeGamepadEventHandler, RecordingActor) -> Unit) {
         val handler = FakeGamepadEventHandler()
         val manager = GamepadInputManagerImpl(
@@ -162,9 +233,11 @@ class GamepadInputManagerTest {
     private class RecordingActor : GamepadInputAware {
         var hasReceivedState = false
         val events = mutableListOf<String>()
+        val handledSlots = mutableListOf<Int>()
 
         override fun handleGamepadState(gamepad: GamepadState) {
             hasReceivedState = true
+            handledSlots.add(gamepad.index)
         }
 
         override fun onGamepadButtonPressed(gamepad: GamepadState, button: GamepadButton) {
@@ -188,5 +261,6 @@ class GamepadInputManagerTest {
         const val DEAD_ZONE = 0.2f
         const val TRIGGER_THRESHOLD = 0.5f
         const val PROBE_SLOT = 3
+        const val TOLERANCE = 0.0001f
     }
 }

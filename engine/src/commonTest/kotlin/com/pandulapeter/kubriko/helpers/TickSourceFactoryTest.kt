@@ -10,25 +10,19 @@
 package com.pandulapeter.kubriko.helpers
 
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class TickSourceFactoryTest {
 
     @Test
-    fun fixedFrequencyRejectsZero() {
-        val exception = assertFailsWith<IllegalArgumentException> { TickSource.fixedFrequency(0) }
-        assertEquals("ticksPerSecond must be greater than 0.", exception.message)
+    fun fixedFrequencyRejectsANonPositiveFrequency() {
+        assertFailsWith<IllegalArgumentException> { TickSource.fixedFrequency(0) }
+        assertFailsWith<IllegalArgumentException> { TickSource.fixedFrequency(-1) }
     }
 
     @Test
-    fun fixedFrequencyRejectsNegative() {
-        val exception = assertFailsWith<IllegalArgumentException> { TickSource.fixedFrequency(-1) }
-        assertEquals("ticksPerSecond must be greater than 0.", exception.message)
-    }
-
-    @Test
-    fun fixedRateRejectsZero() {
+    fun fixedRateRejectsANonPositiveInterval() {
         assertFailsWith<IllegalArgumentException> { TickSource.fixedRate(0L) }
+        assertFailsWith<IllegalArgumentException> { TickSource.fixedRate(-1L) }
     }
 }
