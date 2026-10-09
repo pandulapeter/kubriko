@@ -50,6 +50,10 @@ interface ParticleEmitter<S : ParticleEmitter.ParticleState> : Actor {
      */
     fun reuseParticleState(state: S)
 
+    /**
+     * The untyped entry point the [ParticleManager] calls with a pooled state of [particleStateType]: it casts the
+     * state and forwards it to [reuseParticleState]. Implementations override [reuseParticleState], not this.
+     */
     @Suppress("UNCHECKED_CAST")
     fun reuseParticleInternal(state: ParticleState) = reuseParticleState(state as S)
 

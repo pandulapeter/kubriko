@@ -29,7 +29,8 @@ sealed class ParticleManager(
         /**
          * Creates a new [ParticleManager] instance.
          *
-         * @param cacheSize The maximum number of particles that can be active at once.
+         * @param cacheSize The maximum number of finished particle states kept for reuse per [ParticleEmitter.ParticleState]
+         * type. The number of live particles is not limited by it.
          * @param isLoggingEnabled Whether to enable logging for this manager.
          * @param instanceNameForLogging Optional name for logging purposes.
          */

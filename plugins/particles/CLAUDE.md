@@ -42,15 +42,29 @@ already-published list keeps rendering and following the camera.
 ## Implementing a `ParticleState`
 
 ```kotlin
-class MyParticleState : ParticleState() {
-    // Must fully reset ALL mutable fields in reuseParticleState():
-    override fun reuseParticleState() { velocity = SceneOffset.Zero; lifetime = 1000 }
-    // Called only when pool is empty:
-    override fun createParticleState(): MyParticleState = MyParticleState()
-
+class MyParticleState : ParticleEmitter.ParticleState() {
     override val body = BoxBody(...)
+    var velocity = SceneOffset.Zero
+    var remainingLifetime = 1000
+
+    // Return false once the particle is done, which recycles it into the pool:
+    override fun update(deltaTimeInMilliseconds: Int): Boolean { /* no allocations here */ }
     override fun DrawScope.draw() { /* no allocations here */ }
-    override fun update(deltaTimeInMilliseconds: Int) { /* no allocations here */ }
+}
+
+class MyEmitter : ParticleEmitter<MyParticleState> {
+    override var particleEmissionMode: ParticleEmitter.Mode = ParticleEmitter.Mode.Continuous { 0.1f }
+    override val particleStateType = MyParticleState::class
+
+    // Called only when the pool is empty:
+    override fun createParticleState() = MyParticleState()
+
+    // Must fully reset ALL mutable fields of the pooled state:
+    override fun reuseParticleState(state: MyParticleState) {
+        state.body.position = SceneOffset.Zero
+        state.velocity = SceneOffset.Zero
+        state.remainingLifetime = 1000
+    }
 }
 ```
 
@@ -58,7 +72,7 @@ class MyParticleState : ParticleState() {
 
 ## Gotchas
 
-- `reuseParticleState()` must reset **every** mutable field — the instance is re-used as-is from the previous lifetime
+- `reuseParticleState(state)` must reset **every** mutable field — the instance is re-used as-is from the previous lifetime
 - Never allocate in `ParticleState.update()` or `draw()` — these run every frame per particle
 - `createParticleState()` is called only on pool miss; keep it cheap
 - Burst mode's auto-reset happens in the same tick as emission — set it fresh each burst cycle
