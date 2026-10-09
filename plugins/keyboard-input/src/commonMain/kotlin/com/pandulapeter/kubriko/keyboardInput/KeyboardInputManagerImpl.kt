@@ -34,10 +34,12 @@ internal class KeyboardInputManagerImpl(
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
     private var activeKeysCache = mutableSetOf<Key>()
-    // Keys pressed since the previous tick. Discrete onKeyPressed/onKeyReleased callbacks fire off-tick
-    // and are never lost, but a key tapped and released entirely between two ticks (common at low frame
-    // rates) would otherwise never appear in the per-tick handleActiveKeys snapshot. This latch surfaces
-    // such a key for exactly one tick. Cleared at the end of every onUpdate.
+    /**
+     * Keys pressed since the previous tick. Discrete onKeyPressed/onKeyReleased callbacks fire off-tick
+     * and are never lost, but a key tapped and released entirely between two ticks (common at low frame
+     * rates) would otherwise never appear in the per-tick handleActiveKeys snapshot. This latch surfaces
+     * such a key for exactly one tick. Cleared at the end of every onUpdate.
+     */
     private val keysPressedSinceLastSnapshot = mutableSetOf<Key>()
     private var activeKeysSnapshot: ImmutableSet<Key> = persistentSetOf()
     private var isActiveKeysDirty = false
@@ -76,8 +78,7 @@ internal class KeyboardInputManagerImpl(
         if (isActiveKeysDirty) {
             activeKeysSnapshot = buildActiveKeysSnapshot()
             // When the snapshot exists only to surface latch-only keys (already released), force a rebuild
-            // next tick so they are dropped once they have been observed for one tick; otherwise the dirty
-            // flag clears as before.
+            // next tick so they are dropped once they have been observed for one tick.
             isActiveKeysDirty = hasLatchedKeys && !activeKeysCache.containsAll(keysPressedSinceLastSnapshot)
         }
         if ((activeKeysCache.isNotEmpty() || hasLatchedKeys) && stateManager.isFocused.value) {
