@@ -61,23 +61,15 @@ internal class PhysicsManagerImpl(
     private var sweepMaxX = FloatArray(0)
     private var sweepPairs = LongArray(0)
 
-    // Leftover real time carried between ticks by the fixed-timestep accumulator below.
+    /** Real time carried between ticks by the fixed-timestep accumulator in [onUpdate]. */
     private var accumulatedTimeInMilliseconds = 0
 
     override fun onUpdate(deltaTimeInMilliseconds: Int) {
         if (!stateManager.isRunning.value || deltaTimeInMilliseconds <= 0) {
             return
         }
-        // Fixed-timestep accumulator. Advancing the simulation by one Euler step the size of the whole
-        // tick delta is unstable once the delta grows (e.g. a single ~100 ms step at 10 FPS): fast bodies
-        // jump clean past each other before any collision is detected (tunneling), springs overshoot
-        // their rest length and inject energy (joints spiraling), and deep penetrations never resolve
-        // (contacts stuck, re-triggering every tick). Splitting the same elapsed time into constant
-        // FIXED_TIME_STEP_IN_MILLISECONDS sub-steps keeps each integration step inside the stable range
-        // it was tuned for, so behavior is frame-rate independent. The sub-step dt keeps the original
-        // `* simulationSpeed / 100` scaling, so simulationSpeed still behaves as a pure time multiplier:
-        // the sub-step count tracks real elapsed time while each step advances by simulationSpeed times
-        // the fixed quantum.
+        // Fixed-timestep accumulator: the tick's real time is split into constant FIXED_TIME_STEP_IN_MILLISECONDS
+        // sub-steps, each advancing simulationSpeed times that quantum, so integration stays stable at any frame rate.
         accumulatedTimeInMilliseconds += minOf(deltaTimeInMilliseconds, MAXIMUM_ACCUMULATED_DELTA_IN_MILLISECONDS)
         val subStepDt = FIXED_TIME_STEP_IN_MILLISECONDS * simulationSpeed.value / 100f
         var stepsRemaining = MAXIMUM_SUB_STEPS_PER_TICK
@@ -88,12 +80,8 @@ internal class PhysicsManagerImpl(
             stepsRemaining--
             didStep = true
         }
-        // A force/torque accumulated on a body during this tick is applied by every sub-step above (not just
-        // the first), so its net effect tracks the real time the tick covered and is frame-rate independent;
-        // it is cleared once here, after the tick's steps, preserving the "set each frame, auto-cleared each
-        // frame" contract. The clear is gated on at least one sub-step having run: above the sub-step rate a
-        // tick can run no step (it only adds to the accumulator), and a force set on such a tick must survive
-        // to the tick that actually steps instead of being discarded unapplied.
+        // Forces apply across every sub-step and are cleared once per tick, only when a step ran, so a force set
+        // on a tick that ran no step survives to the one that does.
         if (didStep) {
             clearForcesAndTorques()
         }
@@ -117,22 +105,18 @@ internal class PhysicsManagerImpl(
         }
     }
 
-    // One full simulation step: recycle last step's arbiters, rebuild the contact set for the bodies'
-    // current positions, integrate, then resolve penetration. Collisions are re-detected every sub-step,
-    // which is what prevents tunneling when a tick is split into several steps.
+    /**
+     * One full simulation step: recycle last step's arbiters, rebuild the contact set for the bodies'
+     * current positions, integrate, then resolve penetration. Collisions are re-detected every sub-step,
+     * which is what prevents tunneling when a tick is split into several steps.
+     */
     private fun step(dt: Float) {
         for (i in arbiters.indices) {
             arbiterPool.add(arbiters[i])
         }
         arbiters.clear()
-        // Collision detection (broad and narrow phase) reads each body's collisionMask, but integration and
-        // penetration resolution move physicsBody.position/rotation. Those two are otherwise only reconciled
-        // once per tick by the owning actor's update(). When one tick is split into several sub-steps (low
-        // frame rates), the mask would stay frozen for the whole tick, so every sub-step would re-detect the
-        // same stale penetration and contact normal and resolve it again — over-correcting resting contacts
-        // (stacks explode) and repeatedly cancelling a launched body's velocity against a stale contact (it
-        // never moves). Refreshing the mask from the body before each broad phase makes every sub-step detect
-        // collisions at the body's current position, which is what keeps the simulation frame-rate independent.
+        // Integration moves the body, not its mask, so the mask is refreshed before every broad phase;
+        // do not hoist this out of step(), or sub-steps would detect collisions at stale positions.
         syncCollisionMasksWithBodies()
         broadPhaseCheck()
         semiImplicit(dt)
@@ -213,18 +197,18 @@ internal class PhysicsManagerImpl(
             x = body.velocity.x / velocityMagnitude,
             y = body.velocity.y / velocityMagnitude,
         ).scalar(-dragForceMagnitude)
-        // Drag is integrated straight into velocity instead of being routed through body.force. body.force
-        // now persists across all sub-steps of a tick (cleared once per tick), so adding the per-sub-step
-        // drag into it would let drag accumulate across sub-steps. Applying it here is equivalent to the
-        // previous `applyForce(drag)` followed by `velocity += force * invMass * dt`.
+        // Integrated straight into velocity: body.force persists across the tick's sub-steps, so drag routed
+        // through it would accumulate.
         body.velocity += dragForceVector.scalar(body.invMass).scalar(dt)
     }
 
-    // Sweep-and-prune broad phase: bodies are kept sorted by the left edge of their bounding box,
-    // so each body only needs to be tested against the neighbors whose x-extents can still overlap
-    // instead of every other body. Candidate pairs are collected and re-sorted into the exact
-    // (i, j) order the previous nested-loop implementation produced, which keeps the solver's
-    // arbiter order — and therefore the simulation results — identical.
+    /**
+     * Sweep-and-prune broad phase: bodies are kept sorted by the left edge of their bounding box,
+     * so each body only needs to be tested against the neighbors whose x-extents can still overlap
+     * instead of every other body. Candidate pairs are re-sorted into the (i, j) order of a nested
+     * loop, which keeps the solver's arbiter order and so the results deterministic — do not remove
+     * the pair sort.
+     */
     private fun broadPhaseCheck() {
         val bodies = rigidBodies.value
         val bodyCount = bodies.size
@@ -313,19 +297,23 @@ internal class PhysicsManagerImpl(
     }
 
     private companion object {
-        // The constant simulation step. 16 ms matches the per-step dt the simulation was tuned against
-        // at 60 FPS (16 ms * default simulationSpeed 1 / 100 ≈ the previous variable-delta step), so the
-        // engine behaves the same at typical frame rates and only changes — for the better — when ticks
-        // are throttled and one tick now covers several steps.
+        /**
+         * The constant simulation step: 16 ms × the default simulationSpeed 1 / 100 is the per-step dt the
+         * simulation was tuned against at 60 FPS.
+         */
         const val FIXED_TIME_STEP_IN_MILLISECONDS = 16
 
-        // Upper bound on sub-steps per tick, bounding worst-case cost and preventing the spiral of death.
-        // 8 steps cover a single ~128 ms tick, so frame rates down to ~7.5 FPS stay fully time-accurate;
-        // below that the simulation degrades gracefully (runs slower) instead of becoming unstable.
+        /**
+         * Upper bound on sub-steps per tick, bounding worst-case cost and preventing the spiral of death.
+         * 8 steps cover a single ~128 ms tick, so frame rates down to ~7.5 FPS stay fully time-accurate;
+         * below that the simulation degrades gracefully (runs slower) instead of becoming unstable.
+         */
         const val MAXIMUM_SUB_STEPS_PER_TICK = 8
 
-        // Any delta at or above this already runs every sub-step and then has its backlog dropped, so clamping to it
-        // changes nothing except keeping the Int accumulator from overflowing on a garbage delta.
+        /**
+         * Any delta at or above this already runs every sub-step and then has its backlog dropped, so clamping to it
+         * changes nothing except keeping the Int accumulator from overflowing on a garbage delta.
+         */
         const val MAXIMUM_ACCUMULATED_DELTA_IN_MILLISECONDS = FIXED_TIME_STEP_IN_MILLISECONDS * (MAXIMUM_SUB_STEPS_PER_TICK + 1)
     }
 }
