@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.debugMenu.implementation.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -28,7 +30,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -70,33 +74,39 @@ internal fun DebugMenuContents(
         lazyListState.scrollToItem(0)
     }
     if (!shouldUseVerticalLayout) {
-        Column(
+        BoxWithConstraints(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
                 .windowInsetsPadding(windowInsets.only(WindowInsetsSides.Bottom)),
-            verticalArrangement = Arrangement.SpaceEvenly,
         ) {
-            if (debugMenuMetadata != null) {
-                Metadata(
-                    modifier = Modifier.padding(
-                        top = 8.dp,
-                        bottom = 4.dp,
-                    ),
-                    debugMenuMetadata = debugMenuMetadata,
-                )
-                OverlaySwitch(
-                    title = Res.string.body_overlay,
-                    isChecked = debugMenuMetadata.isBodyOverlayEnabled,
-                    onToggled = onIsBodyOverlayEnabledChanged,
-                )
-                OverlaySwitch(
-                    title = Res.string.collision_mask_overlay,
-                    isChecked = debugMenuMetadata.isCollisionMaskOverlayEnabled,
-                    onToggled = onIsCollisionMaskOverlayEnabledChanged,
-                )
+            Column(
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .heightIn(min = maxHeight),
+                verticalArrangement = Arrangement.SpaceEvenly,
+            ) {
+                if (debugMenuMetadata != null) {
+                    Metadata(
+                        modifier = Modifier.padding(
+                            top = 8.dp,
+                            bottom = 4.dp,
+                        ),
+                        debugMenuMetadata = debugMenuMetadata,
+                    )
+                    OverlaySwitch(
+                        title = Res.string.body_overlay,
+                        isChecked = debugMenuMetadata.isBodyOverlayEnabled,
+                        onToggled = onIsBodyOverlayEnabledChanged,
+                    )
+                    OverlaySwitch(
+                        title = Res.string.collision_mask_overlay,
+                        isChecked = debugMenuMetadata.isCollisionMaskOverlayEnabled,
+                        onToggled = onIsCollisionMaskOverlayEnabledChanged,
+                    )
+                }
+                logsHeader(Modifier.padding(vertical = 4.dp))
             }
-            logsHeader(Modifier.padding(vertical = 4.dp))
         }
     }
     LazyColumn(
