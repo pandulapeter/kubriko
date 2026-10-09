@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.manager
 
 import androidx.compose.ui.geometry.Size
+import com.pandulapeter.kubriko.actor.body.AxisAlignedBoundingBox
 import com.pandulapeter.kubriko.actor.traits.Dynamic
 import com.pandulapeter.kubriko.actor.traits.Overlay
 import com.pandulapeter.kubriko.actor.traits.Positionable
@@ -109,12 +110,7 @@ internal class ActorCuller(
                 visibleScratch.add(actor)
                 continue
             }
-            val aabb = actor.body.axisAlignedBoundingBox
-            if (aabb.left.raw <= rightBound &&
-                aabb.top.raw <= bottomBound &&
-                aabb.right.raw >= leftBound &&
-                aabb.bottom.raw >= topBound
-            ) {
+            if (actor.body.axisAlignedBoundingBox.touchesBounds(leftBound, topBound, rightBound, bottomBound)) {
                 visibleScratch.add(actor)
             }
         }
@@ -177,6 +173,13 @@ internal class ActorCuller(
         }
     }
 
+    private fun AxisAlignedBoundingBox.touchesBounds(
+        leftBound: Float,
+        topBound: Float,
+        rightBound: Float,
+        bottomBound: Float,
+    ) = left.raw <= rightBound && top.raw <= bottomBound && right.raw >= leftBound && bottom.raw >= topBound
+
     /** Long-encoded layerIndex snapshot value; Long.MIN_VALUE marks null (no Int maps to it). */
     private fun Int?.encodeLayerIndex() = this?.toLong() ?: Long.MIN_VALUE
 
@@ -202,11 +205,7 @@ internal class ActorCuller(
         dynamicScratch.clear()
         for (actor in actors) {
             val isActive = if (!actor.isAlwaysActive && actor is Positionable) {
-                val aabb = actor.body.axisAlignedBoundingBox
-                aabb.left.raw <= rightBound &&
-                        aabb.top.raw <= bottomBound &&
-                        aabb.right.raw >= leftBound &&
-                        aabb.bottom.raw >= topBound
+                actor.body.axisAlignedBoundingBox.touchesBounds(leftBound, topBound, rightBound, bottomBound)
             } else {
                 true
             }
