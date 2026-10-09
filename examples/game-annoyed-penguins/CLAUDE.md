@@ -17,7 +17,7 @@ Angry-Birds-style physics launcher. The player pulls back a slingshot to launch 
 - `collision` — `CollisionManager` detects hits between penguin, blocks, and ground.
 - `audio-playback` — `MusicManager` + `SoundManager` for music and SFX.
 - `pointer-input` — `PointerInputManager` (`isActiveAboveViewport = true`) for slingshot drag and camera pan/zoom.
-- `keyboard-input` — `KeyboardInputManager` (available but minimal use in this game).
+- `keyboard-input` — `KeyboardInputManager` is registered, but no actor uses it yet.
 - `shaders` — Two `ShaderManager` instances: one for the background `FogShader` (Perlin-noise animated fog, credits: deusnovus/Shadertoy), one for the foreground `GradualBlurShader` applied when the game is paused.
 - `sprites` — `SpriteManager` for all sprite images.
 - `persistence` — `PersistenceManager` (file `kubrikoAnnoyedPenguins`) for user preferences.
@@ -39,7 +39,7 @@ Angry-Birds-style physics launcher. The player pulls back a slingshot to launch 
 | `Penguin` | `BlinkingPenguin`, `RigidBody`, `CollisionDetector` | The physics projectile. On first `update()` it applies the launch impulse and sets `simulationSpeed = 1f`. `shouldBeFollowedByCamera` causes the camera to track it; resets to false after 2 s of no collision. |
 | `DestructiblePhysicsObject` / `DestructibleBlock` | `Visible`, `Dynamic`, `RigidBody`, `CollisionDetector`, `Editable` | Physics rigid bodies that play a crash SFX on high-velocity impact. Removed when they fall off the bottom of the scene. |
 | `Ground` | Static `RigidBody`, `Editable` | Zero-density physics body; acts as the floor. |
-| `Star` | `Visible`, `Editable` | Non-physics collectible; picked up via collision mask overlap checked in `GameplayManager.onUpdate`. |
+| `Star` | `Visible`, `Dynamic`, `CollisionDetector`, `Editable` | Collectible; when a penguin or a destructible block hits it, it calls `GameplayManager.onStarCollected()`, shrinks and removes itself. `GameplayManager.onUpdate` ends the level once `collectedStarCount` reaches `totalStarCount`. |
 
 ## Game state management
 
