@@ -17,6 +17,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import com.pandulapeter.kubriko.sprites.helpers.toSpriteResource
 import com.pandulapeter.kubriko.sprites.implementation.toImageBitmap
 import kotlinx.collections.immutable.persistentMapOf
@@ -100,7 +102,11 @@ internal class SpriteManagerImpl(
                     pending.values.forEach { bitmap ->
                         drawImage(
                             image = bitmap,
-                            alpha = 0f,
+                            srcOffset = IntOffset.Zero,
+                            srcSize = IntSize(bitmap.width, bitmap.height),
+                            dstOffset = IntOffset.Zero,
+                            dstSize = IntSize(1, 1),
+                            alpha = WARM_UP_ALPHA,
                         )
                     }
                 }
@@ -192,6 +198,9 @@ internal class SpriteManagerImpl(
 
     companion object {
         private const val WARM_UP_TIMEOUT_MS = 100L
+
+        /** Skia quick-rejects a fully transparent source-over draw before it touches the image, so alpha 0 would upload nothing. */
+        private const val WARM_UP_ALPHA = 1f / 255f
         private const val INITIAL_RETRY_DELAY_MS = 500L
         private const val MAXIMUM_RETRY_DELAY_MS = 8_000L
     }

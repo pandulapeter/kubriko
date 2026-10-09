@@ -33,9 +33,11 @@ Callers must handle `null` every frame until the sprite is ready. The typical pa
 `Dynamic.update()` is to early-return or draw a placeholder when `get()` returns `null`.
 
 ## Warm-up phase
-After decoding, bitmaps are placed in `pendingWarmingUp` and drawn once via an invisible
-`Canvas` (alpha=0) in the manager's `Composable()` override. This uploads the texture to GPU
-before first visible use, preventing a hitch. After 100 ms (`WARM_UP_TIMEOUT_MS`) the bitmap is
+After decoding, bitmaps are placed in `pendingWarmingUp` and drawn once in the manager's
+`Composable()` override: the full source into a 1×1 destination at the canvas origin with alpha
+1/255 (`WARM_UP_ALPHA`). This uploads the texture to GPU before first visible use, preventing a
+hitch. Alpha 0 would not work: Skia quick-rejects a draw with a fully transparent source-over paint
+before it touches the image, and so would a destination outside the canvas. After 100 ms (`WARM_UP_TIMEOUT_MS`) the bitmap is
 promoted from `pendingWarmingUp` to the main cache regardless of whether the Canvas draw fired.
 `promoteToCache()` is idempotent.
 
