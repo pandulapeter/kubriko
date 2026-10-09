@@ -23,11 +23,10 @@ import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicBox
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicChain
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicCircle
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicPolygon
+import com.pandulapeter.kubriko.demoPhysics.implementation.actors.randomPolygonVertices
 import com.pandulapeter.kubriko.demoPhysics.implementation.ui.ActionType
 import com.pandulapeter.kubriko.demoPhysics.implementation.ui.PhysicsDemoOverlay
-import com.pandulapeter.kubriko.helpers.extensions.cos
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.helpers.extensions.sin
 import com.pandulapeter.kubriko.helpers.extensions.toSceneOffset
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
@@ -36,7 +35,6 @@ import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
-import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.coroutines.delay
@@ -166,15 +164,7 @@ internal class PhysicsDemoManager(
     ) = DynamicPolygon(
         collisionMask = PolygonCollisionMask(
             initialPosition = pointerSceneOffset,
-            vertices = (3..10).random().let { sideCount ->
-                (0..sideCount).map { sideIndex ->
-                    val angle = AngleRadians.TwoPi / sideCount * (sideIndex + 0.75f)
-                    SceneOffset(
-                        x = (30..120).random().sceneUnit * angle.cos,
-                        y = (30..120).random().sceneUnit * angle.sin,
-                    )
-                }
-            },
+            vertices = randomPolygonVertices(),
         ),
     )
 

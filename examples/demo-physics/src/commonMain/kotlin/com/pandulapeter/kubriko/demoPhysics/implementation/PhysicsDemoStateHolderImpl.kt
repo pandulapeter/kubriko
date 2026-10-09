@@ -17,16 +17,13 @@ import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicCircle
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticBox
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticCircle
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.StaticPolygon
+import com.pandulapeter.kubriko.demoPhysics.implementation.actors.randomPolygonVertices
 import com.pandulapeter.kubriko.demoPhysics.implementation.managers.PhysicsDemoManager
-import com.pandulapeter.kubriko.helpers.extensions.cos
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.helpers.extensions.sin
 import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.physics.PhysicsManager
 import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
-import com.pandulapeter.kubriko.types.AngleRadians
-import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -49,15 +46,7 @@ internal class PhysicsDemoStateHolderImpl(
                     initialPosition = it,
                     initialSize = SceneSize(240.sceneUnit, 240.sceneUnit),
                 ),
-                vertices = (3..10).random().let { sideCount ->
-                    (0..sideCount).map { sideIndex ->
-                        val angle = AngleRadians.TwoPi / sideCount * (sideIndex + 0.75f)
-                        SceneOffset(
-                            x = (30..120).random().sceneUnit * angle.cos,
-                            y = (30..120).random().sceneUnit * angle.sin,
-                        )
-                    }
-                },
+                vertices = randomPolygonVertices(),
             )
         },
         EditableMetadata.create<DynamicBox, DynamicBox.State>(typeId = "DynamicBox") {
