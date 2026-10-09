@@ -38,7 +38,7 @@ Each example exposes a `StateHolder` (defined in `examples/shared`):
 - `stopMusic()` — called before crossfade exit so music stops at the right moment.
 - `dispose()` — frees all Kubriko resources.
 
-`stateHolders` in `ExampleScreen.kt` is a **file-level** `mutableStateOf<List<StateHolder>>` — all live `StateHolder` instances accumulate here across the app session. `getOrCreateState<T>` retrieves an existing instance by type or creates one. On Compose `DisposableEffect` cleanup, if the departing entry is no longer selected, its `StateHolder` is disposed and removed from the list. This is how switching entries disposes the previous example's Kubriko instance while the crossfade is still running (music is stopped earlier via `stopMusic()`).
+`stateHolders` in `ShowcaseStateHolders.kt` is a **file-level** `mutableStateOf<List<StateHolder>>` — all live `StateHolder` instances accumulate here across the app session. `getOrCreateState<T>` retrieves an existing instance by type or creates one. On Compose `DisposableEffect` cleanup, if the departing entry is no longer selected, its `StateHolder` is disposed and removed from the list. This is how switching entries disposes the previous example's Kubriko instance while the crossfade is still running (music is stopped earlier via `stopMusic()`).
 
 `StateHolder.isInfoPanelVisible` (companion object) is global shared state toggled by the top bar info button.
 
@@ -69,7 +69,8 @@ Injected at build time via the `buildkonfig` plugin:
 - `KubrikoShowcase.kt` — entry Composable, deeplink logic, back-press handling, navigation state. Provides a `LocalUriHandler` that ignores links the platform cannot open instead of letting its handler throw.
 - `implementation/ShowcaseEntry.kt` — enum of all entries and `isAvailable`.
 - `implementation/ShowcaseEntryType.kt` — the menu categories (Games / Demos / Tests / Other) with their title and icon.
-- `implementation/ui/ExampleScreen.kt` — `StateHolder` pool, per-entry `ExampleScreen` Composable, disposal logic.
+- `implementation/ui/ExampleScreen.kt` — per-entry `ExampleScreen` Composable and its disposal effect.
+- `implementation/ui/ShowcaseStateHolders.kt` — the `StateHolder` pool: one accessor per entry, `getStateHolder()`, `disposeStateHolder()`.
 - `implementation/ui/ShowcaseContent.kt` — responsive layout orchestration.
 - `implementation/ui/Menu.kt` — `LazyListScope.menu()` extension, `menuItemIndex()`, `MenuCategoryLabel`.
 - `implementation/ui/MenuItem.kt` — one selectable menu row (title + subtitle).
