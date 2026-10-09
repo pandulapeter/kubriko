@@ -26,6 +26,17 @@ import com.pandulapeter.kubriko.shaders.collection.RippleShader
 import com.pandulapeter.kubriko.shaders.collection.SmoothPixelationShader
 import com.pandulapeter.kubriko.shaders.collection.VignetteShader
 
+/**
+ * Applies [shader] to the content of the modified node.
+ *
+ * A [ContentShader] becomes the node's render effect in a clipped `graphicsLayer`, rebuilt only when its state or the
+ * layer size changes. Any other shader replaces the content, drawn as a fill of the node's bounds (where shaders are
+ * not supported, the content itself is drawn instead).
+ *
+ * @param shader The shader to apply.
+ * @param gameTime Read on every frame so the node redraws as the game clock advances: pass the game time of the
+ * Kubriko instance, as the engine does when it hands it to [com.pandulapeter.kubriko.manager.Manager.processModifier].
+ */
 fun <T : Shader.State> Modifier.shader(
     shader: Shader<T>,
     gameTime: State<Long>,
@@ -69,9 +80,11 @@ internal fun Shader.Cache.markUpToDate(shaderState: Shader.State, dirtinessToken
     cachedState = shaderState
 }
 
-// The built-in states are immutable data classes, so equal values prove equal uniforms — which none of
-// them can express through the dirtiness token, whose default forces a rebuild on every invalidation.
-// A custom state may compare by identity or hold mutable fields, so it keeps that fallback.
+/**
+ * The built-in states are immutable data classes, so equal values prove equal uniforms — which none of
+ * them can express through the dirtiness token, whose default forces a rebuild on every invalidation.
+ * A custom state may compare by identity or hold mutable fields, so it keeps that fallback.
+ */
 private val Shader.State.hasValueEquality
     get() = this is BlurShader.State ||
             this is ChromaticAberrationShader.State ||
