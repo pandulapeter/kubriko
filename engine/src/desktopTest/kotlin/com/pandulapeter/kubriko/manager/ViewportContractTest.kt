@@ -180,6 +180,28 @@ class ViewportContractTest {
     }
 
     @Test
+    fun onViewportSizeChangedScalesByAspectRatioMode() {
+        val expectedScales = listOf(
+            ViewportManager.AspectRatioMode.Dynamic to Scale.Unit,
+            ViewportManager.AspectRatioMode.FitHorizontal(400f.sceneUnit) to Scale(2f, 2f),
+            ViewportManager.AspectRatioMode.FitVertical(300f.sceneUnit) to Scale(2f, 2f),
+            ViewportManager.AspectRatioMode.Fixed(ratio = 4f / 3f, width = 400f.sceneUnit) to Scale(2f, 2f),
+            ViewportManager.AspectRatioMode.Stretched(SceneSize(400f.sceneUnit, 300f.sceneUnit)) to Scale(2f, 2f),
+            ViewportManager.AspectRatioMode.Stretched(SceneSize(400f.sceneUnit, 200f.sceneUnit)) to Scale(2f, 3f),
+        )
+        for ((aspectRatioMode, expectedScale) in expectedScales) {
+            withViewport(ViewportManager.newInstance(aspectRatioMode = aspectRatioMode)) { viewportManager ->
+                viewportManager.setScaleFactor(1f)
+                viewportManager.onViewportSizeChanged(800f, 600f)
+                assertEquals(Size(800f, 600f), viewportManager.size.value, "size for $aspectRatioMode")
+                val scale = viewportManager.currentScaleFactor()
+                assertClose(expectedScale.horizontal, scale.horizontal, "horizontal scale for $aspectRatioMode")
+                assertClose(expectedScale.vertical, scale.vertical, "vertical scale for $aspectRatioMode")
+            }
+        }
+    }
+
+    @Test
     fun targetFrameRateRoundTrips() = withViewport(
         ViewportManager.newInstance(initialTargetFrameRate = TargetFrameRate.DisplayDivider(2)),
     ) { viewportManager ->

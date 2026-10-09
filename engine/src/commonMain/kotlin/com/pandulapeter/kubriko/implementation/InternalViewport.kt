@@ -22,19 +22,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.onSizeChanged
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoImpl
 import com.pandulapeter.kubriko.helpers.ViewportFrameTickSource
 import com.pandulapeter.kubriko.manager.ViewportManager
-import com.pandulapeter.kubriko.types.Scale
 import com.pandulapeter.kubriko.types.TargetFrameRate
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlin.math.roundToInt
 import kotlin.time.TimeSource
@@ -250,25 +247,7 @@ fun InternalViewport(
                         .aspectRatio(ratio = aspectRatioMode.ratio)
                 }
                     .clipToBounds()
-                    .onSizeChanged { intSize ->
-                        val widthPx = intSize.width.toFloat()
-                        val heightPx = intSize.height.toFloat()
-                        kubrikoImpl.viewportManager.run {
-                            updateSize(Size(widthPx, heightPx))
-                            scaleFactorMultiplier.update {
-                                when (val mode = aspectRatioMode) {
-                                    ViewportManager.AspectRatioMode.Dynamic -> Scale.Unit
-                                    is ViewportManager.AspectRatioMode.FitHorizontal -> (widthPx / mode.width.raw).let { Scale(it, it) }
-                                    is ViewportManager.AspectRatioMode.FitVertical -> (heightPx / mode.height.raw).let { Scale(it, it) }
-                                    is ViewportManager.AspectRatioMode.Fixed -> (widthPx / mode.width.raw).let { Scale(it, it) }
-                                    is ViewportManager.AspectRatioMode.Stretched -> Scale(
-                                        horizontal = widthPx / mode.size.width.raw,
-                                        vertical = heightPx / mode.size.height.raw,
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    .onSizeChanged { intSize -> kubrikoImpl.viewportManager.onViewportSizeChanged(intSize.width.toFloat(), intSize.height.toFloat()) }
             ) {
                 // Allow Managers to provide their own Composable functions
                 kubrikoImpl.managers.forEach { it.ComposableInternal(windowInsets) }

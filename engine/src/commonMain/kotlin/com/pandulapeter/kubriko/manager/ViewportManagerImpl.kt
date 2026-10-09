@@ -136,4 +136,20 @@ internal class ViewportManagerImpl(
     override fun setTargetFrameRate(targetFrameRate: TargetFrameRate) = _targetFrameRate.update { targetFrameRate }
 
     fun updateSize(size: Size) = _size.update { size }
+
+    fun onViewportSizeChanged(widthPx: Float, heightPx: Float) {
+        updateSize(Size(widthPx, heightPx))
+        scaleFactorMultiplier.update {
+            when (val mode = aspectRatioMode) {
+                AspectRatioMode.Dynamic -> Scale.Unit
+                is AspectRatioMode.FitHorizontal -> (widthPx / mode.width.raw).let { Scale(it, it) }
+                is AspectRatioMode.FitVertical -> (heightPx / mode.height.raw).let { Scale(it, it) }
+                is AspectRatioMode.Fixed -> (widthPx / mode.width.raw).let { Scale(it, it) }
+                is AspectRatioMode.Stretched -> Scale(
+                    horizontal = widthPx / mode.size.width.raw,
+                    vertical = heightPx / mode.size.height.raw,
+                )
+            }
+        }
+    }
 }
