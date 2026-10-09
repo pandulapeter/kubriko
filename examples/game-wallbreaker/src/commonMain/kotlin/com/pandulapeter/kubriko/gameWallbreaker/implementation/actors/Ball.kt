@@ -92,11 +92,11 @@ internal class Ball(
         paddle.detachBall(this)
     }
 
-    // Called by the Paddle at the end of its own update (and by this Ball's update) so that while
-    // the ball is glued to the paddle the two always share the exact same position within a frame.
-    // Driving it from the paddle's update guarantees the ball reflects the paddle's post-movement
-    // position regardless of actor update order, which previously made the paddle appear to move one
-    // frame ahead of the ball at low frame rates.
+    /**
+     * Keeps a ball that is waiting for launch on the paddle's x. The paddle calls this at the end of its own update (and the
+     * ball from its update), so within a frame the ball always reflects the paddle's final position, whatever the actor
+     * update order.
+     */
     fun snapToPaddle() {
         if (state == State.UNINITIALIZED || state == State.POSITIONING) {
             body.position = SceneOffset(

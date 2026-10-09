@@ -58,8 +58,7 @@ internal class Paddle(
     private var movementPointerId: PointerId? = null
     private var gluedBall: Ball? = null
 
-    // On desktop after each detected movement we programmatically move the cursor to the center of the screen.
-    // This next flag is there to make sure that that movement is filtered out.
+    /** On desktop the cursor is moved back to the centre after each movement; this flag filters out the event that move causes. */
     private var shouldMovePaddle = false
 
     override fun onAdded(kubriko: Kubriko) {
@@ -68,8 +67,7 @@ internal class Paddle(
         viewportManager = kubriko.get()
     }
 
-    // The Ball glues itself to the paddle while waiting to be launched. Keeping the reference here lets
-    // the paddle re-sync the ball at the end of its own update, so they move together within a frame.
+    /** Remembers the ball waiting for launch so the paddle can re-sync it at the end of its own update and the two move together within a frame. */
     fun attachBall(ball: Ball) {
         gluedBall = ball
     }
