@@ -13,13 +13,13 @@ Shared Compose Multiplatform UI consumed by all four platform entry points (`and
 
 ## Public surface
 
-`KubrikoShowcase(isInFullscreenMode, getIsInFullscreenMode, onFullscreenModeToggled, deeplink, onDestinationChanged)` — the single entry-point Composable called by every platform target. Platform modules own the fullscreen mechanism; shared code only receives/requests it.
+`KubrikoShowcase(isInFullscreenMode, getIsInFullscreenMode, onFullscreenModeToggled, deeplink, onDestinationChanged, onFirstFrameDrawn, onBackgroundColorChanged)` — the single entry-point Composable called by every platform target. Platform modules own the fullscreen mechanism; shared code only receives/requests it. `onFirstFrameDrawn` fires once the first frame has been presented (the web shell hides its loading screen there); `onBackgroundColorChanged` reports the theme's surface color (the desktop shell paints the area a fast resize uncovers with it).
 
 ## Navigation model
 
 There is no navigation library. Navigation state is a single `mutableStateOf<ShowcaseEntry?>` (file-level private in `KubrikoShowcase.kt`). `null` means the welcome/menu screen; a non-null value means that entry is active.
 
-`ShowcaseEntry` is a sealed enum (Games / Demos / Tests / Other). Each entry carries:
+`ShowcaseEntry` is an internal enum; each entry's `ShowcaseEntryType` (Games / Demos / Tests / Other) groups it in the menu. Each entry carries:
 - `type: ShowcaseEntryType` — controls menu grouping and which features (debug menu, info panel, fullscreen) are shown.
 - `areResourcesLoaded: @Composable () -> Boolean` — queried per entry; the whole app blocks on a loading screen until all return true.
 - `isProductionReady` — gates entries behind `showcase.shouldShowUnfinishedGames` build flag.
@@ -44,7 +44,7 @@ Each example exposes a `StateHolder` (defined in `examples/shared`):
 
 ## Responsive layout
 
-`ShowcaseContent` adapts based on `maxWidth`:
+`KubrikoShowcase` measures the window in a `BoxWithConstraints` and passes `ShowcaseContent` two flags:
 - `< 640dp` (compact): full-screen navigation — menu list → selected entry. Back navigation is visible in the top bar.
 - `>= 640dp` (expanded): side-by-side layout with a side menu panel and content area.
 - `>= 1200dp` (wide): wider side menu (320dp vs 192dp).
