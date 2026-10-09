@@ -18,7 +18,6 @@ plugins {
 dependencies {
     implementation(projects.app.shared)
     implementation(projects.engine)
-    implementation(projects.examples.demoIsometricGraphics)
     implementation(projects.examples.demoPerformance)
     implementation(projects.examples.demoPhysics)
     implementation(projects.examples.gameAnnoyedPenguins)
