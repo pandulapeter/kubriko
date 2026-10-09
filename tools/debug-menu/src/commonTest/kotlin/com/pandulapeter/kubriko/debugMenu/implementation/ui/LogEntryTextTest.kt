@@ -31,18 +31,18 @@ class LogEntryTextTest {
 
     @Test
     fun entryWithoutSourceOrDetailsShowsTheTimeAndMessage() {
-        assertEquals("[1:2:3.4] m", logEntryText(entry(), TimeZone.UTC))
+        assertEquals("[01:02:03.004] m", logEntryText(entry(), TimeZone.UTC))
     }
 
     @Test
     fun sourceIsPrefixedToTheMessage() {
-        assertEquals("[1:2:3.4] Src: m", logEntryText(entry(source = "Src"), TimeZone.UTC))
+        assertEquals("[01:02:03.004] Src: m", logEntryText(entry(source = "Src"), TimeZone.UTC))
     }
 
     @Test
     fun onlyNonBlankDetailsAddTheMarker() {
         assertTrue(logEntryText(entry(details = "d"), TimeZone.UTC).endsWith("*"))
-        assertEquals("[1:2:3.4] m", logEntryText(entry(details = " "), TimeZone.UTC))
+        assertEquals("[01:02:03.004] m", logEntryText(entry(details = " "), TimeZone.UTC))
     }
 
     @Test

@@ -48,7 +48,8 @@ private fun getColor(source: String?) = if (source == null) LocalContentColor.cu
 @OptIn(ExperimentalTime::class)
 internal fun logEntryText(entry: Logger.Entry, timeZone: TimeZone): String = entry.source.let { source ->
     val timestamp = Instant.fromEpochMilliseconds(entry.timestamp).toLocalDateTime(timeZone).time.let {
-        "${it.hour}:${it.minute}:${it.second}.${it.nanosecond / 1_000_000}"
+        "${it.hour.toString().padStart(2, '0')}:${it.minute.toString().padStart(2, '0')}:${it.second.toString().padStart(2, '0')}." +
+            (it.nanosecond / 1_000_000).toString().padStart(3, '0')
     }
     val message = if (source == null) entry.message else "${entry.source}: ${entry.message}"
     val suffix = if (entry.details.isNullOrBlank()) "" else "*"
