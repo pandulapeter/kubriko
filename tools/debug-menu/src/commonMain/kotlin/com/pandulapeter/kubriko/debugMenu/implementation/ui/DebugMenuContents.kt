@@ -34,14 +34,12 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.debugMenu.implementation.DebugMenuMetadata
-import com.pandulapeter.kubriko.debugMenu.implementation.InternalDebugMenu
 import com.pandulapeter.kubriko.logger.Logger
 import kubriko.tools.debug_menu.generated.resources.Res
 import kubriko.tools.debug_menu.generated.resources.body_overlay
@@ -59,6 +57,7 @@ internal fun DebugMenuContents(
     logs: List<Logger.Entry>,
     onIsBodyOverlayEnabledChanged: () -> Unit,
     onIsCollisionMaskOverlayEnabledChanged: () -> Unit,
+    logsHeader: @Composable (Modifier) -> Unit,
     shouldUseVerticalLayout: Boolean,
     lazyListState: LazyListState = rememberLazyListState(),
 ) = Row(
@@ -97,16 +96,7 @@ internal fun DebugMenuContents(
                     onToggled = onIsCollisionMaskOverlayEnabledChanged,
                 )
             }
-            LogsHeader(
-                modifier = Modifier.padding(vertical = 4.dp),
-                isLowPriorityEnabled = InternalDebugMenu.isLowPriorityEnabled.collectAsState().value,
-                onLowPriorityToggled = InternalDebugMenu::onLowPriorityToggled,
-                isMediumPriorityEnabled = InternalDebugMenu.isMediumPriorityEnabled.collectAsState().value,
-                onMediumPriorityToggled = InternalDebugMenu::onMediumPriorityToggled,
-                isHighPriorityEnabled = InternalDebugMenu.isHighPriorityEnabled.collectAsState().value,
-                onHighPriorityToggled = InternalDebugMenu::onHighPriorityToggled,
-                areFiltersApplied = InternalDebugMenu.filter.collectAsState().value.isNotEmpty(),
-            )
+            logsHeader(Modifier.padding(vertical = 4.dp))
         }
     }
     LazyColumn(
@@ -145,15 +135,7 @@ internal fun DebugMenuContents(
                 }
             }
             item("logsHeader") {
-                LogsHeader(
-                    isLowPriorityEnabled = InternalDebugMenu.isLowPriorityEnabled.collectAsState().value,
-                    onLowPriorityToggled = InternalDebugMenu::onLowPriorityToggled,
-                    isMediumPriorityEnabled = InternalDebugMenu.isMediumPriorityEnabled.collectAsState().value,
-                    onMediumPriorityToggled = InternalDebugMenu::onMediumPriorityToggled,
-                    isHighPriorityEnabled = InternalDebugMenu.isHighPriorityEnabled.collectAsState().value,
-                    onHighPriorityToggled = InternalDebugMenu::onHighPriorityToggled,
-                    areFiltersApplied = InternalDebugMenu.filter.collectAsState().value.isNotEmpty(),
-                )
+                logsHeader(Modifier)
             }
         }
         items(

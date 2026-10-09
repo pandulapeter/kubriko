@@ -24,15 +24,12 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.debugMenu.implementation.InternalDebugMenu
-import com.pandulapeter.kubriko.logger.Logger
 import com.pandulapeter.kubriko.uiComponents.TextInput
 import kubriko.tools.debug_menu.generated.resources.Res
 import kubriko.tools.debug_menu.generated.resources.clear_logs
@@ -64,9 +61,14 @@ internal fun LogsHeader(
     onMediumPriorityToggled: () -> Unit,
     isHighPriorityEnabled: Boolean,
     onHighPriorityToggled: () -> Unit,
-    areFiltersApplied: Boolean,
+    isEditingFilter: Boolean,
+    onEditingFilterToggled: () -> Unit,
+    filterText: String,
+    onFilterTextChanged: (String) -> Unit,
+    hasLogs: Boolean,
+    onClearLogsClicked: () -> Unit,
 ) = AnimatedContent(
-    targetState = InternalDebugMenu.isEditingFilter.collectAsState().value,
+    targetState = isEditingFilter,
     transitionSpec = { fadeIn() togetherWith fadeOut() },
     contentAlignment = Alignment.Center,
 ) { isEditingFilter ->
@@ -80,11 +82,10 @@ internal fun LogsHeader(
             Box(
                 modifier = Modifier.weight(1f),
             ) {
-                val filterText = InternalDebugMenu.filter.collectAsState().value
                 TextInput(
                     modifier = Modifier.fillMaxWidth(),
                     value = filterText,
-                    onValueChanged = InternalDebugMenu::onFilterUpdated,
+                    onValueChanged = onFilterTextChanged,
                 )
                 if (filterText.isEmpty()) {
                     Text(
@@ -96,9 +97,9 @@ internal fun LogsHeader(
             }
             Icon(
                 isSmall = true,
-                drawableResource = if (areFiltersApplied) Res.drawable.ic_filter_on else Res.drawable.ic_filter_off,
+                drawableResource = if (filterText.isNotEmpty()) Res.drawable.ic_filter_on else Res.drawable.ic_filter_off,
                 stringResource = Res.string.filter_logs,
-                onClick = InternalDebugMenu::toggleIsEditingFilter,
+                onClick = onEditingFilterToggled,
             )
         } else {
             Text(
@@ -126,15 +127,15 @@ internal fun LogsHeader(
             )
             Icon(
                 isSmall = true,
-                drawableResource = if (areFiltersApplied) Res.drawable.ic_filter_on else Res.drawable.ic_filter_off,
+                drawableResource = if (filterText.isNotEmpty()) Res.drawable.ic_filter_on else Res.drawable.ic_filter_off,
                 stringResource = Res.string.filter_logs,
-                onClick = InternalDebugMenu::toggleIsEditingFilter,
+                onClick = onEditingFilterToggled,
             )
             Icon(
-                isEnabled = Logger.logs.collectAsState().value.isNotEmpty(),
+                isEnabled = hasLogs,
                 drawableResource = Res.drawable.ic_clear,
                 stringResource = Res.string.clear_logs,
-                onClick = Logger::clearLogs,
+                onClick = onClearLogsClicked,
             )
         }
     }

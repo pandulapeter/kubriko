@@ -19,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.debugMenu.implementation.ui.DebugMenuContents
+import com.pandulapeter.kubriko.debugMenu.implementation.ui.LogsHeader
+import com.pandulapeter.kubriko.logger.Logger
 
 @Composable
 internal fun DebugMenuContainer(
@@ -51,6 +53,23 @@ internal fun DebugMenuContainer(
             logs = InternalDebugMenu.logs.collectAsState(emptyList()).value,
             onIsBodyOverlayEnabledChanged = InternalDebugMenu::onIsBodyOverlayEnabledChanged,
             onIsCollisionMaskOverlayEnabledChanged = InternalDebugMenu::onIsCollisionMaskOverlayEnabledChanged,
+            logsHeader = { modifier ->
+                LogsHeader(
+                    modifier = modifier,
+                    isLowPriorityEnabled = InternalDebugMenu.isLowPriorityEnabled.collectAsState().value,
+                    onLowPriorityToggled = InternalDebugMenu::onLowPriorityToggled,
+                    isMediumPriorityEnabled = InternalDebugMenu.isMediumPriorityEnabled.collectAsState().value,
+                    onMediumPriorityToggled = InternalDebugMenu::onMediumPriorityToggled,
+                    isHighPriorityEnabled = InternalDebugMenu.isHighPriorityEnabled.collectAsState().value,
+                    onHighPriorityToggled = InternalDebugMenu::onHighPriorityToggled,
+                    isEditingFilter = InternalDebugMenu.isEditingFilter.collectAsState().value,
+                    onEditingFilterToggled = InternalDebugMenu::toggleIsEditingFilter,
+                    filterText = InternalDebugMenu.filter.collectAsState().value,
+                    onFilterTextChanged = InternalDebugMenu::onFilterUpdated,
+                    hasLogs = Logger.logs.collectAsState().value.isNotEmpty(),
+                    onClearLogsClicked = Logger::clearLogs,
+                )
+            },
             shouldUseVerticalLayout = shouldUseVerticalLayout,
         )
     }
