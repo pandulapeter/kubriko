@@ -62,6 +62,13 @@ if (keyboardManager.isKeyPressed(Key.W)) {
 }
 ```
 
+## Platform Notes
+
+Keys typed into a text field reach the game on Desktop, Web and iOS, so a game that mixes text input with keyboard
+control should ignore keys while its text field is focused. On Android, Compose focus traversal and focused clickables
+can consume arrows, Tab, Enter and Space before the game sees them; keep Compose focus off in-game controls (for
+example with `focusProperties { canFocus = false }`) if the game listens to those keys.
+
 ## Public Artifact
 
 The artifact for this module is:

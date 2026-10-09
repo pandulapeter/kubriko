@@ -37,6 +37,13 @@ live (no latch) per its contract — use `handleActiveKeys` (or `onKeyPressed`) 
 
 On focus loss, all active keys are flushed immediately, on the main thread like the platform key events, to prevent stuck-key state.
 
+## What Each Backend Hears
+
+- **Desktop**: an AWT listener on the whole toolkit — every key event of every window of the JVM, including keys typed into a Compose `TextField` and the ones Compose uses for focus traversal
+- **Web**: `keydown`/`keyup` listeners on `window` — every key event of the page, including keys typed into Compose text fields
+- **Android**: `OnUnhandledKeyEventListener` on the decor view — only events no view consumed; Compose consumes arrows and Tab when they move its focus, and a focused `clickable` consumes Enter, Space and D-pad center
+- **iOS**: `GCKeyboard` — every hardware key, whatever Compose has focused
+
 ## Platform Differences
 
 | Platform | Backend | Gotcha |
@@ -65,6 +72,7 @@ Key.displayName          // Human-readable label
 
 ## Gotchas
 
+- Keys typed into a text field reach the game on Desktop, Web and iOS; Compose focus traversal and focused clickables can consume arrows, Tab, Enter and Space before the game sees them on Android
 - Key repeat from the OS is swallowed; `onKeyPressed` fires exactly once per physical press
 - Web: keys missing from Compose's web table (media keys, `PrintScreen`, `Pause`, …) are ignored, not reported as `Key.Unknown`
 - Android: the 70 ms debounce means very short key taps may be missed

@@ -16,6 +16,10 @@ import com.pandulapeter.kubriko.manager.Manager
  * Manager responsible for handling keyboard input.
  *
  * It tracks the state of all keys on the keyboard.
+ *
+ * Key events come from a platform listener, not from Compose's focus system: on Desktop, Web and iOS every key is
+ * heard, including keys typed into text fields; on Android only keys no view consumed (Compose focus navigation and
+ * focused clickables may consume arrows, Tab, Enter and Space).
  */
 sealed class KeyboardInputManager(
     isLoggingEnabled: Boolean,
