@@ -20,5 +20,6 @@
     <string name="filter_logs">Filter logs</string>
     <string name="clear_logs">Clear logs</string>
     <string name="logs_empty">No log entries found.</string>
+    <string name="debug_metadata">Kubriko: %1$s\nFPS: %2$d\nActors: %3$d/%4$d\nPlay time: %5$d\nViewport size: %6$d*%7$d</string>
 
 </resources>

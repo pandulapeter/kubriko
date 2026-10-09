@@ -46,6 +46,7 @@ import com.pandulapeter.kubriko.logger.Logger
 import kubriko.tools.debug_menu.generated.resources.Res
 import kubriko.tools.debug_menu.generated.resources.body_overlay
 import kubriko.tools.debug_menu.generated.resources.collision_mask_overlay
+import kubriko.tools.debug_menu.generated.resources.debug_metadata
 import kubriko.tools.debug_menu.generated.resources.logs_empty
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
@@ -182,11 +183,16 @@ private fun Metadata(
         .padding(horizontal = 8.dp)
         .padding(bottom = 2.dp),
     style = MaterialTheme.typography.labelSmall,
-    text = "Kubriko: ${debugMenuMetadata.kubrikoInstanceName}\n" +
-            "FPS: ${debugMenuMetadata.fps.roundToInt()}\n" +
-            "Actors: ${debugMenuMetadata.visibleActorWithinViewportCount}/${debugMenuMetadata.totalActorCount}\n" +
-            "Play time: ${debugMenuMetadata.playTimeInSeconds}\n" +
-            "Viewport size: ${debugMenuMetadata.viewportSize.width.roundToInt()}*${debugMenuMetadata.viewportSize.height.roundToInt()}"
+    text = stringResource(
+        Res.string.debug_metadata,
+        debugMenuMetadata.kubrikoInstanceName,
+        debugMenuMetadata.fps.roundToInt(),
+        debugMenuMetadata.visibleActorWithinViewportCount,
+        debugMenuMetadata.totalActorCount,
+        debugMenuMetadata.playTimeInSeconds,
+        debugMenuMetadata.viewportSize.width.roundToInt(),
+        debugMenuMetadata.viewportSize.height.roundToInt(),
+    ),
 )
 
 @Composable
