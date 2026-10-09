@@ -27,7 +27,7 @@ shader on different layers, or different shader classes with equal-looking state
 ## Compiled shader caching
 Each `Shader` actor owns a `Shader.Cache` that holds a platform-specific compiled program object
 (`runtimeShader`) and a `ShaderUniformProvider`. On Android this is `RuntimeShader`; on
-Desktop/iOS/Web it is `RuntimeShaderBuilder` (Skia). These are lazily created on first render and
+Desktop/iOS/Web it is `RuntimeShaderBuilder` (Skia; one `skikoMain` actual). These are lazily created on first render and
 reused across frames — do not recreate `Shader.Cache` each frame.
 
 ## SKSL entry point and reserved uniforms
@@ -66,7 +66,7 @@ relying on the render effects it happens to have.
   versions; `createRenderEffect` returns `null`, `drawGenerativeShader` draws the content instead, and the
   modifier has no visual effect.
 - **Desktop, iOS, Web**: always supported (`areShadersSupported = true`); uses Skia
-  `RuntimeShaderBuilder`.
+  `RuntimeShaderBuilder` (one `skikoMain` actual).
 - Check `ShaderManager.areShadersSupported` at runtime before exposing shader-dependent features.
 
 ## BlurShader special case

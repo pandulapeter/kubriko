@@ -44,6 +44,15 @@ internal fun Project.configureKotlinMultiplatform(
     wasmJs {
         browser()
     }
+    applyDefaultHierarchyTemplate {
+        common {
+            group("skiko") {
+                withJvm()
+                group("ios")
+                group("web")
+            }
+        }
+    }
     sourceSets.getByName("commonTest").dependencies {
         implementation(libs.findLibrary("kotlin-test").get())
         implementation(libs.findLibrary("kotlinx-coroutines-test").get())

@@ -26,6 +26,8 @@ Convention plugins for all Kubriko modules. The `includeBuild("gradle")` in root
 - iOS: `iosArm64` + `iosSimulatorArm64` (klibs only; the final framework is declared by the app module, e.g. `app:ios`)
 - Web: `wasmJs { browser() }` (experimental DSL, `@OptIn(ExperimentalWasmDsl::class)`; the executable is declared by the app module, e.g. `app:web`)
 
+Desktop, iOS and Wasm share a `skikoMain` source set (Skia through Skiko), added to the default hierarchy template; put an actual that is identical on the three there.
+
 All targets use JDK 21 toolchain (`jvmToolchain(21)`).
 
 The iOS and Wasm test runs are disabled (they need a simulator or a browser), along with their dependencies and the test binaries they would consume; their `compileTestKotlin*` compilations still run in `build`, so `commonTest` must compile for every target. The Wasm test tasks are matched by name, so re-check the `:engine:build --dry-run` task count after a KGP upgrade.

@@ -41,7 +41,7 @@ promoted from `pendingWarmingUp` to the main cache regardless of whether the Can
 
 ## Platform differences in decoding
 - **Android**: uses `BitmapFactory.decodeByteArray` with density scaling (`inDensity`/`inTargetDensity`); only downscales (no upscale from low-dpi resources). Rotation via `android.graphics.Matrix`.
-- **Desktop / iOS / Web**: uses Skia `Image.makeFromEncoded`, then draws into a `Surface.makeRasterN32Premul` canvas with rotation transform. Same downscale-only density logic as Android (CMP-5657).
+- **Desktop / iOS / Web** (one `skikoMain` actual): uses Skia `Image.makeFromEncoded`, then draws into a `Surface.makeRasterN32Premul` canvas with rotation transform. Same downscale-only density logic as Android (CMP-5657).
 - All platforms decode at MDPI (160 dpi) target density; resource density is set to MDPI as well so no scaling occurs for standard assets.
 
 ## SpriteResource vs DrawableResource

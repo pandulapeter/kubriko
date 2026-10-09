@@ -21,4 +21,4 @@ internal actual fun drawTrianglesThroughFastPath(
     vertexCount: Int,
     indexCount: Int,
     texCoords: FloatArray?,
-) = WasmTriangleBridge.draw(canvas, paint, positions, colors, indices, vertexCount, indexCount, texCoords)
+) = false
