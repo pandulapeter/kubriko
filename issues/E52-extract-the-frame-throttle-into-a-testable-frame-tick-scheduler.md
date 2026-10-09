@@ -2,6 +2,7 @@
 
 **Kind:** refactor  ·  **Severity:** high  ·  **Platforms:** all  ·  **Class:** Planned
 **Artifact:** engine
+**Rebased:** on 70de96c6 after the Now plans landed.
 **Files:**
 - `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/implementation/InternalViewport.kt`
 - `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/implementation/FrameTickScheduler.kt` (new)
@@ -9,13 +10,13 @@
 - `engine/src/desktopTest/kotlin/com/pandulapeter/kubriko/performance/HotPathAllocationTest.kt`
 - `engine/CLAUDE.md` (Tick Dispatch)
 
-Depends on E07 and E08 (both edit `InternalViewport.kt`; quoted below as after them) and E11 (comment conversions in
-the same file).
+E07, E08 and E11, which all edited `InternalViewport.kt`, landed in 30ce1715, c8726936 and 8c981458; the code below
+is quoted as it reads at 70de96c6.
 
 ## Problem
 
 The most intricate timing code in the engine is ~150 lines of mutable locals and a hoisted lambda inside one
-`LaunchedEffect` of `InternalViewport` (`InternalViewport.kt:80-232` at 2480325f): the `Limit` subtract-interval
+`LaunchedEffect` of `InternalViewport` (`InternalViewport.kt:77-224` at 70de96c6): the `Limit` subtract-interval
 accumulator with half-a-display-frame tolerance, `DisplayDivider` counting the frames a delta spans after a sleep,
 the display-interval estimate taken only from frames awaited back to back, the > 2 s gap re-anchor
 (`MAXIMUM_FRAME_GAP_IN_MILLISECONDS + lastSleepInMilliseconds`), the catch-up guard, the pause re-anchor and the
@@ -31,8 +32,8 @@ var hasSkippedDisplayFrames = false
 var lastSleepInMilliseconds = 0L
 val loopStartTimeMark = TimeSource.Monotonic.markNow()
 var lastFrameProcessedAtInMilliseconds = 0L
-val onFrame: (Long) -> Unit = { frameTimeInNanoseconds -> ... }     // :110-186
-while (isActive) {
+val onFrame: (Long) -> Unit = { frameTimeInNanoseconds -> ... }     // :107-180
+while (isActive) {                                                 // :181-223
     ...                                                            // gate, suspended gate, then:
     if (lastFrameTime != -1L && displayFrameInterval > 0f) {
         val displayFramesUntilTick = when (val targetFrameRate = kubrikoImpl.viewportManager.targetFrameRate.value) { ... }
@@ -74,7 +75,7 @@ internal class FrameTickScheduler {
 - The clock stays outside: `InternalViewport` keeps `loopStartTimeMark = TimeSource.Monotonic.markNow()` and passes
   `loopStartTimeMark.elapsedNow().inWholeMilliseconds` in; so does the tick itself
   (`viewportTickSource.tick(delta)`), the `metadataManager.onUpdateInternal(0)` on a re-anchor, the gate
-  (`isTickingAllowed`, E08), the suspended `combine(...).first { it }` gate and `delay`.
+  (`isTickingAllowed`, :253, from E08), the suspended `combine(...).first { it }` gate and `delay`.
 - `InternalViewport`'s loop is left with: create one scheduler per `LaunchedEffect`, the gate, `delay` of what the
   scheduler says, and a hoisted `onFrame` lambda that converts nanoseconds, calls the scheduler and emits. The lambda
   stays hoisted (it still captures the scheduler, once).

@@ -2,17 +2,18 @@
 
 **Kind:** refactor  ·  **Severity:** low  ·  **Platforms:** all  ·  **Class:** Planned
 **Artifact:** unpublished (examples)
+**Rebased:** on 70de96c6 after the Now plans landed.
 **Files:** `examples/demo-performance/src/commonMain/kotlin/com/pandulapeter/kubriko/demoPerformance/implementation/managers/PerformanceDemoManager.kt`, `examples/demo-physics/src/commonMain/kotlin/com/pandulapeter/kubriko/demoPhysics/implementation/managers/PhysicsDemoManager.kt`, `examples/demo-isometric-graphics/src/commonMain/kotlin/com/pandulapeter/kubriko/demoIsometricGraphics/implementation/logic/manager/LogicManager.kt`, `examples/shared/src/commonMain/kotlin/com/pandulapeter/kubriko/shared/…` (new helper)
 
 ## Problem
 Three Managers hand-roll the same pattern with slightly different filters:
-- `PerformanceDemoManager.onInitialize` (:71–77): `allActors.filter { it.isNotEmpty() }.onEach { delay(300); _shouldShowLoadingIndicator.update { false } }.launchIn(scope)`
-- `PhysicsDemoManager.onInitialize` (:96–103): `.filter { it.size > 1 }.distinctUntilChanged().onEach { … }` (the Manager itself is always one actor)
-- `LogicManager.onInitialize` (:52–58): `.filter { it.isNotEmpty() }.take(1).onEach { … }` — and `LogicManager` is synced Tesselar gameplay code.
-Performance and physics also re-show the indicator in `processJson` (`_shouldShowLoadingIndicator.update { true }`), so their variants are not equivalent to `take(1)`.
+- `PerformanceDemoManager.onInitialize` (:48, chain at :49–55): `allActors.filter { it.isNotEmpty() }.onEach { delay(300); _shouldShowLoadingIndicator.update { false } }.launchIn(scope)`
+- `PhysicsDemoManager.onInitialize` (:66, chain at :68–75): `.filter { it.size > 1 }.distinctUntilChanged().onEach { … }` (the Manager itself is always one actor)
+- `LogicManager.onInitialize` (:51, chain at :52–58): `.filter { it.isNotEmpty() }.take(1).onEach { … }` — and `LogicManager` is synced Tesselar gameplay code.
+Performance and physics also re-show the indicator in `processJson` (`_shouldShowLoadingIndicator.update { true }`, `PerformanceDemoManager.kt:84`, `PhysicsDemoManager.kt:134`), so their variants are not equivalent to `take(1)`.
 
 ## Fix
-A small helper in `examples/shared` (lane G's module), e.g. `fun Flow<List<Actor>>.dismissLoadingWhen(scope, isLoaded: (List<Actor>) -> Boolean, onLoaded: () -> Unit)`, used by performance and physics; it could also fold into lane G's scene-editor connection plan, which owns the same two Managers' scene loading.
+A small helper in `examples/shared` (lane G's module), e.g. `fun Flow<List<Actor>>.dismissLoadingWhen(scope, isLoaded: (List<Actor>) -> Boolean, onLoaded: () -> Unit)`, used by performance and physics; it could also fold into lane G's scene-editor connection plan (G55, still Planned), which owns the same two Managers' scene loading.
 
 ## Decision
 (a) helper in examples/shared for performance + physics only, leaving the Tesselar-synced `LogicManager` alone — recommended; (b) also LogicManager (sync cost); (c) fold into lane G's scene-editor connection plan.

@@ -2,13 +2,14 @@
 
 **Kind:** test  ·  **Severity:** medium  ·  **Platforms:** all  ·  **Class:** Planned
 **Artifact:** plugin-collision (test sources only)
+**Rebased:** on 70de96c6 after the Now plans landed.
 **Files:**
 - new `plugins/collision/src/commonTest/kotlin/com/pandulapeter/kubriko/collision/RaycastTest.kt`
 
 ## Problem
-`RaycastExtensions.kt` (391 lines) publishes `CollisionMask.raycast`, `List<CollisionMask>.raycast`,
+`plugins/collision/src/commonMain/.../collision/extensions/RaycastExtensions.kt` (391 lines, unchanged by the Now plans) publishes `CollisionMask.raycast`, `List<CollisionMask>.raycast`,
 `raycastDistance` and `segmentCast`, and Tesselar calls `raycastDistance` (`gameplay/actor/Dog.kt`,
-`gameplay/actor/NonPlayerCharacter.kt`). At 2480325f plugin-collision has no test that calls any of them
+`gameplay/actor/NonPlayerCharacter.kt`). At 70de96c6 plugin-collision has no test that calls any of them
 (`grep -rln "raycast\|segmentCast" plugins/collision/src/*Test` is empty). P53 refactors the polygon scan behind them
 and needs the current results pinned first.
 
@@ -27,7 +28,7 @@ public factories (`CircleCollisionMask(...)`, `BoxCollisionMask(initialPosition,
   `raycast(start, end - start, |end - start|)`;
 - a point mask is never hit.
 
-Every test must pass on 2480325f. If one fails, that is a real defect: `@Ignore` it with the reason and report it as
+Every test must pass on 70de96c6. If one fails, that is a real defect: `@Ignore` it with the reason and report it as
 a new finding rather than changing production code here.
 
 ## Behaviour

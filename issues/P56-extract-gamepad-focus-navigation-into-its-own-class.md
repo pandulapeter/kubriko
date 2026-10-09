@@ -2,6 +2,7 @@
 
 **Kind:** refactor  ·  **Severity:** low  ·  **Platforms:** all  ·  **Class:** Planned
 **Artifact:** plugin-gamepad-input
+**Rebased:** on 70de96c6 after the Now plans landed.
 **Files:**
 - `plugins/gamepad-input/src/commonMain/kotlin/com/pandulapeter/kubriko/gamepadInput/GamepadInputManagerImpl.kt`
 - new `plugins/gamepad-input/src/commonMain/kotlin/com/pandulapeter/kubriko/gamepadInput/implementation/GamepadFocusNavigator.kt`
@@ -9,13 +10,13 @@
 - `plugins/gamepad-input/CLAUDE.md`
 
 ## Problem
-`GamepadInputManagerImpl` (461 lines at 2480325f) holds two responsibilities: polling pads into `GamepadState`s and
+`GamepadInputManagerImpl` (471 lines at 70de96c6, after P18's KDoc landed in e7f3127f) holds two responsibilities: polling pads into `GamepadState`s and
 notifying actors, and a composition-driven focus-navigation loop (`isFocusNavigationEnabled`, `focusDirection`,
 `timeUntilNextFocusStepInMilliseconds`, `wasActivationButtonPressed`, `wasBackButtonPressed`,
 `hasFocusNavigationInput`, `previousFocusFrameTimeNanos`, `hadFocusNavigationInput`, `onFocusNavigationFrame`,
 `FocusNavigationEffect`, `restFocusNavigation`, `updateFocusNavigation`, `readFocusDirection`, the `FOCUS_*` constants
-— roughly :55–271 and :449–461). The public sealed `GamepadInputManager` also carries that loop's internal stacks
-(`focusedActivationTargets`, `focusNavigationHosts` and their attach/detach functions, GamepadInputManager.kt:65–98).
+— roughly :55–277 and :454–471). The public sealed `GamepadInputManager` also carries that loop's internal stacks
+(`focusedActivationTargets`, `focusNavigationHosts` and their attach/detach functions, GamepadInputManager.kt:67–99).
 None of it can be tested without a real `FocusManager` and frame clock.
 
 ## Decision
@@ -31,7 +32,7 @@ Awaiting the user — worth doing at all?
 
 The internal members on the public `GamepadInputManager` stay where they are in every option (they are `internal`,
 so not API, but moving them out of a sealed public class touches `GamepadActivationNode` and
-`GamepadFocusNavigationHost` and is not needed for testability).
+`GamepadFocusNavigationHost` (each in its own file since P04, landed in 309fee68) and is not needed for testability).
 
 ## Fix (option A)
 Move verbatim: the state fields listed above, `restFocusNavigation`, `updateFocusNavigation`, `readFocusDirection`,

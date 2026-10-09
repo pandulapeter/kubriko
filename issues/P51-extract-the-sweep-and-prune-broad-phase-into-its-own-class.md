@@ -2,6 +2,7 @@
 
 **Kind:** refactor  ·  **Severity:** medium  ·  **Platforms:** all  ·  **Class:** Planned
 **Artifact:** plugin-physics
+**Rebased:** on 70de96c6 after the Now plans landed.
 **Files:**
 - `plugins/physics/src/commonMain/kotlin/com/pandulapeter/kubriko/physics/PhysicsManagerImpl.kt`
 - new `plugins/physics/src/commonMain/kotlin/com/pandulapeter/kubriko/physics/implementation/SweepAndPrune.kt`
@@ -9,7 +10,7 @@
 - `plugins/physics/CLAUDE.md`
 
 ## Problem
-`PhysicsManagerImpl` (331 lines at 2480325f) holds two responsibilities: the fixed-timestep integrator and a
+`PhysicsManagerImpl` (318 lines at 70de96c6) holds two responsibilities: the fixed-timestep integrator and a
 self-contained broad-phase algorithm with its own state
 
 ```kotlin
@@ -20,12 +21,12 @@ private var sweepMaxX = FloatArray(0)
 private var sweepPairs = LongArray(0)
 ```
 
-(:58–62) and logic (`broadPhaseCheck`, :228–303). `plugins/physics/CLAUDE.md` calls its pair order load-bearing
+(:58–62) and logic (`broadPhaseCheck`, :205–287 with its KDoc). `plugins/physics/CLAUDE.md` calls its pair order load-bearing
 ("restoring the exact `(i, j)` order of a naive nested loop … Do not optimize away the pair sort"), yet that order is
 only exercised end-to-end (`SweepAndPruneNanTest` runs a whole Kubriko and checks that pairs resolve, not their order).
 
 ## Fix
-Run after P07 (which rewrites the comments being moved). Re-locate code by the quotes.
+P07 (landed in cb8511e6) already rewrote the comments being moved; they move as they read at 70de96c6.
 
 1. New `internal class SweepAndPrune` in `physics.implementation` (MPL header from a sibling) holding the five fields
    above, moved verbatim, and:
@@ -36,7 +37,8 @@ Run after P07 (which rewrites the comments being moved). Re-locate code by the q
      `fun secondBodyIndexAt(pairIndex: Int): Int = (sweepPairs[pairIndex] and 0xFFFFFFFFL).toInt()` — two primitive
      accessors, so the caller boxes nothing (recommended over returning the packed `Long`, which would leak the
      packing to the manager).
-   - The KDoc of `broadPhaseCheck` moves to the class; the in-body comments move with their statements.
+   - The KDoc of `broadPhaseCheck` (:205–211, "Sweep-and-prune broad phase: …") moves to the class; the in-body
+     comments move with their statements.
 2. `PhysicsManagerImpl`: `private val sweepAndPrune = SweepAndPrune()`; `broadPhaseCheck()` becomes
 
    ```kotlin
@@ -52,7 +54,7 @@ Run after P07 (which rewrites the comments being moved). Re-locate code by the q
    }
    ```
 
-   Remove the `isOverlapping` import from the manager if unused.
+   Remove the `isOverlapping` import (:13) from the manager if unused (its only use is the pair loop, :266).
 3. `plugins/physics/CLAUDE.md` → "Broad Phase: Sweep-and-Prune": name `implementation/SweepAndPrune.kt` and
    `findPairs` where it says `broadPhaseCheck()`; add the file to Key Files. Grep the repo for `broadPhaseCheck`
    (CLAUDE.md files, docs, skills) and update the references.

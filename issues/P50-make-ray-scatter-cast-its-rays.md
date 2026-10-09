@@ -2,12 +2,13 @@
 
 **Kind:** bug  ·  **Severity:** medium  ·  **Platforms:** all  ·  **Class:** Planned
 **Artifact:** plugin-physics
+**Rebased:** on 70de96c6 after the Now plans landed.
 **Files:**
 - `plugins/physics/src/commonMain/kotlin/com/pandulapeter/kubriko/physics/explosions/RayScatter.kt`
 - new `plugins/physics/src/commonTest/kotlin/com/pandulapeter/kubriko/physics/RaycastExplosionTest.kt`
 
 ## Problem
-`RayScatter.castRays` (RayScatter.kt:42–50 at 2480325f) never creates a ray:
+`RayScatter.castRays` (RayScatter.kt:49–57 at 70de96c6) never creates a ray:
 
 ```kotlin
 fun castRays(distance: SceneUnit) {
@@ -21,10 +22,10 @@ fun castRays(distance: SceneUnit) {
 }
 ```
 
-1. `rays` (`internal val rays = mutableListOf<Ray>()`, :28) is only ever filled here, and `RaycastExplosion.init`
+1. `rays` (`internal val rays = mutableListOf<Ray>()`, :31) is only ever filled here, and `RaycastExplosion.init`
    calls `castRays` on a fresh `RayScatter`, so `rays.indices` is empty and the loop body never runs. (Verified by
    reading: there is no other writer of `rays` in the module.)
-2. Even if it ran, `direction` never rotates: `RotationMatrix.times` (plugin-collision `RotationMatrix.kt:60`) returns
+2. Even if it ran, `direction` never rotates: `RotationMatrix.times` (plugin-collision `implementation/RotationMatrix.kt:95`) returns
    a new `SceneOffset` that is discarded, and `direction` is a `val`. In JPhysics, `rays` was a `Ray[noOfRays]` array
    filled by `for (i = 0; i < rays.length; i++)`, and `u.mul(direction)` rotated `direction` in place.
 
@@ -57,8 +58,8 @@ fun castRays(distance: SceneUnit) {
 
 `rays.clear()` matches upstream, where a second call overwrote the array's slots instead of appending. `Ray`
 normalizes `direction`, and a rotation keeps its length, so every ray is unit-direction as before. `castRays` runs
-once per explosion (construction), not per frame; the allocations are unchanged in kind. Keep the existing KDoc.
-Re-locate the function by the quote (P08 documents this file first but does not touch the body).
+once per explosion (construction), not per frame; the allocations are unchanged in kind. Keep the existing KDoc (P08 documented this file, landed in 28c95a54, without touching the
+body).
 
 ## Behaviour
 Changes, deliberately: `RaycastExplosion` now casts `noOfRays` rays 360°/`noOfRays` apart starting at 45°, and
@@ -79,7 +80,7 @@ decision).
 - `bodyOutOfReachIsUntouched`: same body at (500, 0) → velocity stays `SceneOffset.Zero`.
 - `castingTwiceKeepsTheRayCount`: calling `rayScatter.castRays(100f.sceneUnit)` again leaves 36 rays.
 
-The first two fail on 2480325f.
+The first two fail on 70de96c6.
 
 ## Verify
 `./gradlew :plugins:physics:compileKotlinDesktop :plugins:physics:desktopTest`

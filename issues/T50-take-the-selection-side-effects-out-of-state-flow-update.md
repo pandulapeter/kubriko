@@ -3,11 +3,12 @@
 **Kind:** bug  ·  **Severity:** low  ·  **Platforms:** desktop  ·  **Class:** Planned
 **Artifact:** tool-scene-editor (internal code only)
 **Files:** tools/scene-editor/src/desktopMain/kotlin/com/pandulapeter/kubriko/sceneEditor/implementation/EditorController.kt
+**Rebased:** on 70de96c6 after the Now plans landed.
 
 ## Problem
 Two selection paths in `EditorController` are wrong in ways that depend on timing:
 
-1. Side effects inside a retrying lambda (`EditorController.kt:270-277` at 2480325f):
+1. Side effects inside a retrying lambda (`EditorController.kt:270-277` at 70de96c6, unchanged since 2480325f):
 ```kotlin
     fun removeSelectedActor() = _selectedActor.update { selectedActor ->
         selectedActor?.let {
@@ -31,9 +32,9 @@ on this scope's `Dispatchers.Default`, so its `.value` trails `_selectedActor` b
             if (selectedUpdatableActor.value.first == actor) null else actor   // ignores the lambda's own value
         }
     }
-    fun getSelectedActor() = selectedUpdatableActor.value.first            // used by navigateBack, isPlacingNewInstance, drag
+    fun getSelectedActor() = selectedUpdatableActor.value.first            // :212; used by navigateBack, isPlacingNewInstance, drag
 ```
-and `onLeftClick` (`selectedUpdatableActor.value.first.let { currentSelectedActor -> ... }`). Two clicks on the same actor in quick
+(`selectActor` is :259-268) and `onLeftClick` (:218-257) (`selectedUpdatableActor.value.first.let { currentSelectedActor -> ... }`). Two clicks on the same actor in quick
 succession can both see the stale "not selected" and leave it selected instead of toggling; a click on empty space right after a
 deselect can deselect again instead of placing the preview; Escape right after a selection can skip "deselect actor".
 
@@ -47,7 +48,7 @@ deselect can deselect again instead of placing the preview; Escape right after a
 Bug fix: decisions use the current selection instead of the last value the derived flow published; delete records exactly one undo
 step. In ordinary (slow) use nothing visibly changes. Threading: the reads move from a Default-dispatched copy to the source
 `MutableStateFlow`, which is the value the writers just set on the main thread — check that no caller relied on the lag (the
-challenger should trace `handleMouseClick`'s Press → Release → `onLeftClick` order in `extensions/ModifierExtensions.kt`: Press reads
+challenger should trace `handleMouseClick`'s Press → Release → `onLeftClick` order in `extensions/ModifierExtensions.kt` (`handleMouseClick`, :44): Press reads
 `getSelectedActor()` to arm a drag; with the fix, a Release that selects an actor and the next Press see it immediately, which is the
 intended behaviour).
 

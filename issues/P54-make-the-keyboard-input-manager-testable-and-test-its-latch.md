@@ -2,13 +2,15 @@
 
 **Kind:** test  ·  **Severity:** medium  ·  **Platforms:** all  ·  **Class:** Planned
 **Artifact:** plugin-keyboard-input
+**Rebased:** on 70de96c6 after the Now plans landed.
 **Files:**
 - `plugins/keyboard-input/src/commonMain/kotlin/com/pandulapeter/kubriko/keyboardInput/KeyboardInputManagerImpl.kt`
 - new `plugins/keyboard-input/src/desktopTest/kotlin/com/pandulapeter/kubriko/keyboardInput/KeyboardInputManagerTest.kt`
 
 ## Problem
-plugin-keyboard-input has no tests at 2480325f (`plugins/keyboard-input/src` has no test source set). Its subtle part is
-the per-tick snapshot with the one-tick latch and dirty re-arm (KeyboardInputManagerImpl.kt:76–109):
+plugin-keyboard-input has no tests at 70de96c6 (`plugins/keyboard-input/src` has no test source set). Its subtle part is
+the per-tick snapshot with the one-tick latch and dirty re-arm (KeyboardInputManagerImpl.kt:76–106; the latch's KDoc
+on `keysPressedSinceLastSnapshot`, :37–43, came from P19, landed in 9af39084):
 
 ```kotlin
 if (isActiveKeysDirty) {
@@ -20,7 +22,7 @@ if (isActiveKeysDirty) {
 
 Key events only arrive through the platform handler, which `Composable()` builds with the `@Composable expect fun
 createKeyboardEventHandler(onKeyPressed = ::onKeyPressed, onKeyReleased = ::onKeyReleased, ...)`, so a headless
-`newManualKubriko` test never receives any; `onKeyPressed`/`onKeyReleased` (:112, :121) are `private`.
+`newManualKubriko` test never receives any; `onKeyPressed`/`onKeyReleased` (:113, :122) are `private`.
 
 ## Fix
 Smallest seam, recommended: widen `onKeyPressed(key: Key)` and `onKeyReleased(key: Key)` from `private` to `internal`

@@ -3,9 +3,10 @@
 **Kind:** refactor  ·  **Severity:** low  ·  **Platforms:** desktop  ·  **Class:** Planned
 **Artifact:** tool-scene-editor (published)
 **Files:** tools/scene-editor/src/desktopMain/kotlin/com/pandulapeter/kubriko/sceneEditor/implementation/userInterface/components/EditorSlider.kt
+**Rebased:** on 70de96c6 after the Now plans landed.
 
 ## Problem
-`EditorSlider.kt:101-105` declares a top-level function without a visibility modifier, so it is public API of the published
+`EditorSlider.kt:94-98` (at 70de96c6; 1e59a627 dropped the slider's unused `name`/`suffix` parameters, the function is unchanged) declares a top-level function without a visibility modifier, so it is public API of the published
 `tool-scene-editor` (JVM facade `com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorSliderKt`):
 ```kotlin
 fun Float.toDifference(): Float {
@@ -26,7 +27,7 @@ on all public API) and is used only by `EditorSlider` — no other caller in thi
 
 ## Fix
 Per the decision. For (a): KDoc describing the curve (maps the slider's −5…5 offset to a signed step growing exponentially, ±10 at
-the ends), the `@Deprecated`, and `@Suppress("DEPRECATION")` on the call in `EditorSlider`. Note it in the release notes.
+the ends), the `@Deprecated`, and `@Suppress("DEPRECATION")` on the call in `EditorSlider` (:54, `onValueChanged(value + add.value.toDifference())`). Note it in the release notes.
 
 ## Behaviour
 None for (a)/(c). (b) removes it from the public surface.

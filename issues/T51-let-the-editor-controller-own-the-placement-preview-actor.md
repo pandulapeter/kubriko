@@ -3,12 +3,16 @@
 **Kind:** refactor  ·  **Severity:** medium  ·  **Platforms:** desktop  ·  **Class:** Planned
 **Artifact:** tool-scene-editor (internal code only)
 **Files:** tools/scene-editor/src/desktopMain/kotlin/com/pandulapeter/kubriko/sceneEditor/implementation/EditorController.kt, tools/scene-editor/src/desktopMain/kotlin/com/pandulapeter/kubriko/sceneEditor/implementation/overlay/OverlayManager.kt, tools/scene-editor/CLAUDE.md
+**Rebased:** on 70de96c6 after the Now plans landed.
 
 ## Problem
-`EditorController.previewOverlayActor` is a public `var` (`EditorController.kt:154`) that another class writes:
+`EditorController.previewOverlayActor` is a public `var` (`EditorController.kt:154` at 70de96c6) that another class writes:
 ```kotlin
-// OverlayManager.onInitialize, OverlayManager.kt:51-60
-        combine(editorController.selectedUpdatableActor, editorController.selectedTypeId) { (selectedInstance, _), selectedTypeId ->
+// OverlayManager.onInitialize, OverlayManager.kt:50-59
+        combine(
+            editorController.selectedUpdatableActor,
+            editorController.selectedTypeId,
+        ) { (selectedInstance, _), selectedTypeId ->
             selectedInstance to selectedTypeId
         }.onEach { (_, selectedTypeId) ->
             editorController.previewOverlayActor = selectedTypeId?.let {
@@ -21,7 +25,7 @@
 - "Place the same type again" works only through that coincidence: `onLeftClick` places the preview and sets
   `previewOverlayActor = null`, then `selectActor(it)` emits, and the combine builds a new preview.
 - The `var` is written on the overlay Kubriko's scope, read on the UI thread (`isPlacingNewInstance`, `onLeftClick`) and in the
-  overlay tick (`OverlayManager.update` writes `previewOverlayActor?.body?.position` every tick) with no defined ordering.
+  overlay tick (`OverlayManager.update` writes `previewOverlayActor?.body?.position` every tick, :72) with no defined ordering.
 
 ## Decision
 Should the preview survive a placement?
@@ -39,7 +43,7 @@ Should the preview survive a placement?
 - Delete the `combine(...).launchIn(scope)` block in `OverlayManager.onInitialize` (keep `kubriko.get<ActorManager>().add(this)`).
   `OverlayManager.update` keeps moving the preview to the snapped mouse position.
 - If the EditorController split (T53) lands first, this lives in its selection/preview holder instead.
-- `tools/scene-editor/CLAUDE.md` "Placement preview": say who owns it and when it is created.
+- `tools/scene-editor/CLAUDE.md` "Placement preview" (the `EditorController` section's bullet, line 33): say who owns it and when it is created.
 
 ## Behaviour
 Option (a): unchanged for the user; the preview is no longer rebuilt on selection/property changes (it is not added to the scene, so

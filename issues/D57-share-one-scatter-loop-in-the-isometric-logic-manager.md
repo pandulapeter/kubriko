@@ -2,6 +2,7 @@
 
 **Kind:** refactor  ·  **Severity:** low  ·  **Platforms:** all  ·  **Class:** Planned
 **Artifact:** unpublished (examples)
+**Rebased:** on 70de96c6 after the Now plans landed.
 **Files:** `examples/demo-isometric-graphics/src/commonMain/kotlin/com/pandulapeter/kubriko/demoIsometricGraphics/implementation/logic/manager/LogicManager.kt`
 
 ## Problem

@@ -2,7 +2,8 @@
 
 **Kind:** refactor  ·  **Severity:** medium  ·  **Platforms:** all  ·  **Class:** Planned
 **Artifact:** unpublished (examples)
-**Files:** `examples/game-annoyed-penguins/src/commonMain/kotlin/com/pandulapeter/kubriko/gameAnnoyedPenguins/implementation/managers/LoadingManager.kt`, `examples/game-blockys-journey/src/commonMain/kotlin/com/pandulapeter/kubriko/gameBlockysJourney/implementation/managers/LoadingManager.kt`, `examples/game-space-squadron/src/commonMain/kotlin/com/pandulapeter/kubriko/gameSpaceSquadron/implementation/managers/LoadingManager.kt`, `examples/game-wallbreaker/src/commonMain/kotlin/com/pandulapeter/kubriko/gameWallbreaker/implementation/managers/LoadingManager.kt`, the four entry Composables (`*Game.kt`), the four `*GameStateHolderImpl.kt` (`navigateBack` reads `isLoadingDone`); optionally `examples/shared/src/commonMain/kotlin/com/pandulapeter/kubriko/shared/…` for a shared helper, `examples/shared/CLAUDE.md`
+**Rebased:** on 70de96c6 after the Now plans landed.
+**Files:** `examples/game-annoyed-penguins/src/commonMain/kotlin/com/pandulapeter/kubriko/gameAnnoyedPenguins/implementation/managers/LoadingManager.kt`, `examples/game-blockys-journey/src/commonMain/kotlin/com/pandulapeter/kubriko/gameBlockysJourney/implementation/managers/LoadingManager.kt`, `examples/game-space-squadron/src/commonMain/kotlin/com/pandulapeter/kubriko/gameSpaceSquadron/implementation/managers/LoadingManager.kt`, `examples/game-wallbreaker/src/commonMain/kotlin/com/pandulapeter/kubriko/gameWallbreaker/implementation/managers/LoadingManager.kt`, the four entry Composables (`*Game.kt`; `isGameLoaded()` is called at `AnnoyedPenguinsGame.kt:63`, `BlockysJourneyGame.kt:70`, `SpaceSquadronGame.kt:48`, `WallbreakerGame.kt:51`), the four `*GameStateHolderImpl.kt` (`navigateBack` reads `isLoadingDone` at `AnnoyedPenguinsGameStateHolderImpl.kt:240`, `BlockysJourneyGameStateHolderImpl.kt:185`, `SpaceSquadronGameStateHolderImpl.kt:168`, `WallbreakerGameStateHolderImpl.kt:153`); optionally `examples/shared/src/commonMain/kotlin/com/pandulapeter/kubriko/shared/…` for a shared helper, `examples/shared/CLAUDE.md`
 
 ## Problem
 Each `LoadingManager` mutates state from inside composition:
@@ -20,7 +21,7 @@ override fun Composable(windowInsets: WindowInsets) {
     }
 }
 ```
-(`examples/game-wallbreaker/src/commonMain/kotlin/com/pandulapeter/kubriko/gameWallbreaker/implementation/managers/LoadingManager.kt:82–93`; the same at AP :95–105, BJ :121–131, SS :95–105). `isLoadingDone` is a plain `var` read by `navigateBack` (from the back-press dispatcher), written as a side effect of a composition that may be discarded or run again; `isFontLoaded.update {}` writes a `StateFlow` that the same composition reads. Compose rules call for `SideEffect`/effects for both.
+(`examples/game-wallbreaker/src/commonMain/kotlin/com/pandulapeter/kubriko/gameWallbreaker/implementation/managers/LoadingManager.kt:82–93`; the same at AP :95–106, BJ :121–133 (with an extra `isLevelLoaded` term), SS :95–106; `var isLoadingDone = false` at WB :73, AP :85, BJ :101, SS :85). `isLoadingDone` is a plain `var` read by `navigateBack` (from the back-press dispatcher), written as a side effect of a composition that may be discarded or run again; `isFontLoaded.update {}` writes a `StateFlow` that the same composition reads. Compose rules call for `SideEffect`/effects for both.
 
 ## Fix
 - `isGameLoaded()` computes the value without side effects; the write moves to `SideEffect { isLoadingDone = isGameLoaded }` at its call site, or `isLoadingDone` becomes a `MutableStateFlow<Boolean>` updated in a `LaunchedEffect(isGameLoaded)`.

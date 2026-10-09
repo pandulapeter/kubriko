@@ -3,6 +3,7 @@
 **Kind:** build  ·  **Severity:** medium  ·  **Platforms:** desktop, iOS, web  ·  **Class:** Planned
 **Artifact:** engine, plugin-shaders, plugin-sprites (no public change); build-logic (unpublished)
 **Challenged:** amended — dropped the stale "merges E14 with P18" reviewer numbering (P18 is now an unrelated gamepad KDoc plan) and stated that P03/P10/P14 are Now plans already landed when this runs, P10 touching only the common `ModifierExtensions.kt`.
+**Rebased:** on 70de96c6 after the Now plans landed.
 **Files:**
 - `gradle/build-logic/src/main/kotlin/com/pandulapeter/kubriko/buildLogic/extensions/KotlinMultiplatform.kt`
 - `gradle/build-logic/CLAUDE.md`
@@ -25,23 +26,23 @@
   - `plugins/sprites/src/skikoMain/kotlin/com/pandulapeter/kubriko/sprites/implementation/ImageLoader.skiko.kt` (new)
   - `plugins/shaders/CLAUDE.md`, `plugins/sprites/CLAUDE.md`
 
-One plan, one commit, for the engine and the two plugins. Depends on E11 (KDoc in the engine actuals) and, in the
-plugins lane, on P14 (dead imports of `ImageLoader.desktop.kt`), P03 (moves `ShaderUniformProvider` out of the common
-`ModifierExtensions.kt`; the actuals are unaffected) and P10 (KDoc in that same common file only). All four are Now
-plans, so they have landed before this Planned plan runs; quote by snippet, since they changed the files first.
+One plan, one commit, for the engine and the two plugins. Every prerequisite has landed: E11 (KDoc in the engine
+actuals) in 8c981458, and in the plugins lane P14 (dead imports of `ImageLoader.desktop.kt`) in 5973a0eb, P03
+(`ShaderUniformProvider` out of the common `ModifierExtensions.kt` into `ShaderUniformProvider.kt`; the actuals are
+unaffected) in 3e4d3162 and P10 (KDoc in that same common file only) in c4bb7b6d.
 
 ## Problem
 
 Desktop, iOS and Wasm all draw through Skia via Skiko, and the build gives them no shared source set, so the same
-`actual` is written out three times (diffed at 2480325f):
+`actual` is written out three times (re-diffed at 70de96c6):
 
 | File | desktop vs iOS | desktop vs web |
 |---|---|---|
-| engine `TriangleMesh.*.kt` (90 lines) | byte-identical | web adds the `WasmTriangleBridge.draw(...)` fast path before the public-Skiko fallback |
+| engine `TriangleMesh.*.kt` (93 lines) | byte-identical | web adds the `WasmTriangleBridge.draw(...)` fast path (and its comment) after `paint.isAntiAlias = isAntiAlias` (:82), before the public-Skiko fallback |
 | engine `TriangleBatchSupport.*.kt` (`internal actual suspend fun probeTextureSampling() = true`) | identical | identical |
 | shaders `ModifierExtensions.*.kt` (143 lines: `createRenderEffect`, `drawGenerativeShader`, `applyUniforms`, `ShaderUniformProviderImpl`) | identical | identical |
 | shaders `PlatformExtensions.*.kt` (`internal actual val areShadersSupported = true`) | identical | identical |
-| sprites `ImageLoader.*.kt` | desktop has four unused imports (`Color`, `Matrix`, `toArgb`, `Matrix33`) and a mis-indented `if` (P14 fixes the imports); iOS = web byte-identical | same |
+| sprites `ImageLoader.*.kt` | differs only in the mis-indented `val scale = if (…)` block (:30-33; P14 removed the four unused imports in 5973a0eb); iOS = web byte-identical | same |
 
 Every fix to one copy has to be repeated by hand in the other two (the paint-cache rework and the uniform cache both
 were). All moved declarations are `internal`, so there is no facade or binary concern.
@@ -93,23 +94,24 @@ were). All moved declarations are `internal`, so there is no facade or binary co
    Alternative: share only the paint cache and keep three small `drawTriangles` actuals — less indirection, but the
    `drawVertices` call and its argument list stay triplicated. Not recommended.
 
-3. **engine `TriangleBatchSupport`** — one `skikoMain/.../helpers/TriangleBatchSupport.skiko.kt` with the KDoc E11 gave
-   the three copies and `internal actual suspend fun probeTextureSampling() = true`; delete the three copies.
+3. **engine `TriangleBatchSupport`** — one `skikoMain/.../helpers/TriangleBatchSupport.skiko.kt` with the KDoc the three
+   (still identical) copies carry since E11 and `internal actual suspend fun probeTextureSampling() = true`; delete the three copies.
    Android's actual is untouched.
 4. **shaders** — move `ModifierExtensions.desktop.kt` to `skikoMain/.../ModifierExtensions.skiko.kt` and
    `PlatformExtensions.desktop.kt` to `skikoMain/.../PlatformExtensions.skiko.kt` with `git mv` (so history follows
    one copy), delete the iOS and web copies. Re-diff the three right before (`diff -q`): they must still be identical.
 5. **sprites** — move the iOS `ImageLoader.ios.kt` (no dead imports, correct indentation) to
-   `skikoMain/.../ImageLoader.skiko.kt`; delete the desktop and web copies. Re-diff first: after P14 the desktop copy
-   must differ from iOS only in the indentation of the `val scale = if (…)` block; any other difference stops the plan.
+   `skikoMain/.../ImageLoader.skiko.kt`; delete the desktop and web copies. Re-diff first: the desktop copy must
+   differ from iOS only in the indentation of the `val scale = if (…)` block (true at 70de96c6); any other difference
+   stops the plan.
 6. **Docs** — `gradle/build-logic/CLAUDE.md` "KMP targets configured by both library plugins": add "Desktop, iOS and
    Wasm share a `skikoMain` source set (Skia through Skiko); put an actual that is identical on the three there." Root
    `CLAUDE.md` `TriangleBatch` paragraph: "Platform draw paths live in `implementation/TriangleMesh.*.kt`" →
    "…in `implementation/TriangleMesh.android.kt` and, shared by the Skia targets, `TriangleMesh.skiko.kt`; the web adds
    its fast path in `TriangleMesh.web.kt`". `plugins/shaders/CLAUDE.md` ("Desktop/iOS/Web it is `RuntimeShaderBuilder`
-   (Skia)", "Desktop, iOS, Web: always supported") and `plugins/sprites/CLAUDE.md` ("Desktop / iOS / Web: uses Skia
-   `Image.makeFromEncoded`…") each gain "(one `skikoMain` actual)". Grep the repo for the deleted file names afterwards
-   (none referenced at 2480325f).
+   (Skia)" at :30, "Desktop, iOS, Web: always supported" at :68) and `plugins/sprites/CLAUDE.md` ("Desktop / iOS / Web: uses Skia
+   `Image.makeFromEncoded`…" at :44) each gain "(one `skikoMain` actual)". Grep the repo for the deleted file names afterwards
+   (none referenced at 70de96c6).
 
 Out of scope, for a follow-up once the source set exists: other modules with desktop/iOS or iOS/web twins found by the
 same diff (`ResourceLoader.*.kt` in four games and `test-audio`, `PlatformSpecificContent.*.kt` in three examples,

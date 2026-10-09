@@ -3,6 +3,7 @@
 **Kind:** bug  ·  **Severity:** medium  ·  **Platforms:** desktop (Windows, macOS)  ·  **Class:** Planned
 **Artifact:** plugin-pointer-input (fix), engine (KDoc only)
 **Challenged:** amended — option (a) also returns false while the window position is not yet determined (`WindowPosition.PlatformDefault`/`Aligned` have NaN coordinates, and `roundToInt()` throws on NaN), Wallbreaker is named as the second in-repo caller, and the `app/desktop/CLAUDE.md` edit is flagged as shared with lane A (A02, A17, A50 edit the same file).
+**Rebased:** on 70de96c6 after the Now plans landed.
 **Files:**
 - `plugins/pointer-input/src/desktopMain/kotlin/com/pandulapeter/kubriko/pointerInput/implementation/PlatformExtensions.desktop.kt` (outside lane E)
 - `plugins/pointer-input/src/commonMain/kotlin/com/pandulapeter/kubriko/pointerInput/PointerInputManager.kt` (outside lane E, KDoc)
@@ -32,7 +33,7 @@ val x = (windowState.position.x.value + offset.x * densityMultiplier).roundToInt
 val y = (windowState.position.y.value + offset.y * densityMultiplier).roundToInt()
 ```
 
-Only the Showcase assigns it (`app/desktop/.../KubrikoShowcaseApp.kt:54`, `windowState = rememberWindowState(...)`).
+Only the Showcase assigns it (`app/desktop/.../KubrikoShowcaseApp.kt:55`, `windowState = rememberWindowState(...)`).
 Nothing documents that a consumer must. A desktop game that calls `tryToMoveHoveringPointer` without having assigned
 it — Tesselar, for one, declares its own local `val windowState = rememberWindowState()` in `Main.kt:20` and
 `EditorApplication.kt:74` and never assigns the engine's — throws `UninitializedPropertyAccessException` from inside
@@ -75,9 +76,10 @@ Options:
   included) introduces, but it changes where the cursor lands, so it is a behaviour change of its own for a later
   plan.
 
-Fix `app/desktop/CLAUDE.md:18` (lane A's A02, A17 and A50 edit other paragraphs of the same file; merge word-level): "`windowState` is stored in a public top-level engine property
+Fix `app/desktop/CLAUDE.md:18` (A02 and A17 already edited other paragraphs of the file, landed in d6cffee4 and
+b864b37a; lane A's A50 still edits it, so merge word-level): "`windowState` is stored in a public top-level engine property
 (`com.pandulapeter.kubriko.implementation.windowState`), which `plugin-pointer-input` reads to move the cursor."
-(Check whether the Scene Editor still reads it — at 2480325f nothing in `tools/` does — and drop "like the Scene
+(Check whether the Scene Editor still reads it — at 70de96c6 nothing in `tools/` does — and drop "like the Scene
 Editor" if not.)
 
 ## Behaviour

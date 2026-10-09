@@ -2,16 +2,17 @@
 
 **Kind:** test  ·  **Severity:** medium  ·  **Platforms:** all  ·  **Class:** Planned
 **Artifact:** plugin-gamepad-input
+**Rebased:** on 70de96c6 after the Now plans landed.
 **Files:**
 - `plugins/gamepad-input/src/commonMain/kotlin/com/pandulapeter/kubriko/gamepadInput/GamepadInputManagerImpl.kt`
 - new `plugins/gamepad-input/src/desktopTest/kotlin/com/pandulapeter/kubriko/gamepadInput/GamepadInputManagerTest.kt`
 
 ## Problem
 gamepad-input's only test is `GamepadStateTest` (commonTest). The manager's logic is untested: the radial dead zone
-(`applyDeadZone`, scratch `deadZonedX/Y`), trigger-to-button derivation against `triggerThreshold`, the press/release
-diff (`notifyButtonChanges(gamepad, previousButtons, pressedButtons)`, :360), connect/disconnect callbacks and the
-release of everything on focus loss (`releaseAllInputs`). `onUpdate` (:276–296 at 2480325f) returns early without a
-handler:
+(`applyDeadZone`, :351, scratch `deadZonedX/Y`, :91–92), trigger-to-button derivation against `triggerThreshold`, the press/release
+diff (`notifyButtonChanges(gamepad, previousButtons, pressedButtons)`, :366), connect/disconnect callbacks and the
+release of everything on focus loss (`releaseAllInputs`, :409). `onUpdate` (:282–305 at 70de96c6) returns early without a
+handler (:293–294):
 
 ```kotlin
 val gamepadEventHandler = gamepadEventHandler ?: return
@@ -19,7 +20,8 @@ gamepadEventHandler.poll()
 ```
 
 and the handler is only ever created inside `Composable()` by the `@Composable expect fun createGamepadEventHandler()`,
-so a headless test never gets one.
+so a headless test never gets one (`GamepadInputManagerImpl.kt:95–101`; the interface is
+`implementation/GamepadEventHandler.kt`).
 
 ## Fix
 Options for the seam:

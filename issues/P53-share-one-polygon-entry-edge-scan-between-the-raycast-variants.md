@@ -2,12 +2,13 @@
 
 **Kind:** refactor  ·  **Severity:** low  ·  **Platforms:** all  ·  **Class:** Planned
 **Artifact:** plugin-collision
+**Rebased:** on 70de96c6 after the Now plans landed.
 **Files:**
 - `plugins/collision/src/commonMain/kotlin/com/pandulapeter/kubriko/collision/extensions/RaycastExtensions.kt`
 - `plugins/collision/src/commonTest/kotlin/com/pandulapeter/kubriko/collision/RaycastTest.kt` (added by P52; not edited here)
 
 ## Problem
-At 2480325f `raycastPolygonHit` (RaycastExtensions.kt:326–389) repeats the 45-line edge loop of
+At 70de96c6 (the file is unchanged since 2480325f) `raycastPolygonHit` (RaycastExtensions.kt:326–389) repeats the 45-line edge loop of
 `raycastPolygonEntryDistance` (:226–277) statement for statement — same transform, same
 
 ```kotlin
@@ -53,7 +54,7 @@ bit-identical.
 None — only private functions change.
 
 ## Tests
-Run after P52, whose `RaycastTest` pins today's results (plugin-collision had no raycast tests at 2480325f, and Tesselar
+Run after P52, whose `RaycastTest` pins today's results (plugin-collision has no raycast tests at 70de96c6, and Tesselar
 calls `raycastDistance` from `Dog.kt` and `NonPlayerCharacter.kt`). Those tests must pass unchanged after the refactor;
 add none here. Drop this plan if P52 has not landed.
 

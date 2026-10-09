@@ -1,11 +1,20 @@
-# Executing the third review's Now plans
+# Executing the third review's plans
 
 Brief for the orchestrating agent. Start: *"Follow `issues/EXECUTION.md`."* The process is the `codebase-review`
-skill's section 4 and section 5 ("Do the simple ones now, plan the rest"); this file fills it in for this sweep.
+skill's section 4 and section 5; this file fills it in for this sweep.
 
-Only the **Now** plans (`<lane>01`–`<lane>49`) are executed. The **Planned** ones (`<lane>50`+) stay in `issues/` until the
-user answers their decisions and starts them; after the Now plans land, re-check every quoted snippet and path in them
-against the new `HEAD` and update `README.md` to that commit.
+**State:** the 179 Now plans landed as `92b16c51..70de96c6` with the procedure below (six lanes from `91c5941b`, merged
+E → P → T → G → D → A, no conflicts). What remains are the 48 **Planned** plans (`<lane>50`+), rebased on `70de96c6`.
+Run them only after the user has answered their decisions in `README.md` → Decisions (record the answers there first),
+and only the plans the user starts. For those, the same procedure applies with these changes:
+
+- Ranges: each lane's Planned plans in the dependency order README → Lanes gives (E50 before E53, E51 before E54, P52
+  before P53, P55 before P56, T50 and T51 before T53, A51 before A52/G55/G60, D58 before D59).
+- Cross-lane plans (E51 → pointer-input and `app/desktop/CLAUDE.md`; E55 → shaders/sprites actuals; G55 and G60 →
+  demos and `app/`) run in the lane that owns the plan, and that lane's worktree is cut after every lane whose files it
+  touches has merged.
+- Re-run the challenge on any Planned plan whose decision the user answered differently from the recommendation.
+- Before starting, re-check the plans against `HEAD` if commits landed after `70de96c6`.
 
 ## Preconditions
 
@@ -106,8 +115,8 @@ After the last lane: `./gradlew build` and `node engine/src/webMain/checkTriangl
 - `git log --oneline $START..HEAD` is one line per landed plan (plus any build fix).
 - `git status` is clean apart from the user's xcscheme edits; `git worktree list` shows only the checkout.
 - Every Now plan file is gone. Skipped ones stay, listed in the README with the reason.
-- Re-check the Planned plans against the new `HEAD` (quoted code, paths, plan numbers they depend on), update
-  `README.md` and this file to the new commit, and commit that as `Update the remaining review plans to the landed refactors.`
+- Re-check the remaining plans against the new `HEAD`, update `README.md` and this file, and commit that as
+  `Update the remaining review plans to the landed changes.`
 - Update the `third-review` memory note: the landed range, skips, deviations, manual checks owed.
-- Report the commit count, the skipped plans, the manual checks owed and the open decisions. **Do not push.** The plans
-  folder stays, because the Planned plans are still in it.
+- Report the commit count, the skipped plans, the manual checks owed and the open decisions. **Do not push.** When no
+  plan file is left, delete `issues/` and commit `Remove the review plans.`

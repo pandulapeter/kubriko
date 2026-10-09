@@ -2,14 +2,15 @@
 
 **Kind:** test  ·  **Severity:** medium  ·  **Platforms:** all  ·  **Class:** Planned
 **Artifact:** unpublished (examples)
-**Files:** `examples/game-annoyed-penguins/src/commonMain/kotlin/com/pandulapeter/kubriko/gameAnnoyedPenguins/implementation/AnnoyedPenguinsGameStateHolderImpl.kt`, `examples/game-blockys-journey/src/commonMain/kotlin/com/pandulapeter/kubriko/gameBlockysJourney/implementation/BlockysJourneyGameStateHolderImpl.kt`, `examples/game-space-squadron/src/commonMain/kotlin/com/pandulapeter/kubriko/gameSpaceSquadron/implementation/SpaceSquadronGameStateHolderImpl.kt`, `examples/game-wallbreaker/src/commonMain/kotlin/com/pandulapeter/kubriko/gameWallbreaker/implementation/WallbreakerGameStateHolderImpl.kt` (all four after G01–G04), new `implementation/BackNavigation.kt` in each game, new `examples/<game>/src/desktopTest/kotlin/com/pandulapeter/kubriko/<gamePackage>/implementation/BackNavigationTest.kt` in each game, each game's `CLAUDE.md`
+**Rebased:** on 70de96c6 after the Now plans landed.
+**Files:** `examples/game-annoyed-penguins/src/commonMain/kotlin/com/pandulapeter/kubriko/gameAnnoyedPenguins/implementation/AnnoyedPenguinsGameStateHolderImpl.kt`, `examples/game-blockys-journey/src/commonMain/kotlin/com/pandulapeter/kubriko/gameBlockysJourney/implementation/BlockysJourneyGameStateHolderImpl.kt`, `examples/game-space-squadron/src/commonMain/kotlin/com/pandulapeter/kubriko/gameSpaceSquadron/implementation/SpaceSquadronGameStateHolderImpl.kt`, `examples/game-wallbreaker/src/commonMain/kotlin/com/pandulapeter/kubriko/gameWallbreaker/implementation/WallbreakerGameStateHolderImpl.kt` (the Impls were split out by G01–G04, landed in 44ba0a30, 076722b3, 63f2f596, 3b4c454c), new `implementation/BackNavigation.kt` in each game, new `examples/<game>/src/desktopTest/kotlin/com/pandulapeter/kubriko/<gamePackage>/implementation/BackNavigationTest.kt` in each game, each game's `CLAUDE.md`
 
 ## Problem
-Every game's `navigateBack(isInFullscreenMode, onFullscreenModeToggled)` is an `if/else if` chain over manager state that has drifted between the games, with no test:
-- Wallbreaker: running → `pauseGame()`; info visible → toggle info; `gameplayManager.isGameStarted` → `resumeGame()`; fullscreen → click + exit fullscreen; else toggle close confirmation. It resumes even while the close-confirmation dialog is open (no `!isCloseConfirmationDialogVisible` guard, which Space Squadron and Annoyed Penguins have).
+Every game's `navigateBack(isInFullscreenMode, onFullscreenModeToggled)` (`AnnoyedPenguinsGameStateHolderImpl.kt:237–258`, `BlockysJourneyGameStateHolderImpl.kt:182–200`, `SpaceSquadronGameStateHolderImpl.kt:165–183`, `WallbreakerGameStateHolderImpl.kt:150–168`) is an `if/else if` chain over manager state that has drifted between the games, with no test:
+- Wallbreaker: `stateManager.isRunning.value` → `gameplayManager.pauseGame()`; info visible → toggle info; `gameplayManager.isGameStarted` → `resumeGame()`; fullscreen → click + exit fullscreen; else toggle close confirmation. It resumes even while the close-confirmation dialog is open (no `!isCloseConfirmationDialogVisible` guard, which Space Squadron and Annoyed Penguins have).
 - Space Squadron: running **and not game over** → pause; …; `isGameStarted && !isCloseConfirmationDialogVisible` → `playGame()`.
 - Annoyed Penguins: plays the toggle sound in every branch but the last; resume condition is `currentLevel != null && !isCloseConfirmationDialogVisible`.
-- Blocky's Journey: no resume branch at all (it was commented out; G30 deletes the comment).
+- Blocky's Journey: no resume branch at all (it used to be commented out; G30 deleted the comment, landed in bb54039a).
 Whether a given back press pauses, resumes, closes a dialog or leaves the game is hard to see and easy to break.
 
 ## Fix

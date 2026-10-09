@@ -8,13 +8,18 @@
 - `app/desktop/src/main/kotlin/com/pandulapeter/kubrikoShowcase/DesktopFullscreenState.kt` (new)
 - `app/desktop/CLAUDE.md`
 
-Lands after A02, A13, A14 and A19 (all edit `KubrikoShowcaseApp.kt`); re-check every quoted line against the new HEAD.
+**Rebased:** on 70de96c6 after the Now plans landed.
+
+A02 (d6cffee4, title bar split into `ExtendedTitleBar.kt` / `TitleBarAppearance.kt` / `TitleBarInsets.kt`), A13
+(1c5de146, title from `Res.string.kubriko_showcase`), A14 (2d4d2306, `isWindows` from `DesktopOperatingSystem.kt`) and A19
+(70de96c6, trailing commas) have landed; the quotes below are at 70de96c6.
 
 ## Problem
-`fun main()` (`KubrikoShowcaseApp.kt:51-165` at 2480325f) is one 115-line `application { }` block:
-- six loose states (:58-63) — `previousBounds`, `previousWindowPlacement`, `previousWindowLocation`,
+`fun main()` (`KubrikoShowcaseApp.kt:51-165` at 70de96c6) is one 115-line `application { }` block:
+- six loose states (:59-64) — `previousBounds`, `previousWindowPlacement`, `previousWindowLocation`,
   `previousWindowPosition`, `windowSize`, `isInFullscreenMode` — that together are one thing, the fullscreen toggle's
-  saved window geometry;
+  saved window geometry (`windowState` itself is the `com.pandulapeter.kubriko.implementation.windowState` global, assigned
+  at :55);
 - a **local** `@Composable fun KubrikoShowcaseWindow(undecorated, resizable)` (:67-137) closing over all of them,
   `windowState`, `coroutineScope` and `isRunningOnWindows`;
 - the 30-line toggle inline in the `onFullscreenModeToggled` argument (:102-132), with the platform branch and the
@@ -34,7 +39,7 @@ Composable lives in a file named after it; a screenful holding several distinct 
 2. `KubrikoShowcaseWindow.kt`: `@Composable internal fun ApplicationScope.KubrikoShowcaseWindow(fullscreenState, undecorated, resizable)`
    — today's local function, with the toggle replaced by `fullscreenState.toggle(window, windowState, coroutineScope)`.
 3. `window.minimumSize = Dimension(400, 400)`: options — (a) move it into the `init = { window -> … }` lambda next to
-   `extendContentIntoTitleBar()`, so it is set once per window before it is shown (the Windows toggle recreates the
+   `if (!undecorated) titleBar = window.extendContentIntoTitleBar()` (:80), so it is set once per window before it is shown (the Windows toggle recreates the
    window, which runs `init` again); (b) keep it in the content but in a `DisposableEffect(window)` / `SideEffect`.
    **Recommended: (a).** Confirm on all three OSes that the minimum still applies after a fullscreen round trip.
 4. `main()` keeps `System.setProperty`, `windowState = rememberWindowState(...)`, the scene editors and the

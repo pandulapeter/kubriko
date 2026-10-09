@@ -4,16 +4,20 @@
 **Artifact:** unpublished (app)
 **Files:**
 - `app/shared/src/commonMain/kotlin/com/pandulapeter/kubrikoShowcase/implementation/ui/welcome/WelcomeScreen.kt`
-- `app/shared/src/commonMain/kotlin/com/pandulapeter/kubrikoShowcase/implementation/ui/welcome/WelcomeScreenStateHolder.kt` (from A06)
+- `app/shared/src/commonMain/kotlin/com/pandulapeter/kubrikoShowcase/implementation/ui/welcome/WelcomeScreenStateHolder.kt` (renamed by the fix)
 - `app/shared/src/commonMain/kotlin/com/pandulapeter/kubrikoShowcase/implementation/ui/ShowcaseContent.kt`
 - `app/shared/src/commonMain/kotlin/com/pandulapeter/kubrikoShowcase/implementation/ui/ResourceLoader.kt`
 - `app/shared/src/commonMain/kotlin/com/pandulapeter/kubrikoShowcase/implementation/ShowcaseSession.kt` (if A51 landed)
 - `app/shared/CLAUDE.md`
 
-Depends on A06 (the move) and A10 (`HomeContent`); best after A51, which gives the state a home.
+**Rebased:** on 70de96c6 after the Now plans landed.
+
+A06 (b7602893, the holder's move into `WelcomeScreenStateHolder.kt`) and A10 (1f8496b9, `HomeContent`) have landed;
+best after A51 (Planned), which gives the state a home.
 
 ## Problem
-`WelcomeScreen` reads and writes a process-wide global through a type that is not a state holder (at 2480325f):
+`WelcomeScreen` reads and writes a process-wide global through a type that is not a state holder (`WelcomeScreenStateHolder.kt:42-48`
+at 70de96c6):
 
 ```kotlin
 internal sealed interface WelcomeScreenStateHolder : StateHolder {   // no implementation exists
@@ -21,15 +25,17 @@ internal sealed interface WelcomeScreenStateHolder : StateHolder {   // no imple
         val shouldShowMoreInfo = mutableStateOf(false)
 ```
 
-used at `WelcomeScreen.kt:89` (`visible = !shouldUseCompactUi || WelcomeScreenStateHolder.shouldShowMoreInfo.value`),
-`:162` and `:170` (`WelcomeScreenStateHolder.shouldShowMoreInfo.value = shouldShowMoreInfoState`). The Composable cannot
+used at `WelcomeScreen.kt:80` (`visible = !shouldUseCompactUi || WelcomeScreenStateHolder.shouldShowMoreInfo.value`),
+`:153` (`targetState = !WelcomeScreenStateHolder.shouldShowMoreInfo.value`) and `:161`
+(`WelcomeScreenStateHolder.shouldShowMoreInfo.value = shouldShowMoreInfoState`). The Composable cannot
 be previewed or reasoned about from its parameters, and the interface extends `StateHolder` only to be a namespace for
-`areResourcesLoaded()`. `WelcomeScreen` itself is a ~135-line body with two distinct groups: the expandable details
-(:87-154) and the "More details / Hide details" toggle (:155-193).
+`areResourcesLoaded()` (read by `ResourceLoader.kt:47`). `WelcomeScreen` (:63-197) itself is a ~135-line body with two distinct groups: the expandable details
+(:78-145) and the "More details / Hide details" toggle (:146-196).
 
 ## Fix
 1. `WelcomeScreen(modifier, shouldUseCompactUi, isMoreInfoVisible: Boolean, onMoreInfoVisibilityChanged: (Boolean) -> Unit, scrollToTop)`;
-   both call sites in `HomeContent` (`ShowcaseContent.kt`, the expanded and the compact welcome) pass the state.
+   both call sites in `HomeContent` (`ShowcaseContent.kt:392` and `:413`, the expanded and the compact welcome) pass the
+   state.
 2. Extract `private fun MoreInfo(...)` (the `Column { AnimatedVisibility { … } }` group) and
    `private fun MoreInfoToggle(...)` (the `AnimatedVisibility { AnimatedContent { Row { … } } }` group) with the parameters
    they read; no wrapper added or dropped.

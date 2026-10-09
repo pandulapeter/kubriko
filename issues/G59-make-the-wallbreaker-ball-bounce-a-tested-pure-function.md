@@ -3,6 +3,7 @@
 **Kind:** test  ·  **Severity:** medium  ·  **Platforms:** all  ·  **Class:** Planned
 **Artifact:** unpublished (examples)
 **Files:** `examples/game-wallbreaker/src/commonMain/kotlin/com/pandulapeter/kubriko/gameWallbreaker/implementation/actors/Ball.kt`, new `examples/game-wallbreaker/src/commonMain/kotlin/com/pandulapeter/kubriko/gameWallbreaker/implementation/actors/BallBounce.kt`, new `examples/game-wallbreaker/src/desktopTest/kotlin/com/pandulapeter/kubriko/gameWallbreaker/implementation/actors/BallBounceTest.kt`, `examples/game-wallbreaker/CLAUDE.md`
+**Rebased:** on 70de96c6 after the Now plans landed.
 
 ## Problem
 `Ball.onCollisionDetected` resolves the bounce with an eight-branch `when` over the ball's position against the collided object's `axisAlignedBoundingBox` (`examples/game-wallbreaker/src/commonMain/kotlin/com/pandulapeter/kubriko/gameWallbreaker/implementation/actors/Ball.kt:193–249`), mutating `baseSpeedX` / `baseSpeedY`. It is the core rule of the game and has no test. Reading it:

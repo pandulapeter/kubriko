@@ -6,7 +6,7 @@
 - `app/shared/src/commonMain/kotlin/com/pandulapeter/kubrikoShowcase/implementation/ui/ShowcaseContent.kt`
 - `app/shared/src/commonMain/kotlin/com/pandulapeter/kubrikoShowcase/implementation/ui/TopBar.kt`
 - `app/shared/src/commonMain/kotlin/com/pandulapeter/kubrikoShowcase/implementation/ui/ShowcaseSurfaceElevation.kt` (new)
-- `app/desktop/src/main/kotlin/com/pandulapeter/kubrikoShowcase/TitleBarAppearance.kt` (from A02; only under option (a))
+- `app/desktop/src/main/kotlin/com/pandulapeter/kubrikoShowcase/TitleBarAppearance.kt` (only under option (a))
 - cross-lane (`tools/ui-components`, only under option (a) or for the buttons' follow-up):
   `tools/ui-components/src/commonMain/kotlin/com/pandulapeter/kubriko/uiComponents/theme/KubrikoTheme.kt`,
   `tools/ui-components/src/commonMain/kotlin/com/pandulapeter/kubriko/uiComponents/theme/DynamicDarkTheme.kt`,
@@ -14,26 +14,29 @@
   `tools/ui-components/src/commonMain/kotlin/com/pandulapeter/kubriko/uiComponents/LargeButton.kt`,
   `tools/ui-components/src/commonMain/kotlin/com/pandulapeter/kubriko/uiComponents/SmallButton.kt`,
   `tools/ui-components/src/commonMain/kotlin/com/pandulapeter/kubriko/uiComponents/FloatingButton.kt`,
-  `tools/ui-components/CLAUDE.md` (if present)
+  `tools/ui-components/CLAUDE.md`
+
+**Rebased:** on 70de96c6 after the Now plans landed.
 
 ## Problem
 `KubrikoTheme` picks its color scheme with `dynamicIsSystemInDarkTheme()` (`KubrikoTheme.kt:73`), which on desktop polls
 skiko's `currentSystemTheme` every 100 ms (`DynamicDarkTheme.desktop.kt:21`) because Compose Desktop's
 `isSystemInDarkTheme()` is not known to follow a live system switch. The Showcase's surfaces decide their elevation with
-the plain `isSystemInDarkTheme()` (at 2480325f):
+the plain `isSystemInDarkTheme()` (at 70de96c6):
 
 ```kotlin
-// ShowcaseContent.kt:89
+// ShowcaseContent.kt:90 (ShowcaseContent's root Surface)
 tonalElevation = if (isSystemInDarkTheme()) 2.dp else 0.dp,
-// ShowcaseContent.kt:281-288 (side menu) and TopBar.kt:80-87 — the same `when` twice
+// ShowcaseContent.kt:349-356 (SideMenu) and TopBar.kt:82-89 — the same `when` twice
 tonalElevation = when (isSystemInDarkTheme()) { true -> 4.dp; false -> 0.dp },
 shadowElevation = when (isSystemInDarkTheme()) { true -> 4.dp; false -> 2.dp },
 ```
 
 If the plain function does not follow a live switch, switching the OS theme while the Showcase runs recolors everything
 but leaves the elevations (tonal tint, shadows) of the old theme. **Unconfirmed** — the first step is the manual check.
-`TitleBarAppearance` (desktop) re-implements the same polling loop (`TitleBar.kt:108-113`), and `LargeButton`,
-`SmallButton`, `FloatingButton` in `tools/ui-components` use the plain function too.
+`TitleBarAppearance` (desktop) re-implements the same polling loop (`TitleBarAppearance.kt:34-38`, split out of `TitleBar.kt` by
+A02 in d6cffee4), and `LargeButton` (:55), `SmallButton` (:46), `FloatingButton` (:43) in `tools/ui-components` use the
+plain function too.
 
 ## Fix
 After confirming the staleness:

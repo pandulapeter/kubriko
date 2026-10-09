@@ -3,30 +3,32 @@
 **Kind:** test  ·  **Severity:** medium  ·  **Platforms:** all  ·  **Class:** Planned
 **Artifact:** engine
 **Challenged:** amended — the injected clock is a primitive `fun interface` instead of a `TimeSource` (through the interface `markNow()`/`TimeMark.plus` allocate on every tick, which today's inline `ValueTimeMark` loop does not), and tests feed it the scheduler's virtual time rather than an independent `TestTimeSource` (which would not move with virtual `delay`s); step 2 also says where it goes if E50 is not taken.
+**Rebased:** on 70de96c6 after the Now plans landed.
 **Files:**
 - `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/KubrikoImpl.kt`
 - `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/Kubriko.kt` (only if the internal factory lives there)
-- `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/helpers/FixedFrequencyTickSource.kt` (created by E01)
-- `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/helpers/FixedRateTickSource.kt` (created by E01)
+- `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/helpers/FixedFrequencyTickSource.kt`
+- `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/helpers/FixedRateTickSource.kt`
 - `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/helpers/TickSource.kt`
 - `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/manager/ActorBatchProcessor.kt` (created by E50)
 - `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/manager/ActorManagerImpl.kt`
-- `engine/src/desktopTest/kotlin/com/pandulapeter/kubriko/helpers/TickSourceLifecycleTest.kt` (moved there by E03)
+- `engine/src/desktopTest/kotlin/com/pandulapeter/kubriko/helpers/TickSourceLifecycleTest.kt`
 - `engine/src/desktopTest/kotlin/com/pandulapeter/kubriko/ActorProcessingStartTest.kt`
 - `engine/src/desktopTest/kotlin/com/pandulapeter/kubriko/ActorTestHarness.kt`
 - `engine/CLAUDE.md`
 
-Depends on E01 (tick sources in their own files), E03 (test paths) and E50 (the processor's `launch`).
+E01 (tick sources in their own files) landed in 92b16c51 and E03 (test paths) in 8df3c00c. Still depends on E50 (the
+processor's `launch`), which is Planned; step 2 says where the change goes without it.
 
 ## Problem
 
 `code-style`: "a long-lived class takes its `CoroutineScope`, dispatcher and clocks rather than building them, so a
-test can pass virtual time." At 2480325f the engine builds all three itself:
+test can pass virtual time." At 70de96c6 the engine builds all three itself:
 
 ```kotlin
 override val coroutineContext = SupervisorJob() + Dispatchers.Default              // KubrikoImpl.kt:42
-processorJob = scope.launch(Dispatchers.Default) {                                // ActorManagerImpl.kt:316 (→ ActorBatchProcessor after E50)
-var lastTickTime = TimeSource.Monotonic.markNow()                                 // FixedFrequencyTickSource (TickSource.kt:320, :327)
+processorJob = scope.launch(Dispatchers.Default) {                                // ActorManagerImpl.kt:325 (→ ActorBatchProcessor after E50)
+var lastTickTime = TimeSource.Monotonic.markNow()                                 // FixedFrequencyTickSource.kt:36 (and :43)
 ```
 
 so the timing tests sleep on the wall clock and are slow and flaky by construction:

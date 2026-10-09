@@ -3,6 +3,7 @@
 **Kind:** refactor  ·  **Severity:** high  ·  **Platforms:** all  ·  **Class:** Planned
 **Artifact:** engine
 **Challenged:** amended — the public `visibleActorsWithinViewport` / `activeDynamicActors` (and `allActors`) must stay readable from construction, so their backing `MutableStateFlow`s are created eagerly and handed to the `lateinit` culler instead of being created by it; demo-physics `CLAUDE.md` is located by its text, not line 48 (D22 edits that paragraph first).
+**Rebased:** on 70de96c6 after the Now plans landed.
 **Files:**
 - `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/manager/ActorManagerImpl.kt`
 - `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/manager/ActorBatchProcessor.kt` (new)
@@ -13,35 +14,39 @@
 - `engine/CLAUDE.md`
 - `examples/demo-physics/CLAUDE.md` (outside lane E: one reference, line 48)
 
-Depends on E10 (comments of this file → KDoc; quoted below as they read after it) and E11 (the
-`MetadataManagerImpl._gameTime` KDoc). E53 builds on this plan (it injects the processor's dispatcher).
+E10 (this file's comments → KDoc) landed in 3ba97272 and E11 (the `MetadataManagerImpl._gameTime` KDoc) in
+8c981458; everything below is quoted as it reads at 70de96c6. E53 builds on this plan (it injects the processor's
+dispatcher).
 
 ## Problem
 
-`ActorManagerImpl.kt` is 741 lines at 2480325f — past the ~500-line limit of `code-style` — and one class carries three
+`ActorManagerImpl.kt` is 752 lines at 70de96c6 — past the ~500-line limit of `code-style` — and one class carries three
 responsibilities that share almost no state:
 
 1. **Batch processor** — the operation channel and its lifecycle: `operationChannel`, `isProcessingStarted`,
-   `processorJob`, `isDisposing` (:82-86), `startProcessingOperations` (:303-321, which hard-codes
-   `scope.launch(Dispatchers.Default)` at :316), the teardown loop of `onDispose` (:323-337),
-   `processBatchStartingWith` (:339-355), `flattenActors` (:460-477), `processBatch` (:479-574),
-   `publishDerivedActorLists` (:576-588), `runActorCallback` (:590-611), the five enqueuers (:613-640, with the
-   ordering KDoc E10 gives them) and `private sealed class Operation` (:736-740).
+   `processorJob`, `isDisposing` (:82-86), `startProcessingOperations` (:312-330 with its KDoc, which hard-codes
+   `scope.launch(Dispatchers.Default)` at :325), the teardown loop of `onDispose` (:332-346 with its KDoc),
+   `processBatchStartingWith` (:348-364), `flattenActors` (:470-487), `processBatch` (:489-583),
+   `publishDerivedActorLists` (:585-597), `runActorCallback` (:599-620), the five enqueuers (:622-651, with the
+   ordering KDoc landed by E10) and `private sealed class Operation` (:747-751).
 2. **Culler and draw caches** — the comparators (:87-95), `sortedVisibleActorsByLayer` /
-   `sortedOverlayActorsByLayer`, the scratch buffers, the draw-cache snapshots and invalidation tracking (:120-157),
-   `updateVisibleActorsWithinViewport` (:159-251), `encodeLayerIndex` (:253-254), `updateActiveDynamicActors`
-   (:256-293) and the post-update part of `onUpdate` (:393-442). The viewport bounds test is written twice, once per
+   `sortedOverlayActorsByLayer`, the scratch buffers, the draw-cache snapshots and invalidation tracking (:123-167),
+   `updateVisibleActorsWithinViewport` (:169-260), `encodeLayerIndex` (:262-263), `updateActiveDynamicActors`
+   (:265-302) and the post-update part of `onUpdate` (:402-451). The viewport bounds test is written twice, once per
    cull:
    ```kotlin
-   val leftBound = viewportCenter.x.raw - halfScaledWidth - edgeBuffer            // :170-173 and again :268-271
+   val leftBound = viewportCenter.x.raw - halfScaledWidth - edgeBuffer            // :180-183 and again :277-280
    val topBound = viewportCenter.y.raw - halfScaledHeight - edgeBuffer
    val rightBound = viewportCenter.x.raw + halfScaledWidth + edgeBuffer
    val bottomBound = viewportCenter.y.raw + halfScaledHeight + edgeBuffer
    ...
-   aabb.left.raw <= rightBound && aabb.top.raw <= bottomBound && aabb.right.raw >= leftBound && aabb.bottom.raw >= topBound
+   aabb.left.raw <= rightBound &&                                                  // :195-198 and again :288-291
+           aabb.top.raw <= bottomBound &&
+           aabb.right.raw >= leftBound &&
+           aabb.bottom.raw >= topBound
    ```
-3. **Layer rendering** — `Composable(windowInsets)` (:642-653) and the private Composables `Layers` (:655-671) and
-   `Layer` (:673-734).
+3. **Layer rendering** — `Composable(windowInsets)` (:653-664) and the private Composables `Layers` (:666-682, with
+   its KDoc) and `Layer` (:684-745).
 
 A test of the processor's ordering or of the cull cannot construct either without a whole Kubriko instance.
 
@@ -50,8 +55,8 @@ A test of the processor's ordering or of the cull cannot construct either withou
 Same package, verbatim moves (every KDoc and comment with its declaration), each new file with the MPL-2.0 header.
 
 **`IdentityContentEquals.kt`** — `private fun <T> List<T>.contentEquals(other: List<T>)` (with its KDoc from E10)
-becomes `internal` top-level, because both the processor (`publishDerivedActorLists`) and the culler use it. No
-`contentEquals` extension on `List` exists in the stdlib or the package (checked at 2480325f).
+(:454-468) becomes `internal` top-level, because both the processor (`publishDerivedActorLists`) and the culler use
+it. No `contentEquals` extension on `List` exists in the stdlib or the package (rechecked at 70de96c6).
 
 **`ActorBatchProcessor.kt`** — `internal class ActorBatchProcessor(private val shouldComposeLayers: Boolean, private
 val log: (message: String, details: String?) -> Unit)`:
@@ -80,7 +85,7 @@ invisibleActorMinimumRefreshTimeInMillis, shouldComposeLayers, batchProcessor)` 
 instead of the processor — narrower; recommended), constructed in `onInitialize` once the managers are known
 (`private lateinit var culler`):
 - writes `_visibleActorsWithinViewport` and `_activeDynamicActors`, but does **not** create them: they stay
-  construction-time fields of `ActorManagerImpl` (as at 2480325f, :76-80) and are passed into the culler's constructor.
+  construction-time fields of `ActorManagerImpl` (as at 70de96c6, :77-80) and are passed into the culler's constructor.
   `override val visibleActorsWithinViewport = _visibleActorsWithinViewport.asStateFlow()` and the
   `activeDynamicActors` equivalent stay initialized when the manager is constructed — a consumer may read them (or
   `allActors`, which the eagerly constructed `ActorBatchProcessor` backs) before the manager is initialized, e.g. on an
@@ -89,13 +94,13 @@ instead of the processor — narrower; recommended), constructed in `onInitializ
   snapshots, the invalidation tracking, `encodeLayerIndex`, `updateVisibleActorsWithinViewport`,
   `updateActiveDynamicActors`;
 - two entry points carved out of `onUpdate` with the statements in their current order:
-  `fun refreshActiveDynamicActorsBeforeUpdate(shouldPutFarAwayActorsToSleep): Boolean` (:358-377, returning
-  `didCullDynamicActorsBeforeUpdate`) and `fun refreshAfterUpdate(didCullDynamicActorsBeforeUpdate)` (:393-442);
+  `fun refreshActiveDynamicActorsBeforeUpdate(shouldPutFarAwayActorsToSleep): Boolean` (:367-386, returning
+  `didCullDynamicActorsBeforeUpdate`) and `fun refreshAfterUpdate(didCullDynamicActorsBeforeUpdate)` (:402-451);
 - `sortedVisibleActorsByLayer` and `sortedOverlayActorsByLayer` become `internal var … private set` read by
   `Layers.kt`. They must be read through the culler on every draw (as today's field reads are), never captured into
   a local at composition time.
 
-`ActorManagerImpl.onUpdate` keeps the update loop and `activeDynamicMirror` (it is the update loop's, not the cull's)
+`ActorManagerImpl.onUpdate` keeps the update loop (:388-400) and `activeDynamicMirror` (it is the update loop's, not the cull's)
 between the two culler calls; the `kubrikoImpl.isDisposedInternal` early returns stay exactly where they are.
 
 **`Layers.kt`** — the private `Layers` becomes `internal @Composable fun Layers(…)` (file named after it, per
@@ -119,7 +124,7 @@ Whether to unify the two copies of the bounds test while moving them:
   in `ActorCuller`, i.e. the same four `<=`/`>=` on the same operands. Bit-identical results, no allocation (four floats and a
   receiver). **Recommended**, in a second commit after the verbatim split.
 - **(c) Reuse the existing internal `isWithinViewportBounds(scaledHalfViewportSize, viewportCenter, viewportEdgeBuffer)`**
-  from `AxesAlignedBoundingBoxExtensions.kt` — it evaluates `center + (half + buffer)` instead of
+  from `helpers/extensions/AxesAlignedBoundingBoxExtensions.kt` (:38) — it evaluates `center + (half + buffer)` instead of
   `center + half + buffer`, so float rounding can flip an actor sitting exactly on the edge, and it builds a
   `SceneSize`. Not recommended.
 
@@ -136,7 +141,8 @@ emission behaviour.
 
 ## Tests
 - The existing ones, all of them unchanged and green: `HotPathAllocationTest` (tick budget), `ActorLifecycleChurnTest`
-  with `KUBRIKO_STRESS=1`, the batch tests moved to `manager/` by E03, `ViewportContractTest`.
+  with `KUBRIKO_STRESS=1`, the batch tests in `manager/` (`BatchCallbackPairingTest`, `DuplicateAdditionTest`,
+  `GroupFlatteningTest`, `ActorCallbackFailureTest`, moved there by E03 in 8df3c00c), `ViewportContractTest`.
 - New `manager/ActorBatchProcessorTest` (desktopTest): constructs an `ActorBatchProcessor` against a manual-tick
   Kubriko from `newTestKubriko` (the processor still needs a `KubrikoImpl` for `onAdded`), and pins: operations issued
   before `start` apply synchronously on the starting thread in issue order; an add+remove in one batch pairs
@@ -155,9 +161,10 @@ Docs in the same commit: `engine/CLAUDE.md` Key Internal Files (the `ActorManage
 `Channel<Operation>`; `ActorCuller.kt` — culling and the draw caches; `Layers.kt` — the per-layer Canvases), and the
 names in "Rendering Pipeline" (`ActorManagerImpl.Composable` iterates `layerIndices`… → `Layers`), "Draw-Cache
 Invalidation" and "Actor Batch Processing" (`processBatch` now in `ActorBatchProcessor`).
-`MetadataManagerImpl._gameTime`'s KDoc reference to the layer Canvas points at `[Layers]`.
-`examples/demo-physics/CLAUDE.md` (the `DynamicChain` paragraph, line 48 at 2480325f; D22 edits the same paragraph
-first, so locate it by text) "BFS flatten order in `ActorManagerImpl`" → "in `ActorBatchProcessor`".
+`MetadataManagerImpl._gameTime`'s KDoc reference to the layer Canvas (:31, "see [ActorManagerImpl]'s layer Canvas")
+points at `[Layers]`.
+`examples/demo-physics/CLAUDE.md` (the `DynamicChain` paragraph, line 48 at 70de96c6, already trimmed by D22 in
+9f499ba2) "BFS flatten order in `ActorManagerImpl`" → "in `ActorBatchProcessor`".
 Grep the repo (and `../Tesselar/issues`, informational only) for `ActorManagerImpl.` member references afterwards.
 
 ## Manual check

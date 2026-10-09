@@ -2,6 +2,7 @@
 
 **Kind:** refactor  ·  **Severity:** low  ·  **Platforms:** all  ·  **Class:** Planned
 **Artifact:** unpublished (examples)
+**Rebased:** on 70de96c6 after the Now plans landed.
 **Files:** `examples/shared/src/commonMain/kotlin/com/pandulapeter/kubriko/shared/ui/GameHover.kt` (new), `examples/shared/src/commonMain/kotlin/com/pandulapeter/kubriko/shared/ui/GameTypography.kt` (new), `examples/shared/CLAUDE.md`, `examples/game-annoyed-penguins/src/commonMain/kotlin/com/pandulapeter/kubriko/gameAnnoyedPenguins/implementation/ui/AnnoyedPenguinsButton.kt`, `examples/game-blockys-journey/src/commonMain/kotlin/com/pandulapeter/kubriko/gameBlockysJourney/implementation/ui/BlockysJourneyButton.kt`, `examples/game-space-squadron/src/commonMain/kotlin/com/pandulapeter/kubriko/gameSpaceSquadron/implementation/ui/SpaceSquadronButton.kt`, `examples/game-wallbreaker/src/commonMain/kotlin/com/pandulapeter/kubriko/gameWallbreaker/implementation/ui/WallbreakerButton.kt`, `examples/game-wallbreaker/src/commonMain/kotlin/com/pandulapeter/kubriko/gameWallbreaker/implementation/ui/WallbreakerTextButton.kt`, `examples/game-annoyed-penguins/src/commonMain/kotlin/com/pandulapeter/kubriko/gameAnnoyedPenguins/implementation/ui/AnnoyedPenguinsTheme.kt`, `examples/game-blockys-journey/src/commonMain/kotlin/com/pandulapeter/kubriko/gameBlockysJourney/implementation/ui/BlockysJourneyTheme.kt`, `examples/game-space-squadron/src/commonMain/kotlin/com/pandulapeter/kubriko/gameSpaceSquadron/implementation/ui/SpaceSquadronTheme.kt`, `examples/game-wallbreaker/src/commonMain/kotlin/com/pandulapeter/kubriko/gameWallbreaker/implementation/ui/WallbreakerTheme.kt`; with option B also each game's `managers/UserPreferencesManager.kt`, `ui/InfoDialog.kt`, `managers/UIManager.kt` (AP, BJ)
 
 ## Problem
@@ -20,8 +21,8 @@
   }
   ```
   (e.g. `examples/game-space-squadron/src/commonMain/kotlin/com/pandulapeter/kubriko/gameSpaceSquadron/implementation/ui/SpaceSquadronButton.kt:63–78`). Keyed on `Unit`, it also keeps the first `onPointerEnter` lambda forever.
-- `XTypography()` is written out four times (`AnnoyedPenguinsTheme.kt:72`, `BlockysJourneyTheme.kt:72`, `SpaceSquadronTheme.kt:72`, `WallbreakerTheme.kt:73`): fifteen `copy(fontFamily = fontFamily)` lines that differ only in the font.
-- Annoyed Penguins and Blocky's Journey share near-identical files: `UIManager.kt` and `UserPreferencesManager.kt` are identical apart from the package; `InfoDialog.kt` differs in two lines (the back button's alignment); `UserPreferencesManager` is identical across all four games except for the click-sound function it calls.
+- `XTypography()` is written out four times (`private fun XTypography() = Typography().run {` at `AnnoyedPenguinsTheme.kt:71`, `BlockysJourneyTheme.kt:60`, `SpaceSquadronTheme.kt:61`, `WallbreakerTheme.kt:71`): fifteen `copy(fontFamily = fontFamily)` lines that differ only in the font.
+- Annoyed Penguins and Blocky's Journey share near-identical files: `UIManager.kt` and `UserPreferencesManager.kt` are identical apart from the package; `InfoDialog.kt` differs only in the button type and the back button's alignment (`Alignment.TopStart` vs `Alignment.BottomStart`, :56); `UserPreferencesManager` is identical across all four games except for the click-sound function it calls.
 
 `tools/ui-components` is the wrong home: it is published, and these are Showcase-game styling helpers. `examples/shared` already holds `GameButton` and `gameRipple` for exactly this purpose.
 

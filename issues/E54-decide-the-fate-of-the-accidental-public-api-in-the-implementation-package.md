@@ -2,6 +2,7 @@
 
 **Kind:** refactor  ·  **Severity:** medium  ·  **Platforms:** all  ·  **Class:** Planned
 **Artifact:** engine
+**Rebased:** on 70de96c6 after the Now plans landed.
 **Files:**
 - `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/implementation/InternalViewport.kt`
 - `engine/src/commonMain/kotlin/com/pandulapeter/kubriko/KubrikoViewport.kt`
@@ -12,22 +13,23 @@
 - `app/shared/src/webMain/kotlin/com/pandulapeter/kubrikoShowcase/implementation/ui/Disclaimer.web.kt` (outside lane E, import only)
 - `engine/CLAUDE.md`, `app/desktop/CLAUDE.md` (outside lane E), root `CLAUDE.md`
 
-Depends on E51 (the `windowState` bug fix and KDoc) and E11 (comment conversions in the `PlatformUtils.*` actuals).
+Depends on E51 (the `windowState` bug fix and KDoc). E11 (comment conversions in the `PlatformUtils.*` actuals) landed
+in 8c981458.
 
 ## Problem
 
 Without explicit-API mode, three groups of declarations in `com.pandulapeter.kubriko.implementation` compiled public
 by default and ship in the published `engine` artifact without KDoc:
 
-1. `@Composable fun InternalViewport(modifier, kubriko, windowInsets)` (`InternalViewport.kt:42-43`, JVM facade
+1. `@Composable fun InternalViewport(modifier, kubriko, windowInsets)` (`InternalViewport.kt:39-40`, JVM facade
    `InternalViewportKt`) — only the public `KubrikoViewport` calls it (`KubrikoViewport.kt:31`).
-2. `fun Window.isRunningOnAndroid()`, `isRunningOnIphone()`, `isRunningOnIpad()` (`PlatformUtils.web.kt:61-68`) —
+2. `fun Window.isRunningOnAndroid()`, `isRunningOnIphone()`, `isRunningOnIpad()` (`PlatformUtils.web.kt:63-70`) —
    the Showcase's web shell uses the last two (`app/web/.../KubrikoShowcaseApp.kt:17`,
    `app/shared/.../Disclaimer.web.kt:12-13`); the engine itself uses none of them.
 3. `lateinit var windowState: WindowState` (`PlatformUtils.desktop.kt:62`, facade `PlatformUtils_desktopKt`) — see
    E51; read by `plugin-pointer-input`, assigned by the Showcase.
 
-None of them is used by Tesselar (grepped at 2480325f). Separately, `PlatformUtils.kt` is a `Utils` file by name
+None of them is used by Tesselar (grepped again at 70de96c6). Separately, `PlatformUtils.kt` is a `Utils` file by name
 (`code-style`: "never `Utils.kt`"), holding unrelated things: `getPlatform()`/`getDefaultFocusDebounce()`, three
 `Platform…Effect` Composables, and the shared `LifecycleFocusEffect`.
 
@@ -65,8 +67,8 @@ None of them is used by Tesselar (grepped at 2480325f). Separately, `PlatformUti
      that `getWindowState`/`setWindowState` are still there;
    - web: the three `Window.isRunningOn…` functions to `BrowserDetection.kt` with KDoc.
 3. Update the imports in the two Showcase files only if a package changes (it does not with the recommended options).
-4. Grep the repo for `PlatformUtils` and fix every reference: `engine/CLAUDE.md` Key Internal Files bullet (as E09
-   left it), `app/desktop/CLAUDE.md`, any skill.
+4. Grep the repo for `PlatformUtils` and fix every reference: `engine/CLAUDE.md` Key Internal Files bullet (line 20,
+   as E09 left it in 0a2e9020), `app/desktop/CLAUDE.md`, any skill.
 
 ## Behaviour
 Unchanged at runtime.

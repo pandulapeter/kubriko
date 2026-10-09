@@ -3,17 +3,18 @@
 **Kind:** refactor  ·  **Severity:** medium  ·  **Platforms:** desktop  ·  **Class:** Planned
 **Artifact:** tool-scene-editor (internal code only)
 **Files:** tools/scene-editor/src/desktopMain/kotlin/com/pandulapeter/kubriko/sceneEditor/implementation/EditorController.kt, tools/scene-editor/src/desktopMain/kotlin/com/pandulapeter/kubriko/sceneEditor/implementation/InternalSceneEditor.kt, tools/scene-editor/src/desktopMain/kotlin/com/pandulapeter/kubriko/sceneEditor/implementation/overlay/OverlayManager.kt, tools/scene-editor/src/desktopMain/kotlin/com/pandulapeter/kubriko/sceneEditor/implementation/userInterface/EditorUserInterface.kt, tools/scene-editor/src/desktopMain/kotlin/com/pandulapeter/kubriko/sceneEditor/implementation/userInterface/panels/instanceManagerColumn/InstanceManagerColumn.kt, tools/scene-editor/src/desktopMain/kotlin/com/pandulapeter/kubriko/sceneEditor/implementation/userInterface/panels/instanceBrowserColumn/InstanceBrowserColumn.kt, tools/scene-editor/src/desktopMain/kotlin/com/pandulapeter/kubriko/sceneEditor/implementation/SceneDocument.kt (new), tools/scene-editor/src/desktopMain/kotlin/com/pandulapeter/kubriko/sceneEditor/implementation/SceneFiles.kt (new), tools/scene-editor/src/desktopMain/kotlin/com/pandulapeter/kubriko/sceneEditor/implementation/CameraAnimator.kt (new), tools/scene-editor/src/desktopMain/kotlin/com/pandulapeter/kubriko/sceneEditor/implementation/EditorSelection.kt (new), tools/scene-editor/src/desktopTest/kotlin/com/pandulapeter/kubriko/sceneEditor/implementation/SceneDocumentTest.kt (new), tools/scene-editor/src/desktopTest/kotlin/com/pandulapeter/kubriko/sceneEditor/implementation/CameraAnimatorTest.kt (new), tools/scene-editor/CLAUDE.md
-**Challenged:** amended — step 2 accounts for the Now moves: `FileOperationError` stays in its own file (T01) and `loadFile`/`saveFile` live in `helpers/SceneFileIo.kt` (T03).
+**Challenged:** amended — step 2 accounts for the Now moves: `FileOperationError` stays in its own file (T01, landed in f1980da9) and `loadFile`/`saveFile` live in `helpers/SceneFileIo.kt` (T03, landed in e2905af4).
+**Rebased:** on 70de96c6 after the Now plans landed.
 
 ## Problem
-`EditorController` (528 lines at 2480325f) is a god object holding nine unrelated jobs: scene/actor tracking (`sceneActors`,
+`EditorController` (522 lines at 70de96c6 — 528 at 2480325f, less the `FileOperationError` enum T01 moved out; every line number below is unchanged) is a god object holding nine unrelated jobs: scene/actor tracking (`sceneActors`,
 `sceneActorIds`, `trackSceneActor`, `clearSceneActors`, l.163-165, 430-465), undo/redo + dirty flag (155-160, 332-386), file I/O and
 the error snackbar state (144-151, 166, 402-495), camera animation (287-308, 512-520), selection and the placement preview (122-140,
 154, 218-277), the filter text (93-106), preference pass-throughs (141-143, 168-173, 197-200, 315-319), text-input focus counting
 (162, 202) and Escape handling (497-510). It builds its own `SupervisorJob() + Dispatchers.Default` (l.72), hard-codes
 `launch(Dispatchers.Main)` (404, 477) and `TimeSource.Monotonic` (292), so none of it can be tested with virtual time. Its
 `selectedUpdatableActor: StateFlow<Pair<Editable<*>?, Boolean>>` uses a flipping Boolean to force recomposition (122-129), and that
-Pair leaks into `InstanceManagerColumn.kt:53` and `InstanceBrowserColumn.kt:58`.
+Pair leaks into `InstanceManagerColumn.kt:52` and `InstanceBrowserColumn.kt:58` (`selectedUpdatableInstance: Pair<Editable<*>?, Boolean>`).
 
 ## Fix
 Land after T50 (selection bug) and T51 (preview ownership); one commit per step, each behaviour-preserving:
@@ -22,9 +23,9 @@ Land after T50 (selection bug) and T51 (preview ownership); one commit per step,
    `serialize: (List<Editable<*>>) -> String`, `deserialize: (String) -> List<Editable<*>>` and an actor sink
    (`add`/`remove` on `ActorManager`) so it is testable without a Kubriko. Main-thread only, as today.
 2. **`SceneFiles`** — current folder/file name, loading flag, `fileOperationError` (using `FileOperationError`, which stays in
-   its own `FileOperationError.kt` after T01), `loadMap`, `saveScene`, `syncScene`; takes the scope plus `mainDispatcher` and
-   `ioDispatcher` (default `Dispatchers.Main` / `Dispatchers.IO`; `loadFile`/`saveFile`, in `helpers/SceneFileIo.kt` after T03,
-   gain a dispatcher parameter).
+   its own `FileOperationError.kt`, where T01 put it), `loadMap`, `saveScene`, `syncScene`; takes the scope plus `mainDispatcher` and
+   `ioDispatcher` (default `Dispatchers.Main` / `Dispatchers.IO`; `loadFile`/`saveFile`, in `helpers/SceneFileIo.kt:16`/`:20`, where
+   both hard-code `withContext(Dispatchers.IO)`, gain a dispatcher parameter).
 3. **`CameraAnimator`** — `animateCameraTo`, the job, `easeInOut`, `isRoughlyAt`; takes scope, `ViewportManager` and a
    `TimeSource` (default `TimeSource.Monotonic`).
 4. **`EditorSelection`** — selected actor, `selectedTypeId`, the preview (from T51), `canLocateSelectedActor`; replace the
@@ -33,7 +34,7 @@ Land after T50 (selection bug) and T51 (preview ownership); one commit per step,
    `selectedInstanceRevision: Int` (read so the column recomposes, exactly as the toggle did).
 5. **`EditorController`** keeps coordination only (filter, pref pass-throughs, focus count, Escape, click routing), receives its
    `CoroutineScope` from `InternalSceneEditor` (which creates `CoroutineScope(SupervisorJob() + Dispatchers.Default)` and cancels it
-   in the existing `DisposableEffect`) instead of implementing `CoroutineScope`.
+   in the existing `DisposableEffect`, `InternalSceneEditor.kt:110`) instead of implementing `CoroutineScope`.
 Each step moves code verbatim where it can; widen `private` to `internal` only where another new file needs it. Update
 `tools/scene-editor/CLAUDE.md` → "EditorController" to describe the collaborators.
 
