@@ -21,7 +21,7 @@ import kotlin.concurrent.Volatile
 
 /**
  * Draws every live particle that shares one [drawingOrder] in a single actor, so spawning and
- * recycling no longer add and remove an actor per particle. One batch exists per distinct
+ * recycling never add or remove an actor per particle. One batch exists per distinct
  * [drawingOrder] to preserve interleaving with the rest of the scene.
  */
 internal class ParticleBatch(

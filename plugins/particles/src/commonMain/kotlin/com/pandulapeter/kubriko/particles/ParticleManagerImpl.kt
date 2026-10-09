@@ -28,8 +28,10 @@ internal class ParticleManagerImpl(
     private val actorManager by manager<ActorManager>()
     private val stateManager by manager<StateManager>()
 
-    // Mutable holder keyed by emitter: storing Float values directly in the map would box a fresh
-    // Float on every per-frame accumulator write.
+    /**
+     * Mutable holder keyed by emitter: storing Float values directly in the map would box a fresh
+     * Float on every per-frame accumulator write.
+     */
     private class EmissionAccumulator {
         var value = 0f
     }
@@ -46,12 +48,14 @@ internal class ParticleManagerImpl(
     }
     private val cache: MutableMap<KClass<out ParticleEmitter.ParticleState>, ArrayDeque<ParticleEmitter.ParticleState>> = mutableMapOf()
 
-    // One rendering actor per distinct drawingOrder, created lazily and kept (re-added if removed) for the lifetime of
-    // the manager. There are very few distinct values in practice, so a linear scan keyed on the Float
-    // avoids boxing it as a map key on every emission.
+    /**
+     * One rendering actor per distinct drawingOrder, created lazily and kept (re-added if removed) for the lifetime of
+     * the manager. There are very few distinct values in practice, so a linear scan keyed on the Float
+     * avoids boxing it as a map key on every emission.
+     */
     private val batches = ArrayList<ParticleBatch>()
 
-    // Hoisted so beginFrame() does not allocate a capturing lambda per batch per frame.
+    /** Hoisted so beginFrame() does not allocate a capturing lambda per batch per frame. */
     private val recycle: (ParticleEmitter.ParticleState) -> Unit = { state ->
         val deque = cache.getOrPut(state::class) { ArrayDeque() }
         if (deque.size < cacheSize) {
