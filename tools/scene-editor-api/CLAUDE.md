@@ -78,4 +78,4 @@ Key parameters shared by both:
 - `Connected(sceneJson, onSceneJsonChanged)` — editor mirrors an external JSON string; changes are pushed back via the callback. Used for live in-app editing where the game and editor share scene state.
 
 ## Constant
-`IS_SCENE_EDITOR_AVAILABLE` — not defined in `-api`; both `scene-editor` and `scene-editor-noop` declare it as `false`, so it cannot tell them apart, and nothing in the repo reads it. Its intended meaning is still an open decision.
+`IS_SCENE_EDITOR_AVAILABLE` — not defined in `-api`; both `scene-editor` and `scene-editor-noop` declare it as `false`, so it cannot tell them apart, and nothing in the repo reads it. It is a placeholder that gives each module common code on every target (documented as such in its KDoc), not an availability check.

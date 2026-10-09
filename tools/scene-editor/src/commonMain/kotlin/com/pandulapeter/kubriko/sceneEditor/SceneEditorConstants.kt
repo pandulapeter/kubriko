@@ -11,5 +11,8 @@ package com.pandulapeter.kubriko.sceneEditor
 
 /**
  * This constant is only here because completely empty Kotlin Multiplatform modules cannot be built for iOS.
+ *
+ * Always false, in both `tool-scene-editor` and `tool-scene-editor-noop`: it exists so the module has common code on
+ * every target, and it is not a reliable availability check.
  */
 const val IS_SCENE_EDITOR_AVAILABLE = false

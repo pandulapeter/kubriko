@@ -14,7 +14,7 @@ No-op swap for `scene-editor`. Activated when `showcase.isSceneEditorEnabled=fal
 ## Contents
 
 - `SceneEditor` (Desktop only) — `object` implementing `SceneEditorContract`. Both `show()` and `invoke()` are stubs that return `Unit`. Safe to call; nothing happens.
-- `IS_SCENE_EDITOR_AVAILABLE = false` (commonMain) — exists so the module has a common source and builds for iOS (completely empty KMP modules cannot be built for iOS). The real `scene-editor` module declares the same constant, also `false`, so it cannot tell the two apart, and nothing in the repo reads it. Whether it should become a real availability guard is an open decision; until then do not use it as one.
+- `IS_SCENE_EDITOR_AVAILABLE = false` (commonMain) — exists so the module has a common source and builds for iOS (completely empty KMP modules cannot be built for iOS). The real `scene-editor` module declares the same constant, also `false`, so it cannot tell the two apart, and nothing in the repo reads it. It is a placeholder (documented as such in its KDoc), not an availability check — do not use it as a guard.
 
 ## Usage pattern
 
