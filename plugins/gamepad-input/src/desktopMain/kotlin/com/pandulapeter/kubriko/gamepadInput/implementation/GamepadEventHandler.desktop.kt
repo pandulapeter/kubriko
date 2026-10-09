@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.gamepadInput.implementation
 import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.gamepadInput.GamepadButton
 import com.pandulapeter.kubriko.gamepadInput.GamepadInputManager.Companion.MAX_GAMEPAD_COUNT
+import com.pandulapeter.kubriko.gamepadInput.implementation.GamepadSlotAssignment.Companion.NO_INSTANCE
 import com.studiohartman.jamepad.Configuration
 import com.studiohartman.jamepad.ControllerAxis
 import com.studiohartman.jamepad.ControllerButton
@@ -24,6 +25,11 @@ internal actual fun createGamepadEventHandler(): GamepadEventHandler = object : 
 
     private var controllerManager: ControllerManager? = null
     private var gamepads: Array<RawGamepadState>? = null
+    private val slotAssignment = GamepadSlotAssignment(MAX_GAMEPAD_COUNT)
+    private val connectedIds = IntArray(DEVICE_INDEX_COUNT)
+    private val deviceIndexOfConnectedId = IntArray(DEVICE_INDEX_COUNT)
+    private val deviceIndexOfSlot = IntArray(MAX_GAMEPAD_COUNT)
+    private val readInstanceIds = IntArray(MAX_GAMEPAD_COUNT) { NO_INSTANCE }
 
     @Composable
     override fun isValid() = true
@@ -34,50 +40,97 @@ internal actual fun createGamepadEventHandler(): GamepadEventHandler = object : 
     }
 
     override fun stopListening() {
-        if (controllerManager != null) {
-            controllerManager = null
-            JamepadRuntime.release()
+        synchronized(JamepadRuntime) {
+            if (controllerManager != null) {
+                controllerManager = null
+                JamepadRuntime.release()
+            }
+            gamepads = null
+            slotAssignment.clear()
+            readInstanceIds.fill(NO_INSTANCE)
         }
-        gamepads = null
     }
 
+    /**
+     * Holds [JamepadRuntime]'s lock throughout: every handler shares one [ControllerManager], whose `update()` closes
+     * and reopens every handle on a hot-plug, and whose last release quits SDL - reading a handle meanwhile from
+     * another instance's background TickSource would be a native crash.
+     */
     override fun poll() {
+        synchronized(JamepadRuntime) { pollLocked() }
+    }
+
+    private fun pollLocked() {
         val controllerManager = controllerManager ?: return
         val gamepads = gamepads ?: return
         controllerManager.update()
+        // Reconciled on every poll: only the first handler to call update() after a hot-plug sees it return true.
+        var connectedCount = 0
+        for (deviceIndex in 0 until DEVICE_INDEX_COUNT) {
+            val controller = controllerManager.getControllerIndex(deviceIndex)
+            if (!controller.isConnected) continue
+            val instanceId = try {
+                controller.deviceInstanceID
+            } catch (_: ControllerUnpluggedException) {
+                continue
+            }
+            if (instanceId < 0) continue
+            connectedIds[connectedCount] = instanceId
+            deviceIndexOfConnectedId[connectedCount] = deviceIndex
+            connectedCount++
+        }
+        slotAssignment.reconcile(connectedIds, connectedCount)
+        for (index in 0 until connectedCount) {
+            val slot = slotAssignment.slotOf(connectedIds[index])
+            if (slot != GamepadSlotAssignment.NO_SLOT) {
+                deviceIndexOfSlot[slot] = deviceIndexOfConnectedId[index]
+            }
+        }
         for (slot in gamepads.indices) {
-            gamepads[slot].read(controllerManager.getControllerIndex(slot))
+            val gamepad = gamepads[slot]
+            val instanceId = slotAssignment.instanceIds[slot]
+            if (instanceId == NO_INSTANCE) {
+                if (gamepad.isConnected) {
+                    gamepad.reset()
+                }
+                readInstanceIds[slot] = NO_INSTANCE
+                continue
+            }
+            val controller = controllerManager.getControllerIndex(deviceIndexOfSlot[slot])
+            try {
+                if (readInstanceIds[slot] != instanceId) {
+                    gamepad.reset()
+                    gamepad.name = controller.name
+                    gamepad.isConnected = true
+                    readInstanceIds[slot] = instanceId
+                }
+                gamepad.read(controller)
+            } catch (_: ControllerUnpluggedException) {
+                gamepad.reset()
+                readInstanceIds[slot] = NO_INSTANCE
+            }
         }
     }
 
     private fun RawGamepadState.read(controller: ControllerIndex) {
-        if (!controller.isConnected) {
-            if (isConnected) {
-                reset()
-            }
-            return
-        }
-        try {
-            if (!isConnected) {
-                reset()
-                isConnected = true
-                name = controller.name
-            }
-            leftStickX = controller.getAxisState(ControllerAxis.LEFTX)
-            leftStickY = controller.getAxisState(ControllerAxis.LEFTY)
-            rightStickX = controller.getAxisState(ControllerAxis.RIGHTX)
-            rightStickY = controller.getAxisState(ControllerAxis.RIGHTY)
-            leftTrigger = controller.getAxisState(ControllerAxis.TRIGGERLEFT)
-            rightTrigger = controller.getAxisState(ControllerAxis.TRIGGERRIGHT)
-            val buttons = GamepadButton.entries
-            for (index in buttons.indices) {
-                CONTROLLER_BUTTONS[index]?.let { setButton(buttons[index], controller.isButtonPressed(it)) }
-            }
-        } catch (_: ControllerUnpluggedException) {
-            reset()
+        leftStickX = controller.getAxisState(ControllerAxis.LEFTX)
+        leftStickY = controller.getAxisState(ControllerAxis.LEFTY)
+        rightStickX = controller.getAxisState(ControllerAxis.RIGHTX)
+        rightStickY = controller.getAxisState(ControllerAxis.RIGHTY)
+        leftTrigger = controller.getAxisState(ControllerAxis.TRIGGERLEFT)
+        rightTrigger = controller.getAxisState(ControllerAxis.TRIGGERRIGHT)
+        val buttons = GamepadButton.entries
+        for (index in buttons.indices) {
+            CONTROLLER_BUTTONS[index]?.let { setButton(buttons[index], controller.isButtonPressed(it)) }
         }
     }
 }
+
+/**
+ * How many SDL device indices are scanned for gamepads. SDL counts every joystick (flight sticks, wheels, 3D mice)
+ * in its device indices, so scanning only [MAX_GAMEPAD_COUNT] of them would let such a device hide a pad.
+ */
+private const val DEVICE_INDEX_COUNT = 16
 
 /**
  * Jamepad wraps a single SDL instance for the whole process, while a Kubriko application may well run several
@@ -106,7 +159,7 @@ private object JamepadRuntime {
         if (controllerManager == null && !isUnavailable) {
             controllerManager = try {
                 ControllerManager(
-                    Configuration().apply { maxNumControllers = MAX_GAMEPAD_COUNT },
+                    Configuration().apply { maxNumControllers = DEVICE_INDEX_COUNT },
                     MAPPINGS_PATH,
                 ).apply { initSDLGamepad() }
             } catch (_: Throwable) {
