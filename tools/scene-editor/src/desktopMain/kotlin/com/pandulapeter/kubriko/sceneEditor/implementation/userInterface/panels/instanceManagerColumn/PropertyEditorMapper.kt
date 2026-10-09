@@ -52,52 +52,8 @@ import kubriko.tools.scene_editor.generated.resources.ic_collapse
 import kubriko.tools.scene_editor.generated.resources.ic_expand
 import org.jetbrains.compose.resources.stringResource
 import kotlin.reflect.KMutableProperty
-import kotlin.reflect.KType
-import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.isAccessible
-
-private val booleanType = Boolean::class.createType()
-private val colorType = Color::class.createType()
-private val angleDegreesType = AngleDegrees::class.createType()
-private val angleRadiansType = AngleRadians::class.createType()
-private val sceneOffsetType = SceneOffset::class.createType()
-private val scaleType = Scale::class.createType()
-private val floatType = Float::class.createType()
-private val intType = Int::class.createType()
-private val sceneUnitType = SceneUnit::class.createType()
-
-internal enum class PropertyEditorKind {
-    BOOLEAN,
-    COLOR,
-    ANGLE_DEGREES,
-    ANGLE_RADIANS,
-    SCENE_OFFSET,
-    SCALE,
-    FLOAT,
-    INT,
-    STRING,
-    SCENE_UNIT,
-}
-
-/**
- * Picks the editor for a property type. Only [String] is matched regardless of nullability; every other type must
- * match exactly (non-null).
- */
-internal fun KType.toPropertyEditorKind(): PropertyEditorKind? = if (classifier == String::class) {
-    PropertyEditorKind.STRING
-} else when (this) {
-    booleanType -> PropertyEditorKind.BOOLEAN
-    colorType -> PropertyEditorKind.COLOR
-    angleDegreesType -> PropertyEditorKind.ANGLE_DEGREES
-    angleRadiansType -> PropertyEditorKind.ANGLE_RADIANS
-    sceneOffsetType -> PropertyEditorKind.SCENE_OFFSET
-    scaleType -> PropertyEditorKind.SCALE
-    floatType -> PropertyEditorKind.FLOAT
-    intType -> PropertyEditorKind.INT
-    sceneUnitType -> PropertyEditorKind.SCENE_UNIT
-    else -> null
-}
 
 internal fun <T : Any> KMutableProperty<*>.toPropertyEditor(
     actor: T,
