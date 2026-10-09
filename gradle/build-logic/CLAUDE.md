@@ -96,6 +96,7 @@ Run: `./gradlew publishToMavenCentral --no-configuration-cache`
 
 - The `android { namespace = "..." }` block is required by AGP even for KMP library modules — do not omit it.
 - `artifactMetadata` is resolved in `afterEvaluate`; accessing it outside that hook will see null values.
+- A module applying `kubriko-public-artifact` without an `artifactId` fails at configuration time.
 - iOS simulator target is `iosSimulatorArm64` only (no x86_64); Intel Mac simulators are not supported.
 - The build-logic `build.gradle.kts` compiles at JVM 17, but every module's Kotlin source tree uses a JDK 21 toolchain — mismatching these breaks the includeBuild compilation.
 - Every source file must start with the MPL-2.0 license header.

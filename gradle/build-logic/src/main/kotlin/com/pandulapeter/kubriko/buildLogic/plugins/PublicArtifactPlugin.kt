@@ -27,7 +27,9 @@ class PublicArtifactPlugin : Plugin<Project> {
             extensions.configure<MavenPublishBaseExtension> {
                 configurePublicArtifact(
                     extension = this,
-                    artifactId = extension.artifactId.orEmpty(),
+                    artifactId = checkNotNull(extension.artifactId?.takeIf { it.isNotBlank() }) {
+                        "$path applies kubriko-public-artifact but sets no artifactMetadata { artifactId = \"...\" }."
+                    },
                 )
             }
         }
