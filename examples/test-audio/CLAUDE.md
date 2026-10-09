@@ -29,7 +29,9 @@ implementation/
   AudioTestStateHolder.kt           — sealed interface + resource gate
   AudioTestStateHolderImpl.kt       — creates MusicManager, SoundManager, AudioTestManager
   managers/
-    AudioTestManager.kt             — Manager: preloads tracks, updates play-state every tick, renders controls UI
+    AudioTestManager.kt             — Manager: preloads tracks, updates play-state every tick; its `Composable` override lays out `ui/MusicControls` per track
+  ui/
+    MusicControls.kt                — stateless play/pause, stop and loop buttons for one track
   utilities/
     ResourceLoader.kt               — expect/actual; constructs a URI for a file in composeResources/files/music/
     ResourceLoader.android.kt / .desktop.kt / .ios.kt / .web.kt

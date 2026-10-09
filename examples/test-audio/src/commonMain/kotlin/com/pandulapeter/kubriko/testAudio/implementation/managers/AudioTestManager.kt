@@ -9,11 +9,7 @@
  */
 package com.pandulapeter.kubriko.testAudio.implementation.managers
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,29 +17,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.MusicManager
 import com.pandulapeter.kubriko.manager.Manager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.shared.StateHolder
+import com.pandulapeter.kubriko.testAudio.implementation.ui.MusicControls
 import com.pandulapeter.kubriko.testAudio.implementation.utilities.getResourceUri
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
-import com.pandulapeter.kubriko.uiComponents.LoadingIndicator
-import com.pandulapeter.kubriko.uiComponents.Panel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
@@ -51,19 +39,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kubriko.examples.test_audio.generated.resources.Res
 import kubriko.examples.test_audio.generated.resources.description
-import kubriko.examples.test_audio.generated.resources.ic_loop_on
-import kubriko.examples.test_audio.generated.resources.ic_pause
-import kubriko.examples.test_audio.generated.resources.ic_play
-import kubriko.examples.test_audio.generated.resources.ic_stop
-import kubriko.examples.test_audio.generated.resources.loop_on
 import kubriko.examples.test_audio.generated.resources.music_track_1
 import kubriko.examples.test_audio.generated.resources.music_track_2
-import kubriko.examples.test_audio.generated.resources.pause
-import kubriko.examples.test_audio.generated.resources.play
-import kubriko.examples.test_audio.generated.resources.stop
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 internal class AudioTestManager(
@@ -71,8 +48,8 @@ internal class AudioTestManager(
 ) : Manager() {
     private val musicManager by manager<MusicManager>()
     private val stateManager by manager<StateManager>()
-    private var isTrack1Playing = mutableStateOf(false)
-    private var isTrack2Playing = mutableStateOf(false)
+    private val isTrack1Playing = mutableStateOf(false)
+    private val isTrack2Playing = mutableStateOf(false)
     private val track1Uri = getResourceUri(URI_MUSIC_1, webRootPathName)
     private val track2Uri = getResourceUri(URI_MUSIC_2, webRootPathName)
     private val shouldStopMusic = MutableStateFlow(false)
@@ -99,6 +76,8 @@ internal class AudioTestManager(
 
     fun stopMusicBeforeDispose() = shouldStopMusic.update { true }
 
+    private fun togglePlayback(uri: String, isPlaying: Boolean) = if (isPlaying) musicManager.pause(uri) else musicManager.play(uri)
+
     @Composable
     override fun Composable(windowInsets: WindowInsets) = Column(
         modifier = Modifier
@@ -113,78 +92,22 @@ internal class AudioTestManager(
         )
         MusicControls(
             title = stringResource(Res.string.music_track_1),
-            musicUri = track1Uri,
+            isLoaded = remember { musicManager.getLoadingProgress(track1Uri) }.collectAsState(0f).value == 1f,
             isPlaying = isTrack1Playing.value,
+            onPlayPauseClicked = { togglePlayback(track1Uri, isTrack1Playing.value) },
+            onStopClicked = { musicManager.stop(track1Uri) },
         )
         Spacer(
             modifier = Modifier.height(8.dp),
         )
         MusicControls(
             title = stringResource(Res.string.music_track_2),
-            musicUri = track2Uri,
+            isLoaded = remember { musicManager.getLoadingProgress(track2Uri) }.collectAsState(0f).value == 1f,
             isPlaying = isTrack2Playing.value,
+            onPlayPauseClicked = { togglePlayback(track2Uri, isTrack2Playing.value) },
+            onStopClicked = { musicManager.stop(track2Uri) },
         )
     }
-
-    @Composable
-    private fun MusicControls(
-        title: String,
-        musicUri: String,
-        isPlaying: Boolean,
-    ) = Panel {
-        Column(
-            modifier = Modifier.padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(
-                modifier = Modifier.padding(horizontal = 4.dp),
-                style = MaterialTheme.typography.labelSmall,
-                text = title,
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                if (musicManager.getLoadingProgress(musicUri).collectAsState(0f).value == 1f) {
-                    ControlButton(
-                        icon = if (isPlaying) Res.drawable.ic_pause else Res.drawable.ic_play,
-                        contentDescription = if (isPlaying) Res.string.pause else Res.string.play,
-                        onClick = { if (isPlaying) musicManager.pause(musicUri) else musicManager.play(musicUri) },
-                    )
-                } else {
-                    LoadingIndicator()
-                }
-                ControlButton(
-                    icon = Res.drawable.ic_stop,
-                    contentDescription = Res.string.stop,
-                    isEnabled = isPlaying,
-                    onClick = { musicManager.stop(musicUri) },
-                )
-                ControlButton(
-                    icon = Res.drawable.ic_loop_on,
-                    contentDescription = Res.string.loop_on,
-                    isEnabled = false,
-                    onClick = {},
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun ControlButton(
-        icon: DrawableResource,
-        contentDescription: StringResource,
-        isEnabled: Boolean = true,
-        onClick: () -> Unit,
-    ) = Image(
-        modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .clickable(enabled = isEnabled, onClick = onClick)
-            .alpha(if (isEnabled) 1f else 0.5f),
-        colorFilter = ColorFilter.tint(LocalContentColor.current),
-        painter = painterResource(icon),
-        contentDescription = stringResource(contentDescription),
-    )
 
     companion object {
         private const val URI_MUSIC_1 = "files/music/a_csajod-atkok.mp3"
