@@ -27,7 +27,6 @@ kotlin {
             implementation(projects.plugins.pointerInput)
             implementation(projects.plugins.shaders)
             implementation(projects.plugins.sprites)
-            implementation(if (project.findProperty("showcase.isDebugMenuEnabled") == "true") projects.tools.debugMenu else projects.tools.debugMenuNoop)
             implementation(projects.tools.uiComponents)
             implementation(libs.compose.resources)
         }
