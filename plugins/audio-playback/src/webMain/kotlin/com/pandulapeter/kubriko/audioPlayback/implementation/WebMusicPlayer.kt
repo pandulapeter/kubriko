@@ -52,6 +52,12 @@ internal class WebMusicPlayer private constructor(
             playJob = scope.launch(Dispatchers.Default) {
                 rebuildAudioGraph(shouldLoop)
                 sourceNode?.start(0.0, pausedAt)
+                audioContext?.let { context ->
+                    if (context.state == WebAudioUnlocker.STATE_SUSPENDED) {
+                        context.resumeIgnoringRejection()
+                        WebAudioUnlocker.register(context)
+                    }
+                }
                 startedAt = (audioContext?.currentTime ?: 0.0) - pausedAt
                 isPlaying = true
             }
@@ -95,6 +101,7 @@ internal class WebMusicPlayer private constructor(
         sourceNode = null
         tearDownAudioGraph()
         audioContext?.let {
+            WebAudioUnlocker.unregister(it)
             it.suspend()
             it.close()
         }
@@ -188,9 +195,11 @@ internal external class AudioContext : JsAny {
     fun createChannelSplitter(numberOfOutputs: Int = definedExternally): ChannelSplitterNode
     fun createChannelMerger(numberOfInputs: Int = definedExternally): ChannelMergerNode
     fun suspend()
+    fun resume(): Promise<JsAny?>
     fun close()
     val destination: AudioNode
     val currentTime: Double
+    val state: String
 }
 
 internal external class AudioBuffer : JsAny {
