@@ -27,8 +27,9 @@ Only enabled in the Showcase app when `showcase.areTestExamplesEnabled=true` in 
 ```
 CollisionTest.kt                        — public Composable + createCollisionTestStateHolder() factory
 implementation/
-  CollisionTestStateHolder.kt           — sealed interface + Impl; creates CollisionManager,
-                                          PointerInputManager, ViewportManager, CollisionTestManager
+  CollisionTestStateHolder.kt           — sealed interface + resource gate
+  CollisionTestStateHolderImpl.kt       — creates CollisionManager, PointerInputManager, ViewportManager,
+                                          CollisionTestManager
   managers/
     CollisionTestManager.kt             — spawns 65 DraggableCollidableActors on init
   actors/
@@ -50,4 +51,4 @@ implementation/
 - `collidableTypes = listOf(DraggableCollidableActor::class)` means collision detection is restricted to
   `DraggableCollidableActor` instances only; `RayEmitter` does not register as a collidable target.
 - `AREA_LIMIT = 512` (scene units) is used by both `CollisionTestManager` for random placement and
-  by `CollisionTestStateHolder` as the `FitVertical` height so the two stay in sync.
+  by `CollisionTestStateHolderImpl` as the `FitVertical` height so the two stay in sync.
