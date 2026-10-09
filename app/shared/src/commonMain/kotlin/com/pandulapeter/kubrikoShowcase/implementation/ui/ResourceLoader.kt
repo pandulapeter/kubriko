@@ -14,7 +14,7 @@ import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageBitmap
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
-import com.pandulapeter.kubrikoShowcase.implementation.ui.welcome.WelcomeScreenStateHolder
+import com.pandulapeter.kubrikoShowcase.implementation.ui.welcome.WelcomeScreenResources
 import kubriko.app.shared.generated.resources.Res
 import kubriko.app.shared.generated.resources.back
 import kubriko.app.shared.generated.resources.debug_menu
@@ -44,7 +44,7 @@ import kubriko.app.shared.generated.resources.welcome_subtitle
 internal object ResourceLoader {
 
     @Composable
-    fun areResourcesLoaded() = WelcomeScreenStateHolder.areResourcesLoaded()
+    fun areResourcesLoaded() = WelcomeScreenResources.areResourcesLoaded()
             && areIconResourcesLoaded()
             && areImageResourcesLoaded()
             && areStringResourcesLoaded()

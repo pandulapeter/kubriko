@@ -20,6 +20,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -63,6 +64,8 @@ import org.jetbrains.compose.resources.stringResource
 internal fun WelcomeScreen(
     modifier: Modifier = Modifier,
     shouldUseCompactUi: Boolean,
+    isMoreInfoVisible: Boolean,
+    onMoreInfoVisibilityChanged: (Boolean) -> Unit,
     scrollToTop: () -> Unit,
 ) = Column(
     modifier = modifier.padding(
@@ -75,9 +78,38 @@ internal fun WelcomeScreen(
         style = MaterialTheme.typography.bodySmall,
         text = stringResource(Res.string.welcome_message),
     )
+    MoreInfo(
+        shouldUseCompactUi = shouldUseCompactUi,
+        isMoreInfoVisible = isMoreInfoVisible,
+    )
+    MoreInfoToggle(
+        shouldUseCompactUi = shouldUseCompactUi,
+        isMoreInfoVisible = isMoreInfoVisible,
+        onMoreInfoVisibilityChanged = onMoreInfoVisibilityChanged,
+        scrollToTop = scrollToTop,
+    )
+    Text(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(top = if (shouldUseCompactUi) 8.dp else 16.dp),
+        style = MaterialTheme.typography.bodySmall,
+        text = stringResource(
+            Res.string.welcome_app_details,
+            stringResource(if (shouldUseCompactUi) Res.string.welcome_app_details_call_to_action_collapsed else Res.string.welcome_app_details_call_to_action_expanded),
+        ),
+    )
+    Disclaimer()
+}
+
+@Composable
+private fun MoreInfo(
+    shouldUseCompactUi: Boolean,
+    isMoreInfoVisible: Boolean,
+) {
     Column {
         AnimatedVisibility(
-            visible = !shouldUseCompactUi || WelcomeScreenStateHolder.shouldShowMoreInfo.value,
+            visible = !shouldUseCompactUi || isMoreInfoVisible,
             enter = fadeIn() + expandVertically(expandFrom = Alignment.CenterVertically),
             exit = shrinkVertically(shrinkTowards = Alignment.CenterVertically) + fadeOut(),
         ) {
@@ -143,6 +175,15 @@ internal fun WelcomeScreen(
             }
         }
     }
+}
+
+@Composable
+private fun ColumnScope.MoreInfoToggle(
+    shouldUseCompactUi: Boolean,
+    isMoreInfoVisible: Boolean,
+    onMoreInfoVisibilityChanged: (Boolean) -> Unit,
+    scrollToTop: () -> Unit,
+) {
     AnimatedVisibility(
         modifier = Modifier.padding(top = 8.dp),
         visible = shouldUseCompactUi,
@@ -150,7 +191,7 @@ internal fun WelcomeScreen(
         exit = shrinkVertically(shrinkTowards = Alignment.CenterVertically) + fadeOut(),
     ) {
         AnimatedContent(
-            targetState = !WelcomeScreenStateHolder.shouldShowMoreInfo.value,
+            targetState = !isMoreInfoVisible,
             transitionSpec = { fadeIn() togetherWith fadeOut() },
             label = "moreInfoButton",
             contentAlignment = Alignment.TopCenter,
@@ -158,7 +199,7 @@ internal fun WelcomeScreen(
             Row(
                 modifier = Modifier
                     .clickable {
-                        WelcomeScreenStateHolder.shouldShowMoreInfo.value = shouldShowMoreInfoState
+                        onMoreInfoVisibilityChanged(shouldShowMoreInfoState)
                         if (!shouldShowMoreInfoState) {
                             scrollToTop()
                         }
@@ -182,16 +223,4 @@ internal fun WelcomeScreen(
             }
         }
     }
-    Text(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(top = if (shouldUseCompactUi) 8.dp else 16.dp),
-        style = MaterialTheme.typography.bodySmall,
-        text = stringResource(
-            Res.string.welcome_app_details,
-            stringResource(if (shouldUseCompactUi) Res.string.welcome_app_details_call_to_action_collapsed else Res.string.welcome_app_details_call_to_action_expanded),
-        ),
-    )
-    Disclaimer()
 }

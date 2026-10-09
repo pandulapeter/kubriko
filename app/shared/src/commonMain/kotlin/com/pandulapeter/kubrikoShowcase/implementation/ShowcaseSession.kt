@@ -10,13 +10,16 @@
 package com.pandulapeter.kubrikoShowcase.implementation
 
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubrikoShowcase.implementation.ui.createShowcaseStateHolder
 
 /**
- * The Showcase's process-scoped state: the selected entry and the [StateHolder]s of the entries that are open. It
- * outlives the Activity on Android, so a running game survives a configuration change.
+ * The Showcase's process-scoped state: the selected entry, the [StateHolder]s of the entries that are open and the
+ * welcome screen's expanded section. It outlives the Activity on Android, so a running game survives a configuration
+ * change.
  *
  * @param createStateHolder Builds the [StateHolder] of an entry the first time it is needed.
  */
@@ -26,6 +29,9 @@ internal class ShowcaseSession(
     private val _selectedEntry = mutableStateOf<ShowcaseEntry?>(null)
     val selectedEntry: State<ShowcaseEntry?> = _selectedEntry
     private val stateHolders = mutableMapOf<ShowcaseEntry, StateHolder>()
+
+    /** Whether the compact welcome screen shows its "more details" section. */
+    var isWelcomeMoreInfoVisible by mutableStateOf(false)
 
     /** Selects [entry] (`null` for the welcome screen), creating its [StateHolder] before the frame that shows it. */
     fun select(entry: ShowcaseEntry?) {

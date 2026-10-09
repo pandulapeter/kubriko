@@ -331,6 +331,8 @@ private fun ShowcaseEntryContent(
             onShowcaseEntrySelected = onShowcaseEntrySelected,
             selectedShowcaseEntry = selectedShowcaseEntry,
             shouldUseCompactUi = shouldUseCompactUi,
+            isWelcomeMoreInfoVisible = session.isWelcomeMoreInfoVisible,
+            onWelcomeMoreInfoVisibilityChanged = { session.isWelcomeMoreInfoVisible = it },
         )
     }
 }
@@ -384,6 +386,8 @@ private fun HomeContent(
     onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
     selectedShowcaseEntry: ShowcaseEntry?,
     shouldUseCompactUi: Boolean,
+    isWelcomeMoreInfoVisible: Boolean,
+    onWelcomeMoreInfoVisibilityChanged: (Boolean) -> Unit,
     welcomeScreenScrollState: ScrollState = rememberScrollState(),
 ) = Crossfade(
     targetState = !shouldUseCompactUi,
@@ -397,6 +401,8 @@ private fun HomeContent(
                 .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Right))
                 .padding(bottom = 8.dp),
             shouldUseCompactUi = false,
+            isMoreInfoVisible = isWelcomeMoreInfoVisible,
+            onMoreInfoVisibilityChanged = onWelcomeMoreInfoVisibilityChanged,
             scrollToTop = { coroutineScope.launch { lazyListState.animateScrollToItem(0) } },
         )
     } else {
@@ -414,6 +420,8 @@ private fun HomeContent(
                     WelcomeScreen(
                         modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
                         shouldUseCompactUi = true,
+                        isMoreInfoVisible = isWelcomeMoreInfoVisible,
+                        onMoreInfoVisibilityChanged = onWelcomeMoreInfoVisibilityChanged,
                         scrollToTop = { coroutineScope.launch { lazyListState.animateScrollToItem(0) } },
                     )
                 }

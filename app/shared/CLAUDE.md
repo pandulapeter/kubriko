@@ -38,7 +38,7 @@ Each example exposes a `StateHolder` (defined in `examples/shared`):
 - `stopMusic()` — called before crossfade exit so music stops at the right moment.
 - `dispose()` — frees all Kubriko resources.
 
-`ShowcaseSession` (`implementation/ShowcaseSession.kt`) is the Showcase's process-scoped state — one instance, created in `KubrikoShowcase.kt` and passed down as a parameter, so a running game survives the Android Activity being recreated. It owns the selected entry (`selectedEntry`, changed only through `select()`) and the live `StateHolder`s, one per entry, built by `createShowcaseStateHolder` (`ShowcaseStateHolders.kt`) and injectable for tests. `select()` creates the entry's holder outside composition, before the frame that shows it; `ExampleScreen` only reads it through `holderFor()`. On Compose `DisposableEffect` cleanup, if the departing entry is no longer selected (`isSelected()`), `release()` disposes its `StateHolder`. This is how switching entries disposes the previous example's Kubriko instance while the crossfade is still running (music is stopped earlier via `stopMusic()`).
+`ShowcaseSession` (`implementation/ShowcaseSession.kt`) is the Showcase's process-scoped state — one instance, created in `KubrikoShowcase.kt` and passed down as a parameter, so a running game survives the Android Activity being recreated. It owns the selected entry (`selectedEntry`, changed only through `select()`) and the live `StateHolder`s, one per entry, built by `createShowcaseStateHolder` (`ShowcaseStateHolders.kt`) and injectable for tests. `select()` creates the entry's holder outside composition, before the frame that shows it; `ExampleScreen` only reads it through `holderFor()`. On Compose `DisposableEffect` cleanup, if the departing entry is no longer selected (`isSelected()`), `release()` disposes its `StateHolder`. This is how switching entries disposes the previous example's Kubriko instance while the crossfade is still running (music is stopped earlier via `stopMusic()`). The session also holds whether the compact welcome screen's "more details" section is expanded, which `HomeContent` passes to `WelcomeScreen`.
 
 `StateHolder.isInfoPanelVisible` (companion object) is global shared state toggled by the top bar info button.
 
@@ -72,7 +72,7 @@ Injected at build time via the `buildkonfig` plugin:
 - `implementation/ShowcaseDeeplink.kt` — entry ↔ deeplink mapping.
 - `implementation/ShowcaseEntryFeatures.kt` — which top bar buttons and panels an entry gets (debug menu, info button, logo).
 - `implementation/ui/ExampleScreen.kt` — per-entry `ExampleScreen` Composable and its disposal effect.
-- `implementation/ShowcaseSession.kt` — the process-scoped selection and `StateHolder` pool.
+- `implementation/ShowcaseSession.kt` — the process-scoped selection, `StateHolder` pool and welcome screen "more details" state.
 - `implementation/ui/ShowcaseStateHolders.kt` — `createShowcaseStateHolder`, the factory building each entry's `StateHolder`.
 - `implementation/ui/ShowcaseContent.kt` — responsive layout orchestration.
 - `implementation/ui/Menu.kt` — `LazyListScope.menu()` extension, `menuItemIndex()`, `MenuCategoryLabel`.
