@@ -41,7 +41,6 @@ What a fast resize uncovers before the next frame fills it is kept on the theme'
 The desktop app registers scene editors for examples that support them. These launch as separate windows (handled by the scene-editor tool) and write scenes directly into source directories:
 - `AnnoyedPenguinsGameSceneEditor` → `examples/game-annoyed-penguins/.../files/scenes`
 - `BlockysJourneyGameSceneEditor` → `examples/game-blockys-journey/.../files/scenes`
-- `IsometricGraphicsDemoSceneEditor` → `examples/demo-isometric-graphics/.../files/scenes`
 - `PerformanceDemoSceneEditor` → `examples/demo-performance/.../files/scenes`
 - `PhysicsDemoSceneEditor` → `examples/demo-physics/.../files/scenes`
 
