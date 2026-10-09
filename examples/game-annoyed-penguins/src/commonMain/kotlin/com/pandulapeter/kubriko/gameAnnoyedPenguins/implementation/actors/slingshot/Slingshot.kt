@@ -206,7 +206,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
             val targetCameraPosition = activePenguin?.body?.position ?: body.position
             if (abs(cameraPosition.x - targetCameraPosition.x).raw > 0 || abs(cameraPosition.y - targetCameraPosition.y).raw > 0) {
                 viewportManager.addToCameraPosition(
-                    (targetCameraPosition - cameraPosition).toOffset(viewportManager) * 0.025f
+                    (targetCameraPosition - cameraPosition).toOffset(viewportManager) * cameraFollowFactor(deltaTimeInMilliseconds)
                 )
             }
         }
