@@ -110,7 +110,7 @@ internal class KeyboardInputManagerImpl(
         keyboardEventHandler = null
     }
 
-    private fun onKeyPressed(key: Key) {
+    internal fun onKeyPressed(key: Key) {
         if (!activeKeysCache.contains(key) && stateManager.isFocused.value) {
             keyboardInputAwareActors.value.forEach { it.onKeyPressed(key) }
             activeKeysCache.add(key)
@@ -119,7 +119,7 @@ internal class KeyboardInputManagerImpl(
         }
     }
 
-    private fun onKeyReleased(key: Key) {
+    internal fun onKeyReleased(key: Key) {
         keyboardInputAwareActors.value.forEach { it.onKeyReleased(key) }
         activeKeysCache.remove(key)
         isActiveKeysDirty = true
