@@ -21,7 +21,7 @@ custom time-driven `Shader` actors and expose their uniforms as data-class `Stat
 `ShaderAnimationsDemo` (`@Composable`) is the entry point. `ShaderAnimationsDemoStateHolderImpl`
 creates **one `Kubriko` per shader** via `ShaderAnimationDemoHolder`. Each holder owns:
 - `ShaderManager` — required by every `Shader` actor
-- `ShaderAnimationsDemoManager<SHADER, STATE>` — generic Manager that adds the shader to
+- `ShaderAnimationsDemoManager<STATE>` — generic Manager that adds the shader to
   `ActorManager` and keeps its state up-to-date via a flow
 
 `StateHolder.kubriko` is a `Flow<Kubriko?>` mapped from `selectedDemoType`, so the active viewport
@@ -32,7 +32,9 @@ fallback text on unsupported platforms.
 
 ## Key actor types
 
-All five shaders follow the same structure: they implement `Shader<State>` and `Dynamic`.
+All five shaders extend `TimeDrivenShader<State>` (`Shader<State>` + `Dynamic`), which owns
+`shaderState`, the time update and `updateState()`; each shader only adds its code, its cache and
+`State.withTime(time) = copy(time = time)`.
 
 **`Shader<State>` contract:**
 - `shaderCode` — the raw SKSL string (defined as a `companion object` constant in each file)
@@ -63,13 +65,14 @@ reset.
 shaders is a zero-cost viewport swap rather than an actor add/remove cycle. All five instances
 stay alive for the lifetime of the state holder, keeping GPU shader caches warm.
 
-**Generic `ShaderAnimationsDemoManager<SHADER, STATE>`.** The Manager is parameterised by both
-the shader type and its state type. An `updater: (SHADER, STATE) -> Unit` lambda is passed at
-construction time, so the Manager itself needs no cast and stays reusable for all five shaders
-without a sealed hierarchy; the controls UI still casts the selected Manager to its concrete type.
+**Generic `ShaderAnimationsDemoManager<STATE>`.** The Manager takes a `TimeDrivenShader<STATE>`
+and forwards every new state to its `updateState()`, so it stays reusable for all five shaders
+without a sealed hierarchy.
 
 **`ShaderAnimationDemoHolder.`** A plain non-Manager class that bundles a `Kubriko`, its
-`ShaderManager`, and its `ShaderAnimationsDemoManager`. All five holders are created eagerly in
+`ShaderManager`, and its `ShaderAnimationsDemoManager`, plus the shader's `code` and a typed
+`controls` Composable built from the per-shader `XControls` passed in by the Impl, so
+`ControlsContainer` looks both up per demo type (`getCode` / `getControls`) without any cast. All five holders are created eagerly in
 `ShaderAnimationsDemoStateHolderImpl.shaderAnimationDemoHolders` (persistent map keyed by
 `ShaderAnimationDemoType` enum) so they are all available without lazy initialisation delays.
 

@@ -30,7 +30,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,17 +38,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationDemoType
-import com.pandulapeter.kubriko.demoShaderAnimations.implementation.managers.ShaderAnimationsDemoManager
-import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.CloudShader
-import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.EtherShader
-import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.GradientShader
-import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.NoodleShader
-import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.WarpShader
-import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.CloudControls
-import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.EtherControls
-import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.GradientControls
-import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.NoodleControls
-import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.WarpControls
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.FloatingButton
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
@@ -72,7 +60,8 @@ internal fun ControlsContainer(
     selectedDemoType: ShaderAnimationDemoType,
     controlsState: ControlsState,
     onControlsStateChanged: (ControlsState) -> Unit,
-    getManager: (ShaderAnimationDemoType) -> ShaderAnimationsDemoManager<*, *>,
+    getCode: (ShaderAnimationDemoType) -> String,
+    getControls: (ShaderAnimationDemoType) -> @Composable () -> Unit,
 ) = Column(
     modifier = modifier,
 ) {
@@ -109,12 +98,11 @@ internal fun ControlsContainer(
                 when (targetState.second) {
                     ControlsState.COLLAPSED -> Unit
                     ControlsState.EXPANDED_CODE -> Code(
-                        demoType = targetState.first,
+                        code = getCode(targetState.first),
                     )
 
                     ControlsState.EXPANDED_CONTROLS -> Controls(
-                        manager = getManager(targetState.first),
-                        demoType = targetState.first,
+                        controls = getControls(targetState.first),
                     )
                 }
             }
@@ -156,7 +144,7 @@ private fun ControlButtons(
 
 @Composable
 private fun Code(
-    demoType: ShaderAnimationDemoType,
+    code: String,
 ) = Text(
     modifier = Modifier
         .verticalScroll(rememberScrollState())
@@ -168,19 +156,12 @@ private fun Code(
         fontWeight = FontWeight.Light,
         fontFamily = FontFamily.Monospace,
     ),
-    text = when (demoType) {
-        ShaderAnimationDemoType.CLOUD -> CloudShader.CODE
-        ShaderAnimationDemoType.ETHER -> EtherShader.CODE
-        ShaderAnimationDemoType.GRADIENT -> GradientShader.CODE
-        ShaderAnimationDemoType.NOODLE -> NoodleShader.CODE
-        ShaderAnimationDemoType.WARP -> WarpShader.CODE
-    }
+    text = code,
 )
 
 @Composable
 private fun Controls(
-    manager: ShaderAnimationsDemoManager<*, *>,
-    demoType: ShaderAnimationDemoType,
+    controls: @Composable () -> Unit,
 ) = Column(
     modifier = Modifier
         .verticalScroll(rememberScrollState())
@@ -191,47 +172,6 @@ private fun Controls(
         ),
     verticalArrangement = Arrangement.spacedBy(4.dp)
 ) {
-    @Suppress("UNCHECKED_CAST")
-    when (demoType) {
-        ShaderAnimationDemoType.CLOUD -> {
-            manager as ShaderAnimationsDemoManager<CloudShader, CloudShader.State>
-            CloudControls(
-                cloudShaderState = manager.shaderState.collectAsState().value,
-                onCloudShaderStateChanged = manager::setState,
-            )
-        }
-
-        ShaderAnimationDemoType.ETHER -> {
-            manager as ShaderAnimationsDemoManager<EtherShader, EtherShader.State>
-            EtherControls(
-                etherShaderState = manager.shaderState.collectAsState().value,
-                onEtherShaderStateChanged = manager::setState,
-            )
-        }
-
-        ShaderAnimationDemoType.GRADIENT -> {
-            manager as ShaderAnimationsDemoManager<GradientShader, GradientShader.State>
-            GradientControls(
-                gradientShaderState = manager.shaderState.collectAsState().value,
-                onGradientShaderStateChanged = manager::setState,
-            )
-        }
-
-        ShaderAnimationDemoType.NOODLE -> {
-            manager as ShaderAnimationsDemoManager<NoodleShader, NoodleShader.State>
-            NoodleControls(
-                noodleShaderState = manager.shaderState.collectAsState().value,
-                onNoodleShaderStateChanged = manager::setState,
-            )
-        }
-
-        ShaderAnimationDemoType.WARP -> {
-            manager as ShaderAnimationsDemoManager<WarpShader, WarpShader.State>
-            WarpControls(
-                warpShaderState = manager.shaderState.collectAsState().value,
-                onWarpShaderStateChanged = manager::setState,
-            )
-        }
-    }
+    controls()
     Spacer(modifier = Modifier.height(16.dp))
 }

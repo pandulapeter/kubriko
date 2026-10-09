@@ -9,28 +9,35 @@
  */
 package com.pandulapeter.kubriko.demoShaderAnimations.implementation
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.managers.ShaderAnimationsDemoManager
+import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.TimeDrivenShader
 import com.pandulapeter.kubriko.shaders.Shader
 import com.pandulapeter.kubriko.shaders.ShaderManager
 
-internal class ShaderAnimationDemoHolder<SHADER : Shader<STATE>, STATE : Shader.State>(
-    shader: SHADER,
-    updater: (SHADER, STATE) -> Unit,
+internal class ShaderAnimationDemoHolder<STATE : Shader.State>(
+    shader: TimeDrivenShader<STATE>,
     nameForLogging: String,
     isLoggingEnabled: Boolean,
+    stateControls: @Composable (state: STATE, onStateChanged: (STATE) -> Unit) -> Unit,
 ) {
     val shaderManager = ShaderManager.newInstance(
         isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = "$LOG_TAG-$nameForLogging",
     )
-    val shaderAnimationsDemoManager = ShaderAnimationsDemoManager(shader, updater)
+    val shaderAnimationsDemoManager = ShaderAnimationsDemoManager(shader)
     val kubriko = Kubriko.newInstance(
         shaderManager,
         shaderAnimationsDemoManager,
         isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = "$LOG_TAG-$nameForLogging",
     )
+    val code = shader.shaderCode
+    val controls: @Composable () -> Unit = {
+        stateControls(shaderAnimationsDemoManager.shaderState.collectAsState().value, shaderAnimationsDemoManager::setState)
+    }
 }
 
 private const val LOG_TAG = "ShaderAnimation"

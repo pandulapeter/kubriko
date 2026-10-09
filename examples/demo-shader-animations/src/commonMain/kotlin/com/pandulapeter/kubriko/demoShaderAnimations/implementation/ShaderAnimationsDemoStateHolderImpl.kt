@@ -15,6 +15,11 @@ import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.Grad
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.NoodleShader
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.WarpShader
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.ControlsState
+import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.CloudControls
+import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.EtherControls
+import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.GradientControls
+import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.NoodleControls
+import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.controls.WarpControls
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,37 +34,37 @@ internal class ShaderAnimationsDemoStateHolderImpl(
         when (it) {
             ShaderAnimationDemoType.CLOUD -> ShaderAnimationDemoHolder(
                 shader = CloudShader(),
-                updater = { shader, state -> shader.updateState(state) },
                 nameForLogging = "cloud",
                 isLoggingEnabled = isLoggingEnabled,
+                stateControls = { state, onStateChanged -> CloudControls(state, onStateChanged) },
             )
 
             ShaderAnimationDemoType.ETHER -> ShaderAnimationDemoHolder(
                 shader = EtherShader(),
-                updater = { shader, state -> shader.updateState(state) },
                 nameForLogging = "ether",
                 isLoggingEnabled = isLoggingEnabled,
+                stateControls = { state, onStateChanged -> EtherControls(state, onStateChanged) },
             )
 
             ShaderAnimationDemoType.GRADIENT -> ShaderAnimationDemoHolder(
                 shader = GradientShader(),
-                updater = { shader, state -> shader.updateState(state) },
                 nameForLogging = "gradient",
                 isLoggingEnabled = isLoggingEnabled,
+                stateControls = { state, onStateChanged -> GradientControls(state, onStateChanged) },
             )
 
             ShaderAnimationDemoType.NOODLE -> ShaderAnimationDemoHolder(
                 shader = NoodleShader(),
-                updater = { shader, state -> shader.updateState(state) },
                 nameForLogging = "noodle",
                 isLoggingEnabled = isLoggingEnabled,
+                stateControls = { state, onStateChanged -> NoodleControls(state, onStateChanged) },
             )
 
             ShaderAnimationDemoType.WARP -> ShaderAnimationDemoHolder(
                 shader = WarpShader(),
-                updater = { shader, state -> shader.updateState(state) },
                 nameForLogging = "warp",
                 isLoggingEnabled = isLoggingEnabled,
+                stateControls = { state, onStateChanged -> WarpControls(state, onStateChanged) },
             )
         }
     }.toPersistentMap()
@@ -70,7 +75,9 @@ internal class ShaderAnimationsDemoStateHolderImpl(
     val controlsState = _controlsState.asStateFlow()
     override val kubriko = selectedDemoType.map { shaderAnimationDemoHolders[it]?.kubriko }
 
-    fun getManager(demoType: ShaderAnimationDemoType) = shaderAnimationDemoHolders.getValue(demoType).shaderAnimationsDemoManager
+    fun getCode(demoType: ShaderAnimationDemoType) = shaderAnimationDemoHolders.getValue(demoType).code
+
+    fun getControls(demoType: ShaderAnimationDemoType) = shaderAnimationDemoHolders.getValue(demoType).controls
 
     fun onSelectedDemoTypeChanged(selectedDemoType: ShaderAnimationDemoType) = _selectedDemoType.update { selectedDemoType }
 

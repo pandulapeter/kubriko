@@ -82,7 +82,8 @@ fun ShaderAnimationsDemo(
                     selectedDemoType = selectedDemoType,
                     controlsState = controlsState,
                     onControlsStateChanged = stateHolder::onControlsStateChanged,
-                    getManager = stateHolder::getManager,
+                    getCode = stateHolder::getCode,
+                    getControls = stateHolder::getControls,
                 )
             }
         }

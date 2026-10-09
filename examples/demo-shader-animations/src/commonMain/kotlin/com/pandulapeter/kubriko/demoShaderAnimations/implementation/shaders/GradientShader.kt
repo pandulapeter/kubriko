@@ -9,34 +9,17 @@
  */
 package com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders
 
-import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.actor.traits.Dynamic
-import com.pandulapeter.kubriko.helpers.extensions.get
-import com.pandulapeter.kubriko.manager.MetadataManager
 import com.pandulapeter.kubriko.shaders.Shader
 import com.pandulapeter.kubriko.shaders.extensions.ShaderUniformProvider
 
 internal class GradientShader(
     initialState: State = State(),
     override val layerIndex: Int? = null,
-) : Shader<GradientShader.State>, Dynamic {
-    override var shaderState = initialState
-        private set
+) : TimeDrivenShader<GradientShader.State>(initialState) {
     override val shaderCache = Shader.Cache()
     override val shaderCode = CODE
-    private lateinit var metadataManager: MetadataManager
 
-    override fun onAdded(kubriko: Kubriko) {
-        metadataManager = kubriko.get()
-    }
-
-    override fun update(deltaTimeInMilliseconds: Int) {
-        shaderState = shaderState.copy(time = (metadataManager.activeRuntimeInMilliseconds.value % 100000L) / 1000f)
-    }
-
-    fun updateState(state: State) {
-        this.shaderState = state.copy(time = this.shaderState.time)
-    }
+    override fun State.withTime(time: Float) = copy(time = time)
 
     data class State(
         val time: Float = 0f,

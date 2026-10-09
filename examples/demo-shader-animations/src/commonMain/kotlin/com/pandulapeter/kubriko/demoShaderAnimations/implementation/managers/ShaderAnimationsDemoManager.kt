@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.demoShaderAnimations.implementation.managers
 
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.TimeDrivenShader
 import com.pandulapeter.kubriko.helpers.extensions.get
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
@@ -20,16 +21,15 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 
-internal class ShaderAnimationsDemoManager<SHADER : Shader<STATE>, STATE : Shader.State>(
-    private val shader: SHADER,
-    private val updater: (SHADER, STATE) -> Unit,
+internal class ShaderAnimationsDemoManager<STATE : Shader.State>(
+    private val shader: TimeDrivenShader<STATE>,
 ) : Manager() {
     private val _shaderState = MutableStateFlow(shader.shaderState)
     val shaderState = _shaderState.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
         kubriko.get<ActorManager>().add(shader)
-        _shaderState.onEach { updater(shader, it) }.launchIn(scope)
+        _shaderState.onEach { shader.updateState(it) }.launchIn(scope)
     }
 
     fun setState(state: STATE) = _shaderState.update { state }
