@@ -7,14 +7,15 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko
+package com.pandulapeter.kubriko.manager
 
 import androidx.compose.ui.geometry.Size
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.KubrikoImpl
 import com.pandulapeter.kubriko.actor.body.PointBody
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.helpers.TickSource
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.testFixtures.CountingActor
 import com.pandulapeter.kubriko.testFixtures.awaitProcessed
 import com.pandulapeter.kubriko.types.SceneOffset

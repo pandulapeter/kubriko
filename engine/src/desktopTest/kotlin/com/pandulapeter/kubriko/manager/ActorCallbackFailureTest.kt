@@ -7,8 +7,9 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko
+package com.pandulapeter.kubriko.manager
 
+import com.pandulapeter.kubriko.newTestKubriko
 import com.pandulapeter.kubriko.testFixtures.CountingActor
 import com.pandulapeter.kubriko.testFixtures.awaitCondition
 import com.pandulapeter.kubriko.testFixtures.awaitProcessed

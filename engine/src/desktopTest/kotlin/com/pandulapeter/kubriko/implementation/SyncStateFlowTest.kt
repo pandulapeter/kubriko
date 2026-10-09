@@ -7,9 +7,11 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko
+package com.pandulapeter.kubriko.implementation
 
 import androidx.compose.ui.geometry.Size
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.KubrikoImpl
 import com.pandulapeter.kubriko.helpers.TickSource
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.manager.ViewportManager

@@ -7,10 +7,10 @@
  * If a copy of the MPL was not distributed with this file, You can obtain one at
  * https://mozilla.org/MPL/2.0/.
  */
-package com.pandulapeter.kubriko
+package com.pandulapeter.kubriko.helpers
 
+import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.Actor
-import com.pandulapeter.kubriko.helpers.TickSource
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.Manager
 import java.util.concurrent.CountDownLatch
