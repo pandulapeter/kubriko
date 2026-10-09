@@ -29,6 +29,94 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.keyboardInput.extensions.displayName
 
+private val KeyboardLayout: List<List<Key>> = listOf(
+    listOf(
+        Key.Escape,
+        Key.F1,
+        Key.F2,
+        Key.F3,
+        Key.F4,
+        Key.F5,
+        Key.F6,
+        Key.F7,
+        Key.F8,
+        Key.F9,
+        Key.F10,
+        Key.F11,
+        Key.F12,
+    ),
+    listOf(
+        Key.Grave,
+        Key.One,
+        Key.Two,
+        Key.Three,
+        Key.Four,
+        Key.Five,
+        Key.Six,
+        Key.Seven,
+        Key.Eight,
+        Key.Nine,
+        Key.Zero,
+        Key.Minus,
+        Key.Equals,
+        Key.Backspace,
+    ),
+    listOf(
+        Key.Tab,
+        Key.Q,
+        Key.W,
+        Key.E,
+        Key.R,
+        Key.T,
+        Key.Y,
+        Key.U,
+        Key.I,
+        Key.O,
+        Key.P,
+        Key.LeftBracket,
+        Key.RightBracket,
+        Key.Backslash,
+    ),
+    listOf(
+        Key.CapsLock,
+        Key.A,
+        Key.S,
+        Key.D,
+        Key.F,
+        Key.G,
+        Key.H,
+        Key.J,
+        Key.K,
+        Key.L,
+        Key.Semicolon,
+        Key.Apostrophe,
+        Key.Enter,
+    ),
+    listOf(
+        Key.ShiftLeft,
+        Key.Z,
+        Key.X,
+        Key.C,
+        Key.V,
+        Key.B,
+        Key.N,
+        Key.M,
+        Key.Comma,
+        Key.Period,
+        Key.Slash,
+        Key.ShiftRight,
+    ),
+    listOf(
+        Key.CtrlLeft,
+        Key.AltLeft,
+        Key.MetaLeft,
+        Key.Spacebar,
+        Key.MetaRight,
+        Key.AltRight,
+        Key.CtrlRight,
+    ),
+)
+
 @Composable
 internal fun Keyboard(
     modifier: Modifier = Modifier,
@@ -41,115 +129,25 @@ internal fun Keyboard(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        KeyboardRow(
-            keyWrappers = listOf(
-                Key.Escape,
-                Key.F1,
-                Key.F2,
-                Key.F3,
-                Key.F4,
-                Key.F5,
-                Key.F6,
-                Key.F7,
-                Key.F8,
-                Key.F9,
-                Key.F10,
-                Key.F11,
-                Key.F12,
-            ).map { it.toWrapper(activeKeys) },
-        )
-        KeyboardRow(
-            keyWrappers = listOf(
-                Key.Grave,
-                Key.One,
-                Key.Two,
-                Key.Three,
-                Key.Four,
-                Key.Five,
-                Key.Six,
-                Key.Seven,
-                Key.Eight,
-                Key.Nine,
-                Key.Zero,
-                Key.Minus,
-                Key.Equals,
-                Key.Backspace,
-            ).map { it.toWrapper(activeKeys) },
-        )
-        KeyboardRow(
-            keyWrappers = listOf(
-                Key.Tab,
-                Key.Q,
-                Key.W,
-                Key.E,
-                Key.R,
-                Key.T,
-                Key.Y,
-                Key.U,
-                Key.I,
-                Key.O,
-                Key.P,
-                Key.LeftBracket,
-                Key.RightBracket,
-                Key.Backslash,
-            ).map { it.toWrapper(activeKeys) },
-        )
-        KeyboardRow(
-            keyWrappers = listOf(
-                Key.CapsLock,
-                Key.A,
-                Key.S,
-                Key.D,
-                Key.F,
-                Key.G,
-                Key.H,
-                Key.J,
-                Key.K,
-                Key.L,
-                Key.Semicolon,
-                Key.Apostrophe,
-                Key.Enter,
-            ).map { it.toWrapper(activeKeys) },
-        )
-        KeyboardRow(
-            keyWrappers = listOf(
-                Key.ShiftLeft,
-                Key.Z,
-                Key.X,
-                Key.C,
-                Key.V,
-                Key.B,
-                Key.N,
-                Key.M,
-                Key.Comma,
-                Key.Period,
-                Key.Slash,
-                Key.ShiftRight,
-            ).map { it.toWrapper(activeKeys) },
-        )
-        KeyboardRow(
-            keyWrappers = listOf(
-                Key.CtrlLeft,
-                Key.AltLeft,
-                Key.MetaLeft,
-                Key.Spacebar,
-                Key.MetaRight,
-                Key.AltRight,
-                Key.CtrlRight,
-            ).map { it.toWrapper(activeKeys) },
-        )
+        KeyboardLayout.forEach { keys ->
+            KeyboardRow(
+                keyWrappers = keys.map { it.toWrapper(activeKeys) },
+            )
+        }
     }
 }
 
 private fun Key.toWrapper(activeKeys: Set<Key>) = KeyWrapper(
     key = this,
-    size = when (this) {
-        Key.Escape, Key.Backspace, Key.Tab, Key.Enter, Key.CapsLock, Key.ShiftRight, Key.ShiftRight -> Size.WIDE
-        Key.Spacebar -> Size.EXTRA_WIDE
-        else -> Size.NORMAL
-    },
+    size = keySize(),
     isPressed = this in activeKeys,
 )
+
+internal fun Key.keySize() = when (this) {
+    Key.Escape, Key.Backspace, Key.Tab, Key.Enter, Key.CapsLock, Key.ShiftRight, Key.ShiftRight -> Size.WIDE
+    Key.Spacebar -> Size.EXTRA_WIDE
+    else -> Size.NORMAL
+}
 
 @Composable
 private fun KeyboardRow(
@@ -211,7 +209,7 @@ private data class KeyWrapper(
     val isPressed: Boolean,
 )
 
-private enum class Size {
+internal enum class Size {
     NORMAL,
     WIDE,
     EXTRA_WIDE,
