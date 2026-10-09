@@ -209,7 +209,7 @@ internal class EditorController(
 
     fun setInteractionMode(interactionMode: SceneEditorInteractionMode) = _interactionMode.update { interactionMode }
 
-    fun getSelectedActor() = selectedUpdatableActor.value.first
+    fun getSelectedActor() = _selectedActor.value
 
     fun isPlacingNewInstance() = previewOverlayActor != null && getSelectedActor() == null
 
@@ -218,7 +218,7 @@ internal class EditorController(
     fun onLeftClick(screenCoordinates: Offset) {
         val positionInWorld = screenCoordinates.toSceneOffset(viewportManager)
         findActorOnPosition(positionInWorld).let { actorAtPosition ->
-            selectedUpdatableActor.value.first.let { currentSelectedActor ->
+            _selectedActor.value.let { currentSelectedActor ->
                 if (actorAtPosition == null) {
                     if (currentSelectedActor == null) {
                         previewOverlayActor?.let {
@@ -258,8 +258,8 @@ internal class EditorController(
 
     fun selectActor(actor: Editable<*>) {
         pendingPropertyEditKey = null
-        _selectedActor.update {
-            if (selectedUpdatableActor.value.first == actor) {
+        _selectedActor.update { currentSelectedActor ->
+            if (currentSelectedActor == actor) {
                 null
             } else {
                 actor
@@ -267,13 +267,12 @@ internal class EditorController(
         }
     }
 
-    fun removeSelectedActor() = _selectedActor.update { selectedActor ->
-        selectedActor?.let {
-            recordSnapshot()
-            removeSceneActor(it)
-            markSceneAsModified()
-        }
-        null
+    fun removeSelectedActor() {
+        val selectedActor = _selectedActor.value ?: return
+        recordSnapshot()
+        removeSceneActor(selectedActor)
+        markSceneAsModified()
+        _selectedActor.value = null
     }
 
     fun onMouseMove(screenCoordinates: Offset) = mouseScreenCoordinates.update { screenCoordinates }
