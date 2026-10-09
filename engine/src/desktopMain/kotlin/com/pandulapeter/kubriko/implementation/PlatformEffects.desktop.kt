@@ -13,9 +13,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.awt.LocalAwtWindow
 import com.pandulapeter.kubriko.types.TargetFrameRate
 import java.awt.DisplayMode
 import java.awt.GraphicsEnvironment
+import java.beans.PropertyChangeListener
 
 @Composable
 internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) {
@@ -25,14 +28,26 @@ internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) {
 @Composable
 internal actual fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate) = Unit
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal actual fun PlatformMaximumDisplayRefreshRateEffect(onMaximumDisplayRefreshRateChanged: (Float?) -> Unit) {
     val currentOnMaximumDisplayRefreshRateChanged by rememberUpdatedState(onMaximumDisplayRefreshRateChanged)
-    DisposableEffect(Unit) {
-        // The primary screen rather than the one the window happens to sit on: AWT reports the rate per
-        // screen device, and a headless environment has none at all.
-        val displayMode = runCatching { GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice.displayMode }.getOrNull()
-        currentOnMaximumDisplayRefreshRateChanged(displayMode?.refreshRate?.takeIf { it != DisplayMode.REFRESH_RATE_UNKNOWN }?.toFloat())
-        onDispose { }
+    val window = LocalAwtWindow.current
+    DisposableEffect(window) {
+        // AWT reports the rate per screen device: the one the window is on, or the primary screen when there is no
+        // window (an offscreen scene). A headless environment has none at all.
+        fun update() {
+            val displayMode = runCatching {
+                (window?.graphicsConfiguration?.device ?: GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice).displayMode
+            }.getOrNull()
+            currentOnMaximumDisplayRefreshRateChanged(displayMode?.refreshRate?.takeIf { it != DisplayMode.REFRESH_RATE_UNKNOWN }?.toFloat())
+        }
+
+        val listener = PropertyChangeListener { update() }
+        window?.addPropertyChangeListener(GRAPHICS_CONFIGURATION_PROPERTY, listener)
+        update()
+        onDispose { window?.removePropertyChangeListener(GRAPHICS_CONFIGURATION_PROPERTY, listener) }
     }
 }
+
+private const val GRAPHICS_CONFIGURATION_PROPERTY = "graphicsConfiguration"
