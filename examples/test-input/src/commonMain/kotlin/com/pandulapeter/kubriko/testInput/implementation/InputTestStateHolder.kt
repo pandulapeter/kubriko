@@ -10,17 +10,8 @@
 package com.pandulapeter.kubriko.testInput.implementation
 
 import androidx.compose.runtime.Composable
-import com.pandulapeter.kubriko.Kubriko
-import com.pandulapeter.kubriko.gamepadInput.GamepadInputManager
-import com.pandulapeter.kubriko.helpers.extensions.get
-import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
-import com.pandulapeter.kubriko.manager.MetadataManager
-import com.pandulapeter.kubriko.pointerInput.PointerInputManager
 import com.pandulapeter.kubriko.shared.StateHolder
-import com.pandulapeter.kubriko.testInput.implementation.managers.InputTestManager
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kubriko.examples.test_input.generated.resources.Res
 import kubriko.examples.test_input.generated.resources.description
 
@@ -34,38 +25,3 @@ sealed interface InputTestStateHolder : StateHolder {
         private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank()
     }
 }
-
-internal class InputTestStateHolderImpl(
-    isLoggingEnabled: Boolean,
-) : InputTestStateHolder {
-
-    private val pointerInputManager = PointerInputManager.newInstance(
-        isLoggingEnabled = isLoggingEnabled,
-        instanceNameForLogging = LOG_TAG,
-    )
-    private val keyboardInputManager = KeyboardInputManager.newInstance(
-        isLoggingEnabled = isLoggingEnabled,
-        instanceNameForLogging = LOG_TAG,
-    )
-    private val gamepadInputManager = GamepadInputManager.newInstance(
-        isLoggingEnabled = isLoggingEnabled,
-        instanceNameForLogging = LOG_TAG,
-    )
-    val inputTestManager = InputTestManager()
-    private val _kubriko = MutableStateFlow(
-        Kubriko.newInstance(
-            pointerInputManager,
-            keyboardInputManager,
-            gamepadInputManager,
-            inputTestManager,
-            isLoggingEnabled = isLoggingEnabled,
-            instanceNameForLogging = LOG_TAG,
-        )
-    )
-    override val kubriko = _kubriko.asStateFlow()
-    val isRunningInBrowser = _kubriko.value.get<MetadataManager>().platform is MetadataManager.Platform.Web
-
-    override fun dispose() = kubriko.value.dispose()
-}
-
-private const val LOG_TAG = "Input"

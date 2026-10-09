@@ -1,0 +1,55 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubriko.testInput.implementation
+
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.gamepadInput.GamepadInputManager
+import com.pandulapeter.kubriko.helpers.extensions.get
+import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
+import com.pandulapeter.kubriko.manager.MetadataManager
+import com.pandulapeter.kubriko.pointerInput.PointerInputManager
+import com.pandulapeter.kubriko.testInput.implementation.managers.InputTestManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
+internal class InputTestStateHolderImpl(
+    isLoggingEnabled: Boolean,
+) : InputTestStateHolder {
+
+    private val pointerInputManager = PointerInputManager.newInstance(
+        isLoggingEnabled = isLoggingEnabled,
+        instanceNameForLogging = LOG_TAG,
+    )
+    private val keyboardInputManager = KeyboardInputManager.newInstance(
+        isLoggingEnabled = isLoggingEnabled,
+        instanceNameForLogging = LOG_TAG,
+    )
+    private val gamepadInputManager = GamepadInputManager.newInstance(
+        isLoggingEnabled = isLoggingEnabled,
+        instanceNameForLogging = LOG_TAG,
+    )
+    val inputTestManager = InputTestManager()
+    private val _kubriko = MutableStateFlow(
+        Kubriko.newInstance(
+            pointerInputManager,
+            keyboardInputManager,
+            gamepadInputManager,
+            inputTestManager,
+            isLoggingEnabled = isLoggingEnabled,
+            instanceNameForLogging = LOG_TAG,
+        )
+    )
+    override val kubriko = _kubriko.asStateFlow()
+    val isRunningInBrowser = _kubriko.value.get<MetadataManager>().platform is MetadataManager.Platform.Web
+
+    override fun dispose() = kubriko.value.dispose()
+}
+
+private const val LOG_TAG = "Input"

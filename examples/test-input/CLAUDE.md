@@ -32,8 +32,9 @@ InputTest.kt                           — public Composable + createInputTestSt
                                          renders the gamepad readout and a scrollable on-screen keyboard
                                          overlay above KubrikoViewport
 implementation/
-  InputTestStateHolder.kt              — sealed interface + Impl; creates PointerInputManager,
-                                         KeyboardInputManager, GamepadInputManager, and InputTestManager
+  InputTestStateHolder.kt              — sealed interface + resource gate
+  InputTestStateHolderImpl.kt          — creates PointerInputManager, KeyboardInputManager,
+                                         GamepadInputManager, and InputTestManager
   GamepadSnapshot.kt                   — immutable copy of one GamepadState, since the plugin reuses its
                                          state objects across ticks
   managers/
