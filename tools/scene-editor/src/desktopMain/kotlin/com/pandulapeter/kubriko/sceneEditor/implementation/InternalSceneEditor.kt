@@ -212,15 +212,18 @@ private fun FileDialog(
         create = {
             object : FileDialog(parent, dialogTitle, if (isForLoading) LOAD else SAVE) {
                 init {
-                    val scenesDirectoryFile = File(currentFolderPath)
-                    scenesDirectoryFile.parentFile?.mkdirs()
-                    if (!scenesDirectoryFile.exists()) {
-                        scenesDirectoryFile.mkdir()
+                    val scenesDirectoryFile = File(currentFolderPath).absoluteFile
+                    if (!isForLoading) {
+                        scenesDirectoryFile.mkdirs()
                     }
                     if (isForLoading) {
                         filenameFilter = FilenameFilter { _, name -> name.endsWith(".json") }
+                        // The Windows dialog ignores the FilenameFilter but filters by a wildcard file name.
+                        if (System.getProperty("os.name").startsWith("Windows")) {
+                            file = "*.json"
+                        }
                     }
-                    directory = currentFolderPath
+                    directory = scenesDirectoryFile.path
                     if (!isForLoading) {
                         file = currentFileName
                     }

@@ -42,7 +42,7 @@ Coordinates the editor (filter, preference pass-throughs, text-input focus count
 
 ## JSON scene format
 
-Scene files are plain JSON produced by `SerializationManager.serializeActors(List<Editable<*>>)` and restored with `deserializeActors(String)`. The format is defined entirely by `plugin-serialization`; the editor just reads/writes files from disk. Default folder: `./src/commonMain/composeResources/files/scenes`. Default filename: `scene_untitled.json`.
+Scene files are plain JSON produced by `SerializationManager.serializeActors(List<Editable<*>>)` and restored with `deserializeActors(String)`. The format is defined entirely by `plugin-serialization`; the editor just reads/writes files from disk. Default folder: `./src/commonMain/composeResources/files/scenes`. A relative folder resolves against the working directory, and the folder is created only when saving (the load dialog filters to `.json`, on Windows through a `*.json` file name). Default filename: `scene_untitled.json`.
 
 ## UI panels
 
