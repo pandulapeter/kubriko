@@ -9,27 +9,12 @@
  */
 package com.pandulapeter.kubrikoShowcase
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
-import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalPlatformWindowInsets
-import androidx.compose.ui.platform.PlatformInsets
-import androidx.compose.ui.platform.PlatformWindowInsets
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowPlacement
 import com.jetbrains.JBR
 import com.jetbrains.WindowDecorations
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import org.jetbrains.skiko.SystemTheme
-import org.jetbrains.skiko.currentSystemTheme
 import java.awt.AWTEvent
 import java.awt.Toolkit
 import java.awt.event.AWTEventListener
@@ -94,75 +79,8 @@ private fun ComposeWindow.extendContentIntoCustomTitleBar(height: Dp): ExtendedT
     return ExtendedTitleBar(height = height, customTitleBar = titleBar, mouseListener = mouseListener)
 }
 
-/**
- * Draws the window buttons (and on macOS the rim along the top edge) for the theme the Showcase is in, since the wrong
- * appearance leaves them all but invisible on its background. Follows the system theme the same way `KubrikoTheme`
- * does, as the JDK reads the application's appearance only once. Both properties exist only in the JetBrains Runtime.
- * Also removes the mouse listener once the window leaves the composition.
- */
-@Composable
-internal fun TitleBarAppearance(
-    window: ComposeWindow,
-    titleBar: ExtendedTitleBar,
-) {
-    val isDarkTheme = produceState(initialValue = currentSystemTheme == SystemTheme.DARK) {
-        while (isActive) {
-            delay(100)
-            value = currentSystemTheme == SystemTheme.DARK
-        }
-    }.value
-    SideEffect {
-        if (isMacOs) {
-            window.rootPane.putClientProperty("apple.awt.windowAppearance", if (isDarkTheme) "NSAppearanceNameDarkAqua" else "NSAppearanceNameAqua")
-        }
-        // Every property set redraws the title bar.
-        if (isWindows && titleBar.customTitleBar.properties[WINDOWS_DARK_CONTROLS] != isDarkTheme) {
-            titleBar.customTitleBar.putProperty(WINDOWS_DARK_CONTROLS, isDarkTheme)
-        }
-    }
-    DisposableEffect(titleBar) {
-        onDispose { Toolkit.getDefaultToolkit().removeAWTEventListener(titleBar.mouseListener) }
-    }
-}
-
-/**
- * Reports the strip [extendContentIntoTitleBar] lays the content under as a system bar inset at the top, the way a
- * phone's status bar is, so the Showcase keeps its content clear of the window buttons while its background reaches
- * under them. A full screen window has no title bar, so it gets none.
- *
- * Compose Desktop has no public way to set the insets; this is the composition local its own `WindowInsets` read.
- */
-@OptIn(InternalComposeUiApi::class)
-@Composable
-internal fun TitleBarInsets(
-    titleBar: ExtendedTitleBar?,
-    isFullscreen: Boolean,
-    content: @Composable () -> Unit,
-) {
-    val platformInsets = LocalPlatformWindowInsets.current
-    val density = LocalDensity.current
-    val titleBarHeight = titleBar?.takeUnless { isFullscreen }?.let { with(density) { it.height.roundToPx() } }
-    val insets = remember(platformInsets, titleBarHeight) {
-        if (titleBarHeight == null) platformInsets else object : PlatformWindowInsets by platformInsets {
-            override val captionBar = PlatformInsets(top = titleBarHeight)
-            override val systemBars = PlatformInsets(top = titleBarHeight)
-
-            // A dialog or a popup asks for the insets without the ones it has already kept clear of.
-            override fun excluding(safeInsets: Boolean, ime: Boolean) = if (safeInsets) platformInsets.excluding(safeInsets, ime) else this
-        }
-    }
-    CompositionLocalProvider(LocalPlatformWindowInsets provides insets, content = content)
-}
-
-private val isMacOs = System.getProperty("os.name").orEmpty().lowercase().contains("mac")
-
-internal val isWindows = System.getProperty("os.name").orEmpty().lowercase().contains("windows")
-
 /** The height of a macOS title bar without a toolbar, in points, which is what a dp is at the window's density. */
 private val MAC_TITLE_BAR_HEIGHT = 28.dp
 
 /** The height of a Windows 11 title bar and its caption buttons, in the scaled pixels a dp is at the window's density. */
 private val WINDOWS_TITLE_BAR_HEIGHT = 32.dp
-
-/** Whether the caption buttons are drawn for a dark background (light icons) or a light one. */
-private const val WINDOWS_DARK_CONTROLS = "controls.dark"
