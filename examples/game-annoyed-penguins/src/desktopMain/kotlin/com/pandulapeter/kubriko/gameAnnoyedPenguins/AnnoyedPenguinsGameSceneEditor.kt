@@ -15,6 +15,9 @@ import androidx.compose.runtime.remember
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolderImpl
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.isSceneEditorVisible
 import com.pandulapeter.kubriko.sceneEditor.SceneEditor
+import kubriko.examples.game_annoyed_penguins.generated.resources.Res
+import kubriko.examples.game_annoyed_penguins.generated.resources.scene_editor_title
+import org.jetbrains.compose.resources.stringResource
 
 fun main() = AnnoyedPenguinsGameStateHolderImpl(
     webRootPathName = "",
@@ -45,7 +48,7 @@ fun AnnoyedPenguinsGameSceneEditor(
             defaultSceneFolderPath = defaultSceneFolderPath,
             serializationManager = stateHolder.serializationManager,
             customManagers = stateHolder.customManagersForSceneEditor,
-            title = "Scene Editor - Annoyed Penguins",
+            title = stringResource(Res.string.scene_editor_title),
             onCloseRequest = { isSceneEditorVisible.value = false },
         )
     }
