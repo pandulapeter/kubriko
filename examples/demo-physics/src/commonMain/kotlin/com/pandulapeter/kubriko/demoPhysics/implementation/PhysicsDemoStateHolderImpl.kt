@@ -95,7 +95,7 @@ internal class PhysicsDemoStateHolderImpl(
             instanceNameForLogging = LOG_TAG,
         )
     }
-    val physicsDemoManager by lazy {
+    private val physicsDemoManager by lazy {
         PhysicsDemoManager(
             sceneJson = sceneJson,
             isSceneEditorEnabled = isSceneEditorEnabled,
