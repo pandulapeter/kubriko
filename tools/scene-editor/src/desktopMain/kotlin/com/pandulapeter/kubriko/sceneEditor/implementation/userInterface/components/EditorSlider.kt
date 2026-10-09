@@ -37,8 +37,6 @@ import kotlin.math.sign
 @Composable
 internal fun EditorSlider(
     modifier: Modifier = Modifier,
-    name: String = "",
-    suffix: String = "",
     value: Float,
     onValueChanged: (Float) -> Unit,
     valueRange: ClosedFloatingPointRange<Float>? = null,
@@ -48,11 +46,6 @@ internal fun EditorSlider(
 ) {
     val add = remember { mutableStateOf(0f) }
     val interactionSource = remember { MutableInteractionSource() }
-    if (name.isNotBlank()) {
-        EditorTextLabel(
-            text = "$name: ${"%.2f".format(value)}$suffix",
-        )
-    }
     val colors = SliderDefaults.colors().copy(
         inactiveTrackColor = MaterialTheme.colorScheme.primary,
     )
