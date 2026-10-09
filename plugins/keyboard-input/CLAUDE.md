@@ -15,7 +15,7 @@ Provides keyboard event dispatch to Actors and Managers via `KeyboardInputManage
 
 - `src/commonMain/.../KeyboardInputManagerImpl.kt` — core state machine; owns the two-buffer key cache
 - `src/commonMain/.../KeyboardInputAware.kt` — trait interface for Actors/Managers
-- `src/*/kotlin/.../KeyboardInputSource.kt` — platform-specific key-event source (one per target)
+- `src/commonMain/.../implementation/KeyboardEventHandler.kt` — the platform key-event source interface and its `expect` factory; `src/*Main/.../implementation/KeyboardEventHandler.*.kt` — one actual per target
 - `src/commonMain/.../extensions/KeyExtensions.kt` — convenience helpers on `Key`
 
 ## Internal Architecture
@@ -31,8 +31,8 @@ A `hasSentEmptyMap` guard prevents repeated empty-set broadcasts after all keys 
 and released entirely between two ticks (common at low/throttled frame rates, where a tick can span
 100 ms) still appears in `handleActiveKeys` for exactly one tick instead of being missed. The latch is
 cleared at the end of every `onUpdate`; when it surfaced a now-released key the dirty flag is re-armed
-so the following tick rebuilds the snapshot without it. Discrete `onKeyPressed`/`onKeyReleased` already
-fire off-tick and were never affected; this only fixes the polling path. `isKeyPressed` stays strictly
+so the following tick rebuilds the snapshot without it. Discrete `onKeyPressed`/`onKeyReleased` fire
+off-tick and need no latch; it only serves the polling path. `isKeyPressed` stays strictly
 live (no latch) per its contract — use `handleActiveKeys` (or `onKeyPressed`) for tick-accurate taps.
 
 On focus loss, all active keys are flushed immediately, on the main thread like the platform key events, to prevent stuck-key state.
@@ -56,8 +56,8 @@ On focus loss, all active keys are flushed immediately, on the main thread like 
 ## `KeyExtensions` Helpers
 
 ```kotlin
-keys.directionState()    // SceneOffset from WASD/arrow keys
-keys.zoomState()         // Float from +/- keys
+keys.directionState    // KeyboardDirectionState from WASD/arrow keys
+keys.zoomState         // KeyboardZoomState from +/- keys
 keys.hasLeft/Right/Up/Down  // Boolean shortcuts
 Key.displayName          // Human-readable label
 ```
