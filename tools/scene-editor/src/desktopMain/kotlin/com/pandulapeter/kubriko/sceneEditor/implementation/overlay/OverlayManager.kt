@@ -29,10 +29,6 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.transformViewport
 import com.pandulapeter.kubriko.sceneEditor.implementation.helpers.snapped
-import com.pandulapeter.kubriko.types.SceneOffset
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlin.math.max
 import kotlin.math.min
 
@@ -47,16 +43,6 @@ internal class OverlayManager(
 
     override fun onInitialize(kubriko: Kubriko) {
         kubriko.get<ActorManager>().add(this)
-        combine(
-            editorController.selectedUpdatableActor,
-            editorController.selectedTypeId,
-        ) { (selectedInstance, _), selectedTypeId ->
-            selectedInstance to selectedTypeId
-        }.onEach { (_, selectedTypeId) ->
-            editorController.previewOverlayActor = selectedTypeId?.let {
-                editorController.serializationManager.getMetadata(selectedTypeId)?.instantiate?.invoke(SceneOffset.Zero)?.restore()
-            }
-        }.launchIn(scope)
     }
 
     override fun update(deltaTimeInMilliseconds: Int) {

@@ -151,7 +151,8 @@ internal class EditorController(
     val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
     private val _interactionMode = MutableStateFlow(SceneEditorInteractionMode.Translate)
     val interactionMode = _interactionMode.asStateFlow()
-    var previewOverlayActor: Editable<*>? = null
+    private var _previewOverlayActor: Editable<*>? = null
+    val previewOverlayActor get() = _previewOverlayActor
     private val undoRedoHistory = UndoRedoHistory()
     val canUndo = undoRedoHistory.canUndo
     val canRedo = undoRedoHistory.canRedo
@@ -226,7 +227,7 @@ internal class EditorController(
                             addSceneActor(it)
                             markSceneAsModified()
                             selectActor(it)
-                            previewOverlayActor = null
+                            _previewOverlayActor = selectedTypeId.value?.let(::instantiatePreview)
                         }
                     } else {
                         deselectSelectedActor()
@@ -319,7 +320,12 @@ internal class EditorController(
 
     fun onFilterTextChanged(filterText: String) = _filterText.update { filterText }
 
-    fun selectActorType(typeId: String?) = _selectedTypeId.update { currentValue -> if (currentValue == typeId) null else typeId }
+    fun selectActorType(typeId: String?) {
+        _selectedTypeId.update { currentValue -> if (currentValue == typeId) null else typeId }
+        _previewOverlayActor = selectedTypeId.value?.let(::instantiatePreview)
+    }
+
+    private fun instantiatePreview(typeId: String) = serializationManager.getMetadata(typeId)?.instantiate?.invoke(SceneOffset.Zero)?.restore()
 
     fun isTypeUnique(typeId: String) = serializationManager.getMetadata(typeId)?.type?.isSubclassOf(Unique::class) == true
 
