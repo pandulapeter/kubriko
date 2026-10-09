@@ -119,6 +119,29 @@
                 opacity: 0.4;
             }
         }
+
+        .loadingMessage {
+            max-width: 320px;
+            margin: 0 16px;
+            color: white;
+            font-family: system-ui, sans-serif;
+            font-size: 16px;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        .loadingMessage button {
+            display: block;
+            margin: 16px auto 0;
+            padding: 8px 24px;
+            border: 1px solid white;
+            border-radius: 4px;
+            background-color: transparent;
+            color: white;
+            font-family: system-ui, sans-serif;
+            font-size: 16px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -128,6 +151,7 @@
     <div class="loadingProgress" id="loadingProgress">
         <div></div>
     </div>
+    <p class="loadingMessage" id="loadingMessage" hidden></p>
 </div>
 <script type="text/javascript">
     // Reports download progress for the resources the app fetches before its first frame, then hands the page
@@ -139,6 +163,7 @@
         const loadingScreen = document.getElementById('loadingScreen');
         const progressBar = document.getElementById('loadingProgress');
         const progressFill = progressBar.firstElementChild;
+        const loadingMessage = document.getElementById('loadingMessage');
         const originalFetch = window.fetch;
         const expectedSizes = new Map();
         const receivedSizes = new Map();
@@ -190,25 +215,87 @@
                 });
             });
         };
+        let isShowingError = false;
+        const showError = (message, canReload) => {
+            if (isShowingError) {
+                return;
+            }
+            isShowingError = true;
+            stopTracking();
+            progressBar.classList.remove('tracking');
+            loadingMessage.textContent = message;
+            if (canReload) {
+                const reloadButton = document.createElement('button');
+                reloadButton.type = 'button';
+                reloadButton.textContent = 'Reload';
+                reloadButton.addEventListener('click', () => location.reload());
+                loadingMessage.appendChild(reloadButton);
+            }
+            loadingMessage.hidden = false;
+        };
+        const showStartFailed = () => showError("Kubriko Showcase couldn't start. Check your connection and reload the page.", true);
+        // Errors without the thrown object are benign ResizeObserver notices or sanitized cross-origin
+        // "Script error." reports; errors from other origins or extension stacks are not the app's.
+        const onError = (event) => {
+            if (event.error == null) {
+                return;
+            }
+            if (event.filename && new URL(event.filename, document.baseURI).origin !== location.origin) {
+                return;
+            }
+            showStartFailed();
+        };
+        const onUnhandledRejection = (event) => {
+            const stack = event.reason && event.reason.stack;
+            if (typeof stack === 'string' && stack.includes('-extension://')) {
+                return;
+            }
+            showStartFailed();
+        };
         window.hideLoadingScreen = () => {
             stopTracking();
+            window.removeEventListener('error', onError);
+            window.removeEventListener('unhandledrejection', onUnhandledRejection);
             loadingScreen.classList.add('hidden');
             loadingScreen.addEventListener('transitionend', () => loadingScreen.remove(), { once: true });
         };
         const sizes = window.kubrikoResourceSizes;
-        if (!sizes || typeof TransformStream === 'undefined') {
+        if (sizes && typeof TransformStream !== 'undefined') {
+            for (const path in sizes) {
+                expectedSizes.set(resolve(path), sizes[path]);
+                expectedTotal += sizes[path];
+            }
+            if (expectedTotal > 0) {
+                window.fetch = trackingFetch;
+                progressBar.classList.add('tracking');
+            }
+        }
+        // A struct type (Wasm GC) and a tag with try / catch_all (legacy exception handling): the two proposals the
+        // Kotlin/Wasm binaries are compiled against.
+        const isWasmSupported = (() => {
+            try {
+                return typeof WebAssembly === 'object' && WebAssembly.validate(new Uint8Array([
+                    0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00,
+                    0x01, 0x08, 0x02, 0x5f, 0x01, 0x7f, 0x00, 0x60, 0x00, 0x00,
+                    0x03, 0x02, 0x01, 0x01,
+                    0x0d, 0x03, 0x01, 0x00, 0x01,
+                    0x0a, 0x0e, 0x01, 0x0c, 0x00, 0x06, 0x40, 0x41, 0x00, 0xfb, 0x00, 0x00, 0x1a, 0x19, 0x0b, 0x0b,
+                ]));
+            } catch (e) {
+                return false;
+            }
+        })();
+        if (!isWasmSupported) {
+            showError("Your browser can't run Kubriko Showcase. Update it, or open this page in a recent version of Chrome, Edge, Firefox or Safari (18.2 or newer).", false);
             return;
         }
-        for (const path in sizes) {
-            expectedSizes.set(resolve(path), sizes[path]);
-            expectedTotal += sizes[path];
-        }
-        if (expectedTotal > 0) {
-            window.fetch = trackingFetch;
-            progressBar.classList.add('tracking');
-        }
+        window.addEventListener('error', onError);
+        window.addEventListener('unhandledrejection', onUnhandledRejection);
+        const appScript = document.createElement('script');
+        appScript.src = 'web.js';
+        appScript.onerror = showStartFailed;
+        document.body.appendChild(appScript);
     })();
 </script>
-<script src="web.js"></script>
 </body>
 </html>
