@@ -17,7 +17,7 @@ The sealed-interface core of Kubriko: wires Managers, Actors, the tick loop, and
 - `InternalViewport.kt` — actual Composable; runs the `withFrameNanos` loop, feeds size/focus into Managers
 - `ActorManagerImpl.kt` — batched add/remove via `Channel<Operation>`; owns draw-cache rebuilding
 - `SyncStateFlow.kt` — computes `.value` synchronously, preventing 1-frame lag on combined viewport bounds
-- `PlatformUtils.kt` (+ actuals) — `PlatformFocusEffect`, `PlatformFrameRateHint`, `getPlatform()`, `getDefaultFocusDebounce()`. Android debounce = 350 ms; Desktop = 0 ms
+- `PlatformUtils.kt` (+ actuals) — `PlatformFocusEffect` (Android, desktop and iOS delegate to the shared `LifecycleFocusEffect`), `PlatformFrameRateHint`, `PlatformMaximumDisplayRefreshRateEffect`, `getPlatform()`, `getDefaultFocusDebounce()`. Android debounce = 350 ms; desktop, iOS and web = 0 ms
 - `AxisAlignedBoundingBox.kt` — four `Float` bounds, mutated in place by the owning body or collision mask, so per-frame updates allocate nothing; full `Float` range and precision
 
 ## Initialization Order

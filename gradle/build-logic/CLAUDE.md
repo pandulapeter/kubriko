@@ -22,7 +22,7 @@ Convention plugins for all Kubriko modules. The `includeBuild("gradle")` in root
 ## KMP targets configured by both library plugins
 
 - Android (`com.android.kotlin.multiplatform.library`; minSdk from version catalog, compileSdk from version catalog)
-- Desktop JVM (`jvm("desktop")`; JVM runs with `-XX:+UseZGC`)
+- Desktop JVM (`jvm("desktop")`)
 - iOS: `iosArm64` + `iosSimulatorArm64` (klibs only; the final framework is declared by the app module, e.g. `app:ios`)
 - Web: `wasmJs { browser() }` (experimental DSL, `@OptIn(ExperimentalWasmDsl::class)`; the executable is declared by the app module, e.g. `app:web`)
 

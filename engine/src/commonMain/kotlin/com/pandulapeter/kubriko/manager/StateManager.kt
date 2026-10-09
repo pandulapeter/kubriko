@@ -10,7 +10,7 @@
 package com.pandulapeter.kubriko.manager
 
 import com.pandulapeter.kubriko.actor.traits.Dynamic
-import com.pandulapeter.kubriko.helpers.ViewportFrameTickSource
+import com.pandulapeter.kubriko.helpers.TickSource
 import com.pandulapeter.kubriko.implementation.getDefaultFocusDebounce
 import kotlinx.coroutines.flow.StateFlow
 
@@ -43,7 +43,7 @@ sealed class StateManager(
      * will always be false as well.
      *
      * See the `shouldUpdateActorsWhileNotRunning` property of [ActorManager].
-     * See the `shouldPauseOnFocusLoss` property of [ViewportFrameTickSource].
+     * See the `shouldPauseOnFocusLoss` parameter of [TickSource.viewportFrames].
      */
     abstract val isRunning: StateFlow<Boolean>
 

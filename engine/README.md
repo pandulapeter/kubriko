@@ -23,8 +23,8 @@ Furthermore, it also contains the most important Manager implementations:
 - [ViewportManager](https://github.com/pandulapeter/kubriko/blob/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/manager/ViewportManager.kt).
 
 These four Managers are automatically registered in the `Kubriko` instance, but can be overridden by providing alternative instances from them as arguments of
-the `Kubriko.newInstance()` function. This works because the engine ensures that the internal set of Managers is unique by type (and the instances added last
-are kept).
+the `Kubriko.newInstance()` function. This works because the engine ensures that the internal set of Managers is unique by type (and the instance passed first
+is kept).
 
 Some basic [Actor Traits](https://github.com/pandulapeter/kubriko/tree/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/actor/traits) are also defined
 here, together with [custom types](https://github.com/pandulapeter/kubriko/tree/main/engine/src/commonMain/kotlin/com/pandulapeter/kubriko/types) used in the
