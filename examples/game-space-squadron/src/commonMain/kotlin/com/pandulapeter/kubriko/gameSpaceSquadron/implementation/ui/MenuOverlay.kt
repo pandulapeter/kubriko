@@ -60,10 +60,10 @@ import org.jetbrains.compose.resources.painterResource
 internal fun MenuOverlay(
     modifier: Modifier,
     isVisible: Boolean,
-    shouldShowInfoText: Boolean,
-    shouldCloseConfirmationDialog: Boolean,
+    isInfoDialogVisible: Boolean,
+    isCloseConfirmationDialogVisible: Boolean,
     onPlayButtonPressed: () -> Unit,
-    onLeaveButtonPressed: () -> Unit,
+    onCloseConfirmationToggled: () -> Unit,
     onCloseConfirmed: () -> Unit,
     onPauseButtonPressed: () -> Unit,
     onInfoButtonPressed: () -> Unit,
@@ -80,7 +80,7 @@ internal fun MenuOverlay(
     val shouldShowLogoVertically = maxHeight > 192.dp
     AnimatedVisibility(
         modifier = Modifier.padding(16.dp),
-        visible = !isVisible && !shouldShowInfoText && !shouldCloseConfirmationDialog,
+        visible = !isVisible && !isInfoDialogVisible && !isCloseConfirmationDialogVisible,
         enter = fadeIn() + scaleIn(),
         exit = scaleOut() + fadeOut(),
     ) {
@@ -93,7 +93,7 @@ internal fun MenuOverlay(
     }
     AnimatedVisibility(
         modifier = Modifier.padding(16.dp),
-        visible = shouldShowInfoText,
+        visible = isInfoDialogVisible,
         enter = fadeIn() + scaleIn(),
         exit = scaleOut() + fadeOut(),
     ) {
@@ -106,7 +106,7 @@ internal fun MenuOverlay(
     }
     AnimatedVisibility(
         modifier = Modifier.padding(16.dp),
-        visible = shouldShowInfoText,
+        visible = isInfoDialogVisible,
         enter = fadeIn() + scaleIn(),
         exit = scaleOut() + fadeOut(),
     ) {
@@ -114,13 +114,13 @@ internal fun MenuOverlay(
     }
     AnimatedVisibility(
         modifier = Modifier.padding(16.dp),
-        visible = shouldCloseConfirmationDialog,
+        visible = isCloseConfirmationDialogVisible,
         enter = fadeIn() + scaleIn(),
         exit = scaleOut() + fadeOut(),
     ) {
         CloseConfirmationDialog(
             onCloseConfirmed = onCloseConfirmed,
-            onCloseCanceled = onLeaveButtonPressed,
+            onCloseCancelled = onCloseConfirmationToggled,
             onButtonHover = onButtonHover,
         )
     }
@@ -134,14 +134,14 @@ internal fun MenuOverlay(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            visible = isVisible && !shouldShowInfoText && !shouldCloseConfirmationDialog,
+            visible = isVisible && !isInfoDialogVisible && !isCloseConfirmationDialogVisible,
             enter = fadeIn() + slideIn { IntOffset(0, -it.height) },
             exit = slideOut { IntOffset(0, -it.height) } + fadeOut(),
         ) {
             Title(
                 shouldShowLogoVertically = shouldShowLogoVertically,
                 onPlayButtonPressed = onPlayButtonPressed,
-                onLeaveButtonPressed = onLeaveButtonPressed,
+                onCloseConfirmationToggled = onCloseConfirmationToggled,
                 onButtonHover = onButtonHover,
             )
         }
@@ -149,7 +149,7 @@ internal fun MenuOverlay(
             modifier = Modifier
                 .align(Alignment.End)
                 .padding(vertical = 16.dp),
-            visible = isVisible && !shouldShowInfoText && !shouldCloseConfirmationDialog,
+            visible = isVisible && !isInfoDialogVisible && !isCloseConfirmationDialogVisible,
             enter = fadeIn() + slideIn { IntOffset(0, it.height * 8) },
             exit = slideOut { IntOffset(0, it.height * 8) } + fadeOut(),
         ) {
@@ -171,7 +171,7 @@ internal fun MenuOverlay(
 private fun Title(
     shouldShowLogoVertically: Boolean,
     onPlayButtonPressed: () -> Unit,
-    onLeaveButtonPressed: () -> Unit,
+    onCloseConfirmationToggled: () -> Unit,
     onButtonHover: () -> Unit,
 ) = Box(
     modifier = Modifier.fillMaxWidth(),
@@ -206,7 +206,7 @@ private fun Title(
                 onPointerEnter = onButtonHover,
             )
             SpaceSquadronButton(
-                onButtonPressed = onLeaveButtonPressed,
+                onButtonPressed = onCloseConfirmationToggled,
                 icon = Res.drawable.ic_exit,
                 title = Res.string.close_confirmation_positive,
                 shouldShowTitle = true,

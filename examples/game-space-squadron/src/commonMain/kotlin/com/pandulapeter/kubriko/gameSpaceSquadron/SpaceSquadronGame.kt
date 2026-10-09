@@ -97,10 +97,10 @@ fun SpaceSquadronGame(
             MenuOverlay(
                 modifier = Modifier.windowInsetsPadding(windowInsets),
                 isVisible = !stateHolder.stateManager.isRunning.collectAsState().value || stateHolder.gameplayManager.isGameOver.collectAsState().value,
-                shouldShowInfoText = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
-                shouldCloseConfirmationDialog = stateHolder.uiManager.isCloseConfirmationDialogVisible.collectAsState().value,
+                isInfoDialogVisible = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,
+                isCloseConfirmationDialogVisible = stateHolder.uiManager.isCloseConfirmationDialogVisible.collectAsState().value,
                 onPlayButtonPressed = stateHolder.gameplayManager::playGame,
-                onLeaveButtonPressed = stateHolder.uiManager::toggleCloseConfirmationDialogVisibility,
+                onCloseConfirmationToggled = stateHolder.uiManager::toggleCloseConfirmationDialogVisibility,
                 onCloseConfirmed = {
                     stateHolder.audioManager.playButtonToggleSoundEffect()
                     stateHolder.backNavigationIntent.tryEmit(Unit)

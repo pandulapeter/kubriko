@@ -32,7 +32,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun CloseConfirmationDialog(
     onCloseConfirmed: () -> Unit,
-    onCloseCanceled: () -> Unit,
+    onCloseCancelled: () -> Unit,
     onButtonHover: () -> Unit,
 ) = Box(
     modifier = Modifier
@@ -62,7 +62,7 @@ internal fun CloseConfirmationDialog(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             SpaceSquadronButton(
-                onButtonPressed = onCloseCanceled,
+                onButtonPressed = onCloseCancelled,
                 title = Res.string.close_confirmation_negative,
                 onPointerEnter = onButtonHover,
             )
