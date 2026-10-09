@@ -35,12 +35,11 @@ import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
+import com.pandulapeter.kubriko.shared.dismissLoadingWhen
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -65,14 +64,11 @@ internal class PhysicsDemoManager(
 
     override fun onInitialize(kubriko: Kubriko) {
         actorManager.add(this)
-        actorManager.allActors
-            .filter { it.size > 1 }
-            .distinctUntilChanged()
-            .onEach {
-                delay(300)
-                _shouldShowLoadingIndicator.update { false }
-            }
-            .launchIn(scope)
+        actorManager.allActors.dismissLoadingWhen(
+            scope = scope,
+            isLoaded = { it.size > 1 },
+            onLoaded = { _shouldShowLoadingIndicator.update { false } },
+        )
         sceneJson?.filter { it.isNotBlank() }?.onEach(::processJson)?.launchIn(scope)
         loadMap()
     }

@@ -22,7 +22,7 @@ import com.pandulapeter.kubriko.manager.ViewportManager
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
-import kotlinx.coroutines.delay
+import com.pandulapeter.kubriko.shared.dismissLoadingWhen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
@@ -46,13 +46,11 @@ internal class PerformanceDemoManager(
     private val shouldShowLoadingIndicator = _shouldShowLoadingIndicator.asStateFlow()
 
     override fun onInitialize(kubriko: Kubriko) {
-        actorManager.allActors
-            .filter { it.isNotEmpty() }
-            .onEach {
-                delay(300)
-                _shouldShowLoadingIndicator.update { false }
-            }
-            .launchIn(scope)
+        actorManager.allActors.dismissLoadingWhen(
+            scope = scope,
+            isLoaded = { it.isNotEmpty() },
+            onLoaded = { _shouldShowLoadingIndicator.update { false } },
+        )
         sceneJson?.filter { it.isNotBlank() }?.onEach(::processJson)?.launchIn(scope)
         loadMap()
     }
