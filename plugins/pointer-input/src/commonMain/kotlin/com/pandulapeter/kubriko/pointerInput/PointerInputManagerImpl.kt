@@ -58,9 +58,11 @@ internal class PointerInputManagerImpl(
     private val rootOffset = MutableStateFlow(Offset.Zero)
     private val viewportOffset = MutableStateFlow(Offset.Zero)
     private val _pressedPointerPositions = MutableStateFlow(persistentMapOf<PointerId, Offset>())
-    // Move-driven position updates land here (plain, in-place mutated map) instead of going straight
-    // into the persistent _pressedPointerPositions map, which would otherwise pay a structural-sharing
-    // put on every raw pointer move event; onUpdate() flushes this once per tick instead.
+    /**
+     * Move-driven position updates land here (plain, in-place mutated map) instead of going straight
+     * into the persistent _pressedPointerPositions map, which would otherwise pay a structural-sharing
+     * put on every raw pointer move event; onUpdate() flushes this once per tick instead.
+     */
     private val pendingPositionUpdates = mutableMapOf<PointerId, Offset>()
     override val pressedPointerPositions by autoInitializingLazy {
         val combinedFlow = combine(
@@ -88,16 +90,20 @@ internal class PointerInputManagerImpl(
         }
     }
     private var mouseId: PointerId? = null
-    // Pointers pressed since the previous tick. Discrete onPointerPressed/onPointerReleased callbacks
-    // fire off-tick and are never lost, but a pointer tapped and released entirely between two ticks
-    // (common at low frame rates) would otherwise never appear in the per-tick handleActivePointers map.
-    // This latch surfaces such a pointer for exactly one tick. Cleared at the end of every onUpdate.
+    /**
+     * Pointers pressed since the previous tick. Discrete onPointerPressed/onPointerReleased callbacks
+     * fire off-tick and are never lost, but a pointer tapped and released entirely between two ticks
+     * (common at low frame rates) would otherwise never appear in the per-tick handleActivePointers map.
+     * This latch surfaces such a pointer for exactly one tick. Cleared at the end of every onUpdate.
+     */
     private val pointersPressedSinceLastTick = mutableMapOf<PointerId, Offset>()
-    // Compose signals a cancellation by synthesizing an event in which every held pointer is reported as
-    // released with the up-transition already consumed - indistinguishable from a real finger lift, and
-    // typically followed at once by the still-down pointers arriving again as brand new presses. Releasing
-    // on such an event must therefore be deferred (this map holds the remaining ticks per pointer): a
-    // pointer that comes back resumes as a regular move, and only one that never does is truly released.
+    /**
+     * Compose signals a cancellation by synthesizing an event in which every held pointer is reported as
+     * released with the up-transition already consumed - indistinguishable from a real finger lift, and
+     * typically followed at once by the still-down pointers arriving again as brand new presses. Releasing
+     * on such an event must therefore be deferred (this map holds the remaining ticks per pointer): a
+     * pointer that comes back resumes as a regular move, and only one that never does is truly released.
+     */
     private val pointersPendingCancellation = mutableMapOf<PointerId, Int>()
 
     override fun onInitialize(kubriko: Kubriko) {
@@ -156,10 +162,12 @@ internal class PointerInputManagerImpl(
         pointersPressedSinceLastTick.clear()
     }
 
-    // Compose synthesizes a cancellation as a release that repeats the pointer's previous position and
-    // timestamp verbatim, with the up-transition already consumed. A real release is either unconsumed,
-    // or consumed by a gesture detector - and those only ever consume actual position changes, so the
-    // position check is what keeps an ordinary finger lift during a pinch from being read as a cancellation.
+    /**
+     * Compose synthesizes a cancellation as a release that repeats the pointer's previous position and
+     * timestamp verbatim, with the up-transition already consumed. A real release is either unconsumed,
+     * or consumed by a gesture detector - and those only ever consume actual position changes, so the
+     * position check is what keeps an ordinary finger lift during a pinch from being read as a cancellation.
+     */
     private val PointerInputChange.isCancellation
         get() = isConsumed && position == previousPosition && uptimeMillis == previousUptimeMillis
 
@@ -233,10 +241,12 @@ internal class PointerInputManagerImpl(
         }
     }
 
-    // The last translation, kept as one object so a concurrent reader can never see a source map paired
-    // with another call's offsets or result. Every .value read of the public flow resolves the positions,
-    // and the collector transforms them again, so many actors polling one unchanged input would otherwise
-    // each rebuild the same map.
+    /**
+     * The last translation, kept as one object so a concurrent reader can never see a source map paired
+     * with another call's offsets or result. Every .value read of the public flow resolves the positions,
+     * and the collector transforms them again, so many actors polling one unchanged input would otherwise
+     * each rebuild the same map.
+     */
     private class ResolvedPointerPositions(
         val source: PersistentMap<PointerId, Offset>,
         val rootOffset: Offset,
@@ -310,8 +320,10 @@ internal class PointerInputManagerImpl(
         densityMultiplier = 1 / LocalDensity.current.density
     }
 
-    // Built once, so that recomposing whatever carries it hands Compose the very same elements and leaves their handlers
-    // running, where fresh lambdas would restart them and drop a gesture in progress.
+    /**
+     * Built once, so that recomposing whatever carries it hands Compose the very same elements and leaves their handlers
+     * running, where fresh lambdas would restart them and drop a gesture in progress.
+     */
     private val pointerInputHandling: Modifier by lazy { Modifier.pointerInput(Unit) {
         awaitPointerEventScope {
             while (true) {
