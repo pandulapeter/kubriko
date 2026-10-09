@@ -24,6 +24,12 @@ internal expect fun setPointerPosition(
     densityMultiplier: Float,
 ): Boolean
 
+/**
+ * The top-left corner of the window's frame (decorations included) in screen pixels, or [Offset.Unspecified] where
+ * the cursor cannot be moved or the position is not known yet.
+ */
+internal expect fun windowOuterPositionInPixels(densityMultiplier: Float): Offset
+
 internal expect fun Modifier.gestureDetector(
     onDragDetected: (Offset) -> Unit,
     onZoomDetected: (Offset, Float) -> Unit,

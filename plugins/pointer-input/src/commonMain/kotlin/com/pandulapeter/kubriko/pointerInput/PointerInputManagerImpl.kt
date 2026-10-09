@@ -14,12 +14,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.isSpecified
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.positionOnScreen
 import androidx.compose.ui.platform.LocalDensity
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.manager.ActorManager
@@ -29,6 +31,7 @@ import com.pandulapeter.kubriko.pointerInput.implementation.SyncStateFlow
 import com.pandulapeter.kubriko.pointerInput.implementation.gestureDetector
 import com.pandulapeter.kubriko.pointerInput.implementation.isMultiTouchEnabled
 import com.pandulapeter.kubriko.pointerInput.implementation.setPointerPosition
+import com.pandulapeter.kubriko.pointerInput.implementation.windowOuterPositionInPixels
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.Dispatchers
@@ -289,9 +292,16 @@ internal class PointerInputManagerImpl(
 
     private var densityMultiplier = 1f
 
+    /**
+     * Where the window's content sits inside its frame, in pixels: the title bar and borders of a decorated window,
+     * which the outer window position the cursor is moved relative to includes but [viewportOffset] does not.
+     */
+    @Volatile
+    private var windowContentOffset = Offset.Zero
+
     override fun tryToMoveHoveringPointer(offset: Offset) = setPointerPosition(
         platform = metadataManager.platform,
-        offset = offset + viewportOffset.value,
+        offset = offset + viewportOffset.value + windowContentOffset,
         densityMultiplier = densityMultiplier,
     )
 
@@ -309,7 +319,13 @@ internal class PointerInputManagerImpl(
         // press reported as a press and then again as a move, a wheel turn zooming twice.
         if (layerIndex != null) return modifier
         return modifier.onGloballyPositioned { coordinates ->
-            viewportOffset.value = coordinates.positionInRoot()
+            val positionInRoot = coordinates.positionInRoot()
+            viewportOffset.value = positionInRoot
+            val positionOnScreen = coordinates.positionOnScreen()
+            val windowOuterPosition = windowOuterPositionInPixels(densityMultiplier)
+            if (positionOnScreen.isSpecified && windowOuterPosition.isSpecified) {
+                windowContentOffset = positionOnScreen - positionInRoot - windowOuterPosition
+            }
         }.run {
             if (isActiveAboveViewport) this else then(pointerInputHandling)
         }

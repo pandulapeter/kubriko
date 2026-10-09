@@ -49,6 +49,16 @@ internal actual fun setPointerPosition(
     return true
 }
 
+internal actual fun windowOuterPositionInPixels(densityMultiplier: Float): Offset {
+    val windowPosition = try {
+        windowState.position
+    } catch (_: UninitializedPropertyAccessException) {
+        return Offset.Unspecified
+    }
+    if (!windowPosition.isSpecified) return Offset.Unspecified
+    return Offset(windowPosition.x.value / densityMultiplier, windowPosition.y.value / densityMultiplier)
+}
+
 @OptIn(ExperimentalComposeUiApi::class)
 internal actual fun Modifier.gestureDetector(
     onDragDetected: (Offset) -> Unit,

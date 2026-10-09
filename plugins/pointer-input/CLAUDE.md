@@ -56,7 +56,10 @@ Only functional on **Desktop** (uses `java.awt.Robot.mouseMove`). Skipped on Lin
 cursor behavior). No-op on Android, iOS, Web. The `densityMultiplier` (= `1 / density`) is
 captured from `LocalDensity` in the manager's `Composable()` override and applied to convert
 logical pixels to physical screen coordinates. On desktop it needs the engine's `windowState` to be set; while it is
-unset (or the window position is not yet determined) the function returns `false`.
+unset (or the window position is not yet determined) the function returns `false`. The target is content-relative,
+while `windowState.position` is the frame's: the content's offset inside the frame is measured at layout time
+(`positionOnScreen` minus `positionInRoot` minus the window's outer position), so a decorated window's title bar and
+Windows' invisible resize borders are accounted for. It starts at zero until the first layout.
 
 The return value ("was the cursor actually moved, so expect one synthetic move event") is computed
 synchronously inside `setPointerPosition` by comparing the target AWT coordinates against

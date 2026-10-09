@@ -26,6 +26,8 @@ internal actual fun setPointerPosition(
     densityMultiplier: Float,
 ) = false
 
+internal actual fun windowOuterPositionInPixels(densityMultiplier: Float) = Offset.Unspecified
+
 @OptIn(ExperimentalComposeUiApi::class)
 internal actual fun Modifier.gestureDetector(
     onDragDetected: (Offset) -> Unit,
