@@ -45,6 +45,7 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.ic_star
 import kubriko.examples.game_annoyed_penguins.generated.resources.img_logo
 import kubriko.examples.game_annoyed_penguins.generated.resources.information
 import kubriko.examples.game_annoyed_penguins.generated.resources.information_contents
+import kubriko.examples.game_annoyed_penguins.generated.resources.level_name
 import kubriko.examples.game_annoyed_penguins.generated.resources.music_disable
 import kubriko.examples.game_annoyed_penguins.generated.resources.music_enable
 import kubriko.examples.game_annoyed_penguins.generated.resources.pause
@@ -141,6 +142,7 @@ internal class LoadingManager(
             && preloadedString(Res.string.fullscreen_exit).value.isNotBlank()
             && preloadedString(Res.string.information_contents).value.isNotBlank()
             && preloadedString(Res.string.resume).value.isNotBlank()
+            && preloadedString(Res.string.level_name).value.isNotBlank()
             && preloadedString(Res.string.close_confirmation).value.isNotBlank()
             && preloadedString(Res.string.close_confirmation_positive).value.isNotBlank()
             && preloadedString(Res.string.close_confirmation_negative).value.isNotBlank()

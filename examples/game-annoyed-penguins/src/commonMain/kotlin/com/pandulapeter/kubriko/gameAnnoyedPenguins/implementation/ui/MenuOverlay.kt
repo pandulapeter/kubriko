@@ -47,6 +47,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.Level
 import kotlinx.collections.immutable.ImmutableList
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import kubriko.examples.game_annoyed_penguins.generated.resources.close_confirmation_positive
@@ -62,6 +63,7 @@ import kubriko.examples.game_annoyed_penguins.generated.resources.ic_sound_effec
 import kubriko.examples.game_annoyed_penguins.generated.resources.ic_sound_effects_on
 import kubriko.examples.game_annoyed_penguins.generated.resources.img_logo
 import kubriko.examples.game_annoyed_penguins.generated.resources.information
+import kubriko.examples.game_annoyed_penguins.generated.resources.level_name
 import kubriko.examples.game_annoyed_penguins.generated.resources.music_disable
 import kubriko.examples.game_annoyed_penguins.generated.resources.music_enable
 import kubriko.examples.game_annoyed_penguins.generated.resources.resume
@@ -73,8 +75,8 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun MenuOverlay(
     windowInsets: WindowInsets,
-    currentLevel: String?,
-    allLevels: ImmutableList<String>,
+    currentLevel: Level?,
+    allLevels: ImmutableList<Level>,
     onInfoButtonPressed: () -> Unit,
     onCloseButtonPressed: () -> Unit,
     onCloseConfirmed: () -> Unit,
@@ -88,7 +90,7 @@ internal fun MenuOverlay(
     playHoverSoundEffect: () -> Unit = {},
     isInfoDialogVisible: Boolean,
     isCloseConfirmationDialogVisible: Boolean,
-    onLevelSelected: (String) -> Unit,
+    onLevelSelected: (Level) -> Unit,
     isSceneEditorEnabled: Boolean,
     levelSelectorScrollState: ScrollState = rememberScrollState(),
 ) = BoxWithConstraints {
@@ -268,9 +270,9 @@ private fun MenuTopBar(
 
 @Composable
 private fun LevelSelector(
-    allLevels: ImmutableList<String>,
-    currentLevel: String?,
-    onLevelSelected: (String) -> Unit,
+    allLevels: ImmutableList<Level>,
+    currentLevel: Level?,
+    onLevelSelected: (Level) -> Unit,
     playHoverSoundEffect: () -> Unit,
     scrollState: ScrollState,
 ) = Row(
@@ -297,7 +299,7 @@ private fun LevelSelector(
     allLevels.forEach { level ->
         AnnoyedPenguinsButton(
             onButtonPressed = { onLevelSelected(level) },
-            title = if (currentLevel == level) stringResource(Res.string.resume) else level,
+            title = if (currentLevel == level) stringResource(Res.string.resume) else stringResource(Res.string.level_name, level.ordinal + 1),
             onPointerEnter = playHoverSoundEffect,
         )
     }

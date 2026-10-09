@@ -43,7 +43,7 @@ Angry-Birds-style physics launcher. The player pulls back a slingshot to launch 
 
 ## Game state management
 
-`GameplayManager` owns level loading and the win condition. Level JSON is read with `Res.readBytes("files/scenes/<name>")` and deserialized by `serializationManager.deserializeActors()`. A level change cancels a load still in progress (`collectLatest`). When all stars are collected, a 600 ms fade-out timer triggers `currentLevel = null` which clears the scene.
+`GameplayManager` owns level loading and the win condition. Levels are entries of the `Level` enum (`implementation/Level.kt`), each naming its scene file; the menu labels them with the parameterized `level_name` string ("Map %1$d"), so the label is not the level's identity. Level JSON is read with `Res.readBytes("files/scenes/<name>")` and deserialized by `serializationManager.deserializeActors()`. A level change cancels a load still in progress (`collectLatest`). When all stars are collected, a 600 ms fade-out timer triggers `currentLevel = null` which clears the scene.
 
 `stateManager.shouldAutoStart = false`; gameplay is started explicitly. When paused, `GradualBlurShader` is added to the actor list. The shader is manually updated in `GameplayManager.onUpdate` when `isRunning` is false (because the engine's own update is suspended).
 

@@ -10,6 +10,7 @@
 package com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers
 
 import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.Level
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.GradualBlurShader
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.Star
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.actors.slingshot.Slingshot
@@ -23,8 +24,8 @@ import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.types.SceneOffset
-import kotlinx.collections.immutable.persistentMapOf
-import kotlinx.collections.immutable.toImmutableList
+import kotlin.math.max
+import kotlin.math.roundToLong
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,8 +37,6 @@ import kotlinx.coroutines.launch
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.MissingResourceException
-import kotlin.math.max
-import kotlin.math.roundToLong
 
 internal class GameplayManager : Manager() {
 
@@ -46,7 +45,7 @@ internal class GameplayManager : Manager() {
     private val physicsManager by manager<PhysicsManager>()
     private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
     private val viewportManager by manager<ViewportManager>()
-    private val _currentLevel = MutableStateFlow<String?>(null)
+    private val _currentLevel = MutableStateFlow<Level?>(null)
     val currentLevel = _currentLevel.asStateFlow()
     private val _isLoadingLevel = MutableStateFlow(false)
     val isLoadingLevel = _isLoadingLevel.asStateFlow()
@@ -68,7 +67,7 @@ internal class GameplayManager : Manager() {
 
     override fun onInitialize(kubriko: Kubriko) {
         scope.launch {
-            currentLevel.collectLatest { loadScene(AllLevels[it]) }
+            currentLevel.collectLatest { loadScene(it?.sceneFileName) }
         }
         stateManager.isRunning
             .onEach { if (it) actorManager.remove(blurShader) else actorManager.add(blurShader) }
@@ -120,7 +119,7 @@ internal class GameplayManager : Manager() {
         }
     }
 
-    fun setCurrentLevel(level: String) {
+    fun setCurrentLevel(level: Level) {
         // Resuming the level that's already loaded must not freeze the physics simulation.
         if (_currentLevel.value != level) {
             physicsManager.simulationSpeed.value = 0f
@@ -130,11 +129,5 @@ internal class GameplayManager : Manager() {
 
     companion object {
         private const val GAME_END_DELAY = 600f
-        val AllLevels = persistentMapOf(
-            "Map 1" to "level_1.json",
-            "Map 2" to "level_2.json",
-            "Map 3" to "level_3.json",
-        )
-        val LevelNames = AllLevels.keys.toImmutableList()
     }
 }

@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolder
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.AnnoyedPenguinsGameStateHolderImpl
-import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.GameplayManager
+import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.Level
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.AnnoyedPenguinsTheme
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.GameplayHud
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.MenuOverlay
@@ -119,7 +119,7 @@ fun AnnoyedPenguinsGame(
                 MenuOverlay(
                     windowInsets = windowInsets,
                     currentLevel = stateHolder.gameplayManager.currentLevel.collectAsState().value,
-                    allLevels = GameplayManager.LevelNames,
+                    allLevels = Level.AllLevels,
                     onInfoButtonPressed = stateHolder.uiManager::onInfoButtonPressed,
                     onCloseButtonPressed = stateHolder.uiManager::onCloseConfirmationToggled,
                     onCloseConfirmed = stateHolder.uiManager::onCloseConfirmed,
