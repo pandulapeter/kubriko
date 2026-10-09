@@ -14,12 +14,13 @@ Blank substitute for `examples/test-audio`, compiled into the Showcase app when
 
 ## What it contains
 
-Two files that mirror the public API surface of `test-audio` but do nothing:
+Three files that mirror the public API surface of `test-audio` but do nothing:
 
 - `AudioTest.kt` — `createAudioTestStateHolder()` returns `AudioTestStateHolderImpl()`;
   the `AudioTest` composable renders nothing (`= Unit`).
 - `AudioTestStateHolder.kt` — `AudioTestStateHolder` sealed interface with
-  `areResourcesLoaded()` always returning `true`; `AudioTestStateHolderImpl` holds
+  `areResourcesLoaded()` always returning `true`.
+- `AudioTestStateHolderImpl.kt` — `AudioTestStateHolderImpl` holds
   `kubriko = emptyFlow<Kubriko?>()` and a no-op `dispose()`.
 
 ## Rules for editing
