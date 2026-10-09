@@ -37,14 +37,6 @@ import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.SpaceSquadronGa
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.SpaceSquadronMenuOverlay
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.SpaceSquadronTheme
 
-fun createSpaceSquadronGameStateHolder(
-    webRootPathName: String,
-    isLoggingEnabled: Boolean,
-): SpaceSquadronGameStateHolder = SpaceSquadronGameStateHolderImpl(
-    webRootPathName = webRootPathName,
-    isLoggingEnabled = isLoggingEnabled,
-)
-
 @Composable
 fun SpaceSquadronGame(
     stateHolder: SpaceSquadronGameStateHolder,
