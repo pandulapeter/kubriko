@@ -18,11 +18,11 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun DebugMenuSettings(
-    isDebutMenuEnabled: Boolean,
-    onIsDebutMenuEnabledChanged: (Boolean) -> Unit,
+    isDebugMenuEnabled: Boolean,
+    onIsDebugMenuEnabledChanged: (Boolean) -> Unit,
 ) = EditorSwitch(
     modifier = Modifier,
     text = stringResource(Res.string.debug_menu),
-    isChecked = isDebutMenuEnabled,
-    onCheckedChanged = onIsDebutMenuEnabledChanged,
+    isChecked = isDebugMenuEnabled,
+    onCheckedChanged = onIsDebugMenuEnabledChanged,
 )

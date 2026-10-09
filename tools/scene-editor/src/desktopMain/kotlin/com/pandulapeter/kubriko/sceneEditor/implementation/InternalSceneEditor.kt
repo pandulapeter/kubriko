@@ -174,8 +174,8 @@ internal fun InternalSceneEditor(
                 onColorEditorModeChanged = editorController::onColorEditorModeChanged,
                 angleEditorMode = editorController.angleEditorMode.collectAsState().value,
                 onAngleEditorModeChanged = editorController::onAngleEditorModeChanged,
-                isDebutMenuEnabled = editorController.isDebugMenuEnabled.collectAsState().value,
-                onIsDebutMenuEnabledChanged = editorController::onIsDebugMenuEnabledChanged,
+                isDebugMenuEnabled = editorController.isDebugMenuEnabled.collectAsState().value,
+                onIsDebugMenuEnabledChanged = editorController::onIsDebugMenuEnabledChanged,
             )
         }
     }

@@ -31,8 +31,8 @@ internal fun Settings(
     onColorEditorModeChanged: (ColorEditorMode) -> Unit,
     angleEditorMode: AngleEditorMode,
     onAngleEditorModeChanged: (AngleEditorMode) -> Unit,
-    isDebutMenuEnabled: Boolean,
-    onIsDebutMenuEnabledChanged: (Boolean) -> Unit,
+    isDebugMenuEnabled: Boolean,
+    onIsDebugMenuEnabledChanged: (Boolean) -> Unit,
 ) = KubrikoTheme {
     Scaffold(
         modifier = modifier,
@@ -63,8 +63,8 @@ internal fun Settings(
             )
             Spacer(modifier = Modifier.height(4.dp))
             DebugMenuSettings(
-                isDebutMenuEnabled = isDebutMenuEnabled,
-                onIsDebutMenuEnabledChanged = onIsDebutMenuEnabledChanged,
+                isDebugMenuEnabled = isDebugMenuEnabled,
+                onIsDebugMenuEnabledChanged = onIsDebugMenuEnabledChanged,
             )
         }
     }
