@@ -19,6 +19,7 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.input.InputMode
+import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.gamepadInput.GamepadInputManager.Companion.MAX_GAMEPAD_COUNT
 import com.pandulapeter.kubriko.gamepadInput.implementation.GamepadEventHandler
 import com.pandulapeter.kubriko.gamepadInput.implementation.RawGamepadState
@@ -38,6 +39,7 @@ internal class GamepadInputManagerImpl(
     private val triggerThreshold: Float,
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
+    private val initialGamepadEventHandler: GamepadEventHandler? = null,
 ) : GamepadInputManager(isLoggingEnabled, instanceNameForLogging) {
 
     private val actorManager by manager<ActorManager>()
@@ -90,6 +92,12 @@ internal class GamepadInputManagerImpl(
     /** Scratch storage for applyDeadZone(), which has to return two values without allocating. */
     private var deadZonedX = 0f
     private var deadZonedY = 0f
+
+    override fun onInitialize(kubriko: Kubriko) {
+        if (initialGamepadEventHandler != null) {
+            gamepadEventHandler = initialGamepadEventHandler.also { it.startListening(rawGamepads) }
+        }
+    }
 
     @Composable
     override fun Composable(windowInsets: WindowInsets) {
