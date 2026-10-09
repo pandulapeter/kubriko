@@ -48,11 +48,12 @@ class RayScatter(epicenter: SceneOffset, private val noOfRays: Int) {
      */
     fun castRays(distance: SceneUnit) {
         val angle = 6.28319f / noOfRays
-        val direction = SceneOffset.UpRight
+        var direction = SceneOffset.UpRight
         val u = RotationMatrix(angle.rad)
-        for (i in rays.indices) {
+        rays.clear()
+        repeat(noOfRays) {
             rays.add(Ray(epicenter, direction, distance))
-            u.times(direction)
+            direction = u.times(direction)
         }
     }
 
