@@ -22,6 +22,11 @@ import org.jetbrains.compose.resources.DrawableResource
  * The first time a resource is requested, it is registered for loading.
  * To ensure a sprite is available immediately, use the [preload] or [preloadSprites] functions.
  *
+ * Sprites are decoded at their file's pixel size (one image pixel per unit of the size the game draws them at), so
+ * they must not use density qualifiers: keep them in `drawable/` (theme or language qualifiers such as `drawable-dark/`
+ * are fine, as they do not change the pixel size). A density-qualified variant (`drawable-xxhdpi/` and so on) is chosen
+ * by the screen's density and is not scaled back, so the sprite's size would change from device to device.
+ *
  * @param isLoggingEnabled Whether to enable logging for this manager.
  * @param instanceNameForLogging Optional name for logging purposes.
  */

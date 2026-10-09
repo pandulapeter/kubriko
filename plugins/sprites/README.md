@@ -45,6 +45,8 @@ val progressFlow = spriteManager.getLoadingProgress(listOf(Res.drawable.player_i
 
 **Note:** Preloading is optional. Calling `spriteManager.get()` for a resource that hasn't been loaded yet will trigger the loading process and return `null`. Subsequent calls will continue to return `null` until the resource is fully loaded and cached.
 
+**Note:** Keep sprites out of density-qualified folders. They are decoded at their file's pixel size, so a variant in `drawable-xxhdpi/` (or any other density folder), which is picked by the screen's density and not scaled back, would make the sprite's size differ from device to device. Put them in `drawable/`; other qualifiers, such as `drawable-dark/` or a language, are fine.
+
 ### 3. Use AnimatedSprite (if you need it)
 
 `AnimatedSprite` makes it easy to handle animations:

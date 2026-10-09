@@ -44,7 +44,7 @@ promoted from `pendingWarmingUp` to the main cache regardless of whether the Can
 ## Platform differences in decoding
 - **Android**: uses `BitmapFactory.decodeByteArray` with density scaling (`inDensity`/`inTargetDensity`); only downscales (no upscale from low-dpi resources). Rotation via `android.graphics.Matrix`.
 - **Desktop / iOS / Web** (one `skikoMain` actual): uses Skia `Image.makeFromEncoded`, then draws into a `Surface.makeRasterN32Premul` canvas with rotation transform. Same downscale-only density logic as Android (CMP-5657).
-- All platforms decode at MDPI (160 dpi) target density; resource density is set to MDPI as well so no scaling occurs for standard assets.
+- All platforms decode at MDPI (160 dpi) target density with the resource density set to MDPI as well, so every file decodes at its own pixel size. The variant is picked by the `getSystemResourceEnvironment()` density, though, so density-qualified folders (`drawable-xxhdpi/`, …) are not supported: their sprites would change size from device to device. Other qualifiers (theme, language) are fine.
 
 ## SpriteResource vs DrawableResource
 `DrawableResource` is the raw Compose resource handle. `SpriteResource` wraps it with an optional
