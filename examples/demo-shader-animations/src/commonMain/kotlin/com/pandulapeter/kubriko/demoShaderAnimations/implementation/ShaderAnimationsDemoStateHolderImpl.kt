@@ -70,6 +70,8 @@ internal class ShaderAnimationsDemoStateHolderImpl(
     val controlsState = _controlsState.asStateFlow()
     override val kubriko = selectedDemoType.map { shaderAnimationDemoHolders[it]?.kubriko }
 
+    fun getManager(demoType: ShaderAnimationDemoType) = shaderAnimationDemoHolders.getValue(demoType).shaderAnimationsDemoManager
+
     fun onSelectedDemoTypeChanged(selectedDemoType: ShaderAnimationDemoType) = _selectedDemoType.update { selectedDemoType }
 
     fun onControlsStateChanged(controlsState: ControlsState) = _controlsState.update { controlsState }

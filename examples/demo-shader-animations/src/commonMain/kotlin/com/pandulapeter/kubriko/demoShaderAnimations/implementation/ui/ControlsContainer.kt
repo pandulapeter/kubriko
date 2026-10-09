@@ -38,7 +38,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationDemoHolder
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationDemoType
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.managers.ShaderAnimationsDemoManager
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.shaders.CloudShader
@@ -55,7 +54,6 @@ import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.FloatingButton
 import com.pandulapeter.kubriko.uiComponents.InfoPanel
 import com.pandulapeter.kubriko.uiComponents.Panel
-import kotlinx.collections.immutable.PersistentMap
 import kubriko.examples.demo_shader_animations.generated.resources.Res
 import kubriko.examples.demo_shader_animations.generated.resources.collapse_controls
 import kubriko.examples.demo_shader_animations.generated.resources.description
@@ -71,9 +69,10 @@ private val MaximumWidth = 300.dp
 @Composable
 internal fun ControlsContainer(
     modifier: Modifier = Modifier,
-    state: Pair<ShaderAnimationDemoType, ControlsState>,
-    onIsExpandedChanged: (ControlsState) -> Unit,
-    shaderAnimationDemoHolders: PersistentMap<ShaderAnimationDemoType, ShaderAnimationDemoHolder<*, *>>
+    selectedDemoType: ShaderAnimationDemoType,
+    controlsState: ControlsState,
+    onControlsStateChanged: (ControlsState) -> Unit,
+    getManager: (ShaderAnimationDemoType) -> ShaderAnimationsDemoManager<*, *>,
 ) = Column(
     modifier = modifier,
 ) {
@@ -87,11 +86,11 @@ internal fun ControlsContainer(
             .fillMaxWidth(),
     ) {
         val cardAlpha: Float by animateFloatAsState(
-            targetValue = if (state.second == ControlsState.COLLAPSED) 0f else 1f,
+            targetValue = if (controlsState == ControlsState.COLLAPSED) 0f else 1f,
             animationSpec = tween(),
         )
         val cardEndPaddingMultiplier: Float by animateFloatAsState(
-            targetValue = if (state.second == ControlsState.EXPANDED_CODE) 1f else 0f,
+            targetValue = if (controlsState == ControlsState.EXPANDED_CODE) 1f else 0f,
             animationSpec = tween(),
         )
         Panel(
@@ -102,7 +101,7 @@ internal fun ControlsContainer(
                 .padding(end = 48.dp * cardEndPaddingMultiplier),
         ) {
             AnimatedContent(
-                targetState = state,
+                targetState = selectedDemoType to controlsState,
                 transitionSpec = { fadeIn() togetherWith fadeOut() },
                 contentAlignment = Alignment.TopStart,
                 label = "transformControls"
@@ -114,33 +113,44 @@ internal fun ControlsContainer(
                     )
 
                     ControlsState.EXPANDED_CONTROLS -> Controls(
-                        manager = shaderAnimationDemoHolders[targetState.first]!!.shaderAnimationsDemoManager,
+                        manager = getManager(targetState.first),
                         demoType = targetState.first,
                     )
                 }
             }
         }
-        Row(
+        ControlButtons(
             modifier = Modifier.align(Alignment.BottomEnd),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            (state.second == ControlsState.EXPANDED_CODE).let { isSelected ->
-                FloatingButton(
-                    icon = Res.drawable.ic_code,
-                    isSelected = isSelected,
-                    contentDescription = stringResource(if (isSelected) Res.string.hide_code else Res.string.show_code),
-                    onButtonPressed = { onIsExpandedChanged(if (isSelected) ControlsState.COLLAPSED else ControlsState.EXPANDED_CODE) },
-                )
-            }
-            (state.second == ControlsState.EXPANDED_CONTROLS).let { isSelected ->
-                FloatingButton(
-                    icon = Res.drawable.ic_brush,
-                    isSelected = isSelected,
-                    contentDescription = stringResource(if (isSelected) Res.string.collapse_controls else Res.string.expand_controls),
-                    onButtonPressed = { onIsExpandedChanged(if (isSelected) ControlsState.COLLAPSED else ControlsState.EXPANDED_CONTROLS) },
-                )
-            }
-        }
+            controlsState = controlsState,
+            onControlsStateChanged = onControlsStateChanged,
+        )
+    }
+}
+
+@Composable
+private fun ControlButtons(
+    modifier: Modifier,
+    controlsState: ControlsState,
+    onControlsStateChanged: (ControlsState) -> Unit,
+) = Row(
+    modifier = modifier,
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
+) {
+    (controlsState == ControlsState.EXPANDED_CODE).let { isSelected ->
+        FloatingButton(
+            icon = Res.drawable.ic_code,
+            isSelected = isSelected,
+            contentDescription = stringResource(if (isSelected) Res.string.hide_code else Res.string.show_code),
+            onButtonPressed = { onControlsStateChanged(if (isSelected) ControlsState.COLLAPSED else ControlsState.EXPANDED_CODE) },
+        )
+    }
+    (controlsState == ControlsState.EXPANDED_CONTROLS).let { isSelected ->
+        FloatingButton(
+            icon = Res.drawable.ic_brush,
+            isSelected = isSelected,
+            contentDescription = stringResource(if (isSelected) Res.string.collapse_controls else Res.string.expand_controls),
+            onButtonPressed = { onControlsStateChanged(if (isSelected) ControlsState.COLLAPSED else ControlsState.EXPANDED_CONTROLS) },
+        )
     }
 }
 

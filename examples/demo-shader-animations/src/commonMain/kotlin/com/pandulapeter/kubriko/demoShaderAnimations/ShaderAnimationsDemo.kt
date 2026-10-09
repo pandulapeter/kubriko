@@ -91,9 +91,10 @@ fun ShaderAnimationsDemo(
                 }
                 ControlsContainer(
                     modifier = Modifier.windowInsetsPadding(windowInsets).align(Alignment.BottomEnd).padding(16.dp),
-                    state = selectedDemoType to controlsState,
-                    onIsExpandedChanged = stateHolder::onControlsStateChanged,
-                    shaderAnimationDemoHolders = stateHolder.shaderAnimationDemoHolders,
+                    selectedDemoType = selectedDemoType,
+                    controlsState = controlsState,
+                    onControlsStateChanged = stateHolder::onControlsStateChanged,
+                    getManager = stateHolder::getManager,
                 )
             }
         }
