@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.SpaceSquadronGameStateHolder
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.SpaceSquadronGameStateHolderImpl
-import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.SpaceSquadronMenuOverlay
+import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.MenuOverlay
 import com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui.SpaceSquadronTheme
 
 @Composable
@@ -98,7 +98,7 @@ fun SpaceSquadronGame(
             enter = fadeIn() + scaleIn(),
             exit = scaleOut() + fadeOut(),
         ) {
-            SpaceSquadronMenuOverlay(
+            MenuOverlay(
                 modifier = Modifier.windowInsetsPadding(windowInsets),
                 isVisible = !stateHolder.stateManager.isRunning.collectAsState().value || stateHolder.gameplayManager.isGameOver.collectAsState().value,
                 shouldShowInfoText = stateHolder.uiManager.isInfoDialogVisible.collectAsState().value,

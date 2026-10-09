@@ -57,7 +57,7 @@ import kubriko.examples.game_space_squadron.generated.resources.sound_effects_en
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-internal fun SpaceSquadronMenuOverlay(
+internal fun MenuOverlay(
     modifier: Modifier,
     isVisible: Boolean,
     shouldShowInfoText: Boolean,
