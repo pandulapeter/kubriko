@@ -44,6 +44,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlin.concurrent.Volatile
 import kotlin.math.hypot
 import kotlin.math.sqrt
 
@@ -55,19 +56,22 @@ internal class ControlOverlayManager(
     private val viewportManager by manager<ViewportManager>()
     private val volumetricRenderManager by manager<VolumetricRenderManager>()
     private val stateManager by manager<StateManager>()
-    var isJoystickEnabled: Boolean = true
+    @Volatile
+    var joystickLayout = JoystickLayout(
+        isEnabled = true,
+        visualRadiusPx = 0f,
+        maxRadiusPx = 200f,
+        triggerRadiusPx = 0f,
+        paddingPx = 0f,
+        leftInsetPx = 0f,
+        bottomInsetPx = 0f,
+    )
     private var joystickPointerId: PointerId? = null
     private val _joystickOrigin = MutableStateFlow<Offset?>(null)
     val joystickOrigin = _joystickOrigin.asStateFlow()
     private val _joystickDirection = MutableStateFlow<AngleRadians?>(null)
     val joystickDirection = _joystickDirection.asStateFlow()
     private val joystickDeadZoneSq = 100f
-    var joystickMaxRadiusPx: Float = 200f
-    var joystickVisualRadiusPx: Float = 0f
-    var joystickTriggerRadiusPx: Float = 0f
-    var paddingPx: Float = 0f
-    var leftInsetPx: Float = 0f
-    var bottomInsetPx: Float = 0f
     private val _joystickSpeedFactor = MutableStateFlow(0f)
     val joystickSpeedFactor = _joystickSpeedFactor.asStateFlow()
     private var cameraPointerId: PointerId? = null
@@ -169,21 +173,10 @@ internal class ControlOverlayManager(
         }
     }
 
-    private fun Offset.isWithinJoystickRegion(): Boolean {
-        val size = viewportManager.size.value
-        val centerX = leftInsetPx + paddingPx + joystickVisualRadiusPx
-        val centerY = size.height - bottomInsetPx - paddingPx - joystickVisualRadiusPx
-        // Clamp toward the bottom-left screen corner so touches in the inset / edge strip
-        // (left of and below the visual center) still trigger the joystick. This keeps it
-        // usable outside the system window insets while staying a bounded circle toward up/right.
-        val dx = (x - centerX).coerceAtLeast(0f)
-        val dy = (y - centerY).coerceAtMost(0f)
-        return (dx * dx + dy * dy) <= (joystickTriggerRadiusPx * joystickTriggerRadiusPx)
-    }
-
     override fun onPointerPressed(pointerId: PointerId, screenOffset: Offset) {
         registerInteraction()
-        val isBottomLeftQuadrant = isJoystickEnabled && screenOffset.isWithinJoystickRegion()
+        val joystickLayout = joystickLayout
+        val isBottomLeftQuadrant = joystickLayout.isEnabled && joystickLayout.isWithinTriggerRegion(screenOffset, viewportManager.size.value.height)
         if (joystickPointerId == null && isBottomLeftQuadrant) {
             joystickPointerId = pointerId
             _joystickOrigin.value = screenOffset
@@ -211,7 +204,7 @@ internal class ControlOverlayManager(
                             x = deltaX.sceneUnit,
                             y = deltaY.sceneUnit,
                         )
-                        val speedFactor = (sqrt(distanceSq) / joystickMaxRadiusPx).coerceIn(0f, 1f)
+                        val speedFactor = (sqrt(distanceSq) / joystickLayout.maxRadiusPx).coerceIn(0f, 1f)
                         _joystickSpeedFactor.value = speedFactor
                         _joystickDirection.value = SceneOffset.Zero.angleTowards(joystickOffset.normalized())
                         controlManager.onControlDirectionChanged(joystickOffset.calculateMovementDirection(), speedFactor)

@@ -118,13 +118,19 @@ internal fun IsometricGraphicsContent(
     val layoutDirection = LocalLayoutDirection.current
     val leftInsetPx = windowInsets.getLeft(density, layoutDirection).toFloat()
     val bottomInsetPx = windowInsets.getBottom(density).toFloat()
-
-    val defaultJoystickPosition = remember(leftInsetPx, bottomInsetPx, paddingPx, joystickVisualRadiusPx, size.value) {
-        Offset(
-            x = leftInsetPx + paddingPx + joystickVisualRadiusPx,
-            y = size.value.height - bottomInsetPx - paddingPx - joystickVisualRadiusPx
+    val joystickLayout = remember(joystickMaxRadiusPx, paddingPx, leftInsetPx, bottomInsetPx) {
+        JoystickLayout(
+            isEnabled = JOYSTICK_ENABLED,
+            visualRadiusPx = joystickVisualRadiusPx,
+            maxRadiusPx = joystickMaxRadiusPx,
+            triggerRadiusPx = joystickTriggerRadiusPx,
+            paddingPx = paddingPx,
+            leftInsetPx = leftInsetPx,
+            bottomInsetPx = bottomInsetPx,
         )
     }
+
+    val defaultJoystickPosition = remember(joystickLayout, size.value) { joystickLayout.center(size.value.height) }
     val isJoystickPositionInitialized = remember { mutableStateOf(false) }
     val animatedJoystickOrigin by animateOffsetAsState(
         targetValue = currentOrigin ?: defaultJoystickPosition,
@@ -152,13 +158,7 @@ internal fun IsometricGraphicsContent(
     )
 
     SideEffect {
-        stateHolder.controlOverlayManager.isJoystickEnabled = JOYSTICK_ENABLED
-        stateHolder.controlOverlayManager.joystickMaxRadiusPx = joystickMaxRadiusPx
-        stateHolder.controlOverlayManager.joystickVisualRadiusPx = joystickVisualRadiusPx
-        stateHolder.controlOverlayManager.joystickTriggerRadiusPx = joystickTriggerRadiusPx
-        stateHolder.controlOverlayManager.paddingPx = paddingPx
-        stateHolder.controlOverlayManager.leftInsetPx = leftInsetPx
-        stateHolder.controlOverlayManager.bottomInsetPx = bottomInsetPx
+        stateHolder.controlOverlayManager.joystickLayout = joystickLayout
     }
     if (isReadyToRender.value) {
         KubrikoViewport(

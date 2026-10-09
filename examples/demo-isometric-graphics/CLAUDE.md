@@ -52,6 +52,9 @@ Tesselar declared its `Kubriko` instances and managers as module-level singleton
 - `ControlManager` is a normal `Manager` **class**, registered in `logicKubriko`.
 - `ControlOverlayManager` (in `isometricKubriko`) takes `controlManager` and `logicViewportManager`
   via its constructor, and resolves `VolumetricRenderManager` with the `manager<T>()` delegate.
+  The UI publishes the joystick geometry to it as one immutable `JoystickLayout` (a `@Volatile`
+  property set from a `SideEffect`); both the joystick's resting position and the pointer hit test
+  use its `center()`.
 - `MainCharacter` resolves its `ControlManager` via `kubriko.get()` in `onAdded`.
 - The composable `IsometricGraphicsContent` takes the state holder as a parameter rather than
   reading globals; `MiniMap` takes only the flows it reads.
@@ -69,7 +72,7 @@ Tesselar declared its `Kubriko` instances and managers as module-level singleton
   `bush.json`, places up to 64 NPCs, 256 trees and 256 bushes), and the actors.
 - `implementation/gameplay/resources` — `TextureResolver` (sprite-backed) and `FileResolver`.
 - `implementation/ui` — `IsometricGraphicsContent` (viewport + joystick + minimap), `MiniMap`,
-  `ControlOverlayManager`.
+  `ControlOverlayManager`, `JoystickLayout`.
 
 ## Grid rendering and frame-rate sync
 
