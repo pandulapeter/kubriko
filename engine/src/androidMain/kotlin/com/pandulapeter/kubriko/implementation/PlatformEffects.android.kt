@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import com.pandulapeter.kubriko.types.TargetFrameRate
+import java.util.WeakHashMap
 import kotlin.math.roundToInt
 
 @Composable
@@ -29,12 +30,30 @@ internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) {
     LifecycleFocusEffect(onFocusChanged = onFocusChanged)
 }
 
+/**
+ * The requests of every viewport in a window, combined into the one hint the window gets, so that neither the last
+ * viewport to compose nor the first to leave decides for all of them. Only touched from the main thread.
+ */
+private val frameRateHintRequests = WeakHashMap<Window, ArrayList<TargetFrameRate>>()
+
 @Composable
-internal actual fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate) {
+internal actual fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate?) {
     val window = LocalContext.current.findActivity()?.window ?: return
+    if (targetFrameRate == null) return
     DisposableEffect(window, targetFrameRate) {
-        window.applyFrameRateHint(targetFrameRate)
-        onDispose { window.applyFrameRateHint(TargetFrameRate.DisplayDefault) }
+        val requests = frameRateHintRequests.getOrPut(window) { ArrayList() }
+        requests.add(targetFrameRate)
+        window.applyFrameRateHint(combineFrameRateHints(requests))
+        onDispose {
+            val index = requests.indexOfFirst { it === targetFrameRate }
+            if (index >= 0) {
+                requests.removeAt(index)
+            }
+            if (requests.isEmpty()) {
+                frameRateHintRequests.remove(window)
+            }
+            window.applyFrameRateHint(combineFrameRateHints(requests))
+        }
     }
 }
 

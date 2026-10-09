@@ -17,6 +17,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
@@ -78,7 +80,11 @@ fun InternalViewport(
         }
 
         // Align the display's actual refresh rate with the game loop's throttle where the platform allows.
-        PlatformFrameRateHint(kubrikoImpl.viewportManager.targetFrameRate.collectAsState().value)
+        // Only the empty/non-empty flip of the size recomposes, not every resize.
+        val sizeState = kubrikoImpl.viewportManager.size.collectAsState()
+        val isSized by remember { derivedStateOf { !sizeState.value.isEmpty() } }
+        val targetFrameRate = kubrikoImpl.viewportManager.targetFrameRate.collectAsState().value
+        PlatformFrameRateHint(if (isSized) targetFrameRate else null)
 
         // Publish what the display is capable of, so a game can offer frame rates that suit the panel.
         PlatformMaximumDisplayRefreshRateEffect { kubrikoImpl.metadataManager.updateMaximumDisplayRefreshRateInternal(it) }

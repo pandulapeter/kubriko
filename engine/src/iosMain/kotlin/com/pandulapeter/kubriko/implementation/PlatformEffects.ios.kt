@@ -22,7 +22,7 @@ internal actual fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit) {
 }
 
 @Composable
-internal actual fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate) = Unit
+internal actual fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate?) = Unit
 
 @Composable
 internal actual fun PlatformMaximumDisplayRefreshRateEffect(onMaximumDisplayRefreshRateChanged: (Float?) -> Unit) {

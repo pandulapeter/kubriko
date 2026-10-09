@@ -18,10 +18,11 @@ internal expect fun PlatformFocusEffect(onFocusChanged: (Boolean) -> Unit)
 /**
  * Hints the platform to align the display's actual refresh rate with the current [targetFrameRate],
  * so a variable-refresh panel can step down while the game loop is throttled instead of staying
- * pinned at its maximum. No-op on platforms without such a mechanism.
+ * pinned at its maximum. Null while the viewport cannot tick, so it requests nothing. No-op on
+ * platforms without such a mechanism.
  */
 @Composable
-internal expect fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate)
+internal expect fun PlatformFrameRateHint(targetFrameRate: TargetFrameRate?)
 
 /**
  * Reports the highest refresh rate the display showing the game can present at, and reports again
