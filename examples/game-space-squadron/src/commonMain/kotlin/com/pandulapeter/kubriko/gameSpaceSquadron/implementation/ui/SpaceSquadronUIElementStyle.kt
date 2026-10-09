@@ -10,10 +10,20 @@
 package com.pandulapeter.kubriko.gameSpaceSquadron.implementation.ui
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CornerBasedShape
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
+
+internal val SpaceSquadronUIElementShape: CornerBasedShape = RoundedCornerShape(
+    topStart = CornerSize(16.dp),
+    topEnd = CornerSize(0),
+    bottomStart = CornerSize(0),
+    bottomEnd = CornerSize(16.dp),
+)
 
 internal fun Modifier.spaceSquadronUIElementBorder() = border(
     width = 2.dp,
