@@ -26,7 +26,10 @@ import com.pandulapeter.kubriko.serialization.SerializationManager
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlin.math.max
 import kotlin.math.roundToLong
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -36,7 +39,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kubriko.examples.game_annoyed_penguins.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.MissingResourceException
 
 internal class GameplayManager : Manager() {
 
@@ -93,12 +95,26 @@ internal class GameplayManager : Manager() {
             try {
                 val json = Res.readBytes("files/scenes/$sceneName").decodeToString()
                 val newActors = serializationManager.deserializeActors(json)
-                actorManager.add(newActors)
-                _totalStarCount.update { newActors.filterIsInstance<Star>().count() }
-                _isLoadingLevel.update { false }
-            } catch (_: MissingResourceException) {
+                if (newActors.isEmpty()) {
+                    onLevelLoadFailed()
+                } else {
+                    actorManager.add(newActors)
+                    _totalStarCount.update { newActors.filterIsInstance<Star>().count() }
+                    _isLoadingLevel.update { false }
+                }
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (_: Exception) {
+                // The web resource reader reports a cancelled fetch as a failure too, so a newer level choice must win.
+                currentCoroutineContext().ensureActive()
+                onLevelLoadFailed()
             }
         }
+    }
+
+    private fun onLevelLoadFailed() {
+        _isLoadingLevel.update { false }
+        _currentLevel.update { null }
     }
 
     fun onScaleFactorChanged() {
