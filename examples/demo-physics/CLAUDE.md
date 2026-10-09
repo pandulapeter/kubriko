@@ -22,7 +22,7 @@ environment loaded from a scene file.
 - `ViewportManager` — `AspectRatioMode.FitVertical(1920 su)` keeps the scene height fixed
 - `PhysicsManager` — the physics simulation engine
 - `PointerInputManager` — routes tap events to `PhysicsDemoManager`
-- `PhysicsDemoManager` — loads scene JSON, handles input, owns UI composable
+- `PhysicsDemoManager` — loads scene JSON, handles input; its `Composable` override delegates to `ui/PhysicsDemoOverlay`
 - `SerializationManager` — deserialises static and dynamic actor states from
   `files/scenes/scene_physics_test.json`
 

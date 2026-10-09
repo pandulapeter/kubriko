@@ -1,0 +1,93 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubriko.demoPhysics.implementation.ui
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubriko.demoPhysics.implementation.PlatformSpecificContent
+import com.pandulapeter.kubriko.shared.StateHolder
+import com.pandulapeter.kubriko.uiComponents.FloatingButton
+import com.pandulapeter.kubriko.uiComponents.InfoPanel
+import com.pandulapeter.kubriko.uiComponents.LoadingOverlay
+import kubriko.examples.demo_physics.generated.resources.Res
+import kubriko.examples.demo_physics.generated.resources.chain
+import kubriko.examples.demo_physics.generated.resources.description
+import kubriko.examples.demo_physics.generated.resources.explosion
+import kubriko.examples.demo_physics.generated.resources.ic_chain
+import kubriko.examples.demo_physics.generated.resources.ic_explosion
+import kubriko.examples.demo_physics.generated.resources.ic_shape
+import kubriko.examples.demo_physics.generated.resources.shape
+import org.jetbrains.compose.resources.stringResource
+
+@Composable
+internal fun PhysicsDemoOverlay(
+    windowInsets: WindowInsets,
+    shouldShowLoadingIndicator: Boolean,
+    actionType: ActionType,
+    onActionTypeButtonPressed: () -> Unit,
+    isSceneEditorEnabled: Boolean,
+) = Box {
+    LoadingOverlay(
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        shouldShowLoadingIndicator = shouldShowLoadingIndicator,
+    )
+    Column(
+        modifier = Modifier
+            .windowInsetsPadding(windowInsets)
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.End,
+    ) {
+        InfoPanel(
+            stringResource = Res.string.description,
+            isVisible = StateHolder.isInfoPanelVisible.value,
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+        ) {
+            if (isSceneEditorEnabled) {
+                PlatformSpecificContent()
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            FloatingButton(
+                icon = when (actionType) {
+                    ActionType.SHAPE -> Res.drawable.ic_shape
+                    ActionType.CHAIN -> Res.drawable.ic_chain
+                    ActionType.EXPLOSION -> Res.drawable.ic_explosion
+                },
+                onButtonPressed = onActionTypeButtonPressed,
+                contentDescription = stringResource(
+                    when (actionType) {
+                        ActionType.SHAPE -> Res.string.shape
+                        ActionType.CHAIN -> Res.string.chain
+                        ActionType.EXPLOSION -> Res.string.explosion
+                    }
+                ),
+            )
+        }
+    }
+}

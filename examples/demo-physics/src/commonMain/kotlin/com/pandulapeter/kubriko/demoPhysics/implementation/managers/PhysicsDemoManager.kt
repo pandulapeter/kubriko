@@ -9,36 +9,22 @@
  */
 package com.pandulapeter.kubriko.demoPhysics.implementation.managers
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerId
-import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.BoxBody
 import com.pandulapeter.kubriko.actor.traits.Unique
 import com.pandulapeter.kubriko.collision.mask.PolygonCollisionMask
-import com.pandulapeter.kubriko.demoPhysics.implementation.PlatformSpecificContent
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.Bomb
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicBox
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicChain
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicCircle
 import com.pandulapeter.kubriko.demoPhysics.implementation.actors.DynamicPolygon
 import com.pandulapeter.kubriko.demoPhysics.implementation.ui.ActionType
+import com.pandulapeter.kubriko.demoPhysics.implementation.ui.PhysicsDemoOverlay
 import com.pandulapeter.kubriko.helpers.extensions.cos
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.helpers.extensions.sin
@@ -50,13 +36,9 @@ import com.pandulapeter.kubriko.pointerInput.PointerInputAware
 import com.pandulapeter.kubriko.sceneEditor.Editable
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
 import com.pandulapeter.kubriko.serialization.SerializationManager
-import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneSize
-import com.pandulapeter.kubriko.uiComponents.FloatingButton
-import com.pandulapeter.kubriko.uiComponents.InfoPanel
-import com.pandulapeter.kubriko.uiComponents.LoadingOverlay
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -67,16 +49,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kubriko.examples.demo_physics.generated.resources.Res
-import kubriko.examples.demo_physics.generated.resources.chain
-import kubriko.examples.demo_physics.generated.resources.description
-import kubriko.examples.demo_physics.generated.resources.explosion
-import kubriko.examples.demo_physics.generated.resources.ic_chain
-import kubriko.examples.demo_physics.generated.resources.ic_explosion
-import kubriko.examples.demo_physics.generated.resources.ic_shape
-import kubriko.examples.demo_physics.generated.resources.shape
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.MissingResourceException
-import org.jetbrains.compose.resources.stringResource
 
 internal class PhysicsDemoManager(
     private val sceneJson: MutableStateFlow<String>?,
@@ -106,51 +80,13 @@ internal class PhysicsDemoManager(
     }
 
     @Composable
-    override fun Composable(windowInsets: WindowInsets) = Box {
-        LoadingOverlay(
-            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-            shouldShowLoadingIndicator = shouldShowLoadingIndicator.collectAsState().value,
-        )
-        Column(
-            modifier = Modifier
-                .windowInsetsPadding(windowInsets)
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalAlignment = Alignment.End,
-        ) {
-            InfoPanel(
-                stringResource = Res.string.description,
-                isVisible = StateHolder.isInfoPanelVisible.value,
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            val selectedActionType = actionType.collectAsState()
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                if (isSceneEditorEnabled) {
-                    PlatformSpecificContent()
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                FloatingButton(
-                    icon = when (selectedActionType.value) {
-                        ActionType.SHAPE -> Res.drawable.ic_shape
-                        ActionType.CHAIN -> Res.drawable.ic_chain
-                        ActionType.EXPLOSION -> Res.drawable.ic_explosion
-                    },
-                    onButtonPressed = ::changeSelectedActionType,
-                    contentDescription = stringResource(
-                        when (selectedActionType.value) {
-                            ActionType.SHAPE -> Res.string.shape
-                            ActionType.CHAIN -> Res.string.chain
-                            ActionType.EXPLOSION -> Res.string.explosion
-                        }
-                    ),
-                )
-            }
-        }
-    }
+    override fun Composable(windowInsets: WindowInsets) = PhysicsDemoOverlay(
+        windowInsets = windowInsets,
+        shouldShowLoadingIndicator = shouldShowLoadingIndicator.collectAsState().value,
+        actionType = actionType.collectAsState().value,
+        onActionTypeButtonPressed = ::changeSelectedActionType,
+        isSceneEditorEnabled = isSceneEditorEnabled,
+    )
 
     private fun changeSelectedActionType() = _actionType.update { currentActionType ->
         val values = ActionType.entries
