@@ -31,7 +31,7 @@ A classic Breakout-style game where the player controls a paddle to keep a ball 
 ## Game state management
 
 Two `Kubriko` instances run side-by-side:
-- `backgroundKubriko`: contains `FogShader` and shared audio managers; has no `StateManager` so it always runs.
+- `backgroundKubriko`: contains `FogShader`, its own `ShaderManager`, the `LoadingManager` and the shared audio managers. It uses the engine's default `StateManager` (`shouldAutoStart = true`), so it runs whenever it is shown, independently of the game's pause state.
 - `kubriko` (foreground): `StateManager` is created with `shouldAutoStart = false`; the game starts paused and only runs while `isRunning`.
 
 `ViewportManager` uses `AspectRatioMode.Fixed(ratio = 1f, width = 1200.sceneUnit)` — the viewport is always square, keeping the brick grid layout consistent across all screen sizes.
