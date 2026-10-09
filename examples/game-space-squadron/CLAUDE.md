@@ -45,6 +45,10 @@ Two `Kubriko` instances run side-by-side:
 
 `CameraShakeManager` holds a `rotation: StateFlow<Float>` that the `SpaceSquadronGame` composable applies as a `Modifier.rotate(...)` on the background viewport — the shake is a Compose-layer effect, not a camera translate.
 
+## Back navigation
+
+`navigateBack` (the Showcase's back handler) asks the pure `backNavigationAction(...)` in `implementation/BackNavigation.kt` what to do, in priority order: pause a running game that is not over, close the info dialog, resume a started game unless the close confirmation dialog is open, leave fullscreen, otherwise toggle the close confirmation dialog. `BackNavigationTest` pins the truth table.
+
 ## Input handling
 
 - **Mouse/touch**: `ShipDestination.onPointerOffsetChanged` uses relative delta (current minus previous position), multiplied by `POINTER_SENSITIVITY = 2f`, to update the destination. Every other event is skipped using the `shouldMoveShip` toggle to absorb the synthetic re-centering move that follows.

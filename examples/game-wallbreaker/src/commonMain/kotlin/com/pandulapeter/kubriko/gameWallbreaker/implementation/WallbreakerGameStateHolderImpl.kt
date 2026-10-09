@@ -152,17 +152,23 @@ internal class WallbreakerGameStateHolderImpl(
         onFullscreenModeToggled: () -> Unit,
     ) = backgroundLoadingManager.isLoadingDone.also {
         if (it) {
-            if (stateManager.isRunning.value) {
-                gameplayManager.pauseGame()
-            } else if (uiManager.isInfoDialogVisible.value) {
-                uiManager.toggleInfoDialogVisibility()
-            } else if (gameplayManager.isGameStarted) {
-                gameplayManager.resumeGame()
-            } else if (isInFullscreenMode) {
-                audioManager.playClickSoundEffect()
-                onFullscreenModeToggled()
-            } else {
-                uiManager.toggleCloseConfirmationDialogVisibility()
+            when (
+                backNavigationAction(
+                    isRunning = stateManager.isRunning.value,
+                    isInfoDialogVisible = uiManager.isInfoDialogVisible.value,
+                    isGameStarted = gameplayManager.isGameStarted,
+                    isInFullscreenMode = isInFullscreenMode,
+                )
+            ) {
+                BackNavigationAction.PAUSE -> gameplayManager.pauseGame()
+                BackNavigationAction.CLOSE_INFO_DIALOG -> uiManager.toggleInfoDialogVisibility()
+                BackNavigationAction.RESUME -> gameplayManager.resumeGame()
+                BackNavigationAction.EXIT_FULLSCREEN -> {
+                    audioManager.playClickSoundEffect()
+                    onFullscreenModeToggled()
+                }
+
+                BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION -> uiManager.toggleCloseConfirmationDialogVisibility()
             }
         }
     }

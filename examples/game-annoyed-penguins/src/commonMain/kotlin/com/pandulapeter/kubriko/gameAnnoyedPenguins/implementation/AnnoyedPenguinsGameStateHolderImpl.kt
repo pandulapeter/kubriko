@@ -239,20 +239,22 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
         onFullscreenModeToggled: () -> Unit,
     ) = backgroundLoadingManager.isLoadingDone.also {
         if (it) {
-            if (stateManager.isRunning.value) {
+            val action = backNavigationAction(
+                isRunning = stateManager.isRunning.value,
+                isInfoDialogVisible = uiManager.isInfoDialogVisible.value,
+                isLevelLoaded = gameplayManager.currentLevel.value != null,
+                isCloseConfirmationDialogVisible = uiManager.isCloseConfirmationDialogVisible.value,
+                isInFullscreenMode = isInFullscreenMode,
+            )
+            if (action != BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION) {
                 audioManager.playButtonToggleSoundEffect()
-                stateManager.updateIsRunning(false)
-            } else if (uiManager.isInfoDialogVisible.value) {
-                audioManager.playButtonToggleSoundEffect()
-                uiManager.toggleInfoDialogVisibility()
-            } else if (gameplayManager.currentLevel.value != null && !uiManager.isCloseConfirmationDialogVisible.value) {
-                audioManager.playButtonToggleSoundEffect()
-                stateManager.updateIsRunning(true)
-            } else if (isInFullscreenMode) {
-                audioManager.playButtonToggleSoundEffect()
-                onFullscreenModeToggled()
-            } else {
-                uiManager.toggleCloseConfirmationDialogVisibility()
+            }
+            when (action) {
+                BackNavigationAction.PAUSE -> stateManager.updateIsRunning(false)
+                BackNavigationAction.CLOSE_INFO_DIALOG -> uiManager.toggleInfoDialogVisibility()
+                BackNavigationAction.RESUME -> stateManager.updateIsRunning(true)
+                BackNavigationAction.EXIT_FULLSCREEN -> onFullscreenModeToggled()
+                BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION -> uiManager.toggleCloseConfirmationDialogVisibility()
             }
         }
     }

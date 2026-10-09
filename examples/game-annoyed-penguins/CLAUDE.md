@@ -47,6 +47,10 @@ Angry-Birds-style physics launcher. The player pulls back a slingshot to launch 
 
 `stateManager.shouldAutoStart = false`; gameplay is started explicitly. When paused, `GradualBlurShader` is added to the actor list. The shader is manually updated in `GameplayManager.onUpdate` when `isRunning` is false (because the engine's own update is suspended).
 
+## Back navigation
+
+`navigateBack` (the Showcase's back handler) asks the pure `backNavigationAction(...)` in `implementation/BackNavigation.kt` what to do, in priority order: pause a running game, close the info dialog, resume a loaded level unless the close confirmation dialog is open, leave fullscreen, otherwise toggle the close confirmation dialog. Every branch but the last plays the toggle sound. `BackNavigationTest` pins the truth table.
+
 ## Input handling
 
 Mouse / touch: `Slingshot` consumes drag input when `aimingPointerId` is set (pointer in slingshot bounds). Free drag with no active aiming pans the camera via `viewportManager.addToCameraPosition`. Pinch zoom via `onPointerZoom`.

@@ -167,17 +167,25 @@ internal class SpaceSquadronGameStateHolderImpl(
         onFullscreenModeToggled: () -> Unit,
     ) = backgroundLoadingManager.isLoadingDone.also {
         if (it) {
-            if (stateManager.isRunning.value && !gameplayManager.isGameOver.value) {
-                gameplayManager.pauseGame()
-            } else if (uiManager.isInfoDialogVisible.value) {
-                uiManager.toggleInfoDialogVisibility()
-            } else if (gameplayManager.isGameStarted && !uiManager.isCloseConfirmationDialogVisible.value) {
-                gameplayManager.playGame()
-            } else if (isInFullscreenMode) {
-                audioManager.playButtonToggleSoundEffect()
-                onFullscreenModeToggled()
-            } else {
-                uiManager.toggleCloseConfirmationDialogVisibility()
+            when (
+                backNavigationAction(
+                    isRunning = stateManager.isRunning.value,
+                    isGameOver = gameplayManager.isGameOver.value,
+                    isInfoDialogVisible = uiManager.isInfoDialogVisible.value,
+                    isGameStarted = gameplayManager.isGameStarted,
+                    isCloseConfirmationDialogVisible = uiManager.isCloseConfirmationDialogVisible.value,
+                    isInFullscreenMode = isInFullscreenMode,
+                )
+            ) {
+                BackNavigationAction.PAUSE -> gameplayManager.pauseGame()
+                BackNavigationAction.CLOSE_INFO_DIALOG -> uiManager.toggleInfoDialogVisibility()
+                BackNavigationAction.RESUME -> gameplayManager.playGame()
+                BackNavigationAction.EXIT_FULLSCREEN -> {
+                    audioManager.playButtonToggleSoundEffect()
+                    onFullscreenModeToggled()
+                }
+
+                BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION -> uiManager.toggleCloseConfirmationDialogVisibility()
             }
         }
     }

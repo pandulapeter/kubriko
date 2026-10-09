@@ -54,6 +54,10 @@ The `turningTimer` fires every 650 ms and shifts to `nextDirectionClockwise`. No
 
 `LoadingManager` coordinates all resource loading and waits until fonts, strings, icons, images, audio, sprites, and the scene JSON are all ready before `isLoadingDone` is set. The font (`medieval_sharp`) is loaded via `preloadedFont` inside `LoadingManager.Composable()` because font loading requires a composition context.
 
+## Back navigation
+
+`navigateBack` (the Showcase's back handler) asks the pure `backNavigationAction(...)` in `implementation/BackNavigation.kt` what to do, in priority order: pause a running game, close the info dialog, leave fullscreen, otherwise toggle the close confirmation dialog. A back press never resumes a paused game. Every branch but the last plays the toggle sound. `BackNavigationTest` pins the truth table.
+
 ## Pause visual
 
 When `stateManager.isRunning` is `false`, a `RippleShader` is added to the actor list. The shader state is advanced manually in `GameplayManager.onUpdate` while not running (the engine suspends updates when `isRunning` is false).

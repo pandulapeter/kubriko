@@ -40,6 +40,10 @@ Two `Kubriko` instances run side-by-side:
 
 Level completion is counted on the tick thread: `Ball` calls `GameplayManager.onBrickDestroyed()`, which starts the next level when every brick of the grid has been destroyed.
 
+## Back navigation
+
+`navigateBack` (the Showcase's back handler) asks the pure `backNavigationAction(...)` in `implementation/BackNavigation.kt` what to do, in priority order: pause a running game, close the info dialog, resume a started game (even behind the close confirmation dialog), leave fullscreen, otherwise toggle the close confirmation dialog. `BackNavigationTest` pins the truth table.
+
 ## Input handling
 
 - **Mouse/touch**: `Paddle.onPointerOffsetChanged` uses relative delta with the cursor-recentering pattern (same as Space Squadron). The `shouldMovePaddle` boolean alternates every event to filter the synthetic cursor-center event.

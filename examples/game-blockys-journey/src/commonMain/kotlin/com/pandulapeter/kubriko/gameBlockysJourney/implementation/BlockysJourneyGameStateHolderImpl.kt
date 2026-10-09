@@ -184,17 +184,19 @@ internal class BlockysJourneyGameStateHolderImpl(
         onFullscreenModeToggled: () -> Unit,
     ) = sharedLoadingManager.isLoadingDone.also {
         if (it) {
-            if (stateManager.isRunning.value) {
+            val action = backNavigationAction(
+                isRunning = stateManager.isRunning.value,
+                isInfoDialogVisible = uiManager.isInfoDialogVisible.value,
+                isInFullscreenMode = isInFullscreenMode,
+            )
+            if (action != BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION) {
                 audioManager.playButtonToggleSoundEffect()
-                stateManager.updateIsRunning(false)
-            } else if (uiManager.isInfoDialogVisible.value) {
-                audioManager.playButtonToggleSoundEffect()
-                uiManager.toggleInfoDialogVisibility()
-            } else if (isInFullscreenMode) {
-                audioManager.playButtonToggleSoundEffect()
-                onFullscreenModeToggled()
-            } else {
-                uiManager.toggleCloseConfirmationDialogVisibility()
+            }
+            when (action) {
+                BackNavigationAction.PAUSE -> stateManager.updateIsRunning(false)
+                BackNavigationAction.CLOSE_INFO_DIALOG -> uiManager.toggleInfoDialogVisibility()
+                BackNavigationAction.EXIT_FULLSCREEN -> onFullscreenModeToggled()
+                BackNavigationAction.TOGGLE_CLOSE_CONFIRMATION -> uiManager.toggleCloseConfirmationDialogVisibility()
             }
         }
     }
