@@ -46,29 +46,3 @@ internal fun ViewportManager.handleKeys(keys: Set<Key>) {
         }
     )
 }
-
-internal enum class NavigateBackAction {
-    DESELECT_ACTOR,
-    DESELECT_TYPE,
-    CLOSE,
-    NONE,
-}
-
-/**
- * Decides what Escape does. [NavigateBackAction.CLOSE] closes the Settings window when it is open, and the
- * editor itself only when the scene has no unsaved changes.
- */
-internal fun navigateBackAction(
-    hasSelectedActor: Boolean,
-    hasSelectedType: Boolean,
-    isSettingsOpen: Boolean,
-    isSceneModified: Boolean,
-    isTextInputFocused: Boolean,
-) = when {
-    isTextInputFocused -> NavigateBackAction.NONE
-    hasSelectedActor -> NavigateBackAction.DESELECT_ACTOR
-    hasSelectedType -> NavigateBackAction.DESELECT_TYPE
-    isSettingsOpen -> NavigateBackAction.CLOSE
-    isSceneModified -> NavigateBackAction.NONE
-    else -> NavigateBackAction.CLOSE
-}
