@@ -38,12 +38,19 @@ internal class DesktopFullscreenState {
     private val previousWindowPosition = mutableStateOf<WindowPosition?>(null)
     private val windowSize = mutableStateOf(DpSize.Unspecified)
 
+    /** The placement the last [toggle] wrote, until the window reports matching it (off Windows). */
+    private var requestedPlacement: WindowPlacement? = null
+
     fun toggle(window: ComposeWindow, windowState: WindowState, coroutineScope: CoroutineScope) {
         isInFullscreenMode.let { currentValue ->
             isInFullscreenMode = !currentValue
             if (currentValue) {
-                previousWindowPlacement.value?.let { previousWindowPlacement ->
-                    windowState.placement = previousWindowPlacement
+                val savedPlacement = previousWindowPlacement.value
+                if (savedPlacement == null) {
+                    // The system entered fullscreen on its own, so it also restores the frame the window had before.
+                    requestPlacement(windowState, WindowPlacement.Floating)
+                } else {
+                    requestPlacement(windowState, savedPlacement)
                     windowState.size = windowSize.value
                     if (isWindows) {
                         previousWindowPosition.value?.let { windowState.position = it }
@@ -59,22 +66,49 @@ internal class DesktopFullscreenState {
                         }
                     }
                 }
-            } else {
+            } else if (windowState.placement != WindowPlacement.Fullscreen) {
                 windowSize.value = windowState.size
                 previousBounds.value = window.bounds
                 previousWindowPlacement.value = windowState.placement
                 previousWindowLocation.value = window.location
                 previousWindowPosition.value = windowState.position
-                windowState.placement = WindowPlacement.Fullscreen
+                requestPlacement(windowState, WindowPlacement.Fullscreen)
             }
         }
     }
 
-    /** Leaves fullscreen mode when the system takes the window out of it (e.g. Escape on macOS). */
-    fun onWindowStateChanged(windowState: WindowState) {
-        if (isInFullscreenMode) {
-            isInFullscreenMode = windowState.placement == WindowPlacement.Fullscreen
+    private fun requestPlacement(windowState: WindowState, placement: WindowPlacement) {
+        if (!isWindows) {
+            requestedPlacement = placement
         }
+        windowState.placement = placement
+    }
+
+    /**
+     * Follows the system into and out of fullscreen mode (e.g. the green button or Escape on macOS). On Windows, where
+     * only [toggle] can enter it, only leaving is followed. While the window is still animating towards a placement
+     * [toggle] requested, reports of the opposite fullscreen state are stale and ignored.
+     */
+    fun onWindowStateChanged(windowState: WindowState) {
+        val isFullscreen = windowState.placement == WindowPlacement.Fullscreen
+        if (isWindows) {
+            if (isInFullscreenMode) {
+                isInFullscreenMode = isFullscreen
+            }
+            return
+        }
+        requestedPlacement?.let { requestedPlacement ->
+            if ((requestedPlacement == WindowPlacement.Fullscreen) != isFullscreen) return
+            this.requestedPlacement = null
+        }
+        if (isFullscreen && !isInFullscreenMode) {
+            previousWindowPlacement.value = null
+            previousBounds.value = null
+            previousWindowLocation.value = null
+            previousWindowPosition.value = null
+            windowSize.value = DpSize.Unspecified
+        }
+        isInFullscreenMode = isFullscreen
     }
 }
 

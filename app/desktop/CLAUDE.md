@@ -26,7 +26,7 @@ The window is `KubrikoShowcaseWindow` (`KubrikoShowcaseWindow.kt`); the fullscre
 
 When entering fullscreen, the previous `WindowPlacement`, `windowState.size`, `windowState.position`, window location, and AWT `window.bounds` are saved to restore them accurately on exit. On Windows the position is restored through `windowState.position`, because the window is recreated and reads it from there. On macOS / Linux the same window survives the toggle, so its location and `window.bounds` are restored directly; a 100ms `delay` is needed before restoring `window.bounds` on exit (race condition with the Compose window re-render).
 
-A `WindowStateListener` detects if the user exits fullscreen via OS gestures (e.g. pressing Escape on macOS) and syncs the `isInFullscreenMode` state (`DesktopFullscreenState.onWindowStateChanged`).
+A `WindowStateListener` syncs `isInFullscreenMode` with the window's placement (`DesktopFullscreenState.onWindowStateChanged`). On macOS / Linux it follows the OS both ways, so the green button or Escape on macOS updates the in-app control; a fullscreen the OS entered saves no geometry, and leaving it from the app only returns the placement to `Floating`, letting the OS restore the frame it remembers. While the window animates towards a placement `toggle()` requested, stale reports of the opposite state are ignored. On Windows, where only `toggle()` can enter fullscreen, only leaving is followed.
 
 ## Title bar
 
