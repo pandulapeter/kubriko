@@ -12,6 +12,7 @@ package com.pandulapeter.kubriko.demoShaderAnimations.implementation
 import androidx.compose.runtime.Composable
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.shared.ui.areExpandControlsButtonResourcesLoaded
+import com.pandulapeter.kubriko.shared.ui.areShadersNotSupportedMessageResourcesLoaded
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
 import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import kubriko.examples.demo_shader_animations.generated.resources.Res
@@ -30,7 +31,6 @@ import kubriko.examples.demo_shader_animations.generated.resources.ic_code
 import kubriko.examples.demo_shader_animations.generated.resources.light
 import kubriko.examples.demo_shader_animations.generated.resources.noodle
 import kubriko.examples.demo_shader_animations.generated.resources.scale
-import kubriko.examples.demo_shader_animations.generated.resources.shaders_not_supported
 import kubriko.examples.demo_shader_animations.generated.resources.show_code
 import kubriko.examples.demo_shader_animations.generated.resources.sky_1
 import kubriko.examples.demo_shader_animations.generated.resources.sky_2
@@ -41,14 +41,13 @@ sealed interface ShaderAnimationsDemoStateHolder : StateHolder {
 
     companion object {
         @Composable
-        fun areResourcesLoaded() = areExpandControlsButtonResourcesLoaded() && areIconResourcesLoaded() && areStringResourcesLoaded()
+        fun areResourcesLoaded() = areExpandControlsButtonResourcesLoaded() && areShadersNotSupportedMessageResourcesLoaded() && areIconResourcesLoaded() && areStringResourcesLoaded()
 
         @Composable
         private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_code).value != null
 
         @Composable
         private fun areStringResourcesLoaded() = preloadedString(Res.string.description).value.isNotBlank()
-                && preloadedString(Res.string.shaders_not_supported).value.isNotBlank()
                 && preloadedString(Res.string.show_code).value.isNotBlank()
                 && preloadedString(Res.string.hide_code).value.isNotBlank()
                 && preloadedString(Res.string.gradient).value.isNotBlank()

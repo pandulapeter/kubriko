@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -30,15 +29,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationDemoType
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationsDemoStateHolder
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ShaderAnimationsDemoStateHolderImpl
 import com.pandulapeter.kubriko.demoShaderAnimations.implementation.ui.ControlsContainer
-import kubriko.examples.demo_shader_animations.generated.resources.Res
-import kubriko.examples.demo_shader_animations.generated.resources.shaders_not_supported
+import com.pandulapeter.kubriko.shared.ui.ShadersNotSupportedMessage
 import org.jetbrains.compose.resources.stringResource
 
 fun createShaderAnimationsDemoStateHolder(
@@ -89,6 +86,7 @@ fun ShaderAnimationsDemo(
         }
     } else {
         ShadersNotSupportedMessage(
+            modifier = modifier,
             windowInsets = windowInsets,
         )
     }
@@ -113,17 +111,4 @@ private fun ShaderAnimationTabs(
             onClick = { onSelectedDemoTypeChanged(demoType) }
         )
     }
-}
-
-@Composable
-private fun ShadersNotSupportedMessage(
-    windowInsets: WindowInsets,
-) = Box(
-    modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets).padding(16.dp)
-) {
-    Text(
-        modifier = Modifier.fillMaxWidth(0.75f).align(Alignment.Center),
-        textAlign = TextAlign.Center,
-        text = stringResource(Res.string.shaders_not_supported),
-    )
 }

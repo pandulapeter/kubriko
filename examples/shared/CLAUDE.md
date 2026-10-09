@@ -46,7 +46,11 @@ Styling helpers every game's buttons and theme would otherwise repeat:
 - `ExpandControlsButton(modifier, isExpanded, onToggle)` — that brush button on its own, also used by Shader Animations' control buttons.
 - `areExpandControlsButtonResourcesLoaded()` (`ui/ExpandControlsButtonResources.kt`) — preloads the button's icon and strings; the resource gate of every example using it calls it.
 
-This module has its own compose resources (`ic_brush`, `expand_controls`, `collapse_controls`) for these components. Its `Res` class stays internal, so examples reach the resources only through the components and the preload function.
+### `ui/ShadersNotSupportedMessage.kt` (`commonMain`)
+
+`ShadersNotSupportedMessage(modifier, windowInsets)` — the centred fallback text the two shader demos (Content Shaders, Shader Animations) show when `ShaderManager.areShadersSupported` is false; `areShadersNotSupportedMessageResourcesLoaded()` (`ui/ShadersNotSupportedMessageResources.kt`) preloads its string.
+
+This module has its own compose resources (`ic_brush`, `expand_controls`, `collapse_controls`, `shaders_not_supported`) for these components. Its `Res` class stays internal, so examples reach the resources only through the components and their preload functions.
 
 ### `ResourceLoader.web.kt` (`webMain`)
 
