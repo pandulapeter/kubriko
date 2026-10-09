@@ -24,6 +24,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.lerp
@@ -104,7 +105,7 @@ internal class PerformanceDemoManager(
                     MiniMap(
                         miniMapSize = 120.dp,
                         dotRadius = 1.5.dp,
-                        gameTime = metadataManager.totalRuntimeInMilliseconds.filter { it % 2 == 0L }.collectAsState(0L).value,
+                        gameTime = remember { metadataManager.totalRuntimeInMilliseconds.filter { it % 2 == 0L } }.collectAsState(0L).value,
                         visibleActorColor = MaterialTheme.colorScheme.primary,
                         invisibleActorColor = lerp(LocalContentColor.current, MaterialTheme.colorScheme.surface, 0.6f),
                         inactiveActorColor = lerp(LocalContentColor.current, MaterialTheme.colorScheme.surface, 0.9f),

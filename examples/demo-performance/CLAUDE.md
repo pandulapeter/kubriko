@@ -53,8 +53,10 @@ widens the "visible" zone so actors don't pop in abruptly.
 **Mini-map rendering without flow subscriptions.** `MiniMap` is a `Canvas` composable invalidated
 by a `gameTime` parameter (from `MetadataManager.totalRuntimeInMilliseconds` filtered to every
 other millisecond). It reads actor lists via lambda callbacks (`getAllVisibleActors`,
-`getAllVisibleActorsWithinViewport`, `getAllActiveDynamicActors`) rather than collecting StateFlows,
-which avoids re-composing the mini-map's parent on every frame.
+`getAllVisibleActorsWithinViewport`, `getAllActiveDynamicActors`) rather than collecting StateFlows.
+The mini map's `Panel` content (inside the `AnimatedVisibility`; `Panel`'s content lambda is its own
+recompose scope) recomposes once per sampled tick to pass `gameTime`; the lambda callbacks avoid
+collecting and snapshotting the actor lists.
 
 **Scene Editor integration on Desktop.** `PerformanceDemoSceneEditor` (Desktop only) launches the
 tool-scene-editor with the same `SerializationManager`, letting developers redesign the stress-test
