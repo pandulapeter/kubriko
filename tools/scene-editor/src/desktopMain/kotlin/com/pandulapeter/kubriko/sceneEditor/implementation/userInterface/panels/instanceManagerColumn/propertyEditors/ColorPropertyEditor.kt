@@ -47,7 +47,6 @@ import kubriko.tools.scene_editor.generated.resources.property_red
 import kubriko.tools.scene_editor.generated.resources.property_saturation
 import kubriko.tools.scene_editor.generated.resources.property_value
 import org.jetbrains.compose.resources.stringResource
-import kotlin.math.roundToInt
 
 @Composable
 internal fun ColorPropertyEditor(
@@ -137,7 +136,7 @@ private fun HexInput(
         },
         value = textFieldValue,
         onValueChange = { newValue ->
-            val sanitized = newValue.text.filter { it.isHexDigit() }.uppercase().takeLast(6)
+            val sanitized = sanitizeHexInput(newValue.text)
             textFieldValue = if (sanitized == newValue.text) newValue else TextFieldValue(sanitized, TextRange(sanitized.length))
             sanitized.parseHexColor(value.alpha)?.let(onValueChanged)
         },
@@ -145,21 +144,6 @@ private fun HexInput(
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         textStyle = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurface),
         decorationBox = { innerTextField -> innerTextField() },
-    )
-}
-
-private fun Char.isHexDigit() = this in '0'..'9' || this in 'a'..'f' || this in 'A'..'F'
-
-private fun Float.toHexChannel() = (this * 255).roundToInt().coerceIn(0, 255).toString(16).padStart(2, '0').uppercase()
-
-private fun Color.toHexString() = "${red.toHexChannel()}${green.toHexChannel()}${blue.toHexChannel()}"
-
-private fun String.parseHexColor(alpha: Float) = takeIf { it.length == 6 }?.toLongOrNull(16)?.let { value ->
-    Color(
-        red = ((value shr 16) and 0xFF) / 255f,
-        green = ((value shr 8) and 0xFF) / 255f,
-        blue = (value and 0xFF) / 255f,
-        alpha = alpha,
     )
 }
 
