@@ -9,7 +9,6 @@
  */
 package com.pandulapeter.kubriko.implementation
 
-import kotlinx.browser.window
 import org.w3c.dom.Window
 
 /** Whether the browser runs on an Android device, judged by its user agent. */
@@ -17,15 +16,22 @@ fun Window.isRunningOnAndroid() =
     navigator.userAgent.contains("Android")
 
 /**
- * Whether the browser runs on an iPhone: its user agent says so, or it is a touch screen outside Chrome with a wide
- * (phone-in-landscape) window.
+ * Whether the browser runs on an iPhone: its user agent says so, or it is a touch screen with a macOS user agent
+ * (desktop-mode Safari) and a wide (phone-in-landscape) window.
  */
 fun Window.isRunningOnIphone() =
-    navigator.userAgent.contains("iPhone") || (!navigator.userAgent.contains("Chrome") && navigator.maxTouchPoints > 0 && window.innerWidth / window.innerHeight > 1.6)
+    classifyAppleDevice() == AppleDevice.Iphone
 
 /**
- * Whether the browser runs on an iPad: its user agent says so, or it is a touch screen outside Chrome whose window is
- * not that wide.
+ * Whether the browser runs on an iPad: its user agent says so, or it is a touch screen with a macOS user agent
+ * (iPadOS Safari and desktop-mode Safari) and a window that is not that wide.
  */
 fun Window.isRunningOnIpad() =
-    navigator.userAgent.contains("iPad") || (!navigator.userAgent.contains("Chrome") && navigator.maxTouchPoints > 0 && window.innerWidth / window.innerHeight <= 1.6)
+    classifyAppleDevice() == AppleDevice.Ipad
+
+private fun Window.classifyAppleDevice() = classifyAppleDevice(
+    userAgent = navigator.userAgent,
+    maxTouchPoints = navigator.maxTouchPoints,
+    width = innerWidth,
+    height = innerHeight,
+)
