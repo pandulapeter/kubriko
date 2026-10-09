@@ -15,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.actor.body.BoxBody
-import com.pandulapeter.kubriko.actor.body.PointBody
 import com.pandulapeter.kubriko.actor.traits.Positionable
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.components.EditorText
 import com.pandulapeter.kubriko.sceneEditor.implementation.userInterface.panels.settings.AngleEditorMode
@@ -27,9 +26,6 @@ import kubriko.tools.scene_editor.generated.resources.property_rotation
 import kubriko.tools.scene_editor.generated.resources.property_scale
 import kubriko.tools.scene_editor.generated.resources.property_size
 import org.jetbrains.compose.resources.stringResource
-import kotlin.reflect.full.createType
-import kotlin.reflect.full.isSubtypeOf
-import kotlin.reflect.full.memberProperties
 
 internal fun createBodyPropertyEditor(
     getActor: () -> Positionable,
@@ -59,9 +55,7 @@ internal fun BodyPropertyEditor(
         text = stringResource(Res.string.property_body),
         isBold = true,
     )
-    val actor = getActor()
-    val bd = actor::class.memberProperties.firstOrNull { it.returnType.isSubtypeOf(PointBody::class.createType()) }
-    val body = bd!!.getter.call(actor) as PointBody
+    val body = getActor().body
     SceneOffsetPropertyEditor(
         name = stringResource(Res.string.property_position),
         value = body.position,
