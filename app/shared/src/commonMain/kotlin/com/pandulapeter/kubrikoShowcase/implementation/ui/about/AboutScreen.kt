@@ -29,22 +29,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.manager.MetadataManager
-import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.LargeButton
-import com.pandulapeter.kubriko.uiComponents.utilities.preloadedImageVector
-import com.pandulapeter.kubriko.uiComponents.utilities.preloadedString
 import com.pandulapeter.kubriko.uiComponents.utilities.rememberShareManager
-import com.pandulapeter.kubrikoShowcase.BuildConfig
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 import kubriko.app.shared.generated.resources.Res
 import kubriko.app.shared.generated.resources.ic_bug
 import kubriko.app.shared.generated.resources.ic_contact
 import kubriko.app.shared.generated.resources.ic_github
 import kubriko.app.shared.generated.resources.ic_privacy_policy
-import kubriko.app.shared.generated.resources.ic_review
 import kubriko.app.shared.generated.resources.ic_share
 import kubriko.app.shared.generated.resources.ic_website
 import kubriko.app.shared.generated.resources.other_about_contact_me
@@ -63,11 +55,7 @@ import kubriko.app.shared.generated.resources.other_about_report_an_issue
 import kubriko.app.shared.generated.resources.other_about_repository
 import kubriko.app.shared.generated.resources.other_about_spread_the_word
 import kubriko.app.shared.generated.resources.other_about_visit_my_website
-import kubriko.app.shared.generated.resources.other_about_write_a_review
 import org.jetbrains.compose.resources.stringResource
-
-
-fun createAboutScreenStateHolder(): AboutScreenStateHolder = AboutScreenStateHolderImpl()
 
 @Composable
 internal fun AboutScreen(
@@ -165,48 +153,4 @@ private fun MetadataManager.Platform.description() = when (this) {
     is MetadataManager.Platform.Desktop.Windows -> stringResource(Res.string.other_about_content_footer_windows, windowsVersion, javaVersion)
     is MetadataManager.Platform.IOS -> stringResource(Res.string.other_about_content_footer_ios, iOSVersion)
     is MetadataManager.Platform.Web -> stringResource(Res.string.other_about_content_footer_web, userAgent)
-}
-
-sealed interface AboutScreenStateHolder : StateHolder {
-
-    companion object {
-        @Composable
-        fun areResourcesLoaded() = areIconResourcesLoaded() && areStringResourcesLoaded()
-
-        @Composable
-        private fun areIconResourcesLoaded() = preloadedImageVector(Res.drawable.ic_bug).value != null
-                && preloadedImageVector(Res.drawable.ic_contact).value != null
-                && preloadedImageVector(Res.drawable.ic_privacy_policy).value != null
-                && preloadedImageVector(Res.drawable.ic_review).value != null
-                && preloadedImageVector(Res.drawable.ic_share).value != null
-                && preloadedImageVector(Res.drawable.ic_website).value != null
-
-        @Composable
-        private fun areStringResourcesLoaded() = preloadedString(Res.string.other_about_content).value.isNotBlank()
-                && preloadedString(Res.string.other_about_repository).value.isNotBlank()
-                && preloadedString(Res.string.other_about_report_an_issue).value.isNotBlank()
-                && preloadedString(Res.string.other_about_spread_the_word).value.isNotBlank()
-                && preloadedString(Res.string.other_about_write_a_review).value.isNotBlank()
-                && preloadedString(Res.string.other_about_contact_me).value.isNotBlank()
-                && preloadedString(Res.string.other_about_visit_my_website).value.isNotBlank()
-                && preloadedString(Res.string.other_about_privacy_policy).value.isNotBlank()
-                && preloadedString(Res.string.other_about_content_creator).value.isNotBlank()
-                && preloadedString(Res.string.other_about_content_license).value.isNotBlank()
-                && preloadedString(Res.string.other_about_content_footer).value.isNotBlank()
-                && preloadedString(Res.string.other_about_content_footer_android).value.isNotBlank()
-                && preloadedString(Res.string.other_about_content_footer_ios).value.isNotBlank()
-                && preloadedString(Res.string.other_about_content_footer_linux).value.isNotBlank()
-                && preloadedString(Res.string.other_about_content_footer_mac_os).value.isNotBlank()
-                && preloadedString(Res.string.other_about_content_footer_windows).value.isNotBlank()
-                && preloadedString(Res.string.other_about_content_footer_web).value.isNotBlank()
-    }
-}
-
-private class AboutScreenStateHolderImpl : AboutScreenStateHolder {
-    override val kubriko: Flow<Kubriko?> = emptyFlow()
-    val appVersion = BuildConfig.APP_VERSION
-    val libraryVersion = BuildConfig.LIBRARY_VERSION
-    val platform = MetadataManager.newInstance().platform
-
-    override fun dispose() = Unit
 }
