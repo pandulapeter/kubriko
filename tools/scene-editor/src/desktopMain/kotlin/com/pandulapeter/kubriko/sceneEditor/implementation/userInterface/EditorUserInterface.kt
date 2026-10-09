@@ -81,6 +81,7 @@ internal fun EditorUserInterface(
             editorController.onFileOperationErrorShown()
         }
     }
+    val registeredTypeIds = remember(editorController) { editorController.serializationManager.registeredTypeIds.toList() }
     Scaffold(
         modifier = modifier,
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -108,7 +109,7 @@ internal fun EditorUserInterface(
                         )
                         InstanceManagerColumn(
                             modifier = Modifier.fillMaxHeight().width(instanceManagerColumnWidth),
-                            registeredTypeIds = editorController.serializationManager.registeredTypeIds.toList(),
+                            registeredTypeIds = registeredTypeIds,
                             selectedTypeId = editorController.selectedTypeId.collectAsState().value,
                             selectedUpdatableInstance = editorController.selectedUpdatableActor.collectAsState().value,
                             selectTypeId = editorController::selectActorType,
