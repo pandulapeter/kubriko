@@ -53,7 +53,7 @@ internal fun LazyListScope.menu(
             }
             items(
                 items = entries,
-                key = { it.name }
+                key = { it.name },
             ) { showcaseEntry ->
                 MenuItem(
                     isSelected = selectedShowcaseEntry == showcaseEntry,

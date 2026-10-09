@@ -38,5 +38,5 @@ internal enum class LicenseType(
     ),
     MPL_2_0(
         licenseName = Res.string.other_licenses_mpl_2_0,
-    );
+    ),
 }

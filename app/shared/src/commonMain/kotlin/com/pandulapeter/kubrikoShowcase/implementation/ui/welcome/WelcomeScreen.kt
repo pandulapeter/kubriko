@@ -190,7 +190,7 @@ internal fun WelcomeScreen(
         style = MaterialTheme.typography.bodySmall,
         text = stringResource(
             Res.string.welcome_app_details,
-            stringResource(if (shouldUseCompactUi) Res.string.welcome_app_details_call_to_action_collapsed else Res.string.welcome_app_details_call_to_action_expanded)
+            stringResource(if (shouldUseCompactUi) Res.string.welcome_app_details_call_to_action_collapsed else Res.string.welcome_app_details_call_to_action_expanded),
         ),
     )
     Disclaimer()

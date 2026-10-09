@@ -90,37 +90,37 @@ internal enum class ShowcaseEntry(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_content_shaders,
         subtitleStringResource = Res.string.demo_content_shaders_subtitle,
-        areResourcesLoaded = { ContentShadersDemoStateHolder.areResourcesLoaded() }
+        areResourcesLoaded = { ContentShadersDemoStateHolder.areResourcesLoaded() },
     ),
     ISOMETRIC_GRAPHICS(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_isometric_graphics,
         subtitleStringResource = Res.string.demo_isometric_graphics_subtitle,
-        areResourcesLoaded = { IsometricGraphicsDemoStateHolder.areResourcesLoaded() }
+        areResourcesLoaded = { IsometricGraphicsDemoStateHolder.areResourcesLoaded() },
     ),
     PARTICLES(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_particles,
         subtitleStringResource = Res.string.demo_particles_subtitle,
-        areResourcesLoaded = { ParticlesDemoStateHolder.areResourcesLoaded() }
+        areResourcesLoaded = { ParticlesDemoStateHolder.areResourcesLoaded() },
     ),
     PERFORMANCE(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_performance,
         subtitleStringResource = Res.string.demo_performance_subtitle,
-        areResourcesLoaded = { PerformanceDemoStateHolder.areResourcesLoaded() }
+        areResourcesLoaded = { PerformanceDemoStateHolder.areResourcesLoaded() },
     ),
     PHYSICS(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_physics,
         subtitleStringResource = Res.string.demo_physics_subtitle,
-        areResourcesLoaded = { PhysicsDemoStateHolder.areResourcesLoaded() }
+        areResourcesLoaded = { PhysicsDemoStateHolder.areResourcesLoaded() },
     ),
     SHADER_ANIMATIONS(
         type = ShowcaseEntryType.DEMO,
         titleStringResource = Res.string.demo_shader_animations,
         subtitleStringResource = Res.string.demo_shader_animations_subtitle,
-        areResourcesLoaded = { ShaderAnimationsDemoStateHolder.areResourcesLoaded() }
+        areResourcesLoaded = { ShaderAnimationsDemoStateHolder.areResourcesLoaded() },
     ),
 
     // Tests
@@ -128,19 +128,19 @@ internal enum class ShowcaseEntry(
         type = ShowcaseEntryType.TEST,
         titleStringResource = Res.string.test_audio,
         subtitleStringResource = Res.string.test_audio_subtitle,
-        areResourcesLoaded = { AudioTestStateHolder.areResourcesLoaded() }
+        areResourcesLoaded = { AudioTestStateHolder.areResourcesLoaded() },
     ),
     COLLISION(
         type = ShowcaseEntryType.TEST,
         titleStringResource = Res.string.test_collision,
         subtitleStringResource = Res.string.test_collision_subtitle,
-        areResourcesLoaded = { CollisionTestStateHolder.areResourcesLoaded() }
+        areResourcesLoaded = { CollisionTestStateHolder.areResourcesLoaded() },
     ),
     INPUT(
         type = ShowcaseEntryType.TEST,
         titleStringResource = Res.string.test_input,
         subtitleStringResource = Res.string.test_input_subtitle,
-        areResourcesLoaded = { InputTestStateHolder.areResourcesLoaded() }
+        areResourcesLoaded = { InputTestStateHolder.areResourcesLoaded() },
     ),
 
     // Other

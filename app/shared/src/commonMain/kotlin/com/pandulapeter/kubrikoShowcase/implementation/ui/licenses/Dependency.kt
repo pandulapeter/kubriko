@@ -128,5 +128,5 @@ internal enum class Dependency(
         dependencyName = "Kubriko",
         url = "https://github.com/pandulapeter/kubriko/blob/main/LICENSE",
         type = LicenseType.MPL_2_0,
-    );
+    ),
 }

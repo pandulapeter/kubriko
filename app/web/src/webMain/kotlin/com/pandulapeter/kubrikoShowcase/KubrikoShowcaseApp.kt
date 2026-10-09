@@ -26,7 +26,7 @@ fun main() {
         viewportContainerId = COMPOSE_VIEWPORT_CONTAINER_ID,
         configure = {
             isA11YEnabled = false
-        }
+        },
     ) {
         val isInFullscreenMode = remember { mutableStateOf(if (window.isRunningOnIphone()) null else false) }
         val initialPath = remember { window.location.pathname }

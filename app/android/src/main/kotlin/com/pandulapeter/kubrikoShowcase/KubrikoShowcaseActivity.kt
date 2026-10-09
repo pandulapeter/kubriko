@@ -65,7 +65,7 @@ class KubrikoShowcaseActivity : ComponentActivity() {
                     override fun onAnimationEnd(animator: Animator) = splashScreen.remove()
                     override fun onAnimationCancel(animator: Animator) = Unit
                     override fun onAnimationRepeat(animator: Animator) = Unit
-                }
+                },
             )
             .start()
     }

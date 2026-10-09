@@ -111,7 +111,7 @@ internal fun TopBar(
     ) { shouldUseCompactUi ->
         if (shouldUseCompactUi) {
             Crossfade(
-                targetState = selectedShowcaseEntry
+                targetState = selectedShowcaseEntry,
             ) { showcaseEntry ->
                 Header(
                     modifier = Modifier.fillMaxWidth(),
@@ -162,7 +162,7 @@ private fun Header(
                         selectedShowcaseEntry.titleStringResource
                     } else {
                         Res.string.kubriko_showcase
-                    }
+                    },
                 ),
             )
             AnimatedVisibility(
@@ -202,7 +202,7 @@ private fun Header(
     navigationIcon = {
         if (shouldUseCompactUi && selectedShowcaseEntry != null) {
             IconButton(
-                onClick = { onShowcaseEntrySelected(null) }
+                onClick = { onShowcaseEntrySelected(null) },
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.ic_back),
@@ -210,5 +210,5 @@ private fun Header(
                 )
             }
         }
-    }
+    },
 )

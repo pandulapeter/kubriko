@@ -165,7 +165,7 @@ internal fun ShowcaseEntry.disposeStateHolder() {
 
 private inline fun <reified T : StateHolder> getOrCreateState(
     stateHolders: MutableState<List<StateHolder>>,
-    creator: () -> T
+    creator: () -> T,
 ): T = stateHolders.value.filterIsInstance<T>().firstOrNull() ?: creator().also { stateHolders.value += it }
 
 private val ShowcaseEntry.stateHolderType
