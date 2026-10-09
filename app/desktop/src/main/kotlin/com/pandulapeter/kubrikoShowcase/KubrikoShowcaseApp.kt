@@ -38,7 +38,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kubriko.app.desktop.generated.resources.Res
 import kubriko.app.desktop.generated.resources.ic_icon
+import kubriko.app.desktop.generated.resources.kubriko_showcase
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import java.awt.Color
 import java.awt.Component
 import java.awt.Container
@@ -73,7 +75,7 @@ fun main() {
             SwingWindow(
                 onCloseRequest = ::exitApplication,
                 state = windowState,
-                title = "Kubriko Showcase",
+                title = stringResource(Res.string.kubriko_showcase),
                 decoration = if (undecorated) WindowDecoration.Undecorated() else WindowDecoration.SystemDefault,
                 resizable = resizable,
                 icon = painterResource(Res.drawable.ic_icon),
