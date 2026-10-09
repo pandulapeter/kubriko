@@ -41,7 +41,7 @@ class BallBounceTest {
     fun topBouncesUpAndKeepsTheHorizontalDirection() = assertBounce(50f, -10f, BounceRegion.TOP, 0, -1)
 
     @Test
-    fun topRightCornerBouncesUpAndLeft() = assertBounce(110f, -10f, BounceRegion.TOP_RIGHT, -1, -1)
+    fun topRightCornerBouncesUpAndRight() = assertBounce(110f, -10f, BounceRegion.TOP_RIGHT, 1, -1)
 
     @Test
     fun leftBouncesLeftAndKeepsTheVerticalDirection() = assertBounce(-10f, 25f, BounceRegion.LEFT, -1, 0)
