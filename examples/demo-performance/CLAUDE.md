@@ -21,7 +21,7 @@ mini-map overlay visualises which actors are in-viewport, active-but-offscreen, 
 - `ActorManager` with `invisibleActorMinimumRefreshTimeInMillis = 500` — off-screen actors update at
   most every 500 ms instead of every frame, reducing CPU load for the large off-screen population
 - `ViewportManager` — `initialScaleFactor = 0.5`, `viewportEdgeBuffer = 400 su`
-- `PerformanceDemoManager` — loads the scene JSON and owns the UI composable
+- `PerformanceDemoManager` — loads the scene JSON; its `Composable` override delegates to `ui/PerformanceDemoOverlay`
 - `SerializationManager` (via `EditableMetadata.newSerializationManagerInstance`) — deserialises
   `BoxWithCircle`, `MovingBox`, and `Camera` actors from
   `files/scenes/scene_performance_demo.json`
