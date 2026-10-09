@@ -48,7 +48,10 @@ coroutine, while raw pointer events arrive synchronously in the event loop.
 - `isMultiTouchEnabled = false` on **Desktop** (tracked JetBrains issue CMP-1609); pointer ID
   filtering drops any event whose `id.value != 0L`.
 - **Android**, **iOS**, and **Web**: `isMultiTouchEnabled = true`; all pointer IDs are forwarded.
-  `detectTransformGestures` correctly fires `onPointerZoom` from pinch gestures on all three.
+- **Android** and **iOS**: `detectTransformGestures` fires `onPointerZoom` from pinch gestures.
+- **Web**: touch pinch does not reach `onPointerZoom` (CMP-6957, the TODO in `PlatformExtensions.web.kt`).
+  Desktop-browser trackpad pinches arrive as Ctrl+wheel events through the scroll path; the scroll handler consumes
+  nothing, so Compose does not `preventDefault()` them and the browser page may zoom as well (not verified).
 - Scroll-to-zoom factor (`scrollZoomFactor`): `exp(-delta · k)`, k = 0.05 per wheel notch on Desktop/iOS and 0.005 per pixel on the Web (line/page delta modes converted to pixels first); always > 0 and symmetric (the exponent is clamped to ±10).
 
 ## Cursor control (`tryToMoveHoveringPointer`)
