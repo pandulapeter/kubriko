@@ -61,7 +61,7 @@ internal class Ray(
         var intersectionFound = false
         var closestBody: PhysicsBody? = null
         for (body in bodiesToEvaluate) {
-            val intersectionReturnElement = body.rayIntersect(startPoint, endPoint, minT1, body)
+            val intersectionReturnElement = body.rayIntersect(startPoint, endPoint, minT1)
             if (intersectionReturnElement.intersectionFound) {
                 minT1 = intersectionReturnElement.maxDistance
                 minPx = intersectionReturnElement.minPx

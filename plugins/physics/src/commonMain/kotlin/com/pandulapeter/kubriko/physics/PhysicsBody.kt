@@ -20,7 +20,6 @@ import com.pandulapeter.kubriko.helpers.extensions.dot
 import com.pandulapeter.kubriko.helpers.extensions.length
 import com.pandulapeter.kubriko.helpers.extensions.scalar
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.physics.implementation.isPointOnLine
 import com.pandulapeter.kubriko.physics.implementation.lineIntersect
 import com.pandulapeter.kubriko.types.AngleRadians
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -119,7 +118,7 @@ class PhysicsBody(
             field = value
             if (density == 0f) {
                 setStatic()
-            } else if (true) {
+            } else {
                 calculateMass(value)
             }
         }
@@ -232,7 +231,6 @@ class PhysicsBody(
         startPoint: SceneOffset,
         endPoint: SceneOffset,
         maxDistance: SceneUnit,
-        physicalBody: PhysicsBody,
     ): IntersectionReturnElement = when (collisionMask) {
         is CircleCollisionMask -> {
             var minPx = SceneUnit.Zero
@@ -259,7 +257,7 @@ class PhysicsBody(
                         minPx = startPoint.x + ray.x * t1
                         minPy = startPoint.y + ray.y * t1
                         intersectionFound = true
-                        closestBody = physicalBody
+                        closestBody = this
                     }
                 }
             }
@@ -283,17 +281,12 @@ class PhysicsBody(
                 val intersection = lineIntersect(startPoint, endPoint, startOfPolyEdge, endOfPolyEdge)
                 if (intersection != null) {
                     val distance = startPoint.distanceTo(intersection)
-                    if (isPointOnLine(startPoint, endPoint, intersection) && isPointOnLine(
-                            startOfPolyEdge,
-                            endOfPolyEdge,
-                            intersection
-                        ) && distance < maxD
-                    ) {
+                    if (distance < maxD) {
                         maxD = distance
                         minPx = intersection.x
                         minPy = intersection.y
                         intersectionFound = true
-                        closestBody = physicalBody
+                        closestBody = this
                     }
                 }
             }
