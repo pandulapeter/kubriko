@@ -52,9 +52,11 @@ Typography uses `Public Sans Regular` across all Material3 text styles.
 
 ## Usage in existing tools
 
-- **debug-menu**: uses `SmallSwitch` (via `LogsHeader`), `KubrikoTheme` implicitly via the Showcase app shell.
-- **scene-editor**: uses its own internal `Editor*` components that do NOT use `ui-components`; the editor has its own Material3 theming.
-- **Showcase app**: uses `KubrikoTheme`, `LargeButton`, `SmallButton`, `FloatingButton`, `Panel`, `InfoPanel`, `LoadingOverlay`, `SmallSwitch`, `SmallSliderWithTitle`, `ShareManager`.
+- **debug-menu**: uses `TextInput` (the log filter in `LogsHeader`); its switches are plain Material3 `Switch`es and it does not apply `KubrikoTheme` itself.
+- **scene-editor**: wraps `EditorUserInterface` and `Settings` in `KubrikoTheme`; `EditorTextInput` is built on `TextInput`. Its other controls are its own internal `Editor*` components.
+- **Showcase app** (`app/`): uses `KubrikoTheme`, `LargeButton`, `InfoPanel` and `rememberShareManager`.
+- **Examples** embedded in the Showcase: use `Panel`, `InfoPanel`, `LargeButton`, `FloatingButton`, `LoadingOverlay`, `LoadingIndicator`, `SmallSwitch`, `SmallSlider` / `SmallSliderWithTitle` and the `preloaded*` loaders.
+- `SmallButton` has no in-repo user; it is public API for consumers.
 
 ## Adding a new tool
 
