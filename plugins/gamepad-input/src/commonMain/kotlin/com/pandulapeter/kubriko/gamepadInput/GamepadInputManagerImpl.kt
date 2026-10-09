@@ -52,25 +52,31 @@ internal class GamepadInputManagerImpl(
     }
     private var wasFocused = true
 
-    // Read from the composition, so that turning it on and off starts and stops the frame loop below rather
-    // than leaving one running to do nothing on every frame of a game that never navigates anything.
+    /**
+     * Read from the composition, so that turning it on and off starts and stops the frame loop below rather
+     * than leaving one running to do nothing on every frame of a game that never navigates anything.
+     */
     override var isFocusNavigationEnabled by mutableStateOf(false)
 
-    // The direction the focus is currently being walked in, and how long it has been held that way. Together
-    // they are what turns a stick that is simply pushed and left there into the repeat a held arrow key has.
+    /**
+     * The direction the focus is currently being walked in, and how long it has been held that way. Together
+     * they are what turns a stick that is simply pushed and left there into the repeat a held arrow key has.
+     */
     private var focusDirection: FocusDirection? = null
     private var timeUntilNextFocusStepInMilliseconds = 0f
     private var wasActivationButtonPressed = false
     private var wasBackButtonPressed = false
 
-    // Whether the pads asked anything of the focus when they were last polled - what wakes the frame loop below, which
-    // otherwise sleeps: the state it reads only changes when onUpdate() polls, so a frame with nothing held would
-    // only ask for a display frame, and a redraw of the whole window on most platforms, to learn nothing.
+    /**
+     * Whether the pads asked anything of the focus when they were last polled - what wakes the frame loop below, which
+     * otherwise sleeps: the state it reads only changes when onUpdate() polls, so a frame with nothing held would
+     * only ask for a display frame, and a redraw of the whole window on most platforms, to learn nothing.
+     */
     private val hasFocusNavigationInput = MutableStateFlow(false)
     private var previousFocusFrameTimeNanos = 0L
     private var hadFocusNavigationInput = false
 
-    // Held rather than written inline, so that awaiting a frame doesn't allocate a lambda every time.
+    /** Held rather than written inline, so that awaiting a frame doesn't allocate a lambda every time. */
     private val onFocusNavigationFrame: (Long) -> Unit = { frameTimeNanos ->
         val deltaTimeInMilliseconds = if (previousFocusFrameTimeNanos == 0L) {
             0f
@@ -81,7 +87,7 @@ internal class GamepadInputManagerImpl(
         hadFocusNavigationInput = updateFocusNavigation(deltaTimeInMilliseconds)
     }
 
-    // Scratch storage for applyDeadZone(), which has to return two values without allocating.
+    /** Scratch storage for applyDeadZone(), which has to return two values without allocating. */
     private var deadZonedX = 0f
     private var deadZonedY = 0f
 
@@ -446,16 +452,20 @@ internal class GamepadInputManagerImpl(
     override fun onDispose() = stopListening(shouldNotifyActors = false)
 }
 
-// How far a stick has to lean before it counts as asking for a direction. Well above the dead zone, so that a
-// stick resting slightly off center never walks the focus on its own.
+/**
+ * How far a stick has to lean before it counts as asking for a direction. Well above the dead zone, so that a
+ * stick resting slightly off center never walks the focus on its own.
+ */
 private const val FOCUS_STICK_THRESHOLD = 0.5f
 
-// What a held direction does, in milliseconds: the pause before it starts repeating, and the pace it repeats at
-// afterwards. Matches the feel of a held arrow key rather than any one platform's exact numbers.
+/**
+ * What a held direction does, in milliseconds: the pause before it starts repeating, and the pace it repeats at
+ * afterwards. Matches the feel of a held arrow key rather than any one platform's exact numbers.
+ */
 private const val FOCUS_REPEAT_DELAY = 400f
 private const val FOCUS_REPEAT_INTERVAL = 120f
 
 private const val NANOSECONDS_PER_MILLISECOND = 1_000_000f
 
-// A frame the platform sat on must not turn into one huge jump through the focus.
+/** A frame the platform sat on must not turn into one huge jump through the focus. */
 private const val MAXIMUM_FRAME_TIME = 100f

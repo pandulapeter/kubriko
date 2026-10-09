@@ -24,8 +24,10 @@ internal class GamepadActivationNode(
 
     override fun onDetach() = setFocused(false)
 
-    // A focused node that is handed a different manager carries its claim across, or the manager it is leaving
-    // would be left activating a control that is no longer listening to it.
+    /**
+     * A focused node that is handed a different manager carries its claim across, or the manager it is leaving
+     * would be left activating a control that is no longer listening to it.
+     */
     fun setGamepadInputManager(gamepadInputManager: GamepadInputManager) {
         if (this.gamepadInputManager === gamepadInputManager) {
             return
