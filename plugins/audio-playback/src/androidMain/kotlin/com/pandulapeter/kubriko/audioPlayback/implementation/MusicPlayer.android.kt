@@ -47,9 +47,8 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
 
     override suspend fun play(cachedMusic: Any, shouldLoop: Boolean, shouldRestart: Boolean) = withContext(Dispatchers.Default) {
         (cachedMusic as MediaPlayer).run {
-            // If shouldRestart is true and already playing, reset to beginning
-            if (shouldRestart && isPlaying) {
-                pause()
+            if (shouldRestart) {
+                if (isPlaying) pause()
                 seekTo(0)
             }
             
@@ -73,7 +72,8 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
     override fun pause(cachedMusic: Any) = (cachedMusic as MediaPlayer).pause()
 
     override fun stop(cachedMusic: Any) = (cachedMusic as MediaPlayer).run {
-        pause()
+        // pause() is invalid in the Prepared state and would move a never-started player to Error.
+        if (isPlaying) pause()
         seekTo(0)
     }
 

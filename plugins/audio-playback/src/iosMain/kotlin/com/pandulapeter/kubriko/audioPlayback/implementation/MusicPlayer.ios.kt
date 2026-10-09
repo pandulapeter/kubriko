@@ -33,9 +33,8 @@ internal actual fun createMusicPlayer(coroutineScope: CoroutineScope) = object :
         cachedMusic as AVAudioPlayer
         cachedMusic.setNumberOfLoops(if (shouldLoop) NSIntegerMax else 0)
         
-        // Handle restart request
-        if (shouldRestart && cachedMusic.isPlaying()) {
-            cachedMusic.stop()
+        if (shouldRestart) {
+            if (cachedMusic.isPlaying()) cachedMusic.stop()
             cachedMusic.setCurrentTime(0.0)
         }
         

@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.audioPlayback
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
+import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.audioPlayback.implementation.AudioCache
 import com.pandulapeter.kubriko.audioPlayback.implementation.MusicPlayer
 import com.pandulapeter.kubriko.audioPlayback.implementation.createMusicPlayer
@@ -32,6 +33,7 @@ import kotlin.time.Duration.Companion.milliseconds
 internal class MusicManagerImpl(
     isLoggingEnabled: Boolean,
     instanceNameForLogging: String?,
+    private val initialMusicPlayer: MusicPlayer? = null,
 ) : MusicManager(isLoggingEnabled, instanceNameForLogging) {
     private val audioCache = AudioCache()
     private var musicPlayer: MusicPlayer? = null
@@ -39,29 +41,38 @@ internal class MusicManagerImpl(
     private val volumeConfig = MutableStateFlow(persistentMapOf<String, Pair<Float, Float>>())
     private var defaultVolume: Pair<Float, Float> = Pair(1.0f, 1.0f)
 
-    @OptIn(FlowPreview::class)
+    override fun onInitialize(kubriko: Kubriko) {
+        if (initialMusicPlayer != null) {
+            attachMusicPlayer(initialMusicPlayer)
+        }
+    }
+
     @Composable
     override fun Composable(windowInsets: WindowInsets) {
         if (musicPlayer == null) {
-            val player = createMusicPlayer(scope)
-            musicPlayer = player
-            audioCache.attach(
-                scope = scope,
-                loader = { uri -> load(player, uri) },
-                onFailed = { uri ->
-                    log(
-                        message = "Failed to load $uri.",
-                        importance = Logger.Importance.HIGH,
-                    )
-                },
-                onDiscarded = { music -> player.dispose(music) },
-            )
-            stateManager.isFocused
-                .debounce(musicPauseDelayOnFocusLoss.milliseconds)
-                .filterNot { it }
-                .onEach { audioCache.uris.forEach(::pause) }
-                .launchIn(scope)
+            attachMusicPlayer(createMusicPlayer(scope))
         }
+    }
+
+    @OptIn(FlowPreview::class)
+    private fun attachMusicPlayer(player: MusicPlayer) {
+        musicPlayer = player
+        audioCache.attach(
+            scope = scope,
+            loader = { uri -> load(player, uri) },
+            onFailed = { uri ->
+                log(
+                    message = "Failed to load $uri.",
+                    importance = Logger.Importance.HIGH,
+                )
+            },
+            onDiscarded = { music -> player.dispose(music) },
+        )
+        stateManager.isFocused
+            .debounce(musicPauseDelayOnFocusLoss.milliseconds)
+            .filterNot { it }
+            .onEach { audioCache.uris.forEach(::pause) }
+            .launchIn(scope)
     }
 
     private suspend fun load(player: MusicPlayer, uri: String): Any? {
@@ -112,11 +123,7 @@ internal class MusicManagerImpl(
     }
 
     override fun stop(uri: String) {
-        if (isPlaying(uri)) {
-            scope.launch {
-                audioCache.loaded(uri)?.let { music -> musicPlayer?.stop(music) }
-            }
-        }
+        audioCache.loaded(uri)?.let { music -> musicPlayer?.let { player -> scope.launch { player.stop(music) } } }
     }
 
     override fun unload(uri: String) {

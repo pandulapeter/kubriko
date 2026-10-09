@@ -74,7 +74,7 @@ sealed class MusicManager(
      *
      * @param uri The identifier of the music file.
      * @param shouldLoop Whether the music should automatically restart when it finishes.
-     * @param shouldRestart Whether to restart the music from the beginning if it is already playing.
+     * @param shouldRestart Whether to start the music from the beginning even if it is playing or paused.
      */
     abstract fun play(uri: String, shouldLoop: Boolean = true, shouldRestart: Boolean = false)
 

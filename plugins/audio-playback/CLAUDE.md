@@ -37,6 +37,7 @@ Streaming music and pooled SFX. Reliably works on Android and Desktop; iOS and W
 - `AudioCache` keeps every URI in one atomically updated map (loading or loaded); `preload()` and `play()` share its single load per URI, a load that finishes after `unload()`/`unloadAll()` is disposed instead of stored, and every player is disposed exactly once
 - A platform `preload` returns `null` on failure and never throws (except `CancellationException`); `AudioCache` records a failed URI as settled (non-null in its `entries`, so `getLoadingProgress` still reaches 1), logs it at `HIGH`, and retries it on the next `preload()`/`play()` while it keeps counting as settled
 - `play()` checks `stateManager.isFocused.value` first; silently suppressed when unfocused
+- `stop()` rewinds a loaded track whether it is playing, paused or was never started; `play(shouldRestart = true)` rewinds a paused track too
 - On focus loss, music is paused via `debounce(musicPauseDelayOnFocusLoss)`. Focus regain does **not** auto-resume — the game must call `play()` again
 - `setVolume(uri, volume)` stores per-URI volume; applied just before each `play()` call
 - `unloadAll()` disposes every loaded player (stopping any that play) and clears the cache, without disposing the manager; `play()` after it triggers a fresh load

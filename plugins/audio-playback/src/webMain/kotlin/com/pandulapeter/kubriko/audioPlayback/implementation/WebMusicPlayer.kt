@@ -44,7 +44,7 @@ internal class WebMusicPlayer private constructor(
      * Starts playback – when [shouldRestart] is true we rewind the position before starting.
      */
     fun play(shouldLoop: Boolean, shouldRestart: Boolean) {
-        if (shouldRestart && isPlaying) {
+        if (shouldRestart) {
             stopInternal(resetPosition = true)
         }
 
