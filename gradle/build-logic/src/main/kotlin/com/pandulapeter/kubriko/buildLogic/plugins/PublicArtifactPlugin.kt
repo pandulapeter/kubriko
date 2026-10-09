@@ -16,17 +16,13 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
 
-open class PublishingExtension {
-    var artifactId: String? = null
-}
-
 class PublicArtifactPlugin : Plugin<Project> {
 
     override fun apply(target: Project): Unit = with(target) {
         with(pluginManager) {
             apply(libs.findPlugin("vanniktech-publish").get().get().pluginId)
         }
-        val extension = project.extensions.create("artifactMetadata", PublishingExtension::class.java)
+        val extension = project.extensions.create("artifactMetadata", ArtifactMetadataExtension::class.java)
         project.afterEvaluate {
             extensions.configure<MavenPublishBaseExtension> {
                 configurePublicArtifact(
