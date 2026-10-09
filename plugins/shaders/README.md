@@ -37,7 +37,7 @@ val kubriko = Kubriko.newInstance(
 Create an actor or an object that implements the `Shader` interface:
 
 ```kotlin
-class MyEffect : Actor(), ContentShader<MyEffect.State> {
+class MyEffect : Actor, ContentShader<MyEffect.State> {
 
     override val shaderCode = """
         uniform shader content;
@@ -57,7 +57,7 @@ class MyEffect : Actor(), ContentShader<MyEffect.State> {
         var threshold = 0.5f
 
         override fun ShaderUniformProvider.applyUniforms() {
-            setFloatUniform("threshold", threshold)
+            uniform("threshold", threshold)
         }
     }
 
@@ -70,12 +70,17 @@ class MyEffect : Actor(), ContentShader<MyEffect.State> {
 The plugin comes with several pre-implemented effects:
 
 ```kotlin
-val blurEffect = BlurShader(radius = 10f)
-val vignetteEffect = VignetteShader(intensity = 0.8f)
+val blurEffect = BlurShader(BlurShader.State(blurHorizontal = 10f, blurVertical = 10f))
+val vignetteEffect = VignetteShader(VignetteShader.State(intensity = 0.8f))
 
 // Shaders are Actors, so you can add them to the engine
 actorManager.add(blurEffect)
 ```
+
+## Platform support
+
+- **Android**: SKSL shaders require Android 13 (API 33); `ShaderManager.areShadersSupported` is `false` below that, and shaders have no effect. `BlurShader` uses the native blur and works from Android 12 (API 31), even though `areShadersSupported` is still `false` on API 31–32.
+- **Desktop, iOS, Web**: every shader is supported.
 
 ## Included Shaders
 

@@ -62,9 +62,11 @@ between frames: a game that wants a static scene cached (a paused one, say) puts
 relying on the render effects it happens to have.
 
 ## Platform support
-- **Android**: requires API 33+ (Android 13 / TIRAMISU). `areShadersSupported = false` on older
+- **Android**: SKSL shaders require API 33+ (Android 13 / TIRAMISU). `areShadersSupported = false` on older
   versions; `createRenderEffect` returns `null`, `drawGenerativeShader` draws the content instead, and the
-  modifier has no visual effect.
+  modifier has no visual effect. `BlurShader` works from API 31 (native `RenderEffect.createBlurEffect`) and has
+  no effect below that. `areShadersSupported` reports SKSL support only, so it is `false` on API 31–32 even
+  though blur works there.
 - **Desktop, iOS, Web**: always supported (`areShadersSupported = true`); uses Skia
   `RuntimeShaderBuilder` (one `skikoMain` actual).
 - Check `ShaderManager.areShadersSupported` at runtime before exposing shader-dependent features.

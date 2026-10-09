@@ -31,35 +31,36 @@ internal actual fun <T : Shader.State> createRenderEffect(
     shader: Shader<T>,
     size: Size,
 ): androidx.compose.ui.graphics.RenderEffect? {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        if (shader is BlurShader) {
-            return shader.shaderState.blurHorizontal.let { blurHorizontal ->
-                shader.shaderState.blurVertical.let { blurVertical ->
-                    if (blurHorizontal <= 0 || blurVertical <= 0) null else RenderEffect.createBlurEffect(
-                        blurHorizontal,
-                        blurVertical,
-                        when (shader.shaderState.mode) {
-                            BlurShader.Mode.CLAMP -> TileMode.CLAMP
-                            BlurShader.Mode.REPEAT -> TileMode.REPEAT
-                            BlurShader.Mode.MIRROR -> TileMode.MIRROR
-                            BlurShader.Mode.DECAL -> TileMode.DECAL
-                        },
-                    ).asComposeRenderEffect()
-                }
-            }
-        } else {
-            val shaderUniformProvider = shader.applyUniforms(size)
-            // Nothing the effect was built from has moved, so the one already built still shows exactly this.
-            shader.shaderCache.cachedRenderEffect?.let { if (!shaderUniformProvider.uniforms.hasChanges) return it }
-            val runtimeShader = shaderUniformProvider.runtimeShader
-            return (when (shader) {
-                is ContentShader<*> -> RenderEffect.createRuntimeShaderEffect(runtimeShader, ContentShader.CONTENT)
-                else -> RenderEffect.createShaderEffect(runtimeShader)
-            }).asComposeRenderEffect()
-        }
-    } else {
-        return null
+    if (shader is BlurShader) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
+        return createBlurRenderEffect(shader)
     }
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return null
+    val shaderUniformProvider = shader.applyUniforms(size)
+    // Nothing the effect was built from has moved, so the one already built still shows exactly this.
+    shader.shaderCache.cachedRenderEffect?.let { if (!shaderUniformProvider.uniforms.hasChanges) return it }
+    val runtimeShader = shaderUniformProvider.runtimeShader
+    return (when (shader) {
+        is ContentShader<*> -> RenderEffect.createRuntimeShaderEffect(runtimeShader, ContentShader.CONTENT)
+        else -> RenderEffect.createShaderEffect(runtimeShader)
+    }).asComposeRenderEffect()
+}
+
+@RequiresApi(Build.VERSION_CODES.S)
+private fun createBlurRenderEffect(shader: BlurShader): androidx.compose.ui.graphics.RenderEffect? {
+    val blurHorizontal = shader.shaderState.blurHorizontal
+    val blurVertical = shader.shaderState.blurVertical
+    if (blurHorizontal <= 0 || blurVertical <= 0) return null
+    return RenderEffect.createBlurEffect(
+        blurHorizontal,
+        blurVertical,
+        when (shader.shaderState.mode) {
+            BlurShader.Mode.CLAMP -> TileMode.CLAMP
+            BlurShader.Mode.REPEAT -> TileMode.REPEAT
+            BlurShader.Mode.MIRROR -> TileMode.MIRROR
+            BlurShader.Mode.DECAL -> TileMode.DECAL
+        },
+    ).asComposeRenderEffect()
 }
 
 internal actual fun <T : Shader.State> DrawScope.drawGenerativeShader(

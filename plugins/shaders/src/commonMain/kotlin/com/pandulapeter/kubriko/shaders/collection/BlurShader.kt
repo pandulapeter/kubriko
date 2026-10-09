@@ -17,7 +17,7 @@ import com.pandulapeter.kubriko.shaders.extensions.ShaderUniformProvider
  * A specialized shader that applies a Gaussian-like blur to a layer or the entire scene.
  *
  * Note: This shader is handled as an exception by the engine and uses native blur implementations
- * where available for better performance.
+ * where available for better performance. On Android it requires API 31; elsewhere it is always available.
  *
  * @param shaderState The initial state of the blur (radius and edge mode).
  * @param layerIndex The index of the layer to blur. If null, the entire scene is blurred.
