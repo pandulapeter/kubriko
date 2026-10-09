@@ -231,7 +231,57 @@ private fun raycastPolygonEntryDistance(
     unitDirectionY: Float,
     maximumDistance: Float,
 ): Float {
+    val edgeIndex = raycastPolygonEntryEdge(polygon, originX, originY, unitDirectionX, unitDirectionY, maximumDistance)
+    return if (edgeIndex < 0) -1f else polygonEdgeEntryDistance(polygon, edgeIndex, originX, originY, unitDirectionX, unitDirectionY)
+}
+
+/**
+ * The distance along the ray to the line through [polygon]'s edge [edgeIndex], from the same expressions the edge scan
+ * in [raycastPolygonEntryEdge] uses, so a recomputed winner is bit-identical to the one the scan picked.
+ */
+private fun polygonEdgeEntryDistance(
+    polygon: PolygonCollisionMask,
+    edgeIndex: Int,
+    originX: Float,
+    originY: Float,
+    unitDirectionX: Float,
+    unitDirectionY: Float,
+): Float {
+    val row1X = polygon.rotationMatrix.row1.x.raw
+    val row1Y = polygon.rotationMatrix.row1.y.raw
+    val row2X = polygon.rotationMatrix.row2.x.raw
+    val row2Y = polygon.rotationMatrix.row2.y.raw
+    val positionX = polygon.position.x.raw
+    val positionY = polygon.position.y.raw
+    val vertices = polygon.vertices
+    val vertex = vertices[edgeIndex]
+    val startX = row1X * vertex.x.raw + row1Y * vertex.y.raw + positionX
+    val startY = row2X * vertex.x.raw + row2Y * vertex.y.raw + positionY
+    val nextVertex = vertices[if (edgeIndex + 1 == vertices.size) 0 else edgeIndex + 1]
+    val endX = row1X * nextVertex.x.raw + row1Y * nextVertex.y.raw + positionX
+    val endY = row2X * nextVertex.x.raw + row2Y * nextVertex.y.raw + positionY
+    val edgeX = endX - startX
+    val edgeY = endY - startY
+    val denominator = unitDirectionX * edgeY - unitDirectionY * edgeX
+    val toStartX = startX - originX
+    val toStartY = startY - originY
+    return (toStartX * edgeY - toStartY * edgeX) / denominator
+}
+
+/**
+ * Returns the index of the edge through which the ray first enters [polygon] within [maximumDistance], or `-1`
+ * when it enters none. Shared by every polygon raycast so the edge selection lives in one place.
+ */
+private fun raycastPolygonEntryEdge(
+    polygon: PolygonCollisionMask,
+    originX: Float,
+    originY: Float,
+    unitDirectionX: Float,
+    unitDirectionY: Float,
+    maximumDistance: Float,
+): Int {
     var bestDistance = Float.MAX_VALUE
+    var bestEdgeIndex = -1
     val row1X = polygon.rotationMatrix.row1.x.raw
     val row1Y = polygon.rotationMatrix.row1.y.raw
     val row2X = polygon.rotationMatrix.row2.x.raw
@@ -272,8 +322,9 @@ private fun raycastPolygonEntryDistance(
             continue
         }
         bestDistance = distance
+        bestEdgeIndex = index
     }
-    return if (bestDistance == Float.MAX_VALUE) -1f else bestDistance
+    return bestEdgeIndex
 }
 
 // Builds the full hit (entry point and surface normal) for a single mask; only called for the mask that
@@ -331,60 +382,20 @@ private fun raycastPolygonHit(
     unitDirectionY: Float,
     maximumDistance: Float,
 ): RaycastHit? {
-    var bestDistance = Float.MAX_VALUE
-    var bestNormalX = 0f
-    var bestNormalY = 0f
-    val row1X = polygon.rotationMatrix.row1.x.raw
-    val row1Y = polygon.rotationMatrix.row1.y.raw
-    val row2X = polygon.rotationMatrix.row2.x.raw
-    val row2Y = polygon.rotationMatrix.row2.y.raw
-    val positionX = polygon.position.x.raw
-    val positionY = polygon.position.y.raw
-    val vertices = polygon.vertices
-    val normals = polygon.normals
-    for (index in vertices.indices) {
-        val vertex = vertices[index]
-        val startX = row1X * vertex.x.raw + row1Y * vertex.y.raw + positionX
-        val startY = row2X * vertex.x.raw + row2Y * vertex.y.raw + positionY
-        val nextVertex = vertices[if (index + 1 == vertices.size) 0 else index + 1]
-        val endX = row1X * nextVertex.x.raw + row1Y * nextVertex.y.raw + positionX
-        val endY = row2X * nextVertex.x.raw + row2Y * nextVertex.y.raw + positionY
-        val edgeX = endX - startX
-        val edgeY = endY - startY
-        // Solve origin + t * direction = edgeStart + u * edge using 2D cross products.
-        val denominator = unitDirectionX * edgeY - unitDirectionY * edgeX
-        if (denominator == 0f) {
-            continue
-        }
-        val toStartX = startX - originX
-        val toStartY = startY - originY
-        val distance = (toStartX * edgeY - toStartY * edgeX) / denominator
-        if (distance < 0f || distance > maximumDistance || distance >= bestDistance) {
-            continue
-        }
-        val edgeFraction = (toStartX * unitDirectionY - toStartY * unitDirectionX) / denominator
-        if (edgeFraction < 0f || edgeFraction > 1f) {
-            continue
-        }
-        val localNormal = normals[index]
-        val normalX = row1X * localNormal.x.raw + row1Y * localNormal.y.raw
-        val normalY = row2X * localNormal.x.raw + row2Y * localNormal.y.raw
-        // Skip edges whose outward normal points along the ray: those are exits, not entries.
-        if (normalX * unitDirectionX + normalY * unitDirectionY >= 0f) {
-            continue
-        }
-        bestDistance = distance
-        bestNormalX = normalX
-        bestNormalY = normalY
-    }
-    if (bestDistance == Float.MAX_VALUE) {
+    val edgeIndex = raycastPolygonEntryEdge(polygon, originX, originY, unitDirectionX, unitDirectionY, maximumDistance)
+    if (edgeIndex < 0) {
         return null
     }
+    val distance = polygonEdgeEntryDistance(polygon, edgeIndex, originX, originY, unitDirectionX, unitDirectionY)
+    val rotationMatrix = polygon.rotationMatrix
+    val localNormal = polygon.normals[edgeIndex]
+    val normalX = rotationMatrix.row1.x.raw * localNormal.x.raw + rotationMatrix.row1.y.raw * localNormal.y.raw
+    val normalY = rotationMatrix.row2.x.raw * localNormal.x.raw + rotationMatrix.row2.y.raw * localNormal.y.raw
     return RaycastHit(
         mask = polygon,
-        point = SceneOffset((originX + unitDirectionX * bestDistance).sceneUnit, (originY + unitDirectionY * bestDistance).sceneUnit),
-        normal = SceneOffset(bestNormalX.sceneUnit, bestNormalY.sceneUnit),
-        distance = bestDistance.sceneUnit,
+        point = SceneOffset((originX + unitDirectionX * distance).sceneUnit, (originY + unitDirectionY * distance).sceneUnit),
+        normal = SceneOffset(normalX.sceneUnit, normalY.sceneUnit),
+        distance = distance.sceneUnit,
     )
 }
 
