@@ -58,6 +58,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.Kubriko
@@ -114,7 +115,7 @@ internal fun ShowcaseContent(
                     Row(
                         modifier = Modifier.weight(1f),
                     ) {
-                        ExpandedContent(
+                        ContentWithSideMenu(
                             modifier = Modifier.weight(1f),
                             collapsedLazyListState = collapsedLazyListState,
                             expandedLazyListState = expandedLazyListState,
@@ -166,7 +167,7 @@ internal fun ShowcaseContent(
 }
 
 @Composable
-private fun ExpandedContent(
+private fun ContentWithSideMenu(
     modifier: Modifier,
     collapsedLazyListState: LazyListState,
     expandedLazyListState: LazyListState,
@@ -191,10 +192,80 @@ private fun ExpandedContent(
             .calculateStartPadding(LocalLayoutDirection.current),
         animationSpec = tween(),
     )
+    MenuScrollPositionEffect(
+        shouldUseCompactUi = shouldUseCompactUi,
+        compactLazyListState = collapsedLazyListState,
+        expandedLazyListState = expandedLazyListState,
+        allShowcaseEntries = allShowcaseEntries,
+        selectedShowcaseEntry = selectedShowcaseEntry,
+    )
+    Row(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        AnimatedVisibility(
+            visible = shouldShowSideMenu,
+        ) {
+            Spacer(modifier = Modifier.width(sideMenuWidth).background(MaterialTheme.colorScheme.surface))
+        }
+        if (BuildConfig.IS_DEBUG_MENU_ENABLED) {
+            DebugMenu.OverlayOnly(
+                kubriko = activeKubrikoInstance,
+                kubrikoViewport = {
+                    ShowcaseEntryContent(
+                        shouldUseCompactUi = shouldUseCompactUi,
+                        selectedShowcaseEntry = selectedShowcaseEntry,
+                        windowInsets = windowInsets,
+                        isInFullscreenMode = isInFullscreenMode,
+                        onFullscreenModeToggled = onFullscreenModeToggled,
+                        getSelectedShowcaseEntry = getSelectedShowcaseEntry,
+                        homeLazyListState = collapsedLazyListState,
+                        allShowcaseEntries = allShowcaseEntries,
+                        onShowcaseEntrySelected = onShowcaseEntrySelected,
+                    )
+                },
+                buttonAlignment = null,
+            )
+        } else {
+            ShowcaseEntryContent(
+                shouldUseCompactUi = shouldUseCompactUi,
+                selectedShowcaseEntry = selectedShowcaseEntry,
+                windowInsets = windowInsets,
+                isInFullscreenMode = isInFullscreenMode,
+                onFullscreenModeToggled = onFullscreenModeToggled,
+                getSelectedShowcaseEntry = getSelectedShowcaseEntry,
+                homeLazyListState = collapsedLazyListState,
+                allShowcaseEntries = allShowcaseEntries,
+                onShowcaseEntrySelected = onShowcaseEntrySelected,
+            )
+        }
+    }
+    AnimatedVisibility(
+        visible = shouldShowSideMenu,
+        enter = fadeIn() + slideIn { IntOffset(-it.width, 0) },
+        exit = slideOut { IntOffset(-it.width, 0) } + fadeOut(),
+    ) {
+        SideMenu(
+            width = sideMenuWidth,
+            lazyListState = expandedLazyListState,
+            allShowcaseEntries = allShowcaseEntries,
+            selectedShowcaseEntry = selectedShowcaseEntry,
+            onShowcaseEntrySelected = onShowcaseEntrySelected,
+        )
+    }
+}
+
+@Composable
+private fun MenuScrollPositionEffect(
+    shouldUseCompactUi: Boolean,
+    compactLazyListState: LazyListState,
+    expandedLazyListState: LazyListState,
+    allShowcaseEntries: List<ShowcaseEntry>,
+    selectedShowcaseEntry: ShowcaseEntry?,
+) {
     val previouslyFocusedShowcaseEntry = remember { mutableStateOf(selectedShowcaseEntry) }
     val coroutineScope = rememberCoroutineScope()
     LaunchedEffect(shouldUseCompactUi) {
-        val lazyListState = if (shouldUseCompactUi) collapsedLazyListState else expandedLazyListState
+        val lazyListState = if (shouldUseCompactUi) compactLazyListState else expandedLazyListState
         val menuItemIndex = allShowcaseEntries.menuItemIndex(selectedShowcaseEntry)
         if (!lazyListState.isScrollInProgress) {
             if (lazyListState.firstVisibleItemIndex >= menuItemIndex || (lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) <= menuItemIndex) {
@@ -203,7 +274,7 @@ private fun ExpandedContent(
         }
     }
     LaunchedEffect(selectedShowcaseEntry) {
-        val lazyListState = if (shouldUseCompactUi) collapsedLazyListState else expandedLazyListState
+        val lazyListState = if (shouldUseCompactUi) compactLazyListState else expandedLazyListState
         if (!lazyListState.isScrollInProgress) {
             val itemIndex = allShowcaseEntries.menuItemIndex(if (shouldUseCompactUi) selectedShowcaseEntry ?: previouslyFocusedShowcaseEntry.value else selectedShowcaseEntry)
             if (lazyListState.firstVisibleItemIndex >= itemIndex) {
@@ -211,7 +282,7 @@ private fun ExpandedContent(
             } else if ((lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) <= itemIndex && !shouldUseCompactUi) {
                 coroutineScope.launch {
                     lazyListState.run {
-                        if (selectedShowcaseEntry == ShowcaseEntry.entries.last()) {
+                        if (selectedShowcaseEntry == allShowcaseEntries.last()) {
                             animateScrollToItem(itemIndex)
                         } else {
                             while (canScrollForward && (layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) <= itemIndex) {
@@ -225,93 +296,88 @@ private fun ExpandedContent(
         }
         previouslyFocusedShowcaseEntry.value = selectedShowcaseEntry
     }
-    Row(
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        AnimatedVisibility(
-            visible = shouldShowSideMenu,
-        ) {
-            Spacer(modifier = Modifier.width(sideMenuWidth).background(MaterialTheme.colorScheme.surface))
-        }
-        @Composable
-        fun Content() {
-            val compactTransitionSpec: AnimatedContentTransitionScope<ShowcaseEntry?>.() -> ContentTransform =
-                { fadeIn() + slideIn { IntOffset(0, if (targetState == null) -it.height / 10 else it.height / 10) } togetherWith fadeOut() }
-            val expandedTransitionSpec: AnimatedContentTransitionScope<ShowcaseEntry?>.() -> ContentTransform =
-                { fadeIn() togetherWith fadeOut() }
-            AnimatedContent(
-                transitionSpec = if (shouldUseCompactUi) compactTransitionSpec else expandedTransitionSpec,
-                targetState = selectedShowcaseEntry,
-                contentAlignment = Alignment.Center,
-            ) { showcaseEntry ->
-                showcaseEntry?.ExampleScreen(
-                    windowInsets = windowInsets,
-                    isInFullscreenMode = isInFullscreenMode,
-                    onFullscreenModeToggled = onFullscreenModeToggled,
-                    getSelectedShowcaseEntry = getSelectedShowcaseEntry,
-                ) ?: CompactContent(
-                    lazyListState = collapsedLazyListState,
-                    allShowcaseEntries = allShowcaseEntries,
-                    onShowcaseEntrySelected = onShowcaseEntrySelected,
-                    selectedShowcaseEntry = selectedShowcaseEntry,
-                    shouldUseCompactUi = shouldUseCompactUi,
-                )
-            }
-        }
-        if (BuildConfig.IS_DEBUG_MENU_ENABLED) {
-            DebugMenu.OverlayOnly(
-                kubriko = activeKubrikoInstance,
-                kubrikoViewport = { Content() },
-                buttonAlignment = null,
-            )
-        } else {
-            Content()
-        }
-    }
-    AnimatedVisibility(
-        visible = shouldShowSideMenu,
-        enter = fadeIn() + slideIn { IntOffset(-it.width, 0) },
-        exit = slideOut { IntOffset(-it.width, 0) } + fadeOut(),
-    ) {
-        Surface(
-            modifier = Modifier
-                .padding(end = 8.dp)
-                .width(sideMenuWidth)
-                .fillMaxHeight(),
-            tonalElevation = when (isSystemInDarkTheme()) {
-                true -> 4.dp
-                false -> 0.dp
-            },
-            shadowElevation = when (isSystemInDarkTheme()) {
-                true -> 4.dp
-                false -> 2.dp
-            },
-        ) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom).asPaddingValues(),
-                state = expandedLazyListState,
-            ) {
-                item {
-                    MenuItem(
-                        isSelected = selectedShowcaseEntry == null,
-                        title = Res.string.welcome,
-                        subtitle = Res.string.welcome_subtitle,
-                        onSelected = { onShowcaseEntrySelected(null) },
-                    )
-                }
-                menu(
-                    allShowcaseEntries = allShowcaseEntries,
-                    selectedShowcaseEntry = selectedShowcaseEntry,
-                    onShowcaseEntrySelected = onShowcaseEntrySelected,
-                )
-            }
-        }
+}
+
+@Composable
+private fun ShowcaseEntryContent(
+    shouldUseCompactUi: Boolean,
+    selectedShowcaseEntry: ShowcaseEntry?,
+    windowInsets: WindowInsets,
+    isInFullscreenMode: Boolean?,
+    onFullscreenModeToggled: () -> Unit,
+    getSelectedShowcaseEntry: () -> ShowcaseEntry?,
+    homeLazyListState: LazyListState,
+    allShowcaseEntries: List<ShowcaseEntry>,
+    onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
+) {
+    val compactTransitionSpec: AnimatedContentTransitionScope<ShowcaseEntry?>.() -> ContentTransform =
+        { fadeIn() + slideIn { IntOffset(0, if (targetState == null) -it.height / 10 else it.height / 10) } togetherWith fadeOut() }
+    val expandedTransitionSpec: AnimatedContentTransitionScope<ShowcaseEntry?>.() -> ContentTransform =
+        { fadeIn() togetherWith fadeOut() }
+    AnimatedContent(
+        transitionSpec = if (shouldUseCompactUi) compactTransitionSpec else expandedTransitionSpec,
+        targetState = selectedShowcaseEntry,
+        contentAlignment = Alignment.Center,
+    ) { showcaseEntry ->
+        showcaseEntry?.ExampleScreen(
+            windowInsets = windowInsets,
+            isInFullscreenMode = isInFullscreenMode,
+            onFullscreenModeToggled = onFullscreenModeToggled,
+            getSelectedShowcaseEntry = getSelectedShowcaseEntry,
+        ) ?: HomeContent(
+            lazyListState = homeLazyListState,
+            allShowcaseEntries = allShowcaseEntries,
+            onShowcaseEntrySelected = onShowcaseEntrySelected,
+            selectedShowcaseEntry = selectedShowcaseEntry,
+            shouldUseCompactUi = shouldUseCompactUi,
+        )
     }
 }
 
 @Composable
-private fun CompactContent(
+private fun SideMenu(
+    width: Dp,
+    lazyListState: LazyListState,
+    allShowcaseEntries: List<ShowcaseEntry>,
+    selectedShowcaseEntry: ShowcaseEntry?,
+    onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
+) = Surface(
+    modifier = Modifier
+        .padding(end = 8.dp)
+        .width(width)
+        .fillMaxHeight(),
+    tonalElevation = when (isSystemInDarkTheme()) {
+        true -> 4.dp
+        false -> 0.dp
+    },
+    shadowElevation = when (isSystemInDarkTheme()) {
+        true -> 4.dp
+        false -> 2.dp
+    },
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom).asPaddingValues(),
+        state = lazyListState,
+    ) {
+        item {
+            MenuItem(
+                isSelected = selectedShowcaseEntry == null,
+                title = Res.string.welcome,
+                subtitle = Res.string.welcome_subtitle,
+                onSelected = { onShowcaseEntrySelected(null) },
+            )
+        }
+        menu(
+            allShowcaseEntries = allShowcaseEntries,
+            selectedShowcaseEntry = selectedShowcaseEntry,
+            onShowcaseEntrySelected = onShowcaseEntrySelected,
+        )
+    }
+}
+
+@Composable
+private fun HomeContent(
     lazyListState: LazyListState,
     allShowcaseEntries: List<ShowcaseEntry>,
     onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
