@@ -22,7 +22,6 @@ kotlin {
             implementation(projects.engine)
             implementation(projects.plugins.audioPlayback)
             implementation(projects.plugins.physics)
-            implementation(projects.plugins.keyboardInput)
             implementation(projects.plugins.persistence)
             implementation(projects.plugins.pointerInput)
             implementation(projects.plugins.shaders)

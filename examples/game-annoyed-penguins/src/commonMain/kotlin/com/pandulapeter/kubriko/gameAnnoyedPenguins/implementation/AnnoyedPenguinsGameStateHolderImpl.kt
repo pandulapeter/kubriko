@@ -25,7 +25,6 @@ import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.Load
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.UIManager
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.UserPreferencesManager
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
-import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
 import com.pandulapeter.kubriko.manager.ActorManager
 import com.pandulapeter.kubriko.manager.StateManager
 import com.pandulapeter.kubriko.manager.ViewportManager
@@ -160,12 +159,6 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
             webRootPathName = webRootPathName,
         )
     }
-    private val keyboardInputManager by lazy {
-        KeyboardInputManager.newInstance(
-            isLoggingEnabled = isLoggingEnabled,
-            instanceNameForLogging = LOG_TAG,
-        )
-    }
     private val physicsManager by lazy {
         PhysicsManager.newInstance(
             initialSimulationSpeed = 0f,
@@ -213,7 +206,6 @@ internal class AnnoyedPenguinsGameStateHolderImpl(
                 stateManager,
                 viewportManager,
                 physicsManager,
-                keyboardInputManager,
                 pointerInputManager,
                 audioManager,
                 serializationManager,

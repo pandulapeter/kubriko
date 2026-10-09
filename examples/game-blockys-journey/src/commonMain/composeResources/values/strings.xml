@@ -20,7 +20,7 @@
     <string name="fullscreen_enter">Enter fullscreen mode</string>
     <string name="fullscreen_exit">Exit fullscreen mode</string>
     <string name="information_contents">Controls:
- - To move Blocky drag the pointer (mouse or touch) anywhere on the screen to bring up the virtual joystick or use the Up / Left / Down / Right  or W / A / S / D keys.
+ - Blocky moves around on his own for now: the game is unfinished, and controls are not implemented yet.
 
 Attribution:
  - Music: "Vibrant Adventures" by Universfield on freesound.org

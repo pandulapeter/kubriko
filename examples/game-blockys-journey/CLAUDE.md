@@ -14,8 +14,8 @@ A top-down isometric-style world where "Blocky" (a character) walks autonomously
 ## Plugins used
 
 - `audio-playback` — `MusicManager` + `SoundManager` for background music and SFX.
-- `pointer-input` — `PointerInputManager` (`isActiveAboveViewport = true`) (registered, but not used by any actor yet).
-- `keyboard-input` — `KeyboardInputManager` (registered, but not used by any actor yet).
+- `pointer-input` — `PointerInputManager` (`isActiveAboveViewport = true`) (registered, but not used by any actor yet: kept for the planned joystick controls).
+- `keyboard-input` — `KeyboardInputManager` (registered, but not used by any actor yet: kept for the planned arrow / WASD controls). Until the controls exist, the info text says Blocky moves on his own.
 - `shaders` — `ShaderManager` for the pause-screen `RippleShader` (built-in collection).
 - `sprites` — `SpriteManager` for directional sprite sheets (8 directions × sprite sheet).
 - `persistence` — `PersistenceManager` (file `kubrikoBlockysJourney`) for user preferences.

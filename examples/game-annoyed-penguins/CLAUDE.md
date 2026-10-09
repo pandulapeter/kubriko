@@ -17,7 +17,6 @@ Angry-Birds-style physics launcher. The player pulls back a slingshot to launch 
 - `collision` — `CollisionManager` detects hits between penguin, blocks, and ground.
 - `audio-playback` — `MusicManager` + `SoundManager` for music and SFX.
 - `pointer-input` — `PointerInputManager` (`isActiveAboveViewport = true`) for slingshot drag and camera pan/zoom.
-- `keyboard-input` — `KeyboardInputManager` is registered, but no actor uses it yet.
 - `shaders` — Two `ShaderManager` instances: one for the background `FogShader` (Perlin-noise animated fog, credits: deusnovus/Shadertoy), one for the foreground `GradualBlurShader` applied when the game is paused.
 - `sprites` — `SpriteManager` for all sprite images.
 - `persistence` — `PersistenceManager` (file `kubrikoAnnoyedPenguins`) for user preferences.
