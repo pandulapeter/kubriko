@@ -40,7 +40,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
 import kotlin.random.Random
 
-// TODO: Something is off with the Editor preview
 internal class DynamicChain private constructor(private val state: State) : Group, Dynamic, Visible, Editable<DynamicChain> {
     @set:Exposed(name = "linkCount")
     var linkCount = state.linkCount
@@ -148,8 +147,11 @@ internal class DynamicChain private constructor(private val state: State) : Grou
     }
 
     override fun save() = State(
-        linkCount = chainLinks.size,
-        initialCenterOffset = body.position,
+        linkCount = linkCount,
+        initialCenterOffset = SceneOffset(
+            x = body.position.x + body.size.width - offset.x - LinkDistance * (linkCount / 2),
+            y = body.position.y + body.size.height / 2,
+        ),
     )
 
     @kotlinx.serialization.Serializable
