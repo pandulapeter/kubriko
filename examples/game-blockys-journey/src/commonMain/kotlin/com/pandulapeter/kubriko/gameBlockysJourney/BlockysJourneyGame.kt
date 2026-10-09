@@ -52,16 +52,6 @@ import kubriko.examples.game_blockys_journey.generated.resources.ic_pause
 import kubriko.examples.game_blockys_journey.generated.resources.pause
 import org.jetbrains.compose.resources.stringResource
 
-fun createBlockysJourneyGameStateHolder(
-    webRootPathName: String,
-    isSceneEditorEnabled: Boolean,
-    isLoggingEnabled: Boolean,
-): BlockysJourneyGameStateHolder = BlockysJourneyGameStateHolderImpl(
-    webRootPathName = webRootPathName,
-    isSceneEditorEnabled = isSceneEditorEnabled,
-    isLoggingEnabled = isLoggingEnabled,
-)
-
 @Composable
 fun BlockysJourneyGame(
     stateHolder: BlockysJourneyGameStateHolder,
