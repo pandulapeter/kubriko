@@ -182,7 +182,7 @@ Decouples the update loop from the viewport. Passed to `Kubriko.newInstance()`.
 |---|---|
 | `TickSource.viewportFrames()` | Default. Started by `KubrikoViewport`; ticks from Compose frames while visible and focused. Pauses on focus loss by default. |
 | `TickSource.fixedRate(intervalInMilliseconds)` | Coroutine-based; delta = configured interval. First tick delta = 0. Requires explicit `start()`. |
-| `TickSource.fixedFrequency(ticksPerSecond)` | Coroutine-based; delta = measured elapsed time. Re-syncs if behind. First tick delta = 0. Requires explicit `start()`. |
+| `TickSource.fixedFrequency(ticksPerSecond)` | Coroutine-based; delta = measured elapsed time. Re-syncs if behind; a gap over 2 s restarts the timeline with a 0 delta. First tick delta = 0. Requires explicit `start()`. |
 | `TickSource.manual()` | Advances only on explicit `tick(deltaTimeInMilliseconds)`. Deterministic; use for tests/replay. Requires `start()`. |
 
 Lifecycle: `start()` initializes Kubriko if needed, applies queued actor operations, and begins emitting ticks; `stop()` suspends ticks; `kubriko.dispose()` stops and disposes everything. Calling `start()`/`stop()` multiple times is safe, from any thread (`onStart()`/`onStop()` never overlap).

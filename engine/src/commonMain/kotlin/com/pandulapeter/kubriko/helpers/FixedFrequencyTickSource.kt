@@ -40,12 +40,19 @@ internal class FixedFrequencyTickSource(
                         delay((remainingTime / NANOSECONDS_PER_MILLISECOND).coerceAtLeast(1L))
                     }
                     val currentTime = clock.nowInNanoseconds()
-                    emitTick(((clock.nowInNanoseconds() - lastTickTime) / NANOSECONDS_PER_MILLISECOND).toInt())
-                    lastTickTime = currentTime
-                    nextTickStart += targetIntervalInNanoseconds
-                    if (targetIntervalInNanoseconds - (clock.nowInNanoseconds() - nextTickStart) < 0L) {
+                    val elapsedInNanoseconds = currentTime - lastTickTime
+                    if (elapsedInNanoseconds > targetIntervalInNanoseconds + MAXIMUM_TICK_GAP_IN_NANOSECONDS) {
+                        // The process was suspended: restart the timeline like the first tick does.
+                        emitTick(0)
                         nextTickStart = currentTime
+                    } else {
+                        emitTick((elapsedInNanoseconds / NANOSECONDS_PER_MILLISECOND).toInt())
+                        nextTickStart += targetIntervalInNanoseconds
+                        if (targetIntervalInNanoseconds - (clock.nowInNanoseconds() - nextTickStart) < 0L) {
+                            nextTickStart = currentTime
+                        }
                     }
+                    lastTickTime = currentTime
                 }
             }
         }
@@ -58,3 +65,4 @@ internal class FixedFrequencyTickSource(
 }
 
 private const val NANOSECONDS_PER_MILLISECOND = 1_000_000L
+private const val MAXIMUM_TICK_GAP_IN_NANOSECONDS = 2_000_000_000L

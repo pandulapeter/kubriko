@@ -68,4 +68,20 @@ class FixedFrequencyTickSourceTest {
         }
         assertEquals(listOf(0, 10, 10, 55, 10, 10, 10), deltas)
     }
+
+    @Test
+    fun aGapLongerThanTwoSecondsRestartsTheTimeline() {
+        val deltas = recordDeltas(virtualMilliseconds = 50) { tickCount, stall ->
+            if (tickCount == 3) stall(10 * 60_000)
+        }
+        assertEquals(listOf(0, 10, 10, 0, 10, 10, 10), deltas)
+    }
+
+    @Test
+    fun aGapOfTwoSecondsIsStillEmittedAsOneDelta() {
+        val deltas = recordDeltas(virtualMilliseconds = 50) { tickCount, stall ->
+            if (tickCount == 3) stall(2_000)
+        }
+        assertEquals(listOf(0, 10, 10, 2_000, 10, 10, 10), deltas)
+    }
 }

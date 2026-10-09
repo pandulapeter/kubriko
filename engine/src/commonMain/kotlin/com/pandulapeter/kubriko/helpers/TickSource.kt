@@ -241,6 +241,9 @@ abstract class TickSource {
 
         /**
          * Creates a [TickSource] that tries to achieve the provided target number of ticks per second.
+         *
+         * A gap of more than two seconds beyond the tick interval (the process was suspended) restarts the timeline:
+         * that tick has a delta of `0` instead of the whole absence.
          */
         fun fixedFrequency(
             ticksPerSecond: Int,

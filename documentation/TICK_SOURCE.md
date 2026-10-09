@@ -75,7 +75,9 @@ tickSource.start()
 `TickSource.fixedFrequency()` targets a number of ticks per second. It measures elapsed time between ticks and passes that measured delta to the engine. If the
 loop falls behind, it resynchronizes instead of trying to replay an unbounded backlog of missed ticks.
 
-The first tick uses a delta of `0`.
+The first tick uses a delta of `0`. A gap of more than two seconds beyond the tick interval (the process was suspended, or a
+background browser tab was throttled) restarts the timeline the same way: that tick has a delta of `0` instead of the whole
+absence.
 
 ### Manual
 
