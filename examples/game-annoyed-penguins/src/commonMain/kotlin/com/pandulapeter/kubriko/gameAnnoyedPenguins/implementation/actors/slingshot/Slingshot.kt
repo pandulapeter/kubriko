@@ -13,7 +13,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.input.pointer.PointerId
 import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.actor.body.BoxBody
@@ -124,6 +123,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
     override val shouldClip = false
     var isInitialZoomOutDone = false
     private val activePenguin: Penguin? get() = actorManager.allActors.value.filterIsInstance<Penguin>().firstOrNull { it.shouldBeFollowedByCamera }
+    private var isPointerPressedInPreviousStep = false
 
     override fun onAdded(kubriko: Kubriko) {
         actorManager = kubriko.get()
@@ -143,9 +143,7 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
 
     override fun DrawScope.draw() {
         spriteManager.get(Res.drawable.sprite_slingshot_background)?.let { background ->
-            drawIntoCanvas { canvas ->
-                drawImage(background)
-            }
+            drawImage(background)
             if (activeFakePenguin.isVisible) {
                 drawLine(
                     color = stringColor.copy(alpha = 1f - activeFakePenguin.distanceFromTarget),
@@ -186,8 +184,6 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
         }
     }
 
-    private var isPointerPressedInPreviousStep = false
-
     override fun update(deltaTimeInMilliseconds: Int) {
         val pressedPointerPositions = pointerInputManager.pressedPointerPositions.value
         if (pressedPointerPositions.isNotEmpty()) {
@@ -198,11 +194,9 @@ internal class Slingshot private constructor(state: State) : Visible, Editable<S
                 }
             } else {
                 // Detect if the initial press was on the slingshot
-                if (pressedPointerPositions.isNotEmpty()) {
-                    pressedPointerPositions.firstNotNullOf { it }.let { pressPosition ->
-                        if (pressPosition.value.toSceneOffset(viewportManager).isInside(body.axisAlignedBoundingBox)) {
-                            aimingPointerId = pressPosition.key
-                        }
+                pressedPointerPositions.firstNotNullOf { it }.let { pressPosition ->
+                    if (pressPosition.value.toSceneOffset(viewportManager).isInside(body.axisAlignedBoundingBox)) {
+                        aimingPointerId = pressPosition.key
                     }
                 }
             }
