@@ -29,7 +29,8 @@ import androidx.navigationevent.compose.rememberNavigationEventState
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
-import com.pandulapeter.kubrikoShowcase.implementation.isAvailable
+import com.pandulapeter.kubrikoShowcase.implementation.deeplink
+import com.pandulapeter.kubrikoShowcase.implementation.processDeeplink
 import com.pandulapeter.kubrikoShowcase.implementation.ui.ResourceLoader
 import com.pandulapeter.kubrikoShowcase.implementation.ui.ShowcaseContent
 import com.pandulapeter.kubrikoShowcase.implementation.ui.getStateHolder
@@ -120,30 +121,6 @@ fun KubrikoShowcase(
         }
     }
 }
-
-private val ShowcaseEntry?.deeplink
-    get() = when (this) {
-        ShowcaseEntry.WALLBREAKER -> "wallbreaker"
-        ShowcaseEntry.SPACE_SQUADRON -> "space-squadron"
-        ShowcaseEntry.ANNOYED_PENGUINS -> "annoyed-penguins"
-        ShowcaseEntry.BLOCKYS_JOURNEY -> "blockys-journey"
-        ShowcaseEntry.CONTENT_SHADERS -> "content-shaders"
-        ShowcaseEntry.ISOMETRIC_GRAPHICS -> "isometric-graphics"
-        ShowcaseEntry.PARTICLES -> "particles"
-        ShowcaseEntry.PERFORMANCE -> "performance"
-        ShowcaseEntry.PHYSICS -> "physics"
-        ShowcaseEntry.SHADER_ANIMATIONS -> "shader-animations"
-        ShowcaseEntry.AUDIO -> "audio"
-        ShowcaseEntry.COLLISION -> "collision"
-        ShowcaseEntry.INPUT -> "input"
-        ShowcaseEntry.ABOUT -> "about"
-        ShowcaseEntry.LICENSES -> "licenses"
-        null -> null
-    }
-
-private fun String?.processDeeplink() = this?.trim()?.lowercase()?.split("/")?.filterNot { it.isBlank() }?.lastOrNull().let { deeplink ->
-    ShowcaseEntry.entries.firstOrNull { it.deeplink == deeplink }
-}?.takeIf { it.isAvailable }
 
 private val selectedShowcaseEntry = mutableStateOf<ShowcaseEntry?>(null)
 

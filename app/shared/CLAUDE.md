@@ -27,7 +27,7 @@ There is no navigation library. Navigation state is a single `mutableStateOf<Sho
 
 Both gates are one predicate, `ShowcaseEntry.isAvailable`, which the menu filters by and deeplinks resolve through, so a deeplink only opens an entry the menu shows.
 
-Deeplinks are simple strings (`"wallbreaker"`, `"physics"`, etc.) processed by `String?.processDeeplink()`. The web target uses these for browser history; other platforms expose the current deeplink via `onDestinationChanged` for optional deep-link support.
+Deeplinks are simple strings (`"wallbreaker"`, `"physics"`, etc.) processed by `String?.processDeeplink()` (`implementation/ShowcaseDeeplink.kt`). The web target uses these for browser history; other platforms expose the current deeplink via `onDestinationChanged` for optional deep-link support.
 
 ## StateHolder lifecycle and multi-instance management
 
@@ -66,9 +66,10 @@ Injected at build time via the `buildkonfig` plugin:
 
 ## Key files
 
-- `KubrikoShowcase.kt` — entry Composable, deeplink logic, back-press handling, navigation state. Provides a `LocalUriHandler` that ignores links the platform cannot open instead of letting its handler throw.
+- `KubrikoShowcase.kt` — entry Composable, back-press handling, navigation state. Provides a `LocalUriHandler` that ignores links the platform cannot open instead of letting its handler throw.
 - `implementation/ShowcaseEntry.kt` — enum of all entries and `isAvailable`.
 - `implementation/ShowcaseEntryType.kt` — the menu categories (Games / Demos / Tests / Other) with their title and icon.
+- `implementation/ShowcaseDeeplink.kt` — entry ↔ deeplink mapping.
 - `implementation/ui/ExampleScreen.kt` — per-entry `ExampleScreen` Composable and its disposal effect.
 - `implementation/ui/ShowcaseStateHolders.kt` — the `StateHolder` pool: one accessor per entry, `getStateHolder()`, `disposeStateHolder()`.
 - `implementation/ui/ShowcaseContent.kt` — responsive layout orchestration.
