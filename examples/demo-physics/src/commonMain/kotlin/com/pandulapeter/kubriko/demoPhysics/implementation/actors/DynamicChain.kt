@@ -30,7 +30,6 @@ import com.pandulapeter.kubriko.physics.PhysicsBody
 import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.physics.joints.JointToBody
 import com.pandulapeter.kubriko.sceneEditor.Editable
-import com.pandulapeter.kubriko.sceneEditor.Exposed
 import com.pandulapeter.kubriko.serialization.Serializable
 import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneOffset
 import com.pandulapeter.kubriko.types.SceneOffset
@@ -41,13 +40,8 @@ import kotlinx.serialization.json.Json
 import kotlin.random.Random
 
 internal class DynamicChain private constructor(private val state: State) : Group, Dynamic, Visible, Editable<DynamicChain> {
-    @set:Exposed(name = "linkCount")
-    var linkCount = state.linkCount
-        set(value) {
-            field = value
-            chainLinks = generateLinks()
-        }
-    private var chainLinks = generateLinks()
+    val linkCount = state.linkCount
+    private val chainLinks = generateLinks()
     private val joints = chainLinks.mapIndexedNotNull { index, chainLink ->
         if (index > 0) object : JointWrapper {
             override val physicsJoint = JointToBody(
@@ -95,7 +89,7 @@ internal class DynamicChain private constructor(private val state: State) : Grou
     private fun generateLinks() = (0..linkCount).map { linkIndex ->
         ChainLink(
             initialPosition = SceneOffset(
-                x = state.initialCenterOffset.x + LinkDistance * (state.linkCount / 2) - (LinkDistance * linkIndex),
+                x = state.initialCenterOffset.x + LinkDistance * (linkCount / 2) - (LinkDistance * linkIndex),
                 y = state.initialCenterOffset.y,
             )
         )

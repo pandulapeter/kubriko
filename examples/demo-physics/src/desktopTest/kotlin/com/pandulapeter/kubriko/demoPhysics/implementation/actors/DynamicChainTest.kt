@@ -10,6 +10,8 @@
 package com.pandulapeter.kubriko.demoPhysics.implementation.actors
 
 import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
+import com.pandulapeter.kubriko.physics.JointWrapper
+import com.pandulapeter.kubriko.physics.RigidBody
 import com.pandulapeter.kubriko.types.SceneOffset
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -25,5 +27,12 @@ class DynamicChainTest {
         assertEquals(linkCount, saved.linkCount)
         assertEquals(100f, saved.initialCenterOffset.x.raw, 0.01f)
         assertEquals(-50f, saved.initialCenterOffset.y.raw, 0.01f)
+    }
+
+    @Test
+    fun actorsHoldOneMoreLinkThanLinkCountAndOneJointPerLinkCount() = listOf(0, 1, 20, 21).forEach { linkCount ->
+        val chain = DynamicChain.State(linkCount = linkCount).restore()
+        assertEquals(linkCount + 1, chain.actors.count { it is RigidBody })
+        assertEquals(linkCount, chain.actors.count { it is JointWrapper })
     }
 }

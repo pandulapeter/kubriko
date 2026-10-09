@@ -40,8 +40,8 @@ via `onPointerReleased` at the screen tap position converted to scene coordinate
 **`StaticBox` / `StaticCircle` / `StaticPolygon`** — immovable environment pieces loaded from the
 scene JSON. They implement `Editable` / `Serializable` so the scene can be rebuilt in the editor.
 
-**`DynamicChain`** (`Group`, `Dynamic`, `Visible`, `Editable`) — creates `linkCount` `ChainLink`
-rigid bodies (circular) and `linkCount - 1` `JointToBody` spring joints connecting adjacent links.
+**`DynamicChain`** (`Group`, `Dynamic`, `Visible`, `Editable`) — creates `linkCount + 1` `ChainLink`
+rigid bodies (circular) and `linkCount` `JointToBody` spring joints connecting adjacent links.
 The chain's `BoxBody` is kept up to date each frame in `refreshBodySize()` by computing the AABB of
 all link positions. It reads `ChainLink.physicsBody.position` (the authoritative physics state),
 **not** `ChainLink.body.position`: as a `Group` parent this actor updates before its child links in
