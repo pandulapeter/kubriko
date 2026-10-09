@@ -36,6 +36,7 @@ import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
 import com.pandulapeter.kubriko.sceneEditor.implementation.EditorController
 import com.pandulapeter.kubriko.sceneEditor.implementation.FileOperationError
+import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.ActorDragState
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseClick
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseDrag
 import com.pandulapeter.kubriko.sceneEditor.implementation.extensions.handleMouseMove
@@ -175,6 +176,7 @@ private fun SceneViewport(
 ) = Box(
     modifier = modifier,
 ) {
+    val dragState = remember { ActorDragState() }
     DebugMenu(
         kubriko = editorController.kubriko,
         isEnabled = editorController.isDebugMenuEnabled.collectAsState().value,
@@ -190,6 +192,7 @@ private fun SceneViewport(
             modifier = Modifier
                 .fillMaxSize()
                 .handleMouseClick(
+                    dragState = dragState,
                     getSelectedActor = editorController::getSelectedActor,
                     getMouseSceneOffset = editorController::getMouseWorldCoordinates,
                     onLeftClick = editorController::onLeftClick,
@@ -202,6 +205,7 @@ private fun SceneViewport(
                     viewportManager = editorController.viewportManager,
                 )
                 .handleMouseDrag(
+                    dragState = dragState,
                     keyboardInputManager = editorController.keyboardInputManager,
                     viewportManager = editorController.viewportManager,
                     getSelectedActor = editorController::getSelectedActor,
