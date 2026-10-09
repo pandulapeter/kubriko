@@ -18,6 +18,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.awt.AwtWindow
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -172,7 +176,15 @@ internal fun InternalSceneEditor(
             title = stringResource(Res.string.editor_settings),
             state = rememberWindowState(
                 size = DpSize(200.dp, 250.dp),
-            )
+            ),
+            onPreviewKeyEvent = { event ->
+                if (event.key == Key.Escape && event.type == KeyEventType.KeyUp) {
+                    isSettingsOpen.value = false
+                    true
+                } else {
+                    false
+                }
+            },
         ) {
             window.minimumSize = Dimension(200, 250)
             Settings(

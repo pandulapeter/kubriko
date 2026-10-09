@@ -34,6 +34,7 @@ internal class KeyboardInputListener(
         }
     private val isShiftActive
         get() = keyboardInputManager.run { isKeyPressed(Key.ShiftLeft) || isKeyPressed(Key.ShiftRight) }
+    private var isBackKeyPressed = false
 
     override fun handleActiveKeys(activeKeys: ImmutableSet<Key>) {
         if (!isTextInputFocused()) {
@@ -42,6 +43,9 @@ internal class KeyboardInputListener(
     }
 
     override fun onKeyPressed(key: Key) {
+        if (key == Key.Escape || key == Key.Back) {
+            isBackKeyPressed = true
+        }
         if (isShortcutModifierActive) {
             when (key) {
                 Key.Z -> if (isShiftActive) onRedo() else onUndo()
@@ -53,7 +57,9 @@ internal class KeyboardInputListener(
     }
 
     override fun onKeyReleased(key: Key) {
-        if (key == Key.Escape || key == Key.Back) {
+        // The desktop listener also reports releases from the other windows of the process; only presses are focus-gated.
+        if ((key == Key.Escape || key == Key.Back) && isBackKeyPressed) {
+            isBackKeyPressed = false
             navigateBack()
         }
     }
