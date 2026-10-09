@@ -119,8 +119,9 @@ that explains what the code already says.
 - Where a value reaches a Composable from a non-Composable site (e.g. an enum entry, an AWT factory
   lambda), store the `StringResource` (not the resolved `String`) and resolve it with `stringResource`
   at the Composable call site.
-- Exempt: persistence keys, file names, log/serialization identifiers, and numeric/coordinate readouts —
-  these are not user-facing copy and stay as literals.
+- Exempt: persistence keys, file names, log/serialization identifiers, numeric/coordinate readouts, and proper
+  names shown verbatim (product, library and site names, such as the Licenses screen's dependency names) — these are
+  not translatable copy and stay as literals.
 
 ## Clean up after changes
 
