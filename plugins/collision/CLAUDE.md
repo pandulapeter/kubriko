@@ -18,7 +18,8 @@ Broad-phase AABB + narrow-phase SAT collision detection dispatched to `Collision
 - `src/commonMain/.../CollisionDetector.kt` — actor trait receiving `onCollisionDetected`
 - `src/commonMain/.../mask/CollisionMask.kt` — sealed interface root
 - `src/commonMain/.../mask/PolygonCollisionMask.kt` — convex hull; base for `BoxCollisionMask`
-- `src/commonMain/.../extensions/CollisionMaskExtensions.kt` — all narrow-phase math
+- `src/commonMain/.../extensions/CollisionMaskExtensions.kt` — the public collision queries
+- `src/commonMain/.../implementation/NarrowPhase.kt` — the narrow phase (SAT, clipping, the three result modes and their file-level scratch state)
 - `src/commonMain/.../implementation/RotationMatrix.kt` — mutable 2×2 matrix, no-alloc `transposeInto`
 
 ## Detection Loop (each tick)
