@@ -37,7 +37,7 @@ internal class CollisionTestStateHolderImpl(
         isLoggingEnabled = isLoggingEnabled,
         instanceNameForLogging = LOG_TAG,
     )
-    val collisionTestManager = CollisionTestManager()
+    private val collisionTestManager = CollisionTestManager()
     private val _kubriko = MutableStateFlow(
         Kubriko.newInstance(
             collisionManager,

@@ -9,10 +9,6 @@
  */
 package com.pandulapeter.kubriko.testCollision.implementation.actors
 
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Fill
-import androidx.compose.ui.graphics.drawscope.Stroke
 import com.pandulapeter.kubriko.collision.mask.BoxCollisionMask
 import com.pandulapeter.kubriko.collision.mask.CircleCollisionMask
 import com.pandulapeter.kubriko.collision.mask.ComplexCollisionMask
@@ -30,11 +26,6 @@ internal class DraggableCollidableActor(
 ) : DraggableActor(
     collisionMask = collisionMask,
 ) {
-
-    override fun DrawScope.draw() = with(collisionMask) {
-        drawDebugBounds(if (collisions.isNotEmpty()) Color.DarkGray else Color.Gray, Fill)
-        drawDebugBounds(Color.Black, Stroke())
-    }
 
     companion object {
         fun newRandomShape(initialPosition: SceneOffset) = DraggableCollidableActor(
