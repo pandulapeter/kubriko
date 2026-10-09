@@ -23,7 +23,7 @@ expandable controls panel.
 `ContentShadersDemoStateHolderImpl` creates:
 - `ViewportManager` — `AspectRatioMode.Stretched(2000×2000 su)` so the canvas always fills the screen
 - `ShaderManager` — required by every shader actor
-- `ContentShadersDemoManager` — custom Manager that owns the UI and actor lifecycle
+- `ContentShadersDemoManager` — custom Manager that owns the actor and shader lifecycle; its `Composable` override delegates to `ui/ContentShadersOverlay`
 
 ## Key actor types
 
