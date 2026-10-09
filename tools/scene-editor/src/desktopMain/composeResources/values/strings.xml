@@ -27,8 +27,6 @@
     <string name="filter_hint">Filter...</string>
     <string name="clear_filter">Clear filter</string>
     <string name="toggle_visible_only">Toggle visible only</string>
-    <string name="action_collapse">Collapse</string>
-    <string name="action_expand">Expand</string>
     <string name="action_center">Center</string>
     <string name="action_unit">Unit</string>
     <string name="property_body">body</string>

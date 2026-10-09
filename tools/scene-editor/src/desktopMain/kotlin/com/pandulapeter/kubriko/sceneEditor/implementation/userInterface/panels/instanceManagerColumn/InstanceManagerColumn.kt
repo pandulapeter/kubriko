@@ -93,7 +93,6 @@ internal fun InstanceManagerColumn(
                         )
                     }
                 } else {
-                    // TODO: Sort into categories using expandedCategories.value
                     selectedInstance::class.memberProperties
                         .filterIsInstance<KMutableProperty<*>>()
                         .sortedBy { it.name }
