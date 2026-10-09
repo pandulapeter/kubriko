@@ -54,7 +54,7 @@ The dialog, close and fullscreen buttons and the back presses that close a dialo
 
 ## Non-obvious implementation choices
 
-- `Ball.onCollisionDetected` resolves the bounce direction geometrically by comparing the ball's position to the `AxisAlignedBoundingBox` corners/edges of the collided object, rather than using angle reflection. This makes the logic deterministic and avoids floating-point drift.
+- `Ball.onCollisionDetected` resolves the bounce direction geometrically by comparing the ball's position to the `AxisAlignedBoundingBox` corners/edges of the collided object, rather than using angle reflection. This makes the logic deterministic and avoids floating-point drift. The comparison is the pure `bounceRegion(...)` in `actors/BallBounce.kt`, which returns one of eight `BounceRegion`s (or null when the ball sits exactly on an edge line, leaving the direction unchanged); `BallBounceTest` pins every region.
 - When `Ball` hits a `Paddle`, the `isCollidingWithPaddle` flag suppresses repeat sound effects for continuous paddle contact during a single bounce.
 - `GameplayManager.restartGame` removes only the bricks and the ball rather than calling `removeAll()`; the paddle, shaders and `UIManager` stay in the scene.
 - `LoadingManager` tracks both audio and a custom font (`kanit_regular`) before allowing the game to be shown, preventing unstyled text flicker.

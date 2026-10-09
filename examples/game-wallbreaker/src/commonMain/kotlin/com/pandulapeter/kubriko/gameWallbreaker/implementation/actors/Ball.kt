@@ -190,62 +190,17 @@ internal class Ball(
                 scoreManager.incrementScore()
                 gameManager.onBrickDestroyed()
             }
-            when {
-                body.position.x < collidable.body.axisAlignedBoundingBox.left &&
-                        body.position.y < collidable.body.axisAlignedBoundingBox.top -> {
-                    // Top-left corner
-                    baseSpeedX = -1
-                    baseSpeedY = -1
-                }
-
-                body.position.x > collidable.body.axisAlignedBoundingBox.left &&
-                        body.position.x < collidable.body.axisAlignedBoundingBox.right &&
-                        body.position.y < collidable.body.axisAlignedBoundingBox.top -> {
-                    // Top
-                    baseSpeedY = -1
-                }
-
-                body.position.x > collidable.body.axisAlignedBoundingBox.right &&
-                        body.position.y < collidable.body.axisAlignedBoundingBox.top -> {
-                    // Top-right corner
-                    baseSpeedX = -1
-                    baseSpeedY = -1
-                }
-
-                body.position.x < collidable.body.axisAlignedBoundingBox.left &&
-                        body.position.y > collidable.body.axisAlignedBoundingBox.top &&
-                        body.position.y < collidable.body.axisAlignedBoundingBox.bottom -> {
-                    // Left
-                    baseSpeedX = -1
-                }
-
-                body.position.x > collidable.body.axisAlignedBoundingBox.right &&
-                        body.position.y > collidable.body.axisAlignedBoundingBox.top &&
-                        body.position.y < collidable.body.axisAlignedBoundingBox.bottom -> {
-                    // Right
-                    baseSpeedX = 1
-                }
-
-                body.position.x < collidable.body.axisAlignedBoundingBox.left &&
-                        body.position.y > collidable.body.axisAlignedBoundingBox.bottom -> {
-                    // Bottom-left corner
-                    baseSpeedX = -1
-                    baseSpeedY = 1
-                }
-
-                body.position.x > collidable.body.axisAlignedBoundingBox.left &&
-                        body.position.x < collidable.body.axisAlignedBoundingBox.right &&
-                        body.position.y > collidable.body.axisAlignedBoundingBox.bottom -> {
-                    // Bottom
-                    baseSpeedY = 1
-                }
-
-                body.position.x > collidable.body.axisAlignedBoundingBox.right &&
-                        body.position.y > collidable.body.axisAlignedBoundingBox.bottom -> {
-                    // Bottom-right corner
-                    baseSpeedX = 1
-                    baseSpeedY = 1
-                }
+            val boundingBox = collidable.body.axisAlignedBoundingBox
+            bounceRegion(
+                ballX = body.position.x,
+                ballY = body.position.y,
+                left = boundingBox.left,
+                top = boundingBox.top,
+                right = boundingBox.right,
+                bottom = boundingBox.bottom,
+            )?.let { region ->
+                baseSpeedX = region.bouncedSpeedX(baseSpeedX)
+                baseSpeedY = region.bouncedSpeedY(baseSpeedY)
             }
             if (collidable is Paddle) {
                 if (!isCollidingWithPaddle) {
