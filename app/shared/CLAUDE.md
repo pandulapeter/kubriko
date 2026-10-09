@@ -70,6 +70,7 @@ Injected at build time via the `buildkonfig` plugin:
 - `implementation/ShowcaseEntry.kt` — enum of all entries and `isAvailable`.
 - `implementation/ShowcaseEntryType.kt` — the menu categories (Games / Demos / Tests / Other) with their title and icon.
 - `implementation/ShowcaseDeeplink.kt` — entry ↔ deeplink mapping.
+- `implementation/ShowcaseEntryFeatures.kt` — which top bar buttons and panels an entry gets (debug menu, info button, logo).
 - `implementation/ui/ExampleScreen.kt` — per-entry `ExampleScreen` Composable and its disposal effect.
 - `implementation/ui/ShowcaseStateHolders.kt` — the `StateHolder` pool: one accessor per entry, `getStateHolder()`, `disposeStateHolder()`.
 - `implementation/ui/ShowcaseContent.kt` — responsive layout orchestration.

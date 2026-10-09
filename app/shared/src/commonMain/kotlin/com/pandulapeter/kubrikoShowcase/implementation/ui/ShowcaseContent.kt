@@ -65,7 +65,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubrikoShowcase.BuildConfig
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
-import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntryType
+import com.pandulapeter.kubrikoShowcase.implementation.hasDebugMenu
 import com.pandulapeter.kubrikoShowcase.implementation.ui.welcome.WelcomeScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -428,12 +428,6 @@ private fun HomeContent(
         }
     }
 }
-
-private val ShowcaseEntry?.hasDebugMenu
-    get() = when (this?.type) {
-        null, ShowcaseEntryType.OTHER -> false
-        else -> true
-    }
 
 private val TopBarHeight = 64.dp
 private val ThinSideMenuWidth = 192.dp

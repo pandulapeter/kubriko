@@ -50,7 +50,9 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubrikoShowcase.BuildConfig
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
-import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntryType
+import com.pandulapeter.kubrikoShowcase.implementation.hasDebugMenu
+import com.pandulapeter.kubrikoShowcase.implementation.shouldShowInfoButton
+import com.pandulapeter.kubrikoShowcase.implementation.shouldShowLogo
 import kubriko.app.shared.generated.resources.Res
 import kubriko.app.shared.generated.resources.back
 import kubriko.app.shared.generated.resources.debug_menu
@@ -180,7 +182,7 @@ private fun Header(
             }
             if (BuildConfig.IS_DEBUG_MENU_ENABLED) {
                 AnimatedVisibility(
-                    visible = selectedShowcaseEntry.shouldShowDebugButton,
+                    visible = selectedShowcaseEntry.hasDebugMenu,
                     enter = fadeIn() + scaleIn(),
                     exit = scaleOut() + fadeOut(),
                 ) {
@@ -210,9 +212,3 @@ private fun Header(
         }
     }
 )
-
-private val ShowcaseEntry?.shouldShowLogo get() = this == null || this == ShowcaseEntry.ABOUT || this == ShowcaseEntry.LICENSES
-
-private val ShowcaseEntry?.shouldShowInfoButton get() = this?.type == ShowcaseEntryType.DEMO || this?.type == ShowcaseEntryType.TEST
-
-private val ShowcaseEntry?.shouldShowDebugButton get() = this != null && this.type != ShowcaseEntryType.OTHER
