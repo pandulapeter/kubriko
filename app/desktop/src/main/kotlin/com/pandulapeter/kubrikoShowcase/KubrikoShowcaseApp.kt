@@ -33,7 +33,6 @@ import com.pandulapeter.kubriko.demoPhysics.PhysicsDemoSceneEditor
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.AnnoyedPenguinsGameSceneEditor
 import com.pandulapeter.kubriko.gameBlockysJourney.BlockysJourneyGameSceneEditor
 import com.pandulapeter.kubriko.implementation.windowState
-import com.pandulapeter.kubriko.manager.MetadataManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kubriko.app.desktop.generated.resources.Res
@@ -64,7 +63,6 @@ fun main() {
         val windowSize = remember { mutableStateOf(windowState.size) }
         val isInFullscreenMode = remember { mutableStateOf(false) }
 
-        val isRunningOnWindows = remember { MetadataManager.newInstance().platform is MetadataManager.Platform.Desktop.Windows }
 
         @Composable
         fun KubrikoShowcaseWindow(
@@ -108,7 +106,7 @@ fun main() {
                                     previousWindowPlacement.value?.let { previousWindowPlacement ->
                                         windowState.placement = previousWindowPlacement
                                         windowState.size = windowSize.value
-                                        if (isRunningOnWindows) {
+                                        if (isWindows) {
                                             previousWindowPosition.value?.let { windowState.position = it }
                                         } else {
                                             previousWindowLocation.value?.let {
@@ -150,7 +148,7 @@ fun main() {
             defaultSceneFolderPath = "../../examples/demo-physics/src/commonMain/composeResources/files/scenes"
         )
 
-        if (isRunningOnWindows) {
+        if (isWindows) {
             key(isInFullscreenMode.value) {
                 KubrikoShowcaseWindow(
                     undecorated = isInFullscreenMode.value,
