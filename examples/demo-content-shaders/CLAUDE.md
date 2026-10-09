@@ -44,10 +44,10 @@ existing `Shader` instances are first `remove()`d, then the newly enabled ones a
 shader objects themselves are held as `lazy` properties so they are reused across toggles (no
 re-allocation).
 
-**`shouldDrawBorder` lambda on `ColorfulBox`.** Rather than storing a reference to a shared flag
-and reading it every frame (which would cause a capture), the border visibility check is delegated
-as a function reference `{ !state.value.isComicShaderEnabled }` evaluated inside `draw()`. This
-keeps `ColorfulBox` free of direct Manager dependencies.
+**`shouldDrawBorder` lambda on `ColorfulBox`.** Each `ColorfulBox` receives one capturing
+`shouldDrawBorder` lambda (`{ !state.value.isComicShaderEnabled }`), created once at setup rather
+than per frame and evaluated inside `draw()`. This keeps `ColorfulBox` free of direct Manager
+dependencies.
 
 **Platform guard.** The demo checks `ShaderManager.areShadersSupported` at the `@Composable` level
 and shows a fallback text on platforms where SKSL shaders are unavailable.
