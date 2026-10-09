@@ -116,9 +116,8 @@ internal fun IsometricGraphicsContent(
     val joystickTriggerRadiusPx = joystickVisualRadiusPx * 2f // Touch target is twice the visual radius
     val paddingPx = with(density) { 16.dp.toPx() }
     val layoutDirection = LocalLayoutDirection.current
-    val safeDrawingInsets = WindowInsets.safeDrawing
-    val leftInsetPx = safeDrawingInsets.getLeft(density, layoutDirection).toFloat()
-    val bottomInsetPx = safeDrawingInsets.getBottom(density).toFloat()
+    val leftInsetPx = windowInsets.getLeft(density, layoutDirection).toFloat()
+    val bottomInsetPx = windowInsets.getBottom(density).toFloat()
 
     val defaultJoystickPosition = remember(leftInsetPx, bottomInsetPx, paddingPx, joystickVisualRadiusPx, size.value) {
         Offset(
