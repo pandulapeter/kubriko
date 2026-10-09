@@ -42,7 +42,7 @@ On focus loss, all active keys are flushed immediately, on the main thread like 
 | Platform | Backend | Gotcha |
 |---|---|---|
 | Desktop (JVM) | AWT `KeyEvent` | Only left-side modifiers detected (left Shift, left Ctrl, etc.) |
-| Web (Wasm) | `KeyboardEvent.code` | Many keys return `Key(-1)` (unmapped); test on target. Keys held when the window loses focus are reported as released then, since the browser sends no `keyup` for them |
+| Web (Wasm) | `KeyboardEvent.code` | `KeyboardEvent.code` mapped with Compose's own table (falling back to `KeyboardEvent.key` for virtual keyboards, as Compose does); right-hand modifiers report the left `Key` (as on Desktop); unmapped keys are ignored. Keys held when the window loses focus are reported as released then, since the browser sends no `keyup` for them |
 | Android | `KeyEvent` | 70 ms debounce workaround for unreliable held-key events; the debounce loop runs on the main thread with the key listener |
 | iOS | GameController `GCKeyboard` (process-wide handler shared by all instances; it replaces any `keyChangedHandler` the app itself installs on the coalesced keyboard) | Hardware keyboards only (the software keyboard sends no key events); keys are heard whatever Compose has focused, like Desktop and Web. Keys held when the keyboard disconnects are reported as released then |
 
@@ -65,6 +65,6 @@ Key.displayName          // Human-readable label
 ## Gotchas
 
 - Key repeat from the OS is swallowed; `onKeyPressed` fires exactly once per physical press
-- Web: test with physical hardware — many `Key(-1)` returns for non-ASCII keys
+- Web: keys missing from Compose's web table (media keys, `PrintScreen`, `Pause`, …) are ignored, not reported as `Key.Unknown`
 - Android: the 70 ms debounce means very short key taps may be missed
 - Do not allocate inside `handleActiveKeys` — it runs every tick
