@@ -25,9 +25,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -44,6 +42,7 @@ import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.managers.Game
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.AnnoyedPenguinsTheme
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.GameplayHud
 import com.pandulapeter.kubriko.gameAnnoyedPenguins.implementation.ui.MenuOverlay
+import com.pandulapeter.kubriko.uiComponents.LoadingIndicator
 
 @Composable
 fun AnnoyedPenguinsGame(
@@ -160,10 +159,7 @@ fun AnnoyedPenguinsGame(
                 .windowInsetsPadding(windowInsets)
                 .padding(16.dp),
         ) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.BottomStart).size(24.dp),
-                strokeWidth = 3.dp,
-            )
+            LoadingIndicator(modifier = Modifier.align(Alignment.BottomStart))
         }
     }
 }
