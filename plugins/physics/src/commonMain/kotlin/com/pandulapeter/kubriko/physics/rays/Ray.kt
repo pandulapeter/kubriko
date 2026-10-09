@@ -32,26 +32,7 @@ internal class Ray(
     var direction: SceneOffset = direction.normalized()
 
     /**
-     * Convenience constructor with ray set at origin. Similar to
-     * [.Ray]
-     *
-     * @param direction The direction of the ray points in radians.
-     * @param distance  The distance the ray is projected
-     */
-    constructor(direction: AngleRadians, distance: SceneUnit) : this(SceneOffset.Zero, SceneOffset(direction), distance)
-
-    /**
-     * Convenience constructor with ray set at origin. Similar to
-     * [.Ray]
-     *
-     * @param direction The direction of the ray points.
-     * @param distance  The distance the ray is projected
-     */
-    constructor(direction: SceneOffset, distance: SceneUnit) : this(SceneOffset.Zero, direction, distance)
-
-    /**
-     * Convenience constructor. Similar to
-     * [.Ray]
+     * Convenience constructor.
      *
      * @param startPoint The origin of the rays projection.
      * @param direction  The direction of the ray points in radians.
@@ -90,7 +71,7 @@ internal class Ray(
             }
         }
         if (intersectionFound) {
-            rayInformation = closestBody?.let { RayInformation(it, minPx, minPy, -1) }
+            rayInformation = closestBody?.let { RayInformation(it, minPx, minPy) }
         }
     }
 }

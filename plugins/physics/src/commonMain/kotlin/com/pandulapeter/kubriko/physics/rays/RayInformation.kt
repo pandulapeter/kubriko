@@ -14,56 +14,12 @@ import com.pandulapeter.kubriko.types.SceneOffset
 import com.pandulapeter.kubriko.types.SceneUnit
 
 /**
- * Ray information class to store relevant data about rays and any intersection found.
+ * The closest intersection a [Ray] found: the [body] it hit and the [coordinates] of the hit.
  */
-internal class RayInformation {
-    /**
-     * Getter for body variable.
-     *
-     * @return returns b variable of type Body.
-     */
-    val body: PhysicsBody
-
-    /**
-     * Getter for coords variable.
-     *
-     * @return returns coords variable of type Vec2.
-     */
-    val coordinates: SceneOffset
-
-    /**
-     * Getter for index variable.
-     *
-     * @return returns index variable of type int.
-     */
-    // Poly index is the first index of the line of intersection found
-    val index: Int
-
-    /**
-     * Constructor to store information about a ray intersection.
-     *
-     * @param b     Body involved with ray intersection.
-     * @param x     x position of intersection.
-     * @param y     y position of intersection.
-     * @param index Index of shapes side that intersection intersects.
-     */
-    constructor(body: PhysicsBody, x: SceneUnit, y: SceneUnit, index: Int) {
-        this.body = body
-        coordinates = SceneOffset(x, y)
-        this.index = index
-    }
-
-    /**
-     * Convenience constructor equivalent to
-     * [.RayInformation]
-     *
-     * @param b     Body involved with ray intersection.
-     * @param sceneOffset     x/y position of intersection.
-     * @param index Index of shapes side that intersection intersects.
-     */
-    constructor(body: PhysicsBody, sceneOffset: SceneOffset, index: Int) {
-        this.body = body
-        coordinates = sceneOffset
-        this.index = index
-    }
+internal class RayInformation(
+    val body: PhysicsBody,
+    x: SceneUnit,
+    y: SceneUnit,
+) {
+    val coordinates = SceneOffset(x, y)
 }
