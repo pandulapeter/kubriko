@@ -94,6 +94,7 @@ fun SpaceSquadronGame(
             enter = fadeIn() + scaleIn(),
             exit = scaleOut() + fadeOut(),
         ) {
+            val isFocused = stateHolder.stateManager.isFocused.collectAsState().value
             MenuOverlay(
                 modifier = Modifier.windowInsetsPadding(windowInsets),
                 isVisible = !stateHolder.stateManager.isRunning.collectAsState().value || stateHolder.gameplayManager.isGameOver.collectAsState().value,
@@ -110,9 +111,9 @@ fun SpaceSquadronGame(
                     stateHolder.audioManager.playButtonToggleSoundEffect()
                     stateHolder.uiManager.toggleInfoDialogVisibility()
                 },
-                areSoundEffectsEnabled = stateHolder.stateManager.isFocused.collectAsState().value && stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
+                areSoundEffectsEnabled = isFocused && stateHolder.userPreferencesManager.areSoundEffectsEnabled.collectAsState().value,
                 onSoundEffectsToggled = stateHolder.userPreferencesManager::onAreSoundEffectsEnabledChanged,
-                isMusicEnabled = stateHolder.stateManager.isFocused.collectAsState().value && stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
+                isMusicEnabled = isFocused && stateHolder.userPreferencesManager.isMusicEnabled.collectAsState().value,
                 onMusicToggled = stateHolder.userPreferencesManager::onIsMusicEnabledChanged,
                 isInFullscreenMode = isInFullscreenMode,
                 onFullscreenModeToggled = {
