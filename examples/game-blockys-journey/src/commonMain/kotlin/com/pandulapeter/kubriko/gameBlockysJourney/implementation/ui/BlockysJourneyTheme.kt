@@ -10,9 +10,6 @@
 package com.pandulapeter.kubriko.gameBlockysJourney.implementation.ui
 
 import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.shape.CornerBasedShape
-import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalRippleConfiguration
@@ -25,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubriko.shared.ui.gameRipple
 import kubriko.examples.game_blockys_journey.generated.resources.Res
 import kubriko.examples.game_blockys_journey.generated.resources.medieval_sharp
@@ -59,14 +55,6 @@ internal fun BlockysJourneyTheme(
         content()
     }
 }
-
-
-internal val BlockysJourneyUIElementShape: CornerBasedShape = RoundedCornerShape(
-    topStart = CornerSize(4.dp),
-    topEnd = CornerSize(4.dp),
-    bottomStart = CornerSize(4.dp),
-    bottomEnd = CornerSize(4.dp),
-)
 
 @Composable
 private fun BlockysJourneyTypography() = Typography().run {
