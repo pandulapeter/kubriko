@@ -16,7 +16,7 @@
   `tools/ui-components/src/commonMain/kotlin/com/pandulapeter/kubriko/uiComponents/FloatingButton.kt`,
   `tools/ui-components/CLAUDE.md`
 
-**Rebased:** on 70de96c6 after the Now plans landed.
+**Rebased:** re-checked on b31bb3f7 after the Planned plans landed (quoted snippets hold; line numbers may be off by a few).
 
 ## Problem
 `KubrikoTheme` picks its color scheme with `dynamicIsSystemInDarkTheme()` (`KubrikoTheme.kt:73`), which on desktop polls
