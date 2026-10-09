@@ -16,7 +16,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.graphics.Color
@@ -29,11 +28,11 @@ import androidx.navigationevent.compose.rememberNavigationEventState
 import com.pandulapeter.kubriko.shared.StateHolder
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
+import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseSession
 import com.pandulapeter.kubrikoShowcase.implementation.deeplink
 import com.pandulapeter.kubrikoShowcase.implementation.processDeeplink
 import com.pandulapeter.kubrikoShowcase.implementation.ui.ResourceLoader
 import com.pandulapeter.kubrikoShowcase.implementation.ui.ShowcaseContent
-import com.pandulapeter.kubrikoShowcase.implementation.ui.getStateHolder
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
@@ -46,8 +45,8 @@ fun KubrikoShowcase(
     isInFullscreenMode: Boolean?,
     getIsInFullscreenMode: () -> Boolean?,
     onFullscreenModeToggled: () -> Unit,
-    deeplink: String? = selectedShowcaseEntry.value.deeplink,
-    onDestinationChanged: (String?) -> Unit = { selectedShowcaseEntry.value = it.processDeeplink() },
+    deeplink: String? = showcaseSession.selectedEntry.value.deeplink,
+    onDestinationChanged: (String?) -> Unit = { showcaseSession.select(it.processDeeplink()) },
     onFirstFrameDrawn: () -> Unit = {},
     onBackgroundColorChanged: (Color) -> Unit = {},
 ) {
@@ -67,16 +66,16 @@ fun KubrikoShowcase(
             val backgroundColor = MaterialTheme.colorScheme.surface
             SideEffect { onBackgroundColorChanged(backgroundColor) }
             LaunchedEffect(deeplink) {
-                selectedShowcaseEntry.value = deeplink.processDeeplink()
+                showcaseSession.select(deeplink.processDeeplink())
             }
-            LaunchedEffect(selectedShowcaseEntry.value) {
-                onDestinationChanged(selectedShowcaseEntry.value?.deeplink)
+            LaunchedEffect(showcaseSession.selectedEntry.value) {
+                onDestinationChanged(showcaseSession.selectedEntry.value?.deeplink)
             }
             NavigationBackHandler(
                 state = rememberNavigationEventState(NavigationEventInfo.None),
-                isBackEnabled = selectedShowcaseEntry.value != null,
+                isBackEnabled = showcaseSession.selectedEntry.value != null,
             ) {
-                val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
+                val activeStateHolder = showcaseSession.selectedEntry.value?.let(showcaseSession::holderFor)
                 try {
                     if (activeStateHolder?.navigateBack(
                             isInFullscreenMode = getIsInFullscreenMode() == true,
@@ -84,31 +83,31 @@ fun KubrikoShowcase(
                         ) == false
                     ) {
                         activeStateHolder.stopMusic()
-                        selectedShowcaseEntry.value = null
+                        showcaseSession.select(null)
                     }
                 } catch (_: CancellationException) {
                 }
             }
             BoxWithConstraints {
-                val activeStateHolder = selectedShowcaseEntry.value?.getStateHolder()
+                val activeStateHolder = showcaseSession.selectedEntry.value?.let(showcaseSession::holderFor)
                 LaunchedEffect(activeStateHolder) {
                     activeStateHolder?.backNavigationIntent?.collect {
                         if (getIsInFullscreenMode() == true) {
                             onFullscreenModeToggled()
                         }
-                        selectedShowcaseEntry.value = null
+                        showcaseSession.select(null)
                     }
                 }
                 ShowcaseContent(
                     shouldUseCompactUi = maxWidth < 640.dp,
                     shouldUseWideSideMenu = maxWidth >= 1200.dp,
                     allShowcaseEntries = ShowcaseEntry.entries,
-                    getSelectedShowcaseEntry = { selectedShowcaseEntry.value },
-                    selectedShowcaseEntry = selectedShowcaseEntry.value,
+                    session = showcaseSession,
+                    selectedShowcaseEntry = showcaseSession.selectedEntry.value,
                     onShowcaseEntrySelected = { showcaseEntry ->
-                        if (showcaseEntry?.getStateHolder() != activeStateHolder) {
+                        if (showcaseEntry != showcaseSession.selectedEntry.value) {
                             activeStateHolder?.stopMusic()
-                            selectedShowcaseEntry.value = showcaseEntry
+                            showcaseSession.select(showcaseEntry)
                         }
                     },
                     activeKubrikoInstance = activeStateHolder?.kubriko?.collectAsState(null)?.value,
@@ -122,7 +121,7 @@ fun KubrikoShowcase(
     }
 }
 
-private val selectedShowcaseEntry = mutableStateOf<ShowcaseEntry?>(null)
+private val showcaseSession = ShowcaseSession()
 
 /**
  * Opens links through the platform's handler, ignoring the ones nothing on the device can open (a `mailto:` link

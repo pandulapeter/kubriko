@@ -65,6 +65,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.debugMenu.DebugMenu
 import com.pandulapeter.kubrikoShowcase.BuildConfig
 import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseEntry
+import com.pandulapeter.kubrikoShowcase.implementation.ShowcaseSession
 import com.pandulapeter.kubrikoShowcase.implementation.hasDebugMenu
 import com.pandulapeter.kubrikoShowcase.implementation.ui.welcome.WelcomeScreen
 import kotlinx.coroutines.delay
@@ -78,7 +79,7 @@ internal fun ShowcaseContent(
     shouldUseCompactUi: Boolean,
     shouldUseWideSideMenu: Boolean,
     allShowcaseEntries: List<ShowcaseEntry>,
-    getSelectedShowcaseEntry: () -> ShowcaseEntry?,
+    session: ShowcaseSession,
     selectedShowcaseEntry: ShowcaseEntry?,
     onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
     activeKubrikoInstance: Kubriko?,
@@ -128,7 +129,7 @@ internal fun ShowcaseContent(
                             shouldUseCompactUi = shouldUseCompactUi,
                             shouldUseWideSideMenu = shouldUseWideSideMenu,
                             onFullscreenModeToggled = onFullscreenModeToggled,
-                            getSelectedShowcaseEntry = getSelectedShowcaseEntry,
+                            session = session,
                         )
                         if (BuildConfig.IS_DEBUG_MENU_ENABLED) {
                             DebugMenu.Vertical(
@@ -180,7 +181,7 @@ private fun ContentWithSideMenu(
     shouldUseWideSideMenu: Boolean,
     isInFullscreenMode: Boolean?,
     onFullscreenModeToggled: () -> Unit,
-    getSelectedShowcaseEntry: () -> ShowcaseEntry?,
+    session: ShowcaseSession,
 ) = Box(
     modifier = modifier,
 ) {
@@ -217,7 +218,7 @@ private fun ContentWithSideMenu(
                         windowInsets = windowInsets,
                         isInFullscreenMode = isInFullscreenMode,
                         onFullscreenModeToggled = onFullscreenModeToggled,
-                        getSelectedShowcaseEntry = getSelectedShowcaseEntry,
+                        session = session,
                         homeLazyListState = collapsedLazyListState,
                         allShowcaseEntries = allShowcaseEntries,
                         onShowcaseEntrySelected = onShowcaseEntrySelected,
@@ -232,7 +233,7 @@ private fun ContentWithSideMenu(
                 windowInsets = windowInsets,
                 isInFullscreenMode = isInFullscreenMode,
                 onFullscreenModeToggled = onFullscreenModeToggled,
-                getSelectedShowcaseEntry = getSelectedShowcaseEntry,
+                session = session,
                 homeLazyListState = collapsedLazyListState,
                 allShowcaseEntries = allShowcaseEntries,
                 onShowcaseEntrySelected = onShowcaseEntrySelected,
@@ -305,7 +306,7 @@ private fun ShowcaseEntryContent(
     windowInsets: WindowInsets,
     isInFullscreenMode: Boolean?,
     onFullscreenModeToggled: () -> Unit,
-    getSelectedShowcaseEntry: () -> ShowcaseEntry?,
+    session: ShowcaseSession,
     homeLazyListState: LazyListState,
     allShowcaseEntries: List<ShowcaseEntry>,
     onShowcaseEntrySelected: (ShowcaseEntry?) -> Unit,
@@ -323,7 +324,7 @@ private fun ShowcaseEntryContent(
             windowInsets = windowInsets,
             isInFullscreenMode = isInFullscreenMode,
             onFullscreenModeToggled = onFullscreenModeToggled,
-            getSelectedShowcaseEntry = getSelectedShowcaseEntry,
+            session = session,
         ) ?: HomeContent(
             lazyListState = homeLazyListState,
             allShowcaseEntries = allShowcaseEntries,
