@@ -109,7 +109,7 @@ internal class AlienShip(
                 deltaTimeInMilliseconds = deltaTimeInMilliseconds,
                 shouldLoop = true,
             )
-            if (body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) && Random.nextInt(80) == 0 && stateManager.isRunning.value) {
+            if (body.axisAlignedBoundingBox.isWithinViewportBounds(viewportManager) && shouldAlienAttemptShot(deltaTimeInMilliseconds) && stateManager.isRunning.value) {
                 val currentTimestamp = metadataManager.activeRuntimeInMilliseconds.value
                 val timeSinceLastShot = currentTimestamp - lastShotTimestamp
                 if (timeSinceLastShot > 200 && !gameplayManager.isGameOver.value) {
