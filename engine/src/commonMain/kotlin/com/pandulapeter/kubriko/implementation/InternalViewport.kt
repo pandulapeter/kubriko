@@ -123,10 +123,7 @@ fun InternalViewport(
                     if (!hasSkippedDisplayFrames && frameDelta > 0) {
                         displayFrameInterval = frameDelta.toFloat()
                     }
-                    val canTick = viewportTickSource != null &&
-                            viewportTickSource.isRunningInternal.value &&
-                            !kubrikoImpl.viewportManager.size.value.isEmpty() &&
-                            (!viewportTickSource.shouldPauseOnFocusLoss || kubrikoImpl.stateManager.isFocused.value)
+                    val canTick = viewportTickSource != null && isTickingAllowed(kubrikoImpl, viewportTickSource)
                     if (canTick) {
                         when (val targetFrameRate = kubrikoImpl.viewportManager.targetFrameRate.value) {
                             TargetFrameRate.DisplayDefault -> {
@@ -182,10 +179,7 @@ fun InternalViewport(
                 lastSleepInMilliseconds = 0L
             }
             while (isActive) {
-                val canTickNow = viewportTickSource != null &&
-                        viewportTickSource.isRunningInternal.value &&
-                        !kubrikoImpl.viewportManager.size.value.isEmpty() &&
-                        (!viewportTickSource.shouldPauseOnFocusLoss || kubrikoImpl.stateManager.isFocused.value)
+                val canTickNow = viewportTickSource != null && isTickingAllowed(kubrikoImpl, viewportTickSource)
                 if (!canTickNow) {
                     if (viewportTickSource == null) {
                         // No viewport-driven ticking is configured; this loop has nothing left to do.
@@ -255,6 +249,11 @@ fun InternalViewport(
         }
     }
 }
+
+private fun isTickingAllowed(kubrikoImpl: KubrikoImpl, viewportTickSource: ViewportFrameTickSource) =
+    viewportTickSource.isRunningInternal.value &&
+            !kubrikoImpl.viewportManager.size.value.isEmpty() &&
+            (!viewportTickSource.shouldPauseOnFocusLoss || kubrikoImpl.stateManager.isFocused.value)
 
 // Compose hands frame times over in nanoseconds; the loop keeps its own time in milliseconds.
 private const val NANOSECONDS_PER_MILLISECOND = 1_000_000L
