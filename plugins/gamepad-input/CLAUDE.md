@@ -18,7 +18,10 @@ trait, in a single layout shared by all four platforms.
   zone, diffs the buttons and dispatches to the Actors
 - `src/commonMain/.../GamepadState.kt` — the public, reused per-slot state object
 - `src/commonMain/.../GamepadButton.kt` — the shared button layout; `bitMask` is the ordinal-derived bit
-- `src/commonMain/.../GamepadFocusNavigation.kt` — the app-facing half of focus navigation: `GamepadFocusNavigationHost` and the `onGamepadActivation` Modifier with the focus-event node behind it
+- `src/commonMain/.../GamepadFocusNavigationHost.kt` — the app-facing half of focus navigation: the `GamepadFocusNavigationHost` Composable
+- `src/commonMain/.../GamepadFocusNavigationHostState.kt` — what a host hands the manager: its focus and input mode managers and its back action
+- `src/commonMain/.../GamepadFocusNavigation.kt` — the `onGamepadActivation` Modifier and its element (shares the `GamepadFocusNavigationKt` JVM facade with the host)
+- `src/commonMain/.../GamepadActivationNode.kt` — the focus-event node behind `onGamepadActivation`
 - `src/commonMain/.../implementation/RawGamepadState.kt` — what the platform handlers write into
 - `src/*/kotlin/.../GamepadEventHandler.*.kt` — platform-specific backend (one per target)
 
