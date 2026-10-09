@@ -17,6 +17,8 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.job
 import kotlin.concurrent.Volatile
@@ -69,6 +71,11 @@ internal class AudioCache {
             }
         }
     }
+
+    /** The share of [uris] that are settled (loaded or failed), from 0 to 1; 1 for an empty collection. */
+    fun loadingProgress(uris: Collection<String>): Flow<Float> = if (uris.isEmpty()) flowOf(1f) else entries.map { cache ->
+        cache.filter { (key, _) -> key in uris }.count { (_, value) -> value != null }.toFloat() / uris.size
+    }.distinctUntilChanged()
 
     val uris: Set<String> get() = slots.value.keys
 

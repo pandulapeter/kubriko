@@ -22,11 +22,8 @@ import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNot
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -82,9 +79,7 @@ internal class MusicManagerImpl(
 
     override fun getLoadingProgress(uri: String) = getLoadingProgress(setOf(uri))
 
-    override fun getLoadingProgress(uris: Collection<String>) = if (uris.isEmpty()) flowOf(1f) else audioCache.entries.map { cache ->
-        cache.filter { (key, _) -> key in uris }.count { (_, value) -> value != null }.toFloat() / uris.size
-    }.distinctUntilChanged()
+    override fun getLoadingProgress(uris: Collection<String>) = audioCache.loadingProgress(uris)
 
     override fun preload(vararg uris: String) = preload(uris.toSet())
 

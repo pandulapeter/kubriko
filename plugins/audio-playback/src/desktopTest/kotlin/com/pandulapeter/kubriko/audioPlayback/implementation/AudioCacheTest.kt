@@ -253,7 +253,21 @@ class AudioCacheTest {
         assertTrue(failedUris.isEmpty())
     }
 
+    @Test
+    fun loadingProgressCountsSettledUris() = runTest {
+        val loader = FakeLoader()
+        val cache = AudioCache().apply { attach(backgroundScope, loader.load) {} }
+        cache.preload(URI)
+        cache.preload(OTHER_URI)
+        testScheduler.runCurrent()
+        loader.complete(URI, Any())
+        testScheduler.runCurrent()
+        assertEquals(0.5f, cache.loadingProgress(setOf(URI, OTHER_URI)).first { it == 0.5f })
+        assertEquals(1f, cache.loadingProgress(emptySet()).first())
+    }
+
     private companion object {
         const val URI = "uri"
+        const val OTHER_URI = "otherUri"
     }
 }
