@@ -12,5 +12,6 @@
 
     <string name="open_scene_editor">Open Scene Editor</string>
     <string name="close_scene_editor">Close Scene Editor</string>
+    <string name="scene_editor_title">Scene Editor - Performance Demo</string>
 
 </resources>

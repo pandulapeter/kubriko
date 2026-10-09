@@ -18,6 +18,9 @@ import com.pandulapeter.kubriko.demoPerformance.implementation.managers.Performa
 import com.pandulapeter.kubriko.demoPerformance.implementation.sceneJson
 import com.pandulapeter.kubriko.sceneEditor.SceneEditor
 import com.pandulapeter.kubriko.sceneEditor.SceneEditorMode
+import kubriko.examples.demo_performance.generated.resources.Res
+import kubriko.examples.demo_performance.generated.resources.scene_editor_title
+import org.jetbrains.compose.resources.stringResource
 
 fun main() = SceneEditor.show(
     defaultSceneFilename = PerformanceDemoManager.SCENE_NAME,
@@ -43,7 +46,7 @@ fun PerformanceDemoSceneEditor(
             defaultSceneFolderPath = defaultSceneFolderPath,
             serializationManager = stateHolder.serializationManager,
             customManagers = emptyList(),
-            title = "Scene Editor - Performance Demo",
+            title = stringResource(Res.string.scene_editor_title),
             onCloseRequest = { isSceneEditorVisible.value = false },
             sceneEditorMode = sceneJson?.let { sceneJson ->
                 SceneEditorMode.Connected(
