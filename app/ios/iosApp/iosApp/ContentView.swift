@@ -12,12 +12,12 @@ import SwiftUI
 import ComposeApp
 
 struct ComposeView: UIViewControllerRepresentable {
-    @Binding var isStatusBarHidden: Bool
+    @Binding var isInFullscreenMode: Bool
 
     func makeUIViewController(context: Context) -> UIViewController {
-        let isStatusBarHidden = $isStatusBarHidden
+        let isInFullscreenMode = $isInFullscreenMode
         return KubrikoShowcaseViewControllerKt.KubrikoShowcaseViewController(
-            onFullscreenModeChanged: { isFullscreen in isStatusBarHidden.wrappedValue = isFullscreen.boolValue }
+            onFullscreenModeChanged: { isFullscreen in isInFullscreenMode.wrappedValue = isFullscreen.boolValue }
         )
     }
 
@@ -25,11 +25,28 @@ struct ComposeView: UIViewControllerRepresentable {
 }
 
 struct ContentView: View {
-    @State private var isStatusBarHidden = false
+    @State private var isInFullscreenMode = KubrikoShowcaseViewControllerKt.isKubrikoShowcaseInFullscreenMode()
 
     var body: some View {
-        ComposeView(isStatusBarHidden: $isStatusBarHidden)
+        ComposeView(isInFullscreenMode: $isInFullscreenMode)
             .ignoresSafeArea()
-            .statusBarHidden(isStatusBarHidden)
+            .statusBarHidden(isInFullscreenMode)
+            .modifier(FullscreenSystemOverlays(isInFullscreenMode: isInFullscreenMode))
+    }
+}
+
+/// Hides the home indicator and makes the first swipe from a screen edge only reveal the system UI while the
+/// Showcase is in fullscreen mode. Both modifiers need iOS 16; earlier versions keep the default behavior.
+private struct FullscreenSystemOverlays: ViewModifier {
+    let isInFullscreenMode: Bool
+
+    func body(content: Content) -> some View {
+        if #available(iOS 16.0, *) {
+            content
+                .persistentSystemOverlays(isInFullscreenMode ? .hidden : .automatic)
+                .defersSystemGestures(on: isInFullscreenMode ? .all : [])
+        } else {
+            content
+        }
     }
 }

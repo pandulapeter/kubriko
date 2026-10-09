@@ -42,4 +42,7 @@ fun KubrikoShowcaseViewController(onFullscreenModeChanged: (Boolean) -> Unit) = 
     }
 }
 
+/** Whether the Showcase is in fullscreen mode, for the host to set up the system UI before the first toggle. */
+fun isKubrikoShowcaseInFullscreenMode() = isInFullscreenMode.value
+
 private val isInFullscreenMode = mutableStateOf(false)

@@ -19,7 +19,9 @@ Kotlin/Native iOS module. The Xcode project calls `KubrikoShowcaseViewController
 
 Fullscreen state is a file-level `mutableStateOf<Boolean>`. Toggling it:
 1. Flips the `isInFullscreenMode` state (consumed by `KubrikoShowcase` to hide/show the top bar).
-2. Calls `onFullscreenModeChanged` with the new value, which drives `ContentView`'s `.statusBarHidden` and so hides the iOS status bar in fullscreen mode. The app's root is SwiftUI's hosting controller, which takes the status bar from that modifier and does not consult the embedded controller's `prefersStatusBarHidden()`.
+2. Calls `onFullscreenModeChanged` with the new value, which drives `ContentView`'s `.statusBarHidden` and so hides the iOS status bar in fullscreen mode. The app's root is SwiftUI's hosting controller, which takes the status bar from that modifier and does not consult the embedded controller's `prefersStatusBarHidden()`. On iOS 16+ the same state also hides the home indicator (`persistentSystemOverlays`) and defers system gestures on every screen edge (`defersSystemGestures`), so the first edge swipe only reveals the system UI; these are SwiftUI modifiers rather than `prefersHomeIndicatorAutoHidden` / `preferredScreenEdgesDeferringSystemGestures` overrides for the same reason.
+
+`ContentView` seeds its state from `isKubrikoShowcaseInFullscreenMode()`, so a SwiftUI scene rebuilt while the process lives on matches the process-level Kotlin flag instead of starting out of fullscreen.
 
 There is no native system fullscreen on iOS — it is purely a UI-level affordance (hiding the in-app top bar and the status bar).
 
