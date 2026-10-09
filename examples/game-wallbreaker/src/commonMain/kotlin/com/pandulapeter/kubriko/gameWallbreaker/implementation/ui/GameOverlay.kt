@@ -79,29 +79,31 @@ internal fun GameOverlay(
                 modifier = Modifier.align(Alignment.TopEnd),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                WallbreakerCard {
-                    Text(
-                        modifier = Modifier.padding(
-                            horizontal = 16.dp,
-                            vertical = 8.dp,
-                        ),
-                        text = stringResource(Res.string.score, score),
-                        color = MaterialTheme.colorScheme.primary,
-                        textAlign = TextAlign.Start,
-                    )
-                }
-                WallbreakerCard {
-                    Text(
-                        modifier = Modifier.padding(
-                            horizontal = 16.dp,
-                            vertical = 8.dp,
-                        ),
-                        text = stringResource(Res.string.highscore, highScore),
-                        color = MaterialTheme.colorScheme.primary,
-                        textAlign = TextAlign.End,
-                    )
-                }
+                ScoreCard(
+                    text = stringResource(Res.string.score, score),
+                    textAlign = TextAlign.Start,
+                )
+                ScoreCard(
+                    text = stringResource(Res.string.highscore, highScore),
+                    textAlign = TextAlign.End,
+                )
             }
         }
     }
+}
+
+@Composable
+private fun ScoreCard(
+    text: String,
+    textAlign: TextAlign,
+) = WallbreakerCard {
+    Text(
+        modifier = Modifier.padding(
+            horizontal = 16.dp,
+            vertical = 8.dp,
+        ),
+        text = text,
+        color = MaterialTheme.colorScheme.primary,
+        textAlign = textAlign,
+    )
 }
