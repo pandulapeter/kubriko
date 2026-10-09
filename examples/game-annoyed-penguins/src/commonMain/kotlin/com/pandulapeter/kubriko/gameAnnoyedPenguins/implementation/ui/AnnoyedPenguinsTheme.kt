@@ -60,8 +60,7 @@ internal fun AnnoyedPenguinsTheme(
     }
 }
 
-
-internal val AnnoyedPenguinsUIElementShape: CornerBasedShape = RoundedCornerShape(
+private val AnnoyedPenguinsUIElementShape: CornerBasedShape = RoundedCornerShape(
     topStart = CornerSize(32.dp),
     topEnd = CornerSize(32.dp),
     bottomStart = CornerSize(32.dp),
