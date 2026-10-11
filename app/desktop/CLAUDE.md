@@ -36,6 +36,12 @@ The strip (28dp on macOS, 32dp on Windows) reaches the shared UI as a top system
 
 What a fast resize uncovers before the next frame fills it is kept on the theme's surface color, reported by `KubrikoShowcase`'s `onBackgroundColorChanged` (`setUndrawnAreaColor`): the window's own background and that of the heavyweight surface the content is rendered into, which does not follow the window's, and on Windows that of every component of the window, since Swing repaints the uncovered edge with the opaque panels between the two, in the look and feel's panel gray.
 
+## Touchscreens
+
+A finger on a Windows or Linux touchscreen reaches Compose as a touch through `TouchScreen.kt`, ported from Campfire, whose `app/desktop/CLAUDE.md` describes it in full. The JetBrains Runtime hands a finger on as mouse wheel events of three scroll types of its own (`sun.awt.event.TouchEvent`: 2 down, 3 for each move past a 10 px radius, 4 up), then a mouse click for a finger that never left the radius, so Compose read a drag as wheel notches. An `EventQueue` takes those events first and sends the window's `ComposeScene` a `PointerType.Touch` press, moves, and release at the finger's position, dropping the click that follows a tap. The menu's lists then drag and fling as on a phone.
+
+The scene is found once, on the first touch, by type among the window's Compose objects through reflection, and is only trusted when its size is the content pane's in pixels; otherwise the app prints that touchscreen input is left to Compose and behaves as it would without this. One queue serves every window and is never popped, because `EventQueue.pop` removes the topmost queue whoever pushed it, and the Windows fullscreen toggle recreates the window. Only the primary finger is passed on by the runtime, so there is no multitouch, and `plugin-pointer-input` still only handles pointer id 0 on desktop, so the games do not react to these touches. Check it after every Compose update: on a Mac, posting `MouseWheelEvent`s of those scroll types from a temporary in-app driver exercises the whole path.
+
 ## Scene Editors
 
 The desktop app registers scene editors for examples that support them. These launch as separate windows (handled by the scene-editor tool) and write scenes directly into source directories:

@@ -63,6 +63,10 @@ internal fun ApplicationScope.KubrikoShowcaseWindow(
                 window.removeWindowStateListener(listener)
             }
         }
+        DisposableEffect(Unit) {
+            val stopTranslating = window.translateTouchScreenInput()
+            onDispose { stopTranslating() }
+        }
         titleBar?.let { TitleBarAppearance(window = window, titleBar = it) }
         TitleBarInsets(
             titleBar = titleBar,
