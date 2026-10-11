@@ -46,7 +46,14 @@ coroutine, while raw pointer events arrive synchronously in the event loop.
 
 ## Multi-touch and platform differences
 - `isMultiTouchEnabled = false` on **Desktop** (tracked JetBrains issue CMP-1609); pointer ID
-  filtering drops any event whose `id.value != 0L`.
+  filtering drops any event whose `id.value != 0L`, which is every pointer but the mouse's.
+- **Desktop touchscreens** are not supported by Compose. Under the JetBrains Runtime on Windows and X11 a tap arrives
+  as a mouse click once the finger lifts (press and release back to back, so nothing is held), and a drag as mouse
+  wheel scrolling, which the desktop `gestureDetector`'s `Scroll` handler turns into `onPointerZoom`; only the primary
+  finger is passed on. An app that translates the runtime's events into `PointerType.Touch` pointers (the Showcase's
+  `app/desktop/.../TouchScreen.kt`) gets touches with ids far from `0`, which the filter above drops, so games stop
+  reacting to taps at all there. The README's "Touchscreens on Desktop" section is the consumer-facing version of
+  this; keep the two in sync.
 - **Android**, **iOS**, and **Web**: `isMultiTouchEnabled = true`; all pointer IDs are forwarded.
 - **Android** and **iOS**: `detectTransformGestures` fires `onPointerZoom` from pinch gestures.
 - **Web**: touch pinch does not reach `onPointerZoom` (CMP-6957, the TODO in `PlatformExtensions.web.kt`).

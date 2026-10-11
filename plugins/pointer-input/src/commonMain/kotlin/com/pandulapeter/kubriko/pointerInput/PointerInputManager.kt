@@ -19,6 +19,11 @@ import kotlinx.coroutines.flow.StateFlow
  * Manager responsible for handling pointer input (touch, mouse, etc.).
  *
  * It tracks the positions of all pressed and hovering pointers.
+ *
+ * On Desktop only the mouse is handled, since Compose does not support touchscreens there: under the JetBrains
+ * Runtime a tap on a Windows or Linux touchscreen arrives as a mouse click once the finger lifts, and a drag as mouse
+ * wheel scrolling, which is reported through [PointerInputAware.onPointerZoom]. The plugin's README describes this in
+ * detail.
  */
 sealed class PointerInputManager(
     isLoggingEnabled: Boolean,
