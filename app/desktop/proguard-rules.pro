@@ -22,7 +22,7 @@
 -keep class com.jetbrains.** { *; }
 
 # Kubriko (engine): a Kubriko instance registers at most one Manager per class, so the optimizer must not merge
-# Manager subclasses, or the second Manager registered with a merged class would be dropped. Android gets this rule
+# Manager subclasses, or one of two Managers sharing a merged class would be dropped. Android gets this rule
 # from the engine's consumer rules (engine/consumer-rules.pro), which ProGuard on Desktop doesn't read.
 -keep,allowobfuscation,allowshrinking class * extends com.pandulapeter.kubriko.manager.Manager
 
