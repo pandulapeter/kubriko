@@ -7,5 +7,6 @@
 # https://mozilla.org/MPL/2.0/.
 
 # Kubriko needs no app-side ProGuard/R8 rules on Android: R8 automatically applies the consumer
-# rules that the engine's dependencies ship inside their artifacts. This file is intentionally
+# rules that the engine and its dependencies ship inside their artifacts (the engine's keep every
+# Manager subclass a class of its own; see engine/consumer-rules.pro). This file is intentionally
 # empty apart from any rules your own game code requires.

@@ -9,7 +9,7 @@
 # This doubles as the reference for Kubriko consumers (see the main README). The Compose Gradle
 # plugin always prepends its own default rules, which already cover Skiko, the Compose runtime,
 # kotlinx.coroutines (including the Swing dispatcher) and kotlinx.serialization; the rules here only
-# add what those do not. If you obfuscate a Compose Desktop app that uses Kubriko, copy the two
+# add what those do not. If you obfuscate a Compose Desktop app that uses Kubriko, copy the
 # "Kubriko" blocks below (the entry-point keep above them is app-specific — swap in your own).
 
 # App-specific: keep your application's entry point. Replace with your own main class.
@@ -20,6 +20,11 @@
 # App-specific: the JetBrains Runtime API (the Showcase's title bar) binds its implementation in the runtime by the
 # names of its interfaces and their methods, so they have to keep them, or every service reads as unsupported.
 -keep class com.jetbrains.** { *; }
+
+# Kubriko (engine): a Kubriko instance registers at most one Manager per class, so the optimizer must not merge
+# Manager subclasses, or the second Manager registered with a merged class would be dropped. Android gets this rule
+# from the engine's consumer rules (engine/consumer-rules.pro), which ProGuard on Desktop doesn't read.
+-keep,allowobfuscation,allowshrinking class * extends com.pandulapeter.kubriko.manager.Manager
 
 # Kubriko (engine): needed if you serialize game state (plugin-serialization, plugin-persistence,
 # the Scene Editor). Generic attributes for reflection-adjacent code, plus enum values()/valueOf().

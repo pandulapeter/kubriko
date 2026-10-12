@@ -19,6 +19,10 @@ artifactMetadata {
 kotlin {
     android {
         namespace = "com.pandulapeter.kubriko.engine"
+        optimization {
+            consumerKeepRules.publish = true
+            consumerKeepRules.file("consumer-rules.pro")
+        }
     }
     sourceSets {
         commonMain.dependencies {

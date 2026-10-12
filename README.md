@@ -117,11 +117,11 @@ The latest version is:
 [![](https://maven-badges.sml.io/sonatype-central/io.github.pandulapeter.kubriko/engine/badge.svg?style=flat)](https://repo1.maven.org/maven2/io/github/pandulapeter/kubriko/)
 
 ## 🔒 Shrinking & obfuscation
-ProGuard / R8 only run on the JVM targets; iOS and Web are optimized by their own compilers. Kubriko adds no requirements of its own — for the JVM targets the Showcase's rule files (linked below, with explanatory comments) double as the reference.
+ProGuard / R8 only run on the JVM targets; iOS and Web are optimized by their own compilers. A Kubriko instance registers at most one Manager per class, so every Manager subclass has to stay a class of its own: class merging could otherwise give two Managers one class and silently drop one of them. On Android the engine ships that rule to R8 itself, as consumer rules inside its artifact. ProGuard on Desktop doesn't read them, so there the rule is among those to copy. For the JVM targets the Showcase's rule files (linked below, with explanatory comments) double as the reference.
 
 | Platform | Tool | What you need to add                                                                                                               |
 |---|---|------------------------------------------------------------------------------------------------------------------------------------|
-| Android | R8 | Nothing - see [`app/android/proguard-rules.pro`](https://github.com/pandulapeter/kubriko/blob/main/app/android/proguard-rules.pro) |
+| Android | R8 | Nothing - the engine ships its consumer rules; see [`app/android/proguard-rules.pro`](https://github.com/pandulapeter/kubriko/blob/main/app/android/proguard-rules.pro) |
 | Desktop | ProGuard | Copy from [`app/desktop/proguard-rules.pro`](https://github.com/pandulapeter/kubriko/blob/main/app/desktop/proguard-rules.pro)     |
 | iOS | Kotlin/Native | Nothing - handled by the compiler                                                                                                  |
 | Web | Kotlin/Wasm | Nothing - handled by the compiler                                                                                                  |

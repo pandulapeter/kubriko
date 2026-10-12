@@ -95,6 +95,6 @@ Any Manager can override (all run every frame — keep allocation-free):
 
 - `drawingOrder` comparator adds `+ 0f` to normalize `-0.0f` → `+0.0f`; without this TimSort throws `IllegalArgumentException`
 - `Manager.scope` is `KubrikoImpl` cast to `CoroutineScope` (`SupervisorJob + Dispatchers.Default`; the dispatcher is an internal constructor parameter for tests); child failures don't cancel the engine
-- Default Managers are prepended only for built-in types no user Manager provides; among user Managers of the same class the first one wins (`distinctBy`)
+- Default Managers are prepended only for built-in types no user Manager provides; among user Managers of the same class the first one wins (`distinctBy`). That keys registration by each instance's runtime class, which shrinkers cannot see, so `consumer-rules.pro` (published in the Android artifact through `optimization.consumerKeepRules`) keeps every `Manager` subclass a class of its own: R8's class merging would otherwise give two Managers one class and drop the second. The Showcase's desktop `proguard-rules.pro` carries the same rule for ProGuard, which reads no consumer rules
 - `SyncStateFlow.value` bypasses coroutine-backed `StateFlow` — safe only if underlying state is thread-safe; collectors also receive `getSyncValue()`, never the delegate's placeholder
 - `SyncStateFlow.value` boxes an inline value class on every read (its getter is generic), so per-frame engine code reads the scale factor through `ViewportManagerImpl.currentScaleFactor()` instead of `scaleFactor.value`
