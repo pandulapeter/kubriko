@@ -43,7 +43,8 @@ internal class KubrikoImpl(
     override val instanceName = instanceNameForLogging ?: toString().substringAfterLast('@')
     override val coroutineContext = SupervisorJob() + dispatcher
     val managers: List<Manager> = buildList {
-        addAll(manager.distinctBy { it::class })
+        // The last Manager of each class wins, keeping its own place in the registration order.
+        addAll(manager.asList().asReversed().distinctBy { it::class }.asReversed())
         if (none { it is ActorManager }) add(
             0, ActorManager.newInstance(
                 isLoggingEnabled = isLoggingEnabled,

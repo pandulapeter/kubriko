@@ -64,11 +64,36 @@ class KubrikoTest {
     }
 
     @Test
-    fun firstManagerOfAClassWins() {
-        val first = PlainManager()
-        val kubriko = Kubriko.newInstance(first, PlainManager(), tickSource = TickSource.manual())
+    fun lastManagerOfAClassWins() {
+        val last = PlainManager()
+        val kubriko = Kubriko.newInstance(PlainManager(), last, tickSource = TickSource.manual())
         try {
-            assertSame(first, kubriko.get<PlainManager>())
+            assertSame(last, kubriko.get<PlainManager>())
+        } finally {
+            kubriko.dispose()
+        }
+    }
+
+    @Test
+    fun theWinningManagerKeepsItsPlaceInTheOrder() {
+        val other = LifecycleManager()
+        val last = PlainManager()
+        val kubriko = Kubriko.newInstance(PlainManager(), other, last, tickSource = TickSource.manual())
+        try {
+            val managers = (kubriko as KubrikoImpl).managers
+            assertTrue(managers.indexOf(other) < managers.indexOf(last))
+            assertEquals(1, managers.count { it is PlainManager })
+        } finally {
+            kubriko.dispose()
+        }
+    }
+
+    @Test
+    fun theSameManagerPassedTwiceIsRegisteredOnce() {
+        val manager = PlainManager()
+        val kubriko = Kubriko.newInstance(manager, manager, tickSource = TickSource.manual())
+        try {
+            assertEquals(1, (kubriko as KubrikoImpl).managers.count { it === manager })
         } finally {
             kubriko.dispose()
         }

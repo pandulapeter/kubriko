@@ -7,6 +7,6 @@
 # https://mozilla.org/MPL/2.0/.
 
 # A Kubriko instance registers at most one Manager per class, so every Manager subclass must stay a class of its own.
-# Class merging would otherwise give two Managers one class, and the second one registered would be dropped.
+# Class merging would otherwise give two Managers one class, and one of them would be dropped.
 # Unused Managers can still be removed, and all of them renamed.
 -keep,allowobfuscation,allowshrinking class * extends com.pandulapeter.kubriko.manager.Manager
