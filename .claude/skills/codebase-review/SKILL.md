@@ -93,7 +93,8 @@ All in the plans folder, untracked until the user commits them, and only for com
 ## Problem        what goes wrong, for whom, with the quoted code and file:line at the reviewed commit
 ## Fix            exactly what to change; where there is a choice, the options and the recommended one
 ## Tests          the unit test to add (pure logic only), or why none can be written
-## Manual check   what a person must do on a device, account or network to see it fixed
+## Manual check   only when the fix can't be verified without a device, account or network and a mistake would
+                 hurt (data loss, a crash, a store rejection); otherwise leave the section out
 ```
 
 A plan that only adds tests never touches production code: a test that fails on a real defect is `@Ignore`d with a
@@ -108,7 +109,7 @@ that matter, data loss first); **Fixed during the review** (hash and message of 
 (number, title, severity, lane); the **Lanes** table (lane, area, plans in execution order when that is not numeric,
 files owned) and the **merge order** with the reason; the shared-file rules; **Decisions** — each open question with
 the recommended default, marked as awaiting the user; **Checked and found solid**; **Dropped after verification**;
-any **measurements**; **Manual checks owed**.
+any **measurements**. No list of manual checks owed: the user does not track them.
 
 **`EXECUTION.md`** — the brief for the orchestrating agent, which the user starts with *"Follow
 `<plans folder>/EXECUTION.md`."* It restates section 4 below concretely for this sweep: preconditions, the lane
@@ -123,8 +124,7 @@ number of plans per lane, what the challenge amended or dropped, and the open de
 
 Write (or update) one project memory per sweep, `<ordinal>-review.md`: date, commit, angle, the commit range of the
 fixes made during the review, number of plans, lanes and merge order, decisions taken, what is still open. Update it
-again when the plans land: the commit range, what was skipped and why, and the manual checks still owed. Point the
-next sweep at it.
+again when the plans land: the commit range, and what was skipped and why. Point the next sweep at it.
 
 ## 4. Execution (only when the user says so)
 
@@ -153,7 +153,8 @@ same-named helper scripts and committed into the wrong worktree:
    working tree, leave the plan file, note why, move on.
 3. Add the tests it asks for; update the `CLAUDE.md` files and strings it names.
 4. Verify with the commands in the last section — the tests, and a compile of every platform the change touches.
-   Manual checks that need a device, an account, a store or a network condition are skipped and reported.
+   A check that needs a device, an account, a store or a network condition is skipped, and named in the lane
+   report only if a mistake there would hurt.
 5. `git rm` the plan file in the same commit as its fix.
 6. Load `commit-messages`; commit with a single `-m` sentence — one fix, one commit, never two fixes folded or one
    split. Then check the raw commit object and amend on the spot if it fails:
@@ -178,9 +179,9 @@ version whole. Run the tests after each lane and the full build after the last; 
 **Finish**: plan files still present are the skipped ones — leave them, with the README trimmed to them, or ask the
 user whether to delete the folder. Final checks: `git log --format=%B START..HEAD | grep -ciE
 'co-authored|generated with|claude code|anthropic\.com'` prints 0, `git log --oneline START..HEAD` is one line per
-plan, `git status` is clean and `git worktree list` shows only the checkout. Report the commit count, the skipped plans
-with reasons, and the manual checks owed (copy them out of the README first, since the next step deletes it); update
-the memory.
+plan, `git status` is clean and `git worktree list` shows only the checkout. Report the commit count and the skipped plans
+with reasons; name a hand check only where a mistake would hurt (data loss, a crash, a store rejection). Update the
+memory.
 
 **Last step**: when no plan file is left (only `README.md` and `EXECUTION.md`), delete the plans folder and commit it
 as `Remove the review plans.` without asking. If skipped plans remain, the folder stays until the user decides.
