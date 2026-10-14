@@ -1,6 +1,6 @@
 ---
 name: codebase-review
-description: The Kubriko review-sweep process — read-only area reviewers; verified findings that are simple are fixed on the spot during the review, one commit each; complex ones become one plan file each, indexed by a README.md into parallel lanes with an EXECUTION.md orchestrator brief; and later the execution of those plans (one worktree per lane, one one-line commit per fix, merged in a fixed lane order). Invoke this skill WHENEVER the user asks to review, audit or sweep the codebase (or an area, a platform, performance, stability, "before release/launch"), OR asks to execute, carry out or land the plans in issues/ (or "follow EXECUTION.md"). Not for reviewing a single diff or PR — that is /code-review.
+description: The Kubriko review-sweep process — read-only area reviewers plus a CLAUDE.md reviewer in every sweep; verified findings that are simple are fixed on the spot during the review, one commit each; complex ones become one plan file each, indexed by a README.md into parallel lanes with an EXECUTION.md orchestrator brief; and later the execution of those plans (one worktree per lane, one one-line commit per fix, merged in a fixed lane order). Invoke this skill WHENEVER the user asks to review, audit or sweep the codebase (or an area, a platform, performance, stability, "before release/launch"), OR asks to execute, carry out or land the plans in issues/ (or "follow EXECUTION.md"). Not for reviewing a single diff or PR — that is /code-review.
 ---
 
 # Codebase review sweeps
@@ -29,8 +29,8 @@ when the user says so — never roll from the review into it.
 1. **Area reviewers in parallel** — one `Agent` per area, all spawned in one message, each told: the commit, the
    angle, its area's files, what earlier sweeps settled (so it skips them), and that it must not edit anything. Each
    returns findings with file:line, the quoted code, a concrete failure scenario, severity, platforms, and a proposed
-   fix. Optionally one agent does a **live run** (a stress run of the app at scale, a throttled link)
-   and reports measurements.
+   fix. Every sweep also has the docs reviewer of section 6. Optionally one agent does a **live run** (a stress run
+   of the app at scale, a throttled link) and reports measurements.
 2. **Verify every finding against HEAD** — a second pass (you, or writer agents per area) re-reads the code, and where
    a pure function is involved, proves it with a throwaway test in the scratchpad or an untracked probe test that is
    deleted afterwards. A finding that does not hold goes to "Dropped after verification" with one sentence why; it is
@@ -204,6 +204,27 @@ fixed during the review. Everything above still holds, with these additions.
   since the refactors moved code.
 - **Afterwards**, offer a regression review of the landed range: its angle is "did these refactors preserve
   behaviour", area by area against the commit before them.
+
+## 6. The CLAUDE.md files, in every sweep
+
+Whatever the angle, one reviewer in step 1 reviews every `CLAUDE.md` file (and the skills' repo-specific sections)
+for three things. Its findings are almost always simple, so they are fixed during the review.
+
+- **Relevant**: each file holds only what a reader changing code there cannot see in the code — invariants, rules a
+  plausible change would break, the one-sentence why behind a surprising design, platform quirks. Narration of what the
+  code does, inventories (files, classes, tests, strings, parameters), history ("used to", review numbers, dates), and
+  long justifications are cut.
+- **Up to date**: every class, function, file, setting, and behaviour a file names is checked against the code (grep
+  it); what is false is fixed or dropped. A rule the code no longer follows is either the code's bug (a finding) or the
+  doc's (fixed).
+- **Not too long, and in the right place**: each level holds only what applies to everything below it — the root the
+  repository-wide rules, a module's file the module's, a package's file the package's — and never repeats its parent
+  or a sibling; a rule lives in one file and others point to it, or say nothing. Default budgets, unless the repository
+  section sets others: root ≤ 2,500 words, a module's ≤ 1,500, a package's ≤ 600 (`wc -w`). A file over budget is cut,
+  not split into more prose; a package with nothing non-obvious to say has no `CLAUDE.md`.
+
+The docs reviewer also reads the diff of the review's own fixes at the end, so that fixes leave the files as tight as
+they found them.
 
 ## This repository: Kubriko
 
