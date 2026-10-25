@@ -23,7 +23,13 @@ renewal is early enough that no build is ever signed with a certificate that cou
 Campfire's pipeline signs with the same key and so with the same certificate, which matters because Apple allows a team
 only two Apple Distribution certificates: the two pipelines hold one between them, and the other place is the renewal's.
 A certificate somebody made by hand in Xcode takes a place too, which is what a creation refused with 409 means. Its
-copy of this script also finds the Mac App Store certificates and profiles, which the Showcase does not need.
+copy of this script also finds the Mac App Store certificates, which the Showcase does not need.
+
+The App Store profile (`profile`) is found the same way: the active one of the type for the bundle ID that names the
+certificate is used again, and one is created where there is none. A profile expires with its certificate, so nothing
+ever deletes one either. The build signs with it by hand and never gives xcodebuild the API key: Xcode's automatic
+signing makes an Apple Development certificate of its own on every runner, whose key dies with the runner, until the
+team has as many as Apple allows and every build of both pipelines is refused.
 
 The Developer ID Application certificate the Steam build is signed with works the same way, for a key of its own in the
 DEVELOPER_ID_SIGNING_KEY secret: whoever holds that key can sign software every Mac trusts as the team's, and the only
@@ -37,6 +43,7 @@ notarized copies keep launching.
 It only needs the Python standard library and the system's openssl.
 
     app_store_signing.py certificate <certificateType>[,<certificateType>...] <keychain>
+    app_store_signing.py profile <profileType> <bundle identifier> <certificateType> <output file>
 
 The certificate is looked for among every type listed, and a new one is of the first. Reads ASC_KEY_ID, ASC_ISSUER_ID
 and ASC_KEY_PATH (the .p8 file), and APPLE_SIGNING_KEY_PATH, the signing key as PEM.
@@ -231,6 +238,48 @@ def import_certificate(certificate_types, keychain):
         run("security", "import", certificate, "-k", keychain, "-t", "cert", "-f", "x509")
 
 
+def find_bundle_id(bundle_identifier):
+    matches = request("GET", f"/bundleIds?filter[identifier]={bundle_identifier}&limit=200")["data"]
+    # The filter matches prefixes as well, so com.example.app also finds com.example.app.widget.
+    bundle = next((item for item in matches if item["attributes"]["identifier"] == bundle_identifier), None)
+    if bundle is None:
+        fail(f"There is no App ID {bundle_identifier} in the developer account.")
+    return bundle["id"]
+
+
+def save_profile(profile_type, bundle_identifier, certificate_type, output):
+    """Saves the active profile of the type for the bundle ID and the current certificate, creating it where there is none."""
+    certificate = newest_valid(certificates_for_key([certificate_type]), datetime.now(timezone.utc))
+    if certificate is None:
+        fail(f"There is no {certificate_type} certificate for the signing key: run `certificate` first.")
+    bundle = find_bundle_id(bundle_identifier)
+    profiles = request(
+        "GET", f"/profiles?filter[profileType]={profile_type}&filter[profileState]=ACTIVE&limit=200"
+        "&include=bundleId,certificates&limit[certificates]=50&fields[profiles]=name,profileContent,bundleId,certificates",
+    )["data"]
+    profile = next((
+        item for item in profiles
+        if item["relationships"]["bundleId"]["data"]["id"] == bundle
+        and certificate["id"] in [entry["id"] for entry in item["relationships"]["certificates"]["data"]]
+    ), None)
+    if profile is None:
+        # Profile names are unique in an account, the expired and invalid ones included.
+        name = f"CI {bundle_identifier} {os.environ.get('GITHUB_RUN_ID', int(time.time()))}"
+        profile = request("POST", "/profiles", {"data": {
+            "type": "profiles",
+            "attributes": {"name": name, "profileType": profile_type},
+            "relationships": {
+                "bundleId": {"data": {"type": "bundleIds", "id": bundle}},
+                "certificates": {"data": [{"type": "certificates", "id": certificate["id"]}]},
+            },
+        }})["data"]
+        print(f"Created {profile_type} profile {profile['id']} ({name}) for {bundle_identifier}")
+    else:
+        print(f"Using {profile_type} profile {profile['id']} ({profile['attributes']['name']}) for {bundle_identifier}")
+    with open(output, "wb") as file:
+        file.write(base64.b64decode(profile["attributes"]["profileContent"]))
+
+
 def awaiting_versions(app_id, platform):
     """The platform's versions that have been submitted and are not on the store yet."""
     versions = request(
@@ -244,5 +293,7 @@ if __name__ == "__main__":
     command, arguments = (sys.argv[1], sys.argv[2:]) if len(sys.argv) > 1 else (None, [])
     if command == "certificate" and len(arguments) == 2:
         import_certificate(*arguments)
+    elif command == "profile" and len(arguments) == 4:
+        save_profile(*arguments)
     else:
         fail(next(part for part in __doc__.split("\n\n") if part.lstrip().startswith("app_store_signing.py")))

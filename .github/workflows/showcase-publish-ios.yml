@@ -7,9 +7,11 @@
 #
 # Nothing it signs with can expire: the APPLE_SIGNING_KEY secret holds the team's signing key alone, which Campfire's
 # pipeline signs with too, and the run finds the Apple Distribution certificate made for it through the App Store Connect
-# API - creating it where there is none, or a new one two months before it expires (.github/scripts/app_store_signing.py)
-# - and xcodebuild creates the App Store provisioning profile for it with the same API key. Nothing is ever revoked,
-# since a build whose certificate is revoked before App Review approves it is refused.
+# API - creating it where there is none, or a new one two months before it expires - and the App Store profile for that
+# certificate (.github/scripts/app_store_signing.py). Nothing is ever revoked, since a build whose certificate is revoked
+# before App Review approves it is refused. xcodebuild signs with these by hand and is never given the API key: with
+# it, automatic signing made an Apple Development certificate on every runner, whose key died with the runner, until the
+# team had as many as Apple allows and the archive was refused.
 #
 # App Store Connect only accepts a build number it has not seen yet, so repeating an upload takes the build number
 # override, which leaves the checked-in gradle.properties as it was.
@@ -202,7 +204,7 @@ jobs:
           ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
           APPLE_SIGNING_KEY: ${{ secrets.APPLE_SIGNING_KEY }}
         run: |
-          # altool looks for the key by name in this directory, xcodebuild and the submission script are given the path.
+          # altool looks for the key by name in this directory, the signing and submission scripts are given the path.
           ASC_KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8"
           mkdir -p "$(dirname "$ASC_KEY_PATH")"
           printf '%s\n' "$ASC_PRIVATE_KEY" > "$ASC_KEY_PATH"
@@ -225,10 +227,17 @@ jobs:
             echo "::error::The keychain holds no Apple Distribution signing identity of team $DEVELOPMENT_TEAM for the signing key." >&2
             exit 1
           fi
+          # Installed where Xcode looks for profiles (the newer place and the older one), which then finds it by its name.
+          PROFILE="$RUNNER_TEMP/app.mobileprovision"
+          python3 .github/scripts/app_store_signing.py profile IOS_APP_STORE com.pandulapeter.kubrikoShowcase DISTRIBUTION "$PROFILE"
+          UUID=$(security cms -D -i "$PROFILE" | plutil -extract UUID raw -o - -)
+          for DIRECTORY in "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" "$HOME/Library/MobileDevice/Provisioning Profiles"; do
+            mkdir -p "$DIRECTORY"
+            cp "$PROFILE" "$DIRECTORY/$UUID.mobileprovision"
+          done
+          echo "APP_PROFILE=$(security cms -D -i "$PROFILE" | plutil -extract Name raw -o - -)" >> "$GITHUB_ENV"
+      # Signed by hand, with no API key and so no way for Xcode to make a certificate or a profile of its own.
       - name: Archive the app
-        env:
-          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
         run: |
           xcodebuild archive \
             -project "$XCODE_PROJECT" \
@@ -236,11 +245,10 @@ jobs:
             -configuration Release \
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/Kubriko.xcarchive" \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$ASC_KEY_PATH" \
-            -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="$APP_PROFILE" \
             OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH"
       - name: Verify the archived version
         run: |
@@ -253,9 +261,6 @@ jobs:
             exit 1
           fi
       - name: Export the IPA
-        env:
-          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
         run: |
           cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
@@ -267,7 +272,14 @@ jobs:
             <key>teamID</key>
             <string>$DEVELOPMENT_TEAM</string>
             <key>signingStyle</key>
-            <string>automatic</string>
+            <string>manual</string>
+            <key>signingCertificate</key>
+            <string>Apple Distribution</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.pandulapeter.kubrikoShowcase</key>
+              <string>$APP_PROFILE</string>
+            </dict>
             <key>destination</key>
             <string>export</string>
             <key>uploadSymbols</key>
@@ -280,11 +292,7 @@ jobs:
           xcodebuild -exportArchive \
             -archivePath "$RUNNER_TEMP/Kubriko.xcarchive" \
             -exportPath "$RUNNER_TEMP/export" \
-            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$ASC_KEY_PATH" \
-            -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
       - name: Upload to App Store Connect
         env:
           ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
