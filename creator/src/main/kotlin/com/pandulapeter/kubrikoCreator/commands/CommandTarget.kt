@@ -33,4 +33,9 @@ internal sealed interface CommandTarget {
     data object VersionControl : CommandTarget
 
     data object Game : CommandTarget
+
+    /**
+     * The project's own files, like its template files.
+     */
+    data object Project : CommandTarget
 }

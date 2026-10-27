@@ -46,6 +46,15 @@
     <string name="resource_group_music">Music</string>
     <string name="resource_group_kotlin">Kotlin files</string>
     <string name="resource_group_empty">Nothing here yet.</string>
+    <string name="project_upgrade_notice">This project was made by an older Kubriko Creator. Manager types need two small changes to Game.kt and GameEntryPoint.kt.</string>
+    <string name="project_upgrade_title">Upgrade the template files</string>
+    <string name="project_upgrade_message">These files belong to you, so nothing changes until you apply this. Commit first to be able to go back with version control.</string>
+    <string name="project_upgrade_by_hand">Kubriko Creator can't change %1$s, which changed too much. Add the generated Managers by hand: *KubrikoWiring.createManagers().toTypedArray() in Kubriko.newInstance in Game.kt, and override fun createCustomManagers() = KubrikoWiring.createManagers(isInSceneEditor = true) in GameEntryPoint.kt.</string>
+    <string name="project_upgrade_commit_message">Save the project before Kubriko Creator upgrades its template files.</string>
+    <string name="action_review_upgrade">Review changes</string>
+    <string name="action_apply_upgrade">Apply changes</string>
+    <string name="action_commit_first">Commit first</string>
+    <string name="action_not_now">Not now</string>
     <string name="workspace_hint">Select an Actor type or a Manager type to edit what it does, or create a new one with the + button. Click a Scene to edit it in a window of its own, and Play to run the game.</string>
     <string name="session_starting">Building…</string>
     <string name="session_playing">Playing</string>
@@ -261,6 +270,8 @@
     <string name="error_command_type_missing">There's no Actor type or Manager type called %1$s.</string>
     <string name="error_command_event_not_allowed">A Manager type can't have a %1$s Event, and an Actor type can't have a gameStarted one.</string>
     <string name="error_command_condition_not_allowed">Only an Actor type can check its velocity.</string>
+    <string name="error_command_upgrade_not_needed">The project's template files are up to date.</string>
+    <string name="error_command_upgrade_by_hand">These files were changed too much for Kubriko Creator to upgrade them: %1$s.</string>
     <string name="error_command_text_missing">%1$s has no text %2$s.</string>
     <string name="error_command_text_size_invalid">The size of a text has to be a number above 0.</string>
     <string name="error_command_event_missing">%1$s has no Event at index %2$s.</string>
@@ -275,6 +286,7 @@
     <string name="command_create_actor_type">Create Actor type</string>
     <string name="command_rename_actor_type">Rename Actor type</string>
     <string name="command_delete_actor_type">Delete Actor type</string>
+    <string name="command_upgrade_project">Upgrade the template files</string>
     <string name="command_create_manager_type">Create Manager type</string>
     <string name="command_rename_manager_type">Rename Manager type</string>
     <string name="command_delete_manager_type">Delete Manager type</string>
@@ -369,6 +381,7 @@
     <string name="command_get_block_catalog">Look at the Block catalog</string>
     <string name="command_list_actor_types">List the Actor types</string>
     <string name="command_read_actor_type">Read an Actor type</string>
+    <string name="command_get_project_upgrade">Check the template files</string>
     <string name="command_list_manager_types">List the Manager types</string>
     <string name="command_read_manager_type">Read a Manager type</string>
     <string name="command_list_scenes">List the Scenes</string>
@@ -390,4 +403,5 @@
     <string name="ai_target_scene">Scene %1$s</string>
     <string name="ai_target_version_control">Version control</string>
     <string name="ai_target_game">The game</string>
+    <string name="ai_target_project">The template files</string>
 </resources>

@@ -18,9 +18,13 @@ import kotlinx.serialization.Serializable
  *
  * @param packageName The package of the project's code; generated classes go into its `generated` subpackage.
  * @param sourceDirectory The Kotlin source folder generated classes are written to, relative to the project root.
+ * @param templateVersion The version of the template files (`Game.kt` and its neighbors) the project has, which Kubriko
+ *   Creator offers to bring up to date when it needs something newer (`template/ProjectUpgrader`). Projects from before
+ *   it was recorded have version 1.
  */
 @Serializable
 internal data class CreatorProjectSettings(
     @SerialName("packageName") val packageName: String,
     @SerialName("sourceDirectory") val sourceDirectory: String = "src/commonMain/kotlin",
+    @SerialName("templateVersion") val templateVersion: Int = 1,
 )

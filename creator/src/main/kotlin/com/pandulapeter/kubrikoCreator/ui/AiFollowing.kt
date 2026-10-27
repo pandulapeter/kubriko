@@ -32,10 +32,10 @@ internal fun AiStep.highlightIn(actorTypeName: String?) = (target as? CommandTar
     ?.let { target -> flashKey?.let { ActorTypeHighlight(key = it, eventIndex = target.eventIndex, blockIndex = target.blockIndex) } }
 
 /**
- * The name of the Actor type or Scene this step lights up in the sidebar.
+ * The name of the Actor type, Manager type, or Scene this step lights up in the sidebar.
  */
 internal fun AiStep.sidebarName() = when (val target = target) {
     is CommandTarget.BlockType -> target.name
     is CommandTarget.Scene -> target.name
-    CommandTarget.VersionControl, CommandTarget.Game, null -> null
+    CommandTarget.VersionControl, CommandTarget.Game, CommandTarget.Project, null -> null
 }

@@ -58,6 +58,7 @@ internal fun TestScope.commandContext(
     console: List<ConsoleEntry> = emptyList(),
     runner: ProjectRunner = FakeProjectRunner(),
     onScenesChanged: (Collection<String>) -> Unit = {},
+    onProjectUpgraded: () -> Unit = {},
 ) = CommandContext(
     project = CreatorProject(rootDirectory = rootDirectory, name = "game", desktopModulePath = ":"),
     console = MutableStateFlow(console),
@@ -67,6 +68,7 @@ internal fun TestScope.commandContext(
     runner = runner,
     ioDispatcher = UnconfinedTestDispatcher(testScheduler),
     onScenesChanged = onScenesChanged,
+    onProjectUpgraded = onProjectUpgraded,
 )
 
 /**

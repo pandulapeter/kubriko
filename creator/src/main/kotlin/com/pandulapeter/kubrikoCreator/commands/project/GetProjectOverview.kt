@@ -13,6 +13,9 @@ import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
+import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
+import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -22,17 +25,21 @@ import kubriko.creator.generated.resources.command_get_project_overview
 
 internal object GetProjectOverview : ReadCommand<NoInput> {
     override val name = "get_project_overview"
-    override val description = "Describes the open project: its name, its block-built Actor types (or that it doesn't use them), and its Scenes. " +
-        "A good first call, before reading anything else."
+    override val description = "Describes the open project: its name, its block-built Actor types and Manager types (or that it doesn't use them), " +
+        "its Scenes, and whether its template files need an upgrade (see get_project_upgrade). A good first call, before reading anything else."
     override val inputSerializer = NoInput.serializer()
     override val title = Res.string.command_get_project_overview
 
-    override suspend fun read(context: CommandContext, input: NoInput) = CommandOutcome.Success(
+    override suspend fun read(context: CommandContext, input: NoInput): CommandOutcome = CommandOutcome.Success(
         buildJsonObject {
             put("name", context.project.name)
             put("usesBlockBuiltActorTypes", context.blockTypes != null)
-            context.blockTypes?.let { actorTypes -> putJsonArray("actorTypes") { actorTypes.actorTypes.value.forEach { add(it.name) } } }
+            context.blockTypes?.let { types ->
+                putJsonArray("actorTypes") { types.actorTypes.value.forEach { add(it.name) } }
+                putJsonArray("managerTypes") { types.managerTypes.value.forEach { add(it.name) } }
+            }
             putJsonArray("scenes") { context.scenes.names().forEach { add(it) } }
+            put("needsUpgrade", withContext(context.ioDispatcher) { ProjectUpgrader(context.project.rootDirectory).check() } != TemplateUpgrade.UpToDate)
         },
     )
 }

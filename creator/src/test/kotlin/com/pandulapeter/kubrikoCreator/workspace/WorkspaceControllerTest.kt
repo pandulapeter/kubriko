@@ -21,6 +21,17 @@ import com.pandulapeter.kubrikoCreator.project.ProjectChange
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
+import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
+import java.io.File
+import kotlin.io.path.createTempDirectory
+import kotlin.test.Test
+import kotlin.test.assertContains
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertIs
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -39,13 +50,13 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_type_name_invalid
 import kubriko.creator.generated.resources.error_command_actor_type_missing
 import kubriko.creator.generated.resources.error_game_command_failed
 import kubriko.creator.generated.resources.error_game_no_answer
 import kubriko.creator.generated.resources.error_game_not_running
 import kubriko.creator.generated.resources.error_game_unsupported
 import kubriko.creator.generated.resources.error_scene_name_invalid
+import kubriko.creator.generated.resources.error_type_name_invalid
 import kubriko.creator.generated.resources.status_actor_type_not_saved
 import kubriko.creator.generated.resources.status_build_failed
 import kubriko.creator.generated.resources.status_building
@@ -53,15 +64,6 @@ import kubriko.creator.generated.resources.status_session_ended
 import kubriko.creator.generated.resources.status_session_started
 import kubriko.creator.generated.resources.status_session_stopped
 import kubriko.creator.generated.resources.status_unsupported_protocol
-import java.io.File
-import kotlin.test.Test
-import kotlin.test.assertContains
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertIs
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WorkspaceControllerTest {
@@ -79,6 +81,7 @@ class WorkspaceControllerTest {
         scanResources: (File) -> Map<ResourceGroup, List<ProjectResource>> = { emptyMap() },
         blockTypeRepository: FakeBlockTypeRepository? = null,
         startWatching: (onChange: (Set<ProjectChange>) -> Unit) -> AutoCloseable = { AutoCloseable {} },
+        rootDirectory: File = this@WorkspaceControllerTest.rootDirectory,
     ): WorkspaceController {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         return WorkspaceController(
@@ -473,5 +476,26 @@ class WorkspaceControllerTest {
         repository.stored["Ball"] = com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition(name = "Ball")
         controller.onProjectChanged(setOf(ProjectChange.BLOCK_TYPE_DEFINITIONS))
         assertEquals(listOf("Ball"), controller.blockTypes!!.actorTypes.value.map { it.name })
+    }
+
+    @Test
+    fun theTemplateUpgradeIsCheckedWhenOpenedAndWhenSourcesChange() = runTest {
+        val root = createTempDirectory().toFile()
+        try {
+            File(root, ".kubriko").mkdirs()
+            File(root, ".kubriko/project.json").writeText("""{ "packageName": "com.example.game" }""")
+            val game = File(root, "src/commonMain/kotlin/com/example/game/Game.kt").apply { parentFile.mkdirs() }
+            game.writeText("package com.example.game\n\nval kubriko = Kubriko.newInstance(\n    SceneLoader(),\n)\n")
+            val controller = createController(rootDirectory = root)
+            val upgrade = assertIs<TemplateUpgrade.Needed>(controller.projectUpgrade.value)
+            assertEquals(listOf("src/commonMain/kotlin/com/example/game/GameEntryPoint.kt"), upgrade.byHand)
+            game.writeText(upgrade.changes.single().after)
+            File(root, "src/commonMain/kotlin/com/example/game/GameEntryPoint.kt").writeText("// Uses KubrikoWiring.\n")
+            controller.onProjectChanged(setOf(ProjectChange.SOURCES))
+            assertEquals(TemplateUpgrade.UpToDate, controller.projectUpgrade.value)
+            assertTrue("\"templateVersion\": 2" in File(root, ".kubriko/project.json").readText())
+        } finally {
+            root.deleteRecursively()
+        }
     }
 }

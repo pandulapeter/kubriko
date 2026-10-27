@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.StateFlow
  *
  * @param blockTypes The project's block-built types, or null if the project hasn't opted in to them.
  * @param onScenesChanged Tells the rest of the editor which Scene files a command changed.
+ * @param onProjectUpgraded Tells the rest of the editor that the project's template files were brought up to date.
  */
 internal class CommandContext(
     val project: CreatorProject,
@@ -32,4 +33,5 @@ internal class CommandContext(
     val runner: ProjectRunner,
     val ioDispatcher: CoroutineDispatcher,
     val onScenesChanged: (names: Collection<String>) -> Unit,
+    val onProjectUpgraded: () -> Unit = {},
 )

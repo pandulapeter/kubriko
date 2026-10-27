@@ -1,4 +1,5 @@
 {
     "packageName": "{{PACKAGE}}",
-    "sourceDirectory": "src/commonMain/kotlin"
+    "sourceDirectory": "src/commonMain/kotlin",
+    "templateVersion": 2
 }

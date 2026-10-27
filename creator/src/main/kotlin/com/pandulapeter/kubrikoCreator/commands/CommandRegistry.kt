@@ -48,9 +48,11 @@ import com.pandulapeter.kubrikoCreator.commands.managerTypes.RemoveText
 import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.project.Build
 import com.pandulapeter.kubrikoCreator.commands.project.GetProjectOverview
+import com.pandulapeter.kubrikoCreator.commands.project.GetProjectUpgrade
 import com.pandulapeter.kubrikoCreator.commands.project.GetVersionControlStatus
 import com.pandulapeter.kubrikoCreator.commands.project.Play
 import com.pandulapeter.kubrikoCreator.commands.project.ReadConsole
+import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.ListScenes
@@ -100,6 +102,7 @@ internal class CommandRegistry(
                 ReadScene,
                 ReadConsole,
                 GetVersionControlStatus,
+                GetProjectUpgrade,
                 Build,
                 Play,
                 StartGame,
@@ -140,6 +143,7 @@ internal class CommandRegistry(
                 StartVersionControl,
                 Commit,
                 DiscardChanges,
+                UpgradeProject,
             ),
         )
     }

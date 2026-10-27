@@ -35,6 +35,8 @@ import com.pandulapeter.kubrikoCreator.scenes.SceneEditingController
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
 import com.pandulapeter.kubrikoCreator.session.SessionChannel
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
+import com.pandulapeter.kubrikoCreator.template.ProjectUpgrader
+import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineDispatcher
@@ -171,15 +173,26 @@ internal class WorkspaceController(
                 refreshResources()
                 sceneEditing.onScenesChanged(names)
             },
+            onProjectUpgraded = ::refreshProjectUpgrade,
         ),
         scope = scope,
         onRejected = { appendToConsole(ConsoleEntry.Status(it.reason, isError = true, arguments = it.arguments)) },
     )
 
+    private val upgrader = ProjectUpgrader(project.rootDirectory)
+    private val _projectUpgrade = MutableStateFlow<TemplateUpgrade>(TemplateUpgrade.UpToDate)
+
+    /**
+     * What the project's template files (`Game.kt` and its neighbors, which belong to the user) need for this version of
+     * Kubriko Creator.
+     */
+    val projectUpgrade = _projectUpgrade.asStateFlow()
+
     private val watching = startWatching(::onProjectChanged)
 
     init {
         refreshResources()
+        refreshProjectUpgrade()
     }
 
     /**
@@ -187,9 +200,24 @@ internal class WorkspaceController(
      */
     fun onProjectChanged(changes: Set<ProjectChange>) {
         if (ProjectChange.BLOCK_TYPE_DEFINITIONS in changes) blockTypes?.reloadFromDisk()
-        if (ProjectChange.SOURCES in changes) sceneEditing.markOutdated()
+        if (ProjectChange.SOURCES in changes) {
+            sceneEditing.markOutdated()
+            refreshProjectUpgrade()
+        }
         if (ProjectChange.SCENES in changes || ProjectChange.SOURCES in changes) refreshResources()
         git.refresh()
+    }
+
+    /**
+     * Checks the template files again, recording the new template version if they were upgraded by hand.
+     */
+    fun refreshProjectUpgrade() {
+        scope.launch {
+            _projectUpgrade.value = withContext(ioDispatcher) {
+                upgrader.recordVersionIfUpToDate()
+                upgrader.check()
+            }
+        }
     }
 
     fun refreshResources() {

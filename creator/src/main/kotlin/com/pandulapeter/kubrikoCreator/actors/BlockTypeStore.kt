@@ -100,7 +100,7 @@ internal class BlockTypeStore private constructor(
             BlockTypeKind.ACTOR -> "actors"
             BlockTypeKind.MANAGER -> "managers"
         }
-        private const val SETTINGS_FILE = "$CREATOR_DIRECTORY/project.json"
+        const val SETTINGS_FILE = "$CREATOR_DIRECTORY/project.json"
 
         private val json = Json {
             prettyPrint = true

@@ -46,12 +46,14 @@ import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.git.Commit
 import com.pandulapeter.kubrikoCreator.commands.git.DiscardChanges
 import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
+import com.pandulapeter.kubrikoCreator.commands.project.UpgradeProject
 import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.mcp.McpServerState
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiConfigFileClient
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
+import com.pandulapeter.kubrikoCreator.template.TemplateUpgrade
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.BlockTypeEditor
 import com.pandulapeter.kubrikoCreator.ui.git.GitPanel
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiActivityBar
@@ -60,6 +62,7 @@ import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ic_actor_type
+import kubriko.creator.generated.resources.project_upgrade_commit_message
 import kubriko.creator.generated.resources.scene_preparing
 import kubriko.creator.generated.resources.workspace_hint
 import org.jetbrains.compose.resources.painterResource
@@ -95,6 +98,23 @@ internal fun WorkspaceScreen(
     val aiSteps by controller.commands.aiSteps.collectAsState()
     val latestAiStep = aiSteps.lastOrNull()
     var isFollowingAi by remember { mutableStateOf(true) }
+    val projectUpgrade = controller.projectUpgrade.collectAsState().value as? TemplateUpgrade.Needed
+    var isUpgradeNoticeDismissed by remember { mutableStateOf(false) }
+    var isReviewingUpgrade by remember { mutableStateOf(false) }
+    val upgradeCommitMessage = stringResource(Res.string.project_upgrade_commit_message)
+    if (projectUpgrade != null && isReviewingUpgrade) {
+        ProjectUpgradeDialog(
+            upgrade = projectUpgrade,
+            onApply = {
+                controller.commands.dispatch(Invocation(UpgradeProject, NoInput))
+                isReviewingUpgrade = false
+            },
+            onCommitFirst = (gitState as? GitState.Ready)?.takeIf { it.changes.isNotEmpty() }?.let {
+                { controller.commands.dispatch(Invocation(Commit, Commit.Input(upgradeCommitMessage))) }
+            },
+            onDismiss = { isReviewingUpgrade = false },
+        )
+    }
     LaunchedEffect(latestAiStep?.id, latestAiStep?.isRunning) {
         val name = latestAiStep?.actorTypeToFollow() ?: return@LaunchedEffect
         if (isFollowingAi && blockTypesController?.get(name) != null && blockTypesController.selectedName.value != name) {
@@ -129,6 +149,12 @@ internal fun WorkspaceScreen(
             onFollowingChange = { isFollowingAi = it },
             onClick = { openPanel = SidePanel.AI_CONNECTION },
         )
+        if (projectUpgrade != null && !isUpgradeNoticeDismissed) {
+            ProjectUpgradeNotice(
+                onReview = { isReviewingUpgrade = true },
+                onDismiss = { isUpgradeNoticeDismissed = true },
+            )
+        }
         Row(
             modifier = Modifier.fillMaxWidth().weight(1f),
         ) {
