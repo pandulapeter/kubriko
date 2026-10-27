@@ -24,7 +24,7 @@ import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.timerNumber
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.Rejection
-import com.pandulapeter.kubrikoCreator.workspace.ActorTypesController
+import com.pandulapeter.kubrikoCreator.workspace.BlockTypesController
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_command_actor_type_missing
 import kubriko.creator.generated.resources.error_command_block_missing
@@ -43,13 +43,13 @@ import kubriko.creator.generated.resources.error_command_timer_not_allowed
 /**
  * The Actor types of the project, which every Actor type command has validated to exist before it is applied.
  */
-internal val CommandContext.requireActorTypes: ActorTypesController get() = checkNotNull(actorTypes)
+internal val CommandContext.requireActorTypes: BlockTypesController get() = checkNotNull(blockTypes)
 
-internal fun CommandContext.requireActorType(name: String) = checkNotNull(actorTypes?.get(name))
+internal fun CommandContext.requireActorType(name: String) = checkNotNull(blockTypes?.get(name))
 
 internal fun CommandContext.validateActorType(name: String): Rejection? = when {
-    actorTypes == null -> Rejection(Res.string.error_command_no_actor_types)
-    actorTypes[name] == null -> Rejection(Res.string.error_command_actor_type_missing, name)
+    blockTypes == null -> Rejection(Res.string.error_command_no_actor_types)
+    blockTypes[name] == null -> Rejection(Res.string.error_command_actor_type_missing, name)
     else -> null
 }
 

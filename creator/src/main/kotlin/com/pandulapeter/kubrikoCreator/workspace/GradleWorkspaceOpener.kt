@@ -10,7 +10,7 @@
 package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.CreatorConfiguration
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeStore
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
 import com.pandulapeter.kubrikoCreator.project.ProjectWatcher
@@ -29,18 +29,18 @@ internal object GradleWorkspaceOpener : WorkspaceOpener {
     override suspend fun open(directory: File, scope: CoroutineScope) = withContext(Dispatchers.IO) {
         val connection = GradleProjectConnection(directory)
         try {
-            val actorTypeStore = ActorTypeStore.open(directory)
+            val blockTypeStore = BlockTypeStore.open(directory)
             WorkspaceController(
                 project = ProjectInspector.inspect(connection),
                 build = connection,
                 sessionChannel = SessionServer(scope),
                 scope = scope,
-                scanResources = { ResourceScanner.scan(it, hiddenDirectory = actorTypeStore?.generatedPath) },
-                actorTypeRepository = actorTypeStore,
+                scanResources = { ResourceScanner.scan(it, hiddenDirectory = blockTypeStore?.generatedPath) },
+                blockTypeRepository = blockTypeStore,
                 creatorKubrikoVersion = CreatorConfiguration.load().kubrikoVersion,
-                generatedPath = actorTypeStore?.generatedPath,
+                generatedPath = blockTypeStore?.generatedPath,
                 startWatching = { onChange ->
-                    ProjectWatcher(directory, actorTypeStore?.generatedPath, scope, Dispatchers.IO).start(onChange)
+                    ProjectWatcher(directory, blockTypeStore?.generatedPath, scope, Dispatchers.IO).start(onChange)
                 },
             )
         } catch (exception: Exception) {

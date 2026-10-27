@@ -28,16 +28,16 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class, EditorMutation::class)
-class ActorTypesControllerTest {
+class BlockTypesControllerTest {
     private val ball = ActorTypeDefinition(name = "Ball")
     private val wall = ActorTypeDefinition(name = "Wall", shape = ActorShape.RECTANGLE)
     private var savedCount = 0
     private var failedCount = 0
 
     private fun TestScope.createController(
-        repository: FakeActorTypeRepository,
+        repository: FakeBlockTypeRepository,
         ioDispatcher: CoroutineDispatcher = UnconfinedTestDispatcher(testScheduler),
-    ) = ActorTypesController(
+    ) = BlockTypesController(
         repository = repository,
         scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)),
         ioDispatcher = ioDispatcher,
@@ -47,12 +47,12 @@ class ActorTypesControllerTest {
 
     @Test
     fun theStoredActorTypesAreLoadedWhenOpened() = runTest {
-        assertEquals(listOf(ball, wall), createController(FakeActorTypeRepository(listOf(wall, ball))).actorTypes.value)
+        assertEquals(listOf(ball, wall), createController(FakeBlockTypeRepository(listOf(wall, ball))).actorTypes.value)
     }
 
     @Test
     fun puttingAnActorTypeAddsOrReplacesItInNameOrder() = runTest {
-        val repository = FakeActorTypeRepository(listOf(wall))
+        val repository = FakeBlockTypeRepository(listOf(wall))
         val controller = createController(repository)
         controller.put(ball)
         controller.put(ball.copy(width = 5f))
@@ -64,7 +64,7 @@ class ActorTypesControllerTest {
     @Test
     fun renamingUpdatesCollisionEventsAndKeepsTheSelection() = runTest {
         val hitsBall = wall.copy(events = listOf(EventDefinition(EventType.COLLISION, otherActorType = "Ball")))
-        val repository = FakeActorTypeRepository(listOf(ball, hitsBall))
+        val repository = FakeBlockTypeRepository(listOf(ball, hitsBall))
         val controller = createController(repository)
         controller.select("Ball")
         controller.rename("Ball", "Puck")
@@ -75,7 +75,7 @@ class ActorTypesControllerTest {
 
     @Test
     fun updatesShowImmediatelyAndAreWrittenInTheBackground() = runTest {
-        val repository = FakeActorTypeRepository(listOf(ball))
+        val repository = FakeBlockTypeRepository(listOf(ball))
         val controller = createController(repository, ioDispatcher = StandardTestDispatcher(testScheduler))
         runCurrent()
         controller.put(ball.copy(width = 10f))
@@ -87,7 +87,7 @@ class ActorTypesControllerTest {
 
     @Test
     fun writesHappenInTheOrderTheChangesWereMade() = runTest {
-        val repository = FakeActorTypeRepository(listOf(ball))
+        val repository = FakeBlockTypeRepository(listOf(ball))
         val controller = createController(repository, ioDispatcher = StandardTestDispatcher(testScheduler))
         runCurrent()
         (1..5).forEach { controller.put(ball.copy(width = it.toFloat())) }
@@ -99,7 +99,7 @@ class ActorTypesControllerTest {
 
     @Test
     fun deletingTheSelectedActorTypeClearsTheSelection() = runTest {
-        val controller = createController(FakeActorTypeRepository(listOf(ball, wall)))
+        val controller = createController(FakeBlockTypeRepository(listOf(ball, wall)))
         controller.select("Ball")
         controller.delete("Ball")
         assertEquals(listOf(wall), controller.actorTypes.value)
@@ -111,7 +111,7 @@ class ActorTypesControllerTest {
 
     @Test
     fun theGeneratedCodeIsBroughtUpToDateWhenOpened() = runTest {
-        val repository = FakeActorTypeRepository(listOf(ball))
+        val repository = FakeBlockTypeRepository(listOf(ball))
         createController(repository)
         assertEquals(listOf("regenerate"), repository.writes)
         assertEquals(1, savedCount)
@@ -119,7 +119,7 @@ class ActorTypesControllerTest {
 
     @Test
     fun aFailedWriteIsReported() = runTest {
-        val repository = FakeActorTypeRepository(listOf(ball)).apply { isFailing = true }
+        val repository = FakeBlockTypeRepository(listOf(ball)).apply { isFailing = true }
         val controller = createController(repository)
         controller.put(ball.copy(width = 1f))
         assertEquals(2, failedCount)
@@ -128,7 +128,7 @@ class ActorTypesControllerTest {
 
     @Test
     fun actorTypesWhoseCodeWasChangedByHandAreReportedAndCanBeDiscarded() = runTest {
-        val repository = FakeActorTypeRepository(listOf(ball)).apply { changedByHand = setOf("Ball") }
+        val repository = FakeBlockTypeRepository(listOf(ball)).apply { changedByHand = setOf("Ball") }
         val controller = createController(repository)
         assertEquals(setOf("Ball"), controller.changedByHand.value)
         controller.discardChangesMadeByHand("Ball")
@@ -138,7 +138,7 @@ class ActorTypesControllerTest {
 
     @Test
     fun definitionsChangedOnDiskAreReloadedAndTheirCodeRegenerated() = runTest {
-        val repository = FakeActorTypeRepository(listOf(ball, wall))
+        val repository = FakeBlockTypeRepository(listOf(ball, wall))
         val controller = createController(repository)
         controller.select("Wall")
         repository.stored.remove("Wall")
@@ -151,7 +151,7 @@ class ActorTypesControllerTest {
 
     @Test
     fun reloadingWhatCreatorJustWroteChangesNothing() = runTest {
-        val repository = FakeActorTypeRepository(listOf(ball))
+        val repository = FakeBlockTypeRepository(listOf(ball))
         val controller = createController(repository)
         controller.put(ball.copy(width = 3f))
         controller.reloadFromDisk()
@@ -161,7 +161,7 @@ class ActorTypesControllerTest {
 
     @Test
     fun reloadingWaitsForCreatorsOwnPendingWrites() = runTest {
-        val repository = FakeActorTypeRepository(listOf(ball))
+        val repository = FakeBlockTypeRepository(listOf(ball))
         val controller = createController(repository, ioDispatcher = StandardTestDispatcher(testScheduler))
         runCurrent()
         controller.put(ball.copy(width = 3f))

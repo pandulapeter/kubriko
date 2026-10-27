@@ -12,7 +12,7 @@ package com.pandulapeter.kubrikoCreator.actors
 /**
  * Where a workspace's block-built Actor types are kept.
  */
-internal interface ActorTypeRepository {
+internal interface BlockTypeRepository {
 
     fun load(): List<ActorTypeDefinition>
 

@@ -49,7 +49,7 @@ class CommandExecutorTest {
         CommandExecutor(context = context, scope = testScope(), onRejected = { rejections += it }) to context
     }
 
-    private fun CommandContext.names() = actorTypes!!.actorTypes.value.map { it.name }
+    private fun CommandContext.names() = blockTypes!!.actorTypes.value.map { it.name }
 
     private fun width(width: Float) = Invocation(SetAppearance, SetAppearance.Input("Ball", width = width))
 
@@ -91,12 +91,12 @@ class CommandExecutorTest {
         assertEquals(3, executor.history.value.undoable.size)
         assertEquals(Res.string.command_edit_block, executor.history.value.nextUndoTitle)
         executor.undo()
-        assertEquals(ball.events, context.actorTypes!!["Ball"]!!.events)
+        assertEquals(ball.events, context.blockTypes!!["Ball"]!!.events)
         executor.undo()
         executor.undo()
-        assertEquals(ball, context.actorTypes["Ball"])
+        assertEquals(ball, context.blockTypes["Ball"])
         executor.redo()
-        assertEquals(123f, context.actorTypes["Ball"]!!.width)
+        assertEquals(123f, context.blockTypes["Ball"]!!.width)
     }
 
     @Test
@@ -104,7 +104,7 @@ class CommandExecutorTest {
         val (executor, context) = executor(ball)
         val outcome = executor.execute(Invocation(CreateActorType, ActorTypeDefinition("Ball", width = 5f)))
         assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_actor_type_name_taken)), outcome)
-        assertEquals(listOf(ball), context.actorTypes!!.actorTypes.value)
+        assertEquals(listOf(ball), context.blockTypes!!.actorTypes.value)
         assertNull(executor.history.value.nextUndoTitle)
     }
 
@@ -114,7 +114,7 @@ class CommandExecutorTest {
         executor.execute(Invocation(CreateActorType, ActorTypeDefinition("Wall")))
         executor.execute(width(10f))
         @OptIn(EditorMutation::class)
-        context.actorTypes!!.delete("Ball")
+        context.blockTypes!!.delete("Ball")
         executor.undo()
         assertEquals(listOf(Rejection(Res.string.error_command_actor_type_missing, "Ball")), rejections)
         assertEquals(Res.string.command_create_actor_type, executor.history.value.nextUndoTitle)
@@ -128,11 +128,11 @@ class CommandExecutorTest {
         val (executor, context) = executor(ball)
         val outcome = executor.call("set_appearance", buildJsonObject { put("actorType", "Ball"); put("color", "#112233"); put("shape", "rectangle") })
         assertIs<CommandOutcome.Success>(outcome)
-        assertEquals(0xFF112233, context.actorTypes!!["Ball"]!!.color)
+        assertEquals(0xFF112233, context.blockTypes!!["Ball"]!!.color)
         assertEquals(Res.string.command_set_appearance, executor.history.value.nextUndoTitle)
         val event = buildJsonObject { put("actorType", "Ball"); put("eventIndex", 0); put("blockIndex", 0); put("block", buildJsonObject { put("type", "jumpTo"); put("x", 5) }) }
         assertIs<CommandOutcome.Success>(executor.call("edit_block", event))
-        assertEquals(BlockDefinition.JumpTo(5f, 0f), context.actorTypes["Ball"]!!.events[0].blocks[0])
+        assertEquals(BlockDefinition.JumpTo(5f, 0f), context.blockTypes["Ball"]!!.events[0].blocks[0])
     }
 
     @Test

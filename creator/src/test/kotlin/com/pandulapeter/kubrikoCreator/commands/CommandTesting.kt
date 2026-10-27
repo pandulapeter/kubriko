@@ -16,9 +16,9 @@ import com.pandulapeter.kubrikoCreator.git.FakeGitRepository
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.scenes.SceneStore
-import com.pandulapeter.kubrikoCreator.workspace.ActorTypesController
+import com.pandulapeter.kubrikoCreator.workspace.BlockTypesController
 import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
-import com.pandulapeter.kubrikoCreator.workspace.FakeActorTypeRepository
+import com.pandulapeter.kubrikoCreator.workspace.FakeBlockTypeRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +33,7 @@ import kotlin.test.assertNull
 
 internal fun TestScope.testScope() = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler))
 
-internal fun TestScope.actorTypesController(vararg definitions: ActorTypeDefinition, repository: FakeActorTypeRepository = FakeActorTypeRepository(definitions.toList())) = ActorTypesController(
+internal fun TestScope.blockTypesController(vararg definitions: ActorTypeDefinition, repository: FakeBlockTypeRepository = FakeBlockTypeRepository(definitions.toList())) = BlockTypesController(
     repository = repository,
     scope = testScope(),
     ioDispatcher = UnconfinedTestDispatcher(testScheduler),
@@ -52,7 +52,7 @@ internal fun TestScope.gitController(repository: FakeGitRepository?) = GitContro
 
 internal fun TestScope.commandContext(
     vararg definitions: ActorTypeDefinition,
-    actorTypes: ActorTypesController? = actorTypesController(*definitions),
+    blockTypes: BlockTypesController? = blockTypesController(*definitions),
     git: GitController = gitController(repository = null),
     rootDirectory: File = createTempDirectory().toFile(),
     console: List<ConsoleEntry> = emptyList(),
@@ -61,7 +61,7 @@ internal fun TestScope.commandContext(
 ) = CommandContext(
     project = CreatorProject(rootDirectory = rootDirectory, name = "game", desktopModulePath = ":"),
     console = MutableStateFlow(console),
-    actorTypes = actorTypes,
+    blockTypes = blockTypes,
     git = git,
     scenes = SceneStore(rootDirectory) { emptyList() },
     runner = runner,

@@ -31,7 +31,7 @@ internal object AddBlock : WriteCommand<AddBlock.Input> {
     override val title = Res.string.command_add_block
     override val inputSerializer = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType, input.eventIndex, blockIndex = input.index ?: context.actorTypes?.get(input.actorType)?.events?.getOrNull(input.eventIndex)?.blocks?.lastIndex)
+    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType, input.eventIndex, blockIndex = input.index ?: context.blockTypes?.get(input.actorType)?.events?.getOrNull(input.eventIndex)?.blocks?.lastIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
         ?: context.requireActorType(input.actorType).let { validateBlock(input.block, it.events[input.eventIndex].type, it.properties, context.requireActorTypes.actorTypes.value.map { type -> type.name }) }

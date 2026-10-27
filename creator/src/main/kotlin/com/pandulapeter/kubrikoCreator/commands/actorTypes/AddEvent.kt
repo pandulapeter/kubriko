@@ -35,7 +35,7 @@ internal object AddEvent : WriteCommand<AddEvent.Input> {
     override val title = Res.string.command_add_event
     override val inputSerializer = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType, eventIndex = input.index ?: context.actorTypes?.get(input.actorType)?.events?.lastIndex)
+    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType, eventIndex = input.index ?: context.blockTypes?.get(input.actorType)?.events?.lastIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateActorType(input.actorType)
         ?: validateEvent(input.event, context.requireActorTypes.actorTypes.value.map { it.name }, context.requireActorType(input.actorType).properties)

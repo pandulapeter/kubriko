@@ -53,7 +53,7 @@ class PropertyCommandsTest {
         scenes.write("main", SceneDocument.format(actors.toList()))
     }
 
-    private fun CommandContext.player() = actorTypes!!["Player"]!!
+    private fun CommandContext.player() = blockTypes!!["Player"]!!
 
     private fun CommandContext.states() = SceneDocument.parse(scenes.read("main")!!).map { it.state }
 

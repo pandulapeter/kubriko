@@ -10,12 +10,12 @@
 package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeRepository
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
 import java.io.IOException
 
-internal class FakeActorTypeRepository(
+internal class FakeBlockTypeRepository(
     initial: List<ActorTypeDefinition> = emptyList(),
-) : ActorTypeRepository {
+) : BlockTypeRepository {
     val stored = initial.associateBy { it.name }.toMutableMap()
     val writes = mutableListOf<String>()
     var isFailing = false

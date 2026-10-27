@@ -20,7 +20,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-class ActorTypeStoreTest {
+class BlockTypeStoreTest {
     private val root = createTempDirectory().toFile()
     private val generated = File(root, "src/commonMain/kotlin/com/example/game/generated")
     private val ball = ActorTypeDefinition(
@@ -40,13 +40,13 @@ class ActorTypeStoreTest {
 
     @Test
     fun aProjectWithoutSettingsHasNoStore() {
-        assertNull(ActorTypeStore.open(root))
+        assertNull(BlockTypeStore.open(root))
     }
 
     @Test
     fun savingWritesTheDefinitionItsClassAndTheRegistry() {
         optIn()
-        val store = assertNotNull(ActorTypeStore.open(root))
+        val store = assertNotNull(BlockTypeStore.open(root))
         store.save(ball)
         assertTrue(File(root, ".kubriko/actors/Ball.json").isFile)
         assertEquals(ActorTypeCodeGenerator.generateActorType(ball, "com.example.game"), File(generated, "Ball.kt").readText())
@@ -56,7 +56,7 @@ class ActorTypeStoreTest {
     @Test
     fun savedDefinitionsLoadBackSortedByName() {
         optIn()
-        val store = ActorTypeStore.open(root)!!
+        val store = BlockTypeStore.open(root)!!
         val wall = ActorTypeDefinition(name = "Wall", shape = ActorShape.RECTANGLE, color = 0xFF000000)
         store.save(wall)
         store.save(ball)
@@ -66,7 +66,7 @@ class ActorTypeStoreTest {
     @Test
     fun savingAgainOverwritesTheDefinitionAndItsClass() {
         optIn()
-        val store = ActorTypeStore.open(root)!!
+        val store = BlockTypeStore.open(root)!!
         store.save(ball)
         store.save(ball.copy(shape = ActorShape.RECTANGLE))
         assertEquals(listOf(ball.copy(shape = ActorShape.RECTANGLE)), store.load())
@@ -76,7 +76,7 @@ class ActorTypeStoreTest {
     @Test
     fun deletingRemovesTheDefinitionAndItsClassAndUpdatesTheRegistry() {
         optIn()
-        val store = ActorTypeStore.open(root)!!
+        val store = BlockTypeStore.open(root)!!
         store.save(ball)
         store.delete("Ball")
         assertTrue(store.load().isEmpty())
@@ -87,7 +87,7 @@ class ActorTypeStoreTest {
     @Test
     fun regeneratingRestoresEveryGeneratedFile() {
         optIn()
-        val store = ActorTypeStore.open(root)!!
+        val store = BlockTypeStore.open(root)!!
         store.save(ball)
         generated.deleteRecursively()
         store.regenerateAll()
@@ -98,27 +98,27 @@ class ActorTypeStoreTest {
     @Test
     fun regeneratingAProjectWithoutActorTypesStillWritesAnEmptyRegistry() {
         optIn()
-        ActorTypeStore.open(root)!!.regenerateAll()
+        BlockTypeStore.open(root)!!.regenerateAll()
         assertContains(File(generated, "GeneratedActorTypes.kt").readText(), "emptyList()")
     }
 
     @Test
     fun theGeneratedPathIsRelativeToTheProject() {
         optIn()
-        assertEquals("src/commonMain/kotlin/com/example/game/generated", ActorTypeStore.open(root)!!.generatedPath)
+        assertEquals("src/commonMain/kotlin/com/example/game/generated", BlockTypeStore.open(root)!!.generatedPath)
     }
 
     @Test
     fun theSourceFolderComesFromTheSettings() {
         optIn("""{ "packageName": "io.game", "sourceDirectory": "shared/src/commonMain/kotlin" }""")
-        ActorTypeStore.open(root)!!.save(ball)
+        BlockTypeStore.open(root)!!.save(ball)
         assertTrue(File(root, "shared/src/commonMain/kotlin/io/game/generated/Ball.kt").isFile)
     }
 
     @Test
     fun definitionsAreStoredAsReadableJsonThatSurvivesUnknownFields() {
         optIn()
-        val store = ActorTypeStore.open(root)!!
+        val store = BlockTypeStore.open(root)!!
         store.save(ball)
         val file = File(root, ".kubriko/actors/Ball.json")
         val text = file.readText()
@@ -133,7 +133,7 @@ class ActorTypeStoreTest {
     @Test
     fun collisionEventsCompileOnlyWhileTheirOtherActorTypeExists() {
         optIn()
-        val store = ActorTypeStore.open(root)!!
+        val store = BlockTypeStore.open(root)!!
         store.save(ActorTypeDefinition(name = "Paddle"))
         store.save(ball.copy(events = listOf(EventDefinition(EventType.COLLISION, otherActorType = "Paddle", blocks = listOf(BlockDefinition.BounceOffOther)))))
         assertContains(File(generated, "Ball.kt").readText(), "is Paddle ->")
@@ -146,7 +146,7 @@ class ActorTypeStoreTest {
     @Test
     fun generatedCodeChangedByHandIsKeptAndReported() {
         optIn()
-        val store = ActorTypeStore.open(root)!!
+        val store = BlockTypeStore.open(root)!!
         assertEquals(emptySet(), store.save(ball))
         val file = File(generated, "Ball.kt")
         val editedByHand = file.readText().replace("override val body = state.body", "override val body = state.body // tuned")
@@ -159,7 +159,7 @@ class ActorTypeStoreTest {
     @Test
     fun changesMadeByHandCanBeDiscarded() {
         optIn()
-        val store = ActorTypeStore.open(root)!!
+        val store = BlockTypeStore.open(root)!!
         store.save(ball)
         val file = File(generated, "Ball.kt")
         file.appendText("// tuned\n")
@@ -170,7 +170,7 @@ class ActorTypeStoreTest {
     @Test
     fun aRegistryChangedByHandIsKept() {
         optIn()
-        val store = ActorTypeStore.open(root)!!
+        val store = BlockTypeStore.open(root)!!
         store.save(ball)
         val registry = File(generated, "GeneratedActorTypes.kt")
         registry.appendText("// mine\n")
@@ -181,7 +181,7 @@ class ActorTypeStoreTest {
     @Test
     fun codeGeneratedBeforeChecksumsIsStillUpdated() {
         optIn()
-        val store = ActorTypeStore.open(root)!!
+        val store = BlockTypeStore.open(root)!!
         store.save(ball)
         val file = File(generated, "Ball.kt")
         file.writeText("// Generated by Kubriko Creator from .kubriko/actors/Ball.json. Edit it in Kubriko Creator.\npackage old\n")

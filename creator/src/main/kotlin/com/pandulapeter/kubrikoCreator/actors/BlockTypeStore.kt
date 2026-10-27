@@ -18,10 +18,10 @@ import java.io.File
  * Definitions live in `.kubriko/actors`, generated classes in the `generated` package of the project's source folder.
  * Deleting `.kubriko` leaves the generated classes in place, so the project keeps building.
  */
-internal class ActorTypeStore private constructor(
+internal class BlockTypeStore private constructor(
     private val rootDirectory: File,
     private val settings: CreatorProjectSettings,
-) : ActorTypeRepository {
+) : BlockTypeRepository {
     private val definitionsDirectory get() = File(rootDirectory, "$CREATOR_DIRECTORY/actors")
     /**
      * Where the generated classes are written, relative to the project root.
@@ -89,7 +89,7 @@ internal class ActorTypeStore private constructor(
          * The store of the project in [rootDirectory], or null if the project hasn't opted in to block-built Actor types.
          */
         fun open(rootDirectory: File) = File(rootDirectory, SETTINGS_FILE).takeIf { it.isFile }?.let { settingsFile ->
-            ActorTypeStore(rootDirectory, json.decodeFromString(CreatorProjectSettings.serializer(), settingsFile.readText()))
+            BlockTypeStore(rootDirectory, json.decodeFromString(CreatorProjectSettings.serializer(), settingsFile.readText()))
         }
     }
 }

@@ -30,8 +30,8 @@ internal object GetProjectOverview : ReadCommand<NoInput> {
     override suspend fun read(context: CommandContext, input: NoInput) = CommandOutcome.Success(
         buildJsonObject {
             put("name", context.project.name)
-            put("usesBlockBuiltActorTypes", context.actorTypes != null)
-            context.actorTypes?.let { actorTypes -> putJsonArray("actorTypes") { actorTypes.actorTypes.value.forEach { add(it.name) } } }
+            put("usesBlockBuiltActorTypes", context.blockTypes != null)
+            context.blockTypes?.let { actorTypes -> putJsonArray("actorTypes") { actorTypes.actorTypes.value.forEach { add(it.name) } } }
             putJsonArray("scenes") { context.scenes.names().forEach { add(it) } }
         },
     )

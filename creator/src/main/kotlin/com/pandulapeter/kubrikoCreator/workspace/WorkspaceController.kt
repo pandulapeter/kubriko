@@ -11,7 +11,7 @@ package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeRepository
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -59,7 +59,7 @@ internal class WorkspaceController(
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val scanResources: (File) -> Map<ResourceGroup, List<ProjectResource>> = ResourceScanner::scan,
-    private val actorTypeRepository: ActorTypeRepository? = null,
+    private val blockTypeRepository: BlockTypeRepository? = null,
     creatorKubrikoVersion: String = "",
     entryPointLoader: EntryPointLoader = ClassLoaderEntryPointLoader,
     startWatching: (onChange: (Set<ProjectChange>) -> Unit) -> AutoCloseable = { AutoCloseable {} },
@@ -80,7 +80,7 @@ internal class WorkspaceController(
     val sessionState = sessions.state
 
     /**
-     * The Scene shown in Kubriko Creator's own window. Declared before [actorTypes], whose changes it hears about.
+     * The Scene shown in Kubriko Creator's own window. Declared before [blockTypes], whose changes it hears about.
      */
     val sceneEditing = SceneEditingController(
         creatorKubrikoVersion = creatorKubrikoVersion,
@@ -95,8 +95,8 @@ internal class WorkspaceController(
     /**
      * The project's block-built Actor types, or null if the project hasn't opted in to them (it has no `.kubriko/project.json`).
      */
-    val actorTypes = actorTypeRepository?.let { repository ->
-        ActorTypesController(
+    val blockTypes = blockTypeRepository?.let { repository ->
+        BlockTypesController(
             repository = repository,
             scope = scope,
             ioDispatcher = ioDispatcher,
@@ -116,7 +116,7 @@ internal class WorkspaceController(
     fun createActorType(name: String): StringResource? {
         val invocation = Invocation(CreateActorType, ActorTypeDefinition(name = name))
         commands.validate(invocation)?.let { return it.reason }
-        commands.dispatch(invocation) { actorTypes?.select(name) }
+        commands.dispatch(invocation) { blockTypes?.select(name) }
         return null
     }
 
@@ -148,7 +148,7 @@ internal class WorkspaceController(
         context = CommandContext(
             project = project,
             console = console,
-            actorTypes = actorTypes,
+            blockTypes = blockTypes,
             git = git,
             scenes = SceneStore(project.rootDirectory) { _resources.value[ResourceGroup.SCENES].orEmpty() },
             runner = WorkspaceRunner(sessions = sessions, runTask = ::runCreatorTask, console = consoleLog, ioDispatcher = ioDispatcher),
@@ -172,7 +172,7 @@ internal class WorkspaceController(
      * Brings Kubriko Creator up to date with files that changed on disk, whoever changed them.
      */
     fun onProjectChanged(changes: Set<ProjectChange>) {
-        if (ProjectChange.ACTOR_TYPE_DEFINITIONS in changes) actorTypes?.reloadFromDisk()
+        if (ProjectChange.ACTOR_TYPE_DEFINITIONS in changes) blockTypes?.reloadFromDisk()
         if (ProjectChange.SOURCES in changes) sceneEditing.markOutdated()
         if (ProjectChange.SCENES in changes || ProjectChange.SOURCES in changes) refreshResources()
         git.refresh()

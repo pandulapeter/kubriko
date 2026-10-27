@@ -10,7 +10,7 @@
 package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeRepository
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
 import com.pandulapeter.kubrikoCreator.actors.withOtherActorTypeRenamed
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import kotlinx.coroutines.CoroutineDispatcher
@@ -31,8 +31,8 @@ import java.util.concurrent.atomic.AtomicInteger
  * Changes show up immediately; writing them (and regenerating their code) happens in the background, one at a time
  * and in order.
  */
-internal class ActorTypesController(
-    private val repository: ActorTypeRepository,
+internal class BlockTypesController(
+    private val repository: BlockTypeRepository,
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
     private val onSaved: () -> Unit,

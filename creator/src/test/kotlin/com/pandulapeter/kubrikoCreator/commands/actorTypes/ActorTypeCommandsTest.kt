@@ -22,10 +22,10 @@ import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
-import com.pandulapeter.kubrikoCreator.commands.actorTypesController
+import com.pandulapeter.kubrikoCreator.commands.blockTypesController
 import com.pandulapeter.kubrikoCreator.commands.assertRoundTrip
 import com.pandulapeter.kubrikoCreator.commands.commandContext
-import com.pandulapeter.kubrikoCreator.workspace.FakeActorTypeRepository
+import com.pandulapeter.kubrikoCreator.workspace.FakeBlockTypeRepository
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_actor_type_name_invalid
@@ -62,9 +62,9 @@ class ActorTypeCommandsTest {
     )
     private val wall = ActorTypeDefinition(name = "Wall", shape = ActorShape.RECTANGLE)
 
-    private fun CommandContext.ball() = actorTypes!!["Ball"]
+    private fun CommandContext.ball() = blockTypes!!["Ball"]
 
-    private fun CommandContext.all() = actorTypes!!.actorTypes.value
+    private fun CommandContext.all() = blockTypes!!.actorTypes.value
 
     private fun <I> CommandContext.rejection(command: WriteCommand<I>, input: I) = command.validate(this, input)
 
@@ -116,7 +116,7 @@ class ActorTypeCommandsTest {
 
     @Test
     fun projectsWithoutBlockBuiltActorTypesRejectActorTypeCommands() = runTest {
-        val context = commandContext(actorTypes = null)
+        val context = commandContext(blockTypes = null)
         assertEquals(Rejection(Res.string.error_command_no_actor_types), context.rejection(CreateActorType, ball))
         assertEquals(Rejection(Res.string.error_command_no_actor_types), context.rejection(SetAppearance, SetAppearance.Input("Ball", width = 1f)))
     }
@@ -249,8 +249,8 @@ class ActorTypeCommandsTest {
 
     @Test
     fun onlyCodeChangedByHandCanBeDiscardedAndThatCantBeUndone() = runTest {
-        val repository = FakeActorTypeRepository(listOf(ball)).apply { changedByHand = setOf("Ball") }
-        val context = commandContext(actorTypes = actorTypesController(repository = repository))
+        val repository = FakeBlockTypeRepository(listOf(ball)).apply { changedByHand = setOf("Ball") }
+        val context = commandContext(blockTypes = blockTypesController(repository = repository))
         assertNull(context.rejection(DiscardChangesMadeByHand, DiscardChangesMadeByHand.Input("Ball")))
         assertNull(DiscardChangesMadeByHand.apply(context, DiscardChangesMadeByHand.Input("Ball")).inverse)
         assertEquals("regenerate overwriting Ball", repository.writes.last())

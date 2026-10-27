@@ -75,11 +75,11 @@ internal fun WorkspaceScreen(
     val resources by controller.resources.collectAsState()
     val console by controller.console.collectAsState()
     val sessionState by controller.sessionState.collectAsState()
-    val actorTypesController = controller.actorTypes
-    val actorTypes = actorTypesController?.actorTypes?.collectAsState()?.value.orEmpty()
-    val selectedActorTypeName = actorTypesController?.selectedName?.collectAsState()?.value
+    val blockTypesController = controller.blockTypes
+    val actorTypes = blockTypesController?.actorTypes?.collectAsState()?.value.orEmpty()
+    val selectedActorTypeName = blockTypesController?.selectedName?.collectAsState()?.value
     val selectedActorType = actorTypes.firstOrNull { it.name == selectedActorTypeName }
-    val actorTypesChangedByHand = actorTypesController?.changedByHand?.collectAsState()?.value.orEmpty()
+    val actorTypesChangedByHand = blockTypesController?.changedByHand?.collectAsState()?.value.orEmpty()
     val sceneEditing by controller.sceneEditing.state.collectAsState()
     var isConsoleExpanded by remember { mutableStateOf(false) }
     LaunchedEffect(console.lastOrNull()) {
@@ -94,9 +94,9 @@ internal fun WorkspaceScreen(
     var isFollowingAi by remember { mutableStateOf(true) }
     LaunchedEffect(latestAiStep?.id, latestAiStep?.isRunning) {
         val name = latestAiStep?.actorTypeToFollow() ?: return@LaunchedEffect
-        if (isFollowingAi && actorTypesController?.get(name) != null && actorTypesController.selectedName.value != name) {
+        if (isFollowingAi && blockTypesController?.get(name) != null && blockTypesController.selectedName.value != name) {
             controller.sceneEditing.close()
-            actorTypesController.select(name)
+            blockTypesController.select(name)
         }
     }
     Column(
@@ -132,14 +132,14 @@ internal fun WorkspaceScreen(
             ProjectSidebar(
                 modifier = Modifier.width(260.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
                 resources = resources,
-                actorTypes = actorTypesController?.let { ActorTypeTreeState(actorTypes.map { it.name }, selectedActorTypeName) },
+                actorTypes = blockTypesController?.let { ActorTypeTreeState(actorTypes.map { it.name }, selectedActorTypeName) },
                 onSceneSelected = { scene ->
-                    actorTypesController?.select(null)
+                    blockTypesController?.select(null)
                     controller.sceneEditing.open(scene)
                 },
                 onActorTypeSelected = {
                     controller.sceneEditing.close()
-                    actorTypesController?.select(it)
+                    blockTypesController?.select(it)
                 },
                 onCreateActorType = { name -> controller.createActorType(name) },
                 onCreateScene = { name -> controller.createScene(name) },
@@ -164,7 +164,7 @@ internal fun WorkspaceScreen(
                 }
                 SceneEditingState.Closed -> Unit
             }
-            if (sceneEditing == SceneEditingState.Closed && actorTypesController != null && selectedActorType != null) {
+            if (sceneEditing == SceneEditingState.Closed && blockTypesController != null && selectedActorType != null) {
                 ActorTypeEditor(
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                     definition = selectedActorType,

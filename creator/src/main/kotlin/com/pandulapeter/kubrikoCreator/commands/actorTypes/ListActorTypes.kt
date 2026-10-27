@@ -30,7 +30,7 @@ internal object ListActorTypes : ReadCommand<NoInput> {
     override val title = Res.string.command_list_actor_types
 
     override suspend fun read(context: CommandContext, input: NoInput): CommandOutcome {
-        val actorTypes = context.actorTypes ?: return CommandOutcome.Rejected(Rejection(Res.string.error_command_no_actor_types))
+        val actorTypes = context.blockTypes ?: return CommandOutcome.Rejected(Rejection(Res.string.error_command_no_actor_types))
         return CommandOutcome.Success(
             JsonArray(
                 actorTypes.actorTypes.value.map { definition ->

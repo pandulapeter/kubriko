@@ -77,7 +77,7 @@ class WorkspaceControllerTest {
     private fun TestScope.createController(
         desktopModulePath: String = ":",
         scanResources: (File) -> Map<ResourceGroup, List<ProjectResource>> = { emptyMap() },
-        actorTypeRepository: FakeActorTypeRepository? = null,
+        blockTypeRepository: FakeBlockTypeRepository? = null,
         startWatching: (onChange: (Set<ProjectChange>) -> Unit) -> AutoCloseable = { AutoCloseable {} },
     ): WorkspaceController {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
@@ -88,7 +88,7 @@ class WorkspaceControllerTest {
             scope = CoroutineScope(backgroundScope.coroutineContext + dispatcher),
             ioDispatcher = dispatcher,
             scanResources = scanResources,
-            actorTypeRepository = actorTypeRepository,
+            blockTypeRepository = blockTypeRepository,
             startWatching = startWatching,
         )
     }
@@ -399,23 +399,23 @@ class WorkspaceControllerTest {
 
     @Test
     fun actorTypesAreOnlyAvailableToProjectsThatOptedIn() = runTest {
-        assertNull(createController().actorTypes)
-        assertNotNull(createController(actorTypeRepository = FakeActorTypeRepository()).actorTypes)
+        assertNull(createController().blockTypes)
+        assertNotNull(createController(blockTypeRepository = FakeBlockTypeRepository()).blockTypes)
     }
 
     @Test
     fun savingAnActorTypeRescansTheResourcesSoItsGeneratedCodeShowsUp() = runTest {
         var scanCount = 0
-        val controller = createController(scanResources = { scanCount++; emptyMap() }, actorTypeRepository = FakeActorTypeRepository())
+        val controller = createController(scanResources = { scanCount++; emptyMap() }, blockTypeRepository = FakeBlockTypeRepository())
         assertEquals(2, scanCount)
         assertNull(controller.createActorType("Player"))
         assertEquals(3, scanCount)
-        assertEquals("Player", controller.actorTypes!!.selectedName.value)
+        assertEquals("Player", controller.blockTypes!!.selectedName.value)
     }
 
     @Test
     fun aFailedActorTypeSaveIsReportedInTheConsole() = runTest {
-        val controller = createController(actorTypeRepository = FakeActorTypeRepository().apply { isFailing = true })
+        val controller = createController(blockTypeRepository = FakeBlockTypeRepository().apply { isFailing = true })
         controller.clearConsole()
         controller.createActorType("Player")
         assertEquals(listOf(ConsoleEntry.Status(Res.string.status_actor_type_not_saved, isError = true)), controller.console.value)
@@ -423,9 +423,9 @@ class WorkspaceControllerTest {
 
     @Test
     fun anActorTypeNameThatCantBeUsedIsExplainedAndCreatesNothing() = runTest {
-        val controller = createController(actorTypeRepository = FakeActorTypeRepository())
+        val controller = createController(blockTypeRepository = FakeBlockTypeRepository())
         assertEquals(Res.string.error_actor_type_name_invalid, controller.createActorType("ball game"))
-        assertTrue(controller.actorTypes!!.actorTypes.value.isEmpty())
+        assertTrue(controller.blockTypes!!.actorTypes.value.isEmpty())
         assertNull(controller.commands.history.value.nextUndoTitle)
     }
 
@@ -438,8 +438,8 @@ class WorkspaceControllerTest {
 
     @Test
     fun rejectedUndoStepsAreReportedInTheConsole() = runTest {
-        val repository = FakeActorTypeRepository()
-        val controller = createController(actorTypeRepository = repository)
+        val repository = FakeBlockTypeRepository()
+        val controller = createController(blockTypeRepository = repository)
         controller.createActorType("Player")
         repository.stored.clear()
         controller.onProjectChanged(setOf(ProjectChange.ACTOR_TYPE_DEFINITIONS))
@@ -468,10 +468,10 @@ class WorkspaceControllerTest {
 
     @Test
     fun changedDefinitionsAreReloaded() = runTest {
-        val repository = FakeActorTypeRepository()
-        val controller = createController(actorTypeRepository = repository)
+        val repository = FakeBlockTypeRepository()
+        val controller = createController(blockTypeRepository = repository)
         repository.stored["Ball"] = com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition(name = "Ball")
         controller.onProjectChanged(setOf(ProjectChange.ACTOR_TYPE_DEFINITIONS))
-        assertEquals(listOf("Ball"), controller.actorTypes!!.actorTypes.value.map { it.name })
+        assertEquals(listOf("Ball"), controller.blockTypes!!.actorTypes.value.map { it.name })
     }
 }

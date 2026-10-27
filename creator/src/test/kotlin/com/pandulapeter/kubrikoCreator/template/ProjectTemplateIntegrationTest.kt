@@ -12,7 +12,7 @@ package com.pandulapeter.kubrikoCreator.template
 import com.pandulapeter.kubrikoCreator.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeStore
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.actors.Axis
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.Comparison
@@ -49,7 +49,7 @@ class ProjectTemplateIntegrationTest {
                     NewProjectRequest(name = "Integration Game", packageName = "com.example.integration", parentDirectory = parentDirectory, template = template),
                 )
                 assertTrue(directory.resolve("gradlew").canExecute(), "${template.id}: gradlew")
-                ActorTypeStore.open(directory)?.save(everyBlockInEveryEvent)
+                BlockTypeStore.open(directory)?.save(everyBlockInEveryEvent)
                 GradleProjectConnection(directory).use { connection ->
                     assertEquals(":", ProjectInspector.inspect(connection).desktopModulePath, template.id)
                     listOf("desktop" to "compileKotlinDesktop", "wasmJs" to "compileKotlinWasmJs").forEach { (target, task) ->

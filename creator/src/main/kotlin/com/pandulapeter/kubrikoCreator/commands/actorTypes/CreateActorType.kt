@@ -33,7 +33,7 @@ internal object CreateActorType : WriteCommand<ActorTypeDefinition> {
     override fun target(context: CommandContext, input: ActorTypeDefinition) = CommandTarget.ActorType(input.name)
 
     override fun validate(context: CommandContext, input: ActorTypeDefinition): Rejection? {
-        val actorTypes = context.actorTypes ?: return Rejection(Res.string.error_command_no_actor_types)
+        val actorTypes = context.blockTypes ?: return Rejection(Res.string.error_command_no_actor_types)
         val names = actorTypes.actorTypes.value.map { it.name }
         return ActorTypeNaming.validate(input.name, names)?.let(::Rejection) ?: input.validateContents(names)
     }

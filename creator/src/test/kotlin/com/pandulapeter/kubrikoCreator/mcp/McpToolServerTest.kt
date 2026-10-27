@@ -103,9 +103,9 @@ class McpToolServerTest {
         val result = connected(port) { callTool("create_actor_type", mapOf("name" to "Ball", "shape" to "rectangle")) }
         assertEquals(false, result.isError)
         assertEquals("Done.", (result.content.single() as TextContent).text)
-        assertEquals(listOf("Ball"), context.actorTypes!!.actorTypes.value.map { it.name })
+        assertEquals(listOf("Ball"), context.blockTypes!!.actorTypes.value.map { it.name })
         executor.step(isUndo = true)
-        assertTrue(context.actorTypes.actorTypes.value.isEmpty())
+        assertTrue(context.blockTypes.actorTypes.value.isEmpty())
     }
 
     @Test

@@ -10,7 +10,7 @@
 package com.pandulapeter.kubrikoCreator.template
 
 import com.pandulapeter.kubrikoCreator.CreatorConfiguration
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeStore
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
 import com.pandulapeter.kubrikoCreator.git.JGitRepository
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_project_folder_not_empty
@@ -47,7 +47,7 @@ internal class ProjectGenerator(
                     writeText(TemplateRenderer.renderContent(file.content, values))
                 }
             }
-            ActorTypeStore.open(directory)?.regenerateAll()
+            BlockTypeStore.open(directory)?.regenerateAll()
             wrapperInstaller.install(directory, configuration.gradleVersion)
             if (request.isUnderVersionControl) startVersionControl(directory, FIRST_COMMIT_MESSAGE)
         } catch (exception: IOException) {

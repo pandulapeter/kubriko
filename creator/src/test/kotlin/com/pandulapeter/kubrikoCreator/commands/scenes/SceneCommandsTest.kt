@@ -118,6 +118,6 @@ class SceneCommandsTest {
         val actors = context.assertRoundTrip(Invocation(RenameActorType, RenameActorType.Input("Ball", "Puck"))) { context.main() }!!
         assertEquals(listOf("Puck", "Wall"), actors.map { it.typeId })
         assertEquals(listOf("main", "main", "main"), changedScenes)
-        assertNull(context.actorTypes!!["Ball"])
+        assertNull(context.blockTypes!!["Ball"])
     }
 }

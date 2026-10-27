@@ -18,7 +18,7 @@ import com.pandulapeter.kubrikoCreator.git.FakeGitRepository
 import com.pandulapeter.kubrikoCreator.git.FileChange
 import com.pandulapeter.kubrikoCreator.git.RepositoryStatus
 import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
-import com.pandulapeter.kubrikoCreator.workspace.FakeActorTypeRepository
+import com.pandulapeter.kubrikoCreator.workspace.FakeBlockTypeRepository
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -50,8 +50,8 @@ class ReadCommandsTest {
 
     @Test
     fun readingChangesNothingAndIsNotRecorded() = runTest {
-        val repository = FakeActorTypeRepository(listOf(ball))
-        val executor = executor(commandContext(actorTypes = actorTypesController(repository = repository)))
+        val repository = FakeBlockTypeRepository(listOf(ball))
+        val executor = executor(commandContext(blockTypes = blockTypesController(repository = repository)))
         CommandRegistry.editor.commands.filterIsInstance<ReadCommand<*>>().forEach { executor.call(it.name, JsonObject(emptyMap())) }
         assertEquals(listOf("regenerate"), repository.writes)
         assertEquals(CommandHistory(), executor.history.value)
@@ -68,7 +68,7 @@ class ReadCommandsTest {
         )
         assertEquals(
             Json.parseToJsonElement("""{"name":"game","usesBlockBuiltActorTypes":false,"scenes":[]}"""),
-            executor(commandContext(actorTypes = null)).read("get_project_overview"),
+            executor(commandContext(blockTypes = null)).read("get_project_overview"),
         )
     }
 
@@ -94,7 +94,7 @@ class ReadCommandsTest {
             CommandOutcome.Rejected(Rejection(Res.string.error_command_actor_type_missing, "Wall")),
             executor.call("read_actor_type", buildJsonObject { put("actorType", "Wall") }),
         )
-        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_no_actor_types)), executor(commandContext(actorTypes = null)).call("list_actor_types", JsonObject(emptyMap())))
+        assertEquals(CommandOutcome.Rejected(Rejection(Res.string.error_command_no_actor_types)), executor(commandContext(blockTypes = null)).call("list_actor_types", JsonObject(emptyMap())))
     }
 
     @Test

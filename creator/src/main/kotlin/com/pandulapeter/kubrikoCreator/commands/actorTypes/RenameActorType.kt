@@ -31,7 +31,7 @@ internal object RenameActorType : WriteCommand<RenameActorType.Input> {
     override val title = Res.string.command_rename_actor_type
     override val inputSerializer = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(if (context.actorTypes?.get(input.newName) != null) input.newName else input.actorType)
+    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(if (context.blockTypes?.get(input.newName) != null) input.newName else input.actorType)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateActorType(input.actorType)
         ?: ActorTypeNaming.validate(input.newName, context.requireActorTypes.actorTypes.value.map { it.name })?.let(::Rejection)
