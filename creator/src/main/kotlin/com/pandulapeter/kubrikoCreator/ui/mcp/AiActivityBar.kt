@@ -161,7 +161,7 @@ private fun StepText(
  */
 @Composable
 internal fun CommandTarget.description(): String = when (this) {
-    is CommandTarget.ActorType -> when {
+    is CommandTarget.BlockType -> when {
         eventIndex == null -> name
         blockIndex == null -> stringResource(Res.string.ai_target_event, name, (eventIndex + 1).toString())
         else -> stringResource(Res.string.ai_target_block, name, (eventIndex + 1).toString(), (blockIndex + 1).toString())

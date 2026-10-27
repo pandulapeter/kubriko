@@ -13,69 +13,93 @@ import kotlinx.serialization.json.Json
 import java.io.File
 
 /**
- * Reads and writes the block-built Actor types of a project, keeping their generated Kotlin in sync.
+ * Reads and writes the block-built Actor types and Manager types of a project, keeping their generated Kotlin in sync.
  *
- * Definitions live in `.kubriko/actors`, generated classes in the `generated` package of the project's source folder.
- * Deleting `.kubriko` leaves the generated classes in place, so the project keeps building.
+ * Definitions live in `.kubriko/actors` and `.kubriko/managers`, generated classes in the `generated` package of the
+ * project's source folder. Deleting `.kubriko` leaves the generated classes in place, so the project keeps building.
  */
 internal class BlockTypeStore private constructor(
     private val rootDirectory: File,
     private val settings: CreatorProjectSettings,
 ) : BlockTypeRepository {
-    private val definitionsDirectory get() = File(rootDirectory, "$CREATOR_DIRECTORY/actors")
     /**
      * Where the generated classes are written, relative to the project root.
      */
     val generatedPath get() = "${settings.sourceDirectory}/${settings.packageName.replace('.', '/')}/${ActorTypeCodeGenerator.GENERATED_PACKAGE}"
     private val generatedDirectory get() = File(rootDirectory, generatedPath)
 
-    override fun load(): List<ActorTypeDefinition> = definitionsDirectory.listFiles { file -> file.extension == "json" }
-        .orEmpty()
-        .map { json.decodeFromString(ActorTypeDefinition.serializer(), it.readText()) }
-        .sortedBy { it.name }
+    override fun load(): List<BlockTypeDefinition> = (
+        definitionFiles(BlockTypeKind.ACTOR).map { json.decodeFromString(ActorTypeDefinition.serializer(), it.readText()) } +
+            definitionFiles(BlockTypeKind.MANAGER).map { json.decodeFromString(ManagerTypeDefinition.serializer(), it.readText()) }
+        ).sortedBy { it.name }
 
     /**
-     * Writes [definition] and regenerates the code of every Actor type, since Actor types refer to each other (in
-     * collision Events).
+     * Writes [definition] and regenerates the code of every type, since types refer to each other (in collision Events,
+     * and through the Properties of Manager types).
      */
-    override fun save(definition: ActorTypeDefinition): Set<String> {
-        definitionsDirectory.mkdirs()
-        definitionFile(definition.name).writeText(json.encodeToString(ActorTypeDefinition.serializer(), definition) + "\n")
+    override fun save(definition: BlockTypeDefinition): Set<String> {
+        definitionsDirectory(definition.kind).mkdirs()
+        val text = when (definition) {
+            is ActorTypeDefinition -> json.encodeToString(ActorTypeDefinition.serializer(), definition)
+            is ManagerTypeDefinition -> json.encodeToString(ManagerTypeDefinition.serializer(), definition)
+        }
+        definitionFile(definition.kind, definition.name).writeText(text + "\n")
         return regenerateAll()
     }
 
     override fun delete(name: String): Set<String> {
-        definitionFile(name).delete()
+        BlockTypeKind.entries.forEach { definitionFile(it, name).delete() }
         generatedFile(name).delete()
         return regenerateAll()
     }
 
     override fun regenerateAll(overwriting: Set<String>): Set<String> {
         val definitions = load()
-        val names = definitions.map { it.name }
+        val actorTypeNames = definitions.filterIsInstance<ActorTypeDefinition>().map { it.name }
+        val managerTypes = definitions.filterIsInstance<ManagerTypeDefinition>()
         generatedDirectory.mkdirs()
         val changedByHand = definitions.mapNotNull { definition ->
             val file = generatedFile(definition.name)
             if (definition.name !in overwriting && file.isFile && !GeneratedFile.isUnchanged(file.readText())) {
                 definition.name
             } else {
-                file.writeText(ActorTypeCodeGenerator.generateActorType(definition, settings.packageName, names))
+                file.writeText(
+                    when (definition) {
+                        is ActorTypeDefinition -> ActorTypeCodeGenerator.generateActorType(definition, settings.packageName, actorTypeNames, managerTypes)
+                        is ManagerTypeDefinition -> ManagerTypeCodeGenerator.generateManagerType(definition, settings.packageName, actorTypeNames, managerTypes)
+                    },
+                )
                 null
             }
         }.toSet()
-        val registry = File(generatedDirectory, "${ActorTypeCodeGenerator.REGISTRY_NAME}.kt")
-        if (!registry.isFile || GeneratedFile.isUnchanged(registry.readText())) {
-            registry.writeText(ActorTypeCodeGenerator.generateRegistry(names, settings.packageName))
-        }
+        writeUnlessChangedByHand(ActorTypeCodeGenerator.REGISTRY_NAME, ActorTypeCodeGenerator.generateRegistry(actorTypeNames, settings.packageName))
+        writeUnlessChangedByHand(ManagerTypeCodeGenerator.WIRING_NAME, ManagerTypeCodeGenerator.generateWiring(managerTypes.map { it.name }, settings.packageName))
         return changedByHand
     }
 
-    private fun definitionFile(name: String) = File(definitionsDirectory, "$name.json")
+    private fun writeUnlessChangedByHand(name: String, text: String) {
+        val file = generatedFile(name)
+        if (!file.isFile || GeneratedFile.isUnchanged(file.readText())) file.writeText(text)
+    }
+
+    private fun definitionsDirectory(kind: BlockTypeKind) = File(rootDirectory, "$CREATOR_DIRECTORY/${definitionsFolder(kind)}")
+
+    private fun definitionFiles(kind: BlockTypeKind) = definitionsDirectory(kind).listFiles { file -> file.extension == "json" }.orEmpty().toList()
+
+    private fun definitionFile(kind: BlockTypeKind, name: String) = File(definitionsDirectory(kind), "$name.json")
 
     private fun generatedFile(name: String) = File(generatedDirectory, "$name.kt")
 
     companion object {
         const val CREATOR_DIRECTORY = ".kubriko"
+
+        /**
+         * The folder in [CREATOR_DIRECTORY] that holds the definitions of types of [kind].
+         */
+        fun definitionsFolder(kind: BlockTypeKind) = when (kind) {
+            BlockTypeKind.ACTOR -> "actors"
+            BlockTypeKind.MANAGER -> "managers"
+        }
         private const val SETTINGS_FILE = "$CREATOR_DIRECTORY/project.json"
 
         private val json = Json {

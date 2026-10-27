@@ -11,7 +11,7 @@
 
 package com.pandulapeter.kubrikoCreator.commands
 
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.git.FakeGitRepository
 import com.pandulapeter.kubrikoCreator.git.GitController
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
@@ -33,7 +33,7 @@ import kotlin.test.assertNull
 
 internal fun TestScope.testScope() = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler))
 
-internal fun TestScope.blockTypesController(vararg definitions: ActorTypeDefinition, repository: FakeBlockTypeRepository = FakeBlockTypeRepository(definitions.toList())) = BlockTypesController(
+internal fun TestScope.blockTypesController(vararg definitions: BlockTypeDefinition, repository: FakeBlockTypeRepository = FakeBlockTypeRepository(definitions.toList())) = BlockTypesController(
     repository = repository,
     scope = testScope(),
     ioDispatcher = UnconfinedTestDispatcher(testScheduler),
@@ -51,7 +51,7 @@ internal fun TestScope.gitController(repository: FakeGitRepository?) = GitContro
 )
 
 internal fun TestScope.commandContext(
-    vararg definitions: ActorTypeDefinition,
+    vararg definitions: BlockTypeDefinition,
     blockTypes: BlockTypesController? = blockTypesController(*definitions),
     git: GitController = gitController(repository = null),
     rootDirectory: File = createTempDirectory().toFile(),

@@ -29,24 +29,24 @@ import kubriko.creator.generated.resources.command_remove_property
 @OptIn(EditorMutation::class)
 internal object RemoveProperty : WriteCommand<RemoveProperty.Input> {
     override val name = "remove_property"
-    override val description = "Removes a Property from a block-built Actor type. Blocks that change it stay, but do nothing until it is added again."
+    override val description = "Removes a Property from a block-built Actor type or Manager type. Blocks that change it stay, but do nothing until it is added again."
     override val title = Res.string.command_remove_property
     override val inputSerializer = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType)
+    override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateProperty(input.actorType, input.property)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val definition = context.requireActorType(input.actorType)
+        val definition = context.requireType(input.actorType)
         val index = definition.properties.indexOfFirst { it.name == input.property }
-        context.requireActorTypes.put(definition.withPropertyRemoved(input.property))
+        context.requireBlockTypes.put(definition.withPropertyRemoved(input.property))
         return Applied(inverse = Invocation(AddProperty, AddProperty.Input(input.actorType, definition.properties[index], index)))
     }
 
     @Serializable
     data class Input(
-        @Description("The name of the Actor type.")
+        @Description("The name of the Actor type or Manager type.")
         @SerialName("actorType") val actorType: String,
         @Description("The name of the Property.")
         @SerialName("property") val property: String,

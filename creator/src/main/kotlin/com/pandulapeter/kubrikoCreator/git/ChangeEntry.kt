@@ -10,13 +10,14 @@
 package com.pandulapeter.kubrikoCreator.git
 
 /**
- * A change as Kubriko Creator shows it: one file, or an Actor type (its definition and its generated code together).
+ * A change as Kubriko Creator shows it: one file, or an Actor type or Manager type (its definition and its generated code
+ * together).
  *
- * @param title The Actor type's name, or the file's path.
+ * @param title The type's name, or the file's path.
  */
 internal data class ChangeEntry(
     val title: String,
     val kind: ChangeKind,
     val paths: List<String>,
-    val isActorType: Boolean,
+    val isBlockType: Boolean,
 )

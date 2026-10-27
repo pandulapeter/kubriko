@@ -10,31 +10,35 @@
 package com.pandulapeter.kubrikoCreator.git
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeCodeGenerator
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeStore
+import com.pandulapeter.kubrikoCreator.actors.ManagerTypeCodeGenerator
 
 /**
- * Groups changed files the way Kubriko Creator thinks of them: an Actor type's definition and its generated code are
- * one change, committed and discarded together.
+ * Groups changed files the way Kubriko Creator thinks of them: an Actor type's or Manager type's definition and its
+ * generated code are one change, committed and discarded together.
  */
 internal object ChangeGrouping {
 
-    private const val DEFINITIONS_PATH = ".kubriko/actors/"
+    private val definitionPaths = BlockTypeKind.entries.map { "${BlockTypeStore.CREATOR_DIRECTORY}/${BlockTypeStore.definitionsFolder(it)}/" }
+    private val generatedFilesOfNoType = setOf(ActorTypeCodeGenerator.REGISTRY_NAME, ManagerTypeCodeGenerator.WIRING_NAME)
 
     /**
-     * @param generatedPath Where the project's generated code lives, or null for a project without Actor types.
+     * @param generatedPath Where the project's generated code lives, or null for a project without block-built types.
      */
     fun group(changes: List<FileChange>, generatedPath: String?): List<ChangeEntry> {
-        val (actorTypeChanges, fileChanges) = changes.partition { actorTypeName(it.path, generatedPath) != null }
-        val actorTypes = actorTypeChanges.groupBy { actorTypeName(it.path, generatedPath)!! }.toSortedMap().map { (name, group) ->
-            ChangeEntry(title = name, kind = combinedKind(group.map { it.kind }), paths = group.map { it.path }, isActorType = true)
+        val (typeChanges, fileChanges) = changes.partition { typeName(it.path, generatedPath) != null }
+        val types = typeChanges.groupBy { typeName(it.path, generatedPath)!! }.toSortedMap().map { (name, group) ->
+            ChangeEntry(title = name, kind = combinedKind(group.map { it.kind }), paths = group.map { it.path }, isBlockType = true)
         }
-        val files = fileChanges.map { ChangeEntry(title = it.path, kind = it.kind, paths = listOf(it.path), isActorType = false) }
-        return actorTypes + files
+        val files = fileChanges.map { ChangeEntry(title = it.path, kind = it.kind, paths = listOf(it.path), isBlockType = false) }
+        return types + files
     }
 
-    private fun actorTypeName(path: String, generatedPath: String?) = when {
-        path.startsWith(DEFINITIONS_PATH) && path.endsWith(".json") -> path.removePrefix(DEFINITIONS_PATH).removeSuffix(".json").takeIf { '/' !in it }
+    private fun typeName(path: String, generatedPath: String?) = when {
+        path.endsWith(".json") -> definitionPaths.firstOrNull { path.startsWith(it) }?.let { path.removePrefix(it).removeSuffix(".json").takeIf { name -> '/' !in name } }
         generatedPath != null && path.startsWith("$generatedPath/") && path.endsWith(".kt") -> path.removePrefix("$generatedPath/").removeSuffix(".kt")
-            .takeIf { '/' !in it && it != ActorTypeCodeGenerator.REGISTRY_NAME }
+            .takeIf { '/' !in it && it !in generatedFilesOfNoType }
         else -> null
     }
 

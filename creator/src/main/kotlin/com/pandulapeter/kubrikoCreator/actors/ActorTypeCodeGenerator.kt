@@ -10,6 +10,9 @@
 package com.pandulapeter.kubrikoCreator.actors
 
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.INDENT
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendKeyHandling
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendTimer
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendEvents
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.blockLines
 import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.colorLiteral
@@ -34,13 +37,16 @@ internal object ActorTypeCodeGenerator {
     /**
      * @param knownActorTypeNames Every Actor type of the project: collision Events with any other Actor type (one that
      *   was deleted, or not chosen yet) are left out, so that the generated code always compiles.
+     * @param managerTypes Every Manager type of the project, whose Properties the Blocks may use.
      */
     fun generateActorType(
         definition: ActorTypeDefinition,
         packageName: String,
         knownActorTypeNames: Collection<String> = listOf(definition.name),
+        managerTypes: List<ManagerTypeDefinition> = emptyList(),
     ): String {
         val name = definition.name
+        val scope = BlockScope(name, BlockTypeKind.ACTOR, definition.properties, knownActorTypeNames, managerTypes)
         val keyEvents = definition.events.filter { it.type == EventType.KEY_PRESSED && it.key != null }
         val edgeEvents = definition.events.filter { it.type == EventType.EDGE_TOUCHED }
         val collisionEvents = definition.events.filter { it.type == EventType.COLLISION && it.otherActorType in knownActorTypeNames }
@@ -48,10 +54,11 @@ internal object ActorTypeCodeGenerator {
         val generatedEvents = definition.events.filter { it.type == EventType.ADDED_TO_SCENE || it.type == EventType.EVERY_FRAME } + edgeEvents + keyEvents + collisionEvents + timerEvents
         val timers = (timerEvents.mapNotNull { it.timer } + generatedEvents.flatMap { event -> event.blocks.mapNotNull { it.timerNumber } }).filter { it in TIMER_NUMBERS }.distinct().sorted()
         val blocksByEvent = edgeEvents.flatMap { event -> event.blocks.map { it to event.type } } + collisionEvents.flatMap { event -> event.blocks.map { it to event.type } }
-        val usesAbsoluteValue = blocksByEvent.any { (block, eventType) -> blockLines(block, eventType, name, definition.properties, knownActorTypeNames).any { "absoluteValue" in it } }
+        val usesAbsoluteValue = blocksByEvent.any { (block, eventType) -> blockLines(block, eventType, scope).any { "absoluteValue" in it } }
         val generatedBlocks = generatedEvents.flatMap { it.blocks }
         val conditions = generatedBlocks.mapNotNull { (it as? BlockDefinition.If)?.condition }
         val usesKeyHeld = conditions.any { it is ConditionDefinition.KeyHeld }
+        val usedManagers = scope.managersUsedBy(generatedBlocks)
         val traits = listOfNotNull(
             "Visible",
             "Dynamic",
@@ -109,6 +116,7 @@ internal object ActorTypeCodeGenerator {
             appendLine("    private lateinit var actorManager: ActorManager")
             appendLine("    private lateinit var viewportManager: ViewportManager")
             if (usesKeyHeld) appendLine("    private lateinit var keyboardInputManager: KeyboardInputManager")
+            usedManagers.forEach { appendLine("    private lateinit var ${scope.managerField(it)}: $it") }
             timers.forEach { timer ->
                 appendLine()
                 appendLine("    /**")
@@ -122,21 +130,22 @@ internal object ActorTypeCodeGenerator {
             appendLine("        actorManager = kubriko.get()")
             appendLine("        viewportManager = kubriko.get()")
             if (usesKeyHeld) appendLine("        keyboardInputManager = kubriko.get()")
-            appendEvents(definition.events.filter { it.type == EventType.ADDED_TO_SCENE }, depth = 2, definition = definition, knownActorTypeNames = knownActorTypeNames)
+            usedManagers.forEach { appendLine("        ${scope.managerField(it)} = kubriko.get()") }
+            appendEvents(definition.events.filter { it.type == EventType.ADDED_TO_SCENE }, depth = 2, scope = scope)
             appendLine("    }")
             appendLine()
             appendLine("    override fun update(deltaTimeInMilliseconds: Int) {")
-            timers.forEach { timer -> appendTimer(timer, timerEvents.filter { it.timer == timer }, definition, knownActorTypeNames) }
-            appendEvents(definition.events.filter { it.type == EventType.EVERY_FRAME }, depth = 2, definition = definition, knownActorTypeNames = knownActorTypeNames)
+            timers.forEach { timer -> appendTimer(timer, timerEvents.filter { it.timer == timer }, scope) }
+            appendEvents(definition.events.filter { it.type == EventType.EVERY_FRAME }, depth = 2, scope = scope)
             appendLine("        body.position += velocity * (deltaTimeInMilliseconds / 1000f)")
-            if (edgeEvents.isNotEmpty()) appendEdgeHandling(edgeEvents, definition, knownActorTypeNames)
+            if (edgeEvents.isNotEmpty()) appendEdgeHandling(edgeEvents, scope)
             appendLine("        collisionMask.position = body.position")
             appendLine("    }")
-            if (keyEvents.isNotEmpty()) appendKeyHandling(keyEvents, definition, knownActorTypeNames)
-            if (collisionEvents.isNotEmpty()) appendCollisionHandling(collisionEvents, definition, knownActorTypeNames)
+            if (keyEvents.isNotEmpty()) appendKeyHandling(keyEvents, scope)
+            if (collisionEvents.isNotEmpty()) appendCollisionHandling(collisionEvents, scope)
             appendLine()
             appendLine(drawFunction(definition.shape))
-            if (generatedEvents.any { event -> event.blocks.any { it is BlockDefinition.Log && ".$NUMBER_TEXT_FUNCTION()" in templateLiteral(it.message, definition.properties) } }) {
+            if (generatedEvents.any { event -> event.blocks.any { it is BlockDefinition.Log && ".$NUMBER_TEXT_FUNCTION()" in templateLiteral(it.message, scope) } }) {
                 appendLine()
                 appendLine("    private fun Float.$NUMBER_TEXT_FUNCTION() = if (this % 1f == 0f) toLong().toString() else toString()")
             }
@@ -189,24 +198,7 @@ internal object ActorTypeCodeGenerator {
         appendLine("}")
     })
 
-    private fun StringBuilder.appendEvents(events: List<EventDefinition>, depth: Int, definition: ActorTypeDefinition, knownActorTypeNames: Collection<String>) {
-        val lines = events.flatMap { event -> eventLines(event.blocks, event.type, definition.name, definition.properties, knownActorTypeNames) }
-        if (lines.isNotEmpty() && events.first().type != EventType.KEY_PRESSED && events.first().type != EventType.COLLISION && events.first().type != EventType.TIMER_FINISHED) {
-            appendLine(INDENT.repeat(depth) + "// " + eventComment(events.first().type))
-        }
-        lines.forEach { appendLine(INDENT.repeat(depth) + it) }
-    }
-
-    private fun eventComment(type: EventType) = when (type) {
-        EventType.ADDED_TO_SCENE -> "When added to the Scene"
-        EventType.EVERY_FRAME -> "Every frame"
-        EventType.KEY_PRESSED -> "When a key is pressed"
-        EventType.EDGE_TOUCHED -> "When an edge of the screen is touched"
-        EventType.COLLISION -> "When it collides with another Actor"
-        EventType.TIMER_FINISHED -> "When a Timer finishes"
-    }
-
-    private fun StringBuilder.appendEdgeHandling(edgeEvents: List<EventDefinition>, definition: ActorTypeDefinition, knownActorTypeNames: Collection<String>) {
+    private fun StringBuilder.appendEdgeHandling(edgeEvents: List<EventDefinition>, scope: BlockScope) {
         appendLine("        val halfSize = SceneOffset(body.size.width / 2, body.size.height / 2)")
         appendLine("        val topLeft = viewportManager.topLeft.value + halfSize")
         appendLine("        val bottomRight = viewportManager.bottomRight.value - halfSize")
@@ -217,49 +209,18 @@ internal object ActorTypeCodeGenerator {
         appendLine("        val isTouchingBottomEdge = body.position.y > bottomRight.y")
         appendLine("        if (isTouchingLeftEdge || isTouchingRightEdge || isTouchingTopEdge || isTouchingBottomEdge) {")
         appendLine("            body.position = body.position.constrainedWithin(topLeft, bottomRight)")
-        appendEvents(edgeEvents, depth = 3, definition = definition, knownActorTypeNames = knownActorTypeNames)
+        appendEvents(edgeEvents, depth = 3, scope = scope)
         appendLine("        }")
     }
 
-    /**
-     * Counts Timer [timer] down and runs the Blocks of its [events] when it finishes. A repeating Timer carries the time
-     * it overshot into its next round, and the Blocks may start or stop it again.
-     */
-    private fun StringBuilder.appendTimer(timer: Int, events: List<EventDefinition>, definition: ActorTypeDefinition, knownActorTypeNames: Collection<String>) {
-        val remaining = remainingField(timer)
-        val period = periodField(timer)
-        appendLine("        if ($remaining > 0) {")
-        appendLine("            $remaining -= deltaTimeInMilliseconds")
-        appendLine("            if ($remaining <= 0) {")
-        appendLine("                // When Timer $timer finishes")
-        appendLine("                $remaining = if ($period > 0) ($remaining + $period).coerceAtLeast(1) else 0")
-        appendEvents(events, depth = 4, definition = definition, knownActorTypeNames = knownActorTypeNames)
-        appendLine("            }")
-        appendLine("        }")
-    }
-
-
-    private fun StringBuilder.appendKeyHandling(keyEvents: List<EventDefinition>, definition: ActorTypeDefinition, knownActorTypeNames: Collection<String>) {
-        appendLine()
-        appendLine("    override fun onKeyPressed(key: Key) {")
-        appendLine("        when (key) {")
-        keyEvents.groupBy { it.key!! }.toSortedMap().forEach { (key, events) ->
-            appendLine("            Key.${key.composeKeyName} -> {")
-            appendEvents(events, depth = 4, definition = definition, knownActorTypeNames = knownActorTypeNames)
-            appendLine("            }")
-        }
-        appendLine("        }")
-        appendLine("    }")
-    }
-
-    private fun StringBuilder.appendCollisionHandling(collisionEvents: List<EventDefinition>, definition: ActorTypeDefinition, knownActorTypeNames: Collection<String>) {
+    private fun StringBuilder.appendCollisionHandling(collisionEvents: List<EventDefinition>, scope: BlockScope) {
         appendLine()
         appendLine("    override fun onCollisionDetected(collidables: List<Collidable>) {")
         appendLine("        for (index in collidables.indices) {")
         appendLine("            when (val other = collidables[index]) {")
         collisionEvents.groupBy { it.otherActorType!! }.toSortedMap().forEach { (otherActorType, events) ->
             appendLine("                is $otherActorType -> {")
-            appendEvents(events, depth = 5, definition = definition, knownActorTypeNames = knownActorTypeNames)
+            appendEvents(events, depth = 5, scope = scope)
             appendLine("                }")
         }
         appendLine("            }")
@@ -297,7 +258,6 @@ internal object ActorTypeCodeGenerator {
             |    )
         """.trimMargin()
     }
-
 
     private val BASE_IMPORTS = listOf(
         "androidx.compose.ui.graphics.Color",

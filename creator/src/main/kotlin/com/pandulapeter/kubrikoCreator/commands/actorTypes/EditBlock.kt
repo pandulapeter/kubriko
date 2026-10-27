@@ -27,19 +27,19 @@ import kubriko.creator.generated.resources.command_edit_block
 @OptIn(EditorMutation::class)
 internal object EditBlock : WriteCommand<EditBlock.Input> {
     override val name = "edit_block"
-    override val description = "Replaces a Block of an Event of a block-built Actor type, to change its values (or to swap it for another Block)."
+    override val description = "Replaces a Block of an Event of a block-built Actor type or Manager type, to change its values (or to swap it for another Block)."
     override val title = Res.string.command_edit_block
     override val inputSerializer = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType, input.eventIndex, input.blockIndex)
+    override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType, input.eventIndex, input.blockIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateBlock(input.actorType, input.eventIndex, input.blockIndex)
-        ?: context.requireActorType(input.actorType).let { validateBlock(input.block, it.events[input.eventIndex].type, it.properties, context.requireActorTypes.actorTypes.value.map { type -> type.name }) }
+        ?: context.requireType(input.actorType).let { validateBlock(input.block, it.events[input.eventIndex].type, context.scopeOf(it)) }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val definition = context.requireActorType(input.actorType)
+        val definition = context.requireType(input.actorType)
         val previous = definition.events[input.eventIndex].blocks[input.blockIndex]
-        context.requireActorTypes.put(definition.withBlockReplaced(input.eventIndex, input.blockIndex, input.block))
+        context.requireBlockTypes.put(definition.withBlockReplaced(input.eventIndex, input.blockIndex, input.block))
         return Applied(inverse = Invocation(EditBlock, input.copy(block = previous)))
     }
 
@@ -47,7 +47,7 @@ internal object EditBlock : WriteCommand<EditBlock.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Actor type.")
+        @Description("The name of the Actor type or Manager type.")
         @SerialName("actorType") val actorType: String,
         @Description("The index of the Event in the Actor type's Event list, starting from 0.")
         @SerialName("eventIndex") val eventIndex: Int,

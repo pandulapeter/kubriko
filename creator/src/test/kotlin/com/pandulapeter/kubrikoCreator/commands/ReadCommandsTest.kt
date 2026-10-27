@@ -139,7 +139,7 @@ class ReadCommandsTest {
         val repository = FakeGitRepository(RepositoryStatus("main", listOf(FileChange("README.md", ChangeKind.ADDED)))).apply { commits += "First" }
         assertEquals(
             Json.parseToJsonElement(
-                """{"isUnderVersionControl":true,"branch":"main","changes":[{"title":"README.md","kind":"added","isActorType":false,"paths":["README.md"]}],"history":[{"id":"0","message":"First","author":"Me"}]}""",
+                """{"isUnderVersionControl":true,"branch":"main","changes":[{"title":"README.md","kind":"added","isBlockType":false,"paths":["README.md"]}],"history":[{"id":"0","message":"First","author":"Me"}]}""",
             ),
             executor(commandContext(git = gitController(repository))).read("get_version_control_status"),
         )

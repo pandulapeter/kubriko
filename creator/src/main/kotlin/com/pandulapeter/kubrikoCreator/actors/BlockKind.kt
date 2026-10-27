@@ -40,21 +40,22 @@ import org.jetbrains.compose.resources.StringResource
 internal enum class BlockKind(
     val title: StringResource,
     val createDefault: () -> BlockDefinition,
+    val needsActor: Boolean = false,
 ) {
-    SET_VELOCITY(Res.string.block_set_velocity, { BlockDefinition.SetVelocity(x = 200f, y = 0f) }),
-    ADD_TO_VELOCITY(Res.string.block_add_to_velocity, { BlockDefinition.AddToVelocity(x = 50f, y = 0f) }),
-    STOP(Res.string.block_stop, { BlockDefinition.Stop }),
-    JUMP_TO(Res.string.block_jump_to, { BlockDefinition.JumpTo() }),
-    BOUNCE_OFF_EDGE(Res.string.block_bounce_off_edge, { BlockDefinition.BounceOffEdge }),
-    REMOVE_SELF(Res.string.block_remove_self, { BlockDefinition.RemoveSelf }),
-    BOUNCE_OFF_OTHER(Res.string.block_bounce_off_other, { BlockDefinition.BounceOffOther }),
-    REMOVE_OTHER(Res.string.block_remove_other, { BlockDefinition.RemoveOther }),
+    SET_VELOCITY(Res.string.block_set_velocity, { BlockDefinition.SetVelocity(x = 200f, y = 0f) }, needsActor = true),
+    ADD_TO_VELOCITY(Res.string.block_add_to_velocity, { BlockDefinition.AddToVelocity(x = 50f, y = 0f) }, needsActor = true),
+    STOP(Res.string.block_stop, { BlockDefinition.Stop }, needsActor = true),
+    JUMP_TO(Res.string.block_jump_to, { BlockDefinition.JumpTo() }, needsActor = true),
+    BOUNCE_OFF_EDGE(Res.string.block_bounce_off_edge, { BlockDefinition.BounceOffEdge }, needsActor = true),
+    REMOVE_SELF(Res.string.block_remove_self, { BlockDefinition.RemoveSelf }, needsActor = true),
+    BOUNCE_OFF_OTHER(Res.string.block_bounce_off_other, { BlockDefinition.BounceOffOther }, needsActor = true),
+    REMOVE_OTHER(Res.string.block_remove_other, { BlockDefinition.RemoveOther }, needsActor = true),
     SET_NUMBER(Res.string.block_set_number, { BlockDefinition.SetNumber() }),
     CHANGE_NUMBER(Res.string.block_change_number, { BlockDefinition.ChangeNumber() }),
     SET_TEXT(Res.string.block_set_text, { BlockDefinition.SetText() }),
     SET_TOGGLE(Res.string.block_set_toggle, { BlockDefinition.SetToggle() }),
     ADD_ACTOR(Res.string.block_add_actor, { BlockDefinition.AddActor() }),
-    MOVE_TOWARDS_NEAREST(Res.string.block_move_towards_nearest, { BlockDefinition.MoveTowardsNearest() }),
+    MOVE_TOWARDS_NEAREST(Res.string.block_move_towards_nearest, { BlockDefinition.MoveTowardsNearest() }, needsActor = true),
     START_TIMER(Res.string.block_start_timer, { BlockDefinition.StartTimer() }),
     STOP_TIMER(Res.string.block_stop_timer, { BlockDefinition.StopTimer() }),
     IF(Res.string.block_if, { BlockDefinition.If() }),
@@ -65,12 +66,14 @@ internal enum class BlockKind(
     KOTLIN(Res.string.block_kotlin, { BlockDefinition.Kotlin() });
 
     /**
-     * Whether the palette offers this Block in an Event of [eventType]. Some Blocks need what only one Event knows:
-     * which edge was touched, or which Actor was collided with.
+     * Whether the palette offers this Block in an Event of [eventType] of a type of [kind]. Some Blocks need what only
+     * one Event knows: which edge was touched, or which Actor was collided with. Those that move or remove the Actor
+     * need one, so a Manager doesn't have them.
      */
-    fun isAvailableIn(eventType: EventType) = when (this) {
-        BOUNCE_OFF_EDGE -> eventType == EventType.EDGE_TOUCHED
-        BOUNCE_OFF_OTHER, REMOVE_OTHER -> eventType == EventType.COLLISION
+    fun isAvailableIn(eventType: EventType, kind: BlockTypeKind) = when {
+        needsActor && kind != BlockTypeKind.ACTOR -> false
+        this == BOUNCE_OFF_EDGE -> eventType == EventType.EDGE_TOUCHED
+        this == BOUNCE_OFF_OTHER || this == REMOVE_OTHER -> eventType == EventType.COLLISION
         else -> true
     }
 

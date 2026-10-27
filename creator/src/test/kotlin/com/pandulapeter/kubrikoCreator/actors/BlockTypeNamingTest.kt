@@ -10,34 +10,34 @@
 package com.pandulapeter.kubrikoCreator.actors
 
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_actor_type_name_invalid
-import kubriko.creator.generated.resources.error_actor_type_name_reserved
-import kubriko.creator.generated.resources.error_actor_type_name_taken
+import kubriko.creator.generated.resources.error_type_name_invalid
+import kubriko.creator.generated.resources.error_type_name_reserved
+import kubriko.creator.generated.resources.error_type_name_taken
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-class ActorTypeNamingTest {
+class BlockTypeNamingTest {
 
     @Test
     fun namesAreKotlinClassNames() {
-        listOf("Ball", "Enemy2", "PlayerShip").forEach { assertNull(ActorTypeNaming.validate(it, emptyList()), it) }
+        listOf("Ball", "Enemy2", "PlayerShip").forEach { assertNull(BlockTypeNaming.validate(it, emptyList()), it) }
         listOf("", "ball", "2Ball", "Player Ship", "Player-Ship", "Ballé", "Player_1").forEach {
-            assertEquals(Res.string.error_actor_type_name_invalid, ActorTypeNaming.validate(it, emptyList()), it)
+            assertEquals(Res.string.error_type_name_invalid, BlockTypeNaming.validate(it, emptyList()), it)
         }
     }
 
     @Test
     fun namesTheGeneratedCodeAlreadyUsesAreReserved() {
         listOf("GeneratedActorTypes", "State", "Color").forEach {
-            assertEquals(Res.string.error_actor_type_name_reserved, ActorTypeNaming.validate(it, emptyList()), it)
+            assertEquals(Res.string.error_type_name_reserved, BlockTypeNaming.validate(it, emptyList()), it)
         }
     }
 
     @Test
     fun namesMustBeUniqueIgnoringCase() {
-        assertEquals(Res.string.error_actor_type_name_taken, ActorTypeNaming.validate("Ball", listOf("Ball")))
-        assertEquals(Res.string.error_actor_type_name_taken, ActorTypeNaming.validate("BALL", listOf("Ball")))
-        assertNull(ActorTypeNaming.validate("Balls", listOf("Ball")))
+        assertEquals(Res.string.error_type_name_taken, BlockTypeNaming.validate("Ball", listOf("Ball")))
+        assertEquals(Res.string.error_type_name_taken, BlockTypeNaming.validate("BALL", listOf("Ball")))
+        assertNull(BlockTypeNaming.validate("Balls", listOf("Ball")))
     }
 }

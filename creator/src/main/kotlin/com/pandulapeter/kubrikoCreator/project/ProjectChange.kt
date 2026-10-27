@@ -15,9 +15,9 @@ package com.pandulapeter.kubrikoCreator.project
 internal enum class ProjectChange {
 
     /**
-     * Files in `.kubriko/actors`.
+     * Files in `.kubriko/actors` and `.kubriko/managers`.
      */
-    ACTOR_TYPE_DEFINITIONS,
+    BLOCK_TYPE_DEFINITIONS,
 
     /**
      * Scene files.

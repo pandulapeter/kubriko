@@ -10,7 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeNaming
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeNaming
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
@@ -30,16 +30,16 @@ internal object CreateActorType : WriteCommand<ActorTypeDefinition> {
     override val title = Res.string.command_create_actor_type
     override val inputSerializer = ActorTypeDefinition.serializer()
 
-    override fun target(context: CommandContext, input: ActorTypeDefinition) = CommandTarget.ActorType(input.name)
+    override fun target(context: CommandContext, input: ActorTypeDefinition) = CommandTarget.BlockType(input.name)
 
     override fun validate(context: CommandContext, input: ActorTypeDefinition): Rejection? {
-        val actorTypes = context.blockTypes ?: return Rejection(Res.string.error_command_no_actor_types)
-        val names = actorTypes.actorTypes.value.map { it.name }
-        return ActorTypeNaming.validate(input.name, names)?.let(::Rejection) ?: input.validateContents(names)
+        val types = context.blockTypes ?: return Rejection(Res.string.error_command_no_actor_types)
+        return BlockTypeNaming.validate(input.name, types.types.value.map { it.name })?.let(::Rejection)
+            ?: input.validateContents(types.actorTypes.value.map { it.name }, types.managerTypes.value)
     }
 
     override suspend fun apply(context: CommandContext, input: ActorTypeDefinition): Applied {
-        context.requireActorTypes.put(input)
+        context.requireBlockTypes.put(input)
         return Applied(inverse = Invocation(DeleteActorType, DeleteActorType.Input(input.name)))
     }
 }

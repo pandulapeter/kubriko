@@ -79,47 +79,55 @@ internal sealed interface BlockDefinition {
 
     @Serializable
     @SerialName("setNumber")
-    @Description("Sets a number Property of the Actor.")
+    @Description("Sets a number Property of the type, or of a Manager type.")
     data class SetNumber(
         @Description(PROPERTY_DESCRIPTION)
         @SerialName("property") val property: String = "",
         @Description("The new value.")
         @SerialName("value") val value: Float = 0f,
+        @Description(MANAGER_DESCRIPTION)
+        @SerialName("manager") val manager: String? = null,
     ) : BlockDefinition
 
     @Serializable
     @SerialName("changeNumber")
-    @Description("Adds to a number Property of the Actor (or subtracts from it, with a negative amount).")
+    @Description("Adds to a number Property of the type, or of a Manager type (or subtracts from it, with a negative amount).")
     data class ChangeNumber(
         @Description(PROPERTY_DESCRIPTION)
         @SerialName("property") val property: String = "",
         @Description("The amount added.")
         @SerialName("by") val by: Float = 1f,
+        @Description(MANAGER_DESCRIPTION)
+        @SerialName("manager") val manager: String? = null,
     ) : BlockDefinition
 
     @Serializable
     @SerialName("setText")
-    @Description("Sets a text Property of the Actor.")
+    @Description("Sets a text Property of the type, or of a Manager type.")
     data class SetText(
         @Description(PROPERTY_DESCRIPTION)
         @SerialName("property") val property: String = "",
         @Description("The new text.")
         @SerialName("value") val value: String = "",
+        @Description(MANAGER_DESCRIPTION)
+        @SerialName("manager") val manager: String? = null,
     ) : BlockDefinition
 
     @Serializable
     @SerialName("setToggle")
-    @Description("Turns a toggle Property of the Actor on or off.")
+    @Description("Turns a toggle Property of the type, or of a Manager type, on or off.")
     data class SetToggle(
         @Description(PROPERTY_DESCRIPTION)
         @SerialName("property") val property: String = "",
         @Description("Whether it is on.")
         @SerialName("value") val value: Boolean = true,
+        @Description(MANAGER_DESCRIPTION)
+        @SerialName("manager") val manager: String? = null,
     ) : BlockDefinition
 
     @Serializable
     @SerialName("addActor")
-    @Description("Adds a new Actor of a block-built Actor type to the Scene, with that type's size and Property values, like one placed in the Scene editor.")
+    @Description("Adds a new Actor of a block-built Actor type to the Scene, with that type's size and Property values, like one placed in the Scene editor. In a Manager type, the position is always relative to the center of the Scene.")
     data class AddActor(
         @Description("The name of the Actor type.")
         @SerialName("actorType") val actorType: String = "",
@@ -189,9 +197,9 @@ internal sealed interface BlockDefinition {
 
     @Serializable
     @SerialName("log")
-    @Description("Writes a line to Kubriko Creator's console while the game runs, with the Actor type as its source. The way to see what happens in the game: println doesn't reach the console.")
+    @Description("Writes a line to Kubriko Creator's console while the game runs, with the type as its source. The way to see what happens in the game: println doesn't reach the console.")
     data class Log(
-        @Description("The text of the line. {name} is replaced by the value of the Property called name, as in \"Score: {score}\".")
+        @Description("The text of the line. {name} is replaced by the value of the Property called name, and {Other.name} by a Property of the Manager type Other, as in \"Score: {Game.score}\".")
         @SerialName("message") val message: String = "",
     ) : BlockDefinition
 
@@ -204,21 +212,22 @@ internal sealed interface BlockDefinition {
     ) : BlockDefinition
 }
 
-private const val PROPERTY_DESCRIPTION = "The name of one of the Actor type's Properties of this kind."
+private const val PROPERTY_DESCRIPTION = "The name of one of the Properties of this kind, of the type itself or of the Manager type in manager."
+internal const val MANAGER_DESCRIPTION = "The Manager type whose Property it uses. Left out for a Property of the type itself."
 
 /**
- * The Property [this] Block changes (or checks, in an if Block), if it uses one: its name, and the kind of Property it needs.
+ * The Property [this] Block changes (or checks, in an if Block), if it uses one.
  */
-internal val BlockDefinition.propertyReference: Pair<String, PropertyKind>?
+internal val BlockDefinition.propertyReference: PropertyReference?
     get() = when (this) {
-        is BlockDefinition.SetNumber -> property to PropertyKind.NUMBER
-        is BlockDefinition.ChangeNumber -> property to PropertyKind.NUMBER
-        is BlockDefinition.SetText -> property to PropertyKind.TEXT
-        is BlockDefinition.SetToggle -> property to PropertyKind.TOGGLE
+        is BlockDefinition.SetNumber -> PropertyReference(property, PropertyKind.NUMBER, manager)
+        is BlockDefinition.ChangeNumber -> PropertyReference(property, PropertyKind.NUMBER, manager)
+        is BlockDefinition.SetText -> PropertyReference(property, PropertyKind.TEXT, manager)
+        is BlockDefinition.SetToggle -> PropertyReference(property, PropertyKind.TOGGLE, manager)
         is BlockDefinition.If -> when (val condition = condition) {
-            is ConditionDefinition.Number -> condition.property to PropertyKind.NUMBER
-            is ConditionDefinition.Text -> condition.property to PropertyKind.TEXT
-            is ConditionDefinition.Toggle -> condition.property to PropertyKind.TOGGLE
+            is ConditionDefinition.Number -> PropertyReference(condition.property, PropertyKind.NUMBER, condition.manager)
+            is ConditionDefinition.Text -> PropertyReference(condition.property, PropertyKind.TEXT, condition.manager)
+            is ConditionDefinition.Toggle -> PropertyReference(condition.property, PropertyKind.TOGGLE, condition.manager)
             is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.Chance -> null
         }
         else -> null
@@ -254,26 +263,38 @@ internal val BlockDefinition.timerNumber
     }
 
 /**
- * [this] Block with the Property it changes (or shows, in a Log Block) renamed from [oldName] to [newName].
+ * [this] Block with the Property of [manager] (the type's own one, if null) that it changes, or shows in a Log Block,
+ * renamed from [oldName] to [newName].
  */
-internal fun BlockDefinition.withPropertyRenamed(oldName: String, newName: String) = when {
-    propertyReference?.first == oldName -> withProperty(newName)
-    this is BlockDefinition.Log -> copy(message = message.replace("{$oldName}", "{$newName}"))
+internal fun BlockDefinition.withPropertyRenamed(oldName: String, newName: String, manager: String? = null) = when {
+    propertyReference?.let { it.manager == manager && it.name == oldName } == true -> withPropertyReference(manager, newName)
+    this is BlockDefinition.Log -> copy(message = PropertyPlaceholders.withPropertyRenamed(message, manager, oldName, newName))
     else -> this
 }
 
 /**
- * [this] Block using the Property called [name] instead, if it is one that uses a Property.
+ * [this] Block with the Properties of the Manager type [oldName] it uses (or shows, in a Log Block) taken from [newName]
+ * instead.
  */
-internal fun BlockDefinition.withProperty(name: String) = when (this) {
-    is BlockDefinition.SetNumber -> copy(property = name)
-    is BlockDefinition.ChangeNumber -> copy(property = name)
-    is BlockDefinition.SetText -> copy(property = name)
-    is BlockDefinition.SetToggle -> copy(property = name)
+internal fun BlockDefinition.withManagerRenamed(oldName: String, newName: String) = when {
+    propertyReference?.manager == oldName -> withPropertyReference(newName, propertyReference!!.name)
+    this is BlockDefinition.Log -> copy(message = PropertyPlaceholders.withManagerRenamed(message, oldName, newName))
+    else -> this
+}
+
+/**
+ * [this] Block using the Property called [name] of [manager] (the type's own one, if null) instead, if it is one that
+ * uses a Property.
+ */
+internal fun BlockDefinition.withPropertyReference(manager: String?, name: String) = when (this) {
+    is BlockDefinition.SetNumber -> copy(manager = manager, property = name)
+    is BlockDefinition.ChangeNumber -> copy(manager = manager, property = name)
+    is BlockDefinition.SetText -> copy(manager = manager, property = name)
+    is BlockDefinition.SetToggle -> copy(manager = manager, property = name)
     is BlockDefinition.If -> when (val condition = condition) {
-        is ConditionDefinition.Number -> copy(condition = condition.copy(property = name))
-        is ConditionDefinition.Text -> copy(condition = condition.copy(property = name))
-        is ConditionDefinition.Toggle -> copy(condition = condition.copy(property = name))
+        is ConditionDefinition.Number -> copy(condition = condition.copy(manager = manager, property = name))
+        is ConditionDefinition.Text -> copy(condition = condition.copy(manager = manager, property = name))
+        is ConditionDefinition.Toggle -> copy(condition = condition.copy(manager = manager, property = name))
         is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.Chance -> this
     }
     else -> this

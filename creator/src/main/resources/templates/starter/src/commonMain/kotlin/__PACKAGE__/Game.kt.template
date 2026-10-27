@@ -8,6 +8,7 @@ import com.pandulapeter.kubriko.Kubriko
 import com.pandulapeter.kubriko.KubrikoViewport
 import com.pandulapeter.kubriko.collision.CollisionManager
 import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager
+import {{PACKAGE}}.generated.KubrikoWiring
 
 /**
  * The whole game: a viewport showing the first Scene.
@@ -21,6 +22,7 @@ fun Game(
             GameSerialization.createSerializationManager(),
             CollisionManager.newInstance(),
             KeyboardInputManager.newInstance(),
+            *KubrikoWiring.createManagers().toTypedArray(),
             SceneLoader(scenePath = "files/scenes/main.json"),
         )
     }

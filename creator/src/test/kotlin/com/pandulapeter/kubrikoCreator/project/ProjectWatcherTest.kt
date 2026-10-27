@@ -38,7 +38,7 @@ class ProjectWatcherTest {
 
     @Test
     fun filesAreSortedIntoTheAreaTheyBelongTo() {
-        assertEquals(ProjectChange.ACTOR_TYPE_DEFINITIONS, ProjectWatcher.areaOf(".kubriko/actors/Ball.json"))
+        assertEquals(ProjectChange.BLOCK_TYPE_DEFINITIONS, ProjectWatcher.areaOf(".kubriko/actors/Ball.json"))
         assertEquals(ProjectChange.SCENES, ProjectWatcher.areaOf("src/commonMain/composeResources/files/scenes/main.json"))
         assertEquals(ProjectChange.SOURCES, ProjectWatcher.areaOf("src/commonMain/kotlin/game/Game.kt"))
         assertEquals(ProjectChange.SOURCES, ProjectWatcher.areaOf("app/src/commonMain/composeResources/drawable/ball.png"))
@@ -54,7 +54,7 @@ class ProjectWatcherTest {
         write("src/commonMain/kotlin/game/Game.kt", "fun main() = println()")
         val after = ProjectWatcher.fingerprint(root, generated)
         assertNotEquals(before[ProjectChange.SOURCES], after[ProjectChange.SOURCES])
-        assertEquals(before[ProjectChange.ACTOR_TYPE_DEFINITIONS], after[ProjectChange.ACTOR_TYPE_DEFINITIONS])
+        assertEquals(before[ProjectChange.BLOCK_TYPE_DEFINITIONS], after[ProjectChange.BLOCK_TYPE_DEFINITIONS])
     }
 
     @Test
@@ -78,7 +78,7 @@ class ProjectWatcherTest {
         write(".kubriko/actors/Wall.json", "{}")
         advanceTimeBy(1_000)
         runCurrent()
-        assertEquals(listOf(setOf(ProjectChange.ACTOR_TYPE_DEFINITIONS)), changes)
+        assertEquals(listOf(setOf(ProjectChange.BLOCK_TYPE_DEFINITIONS)), changes)
         watching.close()
         write(".kubriko/actors/Paddle.json", "{}")
         advanceTimeBy(5_000)

@@ -1,0 +1,183 @@
+/*
+ * This file is part of Kubriko.
+ * Copyright (c) Pandula Péter 2025-2026.
+ * https://github.com/pandulapeter/kubriko
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with this file, You can obtain one at
+ * https://mozilla.org/MPL/2.0/.
+ */
+package com.pandulapeter.kubrikoCreator.actors
+
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.NUMBER_TEXT_FUNCTION
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendEvents
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendKeyHandling
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.appendTimer
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.colorLiteral
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.floatLiteral
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.initialValueLiteral
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.periodField
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.remainingField
+import com.pandulapeter.kubrikoCreator.actors.BlockCodeGenerator.templateLiteral
+
+/**
+ * Turns block-built Manager types into ordinary Kotlin: one `Manager` subclass per type, plus [WIRING_NAME], which
+ * creates all of them for `Kubriko.newInstance`.
+ *
+ * Properties are Compose state, so the texts the Manager shows follow them; reading and writing them doesn't allocate.
+ */
+internal object ManagerTypeCodeGenerator {
+
+    const val WIRING_NAME = "KubrikoWiring"
+    private const val SCENE_EDITOR_GUARD = "if (isInSceneEditor) return"
+
+    /**
+     * @param knownActorTypeNames Every Actor type of the project, which the Blocks may add.
+     * @param managerTypes Every Manager type of the project, whose Properties the Blocks may use.
+     */
+    fun generateManagerType(
+        definition: ManagerTypeDefinition,
+        packageName: String,
+        knownActorTypeNames: Collection<String> = emptyList(),
+        managerTypes: List<ManagerTypeDefinition> = listOf(definition),
+    ): String {
+        val name = definition.name
+        val scope = BlockScope(name, BlockTypeKind.MANAGER, definition.properties, knownActorTypeNames, managerTypes)
+        val events = definition.events.filter { it.type.isAvailableIn(BlockTypeKind.MANAGER) }
+        val keyEvents = events.filter { it.type == EventType.KEY_PRESSED && it.key != null }
+        val timerEvents = events.filter { it.type == EventType.TIMER_FINISHED && it.timer in TIMER_NUMBERS }
+        val startEvents = events.filter { it.type == EventType.GAME_STARTED }
+        val frameEvents = events.filter { it.type == EventType.EVERY_FRAME }
+        val generatedEvents = startEvents + frameEvents + keyEvents + timerEvents
+        val generatedBlocks = generatedEvents.flatMap { it.blocks }
+        val timers = (timerEvents.mapNotNull { it.timer } + generatedBlocks.mapNotNull { it.timerNumber }).filter { it in TIMER_NUMBERS }.distinct().sorted()
+        val conditions = generatedBlocks.mapNotNull { (it as? BlockDefinition.If)?.condition }
+        val usesKeyHeld = conditions.any { it is ConditionDefinition.KeyHeld }
+        val texts = definition.texts.map { templateLiteral(it.text, scope) }
+        val usedManagers = scope.managersUsedBy(generatedBlocks, definition.texts.map { it.text })
+        val imports = buildSet {
+            add("com.pandulapeter.kubriko.Kubriko")
+            add("com.pandulapeter.kubriko.manager.ActorManager")
+            add("com.pandulapeter.kubriko.manager.Manager")
+            add("com.pandulapeter.kubriko.manager.ViewportManager")
+            if (definition.properties.any { it is PropertyDefinition.Number }) add("androidx.compose.runtime.mutableFloatStateOf")
+            if (definition.properties.any { it !is PropertyDefinition.Number }) add("androidx.compose.runtime.mutableStateOf")
+            if (definition.properties.isNotEmpty()) addAll(listOf("androidx.compose.runtime.getValue", "androidx.compose.runtime.setValue"))
+            if (keyEvents.isNotEmpty()) addAll(listOf("androidx.compose.ui.input.key.Key", "com.pandulapeter.kubriko.keyboardInput.KeyboardInputAware"))
+            if (usesKeyHeld) addAll(listOf("androidx.compose.ui.input.key.Key", "com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager"))
+            if (generatedBlocks.any { it is BlockDefinition.Log }) add("com.pandulapeter.kubriko.logger.Logger")
+            if (conditions.any { it is ConditionDefinition.Chance }) add("kotlin.random.Random")
+            if (generatedBlocks.any { it is BlockDefinition.AddActor && it.actorType in knownActorTypeNames }) addAll(listOf("com.pandulapeter.kubriko.helpers.extensions.sceneUnit", "com.pandulapeter.kubriko.types.SceneOffset"))
+            if (texts.isNotEmpty()) addAll(TEXT_IMPORTS)
+        }.sorted()
+        return GeneratedFile.withHeader(" from .kubriko/managers/$name.json", buildString {
+            appendLine("package $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}")
+            appendLine()
+            imports.forEach { appendLine("import $it") }
+            appendLine()
+            appendLine("/**")
+            appendLine(" * @param isInSceneEditor True in the Scene editor, where its Events don't run, but Actors placed there can still use it.")
+            appendLine(" */")
+            appendLine("class $name(")
+            appendLine("    private val isInSceneEditor: Boolean = false,")
+            appendLine(") : Manager()${if (keyEvents.isNotEmpty()) ", KeyboardInputAware" else ""} {")
+            definition.properties.forEach { property ->
+                appendLine("    var ${property.name} by ${if (property is PropertyDefinition.Number) "mutableFloatStateOf" else "mutableStateOf"}(${initialValueLiteral(property)})")
+            }
+            if (definition.properties.isNotEmpty()) appendLine()
+            appendLine("    private val actorManager by manager<ActorManager>()")
+            appendLine("    private val viewportManager by manager<ViewportManager>()")
+            if (usesKeyHeld) appendLine("    private val keyboardInputManager by manager<KeyboardInputManager>()")
+            usedManagers.forEach { appendLine("    private val ${scope.managerField(it)} by manager<$it>()") }
+            timers.forEach { timer ->
+                appendLine()
+                appendLine("    /**")
+                appendLine("     * Until Timer $timer finishes, or 0 while it doesn't run, and how often it finishes again, or 0 if it doesn't.")
+                appendLine("     */")
+                appendLine("    private var ${remainingField(timer)} = 0L")
+                appendLine("    private var ${periodField(timer)} = 0L")
+            }
+            if (startEvents.any { it.blocks.isNotEmpty() }) {
+                appendLine()
+                appendLine("    override fun onInitialize(kubriko: Kubriko) {")
+                appendLine("        $SCENE_EDITOR_GUARD")
+                appendEvents(startEvents, depth = 2, scope = scope)
+                appendLine("    }")
+            }
+            if (timers.isNotEmpty() || frameEvents.any { it.blocks.isNotEmpty() }) {
+                appendLine()
+                appendLine("    override fun onUpdate(deltaTimeInMilliseconds: Int) {")
+                appendLine("        $SCENE_EDITOR_GUARD")
+                timers.forEach { timer -> appendTimer(timer, timerEvents.filter { it.timer == timer }, scope) }
+                appendEvents(frameEvents, depth = 2, scope = scope)
+                appendLine("    }")
+            }
+            if (keyEvents.isNotEmpty()) appendKeyHandling(keyEvents, scope, guard = SCENE_EDITOR_GUARD)
+            if (texts.isNotEmpty()) appendTexts(definition.texts, texts)
+            if (texts.any { ".$NUMBER_TEXT_FUNCTION()" in it } || generatedBlocks.any { it is BlockDefinition.Log && ".$NUMBER_TEXT_FUNCTION()" in templateLiteral(it.message, scope) }) {
+                appendLine()
+                appendLine("    private fun Float.$NUMBER_TEXT_FUNCTION() = if (this % 1f == 0f) toLong().toString() else toString()")
+            }
+            appendLine("}")
+        })
+    }
+
+    fun generateWiring(managerTypeNames: List<String>, packageName: String) = GeneratedFile.withHeader("", buildString {
+        appendLine("package $packageName.${ActorTypeCodeGenerator.GENERATED_PACKAGE}")
+        appendLine()
+        appendLine("import com.pandulapeter.kubriko.manager.Manager")
+        appendLine()
+        appendLine("/**")
+        appendLine(" * What Kubriko needs from the types built in Kubriko Creator.")
+        appendLine(" */")
+        appendLine("object $WIRING_NAME {")
+        appendLine()
+        appendLine("    /**")
+        appendLine("     * Creates the Managers of every Manager type built in Kubriko Creator, for Kubriko.newInstance.")
+        appendLine("     *")
+        appendLine("     * @param isInSceneEditor True in the Scene editor, where their Events don't run.")
+        appendLine("     */")
+        if (managerTypeNames.isEmpty()) {
+            appendLine("    fun createManagers(@Suppress(\"UNUSED_PARAMETER\") isInSceneEditor: Boolean = false): List<Manager> = emptyList()")
+        } else {
+            appendLine("    fun createManagers(isInSceneEditor: Boolean = false): List<Manager> = listOf(")
+            managerTypeNames.sorted().forEach { appendLine("        $it(isInSceneEditor),") }
+            appendLine("    )")
+        }
+        appendLine("}")
+    })
+
+    private fun StringBuilder.appendTexts(definitions: List<ScreenTextDefinition>, texts: List<String>) {
+        appendLine()
+        appendLine("    @Composable")
+        appendLine("    override fun Composable(windowInsets: WindowInsets) {")
+        appendLine("        Box(")
+        appendLine("            modifier = Modifier.fillMaxSize().windowInsetsPadding(windowInsets).padding(16.dp),")
+        appendLine("        ) {")
+        definitions.forEachIndexed { index, definition ->
+            appendLine("            BasicText(")
+            appendLine("                modifier = Modifier.align(Alignment.${definition.position.alignment}),")
+            appendLine("                text = ${texts[index]},")
+            appendLine("                style = TextStyle(color = Color(${colorLiteral(definition.color)}), fontSize = ${floatLiteral(definition.size.coerceAtLeast(1f))}.sp),")
+            appendLine("            )")
+        }
+        appendLine("        }")
+        appendLine("    }")
+    }
+
+    private val TEXT_IMPORTS = listOf(
+        "androidx.compose.foundation.layout.Box",
+        "androidx.compose.foundation.layout.WindowInsets",
+        "androidx.compose.foundation.layout.fillMaxSize",
+        "androidx.compose.foundation.layout.padding",
+        "androidx.compose.foundation.layout.windowInsetsPadding",
+        "androidx.compose.foundation.text.BasicText",
+        "androidx.compose.runtime.Composable",
+        "androidx.compose.ui.Alignment",
+        "androidx.compose.ui.Modifier",
+        "androidx.compose.ui.graphics.Color",
+        "androidx.compose.ui.text.TextStyle",
+        "androidx.compose.ui.unit.dp",
+        "androidx.compose.ui.unit.sp",
+    )
+}

@@ -33,12 +33,12 @@ internal object ReadActorType : ReadCommand<ReadActorType.Input> {
 
     private val json = Json { encodeDefaults = true; explicitNulls = false }
 
-    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType)
+    override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType)
 
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome {
         context.validateActorType(input.actorType)?.let { return CommandOutcome.Rejected(it) }
         val definition = json.encodeToJsonElement(ActorTypeDefinition.serializer(), context.requireActorType(input.actorType)).jsonObject
-        return CommandOutcome.Success(JsonObject(definition + ("isChangedByHand" to JsonPrimitive(input.actorType in context.requireActorTypes.changedByHand.value))))
+        return CommandOutcome.Success(JsonObject(definition + ("isChangedByHand" to JsonPrimitive(input.actorType in context.requireBlockTypes.changedByHand.value))))
     }
 
     @Serializable

@@ -59,9 +59,9 @@
     <string name="status_build_failed">The build failed.</string>
     <string name="status_actor_type_not_saved">An Actor type couldn't be saved.</string>
     <string name="status_unsupported_protocol">This version of Kubriko Creator doesn't support the project's Kubriko version.</string>
-    <string name="error_actor_type_name_invalid">Start with an uppercase letter, and use only letters and numbers, like Player or Enemy2.</string>
-    <string name="error_actor_type_name_reserved">That name is used by Kubriko itself. Pick another one.</string>
-    <string name="error_actor_type_name_taken">There's already an Actor type with that name.</string>
+    <string name="error_type_name_invalid">Start with an uppercase letter, and use only letters and numbers, like Player or Enemy2.</string>
+    <string name="error_type_name_reserved">That name is used by Kubriko itself. Pick another one.</string>
+    <string name="error_type_name_taken">There's already an Actor type or Manager type with that name.</string>
     <string name="block_set_velocity">Set velocity</string>
     <string name="block_add_to_velocity">Add to velocity</string>
     <string name="block_stop">Stop</string>
@@ -166,6 +166,7 @@
     <string name="actor_type_width">Width</string>
     <string name="actor_type_height">Height</string>
     <string name="actor_type_regenerated">Kubriko Creator keeps its Kotlin code up to date.</string>
+    <string name="event_game_started">When the game starts</string>
     <string name="event_added_to_scene">When added to the Scene</string>
     <string name="event_every_frame">Every frame</string>
     <string name="event_key_pressed">When a key is pressed</string>
@@ -236,6 +237,12 @@
     <string name="error_command_input_invalid">The input isn't valid: %1$s</string>
     <string name="error_command_no_actor_types">This project doesn't use block-built Actor types.</string>
     <string name="error_command_actor_type_missing">There's no Actor type called %1$s.</string>
+    <string name="error_command_manager_type_missing">There's no Manager type called %1$s.</string>
+    <string name="error_command_type_missing">There's no Actor type or Manager type called %1$s.</string>
+    <string name="error_command_event_not_allowed">A Manager type can't have a %1$s Event, and an Actor type can't have a gameStarted one.</string>
+    <string name="error_command_condition_not_allowed">Only an Actor type can check its velocity.</string>
+    <string name="error_command_text_missing">%1$s has no text %2$s.</string>
+    <string name="error_command_text_size_invalid">The size of a text has to be a number above 0.</string>
     <string name="error_command_event_missing">%1$s has no Event at index %2$s.</string>
     <string name="error_command_block_missing">Event %2$s of %1$s has no Block at index %3$s.</string>
     <string name="error_command_index_invalid">%1$s isn't a valid index there.</string>
@@ -248,6 +255,12 @@
     <string name="command_create_actor_type">Create Actor type</string>
     <string name="command_rename_actor_type">Rename Actor type</string>
     <string name="command_delete_actor_type">Delete Actor type</string>
+    <string name="command_create_manager_type">Create Manager type</string>
+    <string name="command_rename_manager_type">Rename Manager type</string>
+    <string name="command_delete_manager_type">Delete Manager type</string>
+    <string name="command_add_text">Add text</string>
+    <string name="command_edit_text">Edit text</string>
+    <string name="command_remove_text">Remove text</string>
     <string name="command_set_appearance">Change appearance</string>
     <string name="command_add_event">Add Event</string>
     <string name="command_remove_event">Remove Event</string>
@@ -336,6 +349,8 @@
     <string name="command_get_block_catalog">Look at the Block catalog</string>
     <string name="command_list_actor_types">List the Actor types</string>
     <string name="command_read_actor_type">Read an Actor type</string>
+    <string name="command_list_manager_types">List the Manager types</string>
+    <string name="command_read_manager_type">Read a Manager type</string>
     <string name="command_list_scenes">List the Scenes</string>
     <string name="command_read_scene">Read a Scene</string>
     <string name="command_read_console">Read the console</string>

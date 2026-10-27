@@ -28,13 +28,13 @@ internal object DeleteActorType : WriteCommand<DeleteActorType.Input> {
     override val title = Res.string.command_delete_actor_type
     override val inputSerializer = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType)
+    override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType)
 
     override fun validate(context: CommandContext, input: Input) = context.validateActorType(input.actorType)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val definition = context.requireActorType(input.actorType)
-        context.requireActorTypes.delete(input.actorType)
+        context.requireBlockTypes.delete(input.actorType)
         return Applied(inverse = Invocation(CreateActorType, definition))
     }
 

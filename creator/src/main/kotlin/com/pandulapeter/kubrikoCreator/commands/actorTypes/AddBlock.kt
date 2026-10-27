@@ -27,26 +27,26 @@ import kubriko.creator.generated.resources.command_add_block
 @OptIn(EditorMutation::class)
 internal object AddBlock : WriteCommand<AddBlock.Input> {
     override val name = "add_block"
-    override val description = "Adds a Block to an Event of a block-built Actor type. Some Blocks are only allowed in some Events; the Block catalog says which."
+    override val description = "Adds a Block to an Event of a block-built Actor type or Manager type. Some Blocks are only allowed in some Events; the Block catalog says which."
     override val title = Res.string.command_add_block
     override val inputSerializer = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType, input.eventIndex, blockIndex = input.index ?: context.blockTypes?.get(input.actorType)?.events?.getOrNull(input.eventIndex)?.blocks?.lastIndex)
+    override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType, input.eventIndex, blockIndex = input.index ?: context.blockTypes?.get(input.actorType)?.events?.getOrNull(input.eventIndex)?.blocks?.lastIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
-        ?: context.requireActorType(input.actorType).let { validateBlock(input.block, it.events[input.eventIndex].type, it.properties, context.requireActorTypes.actorTypes.value.map { type -> type.name }) }
+        ?: context.requireType(input.actorType).let { validateBlock(input.block, it.events[input.eventIndex].type, context.scopeOf(it)) }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val definition = context.requireActorType(input.actorType)
+        val definition = context.requireType(input.actorType)
         val blocks = definition.events[input.eventIndex].blocks
         val blockIndex = input.index?.coerceIn(0, blocks.size) ?: blocks.size
-        context.requireActorTypes.put(definition.withBlockInserted(input.eventIndex, blockIndex, input.block))
+        context.requireBlockTypes.put(definition.withBlockInserted(input.eventIndex, blockIndex, input.block))
         return Applied(inverse = Invocation(RemoveBlock, RemoveBlock.Input(input.actorType, input.eventIndex, blockIndex)))
     }
 
     @Serializable
     data class Input(
-        @Description("The name of the Actor type.")
+        @Description("The name of the Actor type or Manager type.")
         @SerialName("actorType") val actorType: String,
         @Description("The index of the Event in the Actor type's Event list, starting from 0.")
         @SerialName("eventIndex") val eventIndex: Int,

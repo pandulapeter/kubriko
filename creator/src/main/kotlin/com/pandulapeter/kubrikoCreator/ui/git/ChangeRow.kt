@@ -63,7 +63,7 @@ internal fun ChangeRow(
     )
     Icon(
         modifier = Modifier.size(14.dp),
-        painter = painterResource(if (entry.isActorType) Res.drawable.ic_actor_type else Res.drawable.ic_file),
+        painter = painterResource(if (entry.isBlockType) Res.drawable.ic_actor_type else Res.drawable.ic_file),
         contentDescription = null,
         tint = MaterialTheme.colorScheme.onSurfaceVariant,
     )
@@ -71,12 +71,12 @@ internal fun ChangeRow(
         modifier = Modifier.weight(1f).padding(vertical = 2.dp),
     ) {
         Text(
-            text = if (entry.isActorType) entry.title else entry.title.substringAfterLast('/'),
+            text = if (entry.isBlockType) entry.title else entry.title.substringAfterLast('/'),
             style = MaterialTheme.typography.bodyMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        if (!entry.isActorType && '/' in entry.title) {
+        if (!entry.isBlockType && '/' in entry.title) {
             Text(
                 text = entry.title.substringBeforeLast('/'),
                 style = MaterialTheme.typography.bodySmall,

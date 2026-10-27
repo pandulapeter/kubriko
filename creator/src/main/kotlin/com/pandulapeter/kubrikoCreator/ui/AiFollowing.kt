@@ -22,12 +22,12 @@ internal val AiStep.flashKey get() = id.takeUnless { isRunning }
 /**
  * The Actor type the editor switches to while following the AI through this step, if any.
  */
-internal fun AiStep.actorTypeToFollow() = (target as? CommandTarget.ActorType)?.name
+internal fun AiStep.actorTypeToFollow() = (target as? CommandTarget.BlockType)?.name
 
 /**
  * What this finished step lights up in the editor of [actorTypeName], or null if it runs or is about something else.
  */
-internal fun AiStep.highlightIn(actorTypeName: String?) = (target as? CommandTarget.ActorType)
+internal fun AiStep.highlightIn(actorTypeName: String?) = (target as? CommandTarget.BlockType)
     ?.takeIf { it.name == actorTypeName }
     ?.let { target -> flashKey?.let { ActorTypeHighlight(key = it, eventIndex = target.eventIndex, blockIndex = target.blockIndex) } }
 
@@ -35,7 +35,7 @@ internal fun AiStep.highlightIn(actorTypeName: String?) = (target as? CommandTar
  * The name of the Actor type or Scene this step lights up in the sidebar.
  */
 internal fun AiStep.sidebarName() = when (val target = target) {
-    is CommandTarget.ActorType -> target.name
+    is CommandTarget.BlockType -> target.name
     is CommandTarget.Scene -> target.name
     CommandTarget.VersionControl, CommandTarget.Game, null -> null
 }

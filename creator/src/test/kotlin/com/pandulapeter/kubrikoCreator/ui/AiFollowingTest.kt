@@ -23,23 +23,23 @@ class AiFollowingTest {
 
     @Test
     fun theEditorFollowsStepsAboutActorTypes() {
-        assertEquals("Paddle", step(CommandTarget.ActorType("Paddle", 1)).actorTypeToFollow())
+        assertEquals("Paddle", step(CommandTarget.BlockType("Paddle", 1)).actorTypeToFollow())
         assertNull(step(CommandTarget.Scene("main")).actorTypeToFollow())
         assertNull(step(null).actorTypeToFollow())
     }
 
     @Test
     fun theOpenActorTypeLightsUpWhatTheStepIsAbout() {
-        val finished = step(CommandTarget.ActorType("Paddle", 1, 2))
+        val finished = step(CommandTarget.BlockType("Paddle", 1, 2))
         assertEquals(ActorTypeHighlight(key = 4, eventIndex = 1, blockIndex = 2), finished.highlightIn("Paddle"))
         assertNull(finished.highlightIn("Ball"))
-        assertNull(step(CommandTarget.ActorType("Paddle", 1, 2), isRunning = true).highlightIn("Paddle"))
-        assertNull(step(CommandTarget.ActorType("Paddle"), isRunning = true).flashKey)
+        assertNull(step(CommandTarget.BlockType("Paddle", 1, 2), isRunning = true).highlightIn("Paddle"))
+        assertNull(step(CommandTarget.BlockType("Paddle"), isRunning = true).flashKey)
     }
 
     @Test
     fun theSidebarLightsUpActorTypesAndScenes() {
-        assertEquals("Paddle", step(CommandTarget.ActorType("Paddle")).sidebarName())
+        assertEquals("Paddle", step(CommandTarget.BlockType("Paddle")).sidebarName())
         assertEquals("main", step(CommandTarget.Scene("main")).sidebarName())
         assertNull(step(CommandTarget.Game).sidebarName())
     }

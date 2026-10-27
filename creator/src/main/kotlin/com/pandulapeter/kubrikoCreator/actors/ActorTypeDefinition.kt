@@ -23,7 +23,7 @@ import kotlinx.serialization.Serializable
 @Description("A block-built Actor type: how its Actors look, and the Events they react to with Blocks.")
 internal data class ActorTypeDefinition(
     @Description("The name of the Actor type, and of its generated Kotlin class: an uppercase letter, then letters and numbers.")
-    @SerialName("name") val name: String,
+    @SerialName("name") override val name: String,
     @Description("The shape its Actors are drawn as.")
     @SerialName("shape") val shape: ActorShape = ActorShape.CIRCLE,
     @Description("The color its Actors are drawn with, as #RRGGBB, or #AARRGGBB when it isn't opaque.")
@@ -33,7 +33,15 @@ internal data class ActorTypeDefinition(
     @Description("The height of a newly placed Actor, in scene units.")
     @SerialName("height") val height: Float = 80f,
     @Description("The values each of its Actors keeps, like a score, which Blocks can change.")
-    @SerialName("properties") val properties: List<PropertyDefinition> = emptyList(),
+    @SerialName("properties") override val properties: List<PropertyDefinition> = emptyList(),
     @Description("The Events its Actors react to, in order. Each runs its Blocks in order.")
-    @SerialName("events") val events: List<EventDefinition> = emptyList(),
-)
+    @SerialName("events") override val events: List<EventDefinition> = emptyList(),
+) : BlockTypeDefinition {
+    override val kind get() = BlockTypeKind.ACTOR
+
+    override fun withName(name: String) = copy(name = name)
+
+    override fun withProperties(properties: List<PropertyDefinition>) = copy(properties = properties)
+
+    override fun withEvents(events: List<EventDefinition>) = copy(events = events)
+}

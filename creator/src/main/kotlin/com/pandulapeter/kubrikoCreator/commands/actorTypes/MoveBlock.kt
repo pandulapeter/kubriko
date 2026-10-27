@@ -31,23 +31,23 @@ internal object MoveBlock : WriteCommand<MoveBlock.Input> {
     override val title = Res.string.command_move_block
     override val inputSerializer = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType, input.eventIndex, input.targetIndex)
+    override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType, input.eventIndex, input.targetIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateBlock(input.actorType, input.eventIndex, input.blockIndex)
-        ?: if (input.targetIndex !in context.requireActorType(input.actorType).events[input.eventIndex].blocks.indices) {
+        ?: if (input.targetIndex !in context.requireType(input.actorType).events[input.eventIndex].blocks.indices) {
             Rejection(Res.string.error_command_index_invalid, input.targetIndex.toString())
         } else {
             null
         }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        context.requireActorTypes.put(context.requireActorType(input.actorType).withBlockMoved(input.eventIndex, input.blockIndex, input.targetIndex))
+        context.requireBlockTypes.put(context.requireType(input.actorType).withBlockMoved(input.eventIndex, input.blockIndex, input.targetIndex))
         return Applied(inverse = Invocation(MoveBlock, input.copy(blockIndex = input.targetIndex, targetIndex = input.blockIndex)))
     }
 
     @Serializable
     data class Input(
-        @Description("The name of the Actor type.")
+        @Description("The name of the Actor type or Manager type.")
         @SerialName("actorType") val actorType: String,
         @Description("The index of the Event in the Actor type's Event list, starting from 0.")
         @SerialName("eventIndex") val eventIndex: Int,

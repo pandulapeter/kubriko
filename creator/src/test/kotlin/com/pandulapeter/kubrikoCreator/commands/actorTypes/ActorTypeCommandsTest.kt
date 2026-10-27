@@ -28,8 +28,8 @@ import com.pandulapeter.kubrikoCreator.commands.commandContext
 import com.pandulapeter.kubrikoCreator.workspace.FakeBlockTypeRepository
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_actor_type_name_invalid
-import kubriko.creator.generated.resources.error_actor_type_name_taken
+import kubriko.creator.generated.resources.error_type_name_invalid
+import kubriko.creator.generated.resources.error_type_name_taken
 import kubriko.creator.generated.resources.error_command_actor_type_missing
 import kubriko.creator.generated.resources.error_command_block_missing
 import kubriko.creator.generated.resources.error_command_block_not_allowed
@@ -89,8 +89,8 @@ class ActorTypeCommandsTest {
     @Test
     fun namesAndContentsOfNewActorTypesAreValidated() = runTest {
         val context = commandContext(ball, wall)
-        assertEquals(Rejection(Res.string.error_actor_type_name_invalid), context.rejection(CreateActorType, ActorTypeDefinition("ball game")))
-        assertEquals(Rejection(Res.string.error_actor_type_name_taken), context.rejection(CreateActorType, ActorTypeDefinition("WALL")))
+        assertEquals(Rejection(Res.string.error_type_name_invalid), context.rejection(CreateActorType, ActorTypeDefinition("ball game")))
+        assertEquals(Rejection(Res.string.error_type_name_taken), context.rejection(CreateActorType, ActorTypeDefinition("WALL")))
         assertEquals(Rejection(Res.string.error_command_size_invalid), context.rejection(CreateActorType, ActorTypeDefinition("Paddle", width = 0f)))
         assertEquals(Rejection(Res.string.error_command_key_not_allowed), context.rejection(CreateActorType, ActorTypeDefinition("Paddle", events = listOf(EventDefinition(EventType.EVERY_FRAME, key = KeyChoice.A)))))
         assertEquals(
@@ -110,7 +110,7 @@ class ActorTypeCommandsTest {
             Rejection(Res.string.error_command_number_invalid),
             context.rejection(CreateActorType, ActorTypeDefinition("Paddle", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetVelocity(Float.NaN, 0f)))))),
         )
-        assertEquals(Rejection(Res.string.error_actor_type_name_taken), context.rejection(RenameActorType, RenameActorType.Input("Ball", "Wall")))
+        assertEquals(Rejection(Res.string.error_type_name_taken), context.rejection(RenameActorType, RenameActorType.Input("Ball", "Wall")))
         assertEquals(Rejection(Res.string.error_command_actor_type_missing, "Ghost"), context.rejection(DeleteActorType, DeleteActorType.Input("Ghost")))
     }
 
@@ -237,14 +237,14 @@ class ActorTypeCommandsTest {
         val context = commandContext(ball, wall)
         val addBlock = AddBlock.Input("Ball", 0, stop)
         AddBlock.apply(context, addBlock)
-        assertEquals(CommandTarget.ActorType("Ball", 0, 2), AddBlock.target(context, addBlock))
-        assertEquals(CommandTarget.ActorType("Ball", 0, 0), AddBlock.target(context, addBlock.copy(index = 0)))
-        assertEquals(CommandTarget.ActorType("Ball", 2), MoveEvent.target(context, MoveEvent.Input("Ball", 0, 2)))
-        assertEquals(CommandTarget.ActorType("Ball", 0, 1), MoveBlock.target(context, MoveBlock.Input("Ball", 0, 0, 1)))
+        assertEquals(CommandTarget.BlockType("Ball", 0, 2), AddBlock.target(context, addBlock))
+        assertEquals(CommandTarget.BlockType("Ball", 0, 0), AddBlock.target(context, addBlock.copy(index = 0)))
+        assertEquals(CommandTarget.BlockType("Ball", 2), MoveEvent.target(context, MoveEvent.Input("Ball", 0, 2)))
+        assertEquals(CommandTarget.BlockType("Ball", 0, 1), MoveBlock.target(context, MoveBlock.Input("Ball", 0, 0, 1)))
         val rename = RenameActorType.Input("Wall", "Brick")
-        assertEquals(CommandTarget.ActorType("Wall"), RenameActorType.target(context, rename))
+        assertEquals(CommandTarget.BlockType("Wall"), RenameActorType.target(context, rename))
         RenameActorType.apply(context, rename)
-        assertEquals(CommandTarget.ActorType("Brick"), RenameActorType.target(context, rename))
+        assertEquals(CommandTarget.BlockType("Brick"), RenameActorType.target(context, rename))
     }
 
     @Test

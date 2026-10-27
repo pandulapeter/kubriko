@@ -10,27 +10,27 @@
 package com.pandulapeter.kubrikoCreator.actors
 
 /**
- * Where a workspace's block-built Actor types are kept.
+ * Where a workspace's block-built Actor types and Manager types are kept.
  */
 internal interface BlockTypeRepository {
 
-    fun load(): List<ActorTypeDefinition>
+    fun load(): List<BlockTypeDefinition>
 
     /**
-     * @return The Actor types whose generated code was changed by hand, and so wasn't updated.
+     * @return The types whose generated code was changed by hand, and so wasn't updated.
      */
-    fun save(definition: ActorTypeDefinition): Set<String>
+    fun save(definition: BlockTypeDefinition): Set<String>
 
     /**
-     * @return The Actor types whose generated code was changed by hand, and so wasn't updated.
+     * @return The types whose generated code was changed by hand, and so wasn't updated.
      */
     fun delete(name: String): Set<String>
 
     /**
-     * Rewrites every Actor type's generated code, so that it matches what this version of Kubriko Creator generates,
-     * except where it was changed by hand, unless that Actor type is in [overwriting].
+     * Rewrites every type's generated code, so that it matches what this version of Kubriko Creator generates,
+     * except where it was changed by hand, unless that type is in [overwriting].
      *
-     * @return The Actor types whose generated code was changed by hand, and so wasn't updated.
+     * @return The types whose generated code was changed by hand, and so wasn't updated.
      */
     fun regenerateAll(overwriting: Set<String> = emptySet()): Set<String>
 }

@@ -1,12 +1,15 @@
 package {{PACKAGE}}
 
 import com.pandulapeter.kubriko.creator.CreatorEntryPoint
+import {{PACKAGE}}.generated.KubrikoWiring
 
 /**
- * Tells Kubriko Creator which Actor types the Scene editor can place. Registered as a service in
- * src/desktopMain/resources/META-INF/services.
+ * Tells Kubriko Creator which Actor types the Scene editor can place, and which Managers they use. Registered as a
+ * service in src/desktopMain/resources/META-INF/services.
  */
 class GameEntryPoint : CreatorEntryPoint {
 
     override fun createSerializationManager() = GameSerialization.createSerializationManager()
+
+    override fun createCustomManagers() = KubrikoWiring.createManagers(isInSceneEditor = true)
 }

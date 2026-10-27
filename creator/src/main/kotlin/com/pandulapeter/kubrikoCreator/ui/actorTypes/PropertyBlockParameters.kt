@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
-import com.pandulapeter.kubrikoCreator.actors.withProperty
+import com.pandulapeter.kubrikoCreator.actors.withPropertyReference
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_parameter_by
@@ -42,7 +42,7 @@ internal fun PropertyBlockParameters(
     verticalAlignment = Alignment.CenterVertically,
 ) {
     val (propertyName, kind) = block.propertyReference ?: return@Row
-    PropertyChoice(propertyName, properties, kind) { onBlockChange(block.withProperty(it)) }
+    PropertyChoice(propertyName, properties, kind) { onBlockChange(block.withPropertyReference(null, it)) }
     if (propertyChoices(properties, kind).isEmpty()) return@Row
     when (block) {
         is BlockDefinition.SetNumber -> NumberField(

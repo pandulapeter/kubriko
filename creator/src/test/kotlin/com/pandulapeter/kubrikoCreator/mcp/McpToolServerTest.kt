@@ -121,7 +121,7 @@ class McpToolServerTest {
         val started = start(CommandExecutor(commandContext(ActorTypeDefinition("Ball")), testScope()))
         val result = connected(started) { callTool("create_actor_type", mapOf("name" to "Ball")) }
         assertEquals(true, result.isError)
-        assertEquals("There's already an Actor type with that name.", (result.content.single() as TextContent).text)
+        assertEquals("There's already an Actor type or Manager type with that name.", (result.content.single() as TextContent).text)
         val logged = server!!.calls.value.single()
         assertEquals("create_actor_type", logged.toolName)
         assertEquals("""{"name":"Ball"}""", logged.arguments)

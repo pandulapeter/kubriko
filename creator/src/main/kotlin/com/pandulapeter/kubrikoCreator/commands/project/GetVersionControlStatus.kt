@@ -44,7 +44,7 @@ internal object GetVersionControlStatus : ReadCommand<NoInput> {
                             addJsonObject {
                                 put("title", change.title)
                                 put("kind", change.kind.name.lowercase())
-                                put("isActorType", change.isActorType)
+                                put("isBlockType", change.isBlockType)
                                 putJsonArray("paths") { change.paths.forEach { add(it) } }
                             }
                         }

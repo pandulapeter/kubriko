@@ -9,7 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeNaming
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeNaming
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandTarget
@@ -31,13 +31,13 @@ internal object RenameActorType : WriteCommand<RenameActorType.Input> {
     override val title = Res.string.command_rename_actor_type
     override val inputSerializer = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(if (context.blockTypes?.get(input.newName) != null) input.newName else input.actorType)
+    override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(if (context.blockTypes?.actorType(input.newName) != null) input.newName else input.actorType)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateActorType(input.actorType)
-        ?: ActorTypeNaming.validate(input.newName, context.requireActorTypes.actorTypes.value.map { it.name })?.let(::Rejection)
+        ?: BlockTypeNaming.validate(input.newName, context.requireBlockTypes.types.value.map { it.name })?.let(::Rejection)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        context.requireActorTypes.rename(input.actorType, input.newName)
+        context.requireBlockTypes.rename(input.actorType, input.newName)
         val changedScenes = withContext(context.ioDispatcher) { context.scenes.renameTypeId(input.actorType, input.newName) }
         if (changedScenes.isNotEmpty()) context.onScenesChanged(changedScenes)
         return Applied(inverse = Invocation(RenameActorType, Input(actorType = input.newName, newName = input.actorType)))

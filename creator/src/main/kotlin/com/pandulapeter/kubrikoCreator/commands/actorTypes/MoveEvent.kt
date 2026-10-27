@@ -27,23 +27,23 @@ import kubriko.creator.generated.resources.error_command_index_invalid
 @OptIn(EditorMutation::class)
 internal object MoveEvent : WriteCommand<MoveEvent.Input> {
     override val name = "move_event"
-    override val description = "Moves an Event of a block-built Actor type to another place in its Event list. The order of Events is the order they run in when they happen on the same frame."
+    override val description = "Moves an Event of a block-built Actor type or Manager type to another place in its Event list. The order of Events is the order they run in when they happen on the same frame."
     override val title = Res.string.command_move_event
     override val inputSerializer = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType, eventIndex = input.targetIndex)
+    override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType, eventIndex = input.targetIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
-        ?: if (input.targetIndex !in context.requireActorType(input.actorType).events.indices) Rejection(Res.string.error_command_index_invalid, input.targetIndex.toString()) else null
+        ?: if (input.targetIndex !in context.requireType(input.actorType).events.indices) Rejection(Res.string.error_command_index_invalid, input.targetIndex.toString()) else null
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        context.requireActorTypes.put(context.requireActorType(input.actorType).withEventMoved(input.eventIndex, input.targetIndex))
+        context.requireBlockTypes.put(context.requireType(input.actorType).withEventMoved(input.eventIndex, input.targetIndex))
         return Applied(inverse = Invocation(MoveEvent, Input(input.actorType, eventIndex = input.targetIndex, targetIndex = input.eventIndex)))
     }
 
     @Serializable
     data class Input(
-        @Description("The name of the Actor type.")
+        @Description("The name of the Actor type or Manager type.")
         @SerialName("actorType") val actorType: String,
         @Description("The index of the Event in the Actor type's Event list, starting from 0.")
         @SerialName("eventIndex") val eventIndex: Int,

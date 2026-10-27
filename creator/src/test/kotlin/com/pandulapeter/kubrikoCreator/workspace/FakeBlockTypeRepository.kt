@@ -9,12 +9,12 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
-import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
 import java.io.IOException
 
 internal class FakeBlockTypeRepository(
-    initial: List<ActorTypeDefinition> = emptyList(),
+    initial: List<BlockTypeDefinition> = emptyList(),
 ) : BlockTypeRepository {
     val stored = initial.associateBy { it.name }.toMutableMap()
     val writes = mutableListOf<String>()
@@ -24,7 +24,7 @@ internal class FakeBlockTypeRepository(
 
     var changedByHand = emptySet<String>()
 
-    override fun save(definition: ActorTypeDefinition): Set<String> {
+    override fun save(definition: BlockTypeDefinition): Set<String> {
         if (isFailing) throw IOException("Disk full.")
         writes += "save ${definition.name}"
         stored[definition.name] = definition

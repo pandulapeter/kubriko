@@ -18,7 +18,7 @@ class ChangeGroupingTest {
     @Test
     fun anActorTypesDefinitionAndGeneratedCodeAreOneChange() {
         assertEquals(
-            listOf(ChangeEntry("Ball", ChangeKind.MODIFIED, listOf(".kubriko/actors/Ball.json", "$generated/Ball.kt"), isActorType = true)),
+            listOf(ChangeEntry("Ball", ChangeKind.MODIFIED, listOf(".kubriko/actors/Ball.json", "$generated/Ball.kt"), isBlockType = true)),
             ChangeGrouping.group(
                 listOf(FileChange(".kubriko/actors/Ball.json", ChangeKind.MODIFIED), FileChange("$generated/Ball.kt", ChangeKind.MODIFIED)),
                 generated,
@@ -38,7 +38,7 @@ class ChangeGroupingTest {
             generated,
         )
         assertEquals(listOf("Ball", "Wall", "README.md", "$generated/GeneratedActorTypes.kt"), entries.map { it.title })
-        assertEquals(listOf(true, true, false, false), entries.map { it.isActorType })
+        assertEquals(listOf(true, true, false, false), entries.map { it.isBlockType })
     }
 
     @Test
@@ -70,6 +70,6 @@ class ChangeGroupingTest {
             listOf(FileChange("src/Ball.kt", ChangeKind.MODIFIED), FileChange(".kubriko/actors/nested/Ball.json", ChangeKind.MODIFIED)),
             generatedPath = null,
         )
-        assertEquals(listOf(false, false), entries.map { it.isActorType })
+        assertEquals(listOf(false, false), entries.map { it.isBlockType })
     }
 }

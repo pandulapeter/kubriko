@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
@@ -29,8 +30,8 @@ import kubriko.creator.generated.resources.command_get_block_catalog
 
 internal object GetBlockCatalog : ReadCommand<NoInput> {
     override val name = "get_block_catalog"
-    override val description = "Lists every Event an Actor type can react to and every Block an Event can run: what each one does, " +
-        "which Events allow which Blocks, and the properties of each Block."
+    override val description = "Lists every Event an Actor type or Manager type can react to and every Block an Event can run: what each one does, " +
+        "which Events allow which Blocks (in an Actor type; a Manager type has no Blocks that need an Actor), and the properties of each Block."
     override val inputSerializer = NoInput.serializer()
     override val title = Res.string.command_get_block_catalog
 
@@ -46,7 +47,9 @@ internal object GetBlockCatalog : ReadCommand<NoInput> {
                     add(buildJsonObject {
                         put("type", eventType.serialName)
                         put("description", eventDescriptor.getElementAnnotations(eventType.ordinal).filterIsInstance<Description>().single().text)
-                        putJsonArray("blocks") { BlockKind.entries.filter { it.isAvailableIn(eventType) }.forEach { add(it.serialName) } }
+                        put("inActorTypes", eventType.isAvailableIn(BlockTypeKind.ACTOR))
+                        put("inManagerTypes", eventType.isAvailableIn(BlockTypeKind.MANAGER))
+                        putJsonArray("blocks") { BlockKind.entries.filter { it.isAvailableIn(eventType, BlockTypeKind.ACTOR) }.forEach { add(it.serialName) } }
                     })
                 }
             }
@@ -54,7 +57,8 @@ internal object GetBlockCatalog : ReadCommand<NoInput> {
                 BlockKind.entries.forEach { kind ->
                     add(buildJsonObject {
                         put("type", kind.serialName)
-                        putJsonArray("allowedIn") { EventType.entries.filter { kind.isAvailableIn(it) }.forEach { add(it.serialName) } }
+                        putJsonArray("allowedIn") { EventType.entries.filter { kind.isAvailableIn(it, BlockTypeKind.ACTOR) }.forEach { add(it.serialName) } }
+                        put("needsActor", kind.needsActor)
                         put("schema", JsonSchema.of(blockDescriptors.getValue(kind.serialName)))
                     })
                 }

@@ -10,8 +10,8 @@
 package com.pandulapeter.kubrikoCreator.commands
 
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DiscardChangesMadeByHand
@@ -23,8 +23,8 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.MoveBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.MoveEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.ReadActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveBlock
-import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveEvent
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RenameActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
@@ -38,6 +38,14 @@ import com.pandulapeter.kubrikoCreator.commands.game.Wait
 import com.pandulapeter.kubrikoCreator.commands.git.Commit
 import com.pandulapeter.kubrikoCreator.commands.git.DiscardChanges
 import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.AddText
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.CreateManagerType
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.DeleteManagerType
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.EditText
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.ListManagerTypes
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.ReadManagerType
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.RemoveText
+import com.pandulapeter.kubrikoCreator.commands.managerTypes.RenameManagerType
 import com.pandulapeter.kubrikoCreator.commands.project.Build
 import com.pandulapeter.kubrikoCreator.commands.project.GetProjectOverview
 import com.pandulapeter.kubrikoCreator.commands.project.GetVersionControlStatus
@@ -86,6 +94,8 @@ internal class CommandRegistry(
                 GetBlockCatalog,
                 ListActorTypes,
                 ReadActorType,
+                ListManagerTypes,
+                ReadManagerType,
                 ListScenes,
                 ReadScene,
                 ReadConsole,
@@ -101,6 +111,12 @@ internal class CommandRegistry(
                 RenameActorType,
                 DeleteActorType,
                 SetAppearance,
+                CreateManagerType,
+                RenameManagerType,
+                DeleteManagerType,
+                AddText,
+                EditText,
+                RemoveText,
                 AddEvent,
                 RemoveEvent,
                 MoveEvent,

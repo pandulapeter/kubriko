@@ -26,18 +26,18 @@ import kubriko.creator.generated.resources.command_remove_event
 @OptIn(EditorMutation::class)
 internal object RemoveEvent : WriteCommand<RemoveEvent.Input> {
     override val name = "remove_event"
-    override val description = "Removes an Event and its Blocks from a block-built Actor type."
+    override val description = "Removes an Event and its Blocks from a block-built Actor type or Manager type."
     override val title = Res.string.command_remove_event
     override val inputSerializer = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType, eventIndex = input.eventIndex)
+    override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType, eventIndex = input.eventIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val definition = context.requireActorType(input.actorType)
+        val definition = context.requireType(input.actorType)
         val event = definition.events[input.eventIndex]
-        context.requireActorTypes.put(definition.withEventRemoved(input.eventIndex))
+        context.requireBlockTypes.put(definition.withEventRemoved(input.eventIndex))
         return Applied(
             inverse = Invocation(
                 command = AddEvent,
@@ -55,7 +55,7 @@ internal object RemoveEvent : WriteCommand<RemoveEvent.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Actor type.")
+        @Description("The name of the Actor type or Manager type.")
         @SerialName("actorType") val actorType: String,
         @Description("The index of the Event in the Actor type's Event list, starting from 0.")
         @SerialName("eventIndex") val eventIndex: Int,

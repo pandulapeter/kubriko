@@ -39,7 +39,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.error_actor_type_name_invalid
+import kubriko.creator.generated.resources.error_type_name_invalid
 import kubriko.creator.generated.resources.error_command_actor_type_missing
 import kubriko.creator.generated.resources.error_game_command_failed
 import kubriko.creator.generated.resources.error_game_no_answer
@@ -424,7 +424,7 @@ class WorkspaceControllerTest {
     @Test
     fun anActorTypeNameThatCantBeUsedIsExplainedAndCreatesNothing() = runTest {
         val controller = createController(blockTypeRepository = FakeBlockTypeRepository())
-        assertEquals(Res.string.error_actor_type_name_invalid, controller.createActorType("ball game"))
+        assertEquals(Res.string.error_type_name_invalid, controller.createActorType("ball game"))
         assertTrue(controller.blockTypes!!.actorTypes.value.isEmpty())
         assertNull(controller.commands.history.value.nextUndoTitle)
     }
@@ -442,7 +442,7 @@ class WorkspaceControllerTest {
         val controller = createController(blockTypeRepository = repository)
         controller.createActorType("Player")
         repository.stored.clear()
-        controller.onProjectChanged(setOf(ProjectChange.ACTOR_TYPE_DEFINITIONS))
+        controller.onProjectChanged(setOf(ProjectChange.BLOCK_TYPE_DEFINITIONS))
         controller.clearConsole()
         controller.commands.undo()
         assertEquals(listOf(ConsoleEntry.Status(Res.string.error_command_actor_type_missing, isError = true, arguments = listOf("Player"))), controller.console.value)
@@ -471,7 +471,7 @@ class WorkspaceControllerTest {
         val repository = FakeBlockTypeRepository()
         val controller = createController(blockTypeRepository = repository)
         repository.stored["Ball"] = com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition(name = "Ball")
-        controller.onProjectChanged(setOf(ProjectChange.ACTOR_TYPE_DEFINITIONS))
+        controller.onProjectChanged(setOf(ProjectChange.BLOCK_TYPE_DEFINITIONS))
         assertEquals(listOf("Ball"), controller.blockTypes!!.actorTypes.value.map { it.name })
     }
 }

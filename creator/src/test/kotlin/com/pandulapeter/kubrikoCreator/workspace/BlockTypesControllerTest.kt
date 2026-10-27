@@ -11,6 +11,9 @@ package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
@@ -169,5 +172,31 @@ class BlockTypesControllerTest {
         controller.reloadFromDisk()
         runCurrent()
         assertEquals(listOf(ball.copy(width = 3f)), controller.actorTypes.value)
+    }
+
+    @Test
+    fun managerTypesAreKeptApartFromActorTypes() = runTest {
+        val game = ManagerTypeDefinition("Game")
+        val controller = createController(FakeBlockTypeRepository(listOf(wall, game, ball)))
+        assertEquals(listOf(ball, game, wall), controller.types.value)
+        assertEquals(listOf(ball, wall), controller.actorTypes.value)
+        assertEquals(listOf(game), controller.managerTypes.value)
+        assertEquals(game, controller.managerType("Game"))
+        assertNull(controller.actorType("Game"))
+        assertNull(controller.managerType("Ball"))
+    }
+
+    @Test
+    fun renamingAManagerTypeUpdatesEveryTypeThatUsesIt() = runTest {
+        val game = ManagerTypeDefinition("Game", properties = listOf(PropertyDefinition.Number("score")))
+        val brick = ActorTypeDefinition("Brick", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.ChangeNumber("score", manager = "Game")))))
+        val repository = FakeBlockTypeRepository(listOf(game, brick, ball))
+        val controller = createController(repository)
+        controller.select("Game")
+        controller.rename("Game", "Match")
+        assertEquals(listOf("Brick", "Match", "Ball").sorted(), controller.types.value.map { it.name })
+        assertEquals(BlockDefinition.ChangeNumber("score", manager = "Match"), controller.actorType("Brick")!!.events.single().blocks.single())
+        assertEquals("Match", controller.selectedName.value)
+        assertEquals(listOf("save Brick", "save Match", "delete Game"), repository.writes.filter { it != "regenerate" })
     }
 }

@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
@@ -46,18 +47,19 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The Blocks the selected Event can use; clicking one adds it to the end of the Event.
+ * The Blocks the selected Event of a type of [typeKind] can use; clicking one adds it to the end of the Event.
  */
 @Composable
 internal fun BlockPalette(
     eventType: EventType?,
+    typeKind: BlockTypeKind,
     dragState: BlockDragState,
     onBlockKindSelected: (BlockKind) -> Unit,
     modifier: Modifier = Modifier,
 ) = Column(
     modifier = modifier,
 ) {
-    var category by rememberSaveable { mutableStateOf(BlockCategory.MOVEMENT) }
+    var requestedCategory by rememberSaveable { mutableStateOf(BlockCategory.MOVEMENT) }
     PanelHeader(
         icon = Res.drawable.ic_add,
         title = stringResource(Res.string.block_palette),
@@ -71,9 +73,12 @@ internal fun BlockPalette(
         )
         return@Column
     }
+    val categories = BlockCategory.availableIn(eventType, typeKind)
+    val category = requestedCategory.takeIf { it in categories } ?: categories.first()
     CategoryTabs(
+        categories = categories,
         selected = category,
-        onSelected = { category = it },
+        onSelected = { requestedCategory = it },
     )
     Text(
         modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 6.dp, bottom = 2.dp),
@@ -84,7 +89,7 @@ internal fun BlockPalette(
     Column(
         modifier = Modifier.verticalScroll(rememberScrollState()),
     ) {
-        category.kinds.filter { it.isAvailableIn(eventType) }.forEach { kind ->
+        category.kinds.filter { it.isAvailableIn(eventType, typeKind) }.forEach { kind ->
             PaletteEntry(
                 kind = kind,
                 dragState = dragState,
@@ -102,13 +107,14 @@ internal fun BlockPalette(
 
 @Composable
 private fun CategoryTabs(
+    categories: List<BlockCategory>,
     selected: BlockCategory,
     onSelected: (BlockCategory) -> Unit,
 ) = Row(
     modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp),
     horizontalArrangement = Arrangement.SpaceBetween,
 ) {
-    BlockCategory.entries.forEach { category ->
+    categories.forEach { category ->
         val isSelected = category == selected
         IconActionButton(
             modifier = Modifier.clip(MaterialTheme.shapes.small).background(if (isSelected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent),

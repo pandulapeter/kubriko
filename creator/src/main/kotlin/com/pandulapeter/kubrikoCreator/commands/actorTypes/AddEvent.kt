@@ -31,19 +31,19 @@ import kubriko.creator.generated.resources.command_add_event
 @OptIn(EditorMutation::class)
 internal object AddEvent : WriteCommand<AddEvent.Input> {
     override val name = "add_event"
-    override val description = "Adds an Event to a block-built Actor type, optionally with its Blocks. A keyPressed Event reacts to the space key unless another key is given."
+    override val description = "Adds an Event to a block-built Actor type or Manager type, optionally with its Blocks. A keyPressed Event reacts to the space key unless another key is given."
     override val title = Res.string.command_add_event
     override val inputSerializer = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType, eventIndex = input.index ?: context.blockTypes?.get(input.actorType)?.events?.lastIndex)
+    override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType, eventIndex = input.index ?: context.blockTypes?.get(input.actorType)?.events?.lastIndex)
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateActorType(input.actorType)
-        ?: validateEvent(input.event, context.requireActorTypes.actorTypes.value.map { it.name }, context.requireActorType(input.actorType).properties)
+    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateType(input.actorType)
+        ?: validateEvent(input.event, context.scopeOf(context.requireType(input.actorType)))
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val definition = context.requireActorType(input.actorType)
+        val definition = context.requireType(input.actorType)
         val eventIndex = input.index?.coerceIn(0, definition.events.size) ?: definition.events.size
-        context.requireActorTypes.put(definition.withEventInserted(eventIndex, input.event))
+        context.requireBlockTypes.put(definition.withEventInserted(eventIndex, input.event))
         return Applied(inverse = Invocation(RemoveEvent, RemoveEvent.Input(input.actorType, eventIndex)))
     }
 
@@ -57,7 +57,7 @@ internal object AddEvent : WriteCommand<AddEvent.Input> {
 
     @Serializable
     data class Input(
-        @Description("The name of the Actor type.")
+        @Description("The name of the Actor type or Manager type.")
         @SerialName("actorType") val actorType: String,
         @Description("When the Event happens.")
         @SerialName("type") val type: EventType,

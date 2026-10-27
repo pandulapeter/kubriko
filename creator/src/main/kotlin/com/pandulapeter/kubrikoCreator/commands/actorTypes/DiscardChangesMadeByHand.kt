@@ -25,25 +25,25 @@ import kubriko.creator.generated.resources.error_command_not_changed_by_hand
 @OptIn(EditorMutation::class)
 internal object DiscardChangesMadeByHand : WriteCommand<DiscardChangesMadeByHand.Input> {
     override val name = "discard_changes_made_by_hand"
-    override val description = "Throws away the changes made by hand (outside Kubriko Creator) to the generated Kotlin class of a block-built Actor type, " +
+    override val description = "Throws away the changes made by hand (outside Kubriko Creator) to the generated Kotlin class of a block-built Actor type or Manager type, " +
         "so that Kubriko Creator updates it again. Kubriko Creator stops updating a generated class that was changed by hand. This can't be undone."
     override val title = Res.string.command_discard_changes_made_by_hand
     override val inputSerializer = Input.serializer()
     override val isDestructive = true
 
-    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType)
+    override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType)
 
-    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateActorType(input.actorType)
-        ?: if (input.actorType !in context.requireActorTypes.changedByHand.value) Rejection(Res.string.error_command_not_changed_by_hand, input.actorType) else null
+    override fun validate(context: CommandContext, input: Input): Rejection? = context.validateType(input.actorType)
+        ?: if (input.actorType !in context.requireBlockTypes.changedByHand.value) Rejection(Res.string.error_command_not_changed_by_hand, input.actorType) else null
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        context.requireActorTypes.discardChangesMadeByHand(input.actorType)
+        context.requireBlockTypes.discardChangesMadeByHand(input.actorType)
         return Applied(inverse = null)
     }
 
     @Serializable
     data class Input(
-        @Description("The name of the Actor type.")
+        @Description("The name of the Actor type or Manager type.")
         @SerialName("actorType") val actorType: String,
     )
 }

@@ -172,7 +172,7 @@ internal class WorkspaceController(
      * Brings Kubriko Creator up to date with files that changed on disk, whoever changed them.
      */
     fun onProjectChanged(changes: Set<ProjectChange>) {
-        if (ProjectChange.ACTOR_TYPE_DEFINITIONS in changes) blockTypes?.reloadFromDisk()
+        if (ProjectChange.BLOCK_TYPE_DEFINITIONS in changes) blockTypes?.reloadFromDisk()
         if (ProjectChange.SOURCES in changes) sceneEditing.markOutdated()
         if (ProjectChange.SCENES in changes || ProjectChange.SOURCES in changes) refreshResources()
         git.refresh()

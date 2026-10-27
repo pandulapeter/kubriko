@@ -175,6 +175,7 @@ internal fun ActorTypeEditor(
             BlockPalette(
                 modifier = Modifier.width(200.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
                 eventType = event?.type,
+                typeKind = definition.kind,
                 dragState = dragState,
                 onBlockKindSelected = { kind -> eventIndex?.let { onCommand(Invocation(AddBlock, AddBlock.Input(name, it, kind.createDefault()))) } },
             )

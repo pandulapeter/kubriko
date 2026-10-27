@@ -10,14 +10,16 @@
 package com.pandulapeter.kubrikoCreator.workspace
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockTypeRepository
+import com.pandulapeter.kubrikoCreator.actors.ManagerTypeDefinition
+import com.pandulapeter.kubrikoCreator.actors.withManagerRenamed
 import com.pandulapeter.kubrikoCreator.actors.withOtherActorTypeRenamed
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -26,7 +28,7 @@ import java.io.IOException
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * The block-built Actor types of a project that opted in to them, and the one being edited.
+ * The block-built Actor types and Manager types of a project that opted in to them, and the one being edited.
  *
  * Changes show up immediately; writing them (and regenerating their code) happens in the background, one at a time
  * and in order.
@@ -38,14 +40,22 @@ internal class BlockTypesController(
     private val onSaved: () -> Unit,
     private val onSaveFailed: () -> Unit,
 ) {
+    private val _types = MutableStateFlow(emptyList<BlockTypeDefinition>())
+
+    /**
+     * Every Actor type and Manager type, sorted by name.
+     */
+    val types = _types.asStateFlow()
     private val _actorTypes = MutableStateFlow(emptyList<ActorTypeDefinition>())
     val actorTypes = _actorTypes.asStateFlow()
+    private val _managerTypes = MutableStateFlow(emptyList<ManagerTypeDefinition>())
+    val managerTypes = _managerTypes.asStateFlow()
     private val _selectedName = MutableStateFlow<String?>(null)
     val selectedName = _selectedName.asStateFlow()
     private val _changedByHand = MutableStateFlow(emptySet<String>())
 
     /**
-     * The Actor types whose generated code was changed by hand (in IntelliJ, for example), and which Kubriko Creator
+     * The types whose generated code was changed by hand (in IntelliJ, for example), and which Kubriko Creator
      * therefore stopped updating until those changes are discarded ([discardChangesMadeByHand]).
      */
     val changedByHand = _changedByHand.asStateFlow()
@@ -54,7 +64,7 @@ internal class BlockTypesController(
 
     init {
         scope.launch {
-            _actorTypes.value = withContext(ioDispatcher) { repository.load() }
+            setTypes(withContext(ioDispatcher) { repository.load() })
         }
         // The generated code of a project last opened in an older Kubriko Creator is brought up to date right away.
         write { repository.regenerateAll() }
@@ -64,37 +74,47 @@ internal class BlockTypesController(
         _selectedName.value = name
     }
 
-    operator fun get(name: String) = _actorTypes.value.firstOrNull { it.name == name }
+    /**
+     * The Actor type or Manager type called [name].
+     */
+    operator fun get(name: String) = _types.value.firstOrNull { it.name == name }
+
+    fun actorType(name: String) = get(name) as? ActorTypeDefinition
+
+    fun managerType(name: String) = get(name) as? ManagerTypeDefinition
 
     /**
-     * Adds [definition], or replaces the Actor type of the same name.
+     * Adds [definition], or replaces the type of the same name.
      */
     @EditorMutation
-    fun put(definition: ActorTypeDefinition) {
-        _actorTypes.update { actorTypes -> (actorTypes.filter { it.name != definition.name } + definition).sortedBy { it.name } }
+    fun put(definition: BlockTypeDefinition) {
+        setTypes(_types.value.filter { it.name != definition.name } + definition)
         write { repository.save(definition) }
     }
 
     @EditorMutation
     fun delete(name: String) {
-        _actorTypes.update { actorTypes -> actorTypes.filter { it.name != name } }
+        setTypes(_types.value.filter { it.name != name })
         if (_selectedName.value == name) _selectedName.value = null
         write { repository.delete(name) }
     }
 
     /**
-     * Renames [oldName] to [newName], in the collision Events that refer to it too, keeping it selected if it was.
+     * Renames [oldName] to [newName], in the Events and Blocks of every type that refer to it too, keeping it selected if
+     * it was.
      */
     @EditorMutation
     fun rename(oldName: String, newName: String) {
-        val renamed = _actorTypes.value.mapNotNull { definition ->
+        val isManagerType = get(oldName) is ManagerTypeDefinition
+        val renamed = _types.value.mapNotNull { definition ->
+            val withReferences = if (isManagerType) definition.withManagerRenamed(oldName, newName) else definition.withOtherActorTypeRenamed(oldName, newName)
             when {
-                definition.name == oldName -> definition.copy(name = newName).withOtherActorTypeRenamed(oldName, newName)
-                definition.events.any { it.otherActorType == oldName } -> definition.withOtherActorTypeRenamed(oldName, newName)
+                definition.name == oldName -> withReferences.withName(newName)
+                withReferences != definition -> withReferences
                 else -> null
             }
         }
-        _actorTypes.update { actorTypes -> (actorTypes.filter { definition -> definition.name != oldName && renamed.none { it.name == definition.name } } + renamed).sortedBy { it.name } }
+        setTypes(_types.value.filter { definition -> definition.name != oldName && renamed.none { it.name == definition.name } } + renamed)
         if (_selectedName.value == oldName) _selectedName.value = newName
         renamed.forEach { definition -> write { repository.save(definition) } }
         write { repository.delete(oldName) }
@@ -114,12 +134,19 @@ internal class BlockTypesController(
         if (pendingWriteCount.get() > 0) return
         scope.launch {
             val stored = withContext(ioDispatcher) { repository.load() }
-            if (pendingWriteCount.get() == 0 && stored != _actorTypes.value) {
-                _actorTypes.value = stored
+            if (pendingWriteCount.get() == 0 && stored != _types.value) {
+                setTypes(stored)
                 if (_selectedName.value !in stored.map { it.name }) _selectedName.value = null
                 write { repository.regenerateAll() }
             }
         }
+    }
+
+    private fun setTypes(types: List<BlockTypeDefinition>) {
+        val sorted = types.sortedBy { it.name }
+        _types.value = sorted
+        _actorTypes.value = sorted.filterIsInstance<ActorTypeDefinition>()
+        _managerTypes.value = sorted.filterIsInstance<ManagerTypeDefinition>()
     }
 
     private fun write(change: () -> Set<String>) {

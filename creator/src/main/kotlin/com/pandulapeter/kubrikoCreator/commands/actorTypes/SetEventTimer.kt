@@ -30,29 +30,29 @@ import kubriko.creator.generated.resources.error_command_timer_not_allowed
 @OptIn(EditorMutation::class)
 internal object SetEventTimer : WriteCommand<SetEventTimer.Input> {
     override val name = "set_event_timer"
-    override val description = "Sets the Timer a timerFinished Event of a block-built Actor type reacts to."
+    override val description = "Sets the Timer a timerFinished Event of a block-built Actor type or Manager type reacts to."
     override val title = Res.string.command_set_event_timer
     override val inputSerializer = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType, eventIndex = input.eventIndex)
+    override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType, eventIndex = input.eventIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
         ?: when {
-            context.requireActorType(input.actorType).events[input.eventIndex].type != EventType.TIMER_FINISHED -> Rejection(Res.string.error_command_timer_not_allowed)
+            context.requireType(input.actorType).events[input.eventIndex].type != EventType.TIMER_FINISHED -> Rejection(Res.string.error_command_timer_not_allowed)
             input.timer !in TIMER_NUMBERS -> Rejection(Res.string.error_command_timer_invalid)
             else -> null
         }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
-        val definition = context.requireActorType(input.actorType)
+        val definition = context.requireType(input.actorType)
         val previous = definition.events[input.eventIndex].timer ?: TIMER_NUMBERS.first
-        context.requireActorTypes.put(definition.withEventTimer(input.eventIndex, input.timer))
+        context.requireBlockTypes.put(definition.withEventTimer(input.eventIndex, input.timer))
         return Applied(inverse = Invocation(SetEventTimer, input.copy(timer = previous)))
     }
 
     @Serializable
     data class Input(
-        @Description("The name of the Actor type.")
+        @Description("The name of the Actor type or Manager type.")
         @SerialName("actorType") val actorType: String,
         @Description("The index of the Event in the Actor type's Event list, starting from 0.")
         @SerialName("eventIndex") val eventIndex: Int,

@@ -15,10 +15,12 @@ package com.pandulapeter.kubrikoCreator.commands
 internal sealed interface CommandTarget {
 
     /**
+     * An Actor type or Manager type.
+     *
      * @param eventIndex The Event the command is about, if it is about one.
      * @param blockIndex The Block of that Event the command is about, if it is about one.
      */
-    data class ActorType(
+    data class BlockType(
         val name: String,
         val eventIndex: Int? = null,
         val blockIndex: Int? = null,

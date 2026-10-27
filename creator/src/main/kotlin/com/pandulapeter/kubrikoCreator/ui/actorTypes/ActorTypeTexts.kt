@@ -18,6 +18,7 @@ import kubriko.creator.generated.resources.event_added_to_scene
 import kubriko.creator.generated.resources.event_collision
 import kubriko.creator.generated.resources.event_edge_touched
 import kubriko.creator.generated.resources.event_every_frame
+import kubriko.creator.generated.resources.event_game_started
 import kubriko.creator.generated.resources.event_key_pressed
 import kubriko.creator.generated.resources.event_timer_finished
 import kubriko.creator.generated.resources.ic_add
@@ -35,6 +36,7 @@ import kubriko.creator.generated.resources.ic_loop
 import kubriko.creator.generated.resources.ic_move_towards
 import kubriko.creator.generated.resources.ic_number
 import kubriko.creator.generated.resources.ic_open_with
+import kubriko.creator.generated.resources.ic_play
 import kubriko.creator.generated.resources.ic_remove_other
 import kubriko.creator.generated.resources.ic_stop
 import kubriko.creator.generated.resources.ic_text
@@ -58,6 +60,7 @@ import org.jetbrains.compose.resources.StringResource
 
 internal val EventType.title: StringResource
     get() = when (this) {
+        EventType.GAME_STARTED -> Res.string.event_game_started
         EventType.ADDED_TO_SCENE -> Res.string.event_added_to_scene
         EventType.EVERY_FRAME -> Res.string.event_every_frame
         EventType.KEY_PRESSED -> Res.string.event_key_pressed
@@ -68,6 +71,7 @@ internal val EventType.title: StringResource
 
 internal val EventType.icon: DrawableResource
     get() = when (this) {
+        EventType.GAME_STARTED -> Res.drawable.ic_play
         EventType.ADDED_TO_SCENE -> Res.drawable.ic_add
         EventType.EVERY_FRAME -> Res.drawable.ic_loop
         EventType.KEY_PRESSED -> Res.drawable.ic_keyboard

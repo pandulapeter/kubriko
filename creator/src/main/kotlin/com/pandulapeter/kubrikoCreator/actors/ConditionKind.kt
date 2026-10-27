@@ -24,13 +24,16 @@ import org.jetbrains.compose.resources.StringResource
 internal enum class ConditionKind(
     val title: StringResource,
     val createDefault: () -> ConditionDefinition,
+    val needsActor: Boolean = false,
 ) {
     NUMBER(Res.string.condition_number, { ConditionDefinition.Number() }),
     TEXT(Res.string.condition_text, { ConditionDefinition.Text() }),
     TOGGLE(Res.string.condition_toggle, { ConditionDefinition.Toggle() }),
     KEY_HELD(Res.string.condition_key_held, { ConditionDefinition.KeyHeld() }),
-    VELOCITY(Res.string.condition_velocity, { ConditionDefinition.Velocity() }),
+    VELOCITY(Res.string.condition_velocity, { ConditionDefinition.Velocity() }, needsActor = true),
     CHANCE(Res.string.condition_chance, { ConditionDefinition.Chance() });
+
+    fun isAvailableIn(kind: BlockTypeKind) = !needsActor || kind == BlockTypeKind.ACTOR
 
     companion object {
 

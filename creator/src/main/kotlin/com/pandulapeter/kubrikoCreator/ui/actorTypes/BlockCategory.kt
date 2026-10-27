@@ -10,6 +10,8 @@
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
+import com.pandulapeter.kubrikoCreator.actors.BlockTypeKind
+import com.pandulapeter.kubrikoCreator.actors.EventType
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_category_actors
 import kubriko.creator.generated.resources.block_category_code
@@ -51,5 +53,14 @@ internal enum class BlockCategory(
     PROPERTIES(Res.string.block_category_properties, Res.drawable.ic_property, listOf(BlockKind.SET_NUMBER, BlockKind.CHANGE_NUMBER, BlockKind.SET_TEXT, BlockKind.SET_TOGGLE)),
     FLOW(Res.string.block_category_flow, Res.drawable.ic_condition, listOf(BlockKind.IF, BlockKind.ELSE, BlockKind.REPEAT, BlockKind.END)),
     TIMERS(Res.string.block_category_timers, Res.drawable.ic_timer, listOf(BlockKind.START_TIMER, BlockKind.STOP_TIMER)),
-    CODE(Res.string.block_category_code, Res.drawable.ic_code, listOf(BlockKind.LOG, BlockKind.KOTLIN)),
+    CODE(Res.string.block_category_code, Res.drawable.ic_code, listOf(BlockKind.LOG, BlockKind.KOTLIN));
+
+    companion object {
+
+        /**
+         * The categories that have a Block for an Event of [eventType] of a type of [typeKind], which are the tabs shown.
+         * Code is always one of them.
+         */
+        fun availableIn(eventType: EventType, typeKind: BlockTypeKind) = entries.filter { category -> category.kinds.any { it.isAvailableIn(eventType, typeKind) } }
+    }
 }

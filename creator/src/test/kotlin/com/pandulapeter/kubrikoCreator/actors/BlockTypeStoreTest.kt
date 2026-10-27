@@ -188,4 +188,42 @@ class BlockTypeStoreTest {
         assertEquals(emptySet(), store.regenerateAll())
         assertContains(file.readText(), "package com.example.game.generated")
     }
+
+    @Test
+    fun managerTypesAreKeptApartAndWiredIn() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        val game = ManagerTypeDefinition("Game", properties = listOf(PropertyDefinition.Number("score")), texts = listOf(ScreenTextDefinition("{score}")))
+        store.save(ball)
+        store.save(game)
+        assertTrue(File(root, ".kubriko/managers/Game.json").isFile)
+        assertEquals(listOf(ball, game), store.load())
+        assertEquals(ManagerTypeCodeGenerator.generateManagerType(game, "com.example.game", listOf("Ball"), listOf(game)), File(generated, "Game.kt").readText())
+        assertContains(File(generated, "KubrikoWiring.kt").readText(), "        Game(isInSceneEditor),\n")
+        store.delete("Game")
+        assertFalse(File(root, ".kubriko/managers/Game.json").exists())
+        assertFalse(File(generated, "Game.kt").exists())
+        assertContains(File(generated, "KubrikoWiring.kt").readText(), "emptyList()")
+    }
+
+    @Test
+    fun actorTypesAreRegeneratedWhenAManagerTheyUseChanges() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        val brick = ActorTypeDefinition("Brick", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.ChangeNumber("score", manager = "Game")))))
+        store.save(brick)
+        assertContains(File(generated, "Brick.kt").readText(), "// Choose a Property for this Block.")
+        store.save(ManagerTypeDefinition("Game", properties = listOf(PropertyDefinition.Number("score"))))
+        assertContains(File(generated, "Brick.kt").readText(), "game.score += 1f")
+    }
+
+    @Test
+    fun aWiringChangedByHandIsLeftAlone() {
+        optIn()
+        val store = BlockTypeStore.open(root)!!
+        store.save(ball)
+        File(generated, "KubrikoWiring.kt").appendText("// Mine\n")
+        store.save(ManagerTypeDefinition("Game"))
+        assertContains(File(generated, "KubrikoWiring.kt").readText(), "// Mine")
+    }
 }

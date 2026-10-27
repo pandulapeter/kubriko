@@ -31,7 +31,7 @@ internal object SetAppearance : WriteCommand<SetAppearance.Input> {
     override val title = Res.string.command_set_appearance
     override val inputSerializer = Input.serializer()
 
-    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType)
+    override fun target(context: CommandContext, input: Input) = CommandTarget.BlockType(input.actorType)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateActorType(input.actorType) ?: run {
         val definition = context.requireActorType(input.actorType)
@@ -40,7 +40,7 @@ internal object SetAppearance : WriteCommand<SetAppearance.Input> {
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val definition = context.requireActorType(input.actorType)
-        context.requireActorTypes.put(
+        context.requireBlockTypes.put(
             definition.copy(
                 shape = input.shape ?: definition.shape,
                 color = input.color ?: definition.color,
