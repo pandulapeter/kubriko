@@ -103,17 +103,17 @@ class ActorTypeCodeGeneratorTest {
 
     @Test
     fun everyBlockBecomesItsStatement() {
-        assertEquals(listOf("velocity = SceneOffset(1.5f.sceneUnit, -2f.sceneUnit)"), ActorTypeCodeGenerator.blockLines(BlockDefinition.SetVelocity(1.5f, -2f), EventType.EVERY_FRAME, "Ball"))
-        assertEquals(listOf("velocity += SceneOffset(0f.sceneUnit, 3f.sceneUnit)"), ActorTypeCodeGenerator.blockLines(BlockDefinition.AddToVelocity(0f, 3f), EventType.EVERY_FRAME, "Ball"))
-        assertEquals(listOf("velocity = SceneOffset.Zero"), ActorTypeCodeGenerator.blockLines(BlockDefinition.Stop, EventType.EVERY_FRAME, "Ball"))
-        assertEquals(listOf("body.position = SceneOffset(-10f.sceneUnit, 10f.sceneUnit)"), ActorTypeCodeGenerator.blockLines(BlockDefinition.JumpTo(-10f, 10f), EventType.EVERY_FRAME, "Ball"))
-        assertEquals(listOf("actorManager.remove(this)"), ActorTypeCodeGenerator.blockLines(BlockDefinition.RemoveSelf, EventType.EVERY_FRAME, "Ball"))
-        assertEquals(4, ActorTypeCodeGenerator.blockLines(BlockDefinition.BounceOffEdge, EventType.EDGE_TOUCHED, "Ball").size)
+        assertEquals(listOf("velocity = SceneOffset(1.5f.sceneUnit, -2f.sceneUnit)"), BlockCodeGenerator.blockLines(BlockDefinition.SetVelocity(1.5f, -2f), EventType.EVERY_FRAME, "Ball"))
+        assertEquals(listOf("velocity += SceneOffset(0f.sceneUnit, 3f.sceneUnit)"), BlockCodeGenerator.blockLines(BlockDefinition.AddToVelocity(0f, 3f), EventType.EVERY_FRAME, "Ball"))
+        assertEquals(listOf("velocity = SceneOffset.Zero"), BlockCodeGenerator.blockLines(BlockDefinition.Stop, EventType.EVERY_FRAME, "Ball"))
+        assertEquals(listOf("body.position = SceneOffset(-10f.sceneUnit, 10f.sceneUnit)"), BlockCodeGenerator.blockLines(BlockDefinition.JumpTo(-10f, 10f), EventType.EVERY_FRAME, "Ball"))
+        assertEquals(listOf("actorManager.remove(this)"), BlockCodeGenerator.blockLines(BlockDefinition.RemoveSelf, EventType.EVERY_FRAME, "Ball"))
+        assertEquals(4, BlockCodeGenerator.blockLines(BlockDefinition.BounceOffEdge, EventType.EDGE_TOUCHED, "Ball").size)
     }
 
     @Test
     fun bouncingOutsideTheEdgeEventLeavesOnlyAnExplanation() {
-        val lines = ActorTypeCodeGenerator.blockLines(BlockDefinition.BounceOffEdge, EventType.EVERY_FRAME, "Ball")
+        val lines = BlockCodeGenerator.blockLines(BlockDefinition.BounceOffEdge, EventType.EVERY_FRAME, "Ball")
         assertTrue(lines.all { it.startsWith("//") }, lines.toString())
     }
 
@@ -121,7 +121,7 @@ class ActorTypeCodeGeneratorTest {
     fun logBlocksWriteToKubrikosLoggerWithTheActorTypeAsTheirSource() {
         assertEquals(
             listOf("Logger.log(message = \"Say \\\"\\\$hi\\\" \\\\ to\\neveryone\", source = \"Ball\")"),
-            ActorTypeCodeGenerator.blockLines(BlockDefinition.Log("Say \"\$hi\" \\ to\neveryone"), EventType.EVERY_FRAME, "Ball"),
+            BlockCodeGenerator.blockLines(BlockDefinition.Log("Say \"\$hi\" \\ to\neveryone"), EventType.EVERY_FRAME, "Ball"),
         )
         assertContains(generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Log("Hello")))), "import com.pandulapeter.kubriko.logger.Logger")
         assertFalse("Logger" in generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Stop))))
@@ -131,7 +131,7 @@ class ActorTypeCodeGeneratorTest {
     fun kotlinBlocksAreInsertedVerbatimInAScopeOfTheirOwn() {
         assertEquals(
             listOf("run {", "    val speed = velocity.x", "", "    if (speed > 0f.sceneUnit) {", "        velocity = SceneOffset.Zero", "    }", "}"),
-            ActorTypeCodeGenerator.blockLines(BlockDefinition.Kotlin("\n\nval speed = velocity.x   \n\nif (speed > 0f.sceneUnit) {\n    velocity = SceneOffset.Zero\n}\n\n"), EventType.EVERY_FRAME, "Ball"),
+            BlockCodeGenerator.blockLines(BlockDefinition.Kotlin("\n\nval speed = velocity.x   \n\nif (speed > 0f.sceneUnit) {\n    velocity = SceneOffset.Zero\n}\n\n"), EventType.EVERY_FRAME, "Ball"),
         )
         assertContains(
             generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Kotlin("velocity = SceneOffset.Zero\nprintln(1)")))),
@@ -141,24 +141,24 @@ class ActorTypeCodeGeneratorTest {
 
     @Test
     fun anEmptyKotlinBlockGeneratesNothing() {
-        assertEquals(emptyList(), ActorTypeCodeGenerator.blockLines(BlockDefinition.Kotlin(" \n "), EventType.EVERY_FRAME, "Ball"))
+        assertEquals(emptyList(), BlockCodeGenerator.blockLines(BlockDefinition.Kotlin(" \n "), EventType.EVERY_FRAME, "Ball"))
     }
 
     @Test
     fun numbersAlwaysBecomeValidKotlinFloatLiterals() {
-        assertEquals("240f", ActorTypeCodeGenerator.floatLiteral(240f))
-        assertEquals("-0.5f", ActorTypeCodeGenerator.floatLiteral(-0.5f))
-        assertEquals("1.0E-4f", ActorTypeCodeGenerator.floatLiteral(1e-4f))
-        assertEquals("1.0E10f", ActorTypeCodeGenerator.floatLiteral(1e10f))
-        assertEquals("0f", ActorTypeCodeGenerator.floatLiteral(Float.NaN))
-        assertEquals("0f", ActorTypeCodeGenerator.floatLiteral(Float.POSITIVE_INFINITY))
+        assertEquals("240f", BlockCodeGenerator.floatLiteral(240f))
+        assertEquals("-0.5f", BlockCodeGenerator.floatLiteral(-0.5f))
+        assertEquals("1.0E-4f", BlockCodeGenerator.floatLiteral(1e-4f))
+        assertEquals("1.0E10f", BlockCodeGenerator.floatLiteral(1e10f))
+        assertEquals("0f", BlockCodeGenerator.floatLiteral(Float.NaN))
+        assertEquals("0f", BlockCodeGenerator.floatLiteral(Float.POSITIVE_INFINITY))
     }
 
     @Test
     fun colorsBecomeEightDigitHexLiterals() {
-        assertEquals("0xFF6060AA", ActorTypeCodeGenerator.colorLiteral(0xFF6060AA))
-        assertEquals("0x00000001", ActorTypeCodeGenerator.colorLiteral(1L))
-        assertEquals("0xFFFFFFFF", ActorTypeCodeGenerator.colorLiteral(-1L))
+        assertEquals("0xFF6060AA", BlockCodeGenerator.colorLiteral(0xFF6060AA))
+        assertEquals("0x00000001", BlockCodeGenerator.colorLiteral(1L))
+        assertEquals("0xFFFFFFFF", BlockCodeGenerator.colorLiteral(-1L))
     }
 
     @Test
@@ -238,14 +238,14 @@ class ActorTypeCodeGeneratorTest {
     @Test
     fun collisionBlocksOutsideACollisionEventLeaveOnlyAnExplanation() {
         listOf(BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther).forEach { block ->
-            val lines = ActorTypeCodeGenerator.blockLines(block, EventType.EVERY_FRAME, "Ball")
+            val lines = BlockCodeGenerator.blockLines(block, EventType.EVERY_FRAME, "Ball")
             assertTrue(lines.all { it.startsWith("//") }, lines.toString())
         }
     }
 
     @Test
     fun bouncingOffAnotherActorIsScopedSoItCanBeUsedTwiceInOneEvent() {
-        val lines = ActorTypeCodeGenerator.blockLines(BlockDefinition.BounceOffOther, EventType.COLLISION, "Ball")
+        val lines = BlockCodeGenerator.blockLines(BlockDefinition.BounceOffOther, EventType.COLLISION, "Ball")
         assertEquals("run {", lines.first())
         assertEquals("}", lines.last())
     }
@@ -271,7 +271,7 @@ class ActorTypeCodeGeneratorTest {
     @Test
     fun propertyBlocksChangeTheirPropertyOrBecomeACommentWithoutIt() {
         val properties = listOf(PropertyDefinition.Number("score"), PropertyDefinition.Text("title"), PropertyDefinition.Toggle("isShielded"))
-        fun lines(block: BlockDefinition) = ActorTypeCodeGenerator.blockLines(block, EventType.EVERY_FRAME, "Player", properties)
+        fun lines(block: BlockDefinition) = BlockCodeGenerator.blockLines(block, EventType.EVERY_FRAME, "Player", properties)
         assertEquals(listOf("score = 10f"), lines(BlockDefinition.SetNumber("score", 10f)))
         assertEquals(listOf("score += -1.5f"), lines(BlockDefinition.ChangeNumber("score", -1.5f)))
         assertEquals(listOf("title = \"Game \\\"over\\\"\""), lines(BlockDefinition.SetText("title", "Game \"over\"")))
@@ -285,11 +285,11 @@ class ActorTypeCodeGeneratorTest {
     @Test
     fun logMessagesShowPropertiesNamedInBraces() {
         val properties = listOf(PropertyDefinition.Number("score"), PropertyDefinition.Text("title"))
-        assertEquals("\"Score: \${score.asText()} ({title}) \\$5 {unknown} {}\"", ActorTypeCodeGenerator.templateLiteral("Score: {score} ({title}) \$5 {unknown} {}", properties.take(1)))
-        assertEquals("\"\${title}: \${score.asText()}\"", ActorTypeCodeGenerator.templateLiteral("{title}: {score}", properties))
+        assertEquals("\"Score: \${score.asText()} ({title}) \\$5 {unknown} {}\"", BlockCodeGenerator.templateLiteral("Score: {score} ({title}) \$5 {unknown} {}", properties.take(1)))
+        assertEquals("\"\${title}: \${score.asText()}\"", BlockCodeGenerator.templateLiteral("{title}: {score}", properties))
         assertEquals(
             listOf("Logger.log(message = \"Score: \${score.asText()}\", source = \"Player\")"),
-            ActorTypeCodeGenerator.blockLines(BlockDefinition.Log("Score: {score}"), EventType.EVERY_FRAME, "Player", properties),
+            BlockCodeGenerator.blockLines(BlockDefinition.Log("Score: {score}"), EventType.EVERY_FRAME, "Player", properties),
         )
     }
 
@@ -331,14 +331,14 @@ class ActorTypeCodeGeneratorTest {
                 "    }",
                 "}",
             ),
-            ActorTypeCodeGenerator.eventLines(blocks, EventType.EVERY_FRAME, "Player"),
+            BlockCodeGenerator.eventLines(blocks, EventType.EVERY_FRAME, "Player"),
         )
     }
 
     @Test
     fun conditionsCheckPropertiesKeysVelocityAndChance() {
         val properties = listOf(PropertyDefinition.Number("score"), PropertyDefinition.Text("title"), PropertyDefinition.Toggle("isShielded"))
-        fun line(condition: ConditionDefinition) = ActorTypeCodeGenerator.blockLines(BlockDefinition.If(condition), EventType.EVERY_FRAME, "Player", properties).single()
+        fun line(condition: ConditionDefinition) = BlockCodeGenerator.blockLines(BlockDefinition.If(condition), EventType.EVERY_FRAME, "Player", properties).single()
         assertEquals("if (score >= 10f) {", line(ConditionDefinition.Number("score", Comparison.GREATER_OR_EQUAL, 10f)))
         assertEquals("if (title != \"Game \\\"over\\\"\") {", line(ConditionDefinition.Text("title", "Game \"over\"", isEqual = false)))
         assertEquals("if (!isShielded) {", line(ConditionDefinition.Toggle("isShielded", isOn = false)))
@@ -391,7 +391,7 @@ class ActorTypeCodeGeneratorTest {
 
     @Test
     fun timerBlocksStartOnceOrRepeatingAndTimersOutOfRangeBecomeComments() {
-        fun lines(block: BlockDefinition) = ActorTypeCodeGenerator.blockLines(block, EventType.EVERY_FRAME, "Player")
+        fun lines(block: BlockDefinition) = BlockCodeGenerator.blockLines(block, EventType.EVERY_FRAME, "Player")
         assertEquals(listOf("timer1RemainingInMilliseconds = 1", "timer1PeriodInMilliseconds = 0"), lines(BlockDefinition.StartTimer(seconds = 0f)))
         assertEquals(listOf("timer8RemainingInMilliseconds = 0"), lines(BlockDefinition.StopTimer(timer = 8)))
         assertEquals(listOf("// Start a Timer only works with Timers 1 to 8."), lines(BlockDefinition.StartTimer(timer = 9)))
@@ -400,7 +400,7 @@ class ActorTypeCodeGeneratorTest {
 
     @Test
     fun actorsAreAddedWithTheirTypesDefaultsRelativeToThisActorOrTheScene() {
-        fun lines(block: BlockDefinition) = ActorTypeCodeGenerator.blockLines(block, EventType.EVERY_FRAME, "Player", knownActorTypeNames = listOf("Player", "Bullet"))
+        fun lines(block: BlockDefinition) = BlockCodeGenerator.blockLines(block, EventType.EVERY_FRAME, "Player", knownActorTypeNames = listOf("Player", "Bullet"))
         assertEquals(listOf("actorManager.add(Bullet.metadata.instantiate(body.position + SceneOffset(0f.sceneUnit, -20f.sceneUnit)).restore())"), lines(BlockDefinition.AddActor("Bullet", 0f, -20f)))
         assertEquals(listOf("actorManager.add(Player.metadata.instantiate(SceneOffset(5f.sceneUnit, 0f.sceneUnit)).restore())"), lines(BlockDefinition.AddActor("Player", 5f, isRelative = false)))
         assertEquals(listOf("// Choose an Actor type for this Block."), lines(BlockDefinition.AddActor("Deleted")))
@@ -420,7 +420,7 @@ class ActorTypeCodeGeneratorTest {
         assertContains(code, "            for (index in actors.indices) {\n                val candidate = actors[index] as? Coin ?: continue\n")
         assertContains(code, "                if ((nearest == null || ")
         assertContains(code, "            if (nearest != null) velocity = (nearest.body.position - body.position).normalized() * 150f\n")
-        val towardsItsOwnType = ActorTypeCodeGenerator.blockLines(BlockDefinition.MoveTowardsNearest("Player"), EventType.EVERY_FRAME, "Player")
+        val towardsItsOwnType = BlockCodeGenerator.blockLines(BlockDefinition.MoveTowardsNearest("Player"), EventType.EVERY_FRAME, "Player")
         assertTrue(towardsItsOwnType.any { "if (candidate !== this && (nearest == null || " in it })
     }
 }
