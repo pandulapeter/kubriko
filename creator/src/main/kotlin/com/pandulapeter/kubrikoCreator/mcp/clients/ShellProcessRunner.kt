@@ -15,13 +15,17 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Runs programs the way a terminal would find them. An app started from the Finder or the Start menu doesn't have the
- * PATH of the user's shell, where tools installed with npm or Homebrew live, so on macOS and Linux every command goes
- * through the user's login shell.
+ * PATH of the user's shell, where tools installed with npm or Homebrew live, nor the aliases and functions people
+ * define in their shell's startup files (`alias claude-personal=…` in `~/.zshrc`), so on macOS and Linux every command
+ * goes through the user's shell as an interactive login shell, like a terminal starts it.
+ *
+ * @param environment Variables added to the shell's environment.
  */
 internal class ShellProcessRunner(
     private val isWindows: Boolean = System.getProperty("os.name").orEmpty().lowercase().contains("windows"),
     private val shell: String = System.getenv("SHELL")?.takeIf { it.isNotBlank() } ?: "/bin/sh",
     private val timeoutInSeconds: Long = 30,
+    private val environment: Map<String, String> = emptyMap(),
 ) : ProcessRunner {
 
     override fun exists(command: String) = executableOf(command).let { executable ->
@@ -36,15 +40,15 @@ internal class ShellProcessRunner(
         if (isWindows) listOf("cmd", "/c") + command.trim().split(whitespace) + arguments else shellCommand(command.trim() + arguments.joinToString("") { " " + quoted(it) }),
     )
 
-    private fun shellCommand(script: String) = listOf(shell, "-l", "-c", script)
+    private fun shellCommand(script: String) = listOf(shell, "-l", "-i", "-c", script)
 
     private fun run(commandLine: List<String>) = try {
-        val process = ProcessBuilder(commandLine).redirectErrorStream(true).redirectInput(ProcessBuilder.Redirect.from(File(if (isWindows) "NUL" else "/dev/null"))).start()
+        val process = ProcessBuilder(commandLine).apply { environment().putAll(environment) }.redirectErrorStream(true).redirectInput(ProcessBuilder.Redirect.from(File(if (isWindows) "NUL" else "/dev/null"))).start()
         val output = StringBuilder()
         val reader = Thread { output.append(process.inputStream.bufferedReader().readText()) }.apply { start() }
         if (process.waitFor(timeoutInSeconds, TimeUnit.SECONDS)) {
             reader.join()
-            ProcessRunner.Result(process.exitValue(), output.toString().trim())
+            ProcessRunner.Result(process.exitValue(), output.lines().filterNot { jobControlNotice.matches(it) }.joinToString("\n").trim())
         } else {
             process.destroyForcibly()
             ProcessRunner.Result(TIMED_OUT, "")
@@ -57,6 +61,11 @@ internal class ShellProcessRunner(
         const val TIMED_OUT = -1
         const val NOT_STARTED = -2
         val whitespace = Regex("\\s+")
+
+        /**
+         * What shells print when they run interactively without a terminal, which isn't the program's output.
+         */
+        val jobControlNotice = Regex("^(\\S+: )?(no job control in this shell|cannot set terminal process group.*|initialize_job_control.*)$")
 
         /**
          * The program [command] runs: its first word that doesn't set an environment variable.

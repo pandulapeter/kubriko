@@ -74,8 +74,10 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 - **One-click clients** (`mcp/clients`): `AiClient` lists the supported tools (Claude Code, Codex, Gemini CLI), each a CLI with
   `mcp add` / `get` / `remove` at user scope; Codex can't send headers, so it gets the token in the URL. `AiClientsController`
   checks which are installed and connected, connects (turning the server on first) and disconnects, and connects them again
-  when the port or token changes. `ShellProcessRunner` runs them through the user's login shell (an app started from the Finder
-  lacks the shell's PATH); the command is user-editable and may set environment variables first (`CLAUDE_CONFIG_DIR=… claude`).
+  when the port or token changes. `ShellProcessRunner` runs them through the user's shell as an interactive login shell, like a
+  terminal (an app started from the Finder lacks the shell's PATH, and aliases such as `claude-personal` live in `.zshrc`),
+  dropping the shell's job control notices; the command is user-editable. A tool counts as connected only when its output names
+  the server, since a wrapper alias can succeed without doing anything.
 - **The panel** (toolbar → AI connection): a Connect / Disconnect / Install row per client, the on/off switch, the address
   with the token for other MCP clients, Advanced (port, token, commands), and the call log.
 - **Playing the game:** `start_game`, `press_keys`, `wait`, `take_screenshot`, and `stop_game` drive a play session through

@@ -37,8 +37,18 @@ class AiClientTest {
     @Test
     fun geminiCliIsCheckedByListingItsServers() {
         assertTrue("--header" in AiClient.GEMINI_CLI.addArguments(settings))
-        assertTrue(AiClient.GEMINI_CLI.isConnected(0, "kubriko-creator: http://127.0.0.1:9000/mcp (http)"))
+        assertEquals(listOf("mcp", "list"), AiClient.GEMINI_CLI.getArguments)
+        assertTrue(AiClient.GEMINI_CLI.isConnected(0, "Configured MCP servers:\n\n✓ kubriko-creator: http://127.0.0.1:9000/mcp (http) - Connected"))
         assertFalse(AiClient.GEMINI_CLI.isConnected(0, "No MCP servers configured."))
+    }
+
+    @Test
+    fun onlyOutputThatNamesTheServerCountsAsConnected() {
+        assertTrue(AiClient.CLAUDE_CODE.isConnected(0, "kubriko-creator:\n  Scope: User config (available in all your projects)"))
+        assertTrue(AiClient.CODEX.isConnected(0, "kubriko-creator\n  enabled: true"))
+        assertFalse(AiClient.CLAUDE_CODE.isConnected(1, "kubriko-creator:"))
+        assertFalse(AiClient.CLAUDE_CODE.isConnected(0, "Use specific commands: claude-flashfood or claude-personal mcp get kubriko-creator"))
+        assertFalse(AiClient.CLAUDE_CODE.isConnected(0, ""))
     }
 
     @Test

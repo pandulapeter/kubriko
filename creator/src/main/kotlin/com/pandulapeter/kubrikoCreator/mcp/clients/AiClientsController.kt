@@ -71,7 +71,8 @@ internal class AiClientsController(
         when {
             result == null -> AiClientStatus.NotInstalled
             result.exitCode != 0 -> AiClientStatus.Failed(result.output)
-            else -> status(client).also { if (it == AiClientStatus.Connected) mcp.setClientConnected(client, true) }
+            status(client) == AiClientStatus.Connected -> AiClientStatus.Connected.also { mcp.setClientConnected(client, true) }
+            else -> AiClientStatus.Failed(result.output)
         }
     }
 

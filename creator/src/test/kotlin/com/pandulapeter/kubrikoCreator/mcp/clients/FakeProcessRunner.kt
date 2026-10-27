@@ -20,15 +20,21 @@ internal class FakeProcessRunner(
     val registered = mutableMapOf<String, String>()
     var failingOutput: String? = null
 
+    /**
+     * Commands that are wrappers which only print this and succeed, whatever they are asked.
+     */
+    val printingOnly = mutableMapOf<String, String>()
+
     override fun exists(command: String) = command in installed
 
     override fun run(command: String, arguments: List<String>): ProcessRunner.Result {
         calls += (listOf(command) + arguments).joinToString(" ")
         if (command !in installed) return ProcessRunner.Result(127, "not found")
+        printingOnly[command]?.let { return ProcessRunner.Result(0, "$it ${arguments.joinToString(" ")}") }
         return when (arguments.getOrNull(1)) {
             "add" -> failingOutput?.let { ProcessRunner.Result(1, it) } ?: ProcessRunner.Result(0, "").also { registered[command] = arguments.joinToString(" ") }
             "remove" -> ProcessRunner.Result(if (registered.remove(command) != null) 0 else 1, "")
-            "get" -> ProcessRunner.Result(if (command in registered) 0 else 1, "")
+            "get" -> if (command in registered) ProcessRunner.Result(0, "kubriko-creator:\n  Type: http") else ProcessRunner.Result(1, "No MCP server named \"kubriko-creator\".")
             "list" -> ProcessRunner.Result(0, if (command in registered) "kubriko-creator: http://127.0.0.1" else "No MCP servers configured.")
             else -> ProcessRunner.Result(2, "unknown")
         }

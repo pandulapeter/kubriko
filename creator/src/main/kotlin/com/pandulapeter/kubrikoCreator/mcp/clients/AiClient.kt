@@ -55,8 +55,6 @@ internal enum class AiClient(
         override val removeArguments = listOf("mcp", "remove", "--scope", "user", SERVER_NAME)
 
         override val getArguments = listOf("mcp", "list")
-
-        override fun isConnected(exitCode: Int, output: String) = exitCode == 0 && SERVER_NAME in output
     };
 
     /**
@@ -69,9 +67,11 @@ internal enum class AiClient(
     open val getArguments = listOf("mcp", "get", SERVER_NAME)
 
     /**
-     * Whether the output of [getArguments] says Kubriko Creator's server is registered.
+     * Whether the output of [getArguments] says Kubriko Creator's server is registered: every supported tool starts a
+     * line with the server's name (after a status mark, at most). The exit code alone isn't enough, since a wrapper
+     * script or alias can print something else (its own arguments, even) and still succeed.
      */
-    open fun isConnected(exitCode: Int, output: String) = exitCode == 0
+    fun isConnected(exitCode: Int, output: String) = exitCode == 0 && output.lines().any { it.trimStart { character -> !character.isLetterOrDigit() }.startsWith(SERVER_NAME) }
 }
 
 private const val SERVER_NAME = McpToolServer.SERVER_NAME

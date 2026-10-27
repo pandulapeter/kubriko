@@ -9,6 +9,8 @@
  */
 package com.pandulapeter.kubrikoCreator.mcp.clients
 
+import java.io.File
+import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -34,6 +36,20 @@ class ShellProcessRunnerTest {
         if (isWindows) return
         assertEquals("personal", runner.run("PROFILE_NAME=personal sh", listOf("-c", "printf %s \"\$PROFILE_NAME\"")).output)
         assertTrue(runner.exists("PROFILE_NAME=personal sh"))
+    }
+
+    @Test
+    fun aliasesFromTheShellsStartupFilesWorkLikeInATerminal() {
+        if (isWindows || !File("/bin/zsh").canExecute()) return
+        val home = createTempDirectory().toFile()
+        try {
+            File(home, ".zshrc").writeText("alias claude-personal='PROFILE_NAME=personal sh'\n")
+            val runner = ShellProcessRunner(shell = "/bin/zsh", environment = mapOf("ZDOTDIR" to home.absolutePath))
+            assertTrue(runner.exists("claude-personal"))
+            assertEquals("personal", runner.run("claude-personal", listOf("-c", "printf %s \"\$PROFILE_NAME\"")).output.lines().last())
+        } finally {
+            home.deleteRecursively()
+        }
     }
 
     @Test

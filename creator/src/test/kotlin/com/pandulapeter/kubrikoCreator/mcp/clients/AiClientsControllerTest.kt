@@ -90,6 +90,18 @@ class AiClientsControllerTest {
     }
 
     @Test
+    fun aWrapperThatOnlyPrintsSomethingIsNeitherConnectedNorConnectable() = runTest {
+        runner.printingOnly["claude"] = "Use specific commands: claude-flashfood or claude-personal"
+        val controller = controller()
+        controller.refresh()
+        controller.awaitStatus(AiClient.CLAUDE_CODE, AiClientStatus.NotConnected)
+        controller.connect(AiClient.CLAUDE_CODE)
+        val failed = controller.awaitStatus(AiClient.CLAUDE_CODE, AiClientStatus.Failed("Use specific commands: claude-flashfood or claude-personal " + AiClient.CLAUDE_CODE.addArguments(mcp!!.settings.value).joinToString(" ")))
+        assertTrue(failed.isNotEmpty())
+        assertEquals(emptySet(), mcp!!.settings.value.connectedClients)
+    }
+
+    @Test
     fun disconnectingRemovesItEvenIfItWasAlreadyGone() = runTest {
         val controller = controller()
         controller.connect(AiClient.CODEX)
