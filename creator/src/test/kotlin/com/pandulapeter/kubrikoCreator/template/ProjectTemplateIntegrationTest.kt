@@ -29,7 +29,7 @@ import kotlin.test.assertTrue
  * Generates every template for real, adds an Actor type that uses every Event and every Block, and compiles it all for
  * every target. It downloads Gradle and every dependency, so it
  * only runs when the `KUBRIKO_CREATOR_INTEGRATION` environment variable is `true`. Against unreleased modules, also set
- * `KUBRIKO_CREATOR_VERSION` to the version published to Maven Local (see creator/DESIGN.md).
+ * `KUBRIKO_CREATOR_VERSION` to the version published to Maven Local (see creator/CLAUDE.md).
  */
 class ProjectTemplateIntegrationTest {
 

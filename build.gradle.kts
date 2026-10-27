@@ -8,7 +8,7 @@
  * https://mozilla.org/MPL/2.0/.
  */
 // Kubriko Creator's development run publishes the libraries to Maven Local under a version of their own, so that they never
-// stand in for a real release in other projects (see creator/DESIGN.md).
+// stand in for a real release in other projects (see creator/CLAUDE.md).
 version = project.findProperty("library.version").toString() + if (project.findProperty("creator.localKubriko") == "true") "-creator" else ""
 
 plugins {

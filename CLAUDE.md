@@ -28,7 +28,7 @@ Requires **JDK 21** (the Kotlin Multiplatform toolchain pins language version 21
 ./gradlew desktopTest                 # Run the unit tests of every module on the desktop JVM
 ./gradlew publishDesktopPublicationToMavenLocal publishWasmJsPublicationToMavenLocal publishKotlinMultiplatformPublicationToMavenLocal :creator:run -Pcreator.localKubriko=true   # Run Kubriko Creator against this repository's libraries (the "[Desktop] Kubriko Creator" run configuration)
 ./gradlew :creator:test               # Run Kubriko Creator's unit tests (a plain JVM module, so not part of desktopTest)
-                                      # KUBRIKO_CREATOR_INTEGRATION=true also builds every project template for real (see creator/DESIGN.md)
+                                      # KUBRIKO_CREATOR_INTEGRATION=true also builds every project template for real (see creator/CLAUDE.md)
 node engine/src/webMain/checkTriangleBridge.mjs  # Check the bridge's embedded JS
 ./gradlew :engine:desktopTest --tests "com.pandulapeter.kubriko.KubrikoTest"   # Single test
 ./gradlew publishToMavenCentral --no-configuration-cache   # Publish (CI uses this)
@@ -56,7 +56,7 @@ Top-level Gradle areas (each has its own README with details):
 - `plugins/` — opt-in feature modules; each exposes a Manager (sometimes new Traits). Artifacts: `io.github.pandulapeter.kubriko:plugin-<name>`
 - `tools/` — development-time modules not meant to ship to players. Artifacts: `io.github.pandulapeter.kubriko:tool-<name>`
 - `examples/` — the games/demos/tests embedded in the Showcase app; canonical "how to use Kubriko" references.
-- `creator/` — Kubriko Creator, a standalone desktop app (in progress) that opens Kubriko projects, runs them, and edits their Scenes; `creator/DESIGN.md` is the plan, the rest of the folder is the app module (`:creator`). Its project templates live in `creator/src/main/resources/templates/`; block-built Actor types (`creator/.../actors`) are stored as JSON in a project's `.kubriko/actors` and generated into plain Kotlin by `ActorTypeCodeGenerator`. Not published as a library, and nothing under `engine/`, `plugins/`, or `tools/` may depend on it.
+- `creator/` — Kubriko Creator, a standalone desktop game editor (in progress): Actor types built from Events and Blocks, generated into plain Kotlin, embedded Scene editing, git, and soon an AI assistant. `creator/CLAUDE.md` describes what exists, `creator/plan/` what is planned. Not published as a library, and nothing under `engine/`, `plugins/`, or `tools/` may depend on it.
 - `app/` — the Showcase shell (menu system + per-platform entry points: `android`, `desktop`, `ios`, `web`, `shared`). Intentionally atypical (runs many Kubriko instances in parallel), so not a best-practices source.
 - `gradle/build-logic/` — an `includeBuild` of convention plugins. **All module build files apply these, not raw Compose/KMP plugins.**
 

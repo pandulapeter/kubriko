@@ -45,7 +45,7 @@ dependencies {
 
 /**
  * The versions Kubriko Creator writes into the projects it creates: the ones this repository builds Kubriko with. With
- * `creator.localKubriko`, projects use the libraries just published to Maven Local instead (see creator/DESIGN.md).
+ * `creator.localKubriko`, projects use the libraries just published to Maven Local instead (see creator/CLAUDE.md).
  */
 val generateCreatorProperties = tasks.register("generateCreatorProperties") {
     val outputDirectory = layout.buildDirectory.dir("generated/creatorProperties")
