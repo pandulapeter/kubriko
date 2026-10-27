@@ -86,7 +86,9 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 - **Playing the game:** `start_game`, `press_keys`, `wait`, `take_screenshot`, and `stop_game` drive a play session through
   session protocol 2 (`SessionCommand`s Creator sends back on the session's connection, answered by id): keys go to the AWT event
   listeners Kubriko's keyboard input reads, screenshots come from the game's `SkiaLayer` (no OS permission), and every step first
-  brings the window to the front, since Kubriko pauses unfocused games. Sessions of protocol 1 (older Kubriko) still run; the
+  brings the window to the front, since Kubriko pauses unfocused games, and waits up to two seconds for the focus to arrive
+  (keys aren't pressed without it; `press_keys` fails instead). Unexpected exceptions in a tool are `isError` results that name
+  the exception. Sessions of protocol 1 (older Kubriko) still run; the
   game tools say the version is too old.
 - **Showing the AI's work:** every command has a `title` and a `target` (`CommandTarget`: an Actor type with an optional Event
   and Block index, a Scene, version control, or the game), asked before and after it runs. `CommandExecutor.aiSteps` records each

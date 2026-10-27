@@ -21,9 +21,17 @@ Actor types, Scenes, console, version control) and action tools (build, play).
 The server, one-click setup for Claude Code, Codex, and Gemini CLI (one row per shell alias that runs them), the game tools, and the
 step-by-step view of the AI's work (activity bar, follow mode, highlights) exist (`../CLAUDE.md` → AI connection). Still to do:
 
-- Try it with real Claude Code and Codex sessions end to end, and write down what works and what they stumble on; that feeds the
-  eval set below. So far it was driven by scripted MCP calls (`curl`), never by a model. Watch how the activity view paces a real
-  model's bursts of calls. The Gemini CLI commands come from its documentation and haven't been run yet.
+- **Real sessions so far** (October 2026, headless Claude Code with Opus 5.5 on a copy of the Breakout project; Codex not yet, its
+  account was out of quota): "make the Ball faster and log when the game starts, then play it" took 18 turns, 45 s, and $0.46, entirely
+  through the tools. The model read before writing, placed an invisible Actor to get a "game started" Event, and checked its work with
+  `start_game`, `press_keys`, `take_screenshot`, and `read_console`. "Also move with A and D, stop on key release, and show a score" took
+  42 turns, 3 minutes, and $1.06. A and D went through the tools; for the rest there are no Blocks yet (key released, score, on-screen
+  text: `02-blocks.md`), so it hand-wrote a Manager and edited `Game.kt` with its own file tools, and said so. What it revealed was fixed:
+  the edge Event ran on every frame an Actor rested at the edge, the first key press after another app had taken the focus was lost, and
+  internal errors reached the model as a bare class name. Still to do: a Codex run; watching the activity view pace those bursts of calls
+  in the window; and whether the server's instructions should ask the model to stop and say what's missing rather than write code by
+  hand when a request goes beyond the Blocks (the user can't, so principle 6 suggests it). The Gemini CLI commands come from its
+  documentation and haven't been run yet.
 - Claude Desktop and Cursor keep their MCP servers in JSON files rather than behind a CLI, and Claude Desktop only starts local
   servers over stdio (so it needs a bridge such as `mcp-remote`): add them as file-based `AiClient`s once verified.
 - The game tools see the game through screenshots and logs. Reading Actors' positions and states directly needs a way into the
@@ -70,6 +78,7 @@ makes the requests.
 
 ## Testing
 
-- A small eval set of realistic requests ("make the Ball faster", "add a Paddle moved with A and D", "remove Bricks the Ball hits") replayed
+- A small eval set of realistic requests ("make the Ball faster", "add a Paddle moved with A and D", "remove Bricks the Ball hits", and the
+  two real sessions above: "log when the game starts", "stop the paddle on key release and show a score") replayed
   against the tools with recorded model responses, so tool changes are checked without spending tokens; a live run is opt-in, like the
   template integration test.
