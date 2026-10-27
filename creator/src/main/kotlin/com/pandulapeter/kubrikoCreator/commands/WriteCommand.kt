@@ -23,6 +23,11 @@ internal interface WriteCommand<I> : EditorCommand<I> {
     val title: StringResource
 
     /**
+     * Whether the change throws work away for good (it can't be undone), so that AI clients ask before making it.
+     */
+    val isDestructive: Boolean get() = false
+
+    /**
      * Why [input] can't be applied to the project as it is now, or null if it can.
      */
     fun validate(context: CommandContext, input: I): Rejection?

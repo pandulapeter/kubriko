@@ -15,10 +15,12 @@ import kotlinx.serialization.json.JsonObject
  * A command as an AI tool: what the MCP server lists and the assistant panel sends to the model.
  *
  * @param isReadOnly Whether calling the tool leaves the project as it is.
+ * @param isDestructive Whether calling the tool throws work away for good.
  */
 internal data class ToolDefinition(
     val name: String,
     val description: String,
     val inputSchema: JsonObject,
     val isReadOnly: Boolean,
+    val isDestructive: Boolean,
 )

@@ -30,6 +30,7 @@ internal object DiscardChanges : WriteCommand<DiscardChanges.Input> {
     override val description = "Restores files to how the last commit has them, deleting the ones it doesn't have. This can't be undone."
     override val title = Res.string.command_discard_changes
     override val inputSerializer = Input.serializer()
+    override val isDestructive = true
 
     override fun validate(context: CommandContext, input: Input): Rejection? = when (val state = context.git.state.value) {
         GitState.Loading, GitState.NoRepository -> Rejection(Res.string.error_command_no_repository)

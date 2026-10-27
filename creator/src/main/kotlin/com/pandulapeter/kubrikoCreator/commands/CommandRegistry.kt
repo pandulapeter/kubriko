@@ -65,6 +65,7 @@ internal class CommandRegistry(
                 description = command.description,
                 inputSchema = JsonSchema.of(command.inputSerializer.descriptor),
                 isReadOnly = command is ReadCommand,
+                isDestructive = command is WriteCommand && command.isDestructive,
             )
         }
     }

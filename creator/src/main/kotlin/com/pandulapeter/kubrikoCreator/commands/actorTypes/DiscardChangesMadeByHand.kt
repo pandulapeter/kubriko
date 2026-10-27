@@ -28,6 +28,7 @@ internal object DiscardChangesMadeByHand : WriteCommand<DiscardChangesMadeByHand
         "so that Kubriko Creator updates it again. Kubriko Creator stops updating a generated class that was changed by hand. This can't be undone."
     override val title = Res.string.command_discard_changes_made_by_hand
     override val inputSerializer = Input.serializer()
+    override val isDestructive = true
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateActorType(input.actorType)
         ?: if (input.actorType !in context.requireActorTypes.changedByHand.value) Rejection(Res.string.error_command_not_changed_by_hand, input.actorType) else null

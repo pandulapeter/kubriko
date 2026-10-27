@@ -25,10 +25,12 @@ jlayer = "1.0.3" # https://github.com/umjammer/jlayer/releases
 kotlin = "2.4.21" # https://github.com/JetBrains/kotlin/releases
 gradle-toolingApi = "9.7.1" # https://gradle.org/releases/
 jgit = "7.8.0.202609011348-r" # https://github.com/eclipse-jgit/jgit/tags
+ktor = "3.5.1" # https://github.com/ktorio/ktor/releases (the version the MCP SDK is built against)
 kotlinx-coroutines = "1.11.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinx-datetime = "0.8.0" # https://github.com/Kotlin/kotlinx-datetime/releases
 kotlinx-immutable = "0.5.2" # https://github.com/Kotlin/kotlinx.collections.immutable/releases
 kotlinx-serialization = "1.11.0" # https://github.com/Kotlin/kotlinx.serialization/releases
+mcp = "0.15.0" # https://github.com/modelcontextprotocol/kotlin-sdk/releases
 vanniktech-publish = "0.37.0" # https://github.com/vanniktech/gradle-maven-publish-plugin/releases
 
 [libraries]
@@ -54,12 +56,16 @@ kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.re
 kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin" }
 gradle-toolingApi = { group = "org.gradle", name = "gradle-tooling-api", version.ref = "gradle-toolingApi" }
 jgit = { group = "org.eclipse.jgit", name = "org.eclipse.jgit", version.ref = "jgit" }
+ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
+ktor-server-cio = { group = "io.ktor", name = "ktor-server-cio", version.ref = "ktor" }
 kotlinx-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-desktop = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlinx-immutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version.ref = "kotlinx-immutable" }
 kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+mcp-client = { group = "io.modelcontextprotocol", name = "kotlin-sdk-client", version.ref = "mcp" }
+mcp-server = { group = "io.modelcontextprotocol", name = "kotlin-sdk-server", version.ref = "mcp" }
 vanniktech-publish = { group = "com.vanniktech", name = "gradle-maven-publish-plugin", version.ref = "vanniktech-publish" }
 
 [plugins]

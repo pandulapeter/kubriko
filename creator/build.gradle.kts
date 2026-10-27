@@ -39,8 +39,12 @@ dependencies {
     implementation(libs.jgit)
     implementation(libs.kotlinx.coroutines.desktop)
     implementation(libs.kotlinx.serialization)
+    implementation(libs.ktor.server.cio)
+    implementation(libs.mcp.server)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.ktor.client.cio)
+    testImplementation(libs.mcp.client)
 }
 
 /**
