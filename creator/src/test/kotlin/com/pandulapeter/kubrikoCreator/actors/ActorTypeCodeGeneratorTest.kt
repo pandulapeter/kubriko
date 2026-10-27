@@ -301,4 +301,64 @@ class ActorTypeCodeGeneratorTest {
         assertContains(code("Score: {score}"), helper)
         assertFalse(helper in code("Title: {title}"))
     }
+
+    @Test
+    fun sectionsBecomeKotlinBlocksClosedAtTheEndOfTheEventAndStrayOnesBecomeComments() {
+        val blocks = listOf(
+            BlockDefinition.End,
+            BlockDefinition.If(ConditionDefinition.Chance(25f)),
+            BlockDefinition.Repeat(times = 2),
+            BlockDefinition.Stop,
+            BlockDefinition.End,
+            BlockDefinition.Else,
+            BlockDefinition.RemoveSelf,
+            BlockDefinition.Else,
+            BlockDefinition.If(ConditionDefinition.Velocity(Axis.VERTICAL, Comparison.LESS_OR_EQUAL, -3f)),
+            BlockDefinition.Stop,
+        )
+        assertEquals(
+            listOf(
+                "// End only works after an if or repeat Block.",
+                "if (Random.nextFloat() * 100f < 25f) {",
+                "    repeat(2) {",
+                "        velocity = SceneOffset.Zero",
+                "    }",
+                "} else {",
+                "    actorManager.remove(this)",
+                "    // Else only works once, after an if Block.",
+                "    if (velocity.y <= -3f.sceneUnit) {",
+                "        velocity = SceneOffset.Zero",
+                "    }",
+                "}",
+            ),
+            ActorTypeCodeGenerator.eventLines(blocks, EventType.EVERY_FRAME, "Player"),
+        )
+    }
+
+    @Test
+    fun conditionsCheckPropertiesKeysVelocityAndChance() {
+        val properties = listOf(PropertyDefinition.Number("score"), PropertyDefinition.Text("title"), PropertyDefinition.Toggle("isShielded"))
+        fun line(condition: ConditionDefinition) = ActorTypeCodeGenerator.blockLines(BlockDefinition.If(condition), EventType.EVERY_FRAME, "Player", properties).single()
+        assertEquals("if (score >= 10f) {", line(ConditionDefinition.Number("score", Comparison.GREATER_OR_EQUAL, 10f)))
+        assertEquals("if (title != \"Game \\\"over\\\"\") {", line(ConditionDefinition.Text("title", "Game \"over\"", isEqual = false)))
+        assertEquals("if (!isShielded) {", line(ConditionDefinition.Toggle("isShielded", isOn = false)))
+        assertEquals("if (keyboardInputManager.isKeyPressed(Key.Spacebar)) {", line(ConditionDefinition.KeyHeld(KeyChoice.SPACE)))
+        assertEquals("if (!keyboardInputManager.isKeyPressed(Key.A)) {", line(ConditionDefinition.KeyHeld(KeyChoice.A, isHeld = false)))
+        assertEquals("if (velocity.x == 0f.sceneUnit) {", line(ConditionDefinition.Velocity(comparison = Comparison.EQUAL)))
+        assertEquals("if (false) {", line(ConditionDefinition.Number()))
+        assertEquals("if (false) {", line(ConditionDefinition.Toggle("score")))
+    }
+
+    @Test
+    fun aKeyConditionGetsTheKeyboardAndAChanceConditionGetsRandomness() {
+        assertFalse("keyboardInputManager" in generate())
+        assertFalse("kotlin.random.Random" in generate())
+        val code = generate(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.If(ConditionDefinition.KeyHeld()), BlockDefinition.If(ConditionDefinition.Chance()))))
+        assertContains(code, "    private lateinit var keyboardInputManager: KeyboardInputManager\n")
+        assertContains(code, "        keyboardInputManager = kubriko.get()\n")
+        assertContains(code, "import com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager\n")
+        assertContains(code, "import androidx.compose.ui.input.key.Key\n")
+        assertContains(code, "import kotlin.random.Random\n")
+        assertFalse("KeyboardInputAware" in code)
+    }
 }

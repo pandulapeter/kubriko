@@ -13,7 +13,10 @@ import com.pandulapeter.kubrikoCreator.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeStore
+import com.pandulapeter.kubrikoCreator.actors.Axis
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.Comparison
+import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
@@ -93,6 +96,20 @@ class ProjectTemplateIntegrationTest {
                 BlockDefinition.ChangeNumber(property = "missing"),
                 BlockDefinition.Log(message = "{title}: {score} ({isShielded}) {missing}"),
                 BlockDefinition.Kotlin(code = "if (isShielded) score += 1f"),
+                BlockDefinition.End,
+                BlockDefinition.If(ConditionDefinition.Number("score", Comparison.LESS_OR_EQUAL, 3f)),
+                BlockDefinition.Repeat(times = 2),
+                BlockDefinition.If(ConditionDefinition.Text("title", "Say \"\$hi\"", isEqual = false)),
+                BlockDefinition.If(ConditionDefinition.Toggle("isShielded")),
+                BlockDefinition.If(ConditionDefinition.KeyHeld(KeyChoice.SPACE, isHeld = false)),
+                BlockDefinition.If(ConditionDefinition.Velocity(Axis.VERTICAL, Comparison.NOT_EQUAL, -1.5f)),
+                BlockDefinition.If(ConditionDefinition.Chance(12.5f)),
+                BlockDefinition.If(ConditionDefinition.Number("missing")),
+                BlockDefinition.Stop,
+                BlockDefinition.Else,
+                BlockDefinition.Else,
+                BlockDefinition.RemoveSelf,
+                BlockDefinition.End,
             )
             when (type) {
                 EventType.KEY_PRESSED -> KeyChoice.entries.map { key -> EventDefinition(type = type, key = key, blocks = blocks) }

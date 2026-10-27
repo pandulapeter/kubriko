@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
+import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
@@ -101,8 +102,15 @@ private val BlockDefinition.areNumbersFinite
         is BlockDefinition.SetVelocity -> x.isFinite() && y.isFinite()
         is BlockDefinition.AddToVelocity -> x.isFinite() && y.isFinite()
         is BlockDefinition.JumpTo -> x.isFinite() && y.isFinite()
+        is BlockDefinition.If -> when (val condition = condition) {
+            is ConditionDefinition.Number -> condition.value.isFinite()
+            is ConditionDefinition.Velocity -> condition.value.isFinite()
+            is ConditionDefinition.Chance -> condition.percent.isFinite() && condition.percent in 0f..100f
+            is ConditionDefinition.Text, is ConditionDefinition.Toggle, is ConditionDefinition.KeyHeld -> true
+        }
+        is BlockDefinition.Repeat -> times >= 0
         is BlockDefinition.SetNumber -> value.isFinite()
         is BlockDefinition.ChangeNumber -> by.isFinite()
         BlockDefinition.Stop, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
-        is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.Log, is BlockDefinition.Kotlin -> true
+        is BlockDefinition.SetText, is BlockDefinition.SetToggle, BlockDefinition.Else, BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin -> true
     }

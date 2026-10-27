@@ -14,11 +14,15 @@ import kubriko.creator.generated.resources.block_add_to_velocity
 import kubriko.creator.generated.resources.block_bounce_off_edge
 import kubriko.creator.generated.resources.block_bounce_off_other
 import kubriko.creator.generated.resources.block_change_number
+import kubriko.creator.generated.resources.block_else
+import kubriko.creator.generated.resources.block_end
+import kubriko.creator.generated.resources.block_if
 import kubriko.creator.generated.resources.block_jump_to
 import kubriko.creator.generated.resources.block_kotlin
 import kubriko.creator.generated.resources.block_log
 import kubriko.creator.generated.resources.block_remove_other
 import kubriko.creator.generated.resources.block_remove_self
+import kubriko.creator.generated.resources.block_repeat
 import kubriko.creator.generated.resources.block_set_number
 import kubriko.creator.generated.resources.block_set_text
 import kubriko.creator.generated.resources.block_set_toggle
@@ -45,6 +49,10 @@ internal enum class BlockKind(
     CHANGE_NUMBER(Res.string.block_change_number, { BlockDefinition.ChangeNumber() }),
     SET_TEXT(Res.string.block_set_text, { BlockDefinition.SetText() }),
     SET_TOGGLE(Res.string.block_set_toggle, { BlockDefinition.SetToggle() }),
+    IF(Res.string.block_if, { BlockDefinition.If() }),
+    ELSE(Res.string.block_else, { BlockDefinition.Else }),
+    REPEAT(Res.string.block_repeat, { BlockDefinition.Repeat() }),
+    END(Res.string.block_end, { BlockDefinition.End }),
     LOG(Res.string.block_log, { BlockDefinition.Log() }),
     KOTLIN(Res.string.block_kotlin, { BlockDefinition.Kotlin() });
 
@@ -73,6 +81,10 @@ internal enum class BlockKind(
             is BlockDefinition.ChangeNumber -> CHANGE_NUMBER
             is BlockDefinition.SetText -> SET_TEXT
             is BlockDefinition.SetToggle -> SET_TOGGLE
+            is BlockDefinition.If -> IF
+            BlockDefinition.Else -> ELSE
+            is BlockDefinition.Repeat -> REPEAT
+            BlockDefinition.End -> END
             is BlockDefinition.Log -> LOG
             is BlockDefinition.Kotlin -> KOTLIN
         }

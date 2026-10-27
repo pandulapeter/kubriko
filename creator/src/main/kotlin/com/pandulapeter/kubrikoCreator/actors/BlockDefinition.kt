@@ -118,6 +118,32 @@ internal sealed interface BlockDefinition {
     ) : BlockDefinition
 
     @Serializable
+    @SerialName("if")
+    @Description("Runs the Blocks after it, up to the matching else or end Block, only when its condition is true. An if Block without an end runs to the end of the Event.")
+    data class If(
+        @Description("What it checks.")
+        @SerialName("condition") val condition: ConditionDefinition = ConditionDefinition.Chance(),
+    ) : BlockDefinition
+
+    @Serializable
+    @SerialName("else")
+    @Description("Between an if Block and its end: the Blocks after it run only when the if Block's condition is false.")
+    data object Else : BlockDefinition
+
+    @Serializable
+    @SerialName("repeat")
+    @Description("Runs the Blocks after it, up to the matching end Block, a number of times.")
+    data class Repeat(
+        @Description("How many times, from 0.")
+        @SerialName("times") val times: Int = 3,
+    ) : BlockDefinition
+
+    @Serializable
+    @SerialName("end")
+    @Description("Ends the Blocks of the closest if or repeat Block before it that isn't ended yet.")
+    data object End : BlockDefinition
+
+    @Serializable
     @SerialName("log")
     @Description("Writes a line to Kubriko Creator's console while the game runs, with the Actor type as its source. The way to see what happens in the game: println doesn't reach the console.")
     data class Log(
@@ -137,7 +163,7 @@ internal sealed interface BlockDefinition {
 private const val PROPERTY_DESCRIPTION = "The name of one of the Actor type's Properties of this kind."
 
 /**
- * The Property [this] Block changes, if it is one that changes a Property: its name, and the kind of Property it needs.
+ * The Property [this] Block changes (or checks, in an if Block), if it uses one: its name, and the kind of Property it needs.
  */
 internal val BlockDefinition.propertyReference: Pair<String, PropertyKind>?
     get() = when (this) {
@@ -145,6 +171,12 @@ internal val BlockDefinition.propertyReference: Pair<String, PropertyKind>?
         is BlockDefinition.ChangeNumber -> property to PropertyKind.NUMBER
         is BlockDefinition.SetText -> property to PropertyKind.TEXT
         is BlockDefinition.SetToggle -> property to PropertyKind.TOGGLE
+        is BlockDefinition.If -> when (val condition = condition) {
+            is ConditionDefinition.Number -> condition.property to PropertyKind.NUMBER
+            is ConditionDefinition.Text -> condition.property to PropertyKind.TEXT
+            is ConditionDefinition.Toggle -> condition.property to PropertyKind.TOGGLE
+            is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.Chance -> null
+        }
         else -> null
     }
 
@@ -158,12 +190,18 @@ internal fun BlockDefinition.withPropertyRenamed(oldName: String, newName: Strin
 }
 
 /**
- * [this] Block changing the Property called [name] instead, if it is one that changes a Property.
+ * [this] Block using the Property called [name] instead, if it is one that uses a Property.
  */
 internal fun BlockDefinition.withProperty(name: String) = when (this) {
     is BlockDefinition.SetNumber -> copy(property = name)
     is BlockDefinition.ChangeNumber -> copy(property = name)
     is BlockDefinition.SetText -> copy(property = name)
     is BlockDefinition.SetToggle -> copy(property = name)
+    is BlockDefinition.If -> when (val condition = condition) {
+        is ConditionDefinition.Number -> copy(condition = condition.copy(property = name))
+        is ConditionDefinition.Text -> copy(condition = condition.copy(property = name))
+        is ConditionDefinition.Toggle -> copy(condition = condition.copy(property = name))
+        is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.Chance -> this
+    }
     else -> this
 }

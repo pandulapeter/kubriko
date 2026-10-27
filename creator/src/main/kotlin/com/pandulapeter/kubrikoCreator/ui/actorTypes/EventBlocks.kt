@@ -23,10 +23,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.BlockNesting
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
@@ -110,9 +112,11 @@ internal fun EventBlocks(
         modifier = Modifier.verticalScroll(rememberScrollState()).padding(start = 12.dp, end = 4.dp, top = 4.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
+        val nesting = remember(event.blocks) { BlockNesting.of(event.blocks).first }
         event.blocks.forEachIndexed { index, block ->
             BlockRow(
                 block = block,
+                nesting = nesting[index],
                 properties = properties,
                 isFirst = index == 0,
                 isLast = index == event.blocks.lastIndex,

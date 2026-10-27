@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
@@ -180,6 +181,17 @@ class ActorTypeCommandsTest {
             Rejection(Res.string.error_property_name_taken),
             context.rejection(CreateActorType, ActorTypeDefinition("Paddle", properties = listOf(PropertyDefinition.Number("speed"), PropertyDefinition.Text("Speed".lowercase())))),
         )
+    }
+
+    @Test
+    fun flowBlocksAreValidated() = runTest {
+        val context = commandContext(ball.copy(properties = listOf(PropertyDefinition.Number("score"))), wall)
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.Number("score", value = 3f)))))
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.Repeat(times = 0))))
+        assertEquals(Rejection(Res.string.error_command_property_missing, "lives", "number"), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.Number("lives")))))
+        assertEquals(Rejection(Res.string.error_command_number_invalid), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.Chance(101f)))))
+        assertEquals(Rejection(Res.string.error_command_number_invalid), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.If(ConditionDefinition.Velocity(value = Float.POSITIVE_INFINITY)))))
+        assertEquals(Rejection(Res.string.error_command_number_invalid), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.Repeat(times = -1))))
     }
 
     @Test

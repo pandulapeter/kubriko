@@ -39,6 +39,8 @@ internal object ActorTypeCodeGenerator {
         val generatedEvents = definition.events.filter { it.type == EventType.ADDED_TO_SCENE || it.type == EventType.EVERY_FRAME } + edgeEvents + keyEvents + collisionEvents
         val blocksByEvent = edgeEvents.flatMap { event -> event.blocks.map { it to event.type } } + collisionEvents.flatMap { event -> event.blocks.map { it to event.type } }
         val usesAbsoluteValue = blocksByEvent.any { (block, eventType) -> blockLines(block, eventType, name, definition.properties).any { "absoluteValue" in it } }
+        val conditions = generatedEvents.flatMap { event -> event.blocks.mapNotNull { (it as? BlockDefinition.If)?.condition } }
+        val usesKeyHeld = conditions.any { it is ConditionDefinition.KeyHeld }
         val traits = listOfNotNull(
             "Visible",
             "Dynamic",
@@ -62,6 +64,8 @@ internal object ActorTypeCodeGenerator {
             if (usesAbsoluteValue) add("kotlin.math.absoluteValue")
             if (generatedEvents.any { event -> event.blocks.any { it is BlockDefinition.Log } }) add("com.pandulapeter.kubriko.logger.Logger")
             if (collisionEvents.any { event -> BlockDefinition.BounceOffOther in event.blocks }) add("com.pandulapeter.kubriko.types.SceneUnit")
+            if (usesKeyHeld) addAll(KEYBOARD_MANAGER_IMPORTS)
+            if (conditions.any { it is ConditionDefinition.Chance }) add("kotlin.random.Random")
         }.sorted()
         return GeneratedFile.withHeader(" from .kubriko/actors/$name.json", buildString {
             appendLine("package $packageName.$GENERATED_PACKAGE")
@@ -89,10 +93,12 @@ internal object ActorTypeCodeGenerator {
             }
             appendLine("    private lateinit var actorManager: ActorManager")
             appendLine("    private lateinit var viewportManager: ViewportManager")
+            if (usesKeyHeld) appendLine("    private lateinit var keyboardInputManager: KeyboardInputManager")
             appendLine()
             appendLine("    override fun onAdded(kubriko: Kubriko) {")
             appendLine("        actorManager = kubriko.get()")
             appendLine("        viewportManager = kubriko.get()")
+            if (usesKeyHeld) appendLine("        keyboardInputManager = kubriko.get()")
             appendEvents(definition.events.filter { it.type == EventType.ADDED_TO_SCENE }, depth = 2, definition = definition)
             appendLine("    }")
             appendLine()
@@ -160,7 +166,7 @@ internal object ActorTypeCodeGenerator {
     })
 
     private fun StringBuilder.appendEvents(events: List<EventDefinition>, depth: Int, definition: ActorTypeDefinition) {
-        val lines = events.flatMap { event -> event.blocks.flatMap { block -> blockLines(block, event.type, definition.name, definition.properties) } }
+        val lines = events.flatMap { event -> eventLines(event.blocks, event.type, definition.name, definition.properties) }
         if (lines.isNotEmpty() && events.first().type != EventType.KEY_PRESSED && events.first().type != EventType.COLLISION) {
             appendLine(INDENT.repeat(depth) + "// " + eventComment(events.first().type))
         }
@@ -250,6 +256,28 @@ internal object ActorTypeCodeGenerator {
     }
 
     /**
+     * The statements of an Event of [eventType] that runs [blocks]: their sections become Kotlin blocks, closed at the end
+     * of the Event if they aren't before, and else or end Blocks that belong to no section become comments.
+     */
+    internal fun eventLines(
+        blocks: List<BlockDefinition>,
+        eventType: EventType,
+        actorTypeName: String,
+        properties: List<PropertyDefinition> = emptyList(),
+    ): List<String> {
+        val (nesting, openSections) = BlockNesting.of(blocks)
+        return blocks.indices.flatMap { index ->
+            val indent = INDENT.repeat(nesting[index].depth)
+            when (nesting[index].role) {
+                BlockNesting.Role.ELSE -> listOf("$indent} else {")
+                BlockNesting.Role.CLOSES -> listOf("$indent}")
+                BlockNesting.Role.STRAY -> listOf(indent + if (blocks[index] == BlockDefinition.Else) "// Else only works once, after an if Block." else "// End only works after an if or repeat Block.")
+                BlockNesting.Role.PLAIN, BlockNesting.Role.OPENS -> blockLines(blocks[index], eventType, actorTypeName, properties).map { indent + it }
+            }
+        } + (openSections - 1 downTo 0).map { depth -> INDENT.repeat(depth) + "}" }
+    }
+
+    /**
      * The statements of [block] in an Event of [eventType]. Blocks that need what only one Event knows become a comment
      * anywhere else, so that a definition edited by hand still compiles.
      */
@@ -297,12 +325,32 @@ internal object ActorTypeCodeGenerator {
         is BlockDefinition.ChangeNumber -> propertyLines(block, properties) { "${block.property} += ${floatLiteral(block.by)}" }
         is BlockDefinition.SetText -> propertyLines(block, properties) { "${block.property} = ${stringLiteral(block.value)}" }
         is BlockDefinition.SetToggle -> propertyLines(block, properties) { "${block.property} = ${block.value}" }
+        is BlockDefinition.If -> listOf("if (${conditionExpression(block.condition, properties)}) {")
+        is BlockDefinition.Repeat -> listOf("repeat(${block.times.coerceAtLeast(0)}) {")
+        BlockDefinition.Else, BlockDefinition.End -> emptyList()
         is BlockDefinition.Log -> listOf("Logger.log(message = ${templateLiteral(block.message, properties)}, source = ${stringLiteral(actorTypeName)})")
         // Each Kotlin Block gets a scope of its own, like GameMaker's code actions, so two of them can declare the same name.
         is BlockDefinition.Kotlin -> block.code.lines().map { it.trimEnd() }.dropWhile { it.isEmpty() }.dropLastWhile { it.isEmpty() }
             .takeIf { it.isNotEmpty() }
             ?.let { lines -> listOf("run {") + lines.map { if (it.isEmpty()) it else INDENT + it } + "}" }
             .orEmpty()
+    }
+
+    /**
+     * [condition] as a Kotlin expression, or `false` if it needs a Property the Actor type doesn't have (of that kind),
+     * so that the generated code always compiles.
+     */
+    private fun conditionExpression(condition: ConditionDefinition, properties: List<PropertyDefinition>): String {
+        val reference = BlockDefinition.If(condition).propertyReference
+        if (reference != null && properties.none { it.name == reference.first && PropertyKind.of(it) == reference.second }) return "false"
+        return when (condition) {
+            is ConditionDefinition.Number -> "${condition.property} ${condition.comparison.operator} ${floatLiteral(condition.value)}"
+            is ConditionDefinition.Text -> "${condition.property} ${if (condition.isEqual) "==" else "!="} ${stringLiteral(condition.value)}"
+            is ConditionDefinition.Toggle -> if (condition.isOn) condition.property else "!${condition.property}"
+            is ConditionDefinition.KeyHeld -> (if (condition.isHeld) "" else "!") + "keyboardInputManager.isKeyPressed(Key.${condition.key.composeKeyName})"
+            is ConditionDefinition.Velocity -> "velocity.${if (condition.axis == Axis.HORIZONTAL) "x" else "y"} ${condition.comparison.operator} ${unitLiteral(condition.value)}"
+            is ConditionDefinition.Chance -> "Random.nextFloat() * 100f < ${floatLiteral(condition.percent)}"
+        }
     }
 
     /**
@@ -397,6 +445,11 @@ internal object ActorTypeCodeGenerator {
         "com.pandulapeter.kubriko.types.SceneSize",
         "kotlinx.serialization.SerialName",
         "kotlinx.serialization.json.Json",
+    )
+
+    private val KEYBOARD_MANAGER_IMPORTS = listOf(
+        "androidx.compose.ui.input.key.Key",
+        "com.pandulapeter.kubriko.keyboardInput.KeyboardInputManager",
     )
 
     private val KEYBOARD_IMPORTS = listOf(

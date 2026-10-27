@@ -14,7 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class PropertyBlockParametersTest {
+class PropertyChoiceTest {
 
     @Test
     fun blocksOfferOnlyThePropertiesOfTheKindTheyNeed() {

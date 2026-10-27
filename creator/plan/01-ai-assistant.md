@@ -37,6 +37,8 @@ step-by-step view of the AI's work (activity bar, follow mode, highlights) exist
   from a terminal against the server; still owed: clicking Connect for Claude Desktop and using the tools from a real chat (its log
   is `~/Library/Logs/Claude/mcp-server-kubriko-creator.log`), Cursor at all (not installed here), and Windows, where the entry
   runs plain `npx`.
+- A screenshot right after `start_game` can be empty: the window is open, but the Scene's Actors aren't added yet. Waiting
+  for the first frame that draws Actors (the session can ask the Kubriko instance through the entry point) would fix it.
 - The game tools see the game through screenshots and logs. Reading Actors' positions and states directly needs a way into the
   running Kubriko instance, which is the debug agent's job (`04-debugger.md`); expose it as a tool once that exists.
 - Windows: `ShellProcessRunner` passes commands to `cmd /c` unverified; try the one-click setup on Windows. fish's `alias name 'value'`

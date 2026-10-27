@@ -11,18 +11,14 @@ package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
-import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.actors.withProperty
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
@@ -30,8 +26,6 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_parameter_by
 import kubriko.creator.generated.resources.block_parameter_text
 import kubriko.creator.generated.resources.block_parameter_value
-import kubriko.creator.generated.resources.block_property_choose
-import kubriko.creator.generated.resources.block_property_none
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -48,22 +42,8 @@ internal fun PropertyBlockParameters(
     verticalAlignment = Alignment.CenterVertically,
 ) {
     val (propertyName, kind) = block.propertyReference ?: return@Row
-    val choices = propertyChoices(properties, kind)
-    if (choices.isEmpty()) {
-        Text(
-            modifier = Modifier.padding(vertical = 6.dp),
-            text = stringResource(Res.string.block_property_none, stringResource(kind.title).lowercase()),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        return@Row
-    }
-    MenuButton(
-        label = propertyName.ifEmpty { stringResource(Res.string.block_property_choose) },
-        options = choices,
-        optionText = { it },
-        onSelected = { onBlockChange(block.withProperty(it)) },
-    )
+    PropertyChoice(propertyName, properties, kind) { onBlockChange(block.withProperty(it)) }
+    if (propertyChoices(properties, kind).isEmpty()) return@Row
     when (block) {
         is BlockDefinition.SetNumber -> NumberField(
             modifier = Modifier.width(96.dp),
@@ -90,8 +70,3 @@ internal fun PropertyBlockParameters(
         else -> Unit
     }
 }
-
-/**
- * The names of the [properties] of [kind], which a Block that needs that kind can change.
- */
-internal fun propertyChoices(properties: List<PropertyDefinition>, kind: PropertyKind) = properties.filter { PropertyKind.of(it) == kind }.map { it.name }

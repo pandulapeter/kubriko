@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
+import com.pandulapeter.kubrikoCreator.actors.BlockNesting
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
@@ -36,8 +37,11 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_move_down
 import kubriko.creator.generated.resources.action_move_up
 import kubriko.creator.generated.resources.action_remove
+import kubriko.creator.generated.resources.block_else_stray
+import kubriko.creator.generated.resources.block_end_stray
 import kubriko.creator.generated.resources.block_parameter_code
 import kubriko.creator.generated.resources.block_parameter_message
+import kubriko.creator.generated.resources.block_parameter_times
 import kubriko.creator.generated.resources.block_parameter_x
 import kubriko.creator.generated.resources.block_parameter_y
 import kubriko.creator.generated.resources.block_velocity_unit
@@ -53,6 +57,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun BlockRow(
     block: BlockDefinition,
+    nesting: BlockNesting,
     properties: List<PropertyDefinition>,
     isFirst: Boolean,
     isLast: Boolean,
@@ -62,7 +67,7 @@ internal fun BlockRow(
     onRemove: () -> Unit,
     flashKey: Any? = null,
 ) = Column(
-    modifier = Modifier.fillMaxWidth().background(rememberFlashColor(flashKey), MaterialTheme.shapes.small),
+    modifier = Modifier.fillMaxWidth().padding(start = (nesting.depth * NESTING_INDENT).dp).background(rememberFlashColor(flashKey), MaterialTheme.shapes.small),
     verticalArrangement = Arrangement.spacedBy(4.dp),
 ) {
     val kind = BlockKind.of(block)
@@ -90,6 +95,14 @@ internal fun BlockRow(
     ) {
         InlineParameters(block, properties, onBlockChange)
     }
+    if (nesting.role == BlockNesting.Role.STRAY) {
+        Text(
+            modifier = Modifier.padding(start = 24.dp, bottom = 4.dp),
+            text = stringResource(if (block == BlockDefinition.Else) Res.string.block_else_stray else Res.string.block_end_stray),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+        )
+    }
     if (block is BlockDefinition.Kotlin) {
         CompactTextField(
             modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 8.dp, bottom = 4.dp).heightIn(min = 72.dp),
@@ -109,6 +122,13 @@ private fun InlineParameters(
     onBlockChange: (BlockDefinition) -> Unit,
 ) = when (block) {
     is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText, is BlockDefinition.SetToggle -> PropertyBlockParameters(block, properties, onBlockChange)
+    is BlockDefinition.If -> ConditionParameters(block.condition, properties) { onBlockChange(block.copy(condition = it)) }
+    is BlockDefinition.Repeat -> NumberField(
+        modifier = Modifier.width(96.dp),
+        label = Res.string.block_parameter_times,
+        value = block.times.toFloat(),
+        onValueChange = { if (it >= 0f && it == it.toInt().toFloat()) onBlockChange(block.copy(times = it.toInt())) },
+    )
     is BlockDefinition.SetVelocity -> OffsetParameters(block.x, block.y, isVelocity = true) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
     is BlockDefinition.AddToVelocity -> OffsetParameters(block.x, block.y, isVelocity = true) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
     is BlockDefinition.JumpTo -> OffsetParameters(block.x, block.y, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
@@ -118,7 +138,8 @@ private fun InlineParameters(
         onValueChange = { onBlockChange(block.copy(message = it)) },
         placeholder = stringResource(Res.string.block_parameter_message),
     )
-    BlockDefinition.Stop, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther, is BlockDefinition.Kotlin -> Unit
+    BlockDefinition.Stop, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
+    BlockDefinition.Else, BlockDefinition.End, is BlockDefinition.Kotlin -> Unit
 }
 
 @Composable
@@ -151,3 +172,8 @@ private fun OffsetParameters(
         )
     }
 }
+
+/**
+ * How far each section moves the Blocks in it to the right, in dp.
+ */
+private const val NESTING_INDENT = 20

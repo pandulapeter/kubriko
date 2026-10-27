@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
+import com.pandulapeter.kubrikoCreator.actors.ConditionDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
@@ -42,6 +43,7 @@ class PropertyCommandsTest {
         properties = listOf(score, title),
         events = listOf(
             EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.ChangeNumber("score", 2f), BlockDefinition.Log("Score: {score}, {scoreboard}"))),
+            EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.If(ConditionDefinition.Number("score", value = 3f)))),
         ),
     )
     private val changedScenes = mutableListOf<String>()
@@ -72,7 +74,8 @@ class PropertyCommandsTest {
         )
         val renamed = context.assertRoundTrip(Invocation(EditProperty, EditProperty.Input("Player", "score", PropertyDefinition.Number("points", 5f)))) { context.player() to context.states() }
         assertEquals(listOf(PropertyDefinition.Number("points", 5f), title), renamed.first.properties)
-        assertEquals(listOf(BlockDefinition.ChangeNumber("points", 2f), BlockDefinition.Log("Score: {points}, {scoreboard}")), renamed.first.events.single().blocks)
+        assertEquals(listOf(BlockDefinition.ChangeNumber("points", 2f), BlockDefinition.Log("Score: {points}, {scoreboard}")), renamed.first.events[0].blocks)
+        assertEquals(listOf(BlockDefinition.If(ConditionDefinition.Number("points", value = 3f))), renamed.first.events[1].blocks)
         assertEquals(listOf("""{"points":12.0,"title":"Hi"}""", """{"score":7.0}"""), renamed.second)
         assertEquals(listOf("main"), changedScenes.distinct())
     }
@@ -82,7 +85,7 @@ class PropertyCommandsTest {
         val context = context(SceneActorEntry("Player", """{"score":12.0}"""))
         Invocation(RemoveProperty, RemoveProperty.Input("Player", "score")).apply(context)
         assertEquals(listOf("""{"score":12.0}"""), context.states())
-        assertEquals(listOf(BlockDefinition.ChangeNumber("score", 2f), BlockDefinition.Log("Score: {score}, {scoreboard}")), context.player().events.single().blocks)
+        assertEquals(listOf(BlockDefinition.ChangeNumber("score", 2f), BlockDefinition.Log("Score: {score}, {scoreboard}")), context.player().events[0].blocks)
         Invocation(AddProperty, AddProperty.Input("Player", PropertyDefinition.Text("score"))).apply(context)
         assertEquals(listOf("{}"), context.states())
     }

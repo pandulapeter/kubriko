@@ -23,9 +23,11 @@ import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_bounce
 import kubriko.creator.generated.resources.ic_code
 import kubriko.creator.generated.resources.ic_collision
+import kubriko.creator.generated.resources.ic_condition
 import kubriko.creator.generated.resources.ic_console
 import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.ic_edge
+import kubriko.creator.generated.resources.ic_end
 import kubriko.creator.generated.resources.ic_keyboard
 import kubriko.creator.generated.resources.ic_loop
 import kubriko.creator.generated.resources.ic_number
@@ -81,6 +83,9 @@ internal val BlockKind.icon: DrawableResource
         BlockKind.CHANGE_NUMBER -> Res.drawable.ic_add
         BlockKind.SET_TEXT -> Res.drawable.ic_text
         BlockKind.SET_TOGGLE -> Res.drawable.ic_toggle
+        BlockKind.IF, BlockKind.ELSE -> Res.drawable.ic_condition
+        BlockKind.REPEAT -> Res.drawable.ic_loop
+        BlockKind.END -> Res.drawable.ic_end
         BlockKind.LOG -> Res.drawable.ic_console
         BlockKind.KOTLIN -> Res.drawable.ic_code
     }

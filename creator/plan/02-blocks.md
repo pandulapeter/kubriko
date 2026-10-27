@@ -14,8 +14,9 @@ case in the integration test's every-Block Actor type.
 
 ## Next additions
 
-- **More Properties:** color and Actor type reference Properties (the number, text, and toggle ones exist); comparing them comes with Flow.
-- **Flow:** if / else on a comparison (Property, velocity, key held, random chance), repeat; nested Block lists in the model and the editor.
+- **More Properties:** color and Actor type reference Properties (the number, text, and toggle ones exist).
+- **More flow:** combining conditions (and, or), comparing two Properties, and a Palette button that adds an If with its End. Sections
+  live in the flat Block list (see `../CLAUDE.md` → Commands), so drag-and-drop stays a reorder.
 - **Timers:** "Start Timer *n*" Block and a "When Timer *n* finishes" Event (a generated `Timer` field updated in `update`).
 - **Actors:** add an Actor of a type at a position (spawning), find the nearest of a type.
 - **On-screen text and score:** a Scene-level value store (score, lives) with Blocks to change it, and text drawn by a Manager.
