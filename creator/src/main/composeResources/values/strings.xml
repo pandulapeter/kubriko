@@ -248,4 +248,5 @@
     <string name="error_game_keys_count">Press between 1 and %1$s keys at a time.</string>
     <string name="error_game_key_unknown">There's no key called %1$s.</string>
     <string name="error_game_duration_invalid">Use between 1 and %1$s milliseconds.</string>
+    <string name="ai_client_variant">%1$s (%2$s)</string>
 </resources>

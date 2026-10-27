@@ -25,6 +25,10 @@ internal class FakeProcessRunner(
      */
     val printingOnly = mutableMapOf<String, String>()
 
+    val aliases = mutableMapOf<String, String>()
+
+    override fun aliases() = aliases.toMap()
+
     override fun exists(command: String) = command in installed
 
     override fun run(command: String, arguments: List<String>): ProcessRunner.Result {

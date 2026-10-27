@@ -16,6 +16,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
@@ -34,6 +36,7 @@ internal class McpController(
     val state = _state.asStateFlow()
     val calls = server.calls
     private var job: Job? = null
+    private val saves = Mutex()
 
     init {
         apply(_settings.value)
@@ -50,8 +53,11 @@ internal class McpController(
         return true
     }
 
-    fun setClientConnected(client: AiClient, isConnected: Boolean) = updateStored(
-        _settings.value.copy(connectedClients = if (isConnected) _settings.value.connectedClients + client else _settings.value.connectedClients - client),
+    /**
+     * Remembers whether the AI tool setup with [setupId] is connected.
+     */
+    fun setClientConnected(setupId: String, isConnected: Boolean) = updateStored(
+        _settings.value.copy(connectedClients = if (isConnected) _settings.value.connectedClients + setupId else _settings.value.connectedClients - setupId),
     )
 
     /**
@@ -76,7 +82,8 @@ internal class McpController(
      */
     private fun updateStored(settings: McpSettings) {
         _settings.value = settings
-        scope.launch(ioDispatcher) { store.save(settings) }
+        // Saves can finish in any order, so each one writes the settings as they are by then.
+        scope.launch(ioDispatcher) { saves.withLock { store.save(_settings.value) } }
     }
 
     private fun apply(settings: McpSettings) {

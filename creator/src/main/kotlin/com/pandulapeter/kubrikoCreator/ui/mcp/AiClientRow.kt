@@ -24,7 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.pandulapeter.kubrikoCreator.mcp.clients.AiClient
+import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientSetup
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientStatus
 import com.pandulapeter.kubrikoCreator.ui.components.openInBrowser
 import kubriko.creator.generated.resources.Res
@@ -36,14 +36,15 @@ import kubriko.creator.generated.resources.ai_client_connected
 import kubriko.creator.generated.resources.ai_client_failed
 import kubriko.creator.generated.resources.ai_client_not_connected
 import kubriko.creator.generated.resources.ai_client_not_installed
+import kubriko.creator.generated.resources.ai_client_variant
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * One AI tool: whether it is installed and connected, and the button that changes that.
+ * One setup of an AI tool: whether it is installed and connected, and the button that changes that.
  */
 @Composable
 internal fun AiClientRow(
-    client: AiClient,
+    setup: AiClientSetup,
     status: AiClientStatus,
     onConnect: () -> Unit,
     onDisconnect: () -> Unit,
@@ -56,7 +57,7 @@ internal fun AiClientRow(
         modifier = Modifier.weight(1f),
     ) {
         Text(
-            text = client.displayName,
+            text = setup.variant?.let { stringResource(Res.string.ai_client_variant, setup.client.displayName, it) } ?: setup.client.displayName,
             style = MaterialTheme.typography.bodyMedium,
         )
         Text(
@@ -64,7 +65,7 @@ internal fun AiClientRow(
                 AiClientStatus.Checking -> stringResource(Res.string.ai_client_checking)
                 AiClientStatus.NotInstalled -> stringResource(Res.string.ai_client_not_installed)
                 AiClientStatus.NotConnected -> stringResource(Res.string.ai_client_not_connected)
-                AiClientStatus.Connected -> stringResource(Res.string.ai_client_connected, client.displayName)
+                AiClientStatus.Connected -> stringResource(Res.string.ai_client_connected, setup.client.displayName)
                 is AiClientStatus.Failed -> stringResource(Res.string.ai_client_failed, status.output)
             },
             style = MaterialTheme.typography.bodySmall,
@@ -82,7 +83,7 @@ internal fun AiClientRow(
             modifier = Modifier.size(16.dp),
             strokeWidth = 2.dp,
         )
-        AiClientStatus.NotInstalled -> OutlinedButton(onClick = { openInBrowser(client.installUrl) }) {
+        AiClientStatus.NotInstalled -> OutlinedButton(onClick = { openInBrowser(setup.client.installUrl) }) {
             Text(stringResource(Res.string.action_install))
         }
         AiClientStatus.Connected -> OutlinedButton(onClick = onDisconnect) {

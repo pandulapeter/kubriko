@@ -36,6 +36,7 @@ import com.pandulapeter.kubrikoCreator.mcp.McpServerState
 import com.pandulapeter.kubrikoCreator.mcp.McpSettings
 import com.pandulapeter.kubrikoCreator.mcp.McpToolCall
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClient
+import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientSetup
 import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientStatus
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import kubriko.creator.generated.resources.Res
@@ -63,12 +64,13 @@ import org.jetbrains.compose.resources.stringResource
 internal fun AiConnectionPanel(
     settings: McpSettings,
     state: McpServerState,
-    clientStatuses: Map<AiClient, AiClientStatus>,
+    clientSetups: List<AiClientSetup>,
+    clientStatuses: Map<String, AiClientStatus>,
     calls: List<McpToolCall>,
     onEnabledChange: (Boolean) -> Unit,
     onRefreshClients: () -> Unit,
-    onConnect: (AiClient) -> Unit,
-    onDisconnect: (AiClient) -> Unit,
+    onConnect: (AiClientSetup) -> Unit,
+    onDisconnect: (AiClientSetup) -> Unit,
     onPortChange: (Int) -> Boolean,
     onRegenerateToken: () -> Unit,
     onCommandChange: (AiClient, String) -> Unit,
@@ -90,12 +92,12 @@ internal fun AiConnectionPanel(
             text = stringResource(Res.string.ai_connection_clients),
             style = MaterialTheme.typography.titleSmall,
         )
-        AiClient.entries.forEach { client ->
+        clientSetups.forEach { setup ->
             AiClientRow(
-                client = client,
-                status = clientStatuses[client] ?: AiClientStatus.Checking,
-                onConnect = { onConnect(client) },
-                onDisconnect = { onDisconnect(client) },
+                setup = setup,
+                status = clientStatuses[setup.id] ?: AiClientStatus.Checking,
+                onConnect = { onConnect(setup) },
+                onDisconnect = { onDisconnect(setup) },
             )
         }
         HorizontalDivider()

@@ -32,6 +32,10 @@ internal class ShellProcessRunner(
         run(if (isWindows) listOf("where", executable) else shellCommand("command -v ${quoted(executable)}")).exitCode == 0
     }
 
+    override fun aliases() = if (isWindows) emptyMap() else run(shellCommand("alias")).let { result ->
+        if (result.exitCode == 0) ShellAliases.parse(result.output) else emptyMap()
+    }
+
     /**
      * Runs [command] as the user typed it (so it can set environment variables first, like `CLAUDE_CONFIG_DIR=… claude`),
      * followed by [arguments] passed as they are.

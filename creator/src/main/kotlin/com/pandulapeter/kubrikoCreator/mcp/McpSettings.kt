@@ -17,7 +17,8 @@ import kotlinx.serialization.Serializable
  * How Kubriko Creator serves its tools to AI clients. Stored in the settings folder, so it survives restarts.
  *
  * @param token What AI clients send as a bearer token. Anyone who has it can change the open project.
- * @param connectedClients The AI tools Kubriko Creator connected, which it connects again when the port or token changes.
+ * @param connectedClients The [com.pandulapeter.kubrikoCreator.mcp.clients.AiClientSetup.id]s of the AI tools Kubriko
+ *   Creator connected, which it connects again when the port or token changes.
  * @param clientCommands The programs to run for AI tools whose command isn't the usual one.
  */
 @Serializable
@@ -25,7 +26,7 @@ internal data class McpSettings(
     @SerialName("isEnabled") val isEnabled: Boolean = false,
     @SerialName("port") val port: Int = DEFAULT_PORT,
     @SerialName("token") val token: String,
-    @SerialName("connectedClients") val connectedClients: Set<AiClient> = emptySet(),
+    @SerialName("connectedClients") val connectedClients: Set<String> = emptySet(),
     @SerialName("clientCommands") val clientCommands: Map<AiClient, String> = emptyMap(),
 ) {
     val url get() = "http://${McpToolServer.HOST}:$port${McpToolServer.PATH}"

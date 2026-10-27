@@ -54,9 +54,13 @@ class AiClientsControllerTest {
         return AiClientsController(mcp = created, runner = runner, scope = testScope(), ioDispatcher = UnconfinedTestDispatcher(testScheduler))
     }
 
-    private suspend fun AiClientsController.awaitStatus(client: AiClient, expected: AiClientStatus) = withContext(Dispatchers.IO) {
-        withTimeout(5_000) { statuses.first { it[client] == expected } }
+    private fun setup(client: AiClient, command: String = client.defaultCommand) = AiClientSetup(client, command, "personal".takeIf { command != client.defaultCommand })
+
+    private suspend fun AiClientsController.awaitStatus(setup: AiClientSetup, expected: AiClientStatus) = withContext(Dispatchers.IO) {
+        withTimeout(5_000) { statuses.first { it[setup.id] == expected } }
     }
+
+    private suspend fun AiClientsController.awaitStatus(client: AiClient, expected: AiClientStatus) = awaitStatus(setup(client), expected)
 
     @Test
     fun refreshingTellsInstalledToolsApartAndFindsTheConnectedOnes() = runTest {
@@ -71,12 +75,12 @@ class AiClientsControllerTest {
     @Test
     fun connectingTurnsTheServerOnAndRegistersItInTheTool() = runTest {
         val controller = controller()
-        controller.connect(AiClient.CLAUDE_CODE)
+        controller.connect(setup(AiClient.CLAUDE_CODE))
         controller.awaitStatus(AiClient.CLAUDE_CODE, AiClientStatus.Connected)
         val settings = mcp!!.settings.value
         assertTrue(settings.isEnabled)
         assertTrue(mcp!!.state.value is McpServerState.Running)
-        assertEquals(setOf(AiClient.CLAUDE_CODE), settings.connectedClients)
+        assertEquals(setOf("claudeCode"), settings.connectedClients)
         assertEquals("claude " + AiClient.CLAUDE_CODE.addArguments(settings).joinToString(" "), runner.calls.single { " add " in it })
     }
 
@@ -84,7 +88,7 @@ class AiClientsControllerTest {
     fun aFailedConnectionShowsWhatTheToolSaid() = runTest {
         runner.failingOutput = "Use specific commands: claude-personal"
         val controller = controller()
-        controller.connect(AiClient.CLAUDE_CODE)
+        controller.connect(setup(AiClient.CLAUDE_CODE))
         controller.awaitStatus(AiClient.CLAUDE_CODE, AiClientStatus.Failed("Use specific commands: claude-personal"))
         assertEquals(emptySet(), mcp!!.settings.value.connectedClients)
     }
@@ -95,20 +99,44 @@ class AiClientsControllerTest {
         val controller = controller()
         controller.refresh()
         controller.awaitStatus(AiClient.CLAUDE_CODE, AiClientStatus.NotConnected)
-        controller.connect(AiClient.CLAUDE_CODE)
+        controller.connect(setup(AiClient.CLAUDE_CODE))
         val failed = controller.awaitStatus(AiClient.CLAUDE_CODE, AiClientStatus.Failed("Use specific commands: claude-flashfood or claude-personal " + AiClient.CLAUDE_CODE.addArguments(mcp!!.settings.value).joinToString(" ")))
         assertTrue(failed.isNotEmpty())
         assertEquals(emptySet(), mcp!!.settings.value.connectedClients)
     }
 
     @Test
+    fun aliasesThatRunAToolAreSetupsOfTheirOwnAndAShadowingAliasHidesTheUsualCommand() = runTest {
+        runner.aliases += mapOf(
+            "claude" to "echo 'Use specific commands: claude-flashfood or claude-personal'",
+            "claude-personal" to "CLAUDE_CONFIG_DIR=~/.claude-personal /opt/homebrew/bin/claude",
+            "claude-flashfood" to "CLAUDE_CONFIG_DIR=~/.claude-flashfood /opt/homebrew/bin/claude",
+        )
+        runner.installed += setOf("claude-personal", "claude-flashfood")
+        runner.registered["claude-flashfood"] = "mcp add kubriko-creator"
+        val controller = controller()
+        controller.refresh()
+        val flashfood = AiClientSetup(AiClient.CLAUDE_CODE, "claude-flashfood", "flashfood")
+        val personal = AiClientSetup(AiClient.CLAUDE_CODE, "claude-personal", "personal")
+        controller.awaitStatus(flashfood, AiClientStatus.Connected)
+        controller.awaitStatus(personal, AiClientStatus.NotConnected)
+        assertEquals(listOf(flashfood, personal), controller.setups.value.filter { it.client == AiClient.CLAUDE_CODE })
+        controller.connect(personal)
+        controller.awaitStatus(personal, AiClientStatus.Connected)
+        assertEquals(setOf("claudeCode@claude-personal"), mcp!!.settings.value.connectedClients)
+        mcp!!.regenerateToken()
+        val newToken = mcp!!.settings.value.token
+        withContext(Dispatchers.IO) { withTimeout(5_000) { while (runner.registered["claude-personal"]?.contains(newToken) != true) Thread.sleep(20) } }
+    }
+
+    @Test
     fun disconnectingRemovesItEvenIfItWasAlreadyGone() = runTest {
         val controller = controller()
-        controller.connect(AiClient.CODEX)
+        controller.connect(setup(AiClient.CODEX))
         controller.awaitStatus(AiClient.CODEX, AiClientStatus.Connected)
-        controller.disconnect(AiClient.CODEX)
+        controller.disconnect(setup(AiClient.CODEX))
         controller.awaitStatus(AiClient.CODEX, AiClientStatus.NotConnected)
-        controller.disconnect(AiClient.CODEX)
+        controller.disconnect(setup(AiClient.CODEX))
         controller.awaitStatus(AiClient.CODEX, AiClientStatus.NotConnected)
         assertEquals(emptySet(), mcp!!.settings.value.connectedClients)
     }
@@ -116,7 +144,7 @@ class AiClientsControllerTest {
     @Test
     fun connectedToolsAreConnectedAgainWithANewToken() = runTest {
         val controller = controller()
-        controller.connect(AiClient.CODEX)
+        controller.connect(setup(AiClient.CODEX))
         controller.awaitStatus(AiClient.CODEX, AiClientStatus.Connected)
         mcp!!.regenerateToken()
         val newToken = mcp!!.settings.value.token
@@ -128,9 +156,9 @@ class AiClientsControllerTest {
         runner.installed += "claude-personal"
         val controller = controller()
         controller.setCommand(AiClient.CLAUDE_CODE, "claude-personal")
-        controller.awaitStatus(AiClient.CLAUDE_CODE, AiClientStatus.NotConnected)
-        controller.connect(AiClient.CLAUDE_CODE)
-        controller.awaitStatus(AiClient.CLAUDE_CODE, AiClientStatus.Connected)
+        controller.awaitStatus(setup(AiClient.CLAUDE_CODE, "claude-personal"), AiClientStatus.NotConnected)
+        controller.connect(setup(AiClient.CLAUDE_CODE, "claude-personal"))
+        controller.awaitStatus(setup(AiClient.CLAUDE_CODE, "claude-personal"), AiClientStatus.Connected)
         assertTrue("claude-personal" in runner.registered)
     }
 }

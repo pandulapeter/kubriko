@@ -22,6 +22,11 @@ internal interface ProcessRunner {
     fun run(command: String, arguments: List<String>): Result
 
     /**
+     * The aliases the user's shell defines, by name, or none where there is no such shell.
+     */
+    fun aliases(): Map<String, String>
+
+    /**
      * @param output What the program printed, standard output and errors together.
      */
     data class Result(

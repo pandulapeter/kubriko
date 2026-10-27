@@ -27,7 +27,8 @@ import kotlinx.coroutines.withContext
 
 /**
  * Connects AI tools to Kubriko Creator's MCP server with their own command-line programs, so that the user doesn't
- * have to. Clients connected this way are connected again whenever the port or the token changes.
+ * have to: every [AiClientSetup] on this computer, including shell aliases that run a tool with settings of their own.
+ * Setups connected this way are connected again whenever the port or the token changes.
  */
 internal class AiClientsController(
     private val mcp: McpController,
@@ -35,76 +36,87 @@ internal class AiClientsController(
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
 ) {
-    private val _statuses = MutableStateFlow(AiClient.entries.associateWith<AiClient, AiClientStatus> { AiClientStatus.Checking })
+    private val _setups = MutableStateFlow(AiClient.entries.map { AiClientSetup(it, mcp.settings.value.commandOf(it)) })
+    val setups = _setups.asStateFlow()
+    private val _statuses = MutableStateFlow(emptyMap<String, AiClientStatus>())
+
+    /**
+     * The status of each setup, by [AiClientSetup.id]; a setup without one is being checked.
+     */
     val statuses = _statuses.asStateFlow()
     private val operations = Mutex()
 
     init {
         scope.launch {
             mcp.settings.map { it.port to it.token }.distinctUntilChanged().drop(1).collect {
-                mcp.settings.value.connectedClients.forEach { client -> connect(client) }
+                mcp.settings.value.connectedClients
+                    .mapNotNull { id -> _setups.value.firstOrNull { it.id == id } ?: AiClientSetup.fromId(id) }
+                    .forEach(::connect)
             }
         }
     }
 
     /**
-     * Checks which AI tools are installed, and which of them already know Kubriko Creator.
+     * Finds the setups of every AI tool, and checks which are installed and which already know Kubriko Creator.
      */
-    fun refresh() = AiClient.entries.forEach { client ->
-        perform(client) { status(client) }
+    fun refresh() {
+        scope.launch {
+            val aliases = withContext(ioDispatcher) { runner.aliases() }
+            _setups.value = AiClientSetup.discover(aliases, mcp.settings.value::commandOf)
+            _statuses.value = emptyMap()
+            _setups.value.forEach { setup -> perform(setup) { status(setup) } }
+        }
     }
 
     /**
-     * Registers Kubriko Creator in [client], turning the server on first if it is off.
+     * Registers Kubriko Creator in [setup], turning the server on first if it is off.
      */
-    fun connect(client: AiClient) = perform(client) {
+    fun connect(setup: AiClientSetup) = perform(setup) {
         if (!mcp.settings.value.isEnabled) {
             mcp.setEnabled(true)
             mcp.state.first { it is McpServerState.Running || it is McpServerState.Failed }
         }
-        val command = mcp.settings.value.commandOf(client)
         val result = withContext(ioDispatcher) {
-            if (!runner.exists(command)) return@withContext null
-            runner.run(command, client.removeArguments)
-            runner.run(command, client.addArguments(mcp.settings.value))
+            if (!runner.exists(setup.command)) return@withContext null
+            runner.run(setup.command, setup.client.removeArguments)
+            runner.run(setup.command, setup.client.addArguments(mcp.settings.value))
         }
         when {
             result == null -> AiClientStatus.NotInstalled
             result.exitCode != 0 -> AiClientStatus.Failed(result.output)
-            status(client) == AiClientStatus.Connected -> AiClientStatus.Connected.also { mcp.setClientConnected(client, true) }
+            status(setup) == AiClientStatus.Connected -> AiClientStatus.Connected.also { mcp.setClientConnected(setup.id, true) }
             else -> AiClientStatus.Failed(result.output)
         }
     }
 
-    fun disconnect(client: AiClient) = perform(client) {
-        val result = withContext(ioDispatcher) { runner.run(mcp.settings.value.commandOf(client), client.removeArguments) }
-        mcp.setClientConnected(client, false)
-        status(client).let { status -> if (status == AiClientStatus.Connected) AiClientStatus.Failed(result.output) else status }
+    fun disconnect(setup: AiClientSetup) = perform(setup) {
+        val result = withContext(ioDispatcher) { runner.run(setup.command, setup.client.removeArguments) }
+        mcp.setClientConnected(setup.id, false)
+        status(setup).let { status -> if (status == AiClientStatus.Connected) AiClientStatus.Failed(result.output) else status }
     }
 
     /**
-     * Uses [command] to run [client] from now on, and checks it again.
+     * Uses [command] to run [client] from now on, and looks for its setups again.
      */
     fun setCommand(client: AiClient, command: String) {
         mcp.setClientCommand(client, command)
-        perform(client) { status(client) }
+        refresh()
     }
 
-    private suspend fun status(client: AiClient) = withContext(ioDispatcher) {
-        val command = mcp.settings.value.commandOf(client)
+    private suspend fun status(setup: AiClientSetup) = withContext(ioDispatcher) {
         when {
-            !runner.exists(command) -> AiClientStatus.NotInstalled
-            runner.run(command, client.getArguments).let { client.isConnected(it.exitCode, it.output) } -> AiClientStatus.Connected
+            !runner.exists(setup.command) -> AiClientStatus.NotInstalled
+            runner.run(setup.command, setup.client.getArguments).let { setup.client.isConnected(it.exitCode, it.output) } -> AiClientStatus.Connected
             else -> AiClientStatus.NotConnected
         }
     }
 
-    private fun perform(client: AiClient, operation: suspend () -> AiClientStatus) {
+    private fun perform(setup: AiClientSetup, operation: suspend () -> AiClientStatus) {
         scope.launch {
             operations.withLock {
-                _statuses.update { it + (client to AiClientStatus.Checking) }
+                _statuses.update { it + (setup.id to AiClientStatus.Checking) }
                 val status = operation()
-                _statuses.update { it + (client to status) }
+                _statuses.update { it + (setup.id to status) }
             }
         }
     }

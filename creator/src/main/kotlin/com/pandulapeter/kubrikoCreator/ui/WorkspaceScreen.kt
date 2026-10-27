@@ -159,6 +159,7 @@ internal fun WorkspaceScreen(
                     modifier = Modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
                     settings = mcp.settings.collectAsState().value,
                     state = mcpState,
+                    clientSetups = aiClients.setups.collectAsState().value,
                     clientStatuses = aiClients.statuses.collectAsState().value,
                     calls = mcp.calls.collectAsState().value,
                     onEnabledChange = mcp::setEnabled,

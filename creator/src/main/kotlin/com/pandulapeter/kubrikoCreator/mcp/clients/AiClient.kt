@@ -58,6 +58,11 @@ internal enum class AiClient(
     };
 
     /**
+     * How the settings name this tool: its serial name.
+     */
+    val id get() = serializer().descriptor.getElementName(ordinal)
+
+    /**
      * Registers Kubriko Creator's server for every project of the user, not just the folder the command runs in.
      */
     abstract fun addArguments(settings: McpSettings): List<String>
