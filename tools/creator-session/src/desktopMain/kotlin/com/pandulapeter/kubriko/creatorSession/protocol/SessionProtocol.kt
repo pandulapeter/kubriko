@@ -12,10 +12,11 @@ package com.pandulapeter.kubriko.creatorSession.protocol
 import kotlinx.serialization.json.Json
 
 /**
- * Encoding of the [SessionMessage]s exchanged between a session process and Kubriko Creator.
+ * Encoding of the [SessionMessage]s and [SessionCommand]s exchanged between a session process and Kubriko Creator.
  *
  * The session connects to Kubriko Creator over TCP on localhost, on the port passed in the [PORT_PROPERTY] system
- * property, and writes one encoded message per line.
+ * property, and writes one encoded message per line. Kubriko Creator writes commands back on the same connection, one
+ * per line.
  */
 object SessionProtocol {
 
@@ -23,7 +24,7 @@ object SessionProtocol {
      * The protocol version this module speaks. Raised whenever a change would make an older Kubriko Creator misread
      * the messages.
      */
-    const val VERSION = 1
+    const val VERSION = 2
 
     /**
      * The system property that holds the localhost port Kubriko Creator listens on. Without it, the session runs
@@ -44,4 +45,14 @@ object SessionProtocol {
      * Decodes a single line written by [encode].
      */
     fun decode(line: String) = json.decodeFromString(SessionMessage.serializer(), line)
+
+    /**
+     * Encodes [command] as a single line of JSON, without the line break.
+     */
+    fun encodeCommand(command: SessionCommand) = json.encodeToString(SessionCommand.serializer(), command)
+
+    /**
+     * Decodes a single line written by [encodeCommand].
+     */
+    fun decodeCommand(line: String) = json.decodeFromString(SessionCommand.serializer(), line)
 }

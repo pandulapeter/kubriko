@@ -64,4 +64,37 @@ sealed interface SessionMessage {
     data class Failure(
         val message: String,
     ) : SessionMessage
+
+    /**
+     * The [SessionCommand] with [id] was carried out. Added in protocol version 2.
+     */
+    @Serializable
+    @SerialName("commandDone")
+    data class CommandDone(
+        val id: Int,
+    ) : SessionMessage
+
+    /**
+     * The answer to a [SessionCommand.CaptureScreen]. Added in protocol version 2.
+     *
+     * @param png The captured image, PNG-encoded, in Base64.
+     */
+    @Serializable
+    @SerialName("screenshot")
+    data class Screenshot(
+        val id: Int,
+        val png: String,
+    ) : SessionMessage
+
+    /**
+     * The [SessionCommand] with [id] couldn't be carried out. Added in protocol version 2.
+     *
+     * @param message A human-readable description of the problem, in English.
+     */
+    @Serializable
+    @SerialName("commandFailed")
+    data class CommandFailed(
+        val id: Int,
+        val message: String,
+    ) : SessionMessage
 }

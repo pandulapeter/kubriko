@@ -11,6 +11,7 @@ package com.pandulapeter.kubriko.creatorSession
 
 import com.pandulapeter.kubriko.creatorSession.implementation.EditSession
 import com.pandulapeter.kubriko.creatorSession.implementation.LogForwarder
+import com.pandulapeter.kubriko.creatorSession.implementation.PlayCommandHandler
 import com.pandulapeter.kubriko.creatorSession.implementation.PlaySession
 import com.pandulapeter.kubriko.creatorSession.implementation.SessionArguments
 import com.pandulapeter.kubriko.creatorSession.implementation.SessionConnection
@@ -32,7 +33,10 @@ fun main(args: Array<String>) {
         LogForwarder(connection::send).start()
         when (arguments) {
             is SessionArguments.Edit -> EditSession.run(arguments)
-            is SessionArguments.Play -> PlaySession.run(arguments)
+            is SessionArguments.Play -> {
+                connection.listen(PlayCommandHandler(connection::send)::handle)
+                PlaySession.run(arguments)
+            }
         }
         null
     } catch (exception: SessionFailure) {

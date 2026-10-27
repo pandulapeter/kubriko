@@ -9,9 +9,12 @@
  */
 package com.pandulapeter.kubriko.creatorSession.implementation
 
+import com.pandulapeter.kubriko.creatorSession.protocol.SessionCommand
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
+import kotlinx.serialization.SerializationException
 import java.io.BufferedWriter
+import java.io.IOException
 import java.io.OutputStreamWriter
 import java.net.InetAddress
 import java.net.Socket
@@ -36,6 +39,31 @@ internal class SessionConnection private constructor(
         } catch (_: Exception) {
             isBroken = true
         }
+    }
+
+    /**
+     * Reads the commands Kubriko Creator sends, on a background thread, until the connection ends. Lines that aren't
+     * commands this version knows are skipped.
+     */
+    fun listen(onCommand: (SessionCommand) -> Unit) {
+        val reader = socket?.getInputStream()?.bufferedReader(Charsets.UTF_8) ?: return
+        Thread({
+            while (true) {
+                val line = try {
+                    reader.readLine()
+                } catch (_: IOException) {
+                    null
+                } ?: break
+                val command = try {
+                    SessionProtocol.decodeCommand(line)
+                } catch (_: SerializationException) {
+                    null
+                } catch (_: IllegalArgumentException) {
+                    null
+                }
+                command?.let(onCommand)
+            }
+        }, "kubriko-creator-connection").apply { isDaemon = true }.start()
     }
 
     override fun close() {

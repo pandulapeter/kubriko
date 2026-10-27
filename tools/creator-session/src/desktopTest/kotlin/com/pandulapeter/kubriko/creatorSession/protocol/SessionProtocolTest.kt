@@ -21,10 +21,26 @@ class SessionProtocolTest {
             SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION, mode = SessionMode.EDIT),
             SessionMessage.Log(id = "1", message = "Line\nbreak", details = null, source = "Game", timestamp = 42L, importance = "HIGH"),
             SessionMessage.Failure(message = "Something went wrong."),
+            SessionMessage.CommandDone(id = 1),
+            SessionMessage.Screenshot(id = 2, png = "iVBORw0KGgo="),
+            SessionMessage.CommandFailed(id = 3, message = "No window."),
         ).forEach { message ->
             val line = SessionProtocol.encode(message)
             assertFalse('\n' in line)
             assertEquals(message, SessionProtocol.decode(line))
+        }
+    }
+
+    @Test
+    fun everyCommandSurvivesARoundTripOnASingleLine() {
+        listOf(
+            SessionCommand.BringToFront(id = 1),
+            SessionCommand.PressKeys(id = 2, keys = listOf("LEFT", "SPACE"), durationInMilliseconds = 250),
+            SessionCommand.CaptureScreen(id = 3, maximumWidth = 1280),
+        ).forEach { command ->
+            val line = SessionProtocol.encodeCommand(command)
+            assertFalse('\n' in line)
+            assertEquals(command, SessionProtocol.decodeCommand(line))
         }
     }
 
