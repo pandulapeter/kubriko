@@ -22,6 +22,14 @@ internal sealed interface AppScreen {
         val error: StringResource? = null,
     ) : AppScreen
 
+    data class NewProject(
+        val error: StringResource? = null,
+    ) : AppScreen
+
+    data class CreatingProject(
+        val directory: File,
+    ) : AppScreen
+
     data class Opening(
         val directory: File,
     ) : AppScreen

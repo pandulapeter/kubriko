@@ -1,0 +1,13 @@
+package {{PACKAGE}}
+
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.application
+
+fun main() = application {
+    Window(
+        title = "{{PROJECT_NAME}}",
+        onCloseRequest = ::exitApplication,
+    ) {
+        Game()
+    }
+}

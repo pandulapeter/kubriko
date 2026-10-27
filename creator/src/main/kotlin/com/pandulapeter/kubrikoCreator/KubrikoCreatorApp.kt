@@ -32,6 +32,7 @@ fun main(args: Array<String>) = application {
     val scope = rememberCoroutineScope()
     val controller = remember { AppController(scope) }
     val screen by controller.screen.collectAsState()
+    val defaultParentDirectory = remember { File(System.getProperty("user.home")) }
     LaunchedEffect(Unit) {
         args.firstOrNull()?.let { controller.openProject(File(it)) }
     }
@@ -46,6 +47,9 @@ fun main(args: Array<String>) = application {
         KubrikoTheme {
             AppContent(
                 screen = screen,
+                defaultParentDirectory = defaultParentDirectory,
+                onNewProject = controller::showNewProject,
+                onCreateProject = controller::createProject,
                 onOpenProject = controller::openProject,
                 onCloseProject = controller::closeProject,
             )

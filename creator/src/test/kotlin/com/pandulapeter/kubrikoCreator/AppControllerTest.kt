@@ -11,18 +11,25 @@ package com.pandulapeter.kubrikoCreator
 
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.ProjectInspectionException
+import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
+import com.pandulapeter.kubrikoCreator.template.ProjectCreationException
+import com.pandulapeter.kubrikoCreator.template.ProjectCreator
 import com.pandulapeter.kubrikoCreator.workspace.FakeProjectBuild
 import com.pandulapeter.kubrikoCreator.workspace.FakeSessionChannel
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceOpener
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_no_desktop_module
+import kubriko.creator.generated.resources.error_project_folder_not_empty
 import kubriko.creator.generated.resources.error_not_a_gradle_project
 import java.io.File
 import java.io.IOException
@@ -38,9 +45,18 @@ class AppControllerTest {
     private val directory = File("/projects/game")
     private val builds = mutableListOf<FakeProjectBuild>()
 
-    private fun TestScope.createController(opener: WorkspaceOpener) = AppController(
+    private val request = NewProjectRequest(name = "My Game", packageName = "com.example.mygame", parentDirectory = File("/projects"))
+    private val openedDirectories = mutableListOf<File>()
+
+    private fun TestScope.createController(
+        creator: ProjectCreator = ProjectCreator { it.directory },
+        ioDispatcher: CoroutineDispatcher = UnconfinedTestDispatcher(testScheduler),
+        opener: WorkspaceOpener = WorkspaceOpener { directory, scope -> openedDirectories += directory; workspace(scope) },
+    ) = AppController(
         scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler)),
         workspaceOpener = opener,
+        projectCreator = creator,
+        ioDispatcher = ioDispatcher,
     )
 
     private fun workspace(scope: CoroutineScope) = WorkspaceController(
@@ -117,5 +133,63 @@ class AppControllerTest {
         opened.complete(Unit)
         assertEquals(AppScreen.Welcome(), controller.screen.value)
         assertTrue(builds.isEmpty())
+    }
+
+    @Test
+    fun newProjectShowsTheNewProjectScreen() = runTest {
+        val controller = createController()
+        controller.showNewProject()
+        assertEquals(AppScreen.NewProject(), controller.screen.value)
+    }
+
+    @Test
+    fun cancellingANewProjectReturnsToWelcome() = runTest {
+        val controller = createController()
+        controller.showNewProject()
+        controller.closeProject()
+        assertEquals(AppScreen.Welcome(), controller.screen.value)
+    }
+
+    @Test
+    fun aCreatedProjectIsOpenedRightAway() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        val created = mutableListOf<NewProjectRequest>()
+        val controller = createController(creator = { created += it; File("/projects/my-game") }, ioDispatcher = dispatcher)
+        controller.createProject(request)
+        assertEquals(AppScreen.CreatingProject(request.directory), controller.screen.value)
+        runCurrent()
+        assertEquals(listOf(request), created)
+        assertEquals(listOf(File("/projects/my-game")), openedDirectories)
+        assertIs<AppScreen.Workspace>(controller.screen.value)
+    }
+
+    @Test
+    fun aProjectThatCantBeCreatedReturnsToTheFormWithItsReason() = runTest {
+        val controller = createController(creator = { throw ProjectCreationException(Res.string.error_project_folder_not_empty) })
+        controller.createProject(request)
+        assertEquals(AppScreen.NewProject(error = Res.string.error_project_folder_not_empty), controller.screen.value)
+        assertTrue(openedDirectories.isEmpty())
+    }
+
+    @Test
+    fun closingWhileCreatingNeverOpensTheProject() = runTest {
+        lateinit var controller: AppController
+        var createdCount = 0
+        controller = createController(creator = { createdCount++; controller.closeProject(); it.directory })
+        controller.createProject(request)
+        assertEquals(1, createdCount)
+        assertEquals(AppScreen.Welcome(), controller.screen.value)
+        assertTrue(openedDirectories.isEmpty())
+    }
+
+    @Test
+    fun closingBeforeCreationStartsNeverCreatesTheProject() = runTest {
+        var createdCount = 0
+        val controller = createController(creator = { createdCount++; it.directory }, ioDispatcher = StandardTestDispatcher(testScheduler))
+        controller.createProject(request)
+        controller.closeProject()
+        runCurrent()
+        assertEquals(0, createdCount)
+        assertEquals(AppScreen.Welcome(), controller.screen.value)
     }
 }

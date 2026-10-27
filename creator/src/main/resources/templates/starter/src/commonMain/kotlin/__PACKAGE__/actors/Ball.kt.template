@@ -1,0 +1,85 @@
+package {{PACKAGE}}.actors
+
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.actor.body.BoxBody
+import com.pandulapeter.kubriko.actor.traits.Dynamic
+import com.pandulapeter.kubriko.actor.traits.Visible
+import com.pandulapeter.kubriko.helpers.extensions.constrainedWithin
+import com.pandulapeter.kubriko.helpers.extensions.get
+import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
+import com.pandulapeter.kubriko.manager.ViewportManager
+import com.pandulapeter.kubriko.sceneEditor.Editable
+import com.pandulapeter.kubriko.sceneEditor.Exposed
+import com.pandulapeter.kubriko.serialization.Serializable
+import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableBoxBody
+import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableColor
+import com.pandulapeter.kubriko.serialization.typeSerializers.SerializableSceneUnit
+import com.pandulapeter.kubriko.types.SceneOffset
+import com.pandulapeter.kubriko.types.SceneUnit
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.json.Json
+
+/**
+ * A ball that bounces off the edges of the screen. Its color and speed can be changed in the Scene editor.
+ */
+class Ball private constructor(state: State) : Visible, Dynamic, Editable<Ball> {
+    override val body = state.body
+
+    @set:Exposed(name = "color")
+    var color: Color = state.color
+
+    @set:Exposed(name = "speed")
+    var speed: SceneUnit = state.speed
+
+    private var horizontalDirection = 1
+    private var verticalDirection = 1
+    private lateinit var viewportManager: ViewportManager
+
+    override fun onAdded(kubriko: Kubriko) {
+        viewportManager = kubriko.get()
+    }
+
+    override fun update(deltaTimeInMilliseconds: Int) {
+        val halfSize = SceneOffset(body.size.width / 2, body.size.height / 2)
+        val topLeft = viewportManager.topLeft.value + halfSize
+        val bottomRight = viewportManager.bottomRight.value - halfSize
+        val distance = speed * deltaTimeInMilliseconds
+        val nextPosition = (body.position + SceneOffset(distance * horizontalDirection, distance * verticalDirection)).constrainedWithin(
+            topLeft = topLeft,
+            bottomRight = bottomRight,
+        )
+        if (nextPosition.x <= topLeft.x || nextPosition.x >= bottomRight.x) {
+            horizontalDirection *= -1
+        }
+        if (nextPosition.y <= topLeft.y || nextPosition.y >= bottomRight.y) {
+            verticalDirection *= -1
+        }
+        body.position = nextPosition
+    }
+
+    override fun DrawScope.draw() = drawCircle(
+        color = color,
+        radius = body.size.width.raw / 2,
+        center = body.size.center.raw,
+    )
+
+    override fun save() = State(
+        body = body,
+        color = color,
+        speed = speed,
+    )
+
+    @kotlinx.serialization.Serializable
+    data class State(
+        @SerialName("body") val body: SerializableBoxBody = BoxBody(),
+        @SerialName("color") val color: SerializableColor = Color(0xFF6060AA),
+        @SerialName("speed") val speed: SerializableSceneUnit = 0.3f.sceneUnit,
+    ) : Serializable.State<Ball> {
+
+        override fun restore() = Ball(this)
+
+        override fun serialize() = Json.encodeToString(this)
+    }
+}

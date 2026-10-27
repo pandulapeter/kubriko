@@ -1,0 +1,11 @@
+# {{PROJECT_NAME}}
+
+A game made with [Kubriko](https://github.com/pandulapeter/kubriko), created by Kubriko Creator.
+
+This is a regular Kotlin Multiplatform project: open it in Kubriko Creator or in IntelliJ IDEA, whichever you prefer.
+
+- Run it on desktop: `./gradlew run`
+- Run it in a browser: `./gradlew wasmJsBrowserDevelopmentRun`
+
+Scenes live in `src/commonMain/composeResources/files/scenes`. `GameEntryPoint` and the service file registering it in
+`src/desktopMain/resources/META-INF/services` are what let Kubriko Creator edit them.

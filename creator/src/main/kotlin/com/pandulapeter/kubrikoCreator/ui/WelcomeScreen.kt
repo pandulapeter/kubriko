@@ -11,15 +11,18 @@ package com.pandulapeter.kubrikoCreator.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.action_new_project
 import kubriko.creator.generated.resources.action_open_project
 import kubriko.creator.generated.resources.app_name
 import kubriko.creator.generated.resources.choose_project_folder
@@ -31,6 +34,7 @@ import java.io.File
 @Composable
 internal fun WelcomeScreen(
     error: StringResource?,
+    onNewProject: () -> Unit,
     onOpenProject: (File) -> Unit,
 ) {
     val pickerTitle = stringResource(Res.string.choose_project_folder)
@@ -47,10 +51,19 @@ internal fun WelcomeScreen(
             text = stringResource(Res.string.welcome_subtitle),
             style = MaterialTheme.typography.bodyLarge,
         )
-        Button(
-            onClick = { pickProjectFolder(pickerTitle)?.let(onOpenProject) },
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text(stringResource(Res.string.action_open_project))
+            Button(
+                onClick = onNewProject,
+            ) {
+                Text(stringResource(Res.string.action_new_project))
+            }
+            OutlinedButton(
+                onClick = { pickFolder(pickerTitle)?.let(onOpenProject) },
+            ) {
+                Text(stringResource(Res.string.action_open_project))
+            }
         }
         if (error != null) {
             Text(

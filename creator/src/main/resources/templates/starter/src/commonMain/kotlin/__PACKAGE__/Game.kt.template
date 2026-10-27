@@ -1,0 +1,30 @@
+package {{PACKAGE}}
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.KubrikoViewport
+
+/**
+ * The whole game: a viewport showing the first Scene.
+ */
+@Composable
+fun Game(
+    modifier: Modifier = Modifier,
+) {
+    val kubriko = remember {
+        Kubriko.newInstance(
+            GameSerialization.createSerializationManager(),
+            SceneLoader(scenePath = "files/scenes/main.json"),
+        )
+    }
+    DisposableEffect(kubriko) {
+        onDispose { kubriko.dispose() }
+    }
+    KubrikoViewport(
+        modifier = modifier,
+        kubriko = kubriko,
+    )
+}

@@ -13,9 +13,9 @@ import java.io.File
 import javax.swing.JFileChooser
 
 /**
- * Asks the user for a project folder, returning null if they cancel.
+ * Asks the user for a folder, returning null if they cancel.
  */
-internal fun pickProjectFolder(title: String): File? = JFileChooser().run {
+internal fun pickFolder(title: String, initialDirectory: File? = null): File? = JFileChooser(initialDirectory).run {
     dialogTitle = title
     fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
     if (showOpenDialog(null) == JFileChooser.APPROVE_OPTION) selectedFile else null

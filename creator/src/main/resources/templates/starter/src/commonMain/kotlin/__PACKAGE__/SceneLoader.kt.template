@@ -1,0 +1,27 @@
+package {{PACKAGE}}
+
+import com.pandulapeter.kubriko.Kubriko
+import com.pandulapeter.kubriko.manager.ActorManager
+import com.pandulapeter.kubriko.manager.Manager
+import com.pandulapeter.kubriko.sceneEditor.Editable
+import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
+import com.pandulapeter.kubriko.serialization.SerializationManager
+import kotlinx.coroutines.launch
+import {{PACKAGE}}.resources.Res
+
+/**
+ * Adds the Actors of a Scene file to the game when it starts.
+ */
+class SceneLoader(
+    private val scenePath: String,
+) : Manager() {
+    private val actorManager by manager<ActorManager>()
+    private val serializationManager by manager<SerializationManager<EditableMetadata<*>, Editable<*>>>()
+
+    override fun onInitialize(kubriko: Kubriko) {
+        scope.launch {
+            val scene = Res.readBytes(scenePath).decodeToString()
+            actorManager.add(serializationManager.deserializeActors(scene))
+        }
+    }
+}

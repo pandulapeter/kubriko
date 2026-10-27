@@ -15,11 +15,19 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubrikoCreator.AppScreen
+import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.creating_project
+import kubriko.creator.generated.resources.opening_project
+import org.jetbrains.compose.resources.stringResource
 import java.io.File
 
 @Composable
 internal fun AppContent(
     screen: AppScreen,
+    defaultParentDirectory: File,
+    onNewProject: () -> Unit,
+    onCreateProject: (NewProjectRequest) -> Unit,
     onOpenProject: (File) -> Unit,
     onCloseProject: () -> Unit,
 ) = Surface(
@@ -29,10 +37,20 @@ internal fun AppContent(
     when (screen) {
         is AppScreen.Welcome -> WelcomeScreen(
             error = screen.error,
+            onNewProject = onNewProject,
             onOpenProject = onOpenProject,
         )
-        is AppScreen.Opening -> OpeningScreen(
-            directory = screen.directory,
+        is AppScreen.NewProject -> NewProjectScreen(
+            error = screen.error,
+            defaultParentDirectory = defaultParentDirectory,
+            onCreate = onCreateProject,
+            onCancel = onCloseProject,
+        )
+        is AppScreen.CreatingProject -> ProgressScreen(
+            text = stringResource(Res.string.creating_project, screen.directory.name),
+        )
+        is AppScreen.Opening -> ProgressScreen(
+            text = stringResource(Res.string.opening_project, screen.directory.name),
         )
         is AppScreen.Workspace -> WorkspaceScreen(
             controller = screen.controller,

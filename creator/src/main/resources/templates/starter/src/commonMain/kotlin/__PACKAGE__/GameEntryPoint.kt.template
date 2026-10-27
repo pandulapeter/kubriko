@@ -1,0 +1,12 @@
+package {{PACKAGE}}
+
+import com.pandulapeter.kubriko.creator.CreatorEntryPoint
+
+/**
+ * Tells Kubriko Creator which Actor types the Scene editor can place. Registered as a service in
+ * src/desktopMain/resources/META-INF/services.
+ */
+class GameEntryPoint : CreatorEntryPoint {
+
+    override fun createSerializationManager() = GameSerialization.createSerializationManager()
+}
