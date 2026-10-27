@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.git
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -31,6 +32,8 @@ internal object Commit : WriteCommand<Commit.Input> {
     override val description = "Records every change of the project (new, changed, and deleted files alike) in a new git commit."
     override val title = Res.string.command_commit
     override val inputSerializer = Input.serializer()
+
+    override fun target(context: CommandContext, input: Input) = CommandTarget.VersionControl
 
     override fun validate(context: CommandContext, input: Input): Rejection? = when (val state = context.git.state.value) {
         GitState.Loading, GitState.NoRepository -> Rejection(Res.string.error_command_no_repository)

@@ -16,15 +16,20 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.command_add_block
 import kubriko.creator.generated.resources.command_create_actor_type
 import kubriko.creator.generated.resources.command_edit_block
+import kubriko.creator.generated.resources.command_read_actor_type
 import kubriko.creator.generated.resources.command_set_appearance
 import kubriko.creator.generated.resources.error_actor_type_name_taken
 import kubriko.creator.generated.resources.error_command_actor_type_missing
@@ -35,6 +40,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class CommandExecutorTest {
     private val ball = ActorTypeDefinition(name = "Ball", events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.SetVelocity(1f, 1f)))))
     private val rejections = mutableListOf<Rejection>()
@@ -127,6 +133,34 @@ class CommandExecutorTest {
         val event = buildJsonObject { put("actorType", "Ball"); put("eventIndex", 0); put("blockIndex", 0); put("block", buildJsonObject { put("type", "jumpTo"); put("x", 5) }) }
         assertIs<CommandOutcome.Success>(executor.call("edit_block", event))
         assertEquals(BlockDefinition.JumpTo(5f, 0f), context.actorTypes["Ball"]!!.events[0].blocks[0])
+    }
+
+    @Test
+    fun toolCallsAreRecordedAsStepsThatStartRunningAndNameWhatTheyChanged() = runTest {
+        val (executor, _) = executor(ball)
+        val running = mutableListOf<AiStep>()
+        val collecting = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { executor.aiSteps.collect { steps -> steps.lastOrNull()?.takeIf { it.isRunning }?.let(running::add) } }
+        executor.call("add_block", buildJsonObject { put("actorType", "Ball"); put("eventIndex", 0); put("block", buildJsonObject { put("type", "stop") }) })
+        executor.call("read_actor_type", buildJsonObject { put("actorType", "Wall") })
+        executor.call("set_appearance", buildJsonObject { put("width", "wide") })
+        collecting.cancel()
+        assertEquals(
+            listOf(
+                AiStep(0, Res.string.command_add_block, CommandTarget.ActorType("Ball", 0, 1), isRunning = false),
+                AiStep(1, Res.string.command_read_actor_type, CommandTarget.ActorType("Wall"), isRunning = false, rejection = Rejection(Res.string.error_command_actor_type_missing, "Wall")),
+            ),
+            executor.aiSteps.value.take(2),
+        )
+        assertEquals(Res.string.error_command_input_invalid, executor.aiSteps.value[2].rejection?.reason)
+        assertEquals(listOf(AiStep(0, Res.string.command_add_block, CommandTarget.ActorType("Ball", 0, 0), isRunning = true)), running.take(1))
+    }
+
+    @Test
+    fun theUsersOwnChangesAreNotAiSteps() = runTest {
+        val (executor, _) = executor(ball)
+        executor.execute(width(10f))
+        executor.undo()
+        assertEquals(emptyList(), executor.aiSteps.value)
     }
 
     @Test

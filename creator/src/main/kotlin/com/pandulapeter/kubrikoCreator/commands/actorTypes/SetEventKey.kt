@@ -14,6 +14,7 @@ import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.withEventKey
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -31,6 +32,8 @@ internal object SetEventKey : WriteCommand<SetEventKey.Input> {
     override val description = "Sets the key a keyPressed Event of a block-built Actor type reacts to."
     override val title = Res.string.command_set_event_key
     override val inputSerializer = Input.serializer()
+
+    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType, eventIndex = input.eventIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
         ?: if (context.requireActorType(input.actorType).events[input.eventIndex].type != EventType.KEY_PRESSED) Rejection(Res.string.error_command_key_not_allowed) else null

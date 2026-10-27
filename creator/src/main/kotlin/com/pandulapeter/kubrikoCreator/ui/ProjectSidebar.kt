@@ -36,6 +36,7 @@ import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.project.ResourceScanner
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
+import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_new_actor_type
 import kubriko.creator.generated.resources.action_new_scene
@@ -75,6 +76,8 @@ internal fun ProjectSidebar(
     onActorTypeSelected: (String) -> Unit,
     onCreateActorType: (String) -> StringResource?,
     onCreateScene: (String) -> StringResource?,
+    flashedName: String? = null,
+    flashKey: Any? = null,
 ) {
     var isCreatingActorType by remember { mutableStateOf(false) }
     var isCreatingScene by remember { mutableStateOf(false) }
@@ -109,6 +112,7 @@ internal fun ProjectSidebar(
                     text = name,
                     isSelected = name == actorTypes.selectedName,
                     onClick = { onActorTypeSelected(name) },
+                    flashKey = flashKey?.takeIf { name == flashedName },
                 )
             }
         }
@@ -154,6 +158,7 @@ internal fun ProjectSidebar(
                         text = resource.name,
                         detail = if (resource.name in duplicateNames) ResourceScanner.sourceSetOf(resource) else null,
                         onClick = if (group == ResourceGroup.SCENES) ({ onSceneSelected(resource) }) else null,
+                        flashKey = flashKey?.takeIf { group == ResourceGroup.SCENES && resource.file.nameWithoutExtension == flashedName },
                     )
                 }
             }
@@ -168,11 +173,13 @@ private fun SidebarItem(
     onClick: (() -> Unit)?,
     isSelected: Boolean = false,
     detail: String? = null,
+    flashKey: Any? = null,
 ) = Row(
     modifier = Modifier
         .fillMaxWidth()
         .height(28.dp)
         .then(if (isSelected) Modifier.background(MaterialTheme.colorScheme.secondaryContainer) else Modifier)
+        .background(rememberFlashColor(flashKey))
         .then(if (onClick == null) Modifier else Modifier.clickable(onClick = onClick))
         .padding(start = 28.dp, end = 12.dp),
     horizontalArrangement = Arrangement.spacedBy(8.dp),

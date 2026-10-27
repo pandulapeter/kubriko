@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.git
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -31,6 +32,8 @@ internal object DiscardChanges : WriteCommand<DiscardChanges.Input> {
     override val title = Res.string.command_discard_changes
     override val inputSerializer = Input.serializer()
     override val isDestructive = true
+
+    override fun target(context: CommandContext, input: Input) = CommandTarget.VersionControl
 
     override fun validate(context: CommandContext, input: Input): Rejection? = when (val state = context.git.state.value) {
         GitState.Loading, GitState.NoRepository -> Rejection(Res.string.error_command_no_repository)

@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands.project
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
@@ -19,12 +20,17 @@ import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.command_get_version_control_status
 
 internal object GetVersionControlStatus : ReadCommand<NoInput> {
     override val name = "get_version_control_status"
     override val description = "Tells whether the project is under version control, and if it is, its branch, what changed since the last commit " +
         "(an Actor type's definition and generated code count as one change), and the recent commits."
     override val inputSerializer = NoInput.serializer()
+    override val title = Res.string.command_get_version_control_status
+
+    override fun target(context: CommandContext, input: NoInput) = CommandTarget.VersionControl
 
     override suspend fun read(context: CommandContext, input: NoInput) = CommandOutcome.Success(
         buildJsonObject {

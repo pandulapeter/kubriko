@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 import com.pandulapeter.kubrikoCreator.actors.withEventMoved
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -29,6 +30,8 @@ internal object MoveEvent : WriteCommand<MoveEvent.Input> {
     override val description = "Moves an Event of a block-built Actor type to another place in its Event list. The order of Events is the order they run in when they happen on the same frame."
     override val title = Res.string.command_move_event
     override val inputSerializer = Input.serializer()
+
+    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType, eventIndex = input.targetIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
         ?: if (input.targetIndex !in context.requireActorType(input.actorType).events.indices) Rejection(Res.string.error_command_index_invalid, input.targetIndex.toString()) else null

@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
@@ -21,12 +22,17 @@ import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.command_read_scene
 
 internal object ReadScene : ReadCommand<ReadScene.Input> {
     override val name = "read_scene"
     override val description = "Reads the Actors of a Scene, in order: the type ID of each one (the name of its Actor type), its position when it has one, " +
         "and its whole saved state. Actors are addressed by their index in this list. content is the raw Scene file."
     override val inputSerializer = Input.serializer()
+    override val title = Res.string.command_read_scene
+
+    override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
     override suspend fun read(context: CommandContext, input: Input): CommandOutcome = withContext(context.ioDispatcher) {
         context.validateScene(input.scene)?.let { return@withContext CommandOutcome.Rejected(it) }

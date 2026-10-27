@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.git
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -27,6 +28,8 @@ internal object StartVersionControl : WriteCommand<NoInput> {
     override val description = "Puts the project under version control: makes it a git repository on a main branch, with everything in it in a first commit."
     override val title = Res.string.command_start_version_control
     override val inputSerializer = NoInput.serializer()
+
+    override fun target(context: CommandContext, input: NoInput) = CommandTarget.VersionControl
 
     override fun validate(context: CommandContext, input: NoInput) = when (context.git.state.value) {
         GitState.NoRepository -> null

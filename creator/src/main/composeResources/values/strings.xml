@@ -249,4 +249,27 @@
     <string name="error_game_key_unknown">There's no key called %1$s.</string>
     <string name="error_game_duration_invalid">Use between 1 and %1$s milliseconds.</string>
     <string name="ai_client_variant">%1$s (%2$s)</string>
+    <string name="command_get_project_overview">Look at the project</string>
+    <string name="command_get_block_catalog">Look at the Block catalog</string>
+    <string name="command_list_actor_types">List the Actor types</string>
+    <string name="command_read_actor_type">Read an Actor type</string>
+    <string name="command_list_scenes">List the Scenes</string>
+    <string name="command_read_scene">Read a Scene</string>
+    <string name="command_read_console">Read the console</string>
+    <string name="command_get_version_control_status">Check version control</string>
+    <string name="command_build">Build the project</string>
+    <string name="command_play">Play the game</string>
+    <string name="command_start_game">Start the game</string>
+    <string name="command_press_keys">Press keys</string>
+    <string name="command_wait">Wait</string>
+    <string name="command_take_screenshot">Take a screenshot</string>
+    <string name="command_stop_game">Stop the game</string>
+    <string name="ai_activity_step">Step %1$s</string>
+    <string name="ai_activity_step_with_target">%1$s · %2$s</string>
+    <string name="ai_activity_follow">Follow</string>
+    <string name="ai_target_event">%1$s, Event %2$s</string>
+    <string name="ai_target_block">%1$s, Event %2$s, Block %3$s</string>
+    <string name="ai_target_scene">Scene %1$s</string>
+    <string name="ai_target_version_control">Version control</string>
+    <string name="ai_target_game">The game</string>
 </resources>

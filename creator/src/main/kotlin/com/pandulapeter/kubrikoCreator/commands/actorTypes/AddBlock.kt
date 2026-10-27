@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.withBlockInserted
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -29,6 +30,8 @@ internal object AddBlock : WriteCommand<AddBlock.Input> {
     override val description = "Adds a Block to an Event of a block-built Actor type. Some Blocks are only allowed in some Events; the Block catalog says which."
     override val title = Res.string.command_add_block
     override val inputSerializer = Input.serializer()
+
+    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType, input.eventIndex, blockIndex = input.index ?: context.actorTypes?.get(input.actorType)?.events?.getOrNull(input.eventIndex)?.blocks?.lastIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex)
         ?: validateBlock(input.block, context.requireActorType(input.actorType).events[input.eventIndex].type)

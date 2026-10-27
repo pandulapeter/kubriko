@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -30,6 +31,8 @@ internal object RestoreActor : WriteCommand<RestoreActor.Input> {
         "and how Actors of hand-written Actor types are copied."
     override val title = Res.string.command_restore_actor
     override val inputSerializer = Input.serializer()
+
+    override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateScene(input.scene) ?: when {
         input.actorIndex !in 0..context.readScene(input.scene).size -> Rejection(Res.string.error_command_index_invalid, input.actorIndex.toString())

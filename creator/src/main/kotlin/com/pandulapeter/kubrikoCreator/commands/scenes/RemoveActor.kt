@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -25,6 +26,8 @@ internal object RemoveActor : WriteCommand<RemoveActor.Input> {
     override val description = "Removes an Actor from a Scene. The Actors after it move one index down."
     override val title = Res.string.command_remove_actor
     override val inputSerializer = Input.serializer()
+
+    override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActor(input.scene, input.actorIndex)
 

@@ -27,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +50,7 @@ import com.pandulapeter.kubrikoCreator.mcp.clients.AiClientsController
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.ActorTypeEditor
 import com.pandulapeter.kubrikoCreator.ui.git.GitPanel
+import com.pandulapeter.kubrikoCreator.ui.mcp.AiActivityBar
 import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionPanel
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
@@ -83,6 +85,16 @@ internal fun WorkspaceScreen(
     val mcpState by mcp.state.collectAsState()
     val gitState by controller.git.state.collectAsState()
     val history by controller.commands.history.collectAsState()
+    val aiSteps by controller.commands.aiSteps.collectAsState()
+    val latestAiStep = aiSteps.lastOrNull()
+    var isFollowingAi by remember { mutableStateOf(true) }
+    LaunchedEffect(latestAiStep?.id, latestAiStep?.isRunning) {
+        val name = latestAiStep?.actorTypeToFollow() ?: return@LaunchedEffect
+        if (isFollowingAi && actorTypesController?.get(name) != null && actorTypesController.selectedName.value != name) {
+            controller.sceneEditing.close()
+            actorTypesController.select(name)
+        }
+    }
     Column(
         modifier = Modifier.fillMaxSize().onKeyEvent { event -> event.toHistoryStep()?.let { isUndo -> if (isUndo) controller.commands.undo() else controller.commands.redo() } != null },
     ) {
@@ -104,6 +116,12 @@ internal fun WorkspaceScreen(
             onCloseProject = onCloseProject,
         )
         HorizontalDivider()
+        AiActivityBar(
+            steps = aiSteps,
+            isFollowing = isFollowingAi,
+            onFollowingChange = { isFollowingAi = it },
+            onClick = { openPanel = SidePanel.AI_CONNECTION },
+        )
         Row(
             modifier = Modifier.fillMaxWidth().weight(1f),
         ) {
@@ -121,6 +139,8 @@ internal fun WorkspaceScreen(
                 },
                 onCreateActorType = { name -> controller.createActorType(name) },
                 onCreateScene = { name -> controller.createScene(name) },
+                flashedName = latestAiStep?.sidebarName(),
+                flashKey = latestAiStep?.flashKey,
             )
             VerticalDivider()
             val centerModifier = Modifier.weight(1f).fillMaxHeight()
@@ -147,6 +167,7 @@ internal fun WorkspaceScreen(
                     actorTypeNames = actorTypes.map { it.name },
                     isChangedByHand = selectedActorType.name in actorTypesChangedByHand,
                     onCommand = { controller.commands.dispatch(it) },
+                    highlight = latestAiStep?.highlightIn(selectedActorType.name),
                 )
             } else if (sceneEditing == SceneEditingState.Closed) {
                 WorkspaceHint(

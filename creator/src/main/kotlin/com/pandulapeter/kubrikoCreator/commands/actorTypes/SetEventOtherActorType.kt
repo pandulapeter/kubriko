@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.withEventOtherActorType
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -31,6 +32,8 @@ internal object SetEventOtherActorType : WriteCommand<SetEventOtherActorType.Inp
     override val description = "Sets the Actor type a collision Event of a block-built Actor type reacts to overlapping."
     override val title = Res.string.command_set_event_other_actor_type
     override val inputSerializer = Input.serializer()
+
+    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType, eventIndex = input.eventIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateEvent(input.actorType, input.eventIndex) ?: when {
         context.requireActorType(input.actorType).events[input.eventIndex].type != EventType.COLLISION -> Rejection(Res.string.error_command_other_actor_type_not_allowed)

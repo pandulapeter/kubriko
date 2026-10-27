@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,6 +30,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
+import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_move_down
 import kubriko.creator.generated.resources.action_move_up
@@ -56,8 +58,9 @@ internal fun BlockRow(
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
     onRemove: () -> Unit,
+    flashKey: Any? = null,
 ) = Column(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = Modifier.fillMaxWidth().background(rememberFlashColor(flashKey), MaterialTheme.shapes.small),
     verticalArrangement = Arrangement.spacedBy(4.dp),
 ) {
     val kind = BlockKind.of(block)

@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -32,6 +33,8 @@ internal object CreateScene : WriteCommand<CreateScene.Input> {
     override val description = "Creates a Scene file, empty unless its content is given. A game only loads the Scenes its code names."
     override val title = Res.string.command_create_scene
     override val inputSerializer = Input.serializer()
+
+    override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = when {
         !namePattern.matches(input.scene) -> Rejection(Res.string.error_scene_name_invalid)

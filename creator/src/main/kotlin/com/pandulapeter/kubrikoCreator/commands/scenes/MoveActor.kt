@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -28,6 +29,8 @@ internal object MoveActor : WriteCommand<MoveActor.Input> {
     override val description = "Moves an Actor of a Scene to another position, in scene units, with 0, 0 in the center of the Scene and y growing downwards."
     override val title = Res.string.command_move_actor
     override val inputSerializer = Input.serializer()
+
+    override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateSceneActor(input.scene, input.actorIndex) ?: when {
         !input.x.isFinite() || !input.y.isFinite() -> Rejection(Res.string.error_command_number_invalid)

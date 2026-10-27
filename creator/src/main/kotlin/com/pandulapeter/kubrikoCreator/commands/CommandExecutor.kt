@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -35,6 +36,13 @@ internal class CommandExecutor(
 ) {
     private val _history = MutableStateFlow(CommandHistory())
     val history = _history.asStateFlow()
+    private val _aiSteps = MutableStateFlow(emptyList<AiStep>())
+
+    /**
+     * The newest tool calls of AI clients ([call]), oldest first, each updated when it finishes.
+     */
+    val aiSteps = _aiSteps.asStateFlow()
+    private var nextAiStepId = 0
     private val changes = Mutex()
 
     /**
@@ -111,15 +119,29 @@ internal class CommandExecutor(
         val input = try {
             json.decodeFromJsonElement(command.inputSerializer, arguments)
         } catch (exception: SerializationException) {
-            return CommandOutcome.Rejected(Rejection(Res.string.error_command_input_invalid, exception.message.orEmpty()))
+            return rejectInput(command, exception)
         } catch (exception: IllegalArgumentException) {
-            return CommandOutcome.Rejected(Rejection(Res.string.error_command_input_invalid, exception.message.orEmpty()))
+            return rejectInput(command, exception)
         }
-        return when (command) {
+        val step = AiStep(id = nextAiStepId++, title = command.title, target = command.target(context, input), isRunning = true)
+        publish(step)
+        val outcome = when (command) {
             is ReadCommand -> command.read(context, input)
             is WriteCommand -> execute(Invocation(command, input))
             is ActionCommand -> command.run(context, input)
         }
+        publish(step.copy(target = command.target(context, input) ?: step.target, isRunning = false, rejection = (outcome as? CommandOutcome.Rejected)?.rejection))
+        return outcome
+    }
+
+    private fun rejectInput(command: EditorCommand<*>, exception: Exception): CommandOutcome {
+        val rejection = Rejection(Res.string.error_command_input_invalid, exception.message.orEmpty())
+        publish(AiStep(id = nextAiStepId++, title = command.title, target = null, isRunning = false, rejection = rejection))
+        return CommandOutcome.Rejected(rejection)
+    }
+
+    private fun publish(step: AiStep) = _aiSteps.update { steps ->
+        (if (steps.any { it.id == step.id }) steps.map { if (it.id == step.id) step else it } else steps + step).takeLast(AI_STEP_COUNT)
     }
 
     private fun CommandOutcome.report(onSuccess: () -> Unit = {}) = when (this) {
@@ -142,6 +164,7 @@ internal class CommandExecutor(
 
     private companion object {
         const val HISTORY_SIZE = 200
+        const val AI_STEP_COUNT = 50
         val json = Json { ignoreUnknownKeys = false }
     }
 }

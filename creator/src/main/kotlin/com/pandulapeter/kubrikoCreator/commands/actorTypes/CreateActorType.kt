@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeNaming
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -28,6 +29,8 @@ internal object CreateActorType : WriteCommand<ActorTypeDefinition> {
         "Kubriko Creator generates its Kotlin class, and it can be placed in Scenes once the project is rebuilt."
     override val title = Res.string.command_create_actor_type
     override val inputSerializer = ActorTypeDefinition.serializer()
+
+    override fun target(context: CommandContext, input: ActorTypeDefinition) = CommandTarget.ActorType(input.name)
 
     override fun validate(context: CommandContext, input: ActorTypeDefinition): Rejection? {
         val actorTypes = context.actorTypes ?: return Rejection(Res.string.error_command_no_actor_types)

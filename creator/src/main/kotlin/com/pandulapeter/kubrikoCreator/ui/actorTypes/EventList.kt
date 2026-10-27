@@ -32,6 +32,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
+import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_add_event
 import kubriko.creator.generated.resources.action_move_down
@@ -60,6 +61,7 @@ internal fun EventList(
     onMoved: (index: Int, targetIndex: Int) -> Unit,
     onRemoved: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    highlight: ActorTypeHighlight? = null,
 ) = Column(
     modifier = modifier,
 ) {
@@ -97,6 +99,7 @@ internal fun EventList(
                 onMoveUp = { onMoved(index, index - 1) },
                 onMoveDown = { onMoved(index, index + 1) },
                 onRemove = { onRemoved(index) },
+                flashKey = highlight?.key?.takeIf { highlight.eventIndex == index && highlight.blockIndex == null },
             )
         }
     }
@@ -112,11 +115,13 @@ private fun EventListItem(
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
     onRemove: () -> Unit,
+    flashKey: Any?,
 ) = Row(
     modifier = Modifier
         .fillMaxWidth()
         .heightIn(min = 36.dp)
         .then(if (isSelected) Modifier.background(MaterialTheme.colorScheme.secondaryContainer) else Modifier)
+        .background(rememberFlashColor(flashKey))
         .clickable(onClick = onClick)
         .padding(start = 12.dp, end = 4.dp),
     horizontalArrangement = Arrangement.spacedBy(8.dp),

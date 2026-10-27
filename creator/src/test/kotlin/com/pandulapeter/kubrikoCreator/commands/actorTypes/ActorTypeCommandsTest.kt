@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.commands.WriteCommand
@@ -172,6 +173,21 @@ class ActorTypeCommandsTest {
         assertEquals(Rejection(Res.string.error_command_block_missing, "Ball", "1", "0"), context.rejection(RemoveBlock, RemoveBlock.Input("Ball", 1, 0)))
         assertEquals(Rejection(Res.string.error_command_index_invalid, "2"), context.rejection(MoveBlock, MoveBlock.Input("Ball", 0, 0, 2)))
         assertEquals(EditBlock.mergeKey(EditBlock.Input("Ball", 0, 1, jump)), EditBlock.mergeKey(EditBlock.Input("Ball", 0, 1, stop)))
+    }
+
+    @Test
+    fun targetsNameWhatACommandCreatedOrMoved() = runTest {
+        val context = commandContext(ball, wall)
+        val addBlock = AddBlock.Input("Ball", 0, stop)
+        AddBlock.apply(context, addBlock)
+        assertEquals(CommandTarget.ActorType("Ball", 0, 2), AddBlock.target(context, addBlock))
+        assertEquals(CommandTarget.ActorType("Ball", 0, 0), AddBlock.target(context, addBlock.copy(index = 0)))
+        assertEquals(CommandTarget.ActorType("Ball", 2), MoveEvent.target(context, MoveEvent.Input("Ball", 0, 2)))
+        assertEquals(CommandTarget.ActorType("Ball", 0, 1), MoveBlock.target(context, MoveBlock.Input("Ball", 0, 0, 1)))
+        val rename = RenameActorType.Input("Wall", "Brick")
+        assertEquals(CommandTarget.ActorType("Wall"), RenameActorType.target(context, rename))
+        RenameActorType.apply(context, rename)
+        assertEquals(CommandTarget.ActorType("Brick"), RenameActorType.target(context, rename))
     }
 
     @Test

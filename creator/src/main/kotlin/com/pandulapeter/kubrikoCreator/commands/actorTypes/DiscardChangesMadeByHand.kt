@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -29,6 +30,8 @@ internal object DiscardChangesMadeByHand : WriteCommand<DiscardChangesMadeByHand
     override val title = Res.string.command_discard_changes_made_by_hand
     override val inputSerializer = Input.serializer()
     override val isDestructive = true
+
+    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateActorType(input.actorType)
         ?: if (input.actorType !in context.requireActorTypes.changedByHand.value) Rejection(Res.string.error_command_not_changed_by_hand, input.actorType) else null

@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.actorTypes
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -26,6 +27,8 @@ internal object DeleteActorType : WriteCommand<DeleteActorType.Input> {
     override val description = "Deletes a block-built Actor type with its generated Kotlin class."
     override val title = Res.string.command_delete_actor_type
     override val inputSerializer = Input.serializer()
+
+    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType)
 
     override fun validate(context: CommandContext, input: Input) = context.validateActorType(input.actorType)
 

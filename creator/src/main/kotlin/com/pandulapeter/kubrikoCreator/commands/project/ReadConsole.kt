@@ -15,12 +15,15 @@ import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.command_read_console
 
 internal object ReadConsole : ReadCommand<ReadConsole.Input> {
     override val name = "read_console"
     override val description = "Reads the newest lines of Kubriko Creator's console, oldest first: what Kubriko Creator reports, compiler problems with their locations, " +
         "and the logs of the running game."
     override val inputSerializer = Input.serializer()
+    override val title = Res.string.command_read_console
 
     override suspend fun read(context: CommandContext, input: Input) = CommandOutcome.Success(context.console.value.takeLast(input.limit.coerceAtLeast(0)).toJsonArray())
 

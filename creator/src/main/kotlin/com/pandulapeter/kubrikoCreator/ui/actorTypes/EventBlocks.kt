@@ -51,6 +51,7 @@ internal fun EventBlocks(
     onBlockMoved: (blockIndex: Int, targetIndex: Int) -> Unit,
     onBlockRemoved: (blockIndex: Int) -> Unit,
     modifier: Modifier = Modifier,
+    highlight: ActorTypeHighlight? = null,
 ) = Column(
     modifier = modifier,
 ) {
@@ -116,6 +117,7 @@ internal fun EventBlocks(
                 onMoveUp = { onBlockMoved(index, index - 1) },
                 onMoveDown = { onBlockMoved(index, index + 1) },
                 onRemove = { onBlockRemoved(index) },
+                flashKey = highlight?.key?.takeIf { highlight.blockIndex == index },
             )
         }
     }

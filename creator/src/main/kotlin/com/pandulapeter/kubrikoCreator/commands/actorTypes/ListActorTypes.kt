@@ -21,11 +21,13 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_command_no_actor_types
+import kubriko.creator.generated.resources.command_list_actor_types
 
 internal object ListActorTypes : ReadCommand<NoInput> {
     override val name = "list_actor_types"
     override val description = "Lists the block-built Actor types of the project with the Events each one reacts to."
     override val inputSerializer = NoInput.serializer()
+    override val title = Res.string.command_list_actor_types
 
     override suspend fun read(context: CommandContext, input: NoInput): CommandOutcome {
         val actorTypes = context.actorTypes ?: return CommandOutcome.Rejected(Rejection(Res.string.error_command_no_actor_types))

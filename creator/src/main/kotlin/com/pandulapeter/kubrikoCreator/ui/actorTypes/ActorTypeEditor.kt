@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +47,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
+import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_delete_actor_type
 import kubriko.creator.generated.resources.actor_type_regenerated
@@ -65,14 +67,17 @@ internal fun ActorTypeEditor(
     isChangedByHand: Boolean,
     onCommand: (Invocation<*>) -> Unit,
     modifier: Modifier = Modifier,
+    highlight: ActorTypeHighlight? = null,
 ) = Column(
     modifier = modifier,
 ) {
     val name = definition.name
     var requestedEventIndex by remember(definition.name) { mutableStateOf<Int?>(null) }
+    LaunchedEffect(highlight?.key) { highlight?.eventIndex?.let { requestedEventIndex = it } }
     val eventIndex = selectedEventIndex(requestedEventIndex, definition.events.size)
     val event = eventIndex?.let { definition.events[it] }
     Header(
+        flashKey = highlight?.key?.takeIf { highlight.eventIndex == null },
         definition = definition,
         onDelete = { onCommand(Invocation(DeleteActorType, DeleteActorType.Input(name))) },
     )
@@ -110,6 +115,7 @@ internal fun ActorTypeEditor(
                 onCommand(Invocation(RemoveEvent, RemoveEvent.Input(name, index)))
                 if (eventIndex != null && index < eventIndex) requestedEventIndex = eventIndex - 1
             },
+            highlight = highlight,
         )
         VerticalDivider()
         EventBlocks(
@@ -121,6 +127,7 @@ internal fun ActorTypeEditor(
             onBlockChange = { blockIndex, block -> eventIndex?.let { onCommand(Invocation(EditBlock, EditBlock.Input(name, it, blockIndex, block))) } },
             onBlockMoved = { blockIndex, targetIndex -> eventIndex?.let { onCommand(Invocation(MoveBlock, MoveBlock.Input(name, it, blockIndex, targetIndex))) } },
             onBlockRemoved = { blockIndex -> eventIndex?.let { onCommand(Invocation(RemoveBlock, RemoveBlock.Input(name, it, blockIndex))) } },
+            highlight = highlight?.takeIf { it.eventIndex == eventIndex },
         )
         VerticalDivider()
         BlockPalette(
@@ -133,10 +140,11 @@ internal fun ActorTypeEditor(
 
 @Composable
 private fun Header(
+    flashKey: Any?,
     definition: ActorTypeDefinition,
     onDelete: () -> Unit,
 ) = Row(
-    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+    modifier = Modifier.fillMaxWidth().background(rememberFlashColor(flashKey)).padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
     horizontalArrangement = Arrangement.spacedBy(10.dp),
     verticalAlignment = Alignment.CenterVertically,
 ) {

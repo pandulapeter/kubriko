@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.commands.scenes
 
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.Rejection
@@ -33,6 +34,8 @@ internal object PlaceActor : WriteCommand<PlaceActor.Input> {
         "Returns its index in the Scene's Actor list. Scene coordinates are in scene units, with 0, 0 in the center of the Scene and y growing downwards."
     override val title = Res.string.command_place_actor
     override val inputSerializer = Input.serializer()
+
+    override fun target(context: CommandContext, input: Input) = CommandTarget.Scene(input.scene)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateScene(input.scene)
         ?: context.validateActorType(input.actorType)

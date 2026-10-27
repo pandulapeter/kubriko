@@ -24,12 +24,15 @@ import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.command_get_block_catalog
 
 internal object GetBlockCatalog : ReadCommand<NoInput> {
     override val name = "get_block_catalog"
     override val description = "Lists every Event an Actor type can react to and every Block an Event can run: what each one does, " +
         "which Events allow which Blocks, and the properties of each Block."
     override val inputSerializer = NoInput.serializer()
+    override val title = Res.string.command_get_block_catalog
 
     override suspend fun read(context: CommandContext, input: NoInput) = CommandOutcome.Success(catalog)
 

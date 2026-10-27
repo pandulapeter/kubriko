@@ -9,18 +9,11 @@
  */
 package com.pandulapeter.kubrikoCreator.commands
 
-import org.jetbrains.compose.resources.StringResource
-
 /**
  * A command that changes the project. It is validated before it is applied, and applying it returns the command that
  * reverts it, which is what undo and redo run.
  */
 internal interface WriteCommand<I> : EditorCommand<I> {
-
-    /**
-     * How the user interface names the change, in the titles of undo and redo.
-     */
-    val title: StringResource
 
     /**
      * Whether the change throws work away for good (it can't be undone), so that AI clients ask before making it.

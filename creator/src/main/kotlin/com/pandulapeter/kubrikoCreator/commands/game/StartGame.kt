@@ -11,11 +11,14 @@ package com.pandulapeter.kubrikoCreator.commands.game
 
 import com.pandulapeter.kubrikoCreator.commands.ActionCommand
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.commands.NoInput
 import com.pandulapeter.kubrikoCreator.commands.project.toJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.command_start_game
 
 internal object StartGame : ActionCommand<NoInput> {
     override val name = "start_game"
@@ -23,6 +26,9 @@ internal object StartGame : ActionCommand<NoInput> {
         "take_screenshot can play it like a player would, to check that a change works. Returns whether it started, with what the console showed " +
         "(compiler problems, the game's logs). Stop it with stop_game. A game that was already running is restarted."
     override val inputSerializer = NoInput.serializer()
+    override val title = Res.string.command_start_game
+
+    override fun target(context: CommandContext, input: NoInput) = CommandTarget.Game
 
     override suspend fun run(context: CommandContext, input: NoInput): CommandOutcome {
         val result = context.runner.startGame()

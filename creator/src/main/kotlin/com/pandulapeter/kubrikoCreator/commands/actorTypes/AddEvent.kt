@@ -16,6 +16,7 @@ import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.withEventInserted
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -32,6 +33,8 @@ internal object AddEvent : WriteCommand<AddEvent.Input> {
     override val description = "Adds an Event to a block-built Actor type, optionally with its Blocks. A keyPressed Event reacts to the space key unless another key is given."
     override val title = Res.string.command_add_event
     override val inputSerializer = Input.serializer()
+
+    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType, eventIndex = input.index ?: context.actorTypes?.get(input.actorType)?.events?.lastIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateActorType(input.actorType)
         ?: validateEvent(input.event, context.requireActorTypes.actorTypes.value.map { it.name })

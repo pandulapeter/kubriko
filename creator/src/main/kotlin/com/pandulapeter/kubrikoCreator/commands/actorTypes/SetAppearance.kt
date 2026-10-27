@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorShape
 import com.pandulapeter.kubrikoCreator.actors.HexColorSerializer
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
+import com.pandulapeter.kubrikoCreator.commands.CommandTarget
 import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.commands.Invocation
@@ -29,6 +30,8 @@ internal object SetAppearance : WriteCommand<SetAppearance.Input> {
     override val description = "Changes how the Actors of a block-built Actor type look. Properties left out stay as they are."
     override val title = Res.string.command_set_appearance
     override val inputSerializer = Input.serializer()
+
+    override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateActorType(input.actorType) ?: run {
         val definition = context.requireActorType(input.actorType)

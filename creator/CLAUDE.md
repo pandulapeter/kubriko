@@ -88,6 +88,11 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
   listeners Kubriko's keyboard input reads, screenshots come from the game's `SkiaLayer` (no OS permission), and every step first
   brings the window to the front, since Kubriko pauses unfocused games. Sessions of protocol 1 (older Kubriko) still run; the
   game tools say the version is too old.
+- **Showing the AI's work:** every command has a `title` and a `target` (`CommandTarget`: an Actor type with an optional Event
+  and Block index, a Scene, version control, or the game), asked before and after it runs. `CommandExecutor.aiSteps` records each
+  AI tool call as a running, then finished (or rejected) `AiStep`. The workspace shows them in `AiActivityBar` (step number, the
+  step before, the current one pulsing while it runs, a Follow switch), follows the AI to the Actor type and Event it works on,
+  and lights up the finished step's target (`rememberFlashColor`) in the editor and the sidebar (`ui/AiFollowing.kt`).
 - Tests talk to a real server on localhost through the SDK's client, run real shell commands, and play a fake session.
 
 ## Packages (`com.pandulapeter.kubrikoCreator`)
