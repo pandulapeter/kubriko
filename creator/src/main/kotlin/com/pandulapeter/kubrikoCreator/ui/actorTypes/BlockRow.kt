@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
@@ -52,6 +53,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun BlockRow(
     block: BlockDefinition,
+    properties: List<PropertyDefinition>,
     isFirst: Boolean,
     isLast: Boolean,
     onBlockChange: (BlockDefinition) -> Unit,
@@ -86,7 +88,7 @@ internal fun BlockRow(
     Row(
         modifier = Modifier.padding(start = 24.dp),
     ) {
-        InlineParameters(block, onBlockChange)
+        InlineParameters(block, properties, onBlockChange)
     }
     if (block is BlockDefinition.Kotlin) {
         CompactTextField(
@@ -103,8 +105,10 @@ internal fun BlockRow(
 @Composable
 private fun InlineParameters(
     block: BlockDefinition,
+    properties: List<PropertyDefinition>,
     onBlockChange: (BlockDefinition) -> Unit,
 ) = when (block) {
+    is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText, is BlockDefinition.SetToggle -> PropertyBlockParameters(block, properties, onBlockChange)
     is BlockDefinition.SetVelocity -> OffsetParameters(block.x, block.y, isVelocity = true) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
     is BlockDefinition.AddToVelocity -> OffsetParameters(block.x, block.y, isVelocity = true) { x, y -> onBlockChange(block.copy(x = x, y = y)) }
     is BlockDefinition.JumpTo -> OffsetParameters(block.x, block.y, isVelocity = false) { x, y -> onBlockChange(block.copy(x = x, y = y)) }

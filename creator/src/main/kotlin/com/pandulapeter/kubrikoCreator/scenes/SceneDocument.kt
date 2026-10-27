@@ -73,6 +73,14 @@ internal object SceneDocument {
         })
     }.toString()
 
+    /**
+     * [state] changed by [change], or null if it isn't a JSON object or [change] left it as it was.
+     */
+    fun withStateChanged(state: String, change: (JsonObject) -> JsonObject): String? {
+        val stateObject = stateObject(state) ?: return null
+        return change(stateObject).takeIf { it != stateObject }?.toString()
+    }
+
     private fun position(x: Float, y: Float) = buildJsonObject {
         put("x", x)
         put("y", y)

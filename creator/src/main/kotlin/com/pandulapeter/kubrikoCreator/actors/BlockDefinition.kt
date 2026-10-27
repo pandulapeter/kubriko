@@ -78,18 +78,92 @@ internal sealed interface BlockDefinition {
     data object RemoveOther : BlockDefinition
 
     @Serializable
+    @SerialName("setNumber")
+    @Description("Sets a number Property of the Actor.")
+    data class SetNumber(
+        @Description(PROPERTY_DESCRIPTION)
+        @SerialName("property") val property: String = "",
+        @Description("The new value.")
+        @SerialName("value") val value: Float = 0f,
+    ) : BlockDefinition
+
+    @Serializable
+    @SerialName("changeNumber")
+    @Description("Adds to a number Property of the Actor (or subtracts from it, with a negative amount).")
+    data class ChangeNumber(
+        @Description(PROPERTY_DESCRIPTION)
+        @SerialName("property") val property: String = "",
+        @Description("The amount added.")
+        @SerialName("by") val by: Float = 1f,
+    ) : BlockDefinition
+
+    @Serializable
+    @SerialName("setText")
+    @Description("Sets a text Property of the Actor.")
+    data class SetText(
+        @Description(PROPERTY_DESCRIPTION)
+        @SerialName("property") val property: String = "",
+        @Description("The new text.")
+        @SerialName("value") val value: String = "",
+    ) : BlockDefinition
+
+    @Serializable
+    @SerialName("setToggle")
+    @Description("Turns a toggle Property of the Actor on or off.")
+    data class SetToggle(
+        @Description(PROPERTY_DESCRIPTION)
+        @SerialName("property") val property: String = "",
+        @Description("Whether it is on.")
+        @SerialName("value") val value: Boolean = true,
+    ) : BlockDefinition
+
+    @Serializable
     @SerialName("log")
     @Description("Writes a line to Kubriko Creator's console while the game runs, with the Actor type as its source. The way to see what happens in the game: println doesn't reach the console.")
     data class Log(
-        @Description("The text of the line.")
+        @Description("The text of the line. {name} is replaced by the value of the Property called name, as in \"Score: {score}\".")
         @SerialName("message") val message: String = "",
     ) : BlockDefinition
 
     @Serializable
     @SerialName("kotlin")
-    @Description("Kotlin statements inserted verbatim into the Event, in a scope of their own, for anything the other Blocks can't express. In scope: velocity (a SceneOffset in scene units per second), body (the BoxBody of the Actor), color, actorManager, and viewportManager. println doesn't reach the console; use the log Block, or Logger.log.")
+    @Description("Kotlin statements inserted verbatim into the Event, in a scope of their own, for anything the other Blocks can't express. In scope: velocity (a SceneOffset in scene units per second), body (the BoxBody of the Actor), color, the Actor type's Properties (number Properties are Floats), actorManager, and viewportManager. println doesn't reach the console; use the log Block, or Logger.log.")
     data class Kotlin(
         @Description("The Kotlin statements.")
         @SerialName("code") val code: String = "",
     ) : BlockDefinition
+}
+
+private const val PROPERTY_DESCRIPTION = "The name of one of the Actor type's Properties of this kind."
+
+/**
+ * The Property [this] Block changes, if it is one that changes a Property: its name, and the kind of Property it needs.
+ */
+internal val BlockDefinition.propertyReference: Pair<String, PropertyKind>?
+    get() = when (this) {
+        is BlockDefinition.SetNumber -> property to PropertyKind.NUMBER
+        is BlockDefinition.ChangeNumber -> property to PropertyKind.NUMBER
+        is BlockDefinition.SetText -> property to PropertyKind.TEXT
+        is BlockDefinition.SetToggle -> property to PropertyKind.TOGGLE
+        else -> null
+    }
+
+/**
+ * [this] Block with the Property it changes (or shows, in a Log Block) renamed from [oldName] to [newName].
+ */
+internal fun BlockDefinition.withPropertyRenamed(oldName: String, newName: String) = when {
+    propertyReference?.first == oldName -> withProperty(newName)
+    this is BlockDefinition.Log -> copy(message = message.replace("{$oldName}", "{$newName}"))
+    else -> this
+}
+
+/**
+ * [this] Block changing the Property called [name] instead, if it is one that changes a Property.
+ */
+internal fun BlockDefinition.withProperty(name: String) = when (this) {
+    is BlockDefinition.SetNumber -> copy(property = name)
+    is BlockDefinition.ChangeNumber -> copy(property = name)
+    is BlockDefinition.SetText -> copy(property = name)
+    is BlockDefinition.SetToggle -> copy(property = name)
+    else -> this
 }

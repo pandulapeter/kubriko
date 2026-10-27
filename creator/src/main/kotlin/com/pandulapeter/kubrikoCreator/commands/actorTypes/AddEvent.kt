@@ -37,7 +37,7 @@ internal object AddEvent : WriteCommand<AddEvent.Input> {
     override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType, eventIndex = input.index ?: context.actorTypes?.get(input.actorType)?.events?.lastIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateActorType(input.actorType)
-        ?: validateEvent(input.event, context.requireActorTypes.actorTypes.value.map { it.name })
+        ?: validateEvent(input.event, context.requireActorTypes.actorTypes.value.map { it.name }, context.requireActorType(input.actorType).properties)
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val definition = context.requireActorType(input.actorType)

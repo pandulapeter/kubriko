@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
 import kotlinx.coroutines.runBlocking
@@ -67,6 +68,11 @@ class ProjectTemplateIntegrationTest {
     private val everyBlockInEveryEvent = ActorTypeDefinition(
         name = "EveryBlock",
         shape = ActorShape.RECTANGLE,
+        properties = listOf(
+            PropertyDefinition.Number("score", 2.5f),
+            PropertyDefinition.Text("title", "Say \"\$hi\" \\ to\neveryone"),
+            PropertyDefinition.Toggle("isShielded", true),
+        ),
         events = EventType.entries.flatMap { type ->
             val blocks = listOf(
                 BlockDefinition.SetVelocity(x = 1.5f, y = -2f),
@@ -79,6 +85,14 @@ class ProjectTemplateIntegrationTest {
                 BlockDefinition.RemoveOther,
                 BlockDefinition.Log(message = "Say \"\$hi\" \\ to\neveryone"),
                 BlockDefinition.Kotlin(code = "val speed = velocity.x\nif (speed > 0f.sceneUnit) velocity = SceneOffset.Zero"),
+                BlockDefinition.SetNumber(property = "score", value = -1f),
+                BlockDefinition.ChangeNumber(property = "score", by = 0.5f),
+                BlockDefinition.SetText(property = "title", value = "Game \"over\""),
+                BlockDefinition.SetToggle(property = "isShielded", value = false),
+                BlockDefinition.SetNumber(),
+                BlockDefinition.ChangeNumber(property = "missing"),
+                BlockDefinition.Log(message = "{title}: {score} ({isShielded}) {missing}"),
+                BlockDefinition.Kotlin(code = "if (isShielded) score += 1f"),
             )
             when (type) {
                 EventType.KEY_PRESSED -> KeyChoice.entries.map { key -> EventDefinition(type = type, key = key, blocks = blocks) }

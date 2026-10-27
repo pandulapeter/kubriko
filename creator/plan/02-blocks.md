@@ -14,8 +14,7 @@ case in the integration test's every-Block Actor type.
 
 ## Next additions
 
-- **Properties:** typed fields on an Actor type (number, text, toggle, color, Actor type reference), each an `@Exposed` property editable per
-  Actor in the Scene editor and stored in `State`; Blocks to set, change, and compare them.
+- **More Properties:** color and Actor type reference Properties (the number, text, and toggle ones exist); comparing them comes with Flow.
 - **Flow:** if / else on a comparison (Property, velocity, key held, random chance), repeat; nested Block lists in the model and the editor.
 - **Timers:** "Start Timer *n*" Block and a "When Timer *n* finishes" Event (a generated `Timer` field updated in `update`).
 - **Actors:** add an Actor of a type at a position (spawning), find the nearest of a type.

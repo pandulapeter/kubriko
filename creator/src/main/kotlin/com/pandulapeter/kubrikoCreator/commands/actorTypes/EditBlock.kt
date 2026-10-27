@@ -34,7 +34,7 @@ internal object EditBlock : WriteCommand<EditBlock.Input> {
     override fun target(context: CommandContext, input: Input) = CommandTarget.ActorType(input.actorType, input.eventIndex, input.blockIndex)
 
     override fun validate(context: CommandContext, input: Input): Rejection? = context.validateBlock(input.actorType, input.eventIndex, input.blockIndex)
-        ?: validateBlock(input.block, context.requireActorType(input.actorType).events[input.eventIndex].type)
+        ?: context.requireActorType(input.actorType).let { validateBlock(input.block, it.events[input.eventIndex].type, it.properties) }
 
     override suspend fun apply(context: CommandContext, input: Input): Applied {
         val definition = context.requireActorType(input.actorType)

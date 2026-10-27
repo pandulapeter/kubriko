@@ -21,6 +21,7 @@ internal object ActorTypeCodeGenerator {
     const val GENERATED_PACKAGE = "generated"
     const val REGISTRY_NAME = "GeneratedActorTypes"
     private const val INDENT = "    "
+    private const val NUMBER_TEXT_FUNCTION = "asText"
 
     /**
      * @param knownActorTypeNames Every Actor type of the project: collision Events with any other Actor type (one that
@@ -37,7 +38,7 @@ internal object ActorTypeCodeGenerator {
         val collisionEvents = definition.events.filter { it.type == EventType.COLLISION && it.otherActorType in knownActorTypeNames }
         val generatedEvents = definition.events.filter { it.type == EventType.ADDED_TO_SCENE || it.type == EventType.EVERY_FRAME } + edgeEvents + keyEvents + collisionEvents
         val blocksByEvent = edgeEvents.flatMap { event -> event.blocks.map { it to event.type } } + collisionEvents.flatMap { event -> event.blocks.map { it to event.type } }
-        val usesAbsoluteValue = blocksByEvent.any { (block, eventType) -> blockLines(block, eventType, name).any { "absoluteValue" in it } }
+        val usesAbsoluteValue = blocksByEvent.any { (block, eventType) -> blockLines(block, eventType, name, definition.properties).any { "absoluteValue" in it } }
         val traits = listOfNotNull(
             "Visible",
             "Dynamic",
@@ -77,6 +78,11 @@ internal object ActorTypeCodeGenerator {
             appendLine("     * In scene units per second: the Actor moves by this much every second.")
             appendLine("     */")
             appendLine("    var velocity = SceneOffset.Zero")
+            definition.properties.forEach { property ->
+                appendLine()
+                appendLine("    @set:Exposed(name = ${stringLiteral(property.name)})")
+                appendLine("    var ${property.name}: ${PropertyKind.of(property).kotlinType} = state.${property.name}")
+            }
             appendLine(collisionMask(definition.shape))
             if (collisionEvents.isNotEmpty()) {
                 appendLine("    override val collidableTypes: List<KClass<out Collidable>> = listOf(${collisionEvents.mapNotNull { it.otherActorType }.distinct().sorted().joinToString { "$it::class" }})")
@@ -87,29 +93,37 @@ internal object ActorTypeCodeGenerator {
             appendLine("    override fun onAdded(kubriko: Kubriko) {")
             appendLine("        actorManager = kubriko.get()")
             appendLine("        viewportManager = kubriko.get()")
-            appendEvents(definition.events.filter { it.type == EventType.ADDED_TO_SCENE }, depth = 2, actorTypeName = name)
+            appendEvents(definition.events.filter { it.type == EventType.ADDED_TO_SCENE }, depth = 2, definition = definition)
             appendLine("    }")
             appendLine()
             appendLine("    override fun update(deltaTimeInMilliseconds: Int) {")
-            appendEvents(definition.events.filter { it.type == EventType.EVERY_FRAME }, depth = 2, actorTypeName = name)
+            appendEvents(definition.events.filter { it.type == EventType.EVERY_FRAME }, depth = 2, definition = definition)
             appendLine("        body.position += velocity * (deltaTimeInMilliseconds / 1000f)")
-            if (edgeEvents.isNotEmpty()) appendEdgeHandling(edgeEvents, name)
+            if (edgeEvents.isNotEmpty()) appendEdgeHandling(edgeEvents, definition)
             appendLine("        collisionMask.position = body.position")
             appendLine("    }")
-            if (keyEvents.isNotEmpty()) appendKeyHandling(keyEvents, name)
-            if (collisionEvents.isNotEmpty()) appendCollisionHandling(collisionEvents, name)
+            if (keyEvents.isNotEmpty()) appendKeyHandling(keyEvents, definition)
+            if (collisionEvents.isNotEmpty()) appendCollisionHandling(collisionEvents, definition)
             appendLine()
             appendLine(drawFunction(definition.shape))
+            if (generatedEvents.any { event -> event.blocks.any { it is BlockDefinition.Log && ".$NUMBER_TEXT_FUNCTION()" in templateLiteral(it.message, definition.properties) } }) {
+                appendLine()
+                appendLine("    private fun Float.$NUMBER_TEXT_FUNCTION() = if (this % 1f == 0f) toLong().toString() else toString()")
+            }
             appendLine()
             appendLine("    override fun save() = State(")
             appendLine("        body = body,")
             appendLine("        color = color,")
+            definition.properties.forEach { appendLine("        ${it.name} = ${it.name},") }
             appendLine("    )")
             appendLine()
             appendLine("    @kotlinx.serialization.Serializable")
             appendLine("    data class State(")
             appendLine("        @SerialName(\"body\") val body: SerializableBoxBody = BoxBody(),")
             appendLine("        @SerialName(\"color\") val color: SerializableColor = Color(${colorLiteral(definition.color)}),")
+            definition.properties.forEach { property ->
+                appendLine("        @SerialName(${stringLiteral(property.name)}) val ${property.name}: ${PropertyKind.of(property).kotlinType} = ${initialValueLiteral(property)},")
+            }
             appendLine("    ) : Serializable.State<$name> {")
             appendLine()
             appendLine("        override fun restore() = $name(this)")
@@ -145,8 +159,8 @@ internal object ActorTypeCodeGenerator {
         appendLine("}")
     })
 
-    private fun StringBuilder.appendEvents(events: List<EventDefinition>, depth: Int, actorTypeName: String) {
-        val lines = events.flatMap { event -> event.blocks.flatMap { block -> blockLines(block, event.type, actorTypeName) } }
+    private fun StringBuilder.appendEvents(events: List<EventDefinition>, depth: Int, definition: ActorTypeDefinition) {
+        val lines = events.flatMap { event -> event.blocks.flatMap { block -> blockLines(block, event.type, definition.name, definition.properties) } }
         if (lines.isNotEmpty() && events.first().type != EventType.KEY_PRESSED && events.first().type != EventType.COLLISION) {
             appendLine(INDENT.repeat(depth) + "// " + eventComment(events.first().type))
         }
@@ -161,7 +175,7 @@ internal object ActorTypeCodeGenerator {
         EventType.COLLISION -> "When it collides with another Actor"
     }
 
-    private fun StringBuilder.appendEdgeHandling(edgeEvents: List<EventDefinition>, name: String) {
+    private fun StringBuilder.appendEdgeHandling(edgeEvents: List<EventDefinition>, definition: ActorTypeDefinition) {
         appendLine("        val halfSize = SceneOffset(body.size.width / 2, body.size.height / 2)")
         appendLine("        val topLeft = viewportManager.topLeft.value + halfSize")
         appendLine("        val bottomRight = viewportManager.bottomRight.value - halfSize")
@@ -172,31 +186,31 @@ internal object ActorTypeCodeGenerator {
         appendLine("        val isTouchingBottomEdge = body.position.y > bottomRight.y")
         appendLine("        if (isTouchingLeftEdge || isTouchingRightEdge || isTouchingTopEdge || isTouchingBottomEdge) {")
         appendLine("            body.position = body.position.constrainedWithin(topLeft, bottomRight)")
-        appendEvents(edgeEvents, depth = 3, actorTypeName = name)
+        appendEvents(edgeEvents, depth = 3, definition = definition)
         appendLine("        }")
     }
 
-    private fun StringBuilder.appendKeyHandling(keyEvents: List<EventDefinition>, name: String) {
+    private fun StringBuilder.appendKeyHandling(keyEvents: List<EventDefinition>, definition: ActorTypeDefinition) {
         appendLine()
         appendLine("    override fun onKeyPressed(key: Key) {")
         appendLine("        when (key) {")
         keyEvents.groupBy { it.key!! }.toSortedMap().forEach { (key, events) ->
             appendLine("            Key.${key.composeKeyName} -> {")
-            appendEvents(events, depth = 4, actorTypeName = name)
+            appendEvents(events, depth = 4, definition = definition)
             appendLine("            }")
         }
         appendLine("        }")
         appendLine("    }")
     }
 
-    private fun StringBuilder.appendCollisionHandling(collisionEvents: List<EventDefinition>, name: String) {
+    private fun StringBuilder.appendCollisionHandling(collisionEvents: List<EventDefinition>, definition: ActorTypeDefinition) {
         appendLine()
         appendLine("    override fun onCollisionDetected(collidables: List<Collidable>) {")
         appendLine("        for (index in collidables.indices) {")
         appendLine("            when (val other = collidables[index]) {")
         collisionEvents.groupBy { it.otherActorType!! }.toSortedMap().forEach { (otherActorType, events) ->
             appendLine("                is $otherActorType -> {")
-            appendEvents(events, depth = 5, actorTypeName = name)
+            appendEvents(events, depth = 5, definition = definition)
             appendLine("                }")
         }
         appendLine("            }")
@@ -239,7 +253,12 @@ internal object ActorTypeCodeGenerator {
      * The statements of [block] in an Event of [eventType]. Blocks that need what only one Event knows become a comment
      * anywhere else, so that a definition edited by hand still compiles.
      */
-    internal fun blockLines(block: BlockDefinition, eventType: EventType, actorTypeName: String): List<String> = when (block) {
+    internal fun blockLines(
+        block: BlockDefinition,
+        eventType: EventType,
+        actorTypeName: String,
+        properties: List<PropertyDefinition> = emptyList(),
+    ): List<String> = when (block) {
         is BlockDefinition.SetVelocity -> listOf("velocity = ${offsetLiteral(block.x, block.y)}")
         is BlockDefinition.AddToVelocity -> listOf("velocity += ${offsetLiteral(block.x, block.y)}")
         BlockDefinition.Stop -> listOf("velocity = SceneOffset.Zero")
@@ -274,7 +293,11 @@ internal object ActorTypeCodeGenerator {
         } else {
             listOf("// Remove the other Actor only works in a collision Event.")
         }
-        is BlockDefinition.Log -> listOf("Logger.log(message = ${stringLiteral(block.message)}, source = ${stringLiteral(actorTypeName)})")
+        is BlockDefinition.SetNumber -> propertyLines(block, properties) { "${block.property} = ${floatLiteral(block.value)}" }
+        is BlockDefinition.ChangeNumber -> propertyLines(block, properties) { "${block.property} += ${floatLiteral(block.by)}" }
+        is BlockDefinition.SetText -> propertyLines(block, properties) { "${block.property} = ${stringLiteral(block.value)}" }
+        is BlockDefinition.SetToggle -> propertyLines(block, properties) { "${block.property} = ${block.value}" }
+        is BlockDefinition.Log -> listOf("Logger.log(message = ${templateLiteral(block.message, properties)}, source = ${stringLiteral(actorTypeName)})")
         // Each Kotlin Block gets a scope of its own, like GameMaker's code actions, so two of them can declare the same name.
         is BlockDefinition.Kotlin -> block.code.lines().map { it.trimEnd() }.dropWhile { it.isEmpty() }.dropLastWhile { it.isEmpty() }
             .takeIf { it.isNotEmpty() }
@@ -282,8 +305,44 @@ internal object ActorTypeCodeGenerator {
             .orEmpty()
     }
 
+    /**
+     * The statement of a Block that changes a Property, or a comment if the Actor type has no Property of that name
+     * and kind (one that was renamed, deleted, or not chosen yet), so that the generated code always compiles.
+     */
+    private fun propertyLines(block: BlockDefinition, properties: List<PropertyDefinition>, statement: () -> String): List<String> {
+        val (name, kind) = checkNotNull(block.propertyReference)
+        return if (properties.any { it.name == name && PropertyKind.of(it) == kind }) listOf(statement()) else listOf("// Choose a Property for this Block.")
+    }
+
+    /**
+     * [text] as a string literal in which `{name}` is the value of the Property called name (a whole number without
+     * its ".0", through [NUMBER_TEXT_FUNCTION]). Braces around anything else stay as they are.
+     */
+    internal fun templateLiteral(text: String, properties: List<PropertyDefinition>): String {
+        val propertiesByName = properties.associateBy { it.name }
+        var end = 0
+        return buildString {
+            append('"')
+            propertyPlaceholder.findAll(text).filter { it.groupValues[1] in propertiesByName }.forEach { match ->
+                val name = match.groupValues[1]
+                appendEscaped(text.substring(end, match.range.first))
+                append("\${").append(name)
+                if (propertiesByName.getValue(name) is PropertyDefinition.Number) append(".$NUMBER_TEXT_FUNCTION()")
+                append('}')
+                end = match.range.last + 1
+            }
+            appendEscaped(text.substring(end))
+            append('"')
+        }
+    }
+
     internal fun stringLiteral(text: String) = buildString {
         append('"')
+        appendEscaped(text)
+        append('"')
+    }
+
+    private fun StringBuilder.appendEscaped(text: String) {
         text.forEach { character ->
             when (character) {
                 '\\' -> append("\\\\")
@@ -295,8 +354,15 @@ internal object ActorTypeCodeGenerator {
                 else -> append(character)
             }
         }
-        append('"')
     }
+
+    private fun initialValueLiteral(property: PropertyDefinition) = when (property) {
+        is PropertyDefinition.Number -> floatLiteral(property.initialValue)
+        is PropertyDefinition.Text -> stringLiteral(property.initialValue)
+        is PropertyDefinition.Toggle -> property.initialValue.toString()
+    }
+
+    private val propertyPlaceholder = Regex("\\{([a-z][A-Za-z0-9]*)\\}")
 
     private fun offsetLiteral(x: Float, y: Float) = "SceneOffset(${unitLiteral(x)}, ${unitLiteral(y)})"
 

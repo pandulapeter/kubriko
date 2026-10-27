@@ -52,6 +52,21 @@ internal fun ActorTypeDefinition.withOtherActorTypeRenamed(oldName: String, newN
     events = events.map { event -> if (event.otherActorType == oldName) event.copy(otherActorType = newName) else event },
 )
 
+internal fun ActorTypeDefinition.withPropertyInserted(index: Int, property: PropertyDefinition) = copy(
+    properties = properties.toMutableList().apply { add(index.coerceIn(0, size), property) },
+)
+
+internal fun ActorTypeDefinition.withPropertyRemoved(name: String) = copy(properties = properties.filter { it.name != name })
+
+/**
+ * The Property called [name] replaced by [property]. If that renames it, the Blocks that change it (and Log Blocks that
+ * show it) follow.
+ */
+internal fun ActorTypeDefinition.withPropertyReplaced(name: String, property: PropertyDefinition) = copy(
+    properties = properties.map { if (it.name == name) property else it },
+    events = if (property.name == name) events else events.map { event -> event.copy(blocks = event.blocks.map { it.withPropertyRenamed(name, property.name) }) },
+)
+
 private fun ActorTypeDefinition.withEvent(eventIndex: Int, change: (EventDefinition) -> EventDefinition) = if (eventIndex in events.indices) {
     copy(events = events.mapIndexed { index, event -> if (index == eventIndex) change(event) else event })
 } else {

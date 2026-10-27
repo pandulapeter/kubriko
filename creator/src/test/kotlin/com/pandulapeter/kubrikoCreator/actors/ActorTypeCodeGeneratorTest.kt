@@ -249,4 +249,56 @@ class ActorTypeCodeGeneratorTest {
         assertEquals("run {", lines.first())
         assertEquals("}", lines.last())
     }
+
+    @Test
+    fun propertiesAreExposedFieldsKeptInTheState() {
+        val code = ActorTypeCodeGenerator.generateActorType(
+            ActorTypeDefinition(
+                name = "Player",
+                properties = listOf(PropertyDefinition.Number("score", 3f), PropertyDefinition.Text("title", "Hero \$1"), PropertyDefinition.Toggle("isShielded", true)),
+            ),
+            packageName,
+        )
+        assertContains(code, "    @set:Exposed(name = \"score\")\n    var score: Float = state.score\n")
+        assertContains(code, "    @set:Exposed(name = \"title\")\n    var title: String = state.title\n")
+        assertContains(code, "    var isShielded: Boolean = state.isShielded\n")
+        assertContains(code, "        score = score,\n        title = title,\n        isShielded = isShielded,\n    )")
+        assertContains(code, "        @SerialName(\"score\") val score: Float = 3f,\n")
+        assertContains(code, "        @SerialName(\"title\") val title: String = \"Hero \\\$1\",\n")
+        assertContains(code, "        @SerialName(\"isShielded\") val isShielded: Boolean = true,\n")
+    }
+
+    @Test
+    fun propertyBlocksChangeTheirPropertyOrBecomeACommentWithoutIt() {
+        val properties = listOf(PropertyDefinition.Number("score"), PropertyDefinition.Text("title"), PropertyDefinition.Toggle("isShielded"))
+        fun lines(block: BlockDefinition) = ActorTypeCodeGenerator.blockLines(block, EventType.EVERY_FRAME, "Player", properties)
+        assertEquals(listOf("score = 10f"), lines(BlockDefinition.SetNumber("score", 10f)))
+        assertEquals(listOf("score += -1.5f"), lines(BlockDefinition.ChangeNumber("score", -1.5f)))
+        assertEquals(listOf("title = \"Game \\\"over\\\"\""), lines(BlockDefinition.SetText("title", "Game \"over\"")))
+        assertEquals(listOf("isShielded = false"), lines(BlockDefinition.SetToggle("isShielded", false)))
+        val comment = listOf("// Choose a Property for this Block.")
+        assertEquals(comment, lines(BlockDefinition.SetNumber()))
+        assertEquals(comment, lines(BlockDefinition.ChangeNumber("lives")))
+        assertEquals(comment, lines(BlockDefinition.SetToggle("score")))
+    }
+
+    @Test
+    fun logMessagesShowPropertiesNamedInBraces() {
+        val properties = listOf(PropertyDefinition.Number("score"), PropertyDefinition.Text("title"))
+        assertEquals("\"Score: \${score.asText()} ({title}) \\$5 {unknown} {}\"", ActorTypeCodeGenerator.templateLiteral("Score: {score} ({title}) \$5 {unknown} {}", properties.take(1)))
+        assertEquals("\"\${title}: \${score.asText()}\"", ActorTypeCodeGenerator.templateLiteral("{title}: {score}", properties))
+        assertEquals(
+            listOf("Logger.log(message = \"Score: \${score.asText()}\", source = \"Player\")"),
+            ActorTypeCodeGenerator.blockLines(BlockDefinition.Log("Score: {score}"), EventType.EVERY_FRAME, "Player", properties),
+        )
+    }
+
+    @Test
+    fun wholeNumbersAreShownWithoutAFractionByAFunctionOnlyGeneratedWhenNeeded() {
+        val withScore = ActorTypeDefinition(name = "Player", properties = listOf(PropertyDefinition.Number("score"), PropertyDefinition.Text("title")))
+        val helper = "    private fun Float.asText() = if (this % 1f == 0f) toLong().toString() else toString()"
+        fun code(message: String) = ActorTypeCodeGenerator.generateActorType(withScore.copy(events = listOf(EventDefinition(EventType.EVERY_FRAME, blocks = listOf(BlockDefinition.Log(message))))), packageName)
+        assertContains(code("Score: {score}"), helper)
+        assertFalse(helper in code("Title: {title}"))
+    }
 }

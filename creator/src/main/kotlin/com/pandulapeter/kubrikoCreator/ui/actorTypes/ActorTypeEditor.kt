@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,13 +38,16 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddEvent
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DeleteActorType
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.DiscardChangesMadeByHand
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditBlock
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.EditProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.MoveBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.MoveEvent
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveBlock
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveEvent
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
@@ -92,11 +97,21 @@ internal fun ActorTypeEditor(
     Row(
         modifier = Modifier.fillMaxWidth().weight(1f),
     ) {
-        AppearanceColumn(
-            modifier = Modifier.width(210.dp).fillMaxHeight(),
-            definition = definition,
-            onChange = { onCommand(Invocation(SetAppearance, it)) },
-        )
+        Column(
+            modifier = Modifier.width(230.dp).fillMaxHeight().verticalScroll(rememberScrollState()),
+        ) {
+            AppearanceColumn(
+                definition = definition,
+                onChange = { onCommand(Invocation(SetAppearance, it)) },
+            )
+            HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+            PropertyList(
+                properties = definition.properties,
+                onAdded = { onCommand(Invocation(AddProperty, AddProperty.Input(name, it))) },
+                onChanged = { propertyName, property -> onCommand(Invocation(EditProperty, EditProperty.Input(name, propertyName, property))) },
+                onRemoved = { onCommand(Invocation(RemoveProperty, RemoveProperty.Input(name, it))) },
+            )
+        }
         VerticalDivider()
         EventList(
             modifier = Modifier.width(260.dp).fillMaxHeight(),
@@ -121,6 +136,7 @@ internal fun ActorTypeEditor(
         EventBlocks(
             modifier = Modifier.weight(1f).fillMaxHeight(),
             event = event,
+            properties = definition.properties,
             actorTypeNames = actorTypeNames,
             onKeyChange = { key -> eventIndex?.let { onCommand(Invocation(SetEventKey, SetEventKey.Input(name, it, key))) } },
             onOtherActorTypeChange = { other -> eventIndex?.let { onCommand(Invocation(SetEventOtherActorType, SetEventOtherActorType.Input(name, it, other))) } },

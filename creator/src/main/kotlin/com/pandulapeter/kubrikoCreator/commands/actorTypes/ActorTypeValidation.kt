@@ -14,6 +14,10 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.PropertyKind
+import com.pandulapeter.kubrikoCreator.actors.PropertyNaming
+import com.pandulapeter.kubrikoCreator.actors.propertyReference
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.workspace.ActorTypesController
@@ -26,6 +30,8 @@ import kubriko.creator.generated.resources.error_command_key_not_allowed
 import kubriko.creator.generated.resources.error_command_no_actor_types
 import kubriko.creator.generated.resources.error_command_number_invalid
 import kubriko.creator.generated.resources.error_command_other_actor_type_not_allowed
+import kubriko.creator.generated.resources.error_command_property_missing
+import kubriko.creator.generated.resources.error_command_property_unknown
 import kubriko.creator.generated.resources.error_command_size_invalid
 
 /**
@@ -51,31 +57,52 @@ internal fun CommandContext.validateBlock(actorTypeName: String, eventIndex: Int
         null
     }
 
+internal fun CommandContext.validateProperty(actorTypeName: String, propertyName: String): Rejection? = validateActorType(actorTypeName)
+    ?: if (requireActorType(actorTypeName).properties.none { it.name == propertyName }) Rejection(Res.string.error_command_property_unknown, actorTypeName, propertyName) else null
+
 internal fun validateSize(width: Float, height: Float) = if (width.isFinite() && height.isFinite() && width > 0f && height > 0f) null else Rejection(Res.string.error_command_size_invalid)
 
 /**
- * Why [event] can't be part of an Actor type, given the names of the Actor types its collision Event may refer to.
+ * Why [event] can't be part of an Actor type with [properties], given the names of the Actor types its collision Event
+ * may refer to.
  */
-internal fun validateEvent(event: EventDefinition, actorTypeNames: Collection<String>): Rejection? = when {
+internal fun validateEvent(event: EventDefinition, actorTypeNames: Collection<String>, properties: List<PropertyDefinition>): Rejection? = when {
     event.key != null && event.type != EventType.KEY_PRESSED -> Rejection(Res.string.error_command_key_not_allowed)
     event.otherActorType != null && event.type != EventType.COLLISION -> Rejection(Res.string.error_command_other_actor_type_not_allowed)
     event.otherActorType != null && event.otherActorType !in actorTypeNames -> Rejection(Res.string.error_command_actor_type_missing, event.otherActorType)
-    else -> event.blocks.firstNotNullOfOrNull { validateBlock(it, event.type) }
+    else -> event.blocks.firstNotNullOfOrNull { validateBlock(it, event.type, properties) }
 }
 
-internal fun validateBlock(block: BlockDefinition, eventType: EventType): Rejection? = when {
+/**
+ * Why [block] can't be in an Event of [eventType] of an Actor type with [properties]. A Block may leave its Property
+ * unchosen, but not name one the Actor type doesn't have.
+ */
+internal fun validateBlock(block: BlockDefinition, eventType: EventType, properties: List<PropertyDefinition>): Rejection? = when {
     !BlockKind.of(block).isAvailableIn(eventType) -> Rejection(Res.string.error_command_block_not_allowed, block.serialName, eventType.serialName)
     !block.areNumbersFinite -> Rejection(Res.string.error_command_number_invalid)
-    else -> null
+    else -> block.propertyReference?.let { (name, kind) ->
+        if (name.isNotEmpty() && properties.none { it.name == name && PropertyKind.of(it) == kind }) Rejection(Res.string.error_command_property_missing, name, kind.serialName) else null
+    }
 }
 
+/**
+ * Why [property] can't be one of [properties] (which it replaces, if [replacedName] names one of them).
+ */
+internal fun validateProperty(property: PropertyDefinition, properties: List<PropertyDefinition>, replacedName: String? = null): Rejection? =
+    PropertyNaming.validate(property.name, properties.map { it.name }.filter { it != replacedName })?.let(::Rejection)
+        ?: if (property is PropertyDefinition.Number && !property.initialValue.isFinite()) Rejection(Res.string.error_command_number_invalid) else null
+
 internal fun ActorTypeDefinition.validateContents(actorTypeNames: Collection<String>) = validateSize(width, height)
-    ?: events.firstNotNullOfOrNull { validateEvent(it, actorTypeNames + name) }
+    ?: properties.indices.firstNotNullOfOrNull { index -> validateProperty(properties[index], properties.take(index)) }
+    ?: events.firstNotNullOfOrNull { validateEvent(it, actorTypeNames + name, properties) }
 
 private val BlockDefinition.areNumbersFinite
     get() = when (this) {
         is BlockDefinition.SetVelocity -> x.isFinite() && y.isFinite()
         is BlockDefinition.AddToVelocity -> x.isFinite() && y.isFinite()
         is BlockDefinition.JumpTo -> x.isFinite() && y.isFinite()
-        BlockDefinition.Stop, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther, is BlockDefinition.Log, is BlockDefinition.Kotlin -> true
+        is BlockDefinition.SetNumber -> value.isFinite()
+        is BlockDefinition.ChangeNumber -> by.isFinite()
+        BlockDefinition.Stop, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
+        is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.Log, is BlockDefinition.Kotlin -> true
     }

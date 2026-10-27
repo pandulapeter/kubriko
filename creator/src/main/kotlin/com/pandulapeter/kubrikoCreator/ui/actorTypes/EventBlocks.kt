@@ -30,6 +30,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
+import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.event_blocks_empty
 import kubriko.creator.generated.resources.event_collision_choose
@@ -44,6 +45,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun EventBlocks(
     event: EventDefinition?,
+    properties: List<PropertyDefinition>,
     actorTypeNames: List<String>,
     onKeyChange: (KeyChoice) -> Unit,
     onOtherActorTypeChange: (String) -> Unit,
@@ -111,6 +113,7 @@ internal fun EventBlocks(
         event.blocks.forEachIndexed { index, block ->
             BlockRow(
                 block = block,
+                properties = properties,
                 isFirst = index == 0,
                 isLast = index == event.blocks.lastIndex,
                 onBlockChange = { onBlockChange(index, it) },

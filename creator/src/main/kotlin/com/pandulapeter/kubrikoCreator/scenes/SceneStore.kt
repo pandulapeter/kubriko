@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.scenes
 import com.pandulapeter.kubrikoCreator.commands.EditorMutation
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.JsonObject
 import java.io.File
 
 /**
@@ -58,15 +59,30 @@ internal class SceneStore(
      * @return The names of the Scenes that changed.
      */
     @EditorMutation
-    fun renameTypeId(oldTypeId: String, newTypeId: String) = names().filter { name ->
+    fun renameTypeId(oldTypeId: String, newTypeId: String) = changeActors { actor -> if (actor.typeId == oldTypeId) actor.copy(typeId = newTypeId) else actor }
+
+    /**
+     * Changes the state of every Actor of the [typeId] type in every Scene with [change]. States that aren't JSON
+     * objects are left alone.
+     *
+     * @return The names of the Scenes that changed.
+     */
+    @EditorMutation
+    fun changeStates(typeId: String, change: (JsonObject) -> JsonObject) = changeActors { actor ->
+        if (actor.typeId == typeId) SceneDocument.withStateChanged(actor.state, change)?.let { actor.copy(state = it) } ?: actor else actor
+    }
+
+    @EditorMutation
+    private fun changeActors(change: (SceneActorEntry) -> SceneActorEntry) = names().filter { name ->
         val content = read(name) ?: return@filter false
         val actors = try {
             SceneDocument.parse(content)
         } catch (_: SerializationException) {
             return@filter false
         }
-        if (actors.none { it.typeId == oldTypeId }) return@filter false
-        write(name, SceneDocument.format(actors.map { if (it.typeId == oldTypeId) it.copy(typeId = newTypeId) else it }))
+        val changed = actors.map(change)
+        if (changed == actors) return@filter false
+        write(name, SceneDocument.format(changed))
         true
     }
 

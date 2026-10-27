@@ -13,11 +13,15 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_add_to_velocity
 import kubriko.creator.generated.resources.block_bounce_off_edge
 import kubriko.creator.generated.resources.block_bounce_off_other
+import kubriko.creator.generated.resources.block_change_number
 import kubriko.creator.generated.resources.block_jump_to
 import kubriko.creator.generated.resources.block_kotlin
 import kubriko.creator.generated.resources.block_log
 import kubriko.creator.generated.resources.block_remove_other
 import kubriko.creator.generated.resources.block_remove_self
+import kubriko.creator.generated.resources.block_set_number
+import kubriko.creator.generated.resources.block_set_text
+import kubriko.creator.generated.resources.block_set_toggle
 import kubriko.creator.generated.resources.block_set_velocity
 import kubriko.creator.generated.resources.block_stop
 import org.jetbrains.compose.resources.StringResource
@@ -37,6 +41,10 @@ internal enum class BlockKind(
     REMOVE_SELF(Res.string.block_remove_self, { BlockDefinition.RemoveSelf }),
     BOUNCE_OFF_OTHER(Res.string.block_bounce_off_other, { BlockDefinition.BounceOffOther }),
     REMOVE_OTHER(Res.string.block_remove_other, { BlockDefinition.RemoveOther }),
+    SET_NUMBER(Res.string.block_set_number, { BlockDefinition.SetNumber() }),
+    CHANGE_NUMBER(Res.string.block_change_number, { BlockDefinition.ChangeNumber() }),
+    SET_TEXT(Res.string.block_set_text, { BlockDefinition.SetText() }),
+    SET_TOGGLE(Res.string.block_set_toggle, { BlockDefinition.SetToggle() }),
     LOG(Res.string.block_log, { BlockDefinition.Log() }),
     KOTLIN(Res.string.block_kotlin, { BlockDefinition.Kotlin() });
 
@@ -61,6 +69,10 @@ internal enum class BlockKind(
             BlockDefinition.RemoveSelf -> REMOVE_SELF
             BlockDefinition.BounceOffOther -> BOUNCE_OFF_OTHER
             BlockDefinition.RemoveOther -> REMOVE_OTHER
+            is BlockDefinition.SetNumber -> SET_NUMBER
+            is BlockDefinition.ChangeNumber -> CHANGE_NUMBER
+            is BlockDefinition.SetText -> SET_TEXT
+            is BlockDefinition.SetToggle -> SET_TOGGLE
             is BlockDefinition.Log -> LOG
             is BlockDefinition.Kotlin -> KOTLIN
         }

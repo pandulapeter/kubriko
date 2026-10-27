@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui.actorTypes
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
+import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.event_added_to_scene
 import kubriko.creator.generated.resources.event_collision
@@ -27,9 +28,12 @@ import kubriko.creator.generated.resources.ic_delete
 import kubriko.creator.generated.resources.ic_edge
 import kubriko.creator.generated.resources.ic_keyboard
 import kubriko.creator.generated.resources.ic_loop
+import kubriko.creator.generated.resources.ic_number
 import kubriko.creator.generated.resources.ic_open_with
 import kubriko.creator.generated.resources.ic_remove_other
 import kubriko.creator.generated.resources.ic_stop
+import kubriko.creator.generated.resources.ic_text
+import kubriko.creator.generated.resources.ic_toggle
 import kubriko.creator.generated.resources.ic_trending_up
 import kubriko.creator.generated.resources.ic_velocity
 import kubriko.creator.generated.resources.key_a
@@ -73,6 +77,10 @@ internal val BlockKind.icon: DrawableResource
         BlockKind.REMOVE_SELF -> Res.drawable.ic_delete
         BlockKind.BOUNCE_OFF_OTHER -> Res.drawable.ic_bounce
         BlockKind.REMOVE_OTHER -> Res.drawable.ic_remove_other
+        BlockKind.SET_NUMBER -> Res.drawable.ic_number
+        BlockKind.CHANGE_NUMBER -> Res.drawable.ic_add
+        BlockKind.SET_TEXT -> Res.drawable.ic_text
+        BlockKind.SET_TOGGLE -> Res.drawable.ic_toggle
         BlockKind.LOG -> Res.drawable.ic_console
         BlockKind.KOTLIN -> Res.drawable.ic_code
     }
@@ -89,4 +97,11 @@ internal val KeyChoice.title: StringResource
         KeyChoice.A -> Res.string.key_a
         KeyChoice.S -> Res.string.key_s
         KeyChoice.D -> Res.string.key_d
+    }
+
+internal val PropertyKind.icon: DrawableResource
+    get() = when (this) {
+        PropertyKind.NUMBER -> Res.drawable.ic_number
+        PropertyKind.TEXT -> Res.drawable.ic_text
+        PropertyKind.TOGGLE -> Res.drawable.ic_toggle
     }

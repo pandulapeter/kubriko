@@ -32,6 +32,8 @@ internal data class ActorTypeDefinition(
     @SerialName("width") val width: Float = 80f,
     @Description("The height of a newly placed Actor, in scene units.")
     @SerialName("height") val height: Float = 80f,
+    @Description("The values each of its Actors keeps, like a score, which Blocks can change.")
+    @SerialName("properties") val properties: List<PropertyDefinition> = emptyList(),
     @Description("The Events its Actors react to, in order. Each runs its Blocks in order.")
     @SerialName("events") val events: List<EventDefinition> = emptyList(),
 )
