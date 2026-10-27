@@ -143,6 +143,11 @@ created in `main`) keeps `McpSettings` (off by default, port 7781, a random toke
 - **Every editor change is a command** with its AI tool and tests (validation, apply, and the inverse round trip); the UI
   dispatches commands rather than calling controllers. Undo and redo: toolbar buttons naming the step, Ctrl+Z / Ctrl+Shift+Z /
   Ctrl+Y (Cmd on macOS).
+- **Beginner-friendly by default:** the Block palette shows one category at a time (`BlockCategory`, tabs like GameMaker's),
+  Blocks are added by a click (at the end) or dragged (from the palette or by a Block's handle) to where they go
+  (`BlockDragState`: an in-window drag, dropped through `add_block` / `move_block`), each Block is a card indented by its
+  section, the console starts closed and opens for problems and what the game logs, the sidebar hides asset groups nothing
+  uses yet and collapses Kotlin files, and New project keeps the package under More options.
 - Desktop-sized UI from the start: `ui/components` (`CompactTextField`, `IconActionButton` with tooltip, `PanelHeader`), vector icons in
   `composeResources/drawable`, everything in `strings.xml` with plain apostrophes.
 - Generated Kotlin must compile for every combination of Events and Blocks (unknown collision targets are left out, Kotlin Blocks get their own

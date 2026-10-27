@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
@@ -35,6 +36,7 @@ internal fun <T> MenuButton(
 ) = Box {
     var isExpanded by remember { mutableStateOf(false) }
     TextButton(
+        modifier = Modifier.heightIn(max = 32.dp),
         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
         onClick = { isExpanded = true },
     ) {

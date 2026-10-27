@@ -21,16 +21,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.recent.RecentProject
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
+import java.io.File
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_forget_recent_project
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_folder_open
+import kubriko.creator.generated.resources.recent_project_missing
 import kubriko.creator.generated.resources.recent_projects
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -70,42 +73,49 @@ internal fun RecentProjectsList(
     }
 }
 
+/**
+ * A recent project, which opens on a click unless its folder is gone (moved or deleted), which it then says.
+ */
 @Composable
 private fun RecentProjectRow(
     project: RecentProject,
     onOpen: () -> Unit,
     onForget: () -> Unit,
-) = Row(
-    modifier = Modifier.fillMaxWidth().clickable(onClick = onOpen).padding(start = 12.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
-    horizontalArrangement = Arrangement.spacedBy(12.dp),
-    verticalAlignment = Alignment.CenterVertically,
 ) {
-    Icon(
-        modifier = Modifier.size(18.dp),
-        painter = painterResource(Res.drawable.ic_folder_open),
-        contentDescription = null,
-        tint = MaterialTheme.colorScheme.primary,
-    )
-    Column(
-        modifier = Modifier.weight(1f),
+    val exists = remember(project.path) { File(project.path).isDirectory }
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable(enabled = exists, onClick = onOpen).padding(start = 12.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = project.name,
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+        Icon(
+            modifier = Modifier.size(18.dp),
+            painter = painterResource(Res.drawable.ic_folder_open),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
         )
-        Text(
-            text = project.path,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.StartEllipsis,
+        Column(
+            modifier = Modifier.weight(1f),
+        ) {
+            Text(
+                text = project.name,
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (exists) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = if (exists) project.path else stringResource(Res.string.recent_project_missing, project.path),
+                style = MaterialTheme.typography.bodySmall,
+                color = if (exists) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
+                maxLines = 1,
+                overflow = TextOverflow.StartEllipsis,
+            )
+        }
+        IconActionButton(
+            icon = Res.drawable.ic_close,
+            label = Res.string.action_forget_recent_project,
+            onClick = onForget,
         )
     }
-    IconActionButton(
-        icon = Res.drawable.ic_close,
-        label = Res.string.action_forget_recent_project,
-        onClick = onForget,
-    )
 }

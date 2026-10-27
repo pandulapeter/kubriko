@@ -48,7 +48,8 @@ types are, so the Block editor serves both.
 - **Appearance:** sprites and sprite sheets (with animation settings) instead of shapes; layer and drawing order.
 - **More Events:** removed from the Scene, key released and held, pointer pressed / released / moved, gamepad buttons and sticks, left the
   Scene bounds (as opposed to touching the edge).
-- **Palette:** grouped into categories with tabs, as GameMaker's action palette; drag-and-drop from the palette into the Block column and within it.
+- **More drag and drop:** reordering Events the same way, dragging a Block into another Event, and scrolling the Block list while
+  dragging near its edge.
 - **Simple and Advanced mode:** Simple hides Kotlin files, Kotlin Blocks, and Gradle output; switching never changes the project.
 
 ## Convert to code

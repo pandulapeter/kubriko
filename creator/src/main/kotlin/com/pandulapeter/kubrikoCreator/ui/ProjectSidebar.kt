@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
@@ -38,10 +39,13 @@ import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
 import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.action_collapse_group
+import kubriko.creator.generated.resources.action_expand_group
 import kubriko.creator.generated.resources.action_new_actor_type
 import kubriko.creator.generated.resources.action_new_scene
 import kubriko.creator.generated.resources.ic_actor_type
 import kubriko.creator.generated.resources.ic_add
+import kubriko.creator.generated.resources.ic_chevron
 import kubriko.creator.generated.resources.ic_code
 import kubriko.creator.generated.resources.ic_music
 import kubriko.creator.generated.resources.ic_scene
@@ -81,6 +85,7 @@ internal fun ProjectSidebar(
 ) {
     var isCreatingActorType by remember { mutableStateOf(false) }
     var isCreatingScene by remember { mutableStateOf(false) }
+    var collapsedGroups by remember { mutableStateOf(setOf(ResourceGroup.KOTLIN)) }
     LazyColumn(
         modifier = modifier,
     ) {
@@ -116,9 +121,11 @@ internal fun ProjectSidebar(
                 )
             }
         }
-        ResourceGroup.entries.forEach { group ->
+        shownResourceGroups(resources).forEach { group ->
+            val isCollapsed = group in collapsedGroups
             item(key = group) {
                 PanelHeader(
+                    modifier = Modifier.clickable { collapsedGroups = if (isCollapsed) collapsedGroups - group else collapsedGroups + group },
                     icon = group.icon,
                     title = stringResource(group.title),
                 ) {
@@ -129,8 +136,15 @@ internal fun ProjectSidebar(
                             onClick = { isCreatingScene = !isCreatingScene },
                         )
                     }
+                    Icon(
+                        modifier = Modifier.padding(end = 8.dp).size(16.dp).rotate(if (isCollapsed) -90f else 0f),
+                        painter = painterResource(Res.drawable.ic_chevron),
+                        contentDescription = stringResource(if (isCollapsed) Res.string.action_expand_group else Res.string.action_collapse_group),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
+            if (isCollapsed) return@forEach
             if (group == ResourceGroup.SCENES && isCreatingScene) {
                 item(key = "newScene") {
                     NewNameField(
@@ -155,7 +169,7 @@ internal fun ProjectSidebar(
                 items(groupResources, key = { it.relativePath }) { resource ->
                     SidebarItem(
                         icon = group.icon,
-                        text = resource.name,
+                        text = if (group == ResourceGroup.SCENES) resource.file.nameWithoutExtension else resource.name,
                         detail = if (resource.name in duplicateNames) ResourceScanner.sourceSetOf(resource) else null,
                         onClick = if (group == ResourceGroup.SCENES) ({ onSceneSelected(resource) }) else null,
                         flashKey = flashKey?.takeIf { group == ResourceGroup.SCENES && resource.file.nameWithoutExtension == flashedName },
@@ -217,3 +231,11 @@ private val ResourceGroup.icon
         ResourceGroup.MUSIC -> Res.drawable.ic_music
         ResourceGroup.KOTLIN -> Res.drawable.ic_code
     }
+
+/**
+ * The resource groups the sidebar lists: Scenes and Kotlin files always, and the kinds of asset nothing can use yet only
+ * when the project has some.
+ */
+internal fun shownResourceGroups(resources: Map<ResourceGroup, List<ProjectResource>>) = ResourceGroup.entries.filter { group ->
+    group == ResourceGroup.SCENES || group == ResourceGroup.KOTLIN || resources[group].orEmpty().isNotEmpty()
+}

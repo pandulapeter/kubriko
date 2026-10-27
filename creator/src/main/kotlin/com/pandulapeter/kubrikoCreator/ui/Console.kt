@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.PanelHeader
@@ -56,6 +57,19 @@ internal fun Console(
         icon = Res.drawable.ic_console,
         title = stringResource(Res.string.console_title),
     ) {
+        if (!isExpanded) {
+            entries.lastOrNull()?.let { entry ->
+                Text(
+                    modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                    text = entry.text(),
+                    color = entry.color(),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = FontFamily.Monospace,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
         IconActionButton(
             icon = Res.drawable.ic_clear,
             label = Res.string.action_clear_console,
@@ -113,3 +127,14 @@ private fun ConsoleEntry.color(): Color = when (this) {
     is ConsoleEntry.BuildOutput -> MaterialTheme.colorScheme.onSurfaceVariant
     is ConsoleEntry.Log -> if (isImportant) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
 }
+
+/**
+ * Whether the console opens by itself when [this] arrives: a problem or an error, or something the game logged, which
+ * is how Log Blocks are seen. Build output and other status lines don't open it.
+ */
+internal val ConsoleEntry.opensConsole
+    get() = when (this) {
+        is ConsoleEntry.Problem, is ConsoleEntry.Log, is ConsoleEntry.SessionFailure -> true
+        is ConsoleEntry.Status -> isError
+        is ConsoleEntry.BuildOutput -> false
+    }

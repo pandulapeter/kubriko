@@ -39,10 +39,13 @@ import kubriko.creator.generated.resources.action_browse
 import kubriko.creator.generated.resources.action_cancel
 import kubriko.creator.generated.resources.action_create_project
 import kubriko.creator.generated.resources.choose_parent_folder
+import kubriko.creator.generated.resources.new_project_fewer_options
 import kubriko.creator.generated.resources.new_project_folder
 import kubriko.creator.generated.resources.new_project_location
+import kubriko.creator.generated.resources.new_project_more_options
 import kubriko.creator.generated.resources.new_project_name
 import kubriko.creator.generated.resources.new_project_package
+import kubriko.creator.generated.resources.new_project_package_hint
 import kubriko.creator.generated.resources.new_project_title
 import kubriko.creator.generated.resources.new_project_version_control
 import org.jetbrains.compose.resources.StringResource
@@ -57,6 +60,7 @@ internal fun NewProjectScreen(
     onCancel: () -> Unit,
 ) {
     var form by remember { mutableStateOf(NewProjectForm(parentDirectory = defaultParentDirectory)) }
+    var areMoreOptionsShown by remember { mutableStateOf(false) }
     val pickerTitle = stringResource(Res.string.choose_parent_folder)
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -76,12 +80,6 @@ internal fun NewProjectScreen(
                 value = form.name,
                 error = form.nameError,
                 onValueChange = { form = form.withName(it) },
-            )
-            ValidatedTextField(
-                label = Res.string.new_project_package,
-                value = form.packageName,
-                error = form.packageNameError,
-                onValueChange = { form = form.withPackageName(it) },
             )
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -111,6 +109,24 @@ internal fun NewProjectScreen(
                 Text(
                     text = stringResource(Res.string.new_project_version_control),
                     style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            TextButton(
+                onClick = { areMoreOptionsShown = !areMoreOptionsShown },
+            ) {
+                Text(stringResource(if (areMoreOptionsShown) Res.string.new_project_fewer_options else Res.string.new_project_more_options))
+            }
+            if (areMoreOptionsShown || form.packageNameError != null) {
+                ValidatedTextField(
+                    label = Res.string.new_project_package,
+                    value = form.packageName,
+                    error = form.packageNameError,
+                    onValueChange = { form = form.withPackageName(it) },
+                )
+                Text(
+                    text = stringResource(Res.string.new_project_package_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             form.request?.let { request ->

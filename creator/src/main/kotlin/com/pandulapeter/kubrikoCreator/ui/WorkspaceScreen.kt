@@ -81,7 +81,10 @@ internal fun WorkspaceScreen(
     val selectedActorType = actorTypes.firstOrNull { it.name == selectedActorTypeName }
     val actorTypesChangedByHand = actorTypesController?.changedByHand?.collectAsState()?.value.orEmpty()
     val sceneEditing by controller.sceneEditing.state.collectAsState()
-    var isConsoleExpanded by remember { mutableStateOf(true) }
+    var isConsoleExpanded by remember { mutableStateOf(false) }
+    LaunchedEffect(console.lastOrNull()) {
+        if (console.lastOrNull()?.opensConsole == true) isConsoleExpanded = true
+    }
     var openPanel by remember { mutableStateOf<SidePanel?>(null) }
     val mcpState by mcp.state.collectAsState()
     val gitState by controller.git.state.collectAsState()

@@ -25,6 +25,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
@@ -35,8 +37,7 @@ import com.pandulapeter.kubrikoCreator.ui.components.CompactTextField
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
 import kubriko.creator.generated.resources.Res
-import kubriko.creator.generated.resources.action_move_down
-import kubriko.creator.generated.resources.action_move_up
+import kubriko.creator.generated.resources.action_drag_block
 import kubriko.creator.generated.resources.action_remove
 import kubriko.creator.generated.resources.block_else_stray
 import kubriko.creator.generated.resources.block_end_stray
@@ -51,8 +52,7 @@ import kubriko.creator.generated.resources.block_parameter_x
 import kubriko.creator.generated.resources.block_parameter_y
 import kubriko.creator.generated.resources.block_velocity_unit
 import kubriko.creator.generated.resources.ic_close
-import kubriko.creator.generated.resources.ic_move_down
-import kubriko.creator.generated.resources.ic_move_up
+import kubriko.creator.generated.resources.ic_drag_handle
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -65,22 +65,34 @@ internal fun BlockRow(
     nesting: BlockNesting,
     properties: List<PropertyDefinition>,
     actorTypeNames: List<String>,
-    isFirst: Boolean,
-    isLast: Boolean,
+    index: Int,
+    dragState: BlockDragState,
     onBlockChange: (BlockDefinition) -> Unit,
-    onMoveUp: () -> Unit,
-    onMoveDown: () -> Unit,
     onRemove: () -> Unit,
+    modifier: Modifier = Modifier,
     flashKey: Any? = null,
 ) = Column(
-    modifier = Modifier.fillMaxWidth().padding(start = (nesting.depth * NESTING_INDENT).dp).background(rememberFlashColor(flashKey), MaterialTheme.shapes.small),
-    verticalArrangement = Arrangement.spacedBy(4.dp),
+    modifier = modifier
+        .fillMaxWidth()
+        .padding(start = (nesting.depth * NESTING_INDENT).dp)
+        .alpha(if ((dragState.dragged as? DraggedBlock.Existing)?.index == index) 0.4f else 1f)
+        .clip(MaterialTheme.shapes.small)
+        .background(if (nesting.role == BlockNesting.Role.PLAIN) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surfaceContainerHigh)
+        .background(rememberFlashColor(flashKey))
+        .padding(start = 4.dp, top = 2.dp, bottom = 6.dp),
+    verticalArrangement = Arrangement.spacedBy(2.dp),
 ) {
     val kind = BlockKind.of(block)
     Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        Icon(
+            modifier = Modifier.size(18.dp).blockDragSource(dragState) { DraggedBlock.Existing(index, block) },
+            painter = painterResource(Res.drawable.ic_drag_handle),
+            contentDescription = stringResource(Res.string.action_drag_block),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         Icon(
             modifier = Modifier.size(16.dp),
             painter = painterResource(kind.icon),
@@ -92,18 +104,18 @@ internal fun BlockRow(
             text = stringResource(kind.title),
             style = MaterialTheme.typography.bodyMedium,
         )
-        IconActionButton(icon = Res.drawable.ic_move_up, label = Res.string.action_move_up, onClick = onMoveUp, isEnabled = !isFirst)
-        IconActionButton(icon = Res.drawable.ic_move_down, label = Res.string.action_move_down, onClick = onMoveDown, isEnabled = !isLast)
         IconActionButton(icon = Res.drawable.ic_close, label = Res.string.action_remove, onClick = onRemove)
     }
-    Row(
-        modifier = Modifier.padding(start = 24.dp),
-    ) {
-        InlineParameters(block, properties, actorTypeNames, onBlockChange)
+    if (kind !in kindsWithoutParameters) {
+        Row(
+            modifier = Modifier.padding(start = 46.dp),
+        ) {
+            InlineParameters(block, properties, actorTypeNames, onBlockChange)
+        }
     }
     if (nesting.role == BlockNesting.Role.STRAY) {
         Text(
-            modifier = Modifier.padding(start = 24.dp, bottom = 4.dp),
+            modifier = Modifier.padding(start = 46.dp, bottom = 4.dp),
             text = stringResource(if (block == BlockDefinition.Else) Res.string.block_else_stray else Res.string.block_end_stray),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error,
@@ -111,7 +123,7 @@ internal fun BlockRow(
     }
     if (block is BlockDefinition.Kotlin) {
         CompactTextField(
-            modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 8.dp, bottom = 4.dp).heightIn(min = 72.dp),
+            modifier = Modifier.fillMaxWidth().padding(start = 46.dp, end = 8.dp, bottom = 4.dp).heightIn(min = 72.dp),
             value = block.code,
             onValueChange = { onBlockChange(block.copy(code = it)) },
             placeholder = stringResource(Res.string.block_parameter_code),
@@ -237,3 +249,17 @@ private fun OffsetParameters(
  * How far each section moves the Blocks in it to the right, in dp.
  */
 private const val NESTING_INDENT = 20
+
+/**
+ * The Blocks whose title says it all; a Kotlin Block's code gets a field of its own below.
+ */
+private val kindsWithoutParameters = setOf(
+    BlockKind.STOP,
+    BlockKind.BOUNCE_OFF_EDGE,
+    BlockKind.REMOVE_SELF,
+    BlockKind.BOUNCE_OFF_OTHER,
+    BlockKind.REMOVE_OTHER,
+    BlockKind.ELSE,
+    BlockKind.END,
+    BlockKind.KOTLIN,
+)

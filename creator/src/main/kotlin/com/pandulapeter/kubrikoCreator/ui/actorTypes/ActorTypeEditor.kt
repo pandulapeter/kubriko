@@ -11,10 +11,13 @@ package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -30,10 +33,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.round
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.commands.Invocation
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.AddBlock
@@ -74,7 +83,7 @@ internal fun ActorTypeEditor(
     onCommand: (Invocation<*>) -> Unit,
     modifier: Modifier = Modifier,
     highlight: ActorTypeHighlight? = null,
-) = Column(
+) = Box(
     modifier = modifier,
 ) {
     val name = definition.name
@@ -82,78 +91,96 @@ internal fun ActorTypeEditor(
     LaunchedEffect(highlight?.key) { highlight?.eventIndex?.let { requestedEventIndex = it } }
     val eventIndex = selectedEventIndex(requestedEventIndex, definition.events.size)
     val event = eventIndex?.let { definition.events[it] }
-    Header(
-        flashKey = highlight?.key?.takeIf { highlight.eventIndex == null },
-        definition = definition,
-        onDelete = { onCommand(Invocation(DeleteActorType, DeleteActorType.Input(name))) },
-    )
-    if (isChangedByHand) {
-        ChangedByHandNotice(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-            actorTypeName = definition.name,
-            onDiscard = { onCommand(Invocation(DiscardChangesMadeByHand, DiscardChangesMadeByHand.Input(name))) },
+    val currentEventIndex by rememberUpdatedState(eventIndex)
+    val currentOnCommand by rememberUpdatedState(onCommand)
+    val dragState = remember(name) {
+        BlockDragState(
+            onDrop = { block, gap ->
+                currentEventIndex?.let { index ->
+                    when (block) {
+                        is DraggedBlock.New -> currentOnCommand(Invocation(AddBlock, AddBlock.Input(name, index, block.kind.createDefault(), index = gap)))
+                        is DraggedBlock.Existing -> moveTarget(block.index, gap)?.let { currentOnCommand(Invocation(MoveBlock, MoveBlock.Input(name, index, block.index, it))) }
+                    }
+                }
+            },
         )
     }
-    HorizontalDivider()
-    Row(
-        modifier = Modifier.fillMaxWidth().weight(1f),
-    ) {
-        Column(
-            modifier = Modifier.width(230.dp).fillMaxHeight().verticalScroll(rememberScrollState()),
-        ) {
-            AppearanceColumn(
-                definition = definition,
-                onChange = { onCommand(Invocation(SetAppearance, it)) },
-            )
-            HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
-            PropertyList(
-                properties = definition.properties,
-                onAdded = { onCommand(Invocation(AddProperty, AddProperty.Input(name, it))) },
-                onChanged = { propertyName, property -> onCommand(Invocation(EditProperty, EditProperty.Input(name, propertyName, property))) },
-                onRemoved = { onCommand(Invocation(RemoveProperty, RemoveProperty.Input(name, it))) },
+    Column {
+        Header(
+            flashKey = highlight?.key?.takeIf { highlight.eventIndex == null },
+            definition = definition,
+            onDelete = { onCommand(Invocation(DeleteActorType, DeleteActorType.Input(name))) },
+        )
+        if (isChangedByHand) {
+            ChangedByHandNotice(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                actorTypeName = definition.name,
+                onDiscard = { onCommand(Invocation(DiscardChangesMadeByHand, DiscardChangesMadeByHand.Input(name))) },
             )
         }
-        VerticalDivider()
-        EventList(
-            modifier = Modifier.width(260.dp).fillMaxHeight(),
-            events = definition.events,
-            selectedIndex = eventIndex,
-            onSelected = { requestedEventIndex = it },
-            onAdded = { type ->
-                onCommand(Invocation(AddEvent, AddEvent.Input(name, type)))
-                requestedEventIndex = definition.events.size
-            },
-            onMoved = { index, targetIndex ->
-                onCommand(Invocation(MoveEvent, MoveEvent.Input(name, index, targetIndex)))
-                requestedEventIndex = targetIndex
-            },
-            onRemoved = { index ->
-                onCommand(Invocation(RemoveEvent, RemoveEvent.Input(name, index)))
-                if (eventIndex != null && index < eventIndex) requestedEventIndex = eventIndex - 1
-            },
-            highlight = highlight,
-        )
-        VerticalDivider()
-        EventBlocks(
-            modifier = Modifier.weight(1f).fillMaxHeight(),
-            event = event,
-            properties = definition.properties,
-            actorTypeNames = actorTypeNames,
-            onKeyChange = { key -> eventIndex?.let { onCommand(Invocation(SetEventKey, SetEventKey.Input(name, it, key))) } },
-            onTimerChange = { timer -> eventIndex?.let { onCommand(Invocation(SetEventTimer, SetEventTimer.Input(name, it, timer))) } },
-            onOtherActorTypeChange = { other -> eventIndex?.let { onCommand(Invocation(SetEventOtherActorType, SetEventOtherActorType.Input(name, it, other))) } },
-            onBlockChange = { blockIndex, block -> eventIndex?.let { onCommand(Invocation(EditBlock, EditBlock.Input(name, it, blockIndex, block))) } },
-            onBlockMoved = { blockIndex, targetIndex -> eventIndex?.let { onCommand(Invocation(MoveBlock, MoveBlock.Input(name, it, blockIndex, targetIndex))) } },
-            onBlockRemoved = { blockIndex -> eventIndex?.let { onCommand(Invocation(RemoveBlock, RemoveBlock.Input(name, it, blockIndex))) } },
-            highlight = highlight?.takeIf { it.eventIndex == eventIndex },
-        )
-        VerticalDivider()
-        BlockPalette(
-            modifier = Modifier.width(200.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
-            eventType = event?.type,
-            onBlockKindSelected = { kind -> eventIndex?.let { onCommand(Invocation(AddBlock, AddBlock.Input(name, it, kind.createDefault()))) } },
-        )
+        HorizontalDivider()
+        Row(
+            modifier = Modifier.fillMaxWidth().weight(1f),
+        ) {
+            Column(
+                modifier = Modifier.width(230.dp).fillMaxHeight().verticalScroll(rememberScrollState()),
+            ) {
+                AppearanceColumn(
+                    definition = definition,
+                    onChange = { onCommand(Invocation(SetAppearance, it)) },
+                )
+                HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+                PropertyList(
+                    properties = definition.properties,
+                    onAdded = { onCommand(Invocation(AddProperty, AddProperty.Input(name, it))) },
+                    onChanged = { propertyName, property -> onCommand(Invocation(EditProperty, EditProperty.Input(name, propertyName, property))) },
+                    onRemoved = { onCommand(Invocation(RemoveProperty, RemoveProperty.Input(name, it))) },
+                )
+            }
+            VerticalDivider()
+            EventList(
+                modifier = Modifier.width(260.dp).fillMaxHeight(),
+                events = definition.events,
+                selectedIndex = eventIndex,
+                onSelected = { requestedEventIndex = it },
+                onAdded = { type ->
+                    onCommand(Invocation(AddEvent, AddEvent.Input(name, type)))
+                    requestedEventIndex = definition.events.size
+                },
+                onMoved = { index, targetIndex ->
+                    onCommand(Invocation(MoveEvent, MoveEvent.Input(name, index, targetIndex)))
+                    requestedEventIndex = targetIndex
+                },
+                onRemoved = { index ->
+                    onCommand(Invocation(RemoveEvent, RemoveEvent.Input(name, index)))
+                    if (eventIndex != null && index < eventIndex) requestedEventIndex = eventIndex - 1
+                },
+                highlight = highlight,
+            )
+            VerticalDivider()
+            EventBlocks(
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                event = event,
+                properties = definition.properties,
+                actorTypeNames = actorTypeNames,
+                onKeyChange = { key -> eventIndex?.let { onCommand(Invocation(SetEventKey, SetEventKey.Input(name, it, key))) } },
+                onTimerChange = { timer -> eventIndex?.let { onCommand(Invocation(SetEventTimer, SetEventTimer.Input(name, it, timer))) } },
+                onOtherActorTypeChange = { other -> eventIndex?.let { onCommand(Invocation(SetEventOtherActorType, SetEventOtherActorType.Input(name, it, other))) } },
+                onBlockChange = { blockIndex, block -> eventIndex?.let { onCommand(Invocation(EditBlock, EditBlock.Input(name, it, blockIndex, block))) } },
+                dragState = dragState,
+                onBlockRemoved = { blockIndex -> eventIndex?.let { onCommand(Invocation(RemoveBlock, RemoveBlock.Input(name, it, blockIndex))) } },
+                highlight = highlight?.takeIf { it.eventIndex == eventIndex },
+            )
+            VerticalDivider()
+            BlockPalette(
+                modifier = Modifier.width(200.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
+                eventType = event?.type,
+                dragState = dragState,
+                onBlockKindSelected = { kind -> eventIndex?.let { onCommand(Invocation(AddBlock, AddBlock.Input(name, it, kind.createDefault()))) } },
+            )
+        }
     }
+    DragPreview(dragState)
 }
 
 @Composable
@@ -190,4 +217,37 @@ private fun Header(
         label = Res.string.action_delete_actor_type,
         onClick = onDelete,
     )
+}
+
+/**
+ * The Block being dragged, following the pointer.
+ */
+@Composable
+private fun DragPreview(dragState: BlockDragState) {
+    val dragged = dragState.dragged ?: return
+    var origin by remember { mutableStateOf(Offset.Zero) }
+    Box(
+        modifier = Modifier.fillMaxSize().onGloballyPositioned { origin = it.positionInRoot() },
+    ) {
+        Row(
+            modifier = Modifier
+                .offset { (dragState.pointer - origin + Offset(12f, 12f)).round() }
+                .shadow(6.dp, MaterialTheme.shapes.small)
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.shapes.small)
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                modifier = Modifier.size(16.dp),
+                painter = painterResource(dragged.kind.icon),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.tertiary,
+            )
+            Text(
+                text = stringResource(dragged.kind.title),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
 }

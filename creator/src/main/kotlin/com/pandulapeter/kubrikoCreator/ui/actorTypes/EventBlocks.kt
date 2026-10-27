@@ -9,10 +9,14 @@
  */
 package com.pandulapeter.kubrikoCreator.ui.actorTypes
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,6 +30,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockNesting
@@ -52,8 +59,8 @@ internal fun EventBlocks(
     onKeyChange: (KeyChoice) -> Unit,
     onTimerChange: (Int) -> Unit,
     onOtherActorTypeChange: (String) -> Unit,
+    dragState: BlockDragState,
     onBlockChange: (blockIndex: Int, BlockDefinition) -> Unit,
-    onBlockMoved: (blockIndex: Int, targetIndex: Int) -> Unit,
     onBlockRemoved: (blockIndex: Int) -> Unit,
     modifier: Modifier = Modifier,
     highlight: ActorTypeHighlight? = null,
@@ -104,33 +111,51 @@ internal fun EventBlocks(
         }
     }
     HorizontalDivider()
-    if (event.blocks.isEmpty()) {
-        Text(
-            modifier = Modifier.padding(16.dp),
-            text = stringResource(Res.string.event_blocks_empty),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
+    dragState.blockCount = event.blocks.size
+    val gap = dragState.gap
     Column(
-        modifier = Modifier.verticalScroll(rememberScrollState()).padding(start = 12.dp, end = 4.dp, top = 4.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .onGloballyPositioned { dragState.listBounds = it.boundsInRoot() }
+            .verticalScroll(rememberScrollState())
+            .padding(start = 12.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
+        if (event.blocks.isEmpty()) {
+            Text(
+                modifier = Modifier.padding(4.dp),
+                text = stringResource(Res.string.event_blocks_empty),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         val nesting = remember(event.blocks) { BlockNesting.of(event.blocks).first }
         event.blocks.forEachIndexed { index, block ->
+            DropIndicator(isVisible = gap == index)
             BlockRow(
+                modifier = Modifier.onGloballyPositioned { dragState.rowBounds[index] = it.boundsInRoot() },
                 block = block,
                 nesting = nesting[index],
                 properties = properties,
                 actorTypeNames = actorTypeNames,
-                isFirst = index == 0,
-                isLast = index == event.blocks.lastIndex,
+                index = index,
+                dragState = dragState,
                 onBlockChange = { onBlockChange(index, it) },
-                onMoveUp = { onBlockMoved(index, index - 1) },
-                onMoveDown = { onBlockMoved(index, index + 1) },
                 onRemove = { onBlockRemoved(index) },
                 flashKey = highlight?.key?.takeIf { highlight.blockIndex == index },
             )
         }
+        DropIndicator(isVisible = gap == event.blocks.size)
     }
 }
+
+/**
+ * Where a dragged Block would land: a line between two Blocks.
+ */
+@Composable
+private fun DropIndicator(isVisible: Boolean) = Box(
+    modifier = Modifier
+        .fillMaxWidth()
+        .height(3.dp)
+        .background(if (isVisible) MaterialTheme.colorScheme.primary else Color.Transparent, MaterialTheme.shapes.small),
+)
