@@ -18,6 +18,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.compose.resources)
+            implementation(libs.kubriko.collision)
             implementation(libs.kubriko.creatorApi)
             implementation(libs.kubriko.engine)
             implementation(libs.kubriko.keyboardInput)

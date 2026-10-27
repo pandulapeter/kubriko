@@ -87,6 +87,7 @@ internal fun WorkspaceScreen(
                 ActorTypeEditor(
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                     definition = selectedActorType,
+                    actorTypeNames = actorTypes.map { it.name },
                     onChange = actorTypesController::update,
                     onDelete = { actorTypesController.delete(selectedActorType.name) },
                 )

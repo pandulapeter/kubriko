@@ -32,6 +32,7 @@ import com.pandulapeter.kubrikoCreator.actors.withBlockRemoved
 import com.pandulapeter.kubrikoCreator.actors.withBlockReplaced
 import com.pandulapeter.kubrikoCreator.actors.withEventAdded
 import com.pandulapeter.kubrikoCreator.actors.withEventKey
+import com.pandulapeter.kubrikoCreator.actors.withEventOtherActorType
 import com.pandulapeter.kubrikoCreator.actors.withEventRemoved
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import kubriko.creator.generated.resources.Res
@@ -53,6 +54,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun ActorTypeEditor(
     definition: ActorTypeDefinition,
+    actorTypeNames: List<String>,
     onChange: (ActorTypeDefinition) -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
@@ -103,7 +105,7 @@ internal fun ActorTypeEditor(
             label = stringResource(Res.string.action_add_event),
             icon = Res.drawable.ic_add,
             options = EventType.entries,
-            optionTitle = { it.title },
+            optionText = { stringResource(it.title) },
             optionIcon = { it.icon },
             onSelected = { onChange(definition.withEventAdded(it)) },
         )
@@ -118,7 +120,9 @@ internal fun ActorTypeEditor(
     definition.events.forEachIndexed { eventIndex, event ->
         EventCard(
             event = event,
+            actorTypeNames = actorTypeNames,
             onKeyChange = { onChange(definition.withEventKey(eventIndex, it)) },
+            onOtherActorTypeChange = { onChange(definition.withEventOtherActorType(eventIndex, it)) },
             onRemove = { onChange(definition.withEventRemoved(eventIndex)) },
             onBlockAdded = { onChange(definition.withBlockAdded(eventIndex, it)) },
             onBlockChange = { blockIndex, block -> onChange(definition.withBlockReplaced(eventIndex, blockIndex, block)) },

@@ -28,7 +28,13 @@ class BlockKindTest {
     }
 
     @Test
-    fun everyOtherBlockIsOfferedInEveryEvent() = (BlockKind.entries - BlockKind.BOUNCE_OFF_EDGE).forEach { kind ->
+    fun blocksAboutTheOtherActorAreOnlyOfferedInCollisionEvents() = listOf(BlockKind.BOUNCE_OFF_OTHER, BlockKind.REMOVE_OTHER).forEach { kind ->
+        assertTrue(kind.isAvailableIn(EventType.COLLISION))
+        (EventType.entries - EventType.COLLISION).forEach { assertFalse(kind.isAvailableIn(it), "${kind.name} in ${it.name}") }
+    }
+
+    @Test
+    fun everyOtherBlockIsOfferedInEveryEvent() = (BlockKind.entries - BlockKind.BOUNCE_OFF_EDGE - BlockKind.BOUNCE_OFF_OTHER - BlockKind.REMOVE_OTHER).forEach { kind ->
         EventType.entries.forEach { assertTrue(kind.isAvailableIn(it), "${kind.name} in ${it.name}") }
     }
 }

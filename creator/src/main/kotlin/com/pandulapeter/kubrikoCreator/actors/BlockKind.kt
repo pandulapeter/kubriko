@@ -12,8 +12,10 @@ package com.pandulapeter.kubrikoCreator.actors
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.block_add_to_velocity
 import kubriko.creator.generated.resources.block_bounce_off_edge
+import kubriko.creator.generated.resources.block_bounce_off_other
 import kubriko.creator.generated.resources.block_jump_to
 import kubriko.creator.generated.resources.block_kotlin
+import kubriko.creator.generated.resources.block_remove_other
 import kubriko.creator.generated.resources.block_remove_self
 import kubriko.creator.generated.resources.block_set_velocity
 import kubriko.creator.generated.resources.block_stop
@@ -32,12 +34,19 @@ internal enum class BlockKind(
     JUMP_TO(Res.string.block_jump_to, { BlockDefinition.JumpTo() }),
     BOUNCE_OFF_EDGE(Res.string.block_bounce_off_edge, { BlockDefinition.BounceOffEdge }),
     REMOVE_SELF(Res.string.block_remove_self, { BlockDefinition.RemoveSelf }),
+    BOUNCE_OFF_OTHER(Res.string.block_bounce_off_other, { BlockDefinition.BounceOffOther }),
+    REMOVE_OTHER(Res.string.block_remove_other, { BlockDefinition.RemoveOther }),
     KOTLIN(Res.string.block_kotlin, { BlockDefinition.Kotlin() });
 
     /**
-     * Whether the palette offers this Block in an Event of [eventType]. Bouncing needs to know which edge was touched.
+     * Whether the palette offers this Block in an Event of [eventType]. Some Blocks need what only one Event knows:
+     * which edge was touched, or which Actor was collided with.
      */
-    fun isAvailableIn(eventType: EventType) = this != BOUNCE_OFF_EDGE || eventType == EventType.EDGE_TOUCHED
+    fun isAvailableIn(eventType: EventType) = when (this) {
+        BOUNCE_OFF_EDGE -> eventType == EventType.EDGE_TOUCHED
+        BOUNCE_OFF_OTHER, REMOVE_OTHER -> eventType == EventType.COLLISION
+        else -> true
+    }
 
     companion object {
 
@@ -48,6 +57,8 @@ internal enum class BlockKind(
             is BlockDefinition.JumpTo -> JUMP_TO
             BlockDefinition.BounceOffEdge -> BOUNCE_OFF_EDGE
             BlockDefinition.RemoveSelf -> REMOVE_SELF
+            BlockDefinition.BounceOffOther -> BOUNCE_OFF_OTHER
+            BlockDefinition.RemoveOther -> REMOVE_OTHER
             is BlockDefinition.Kotlin -> KOTLIN
         }
     }

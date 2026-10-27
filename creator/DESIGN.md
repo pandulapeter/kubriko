@@ -489,8 +489,8 @@ compiles it for every target; it's opt-in because it downloads Gradle and every 
 First slice done (2026-10-27):
 
 - **Data model** (`creator/.../actors`): an `ActorTypeDefinition` (name, shape, color, default size, Events) stored as readable JSON in
-  `.kubriko/actors/<Name>.json`. Events: *When added to the Scene*, *Every frame*, *When a key is pressed* (arrows, Space, Enter, and WASD), and
-  *When an edge of the screen is touched*. Blocks: *Set velocity*, *Add to velocity*, *Stop*, *Jump to position*, *Bounce off the edge* (only
+  `.kubriko/actors/<Name>.json`. Events: *When added to the Scene*, *Every frame*, *When a key is pressed* (arrows, Space, Enter, and WASD),
+  *When an edge of the screen is touched*, and (added later) *When it collides with*. Blocks: *Set velocity*, *Add to velocity*, *Stop*, *Jump to position*, *Bounce off the edge* (only
   offered in the edge Event), *Remove this Actor*, and *Run Kotlin code*. Every generated Actor has a `velocity` in scene units per second and
   moves by it each frame, like GameMaker's built-in speed.
 - **Code generation**: one ordinary Kotlin class per Actor type in the project's `generated` package (`Editable`, with a color property the
@@ -504,9 +504,17 @@ First slice done (2026-10-27):
 - Verified end to end: a new project's block-built Ball bounced in Play mode, and an Actor type using every Event and Block compiled for desktop
   and web (the opt-in integration test now covers this).
 
-Next in Stage 2: placing Actor types into Scenes from Creator (the scene editor taking commands over the session protocol), Properties
-(user-defined variables exposed in the Scene editor), collisions as Events, sprites as appearance, Timers, Convert to code, detecting hand-edited
-generated files, and drag-and-drop from the Block palette (Blocks are added from a menu and reordered with buttons for now).
+Collisions (2026-10-27): every generated Actor type is `Collidable`, with a mask matching its shape that follows it. A *When it collides
+with <Actor type>* Event makes it a `CollisionDetector` with one branch per other Actor type, running once per overlapping Actor, and offers two
+Blocks of its own: *Bounce off it* (turns the velocity away from the other Actor along the axis it was hit on) and *Remove the other Actor*.
+Collision Events pointing at a deleted or unchosen Actor type are left out, so the code always compiles; saving any Actor type regenerates all of
+them, since they refer to each other. Kotlin Blocks now get a scope of their own (`run { }`), so two of them can declare the same name. New
+projects add the collision plugin and its Manager. Verified by building a Breakout from Blocks alone (a Ball bouncing off a keyboard-driven
+Paddle and removing Bricks) and playing it.
+
+Next in Stage 2: Properties (user-defined variables exposed in the Scene editor) with Blocks to change and test them, Timers, a score or
+other on-screen text, sprites as appearance, placing Actor types from inside Creator (the scene editor already offers every Actor type in its
+own window), Convert to code, detecting hand-edited generated files, and drag-and-drop from the Block palette.
 
 Still open from Stage 1: the code editor (minor), Android signed export (with the Android SDK download, which also lets templates gain an Android
 target), desktop installers, downloading a full JDK on first launch.

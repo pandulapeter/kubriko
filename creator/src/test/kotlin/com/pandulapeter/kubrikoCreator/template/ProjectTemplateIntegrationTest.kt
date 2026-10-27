@@ -75,12 +75,14 @@ class ProjectTemplateIntegrationTest {
                 BlockDefinition.JumpTo(x = -10f, y = 10f),
                 BlockDefinition.BounceOffEdge,
                 BlockDefinition.RemoveSelf,
+                BlockDefinition.BounceOffOther,
+                BlockDefinition.RemoveOther,
                 BlockDefinition.Kotlin(code = "val speed = velocity.x\nif (speed > 0f.sceneUnit) velocity = SceneOffset.Zero"),
             )
-            if (type == EventType.KEY_PRESSED) {
-                KeyChoice.entries.map { key -> EventDefinition(type = type, key = key, blocks = blocks) }
-            } else {
-                listOf(EventDefinition(type = type, blocks = blocks))
+            when (type) {
+                EventType.KEY_PRESSED -> KeyChoice.entries.map { key -> EventDefinition(type = type, key = key, blocks = blocks) }
+                EventType.COLLISION -> listOf("EveryBlock", "Ball").map { EventDefinition(type = type, otherActorType = it, blocks = blocks + blocks) }
+                else -> listOf(EventDefinition(type = type, blocks = blocks))
             }
         },
     )

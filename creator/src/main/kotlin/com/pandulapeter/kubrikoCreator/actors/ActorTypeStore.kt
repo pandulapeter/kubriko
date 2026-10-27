@@ -34,30 +34,33 @@ internal class ActorTypeStore private constructor(
         .map { json.decodeFromString(ActorTypeDefinition.serializer(), it.readText()) }
         .sortedBy { it.name }
 
+    /**
+     * Writes [definition] and regenerates the code of every Actor type, since Actor types refer to each other (in
+     * collision Events).
+     */
     override fun save(definition: ActorTypeDefinition) {
         definitionsDirectory.mkdirs()
         definitionFile(definition.name).writeText(json.encodeToString(ActorTypeDefinition.serializer(), definition) + "\n")
-        generatedDirectory.mkdirs()
-        generatedFile(definition.name).writeText(ActorTypeCodeGenerator.generateActorType(definition, settings.packageName))
-        writeRegistry()
+        regenerateAll()
     }
 
     override fun delete(name: String) {
         definitionFile(name).delete()
         generatedFile(name).delete()
-        writeRegistry()
+        regenerateAll()
     }
 
     /**
      * Rewrites every generated file from the definitions, for example after a template was copied.
      */
-    fun regenerateAll() = load().forEach(::save).also { writeRegistry() }
-
-    private fun writeRegistry() {
+    fun regenerateAll() {
+        val definitions = load()
+        val names = definitions.map { it.name }
         generatedDirectory.mkdirs()
-        File(generatedDirectory, "${ActorTypeCodeGenerator.REGISTRY_NAME}.kt").writeText(
-            ActorTypeCodeGenerator.generateRegistry(load().map { it.name }, settings.packageName),
-        )
+        definitions.forEach { definition ->
+            generatedFile(definition.name).writeText(ActorTypeCodeGenerator.generateActorType(definition, settings.packageName, names))
+        }
+        File(generatedDirectory, "${ActorTypeCodeGenerator.REGISTRY_NAME}.kt").writeText(ActorTypeCodeGenerator.generateRegistry(names, settings.packageName))
     }
 
     private fun definitionFile(name: String) = File(definitionsDirectory, "$name.json")

@@ -127,4 +127,17 @@ class ActorTypeStoreTest {
         file.writeText(text.replace("\"name\": \"Ball\",", "\"name\": \"Ball\", \"addedLater\": true,"))
         assertEquals(listOf(ball), store.load())
     }
+
+    @Test
+    fun collisionEventsCompileOnlyWhileTheirOtherActorTypeExists() {
+        optIn()
+        val store = ActorTypeStore.open(root)!!
+        store.save(ActorTypeDefinition(name = "Paddle"))
+        store.save(ball.copy(events = listOf(EventDefinition(EventType.COLLISION, otherActorType = "Paddle", blocks = listOf(BlockDefinition.BounceOffOther)))))
+        assertContains(File(generated, "Ball.kt").readText(), "is Paddle ->")
+        store.delete("Paddle")
+        assertFalse("Paddle" in File(generated, "Ball.kt").readText())
+        store.save(ActorTypeDefinition(name = "Paddle"))
+        assertContains(File(generated, "Ball.kt").readText(), "is Paddle ->")
+    }
 }

@@ -57,7 +57,22 @@ internal sealed interface BlockDefinition {
     data object RemoveSelf : BlockDefinition
 
     /**
-     * Kotlin statements inserted verbatim, for anything the other Blocks can't express.
+     * Only meaningful in an [EventType.COLLISION] Event: turns the velocity away from the other Actor, along the axis
+     * it was hit on.
+     */
+    @Serializable
+    @SerialName("bounceOffOther")
+    data object BounceOffOther : BlockDefinition
+
+    /**
+     * Only meaningful in an [EventType.COLLISION] Event: removes the Actor this one collided with.
+     */
+    @Serializable
+    @SerialName("removeOther")
+    data object RemoveOther : BlockDefinition
+
+    /**
+     * Kotlin statements inserted verbatim (in a scope of their own), for anything the other Blocks can't express.
      */
     @Serializable
     @SerialName("kotlin")

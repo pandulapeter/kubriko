@@ -26,9 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 
 /**
  * A text button that opens a menu of [options], each shown with its icon when [optionIcon] gives one.
@@ -37,7 +35,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun <T> MenuButton(
     label: String,
     options: List<T>,
-    optionTitle: (T) -> StringResource,
+    optionText: @Composable (T) -> String,
     onSelected: (T) -> Unit,
     icon: DrawableResource? = null,
     optionIcon: (T) -> DrawableResource? = { null },
@@ -62,7 +60,7 @@ internal fun <T> MenuButton(
     ) {
         options.forEach { option ->
             DropdownMenuItem(
-                text = { Text(stringResource(optionTitle(option))) },
+                text = { Text(optionText(option)) },
                 leadingIcon = optionIcon(option)?.let { optionIconResource ->
                     { Icon(modifier = Modifier.size(16.dp), painter = painterResource(optionIconResource), contentDescription = null) }
                 },

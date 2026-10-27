@@ -28,12 +28,14 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.BlockKind
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
+import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.action_add_block
 import kubriko.creator.generated.resources.action_remove
 import kubriko.creator.generated.resources.event_blocks_empty
+import kubriko.creator.generated.resources.event_collision_choose
 import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_delete
 import org.jetbrains.compose.resources.painterResource
@@ -45,7 +47,9 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun EventCard(
     event: EventDefinition,
+    actorTypeNames: List<String>,
     onKeyChange: (KeyChoice) -> Unit,
+    onOtherActorTypeChange: (String) -> Unit,
     onRemove: () -> Unit,
     onBlockAdded: (BlockDefinition) -> Unit,
     onBlockChange: (blockIndex: Int, BlockDefinition) -> Unit,
@@ -78,8 +82,16 @@ internal fun EventCard(
                 MenuButton(
                     label = stringResource(key.title),
                     options = KeyChoice.entries,
-                    optionTitle = { it.title },
+                    optionText = { stringResource(it.title) },
                     onSelected = onKeyChange,
+                )
+            }
+            if (event.type == EventType.COLLISION) {
+                MenuButton(
+                    label = event.otherActorType ?: stringResource(Res.string.event_collision_choose),
+                    options = actorTypeNames,
+                    optionText = { it },
+                    onSelected = onOtherActorTypeChange,
                 )
             }
             Spacer(Modifier.weight(1f))
@@ -113,7 +125,7 @@ internal fun EventCard(
             label = stringResource(Res.string.action_add_block),
             icon = Res.drawable.ic_add,
             options = BlockKind.entries.filter { it.isAvailableIn(event.type) },
-            optionTitle = { it.title },
+            optionText = { stringResource(it.title) },
             optionIcon = { it.icon },
             onSelected = { onBlockAdded(it.createDefault()) },
         )

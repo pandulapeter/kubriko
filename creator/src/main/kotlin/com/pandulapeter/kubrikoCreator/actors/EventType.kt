@@ -41,4 +41,10 @@ internal enum class EventType {
      */
     @SerialName("edgeTouched")
     EDGE_TOUCHED,
+
+    /**
+     * On every frame the Actor overlaps an Actor of the Event's other Actor type, once per overlapping Actor.
+     */
+    @SerialName("collision")
+    COLLISION,
 }

@@ -25,6 +25,8 @@ internal fun ActorTypeDefinition.withEventRemoved(eventIndex: Int) = if (eventIn
 
 internal fun ActorTypeDefinition.withEventKey(eventIndex: Int, key: KeyChoice) = withEvent(eventIndex) { it.copy(key = key) }
 
+internal fun ActorTypeDefinition.withEventOtherActorType(eventIndex: Int, actorTypeName: String) = withEvent(eventIndex) { it.copy(otherActorType = actorTypeName) }
+
 internal fun ActorTypeDefinition.withBlockAdded(eventIndex: Int, block: BlockDefinition) = withEvent(eventIndex) { it.copy(blocks = it.blocks + block) }
 
 internal fun ActorTypeDefinition.withBlockReplaced(eventIndex: Int, blockIndex: Int, block: BlockDefinition) = withEvent(eventIndex) { event ->

@@ -67,6 +67,8 @@
     <string name="block_jump_to">Jump to position</string>
     <string name="block_bounce_off_edge">Bounce off the edge</string>
     <string name="block_remove_self">Remove this Actor</string>
+    <string name="block_bounce_off_other">Bounce off it</string>
+    <string name="block_remove_other">Remove the other Actor</string>
     <string name="block_kotlin">Run Kotlin code</string>
     <string name="resource_group_actor_types">Actor types</string>
     <string name="new_actor_type_hint">New Actor type name</string>
@@ -90,6 +92,8 @@
     <string name="event_every_frame">Every frame</string>
     <string name="event_key_pressed">When a key is pressed</string>
     <string name="event_edge_touched">When an edge of the screen is touched</string>
+    <string name="event_collision">When it collides with</string>
+    <string name="event_collision_choose">Choose an Actor type</string>
     <string name="event_blocks_empty">No Blocks yet.</string>
     <string name="block_parameter_x">X</string>
     <string name="block_parameter_y">Y</string>

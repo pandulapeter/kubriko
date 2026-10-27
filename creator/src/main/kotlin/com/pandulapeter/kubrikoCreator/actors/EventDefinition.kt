@@ -16,10 +16,13 @@ import kotlinx.serialization.Serializable
  * One Event of an Actor type and the Blocks that run when it happens.
  *
  * @param key The key of a [EventType.KEY_PRESSED] Event; null for every other type.
+ * @param otherActorType The Actor type a [EventType.COLLISION] Event reacts to; null for every other type, and until
+ *   one is chosen.
  */
 @Serializable
 internal data class EventDefinition(
     @SerialName("type") val type: EventType,
     @SerialName("key") val key: KeyChoice? = null,
+    @SerialName("otherActorType") val otherActorType: String? = null,
     @SerialName("blocks") val blocks: List<BlockDefinition> = emptyList(),
 )

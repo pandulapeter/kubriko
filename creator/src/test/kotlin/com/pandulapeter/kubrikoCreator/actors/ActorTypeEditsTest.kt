@@ -35,6 +35,7 @@ class ActorTypeEditsTest {
     fun eventsCanBeRemovedAndRekeyed() {
         assertEquals(listOf(EventType.KEY_PRESSED), definition.withEventRemoved(0).events.map { it.type })
         assertEquals(KeyChoice.D, definition.withEventKey(1, KeyChoice.D).events[1].key)
+        assertEquals("Paddle", definition.withEventAdded(EventType.COLLISION).withEventOtherActorType(2, "Paddle").events[2].otherActorType)
     }
 
     @Test
