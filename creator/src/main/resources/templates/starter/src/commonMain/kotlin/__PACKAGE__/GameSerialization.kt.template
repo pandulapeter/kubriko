@@ -1,19 +1,15 @@
 package {{PACKAGE}}
 
-import com.pandulapeter.kubriko.actor.body.BoxBody
-import com.pandulapeter.kubriko.helpers.extensions.sceneUnit
 import com.pandulapeter.kubriko.sceneEditor.EditableMetadata
-import com.pandulapeter.kubriko.types.SceneSize
-import {{PACKAGE}}.actors.Ball
+import {{PACKAGE}}.generated.GeneratedActorTypes
 
 /**
- * Every Actor type that can be placed in a Scene. Add new ones here to make them loadable and editable.
+ * Every Actor type that can be placed in a Scene: the ones built in Kubriko Creator, plus any written by hand
+ * (add their EditableMetadata after the generated ones).
  */
 object GameSerialization {
 
     fun createSerializationManager() = EditableMetadata.newSerializationManagerInstance(
-        EditableMetadata.create<Ball, Ball.State>(typeId = "Ball") { position ->
-            Ball.State(body = BoxBody(initialPosition = position, initialSize = SceneSize(80.sceneUnit, 80.sceneUnit)))
-        },
+        *GeneratedActorTypes.metadata.toTypedArray(),
     )
 }

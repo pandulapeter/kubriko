@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.compose)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.desktop)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 dependencies {
@@ -20,6 +21,7 @@ dependencies {
     implementation(libs.compose.resources)
     implementation(libs.gradle.toolingApi)
     implementation(libs.kotlinx.coroutines.desktop)
+    implementation(libs.kotlinx.serialization)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlinx.coroutines.test)
 }

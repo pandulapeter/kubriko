@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.ui.actorTypes.ActorTypeEditor
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.workspace_hint
@@ -41,6 +42,10 @@ internal fun WorkspaceScreen(
     val resources by controller.resources.collectAsState()
     val console by controller.console.collectAsState()
     val sessionState by controller.sessionState.collectAsState()
+    val actorTypesController = controller.actorTypes
+    val actorTypes = actorTypesController?.actorTypes?.collectAsState()?.value.orEmpty()
+    val selectedActorTypeName = actorTypesController?.selectedName?.collectAsState()?.value
+    val selectedActorType = actorTypes.firstOrNull { it.name == selectedActorTypeName }
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -56,18 +61,30 @@ internal fun WorkspaceScreen(
             modifier = Modifier.fillMaxWidth().weight(1f),
         ) {
             ResourceTree(
-                modifier = Modifier.width(280.dp).fillMaxHeight(),
+                modifier = Modifier.width(300.dp).fillMaxHeight(),
                 resources = resources,
+                actorTypes = actorTypesController?.let { ActorTypeTreeState(actorTypes.map { it.name }, selectedActorTypeName) },
                 onSceneSelected = controller::editScene,
+                onActorTypeSelected = { actorTypesController?.select(it) },
+                onCreateActorType = { actorTypesController?.create(it) },
             )
             VerticalDivider()
-            WorkspaceHint(
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-            )
+            if (actorTypesController != null && selectedActorType != null) {
+                ActorTypeEditor(
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    definition = selectedActorType,
+                    onChange = actorTypesController::update,
+                    onDelete = { actorTypesController.delete(selectedActorType.name) },
+                )
+            } else {
+                WorkspaceHint(
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                )
+            }
         }
         HorizontalDivider()
         Console(
-            modifier = Modifier.fillMaxWidth().weight(0.6f),
+            modifier = Modifier.fillMaxWidth().weight(0.35f),
             entries = console,
             onClear = controller::clearConsole,
         )

@@ -41,6 +41,8 @@ class TemplateRendererTest {
 
     @Test
     fun dotFilesAreStoredWithoutTheirDot() {
-        assertEquals(".gitignore", TemplateRenderer.renderPath("gitignore", "com.example.game"))
+        assertEquals(".gitignore", TemplateRenderer.renderPath("dot-gitignore", "com.example.game"))
+        assertEquals(".kubriko/actors/Ball.json", TemplateRenderer.renderPath("dot-kubriko/actors/Ball.json", "com.example.game"))
+        assertEquals("docs/dotfiles.md", TemplateRenderer.renderPath("docs/dotfiles.md", "com.example.game"))
     }
 }

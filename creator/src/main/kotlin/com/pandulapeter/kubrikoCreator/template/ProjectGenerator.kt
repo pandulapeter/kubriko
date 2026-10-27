@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.template
 
 import com.pandulapeter.kubrikoCreator.CreatorConfiguration
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeStore
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_project_folder_not_empty
 import kubriko.creator.generated.resources.error_project_not_created
@@ -17,7 +18,8 @@ import java.io.File
 import java.io.IOException
 
 /**
- * Creates a project from a [ProjectTemplate]: renders its files into the new project's folder, then adds the Gradle wrapper.
+ * Creates a project from a [ProjectTemplate]: renders its files into the new project's folder, generates the code of its
+ * block-built Actor types, then adds the Gradle wrapper.
  */
 internal class ProjectGenerator(
     private val configuration: CreatorConfiguration,
@@ -42,6 +44,7 @@ internal class ProjectGenerator(
                     writeText(TemplateRenderer.renderContent(file.content, values))
                 }
             }
+            ActorTypeStore.open(directory)?.regenerateAll()
             wrapperInstaller.install(directory, configuration.gradleVersion)
         } catch (exception: IOException) {
             throw ProjectCreationException(Res.string.error_project_not_created, exception)

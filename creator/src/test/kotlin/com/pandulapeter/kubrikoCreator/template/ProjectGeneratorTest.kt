@@ -30,7 +30,7 @@ class ProjectGeneratorTest {
     private val wrapperInstallations = mutableListOf<Pair<File, String>>()
     private val template = listOf(
         TemplateFile("settings.gradle.kts", "rootProject.name = \"{{PROJECT_ID}}\"\n{{EXTRA_REPOSITORIES}}"),
-        TemplateFile("gitignore", "build/"),
+        TemplateFile("dot-gitignore", "build/"),
         TemplateFile("src/__PACKAGE__/Game.kt", "package {{PACKAGE}} // {{PROJECT_NAME}}, Kubriko {{KUBRIKO_VERSION}}, Kotlin {{KOTLIN_VERSION}}, Compose {{COMPOSE_VERSION}}"),
     )
 
@@ -111,6 +111,10 @@ class ProjectGeneratorTest {
             ".gitignore",
             "src/commonMain/kotlin/com/example/mygame/GameEntryPoint.kt",
             "src/commonMain/composeResources/files/scenes/main.json",
+            ".kubriko/project.json",
+            ".kubriko/actors/Ball.json",
+            "src/commonMain/kotlin/com/example/mygame/generated/Ball.kt",
+            "src/commonMain/kotlin/com/example/mygame/generated/GeneratedActorTypes.kt",
         ).forEach { assertTrue(File(directory, it).isFile, it) }
         assertEquals(
             "com.example.mygame.GameEntryPoint",

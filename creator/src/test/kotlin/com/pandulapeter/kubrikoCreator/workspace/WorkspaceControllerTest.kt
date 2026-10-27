@@ -23,6 +23,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.status_actor_type_not_saved
 import kubriko.creator.generated.resources.status_build_failed
 import kubriko.creator.generated.resources.status_building
 import kubriko.creator.generated.resources.status_session_ended
@@ -34,6 +35,8 @@ import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -50,6 +53,7 @@ class WorkspaceControllerTest {
     private fun TestScope.createController(
         desktopModulePath: String = ":",
         scanResources: (File) -> Map<ResourceGroup, List<ProjectResource>> = { emptyMap() },
+        actorTypeRepository: FakeActorTypeRepository? = null,
     ): WorkspaceController {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         return WorkspaceController(
@@ -59,6 +63,7 @@ class WorkspaceControllerTest {
             scope = CoroutineScope(backgroundScope.coroutineContext + dispatcher),
             ioDispatcher = dispatcher,
             scanResources = scanResources,
+            actorTypeRepository = actorTypeRepository,
         )
     }
 
@@ -248,5 +253,26 @@ class WorkspaceControllerTest {
         assertTrue(build.currentRun.isCancelled)
         assertTrue(build.isClosed)
         assertTrue(channel.isClosed)
+    }
+
+    @Test
+    fun actorTypesAreOnlyAvailableToProjectsThatOptedIn() = runTest {
+        assertNull(createController().actorTypes)
+        assertNotNull(createController(actorTypeRepository = FakeActorTypeRepository()).actorTypes)
+    }
+
+    @Test
+    fun savingAnActorTypeRescansTheResourcesSoItsGeneratedCodeShowsUp() = runTest {
+        var scanCount = 0
+        val controller = createController(scanResources = { scanCount++; emptyMap() }, actorTypeRepository = FakeActorTypeRepository())
+        controller.actorTypes!!.create("Player")
+        assertEquals(2, scanCount)
+    }
+
+    @Test
+    fun aFailedActorTypeSaveIsReportedInTheConsole() = runTest {
+        val controller = createController(actorTypeRepository = FakeActorTypeRepository().apply { isFailing = true })
+        controller.actorTypes!!.create("Player")
+        assertEquals(listOf(ConsoleEntry.Status(Res.string.status_actor_type_not_saved, isError = true)), controller.console.value)
     }
 }

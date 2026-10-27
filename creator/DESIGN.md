@@ -9,7 +9,7 @@
 -->
 # Kubriko Creator: design plan
 
-Status: Stage 1 in progress (see section 19). The product is called Kubriko Creator; "the editor" below means the Creator app.
+Status: Stage 2 in progress (see sections 19 and 20). The product is called Kubriko Creator; "the editor" below means the Creator app.
 
 ## 1. What this is
 
@@ -353,6 +353,10 @@ wording rather than a copy of its action list, and no import or export of its fi
 
 ## 15. Stages
 
+**Priority (decided 2026-10-27):** Blocks are the heart of the product, as actions were in GameMaker; Kotlin is just one of the things a Block
+can do. Stage 2 therefore comes before the rest of Stage 1, and the code editor stays a minor feature (syntax highlighting and compiler errors,
+no language server unless there's demand).
+
 Each stage is worth having even if the next one never happens. Estimates are for Claude doing the implementation in working sessions with Péter
 reviewing and testing; most of the elapsed time is review and hands-on testing.
 
@@ -470,5 +474,29 @@ them. The separate version keeps local builds from shadowing a real release. `KU
 KUBRIKO_CREATOR_VERSION=0.7.5-creator ./gradlew :creator:test` also generates every template for real and compiles it for every target; it's
 opt-in because it downloads Gradle and every dependency.
 
-Next in Stage 1: the code editor, Android signed export (with the Android SDK download, which also lets templates gain an Android target),
-desktop installers, downloading a full JDK on first launch, and the scene editor taking commands from Creator over the session protocol.
+## 20. Stage 2 progress
+
+First slice done (2026-10-27):
+
+- **Data model** (`creator/.../actors`): an `ActorTypeDefinition` (name, shape, color, default size, Events) stored as readable JSON in
+  `.kubriko/actors/<Name>.json`. Events: *When added to the Scene*, *Every frame*, *When a key is pressed* (arrows, Space, Enter, and WASD), and
+  *When an edge of the screen is touched*. Blocks: *Set velocity*, *Add to velocity*, *Stop*, *Jump to position*, *Bounce off the edge* (only
+  offered in the edge Event), *Remove this Actor*, and *Run Kotlin code*. Every generated Actor has a `velocity` in scene units per second and
+  moves by it each frame, like GameMaker's built-in speed.
+- **Code generation**: one ordinary Kotlin class per Actor type in the project's `generated` package (`Editable`, with a color property the
+  Scene editor can change per Actor), plus a `GeneratedActorTypes` registry that the template's `GameSerialization` spreads into its
+  `SerializationManager`. The output is deterministic and reads like hand-written code.
+- **Opt-in**: a project with `.kubriko/project.json` (package and source folder) gets the Actor types group; new projects have it from the
+  template. The Starter's Ball is now block-built: *Set velocity* when added, and *Bounce off the edge*.
+- **Editor**: Actor types at the top of the resource tree (create by name, select), and an editor with the appearance and one card per Event,
+  where Blocks are added from a palette, edited, reordered, and removed. Changes show at once and are saved and regenerated in the background,
+  in order.
+- Verified end to end: a new project's block-built Ball bounced in Play mode, and an Actor type using every Event and Block compiled for desktop
+  and web (the opt-in integration test now covers this).
+
+Next in Stage 2: placing Actor types into Scenes from Creator (the scene editor taking commands over the session protocol), Properties
+(user-defined variables exposed in the Scene editor), collisions as Events, sprites as appearance, Timers, Convert to code, detecting hand-edited
+generated files, and drag-and-drop from the Block palette (Blocks are added from a menu and reordered with buttons for now).
+
+Still open from Stage 1: the code editor (minor), Android signed export (with the Android SDK download, which also lets templates gain an Android
+target), desktop installers, downloading a full JDK on first launch.

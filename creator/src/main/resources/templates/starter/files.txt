@@ -1,6 +1,8 @@
 README.md
 build.gradle.kts
-gitignore
+dot-gitignore
+dot-kubriko/actors/Ball.json
+dot-kubriko/project.json
 gradle.properties
 gradle/libs.versions.toml
 settings.gradle.kts
@@ -9,7 +11,6 @@ src/commonMain/kotlin/__PACKAGE__/Game.kt
 src/commonMain/kotlin/__PACKAGE__/GameEntryPoint.kt
 src/commonMain/kotlin/__PACKAGE__/GameSerialization.kt
 src/commonMain/kotlin/__PACKAGE__/SceneLoader.kt
-src/commonMain/kotlin/__PACKAGE__/actors/Ball.kt
 src/desktopMain/kotlin/__PACKAGE__/Main.kt
 src/desktopMain/resources/META-INF/services/com.pandulapeter.kubriko.creator.CreatorEntryPoint
 src/wasmJsMain/kotlin/__PACKAGE__/Main.kt

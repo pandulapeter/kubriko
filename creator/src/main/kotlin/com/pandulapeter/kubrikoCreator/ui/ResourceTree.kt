@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,24 +24,40 @@ import androidx.compose.ui.unit.dp
 import com.pandulapeter.kubrikoCreator.project.ProjectResource
 import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.resource_group_actor_types
 import kubriko.creator.generated.resources.resource_group_empty
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun ResourceTree(
     modifier: Modifier,
     resources: Map<ResourceGroup, List<ProjectResource>>,
+    actorTypes: ActorTypeTreeState?,
     onSceneSelected: (ProjectResource) -> Unit,
+    onActorTypeSelected: (String) -> Unit,
+    onCreateActorType: (String) -> StringResource?,
 ) = LazyColumn(
     modifier = modifier,
 ) {
+    if (actorTypes != null) {
+        item(key = "actorTypes") {
+            ResourceTreeGroupTitle(Res.string.resource_group_actor_types)
+        }
+        items(actorTypes.names, key = { "actorType-$it" }) { name ->
+            ResourceTreeItem(
+                text = name,
+                isSelected = name == actorTypes.selectedName,
+                onClick = { onActorTypeSelected(name) },
+            )
+        }
+        item(key = "newActorType") {
+            NewActorTypeField(onCreate = onCreateActorType)
+        }
+    }
     ResourceGroup.entries.forEach { group ->
         item(key = group) {
-            Text(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp),
-                text = stringResource(group.title),
-                style = MaterialTheme.typography.titleSmall,
-            )
+            ResourceTreeGroupTitle(group.title)
         }
         val groupResources = resources[group].orEmpty()
         if (groupResources.isEmpty()) {
@@ -61,13 +78,32 @@ internal fun ResourceTree(
     }
 }
 
+/**
+ * The Actor types shown at the top of the resource tree, for projects that opted in to them.
+ */
+internal data class ActorTypeTreeState(
+    val names: List<String>,
+    val selectedName: String?,
+)
+
+@Composable
+private fun ResourceTreeGroupTitle(
+    title: StringResource,
+) = Text(
+    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp),
+    text = stringResource(title),
+    style = MaterialTheme.typography.titleSmall,
+)
+
 @Composable
 private fun ResourceTreeItem(
     text: String,
     onClick: (() -> Unit)?,
+    isSelected: Boolean = false,
 ) = Text(
     modifier = Modifier
         .fillMaxWidth()
+        .then(if (isSelected) Modifier.background(MaterialTheme.colorScheme.secondaryContainer) else Modifier)
         .then(if (onClick == null) Modifier else Modifier.clickable(onClick = onClick))
         .padding(horizontal = 24.dp, vertical = 4.dp),
     text = text,

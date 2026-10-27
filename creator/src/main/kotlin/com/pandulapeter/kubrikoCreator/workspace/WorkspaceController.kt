@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.workspace
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeRepository
 import com.pandulapeter.kubrikoCreator.gradle.GradleBuildEvent
 import com.pandulapeter.kubrikoCreator.gradle.ProjectBuild
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
@@ -30,6 +31,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
+import kubriko.creator.generated.resources.status_actor_type_not_saved
 import kubriko.creator.generated.resources.status_build_failed
 import kubriko.creator.generated.resources.status_building
 import kubriko.creator.generated.resources.status_session_ended
@@ -49,6 +51,7 @@ internal class WorkspaceController(
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val scanResources: (File) -> Map<ResourceGroup, List<ProjectResource>> = ResourceScanner::scan,
+    private val actorTypeRepository: ActorTypeRepository? = null,
 ) : AutoCloseable {
     private val _resources = MutableStateFlow(emptyMap<ResourceGroup, List<ProjectResource>>())
     val resources = _resources.asStateFlow()
@@ -57,6 +60,19 @@ internal class WorkspaceController(
     private val _sessionState = MutableStateFlow<SessionState>(SessionState.Idle)
     val sessionState = _sessionState.asStateFlow()
     private var sessionJob: Job? = null
+
+    /**
+     * The project's block-built Actor types, or null if the project hasn't opted in to them (it has no `.kubriko/project.json`).
+     */
+    val actorTypes = actorTypeRepository?.let { repository ->
+        ActorTypesController(
+            repository = repository,
+            scope = scope,
+            ioDispatcher = ioDispatcher,
+            onSaved = ::refreshResources,
+            onSaveFailed = { appendToConsole(ConsoleEntry.Status(Res.string.status_actor_type_not_saved, isError = true)) },
+        )
+    }
 
     init {
         scope.launch {

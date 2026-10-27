@@ -20,6 +20,7 @@ kotlin {
             implementation(libs.compose.resources)
             implementation(libs.kubriko.creatorApi)
             implementation(libs.kubriko.engine)
+            implementation(libs.kubriko.keyboardInput)
             implementation(libs.kubriko.serialization)
         }
         getByName("desktopMain").dependencies {

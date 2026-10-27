@@ -1,0 +1,4 @@
+{
+    "packageName": "{{PACKAGE}}",
+    "sourceDirectory": "src/commonMain/kotlin"
+}

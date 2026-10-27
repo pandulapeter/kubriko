@@ -9,6 +9,7 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
+import com.pandulapeter.kubrikoCreator.actors.ActorTypeStore
 import com.pandulapeter.kubrikoCreator.gradle.GradleProjectConnection
 import com.pandulapeter.kubrikoCreator.project.ProjectInspector
 import com.pandulapeter.kubrikoCreator.session.SessionServer
@@ -30,6 +31,7 @@ internal object GradleWorkspaceOpener : WorkspaceOpener {
                 build = connection,
                 sessionChannel = SessionServer(scope),
                 scope = scope,
+                actorTypeRepository = ActorTypeStore.open(directory),
             )
         } catch (exception: Exception) {
             connection.close()
