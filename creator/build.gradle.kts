@@ -36,6 +36,7 @@ dependencies {
     implementation(libs.compose.resources)
     implementation(libs.gradle.toolingApi)
     implementation(libs.jbr.api)
+    implementation(libs.jgit)
     implementation(libs.kotlinx.coroutines.desktop)
     implementation(libs.kotlinx.serialization)
     testImplementation(libs.kotlin.test)

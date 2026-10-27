@@ -24,6 +24,7 @@ jbr-api = "1.10.1" # https://github.com/JetBrains/JetBrainsRuntimeApi/releases
 jlayer = "1.0.3" # https://github.com/umjammer/jlayer/releases
 kotlin = "2.4.21" # https://github.com/JetBrains/kotlin/releases
 gradle-toolingApi = "9.7.1" # https://gradle.org/releases/
+jgit = "7.8.0.202609011348-r" # https://github.com/eclipse-jgit/jgit/tags
 kotlinx-coroutines = "1.11.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinx-datetime = "0.8.0" # https://github.com/Kotlin/kotlinx-datetime/releases
 kotlinx-immutable = "0.5.2" # https://github.com/Kotlin/kotlinx.collections.immutable/releases
@@ -52,6 +53,7 @@ kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect" }
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin" }
 gradle-toolingApi = { group = "org.gradle", name = "gradle-tooling-api", version.ref = "gradle-toolingApi" }
+jgit = { group = "org.eclipse.jgit", name = "org.eclipse.jgit", version.ref = "jgit" }
 kotlinx-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-desktop = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
