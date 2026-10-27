@@ -77,6 +77,15 @@
     <string name="block_parameter_value">Value</string>
     <string name="block_parameter_by">By</string>
     <string name="block_parameter_text">Text</string>
+    <string name="block_start_timer">Start a Timer</string>
+    <string name="block_stop_timer">Stop a Timer</string>
+    <string name="block_parameter_seconds">Seconds</string>
+    <string name="block_parameter_repeating">Repeating</string>
+    <string name="timer_name">Timer %1$d</string>
+    <string name="event_timer_finished">When a Timer finishes</string>
+    <string name="command_set_event_timer">Change Timer</string>
+    <string name="error_command_timer_not_allowed">Only a When a Timer finishes Event has a Timer.</string>
+    <string name="error_command_timer_invalid">Timers are numbered from 1 to 8.</string>
     <string name="block_if">If</string>
     <string name="block_else">Else</string>
     <string name="block_repeat">Repeat</string>

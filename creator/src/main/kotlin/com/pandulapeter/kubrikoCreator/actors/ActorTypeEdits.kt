@@ -27,6 +27,8 @@ internal fun ActorTypeDefinition.withEventMoved(eventIndex: Int, targetIndex: In
 
 internal fun ActorTypeDefinition.withEventKey(eventIndex: Int, key: KeyChoice) = withEvent(eventIndex) { it.copy(key = key) }
 
+internal fun ActorTypeDefinition.withEventTimer(eventIndex: Int, timer: Int) = withEvent(eventIndex) { it.copy(timer = timer) }
+
 internal fun ActorTypeDefinition.withEventOtherActorType(eventIndex: Int, actorTypeName: String?) = withEvent(eventIndex) { it.copy(otherActorType = actorTypeName) }
 
 internal fun ActorTypeDefinition.withBlockInserted(eventIndex: Int, blockIndex: Int, block: BlockDefinition) = withEvent(eventIndex) { event ->

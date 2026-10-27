@@ -39,4 +39,8 @@ internal enum class EventType {
     @Description("On every frame the Actor overlaps an Actor of the Event's other Actor type, once per overlapping Actor.")
     @SerialName("collision")
     COLLISION,
+
+    @Description("When the Event's Timer, started by a startTimer Block, finishes (each time, if it repeats).")
+    @SerialName("timerFinished")
+    TIMER_FINISHED,
 }

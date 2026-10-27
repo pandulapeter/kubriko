@@ -46,6 +46,7 @@ import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_loop
 import kubriko.creator.generated.resources.ic_move_down
 import kubriko.creator.generated.resources.ic_move_up
+import kubriko.creator.generated.resources.timer_name
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -163,11 +164,12 @@ private fun EventListItem(
 }
 
 /**
- * What tells apart Events of the same type: the key, or the other Actor type.
+ * What tells apart Events of the same type: the key, the other Actor type, or the Timer.
  */
 @Composable
 internal fun EventDefinition.detail(): String? = when (type) {
     EventType.KEY_PRESSED -> key?.let { stringResource(it.title) }
     EventType.COLLISION -> otherActorType ?: stringResource(Res.string.event_collision_choose)
+    EventType.TIMER_FINISHED -> timer?.let { stringResource(Res.string.timer_name, it) }
     else -> null
 }

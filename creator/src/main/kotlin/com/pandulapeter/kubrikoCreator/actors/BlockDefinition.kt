@@ -118,6 +118,26 @@ internal sealed interface BlockDefinition {
     ) : BlockDefinition
 
     @Serializable
+    @SerialName("startTimer")
+    @Description("Starts one of the Actor's Timers, or starts it again from the beginning. When it finishes, the timerFinished Event of that Timer runs.")
+    data class StartTimer(
+        @Description("Which Timer, from 1 to 8.")
+        @SerialName("timer") val timer: Int = 1,
+        @Description("How long it takes, in seconds.")
+        @SerialName("seconds") val seconds: Float = 1f,
+        @Description("True to start it again each time it finishes, until a stopTimer Block stops it.")
+        @SerialName("isRepeating") val isRepeating: Boolean = false,
+    ) : BlockDefinition
+
+    @Serializable
+    @SerialName("stopTimer")
+    @Description("Stops one of the Actor's Timers, so that it doesn't finish.")
+    data class StopTimer(
+        @Description("Which Timer, from 1 to 8.")
+        @SerialName("timer") val timer: Int = 1,
+    ) : BlockDefinition
+
+    @Serializable
     @SerialName("if")
     @Description("Runs the Blocks after it, up to the matching else or end Block, only when its condition is true. An if Block without an end runs to the end of the Event.")
     data class If(
@@ -177,6 +197,16 @@ internal val BlockDefinition.propertyReference: Pair<String, PropertyKind>?
             is ConditionDefinition.Toggle -> condition.property to PropertyKind.TOGGLE
             is ConditionDefinition.KeyHeld, is ConditionDefinition.Velocity, is ConditionDefinition.Chance -> null
         }
+        else -> null
+    }
+
+/**
+ * The Timer [this] Block starts or stops, if it is one of those.
+ */
+internal val BlockDefinition.timerNumber
+    get() = when (this) {
+        is BlockDefinition.StartTimer -> timer
+        is BlockDefinition.StopTimer -> timer
         else -> null
     }
 

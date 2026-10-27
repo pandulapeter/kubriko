@@ -45,6 +45,8 @@ import kubriko.creator.generated.resources.error_command_size_invalid
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kubriko.creator.generated.resources.error_command_timer_invalid
+import kubriko.creator.generated.resources.error_command_timer_not_allowed
 import kubriko.creator.generated.resources.error_property_name_taken
 
 class ActorTypeCommandsTest {
@@ -181,6 +183,20 @@ class ActorTypeCommandsTest {
             Rejection(Res.string.error_property_name_taken),
             context.rejection(CreateActorType, ActorTypeDefinition("Paddle", properties = listOf(PropertyDefinition.Number("speed"), PropertyDefinition.Text("Speed".lowercase())))),
         )
+    }
+
+    @Test
+    fun timerEventsStartWithTheFirstTimerAndTheirTimerCanBeChanged() = runTest {
+        val context = commandContext(ball, wall)
+        val added = context.assertRoundTrip(Invocation(AddEvent, AddEvent.Input("Ball", EventType.TIMER_FINISHED))) { context.ball() }!!.events.last()
+        assertEquals(EventDefinition(EventType.TIMER_FINISHED, timer = 1), added)
+        assertEquals(5, context.assertRoundTrip(Invocation(SetEventTimer, SetEventTimer.Input("Ball", 3, 5))) { context.ball() }!!.events[3].timer)
+        assertEquals(Rejection(Res.string.error_command_timer_not_allowed), context.rejection(SetEventTimer, SetEventTimer.Input("Ball", 0, 2)))
+        assertEquals(Rejection(Res.string.error_command_timer_invalid), context.rejection(SetEventTimer, SetEventTimer.Input("Ball", 3, 9)))
+        assertEquals(Rejection(Res.string.error_command_timer_not_allowed), context.rejection(AddEvent, AddEvent.Input("Ball", EventType.EVERY_FRAME, timer = 2)))
+        assertEquals(Rejection(Res.string.error_command_timer_invalid), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StopTimer(timer = 0))))
+        assertEquals(Rejection(Res.string.error_command_number_invalid), context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StartTimer(seconds = -1f))))
+        assertNull(context.rejection(AddBlock, AddBlock.Input("Ball", 0, BlockDefinition.StartTimer(timer = 8, seconds = 0f, isRepeating = true))))
     }
 
     @Test

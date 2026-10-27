@@ -27,7 +27,9 @@ import kubriko.creator.generated.resources.block_set_number
 import kubriko.creator.generated.resources.block_set_text
 import kubriko.creator.generated.resources.block_set_toggle
 import kubriko.creator.generated.resources.block_set_velocity
+import kubriko.creator.generated.resources.block_start_timer
 import kubriko.creator.generated.resources.block_stop
+import kubriko.creator.generated.resources.block_stop_timer
 import org.jetbrains.compose.resources.StringResource
 
 /**
@@ -49,6 +51,8 @@ internal enum class BlockKind(
     CHANGE_NUMBER(Res.string.block_change_number, { BlockDefinition.ChangeNumber() }),
     SET_TEXT(Res.string.block_set_text, { BlockDefinition.SetText() }),
     SET_TOGGLE(Res.string.block_set_toggle, { BlockDefinition.SetToggle() }),
+    START_TIMER(Res.string.block_start_timer, { BlockDefinition.StartTimer() }),
+    STOP_TIMER(Res.string.block_stop_timer, { BlockDefinition.StopTimer() }),
     IF(Res.string.block_if, { BlockDefinition.If() }),
     ELSE(Res.string.block_else, { BlockDefinition.Else }),
     REPEAT(Res.string.block_repeat, { BlockDefinition.Repeat() }),
@@ -81,6 +85,8 @@ internal enum class BlockKind(
             is BlockDefinition.ChangeNumber -> CHANGE_NUMBER
             is BlockDefinition.SetText -> SET_TEXT
             is BlockDefinition.SetToggle -> SET_TOGGLE
+            is BlockDefinition.StartTimer -> START_TIMER
+            is BlockDefinition.StopTimer -> STOP_TIMER
             is BlockDefinition.If -> IF
             BlockDefinition.Else -> ELSE
             is BlockDefinition.Repeat -> REPEAT

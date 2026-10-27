@@ -18,7 +18,9 @@ import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
 import com.pandulapeter.kubrikoCreator.actors.PropertyKind
 import com.pandulapeter.kubrikoCreator.actors.PropertyNaming
+import com.pandulapeter.kubrikoCreator.actors.TIMER_NUMBERS
 import com.pandulapeter.kubrikoCreator.actors.propertyReference
+import com.pandulapeter.kubrikoCreator.actors.timerNumber
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.Rejection
 import com.pandulapeter.kubrikoCreator.workspace.ActorTypesController
@@ -34,6 +36,8 @@ import kubriko.creator.generated.resources.error_command_other_actor_type_not_al
 import kubriko.creator.generated.resources.error_command_property_missing
 import kubriko.creator.generated.resources.error_command_property_unknown
 import kubriko.creator.generated.resources.error_command_size_invalid
+import kubriko.creator.generated.resources.error_command_timer_invalid
+import kubriko.creator.generated.resources.error_command_timer_not_allowed
 
 /**
  * The Actor types of the project, which every Actor type command has validated to exist before it is applied.
@@ -70,6 +74,8 @@ internal fun validateSize(width: Float, height: Float) = if (width.isFinite() &&
 internal fun validateEvent(event: EventDefinition, actorTypeNames: Collection<String>, properties: List<PropertyDefinition>): Rejection? = when {
     event.key != null && event.type != EventType.KEY_PRESSED -> Rejection(Res.string.error_command_key_not_allowed)
     event.otherActorType != null && event.type != EventType.COLLISION -> Rejection(Res.string.error_command_other_actor_type_not_allowed)
+    event.timer != null && event.type != EventType.TIMER_FINISHED -> Rejection(Res.string.error_command_timer_not_allowed)
+    event.timer != null && event.timer !in TIMER_NUMBERS -> Rejection(Res.string.error_command_timer_invalid)
     event.otherActorType != null && event.otherActorType !in actorTypeNames -> Rejection(Res.string.error_command_actor_type_missing, event.otherActorType)
     else -> event.blocks.firstNotNullOfOrNull { validateBlock(it, event.type, properties) }
 }
@@ -81,6 +87,7 @@ internal fun validateEvent(event: EventDefinition, actorTypeNames: Collection<St
 internal fun validateBlock(block: BlockDefinition, eventType: EventType, properties: List<PropertyDefinition>): Rejection? = when {
     !BlockKind.of(block).isAvailableIn(eventType) -> Rejection(Res.string.error_command_block_not_allowed, block.serialName, eventType.serialName)
     !block.areNumbersFinite -> Rejection(Res.string.error_command_number_invalid)
+    block.timerNumber?.let { it !in TIMER_NUMBERS } == true -> Rejection(Res.string.error_command_timer_invalid)
     else -> block.propertyReference?.let { (name, kind) ->
         if (name.isNotEmpty() && properties.none { it.name == name && PropertyKind.of(it) == kind }) Rejection(Res.string.error_command_property_missing, name, kind.serialName) else null
     }
@@ -109,8 +116,10 @@ private val BlockDefinition.areNumbersFinite
             is ConditionDefinition.Text, is ConditionDefinition.Toggle, is ConditionDefinition.KeyHeld -> true
         }
         is BlockDefinition.Repeat -> times >= 0
+        is BlockDefinition.StartTimer -> seconds.isFinite() && seconds >= 0f
         is BlockDefinition.SetNumber -> value.isFinite()
         is BlockDefinition.ChangeNumber -> by.isFinite()
         BlockDefinition.Stop, BlockDefinition.BounceOffEdge, BlockDefinition.RemoveSelf, BlockDefinition.BounceOffOther, BlockDefinition.RemoveOther,
-        is BlockDefinition.SetText, is BlockDefinition.SetToggle, BlockDefinition.Else, BlockDefinition.End, is BlockDefinition.Log, is BlockDefinition.Kotlin -> true
+        is BlockDefinition.SetText, is BlockDefinition.SetToggle, is BlockDefinition.StopTimer, BlockDefinition.Else, BlockDefinition.End,
+        is BlockDefinition.Log, is BlockDefinition.Kotlin -> true
     }

@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -41,6 +42,8 @@ import kubriko.creator.generated.resources.block_else_stray
 import kubriko.creator.generated.resources.block_end_stray
 import kubriko.creator.generated.resources.block_parameter_code
 import kubriko.creator.generated.resources.block_parameter_message
+import kubriko.creator.generated.resources.block_parameter_repeating
+import kubriko.creator.generated.resources.block_parameter_seconds
 import kubriko.creator.generated.resources.block_parameter_times
 import kubriko.creator.generated.resources.block_parameter_x
 import kubriko.creator.generated.resources.block_parameter_y
@@ -122,6 +125,27 @@ private fun InlineParameters(
     onBlockChange: (BlockDefinition) -> Unit,
 ) = when (block) {
     is BlockDefinition.SetNumber, is BlockDefinition.ChangeNumber, is BlockDefinition.SetText, is BlockDefinition.SetToggle -> PropertyBlockParameters(block, properties, onBlockChange)
+    is BlockDefinition.StartTimer -> Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        TimerChoice(block.timer) { onBlockChange(block.copy(timer = it)) }
+        NumberField(
+            modifier = Modifier.width(96.dp),
+            label = Res.string.block_parameter_seconds,
+            value = block.seconds,
+            onValueChange = { if (it >= 0f) onBlockChange(block.copy(seconds = it)) },
+        )
+        Text(
+            text = stringResource(Res.string.block_parameter_repeating),
+            style = MaterialTheme.typography.bodySmall,
+        )
+        Switch(
+            checked = block.isRepeating,
+            onCheckedChange = { onBlockChange(block.copy(isRepeating = it)) },
+        )
+    }
+    is BlockDefinition.StopTimer -> TimerChoice(block.timer) { onBlockChange(block.copy(timer = it)) }
     is BlockDefinition.If -> ConditionParameters(block.condition, properties) { onBlockChange(block.copy(condition = it)) }
     is BlockDefinition.Repeat -> NumberField(
         modifier = Modifier.width(96.dp),

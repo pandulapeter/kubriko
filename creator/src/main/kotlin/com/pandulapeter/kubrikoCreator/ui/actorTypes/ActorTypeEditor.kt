@@ -51,6 +51,7 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.RemoveProperty
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetAppearance
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventKey
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorType
+import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventTimer
 import com.pandulapeter.kubrikoCreator.ui.components.IconActionButton
 import com.pandulapeter.kubrikoCreator.ui.components.rememberFlashColor
 import kubriko.creator.generated.resources.Res
@@ -139,6 +140,7 @@ internal fun ActorTypeEditor(
             properties = definition.properties,
             actorTypeNames = actorTypeNames,
             onKeyChange = { key -> eventIndex?.let { onCommand(Invocation(SetEventKey, SetEventKey.Input(name, it, key))) } },
+            onTimerChange = { timer -> eventIndex?.let { onCommand(Invocation(SetEventTimer, SetEventTimer.Input(name, it, timer))) } },
             onOtherActorTypeChange = { other -> eventIndex?.let { onCommand(Invocation(SetEventOtherActorType, SetEventOtherActorType.Input(name, it, other))) } },
             onBlockChange = { blockIndex, block -> eventIndex?.let { onCommand(Invocation(EditBlock, EditBlock.Input(name, it, blockIndex, block))) } },
             onBlockMoved = { blockIndex, targetIndex -> eventIndex?.let { onCommand(Invocation(MoveBlock, MoveBlock.Input(name, it, blockIndex, targetIndex))) } },

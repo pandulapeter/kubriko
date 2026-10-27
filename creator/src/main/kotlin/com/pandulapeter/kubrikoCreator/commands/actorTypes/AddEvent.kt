@@ -13,6 +13,7 @@ import com.pandulapeter.kubrikoCreator.actors.BlockDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
+import com.pandulapeter.kubrikoCreator.actors.TIMER_NUMBERS
 import com.pandulapeter.kubrikoCreator.actors.withEventInserted
 import com.pandulapeter.kubrikoCreator.commands.Applied
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
@@ -46,7 +47,13 @@ internal object AddEvent : WriteCommand<AddEvent.Input> {
         return Applied(inverse = Invocation(RemoveEvent, RemoveEvent.Input(input.actorType, eventIndex)))
     }
 
-    private val Input.event get() = EventDefinition(type = type, key = key ?: KeyChoice.SPACE.takeIf { type == EventType.KEY_PRESSED }, otherActorType = otherActorType, blocks = blocks)
+    private val Input.event get() = EventDefinition(
+        type = type,
+        key = key ?: KeyChoice.SPACE.takeIf { type == EventType.KEY_PRESSED },
+        otherActorType = otherActorType,
+        timer = timer ?: TIMER_NUMBERS.first.takeIf { type == EventType.TIMER_FINISHED },
+        blocks = blocks,
+    )
 
     @Serializable
     data class Input(
@@ -58,6 +65,8 @@ internal object AddEvent : WriteCommand<AddEvent.Input> {
         @SerialName("key") val key: KeyChoice? = null,
         @Description("The Actor type a collision Event reacts to overlapping. Only collision Events have one.")
         @SerialName("otherActorType") val otherActorType: String? = null,
+        @Description("The Timer, from 1 to 8, a timerFinished Event reacts to: 1 unless another one is given. Only timerFinished Events have one.")
+        @SerialName("timer") val timer: Int? = null,
         @Description("The Blocks the Event runs, in order.")
         @SerialName("blocks") val blocks: List<BlockDefinition> = emptyList(),
         @Description("Where the Event goes in the Event list, starting from 0. Last if left out.")

@@ -65,6 +65,9 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   the velocity, or a chance), else, repeat, and end Blocks mark sections, so every Block keeps its plain index. `BlockNesting`
   works out each Block's depth for the editor's indentation and the generator alike; an if or repeat without an end runs to
   the end of the Event, and an else or end that belongs to no section shows a warning and generates a comment.
+- **Timers** 1 to 8 per Actor, like GameMaker's alarms: the startTimer (seconds, once or repeating) and stopTimer Blocks, and a
+  timerFinished Event per Timer (its number set like a key Event's key). Generated as two `Long` fields per Timer that is used,
+  counted down at the start of `update`, rather than Kubriko's `Timer`, whose duration is fixed, so starting one never allocates.
 - **Scenes** are edited as files (`scenes/SceneStore`, `SceneDocument`): Actors are `typeId` + JSON state, positions live in
   `body.position`, and placing works for block-built Actor types only (their state is known without loading classes). Renaming an
   Actor type renames its Actors in every Scene. A command that changes the open Scene marks it outdated (or closes it if deleted).

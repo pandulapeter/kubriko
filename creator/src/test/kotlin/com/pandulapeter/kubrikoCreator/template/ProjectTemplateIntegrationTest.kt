@@ -96,6 +96,10 @@ class ProjectTemplateIntegrationTest {
                 BlockDefinition.ChangeNumber(property = "missing"),
                 BlockDefinition.Log(message = "{title}: {score} ({isShielded}) {missing}"),
                 BlockDefinition.Kotlin(code = "if (isShielded) score += 1f"),
+                BlockDefinition.StartTimer(timer = 1, seconds = 0.25f),
+                BlockDefinition.StartTimer(timer = 8, seconds = 2f, isRepeating = true),
+                BlockDefinition.StopTimer(timer = 2),
+                BlockDefinition.StartTimer(timer = 9),
                 BlockDefinition.End,
                 BlockDefinition.If(ConditionDefinition.Number("score", Comparison.LESS_OR_EQUAL, 3f)),
                 BlockDefinition.Repeat(times = 2),
@@ -114,6 +118,7 @@ class ProjectTemplateIntegrationTest {
             when (type) {
                 EventType.KEY_PRESSED -> KeyChoice.entries.map { key -> EventDefinition(type = type, key = key, blocks = blocks) }
                 EventType.COLLISION -> listOf("EveryBlock", "Ball").map { EventDefinition(type = type, otherActorType = it, blocks = blocks + blocks) }
+                EventType.TIMER_FINISHED -> listOf(1, 8, 1).map { EventDefinition(type = type, timer = it, blocks = blocks) }
                 else -> listOf(EventDefinition(type = type, blocks = blocks))
             }
         },

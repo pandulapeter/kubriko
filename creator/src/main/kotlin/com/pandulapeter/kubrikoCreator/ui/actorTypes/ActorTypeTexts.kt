@@ -19,6 +19,7 @@ import kubriko.creator.generated.resources.event_collision
 import kubriko.creator.generated.resources.event_edge_touched
 import kubriko.creator.generated.resources.event_every_frame
 import kubriko.creator.generated.resources.event_key_pressed
+import kubriko.creator.generated.resources.event_timer_finished
 import kubriko.creator.generated.resources.ic_add
 import kubriko.creator.generated.resources.ic_bounce
 import kubriko.creator.generated.resources.ic_code
@@ -35,6 +36,8 @@ import kubriko.creator.generated.resources.ic_open_with
 import kubriko.creator.generated.resources.ic_remove_other
 import kubriko.creator.generated.resources.ic_stop
 import kubriko.creator.generated.resources.ic_text
+import kubriko.creator.generated.resources.ic_timer
+import kubriko.creator.generated.resources.ic_timer_off
 import kubriko.creator.generated.resources.ic_toggle
 import kubriko.creator.generated.resources.ic_trending_up
 import kubriko.creator.generated.resources.ic_velocity
@@ -58,6 +61,7 @@ internal val EventType.title: StringResource
         EventType.KEY_PRESSED -> Res.string.event_key_pressed
         EventType.EDGE_TOUCHED -> Res.string.event_edge_touched
         EventType.COLLISION -> Res.string.event_collision
+        EventType.TIMER_FINISHED -> Res.string.event_timer_finished
     }
 
 internal val EventType.icon: DrawableResource
@@ -67,6 +71,7 @@ internal val EventType.icon: DrawableResource
         EventType.KEY_PRESSED -> Res.drawable.ic_keyboard
         EventType.EDGE_TOUCHED -> Res.drawable.ic_edge
         EventType.COLLISION -> Res.drawable.ic_collision
+        EventType.TIMER_FINISHED -> Res.drawable.ic_timer
     }
 
 internal val BlockKind.icon: DrawableResource
@@ -83,6 +88,8 @@ internal val BlockKind.icon: DrawableResource
         BlockKind.CHANGE_NUMBER -> Res.drawable.ic_add
         BlockKind.SET_TEXT -> Res.drawable.ic_text
         BlockKind.SET_TOGGLE -> Res.drawable.ic_toggle
+        BlockKind.START_TIMER -> Res.drawable.ic_timer
+        BlockKind.STOP_TIMER -> Res.drawable.ic_timer_off
         BlockKind.IF, BlockKind.ELSE -> Res.drawable.ic_condition
         BlockKind.REPEAT -> Res.drawable.ic_loop
         BlockKind.END -> Res.drawable.ic_end

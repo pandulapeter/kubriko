@@ -361,4 +361,40 @@ class ActorTypeCodeGeneratorTest {
         assertContains(code, "import kotlin.random.Random\n")
         assertFalse("KeyboardInputAware" in code)
     }
+
+    @Test
+    fun timersAreCountedDownAtTheStartOfEachFrameAndRunTheirEventWhenTheyFinish() {
+        assertFalse("RemainingInMilliseconds" in generate())
+        val code = generate(
+            EventDefinition(EventType.ADDED_TO_SCENE, blocks = listOf(BlockDefinition.StartTimer(timer = 2, seconds = 1.5f, isRepeating = true))),
+            EventDefinition(EventType.TIMER_FINISHED, timer = 2, blocks = listOf(BlockDefinition.Stop, BlockDefinition.StopTimer(timer = 2))),
+        )
+        assertContains(code, "    private var timer2RemainingInMilliseconds = 0L\n    private var timer2PeriodInMilliseconds = 0L\n")
+        assertContains(code, "        timer2RemainingInMilliseconds = 1500\n        timer2PeriodInMilliseconds = 1500\n")
+        assertContains(
+            code,
+            """
+                |    override fun update(deltaTimeInMilliseconds: Int) {
+                |        if (timer2RemainingInMilliseconds > 0) {
+                |            timer2RemainingInMilliseconds -= deltaTimeInMilliseconds
+                |            if (timer2RemainingInMilliseconds <= 0) {
+                |                // When Timer 2 finishes
+                |                timer2RemainingInMilliseconds = if (timer2PeriodInMilliseconds > 0) (timer2RemainingInMilliseconds + timer2PeriodInMilliseconds).coerceAtLeast(1) else 0
+                |                velocity = SceneOffset.Zero
+                |                timer2RemainingInMilliseconds = 0
+                |            }
+                |        }
+            """.trimMargin(),
+        )
+        assertFalse("timer1" in code)
+    }
+
+    @Test
+    fun timerBlocksStartOnceOrRepeatingAndTimersOutOfRangeBecomeComments() {
+        fun lines(block: BlockDefinition) = ActorTypeCodeGenerator.blockLines(block, EventType.EVERY_FRAME, "Player")
+        assertEquals(listOf("timer1RemainingInMilliseconds = 1", "timer1PeriodInMilliseconds = 0"), lines(BlockDefinition.StartTimer(seconds = 0f)))
+        assertEquals(listOf("timer8RemainingInMilliseconds = 0"), lines(BlockDefinition.StopTimer(timer = 8)))
+        assertEquals(listOf("// Start a Timer only works with Timers 1 to 8."), lines(BlockDefinition.StartTimer(timer = 9)))
+        assertFalse("timer0" in generate(EventDefinition(EventType.TIMER_FINISHED, timer = 0, blocks = listOf(BlockDefinition.Stop))))
+    }
 }

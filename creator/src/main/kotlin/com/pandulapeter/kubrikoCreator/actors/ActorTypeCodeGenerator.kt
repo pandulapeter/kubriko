@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.actors
 
 import kotlin.math.absoluteValue
+import kotlin.math.roundToLong
 
 /**
  * Turns block-built Actor types into ordinary Kotlin: one class per type, plus a registry of all of them.
@@ -36,7 +37,9 @@ internal object ActorTypeCodeGenerator {
         val keyEvents = definition.events.filter { it.type == EventType.KEY_PRESSED && it.key != null }
         val edgeEvents = definition.events.filter { it.type == EventType.EDGE_TOUCHED }
         val collisionEvents = definition.events.filter { it.type == EventType.COLLISION && it.otherActorType in knownActorTypeNames }
-        val generatedEvents = definition.events.filter { it.type == EventType.ADDED_TO_SCENE || it.type == EventType.EVERY_FRAME } + edgeEvents + keyEvents + collisionEvents
+        val timerEvents = definition.events.filter { it.type == EventType.TIMER_FINISHED && it.timer in TIMER_NUMBERS }
+        val generatedEvents = definition.events.filter { it.type == EventType.ADDED_TO_SCENE || it.type == EventType.EVERY_FRAME } + edgeEvents + keyEvents + collisionEvents + timerEvents
+        val timers = (timerEvents.mapNotNull { it.timer } + generatedEvents.flatMap { event -> event.blocks.mapNotNull { it.timerNumber } }).filter { it in TIMER_NUMBERS }.distinct().sorted()
         val blocksByEvent = edgeEvents.flatMap { event -> event.blocks.map { it to event.type } } + collisionEvents.flatMap { event -> event.blocks.map { it to event.type } }
         val usesAbsoluteValue = blocksByEvent.any { (block, eventType) -> blockLines(block, eventType, name, definition.properties).any { "absoluteValue" in it } }
         val conditions = generatedEvents.flatMap { event -> event.blocks.mapNotNull { (it as? BlockDefinition.If)?.condition } }
@@ -94,6 +97,14 @@ internal object ActorTypeCodeGenerator {
             appendLine("    private lateinit var actorManager: ActorManager")
             appendLine("    private lateinit var viewportManager: ViewportManager")
             if (usesKeyHeld) appendLine("    private lateinit var keyboardInputManager: KeyboardInputManager")
+            timers.forEach { timer ->
+                appendLine()
+                appendLine("    /**")
+                appendLine("     * Until Timer $timer finishes, or 0 while it doesn't run, and how often it finishes again, or 0 if it doesn't.")
+                appendLine("     */")
+                appendLine("    private var ${remainingField(timer)} = 0L")
+                appendLine("    private var ${periodField(timer)} = 0L")
+            }
             appendLine()
             appendLine("    override fun onAdded(kubriko: Kubriko) {")
             appendLine("        actorManager = kubriko.get()")
@@ -103,6 +114,7 @@ internal object ActorTypeCodeGenerator {
             appendLine("    }")
             appendLine()
             appendLine("    override fun update(deltaTimeInMilliseconds: Int) {")
+            timers.forEach { timer -> appendTimer(timer, timerEvents.filter { it.timer == timer }, definition) }
             appendEvents(definition.events.filter { it.type == EventType.EVERY_FRAME }, depth = 2, definition = definition)
             appendLine("        body.position += velocity * (deltaTimeInMilliseconds / 1000f)")
             if (edgeEvents.isNotEmpty()) appendEdgeHandling(edgeEvents, definition)
@@ -167,7 +179,7 @@ internal object ActorTypeCodeGenerator {
 
     private fun StringBuilder.appendEvents(events: List<EventDefinition>, depth: Int, definition: ActorTypeDefinition) {
         val lines = events.flatMap { event -> eventLines(event.blocks, event.type, definition.name, definition.properties) }
-        if (lines.isNotEmpty() && events.first().type != EventType.KEY_PRESSED && events.first().type != EventType.COLLISION) {
+        if (lines.isNotEmpty() && events.first().type != EventType.KEY_PRESSED && events.first().type != EventType.COLLISION && events.first().type != EventType.TIMER_FINISHED) {
             appendLine(INDENT.repeat(depth) + "// " + eventComment(events.first().type))
         }
         lines.forEach { appendLine(INDENT.repeat(depth) + it) }
@@ -179,6 +191,7 @@ internal object ActorTypeCodeGenerator {
         EventType.KEY_PRESSED -> "When a key is pressed"
         EventType.EDGE_TOUCHED -> "When an edge of the screen is touched"
         EventType.COLLISION -> "When it collides with another Actor"
+        EventType.TIMER_FINISHED -> "When a Timer finishes"
     }
 
     private fun StringBuilder.appendEdgeHandling(edgeEvents: List<EventDefinition>, definition: ActorTypeDefinition) {
@@ -195,6 +208,27 @@ internal object ActorTypeCodeGenerator {
         appendEvents(edgeEvents, depth = 3, definition = definition)
         appendLine("        }")
     }
+
+    /**
+     * Counts Timer [timer] down and runs the Blocks of its [events] when it finishes. A repeating Timer carries the time
+     * it overshot into its next round, and the Blocks may start or stop it again.
+     */
+    private fun StringBuilder.appendTimer(timer: Int, events: List<EventDefinition>, definition: ActorTypeDefinition) {
+        val remaining = remainingField(timer)
+        val period = periodField(timer)
+        appendLine("        if ($remaining > 0) {")
+        appendLine("            $remaining -= deltaTimeInMilliseconds")
+        appendLine("            if ($remaining <= 0) {")
+        appendLine("                // When Timer $timer finishes")
+        appendLine("                $remaining = if ($period > 0) ($remaining + $period).coerceAtLeast(1) else 0")
+        appendEvents(events, depth = 4, definition = definition)
+        appendLine("            }")
+        appendLine("        }")
+    }
+
+    private fun remainingField(timer: Int) = "timer${timer}RemainingInMilliseconds"
+
+    private fun periodField(timer: Int) = "timer${timer}PeriodInMilliseconds"
 
     private fun StringBuilder.appendKeyHandling(keyEvents: List<EventDefinition>, definition: ActorTypeDefinition) {
         appendLine()
@@ -325,6 +359,13 @@ internal object ActorTypeCodeGenerator {
         is BlockDefinition.ChangeNumber -> propertyLines(block, properties) { "${block.property} += ${floatLiteral(block.by)}" }
         is BlockDefinition.SetText -> propertyLines(block, properties) { "${block.property} = ${stringLiteral(block.value)}" }
         is BlockDefinition.SetToggle -> propertyLines(block, properties) { "${block.property} = ${block.value}" }
+        is BlockDefinition.StartTimer -> if (block.timer in TIMER_NUMBERS) {
+            val milliseconds = (block.seconds * 1000).roundToLong().coerceAtLeast(1)
+            listOf("${remainingField(block.timer)} = $milliseconds", "${periodField(block.timer)} = ${if (block.isRepeating) milliseconds else 0}")
+        } else {
+            listOf("// Start a Timer only works with Timers 1 to 8.")
+        }
+        is BlockDefinition.StopTimer -> if (block.timer in TIMER_NUMBERS) listOf("${remainingField(block.timer)} = 0") else listOf("// Stop a Timer only works with Timers 1 to 8.")
         is BlockDefinition.If -> listOf("if (${conditionExpression(block.condition, properties)}) {")
         is BlockDefinition.Repeat -> listOf("repeat(${block.times.coerceAtLeast(0)}) {")
         BlockDefinition.Else, BlockDefinition.End -> emptyList()

@@ -19,6 +19,7 @@ import kotlinx.serialization.Serializable
  * @param key The key of a [EventType.KEY_PRESSED] Event; null for every other type.
  * @param otherActorType The Actor type a [EventType.COLLISION] Event reacts to; null for every other type, and until
  *   one is chosen.
+ * @param timer The Timer (one of [TIMER_NUMBERS]) a [EventType.TIMER_FINISHED] Event reacts to; null for every other type.
  */
 @Serializable
 @Description("Something an Actor reacts to, with the Blocks it runs when it happens.")
@@ -29,6 +30,8 @@ internal data class EventDefinition(
     @SerialName("key") val key: KeyChoice? = null,
     @Description("The Actor type a collision Event reacts to overlapping. Only collision Events have one.")
     @SerialName("otherActorType") val otherActorType: String? = null,
+    @Description("The Timer, from 1 to 8, a timerFinished Event reacts to. Only timerFinished Events have one.")
+    @SerialName("timer") val timer: Int? = null,
     @Description("The Blocks the Event runs, in order.")
     @SerialName("blocks") val blocks: List<BlockDefinition> = emptyList(),
 )

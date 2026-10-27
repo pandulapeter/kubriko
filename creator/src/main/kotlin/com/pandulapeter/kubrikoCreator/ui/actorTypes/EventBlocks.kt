@@ -33,6 +33,7 @@ import com.pandulapeter.kubrikoCreator.actors.EventDefinition
 import com.pandulapeter.kubrikoCreator.actors.EventType
 import com.pandulapeter.kubrikoCreator.actors.KeyChoice
 import com.pandulapeter.kubrikoCreator.actors.PropertyDefinition
+import com.pandulapeter.kubrikoCreator.actors.TIMER_NUMBERS
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.event_blocks_empty
 import kubriko.creator.generated.resources.event_collision_choose
@@ -50,6 +51,7 @@ internal fun EventBlocks(
     properties: List<PropertyDefinition>,
     actorTypeNames: List<String>,
     onKeyChange: (KeyChoice) -> Unit,
+    onTimerChange: (Int) -> Unit,
     onOtherActorTypeChange: (String) -> Unit,
     onBlockChange: (blockIndex: Int, BlockDefinition) -> Unit,
     onBlockMoved: (blockIndex: Int, targetIndex: Int) -> Unit,
@@ -89,6 +91,10 @@ internal fun EventBlocks(
                 options = KeyChoice.entries,
                 optionText = { stringResource(it.title) },
                 onSelected = onKeyChange,
+            )
+            EventType.TIMER_FINISHED -> TimerChoice(
+                timer = event.timer ?: TIMER_NUMBERS.first,
+                onSelected = onTimerChange,
             )
             EventType.COLLISION -> MenuButton(
                 label = event.otherActorType ?: stringResource(Res.string.event_collision_choose),
