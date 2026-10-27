@@ -9,15 +9,12 @@
  */
 package com.pandulapeter.kubrikoCreator.workspace
 
-import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
-import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeDefinition
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeRepository
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.Invocation
-import com.pandulapeter.kubrikoCreator.commands.ProjectRunner
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.git.GitController
@@ -39,30 +36,17 @@ import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.status_actor_type_not_saved
 import kubriko.creator.generated.resources.status_build_failed
 import kubriko.creator.generated.resources.status_building
-import kubriko.creator.generated.resources.status_session_ended
-import kubriko.creator.generated.resources.status_session_started
-import kubriko.creator.generated.resources.status_session_stopped
-import kubriko.creator.generated.resources.status_unsupported_protocol
 import org.jetbrains.compose.resources.StringResource
 import java.io.File
-import java.util.Collections
-import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -85,12 +69,15 @@ internal class WorkspaceController(
 ) : AutoCloseable {
     private val _resources = MutableStateFlow(emptyMap<ResourceGroup, List<ProjectResource>>())
     val resources = _resources.asStateFlow()
-    private val _console = MutableStateFlow(emptyList<ConsoleEntry>())
-    val console = _console.asStateFlow()
-    private val _sessionState = MutableStateFlow<SessionState>(SessionState.Idle)
-    val sessionState = _sessionState.asStateFlow()
-    private var sessionJob: Job? = null
-    private val consoleRecordings = CopyOnWriteArrayList<MutableList<ConsoleEntry>>()
+    private val consoleLog = ConsoleLog()
+    val console = consoleLog.entries
+    private val sessions = SessionController(
+        channel = sessionChannel,
+        runTask = ::runCreatorTask,
+        console = consoleLog,
+        scope = scope,
+    )
+    val sessionState = sessions.state
 
     /**
      * The Scene shown in Kubriko Creator's own window. Declared before [actorTypes], whose changes it hears about.
@@ -153,6 +140,7 @@ internal class WorkspaceController(
         ioDispatcher = ioDispatcher,
         report = ::appendToConsole,
     )
+
     /**
      * Every change to the project goes through here, so that it can be undone, and the AI can make it too.
      */
@@ -163,7 +151,7 @@ internal class WorkspaceController(
             actorTypes = actorTypes,
             git = git,
             scenes = SceneStore(project.rootDirectory) { _resources.value[ResourceGroup.SCENES].orEmpty() },
-            runner = Runner(),
+            runner = WorkspaceRunner(sessions = sessions, runTask = ::runCreatorTask, console = consoleLog, ioDispatcher = ioDispatcher),
             ioDispatcher = ioDispatcher,
             onScenesChanged = { names ->
                 refreshResources()
@@ -177,9 +165,6 @@ internal class WorkspaceController(
     private val watching = startWatching(::onProjectChanged)
 
     init {
-        scope.launch {
-            sessionChannel.messages.collect(::onSessionMessage)
-        }
         refreshResources()
     }
 
@@ -199,51 +184,16 @@ internal class WorkspaceController(
         }
     }
 
-    fun play() = startSession(SessionMode.PLAY, scene = null)
+    fun play() = sessions.start(SessionMode.PLAY, scene = null)
 
     /**
      * Edits [scene] in a session window of its own, rather than in Kubriko Creator's ([sceneEditing]).
      */
-    fun editSceneInWindow(scene: ProjectResource) = startSession(SessionMode.EDIT, scene)
+    fun editSceneInWindow(scene: ProjectResource) = sessions.start(SessionMode.EDIT, scene)
 
-    fun stopSession() {
-        if (sessionJob?.isActive == true) {
-            sessionJob?.cancel()
-            appendToConsole(ConsoleEntry.Status(Res.string.status_session_stopped))
-        }
-    }
+    fun stopSession() = sessions.stop()
 
-    fun clearConsole() {
-        _console.value = emptyList()
-    }
-
-    private fun startSession(mode: SessionMode, scene: ProjectResource?) {
-        sessionJob?.cancel()
-        sessionJob = scope.launch {
-            _sessionState.value = SessionState.Starting(mode)
-            try {
-                val isSuccessful = runCreatorTask(
-                    taskName = SessionInitScript.SESSION_TASK_NAME,
-                    properties = buildMap {
-                        put("kubrikoCreatorPort", sessionChannel.port.toString())
-                        when (mode) {
-                            SessionMode.PLAY -> put("kubrikoCreatorMode", "play")
-                            SessionMode.EDIT -> {
-                                put("kubrikoCreatorMode", "edit")
-                                scene?.let {
-                                    put("kubrikoCreatorSceneFolder", it.file.parentFile.absolutePath)
-                                    put("kubrikoCreatorSceneFile", it.name)
-                                }
-                            }
-                        }
-                    },
-                )
-                if (isSuccessful) appendToConsole(ConsoleEntry.Status(Res.string.status_session_ended))
-            } finally {
-                _sessionState.value = SessionState.Idle
-            }
-        }
-    }
+    fun clearConsole() = consoleLog.clear()
 
     /**
      * Runs one of the init script's tasks in the project's desktop module with Kubriko Creator's [properties], reporting
@@ -278,24 +228,6 @@ internal class WorkspaceController(
         return isSuccessful
     }
 
-    private fun onSessionMessage(message: SessionMessage) = when (message) {
-        is SessionMessage.Hello -> if (message.protocolVersion == SessionProtocol.VERSION) {
-            _sessionState.value = SessionState.Running(message.mode)
-            appendToConsole(ConsoleEntry.Status(Res.string.status_session_started))
-        } else {
-            appendToConsole(ConsoleEntry.Status(Res.string.status_unsupported_protocol, isError = true))
-            stopSession()
-        }
-        is SessionMessage.Log -> appendToConsole(
-            ConsoleEntry.Log(
-                message = message.message,
-                source = message.source,
-                isImportant = message.importance == "HIGH",
-            ),
-        )
-        is SessionMessage.Failure -> appendToConsole(ConsoleEntry.SessionFailure(message.message))
-    }
-
     private fun GradleBuildEvent.Problem.toConsoleEntry() = ConsoleEntry.Problem(
         message = message,
         location = file?.let { file ->
@@ -303,72 +235,16 @@ internal class WorkspaceController(
         },
     )
 
-    private fun appendToConsole(entry: ConsoleEntry) {
-        _console.update { (it + entry).takeLast(CONSOLE_SIZE) }
-        consoleRecordings.forEach { it += entry }
-    }
-
-    /**
-     * Builds and plays the project for the AI's action tools.
-     */
-    private inner class Runner : ProjectRunner {
-
-        override suspend fun build() = recordConsole {
-            val classpathFile = withContext(ioDispatcher) { File.createTempFile("kubriko-creator-classpath", ".txt") }
-            try {
-                runCreatorTask(
-                    taskName = SessionInitScript.CLASSPATH_TASK_NAME,
-                    properties = mapOf("kubrikoCreatorMode" to "classpath", "kubrikoCreatorClasspathFile" to classpathFile.absolutePath),
-                )
-            } finally {
-                withContext(ioDispatcher) { classpathFile.delete() }
-            }
-        }
-
-        override suspend fun play(durationInMilliseconds: Long) = recordConsole {
-            sessionJob?.let { previous ->
-                stopSession()
-                previous.join()
-            }
-            play()
-            val session = checkNotNull(sessionJob)
-            val hasStarted = merge(
-                _sessionState.filterIsInstance<SessionState.Running>().map { true },
-                flow {
-                    session.join()
-                    emit(false)
-                },
-            ).first()
-            if (hasStarted) {
-                delay(durationInMilliseconds)
-                stopSession()
-                session.join()
-            }
-            hasStarted
-        }
-
-        private suspend fun recordConsole(action: suspend () -> Boolean): ProjectRunner.RunResult {
-            val recording = Collections.synchronizedList(mutableListOf<ConsoleEntry>())
-            consoleRecordings += recording
-            return try {
-                val isSuccessful = action()
-                ProjectRunner.RunResult(isSuccessful, synchronized(recording) { recording.toList() })
-            } finally {
-                consoleRecordings.removeIf { it === recording }
-            }
-        }
-    }
+    private fun appendToConsole(entry: ConsoleEntry) = consoleLog.append(entry)
 
     override fun close() {
         watching.close()
         sceneEditing.close()
-        sessionJob?.cancel()
-        sessionChannel.close()
+        sessions.close()
         build.close()
     }
 
     private companion object {
         const val OUTPUT_TAIL_SIZE = 30
-        const val CONSOLE_SIZE = 2000
     }
 }
