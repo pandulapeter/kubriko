@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,6 +22,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -39,9 +41,11 @@ import kubriko.creator.generated.resources.action_redo
 import kubriko.creator.generated.resources.action_redo_named
 import kubriko.creator.generated.resources.action_refresh
 import kubriko.creator.generated.resources.action_stop
+import kubriko.creator.generated.resources.action_toggle_ai_connection
 import kubriko.creator.generated.resources.action_toggle_version_control
 import kubriko.creator.generated.resources.action_undo
 import kubriko.creator.generated.resources.action_undo_named
+import kubriko.creator.generated.resources.ic_ai
 import kubriko.creator.generated.resources.ic_branch
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_play
@@ -64,8 +68,9 @@ internal fun WorkspaceToolbar(
     onUndo: () -> Unit,
     onRedo: () -> Unit,
     branch: String?,
-    isVersionControlOpen: Boolean,
-    onVersionControlToggled: () -> Unit,
+    isAiConnected: Boolean,
+    openPanel: SidePanel?,
+    onPanelToggled: (SidePanel) -> Unit,
     onPlay: () -> Unit,
     onStop: () -> Unit,
     onRefresh: () -> Unit,
@@ -109,20 +114,26 @@ internal fun WorkspaceToolbar(
         onUndo = onUndo,
         onRedo = onRedo,
     )
-    if (isVersionControlOpen) {
-        FilledTonalButton(
-            contentPadding = ToolbarButtonPadding,
-            onClick = onVersionControlToggled,
-        ) {
-            VersionControlLabel(branch)
-        }
-    } else {
-        TextButton(
-            contentPadding = ToolbarButtonPadding,
-            onClick = onVersionControlToggled,
-        ) {
-            VersionControlLabel(branch)
-        }
+    PanelToggle(
+        isOpen = openPanel == SidePanel.AI_CONNECTION,
+        onClick = { onPanelToggled(SidePanel.AI_CONNECTION) },
+    ) {
+        Icon(
+            modifier = Modifier.size(16.dp),
+            painter = painterResource(Res.drawable.ic_ai),
+            contentDescription = null,
+            tint = if (isAiConnected) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+        )
+        Text(
+            modifier = Modifier.padding(start = 6.dp),
+            text = stringResource(Res.string.action_toggle_ai_connection),
+        )
+    }
+    PanelToggle(
+        isOpen = openPanel == SidePanel.VERSION_CONTROL,
+        onClick = { onPanelToggled(SidePanel.VERSION_CONTROL) },
+    ) {
+        VersionControlLabel(branch)
     }
     IconActionButton(
         icon = Res.drawable.ic_refresh,
@@ -153,6 +164,25 @@ private fun HistoryButtons(
         label = history.nextRedoTitle?.let { stringResource(Res.string.action_redo_named, stringResource(it)) } ?: stringResource(Res.string.action_redo),
         onClick = onRedo,
         isEnabled = history.nextRedoTitle != null,
+    )
+}
+
+@Composable
+private fun PanelToggle(
+    isOpen: Boolean,
+    onClick: () -> Unit,
+    content: @Composable RowScope.() -> Unit,
+) = if (isOpen) {
+    FilledTonalButton(
+        contentPadding = ToolbarButtonPadding,
+        onClick = onClick,
+        content = content,
+    )
+} else {
+    TextButton(
+        contentPadding = ToolbarButtonPadding,
+        onClick = onClick,
+        content = content,
     )
 }
 

@@ -23,6 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.pandulapeter.kubriko.uiComponents.theme.KubrikoTheme
+import com.pandulapeter.kubrikoCreator.mcp.McpController
+import com.pandulapeter.kubrikoCreator.mcp.McpSettingsStore
+import com.pandulapeter.kubrikoCreator.mcp.McpToolServer
 import com.pandulapeter.kubrikoCreator.ui.AppContent
 import com.pandulapeter.kubrikoCreator.ui.LocalAppWindow
 import com.pandulapeter.kubrikoCreator.ui.windowTitle
@@ -32,6 +35,7 @@ import com.pandulapeter.kubrikoCreator.window.TitleBarAppearance
 import com.pandulapeter.kubrikoCreator.window.TitleBarInsets
 import com.pandulapeter.kubrikoCreator.window.extendContentIntoTitleBar
 import com.pandulapeter.kubrikoCreator.window.rememberIsFullscreen
+import kotlinx.coroutines.Dispatchers
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.ic_icon
 import org.jetbrains.compose.resources.painterResource
@@ -49,6 +53,18 @@ fun main(args: Array<String>) {
     application {
         val scope = rememberCoroutineScope()
         val controller = remember { AppController(scope) }
+        val mcp = remember {
+            McpController(
+                server = McpToolServer(
+                    executor = { controller.openProjectCommands },
+                    callDispatcher = Dispatchers.Main,
+                    version = CreatorConfiguration.load().kubrikoVersion,
+                ),
+                store = McpSettingsStore.default(),
+                scope = scope,
+                ioDispatcher = Dispatchers.IO,
+            )
+        }
         val screen by controller.screen.collectAsState()
         val recentProjects by controller.recentProjects.collectAsState()
         val defaultParentDirectory = remember { File(System.getProperty("user.home")) }
@@ -62,6 +78,7 @@ fun main(args: Array<String>) {
             icon = painterResource(Res.drawable.ic_icon),
             state = windowState,
             onCloseRequest = {
+                mcp.close()
                 controller.closeProject()
                 exitApplication()
             },
@@ -87,6 +104,7 @@ fun main(args: Array<String>) {
                                 onCreateProject = controller::createProject,
                                 onOpenProject = controller::openProject,
                                 onCloseProject = controller::closeProject,
+                                mcp = mcp,
                             )
                         }
                     }

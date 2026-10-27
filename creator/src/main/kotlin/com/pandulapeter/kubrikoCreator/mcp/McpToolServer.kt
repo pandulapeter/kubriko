@@ -29,7 +29,10 @@ import io.modelcontextprotocol.kotlin.sdk.types.ServerCapabilities
 import io.modelcontextprotocol.kotlin.sdk.types.TextContent
 import io.modelcontextprotocol.kotlin.sdk.types.ToolAnnotations
 import io.modelcontextprotocol.kotlin.sdk.types.ToolSchema
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -43,6 +46,9 @@ import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_mcp_no_project
 import kubriko.creator.generated.resources.mcp_tool_done
 import org.jetbrains.compose.resources.getString
+import java.io.IOException
+import java.net.InetAddress
+import java.net.ServerSocket
 import java.security.MessageDigest
 
 /**
@@ -75,6 +81,8 @@ internal class McpToolServer(
      */
     suspend fun start(port: Int, token: String): Int {
         stop()
+        // Binding first keeps a taken port from failing inside the engine's own coroutines, which only report it as uncaught.
+        if (port != 0) ServerSocket(port, 1, InetAddress.getByName(HOST)).close()
         val expectedAuthorization = "Bearer $token".toByteArray()
         val started = embeddedServer(CIO, host = HOST, port = port) {
             intercept(ApplicationCallPipeline.Plugins) {
@@ -87,7 +95,14 @@ internal class McpToolServer(
             mcpStreamableHttp(path = PATH) { createServer() }
         }
         server = started
-        started.startSuspend(wait = false)
+        try {
+            started.startSuspend(wait = false)
+        } catch (exception: CancellationException) {
+            // The CIO engine reports a port it can't bind as a cancellation caused by the BindException.
+            currentCoroutineContext().ensureActive()
+            stop()
+            throw generateSequence<Throwable>(exception) { it.cause }.filterIsInstance<IOException>().firstOrNull() ?: exception
+        }
         return started.engine.resolvedConnectors().first().port
     }
 

@@ -212,4 +212,21 @@
     <string name="error_command_play_duration_invalid">Play for between 1 and %1$s seconds.</string>
     <string name="error_mcp_no_project">No project is open in Kubriko Creator.</string>
     <string name="mcp_tool_done">Done.</string>
+    <string name="action_toggle_ai_connection">AI connection</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_regenerate_token">Make a new token (clients using the old one stop working)</string>
+    <string name="action_apply_port">Use this port</string>
+    <string name="ai_connection_title">AI connection</string>
+    <string name="ai_connection_enabled">Let AI clients work on this project</string>
+    <string name="ai_connection_state_off">Off. Turned on, Claude Code and other MCP clients can use the same tools you have here.</string>
+    <string name="ai_connection_state_starting">Starting…</string>
+    <string name="ai_connection_state_running">Listening on %1$s</string>
+    <string name="ai_connection_state_failed">Port %1$s is taken by another program. Pick another one.</string>
+    <string name="ai_connection_port">Port</string>
+    <string name="ai_connection_port_invalid">Use a port between %1$s and %2$s.</string>
+    <string name="ai_connection_token">Token</string>
+    <string name="ai_connection_claude_code">Connect Claude Code by running this in a terminal:</string>
+    <string name="ai_connection_note">Changes made through the AI connection show up here as they happen, and can be undone like your own. Anyone with the token can change the open project, so keep it to yourself.</string>
+    <string name="ai_connection_calls">Tool calls</string>
+    <string name="ai_connection_calls_empty">No AI client has used a tool yet.</string>
 </resources>

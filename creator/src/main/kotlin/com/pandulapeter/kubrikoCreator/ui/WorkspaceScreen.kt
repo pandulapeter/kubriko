@@ -43,9 +43,12 @@ import com.pandulapeter.kubrikoCreator.commands.git.Commit
 import com.pandulapeter.kubrikoCreator.commands.git.DiscardChanges
 import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
 import com.pandulapeter.kubrikoCreator.git.GitState
+import com.pandulapeter.kubrikoCreator.mcp.McpController
+import com.pandulapeter.kubrikoCreator.mcp.McpServerState
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.ActorTypeEditor
 import com.pandulapeter.kubrikoCreator.ui.git.GitPanel
+import com.pandulapeter.kubrikoCreator.ui.mcp.AiConnectionPanel
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import kubriko.creator.generated.resources.Res
@@ -61,6 +64,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun WorkspaceScreen(
     controller: WorkspaceController,
+    mcp: McpController,
     onCloseProject: () -> Unit,
 ) {
     val resources by controller.resources.collectAsState()
@@ -73,7 +77,8 @@ internal fun WorkspaceScreen(
     val actorTypesChangedByHand = actorTypesController?.changedByHand?.collectAsState()?.value.orEmpty()
     val sceneEditing by controller.sceneEditing.state.collectAsState()
     var isConsoleExpanded by remember { mutableStateOf(true) }
-    var isVersionControlOpen by remember { mutableStateOf(false) }
+    var openPanel by remember { mutableStateOf<SidePanel?>(null) }
+    val mcpState by mcp.state.collectAsState()
     val gitState by controller.git.state.collectAsState()
     val history by controller.commands.history.collectAsState()
     Column(
@@ -85,10 +90,11 @@ internal fun WorkspaceScreen(
             onUndo = controller.commands::undo,
             onRedo = controller.commands::redo,
             branch = (gitState as? GitState.Ready)?.branch,
-            isVersionControlOpen = isVersionControlOpen,
-            onVersionControlToggled = {
-                isVersionControlOpen = !isVersionControlOpen
-                if (isVersionControlOpen) controller.git.refresh()
+            isAiConnected = mcpState is McpServerState.Running,
+            openPanel = openPanel,
+            onPanelToggled = { panel ->
+                openPanel = panel.takeIf { it != openPanel }
+                if (openPanel == SidePanel.VERSION_CONTROL) controller.git.refresh()
             },
             onPlay = controller::play,
             onStop = controller::stopSession,
@@ -145,7 +151,19 @@ internal fun WorkspaceScreen(
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                 )
             }
-            if (isVersionControlOpen) {
+            if (openPanel == SidePanel.AI_CONNECTION) {
+                VerticalDivider()
+                AiConnectionPanel(
+                    modifier = Modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
+                    settings = mcp.settings.collectAsState().value,
+                    state = mcpState,
+                    calls = mcp.calls.collectAsState().value,
+                    onEnabledChange = mcp::setEnabled,
+                    onPortChange = mcp::setPort,
+                    onRegenerateToken = mcp::regenerateToken,
+                )
+            }
+            if (openPanel == SidePanel.VERSION_CONTROL) {
                 VerticalDivider()
                 GitPanel(
                     modifier = Modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),

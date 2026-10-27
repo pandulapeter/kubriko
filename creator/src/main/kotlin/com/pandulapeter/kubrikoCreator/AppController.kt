@@ -52,6 +52,11 @@ internal class AppController(
      */
     val recentProjects = _recentProjects.asStateFlow()
 
+    /**
+     * The commands of the open project, which the AI connection runs tool calls with.
+     */
+    val openProjectCommands get() = (_screen.value as? AppScreen.Workspace)?.controller?.commands
+
     init {
         scope.launch {
             _recentProjects.value = withContext(ioDispatcher) { recentProjectsStore.load() }

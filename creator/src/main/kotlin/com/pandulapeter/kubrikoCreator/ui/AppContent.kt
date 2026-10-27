@@ -17,6 +17,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.pandulapeter.kubrikoCreator.AppScreen
+import com.pandulapeter.kubrikoCreator.mcp.McpController
 import com.pandulapeter.kubrikoCreator.template.NewProjectRequest
 import com.pandulapeter.kubrikoCreator.recent.RecentProject
 import kubriko.creator.generated.resources.Res
@@ -37,6 +38,7 @@ internal fun AppContent(
     onCreateProject: (NewProjectRequest) -> Unit,
     onOpenProject: (File) -> Unit,
     onCloseProject: () -> Unit,
+    mcp: McpController,
 ) = Surface(
     modifier = Modifier.fillMaxSize(),
     color = MaterialTheme.colorScheme.surface,
@@ -59,6 +61,7 @@ internal fun AppContent(
                 onCreateProject = onCreateProject,
                 onOpenProject = onOpenProject,
                 onCloseProject = onCloseProject,
+                mcp = mcp,
             )
         }
     }
@@ -74,6 +77,7 @@ private fun ScreenContent(
     onCreateProject: (NewProjectRequest) -> Unit,
     onOpenProject: (File) -> Unit,
     onCloseProject: () -> Unit,
+    mcp: McpController,
 ) {
     when (screen) {
         is AppScreen.Welcome -> WelcomeScreen(
@@ -97,6 +101,7 @@ private fun ScreenContent(
         )
         is AppScreen.Workspace -> WorkspaceScreen(
             controller = screen.controller,
+            mcp = mcp,
             onCloseProject = onCloseProject,
         )
     }
