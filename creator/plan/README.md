@@ -12,6 +12,8 @@
 Only future work lives here; once something is implemented, it is deleted from these files and described in `../CLAUDE.md` instead. Each topic
 has a file of its own, so a session only needs the one it works on.
 
+[HANDOVER.md](HANDOVER.md) is where the last session stopped: start there.
+
 ## Roadmap, in order
 
 1. [Blocks, Actor types, and Manager types](02-blocks.md) - next: Scenes, audio, sprites, and the rest of the Block set (Properties,
