@@ -72,6 +72,15 @@ class ActorTypeCodeGeneratorTest {
     }
 
     @Test
+    fun anActorRestingAtTheEdgeDoesNotTouchItAgain() {
+        val code = generate(EventDefinition(EventType.EDGE_TOUCHED, blocks = listOf(BlockDefinition.Stop)))
+        assertContains(code, "val isTouchingLeftEdge = body.position.x < topLeft.x")
+        assertContains(code, "val isTouchingRightEdge = body.position.x > bottomRight.x")
+        assertContains(code, "val isTouchingTopEdge = body.position.y < topLeft.y")
+        assertContains(code, "val isTouchingBottomEdge = body.position.y > bottomRight.y")
+    }
+
+    @Test
     fun keyEventsMakeTheActorKeyboardAwareAndShareOneBranchPerKey() {
         assertFalse("KeyboardInputAware" in generate())
         val code = generate(
