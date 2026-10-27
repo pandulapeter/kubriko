@@ -19,6 +19,7 @@ internal data class NewProjectForm(
     val packageName: String = "",
     val parentDirectory: File,
     val isPackageNameEdited: Boolean = false,
+    val isUnderVersionControl: Boolean = true,
 ) {
     val nameError get() = if (name.isEmpty()) null else ProjectNaming.validateName(name)
     val packageNameError get() = if (packageName.isEmpty()) null else ProjectNaming.validatePackageName(packageName)
@@ -28,7 +29,7 @@ internal data class NewProjectForm(
      */
     val request
         get() = if (ProjectNaming.validateName(name) == null && ProjectNaming.validatePackageName(packageName) == null) {
-            NewProjectRequest(name = name.trim(), packageName = packageName, parentDirectory = parentDirectory)
+            NewProjectRequest(name = name.trim(), packageName = packageName, parentDirectory = parentDirectory, isUnderVersionControl = isUnderVersionControl)
         } else {
             null
         }

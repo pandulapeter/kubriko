@@ -38,6 +38,7 @@ internal object GradleWorkspaceOpener : WorkspaceOpener {
                 scanResources = { ResourceScanner.scan(it, hiddenDirectory = actorTypeStore?.generatedPath) },
                 actorTypeRepository = actorTypeStore,
                 creatorKubrikoVersion = CreatorConfiguration.load().kubrikoVersion,
+                generatedPath = actorTypeStore?.generatedPath,
                 startWatching = { onChange ->
                     ProjectWatcher(directory, actorTypeStore?.generatedPath, scope, Dispatchers.IO).start(onChange)
                 },

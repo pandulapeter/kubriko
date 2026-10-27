@@ -11,20 +11,23 @@ package com.pandulapeter.kubrikoCreator.template
 
 import com.pandulapeter.kubrikoCreator.CreatorConfiguration
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeStore
+import com.pandulapeter.kubrikoCreator.git.JGitRepository
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_project_folder_not_empty
 import kubriko.creator.generated.resources.error_project_not_created
+import org.eclipse.jgit.api.errors.GitAPIException
 import java.io.File
 import java.io.IOException
 
 /**
  * Creates a project from a [ProjectTemplate]: renders its files into the new project's folder, generates the code of its
- * block-built Actor types, then adds the Gradle wrapper.
+ * block-built Actor types, adds the Gradle wrapper, and commits it all into a new git repository.
  */
 internal class ProjectGenerator(
     private val configuration: CreatorConfiguration,
     private val wrapperInstaller: WrapperInstaller = GradleWrapperInstaller,
     private val loadTemplate: (ProjectTemplate) -> List<TemplateFile> = TemplateFiles::load,
+    private val startVersionControl: (directory: File, message: String) -> Unit = { directory, message -> JGitRepository.create(directory, message) },
 ) : ProjectCreator {
 
     /**
@@ -46,9 +49,12 @@ internal class ProjectGenerator(
             }
             ActorTypeStore.open(directory)?.regenerateAll()
             wrapperInstaller.install(directory, configuration.gradleVersion)
+            if (request.isUnderVersionControl) startVersionControl(directory, FIRST_COMMIT_MESSAGE)
         } catch (exception: IOException) {
             throw ProjectCreationException(Res.string.error_project_not_created, exception)
         } catch (exception: RuntimeException) {
+            throw ProjectCreationException(Res.string.error_project_not_created, exception)
+        } catch (exception: GitAPIException) {
             throw ProjectCreationException(Res.string.error_project_not_created, exception)
         }
         return directory
@@ -64,7 +70,8 @@ internal class ProjectGenerator(
         "EXTRA_REPOSITORIES" to if (configuration.useMavenLocal) MAVEN_LOCAL_REPOSITORY else "",
     )
 
-    private companion object {
+    internal companion object {
+        const val FIRST_COMMIT_MESSAGE = "Created with Kubriko Creator."
         const val MAVEN_LOCAL_REPOSITORY = "        mavenLocal {\n            content { includeGroup(\"io.github.pandulapeter.kubriko\") }\n        }\n"
     }
 }

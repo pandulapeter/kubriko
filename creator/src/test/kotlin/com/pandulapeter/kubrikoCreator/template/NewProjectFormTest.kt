@@ -53,4 +53,10 @@ class NewProjectFormTest {
         assertEquals(Res.string.error_package_name_invalid, invalidPackage.packageNameError)
         assertNull(invalidPackage.request)
     }
+
+    @Test
+    fun versionControlIsOnUnlessTurnedOff() {
+        assertEquals(true, emptyForm.withName("Game").request?.isUnderVersionControl)
+        assertEquals(false, emptyForm.withName("Game").copy(isUnderVersionControl = false).request?.isUnderVersionControl)
+    }
 }

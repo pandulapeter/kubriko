@@ -17,12 +17,14 @@ import java.io.File
  * @param name The project's display name, such as "My Game".
  * @param packageName The package of the project's code.
  * @param parentDirectory The folder the project's own folder is created in.
+ * @param isUnderVersionControl Whether the project starts as a git repository with everything committed.
  */
 internal data class NewProjectRequest(
     val name: String,
     val packageName: String,
     val parentDirectory: File,
     val template: ProjectTemplate = ProjectTemplate.STARTER,
+    val isUnderVersionControl: Boolean = true,
 ) {
     val projectId get() = ProjectNaming.projectId(name)
     val directory get() = File(parentDirectory, projectId)

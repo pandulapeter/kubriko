@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -43,6 +44,7 @@ import kubriko.creator.generated.resources.new_project_location
 import kubriko.creator.generated.resources.new_project_name
 import kubriko.creator.generated.resources.new_project_package
 import kubriko.creator.generated.resources.new_project_title
+import kubriko.creator.generated.resources.new_project_version_control
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import java.io.File
@@ -97,6 +99,19 @@ internal fun NewProjectScreen(
                 ) {
                     Text(stringResource(Res.string.action_browse))
                 }
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Checkbox(
+                    checked = form.isUnderVersionControl,
+                    onCheckedChange = { form = form.copy(isUnderVersionControl = it) },
+                )
+                Text(
+                    text = stringResource(Res.string.new_project_version_control),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
             }
             form.request?.let { request ->
                 Text(

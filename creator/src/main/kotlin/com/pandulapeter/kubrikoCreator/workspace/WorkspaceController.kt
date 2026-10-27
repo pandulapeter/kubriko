@@ -13,6 +13,9 @@ import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
 import com.pandulapeter.kubrikoCreator.actors.ActorTypeRepository
+import com.pandulapeter.kubrikoCreator.git.GitController
+import com.pandulapeter.kubrikoCreator.git.GitRepository
+import com.pandulapeter.kubrikoCreator.git.JGitRepository
 import com.pandulapeter.kubrikoCreator.gradle.GradleBuildEvent
 import com.pandulapeter.kubrikoCreator.gradle.ProjectBuild
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
@@ -59,6 +62,9 @@ internal class WorkspaceController(
     creatorKubrikoVersion: String = "",
     entryPointLoader: EntryPointLoader = ClassLoaderEntryPointLoader,
     startWatching: (onChange: (Set<ProjectChange>) -> Unit) -> AutoCloseable = { AutoCloseable {} },
+    generatedPath: String? = null,
+    openGitRepository: () -> GitRepository? = { JGitRepository.open(project.rootDirectory) },
+    createGitRepository: (message: String) -> GitRepository = { JGitRepository.create(project.rootDirectory, it) },
 ) : AutoCloseable {
     private val _resources = MutableStateFlow(emptyMap<ResourceGroup, List<ProjectResource>>())
     val resources = _resources.asStateFlow()
@@ -97,6 +103,14 @@ internal class WorkspaceController(
         )
     }
 
+    val git = GitController(
+        openRepository = openGitRepository,
+        createRepository = createGitRepository,
+        generatedPath = generatedPath,
+        scope = scope,
+        ioDispatcher = ioDispatcher,
+        report = ::appendToConsole,
+    )
     private val watching = startWatching(::onProjectChanged)
 
     init {
@@ -113,6 +127,7 @@ internal class WorkspaceController(
         if (ProjectChange.ACTOR_TYPE_DEFINITIONS in changes) actorTypes?.reloadFromDisk()
         if (ProjectChange.SOURCES in changes) sceneEditing.markOutdated()
         if (ProjectChange.SCENES in changes || ProjectChange.SOURCES in changes) refreshResources()
+        git.refresh()
     }
 
     fun refreshResources() {

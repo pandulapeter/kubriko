@@ -36,8 +36,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.pandulapeter.kubrikoCreator.git.GitState
 import com.pandulapeter.kubrikoCreator.scenes.SceneEditingState
 import com.pandulapeter.kubrikoCreator.ui.actorTypes.ActorTypeEditor
+import com.pandulapeter.kubrikoCreator.ui.git.GitPanel
 import com.pandulapeter.kubrikoCreator.ui.scenes.SceneEditorPane
 import com.pandulapeter.kubrikoCreator.workspace.WorkspaceController
 import kubriko.creator.generated.resources.Res
@@ -65,11 +67,19 @@ internal fun WorkspaceScreen(
     val actorTypesChangedByHand = actorTypesController?.changedByHand?.collectAsState()?.value.orEmpty()
     val sceneEditing by controller.sceneEditing.state.collectAsState()
     var isConsoleExpanded by remember { mutableStateOf(true) }
+    var isVersionControlOpen by remember { mutableStateOf(false) }
+    val gitState by controller.git.state.collectAsState()
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
         WorkspaceToolbar(
             sessionState = sessionState,
+            branch = (gitState as? GitState.Ready)?.branch,
+            isVersionControlOpen = isVersionControlOpen,
+            onVersionControlToggled = {
+                isVersionControlOpen = !isVersionControlOpen
+                if (isVersionControlOpen) controller.git.refresh()
+            },
             onPlay = controller::play,
             onStop = controller::stopSession,
             onRefresh = controller::refreshResources,
@@ -124,6 +134,17 @@ internal fun WorkspaceScreen(
             } else if (sceneEditing == SceneEditingState.Closed) {
                 WorkspaceHint(
                     modifier = Modifier.weight(1f).fillMaxHeight(),
+                )
+            }
+            if (isVersionControlOpen) {
+                VerticalDivider()
+                GitPanel(
+                    modifier = Modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surfaceContainerLow),
+                    state = gitState,
+                    onRefresh = controller.git::refresh,
+                    onStartVersionControl = controller.git::startVersionControl,
+                    onCommit = controller.git::commit,
+                    onDiscard = controller.git::discard,
                 )
             }
         }

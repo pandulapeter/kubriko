@@ -26,6 +26,7 @@
     <string name="new_project_name">Name</string>
     <string name="new_project_package">Package</string>
     <string name="new_project_location">Location</string>
+    <string name="new_project_version_control">Start version control (a git repository with a first commit)</string>
     <string name="new_project_folder">The project will be created in %1$s.</string>
     <string name="creating_project">Creating %1$s… The first project takes a while, as Gradle downloads itself.</string>
     <string name="template_starter_title">Starter</string>
@@ -133,4 +134,23 @@
     <string name="status_git_committed">The changes are committed.</string>
     <string name="status_git_repository_created">The project is now under version control.</string>
     <string name="status_git_failed">The version control operation failed.</string>
+    <string name="git_title">Version control</string>
+    <string name="git_no_repository">This project isn't under version control yet. Start it to save versions of your game you can always go back to.</string>
+    <string name="action_start_version_control">Start version control</string>
+    <string name="git_branch">On branch %1$s</string>
+    <string name="git_changes">Changes (%1$d)</string>
+    <string name="git_no_changes">Everything is committed.</string>
+    <string name="git_commit_message">What did you change?</string>
+    <string name="action_commit">Commit</string>
+    <string name="action_discard_changes">Discard the changes</string>
+    <string name="git_discard_title">Discard the changes to %1$s?</string>
+    <string name="git_discard_message">It goes back to how it was in the last commit. This can't be undone.</string>
+    <string name="action_discard">Discard</string>
+    <string name="git_history">History</string>
+    <string name="git_history_detail">%1$s · %2$s</string>
+    <string name="git_change_added">A</string>
+    <string name="git_change_modified">M</string>
+    <string name="git_change_deleted">D</string>
+    <string name="git_change_conflicting">!</string>
+    <string name="action_toggle_version_control">Version control</string>
 </resources>

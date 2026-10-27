@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.template
 
 import com.pandulapeter.kubrikoCreator.CreatorConfiguration
+import com.pandulapeter.kubrikoCreator.git.JGitRepository
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_project_folder_not_empty
 import kubriko.creator.generated.resources.error_project_not_created
@@ -21,6 +22,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class ProjectGeneratorTest {
@@ -34,10 +36,12 @@ class ProjectGeneratorTest {
         TemplateFile("src/__PACKAGE__/Game.kt", "package {{PACKAGE}} // {{PROJECT_NAME}}, Kubriko {{KUBRIKO_VERSION}}, Kotlin {{KOTLIN_VERSION}}, Compose {{COMPOSE_VERSION}}"),
     )
 
+    private val versionControlStarts = mutableListOf<Pair<File, String>>()
+
     private fun generator(
         configuration: CreatorConfiguration = this.configuration,
         wrapperInstaller: WrapperInstaller = WrapperInstaller { directory, version -> wrapperInstallations += directory to version },
-    ) = ProjectGenerator(configuration, wrapperInstaller, loadTemplate = { template })
+    ) = ProjectGenerator(configuration, wrapperInstaller, loadTemplate = { template }, startVersionControl = { directory, message -> versionControlStarts += directory to message })
 
     @AfterTest
     fun tearDown() {
@@ -104,6 +108,9 @@ class ProjectGeneratorTest {
     @Test
     fun theStarterTemplateGeneratesARunnableLayout() {
         val directory = ProjectGenerator(configuration, wrapperInstaller = { _, _ -> }).create(request)
+        val repository = assertNotNull(JGitRepository.open(directory))
+        assertEquals(listOf(ProjectGenerator.FIRST_COMMIT_MESSAGE), repository.history(10).map { it.message })
+        assertTrue(repository.status().changes.isEmpty(), repository.status().changes.toString())
         listOf(
             "settings.gradle.kts",
             "build.gradle.kts",
@@ -121,5 +128,18 @@ class ProjectGeneratorTest {
             File(directory, "src/desktopMain/resources/META-INF/services/com.pandulapeter.kubriko.creator.CreatorEntryPoint").readText().trim(),
         )
         assertTrue("kubriko = \"1.0.0\"" in File(directory, "gradle/libs.versions.toml").readText())
+    }
+
+    @Test
+    fun theProjectStartsUnderVersionControlAfterEverythingIsWritten() {
+        val directory = generator(wrapperInstaller = { installed, version -> wrapperInstallations += installed to version }).create(request)
+        assertEquals(listOf(directory to ProjectGenerator.FIRST_COMMIT_MESSAGE), versionControlStarts)
+        assertEquals(1, wrapperInstallations.size)
+    }
+
+    @Test
+    fun versionControlCanBeLeftOut() {
+        generator().create(request.copy(isUnderVersionControl = false))
+        assertTrue(versionControlStarts.isEmpty())
     }
 }

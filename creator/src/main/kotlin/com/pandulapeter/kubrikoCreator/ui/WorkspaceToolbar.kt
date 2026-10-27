@@ -23,6 +23,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,6 +36,8 @@ import kubriko.creator.generated.resources.action_close_project
 import kubriko.creator.generated.resources.action_play
 import kubriko.creator.generated.resources.action_refresh
 import kubriko.creator.generated.resources.action_stop
+import kubriko.creator.generated.resources.action_toggle_version_control
+import kubriko.creator.generated.resources.ic_branch
 import kubriko.creator.generated.resources.ic_close
 import kubriko.creator.generated.resources.ic_play
 import kubriko.creator.generated.resources.ic_refresh
@@ -50,6 +53,9 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun WorkspaceToolbar(
     sessionState: SessionState,
+    branch: String?,
+    isVersionControlOpen: Boolean,
+    onVersionControlToggled: () -> Unit,
     onPlay: () -> Unit,
     onStop: () -> Unit,
     onRefresh: () -> Unit,
@@ -88,6 +94,21 @@ internal fun WorkspaceToolbar(
         )
     }
     Spacer(Modifier.weight(1f))
+    if (isVersionControlOpen) {
+        FilledTonalButton(
+            contentPadding = ToolbarButtonPadding,
+            onClick = onVersionControlToggled,
+        ) {
+            VersionControlLabel(branch)
+        }
+    } else {
+        TextButton(
+            contentPadding = ToolbarButtonPadding,
+            onClick = onVersionControlToggled,
+        ) {
+            VersionControlLabel(branch)
+        }
+    }
     IconActionButton(
         icon = Res.drawable.ic_refresh,
         label = Res.string.action_refresh,
@@ -97,6 +118,21 @@ internal fun WorkspaceToolbar(
         icon = Res.drawable.ic_close,
         label = Res.string.action_close_project,
         onClick = onCloseProject,
+    )
+}
+
+@Composable
+private fun VersionControlLabel(
+    branch: String?,
+) {
+    Icon(
+        modifier = Modifier.size(16.dp),
+        painter = painterResource(Res.drawable.ic_branch),
+        contentDescription = null,
+    )
+    Text(
+        modifier = Modifier.padding(start = 6.dp),
+        text = branch ?: stringResource(Res.string.action_toggle_version_control),
     )
 }
 
