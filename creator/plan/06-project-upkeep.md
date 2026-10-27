@@ -15,7 +15,8 @@ Template files (`Game.kt`, the build files) belong to the user after creation, y
 needed `CollisionManager` in `Game.kt` and the collision plugin in the build). `.kubriko/project.json` records the template version a project
 was created with; when Creator needs something newer, it shows the exact change as a diff, offers to commit first, and applies it only when the
 file still looks like the template produced it, explaining what to add by hand otherwise. A generated `KubrikoWiring.kt` (Managers and Plugins
-from project settings, Scene registry) would shrink what lives in hand-owned files.
+from project settings, Scene registry) would shrink what lives in hand-owned files; Manager types (`02-blocks.md`) bring it first, for
+the Managers they generate, and are the first change to go through this flow.
 
 ## Kubriko versions
 
