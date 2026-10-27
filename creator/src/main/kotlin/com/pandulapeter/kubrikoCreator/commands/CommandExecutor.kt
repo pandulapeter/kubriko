@@ -118,6 +118,7 @@ internal class CommandExecutor(
         return when (command) {
             is ReadCommand -> command.read(context, input)
             is WriteCommand -> execute(Invocation(command, input))
+            is ActionCommand -> command.run(context, input)
         }
     }
 

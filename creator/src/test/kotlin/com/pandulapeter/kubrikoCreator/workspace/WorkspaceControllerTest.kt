@@ -12,6 +12,7 @@ package com.pandulapeter.kubrikoCreator.workspace
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMessage
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionMode
 import com.pandulapeter.kubriko.creatorSession.protocol.SessionProtocol
+import com.pandulapeter.kubrikoCreator.commands.CommandOutcome
 import com.pandulapeter.kubrikoCreator.gradle.GradleBuildEvent
 import com.pandulapeter.kubrikoCreator.project.CreatorProject
 import com.pandulapeter.kubrikoCreator.project.ProjectChange
@@ -20,9 +21,19 @@ import com.pandulapeter.kubrikoCreator.project.ResourceGroup
 import com.pandulapeter.kubrikoCreator.session.SessionInitScript
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import kubriko.creator.generated.resources.Res
 import kubriko.creator.generated.resources.error_actor_type_name_invalid
 import kubriko.creator.generated.resources.error_command_actor_type_missing
@@ -39,6 +50,7 @@ import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -216,6 +228,56 @@ class WorkspaceControllerTest {
         assertTrue(build.currentRun.isCancelled)
         assertEquals(Res.string.status_session_stopped, controller.statuses.last())
         assertEquals(SessionState.Idle, controller.sessionState.value)
+    }
+
+    @Test
+    fun theBuildToolCompilesAndReturnsTheProblemsItReported() = runTest {
+        val controller = createController()
+        val outcome = async { controller.commands.call("build", JsonObject(emptyMap())) }
+        runCurrent()
+        assertEquals(":${SessionInitScript.CLASSPATH_TASK_NAME}", build.currentRun.taskPath)
+        build.currentRun.onEvent(GradleBuildEvent.Problem(message = "Unresolved reference: speed", file = null, line = null, column = null))
+        build.currentRun.finish(isSuccessful = false)
+        val result = assertIs<CommandOutcome.Success>(outcome.await()).result.jsonObject
+        assertEquals(false, result.getValue("isSuccessful").jsonPrimitive.boolean)
+        assertEquals(
+            listOf("Building the project…", "Unresolved reference: speed", "The build failed."),
+            result.getValue("console").jsonArray.map { it.jsonObject.getValue("text").jsonPrimitive.content },
+        )
+    }
+
+    @Test
+    fun thePlayToolPlaysForAWhileOnceTheGameIsUpAndReturnsWhatItLogged() = runTest {
+        val controller = createController()
+        channel.receive(SessionMessage.Log(id = "0", message = "Before", details = null, source = null, timestamp = 0L, importance = "LOW"))
+        val outcome = async { controller.commands.call("play", buildJsonObject { put("seconds", 2) }) }
+        runCurrent()
+        assertEquals(SessionState.Starting(SessionMode.PLAY), controller.sessionState.value)
+        advanceTimeBy(10_000)
+        assertFalse(outcome.isCompleted)
+        channel.receive(SessionMessage.Hello(protocolVersion = SessionProtocol.VERSION, mode = SessionMode.PLAY))
+        channel.receive(SessionMessage.Log(id = "1", message = "Ball bounced", details = null, source = "Game", timestamp = 0L, importance = "LOW"))
+        runCurrent()
+        advanceTimeBy(1_999)
+        assertFalse(outcome.isCompleted)
+        advanceTimeBy(2)
+        val result = assertIs<CommandOutcome.Success>(outcome.await()).result.jsonObject
+        assertEquals(true, result.getValue("hasStarted").jsonPrimitive.boolean)
+        assertEquals(
+            listOf("Building the project…", "Session started.", "Ball bounced", "Session stopped."),
+            result.getValue("console").jsonArray.map { it.jsonObject.getValue("text").jsonPrimitive.content },
+        )
+        assertEquals(SessionState.Idle, controller.sessionState.value)
+    }
+
+    @Test
+    fun thePlayToolReportsAGameThatNeverStarted() = runTest {
+        val controller = createController()
+        val outcome = async { controller.commands.call("play", JsonObject(emptyMap())) }
+        runCurrent()
+        build.currentRun.finish(isSuccessful = false)
+        val result = assertIs<CommandOutcome.Success>(outcome.await()).result.jsonObject
+        assertEquals(false, result.getValue("hasStarted").jsonPrimitive.boolean)
     }
 
     @Test

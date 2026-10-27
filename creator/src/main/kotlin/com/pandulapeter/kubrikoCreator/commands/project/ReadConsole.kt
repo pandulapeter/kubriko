@@ -15,7 +15,6 @@ import com.pandulapeter.kubrikoCreator.commands.Description
 import com.pandulapeter.kubrikoCreator.commands.ReadCommand
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonArray
 
 internal object ReadConsole : ReadCommand<ReadConsole.Input> {
     override val name = "read_console"
@@ -23,7 +22,7 @@ internal object ReadConsole : ReadCommand<ReadConsole.Input> {
         "and the logs of the running game."
     override val inputSerializer = Input.serializer()
 
-    override suspend fun read(context: CommandContext, input: Input) = CommandOutcome.Success(JsonArray(context.console.value.takeLast(input.limit.coerceAtLeast(0)).map { it.toJson() }))
+    override suspend fun read(context: CommandContext, input: Input) = CommandOutcome.Success(context.console.value.takeLast(input.limit.coerceAtLeast(0)).toJsonArray())
 
     @Serializable
     data class Input(

@@ -29,6 +29,7 @@ internal class CommandContext(
     val actorTypes: ActorTypesController?,
     val git: GitController,
     val scenes: SceneStore,
+    val runner: ProjectRunner,
     val ioDispatcher: CoroutineDispatcher,
     val onScenesChanged: (names: Collection<String>) -> Unit,
 )

@@ -56,6 +56,7 @@ internal fun TestScope.commandContext(
     git: GitController = gitController(repository = null),
     rootDirectory: File = createTempDirectory().toFile(),
     console: List<ConsoleEntry> = emptyList(),
+    runner: ProjectRunner = FakeProjectRunner(),
     onScenesChanged: (Collection<String>) -> Unit = {},
 ) = CommandContext(
     project = CreatorProject(rootDirectory = rootDirectory, name = "game", desktopModulePath = ":"),
@@ -63,6 +64,7 @@ internal fun TestScope.commandContext(
     actorTypes = actorTypes,
     git = git,
     scenes = SceneStore(rootDirectory) { emptyList() },
+    runner = runner,
     ioDispatcher = UnconfinedTestDispatcher(testScheduler),
     onScenesChanged = onScenesChanged,
 )

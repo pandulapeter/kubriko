@@ -29,8 +29,10 @@ import com.pandulapeter.kubrikoCreator.commands.actorTypes.SetEventOtherActorTyp
 import com.pandulapeter.kubrikoCreator.commands.git.Commit
 import com.pandulapeter.kubrikoCreator.commands.git.DiscardChanges
 import com.pandulapeter.kubrikoCreator.commands.git.StartVersionControl
+import com.pandulapeter.kubrikoCreator.commands.project.Build
 import com.pandulapeter.kubrikoCreator.commands.project.GetProjectOverview
 import com.pandulapeter.kubrikoCreator.commands.project.GetVersionControlStatus
+import com.pandulapeter.kubrikoCreator.commands.project.Play
 import com.pandulapeter.kubrikoCreator.commands.project.ReadConsole
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.commands.scenes.DeleteScene
@@ -78,6 +80,8 @@ internal class CommandRegistry(
                 ReadScene,
                 ReadConsole,
                 GetVersionControlStatus,
+                Build,
+                Play,
                 CreateActorType,
                 RenameActorType,
                 DeleteActorType,

@@ -17,6 +17,7 @@ import com.pandulapeter.kubrikoCreator.actors.ActorTypeRepository
 import com.pandulapeter.kubrikoCreator.commands.CommandContext
 import com.pandulapeter.kubrikoCreator.commands.CommandExecutor
 import com.pandulapeter.kubrikoCreator.commands.Invocation
+import com.pandulapeter.kubrikoCreator.commands.ProjectRunner
 import com.pandulapeter.kubrikoCreator.commands.actorTypes.CreateActorType
 import com.pandulapeter.kubrikoCreator.commands.scenes.CreateScene
 import com.pandulapeter.kubrikoCreator.git.GitController
@@ -39,8 +40,14 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -54,6 +61,8 @@ import kubriko.creator.generated.resources.status_session_stopped
 import kubriko.creator.generated.resources.status_unsupported_protocol
 import org.jetbrains.compose.resources.StringResource
 import java.io.File
+import java.util.Collections
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -81,6 +90,7 @@ internal class WorkspaceController(
     private val _sessionState = MutableStateFlow<SessionState>(SessionState.Idle)
     val sessionState = _sessionState.asStateFlow()
     private var sessionJob: Job? = null
+    private val consoleRecordings = CopyOnWriteArrayList<MutableList<ConsoleEntry>>()
 
     /**
      * The Scene shown in Kubriko Creator's own window. Declared before [actorTypes], whose changes it hears about.
@@ -153,6 +163,7 @@ internal class WorkspaceController(
             actorTypes = actorTypes,
             git = git,
             scenes = SceneStore(project.rootDirectory) { _resources.value[ResourceGroup.SCENES].orEmpty() },
+            runner = Runner(),
             ioDispatcher = ioDispatcher,
             onScenesChanged = { names ->
                 refreshResources()
@@ -292,7 +303,61 @@ internal class WorkspaceController(
         },
     )
 
-    private fun appendToConsole(entry: ConsoleEntry) = _console.update { (it + entry).takeLast(CONSOLE_SIZE) }
+    private fun appendToConsole(entry: ConsoleEntry) {
+        _console.update { (it + entry).takeLast(CONSOLE_SIZE) }
+        consoleRecordings.forEach { it += entry }
+    }
+
+    /**
+     * Builds and plays the project for the AI's action tools.
+     */
+    private inner class Runner : ProjectRunner {
+
+        override suspend fun build() = recordConsole {
+            val classpathFile = withContext(ioDispatcher) { File.createTempFile("kubriko-creator-classpath", ".txt") }
+            try {
+                runCreatorTask(
+                    taskName = SessionInitScript.CLASSPATH_TASK_NAME,
+                    properties = mapOf("kubrikoCreatorMode" to "classpath", "kubrikoCreatorClasspathFile" to classpathFile.absolutePath),
+                )
+            } finally {
+                withContext(ioDispatcher) { classpathFile.delete() }
+            }
+        }
+
+        override suspend fun play(durationInMilliseconds: Long) = recordConsole {
+            sessionJob?.let { previous ->
+                stopSession()
+                previous.join()
+            }
+            play()
+            val session = checkNotNull(sessionJob)
+            val hasStarted = merge(
+                _sessionState.filterIsInstance<SessionState.Running>().map { true },
+                flow {
+                    session.join()
+                    emit(false)
+                },
+            ).first()
+            if (hasStarted) {
+                delay(durationInMilliseconds)
+                stopSession()
+                session.join()
+            }
+            hasStarted
+        }
+
+        private suspend fun recordConsole(action: suspend () -> Boolean): ProjectRunner.RunResult {
+            val recording = Collections.synchronizedList(mutableListOf<ConsoleEntry>())
+            consoleRecordings += recording
+            return try {
+                val isSuccessful = action()
+                ProjectRunner.RunResult(isSuccessful, synchronized(recording) { recording.toList() })
+            } finally {
+                consoleRecordings.removeIf { it === recording }
+            }
+        }
+    }
 
     override fun close() {
         watching.close()

@@ -10,9 +10,12 @@
 package com.pandulapeter.kubrikoCreator.commands.project
 
 import com.pandulapeter.kubrikoCreator.workspace.ConsoleEntry
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.jetbrains.compose.resources.getString
+
+internal suspend fun List<ConsoleEntry>.toJsonArray() = JsonArray(map { it.toJson() })
 
 /**
  * A console entry as the AI reads it: what kind of line it is, and its text.

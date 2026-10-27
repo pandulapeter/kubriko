@@ -12,7 +12,7 @@ package com.pandulapeter.kubrikoCreator.commands
 import kotlinx.serialization.KSerializer
 
 /**
- * One operation of the editor. Every command is registered in [CommandRegistry], which the user interface, undo and
+ * One operation of the editor: a [ReadCommand], a [WriteCommand], or an [ActionCommand]. Every command is registered in [CommandRegistry], which the user interface, undo and
  * redo, and the AI tool list all go through, so the AI can do exactly what the user can.
  *
  * @param I The command's input, a serializable class whose properties carry a [Description] each. Its JSON schema is
