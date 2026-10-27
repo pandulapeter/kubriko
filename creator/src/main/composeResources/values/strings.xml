@@ -130,4 +130,7 @@
     <string name="event_none_selected">Add an Event, or select one, to see its Blocks.</string>
     <string name="block_palette">Blocks</string>
     <string name="block_palette_hint">Select an Event to add Blocks to it.</string>
+    <string name="status_git_committed">The changes are committed.</string>
+    <string name="status_git_repository_created">The project is now under version control.</string>
+    <string name="status_git_failed">The version control operation failed.</string>
 </resources>

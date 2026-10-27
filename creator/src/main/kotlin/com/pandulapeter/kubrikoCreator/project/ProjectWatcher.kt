@@ -61,7 +61,7 @@ internal class ProjectWatcher(
                 .forEach { file ->
                     val path = file.relativeTo(rootDirectory).invariantSeparatorsPath
                     val area = areaOf(path) ?: return@forEach
-                    hashes[area] = 31 * hashes.getValue(area) + (path.hashCode() xor file.lastModified().hashCode() xor file.length().hashCode())
+                    hashes[area] = 31 * (31 * (31 * hashes.getValue(area) + path.hashCode()) + file.lastModified().hashCode()) + file.length().hashCode()
                 }
             return hashes
         }
