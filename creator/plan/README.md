@@ -14,8 +14,8 @@ has a file of its own, so a session only needs the one it works on.
 
 ## Roadmap, in order
 
-1. [AI assistant](01-ai-assistant.md) - next. The command registry (done) exposed to Claude as tools: MCP first, then an in-app panel with the
-   user's API key. **Every new editor feature lands with its command, its AI tool, and their tests.**
+1. [AI assistant](01-ai-assistant.md) - next. The command registry and its MCP server exist; next is trying them with Claude Code, then an
+   in-app panel with the user's API key. **Every new editor feature lands with its command, its AI tool, and their tests.**
 2. [Blocks and Actor types](02-blocks.md) - Properties, Timers, on-screen text, sprites, and the rest of the Block set; the Paddle game
    template; Convert to code; drag-and-drop.
 3. [Version control](03-git.md) - sidebar change markers, restoring old versions, branches, remotes.

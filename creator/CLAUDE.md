@@ -60,20 +60,33 @@ from it, each input schema from the input class's serial descriptor (`JsonSchema
   Actor type renames its Actors in every Scene. A command that changes the open Scene marks it outdated (or closes it if deleted).
   Changes made inside the embedded Scene editor are the library tool's own and don't go through commands.
 
+## AI connection (MCP)
+
+`mcp/McpToolServer` serves `CommandRegistry.editor.tools` as MCP tools over Streamable HTTP (Ktor CIO, the official Kotlin MCP SDK)
+on `127.0.0.1:<port>/mcp`. Every request needs `Authorization: Bearer <token>` (compared in constant time); the SDK's DNS
+rebinding protection limits hosts to localhost. Tool calls run `CommandExecutor.call` of the open project on the main dispatcher,
+so AI changes enter the same undo history; text results are JSON, rejections are `isError` results in the user's words, and
+every call is logged. Read tools are marked read-only, `WriteCommand.isDestructive` ones destructive. `McpController` (app-level,
+created in `main`) keeps `McpSettings` (off by default, port 7781, a random token) in `mcp.json` in the settings folder and
+restarts the server when they change; a taken port shows as `Failed`. The AI connection panel (toolbar) turns it on, sets the
+port, copies or replaces the token, shows the `claude mcp add` command, and lists the calls. Tests talk to a real server on
+localhost through the SDK's client.
+
 ## Packages (`com.pandulapeter.kubrikoCreator`)
 
 | Package | What it holds |
 |---|---|
-| (root) | `AppController` (screens, creating/opening/closing projects, recent projects), `CreatorConfiguration` (bundled versions). |
+| (root) | `AppController` (screens, creating/opening/closing projects, recent projects), `CreatorConfiguration` (bundled versions), `settingsDirectory`. |
 | `project` | Gradle inspection (`ProjectInspector`, `ModuleNode`), `ResourceScanner` (sidebar groups), `ProjectWatcher` (1 s fingerprint poll of `.kubriko/actors`, Scenes, and sources, excluding generated code). |
 | `actors` | The Block model: `ActorTypeDefinition` / `EventDefinition` / `BlockDefinition` (JSON in `.kubriko/actors`, hex colors, no empty fields, `@Description`s that the tool schemas and the Block catalog carry), `BlockKind` (palette + which Events allow a Block), pure edits (`ActorTypeEdits.kt`), `ActorTypeCodeGenerator`, `GeneratedFile` (checksummed header), `ActorTypeStore` (saving regenerates every type; skips hand-edited files and reports them). |
 | `commands`, `commands/actorTypes`, `commands/scenes`, `commands/git`, `commands/project` | The command layer (see Commands): one object per command, with its `Input`. |
+| `mcp` | The AI connection (see AI connection): `McpToolServer`, `McpController`, `McpSettingsStore`. |
 | `workspace` | `WorkspaceController` (sessions, console, routing watcher changes, the `CommandExecutor` and the `ProjectRunner` behind build and play), `ActorTypesController` (in-memory edits, ordered background writes, reload from disk unless a write is pending), `GradleWorkspaceOpener`. |
 | `scenes` | `SceneEditingController`, `ProjectClasspath`, `ClassLoaderEntryPointLoader`, `SceneStore` and `SceneDocument` (Scene files by name). |
 | `git` | `JGitRepository` (status, commit all, history, discard, create), `ChangeGrouping` (an Actor type's JSON + generated Kotlin = one change), `GitController`. |
 | `template` | `ProjectGenerator` (renders `resources/templates/<id>/`, listed in `files.txt`, `.template` suffix, `dot-` prefix for dot files; regenerates Actor types; runs Gradle's `wrapper` task; first git commit), naming and form rules. |
 | `recent` | `RecentProjectsStore` (platform settings folder). |
-| `ui`, `ui/actorTypes`, `ui/scenes`, `ui/git`, `ui/components` | Compose UI. The Actor type editor follows GameMaker's object window: appearance, Event column, the selected Event's Blocks, Block palette. |
+| `ui`, `ui/actorTypes`, `ui/scenes`, `ui/git`, `ui/mcp`, `ui/components` | Compose UI. The Actor type editor follows GameMaker's object window: appearance, Event column, the selected Event's Blocks, Block palette. |
 | `window` | JetBrains Runtime title bar the content extends under, and the 0.85 interface scale (both from the user's Campfire app). |
 
 ## Conventions specific to Creator

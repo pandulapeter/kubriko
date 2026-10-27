@@ -16,15 +16,18 @@ The command layer it builds on exists (`../CLAUDE.md` → Commands): every edito
 inverse, undo and redo use them, and `CommandRegistry.editor.tools` is the tool list, with read tools (overview, Block catalog,
 Actor types, Scenes, console, version control) and action tools (build, play).
 
-## Step 1: MCP server
+## The MCP server: what's left
 
-Creator serves its command registry over MCP on localhost (Streamable HTTP, behind a per-session token shown in the UI), so Claude Desktop
-and Claude Code drive the open project with the user's own subscription while Creator shows every change live. Each tool call goes through
-`CommandExecutor.call` on the main dispatcher (the history is confined to it); rejections are resolved to text with `getString`. Verify the
-Kotlin MCP SDK's current API before implementing (`io.modelcontextprotocol:kotlin-sdk-server`, 0.15.0 in October 2026: Ktor-based, Streamable
-HTTP supported, no Ktor engine pulled in, so Creator adds one). Settings: on/off, the port, the token, and a log of every tool call.
+The server and its panel exist (`../CLAUDE.md` → AI connection). Still to do:
 
-## Step 2: in-app assistant panel
+- Try it with a real Claude Code session end to end (`claude mcp add` from the panel), and write down what works and what Claude
+  stumbles on; that feeds the eval set below.
+- Claude Desktop only starts local MCP servers over stdio, so it needs a bridge (such as `mcp-remote`) with the header; verify one
+  and show its config in the panel.
+- Notify clients when the project changes underneath them (`tools/list` is static, but resources or a changed-project hint could
+  save rereads), if sessions show it matters.
+
+## Next: in-app assistant panel
 
 A chat panel next to the editor, behind a small backend interface, so it can talk to Claude in either of two ways:
 
@@ -33,7 +36,7 @@ A chat panel next to the editor, behind a small backend interface, so it can tal
   Windows Credential Manager, and the Linux Secret Service, but its last release is from 2023, so check it still works on current JDKs, or
   use JNA directly; macOS only protects the item from other apps when Creator ships as a signed app bundle with its own runtime).
 - **The user's own Claude Code**, for subscription users, if Anthropic confirms it is allowed (see below): Creator runs the user's installed,
-  unmodified `claude` in headless mode with streamed JSON in and out, pointed at Creator's MCP server (Step 1), and shows its messages in
+  unmodified `claude` in headless mode with streamed JSON in and out, pointed at Creator's MCP server, and shows its messages in
   the panel. The user signs in through Claude Code's own flow; Creator never sees their credentials.
 
 **What the terms allow** (Claude Code's [Legal and compliance](https://code.claude.com/docs/en/legal-and-compliance) page, read
@@ -42,7 +45,7 @@ credentials, and products built on the Agent SDK must use API keys. So Creator c
 SDK (which has no JVM version anyway) doesn't change that. The same page does allow an end user to sign in to the unmodified Claude Code
 binary with their own subscription where a product runs it, but running Claude Code in a product requires agreeing to the Commercial Terms
 of Service. Whether that applies to a free, open-source desktop app running a copy the user installed themselves is unclear: ask Anthropic
-(the page points to sales) before building the second backend. MCP (Step 1) needs no such answer, since the user's own Claude client
+(the page points to sales) before building the second backend. MCP needs no such answer, since the user's own Claude client
 makes the requests.
 
 - Model: Claude Opus 5.5 by default, with a selector (the user pays). Streaming, adaptive thinking, prompt caching on the tool list and the
@@ -53,7 +56,6 @@ makes the requests.
 
 ## Testing
 
-- The MCP transport over real localhost connections.
 - A small eval set of realistic requests ("make the Ball faster", "add a Paddle moved with A and D", "remove Bricks the Ball hits") replayed
   against the tools with recorded model responses, so tool changes are checked without spending tokens; a live run is opt-in, like the
   template integration test.
