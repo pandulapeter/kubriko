@@ -10,6 +10,7 @@
 package com.pandulapeter.kubrikoCreator.ui.git
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -66,13 +67,25 @@ internal fun ChangeRow(
         contentDescription = null,
         tint = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-    Text(
-        modifier = Modifier.weight(1f),
-        text = entry.title,
-        style = MaterialTheme.typography.bodyMedium,
-        maxLines = 1,
-        overflow = TextOverflow.StartEllipsis,
-    )
+    Column(
+        modifier = Modifier.weight(1f).padding(vertical = 2.dp),
+    ) {
+        Text(
+            text = if (entry.isActorType) entry.title else entry.title.substringAfterLast('/'),
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        if (!entry.isActorType && '/' in entry.title) {
+            Text(
+                text = entry.title.substringBeforeLast('/'),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
     IconActionButton(
         icon = Res.drawable.ic_undo,
         label = Res.string.action_discard_changes,

@@ -516,6 +516,9 @@ them, since they refer to each other. Kotlin Blocks now get a scope of their own
 projects add the collision plugin and its Manager. Verified by building a Breakout from Blocks alone (a Ball bouncing off a keyboard-driven
 Paddle and removing Bricks) and playing it.
 
+Later (2026-10-27): the Actor type editor follows GameMaker's object window: the appearance on the left, a column of Events, the selected
+Event's Blocks in the order they run, and a palette of the Blocks that Event can use, added with a click.
+
 Next in Stage 2: Properties (user-defined variables exposed in the Scene editor) with Blocks to change and test them, Timers, a score or
 other on-screen text, sprites as appearance, placing Actor types from inside Creator (the scene editor already offers every Actor type in its
 own window), Convert to code, detecting hand-edited generated files, and drag-and-drop from the Block palette.
@@ -536,6 +539,11 @@ generated code is deterministic too, so diffs show only what changed. Generated 
 **Implementation:** [JGit](https://www.eclipse.org/jgit/) (Eclipse Distribution License, BSD-style, so compatible with MPL-2.0), so nobody has to
 install git first and Windows needs nothing extra. If a `git` executable is found it can be offered for operations JGit handles poorly (large
 repositories, some credential helpers), but nothing requires it.
+
+**Status (2026-10-27):** the local part is in: new projects start as a repository with a first commit (a checkbox on the New project
+screen), a project without one can start version control from the panel, and the panel (opened from the branch button in the toolbar) lists
+the changes grouped by Actor type, commits them, discards them after a confirmation, and shows the history. Change markers in the sidebar,
+restoring old versions, branches, and remotes are still to come.
 
 **Local, first:**
 
