@@ -75,11 +75,22 @@ class PlayCommandHandlerTest {
     }
 
     @Test
+    fun whatAppearsLaterIsWaitedForUntilATimeout() {
+        var checks = 0
+        assertEquals("window", handler.poll(5000) { "window".takeIf { ++checks == 3 } })
+        assertEquals(listOf(20L, 20L, 20L), sleeps)
+        sleeps.clear()
+        assertNull(handler.poll(100) { null })
+        assertEquals(100L, sleeps.sum())
+    }
+
+    @Test
     fun commandsThatCantBeCarriedOutSayWhy() {
         assertEquals(SessionMessage.CommandFailed(1, "There's no key called NOPE."), handler.carryOut(SessionCommand.PressKeys(1, listOf("LEFT", "NOPE"), 100)))
+        assertEquals(emptyList(), sleeps)
         assertEquals(SessionMessage.CommandFailed(2, "The game has no window yet."), handler.carryOut(SessionCommand.PressKeys(2, listOf("LEFT"), 100)))
+        assertEquals(5000L, sleeps.sum())
         assertEquals(SessionMessage.CommandFailed(3, "The game has no window yet."), handler.carryOut(SessionCommand.CaptureScreen(3, 800)))
         assertEquals(SessionMessage.CommandFailed(4, "The game has no window yet."), handler.carryOut(SessionCommand.BringToFront(4)))
-        assertEquals(emptyList(), sleeps)
     }
 }

@@ -92,18 +92,28 @@ internal class PlayCommandHandler(
      */
     internal fun awaitFocus(isFocused: () -> Boolean): Boolean {
         if (isFocused()) return true
-        repeat((FOCUS_TIMEOUT_IN_MILLISECONDS / FOCUS_POLL_INTERVAL_IN_MILLISECONDS).toInt()) {
-            sleep(FOCUS_POLL_INTERVAL_IN_MILLISECONDS)
-            if (isFocused()) {
-                // AWT knows about the focus a frame or two before Compose passes it on to Kubriko's StateManager.
-                sleep(FOCUS_SETTLE_TIME_IN_MILLISECONDS)
-                return true
-            }
-        }
-        return false
+        if (poll(FOCUS_TIMEOUT_IN_MILLISECONDS) { true.takeIf { isFocused() } } == null) return false
+        // AWT knows about the focus a frame or two before Compose passes it on to Kubriko's StateManager.
+        sleep(FOCUS_SETTLE_TIME_IN_MILLISECONDS)
+        return true
     }
 
-    private fun requireWindow() = findWindow() ?: throw CommandException("The game has no window yet.")
+    /**
+     * What [find] finds, checking again every [POLL_INTERVAL_IN_MILLISECONDS] for up to [timeoutInMilliseconds], or null.
+     */
+    internal fun <T : Any> poll(timeoutInMilliseconds: Long, find: () -> T?): T? {
+        repeat((timeoutInMilliseconds / POLL_INTERVAL_IN_MILLISECONDS).toInt()) {
+            sleep(POLL_INTERVAL_IN_MILLISECONDS)
+            find()?.let { return it }
+        }
+        return null
+    }
+
+    /**
+     * The game's window, waiting up to [WINDOW_TIMEOUT_IN_MILLISECONDS] for it, since a session reports that it started
+     * before the game has opened it.
+     */
+    private fun requireWindow() = findWindow() ?: poll(WINDOW_TIMEOUT_IN_MILLISECONDS, findWindow) ?: throw CommandException("The game has no window yet.")
 
     private fun bringToFront(window: Window) {
         if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.APP_REQUEST_FOREGROUND)) {
@@ -146,8 +156,9 @@ internal class PlayCommandHandler(
     private class CommandException(message: String) : Exception(message)
 
     companion object {
+        private const val WINDOW_TIMEOUT_IN_MILLISECONDS = 5000L
         private const val FOCUS_TIMEOUT_IN_MILLISECONDS = 2000L
-        private const val FOCUS_POLL_INTERVAL_IN_MILLISECONDS = 20L
+        private const val POLL_INTERVAL_IN_MILLISECONDS = 20L
         private const val FOCUS_SETTLE_TIME_IN_MILLISECONDS = 100L
 
         /**
