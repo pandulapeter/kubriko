@@ -84,12 +84,4 @@ class RecentProjectsStoreTest {
         store.add(project("first"), "First")
         assertEquals(listOf("First"), store.load().map { it.name })
     }
-
-    @Test
-    fun eachPlatformKeepsSettingsInItsUsualPlace() {
-        assertEquals(File("/Users/me/Library/Application Support/Kubriko Creator"), RecentProjectsStore.settingsDirectory("mac os x", "/Users/me", null, null))
-        assertEquals(File("C:/Users/me/AppData/Roaming", "Kubriko Creator"), RecentProjectsStore.settingsDirectory("windows 11", "C:/Users/me", "C:/Users/me/AppData/Roaming", null))
-        assertEquals(File("/home/me/.config/kubriko-creator"), RecentProjectsStore.settingsDirectory("linux", "/home/me", null, null))
-        assertEquals(File("/xdg/kubriko-creator"), RecentProjectsStore.settingsDirectory("linux", "/home/me", null, "/xdg"))
-    }
 }

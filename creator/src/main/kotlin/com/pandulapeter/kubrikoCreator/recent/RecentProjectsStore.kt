@@ -11,6 +11,7 @@ package com.pandulapeter.kubrikoCreator.recent
 
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ListSerializer
+import com.pandulapeter.kubrikoCreator.settingsDirectory
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.IOException
@@ -72,16 +73,5 @@ internal class RecentProjectsStore(
          * The store in Kubriko Creator's settings folder, where each platform keeps application settings.
          */
         fun default() = RecentProjectsStore(File(settingsDirectory(), "recent-projects.json"))
-
-        internal fun settingsDirectory(
-            operatingSystem: String = System.getProperty("os.name").orEmpty().lowercase(),
-            home: String = System.getProperty("user.home"),
-            appData: String? = System.getenv("APPDATA"),
-            xdgConfigHome: String? = System.getenv("XDG_CONFIG_HOME"),
-        ) = when {
-            "mac" in operatingSystem -> File(home, "Library/Application Support/Kubriko Creator")
-            "windows" in operatingSystem -> File(appData ?: "$home/AppData/Roaming", "Kubriko Creator")
-            else -> File(xdgConfigHome ?: "$home/.config", "kubriko-creator")
-        }
     }
 }
