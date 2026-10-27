@@ -28,10 +28,11 @@ step-by-step view of the AI's work (activity bar, follow mode, highlights) exist
   42 turns, 3 minutes, and $1.06. A and D went through the tools; for the rest there are no Blocks yet (key released, score, on-screen
   text: `02-blocks.md`), so it hand-wrote a Manager and edited `Game.kt` with its own file tools, and said so. What it revealed was fixed:
   the edge Event ran on every frame an Actor rested at the edge, the first key press after another app had taken the focus was lost, and
-  internal errors reached the model as a bare class name. Still to do: a Codex run; watching the activity view pace those bursts of calls
-  in the window; and whether the server's instructions should ask the model to stop and say what's missing rather than write code by
-  hand when a request goes beyond the Blocks (the user can't, so principle 6 suggests it). The Gemini CLI commands come from its
-  documentation and haven't been run yet.
+  internal errors reached the model as a bare class name. The server's instructions now ask for every change to go through the tools,
+  using a Kotlin Block when no Block fits and otherwise saying what's missing; the same request then took 34 turns and $0.91 with no file
+  written by hand. It still read Kubriko's sources jars with its own shell to find the API for those Kotlin Blocks, so a read tool with
+  Kubriko's API (the root `CLAUDE.md`'s overview, or KDoc for a named class) would save turns. Still to do: a Codex run, and watching the
+  activity view pace those bursts of calls in the window. The Gemini CLI commands come from its documentation and haven't been run yet.
 - Claude Desktop and Cursor keep their MCP servers in JSON files rather than behind a CLI, and Claude Desktop only starts local
   servers over stdio (so it needs a bridge such as `mcp-remote`): add them as file-based `AiClient`s once verified.
 - The game tools see the game through screenshots and logs. Reading Actors' positions and states directly needs a way into the

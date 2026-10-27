@@ -171,8 +171,12 @@ internal class McpToolServer(
             Kubriko Creator edits games made with Kubriko, a 2D game engine for Kotlin. Actor types are built from Events
             (when something happens) and Blocks (what happens then), and Kubriko Creator generates Kotlin from them.
             Scenes place Actors of those types. Start with get_project_overview and get_block_catalog. Every change shows
-            up in Kubriko Creator right away and can be undone there. Changes reach the game through a build: use play to
-            try them, and read_console for what the game logged.
+            up in Kubriko Creator right away and can be undone there. Changes reach the game through a build: try them with
+            start_game, press_keys, take_screenshot, and stop_game, and use read_console for what the game logged. Make
+            every change through these tools, never by editing the project's files in other ways: Kubriko Creator owns the
+            generated code, and the user can't see or undo such edits in it. When a request needs something no Event or
+            Block offers, a Kotlin Block can run a short snippet inside an Event; when even that isn't enough, do what the
+            tools allow and tell the user what is missing, rather than writing Kotlin files.
         """.trimIndent().replace("\n", " ")
     }
 }

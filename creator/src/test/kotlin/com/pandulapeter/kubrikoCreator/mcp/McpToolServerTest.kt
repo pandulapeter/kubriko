@@ -40,6 +40,7 @@ import kotlinx.serialization.json.jsonObject
 import java.util.Base64
 import kotlin.test.AfterTest
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -84,6 +85,14 @@ class McpToolServerTest {
         assertEquals(true, tools.single { it.name == "read_scene" }.annotations?.readOnlyHint)
         assertEquals(listOf("paths"), discard.inputSchema.required)
         assertTrue("paths" in discard.inputSchema.properties.orEmpty())
+    }
+
+    @Test
+    fun clientsAreAskedToChangeTheProjectOnlyThroughTheTools() = runTest {
+        val port = start(executor = null)
+        val instructions = connected(port) { serverInstructions }.orEmpty()
+        assertContains(instructions, "Make every change through these tools")
+        assertContains(instructions, "tell the user what is missing")
     }
 
     @Test
